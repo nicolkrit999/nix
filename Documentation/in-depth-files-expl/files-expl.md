@@ -84,6 +84,46 @@
     - [2. Universal Keyboard Layout](#2-universal-keyboard-layout)
     - [3. User \& Host Identity](#3-user--host-identity)
   - [The Code](#the-code-13)
+- [~nixOS/nixos/modules/boot.nix](#nixosnixosmodulesbootnix)
+  - [Key Concepts](#key-concepts-14)
+    - [1. GRUB vs. systemd-boot](#1-grub-vs-systemd-boot)
+    - [2. Dual Boot Support (`os-prober`)](#2-dual-boot-support-os-prober)
+    - [3. UEFI Accessibility](#3-uefi-accessibility)
+  - [The Code](#the-code-14)
+- [~nixOS/nixos/modules/env.nix](#nixosnixosmodulesenvnix)
+  - [Key Concepts](#key-concepts-15)
+    - [1. Dynamic Defaults](#1-dynamic-defaults)
+    - [2. Path Injection](#2-path-injection)
+  - [The Code](#the-code-15)
+- [~nixOS/nixos/modules/guest.nix](#nixosnixosmodulesguestnix)
+  - [Key Concepts](#key-concepts-16)
+    - [1. Ephemeral Home (`tmpfs`)](#1-ephemeral-home-tmpfs)
+    - [2. Forced Desktop Environment (XFCE)](#2-forced-desktop-environment-xfce)
+    - [3. Security Hardening](#3-security-hardening)
+    - [4. User Warning](#4-user-warning)
+  - [The Code](#the-code-16)
+- [~nixOS/home-manager/modules/mime.nix](#nixoshome-managermodulesmimenix)
+  - [Key Concepts](#key-concepts-17)
+    - [1. `inode/directory`](#1-inodedirectory)
+    - [2. ⚠️ Loose Linking (What happens if Dolphin is missing?)](#2-️-loose-linking-what-happens-if-dolphin-is-missing)
+  - [The Code](#the-code-17)
+- [~nixOS/nixos/modules/nix.nix](#nixosnixosmodulesnixnix)
+  - [Key Concepts](#key-concepts-18)
+    - [1. Enabling Flakes](#1-enabling-flakes)
+    - [2. Binary Caching (Speed)](#2-binary-caching-speed)
+    - [3. Automatic Garbage Collection](#3-automatic-garbage-collection)
+  - [The Code](#the-code-18)
+- [~nixOS/nixos/modules/sddm.nix](#nixosnixosmodulessddmnix)
+  - [Key Concepts](#key-concepts-19)
+    - [1. The "Astronaut" Theme](#1-the-astronaut-theme)
+    - [2. X11 Backend for Stability](#2-x11-backend-for-stability)
+    - [3. UWSM Integration](#3-uwsm-integration)
+  - [The Code](#the-code-19)
+- [~nixOS/nixos/modules/user.nix](#nixosnixosmodulesusernix)
+  - [Key Concepts](#key-concepts-20)
+    - [1. The "Safety Net" (Why configure groups twice?)](#1-the-safety-net-why-configure-groups-twice)
+    - [2. Global Shell Enforcement](#2-global-shell-enforcement)
+  - [The Code](#the-code-20)
 
 
 # ~nixOS/flake.nix
@@ -2425,10 +2465,6 @@ This file consumes the variables passed from `flake.nix` (like `user`, `hostname
   hostname,
   keyboardLayout,
   keyboardVariant,
-  wallpapers,
-  zramPercent,
-  tailscale,
-  guest,
   ...
 }:
 
@@ -2550,7 +2586,588 @@ This file consumes the variables passed from `flake.nix` (like `user`, `hostname
   # Defines the state version dynamically based on flake.nix input
   system.stateVersion = stateVersion;
 }
-
 ```
 
+# ~nixOS/nixos/modules/boot.nix
+
+This file handles the **Bootloader configuration**. It determines what you see when you first turn on your computer and how the operating system loads.
+
+While NixOS defaults to `systemd-boot` for modern UEFI systems, this module explicitly switches to **GRUB**.
+
+---
+
+## Key Concepts
+
+### 1. GRUB vs. systemd-boot
+
+By default, NixOS uses `systemd-boot` because it is simple and fast. However, we force it off (`lib.mkForce false`) and enable **GRUB** instead.
+
+* **Why?** GRUB is generally better at detecting other operating systems (Dual Booting) and offers more customization options for themes and visual styles.
+
+### 2. Dual Boot Support (`os-prober`)
+
+We enable `useOSProber = true`. This tells GRUB to scan your hard drives for other operating systems (like Windows or another Linux distro) and automatically add them to the boot menu. This is essential for dual-boot setups.
+
+### 3. UEFI Accessibility
+
+We add a custom menu entry called **"UEFI Firmware Settings"**.
+
+* **The Benefit:** This allows you to reboot directly into your BIOS/UEFI settings from the boot menu, without needing to spam a certain key on the keyboard.
+
+---
+
+## The Code
+
+```nix
+{ pkgs, lib, ... }:
+{
+  boot.loader = {
+    # ⏳ TIMEOUT
+    # Gives you 30 seconds to choose an OS before booting the first one in the list
+    timeout = 30;
+
+    # 🔧 EFI SETTINGS
+    # Allows NixOS to modify EFI variables (needed to register the bootloader)
+    efi.canTouchEfiVariables = true;
+
+    # 🚫 DISABLE SYSTEMD-BOOT
+    # We force this off to prevent conflicts with GRUB
+    systemd-boot.enable = lib.mkForce false;
+
+    # grub 🐌 ENABLE GRUB
+    grub = {
+      enable = lib.mkForce true;
+      
+      # 'nodev' is the standard value for UEFI systems 
+      # (GRUB doesn't install to the MBR of a specific device like /dev/sda)
+      device = "nodev";
+      
+      efiSupport = true;
+      
+      # 🕵️ DUAL BOOT
+      # Scans for Windows/other Linux installs
+      useOSProber = true;
+      
+      # Ensures the boot entry is named cleanly in your BIOS
+      extraGrubInstallArgs = [ "--bootloader-id=nixos" ];
+
+      # 🛠️ EXTRA MENU ENTRIES
+      # Adds a button to reboot into BIOS
+      extraEntries = ''
+        menuentry "UEFI Firmware Settings" {
+          fwsetup
+        }
+      '';
+    };
+  };
+}
+```
+
+
+# ~nixOS/nixos/modules/env.nix
+
+This file defines global **Environment Variables** that are available to all users and processes on the system. It ensures that your preferred tools (like your terminal and editor) are recognized as defaults by the operating system and other applications.
+
+---
+
+## Key Concepts
+
+### 1. Dynamic Defaults
+
+Instead of hardcoding "kitty" or "alacritty", this module uses the `term` variable passed from `variables.nix`.
+
+* **Benefit:** If you decide to switch your main terminal in `variables.nix`, the system-wide default (`$TERMINAL`) updates automatically, ensuring scripts that launch terminals (like file manager "Open in Terminal" actions) use the correct one.
+
+### 2. Path Injection
+
+We define `XDG_BIN_HOME` and add it to the system `PATH`.
+
+* **Benefit:** This allows you to place personal scripts or binaries in `~/.local/bin` and run them from anywhere in the terminal, just like standard system commands (`ls`, `cd`, `grep`).
+
+---
+
+## The Code
+
+```nix
+{ term, ... }:
+{
+  environment.sessionVariables = rec {
+    
+    # 🖥️ DEFAULT TERMINAL
+    # Sets the preferred terminal emulator (dynamically pulled from variables.nix)
+    # Used by apps like Ranger or scripts that need to spawn a terminal window.
+    TERMINAL = term;
+
+    # 📝 DEFAULT EDITOR
+    # Sets Neovim as the default text editor for things like 'git commit',
+    # 'sudoedit', or editing config files.
+    EDITOR = "nvim";
+
+    # 📂 CUSTOM BINARY PATH
+    # Defines a standard location for user-specific executable scripts.
+    XDG_BIN_HOME = "$HOME/.local/bin";
+
+    # 🛣️ PATH EXPANSION
+    # Appends the custom bin directory to the global PATH.
+    # This allows you to run your scripts located in ~/.local/bin directly.
+    PATH = [
+      "${XDG_BIN_HOME}"
+    ];
+  };
+}
+```
+
+
+# ~nixOS/nixos/modules/guest.nix
+
+This module implements a fully isolated, ephemeral **Guest Mode**. When enabled (via `guest = true` in `variables.nix`), it creates a specialized user account intended for temporary use by friends or family.
+
+Unlike standard user accounts, the Guest account is designed to be **stateless** and **secure**.
+
+---
+
+## Key Concepts
+
+### 1. Ephemeral Home (`tmpfs`)
+
+The most critical feature of this module is how it handles the guest's home directory.
+
+* **The Mechanism:** Instead of a physical disk partition, `/home/guest` is mounted as a `tmpfs` (RAM disk).
+* **The Result:** All files downloaded, cookies saved, or settings changed during the session exist **only in RAM**. As soon as the computer reboots (or the user logs out, effectively), everything is instantly and permanently wiped.
+
+### 2. Forced Desktop Environment (XFCE)
+
+While the main user might use complex environments like Hyprland or KDE, the Guest account is forced to use **XFCE**.
+
+* **Why XFCE?** It is familiar (Windows-like taskbar), lightweight, and stable. It ensures a guest doesn't get confused by tiling window managers.
+* **Implementation:** We use `systemd.tmpfiles.rules` to write directly to the `AccountsService` database, forcing the display manager to select `xfce` automatically when the guest logs in.
+
+### 3. Security Hardening
+
+Since a guest is an untrusted user, we apply strict limits:
+
+* **Network Isolation:** If Tailscale (VPN) is active, firewall rules explicitly block the guest from accessing private tailnet IP addresses.
+* **Polkit Restrictions:** Custom rules prevent the guest from mounting internal hard drives (protecting your data) or suspending/hibernating the machine.
+* **Anti-Lockout:** We modify XFCE's kiosk settings (`kioskrc`) to disable "Switch User". This forces a full logout, ensuring the guest session (and its data) is cleared before you log back in.
+
+### 4. User Warning
+
+A custom script (`guest-warning`) runs on login using `zenity`. It displays a bilingual (English/Italian) popup warning the user that "This is a temporary session" and that all files will be deleted upon restart.
+
+---
+
+## The Code
+
+```nix
+{
+  config,
+  pkgs,
+  lib,
+  guest,
+  ...
+}:
+
+let
+  guestUid = 2000;
+
+  # 1. WARNING SCRIPT
+  # A simple shell script that creates a GUI popup using Zenity.
+  guestWarningScript = pkgs.writeShellScriptBin "guest-warning" ''
+    # Safety checks: Only run for the guest user in the XFCE environment
+    if [ "$USER" != "guest" ]; then exit 0; fi
+    if [[ "$XDG_CURRENT_DESKTOP" != *"XFCE"* ]]; then exit 0; fi
+
+    sleep 3
+    
+    # Display the warning dialog
+    ${pkgs.zenity}/bin/zenity --warning \
+      --title="Guest Mode / Modalità ospite" \
+      --text="<span size='large' weight='bold'>⚠️  Warning: Temporary Session</span>\n\nThis is a guest session.\nAll files, downloads, and settings will be \n<span color='red'>PERMANENTLY DELETED</span> when you restart the computer.\n\n──────────────────────────────\n\n<span size='large' weight='bold'>⚠️  Attenzione: Sessione temporanea</span>\n\nQuesta è una sessione ospite.\nTutti i file, download e impostazioni VERRANNNO <span color='red'>CANCELLATI PERMANENTEMENTE</span> al riavvio del computer." \
+      --width=500
+  '';
+in
+{
+  # Only enable this configuration if 'guest = true' in variables.nix
+  config = lib.mkIf guest {
+
+    # ---------------------------------------------------------
+    # 👤 USER ACCOUNT
+    # ---------------------------------------------------------
+    users.users.guest = {
+      isNormalUser = true;
+      description = "Guest Account";
+      uid = guestUid;
+      group = "guest";
+      extraGroups = [
+        "networkmanager"
+        "audio"
+        "video"
+      ];
+      # Pre-hashed password (usually simple, e.g., "guest" or empty)
+      hashedPassword = "$6$Cqklpmh3CX0Cix4Y$OCx6/ud5bn72K.qQ3aSjlYWX6Yqh9XwrQHSR1GnaPRud6W4KcyU9c3eh6Oqn7bjW3O60oEYti894sqVUE1e1O0";
+      createHome = true;
+      shell = pkgs.bash;
+    };
+
+    users.groups.guest = {
+      gid = guestUid;
+    };
+
+    # ---------------------------------------------------------
+    # 🛡️ SECURITY & SESSION RULES
+    # ---------------------------------------------------------
+    
+    # 🚫 DISABLE "SWITCH USER"
+    # Prevents leaving the guest session active in the background.
+    # Forces the user to Log Out, which is cleaner for a temporary session.
+    environment.etc."xdg/xfce4/kiosk/kioskrc".text = ''
+      [xfce4-session]
+      SwitchUser=root
+      SaveSession=NONE
+    '';
+
+    # 🧹 EPHEMERAL HOME (RAM DISK)
+    # Mounts /home/guest as a tmpfs.
+    # Data is stored in RAM and vanishes on power loss/reboot.
+    fileSystems."/home/guest" = {
+      device = "none";
+      fsType = "tmpfs";
+      options = [
+        "size=25%" # Limit to 25% of total system RAM
+        "mode=700" # Only guest can read/write
+        "uid=${toString guestUid}"
+        "gid=${toString guestUid}"
+      ];
+    };
+
+    # ---------------------------------------------------------
+    # 🖥️ DESKTOP ENVIRONMENT (XFCE)
+    # ---------------------------------------------------------
+    services.xserver.enable = true;
+    services.xserver.desktopManager.xfce.enable = true;
+
+    # 🎯 FORCE XFCE DEFAULT
+    # Uses AccountsService to tell the Display Manager:
+    # "When user 'guest' logs in, ALWAYS use the 'xfce' session."
+    systemd.tmpfiles.rules = [
+      "d /var/lib/AccountsService/users 0755 root root -"
+      "f /var/lib/AccountsService/users/guest 0644 root root - [User]\\nSession=xfce\\n"
+    ];
+
+    # 📦 GUEST PACKAGES
+    # A minimal set of tools for a guest user.
+    environment.systemPackages = with pkgs;
+    [
+      (google-chrome.override {
+        # Ensure Chrome starts fresh every time
+        commandLineArgs = "--no-first-run --no-default-browser-check";
+      })
+      nemo          # File Manager
+      eog           # Image Viewer
+      file-roller   # Archive Manager
+      gnome-calculator
+      zenity        # Required for the warning script
+    ];
+
+    # ⚠️ AUTOSTART WARNING
+    # Creates an XDG autostart entry to launch the warning script on login.
+    environment.etc."xdg/autostart/guest-warning.desktop".text = ''
+      [Desktop Entry]
+      Name=Guest Warning
+      Exec=${guestWarningScript}/bin/guest-warning
+      Type=Application
+      Terminal=false
+      OnlyShowIn=XFCE;
+    '';
+
+    # ---------------------------------------------------------
+    # 🚧 NETWORK & HARDWARE RESTRICTIONS
+    # ---------------------------------------------------------
+
+    # 🛡️ FIREWALL (Tailscale Isolation)
+    # Prevents the guest from accessing your private VPN network.
+    networking.firewall.extraCommands = lib.mkIf config.services.tailscale.enable ''
+      iptables -A OUTPUT -m owner --uid-owner ${toString guestUid} -o tailscale0 -j REJECT
+      iptables -A OUTPUT -m owner --uid-owner ${toString guestUid} -d 100.64.0.0/10 -j REJECT
+    '';
+
+    # 🔒 POLKIT RULES
+    # 1. Prevent mounting internal system drives (udisks2)
+    # 2. Prevent suspending or hibernating the machine
+    security.polkit.extraConfig = ''
+      polkit.addRule(function(action, subject) {
+        if (subject.user == "guest") {
+          if (action.id.indexOf("org.freedesktop.udisks2.filesystem-mount-system") == 0) {
+            return polkit.Result.NO;
+          }
+          if (action.id.indexOf("org.freedesktop.login1.suspend") == 0 ||
+              action.id.indexOf("org.freedesktop.login1.hibernate") == 0) {
+            return polkit.Result.NO;
+          }
+        }
+      });
+    '';
+
+    # ⚖️ RESOURCE LIMITS
+    # Prevents the guest from crashing the system by using too much RAM/CPU.
+    systemd.slices."user-${toString guestUid}" = {
+      sliceConfig = {
+        MemoryMax = "4G";
+        CPUWeight = 90;
+      };
+    };
+  };
+}
+```
+
+
+# ~nixOS/home-manager/modules/mime.nix
+
+This file configures **Default Applications** (MIME types) for the user. It controls which program opens when you click a file or a link.
+
+In this specific snippet, it forces the system to use **Dolphin** (KDE's file manager) whenever an application needs to open a directory.
+
+---
+
+## Key Concepts
+
+### 1. `inode/directory`
+
+This is the technical MIME type for "Folders".
+
+* **Usage:** When you click "Open containing folder" in Firefox or download a file, the system checks this setting to decide which file manager to launch.
+* **Setting:** We map it to `org.kde.dolphin.desktop`, which is the internal ID for Dolphin.
+
+### 2. ⚠️ Loose Linking (What happens if Dolphin is missing?)
+
+* **The Build:** The system rebuild will **succeed**. Nix (in this specific context) treats this string as simple text configuration. It does not check if the application actually exists during the build process.
+
+
+* **The Runtime:** When you try to open a folder, the action will **fail**.
+* The system will look for `org.kde.dolphin.desktop`, fail to find it, and either do nothing, show an error, or fall back to a random alternative (like VS Code or a terminal), which is often annoying.
+
+---
+
+## The Code
+
+```nix
+{
+  # -----------------------------------------------------------------------
+  # 📂 FILE ASSOCIATIONS
+  # -----------------------------------------------------------------------
+  xdg.mimeApps.defaultApplications = {
+    # Force Dolphin as the default file manager for directories.
+    # NOTE: Ensure 'dolphin' is installed, otherwise "Open Folder" actions will fail.
+    "inode/directory" = "org.kde.dolphin.desktop";
+  };
+}
+```
+
+# ~nixOS/nixos/modules/nix.nix
+
+This file configures the **Nix package manager** itself. It defines how Nix behaves, how it downloads packages, and how it manages disk space.
+
+---
+
+## Key Concepts
+
+### 1. Enabling Flakes
+
+By default, the modern "Flakes" feature (which this entire configuration relies on) is experimental. We explicitly enable `flakes` and the new `nix-command` CLI tool to make the system work.
+
+### 2. Binary Caching (Speed)
+
+Compiling complex software like **Hyprland** from source code can take a long time on every update.
+
+* **Substituters:** We tell Nix to check `hyprland.cachix.org` before trying to build it locally.
+* **Trusted Keys:** We cryptographically verify that the binaries coming from that server are legitimate.
+* **Result:** Updates take seconds instead of minutes (or hours).
+
+### 3. Automatic Garbage Collection
+
+NixOS keeps every version of your system ever built (boot entries). While useful for rollbacks, this eats up disk space quickly.
+
+* **Policy:** We run the garbage collector **weekly**.
+* **Rule:** Any system generation older than **7 days** is deleted. This strikes a balance between having a safety net and keeping the drive clean.
+
+---
+
+## The Code
+
+```nix
+{
+  # -----------------------------------------------------------------------
+  # ⚙️ NIX PACKAGE MANAGER SETTINGS
+  # -----------------------------------------------------------------------
+
+  nix.settings = {
+    # 🔓 ENABLE FLAKES
+    # Necessary for this configuration structure to work.
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
+
+    # 🚀 BINARY CACHES
+    # Tells Nix to download pre-built binaries for Hyprland instead of 
+    # compiling them from source (which takes forever).
+    substituters = [ "https://hyprland.cachix.org" ];
+    trusted-public-keys = [ "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc=" ];
+  };
+
+  # 🧹 GARBAGE COLLECTION
+  # Automatically cleans up old system generations to save disk space.
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    # Delete generations older than 7 days
+    options = "--delete-older-than 7d";
+  };
+}
+```
+
+# ~nixOS/nixos/modules/sddm.nix
+
+This file configures **SDDM** (Simple Desktop Display Manager), the graphical login screen that appears when you boot the computer. It handles user authentication and session selection.
+
+---
+
+## Key Concepts
+
+### 1. The "Astronaut" Theme
+
+We use the modern **sddm-astronaut** theme (specifically the `jake_the_dog` variant).
+
+**Dependencies:** To ensure the theme renders correctly (with animations and icons), we explicitly inject Qt libraries like `qtsvg`, `qtmultimedia`, and `qtvirtualkeyboard` into SDDM's environment.
+
+
+
+### 2. X11 Backend for Stability
+
+Even though we might be logging into a Wayland session (like Hyprland), the login screen itself is configured to run on **X11** (`wayland.enable = false`).
+
+* **Why?** SDDM's Wayland mode can sometimes be buggy or fail to load themes correctly. Running the login screen on X11 is a "set it and forget it" stability measure that doesn't affect the performance of your actual desktop session.
+
+
+
+### 3. UWSM Integration
+
+If **Hyprland** is enabled, we set the default session to **`hyprland-uwsm`**.
+
+* **Significance:** This tells SDDM to launch Hyprland using the **Universal Wayland Session Manager** (UWSM) rather than the raw binary. This ensures that systemd services, environment variables, and cleanup processes are handled correctly during login and logout.
+
+---
+
+## The Code
+
+```nix
+{
+  pkgs,
+  lib,
+  user,
+  hyprland,
+  ...
+}:
+let
+  # Define the custom theme package
+  sddmTheme = pkgs.sddm-astronaut.override {
+    embeddedTheme = "jake_the_dog";
+  };
+in
+{
+  services.xserver.enable = true;
+
+  services.displayManager.sddm = {
+    enable = true;
+    
+    # 🛑 STABILITY
+    # We force SDDM to run on X11 because it is currently more stable 
+    # and theme-compatible than the Wayland mode.
+    wayland.enable = false;
+
+    # Use the KDE 6 (Qt6) version of SDDM
+    package = lib.mkForce pkgs.kdePackages.sddm;
+    
+    theme = "sddm-astronaut-theme";
+
+    # 📦 DEPENDENCIES
+    # Required for the theme to render SVGs and play animations
+    extraPackages = with pkgs; [
+      kdePackages.qtsvg
+      kdePackages.qtmultimedia
+      kdePackages.qtvirtualkeyboard
+    ];
+  };
+
+  # Install the theme and cursor globally so SDDM can find them
+  environment.systemPackages = [
+    sddmTheme
+    pkgs.bibata-cursors
+  ];
+
+  services.displayManager.autoLogin = {
+    enable = false; # Require password on boot
+    user = user;
+  };
+
+  # 🚀 DEFAULT SESSION
+  # If Hyprland is active, default to the UWSM-wrapped session
+  services.displayManager.defaultSession = lib.mkIf hyprland "hyprland-uwsm";
+
+  # Disable TTY autologin to ensure security
+  services.getty.autologinUser = null;
+}
+```
+
+
+# ~nixOS/nixos/modules/user.nix
+
+This file defines the **Base Layer** for user configuration. It sets the absolute minimum requirements for a usable user account, regardless of which physical machine the system is running on.
+
+---
+
+## Key Concepts
+
+### 1. The "Safety Net" (Why configure groups twice?)
+
+You might notice that `extraGroups` (permissions) are defined here **and** in the machine-specific `configuration.nix`. This is intentional.
+
+* **Fail-Safe Mechanism:** This file acts as a safety net. If you accidentally delete or break the user configuration in your host file, this module ensures your user **always** has:
+* `wheel`: Administrative privileges (`sudo`) to fix the system.
+* `networkmanager`: Internet access to download fixes.
+
+**Merging:** Nix automatically combines these groups with the machine-specific ones (like `docker` or `video`) defined in `configuration.nix`.
+
+
+
+### 2. Global Shell Enforcement
+
+We explicitly set **Zsh** as the default shell for the user account here. This ensures that even if you create a new user or move to a new host, you invariably get the advanced shell features (autosuggestions, syntax highlighting) defined in `modules/zsh.nix` without needing to configure it manually every time.
+
+---
+
+## The Code
+
+```nix
+{ pkgs, user, ... }:
+{
+  programs.zsh.enable = true; # Enable Zsh as a shell
+
+  users = {
+    defaultUserShell = pkgs.zsh; # Sets Zsh as the default shell globally
+
+    users.${user} = {
+      isNormalUser = true; # Marks this account as a regular human user
+
+      # 🛡️ BASE PERMISSIONS (Safety Net)
+      # These ensure that no matter what happens in the host config,
+      # the user can always administer the system and connect to the internet.
+      extraGroups = [
+        "wheel"           # Sudo access
+        "networkmanager"  # Wi-Fi/Ethernet control
+      ];
+    };
+  };
+}
+```
 
