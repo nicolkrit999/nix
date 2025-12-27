@@ -9,6 +9,8 @@
   ...
 }:
 let
+  # 1. PREPARE WALLPAPERS
+  # Converts the list of wallpaper objects into a list of local file paths
   wallpaperFiles = builtins.map (
     wp:
     "${pkgs.fetchurl {
@@ -17,11 +19,17 @@ let
     }}"
   ) wallpapers;
 
+  # 2. DETERMINE POLARITY
+  # Helper to determine if we are in dark or light mode
   polarity = config.stylix.polarity;
 
+  # 3. HELPER FUNCTION
+  # Capitalizes the first letter of a string (mocha -> Mocha)
   capitalize =
     s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
 
+  # 4. CONSTRUCT THEME NAME
+  # Builds the exact theme string required by KDE (e.g., "CatppuccinMochaSky")
   theme =
     if catppuccin then
       "Catppuccin${capitalize catppuccinFlavor}${capitalize catppuccinAccent}"
@@ -30,13 +38,8 @@ let
     else
       "BreezeLight";
 
-  lookAndFeel =
-    if catppuccin then
-      "org.kde.breezedark.desktop"
-    else if polarity == "dark" then
-      "org.kde.breezedark.desktop"
-    else
-      "org.kde.breeze.desktop";
+  # 5. LOOK AND FEEL
+  lookAndFeel = if polarity == "dark" then "org.kde.breezedark.desktop" else "org.kde.breeze.desktop";
 
   cursorTheme = config.stylix.cursor.name;
 in
@@ -44,33 +47,43 @@ in
   programs.plasma = {
     enable = true;
 
+    # FORCE SETTINGS
+    # Ensures these settings overwrite existing config files on every build
     overrideConfig = lib.mkForce true;
 
     workspace = {
-      clickItemTo = "select"; # Require double click to open items
+      clickItemTo = "select"; # Require double-click to open files (Windows-style)
 
       colorScheme = theme;
       lookAndFeel = lookAndFeel;
       cursor.theme = cursorTheme;
+
+      # Passes the list of wallpapers to Plasma Manager
+      # It maps them to monitors sequentially (Monitor 1 -> Wallpaper 1, etc.)
       wallpaper = wallpaperFiles;
     };
 
+    # 6. ADVANCED CONFIG (kdeglobals)
+    # Direct edits to the KDE configuration database
     configFile = {
       "kdeglobals"."KDE"."widgetStyle" = if catppuccin then "kvantum" else "Breeze";
       "kdeglobals"."General"."AccentColor" = if catppuccin then "203,166,247" else null; # Manual mauve fallback
     };
   };
 
-  # Packages that one only want in kde sessions
+  # -----------------------------------------------------------------------
+  # 📦 KDE PACKAGES
+  # -----------------------------------------------------------------------
+  # Apps installed only when KDE is the active desktop
   home.packages = with pkgs.kdePackages; [
     kcalc
     kcolorchooser
-    elisa
-    gwenview
-    okular
-    konsole
+    elisa # Music Player
+    gwenview # Image Viewer
+    okular # PDF Viewer
+    konsole # Terminal
 
-    # Theme packages (necessary)
+    # Theme dependencies
     pkgs.catppuccin-kde
     pkgs.catppuccin-kvantum
   ];
