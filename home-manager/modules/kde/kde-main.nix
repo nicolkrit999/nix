@@ -68,6 +68,10 @@ in
     configFile = {
       "kdeglobals"."KDE"."widgetStyle" = if catppuccin then "kvantum" else "Breeze";
       "kdeglobals"."General"."AccentColor" = if catppuccin then "203,166,247" else null; # Manual mauve fallback
+
+      # Tells KDE to officially use IBus as the Virtual Keyboard/Input Method
+      "kwinrc"."Wayland"."InputMethod" = "org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop";
+      "kwinrc"."Wayland"."VirtualKeyboardEnabled" = true;
     };
   };
 

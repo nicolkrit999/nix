@@ -1014,6 +1014,10 @@ in
     configFile = {
       "kdeglobals"."KDE"."widgetStyle" = if catppuccin then "kvantum" else "Breeze";
       "kdeglobals"."General"."AccentColor" = if catppuccin then "203,166,247" else null; # Manual mauve fallback
+
+      # Tells KDE to officially use IBus as the Virtual Keyboard/Input Method
+      "kwinrc"."Wayland"."InputMethod" = "org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop";
+      "kwinrc"."Wayland"."VirtualKeyboardEnabled" = true;
     };
   };
 
@@ -2955,7 +2959,7 @@ This is the technical MIME type for "Folders".
   # -----------------------------------------------------------------------
   # 📂 FILE ASSOCIATIONS
   # -----------------------------------------------------------------------
-  xdg.mimeApps.defaultApplications = {
+  xdg.mime.defaultApplications = {
     # Force Dolphin as the default file manager for directories.
     # NOTE: Ensure 'dolphin' is installed, otherwise "Open Folder" actions will fail.
     "inode/directory" = "org.kde.dolphin.desktop";
