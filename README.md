@@ -35,6 +35,7 @@
       - [`modules.nix` Example](#modulesnix-example)
     - [7. (optional) Other files that may require manual attention](#7-optional-other-files-that-may-require-manual-attention)
       - [~/nixOS/home-manager/modules/firefox.nix and ~/nixOS/home-manager/modules/chromium.nix](#nixoshome-managermodulesfirefoxnix-and-nixoshome-managermoduleschromiumnix)
+      - [~/nixOS/home-manager/modules/neovim.nix/](#nixoshome-managermodulesneovimnix)
       - [~/nixOS/home-manager/modules/zathura.nix/](#nixoshome-managermoduleszathuranix)
     - [8. (Optional) Customize the host-specific `home.nix`](#8-optional-customize-the-host-specific-homenix)
       - [`home.nix` Example](#homenix-example)
@@ -662,7 +663,8 @@ This file contains specific "Power User" configurations and aesthetic tweaks tha
 | Variable                       | Description                                                                                                           | Fallback (If undefined)                                                           |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | **`hyprlandWorkspaces`**       | Binds specific workspaces to specific monitor ports (e.g., "1 on DP-1").                                              | **Auto-detect:** Workspaces open on the monitor with the mouse cursor.            |
-| **`kdeMice` / `kdeTouchpads**` | Applies strict settings (accel profile, speed) to specific Hardware IDs in KDE.                                       | **Plug & Play:** KDE applies standard default settings to all mice.               |
+| **`hyprlandWindowRules`**      | Binds specific applications to specific workspaces (e.g., "Code opens on workspace 2").                               | **None:** Applications open on the currently focused workspace.                   |
+| **`kdeMice` / `kdeTouchpads`** | Applies strict settings (accel profile, speed) to specific Hardware IDs in KDE.                                       | **Plug & Play:** KDE applies standard default settings to all mice.               |
 | **`waybarWorkspaceIcons`**     | Maps specific workspace numbers to custom icons (e.g., "8" -> "Terminal Icon").                                       | **Numbers:** Waybar simply displays the workspace number (1, 2, 3...).            |
 | **`waybarLayoutFlags`**        | Replaces keyboard layout text codes with emojis (e.g., "en" -> "🇺🇸").                                                  | **Text Codes:** Waybar displays the ISO code (en, it, de).                        |
 | **`starshipZshIntegration`**   | Controls if Starship is auto-loaded in Zsh (`eval "$(starship init zsh)"`). Set to `false` if you manually source it. | **`true` (Enabled):** Starship loads automatically for a standard setup.          |
@@ -692,6 +694,17 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
     "8, monitor:DP-2"
     "9, monitor:DP-2"
     "10, monitor:DP-2"
+  ];
+
+  # Forces specific apps to always open on specific workspaces
+  # To see the right class name, use `hyprctl clients` command and look for "class:"
+  hyprlandWindowRules = [
+    "workspace 2, class:^(code)$"
+    "workspace 7, class:^(chromium-browser)$"
+    "workspace 8, class:^(Alacritty)$"
+    "workspace 8, class:^(kitty)$"
+    "workspace 9, class:^(vesktop)$"
+    "workspace 10, class:^(org.telegram.desktop)$"
   ];
 
   # ---------------------------------------------------------------------------
@@ -740,7 +753,6 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
   # The fallback is false
   nixImpure = true;
 }
-
 ```
 
 
@@ -752,6 +764,21 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
 
 #### ~/nixOS/home-manager/modules/firefox.nix and ~/nixOS/home-manager/modules/chromium.nix
 - They contains personalized aspects like homepage, toolbars visible items, extensions. One may want to change them
+
+
+#### ~/nixOS/home-manager/modules/neovim.nix/
+- It contains my neovim specific behavior
+- To start it is suggested to replace the entire content of the file with a more basic one
+
+```nix
+{ pkgs, ... }: {
+  programs.neovim = {
+    enable = true;
+    extraPackages = with pkgs; [
+    ];
+  };
+}
+```
 
 
 #### ~/nixOS/home-manager/modules/zathura.nix/

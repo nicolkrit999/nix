@@ -7,10 +7,6 @@
   hostname,
   keyboardLayout,
   keyboardVariant,
-  wallpapers,
-  zramPercent,
-  tailscale,
-  guest,
   ...
 }:
 

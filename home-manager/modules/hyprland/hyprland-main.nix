@@ -10,6 +10,7 @@
   catppuccinAccent,
   term,
   hyprlandWorkspaces,
+  hyprlandWindowRules,
   ...
 }:
 {
@@ -136,16 +137,10 @@
         "float,class:(mpv)|(imv)|(showmethekey-gtk)" # Float media viewers and ShowMeTheKey
         "move 990 60,size 900 170,pin,noinitialfocus,class:(showmethekey-gtk)" # Position ShowMeTheKey
         "noborder,nofocus,class:(showmethekey-gtk)" # No border for ShowMeTheKey
+      ]
+      ++ hyprlandWindowRules
 
-        # --- 2. App Assignments (The "Reserved Seating") ---
-        # Forces specific apps to always open on specific workspaces
-        # To see the right class name, use `hyprctl clients` command and look for "class:"
-        "workspace 2, class:^(code)$"
-        "workspace 7, class:^(chromium-browser)$"
-        "workspace 8, class:^(Alacritty)$"
-        "workspace 8, class:^(kitty)$"
-        "workspace 9, class:^(vesktop)$"
-        "workspace 10, class:^(org.telegram.desktop)$"
+      ++ [
 
         # Prevent apps from auto-maximizing themselves
         "suppressevent maximize, class:.*"

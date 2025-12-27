@@ -48,6 +48,7 @@
       # 📋 LIST OF HOSTS
       # When adding a new host, add/replace its name here
       hostNames = [
+        "template-host" # Reference for new machines
         "nixos-desktop"
         "nixos-laptop"
       ];
@@ -187,6 +188,7 @@
             waybarLayoutFlags = hostVars.waybarLayoutFlags or { };
             starshipZshIntegration = hostVars.starshipZshIntegration or true;
             nixImpure = hostVars.nixImpure or false;
+            hyprlandWindowRules = hostVars.hyprlandWindowRules or [ ];
           };
 
           modules = [
