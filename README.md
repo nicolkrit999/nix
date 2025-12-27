@@ -757,9 +757,6 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
 #### ~/nixOS/home-manager/modules/zathura.nix/
 - The font size and family is hardcoded. One may want to change it
 
-
-Here is the updated section for your `README.md`. I have restructured the text to be more concise and added a table that clearly summarizes the capabilities, followed by the example code.
-
 ---
 
 ### 8. (Optional) Customize the host-specific `home.nix`
