@@ -37,6 +37,7 @@
       - [~/nixOS/home-manager/modules/firefox.nix and ~/nixOS/home-manager/modules/chromium.nix](#nixoshome-managermodulesfirefoxnix-and-nixoshome-managermoduleschromiumnix)
       - [~/nixOS/home-manager/modules/neovim.nix/](#nixoshome-managermodulesneovimnix)
       - [~/nixOS/home-manager/modules/zathura.nix/](#nixoshome-managermoduleszathuranix)
+      - [~/nixOS/nixos/modules/mime.nix/](#nixosnixosmodulesmimenix)
     - [8. (Optional) Customize the host-specific `home.nix`](#8-optional-customize-the-host-specific-homenix)
       - [`home.nix` Example](#homenix-example)
     - [9. First Time Build](#9-first-time-build)
@@ -760,7 +761,7 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
 ### 7. (optional) Other files that may require manual attention
 - These files can be modified also after building.
   - These are files that one most likely will want to configure right from the beginning because they cause a "wrong" experience
-- Unlike `modules.nix` these are files so personal that are better changed in their original module file
+- Unlike `modules.nix` these are files so personal and/or so big that are better changed in their original module file
 
 #### ~/nixOS/home-manager/modules/firefox.nix and ~/nixOS/home-manager/modules/chromium.nix
 - They contains personalized aspects like homepage, toolbars visible items, extensions. One may want to change them
@@ -783,6 +784,9 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
 
 #### ~/nixOS/home-manager/modules/zathura.nix/
 - The font size and family is hardcoded. One may want to change it
+
+#### ~/nixOS/nixos/modules/mime.nix/
+- It define system-wide default applications when a user perform a certain action, such as clicking open directory, or a link
 
 ---
 

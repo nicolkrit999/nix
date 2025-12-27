@@ -102,10 +102,10 @@
     - [3. Security Hardening](#3-security-hardening)
     - [4. User Warning](#4-user-warning)
   - [The Code](#the-code-16)
-- [~nixOS/home-manager/modules/mime.nix](#nixoshome-managermodulesmimenix)
+- [~nixOS/nixos/modules/mime.nix](#nixosnixosmodulesmimenix)
   - [Key Concepts](#key-concepts-17)
-    - [1. `inode/directory`](#1-inodedirectory)
-    - [2. ⚠️ Loose Linking (What happens if Dolphin is missing?)](#2-️-loose-linking-what-happens-if-dolphin-is-missing)
+    - [1. Specific Handlers](#1-specific-handlers)
+    - [2. ⚠️ Loose Linking](#2-️-loose-linking)
   - [The Code](#the-code-17)
 - [~nixOS/nixos/modules/nix.nix](#nixosnixosmodulesnixnix)
   - [Key Concepts](#key-concepts-18)
@@ -1080,6 +1080,7 @@ Instead of a hardcoded weather widget, we define a `custom/weather` module. It u
 ---
 
 ## The Code
+This code is my personal one, but it may be change heavily based on your preferences
 
 ```nix
 {
@@ -1613,6 +1614,7 @@ We define a custom search order:
 ---
 
 ## The Code
+This code is my personal one, but it may be change heavily based on your preferences
 
 ```nix
 {
@@ -2330,6 +2332,7 @@ The `initContent` block handles the logic that runs every time you open a termin
 ---
 
 ## The Code
+This code is my personal one, but it may be change heavily based on your preferences
 
 ```nix
 {
@@ -2925,46 +2928,55 @@ in
 ```
 
 
-# ~nixOS/home-manager/modules/mime.nix
+# ~nixOS/nixos/modules/mime.nix
 
-This file configures **Default Applications** (MIME types) for the user. It controls which program opens when you click a file or a link.
+This file configures **System-Wide Default Applications** (MIME types). It controls which program the operating system launches when you open a specific file type or link (e.g., folders, URLs, HTML files).
 
-In this specific snippet, it forces the system to use **Dolphin** (KDE's file manager) whenever an application needs to open a directory.
+Unlike Home Manager configurations (which apply only to your user), this uses the **NixOS system module** `xdg.mime`. This ensures that these defaults apply globally and serve as a robust fallback if user-specific settings are missing or conflicting.
 
 ---
 
 ## Key Concepts
 
-### 1. `inode/directory`
+### 1. Specific Handlers
 
-This is the technical MIME type for "Folders".
-
-* **Usage:** When you click "Open containing folder" in Firefox or download a file, the system checks this setting to decide which file manager to launch.
-* **Setting:** We map it to `org.kde.dolphin.desktop`, which is the internal ID for Dolphin.
-
-### 2. ⚠️ Loose Linking (What happens if Dolphin is missing?)
-
-* **The Build:** The system rebuild will **succeed**. Nix (in this specific context) treats this string as simple text configuration. It does not check if the application actually exists during the build process.
+**`inode/directory`:** Maps "Folders" to **Dolphin**. This ensures "Open Containing Folder" in browser downloads works correctly.
 
 
-* **The Runtime:** When you try to open a folder, the action will **fail**.
-* The system will look for `org.kde.dolphin.desktop`, fail to find it, and either do nothing, show an error, or fall back to a random alternative (like VS Code or a terminal), which is often annoying.
+* **`x-scheme-handler/http(s)`:** Maps web links to **Firefox**. This forces the system to use Firefox for all web interactions, overriding any pre-installed defaults.
+
+### 2. ⚠️ Loose Linking
+
+* **The Build:** The build succeeds even if the applications are missing. Nix treats these values as text strings.
+* **The Runtime:** If you uninstall Dolphin or Firefox but leave this config active, clicking links or folders will fail or trigger an error. You must ensure the mapped applications are installed in `environment.systemPackages`.
 
 ---
 
 ## The Code
+This code is my personal one, but it may be change heavily based on your preferences
 
 ```nix
 {
   # -----------------------------------------------------------------------
-  # 📂 FILE ASSOCIATIONS
+  # 📂 SYSTEM-WIDE FILE ASSOCIATIONS
   # -----------------------------------------------------------------------
+  # Uses 'xdg.mime' (NixOS) instead of 'xdg.mimeApps' (Home Manager).
+  # This creates /etc/xdg/mimeapps.list
+  
   xdg.mime.defaultApplications = {
-    # Force Dolphin as the default file manager for directories.
-    # NOTE: Ensure 'dolphin' is installed, otherwise "Open Folder" actions will fail.
+    # 📂 File Manager (Force Dolphin)
     "inode/directory" = "org.kde.dolphin.desktop";
+
+    # 🌍 Web Browser (Force Firefox)
+    # Handles standard HTML files and HTTP/HTTPS links
+    "text/html" = "firefox.desktop";
+    "x-scheme-handler/http" = "firefox.desktop";
+    "x-scheme-handler/https" = "firefox.desktop";
+    "x-scheme-handler/about" = "firefox.desktop";
+    "x-scheme-handler/unknown" = "firefox.desktop";
   };
 }
+
 ```
 
 # ~nixOS/nixos/modules/nix.nix

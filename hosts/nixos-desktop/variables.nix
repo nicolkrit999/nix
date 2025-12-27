@@ -29,7 +29,7 @@
   term = "kitty";
 
   # 🎨 THEMING
-  base16Theme = "nord";
+  base16Theme = "kanagawa-dragon";
   polarity = "dark";
   catppuccin = false;
   catppuccinFlavor = "mocha";
