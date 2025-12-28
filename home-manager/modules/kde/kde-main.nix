@@ -8,6 +8,9 @@
   catppuccinAccent,
   ...
 }:
+
+# FIX: IBUS WAYLAND LAUNCHER
+# TODO: Once fixed modified the explanation of the file
 let
   # 1. PREPARE WALLPAPERS
   # Converts the list of wallpaper objects into a list of local file paths
@@ -44,6 +47,15 @@ let
   cursorTheme = config.stylix.cursor.name;
 in
 {
+
+  xdg.desktopEntries."ibus-wayland-custom" = {
+    name = "IBus Wayland (Custom Fix)";
+    comment = "Custom IBus launcher to fix env vars";
+    exec = "sh -c \"env -u GTK_IM_MODULE -u QT_IM_MODULE ${pkgs.ibus}/libexec/ibus-ui-gtk3 --enable-wayland-im --exec-daemon --daemon-args '--xim --panel disable'\"";
+    type = "Application";
+    noDisplay = true;
+  };
+
   programs.plasma = {
     enable = true;
 
@@ -70,7 +82,7 @@ in
       "kdeglobals"."General"."AccentColor" = if catppuccin then "203,166,247" else null; # Manual mauve fallback
 
       # Tells KDE to officially use IBus as the Virtual Keyboard/Input Method
-      "kwinrc"."Wayland"."InputMethod" = "org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop";
+      "kwinrc"."Wayland"."InputMethod" = "ibus-wayland-custom.desktop";
       "kwinrc"."Wayland"."VirtualKeyboardEnabled" = true;
     };
   };

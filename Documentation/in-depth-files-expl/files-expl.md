@@ -691,6 +691,8 @@ in
 
 # ~nixOS/home-manager/modules/hyprland/hyprland-main.nix
 
+#TODO: modify according to the new code
+
 This file contains the core configuration for **Hyprland**, a dynamic tiling Wayland compositor. Unlike traditional window managers where you edit a `.conf` file in `~/.config/hypr`, this file generates that configuration dynamically based on your system variables.
 
 It handles window placement, monitors, theming, and startup applications.
@@ -796,6 +798,7 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
         "waybar" # Status bar
         "wl-paste --type text --watch cliphist store"  # Clipboard history (Text)
         "wl-paste --type image --watch cliphist store" # Clipboard history (Images)
+        "env -u GTK_IM_MODULE -u QT_IM_MODULE ${pkgs.ibus}/libexec/ibus-ui-gtk3 --enable-wayland-im --exec-daemon --daemon-args \"--xim --panel disable\""
       ];
 
       # -----------------------------------------------------
@@ -901,12 +904,20 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
       ++ hyprlandWorkspaces;
     };
   };
+
+  # Disable ibus icons in waybar
+  dconf.settings = {
+    "org/freedesktop/ibus/panel" = {
+      show-icon-on-systray = false;
+    };
+  };
 }
 ```
 
 
 
 # ~nixOS/home-manager/modules/kde/kde-main.nix
+#TODO: modify according to the new code
 
 This file configures **KDE Plasma 6** using the community-driven `plasma-manager` module. Unlike GNOME (which uses `dconf`), KDE configuration is split across many different text files. `plasma-manager` abstracts this complexity, allowing us to configure the desktop declaratively.
 
@@ -1016,7 +1027,7 @@ in
       "kdeglobals"."General"."AccentColor" = if catppuccin then "203,166,247" else null; # Manual mauve fallback
 
       # Tells KDE to officially use IBus as the Virtual Keyboard/Input Method
-      "kwinrc"."Wayland"."InputMethod" = "org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop";
+      "kwinrc"."Wayland"."InputMethod" = "ibus-wayland-custom.desktop";
       "kwinrc"."Wayland"."VirtualKeyboardEnabled" = true;
     };
   };
@@ -2435,6 +2446,7 @@ This code is my personal one, but it may be change heavily based on your prefere
 ```
 
 # ~nixOS/hosts/template-host/configuration.nix
+#TODO: modify according to the new code
 
 This file is the **machine-specific** entry point for NixOS. While `flake.nix` orchestrates the build, this file defines the physical reality of the specific computer (its hardware, hostname, and core system packages).
 - This is the file that provide the simplest working environment. Other hosts can have a different one

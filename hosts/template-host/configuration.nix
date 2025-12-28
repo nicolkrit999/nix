@@ -53,6 +53,13 @@
     libsForQt5.qt5.qtwayland # Qt5 Wayland platform plugin
     kdePackages.qtwayland # Qt6 Wayland platform plugin
 
+    # FIX: IBUS WAYLAND LAUNCHER
+    # TODO: Once fixed modified the explanation of the file
+    ibus
+    ibus-with-plugins
+    ibus-engines.mozc # Optional: Japanese for other users
+    ibus-engines.libpinyin # Optional: Chinese for other users
+
   ];
 
   programs.dconf.enable = true;

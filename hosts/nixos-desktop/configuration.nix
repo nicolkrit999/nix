@@ -27,6 +27,9 @@
     # Flatpak support
     ./flatpak.nix
 
+    # Logitech MX Master 3S configuration
+    ./logitech.nix
+
     # Core imports
     ../../nixos/modules/core.nix
   ];
@@ -63,6 +66,11 @@
     gtk3
     libsForQt5.qt5.qtwayland
     kdePackages.qtwayland
+
+    # FIX: IBUS WAYLAND LAUNCHER
+    # TODO: Once fixed modified the explanation of the file
+    ibus
+    ibus-with-plugins
   ];
 
   programs.dconf.enable = true;

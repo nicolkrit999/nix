@@ -49,11 +49,13 @@
       pass # Simple password manager
       pay-respects # Cli commands autosuggestion (used in my zsh dotfiles) -> ⚠️ KEEP
       pokemon-colorscripts # Print pokemon sprites in terminal with colors (used in my dotfiles) -> ⚠️ KEEP
+      #solaar # Linux driver for Logitech devices
       stow # Symlink farm manager (used in my dotfiles) -> ⚠️ KEEP
       tealdeer # Fast implementation of tldr (simplified man pages)
       tree # Display directory structure as a tree
       ttyd # Share your terminal over the web
       unixtools.netstat # Network statistics
+      usbutils # USB device utilities
       wakeonlan # Magic packets
       yt-dlp # Media downloader for YouTube and other sites
       zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
@@ -97,6 +99,7 @@
       # -----------------------------------------------------------------------
       # ❓ OTHER
       # -----------------------------------------------------------------------
+      logiops # Logitech devices manager (currently used for my MX Master 3S)
     ]
 
     ++ (with pkgs-unstable; [
