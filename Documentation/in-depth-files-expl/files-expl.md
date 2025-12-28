@@ -22,12 +22,14 @@
     - [2. Theming Bridge (Catppuccin vs. Stylix)](#2-theming-bridge-catppuccin-vs-stylix)
     - [3. Environment \& Compatibility](#3-environment--compatibility)
     - [4. Smart Rules](#4-smart-rules)
+    - [5. Ibus fix](#5-ibus-fix)
   - [The Code](#the-code-3)
 - [~nixOS/home-manager/modules/kde/kde-main.nix](#nixoshome-managermoduleskdekde-mainnix)
   - [Key Concepts](#key-concepts-4)
     - [1. Multi-Monitor Wallpapers](#1-multi-monitor-wallpapers)
     - [2. Dynamic Theme Construction](#2-dynamic-theme-construction)
     - [3. Config Overrides](#3-config-overrides)
+    - [4. IBUS fix](#4-ibus-fix)
   - [The Code](#the-code-4)
 - [~nixOS/home-manager/modules/waybar/default.nix](#nixoshome-managermoduleswaybardefaultnix)
   - [Key Concepts](#key-concepts-5)
@@ -691,8 +693,6 @@ in
 
 # ~nixOS/home-manager/modules/hyprland/hyprland-main.nix
 
-#TODO: modify according to the new code
-
 This file contains the core configuration for **Hyprland**, a dynamic tiling Wayland compositor. Unlike traditional window managers where you edit a `.conf` file in `~/.config/hypr`, this file generates that configuration dynamically based on your system variables.
 
 It handles window placement, monitors, theming, and startup applications.
@@ -723,6 +723,18 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
 * **Smart Gaps:** The config includes logic to remove gaps and borders when only one window is on the screen, maximizing screen real estate.
 * **Workspace Binding:** It imports `hyprlandWorkspaces` from your host-specific `modules.nix`. This allows the workspaces numbers and binding to be host-specific
 
+### 5. Ibus fix
+
+This code fixes the error by creating a "sanitization script" that scrubs the environment before launching IBus exactly as the notification demanded.
+
+* **It cleans the environment:** The error explicitly asked to unset `GTK_IM_MODULE` and `QT_IM_MODULE`. The `ibus-fixed` script does this aggressively by running `unset` locally and `systemctl --user unset-environment`  to ensure these variables are completely removed from the session before IBus starts.
+
+
+* **It enforces the correct process hierarchy:** The error required `ibus-daemon` to be a "child process of ibus-ui-gtk3." The script executes the exact command required: `${pkgs.ibus}/libexec/ibus-ui-gtk3 ... --exec-daemon`. This forces `ibus-daemon` to launch strictly as a subordinate process, satisfying the specific Wayland requirement.
+
+
+**It prevents zombie conflicts:** The script includes a "Kill Phase"  that loops 5 times to force-kill any rogue `ibus-daemon` instances. This ensures the new, "clean" instance doesn't conflict with a broken one already running in the background.
+
 ---
 
 ## The Code
@@ -742,6 +754,41 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
   hyprlandWorkspaces,
   ...
 }:
+let
+  ibus-fixed = pkgs.writeShellScriptBin "ibus-fixed" ''
+    # --- 1. KILL PHASE (The Exorcism) ---
+    # We loop briefly to ensure the phantom process is actually dead.
+    for i in {1..5}; do
+      if ${pkgs.procps}/bin/pgrep -x "ibus-daemon" > /dev/null; then
+        echo "Killing phantom IBus (attempt $i)..."
+        ${pkgs.procps}/bin/pkill -9 -x "ibus-daemon"
+        sleep 0.5
+      else
+        break
+      fi
+    done
+
+    # --- 2. CLEANUP PHASE (Sanitize the System) ---
+    # Unset variables in the Systemd/D-Bus user session. 
+    # This prevents D-Bus from auto-launching a "dirty" IBus later.
+    ${pkgs.systemd}/bin/systemctl --user unset-environment GTK_IM_MODULE QT_IM_MODULE XMODIFIERS
+
+    # Sync our current (clean) Hyprland environment to the system
+    ${pkgs.systemd}/bin/systemctl --user import-environment PATH XDG_SESSION_TYPE XDG_CURRENT_DESKTOP
+
+    # --- 3. STARTUP PHASE (The Clean Launch) ---
+    # Unset locally just to be 100% sure
+    unset GTK_IM_MODULE
+    unset QT_IM_MODULE
+    unset XMODIFIERS
+
+    # Set the ONLY variable we need
+    export XMODIFIERS=@im=ibus
+
+    # Launch the daemon
+    exec ${pkgs.ibus}/libexec/ibus-ui-gtk3 --enable-wayland-im --exec-daemon --daemon-args "--xim --panel disable"
+  '';
+in
 {
   # ----------------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME
@@ -917,7 +964,6 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
 
 
 # ~nixOS/home-manager/modules/kde/kde-main.nix
-#TODO: modify according to the new code
 
 This file configures **KDE Plasma 6** using the community-driven `plasma-manager` module. Unlike GNOME (which uses `dconf`), KDE configuration is split across many different text files. `plasma-manager` abstracts this complexity, allowing us to configure the desktop declaratively.
 
@@ -942,6 +988,17 @@ KDE themes often require specific naming conventions (e.g., "CatppuccinMochaSky"
 ### 3. Config Overrides
 
 We use `overrideConfig = true` to ensure that our declarative settings take precedence over any manual changes made via the GUI. This ensures the system always boots into the correct state, even if settings were messed up previously.
+
+### 4. IBUS fix
+
+This code fixes the error because it creates a **sanitized launch environment** for IBus that strictly follows the instructions in the notification.
+
+* **It unsets the conflicting variables:** The error message explicitly demands that `QT_IM_MODULE` and `GTK_IM_MODULE` be unset. The code achieves this using `env -u` inside a custom desktop entry, which removes those variables *only* for the IBus process without breaking them for the rest of the system.
+
+
+* **It corrects the process hierarchy:** The error states `ibus-daemon` must be a "child process of ibus-ui-gtk3". The code explicitly runs the command `ibus-ui-gtk3 ... --exec-daemon`, which forces this specific parent-child relationship.
+
+**It overrides the default behavior:** By setting `"kwinrc"."Wayland"."InputMethod"` to the new `ibus-wayland-custom.desktop`, it forces KDE to use this fixed configuration instead of the broken system default.
 
 ---
 
@@ -1001,6 +1058,15 @@ let
   cursorTheme = config.stylix.cursor.name;
 in
 {
+  # Allow ibus to work
+  xdg.desktopEntries."ibus-wayland-custom" = {
+    name = "IBus Wayland (Custom Fix)";
+    comment = "Custom IBus launcher to fix env vars";
+    exec = "sh -c \"env -u GTK_IM_MODULE -u QT_IM_MODULE ${pkgs.ibus}/libexec/ibus-ui-gtk3 --enable-wayland-im --exec-daemon --daemon-args '--xim --panel disable'\"";
+    type = "Application";
+    noDisplay = true;
+  };
+
   programs.plasma = {
     enable = true;
 
@@ -2446,7 +2512,6 @@ This code is my personal one, but it may be change heavily based on your prefere
 ```
 
 # ~nixOS/hosts/template-host/configuration.nix
-#TODO: modify according to the new code
 
 This file is the **machine-specific** entry point for NixOS. While `flake.nix` orchestrates the build, this file defines the physical reality of the specific computer (its hardware, hostname, and core system packages).
 - This is the file that provide the simplest working environment. Other hosts can have a different one
@@ -2546,6 +2611,12 @@ This file consumes the variables passed from `flake.nix` (like `user`, `hostname
     # when the main Desktop Environment (KDE) is disabled.
     libsForQt5.qt5.qtwayland # Qt5 Wayland platform plugin
     kdePackages.qtwayland    # Qt6 Wayland platform plugin
+
+    # IBUS warning fix (support multiple languages)
+    ibus
+    ibus-with-plugins
+    ibus-engines.mozc # Optional: Japanese for other users
+    ibus-engines.libpinyin # Optional: Chinese for other users
   ];
   
   programs.dconf.enable = true;

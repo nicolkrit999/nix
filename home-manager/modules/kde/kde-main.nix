@@ -8,9 +8,6 @@
   catppuccinAccent,
   ...
 }:
-
-# FIX: IBUS WAYLAND LAUNCHER
-# TODO: Once fixed modified the explanation of the file
 let
   # 1. PREPARE WALLPAPERS
   # Converts the list of wallpaper objects into a list of local file paths

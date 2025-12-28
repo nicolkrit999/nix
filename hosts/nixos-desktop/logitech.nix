@@ -8,7 +8,8 @@
   environment.systemPackages = [ pkgs.logiops ];
 
   # 3. Create the configuration file
-  # NOTICE: We use "MX Master 3S" here because that is what logid sees.
+  # "MX Master 3S" here because that is what logid sees.
+  # sudo logid - v
   environment.etc."logid.cfg".text = ''
     devices: (
       {
@@ -31,8 +32,8 @@
     );
   '';
 
-  # 4. THE FIX: The Udev rule uses "Logitech MX Master 3S" because that is what the Kernel sees.
-  # We use ATTR{name} to match the specific input device attribute.
+  # Udev rule uses "Logitech MX Master 3S" because that is what the Kernel sees.
+  #  cat /proc/bus/input/devices | grep -A 4 "MX Master 3S"
   services.udev.extraRules = ''
     ACTION=="add", SUBSYSTEM=="input", ATTR{name}=="Logitech MX Master 3S", RUN+="${pkgs.systemd}/bin/systemctl restart logid.service"
   '';

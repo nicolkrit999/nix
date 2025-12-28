@@ -14,14 +14,7 @@
   hyprlandWindowRules,
   ...
 }:
-
-# FIX: IBUS WAYLAND LAUNCHER
-# TODO: Once fixed modified the explanation of the file
 let
-  # 🛠️ CUSTOM SCRIPT: ibus-fixed (Ultimate)
-  # 1. Hunts down any auto-started IBus instances (the "Phantoms").
-  # 2. Scrubs the systemd/dbus environment so they don't resurrect with bad vars.
-  # 3. Starts a guaranteed clean instance.
   ibus-fixed = pkgs.writeShellScriptBin "ibus-fixed" ''
     # --- 1. KILL PHASE (The Exorcism) ---
     # We loop briefly to ensure the phantom process is actually dead.

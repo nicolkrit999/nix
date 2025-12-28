@@ -66,9 +66,6 @@
     gtk3
     libsForQt5.qt5.qtwayland
     kdePackages.qtwayland
-
-    # FIX: IBUS WAYLAND LAUNCHER
-    # TODO: Once fixed modified the explanation of the file
     ibus
     ibus-with-plugins
   ];

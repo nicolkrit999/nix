@@ -5,7 +5,6 @@
   programs.plasma.configFile = {
     "spectaclerc" = {
       "General" = {
-        # ⚠️ FIX: Use 'file:///' (3 slashes) for local paths
         "screenshotLocation" = "file://${screenshots}/";
         "filenameString" = "Screenshot_%Y%M%D_%H%m%S";
 

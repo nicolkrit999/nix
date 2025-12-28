@@ -22,10 +22,8 @@ in
       location = "bottom";
       height = panelHeight;
 
-      # ⚠️ FIX: "false" removes the spacing/gap at the bottom
       floating = false;
 
-      # ⚠️ FIX: "autohide" makes it show/hide on mouse hover automatically
       hiding = "autohide";
 
       widgets = [

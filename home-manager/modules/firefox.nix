@@ -94,7 +94,6 @@ in
           gesturefy # Mouse gesture navigation for enhanced browsing
           privacy-badger # Tracker blocking extension by EFF
           screenshot-capture-annotate # Screenshot capturing and annotation tool (awesome screenshot)
-          #dictionary_anywhere # Right-click word definitions # FIXME: not found
           multi-account-containers # Isolates browsing activities into separate containers
           behind-the-overlay-revival # Bypass popup overlays on websites
           onetab # Save memory by converting tabs into a list
