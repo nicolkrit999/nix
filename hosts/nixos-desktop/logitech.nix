@@ -34,7 +34,7 @@ let
     # TURN HIRES ON FOR BLUETOOTH
     # This sends more scroll events, making it feel faster/smoother
     # to compensate for Bluetooth latency.
-    hiresscroll: { hires: true; invert: false; target: false; };
+    hiresscroll: { hires: false; invert: false; target: false; };
 
     thumbwheel: {
       divert: true;

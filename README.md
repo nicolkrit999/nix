@@ -796,19 +796,20 @@ This file allows you to manage user-specific configurations that should **only**
 
 **Common Use Cases:**
 
-| Feature                     | Description                                       | Example Usage                                                                               |
-| --------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| **`home.packages`**         | Installs packages for the user only on this host. | Installing `blender` or `gimp` only on a powerful desktop PC.                               |
-| **`xdg.userDirs`**          | Overrides the default `~/` folders.               | Hiding unused folders like `~/Public` or `~/Templates` on a laptop.                         |
-| **`home.file`**             | Links a package or file to a specific path.       | Linking `jdtls` to `~/tools/jdtls` so your Neovim config works the same across all distros. |
-| **`home.sessionVariables`** | Defines shell variables for this host only.       | Setting `JAVA_HOME` or `JDTLS_BIN` only on machines used for development.                   |
+| Feature                     | Description                                                 | Example Usage                                                                               |
+| --------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **`home.packages`**         | Installs packages for the user only on this host.           | Installing `blender` or `gimp` only on a powerful desktop PC.                               |
+| **`xdg.userDirs`**          | Overrides the default `~/` folders.                         | Hiding unused folders like `~/Public` or `~/Templates` on a laptop.                         |
+| **`home.file`**             | Links a package or file to a specific path.                 | Linking `jdtls` to `~/tools/jdtls` so your Neovim config works the same across all distros. |
+| **`home.sessionVariables`** | Defines shell variables for this host only.                 | Setting `JAVA_HOME` or `JDTLS_BIN` only on machines used for development.                   |
+| **`home.activation`**       | Activate certain functions such as creating customs folders | Make sure certain directories exist only for that host                                      |
 
 #### `home.nix` Example
 
 Create or modify `hosts/<your_hostname>/home.nix`:
 
 ```nix
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
   # ---------------------------------------------------------------------------
@@ -837,6 +838,13 @@ Create or modify `hosts/<your_hostname>/home.nix`:
   home.sessionVariables = {
     JAVA_HOME = "${pkgs.jdk25}";
     JDTLS_BIN = "${pkgs.jdt-language-server}/bin/jdtls";
+  };
+
+  # 5. other things
+  home.activation = {
+    createHostDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      mkdir -p $HOME/Pictures/wallpapers
+    '';
   };
 }
 

@@ -22,7 +22,7 @@
   hyprland = true;
   gnome = true;
   kde = true;
-  cosmic = false;
+  cosmic = true;
 
   # 📦 PACKAGES & TERMINAL
   flatpak = true;
@@ -57,8 +57,8 @@
 
   wallpapers = [
     {
-      wallpaperURL = "https://raw.githubusercontent.com/zhichaoh/catppuccin-wallpapers/refs/heads/main/os/nix-black-4k.png";
-      wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
+      wallpaperURL = "https://w.wallhaven.cc/full/7j/wallhaven-7jjo5e.jpg";
+      wallpaperSHA256 = "1lbva41v68hns6pkksb0v7yhwckhgfvrg9s1nrp76qkqg54pcv70";
     }
     {
       wallpaperURL = "https://raw.githubusercontent.com/HyDE-Project/hyde-themes/Catppuccin-Mocha/Configs/.config/hyde/themes/Catppuccin%20Mocha/wallpapers/switch_swirl.jpg";

@@ -5,7 +5,6 @@ These are the issues that i observed that require attentions. They may be only o
   - [Desktop environments specific](#desktop-environments-specific)
     - [Chromium doesn't open on kde x11](#chromium-doesnt-open-on-kde-x11)
     - [Hyprland gestures](#hyprland-gestures)
-    - [Cosmic does not build](#cosmic-does-not-build)
   - [General](#general)
     - [During rebuild: 'system' has been renamed to/replaced by 'stdenv.hostPlatform.system'](#during-rebuild-system-has-been-renamed-toreplaced-by-stdenvhostplatformsystem)
   - [Guest user specific](#guest-user-specific)
@@ -33,11 +32,6 @@ These are the issues that i observed that require attentions. They may be only o
           "3, horizontal, workspace"
         ];
 ```
-
-
-### Cosmic does not build
-- I want to use the alpha channel the unstable one but it does not build.
-  - I tried to both include and remove the pkgs follow for both stable and unstable channel, as well as manually updating and removing the lock file prior to building again. All of these did not solve teh problems 
 
 ## General
 ### During rebuild: 'system' has been renamed to/replaced by 'stdenv.hostPlatform.system'

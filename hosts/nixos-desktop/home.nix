@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
   # ☕ JAVA TOOLS
@@ -15,5 +15,12 @@
   home.sessionVariables = {
     JAVA_HOME = "${pkgs.jdk25}";
     JDTLS_BIN = "${pkgs.jdt-language-server}/bin/jdtls";
+  };
+
+  # 5. other things
+  home.activation = {
+    createHostDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      mkdir -p $HOME/Pictures/wallpapers
+    '';
   };
 }

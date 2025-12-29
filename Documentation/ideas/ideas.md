@@ -9,3 +9,10 @@
 ## Theming/personalization
 ### Configure noctalia with quickshell
 - Reference: https://docs.noctalia.dev/getting-started/nixos/
+
+
+## DE/WM specific
+### Cosmic desktop
+- configure keybindings with a cosmic-binds.nix
+- wait for the de to be more stable and declarative to setup custom system settings
+- in the future it will probably be needed to tell stylix to not customize cosmic. For now this option does not exist

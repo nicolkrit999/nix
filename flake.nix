@@ -31,8 +31,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
-
-    nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
   };
 
   outputs =
@@ -41,7 +39,6 @@
       nixpkgs,
       nixpkgs-unstable,
       home-manager,
-      nixos-cosmic,
       ...
     }@inputs:
     let
@@ -109,18 +106,12 @@
             ./hosts/${hostname}/configuration.nix
             inputs.catppuccin.nixosModules.catppuccin
             inputs.nix-flatpak.nixosModules.nix-flatpak
-            inputs.nixos-cosmic.nixosModules.default
-
             {
               nixpkgs.pkgs = import nixpkgs {
                 system = hostVars.system;
                 config.allowUnfree = true;
               };
               time.timeZone = hostVars.timeZone;
-              nix.settings = {
-                substituters = [ "https://cosmic.cachix.org" ];
-                trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
-              };
             }
           ]
           ++ (nixpkgs.lib.optional (hostVars.hyprland or false) ./nixos/modules/hyprland.nix)
