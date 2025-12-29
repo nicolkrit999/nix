@@ -14,41 +14,6 @@
   hyprlandWindowRules,
   ...
 }:
-let
-  ibus-fixed = pkgs.writeShellScriptBin "ibus-fixed" ''
-    # --- 1. KILL PHASE (The Exorcism) ---
-    # We loop briefly to ensure the phantom process is actually dead.
-    for i in {1..5}; do
-      if ${pkgs.procps}/bin/pgrep -x "ibus-daemon" > /dev/null; then
-        echo "Killing phantom IBus (attempt $i)..."
-        ${pkgs.procps}/bin/pkill -9 -x "ibus-daemon"
-        sleep 0.5
-      else
-        break
-      fi
-    done
-
-    # --- 2. CLEANUP PHASE (Sanitize the System) ---
-    # Unset variables in the Systemd/D-Bus user session. 
-    # This prevents D-Bus from auto-launching a "dirty" IBus later.
-    ${pkgs.systemd}/bin/systemctl --user unset-environment GTK_IM_MODULE QT_IM_MODULE XMODIFIERS
-
-    # Sync our current (clean) Hyprland environment to the system
-    ${pkgs.systemd}/bin/systemctl --user import-environment PATH XDG_SESSION_TYPE XDG_CURRENT_DESKTOP
-
-    # --- 3. STARTUP PHASE (The Clean Launch) ---
-    # Unset locally just to be 100% sure
-    unset GTK_IM_MODULE
-    unset QT_IM_MODULE
-    unset XMODIFIERS
-
-    # Set the ONLY variable we need
-    export XMODIFIERS=@im=ibus
-
-    # Launch the daemon
-    exec ${pkgs.ibus}/libexec/ibus-ui-gtk3 --enable-wayland-im --exec-daemon --daemon-args "--xim --panel disable"
-  '';
-in
 {
   # ----------------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME (official module)
@@ -66,11 +31,6 @@ in
       # -----------------------------------------------------
       # These ensure apps (Electron, QT, etc.) know they are running on Wayland.
       env = [
-        # IBUS & INPUT METHOD FIXES
-        "GTK_IM_MODULE," # Prevents GTK apps from crashing by trying to load the old IBus module.
-        "QT_IM_MODULE," # Prevents Qt apps from crashing by trying to load the old IBus module.
-        "XMODIFIERS,@im=ibus" # Required for legacy X11 apps (Steam, IntelliJ, older games) to "see" the input method.
-
         # TOOLKIT BACKENDS (Force apps to use Wayland)
         "NIXOS_OZONE_WL,1" # Forces Electron apps (VS Code, Discord, Obsidian) to run natively on Wayland.
         "QT_QPA_PLATFORM,wayland;xcb" # Tells Qt apps: "Try Wayland first. If that fails, use X11 (xcb)".
@@ -115,9 +75,7 @@ in
         "waybar" # Start waybar
         "wl-paste --type text --watch cliphist store" # Start clipboard manager for text
         "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
-
-        # Start ibus daemon for input methods
-        "${ibus-fixed}/bin/ibus-fixed"
+        "pkill ibus-daemon" # Kill ibus given by gnome
       ];
 
       # -----------------------------------------------------
@@ -229,10 +187,4 @@ in
     };
   };
 
-  # Disable ibus icons in waybar
-  dconf.settings = {
-    "org/freedesktop/ibus/panel" = {
-      show-icon-on-systray = false;
-    };
-  };
 }

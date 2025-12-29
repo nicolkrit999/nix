@@ -30,6 +30,9 @@
     # Logitech MX Master 3S configuration
     ./logitech.nix
 
+    # SMB Shares
+    ./smb.nix
+
     # Core imports
     ../../nixos/modules/core.nix
   ];
@@ -66,8 +69,6 @@
     gtk3
     libsForQt5.qt5.qtwayland
     kdePackages.qtwayland
-    ibus
-    ibus-with-plugins
   ];
 
   programs.dconf.enable = true;
@@ -144,4 +145,9 @@
   };
 
   system.stateVersion = stateVersion;
+
+  i18n.inputMethod.enabled = lib.mkForce null;
+  environment.variables.GTK_IM_MODULE = lib.mkForce "";
+  environment.variables.QT_IM_MODULE = lib.mkForce "";
+  environment.variables.XMODIFIERS = lib.mkForce "";
 }

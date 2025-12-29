@@ -45,13 +45,15 @@ let
 in
 {
 
-  xdg.desktopEntries."ibus-wayland-custom" = {
-    name = "IBus Wayland (Custom Fix)";
-    comment = "Custom IBus launcher to fix env vars";
-    exec = "sh -c \"env -u GTK_IM_MODULE -u QT_IM_MODULE ${pkgs.ibus}/libexec/ibus-ui-gtk3 --enable-wayland-im --exec-daemon --daemon-args '--xim --panel disable'\"";
-    type = "Application";
-    noDisplay = true;
-  };
+  xdg.configFile."autostart/ibus-daemon.desktop".text = ''
+    [Desktop Entry]
+    Type=Application
+    Name=Kill IBus Daemon
+    Exec=pkill ibus-daemon
+    Hidden=false
+    StartupNotify=false
+    X-KDE-autostart-phase=1
+  '';
 
   programs.plasma = {
     enable = true;
@@ -77,10 +79,6 @@ in
     configFile = {
       "kdeglobals"."KDE"."widgetStyle" = if catppuccin then "kvantum" else "Breeze";
       "kdeglobals"."General"."AccentColor" = if catppuccin then "203,166,247" else null; # Manual mauve fallback
-
-      # Tells KDE to officially use IBus as the Virtual Keyboard/Input Method
-      "kwinrc"."Wayland"."InputMethod" = "ibus-wayland-custom.desktop";
-      "kwinrc"."Wayland"."VirtualKeyboardEnabled" = true;
     };
   };
 
