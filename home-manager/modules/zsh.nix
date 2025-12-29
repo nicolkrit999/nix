@@ -29,6 +29,12 @@
             "nix flake update && sudo nixos-rebuild switch --flake . --impure"
           else
             "nh os switch --update ${flakeDir}";
+
+        updateBoot =
+          if nixImpure then
+            "sudo nixos-rebuild boot --flake . --impure"
+          else
+            "nh os boot --update ${flakeDir}";
       in
       {
 
@@ -44,7 +50,7 @@
         hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#$(hostname)";
         pkgs = "nvim ${flakeDir}/home-manager/home-packages.nix";
 
-        fmt-dry = "nix fmt -- --check"; # Check formatting without making changes (list files that need formatting)
+        fmt-dry = "cd ${flakeDir} && nix fmt -- --check"; # Check formatting without making changes (list files that need formatting)
         fmt = "cd ${flakeDir} &&  nix fmt -- **/*.nix"; # Format Nix files using nixfmt (a regular nix fmt hangs on zed theme)
 
         # Utilities
@@ -55,7 +61,7 @@
 
         # Various
         reb-uefi = "systemctl reboot - -firmware-setup"; # Reboot into UEFI firmware settings
-        swde = "cd ~/nixOS && sudo nixos-rebuild boot --flake ."; # Rebuilt boot without crash current desktop environment
+        swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
       };
 
     history.size = 10000;
