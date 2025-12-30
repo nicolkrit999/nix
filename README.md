@@ -47,6 +47,7 @@
     - [Error: `home-manager: command not found`](#error-home-manager-command-not-found)
     - [Error: `permission denied` opening `flake.lock`](#error-permission-denied-opening-flakelock)
     - [Error: `returned non-zero exit status 4` during rebuild](#error-returned-non-zero-exit-status-4-during-rebuild)
+    - [Error: `evaluation warning: `programs.zsh.initExtra`is deprecated, use`programs.zsh.initContent` instead` during rebuild](#error-evaluation-warning-programszshinitextrais-deprecated-useprogramszshinitcontent-instead-during-rebuild)
     - [Error: `/home/<username>/<name>' would be clobbered` during rebuild (such as with hms)](#error-homeusernamename-would-be-clobbered-during-rebuild-such-as-with-hms)
     - [Weird keyboard layout during install](#weird-keyboard-layout-during-install)
   - [❄️ Note on the declarative aspects](#️-note-on-the-declarative-aspects)
@@ -936,6 +937,12 @@ sudo chown -R $USER:users ~/nixOS
   - Tough it may also be a true stuck chanches are that the system correctly builded but can not show this in the cli 
 
 **Fix:** Safe to ignore. Reboot your computer.
+
+### Error: `evaluation warning: `programs.zsh.initExtra` is deprecated, use `programs.zsh.initContent` instead` during rebuild
+
+**Cause:** This seems to be a mismatch on what some inputs in flake.nix want vs what other inputs wants
+
+**Fix:** Safe to ignore (for now)
 
 ### Error: `/home/<username>/<name>' would be clobbered` during rebuild (such as with hms)
 
