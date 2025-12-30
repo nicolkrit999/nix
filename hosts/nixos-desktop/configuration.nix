@@ -21,20 +21,8 @@
     # Secrets Management (not added to GitHub)
     (import /etc/nixos/secrets/secrets.nix)
 
-    # Borg Backup Configuration
-    ./borg-backup.nix
-
     # Flatpak support
     ./flatpak.nix
-
-    # Gaming configuration
-    ./gaming.nix
-
-    # Logitech MX Master 3S configuration
-    ./logitech.nix
-
-    # SMB Shares
-    ./smb.nix
 
     # Core imports
     ../../nixos/modules/core.nix

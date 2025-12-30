@@ -117,6 +117,15 @@
               time.timeZone = hostVars.timeZone;
             }
           ]
+          # Host-specific host-modules folder
+          ++ (
+            if builtins.pathExists ./hosts/${hostname}/host-modules then
+              ./hosts/${hostname}/host-modules
+            else
+              { }
+          )
+
+          # Host-specific de/wm modules based on variables.nix
           ++ (nixpkgs.lib.optional (hostVars.hyprland or false) ./nixos/modules/hyprland.nix)
           ++ (nixpkgs.lib.optional (hostVars.gnome or false) ./nixos/modules/gnome.nix)
           ++ (nixpkgs.lib.optional (hostVars.kde or false) ./nixos/modules/kde.nix)
@@ -130,7 +139,7 @@
           # 1. Import Mandatory Variables
           baseVars = import ./hosts/${hostname}/variables.nix;
 
-          # 2. Import Optional Modules (Safely)
+          # 2. Import Optional Modules (nix file) (Safely)
           modulesPath = ./hosts/${hostname}/modules.nix;
           extraVars = if builtins.pathExists modulesPath then import modulesPath else { };
 
@@ -195,10 +204,20 @@
             ./home-manager/modules/wofi
           ]
 
+          # Host-specific host-modules folder
+          ++ (
+            if builtins.pathExists ./hosts/${hostname}/host-modules then
+              ./hosts/${hostname}/host-modules
+            else
+              { }
+          )
+
+          # Host-specific home.nix file
           ++ (
             if builtins.pathExists ./hosts/${hostname}/home.nix then [ ./hosts/${hostname}/home.nix ] else [ ]
           )
 
+          # Host-specific de/wm modules based on variables.nix
           ++ (nixpkgs.lib.optionals (hostVars.hyprland or false) [
             ./home-manager/modules/hyprland
             ./home-manager/modules/waybar
