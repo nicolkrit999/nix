@@ -11,6 +11,7 @@
 }:
 
 {
+  # home.nix and host-modules are imported from flake.nix
   imports = [
     # Hardware scan (auto-generated)
     ./hardware-configuration.nix

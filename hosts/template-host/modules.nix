@@ -48,7 +48,7 @@
   #   "format-en" = "🇺🇸";
   # };
 
-  # starshipZshIntegration = false;
+  # starshipZshIntegration = true;
 
-  # nixImpure = true;
+  # nixImpure = false;
 }

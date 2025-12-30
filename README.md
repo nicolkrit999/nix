@@ -778,10 +778,10 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
   };
 
   # The fallback is true
-  starshipZshIntegration = false;
+  starshipZshIntegration = true;
 
   # The fallback is false
-  nixImpure = true;
+  nixImpure = false;
 }
 ```
 
