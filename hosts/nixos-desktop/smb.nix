@@ -26,27 +26,28 @@ let
         device = "//${nasIP}/${shareName}";
         fsType = "cifs";
         options = [
-          "x-systemd.automount"
-          "noauto"
+          # -------------------------------------------------------
+          # 🔑 PERMISSIONS (avoid not being able to write)
+          # -------------------------------------------------------
           "credentials=/etc/nixos/secrets/nicol-nas-smb-secrets"
-
-          # Permissions: 0777 means "Everyone can write"
-          # Needed otherwise Krit cannot write to the share
           "file_mode=0777"
           "dir_mode=0777"
-
-          # Force client-side permission handling
           "nounix"
           "forceuid"
           "forcegid"
           "uid=${toString config.users.users.krit.uid}"
           "gid=${toString config.users.groups.users.gid}"
 
+          # -------------------------------------------------------
+          # ⚡ FAST SHUTDOWN & NETWORK SAFETY
+          # -------------------------------------------------------
           "nofail"
+          "_netdev"
+          "x-systemd.mount-timeout=5s"
+          "x-systemd.device-timeout=5s"
         ];
       };
     };
-
 in
 {
   environment.systemPackages = [ pkgs.cifs-utils ];

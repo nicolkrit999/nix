@@ -70,7 +70,7 @@
     # -----------------------------------------------------
     # ⚙️ SHELL INITIALIZATION
     # -----------------------------------------------------
-    initContent = ''
+    initExtra = ''
       # 1. LOAD USER CONFIG (Stow Integration)
       if [ -f "$HOME/.zshrc_custom" ]; then
         source "$HOME/.zshrc_custom"

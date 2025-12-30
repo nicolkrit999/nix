@@ -10,12 +10,23 @@
       "flakes"
     ];
 
-    # 🚀 HYPRLAND CACHE (Stops compiling from source)
-    substituters = [ "https://hyprland.cachix.org" ];
-    trusted-public-keys = [ "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc=" ];
+    # Deduplicate exact files in the Nix store to save space
+    auto-optimise-store = true;
+
+    # 🚀 BINARY CACHES
+    substituters = [
+      "https://hyprland.cachix.org"
+      "https://cosmic.cachix.org"
+    ];
+
+    trusted-public-keys = [
+      "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
+      "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE="
+    ];
   };
 
-  # Garbage Collection
+  # 🗑️ GARBAGE COLLECTION
+  # Runs weekly to remove unused packages (older than 7 days)
   nix.gc = {
     automatic = true;
     dates = "weekly";
