@@ -9,9 +9,6 @@
     ./alacritty.nix
     ./bat.nix
     ./cava.nix
-    ./chromium.nix
-    ./dolphin.nix
-    ./firefox.nix
     ./eza.nix
     ./git.nix
     ./kitty.nix
