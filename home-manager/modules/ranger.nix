@@ -1,5 +1,6 @@
 {
   pkgs,
+  term,
   ...
 }:
 {
@@ -77,11 +78,11 @@
   # Custom python command to enable udisk mounting support
   home.file.".config/ranger/commands.py".text = "from plugins.ranger_udisk_menu.mounter import mount";
 
-  # This overwrites the system shortcut to ensure Ranger always opens in Alacritty
+  # This overwrites the system shortcut to ensure Ranger always opens in the chosen default terminal
   xdg.desktopEntries.ranger = {
     name = "Ranger";
     genericName = "File Manager";
-    exec = "alacritty -e ranger";
+    exec = "${term} --class ranger -e ranger";
     terminal = false;
     categories = [
       "System"

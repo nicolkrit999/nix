@@ -21,6 +21,8 @@
   # To see the right class name, use `hyprctl clients` command and look for "class:"
   hyprlandWindowRules = [
     "workspace 2, class:^(code)$"
+    "workspace 3, class:^(org.kde.dolphin)$"
+    "workspace 3, class:^(ranger)$"
     "workspace 7, class:^(chromium-browser)$"
     "workspace 8, class:^(Alacritty)$"
     "workspace 8, class:^(kitty)$"

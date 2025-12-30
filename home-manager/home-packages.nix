@@ -71,6 +71,7 @@
       # 🖥️ CLI UTILITIES
       # -----------------------------------------------------------------------------------
       killall # Useful command to kill processes by name, such as waybar after a crash
+      nix-search-cli # CLI tool to search nixpkgs from terminal
       ripgrep # Fast line-oriented search tool (needed by neovim) -> ⚠️ KEEP
       unzip # Extraction utility for .zip files (used by mason in neovim) -> ⚠️ KEEP
       wtype

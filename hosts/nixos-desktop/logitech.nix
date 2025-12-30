@@ -8,7 +8,6 @@ let
     smartshift: { on: true; threshold: 20; };
     dpi: 1200;
 
-    # KEEP HIRES FALSE FOR USB
     hiresscroll: { hires: false; invert: false; target: false; };
 
     thumbwheel: {
@@ -31,9 +30,6 @@ let
     smartshift: { on: true; threshold: 20; };
     dpi: 1200;
 
-    # TURN HIRES ON FOR BLUETOOTH
-    # This sends more scroll events, making it feel faster/smoother
-    # to compensate for Bluetooth latency.
     hiresscroll: { hires: false; invert: false; target: false; };
 
     thumbwheel: {

@@ -27,6 +27,9 @@
     # Flatpak support
     ./flatpak.nix
 
+    # Gaming configuration
+    ./gaming.nix
+
     # Logitech MX Master 3S configuration
     ./logitech.nix
 

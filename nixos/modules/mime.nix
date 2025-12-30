@@ -11,7 +11,7 @@
     "x-scheme-handler/unknown" = "firefox.desktop";
 
     # 📝 Text Files (.txt, .md, .nix, etc)
-    "text/plain" = "code.desktop";
+    "text/plain" = "org.kde.kate.desktop";
     "application/x-shellscript" = "code.desktop";
 
     # 🖼️ Images (Gwenview)
@@ -21,6 +21,6 @@
     "image/webp" = "org.kde.gwenview.desktop";
 
     # 📄 PDFs (Okular)
-    "application/pdf" = "org.kde.okular.desktop";
+    "application/pdf" = "org.pwmt.zathura.desktop";
   };
 }

@@ -9,7 +9,7 @@
   # Disable folders I don't use
   xdg.userDirs = {
     publicShare = null;
-    templates = null;
+    music = null;
   };
 
   home.sessionVariables = {
@@ -17,7 +17,7 @@
     JDTLS_BIN = "${pkgs.jdt-language-server}/bin/jdtls";
   };
 
-  # 5. other things
+  # 5. Create/remove host-specific directories
   home.activation = {
     createHostDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       mkdir -p $HOME/Pictures/wallpapers
