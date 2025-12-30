@@ -40,7 +40,6 @@ let
 
   # 5. LOOK AND FEEL
   lookAndFeel = if polarity == "dark" then "org.kde.breezedark.desktop" else "org.kde.breeze.desktop";
-
   cursorTheme = config.stylix.cursor.name;
 in
 {
@@ -90,7 +89,6 @@ in
     kcalc
     kcolorchooser
     elisa # Music Player
-    gwenview # Image Viewer
     okular # PDF Viewer
     konsole # Terminal
 

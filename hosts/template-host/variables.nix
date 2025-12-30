@@ -28,6 +28,11 @@
   flatpak = false;
   term = "alacritty";
 
+  # 📂 DEFAULT APPS
+  browser = "firefox";
+  editor = "code";
+  fileManager = "dolphin";
+
   # 🎨 THEMING
   base16Theme = "nord";
   polarity = "dark";

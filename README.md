@@ -514,8 +514,31 @@ To have a working setup, every single variable needs to be defined. If a variabl
   set -as terminal-features ",xterm-kitty:RGB"
   ```
 
+  * `browser`: Default browser. To make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
+    * google-chrome
+    * firefox
+    * chromium
+
+  * `editor`: Default text/code editorTo make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
+    * vscode
+    * code
+    * code-cursor
+    * neovim
+    * vim
+    * emacs
+    * sublime
+    * kate
+    * gedit
+
+  * `fileManager`: Default file manager. To make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
+    * dolphin (the pkgs.kdePackages portion is already handled. write only `dolphin`)
+    * xfce.thunar
+    * ranger
+    * nautilus
+    * nemo
+
   * `base16Theme`: which base 16 theme to use  
-  * Reference https://github.com/tinted-theming/schemes/tree/spec-0.11/base16
+    * Reference https://github.com/tinted-theming/schemes/tree/spec-0.11/base16
   
   * `polarity`: Decide whatever to have a light or a dark theme in stylix.nix
     * This should make sense with the global base16 themes. This means a dark-coloured global theme should have a dark polarity and vice-versa
@@ -596,6 +619,10 @@ nix-prefetch-url <your_raw_url>
   flatpak = false;
   term = "alacritty";
 
+  browser = "firefox";
+  editor = "code";
+  fileManager = "dolphin";
+
   base16Theme = "nord";
   polarity = "dark";
   catppuccin = false;
@@ -651,6 +678,7 @@ This file contains specific "Power User" configurations and aesthetic tweaks tha
 
 
 #### `home.nix`
+This file contains specific home-manager aspects that are related only to a certain host. It complement well the global home.nix
 
 ---
 
@@ -797,21 +825,24 @@ This file allows you to manage user-specific configurations that should **only**
 
 **Common Use Cases:**
 
-| Feature                     | Description                                                 | Example Usage                                                                               |
-| --------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| **`home.packages`**         | Installs packages for the user only on this host.           | Installing `blender` or `gimp` only on a powerful desktop PC.                               |
-| **`xdg.userDirs`**          | Overrides the default `~/` folders.                         | Hiding unused folders like `~/Public` or `~/Templates` on a laptop.                         |
-| **`home.file`**             | Links a package or file to a specific path.                 | Linking `jdtls` to `~/tools/jdtls` so your Neovim config works the same across all distros. |
-| **`home.sessionVariables`** | Defines shell variables for this host only.                 | Setting `JAVA_HOME` or `JDTLS_BIN` only on machines used for development.                   |
-| **`home.activation`**       | Activate certain functions such as creating customs folders | Make sure certain directories exist only for that host                                      |
+| Feature                     | Description                                                                                     | Example Usage                                                                               |
+| --------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **`home.packages`**         | Installs packages for the user only on this host. It also include a block for unstable packages | Installing `blender` or `gimp` only on a powerful desktop PC.                               |
+| **`xdg.userDirs`**          | Overrides the default `~/` folders.                                                             | Hiding unused folders like `~/Public` or `~/Templates` on a laptop.                         |
+| **`home.file`**             | Links a package or file to a specific path.                                                     | Linking `jdtls` to `~/tools/jdtls` so your Neovim config works the same across all distros. |
+| **`home.sessionVariables`** | Defines shell variables for this host only.                                                     | Setting `JAVA_HOME` or `JDTLS_BIN` only on machines used for development.                   |
+| **`home.activation`**       | Activate certain functions such as creating customs folders                                     | Make sure certain directories exist only for that host                                      |
 
 #### `home.nix` Example
 
 Create or modify `hosts/<your_hostname>/home.nix`:
 
 ```nix
-{ pkgs, lib, ... }:
-
+{ pkgs, 
+  pkgs-unstable, 
+  lib, 
+  ... 
+}:
 {
   # ---------------------------------------------------------------------------
   # 🏠 HOST-SPECIFIC HOME CONFIGURATION
@@ -819,10 +850,13 @@ Create or modify `hosts/<your_hostname>/home.nix`:
   # This file is automatically imported if it exists.
 
   # 1. Install specific tools
-  home.packages = with pkgs; [
+  home.packages = (with pkgs; [
     gimp
     blender
-  ];
+  ])
+  ++ (with pkgs-unstable; [
+    vscode
+  ]);
 
   # 2. XDG Overrides
   # Folders set to 'null' will be disabled/hidden

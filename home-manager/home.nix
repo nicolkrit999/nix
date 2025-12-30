@@ -32,17 +32,35 @@
   # -----------------------------------------------------------------------
   programs.home-manager.enable = true;
 
-  # -----------------------------------------------------------------------
-  # 📂 XDG USER DIRECTORIES
-  # -----------------------------------------------------------------------
-  # DESCRIPTION:
-  # Manages ~/.config/user-dirs.dirs to tell applications (like Ranger or
-  # Firefox) exactly where your standard folders are.
-  # -----------------------------------------------------------------------
-  xdg.userDirs = {
-    enable = true; # Generates the configuration file
-    createDirectories = true; # Force-creates the folders if they are missing
+  xdg = {
+    enable = true;
+
+    # Ensures mime.nix settings are actually applied
+    mimeApps.enable = true;
+
+    # Create default user directories
+    # Specific directories can be disabled in the host-specific home.nix file
+    userDirs = {
+      enable = true;
+      createDirectories = true;
+    };
   };
+
+  # Create applications.menu for kde
+  # This allow kde applications such as dolphin to pick up the default applications to use for mime types
+  xdg.configFile."menus/applications.menu".text = ''
+    <!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+    "http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">
+    <Menu>
+      <Name>Applications</Name>
+      <DefaultAppDirs/>
+      <DefaultDirectoryDirs/>
+      <Include>
+        <Category>System</Category>
+        <Category>Utility</Category>
+      </Include>
+    </Menu>
+  '';
 
   # -----------------------------------------------------------------------
   # 🛠️ ACTIVATION SCRIPTS
@@ -53,6 +71,9 @@
   # -----------------------------------------------------------------------
 
   home.activation = {
+
+    # ⚠️ Do not add ~/.config/hypr/hyprland.conf otherwise during rebuild the config change and you need to manually reapply home-manager and then logging out/in to see the changes.
+    # The file need to be removed manually if needed before rebuilding
     removeExistingConfigs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
       rm -f "/home/${user}/.gtkrc-2.0"
       rm -f "/home/${user}/.config/gtk-3.0/settings.ini"
@@ -60,6 +81,7 @@
       rm -f "/home/${user}/.config/gtk-4.0/settings.ini"
       rm -f "/home/${user}/.config/gtk-4.0/gtk.css"
       rm -f "/home/${user}/.config/dolphinrc"
+      rm -f "/home/${user}/.local/share/applications/mimeapps.list"
     '';
 
     createEssentialDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

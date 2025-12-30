@@ -14,7 +14,6 @@
     ./guest.nix
     ./home-manager.nix
     ./kernel.nix
-    ./mime.nix
     ./net.nix
     ./nh.nix
     ./nix.nix

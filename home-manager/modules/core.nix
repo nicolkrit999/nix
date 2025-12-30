@@ -16,6 +16,7 @@
     ./git.nix
     ./kitty.nix
     ./lazygit.nix
+    ./mime.nix
     ./neovim.nix
     ./qt.nix
     ./ranger.nix

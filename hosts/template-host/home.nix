@@ -1,4 +1,9 @@
-{ pkgs, lib, ... }:
+{
+  pkgs,
+  pkgs-unstable,
+  lib,
+  ...
+}:
 
 {
   # ---------------------------------------------------------------------------
@@ -8,10 +13,13 @@
   # This file is automatically imported if it exists.
 
   # EXAMPLE: Install specific tools
-  # home.packages = with pkgs; [
-  #   gimp
-  #   blender
-  # ];
+  # home.packages =
+  #   (with pkgs; [
+
+  #  ])
+  #  ++ (with pkgs-unstable; [
+
+  #  ]);
 
   # EXAMPLE: Bind the installation of a file to a specific location
   # If the command "which" is run for that specific package it should return the path to the file.

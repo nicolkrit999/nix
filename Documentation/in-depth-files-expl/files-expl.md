@@ -8,119 +8,127 @@
   - [Key Concepts](#key-concepts-1)
     - [1. User Identity \& State Version](#1-user-identity--state-version)
     - [2. Modular Architecture](#2-modular-architecture)
-    - [3. Imperative Actions (Activation Scripts)](#3-imperative-actions-activation-scripts)
+    - [3. XDG Integration \& KDE Fixes](#3-xdg-integration--kde-fixes)
+    - [4. Imperative Actions (Activation Scripts)](#4-imperative-actions-activation-scripts)
   - [The Code](#the-code-1)
-- [~nixOS/home-manager/modules/gnome/gnome-main.nix](#nixoshome-managermodulesgnomegnome-mainnix)
+- [~nixOS/home-manager/home-packages.nix](#nixoshome-managerhome-packagesnix)
   - [Key Concepts](#key-concepts-2)
+    - [1. Dynamic Selection](#1-dynamic-selection)
+    - [2. Global vs. Host-Specific](#2-global-vs-host-specific)
+    - [3. Critical Dependencies](#3-critical-dependencies)
+- [~nixOS/home-manager/modules/gnome/gnome-main.nix](#nixoshome-managermodulesgnomegnome-mainnix)
+  - [Key Concepts](#key-concepts-3)
     - [1. Wallpaper Handling (Single Monitor Focus)](#1-wallpaper-handling-single-monitor-focus)
     - [2. Adaptive Theming (Polarity)](#2-adaptive-theming-polarity)
     - [3. Dconf Overrides](#3-dconf-overrides)
   - [The Code](#the-code-2)
 - [~nixOS/home-manager/modules/hyprland/hyprland-main.nix](#nixoshome-managermoduleshyprlandhyprland-mainnix)
-  - [Key Concepts](#key-concepts-3)
+  - [Key Concepts](#key-concepts-4)
     - [1. Dynamic Monitor Configuration](#1-dynamic-monitor-configuration)
     - [2. Theming Bridge (Catppuccin vs. Stylix)](#2-theming-bridge-catppuccin-vs-stylix)
     - [3. Environment \& Compatibility](#3-environment--compatibility)
     - [4. Smart Rules](#4-smart-rules)
   - [The Code](#the-code-3)
 - [~nixOS/home-manager/modules/kde/kde-main.nix](#nixoshome-managermoduleskdekde-mainnix)
-  - [Key Concepts](#key-concepts-4)
+  - [Key Concepts](#key-concepts-5)
     - [1. Multi-Monitor Wallpapers](#1-multi-monitor-wallpapers)
     - [2. Dynamic Theme Construction](#2-dynamic-theme-construction)
     - [3. Config Overrides](#3-config-overrides)
   - [The Code](#the-code-4)
 - [~nixOS/home-manager/modules/waybar/default.nix](#nixoshome-managermoduleswaybardefaultnix)
-  - [Key Concepts](#key-concepts-5)
+  - [Key Concepts](#key-concepts-6)
     - [1. Hybrid Theming (CSS + Nix Variables)](#1-hybrid-theming-css--nix-variables)
     - [2. Host-Specific Customization](#2-host-specific-customization)
     - [3. Dynamic Weather Script](#3-dynamic-weather-script)
   - [The Code](#the-code-5)
 - [~nixOS/home-manager/modules/wofi/default.nix](#nixoshome-managermoduleswofidefaultnix)
-  - [Key Concepts](#key-concepts-6)
+  - [Key Concepts](#key-concepts-7)
     - [1. Manual Palette Definition](#1-manual-palette-definition)
     - [2. Hybrid Theming Strategy (Semantic Mapping)](#2-hybrid-theming-strategy-semantic-mapping)
     - [3. CSS Injection](#3-css-injection)
   - [The Code](#the-code-6)
 - [~nixOS/home-manager/modules/alacritty.nix](#nixoshome-managermodulesalacrittynix)
-  - [Key Concepts](#key-concepts-7)
+  - [Key Concepts](#key-concepts-8)
     - [1. Smart Font Scaling](#1-smart-font-scaling)
     - [2. Robust Resolution Parsing](#2-robust-resolution-parsing)
     - [3. Theming](#3-theming)
   - [The Code](#the-code-7)
 - [~nixOS/home-manager/modules/firefox.nix](#nixoshome-managermodulesfirefoxnix)
-  - [Key Concepts](#key-concepts-8)
+  - [Key Concepts](#key-concepts-9)
     - [1. Extension Management](#1-extension-management)
     - [2. `about:config` Automation](#2-aboutconfig-automation)
     - [3. Toolbar Layout (JSON)](#3-toolbar-layout-json)
     - [4. Search Configuration](#4-search-configuration)
   - [The Code](#the-code-8)
 - [~nixOS/home-manager/modules/kitty.nix](#nixoshome-managermoduleskittynix)
-  - [Key Concepts](#key-concepts-9)
+  - [Key Concepts](#key-concepts-10)
     - [1. Smart Font Scaling](#1-smart-font-scaling-1)
     - [2. Theming \& Overrides](#2-theming--overrides)
     - [3. Usability Tweaks](#3-usability-tweaks)
   - [The Code](#the-code-9)
 - [~nixOS/home-manager/modules/qt.nix](#nixoshome-managermodulesqtnix)
-  - [Key Concepts](#key-concepts-10)
+  - [Key Concepts](#key-concepts-11)
     - [1. The "Delicate" Balance (Preventing KDE Crashes)](#1-the-delicate-balance-preventing-kde-crashes)
     - [2. The Engine: Kvantum](#2-the-engine-kvantum)
     - [3. Dynamic Theme Selection](#3-dynamic-theme-selection)
   - [The Code](#the-code-10)
 - [~nixOS/home-manager/modules/stylix.nix](#nixoshome-managermodulesstylixnix)
-  - [Key Concepts](#key-concepts-11)
+  - [Key Concepts](#key-concepts-12)
     - [1. The "Traffic Cop" Strategy (Catppuccin vs. Base16)](#1-the-traffic-cop-strategy-catppuccin-vs-base16)
     - [2. Preventing Desktop Crashes (The Qt/KDE Conflict)](#2-preventing-desktop-crashes-the-qtkde-conflict)
     - [3. Global Assets](#3-global-assets)
   - [The Code](#the-code-11)
 - [~nixOS/home-manager/modules/zsh.nix](#nixoshome-managermoduleszshnix)
-  - [Key Concepts](#key-concepts-12)
+  - [Key Concepts](#key-concepts-13)
     - [1. Smart Rebuild Aliases (Impure vs. Pure)](#1-smart-rebuild-aliases-impure-vs-pure)
     - [2. Hybrid Configuration (`.zshrc_custom`)](#2-hybrid-configuration-zshrc_custom)
     - [3. The Startup Sequence](#3-the-startup-sequence)
   - [The Code](#the-code-12)
 - [~nixOS/hosts/template-host/configuration.nix](#nixoshoststemplate-hostconfigurationnix)
-  - [Key Concepts](#key-concepts-13)
+  - [Key Concepts](#key-concepts-14)
     - [1. Graphical Stability (Preventing Crashes)](#1-graphical-stability-preventing-crashes)
     - [2. Universal Keyboard Layout](#2-universal-keyboard-layout)
     - [3. User \& Host Identity](#3-user--host-identity)
+    - [4. Input Method Cleanup (ibus)](#4-input-method-cleanup-ibus)
   - [The Code](#the-code-13)
 - [~nixOS/nixos/modules/boot.nix](#nixosnixosmodulesbootnix)
-  - [Key Concepts](#key-concepts-14)
+  - [Key Concepts](#key-concepts-15)
     - [1. GRUB vs. systemd-boot](#1-grub-vs-systemd-boot)
     - [2. Dual Boot Support (`os-prober`)](#2-dual-boot-support-os-prober)
     - [3. UEFI Accessibility](#3-uefi-accessibility)
   - [The Code](#the-code-14)
 - [~nixOS/nixos/modules/env.nix](#nixosnixosmodulesenvnix)
-  - [Key Concepts](#key-concepts-15)
-    - [1. Dynamic Defaults](#1-dynamic-defaults)
-    - [2. Path Injection](#2-path-injection)
+  - [Key Concepts](#key-concepts-16)
+    - [1. Smart Editor Configuration](#1-smart-editor-configuration)
+    - [2. Dynamic Defaults](#2-dynamic-defaults)
+    - [3. Path Injection](#3-path-injection)
   - [The Code](#the-code-15)
 - [~nixOS/nixos/modules/guest.nix](#nixosnixosmodulesguestnix)
-  - [Key Concepts](#key-concepts-16)
+  - [Key Concepts](#key-concepts-17)
     - [1. Ephemeral Home (`tmpfs`)](#1-ephemeral-home-tmpfs)
     - [2. Forced Desktop Environment (XFCE)](#2-forced-desktop-environment-xfce)
     - [3. Security Hardening](#3-security-hardening)
     - [4. User Warning](#4-user-warning)
   - [The Code](#the-code-16)
-- [~nixOS/nixos/modules/mime.nix](#nixosnixosmodulesmimenix)
-  - [Key Concepts](#key-concepts-17)
-    - [1. Specific Handlers](#1-specific-handlers)
-    - [2. ⚠️ Loose Linking](#2-️-loose-linking)
+- [~nixOS/home-manager/modules/mime.nix](#nixoshome-managermodulesmimenix)
+  - [Key Concepts](#key-concepts-18)
+    - [1. Dynamic Associations](#1-dynamic-associations)
+    - [2. Desktop File Translation (`mkDesktop`)](#2-desktop-file-translation-mkdesktop)
   - [The Code](#the-code-17)
 - [~nixOS/nixos/modules/nix.nix](#nixosnixosmodulesnixnix)
-  - [Key Concepts](#key-concepts-18)
+  - [Key Concepts](#key-concepts-19)
     - [1. Enabling Flakes](#1-enabling-flakes)
     - [2. Binary Caching (Speed)](#2-binary-caching-speed)
     - [3. Automatic Garbage Collection](#3-automatic-garbage-collection)
   - [The Code](#the-code-18)
 - [~nixOS/nixos/modules/sddm.nix](#nixosnixosmodulessddmnix)
-  - [Key Concepts](#key-concepts-19)
+  - [Key Concepts](#key-concepts-20)
     - [1. The "Astronaut" Theme](#1-the-astronaut-theme)
     - [2. X11 Backend for Stability](#2-x11-backend-for-stability)
     - [3. UWSM Integration](#3-uwsm-integration)
   - [The Code](#the-code-19)
 - [~nixOS/nixos/modules/user.nix](#nixosnixosmodulesusernix)
-  - [Key Concepts](#key-concepts-20)
+  - [Key Concepts](#key-concepts-21)
     - [1. The "Safety Net" (Why configure groups twice?)](#1-the-safety-net-why-configure-groups-twice)
     - [2. Global Shell Enforcement](#2-global-shell-enforcement)
   - [The Code](#the-code-20)
@@ -213,9 +221,6 @@ In `makeHome`, the `or` operator is used (e.g., `hostVars.kdeMice or []`). This 
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
-
-    # Cosmic DE: Support for the new Desktop Environment by System76
-    nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
   };
 
   # ========================================================================
@@ -228,7 +233,6 @@ In `makeHome`, the `or` operator is used (e.g., `hostVars.kdeMice or []`). This 
       nixpkgs,
       nixpkgs-unstable,
       home-manager,
-      nixos-cosmic,
       ...
     }@inputs:
     let
@@ -286,6 +290,9 @@ In `makeHome`, the `or` operator is used (e.g., `hostVars.kdeMice or []`). This 
               cosmic
               flatpak
               term
+              browser
+              editor
+              fileManager
               base16Theme
               polarity
               catppuccin
@@ -310,8 +317,6 @@ In `makeHome`, the `or` operator is used (e.g., `hostVars.kdeMice or []`). This 
             # Modules provided by Inputs
             inputs.catppuccin.nixosModules.catppuccin
             inputs.nix-flatpak.nixosModules.nix-flatpak
-            inputs.nixos-cosmic.nixosModules.default
-
             {
               # Configure Nixpkgs Instance
               nixpkgs.pkgs = import nixpkgs {
@@ -319,12 +324,6 @@ In `makeHome`, the `or` operator is used (e.g., `hostVars.kdeMice or []`). This 
                 config.allowUnfree = true;
               };
               time.timeZone = hostVars.timeZone;
-              
-              # Cache for Cosmic DE (speeds up build)
-              nix.settings = {
-                substituters = [ "https://cosmic.cachix.org" ];
-                trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
-              };
             }
           ]
           # CONDITIONAL MODULES
@@ -375,6 +374,9 @@ In `makeHome`, the `or` operator is used (e.g., `hostVars.kdeMice or []`). This 
               kde
               cosmic
               term
+              browser
+              editor
+              fileManager
               base16Theme
               polarity
               catppuccin
@@ -470,7 +472,19 @@ Instead of listing every single program here, `home.nix` uses an **imports** lis
 * `home-packages.nix`: Loads the list of user-installed software. These are software that are available to all hosts.
 
 
-### 3. Imperative Actions (Activation Scripts)
+### 3. XDG Integration & KDE Fixes
+
+This section handles the crucial bridge between your declarative config and how Linux actually finds and launches applications.
+
+* **File Associations (`mimeApps`):**
+`xdg.mimeApps.enable = true;` is the switch that activates your `mime.nix` rules. Without this, your preferred default apps (like opening PDFs with Zathura or images with Gwenview) would be ignored.
+* **The KDE Launcher & Dolphin Fix (`applications.menu`):**
+KDE applications (Dolphin, KRunner) rely on a specific file, `applications.menu`, to build their internal database of installed programs. In pure Window Managers like Hyprland, this file is often missing.
+* **The Problem:** If missing, `kbuildsycoca6` (KDE's cache builder) fails. Dolphin won't know that "Gwenview" exists, so it keeps asking you "Which app should I use?" and fails to generate thumbnails.
+* **The Fix:** We manually create a standard XDG menu file. This tricks KDE into correctly scanning your system, fixing file associations, thumbnails, and ensuring apps appear correctly in menus.
+
+
+### 4. Imperative Actions (Activation Scripts)
 
 Nix is declarative (defining *what* should exist), but sometimes we need to perform actions *when* the configuration switches.
 
@@ -524,18 +538,35 @@ Nix is declarative (defining *what* should exist), but sometimes we need to perf
   # Allows Home Manager to manage its own installation and configuration.
   programs.home-manager.enable = true;
 
-  # -----------------------------------------------------------------------
-  # 📂 XDG USER DIRECTORIES
-  # -----------------------------------------------------------------------
-  # Manages ~/.config/user-dirs.dirs.
-  # This tells applications (Firefox, Ranger, Dolphin) where to find standard
-  # folders like Downloads, Documents, Pictures, etc.
-  xdg.userDirs = {
+  xdg = {
     enable = true;
-    
-    # Automatically create the directories if they don't exist
-    createDirectories = true; 
+
+    # Ensures mime.nix settings are actually applied
+    mimeApps.enable = true;
+
+    # Create default user directories
+    # Specific directories can be disabled in the host-specific home.nix file
+    userDirs = {
+      enable = true;
+      createDirectories = true;
+    };
   };
+
+  # Create applications.menu for kde
+  # This allow kde applications such as dolphin to pick up the default applications to use for mime types
+  xdg.configFile."menus/applications.menu".text = ''
+    <!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+    "http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">
+    <Menu>
+      <Name>Applications</Name>
+      <DefaultAppDirs/>
+      <DefaultDirectoryDirs/>
+      <Include>
+        <Category>System</Category>
+        <Category>Utility</Category>
+      </Include>
+    </Menu>
+  '';
 
   # -----------------------------------------------------------------------
   # 🚀 ACTIVATION SCRIPTS
@@ -566,6 +597,153 @@ Nix is declarative (defining *what* should exist), but sometimes we need to perf
   };
 }
 ```
+
+---
+
+# ~nixOS/home-manager/home-packages.nix
+
+This file defines the **Global Software List** that is installed on *every* machine you own. It combines your personal preferences (defined in variables) with a static list of essential system utilities required for your configuration to function.
+
+---
+
+## Key Concepts
+
+### 1. Dynamic Selection
+
+Instead of hardcoding "firefox" or "neovim", this module intelligently installs the specific applications you selected in `variables.nix` (`term`, `browser`, `fileManager`, `editor`).
+
+* **How it works:** It looks up the package name in the Nixpkgs database.
+* **Safety Fallbacks:** If you mistype a name or leave a variable empty, it automatically installs a "safe" default (e.g., `kitty`, `google-chrome`, `dolphin`, `vscode`) so you are never left without a working system.
+
+### 2. Global vs. Host-Specific
+
+* **Edit this file** if you want an application (like `ripgrep` or `htop`) to be available on **all** your computers (desktop, laptop, server).
+* **Do NOT edit this file** for machine-specific apps (e.g., install `steam` or `lutris`) if you don't want that package to be installed in all your hosts.
+  * The host specific packages should be installed in one of those 2 location inside your specific host folder:
+    * `home.nix`: These packages are installed only in the hosts machine but can be configured as a module inside home-manager
+    * `local-packages.nix`: These packages are installed only for that host and can not be configured as a home-manager module
+
+### 3. Critical Dependencies
+
+The static list below contains utilities that are **required** for your environment to work correctly (e.g., `ueberzugpp` for file previews, `cliphist` for clipboard history).
+
+* **⚠️ Note:** Do not remove packages from the static list unless you know exactly what you are doing. Each package has an inline comment explaining exactly which feature or script depends on it.
+
+```nix
+{
+  pkgs,
+  pkgs-unstable,
+  term,
+  browser,
+  fileManager,
+  editor,
+  ...
+}:
+let
+  # 🛡️ SAFE FALLBACKS for browser, fileManager, editor
+  # If the user's choice is invalid or missing, these are installed.
+  fallbackTerm = pkgs.kitty;
+  fallbackBrowser = pkgs.google-chrome;
+  fallbackFileManager = pkgs.kdePackages.dolphin;
+  fallbackEditor = pkgs.vscode;
+
+  # 🔍 PACKAGE LOOKUP FUNCTION
+  # Tries to find 'pkgs.userInput'. If not found, returns the fallback.
+  getPkg =
+    name: fallback:
+    if builtins.hasAttr name pkgs then
+      pkgs.${name}
+    else if builtins.hasAttr name pkgs.kdePackages then
+      pkgs.kdePackages.${name}
+    else
+      fallback;
+
+  myTermPkg = getPkg term fallbackTerm;
+  myBrowserPkg = getPkg browser fallbackBrowser;
+  myFileManagerPkg = getPkg fileManager fallbackFileManager;
+  myEditorPkg = getPkg editor fallbackEditor;
+in
+{
+  home.packages =
+    # 1. DYNAMIC INSTALLATION
+    # These are installed based on user choices in variables.nix: browser, fileManager, editor
+    [
+      myTermPkg
+      myBrowserPkg
+      myFileManagerPkg
+      myEditorPkg
+    ]
+
+    # 2. STATIC INSTALLATION
+    # These are always installed, regardless of user choices
+    # Packages in each category are sorted alphabetically
+    # ⚠️ All these packages should be kept. The reason is indicated next to each package.
+    ++ (with pkgs; [
+
+      # 🖥️ DESKTOP APPLICATIONS
+      # -----------------------------------------------------------------------------------
+      imv # Image viewer (referenced in window rules)
+      mpv # Video player (referenced in window rules)
+      pavucontrol # Audio control (Vital for Hyprland)
+
+      # -----------------------------------------------------------------------------------
+      # 🖥️ CLI UTILITIES
+      # -----------------------------------------------------------------------------------
+      brightnessctl # Control device backlight/brightness (needed for hyprland binds)
+      cliphist # Wayland clipboard history manager (needed for clipboard management)
+      eza # Modern ls replacement (used in shell and ranger)
+      ffmpegthumbnailer # Lightweight video thumbnailer (needed for ranger video previews)
+      fzf # Fuzzy finder (used in shell and ranger)
+      git # Version control system (used in various scripts)
+      grimblast # Wayland screenshot helper for Hyprland (referenced in chromium.nix module)
+      htop # Interactive process viewer (keep to kill processes easily)
+      hyprpicker # Wayland color picker (needed for hyprland binds)
+      nixfmt-rfc-style # Nix code formatter with RFC style (used in flake.nix)
+      playerctl # Control MPRIS-enabled media players (Spotify, etc.) (used in hyprland binds)
+      showmethekey # Visualizer for keyboard input (used by hyprland binds)
+      starship # Shell prompt (used by starship.nix)
+      ueberzugpp # Image previews for terminal (used by Ranger backend)
+      wl-clipboard # Wayland copy/paste CLI tools (needed for clipboard management)
+      zsh-autosuggestions # Fish-like autosuggestions for Zsh (used in zsh config)
+
+      # -----------------------------------------------------------------------------------
+      # 🧑🏽‍💻 CODING
+      # -----------------------------------------------------------------------------------
+      #
+
+      # -----------------------------------------------------------------------
+      # 🪟 WINDOW MANAGER (WM) INFRASTRUCTURE
+      # -----------------------------------------------------------------------
+      libnotify # Library for desktop notifications (used by hyprland-notifications)
+      xdg-desktop-portal-gtk # GTK portal backend for file pickers (needed for hyprland)
+      xdg-desktop-portal-hyprland # Hyprland specific portal for screen sharing (needed for hyprland)
+
+      # -----------------------------------------------------------------------
+      # ❓ OTHER
+      # -----------------------------------------------------------------------
+      bemoji # Emoji picker with dmenu/wofi support (used in hyprland binds)
+      nix-prefetch-scripts # Tools to get hashes for nix derivations (used by nixos development)
+
+    ])
+
+    # 3. KDE PACKAGES
+    ++ (with pkgs.kdePackages; [
+      gwenview # Default image viewer as defined in mime.nix
+      kio-extras # Extra protocols for KDE file dialogs (needed for dolphin remote access)
+      kio-fuse # Mount remote filesystems (via ssh, ftp, etc.) in Dolphin
+    ])
+
+    # 4. UNSTABLE PACKAGES
+    ++ (with pkgs-unstable; [
+      # -----------------------------------------------------------------------
+      # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
+      # ----------------------------------------------------------------------
+    ]);
+}
+
+```
+
+
 
 
 # ~nixOS/home-manager/modules/gnome/gnome-main.nix
@@ -764,14 +942,23 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
       # -----------------------------------------------------
       # Critical for app compatibility on Wayland
       env = [
-        "NIXOS_OZONE_WL,1"             # Forces Electron apps (VS Code, Discord) to use Wayland
-        "XDG_CURRENT_DESKTOP,Hyprland"
-        "XDG_SESSION_TYPE,wayland"
-        "XDG_SESSION_DESKTOP,Hyprland"
-        "QT_QPA_PLATFORM,wayland"      # Forces QT apps (Dolphin, KDE apps) to use Wayland
-        "XDG_SCREENSHOTS_DIR,${screenshots}" # Tells tools where to save images
-        "QT_QPA_PLATFORMTHEME,qt5ct"   # Ensures QT apps stick to the theme
-        "QT_QPA_PLATFORM,wayland;xcb"  # Safety: Try Wayland first, fallback to X11 if needed
+         # TOOLKIT BACKENDS (Force apps to use Wayland)
+        "NIXOS_OZONE_WL,1" # Forces Electron apps (VS Code, Discord, Obsidian) to run natively on Wayland.
+        "QT_QPA_PLATFORM,wayland;xcb" # Tells Qt apps: "Try Wayland first. If that fails, use X11 (xcb)".
+        "GDK_BACKEND,wayland,x11,*" # Tells GTK apps: "Try Wayland first. If that fails, use X11".
+        "SDL_VIDEODRIVER,wayland" # Forces SDL games to run on Wayland (improves performance/scaling).
+        "CLUTTER_BACKEND,wayland" # Forces Clutter apps to use Wayland.
+
+        # DESKTOP SESSION IDENTITY
+        "XDG_CURRENT_DESKTOP,Hyprland" # Tells portals (screen sharing) that you are using Hyprland.
+        "XDG_SESSION_TYPE,wayland" # Generic flag telling the session it is Wayland-based.
+        "XDG_SESSION_DESKTOP,Hyprland" # Used by some session managers to identify the desktop.
+
+        # THEMING & AESTHETICS
+        "QT_QPA_PLATFORMTHEME,qt5ct" # Tells Qt apps to use the 'qt5ct' or 'qt6ct' tool for styling (fixes ugly Qt apps).
+
+        # SYSTEM PATHS
+        "XDG_SCREENSHOTS_DIR,${screenshots}" # Tells tools where to save screenshots by default.
       ];
 
       # -----------------------------------------------------
@@ -797,6 +984,7 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
         "waybar" # Status bar
         "wl-paste --type text --watch cliphist store"  # Clipboard history (Text)
         "wl-paste --type image --watch cliphist store" # Clipboard history (Images)
+        "pkill ibus-daemon" # Kill ibus given by gnome
       ];
 
       # -----------------------------------------------------
@@ -861,6 +1049,18 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
         "float,class:(mpv)|(imv)|(showmethekey-gtk)" # Float media viewers and ShowMeTheKey
         "move 990 60,size 900 170,pin,noinitialfocus,class:(showmethekey-gtk)" # Position ShowMeTheKey
         "noborder,nofocus,class:(showmethekey-gtk)" # No border for ShowMeTheKey
+
+        # Ueberzug fix for image previews
+        "float, class:^(ueberzugpp_layer)$"
+        "noanim, class:^(ueberzugpp_layer)$"
+        "noshadow, class:^(ueberzugpp_layer)$"
+        "noblur, class:^(ueberzugpp_layer)$"
+        "noinitialfocus, class:^(ueberzugpp_layer)$"
+
+        # Gwenview fix for opening images
+        "float, class:^(org.kde.gwenview)$"
+        "center, class:^(org.kde.gwenview)$"
+        "size 80% 80%, class:^(org.kde.gwenview)$"
       ]
       ++ hyprlandWindowRules # Force certains apps to certain workspaces if defined in modules.nix
 
@@ -991,6 +1191,17 @@ let
   cursorTheme = config.stylix.cursor.name;
 in
 {
+
+  # Kill plasma
+  xdg.configFile."autostart/ibus-daemon.desktop".text = ''
+    [Desktop Entry]
+    Type=Application
+    Name=Kill IBus Daemon
+    Exec=pkill ibus-daemon
+    Hidden=false
+    StartupNotify=false
+    X-KDE-autostart-phase=1
+  '';
 
   programs.plasma = {
     enable = true;
@@ -2172,41 +2383,41 @@ in
     # -----------------------------------------------------------------------
     # Controls which applications Stylix is allowed to modify.
     targets = {
+      # It is possible to enable these, but it require manual theming in the modules/program itself
+      neovim.enable = false; # Custom themed via my personal neovim stow config in dotfiles
+      wofi.enable = false; # Themed manually via wofi/style.css
 
-      # --- 1. ALWAYS DISABLED (Manual Control) ---
-      # We handle these configurations manually for finer control.
-      neovim.enable = false;      # Managed by my Stow config (dotfiles)
-      wofi.enable = false;        # Managed by wofi/style.css
-      waybar.enable = false;      # Managed by waybar/style.css
-      hyprpaper.enable = lib.mkForce false; # Managed by flake.nix (per-host wallpapers)
+      # These should remain disabled because all edge cases are already handled
+      waybar.enable = false; # Custom themed via waybar.nix using catppuccin nix https://github.com/catppuccin/nix/blob/95042630028d613080393e0f03c694b77883c7db/modules/home-manager/waybar.nix
+      hyprpaper.enable = lib.mkForce false; # Wallpapers are handled manually in flake.nix and are hosts-specific
 
-      # --- 2. CRITICAL EXCLUSIONS (Stability) ---
-      # 🚨 WARNING: Enabling these causes KDE Plasma to CRASH.
-      # Reason: Stylix overrides QT_QPA_PLATFORMTHEME, which conflicts with KDE's internal manager.
-      # We handle Qt theming safely in `modules/qt.nix`.
-      kde.enable = false;
-      qt.enable = false;
+      # These should absolutely remain disabled because they cause conflicts
+      kde.enable = false; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
+      qt.enable = false; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
 
-      # --- 3. CONDITIONAL TARGETS (Catppuccin vs. Stylix) ---
-      # Logic: If Catppuccin is ON, disable Stylix for these apps (let official modules work).
-      #        If Catppuccin is OFF, enable Stylix (autogenerate the theme).
-      
-      gtk.enable = !catppuccin;        # Avoid conflicting .gtkrc-2.0 writes
-      alacritty.enable = !catppuccin;  # Ref: modules/alacritty.nix
-      hyprland.enable = !catppuccin;   # Ref: modules/hyprland/main.nix
-      hyprlock.enable = !catppuccin;   # Ref: modules/hyprland/hyprlock.nix
-      swaync.enable = !catppuccin;     # Ref: modules/swaync/default.nix
-      zathura.enable = !catppuccin;    # Ref: modules/zathura.nix
-      bat.enable = !catppuccin;        # Ref: modules/bat.nix
-      lazygit.enable = !catppuccin;    # Ref: modules/lazygit.nix
-      tmux.enable = !catppuccin;       # Ref: modules/tmux.nix
-      starship.enable = !catppuccin;   # Ref: modules/starship.nix
-      cava.enable = !catppuccin;       # Ref: modules/cava.nix
-      kitty.enable = !catppuccin;      # Ref: modules/kitty.nix
+      # These should remain enabled to avoid conflicts with other modules (empty for now)
 
-      # --- 4. ENABLED TARGETS ---
-      # Apply Stylix only to specific Firefox profiles
-      firefox.profileNames = [ user ];
+      # ---------------------------------------------------------------------------------------
+      # 🎨 GLOBAL CATPPUCCIN
+      # Intelligently enable/disable stylix based on whether catppuccin is enabled
+      # catppuccin = true -> .enable = false
+      # catppuccin = false -> .enable = true
+      gtk.enable = !catppuccin; # Avoid .gtkrc-2.0 and gtk-3.0 overrides
+      alacritty.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/alacritty.nix
+      hyprland.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
+      hyprlock.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix
+      swaync.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/swaync/default.nix
+      zathura.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/zathura.nix
+      bat.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/bat.nix
+      lazygit.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/lazygit.nix
+      tmux.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/tmux.nix
+      starship.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
+      cava.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/cava.nix
+      kitty.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/kitty.nix
+      # ---------------------------------------------------------------------------------------
+
+      # Enable stylix but only for certain elements
+      firefox.profileNames = [ user ]; # Applies skin only to the defined profile
     };
 
     # -----------------------------------------------------------------------
@@ -2317,13 +2528,24 @@ Nix is great for system config, but you might have personal shell preferences (a
 
 ### 3. The Startup Sequence
 
-The `initContent` block handles the logic that runs every time you open a terminal:
+The `initExtra` block handles the logic that runs every time you open a terminal, ensuring your environment is robust and self-healing:
 
-1. **Load Custom Config:** Sources your `stow`-managed `.zshrc_custom`.
-2. **Tmux Autostart:** Automatically starts a Tmux session, but *only* if you are in a GUI environment (preventing issues in TTYs).
-3. **UWSM (Universal Wayland Session Manager):**
-* It detects if you are logging into **TTY1** (the first physical terminal).
-* If no graphical session is running, it automatically launches your Wayland compositor (Hyprland/KDE) using `uwsm`. This replaces the old `login` managers (like SDDM/GDM) for a cleaner, bloat-free startup.
+1. **Hyprland Socket Recovery (The "Dead Session" Fix):** 
+* **What it does:** It dynamically searches for the active Hyprland instance signature in `/run/user/...` and exports it.
+* **Why it's needed:** This fixes the common "Couldn't connect to socket" error that happens after a reboot or crash, where the shell (or Tmux) tries to talk to an old, dead Hyprland session.
+
+
+2. **Load Custom Config:** 
+* Sources your `stow`-managed `.zshrc_custom` file to load your personal aliases and Git functions.
+
+
+3. **Tmux Autostart:** 
+* Automatically starts a Tmux session, but *only* if you are in a GUI environment (preventing issues in TTYs).
+
+
+4. **UWSM (Universal Wayland Session Manager):** 
+* **Auto-Login:** It detects if you are logging into **TTY1** (the first physical terminal) with no active graphics.
+* **Compositor Launch:** If true, it uses `uwsm` to correctly launch your desktop (Hyprland), replacing the need for a bulky display manager like SDDM.
 
 
 
@@ -2337,6 +2559,7 @@ This code is my personal one, but it may be change heavily based on your prefere
   config,
   pkgs,
   nixImpure,
+  hostname,
   ...
 }:
 {
@@ -2355,46 +2578,56 @@ This code is my personal one, but it may be change heavily based on your prefere
     shellAliases =
       let
         flakeDir = "~/nixOS";
-        
-        # 🧠 INTELLIGENT COMMAND SELECTION
-        # Checks the 'nixImpure' variable from the host config.
-        # If true, uses the standard rebuild command with --impure (for unversioned files).
-        # If false, uses the optimized 'nh' helper for faster builds.
+
         switchCmd =
           if nixImpure then "sudo nixos-rebuild switch --flake . --impure" else "nh os switch ${flakeDir}";
-        
+
         updateCmd =
           if nixImpure then
             "nix flake update && sudo nixos-rebuild switch --flake . --impure"
           else
             "nh os switch --update ${flakeDir}";
+
+        updateBoot =
+          if nixImpure then
+            "sudo nixos-rebuild boot --flake . --impure"
+          else
+            "nh os boot --update ${flakeDir}";
       in
       {
-        # The main commands (Adapt automatically to the host)
+
+        # Smart aliases based on nixImpure setting
         sw = "cd ${flakeDir} && ${switchCmd}";
         upd = "cd ${flakeDir} && ${updateCmd}";
 
-        # Manual overrides (Kept for reference or emergency use)
+        # Manual are kept for reference, but use the above aliases instead
         swpure = "cd ${flakeDir} && nh os switch ${flakeDir}";
         swimpure = "cd ${flakeDir} && sudo nixos-rebuild switch --flake . --impure";
 
-        # Quick Navigation & Editing
-        hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#$(hostname)";
-        pkgs = "nvim ${flakeDir}/home-manager/home-packages.nix";
+        # System maintenance
+        dedup = "nix store optimise";
+        cleanup = "nh clean all";
 
-        # Formatting Tools
-        fmt-dry = "nix fmt -- --check";      # Check formatting without changes
-        fmt = "cd ${flakeDir} && nix fmt -- **/*.nix"; # Format all .nix files
+        # Home-Manager related
+        hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#$(hostname)"; # Rebuild home-manager config
+
+        # Pkgs editing
+        pkgs-home = "nvim ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list
+        pkgs-host = "nvim ${flakeDir}/hosts/${hostname}/local-packages.nix"; # Edit host-specific packages list
+
+        # Nix repo management
+        fmt-dry = "cd ${flakeDir} && nix fmt -- --check"; # Check formatting without making changes (list files that need formatting)
+        fmt = "cd ${flakeDir} &&  nix fmt -- **/*.nix"; # Format Nix files using nixfmt (a regular nix fmt hangs on zed theme)
+        merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop"; # Merge main with develop branch, push and return to develop branch
+        merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop"; # Merge develop with main branch, push and return to develop branch
 
         # Utilities
         npu = "read 'url?Enter URL: ' && nix-prefetch-url \"$url\"";
-        r = "ranger";
-        v = "nvim";
         se = "sudoedit";
 
-        # System Management
-        reb-uefi = "systemctl reboot --firmware-setup"; # Reboot directly into BIOS
-        swde = "cd ~/nixOS && sudo nixos-rebuild boot --flake ."; # Rebuild without restarting display manager
+        # Various
+        reb-uefi = "systemctl reboot - -firmware-setup"; # Reboot into UEFI firmware settings
+        swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
       };
 
     history.size = 10000;
@@ -2403,22 +2636,25 @@ This code is my personal one, but it may be change heavily based on your prefere
     # -----------------------------------------------------
     # ⚙️ SHELL INITIALIZATION
     # -----------------------------------------------------
-    initContent = ''
-      # 1. LOAD USER CONFIG (Stow Integration)
-      # Checks for a non-Nix custom config file.
-      # This allows you to manage generic aliases via GNU Stow in your dotfiles.
+    initExtra = ''
+      # 1. FIX HYPRLAND SOCKET (Dynamic Update)
+      # This ensures that even inside tmux or after a crash, the shell finds the correct socket.
+      if [ -d "/run/user/$(id -u)/hypr" ]; then
+        export HYPRLAND_INSTANCE_SIGNATURE=$(ls -w 1 /run/user/$(id -u)/hypr/ | grep -v ".lock" | head -n 1)
+      fi
+
+      # 2. LOAD USER CONFIG (Stow Integration)
       if [ -f "$HOME/.zshrc_custom" ]; then
         source "$HOME/.zshrc_custom"
       fi
 
-      # 2. TMUX AUTOSTART
-      # Starts tmux automatically, but only if we are in a GUI (DISPLAY is set)
-      # and not already inside a tmux session.
+      # 3. TMUX AUTOSTART (Only in GUI)
+      # Ensure we are in a GUI before starting tmux automatically
       if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
         tmux new-session
       fi
 
-      # 3. UWSM STARTUP (Universal & Safe)
+      # 4. UWSM STARTUP (Universal & Safe)
       # Guard: Only run if on physical TTY1 AND no graphical session is active.
       if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
           
@@ -2430,6 +2666,7 @@ This code is my personal one, but it may be change heavily based on your prefere
     '';
   };
 }
+
 ```
 
 # ~nixOS/hosts/template-host/configuration.nix
@@ -2443,7 +2680,7 @@ This file is the **machine-specific** entry point for NixOS. While `flake.nix` o
 
 ### 1. Graphical Stability (Preventing Crashes)
 
-We install essential terminals (`kitty`, `alacritty`) and graphics libraries (`qtwayland`) at the **system level** rather than inside the optional Desktop Environment modules.
+It nstall essential terminals graphics libraries (`qtwayland`) at the **system level** rather than inside the optional Desktop Environment modules.
 
 * **The Problem:** If you were to install these libraries only inside the `kde.nix` module, and then decided to disable KDE (to use only Hyprland, for example), your terminals or Qt applications might crash because they would lose the necessary display backend tools.
 * **The Solution:** By defining them here, we ensure that graphical applications always have the right tools to be displayed, regardless of which Desktop Environment is enabled or disabled.
@@ -2455,6 +2692,14 @@ Instead of configuring the keyboard in three different places (X11, Wayland, Con
 ### 3. User & Host Identity
 
 This file consumes the variables passed from `flake.nix` (like `user`, `hostname`, `stateVersion`) to dynamically configure the user account and network identity without hardcoding values.
+
+
+### 4. Input Method Cleanup (ibus)
+
+We explicitly disable the `ibus` input method system and force-clear related environment variables at the end of the configuration.
+
+* **The Problem:** The `ibus` daemon (used for typing complex characters in languages like Japanese or Chinese) often runs by default and "hijacks" keyboard input. In tiling window managers (like Hyprland) or games, this frequently causes "dead keys" (keys that don't register immediately) or interferes with custom keybindings.
+* **The Solution:** By using `lib.mkForce null` on the input method and clearing `GTK_IM_MODULE`/`QT_IM_MODULE`, we ensure that the keyboard sends raw, direct input to your applications without any software layer interfering.
 
 ---
 
@@ -2488,13 +2733,7 @@ This file consumes the variables passed from `flake.nix` (like `user`, `hostname
     ../../nixos/modules/core.nix
   ];
 
-  # ---------------------------------------------------------
-  # 🖼️ GRAPHICS SUPPORT
-  # ---------------------------------------------------------
-  # Keeps graphics drivers enabled globally.
-  # Critical: Prevents terminals from crashing if a full Desktop Environment
-  # (like KDE/GNOME) is disabled.
-  hardware.graphics.enable = true; 
+  hardware.graphics.enable = true; # Keep enabled to avoid terminal crash when disabling certain de
 
   fonts.packages = with pkgs; [
     nerd-fonts.jetbrains-mono
@@ -2503,37 +2742,18 @@ This file consumes the variables passed from `flake.nix` (like `user`, `hostname
     noto-fonts-color-emoji
     noto-fonts-cjk-sans
   ];
+
   fonts.fontconfig.enable = true;
 
-  # ---------------------------------------------------------
-  # 📦 SYSTEM PACKAGES (Graphical Stability)
-  # ---------------------------------------------------------
-  # These are installed here to ensure they persist even if specific
-  # Desktop Environments (KDE, Gnome) are disabled in variables.nix.
   environment.systemPackages = with pkgs; [
-    # Terminals (Must be here to ensure a way to access the system exists)
-    kitty
-    alacritty
-    
-    # Shell Utilities
-    starship
-    zsh-autosuggestions
-    eza
-    fzf
-    git
-    wget
     iptables
     glib
     gsettings-desktop-schemas
     gtk3
-    
-    # 🛡️ WAYLAND LIBRARIES
-    # These prevent Qt applications from crashing on pure Window Managers (Hyprland)
-    # when the main Desktop Environment (KDE) is disabled.
     libsForQt5.qt5.qtwayland # Qt5 Wayland platform plugin
-    kdePackages.qtwayland    # Qt6 Wayland platform plugin
+    kdePackages.qtwayland # Qt6 Wayland platform plugin
   ];
-  
+
   programs.dconf.enable = true;
 
   # ---------------------------------------------------------
@@ -2541,6 +2761,8 @@ This file consumes the variables passed from `flake.nix` (like `user`, `hostname
   # ---------------------------------------------------------
   # Dynamically sets the hostname passed from flake.nix
   networking.hostName = hostname;
+
+  # Enable networking
   networking.networkmanager.enable = true;
 
   # ---------------------------------------------------------
@@ -2560,7 +2782,7 @@ This file consumes the variables passed from `flake.nix` (like `user`, `hostname
     layout = keyboardLayout;
     variant = keyboardVariant;
   };
-  
+
   # Forces the text console (TTY) to look at the Xserver settings above.
   console.useXkbConfig = true;
 
@@ -2590,7 +2812,13 @@ This file consumes the variables passed from `flake.nix` (like `user`, `hostname
 
   # Defines the state version dynamically based on flake.nix input
   system.stateVersion = stateVersion;
+
+  i18n.inputMethod.enabled = lib.mkForce null;
+  environment.variables.GTK_IM_MODULE = lib.mkForce "";
+  environment.variables.QT_IM_MODULE = lib.mkForce "";
+  environment.variables.XMODIFIERS = lib.mkForce "";
 }
+
 ```
 
 # ~nixOS/nixos/modules/boot.nix
@@ -2668,22 +2896,40 @@ We add a custom menu entry called **"UEFI Firmware Settings"**.
 }
 ```
 
+---
 
 # ~nixOS/nixos/modules/env.nix
 
-This file defines global **Environment Variables** that are available to all users and processes on the system. It ensures that your preferred tools (like your terminal and editor) are recognized as defaults by the operating system and other applications.
+This file defines global **Environment Variables** that are available to all users and processes on the system. It ensures that your preferred tools (like your terminal, browser, and editor) are recognized as defaults by the operating system and other applications.
 
 ---
 
 ## Key Concepts
 
-### 1. Dynamic Defaults
+### 1. Smart Editor Configuration
 
-Instead of hardcoding "kitty" or "alacritty", this module uses the `term` variable passed from `variables.nix`.
+Setting the `EDITOR` variable isn't always straightforward. Some GUI editors (like VS Code or Kate) return control to the terminal immediately, which breaks tools like `git commit` that need to wait for you to save and close the file.
 
-* **Benefit:** If you decide to switch your main terminal in `variables.nix`, the system-wide default (`$TERMINAL`) updates automatically, ensuring scripts that launch terminals (like file manager "Open in Terminal" actions) use the correct one.
+* **The Solution:** We use a **Translation Layer** (`editorFlags`) that automatically appends the necessary flags to your chosen editor:
+* `vscode` → `code --wait`
+* `kate` → `kate --block`
+* `subl` → `subl --wait`
 
-### 2. Path Injection
+
+* **Benefit:** You can simply set `editor = "vscode"` in your variables, and this module automatically ensures it runs with the correct flags for interactive shell tasks.
+
+### 2. Dynamic Defaults
+
+Instead of hardcoding specific applications, this module applies the variables passed from `flake.nix` (`term`, `browser`, `editor`) to the system environment.
+
+* **Variables Set:**
+* `TERMINAL`: Used by window managers and scripts to launch your preferred terminal.
+* `BROWSER`: Used by CLI tools to open links.
+* `EDITOR`: Configured dynamically (as described above) for text editing.
+
+
+
+### 3. Path Injection
 
 We define `XDG_BIN_HOME` and add it to the system `PATH`.
 
@@ -2694,32 +2940,45 @@ We define `XDG_BIN_HOME` and add it to the system `PATH`.
 ## The Code
 
 ```nix
-{ term, ... }:
 {
-  environment.sessionVariables = rec {
-    
-    # 🖥️ DEFAULT TERMINAL
-    # Sets the preferred terminal emulator (dynamically pulled from variables.nix)
-    # Used by apps like Ranger or scripts that need to spawn a terminal window.
+  term,
+  editor,
+  browser,
+  ...
+}:
+
+let
+  # Translation layer for editor commands with necessary flags
+  # It may be necessary to add more editors and their flags here
+  editorFlags = {
+    "code" = "code --wait";
+    "vscode" = "code --wait";
+    "kate" = "kate --block";
+    "gedit" = "gedit --wait";
+    "subl" = "subl --wait";
+    "nano" = "nano";
+    "nvim" = "nvim";
+    "vim" = "vim";
+  };
+
+  # Select the correct command, or default to the name itself if unknown
+  finalEditor = editorFlags.${editor} or editor;
+in
+{
+  environment.sessionVariables = {
+    BROWSER = browser;
+
     TERMINAL = term;
 
-    # 📝 DEFAULT EDITOR
-    # Sets Neovim as the default text editor for things like 'git commit',
-    # 'sudoedit', or editing config files.
-    EDITOR = "nvim";
+    EDITOR = finalEditor;
 
-    # 📂 CUSTOM BINARY PATH
-    # Defines a standard location for user-specific executable scripts.
     XDG_BIN_HOME = "$HOME/.local/bin";
-
-    # 🛣️ PATH EXPANSION
-    # Appends the custom bin directory to the global PATH.
-    # This allows you to run your scripts located in ~/.local/bin directly.
     PATH = [
-      "${XDG_BIN_HOME}"
+      "$HOME/.local/bin"
     ];
   };
 }
+
 ```
 
 
@@ -2925,28 +3184,47 @@ in
 }
 ```
 
+---
 
-# ~nixOS/nixos/modules/mime.nix
+# ~nixOS/home-manager/modules/mime.nix
 
-This file configures **System-Wide Default Applications** (MIME types). It controls which program the operating system launches when you open a specific file type or link (e.g., folders, URLs, HTML files).
+This file configures **User-Specific Default Applications** (File Associations). It controls which program launches when you double-click a file or open a link (e.g., ensuring directories open in your chosen File Manager, and URLs open in your chosen Browser).
 
-Unlike Home Manager configurations (which apply only to your user), this uses the **NixOS system module** `xdg.mime`. This ensures that these defaults apply globally and serve as a robust fallback if user-specific settings are missing or conflicting.
+This is a **Home Manager module** that uses the `xdg.mimeApps` standard. Unlike system-wide defaults, these settings apply only to your user session, allowing different users on the same machine to have different preferences, taken from the host-specific `variables.nix`
 
 ---
 
 ## Key Concepts
 
-### 1. Specific Handlers
+### 1. Dynamic Associations
 
-**`inode/directory`:** Maps "Folders" to **Dolphin**. This ensures "Open Containing Folder" in browser downloads works correctly.
+Instead of hardcoding "firefox" or "dolphin", this module consumes the variables passed from `flake.nix` (`browser`, `editor`, `fileManager`).
+
+* **Benefit:** If you change `editor = "nvim"` to `editor = "code"` in your variables, this file automatically updates all relevant file types (`text/plain`, `application/json`, `text/x-nix`, etc.) to use the new editor without you needing to edit the MIME list manually.
+
+### 2. Desktop File Translation (`mkDesktop`)
+
+Linux applications require exact `.desktop` filenames to register as default handlers (e.g., VS Code is `code.desktop`, not just `code`).
+
+* 
+**The Logic:** We use a helper function `mkDesktop`  to translate your simple variable names into the official XDG desktop names:
 
 
-* **`x-scheme-handler/http(s)`:** Maps web links to **Firefox**. This forces the system to use Firefox for all web interactions, overriding any pre-installed defaults.
+* 
+`"dolphin"` → `"org.kde.dolphin.desktop"` 
 
-### 2. ⚠️ Loose Linking
 
-* **The Build:** The build succeeds even if the applications are missing. Nix treats these values as text strings.
-* **The Runtime:** If you uninstall Dolphin or Firefox but leave this config active, clicking links or folders will fail or trigger an error. You must ensure the mapped applications are installed in `environment.systemPackages`.
+* 
+`"vscode"` → `"code.desktop"` 
+
+
+* 
+`"kate"` → `"org.kde.kate.desktop"` 
+
+
+
+
+* **Why:** This prevents "Application not found" errors when switching between different tools that have different internal naming conventions.
 
 ---
 
@@ -2955,23 +3233,56 @@ This code is my personal one, but it may be change heavily based on your prefere
 
 ```nix
 {
-  # -----------------------------------------------------------------------
-  # 📂 SYSTEM-WIDE FILE ASSOCIATIONS
-  # -----------------------------------------------------------------------
-  # Uses 'xdg.mime' (NixOS) instead of 'xdg.mimeApps' (Home Manager).
-  # This creates /etc/xdg/mimeapps.list
-  
-  xdg.mime.defaultApplications = {
-    # 📂 File Manager (Force Dolphin)
-    "inode/directory" = "org.kde.dolphin.desktop";
+  pkgs,
+  browser,
+  editor,
+  fileManager,
+  ...
+}:
+let
+  mkDesktop =
+    name:
+    if name == "dolphin" then
+      "org.kde.dolphin.desktop"
+    else if name == "kate" then
+      "org.kde.kate.desktop"
+    else if name == "vscode" || name == "code" then
+      "code.desktop"
+    else
+      "${name}.desktop";
 
-    # 🌍 Web Browser (Force Firefox)
-    # Handles standard HTML files and HTTP/HTTPS links
-    "text/html" = "firefox.desktop";
-    "x-scheme-handler/http" = "firefox.desktop";
-    "x-scheme-handler/https" = "firefox.desktop";
-    "x-scheme-handler/about" = "firefox.desktop";
-    "x-scheme-handler/unknown" = "firefox.desktop";
+  myBrowser = mkDesktop browser;
+  myFileManager = mkDesktop fileManager;
+  myEditor = mkDesktop editor;
+in
+{
+  xdg.mimeApps = {
+    enable = true;
+
+    defaultApplications = {
+      "inode/directory" = myFileManager;
+
+      "text/html" = myBrowser;
+      "x-scheme-handler/http" = myBrowser;
+      "x-scheme-handler/https" = myBrowser;
+      "x-scheme-handler/about" = myBrowser;
+      "x-scheme-handler/unknown" = myBrowser;
+
+      "text/plain" = myEditor;
+      "text/markdown" = myEditor;
+      "application/x-shellscript" = myEditor;
+      "application/json" = myEditor;
+      "text/x-nix" = myEditor;
+
+      # Images
+      "image/jpeg" = "org.kde.gwenview.desktop";
+      "image/png" = "org.kde.gwenview.desktop";
+      "image/gif" = "org.kde.gwenview.desktop";
+      "image/webp" = "org.kde.gwenview.desktop";
+
+      # PDFs
+      "application/pdf" = "org.pwmt.zathura.desktop";
+    };
   };
 }
 
@@ -3002,7 +3313,7 @@ Compiling complex software like **Hyprland** from source code can take a long ti
 NixOS keeps every version of your system ever built (boot entries). While useful for rollbacks, this eats up disk space quickly.
 
 * **Policy:** We run the garbage collector **weekly**.
-* **Rule:** Any system generation older than **7 days** is deleted. This strikes a balance between having a safety net and keeping the drive clean.
+* **Rule:** Any system generation older than **30 days** is deleted. This strikes a balance between having a safety net and keeping the drive clean.
 
 ---
 
@@ -3022,6 +3333,9 @@ NixOS keeps every version of your system ever built (boot entries). While useful
       "flakes"
     ];
 
+    # Deduplicate exact files in the Nix store to save space
+    auto-optimise-store = true;
+
     # 🚀 BINARY CACHES
     # Tells Nix to download pre-built binaries for Hyprland instead of 
     # compiling them from source (which takes forever).
@@ -3034,8 +3348,7 @@ NixOS keeps every version of your system ever built (boot entries). While useful
   nix.gc = {
     automatic = true;
     dates = "weekly";
-    # Delete generations older than 7 days
-    options = "--delete-older-than 7d";
+    options = "--delete-older-than 30d";
   };
 }
 ```

@@ -12,7 +12,7 @@
       # APPLICATION LAUNCHING
       "$mainMod,       A, exec, $menu --show drun" # Application launcher menu (wofi)
       "$mainMod, return, exec, $term" # Default terminal chosen in ./main.nix
-      #"$mainMod,       F, exec, $fileManager" # Default file manager chosen in ./main.nix (ranger)
+      # "$mainMod,       F, exec, $fileManager" # Default file manager chosen in ./main.nix (ranger)
       "$mainMod,       F, exec, dolphin" # Default file manager chosen in ./main.nix (dolphin)
       "$mainMod,       B, exec, firefox" # Web browser (firefox)
       "$mainMod,       Y, exec, chromium-browser" # Web browser (chromium) (this was added as a youtube logic)

@@ -1,18 +1,32 @@
 {
   pkgs,
+  lib,
   term,
+  fileManager,
   ...
 }:
 {
-
   programs.ranger = {
     enable = true;
+
+    # Setup default applications to open files with
+    rifle = [
+      {
+        condition = "flag f";
+        command = "xdg-open \"$1\"";
+      }
+      {
+        # Catch-all for everything else.
+        condition = "else";
+        command = "xdg-open \"$1\"";
+      }
+    ];
 
     # -----------------------------------------------------
     # ⌨️ KEY MAPPINGS
     # -----------------------------------------------------
     mappings = {
-      e = "edit"; # Open file in Neovim
+      e = "edit";
 
       ec = "compress"; # Archive selected files using ranger-archives
       ex = "extract"; # Extract selected archive using ranger-archives
@@ -26,7 +40,8 @@
     # -----------------------------------------------------
     settings = {
       preview_images = true; # Enable image previews in terminal
-      preview_images_method = "ueberzug"; # Method for rendering images
+      preview_images_method = if term == "kitty" then "kitty" else "ueberzug"; # Use kitty or ueberzug for image previews
+      wrap_scroll = true; # Enable smooth scrolling
       draw_borders = true; # Draws borders between columns
       w3m_delay = 0; # Instant rendering for w3m previews
     };
@@ -78,8 +93,7 @@
   # Custom python command to enable udisk mounting support
   home.file.".config/ranger/commands.py".text = "from plugins.ranger_udisk_menu.mounter import mount";
 
-  # This overwrites the system shortcut to ensure Ranger always opens in the chosen default terminal
-  xdg.desktopEntries.ranger = {
+  xdg.desktopEntries.ranger = lib.mkForce {
     name = "Ranger";
     genericName = "File Manager";
     exec = "${term} --class ranger -e ranger";

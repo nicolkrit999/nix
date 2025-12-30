@@ -38,14 +38,6 @@
   fonts.fontconfig.enable = true;
 
   environment.systemPackages = with pkgs; [
-    kitty
-    alacritty
-    starship
-    zsh-autosuggestions
-    eza
-    fzf
-    git
-    wget
     iptables
     glib
     gsettings-desktop-schemas
@@ -112,4 +104,9 @@
 
   # Defines the state version dynamically based on flake.nix input
   system.stateVersion = stateVersion;
+
+  i18n.inputMethod.enabled = lib.mkForce null;
+  environment.variables.GTK_IM_MODULE = lib.mkForce "";
+  environment.variables.QT_IM_MODULE = lib.mkForce "";
+  environment.variables.XMODIFIERS = lib.mkForce "";
 }

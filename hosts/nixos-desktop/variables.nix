@@ -28,6 +28,11 @@
   flatpak = true;
   term = "kitty";
 
+  # 📂 DEFAULT APPS
+  browser = "firefox";
+  editor = "code";
+  fileManager = "dolphin";
+
   # 🎨 THEMING
   base16Theme = "kanagawa-dragon";
   polarity = "dark";

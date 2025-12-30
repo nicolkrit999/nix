@@ -64,7 +64,7 @@
       # These are used by other modules using the variable references such as binds.nix
       # -----------------------------------------------------
       "$mainMod" = "SUPER";
-      "$term" = term; # Preferred terminal emulator. Can be changed to any hm installed
+      "$term" = term;
       "$fileManager" = "$term -e sh -c 'ranger'";
       "$menu" = "wofi";
 
@@ -149,6 +149,19 @@
         "float,class:(mpv)|(imv)|(showmethekey-gtk)" # Float media viewers and ShowMeTheKey
         "move 990 60,size 900 170,pin,noinitialfocus,class:(showmethekey-gtk)" # Position ShowMeTheKey
         "noborder,nofocus,class:(showmethekey-gtk)" # No border for ShowMeTheKey
+
+        # Ueberzug fix for image previews
+        "float, class:^(ueberzugpp_layer)$"
+        "noanim, class:^(ueberzugpp_layer)$"
+        "noshadow, class:^(ueberzugpp_layer)$"
+        "noblur, class:^(ueberzugpp_layer)$"
+        "noinitialfocus, class:^(ueberzugpp_layer)$"
+
+        # Gwenview fix for opening images
+        "float, class:^(org.kde.gwenview)$"
+        "center, class:^(org.kde.gwenview)$"
+        "size 80% 80%, class:^(org.kde.gwenview)$"
+
       ]
       ++ hyprlandWindowRules
 

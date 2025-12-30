@@ -66,8 +66,6 @@
 
         # Utilities
         npu = "read 'url?Enter URL: ' && nix-prefetch-url \"$url\"";
-        r = "ranger";
-        v = "nvim";
         se = "sudoedit";
 
         # Various
@@ -82,18 +80,24 @@
     # ⚙️ SHELL INITIALIZATION
     # -----------------------------------------------------
     initExtra = ''
-      # 1. LOAD USER CONFIG (Stow Integration)
+      # 1. FIX HYPRLAND SOCKET (Dynamic Update)
+      # This ensures that even inside tmux or after a crash, the shell finds the correct socket.
+      if [ -d "/run/user/$(id -u)/hypr" ]; then
+        export HYPRLAND_INSTANCE_SIGNATURE=$(ls -w 1 /run/user/$(id -u)/hypr/ | grep -v ".lock" | head -n 1)
+      fi
+
+      # 2. LOAD USER CONFIG (Stow Integration)
       if [ -f "$HOME/.zshrc_custom" ]; then
         source "$HOME/.zshrc_custom"
       fi
 
-      # 2. TMUX AUTOSTART (Only in GUI)
+      # 3. TMUX AUTOSTART (Only in GUI)
       # Ensure we are in a GUI before starting tmux automatically
       if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
         tmux new-session
       fi
 
-      # 3. UWSM STARTUP (Universal & Safe)
+      # 4. UWSM STARTUP (Universal & Safe)
       # Guard: Only run if on physical TTY1 AND no graphical session is active.
       if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
           

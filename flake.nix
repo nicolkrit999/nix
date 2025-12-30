@@ -85,6 +85,9 @@
               cosmic
               flatpak
               term
+              browser
+              editor
+              fileManager
               base16Theme
               polarity
               catppuccin
@@ -158,6 +161,9 @@
               kde
               cosmic
               term
+              browser
+              editor
+              fileManager
               base16Theme
               polarity
               catppuccin

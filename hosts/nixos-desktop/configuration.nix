@@ -58,14 +58,6 @@
   # 📦 SYSTEM PACKAGES
   # ---------------------------------------------------------
   environment.systemPackages = with pkgs; [
-    kitty
-    alacritty
-    starship
-    zsh-autosuggestions
-    eza
-    fzf
-    git
-    wget
     iptables
     glib
     gsettings-desktop-schemas
@@ -92,7 +84,6 @@
       "flakes"
     ];
 
-    # ⚠️ CRITICAL: Must be INSIDE nix.settings to work
     trusted-users = [
       "root"
       "@wheel"
