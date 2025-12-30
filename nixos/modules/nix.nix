@@ -26,10 +26,9 @@
   };
 
   # 🗑️ GARBAGE COLLECTION
-  # Runs weekly to remove unused packages (older than 7 days)
   nix.gc = {
     automatic = true;
     dates = "weekly";
-    options = "--delete-older-than 7d";
+    options = "--delete-older-than 30d";
   };
 }
