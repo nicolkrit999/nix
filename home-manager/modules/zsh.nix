@@ -2,6 +2,7 @@
   config,
   pkgs,
   nixImpure,
+  hostname,
   ...
 }:
 {
@@ -46,9 +47,14 @@
         swpure = "cd ${flakeDir} && nh os switch ${flakeDir}";
         swimpure = "cd ${flakeDir} && sudo nixos-rebuild switch --flake . --impure";
 
+        # System maintenance
+        dedup = "nix store optimise";
+        cleanup = "nh clean all";
+
         # Other nix-related aliases
-        hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#$(hostname)";
-        pkgs = "nvim ${flakeDir}/home-manager/home-packages.nix";
+        hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#$(hostname)"; # Rebuild home-manager config
+        pkgs-home = "nvim ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list
+        pkgs-host = "nvim ${flakeDir}/hosts/${hostname}/local-packages.nix"; # Edit host-specific packages list
 
         fmt-dry = "cd ${flakeDir} && nix fmt -- --check"; # Check formatting without making changes (list files that need formatting)
         fmt = "cd ${flakeDir} &&  nix fmt -- **/*.nix"; # Format Nix files using nixfmt (a regular nix fmt hangs on zed theme)
