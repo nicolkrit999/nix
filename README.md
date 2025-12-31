@@ -438,17 +438,34 @@ The folder `~/nixOS/hosts/nixos-desktop/host-modules` contains some pre-configur
 
 
 Optionally you can delete any other host in this repo that is not desired. this allow to have a cleaner hosts folder.
-- This next command delete any other hosts directories except for the one that the user input.
+- This next command delete any other hosts directories except for the ones provided as input.
+  - It should work regardless of which shell you run, tough i think nixOS during installation has bash 
   - If the input is not valid (the destination hostname does not exist) this command fail and do nothing
 
 ```bash
 cd ~/nixOS && \
-read -p "Enter the hostname you just created to keep it: " KEEP && \
-if [ -d "hosts/$KEEP" ]; then \
-    find hosts/ -maxdepth 1 -mindepth 1 -type d ! -name "$KEEP" -exec rm -rf {} + && \
-    echo "Cleanup complete. Only 'hosts/$KEEP' remains."; \
-else \
-    echo "Error: Host '$KEEP' not found. No files were deleted."; \
+printf "Enter the hostnames you want to KEEP (separated by spaces): " && read -r INPUT && \
+if [ -z "$INPUT" ]; then
+    echo "Error: No hosts specified. No changes made."
+else
+    # 1. Start the find command
+    # 2. For each host entered, add an '! -name' argument
+    # 3. This builds a command that says: "Delete if NOT name1 AND NOT name2..."
+    CMD="find hosts/ -maxdepth 1 -mindepth 1 -type d"
+    for host in $INPUT; do
+        if [ -d "hosts/$host" ]; then
+            CMD="$CMD ! -name '$host'"
+        else
+            echo "Warning: Host '$host' not found, skipping..."
+        fi
+    done
+    
+    # Final safety check: if the generated command is different from the base, execute it
+    if [ "$CMD" != "find hosts/ -maxdepth 1 -mindepth 1 -type d" ]; then
+        eval "$CMD -exec rm -rf {} +" && echo "Cleanup complete. Kept: $INPUT"
+    else
+        echo "Error: None of the hosts provided exist. No changes made."
+    fi
 fi
 ```
 
