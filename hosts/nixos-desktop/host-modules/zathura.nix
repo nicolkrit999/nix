@@ -1,8 +1,6 @@
 {
   lib,
-  monitors,
-  catppuccin,
-  catppuccinFlavor,
+  vars,
   ...
 }:
 
@@ -10,8 +8,8 @@
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME
   # -----------------------------------------------------------------------
-  catppuccin.zathura.enable = catppuccin;
-  catppuccin.zathura.flavor = catppuccinFlavor;
+  catppuccin.zathura.enable = vars.catppuccin;
+  catppuccin.zathura.flavor = vars.catppuccinFlavor;
 
   programs.zathura = {
     enable = true;

@@ -59,7 +59,7 @@
           extraVars = if builtins.pathExists modulesPath then import modulesPath else { };
 
           # 3. Merge
-          hostVars = baseVars // extraVars;
+          hostVars = baseVars // extraVars // { inherit hostname; };
 
           pkgs-unstable = import nixpkgs-unstable {
             system = hostVars.system;
@@ -94,7 +94,12 @@
                 inherit inputs pkgs-unstable hostname;
                 vars = hostVars;
               };
-              home-manager.users.${hostVars.user} = import ./hosts/${hostname}/home.nix;
+              home-manager.users.${hostVars.user} =
+                if builtins.pathExists ./hosts/${hostname}/home.nix then
+                  import ./hosts/${hostname}/home.nix
+                else
+                  { }; # <--- Fallback to empty config
+
             }
           ]
           # 1. Add host-specific host-modules if they exist
@@ -119,7 +124,7 @@
           extraVars = if builtins.pathExists modulesPath then import modulesPath else { };
 
           # 3. Merge them (Extra overrides Base)
-          hostVars = baseVars // extraVars;
+          hostVars = baseVars // extraVars // { inherit hostname; };
 
           pkgs-unstable = import nixpkgs-unstable {
             system = hostVars.system;

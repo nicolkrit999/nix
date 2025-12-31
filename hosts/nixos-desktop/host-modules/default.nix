@@ -1,6 +1,6 @@
 {
   imports = [
-    ./alacritty.nix
+    #./alacritty.nix
     ./borg-backup.nix
     ./cava.nix
     ./chromium.nix

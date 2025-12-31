@@ -1,8 +1,7 @@
 {
   pkgs,
   lib,
-  term,
-  fileManager,
+  vars,
   ...
 }:
 {
@@ -40,7 +39,7 @@
     # -----------------------------------------------------
     settings = {
       preview_images = true; # Enable image previews in terminal
-      preview_images_method = if term == "kitty" then "kitty" else "ueberzug"; # Use kitty or ueberzug for image previews
+      preview_images_method = if vars.term == "kitty" then "kitty" else "ueberzug"; # Use kitty or ueberzug for image previews
       wrap_scroll = true; # Enable smooth scrolling
       draw_borders = true; # Draws borders between columns
       w3m_delay = 0; # Instant rendering for w3m previews
@@ -96,7 +95,7 @@
   xdg.desktopEntries.ranger = lib.mkForce {
     name = "Ranger";
     genericName = "File Manager";
-    exec = "${term} --class ranger -e ranger";
+    exec = "${vars.term} --class ranger -e ranger";
     terminal = false;
     categories = [
       "System"

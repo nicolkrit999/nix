@@ -2,10 +2,7 @@
   pkgs,
   lib,
   inputs,
-  user,
-  catppuccin,
-  catppuccinFlavor,
-  catppuccinAccent,
+  vars,
   ...
 }:
 let
@@ -42,9 +39,9 @@ in
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME (official module)
   # -----------------------------------------------------------------------
-  catppuccin.firefox.enable = catppuccin;
-  catppuccin.firefox.flavor = catppuccinFlavor;
-  catppuccin.firefox.accent = catppuccinAccent;
+  catppuccin.firefox.enable = vars.catppuccin;
+  catppuccin.firefox.flavor = vars.catppuccinFlavor;
+  catppuccin.firefox.accent = vars.catppuccinAccent;
   # Since it is a gtk theme, no firefox.enable = false; is needed in stylix.nix
   # -----------------------------------------------------------------------
 
@@ -55,7 +52,7 @@ in
 
   programs.firefox = {
     enable = true;
-    profiles.${user} = {
+    profiles.${vars.user} = {
       # 🔍 Search Configuration
       # Forces Google as default while keeping privacy options like Kagi and duck duck go available.
       search = {

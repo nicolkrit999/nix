@@ -3,7 +3,6 @@
   # 🖥️ HOST VARIABLES
   # ---------------------------------------------------------------
 
-  hostname = "nixos-desktop";
   system = "x86_64-linux";
 
   # ⚙️ VERSIONS

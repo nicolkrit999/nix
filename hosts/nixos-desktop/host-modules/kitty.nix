@@ -1,15 +1,12 @@
 {
   lib,
   pkgs,
-  monitors,
-  catppuccin,
-  catppuccinFlavor,
-  term,
+  vars,
   ...
 }:
 
 let
-  enabledMonitors = builtins.filter (m: builtins.match ".*disable.*" m == null) monitors;
+  enabledMonitors = builtins.filter (m: builtins.match ".*disable.*" m == null) vars.monitors;
   # Get primary monitor
   primaryMonitor = if builtins.length enabledMonitors > 0 then builtins.head enabledMonitors else "";
   # Extract width (Handle empty string)
@@ -34,8 +31,8 @@ let
 
 in
 {
-  catppuccin.kitty.enable = catppuccin;
-  catppuccin.kitty.flavor = catppuccinFlavor;
+  catppuccin.kitty.enable = vars.catppuccin;
+  catppuccin.kitty.flavor = vars.catppuccinFlavor;
 
   programs.kitty = {
     enable = true;

@@ -1,15 +1,13 @@
 {
   lib,
   inputs,
-  monitors,
-  catppuccin,
-  catppuccinFlavor,
+  vars,
   ...
 }:
 
 let
   # Filter out disabled monitors
-  enabledMonitors = builtins.filter (m: builtins.match ".*disable.*" m == null) monitors;
+  enabledMonitors = builtins.filter (m: builtins.match ".*disable.*" m == null) vars.monitors;
 
   primaryMonitor = if builtins.length enabledMonitors > 0 then builtins.head enabledMonitors else "";
   # Fallback to empty string if NO monitors exist
@@ -38,8 +36,8 @@ in
 {
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME
-  catppuccin.alacritty.enable = catppuccin;
-  catppuccin.alacritty.flavor = catppuccinFlavor;
+  catppuccin.alacritty.enable = vars.catppuccin;
+  catppuccin.alacritty.flavor = vars.catppuccinFlavor;
   # -----------------------------------------------------------------------
 
   programs.alacritty = {

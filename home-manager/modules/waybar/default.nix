@@ -76,7 +76,7 @@ in
 
             # Format for workspace names and icons
             format = "{name} {icon}";
-            format-icons = vars.waybarWorkspaceIcons;
+            format-icons = vars.waybarWorkspaceIcons or { };
           };
 
           # -----------------------------------------------------
@@ -87,7 +87,7 @@ in
             min-length = 5; # prevent layout jumping when flag changes
             tooltip = true; # disable tooltip on hover
           }
-          // vars.waybarLayoutFlags;
+          // vars.waybarLayoutFlags or { };
 
           # -----------------------------------------------------
           # ☁️ Weather

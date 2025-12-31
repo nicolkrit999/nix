@@ -2,11 +2,7 @@
   config,
   pkgs,
   lib,
-  user,
-  stateVersion,
-  hostname,
-  keyboardLayout,
-  keyboardVariant,
+  vars,
   ...
 }:
 
@@ -62,7 +58,7 @@
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY & NETWORKING
   # ---------------------------------------------------------
-  networking.hostName = hostname;
+  networking.hostName = vars.hostname;
   networking.networkmanager.enable = true;
 
   # ---------------------------------------------------------
@@ -92,15 +88,15 @@
   ];
 
   services.xserver.xkb = {
-    layout = keyboardLayout;
-    variant = keyboardVariant;
+    layout = vars.keyboardLayout;
+    variant = vars.keyboardVariant;
   };
   console.useXkbConfig = true;
 
   # ---------------------------------------------------------
   # 👤 USER CONFIGURATION
   # ---------------------------------------------------------
-  users.users.${user} = {
+  users.users.${vars.user} = {
     isNormalUser = true;
     description = "Primary user";
     extraGroups = [
@@ -128,7 +124,7 @@
     };
   };
 
-  system.stateVersion = stateVersion;
+  system.stateVersion = vars.stateVersion;
 
   i18n.inputMethod.enabled = lib.mkForce null;
   environment.variables.GTK_IM_MODULE = lib.mkForce "";

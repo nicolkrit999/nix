@@ -16,7 +16,7 @@
       numlockOnStartup = "on";
     };
 
-    mice = vars.kdeMice;
-    touchpads = vars.kdeTouchpads;
+    mice = vars.kdeMice or [ ];
+    touchpads = vars.kdeTouchpads or [ ];
   };
 }

@@ -1,11 +1,11 @@
 {
   pkgs,
   pkgs-unstable,
-  user,
+  vars,
   ...
 }:
 {
-  users.users.${user}.packages =
+  users.users.${vars.user}.packages =
     with pkgs;
     [
       # This allow guest user to not have this packages installed

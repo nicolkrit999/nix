@@ -1,7 +1,6 @@
 {
   pkgs,
-  catppuccin,
-  catppuccinFlavor,
+  vars,
   ...
 }:
 {
@@ -9,8 +8,8 @@
   # ------------------------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME
   # ------------------------------------------------------------------------------------
-  catppuccin.cava.enable = catppuccin;
-  catppuccin.cava.flavor = catppuccinFlavor;
+  catppuccin.cava.enable = vars.catppuccin;
+  catppuccin.cava.flavor = vars.catppuccinFlavor;
 
   programs.cava = {
     enable = true;
