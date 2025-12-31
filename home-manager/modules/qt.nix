@@ -2,10 +2,7 @@
   pkgs,
   lib,
   config,
-  catppuccin,
-  catppuccinFlavor,
-  catppuccinAccent,
-  polarity,
+  vars,
   ...
 }:
 
@@ -15,14 +12,14 @@ let
     s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
 
   kvantumTheme =
-    if catppuccin then
-      "Catppuccin-${capitalize catppuccinFlavor}-${capitalize catppuccinAccent}"
-    else if polarity == "dark" then
+    if vars.catppuccin then
+      "Catppuccin-${capitalize vars.catppuccinFlavor}-${capitalize vars.catppuccinAccent}"
+    else if vars.polarity == "dark" then
       "KvGnomeDark"
     else
       "KvFlatLight";
 
-  iconThemeName = if polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
+  iconThemeName = if vars.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
 in
 {
   config = lib.mkMerge [
@@ -43,7 +40,7 @@ in
           kdePackages.qtstyleplugin-kvantum
           pkgs.papirus-icon-theme
         ]
-        ++ (lib.optionals catppuccin [
+        ++ (lib.optionals vars.catppuccin [
           pkgs.catppuccin-kvantum
         ]);
     }
@@ -71,7 +68,7 @@ in
     }
 
     # --- CATPPUCCIN SPECIFIC (Only copy theme files if needed) ---
-    (lib.mkIf catppuccin {
+    (lib.mkIf vars.catppuccin {
       xdg.configFile."Kvantum/${kvantumTheme}".source =
         "${pkgs.catppuccin-kvantum}/share/Kvantum/${kvantumTheme}";
     })

@@ -1,7 +1,5 @@
 {
-  catppuccin,
-  catppuccinFlavor,
-  catppuccinAccent,
+  vars,
   ...
 }:
 {
@@ -10,9 +8,9 @@
   # 🎨 CATPPUCCIN THEME (official module)
   # a stylix.nix 'enable = false;' is not required since eza uses its own theming system
   # ------------------------------------------------------------------------------------
-  catppuccin.eza.enable = catppuccin;
-  catppuccin.eza.flavor = catppuccinFlavor;
-  catppuccin.eza.accent = catppuccinAccent;
+  catppuccin.eza.enable = vars.catppuccin;
+  catppuccin.eza.flavor = vars.catppuccinFlavor;
+  catppuccin.eza.accent = vars.catppuccinAccent;
   # ------------------------------------------------------------------------------------
   programs.eza = {
     enable = true;

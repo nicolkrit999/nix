@@ -42,13 +42,11 @@
       ...
     }@inputs:
     let
-      # 📋 LIST OF HOSTS
-      # When adding a new host, add/replace its name here
-      hostNames = [
-        "template-host" # Reference for new machines
-        "nixos-desktop"
-        "nixos-laptop"
-      ];
+
+      # Recognize all the hosts intelligently
+      hostNames = nixpkgs.lib.attrNames (
+        nixpkgs.lib.filterAttrs (name: type: type == "directory") (builtins.readDir ./hosts)
+      );
 
       # 🛠️ SYSTEM BUILDER
       makeSystem =
@@ -74,35 +72,7 @@
           specialArgs = {
             inherit inputs pkgs-unstable;
             # Pass ALL variables from variables.nix to the modules
-            inherit (hostVars)
-              hostname
-              system
-              user
-              stateVersion
-              hyprland
-              gnome
-              kde
-              cosmic
-              flatpak
-              term
-              browser
-              editor
-              fileManager
-              base16Theme
-              polarity
-              catppuccin
-              catppuccinFlavor
-              catppuccinAccent
-              timeZone
-              weather
-              keyboardLayout
-              keyboardVariant
-              screenshots
-              tailscale
-              guest
-              zramPercent
-              wallpapers
-              ;
+            vars = hostVars;
           };
 
           modules = [
@@ -111,21 +81,26 @@
             inputs.nix-flatpak.nixosModules.nix-flatpak
             {
               nixpkgs.pkgs = import nixpkgs {
-                system = hostVars.system;
+                inherit (hostVars) system;
                 config.allowUnfree = true;
               };
               time.timeZone = hostVars.timeZone;
             }
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.extraSpecialArgs = {
+                inherit inputs pkgs-unstable hostname;
+                vars = hostVars;
+              };
+              home-manager.users.${hostVars.user} = import ./hosts/${hostname}/home.nix;
+            }
           ]
-          # Host-specific host-modules folder
-          ++ (
-            if builtins.pathExists ./hosts/${hostname}/host-modules then
-              ./hosts/${hostname}/host-modules
-            else
-              { }
-          )
+          # 1. Add host-specific host-modules if they exist
+          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/host-modules) ./hosts/${hostname}/host-modules)
 
-          # Host-specific de/wm modules based on variables.nix
+          # 2. Add DE/WM modules based on variables.nix
           ++ (nixpkgs.lib.optional (hostVars.hyprland or false) ./nixos/modules/hyprland.nix)
           ++ (nixpkgs.lib.optional (hostVars.gnome or false) ./nixos/modules/gnome.nix)
           ++ (nixpkgs.lib.optional (hostVars.kde or false) ./nixos/modules/kde.nix)
@@ -153,48 +128,13 @@
         in
         home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
-            system = hostVars.system;
+            inherit (hostVars) system;
             config.allowUnfree = true;
           };
 
           extraSpecialArgs = {
             inherit inputs pkgs-unstable;
-            inherit (hostVars)
-              hostname
-              user
-              gitUserName
-              gitUserEmail
-              homeStateVersion
-              hyprland
-              gnome
-              kde
-              cosmic
-              term
-              browser
-              editor
-              fileManager
-              base16Theme
-              polarity
-              catppuccin
-              catppuccinFlavor
-              catppuccinAccent
-              weather
-              keyboardLayout
-              keyboardVariant
-              screenshots
-              monitors
-              wallpapers
-              idleConfig
-              ; # Keep to make the below block working
-
-            hyprlandWorkspaces = hostVars.hyprlandWorkspaces or [ ];
-            kdeMice = hostVars.kdeMice or [ ];
-            kdeTouchpads = hostVars.kdeTouchpads or [ ];
-            waybarWorkspaceIcons = hostVars.waybarWorkspaceIcons or { };
-            waybarLayoutFlags = hostVars.waybarLayoutFlags or { };
-            starshipZshIntegration = hostVars.starshipZshIntegration or true;
-            nixImpure = hostVars.nixImpure or false;
-            hyprlandWindowRules = hostVars.hyprlandWindowRules or [ ];
+            vars = hostVars;
           };
 
           modules = [
@@ -203,21 +143,13 @@
             inputs.plasma-manager.homeModules.plasma-manager
             ./home-manager/modules/wofi
           ]
+          # 2. Add host-specific host-modules (Home Manager side)
+          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/host-modules) ./hosts/${hostname}/host-modules)
 
-          # Host-specific host-modules folder
-          ++ (
-            if builtins.pathExists ./hosts/${hostname}/host-modules then
-              ./hosts/${hostname}/host-modules
-            else
-              { }
-          )
+          # 3. Add host-specific home.nix
+          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/home.nix) ./hosts/${hostname}/home.nix)
 
-          # Host-specific home.nix file
-          ++ (
-            if builtins.pathExists ./hosts/${hostname}/home.nix then [ ./hosts/${hostname}/home.nix ] else [ ]
-          )
-
-          # Host-specific de/wm modules based on variables.nix
+          # 4. Desktop Environment Specific Modules
           ++ (nixpkgs.lib.optionals (hostVars.hyprland or false) [
             ./home-manager/modules/hyprland
             ./home-manager/modules/waybar

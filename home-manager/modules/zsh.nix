@@ -1,8 +1,7 @@
 {
   config,
   pkgs,
-  nixImpure,
-  hostname,
+  vars,
   ...
 }:
 {
@@ -23,16 +22,19 @@
         flakeDir = "~/nixOS";
 
         switchCmd =
-          if nixImpure then "sudo nixos-rebuild switch --flake . --impure" else "nh os switch ${flakeDir}";
+          if vars.nixImpure then
+            "sudo nixos-rebuild switch --flake . --impure"
+          else
+            "nh os switch ${flakeDir}";
 
         updateCmd =
-          if nixImpure then
+          if vars.nixImpure then
             "nix flake update && sudo nixos-rebuild switch --flake . --impure"
           else
             "nh os switch --update ${flakeDir}";
 
         updateBoot =
-          if nixImpure then
+          if vars.nixImpure then
             "sudo nixos-rebuild boot --flake . --impure"
           else
             "nh os boot --update ${flakeDir}";
@@ -52,11 +54,11 @@
         cleanup = "nh clean all";
 
         # Home-Manager related
-        hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#$(hostname)"; # Rebuild home-manager config
+        hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#$(vars.hostname)"; # Rebuild home-manager config
 
         # Pkgs editing
         pkgs-home = "nvim ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list
-        pkgs-host = "nvim ${flakeDir}/hosts/${hostname}/local-packages.nix"; # Edit host-specific packages list
+        pkgs-host = "nvim ${flakeDir}/hosts/${vars.hostname}/local-packages.nix"; # Edit host-specific packages list
 
         # Nix repo management
         fmt-dry = "cd ${flakeDir} && nix fmt -- --check"; # Check formatting without making changes (list files that need formatting)

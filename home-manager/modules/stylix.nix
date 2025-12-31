@@ -2,20 +2,14 @@
   pkgs,
   lib,
   inputs,
-  wallpapers,
-  user,
   config,
-  polarity,
-  base16Theme,
-  catppuccin,
-  catppuccinFlavor,
-  catppuccinAccent,
+  vars,
   ...
 }:
 let
   capitalize =
     s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
-  iconThemeName = if polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
+  iconThemeName = if vars.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
 in
 {
   imports = [ inputs.stylix.homeModules.stylix ];
@@ -31,23 +25,23 @@ in
 
     (catppuccin-gtk.override {
       # Force install the theme package
-      accents = [ catppuccinAccent ];
+      accents = [ vars.catppuccinAccent ];
       size = "standard";
       tweaks = [
         "rimless"
         "black"
       ];
-      variant = catppuccinFlavor;
+      variant = vars.catppuccinFlavor;
     })
   ];
 
   stylix = {
     enable = true;
-    polarity = polarity; # Sets a global preference for dark mode
-    base16Scheme = "${pkgs.base16-schemes}/share/themes/${base16Theme}.yaml";
+    polarity = vars.polarity; # Sets a global preference for dark mode
+    base16Scheme = "${pkgs.base16-schemes}/share/themes/${vars.base16Theme}.yaml";
     image = pkgs.fetchurl {
-      url = (builtins.head wallpapers).wallpaperURL;
-      sha256 = (builtins.head wallpapers).wallpaperSHA256;
+      url = (builtins.head vars.wallpapers).wallpaperURL;
+      sha256 = (builtins.head vars.wallpapers).wallpaperSHA256;
     };
 
     # -----------------------------------------------------------------------
@@ -75,22 +69,22 @@ in
       # Intelligently enable/disable stylix based on whether catppuccin is enabled
       # catppuccin = true -> .enable = false
       # catppuccin = false -> .enable = true
-      gtk.enable = !catppuccin; # Avoid .gtkrc-2.0 and gtk-3.0 overrides
-      alacritty.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/alacritty.nix
-      hyprland.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
-      hyprlock.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix
-      swaync.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/swaync/default.nix
-      zathura.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/zathura.nix
-      bat.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/bat.nix
-      lazygit.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/lazygit.nix
-      tmux.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/tmux.nix
-      starship.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
-      cava.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/cava.nix
-      kitty.enable = !catppuccin; # Ref: ~/nixOS/home-manager/modules/kitty.nix
+      gtk.enable = !vars.catppuccin; # Avoid .gtkrc-2.0 and gtk-3.0 overrides
+      alacritty.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/alacritty.nix
+      hyprland.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
+      hyprlock.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix
+      swaync.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/swaync/default.nix
+      zathura.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/zathura.nix
+      bat.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/bat.nix
+      lazygit.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/lazygit.nix
+      tmux.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/tmux.nix
+      starship.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
+      cava.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/cava.nix
+      kitty.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/kitty.nix
       # ---------------------------------------------------------------------------------------
 
       # Enable stylix but only for certain elements
-      firefox.profileNames = [ user ]; # Applies skin only to the defined profile
+      firefox.profileNames = [ vars.user ]; # Applies skin only to the defined profile
     };
 
     # -----------------------------------------------------------------------
@@ -133,38 +127,38 @@ in
     };
   };
 
-  dconf.settings = lib.mkIf catppuccin {
+  dconf.settings = lib.mkIf vars.catppuccin {
     "org/gnome/desktop/interface" = {
-      color-scheme = lib.mkForce (if polarity == "dark" then "prefer-dark" else "prefer-light");
+      color-scheme = lib.mkForce (if vars.polarity == "dark" then "prefer-dark" else "prefer-light");
     };
   };
 
-  home.sessionVariables = lib.mkIf catppuccin {
-    GTK_THEME = "catppuccin-${catppuccinFlavor}-${catppuccinAccent}-standard+rimless,black";
+  home.sessionVariables = lib.mkIf vars.catppuccin {
+    GTK_THEME = "catppuccin-${vars.catppuccinFlavor}-${vars.catppuccinAccent}-standard+rimless,black";
 
     XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS";
   };
 
   # 3. Configure GTK Theme &amp; Settings
-  gtk = lib.mkIf catppuccin {
+  gtk = lib.mkIf vars.catppuccin {
     enable = true;
 
     theme = {
       package = lib.mkForce (
         pkgs.catppuccin-gtk.override {
-          accents = [ catppuccinAccent ];
+          accents = [ vars.catppuccinAccent ];
           size = "standard";
           tweaks = [
             "rimless"
             "black"
           ];
-          variant = catppuccinFlavor;
+          variant = vars.catppuccinFlavor;
         }
       );
-      name = lib.mkForce "catppuccin-${catppuccinFlavor}-${catppuccinAccent}-standard+rimless,black";
+      name = lib.mkForce "catppuccin-${vars.catppuccinFlavor}-${vars.catppuccinAccent}-standard+rimless,black";
     };
 
-    gtk3.extraConfig.gtk-application-prefer-dark-theme = if polarity == "dark" then 1 else 0;
-    gtk4.extraConfig.gtk-application-prefer-dark-theme = if polarity == "dark" then 1 else 0;
+    gtk3.extraConfig.gtk-application-prefer-dark-theme = if vars.polarity == "dark" then 1 else 0;
+    gtk4.extraConfig.gtk-application-prefer-dark-theme = if vars.polarity == "dark" then 1 else 0;
   };
 }

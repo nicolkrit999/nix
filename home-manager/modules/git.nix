@@ -1,10 +1,10 @@
-{ gitUserName, gitUserEmail, ... }:
+{ vars, ... }:
 {
   programs.git = {
     enable = true;
 
-    settings.user.name = gitUserName; # Your public display name on commits
-    settings.user.email = gitUserEmail; # Email linked to GitHub/GitLab
+    settings.user.name = vars.gitUserName; # Your public display name on commits
+    settings.user.email = vars.gitUserEmail; # Email linked to GitHub/GitLab
 
     # Optional: Enable Git credential helper if using HTTPS
     # extraConfig = { credential.helper = "store"; };

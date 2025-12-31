@@ -1,10 +1,7 @@
 {
   pkgs,
   pkgs-unstable,
-  term,
-  browser,
-  fileManager,
-  editor,
+  vars,
   ...
 }:
 let
@@ -26,10 +23,10 @@ let
     else
       fallback;
 
-  myTermPkg = getPkg term fallbackTerm;
-  myBrowserPkg = getPkg browser fallbackBrowser;
-  myFileManagerPkg = getPkg fileManager fallbackFileManager;
-  myEditorPkg = getPkg editor fallbackEditor;
+  myTermPkg = getPkg vars.term fallbackTerm;
+  myBrowserPkg = getPkg vars.browser fallbackBrowser;
+  myFileManagerPkg = getPkg vars.fileManager fallbackFileManager;
+  myEditorPkg = getPkg vars.editor fallbackEditor;
 in
 {
   home.packages =

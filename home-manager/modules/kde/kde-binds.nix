@@ -2,7 +2,7 @@
   config,
   lib,
   pkgs,
-  term,
+  vars,
   ...
 }:
 let
@@ -73,23 +73,23 @@ in
       command = "${cliphistScript}";
     };
     "launch-firefox" = {
-      key = "Meta+B";
+      key = "Meta+B"; # TODO: make it declarative
       command = "${pkgs.firefox}/bin/firefox";
     };
     "launch-chromium" = {
-      key = "Meta+Y";
+      key = "Meta+Y"; # TODO: Make it declarative
       command = "chromium";
     };
     "launch-vscode" = {
-      key = "Meta+C";
+      key = "Meta+C"; # TODO: make it declarative
       command = "code";
     };
     "launch-terminal" = {
       key = "Meta+Return";
-      command = term;
+      command = vars.term;
     };
     "launch-filemanager" = {
-      key = "Meta+F";
+      key = "Meta+F"; # TODO: Make it declarative
       command = "dolphin";
     };
   };

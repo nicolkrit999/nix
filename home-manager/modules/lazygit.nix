@@ -1,7 +1,5 @@
 {
-  catppuccin,
-  catppuccinFlavor,
-  catppuccinAccent,
+  vars,
   ...
 }:
 {
@@ -9,9 +7,9 @@
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME (official module)
   # -----------------------------------------------------------------------
-  catppuccin.lazygit.enable = catppuccin;
-  catppuccin.lazygit.flavor = catppuccinFlavor;
-  catppuccin.lazygit.accent = catppuccinAccent;
+  catppuccin.lazygit.enable = vars.catppuccin;
+  catppuccin.lazygit.flavor = vars.catppuccinFlavor;
+  catppuccin.lazygit.accent = vars.catppuccinAccent;
   # -----------------------------------------------------------------------
   programs.lazygit = {
     enable = true;

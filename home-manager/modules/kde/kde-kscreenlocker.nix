@@ -1,23 +1,22 @@
 {
   pkgs,
   lib,
-  idleConfig,
-  wallpapers,
+  vars,
   ...
 }:
 
 let
   # Fallback to a default image if the list is empty
   lockWallpaper =
-    if builtins.length wallpapers > 0 then
-      (builtins.elemAt wallpapers 0).wallpaperURL
+    if builtins.length vars.wallpapers > 0 then
+      (builtins.elemAt vars.wallpapers 0).wallpaperURL
     else
       "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Kay/contents/images/1080x1920.png";
 in
 {
   programs.plasma.kscreenlocker = {
     # Convert seconds (from idleConfig) to minutes for Plasma
-    timeout = if idleConfig != null then builtins.floor (idleConfig.lockTimeout / 60) else 10;
+    timeout = if vars.idleConfig != null then builtins.floor (vars.idleConfig.lockTimeout / 60) else 10;
 
     autoLock = true;
     lockOnResume = true;
@@ -33,8 +32,8 @@ in
       wallpaper = pkgs.fetchurl {
         url = lockWallpaper;
         sha256 =
-          if builtins.length wallpapers > 0 then
-            (builtins.elemAt wallpapers 0).wallpaperSHA256
+          if (builtins.length (vars.wallpapers or [ ])) > 0 then
+            (builtins.elemAt vars.wallpapers 0).wallpaperSHA256
           else
             lib.fakeSha256;
       };

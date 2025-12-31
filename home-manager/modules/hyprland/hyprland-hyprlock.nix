@@ -1,13 +1,13 @@
 {
   config,
   lib,
-  catppuccin,
+  vars,
   ...
 }:
 {
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME (official module)
-  catppuccin.hyprlock.enable = catppuccin;
+  catppuccin.hyprlock.enable = vars.catppuccin;
   # -----------------------------------------------------------------------
   programs.hyprlock = {
     enable = true;

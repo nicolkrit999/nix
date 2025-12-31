@@ -1,22 +1,20 @@
 {
   pkgs,
   lib,
-  catppuccin,
-  catppuccinFlavor,
-  catppuccinAccent,
+  vars,
   ...
 }:
 {
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME
   # -----------------------------------------------------------------------
-  catppuccin.tmux.enable = catppuccin;
-  catppuccin.tmux.flavor = catppuccinFlavor;
+  catppuccin.tmux.enable = vars.catppuccin;
+  catppuccin.tmux.flavor = vars.catppuccinFlavor;
 
-  catppuccin.tmux.extraConfig = lib.mkIf catppuccin ''
+  catppuccin.tmux.extraConfig = lib.mkIf vars.catppuccin ''
     set -g @catppuccin_window_status_style "rounded"
     set -g @catppuccin_status_modules_right "directory session user host"
-    set -g @catppuccin_window_current_fill "${catppuccinAccent}"
+    set -g @catppuccin_window_current_fill "${vars.catppuccinAccent}"
   '';
 
   # -----------------------------------------------------------------------

@@ -1,14 +1,13 @@
 {
   pkgs,
   lib,
-  monitors,
-  wallpapers,
+  vars,
   ...
 }:
 let
 
   # Do not apply wallpapers to disabled monitors
-  activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) monitors;
+  activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) vars.monitors;
   monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
 
   images = map (
@@ -17,7 +16,7 @@ let
       url = w.wallpaperURL;
       sha256 = w.wallpaperSHA256;
     }
-  ) wallpapers;
+  ) vars.wallpapers;
 
   getWallpaper =
     index: if index < builtins.length images then builtins.elemAt images index else lib.last images;

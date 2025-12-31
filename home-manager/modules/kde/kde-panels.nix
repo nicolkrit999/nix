@@ -1,13 +1,16 @@
 {
   config,
   lib,
-  monitors,
+  vars,
   ...
 }:
 
 let
   primaryMonitorStr =
-    if builtins.length monitors > 0 then builtins.elemAt monitors 0 else "DP-1,1920x1080@60,0x0,1";
+    if builtins.length vars.monitors > 0 then
+      builtins.elemAt vars.monitors 0
+    else
+      "DP-1,1920x1080@60,0x0,1";
   monitorParts = lib.splitString "," primaryMonitorStr;
   resSection = builtins.elemAt monitorParts 1;
   dimSection = builtins.head (lib.splitString "@" resSection);

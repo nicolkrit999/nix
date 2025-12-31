@@ -1,10 +1,7 @@
 {
-  catppuccin,
-  catppuccinFlavor,
-  catppuccinAccent,
   lib,
   config,
-  starshipZshIntegration,
+  vars,
   ...
 }:
 let
@@ -13,18 +10,18 @@ let
   base16Accent = config.lib.stylix.colors.withHashtag.base0E;
 
   # Determine the "Main" color based on whatever catppuccin is enabled or not
-  mainColor = if catppuccin then catppuccinAccent else base16Accent;
+  mainColor = if vars.catppuccin then vars.catppuccinAccent else vars.base16Accent;
 
   # Status Colors (Dynamic)
-  successColor = if catppuccin then "green" else config.lib.stylix.colors.withHashtag.base0B;
-  errorColor = if catppuccin then "red" else config.lib.stylix.colors.withHashtag.base08;
+  successColor = if vars.catppuccin then "green" else config.lib.stylix.colors.withHashtag.base0B;
+  errorColor = if vars.catppuccin then "red" else config.lib.stylix.colors.withHashtag.base08;
 in
 {
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME
   # -----------------------------------------------------------------------
-  catppuccin.starship.enable = catppuccin;
-  catppuccin.starship.flavor = catppuccinFlavor;
+  catppuccin.starship.enable = vars.catppuccin;
+  catppuccin.starship.flavor = vars.catppuccinFlavor;
 
   # -----------------------------------------------------------------------
   # 🚀 STARSHIP CONFIGURATION
@@ -33,7 +30,7 @@ in
     enable = true;
     # It fallback to true if not defined in the modules.nix of that specific host host
     # This allow user that have it enabled in their .zshrc_custom to not have issues
-    enableZshIntegration = starshipZshIntegration;
+    enableZshIntegration = vars.starshipZshIntegration;
 
     settings = {
       add_newline = true;

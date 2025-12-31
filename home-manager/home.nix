@@ -1,10 +1,8 @@
 {
-  homeStateVersion,
-  screenshots,
-  user,
   inputs,
   pkgs,
   lib,
+  vars,
   ...
 }:
 {
@@ -22,9 +20,9 @@
   # 👤 USER IDENTITY
   # -----------------------------------------------------------------------
   home = {
-    username = user;
-    homeDirectory = "/home/${user}";
-    stateVersion = homeStateVersion; # Controls backwards compatibility logic
+    username = vars.user;
+    homeDirectory = "/home/${vars.user}";
+    stateVersion = vars.homeStateVersion; # Controls backwards compatibility logic
   };
 
   # -----------------------------------------------------------------------
@@ -75,18 +73,18 @@
     # ⚠️ Do not add ~/.config/hypr/hyprland.conf otherwise during rebuild the config change and you need to manually reapply home-manager and then logging out/in to see the changes.
     # The file need to be removed manually if needed before rebuilding
     removeExistingConfigs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-      rm -f "/home/${user}/.gtkrc-2.0"
-      rm -f "/home/${user}/.config/gtk-3.0/settings.ini"
-      rm -f "/home/${user}/.config/gtk-3.0/gtk.css"
-      rm -f "/home/${user}/.config/gtk-4.0/settings.ini"
-      rm -f "/home/${user}/.config/gtk-4.0/gtk.css"
-      rm -f "/home/${user}/.config/dolphinrc"
-      rm -f "/home/${user}/.local/share/applications/mimeapps.list"
+      rm -f "/home/${vars.user}/.gtkrc-2.0"
+      rm -f "/home/${vars.user}/.config/gtk-3.0/settings.ini"
+      rm -f "/home/${vars.user}/.config/gtk-3.0/gtk.css"
+      rm -f "/home/${vars.user}/.config/gtk-4.0/settings.ini"
+      rm -f "/home/${vars.user}/.config/gtk-4.0/gtk.css"
+      rm -f "/home/${vars.user}/.config/dolphinrc"
+      rm -f "/home/${vars.user}/.local/share/applications/mimeapps.list"
     '';
 
     createEssentialDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       # Screenshots directory (references in other files. Make sure to change accordingly)
-      mkdir -p ${screenshots}
+      mkdir -p ${vars.screenshots}
     '';
   };
 }

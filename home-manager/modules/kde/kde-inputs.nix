@@ -1,9 +1,6 @@
 {
   flake,
-  keyboardLayout,
-  keyboardVariant,
-  kdeMice,
-  kdeTouchpads,
+  vars,
   ...
 }:
 {
@@ -12,14 +9,14 @@
     keyboard = {
       layouts = [
         {
-          layout = keyboardLayout;
-          variant = keyboardVariant;
+          layout = vars.keyboardLayout;
+          variant = vars.keyboardVariant;
         }
       ];
       numlockOnStartup = "on";
     };
 
-    mice = kdeMice;
-    touchpads = kdeTouchpads;
+    mice = vars.kdeMice;
+    touchpads = vars.kdeTouchpads;
   };
 }

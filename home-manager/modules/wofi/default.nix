@@ -2,10 +2,7 @@
   pkgs,
   lib,
   config,
-  catppuccin,
-  catppuccinFlavor,
-  catppuccinAccent,
-  term,
+  vars,
   ...
 }:
 let
@@ -129,11 +126,11 @@ let
   };
 
   # 3. Select the correct palette based on the user's choice
-  selectedPalette = palettes.${catppuccinFlavor};
+  selectedPalette = palettes.${vars.catppuccinFlavor};
 
   # 4. Define the CSS Variables Block
   cssVariables =
-    if catppuccin then
+    if vars.catppuccin then
       ''
         @define-color rosewater ${selectedPalette.rosewater};
         @define-color flamingo ${selectedPalette.flamingo};
@@ -163,7 +160,7 @@ let
         @define-color crust ${selectedPalette.crust};
 
         /* Semantic Mappings */
-        @define-color accent      @${catppuccinAccent};
+        @define-color accent      @${vars.catppuccinAccent};
         @define-color window_bg   @base;
         @define-color input_bg    @surface0;
         @define-color selected_bg @surface1;
@@ -182,29 +179,32 @@ let
       '';
 in
 {
-  programs.wofi = {
-    enable = true;
 
-    settings = {
-      show = "drun";
-      width = 950;
-      height = 500;
-      always_parse_args = true;
-      show_all = false;
-      term = term;
-      hide_scroll = true;
-      print_command = true;
-      insensitive = true;
-      prompt = "";
-      columns = 2;
-      allow_markup = true;
-      allow_images = true;
+  config = lib.mkIf (vars.hyprland or vars.gnome or vars.kde or vars.cosmic or false) {
+    programs.wofi = {
+      enable = true;
+
+      settings = {
+        show = "drun";
+        width = 950;
+        height = 500;
+        always_parse_args = true;
+        show_all = false;
+        term = vars.term;
+        hide_scroll = true;
+        print_command = true;
+        insensitive = true;
+        prompt = "";
+        columns = 2;
+        allow_markup = true;
+        allow_images = true;
+      };
+
+      # Inject variables BEFORE the CSS rules
+      style = ''
+        ${cssVariables}
+        ${cssContent}
+      '';
     };
-
-    # Inject variables BEFORE the CSS rules
-    style = ''
-      ${cssVariables}
-      ${cssContent}
-    '';
   };
 }

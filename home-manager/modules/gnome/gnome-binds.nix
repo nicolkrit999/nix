@@ -1,7 +1,7 @@
 {
   pkgs,
   lib,
-  term,
+  vars,
   ...
 }:
 
@@ -16,27 +16,27 @@ let
   customBindings = [
     {
       name = "Launch Terminal";
-      command = term;
+      command = vars.term;
       binding = "<Super>Return";
     }
     {
       name = "Launch Firefox";
-      command = "${pkgs.firefox}/bin/firefox";
+      command = "${pkgs.firefox}/bin/firefox"; # TODO change to be declarative
       binding = "<Super>b";
     }
     {
       name = "Launch Chromium";
-      command = "chromium";
+      command = "chromium"; # TODO change to be declarative
       binding = "<Super>y";
     }
     {
       name = "Launch File Manager";
-      command = "dolphin";
+      command = "dolphin"; # Change to be declarative
       binding = "<Super>f";
     }
     {
       name = "Launch VS Code";
-      command = "code";
+      command = "code"; # TODO Change to be declarative
       binding = "<Super>c";
     }
     {

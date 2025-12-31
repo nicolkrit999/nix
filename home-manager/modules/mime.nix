@@ -1,8 +1,6 @@
 {
   pkgs,
-  browser,
-  editor,
-  fileManager,
+  vars,
   ...
 }:
 let
@@ -17,9 +15,9 @@ let
     else
       "${name}.desktop";
 
-  myBrowser = mkDesktop browser;
-  myFileManager = mkDesktop fileManager;
-  myEditor = mkDesktop editor;
+  myBrowser = mkDesktop vars.browser;
+  myFileManager = mkDesktop vars.fileManager;
+  myEditor = mkDesktop vars.editor;
 in
 {
   xdg.mimeApps = {

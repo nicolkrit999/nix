@@ -1,13 +1,13 @@
 {
   pkgs,
   lib,
-  idleConfig ? null,
+  vars,
   ...
 }:
 let
 
   # 🛡️ FALLBACK LOGIC
-  # If idleConfig is null (not defined in flake), use these defaults.
+  # If vars.idleConfig is null (not defined in flake), use these defaults.
   # If it is defined, merge it with defaults to ensure no keys are missing.
   cfg = {
     enable = true;
@@ -16,7 +16,7 @@ let
     screenOffTimeout = 3600; # 60m
     suspendTimeout = 7200; # 2h
   }
-  // (if idleConfig != null then idleConfig else { });
+  // (if vars.idleConfig != null then vars.idleConfig else { });
 
 in
 {

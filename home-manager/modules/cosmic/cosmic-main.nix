@@ -1,16 +1,14 @@
 {
   lib,
   pkgs,
-  cosmic,
-  monitors,
-  wallpapers,
+  vars,
   ...
 }:
 let
   # 1. PARSE MONITOR NAMES
   # "DP-1,3840x2160..." -> "DP-1"
   # filter out disabled monitors first
-  activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) monitors;
+  activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) vars.monitors;
   monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
 
   # 2. FETCH WALLPAPERS
@@ -20,7 +18,7 @@ let
       url = wp.wallpaperURL;
       sha256 = wp.wallpaperSHA256;
     }}"
-  ) wallpapers;
+  ) vars.wallpapers;
 
   # 3. HELPER: GET WALLPAPER BY INDEX
   # If there are more monitors than wallpapers, reuse the last wallpaper
@@ -43,8 +41,9 @@ let
   );
 
 in
+
 {
-  config = lib.mkIf cosmic {
+  config = lib.mkIf (vars.cosmic or false) {
     # Enable data control for clipboard tools
     home.sessionVariables.COSMIC_DATA_CONTROL_ENABLED = 1;
 

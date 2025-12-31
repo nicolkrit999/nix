@@ -2,8 +2,7 @@
   pkgs,
   lib,
   config,
-  catppuccin,
-  catppuccinFlavor,
+  vars,
   ...
 }:
 let
@@ -28,29 +27,32 @@ let
   '';
 in
 {
-  catppuccin.swaync.enable = catppuccin;
-  catppuccin.swaync.flavor = catppuccinFlavor;
 
-  services.swaync = {
-    enable = true;
-    settings = {
-      positionX = "right";
-      positionY = "top";
-      notification-icon-size = 64;
+  config = lib.mkIf (vars.hyprland or false) {
+    catppuccin.swaync.enable = vars.catppuccin;
+    catppuccin.swaync.flavor = vars.catppuccinFlavor;
+
+    services.swaync = {
+      enable = true;
+      settings = {
+        positionX = "right";
+        positionY = "top";
+        notification-icon-size = 64;
+      };
+
+      # 🎨 DYNAMIC STYLE LOGIC
+      style =
+        if vars.catppuccin then
+          # If Catppuccin is ON: Force the theme + layout
+          lib.mkForce ''
+            @import "${config.catppuccin.sources.swaync}/${vars.catppuccinFlavor}.css";
+            ${customLayout}
+          ''
+        else
+          # If Stylix is ON: Keep Stylix colors, just add layout
+          lib.mkAfter ''
+            ${customLayout}
+          '';
     };
-
-    # 🎨 DYNAMIC STYLE LOGIC
-    style =
-      if catppuccin then
-        # If Catppuccin is ON: Force the theme + layout
-        lib.mkForce ''
-          @import "${config.catppuccin.sources.swaync}/${catppuccinFlavor}.css";
-          ${customLayout}
-        ''
-      else
-        # If Stylix is ON: Keep Stylix colors, just add layout
-        lib.mkAfter ''
-          ${customLayout}
-        '';
   };
 }
