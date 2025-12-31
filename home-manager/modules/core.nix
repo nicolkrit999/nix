@@ -14,9 +14,11 @@
     ./neovim.nix
     ./qt.nix
     ./starship.nix
+    ./swaync
     ./stylix.nix
     ./tmux.nix
     ./zsh.nix
+    ./waybar
     ./wofi
   ];
 }
