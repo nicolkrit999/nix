@@ -444,24 +444,23 @@ Optionally you can delete any other host in this repo that is not desired. this 
 
 ```bash
 cd ~/nixOS && \
-printf "Enter the hostnames you want to KEEP (separated by spaces): " && read -r INPUT && \
+printf "Enter the hostnames to KEEP (e.g., nixos-desktop template-host): " && read -r INPUT && \
 if [ -z "$INPUT" ]; then
     echo "Error: No hosts specified. No changes made."
 else
-    CMD="find hosts/ -maxdepth 1 -mindepth 1 -type d"
     for host in $INPUT; do
-        if [ -d "hosts/$host" ]; then
-            CMD="$CMD ! -name '$host'"
-        else
-            echo "Warning: Host '$host' not found, skipping..."
+        if [ ! -d "hosts/$host" ]; then
+            echo "Error: Host '$host' not found. Operation cancelled to prevent accidental deletion."
+            exit 1
         fi
     done
 
-    if [ "$CMD" != "find hosts/ -maxdepth 1 -mindepth 1 -type d" ]; then
-        eval "$CMD -exec rm -rf {} +" && echo "Cleanup complete. Kept: $INPUT"
-    else
-        echo "Error: None of the hosts provided exist. No changes made."
-    fi
+    CMD="find hosts/ -maxdepth 1 -mindepth 1 -type d"
+    for host in $INPUT; do
+        CMD="$CMD ! -name '$host'"
+    done
+
+    eval "$CMD -exec rm -rf {} +" && echo "Cleanup complete. Kept only: $INPUT"
 fi
 ```
 
