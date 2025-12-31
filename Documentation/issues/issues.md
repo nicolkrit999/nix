@@ -7,6 +7,7 @@ These are the issues that i observed that require attentions. They may be only o
     - [Hyprland gestures](#hyprland-gestures)
   - [General](#general)
     - [During rebuild: 'system' has been renamed to/replaced by 'stdenv.hostPlatform.system'](#during-rebuild-system-has-been-renamed-toreplaced-by-stdenvhostplatformsystem)
+    - [krit profile: You have set either `nixpkgs.config` or `nixpkgs.overlays` while using `home-manager.useGlobalPkgs`.](#krit-profile-you-have-set-either-nixpkgsconfig-or-nixpkgsoverlays-while-using-home-manageruseglobalpkgs)
   - [Guest user specific](#guest-user-specific)
     - [User remains active in tty\*](#user-remains-active-in-tty)
 
@@ -37,6 +38,10 @@ These are the issues that i observed that require attentions. They may be only o
 ### During rebuild: 'system' has been renamed to/replaced by 'stdenv.hostPlatform.system'
 - I tried but didn't found a proper way to handle it
 - Modifying `flake.nix` should be enough
+
+###  krit profile: You have set either `nixpkgs.config` or `nixpkgs.overlays` while using `home-manager.useGlobalPkgs`.
+                    This will soon not be possible. Please remove all `nixpkgs` options when using `home-manager
+- na
 
 
 
