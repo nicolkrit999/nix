@@ -1,4 +1,4 @@
-{ user, ... }:
+{ vars, ... }:
 {
   programs.nh = {
     enable = true;
@@ -17,6 +17,6 @@
     # clean.extraArgs = "--keep-since 4d --keep 3";
 
     # Location of your flake configuration for quick discovery by nh commands
-    flake = "/home/${user}/nixOS";
+    flake = "/home/${vars.user}/nixOS";
   };
 }

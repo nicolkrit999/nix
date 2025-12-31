@@ -1,8 +1,7 @@
 {
   pkgs,
   lib,
-  user,
-  hyprland,
+  vars,
   ...
 }:
 let
@@ -35,9 +34,9 @@ in
 
   services.displayManager.autoLogin = {
     enable = false;
-    user = user;
+    user = vars.user;
   };
 
-  services.displayManager.defaultSession = lib.mkIf hyprland "hyprland-uwsm";
+  services.displayManager.defaultSession = lib.mkIf vars.hyprland "hyprland-uwsm";
   services.getty.autologinUser = null;
 }

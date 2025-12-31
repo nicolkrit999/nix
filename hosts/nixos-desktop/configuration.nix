@@ -23,6 +23,12 @@
 
     # Core imports
     ../../nixos/modules/core.nix
+
+    # These are manually imported here because they contains aspects that home-manager can not handle alone
+    ./host-modules/logitech.nix # boot
+    ./host-modules/smb.nix # user
+    ./host-modules/gaming.nix # hardware
+    ./host-modules/borg-backup.nix # networking
   ];
 
   # ---------------------------------------------------------

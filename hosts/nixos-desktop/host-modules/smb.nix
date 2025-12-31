@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  vars,
+  ...
+}:
 
 let
   nasIP = "100.101.189.91";
@@ -35,7 +40,7 @@ let
           "nounix"
           "forceuid"
           "forcegid"
-          "uid=${toString config.users.users.krit.uid}"
+          "uid=${toString config.users.users.${vars.user}.uid}"
           "gid=${toString config.users.groups.users.gid}"
 
           # -------------------------------------------------------

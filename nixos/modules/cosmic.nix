@@ -2,11 +2,11 @@
   pkgs,
   lib,
   config,
-  cosmic,
+  vars,
   ...
 }:
 {
-  config = lib.mkIf cosmic {
+  config = lib.mkIf (vars.cosmic or false) {
     services.desktopManager.cosmic.enable = true;
 
     # Disable cosmic-greeter since sddm is used instead.

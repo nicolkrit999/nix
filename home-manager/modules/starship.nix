@@ -10,7 +10,7 @@ let
   base16Accent = config.lib.stylix.colors.withHashtag.base0E;
 
   # Determine the "Main" color based on whatever catppuccin is enabled or not
-  mainColor = if vars.catppuccin then vars.catppuccinAccent else vars.base16Accent;
+  mainColor = if vars.catppuccin then vars.catppuccinAccent else base16Accent;
 
   # Status Colors (Dynamic)
   successColor = if vars.catppuccin then "green" else config.lib.stylix.colors.withHashtag.base0B;

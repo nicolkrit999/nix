@@ -1,7 +1,5 @@
 {
-  term,
-  editor,
-  browser,
+  vars,
   ...
 }:
 
@@ -20,19 +18,19 @@ let
   };
 
   # Select the correct command, or default to the name itself if unknown
-  finalEditor = editorFlags.${editor} or editor;
+  finalEditor = editorFlags.${vars.editor} or vars.editor;
 in
 {
-  environment.sessionVariables = {
-    BROWSER = browser;
 
-    TERMINAL = term;
+  environment.localBinInPath = true;
+
+  environment.sessionVariables = {
+    BROWSER = vars.browser;
+
+    TERMINAL = vars.term;
 
     EDITOR = finalEditor;
 
     XDG_BIN_HOME = "$HOME/.local/bin";
-    PATH = [
-      "$HOME/.local/bin"
-    ];
   };
 }

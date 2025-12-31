@@ -1,10 +1,10 @@
 {
   imports = [
-    # ---------------------------------------------------------
-    # 👤 USER CORE
-    # ---------------------------------------------------------
-    # ❌ DO NOT import desktop environments or window managers here
-    # (they are managed based on flake.nix)
+    # DE/WM modules
+    ./cosmic
+    ./gnome
+    ./hyprland
+    ./kde
 
     ./bat.nix
     ./eza.nix

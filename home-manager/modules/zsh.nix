@@ -24,19 +24,16 @@
         isImpure = vars.nixImpure or false;
 
         switchCmd =
-          if vars.isImpure then
-            "sudo nixos-rebuild switch --flake . --impure"
-          else
-            "nh os switch ${flakeDir}";
+          if isImpure then "sudo nixos-rebuild switch --flake . --impure" else "nh os switch ${flakeDir}";
 
         updateCmd =
-          if vars.isImpure then
+          if isImpure then
             "nix flake update && sudo nixos-rebuild switch --flake . --impure"
           else
             "nh os switch --update ${flakeDir}";
 
         updateBoot =
-          if vars.isImpure then
+          if isImpure then
             "sudo nixos-rebuild boot --flake . --impure"
           else
             "nh os boot --update ${flakeDir}";
@@ -55,8 +52,8 @@
         dedup = "nix store optimise";
         cleanup = "nh clean all";
 
-        # Home-Manager related
-        hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${vars.hostname}"; # Rebuild home-manager config
+        # Home-Manager related ()
+        # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${vars.hostname}"; # Rebuild home-manager config
 
         # Pkgs editing
         pkgs-home = "nvim ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list

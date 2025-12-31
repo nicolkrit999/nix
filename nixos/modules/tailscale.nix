@@ -1,11 +1,11 @@
 {
   lib,
   config,
-  tailscale, # Injected from variables.nix
+  vars,
   ...
 }:
 {
-  config = lib.mkIf tailscale {
+  config = lib.mkIf vars.tailscale {
     # 1. Enable the Service
     services.tailscale.enable = true;
 

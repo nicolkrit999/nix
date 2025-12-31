@@ -1,17 +1,17 @@
 {
   imports = [
-    #./alacritty.nix
-    ./borg-backup.nix
+    ./alacritty.nix
+    # ./borg-backup.nix # Do not include it because it is already included in configuration.nix
     ./cava.nix
     ./chromium.nix
     ./dolphin.nix
     ./firefox.nix
-    ./gaming.nix
+    #./gaming.nix # Do not include it because it is already included in configuration.nix
     ./kitty.nix
-    ./logitech.nix
+    #./logitech.nix # Do not include it because it is already included in configuration.nix
     ./neovim.nix
     ./ranger.nix
-    ./smb.nix
+    #./smb.nix # Do not include it because it is already included in configuration.nix
     ./zathura.nix
   ];
 }

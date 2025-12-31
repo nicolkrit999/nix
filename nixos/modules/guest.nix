@@ -2,7 +2,7 @@
   config,
   pkgs,
   lib,
-  guest,
+  vars,
   ...
 }:
 
@@ -23,7 +23,7 @@ let
   '';
 in
 {
-  config = lib.mkIf guest {
+  config = lib.mkIf vars.guest {
 
     users.users.guest = {
       isNormalUser = true;

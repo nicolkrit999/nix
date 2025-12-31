@@ -47,7 +47,7 @@
         # 🖥️ Monitor Configuration
         # -----------------------------------------------------
         # Syntax: "PORT, RESOLUTION@HERTZ, POSITION, SCALE, TRANSFORM"
-        monitor = monitors ++ [
+        monitor = vars.monitors ++ [
           ",preferred,auto,1" # Fallback in case no monitors are defined in flake.nix
         ];
 

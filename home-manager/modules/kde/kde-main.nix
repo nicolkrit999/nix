@@ -1,5 +1,6 @@
 {
   pkgs,
+  config,
   lib,
   vars,
   ...
@@ -41,17 +42,17 @@ let
 in
 {
 
-  xdg.configFile."autostart/ibus-daemon.desktop".text = ''
-    [Desktop Entry]
-    Type=Application
-    Name=Kill IBus Daemon
-    Exec=pkill ibus-daemon
-    Hidden=false
-    StartupNotify=false
-    X-KDE-autostart-phase=1
-  '';
-
   config = lib.mkIf (vars.kde or false) {
+
+    xdg.configFile."autostart/ibus-daemon.desktop".text = ''
+      [Desktop Entry]
+      Type=Application
+      Name=Kill IBus Daemon
+      Exec=pkill ibus-daemon
+      Hidden=false
+      StartupNotify=false
+      X-KDE-autostart-phase=1
+    '';
 
     programs.plasma = {
       enable = true;

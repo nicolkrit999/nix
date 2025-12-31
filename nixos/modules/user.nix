@@ -1,10 +1,10 @@
-{ pkgs, user, ... }:
+{ pkgs, vars, ... }:
 {
   programs.zsh.enable = true; # Enable Zsh as a shell
 
   users = {
     defaultUserShell = pkgs.zsh; # Sets Zsh as the default shell for the user
-    users.${user} = {
+    users.${vars.user} = {
       isNormalUser = true; # Marks this account as a regular user
 
       # Group permissions:

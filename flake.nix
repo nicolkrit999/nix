@@ -79,6 +79,12 @@
             ./hosts/${hostname}/configuration.nix
             inputs.catppuccin.nixosModules.catppuccin
             inputs.nix-flatpak.nixosModules.nix-flatpak
+            # DE/WM import
+            ./nixos/modules/hyprland.nix
+            ./nixos/modules/gnome.nix
+            ./nixos/modules/kde.nix
+            ./nixos/modules/cosmic.nix
+
             {
               nixpkgs.pkgs = import nixpkgs {
                 inherit (hostVars) system;
@@ -90,26 +96,34 @@
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
+
+              home-manager.sharedModules = [
+                inputs.catppuccin.homeModules.catppuccin
+                inputs.plasma-manager.homeModules.plasma-manager
+              ];
+
               home-manager.extraSpecialArgs = {
                 inherit inputs pkgs-unstable hostname;
                 vars = hostVars;
               };
-              home-manager.users.${hostVars.user} =
-                if builtins.pathExists ./hosts/${hostname}/home.nix then
-                  import ./hosts/${hostname}/home.nix
-                else
-                  { }; # <--- Fallback to empty config
+              home-manager.users.${hostVars.user} = {
+                imports = [
+                  ./home-manager/home.nix
+                ]
+
+                ++ (
+                  if builtins.pathExists ./hosts/${hostname}/home.nix then [ ./hosts/${hostname}/home.nix ] else [ ]
+                )
+                ++ (
+                  if builtins.pathExists ./hosts/${hostname}/host-modules then
+                    [ ./hosts/${hostname}/host-modules ]
+                  else
+                    [ ]
+                );
+              };
 
             }
-          ]
-          # 1. Add host-specific host-modules if they exist
-          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/host-modules) ./hosts/${hostname}/host-modules)
-
-          # 2. Add DE/WM modules based on variables.nix
-          ++ (nixpkgs.lib.optional (hostVars.hyprland or false) ./nixos/modules/hyprland.nix)
-          ++ (nixpkgs.lib.optional (hostVars.gnome or false) ./nixos/modules/gnome.nix)
-          ++ (nixpkgs.lib.optional (hostVars.kde or false) ./nixos/modules/kde.nix)
-          ++ (nixpkgs.lib.optional (hostVars.cosmic or false) ./nixos/modules/cosmic.nix);
+          ];
         };
 
       # 🏠 HOME BUILDER
@@ -152,17 +166,7 @@
           ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/host-modules) ./hosts/${hostname}/host-modules)
 
           # 3. Add host-specific home.nix
-          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/home.nix) ./hosts/${hostname}/home.nix)
-
-          # 4. Desktop Environment Specific Modules
-          ++ (nixpkgs.lib.optionals (hostVars.hyprland or false) [
-            ./home-manager/modules/hyprland
-            ./home-manager/modules/waybar
-            ./home-manager/modules/swaync
-          ])
-          ++ (nixpkgs.lib.optional (hostVars.gnome or false) ./home-manager/modules/gnome)
-          ++ (nixpkgs.lib.optional (hostVars.kde or false) ./home-manager/modules/kde)
-          ++ (nixpkgs.lib.optional (hostVars.cosmic or false) ./home-manager/modules/cosmic);
+          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/home.nix) ./hosts/${hostname}/home.nix);
         };
 
     in

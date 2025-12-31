@@ -3,16 +3,17 @@
   # ⚙️ SYSTEM CORE
   # ---------------------------------------------------------
   # Import all your hardware/system configs here.
-  # ❌ DO NOT import desktop environments or window managers here
-  # (they are managed based on flake.nix)
   imports = [
     ./audio.nix
     ./bluetooth.nix
     ./boot.nix
     ./cosmic.nix
     ./env.nix
+    ./gnome.nix
     ./guest.nix
     ./home-manager.nix
+    ./hyprland.nix
+    ./kde.nix
     ./kernel.nix
     ./net.nix
     ./nh.nix
