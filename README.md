@@ -448,9 +448,6 @@ printf "Enter the hostnames you want to KEEP (separated by spaces): " && read -r
 if [ -z "$INPUT" ]; then
     echo "Error: No hosts specified. No changes made."
 else
-    # 1. Start the find command
-    # 2. For each host entered, add an '! -name' argument
-    # 3. This builds a command that says: "Delete if NOT name1 AND NOT name2..."
     CMD="find hosts/ -maxdepth 1 -mindepth 1 -type d"
     for host in $INPUT; do
         if [ -d "hosts/$host" ]; then
@@ -459,8 +456,7 @@ else
             echo "Warning: Host '$host' not found, skipping..."
         fi
     done
-    
-    # Final safety check: if the generated command is different from the base, execute it
+
     if [ "$CMD" != "find hosts/ -maxdepth 1 -mindepth 1 -type d" ]; then
         eval "$CMD -exec rm -rf {} +" && echo "Cleanup complete. Kept: $INPUT"
     else
