@@ -440,28 +440,50 @@ The folder `~/nixOS/hosts/nixos-desktop/host-modules` contains some pre-configur
 Optionally you can delete any other host in this repo that is not desired. this allow to have a cleaner hosts folder.
 - This next command delete any other hosts directories except for the ones provided as input.
   - It should work regardless of which shell you run, tough i think nixOS during installation has bash 
-  - If the input is not valid (the destination hostname does not exist) this command fail and do nothing
+  - If the any hostname in the input is not valid (the destination hostname does not exist) this command fail and do nothing
 
 ```bash
-cd ~/nixOS && \
-printf "Enter the hostnames to KEEP (e.g., nixos-desktop template-host): " && read -r INPUT && \
-if [ -z "$INPUT" ]; then
-    echo "Error: No hosts specified. No changes made."
-else
-    for host in $INPUT; do
-        if [ ! -d "hosts/$host" ]; then
-            echo "Error: Host '$host' not found. Operation cancelled to prevent accidental deletion."
-            exit 1
-        fi
-    done
+(
+  cd ~/nixOS || return
+  printf "Enter hostnames to KEEP (space separated): "
+  read -r INPUT
+  
+  if [ -z "$INPUT" ]; then
+      echo "No input. Exiting."
+      return
+  fi
 
-    CMD="find hosts/ -maxdepth 1 -mindepth 1 -type d"
-    for host in $INPUT; do
-        CMD="$CMD ! -name '$host'"
-    done
+  SAFE_TO_DELETE=true
+  for host in ${=INPUT}; do
+      if [ ! -d "hosts/$host" ]; then
+          echo "Error: 'hosts/$host' not found."
+          SAFE_TO_DELETE=false
+      fi
+  done
 
-    eval "$CMD -exec rm -rf {} +" && echo "Cleanup complete. Kept only: $INPUT"
-fi
+  if [ "$SAFE_TO_DELETE" = true ]; then
+      echo "Cleaning up..."
+      for dir_path in hosts/*; do
+          [ -d "$dir_path" ] || continue
+          dir_name=$(basename "$dir_path")
+          
+          matched=false
+          for keep_name in ${=INPUT}; do
+              if [ "$dir_name" = "$keep_name" ]; then
+                  matched=true
+              fi
+          done
+
+          if [ "$matched" = false ]; then
+              rm -rf "$dir_path"
+          fi
+      done
+      echo "Done. Remaining hosts:"
+      ls hosts/
+  else
+      echo "Aborting. No changes made."
+  fi
+)
 ```
 
 
