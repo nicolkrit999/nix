@@ -434,6 +434,24 @@ cd ~/nixOS/hosts
 cp -r template-host <your_hostname>
 cd <your_hostname>
 ```
+The folder `~/nixOS/hosts/nixos-desktop/host-modules` contains some pre-configured modules that may be useful. Feel free to copy/move them to your own `host-modules` folder. Remember to change `host-modules/default.nix` to import all the modules that you intend to use
+
+
+Optionally you can delete any other host in this repo that is not desired. this allow to have a cleaner hosts folder.
+- This next command delete any other hosts directories except for the one that the user input.
+  - If the input is not valid (the destination hostname does not exist) this command fail and do nothing
+
+```bash
+cd ~/nixOS && \
+read -p "Enter the hostname you just created to keep it: " KEEP && \
+if [ -d "hosts/$KEEP" ]; then \
+    find hosts/ -maxdepth 1 -mindepth 1 -type d ! -name "$KEEP" -exec rm -rf {} + && \
+    echo "Cleanup complete. Only 'hosts/$KEEP' remains."; \
+else \
+    echo "Error: Host '$KEEP' not found. No files were deleted."; \
+fi
+```
+
 
 After this is done it is needed to modify inside `flake.nix` the `hostNames` list.
   - This list should contains the same name of all the hosts present inside the hosts directory.

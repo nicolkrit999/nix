@@ -47,7 +47,7 @@ in
       "image/webp" = "org.kde.gwenview.desktop";
 
       # PDFs
-      "application/pdf" = "org.pwmt.zathura.desktop";
+      "application/pdf" = myBrowser;
     };
   };
 }

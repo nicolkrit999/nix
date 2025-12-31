@@ -47,6 +47,7 @@
   # 📦 SYSTEM PACKAGES
   # ---------------------------------------------------------
   environment.systemPackages = with pkgs; [
+    foot # Backup terminal in case other fails. This does not require particular configuration
     iptables
     glib
     gsettings-desktop-schemas
