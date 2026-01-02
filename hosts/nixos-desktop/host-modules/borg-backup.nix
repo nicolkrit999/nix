@@ -99,6 +99,7 @@ in
           "/home/*/.local/share/TelegramDesktop/tdata/emoji"
           "/home/*/.local/share/TelegramDesktop/tdata/temp"
           "/home/*/.local/share/Zeal" # Offline doc sets (re-downloadable)
+          "/home/*/.local/share/nvim"
           "/home/*/.config/libreoffice/*/cache"
 
           # -------------------------------------------------------------------
@@ -110,6 +111,12 @@ in
           "/home/*/nixOS"
           "/home/*/progettoFDI"
           "/home/*/tools"
+          "/home/*/obese_dinosaurs"
+
+          # -------------------------------------------------------------------
+          # 8. OTHER
+          # -------------------------------------------------------------------
+          "/home/*/etc/nixos/secrets" # Sensitive data (handled separately)
         ];
 
         # 3. Storage & Encryption

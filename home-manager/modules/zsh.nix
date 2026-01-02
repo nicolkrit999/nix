@@ -65,6 +65,10 @@
         merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop"; # Merge main with develop branch, push and return to develop branch
         merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop"; # Merge develop with main branch, push and return to develop branch
 
+        # Snapshots
+        snap-list-home = "snapper -c home list"; # List home snapshots
+        snap-list-root = "sudo snapper -c root list"; # List root snapshots
+
         # Utilities
         npu = "read 'url?Enter URL: ' && nix-prefetch-url \"$url\"";
         se = "sudoedit";
@@ -81,32 +85,111 @@
     # ⚙️ SHELL INITIALIZATION
     # -----------------------------------------------------
     initExtra = ''
-      # 1. FIX HYPRLAND SOCKET (Dynamic Update)
-      # This ensures that even inside tmux or after a crash, the shell finds the correct socket.
-      if [ -d "/run/user/$(id -u)/hypr" ]; then
-        export HYPRLAND_INSTANCE_SIGNATURE=$(ls -w 1 /run/user/$(id -u)/hypr/ | grep -v ".lock" | head -n 1)
-      fi
+        # 1. FIX HYPRLAND SOCKET (Dynamic Update)
+        # This ensures that even inside tmux or after a crash, the shell finds the correct socket.
+        if [ -d "/run/user/$(id -u)/hypr" ]; then
+          export HYPRLAND_INSTANCE_SIGNATURE=$(ls -w 1 /run/user/$(id -u)/hypr/ | grep -v ".lock" | head -n 1)
+        fi
 
-      # 2. LOAD USER CONFIG (Stow Integration)
-      if [ -f "$HOME/.zshrc_custom" ]; then
-        source "$HOME/.zshrc_custom"
-      fi
+        # 2. LOAD USER CONFIG (Stow Integration)
+        if [ -f "$HOME/.zshrc_custom" ]; then
+          source "$HOME/.zshrc_custom"
+        fi
 
-      # 3. TMUX AUTOSTART (Only in GUI)
-      # Ensure we are in a GUI before starting tmux automatically
-      if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
-        tmux new-session
-      fi
+        # 3. TMUX AUTOSTART (Only in GUI)
+        # Ensure we are in a GUI before starting tmux automatically
+        if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
+          tmux new-session
+        fi
 
-      # 4. UWSM STARTUP (Universal & Safe)
-      # Guard: Only run if on physical TTY1 AND no graphical session is active.
-      if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+        # 4. UWSM STARTUP (Universal & Safe)
+        # Guard: Only run if on physical TTY1 AND no graphical session is active.
+        if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+            
+            # Check if uwsm is installed and ready (Safe for KDE/GNOME-only builds)
+            if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
+                exec systemd-cat -t uwsm_start uwsm start default
+            fi
+        fi
+
+        # -----------------------------------------------------
+        # 📸 SNAPSHOT LOCK & UNLOCK START
+        # -----------------------------------------------------
+        # 🔒 LOCK (Protect from auto-deletion)
+        snap-lock() {
+          echo "Which config? (1=home, 2=root)"
+          read "k?Selection: "
+          if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
           
-          # Check if uwsm is installed and ready (Safe for KDE/GNOME-only builds)
-          if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
-              exec systemd-cat -t uwsm_start uwsm start default
+          echo "Listing snapshots for $CFG..."
+          sudo snapper -c "$CFG" list
+          
+          echo ""
+          read "ID?Enter Snapshot ID to LOCK: "
+          
+          if [[ -n "$ID" ]]; then
+             sudo snapper -c "$CFG" modify -c "" "$ID"
+             echo "✅ Snapshot #$ID in '$CFG' is now LOCKED (won't be deleted)."
           fi
-      fi
+        }
+
+        # 🔓 UNLOCK (Allow auto-deletion)
+        snap-unlock() {
+          echo "Which config? (1=home, 2=root)"
+          read "k?Selection: "
+          if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
+          
+          echo "Listing snapshots for $CFG..."
+          sudo snapper -c "$CFG" list
+          
+          echo ""
+          read "ID?Enter Snapshot ID to UNLOCK: "
+          
+          if [[ -n "$ID" ]]; then
+             sudo snapper -c "$CFG" modify -c "timeline" "$ID"
+             echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED (timeline cleanup enabled)."
+          fi
+        }
+        # -----------------------------------------------------
+        # 📸 SNAPSHOT LOCK & UNLOCK END
+        # -----------------------------------------------------
+
+
+      # -----------------------------------------------------------------------
+      # 📸 SNAPPER INTERACTIVE FUNCTION START
+      # -----------------------------------------------------------------------
+      function _snap_create() {
+        local config_name=$1
+        
+        echo -n "📝 Enter snapshot description: "
+        read description
+        
+        if [ -z "$description" ]; then
+          echo "❌ Description cannot be empty."
+          return 1
+        fi
+
+        echo -n "🔒 Lock this snapshot (keep forever)? [y/N]: "
+        read lock_ans
+
+        local cleanup_flag="-c timeline"
+        local lock_status="UNLOCKED (will auto-delete)"
+
+        if [[ "$lock_ans" =~ ^[Yy]$ ]]; then
+          cleanup_flag=""
+          lock_status="LOCKED (safe forever)"
+        fi
+
+        echo "🚀 Creating $lock_status snapshot for '$config_name'..."
+        sudo snapper -c "$config_name" create --description "$description" $cleanup_flag
+      }
+
+      alias snap-create-home="_snap_create home"
+      alias snap-create-root="_snap_create root"
+
+      # -----------------------------------------------------------------------
+      # 📸 SNAPPER INTERACTIVE FUNCTION END
+      # -----------------------------------------------------------------------
     '';
   };
 }

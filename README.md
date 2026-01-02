@@ -18,6 +18,7 @@
     - [🏠 Home Manager Integration](#-home-manager-integration)
     - [🧇 Tmux](#-tmux)
     - [🌟 Zsh + Starship](#-zsh--starship)
+    - [🦺 BTRFS snapshots](#-btrfs-snapshots)
 - [🚀 NixOS Installation Guide](#-nixos-installation-guide)
   - [📦 Phase 1: Preparation](#-phase-1-preparation)
     - [1. Download \& Flash](#1-download--flash)
@@ -323,6 +324,10 @@ ZSH is hybrid:
   - This allow the user to define aliases which are not nix-specific inside this custom file. 
   - This give the user the possibility to use the same zshrc for any other linux distro that it may have 
 
+
+### 🦺 BTRFS snapshots
+- Possibility to enable snapshots and define an host-specific retention policy
+
 ---
 
 
@@ -621,6 +626,10 @@ Run this command inside `~/nixOS`:
 
   * `screenshots`: Setup the preferred directory where screenshots are put
     * Currently the path and shortcuts only work in hyprland and kde 
+
+  * `snapshots`: Whatever to enable snapshots or not
+
+  * `snapshotRetention`: How many snapshots to keep for a certain period
   
   * `tailscale`: Whatever to enable or disable the tailscale service.
     * "guest" user has this service disabled using a custom firewall rules in configuration.nix (host-specific)

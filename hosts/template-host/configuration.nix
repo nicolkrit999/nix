@@ -32,20 +32,27 @@
     nerd-fonts.jetbrains-mono
     nerd-fonts.symbols-only
     noto-fonts
+    dejavu_fonts
+    noto-fonts-lgc-plus
     noto-fonts-color-emoji
     noto-fonts-cjk-sans
+    texlivePackages.hebrew-fonts
+    font-awesome
+    powerline-fonts
   ];
 
   fonts.fontconfig.enable = true;
 
   environment.systemPackages = with pkgs; [
-    foot # Backup terminal in case other fails, including those in home-packages.nix. This does not require particular configuration
+    foot
     iptables
     glib
     gsettings-desktop-schemas
     gtk3
-    libsForQt5.qt5.qtwayland # Qt5 Wayland platform plugin
-    kdePackages.qtwayland # Qt6 Wayland platform plugin
+    libsForQt5.qt5.qtwayland
+    kdePackages.qtwayland
+    powerline-symbols
+    polkit_gnome
   ];
 
   programs.dconf.enable = true;

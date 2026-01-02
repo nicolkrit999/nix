@@ -57,7 +57,11 @@ in
       description = "Guest Account";
       uid = guestUid;
       group = "guest";
-      extraGroups = [ "networkmanager" "audio" "video" ];
+      extraGroups = [
+        "networkmanager"
+        "audio"
+        "video"
+      ];
       hashedPassword = "$6$Cqklpmh3CX0Cix4Y$OCx6/ud5bn72K.qQ3aSjlYWX6Yqh9XwrQHSR1GnaPRud6W4KcyU9c3eh6Oqn7bjW3O60oEYti894sqVUE1e1O0";
       createHome = true;
     };
@@ -68,7 +72,12 @@ in
     fileSystems."/home/guest" = {
       device = "none";
       fsType = "tmpfs";
-      options = [ "size=25%" "mode=700" "uid=${toString guestUid}" "gid=${toString guestUid}" ];
+      options = [
+        "size=25%"
+        "mode=700"
+        "uid=${toString guestUid}"
+        "gid=${toString guestUid}"
+      ];
     };
 
     # 🎯 FORCE XFCE PREFERENCE
@@ -100,7 +109,7 @@ in
     '';
 
     # 🔓 SUDO RULES FOR REBOOT
-    # We allow the guest to run 'reboot' without a password. 
+    # We allow the guest to run 'reboot' without a password.
     # This is necessary for the enforcement script.
     security.sudo.extraRules = [
       {

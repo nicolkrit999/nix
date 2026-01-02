@@ -830,6 +830,7 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
           "waybar" # Start waybar
           "wl-paste --type text --watch cliphist store" # Start clipboard manager for text
           "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
+          "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
         ];
 
@@ -2137,34 +2138,34 @@ We explicitly disable the `ibus` input method system and force-clear related env
   hardware.graphics.enable = true;
 
   fonts.packages = with pkgs; [
-    nerd-fonts.jetbrains-mono
-    nerd-fonts.symbols-only
-    noto-fonts
-    dejavu_fonts
-    noto-fonts-lgc-plus # For extended Latin, Greek, Cyrillic support
-    noto-fonts-color-emoji
-    noto-fonts-cjk-sans
-    texlivePackages.hebrew-fonts # For Hebrew script support
-    font-awesome # Icon font used by Waybarpackage
-    powerline-fonts # Required for shell prompts
-
+    nerd-fonts.jetbrains-mono # Primary monospace font; includes icons for coding and terminal use
+    nerd-fonts.symbols-only # Icon fallback; ensures symbols render even when the main font lacks them
+    noto-fonts # Base text coverage; Google's "No Tofu" standard to fix square boxes globally
+    dejavu_fonts # Core Linux fallback; high compatibility for standard text in older apps
+    noto-fonts-lgc-plus # Extended European support; covers complex Latin, Greek, and Cyrillic variants
+    noto-fonts-color-emoji # Emoji support; ensures emojis appear in color rather than monochrome outlines
+    noto-fonts-cjk-sans # Asian language support; mandatory for Chinese, Japanese, and Korean characters
+    texlivePackages.hebrew-fonts # Hebrew support; specialized font for correct Hebrew script rendering
+    font-awesome # System icons; standard dependency for Waybar and desktop interface elements
+    powerline-fonts # Shell prompt glyphs; prevents broken triangles/shapes in Zsh/Bash prompts
   ];
+  
   fonts.fontconfig.enable = true;
 
   # ---------------------------------------------------------
   # 📦 SYSTEM PACKAGES
   # ---------------------------------------------------------
   environment.systemPackages = with pkgs; [
-    foot # Backup terminal in case other fails. This does not require particular configuration
-    iptables
-    glib
-    gsettings-desktop-schemas
-    gtk3
-    libsForQt5.qt5.qtwayland
-    kdePackages.qtwayland
-
-    powerline-symbols # Required for shell prompts
-
+    # Backup terminal in case other fails.
+    foot # Tiny, zero-config terminal; critical rescue tool if your main terminal config breaks
+    iptables # Core firewall utility; base dependency for network security and containers
+    glib # Low-level system library; almost all software crashes without this base layer
+    gsettings-desktop-schemas # Global theme settings; prevents GTK apps from looking broken or crashing
+    gtk3 # Standard GUI toolkit; essential for drawing basic application windows
+    libsForQt5.qt5.qtwayland # Qt5 Wayland bridge; mandatory for older Qt apps to display correctly
+    kdePackages.qtwayland # Qt6 Wayland bridge; mandatory for modern Qt apps to display correctly
+    powerline-symbols # Terminal font glyphs; prevents "box" errors in shell prompts
+    polkit_gnome # Authentication agent; required for GUI apps (like Btrfs Assistant) to ask for passwords
   ];
 
   programs.dconf.enable = true;

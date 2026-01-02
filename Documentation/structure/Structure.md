@@ -112,6 +112,7 @@ Categories can be navigated with the links below:
 │       ├── nh.nix                                 # Nix Helper tool config
 │       ├── nix.nix                                # Nix Daemon settings
 │       ├── sddm.nix                               # Login manager
+│       ├── snapshots.nix                          # Snapshot settings
 │       ├── tailscale.nix                          # Manage tailscale service
 │       ├── timezone.nix                           # Locale & Time settings
 │       ├── user.nix                               # User accounts & groups

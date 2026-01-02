@@ -78,6 +78,10 @@ Configuration for the Simple Desktop Display Manager (Login Screen).
 * **Security:** Disables `autoLogin`, ensuring the login screen is always presented on boot.
 * **Default session:** Automatically set based on which desktop environment is enabled
 
+
+## `snapshots.nix`
+Enable and configure snapshots depending on the retention policy based on `variables.nix`
+
 ## `tailscale.nix`
 Manage tailscale service
 

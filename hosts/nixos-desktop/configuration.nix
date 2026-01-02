@@ -47,30 +47,29 @@
     nerd-fonts.symbols-only
     noto-fonts
     dejavu_fonts
-    noto-fonts-lgc-plus # For extended Latin, Greek, Cyrillic support
+    noto-fonts-lgc-plus
     noto-fonts-color-emoji
     noto-fonts-cjk-sans
-    texlivePackages.hebrew-fonts # For Hebrew script support
-    font-awesome # Icon font used by Waybarpackage
-    powerline-fonts # Required for shell prompts
-
+    texlivePackages.hebrew-fonts
+    font-awesome
+    powerline-fonts
   ];
+
   fonts.fontconfig.enable = true;
 
   # ---------------------------------------------------------
   # 📦 SYSTEM PACKAGES
   # ---------------------------------------------------------
   environment.systemPackages = with pkgs; [
-    foot # Backup terminal in case other fails. This does not require particular configuration
+    foot
     iptables
     glib
     gsettings-desktop-schemas
     gtk3
     libsForQt5.qt5.qtwayland
     kdePackages.qtwayland
-
-    powerline-symbols # Required for shell prompts
-
+    powerline-symbols
+    polkit_gnome
   ];
 
   programs.dconf.enable = true;

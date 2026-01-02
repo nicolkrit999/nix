@@ -67,6 +67,7 @@
           "waybar" # Start waybar
           "wl-paste --type text --watch cliphist store" # Start clipboard manager for text
           "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
+          "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
         ];
 

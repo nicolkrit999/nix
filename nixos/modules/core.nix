@@ -19,6 +19,7 @@
     ./nh.nix
     ./nix.nix
     ./sddm.nix
+    ./snapshots.nix
     ./tailscale.nix
     ./timezone.nix
     ./user.nix

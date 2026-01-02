@@ -47,6 +47,16 @@
 
   screenshots = "$HOME/Pictures/screenshots";
 
+  snapshots = false;
+
+  # 💾 SNAPSHOT RETENTION POLICY
+  snapshotRetention = {
+    hourly = "24";
+    daily = "7";
+    weekly = "4";
+    monthly = "3";
+  };
+
   # 🛡️ SECURITY & NETWORKING
   tailscale = false;
   guest = false;
