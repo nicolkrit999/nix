@@ -23,16 +23,6 @@ Categories can be navigated with the links below:
 │   ├── home-packages.nix                          # List of user-only software
 │   │
 │   └── modules/                                   # Application-specific configurations
-│       ├── alacritty.nix                          # Terminal settings
-│       ├── bat.nix                                # 'cat' clone settings
-│       ├── cava.nix                               # Cli audio visualizer
-│       ├── chromium.nix                           # Browser settings
-│       ├── core.nix                               # Module importer
-│       ├── dolphin.nix                            # KDE File Manager
-│       ├── eza.nix                                # 'ls' clone settings
-│       ├── firefox.nix                            # Firefox settings & hardening
-│       ├── git.nix                                # Git credentials & aliases
-│       ├── kitty.nix                              # Terminal settings
 │       │
 │       ├── cosmic/                                # cosmic-specific configuration
 │       │   ├── cosmic-binds.nix                   # cosmic keyboard shortcuts
@@ -63,18 +53,9 @@ Categories can be navigated with the links below:
 │       │   ├── kde-panels.nix                     # KDE taskbar configuration
 │       │   └── kde-binds.nix                      # KDE keyboard shortcuts configuration
 │       │
-│       ├── lazygit.nix                            # Git TUI settings
-│       ├── neovim.nix                             # Editor wrapper (uses dotfiles)
-│       ├── qt.nix                                 # Manual QT/Kvantum theming logic
-│       ├── ranger.nix                             # Terminal file manager
-│       ├── starship.nix                           # Shell prompt customization
-│       ├── stylix.nix                             # Global Base16 theme engine
-│       │
 │       ├── swaync/                                # Notification Center
 │       │   ├── default.nix                        # Notification logic & CSS injection
 │       │   └── style.css                          # Custom CSS styling (ignored)
-│       │
-│       ├── tmux.nix                               # Terminal Multiplexer
 │       │
 │       ├── waybar/                                # Status Bar
 │       │   ├── default.nix                        # Layout & module definition
@@ -84,16 +65,30 @@ Categories can be navigated with the links below:
 │       │   ├── default.nix                        # Logic & CSS injection
 │       │   └── style.css                          # Manual CSS styling
 │       │
-│       ├── zathura.nix                            # PDF Viewer
+│       ├── bat.nix                                # 'cat' clone settings
+│       ├── core.nix                               # Module importer
+│       ├── eza.nix                                # 'ls' clone settings
+│       ├── git.nix                                # Git credentials & aliases
+│       ├── lazygit.nix                            # Git TUI settings
+│       ├── mime.nix                               # Default app configuration
+│       ├── neovim.nix                             # Editor wrapper (uses dotfiles)
+│       ├── qt.nix                                 # Manual QT/Kvantum theming logic
+│       ├── starship.nix                           # Shell prompt customization
+│       ├── stylix.nix                             # Global Base16 theme engine
+│       ├── tmux.nix                               # Terminal Multiplexer
 │       └── zsh.nix                                # Shell aliases & history
 │
 ├── hosts/                                         # 🖥️ Host-specific overrides
 │   │
 │   └── <hostname>/                                # Contains hosts-specifics aspects
+│       ├── host-modules/                          # Optional host-specific home-manager modules
+│       │   └── default.nix                        # Importer for the home-manager host-specific modules
+│       │
 │       ├── configuration.nix                      # System-level hardware tweaks
+│       ├── disko-config.nix                       # Disko configuration for partitioning with btrfs
 │       ├── flatpak.nix                            # Applications installed through flatpak
-│       ├── hardware-configuration.nix             # Host-specific hardware configuration
 │       ├── home.nix                               # Host-specific home directory configuration
+│       ├── hardware-configuration.nix             # Host-specific hardware configuration
 │       ├── local-packages.nix                     # Hosts-specific packages
 │       ├── modules.nix                            # More in-depth home-manager modules configuration
 │       └── variables.nix                          # Host-specific variables

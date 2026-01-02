@@ -12,11 +12,15 @@ The brain of the operation. It defines the inputs (Nixpkgs source, Home Manager 
 ## 🖥️ Hosts (`hosts/`)
 This directory contains the configurations for specific machines. Each folder name need to match the name of a `hostname` defined in `flake.nix`.
 
-Each hosts folder should contain at least these 7 files
+Each hosts folder should contain at least these 8 files
 
 
 * ### `configuration.nix` ###
 * The machine-specific entry point. It imports the hardware scan and any host-specific module overrides.
+
+* ### `disko-config.nix` ###
+* The disko file used to partition with btrfs.
+  * This file should not be changed after the first installation 
 
 * ### `flatpak.nix` ###
 * Defines which flatpak apps to install. It is safe to keep since it is ignored if the variable is disabled in `variables.nix`

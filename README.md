@@ -18,30 +18,41 @@
     - [🏠 Home Manager Integration](#-home-manager-integration)
     - [🧇 Tmux](#-tmux)
     - [🌟 Zsh + Starship](#-zsh--starship)
-  - [🚀 Installation](#-installation)
-    - [0. Prerequisites](#0-prerequisites)
-    - [1. Install NixOS](#1-install-nixos)
-    - [2. Clone the Repository](#2-clone-the-repository)
-    - [3. Create Your Host Configuration (optional)](#3-create-your-host-configuration-optional)
-    - [4. Import Hardware Configuration](#4-import-hardware-configuration)
-    - [5. Configure the hosts folder](#5-configure-the-hosts-folder)
-      - [`variables.nix`](#variablesnix)
+- [🚀 NixOS Installation Guide](#-nixos-installation-guide)
+  - [📦 Phase 1: Preparation](#-phase-1-preparation)
+    - [1. Download \& Flash](#1-download--flash)
+    - [2. Boot \& Connect](#2-boot--connect)
+  - [💾 Phase 2: The Terminal Installation](#-phase-2-the-terminal-installation)
+    - [1. Download the Config](#1-download-the-config)
+    - [2. Identify Your Disk](#2-identify-your-disk)
+    - [3. Create Your Host](#3-create-your-host)
+    - [4. Configure the Drive](#4-configure-the-drive)
+    - [5. Configure Critical Variables](#5-configure-critical-variables)
+    - [6. Install (The Magic Step)](#6-install-the-magic-step)
+    - [7. Finish](#7-finish)
+  - [🎨 Phase 3: Post-Install Setup](#-phase-3-post-install-setup)
+    - [1. Move Config to Home](#1-move-config-to-home)
+    - [2. (Optional) Cleanup Unused Hosts](#2-optional-cleanup-unused-hosts)
+  - [🛠️ Phase 4: Customization](#️-phase-4-customization)
+    - [Refine `variables.nix`](#refine-variablesnix)
       - [An hosts variable config example:](#an-hosts-variable-config-example)
-      - [`local-packages.nix`](#local-packagesnix)
-      - [`flatpak.nix`](#flatpaknix)
-      - [`modules.nix`](#modulesnix)
-      - [`home.nix`](#homenix)
-    - [6. (Optional) Customize the host-specific `modules.nix`](#6-optional-customize-the-host-specific-modulesnix)
+    - [Setup `local-packages.nix`](#setup-local-packagesnix)
+    - [Setup `flatpak.nix`](#setup-flatpaknix)
+    - [Setup (optional) `modules.nix`](#setup-optional-modulesnix)
+    - [Setup (optional) `home.nix`](#setup-optional-homenix)
+    - [Setup (optional) `host-modules` folder](#setup-optional-host-modules-folder)
+  - [Phase 5: Setup optional host-specific files and directories](#phase-5-setup-optional-host-specific-files-and-directories)
+    - [1. (Optional) Customize the host-specific `modules.nix`](#1-optional-customize-the-host-specific-modulesnix)
       - [`modules.nix` Example](#modulesnix-example)
-    - [7. (optional) Other files that may require manual attention](#7-optional-other-files-that-may-require-manual-attention)
+    - [2. (optional) Other files that may require manual attention](#2-optional-other-files-that-may-require-manual-attention)
       - [~/nixOS/home-manager/modules/firefox.nix and ~/nixOS/home-manager/modules/chromium.nix](#nixoshome-managermodulesfirefoxnix-and-nixoshome-managermoduleschromiumnix)
       - [~/nixOS/home-manager/modules/neovim.nix/](#nixoshome-managermodulesneovimnix)
       - [~/nixOS/home-manager/modules/zathura.nix/](#nixoshome-managermoduleszathuranix)
       - [~/nixOS/nixos/modules/mime.nix/](#nixosnixosmodulesmimenix)
-    - [8. (Optional) Customize the host-specific `home.nix`](#8-optional-customize-the-host-specific-homenix)
+    - [3. (Optional) Customize the host-specific `home.nix`](#3-optional-customize-the-host-specific-homenix)
       - [`home.nix` Example](#homenix-example)
-    - [9. First Time Build](#9-first-time-build)
-  - [🔄 Daily Usage](#-daily-usage)
+    - [4. (Optional) Customize the host-specific `host-modules` directory](#4-optional-customize-the-host-specific-host-modules-directory)
+  - [🔄 Daily Usage \& Updates](#-daily-usage--updates)
   - [❓ Troubleshooting](#-troubleshooting)
     - [Error: `path '.../hardware-configuration.nix' does not exist`](#error-path-hardware-configurationnix-does-not-exist)
     - [Error: `home-manager: command not found`](#error-home-manager-command-not-found)
@@ -67,9 +78,10 @@
 ## ✨ Features
 
 ### 🖥️ Adaptive Host Support: ### 
-Define unique hardware parameters (monitors, theming, keyboard layout,  wallpapers, etc) per machine while keeping the core environment identical. All these customized options can be changed in the host-specific `variables.nix`
+Define unique hardware parameters (monitors, theming, keyboard layout,  wallpapers, etc) per machine while keeping the core environment identical. All these customized options can be changed in the host-specific directory
 - This allow to have a tailored experience right from the start,
 - For reference look point ([5. Configure the host folder](#5-configure-the-hosts-folder)).
+- A variables can be added anytime and it is automatically recognized. Then if it needs to be called it can be simply done by appending `vars.` to the name of the variable
 
 ---
 
@@ -312,135 +324,166 @@ ZSH is hybrid:
 
 ---
 
-## 🚀 Installation
 
-If the setup is installed completely (every feature enabled) it is suggested to have at least 128 gb of storage if the intent is to use it as main distro. For the installation expect anywhere from 20 to 50 gb. The rest is for user storage, and having at least 60 gb free in my opinion is a must in 2025
+# 🚀 NixOS Installation Guide
+
+Welcome! This guide will take you from a blank computer to a fully working NixOS desktop using our **Template Host**.
+
+We use **Disko** to automate the complex disk partitioning steps (creating Btrfs subvolumes for snapshots), so you don't have to run manual formatting commands.
+
+---
+
+## 📦 Phase 1: Preparation
+
+### 1. Download & Flash
+
+1. **Download:** Get the **NixOS Minimal ISO** (64-bit Intel/AMD) from [nixos.org](https://nixos.org/download.html).
+2. **Flash:** Use **Rufus,balena etcher or similar** to write the ISO to a USB stick.
+* **Partition Scheme:** GPT
+* **Target System:** UEFI (non-CSM)
+
+
+3. **BIOS:** Ensure **Secure Boot** is Disabled and your BIOS is set to **UEFI** mode.
+
+### 2. Boot & Connect
+
+1. Insert the USB and boot your computer.
+2. Select **"UEFI: [Your USB Name]"** from the boot menu.
+3. Once the text console loads (`[nixos@nixos:~]$`):
+* **WiFi:** Run `sudo nmtui`, select "Activate a connection", and pick your network.
+* **Ethernet:** Should work automatically. verify with `ping google.com`.
 
 
 
-### 0. Prerequisites
-- Ensure `secure boot` is disabled in the bios
-- Ensure that the boot is in `UEFI` mode (not legacy/csm)
+---
 
-- If for some reason you want to skip this setup then see the step below to revert to systemd
+## 💾 Phase 2: The Terminal Installation
 
-To get started with this setup, follow these steps:
+### 1. Download the Config
 
-### 1. Install NixOS
-Follow the [NixOS Installation Guide](https://nixos.org/manual/nixos/stable/#sec-installation).
+We need to fetch the installer template.
 
-There is a phenomena called "the 46% ghost". For some reason nixOS during it's installation likes to spend a lot of time at 46% progress, and the logs are not very descriptive. Do not worry if it seems stuck, it will eventually progress. This part can take a lot of time, just be patient.
+```bash
+nix-shell -p git
+git clone https://github.com/nicolkrit999/nixOS.git
+cd nixOS
+```
 
-**Recommended Install Settings if using nixOS gui installer:**
+### 2. Identify Your Disk
 
-If a section is not included here then it does not matter since it will be changed later when the system build
-* **Desktop Environment:** Select **No desktop environment** (selecting one would just install something that is later uninstalled when building)
-* **Software:** Check **Allow unfree software** (tough this settings is enabled in my config for the first time installation to be successful it is needed)
-* **Swap:** Select **No swap** (unless you have very low RAM)
+We must identify which drive to wipe. **Be careful here.**
 
-**A note on grub:**
-Since grub is defined and systemd is explicitely disabled in `/nixOS/nixos/boot.nix` a few steps to ensure that the EFI partitions are correctly should be made when the gui ask for partitioning, otherwise grub will fail to install. The steps below explains how to do it as well as the alternative of going back to systemd
+```bash
+lsblk
+```
 
-During the **Partitioning** screen in the installer:
+* Look for your main disk (e.g., `476G` or `931G`).
+* Note the name: usually **`nvme0n1`** (for SSDs) or **`sda`**.
 
-1.  **Select "Manual Partitioning"** (recommended for GRUB control) or ensure the automatic scheme creates an **EFI System Partition**.
-2.  **Verify the ESP (EFI System Partition):**
-    * **Size:** At least **512 MB** (100MB is the minimum, but 512MB is a better idea).
-    * **File System:** `FAT32`.
-    * **Mount Point:** `/boot` (NixOS default).
-    * **Flags:** `boot`, `esp`.
+### 3. Create Your Host
 
-**Why is this check necessary:**
-`boot.nix` sets `grub.efiSupport = true;` and `grub.device = "nodev";`. This tells NixOS to look for an EFI partition to store the GRUB bootloader files. If the installer doesn't create this partition (or if it's too small), the rebuild will fail with as it "cannot find EFI directory" error.
+Copy the template to a new folder for your machine. Replace `my-computer` with your desired hostname.
+- The template include only a few enabled options, allowing a smaller and faster installation.
+- Only the following features are enabled:
+  - hyprland
+  - alacritty as default terminal
+  - firefox as default browser
+  - vscode as default code editor
+  - dolphin as default file manager
+  - nord dark theme
+  - us international keyboard layout 
 
-**An alternative (reverse to systemd):**
-To use systemd instead of grub it is enough to change `/nixOS/nixos/boot.nix` (of course after cloning the repo), see step [Clone the Repository](#2-clone-the-repository).
+```bash
+cd hosts
+cp -r template-host my-computer
+cd my-computer
+```
 
-After cloning delete all it's content (brackets included) and put the following:
+### 4. Configure the Drive
 
-One can switch back to grub at anytime
+Tell the installer which disk to wipe.
 
-```nix 
-{
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-}
+```bash
+nano disko-config.nix
+```
+
+* Find the line: `device = "/dev/nvme0n1";`
+* Change it to **your actual drive name** found in step 2.
+* **Save:** `Ctrl+O` -> `Enter` -> `Ctrl+X`
+
+### 5. Configure Critical Variables
+
+We only need to set the basics now. You can customize themes and wallpapers later in the GUI.
+
+```bash
+nano variables.nix
+```
+
+* **`user`**: Change `"template-user"` to your real username.
+* **⚠️ CRITICAL:** Do not install as `template-user` and try to rename it later. You will lose access to your home folder. Set your real username **NOW**.
+* **`system`**: The template is `x86_64-linux`. If you have a newer arm-based pc then `aarch_64`
+
+
+You may also want to configure the keyboard. If you don't have us international you may boot into a wrong layout. Below there is an example with multiple layouts
+
+```nix
+ keyboardLayout = "us,ch,de,fr,it"; # 5 different layouts
+  keyboardVariant = "intl,,,,"; # main variant + 4 commas (total 5 values, same as keyboardLayout)
+```
+
+- You will notice default settings for the monitor and a default wallpaper (either black or the default one of the de/wm you chose). This is expected because the `monitors` variable is not defined yet and the wallpaper logic rely on it.
+
+
+### 6. Install (The Magic Step)
+
+Run these three commands to format the drive and install the OS.
+
+```bash
+# 1. Partition & Mount (Wipes the drive!)
+sudo nix run github:nix-community/disko -- --mode disko ./disko-config.nix
+
+# 2. Generate Hardware Config (Captures CPU/Kernel quirks)
+# We point this DIRECTLY to your host folder so the repo root stays clean
+nixos-generate-config --no-filesystems --root /mnt --dir /mnt/etc/nixos/hosts/my-computer
+
+# 3. Install
+cd ../..  # Go back to the repo root
+
+# If for some reason you need the impure flag just add it at the end of the following command
+nixos-install --flake .#my-computer
+```
+
+### 7. Finish
+
+1. Set your **root password** when prompted at the end. Note the password is not displayed while typing
+2. Type `reboot` and remove the USB stick.
+
+---
+
+## 🎨 Phase 3: Post-Install Setup
+
+Congratulations! You are now logged into your new NixOS desktop.
+- After installing the cosmic de setup dialog (if you enabled it) can appear. Either configure it regardless of which de you are on or close it
+- If for any reason alacritty does not open `foot` is available and it's sure to work because it does not require any particular configuration
+
+### 1. Move Config to Home
+
+Your configuration is currently owned by `root` in a system folder. Let's move it to your home folder so you can edit it safely.
+
+1. Open your terminal.
+2. Move the config:
+```bash
+sudo mv /etc/nixos ~/nixOS
+sudo chown -R $USER:users ~/nixOS
 ```
 
 
-**Recommended Install Settings if using a minimal install:**
-* **Keyboard Layout:** Run `loadkeys <layout>` (e.g., `loadkeys us`) immediately.
-* **Partitioning (Manual CLI):**
-  Since this config uses GRUB with specific requirements, you must manually create a GPT partition table with a 512MB EFI partition.
 
-  1. **Identify your disk** (e.g., `/dev/nvme0n1` or `/dev/sda`):
-     ```bash
-     lsblk
-     ```
-  2. **Partition the disk** (replace `<disk>` with your actual drive, e.g., `/dev/nvme0n1`):
-     ```bash
-     # Create a new GPT partition table
-     parted <disk> -- mklabel gpt
+### 2. (Optional) Cleanup Unused Hosts
 
-     # 1. Create EFI Partition (512MB, FAT32)
-     parted <disk> -- mkpart ESP fat32 1MiB 512MiB
-     parted <disk> -- set 1 esp on
+Now that you have your own host (`my-computer`), you might want to delete `template-host` or other examples to keep your folder clean.
 
-     # 2. Create Root Partition (Rest of the disk, EXT4)
-     parted <disk> -- mkpart primary ext4 512MiB 100%
-     ```
-  3. **Format the partitions**:
-     ```bash
-     # Format EFI as FAT32
-     mkfs.fat -F 32 -n boot <disk>p1  # (Use p1 for nvme, 1 for sda)
-
-     # Format Root as EXT4
-     mkfs.ext4 -L nixos <disk>p2      # (Use p2 for nvme, 2 for sda)
-     ```
-  4. **Mount the partitions**:
-     *Crucial Step:* NixOS typically mounts the EFI partition to `/boot` for GRUB.
-     ```bash
-     # Mount Root
-     mount /dev/disk/by-label/nixos /mnt
-
-     # Create boot directory
-     mkdir -p /mnt/boot
-
-     # Mount EFI
-     mount /dev/disk/by-label/boot /mnt/boot
-     ```
-  5. **Generate Config**:
-     ```bash
-     nixos-generate-config --root /mnt
-     ```
-
-### 2. Clone the Repository
-Open a terminal in your fresh install:
-
-```bash
-nix-shell -p git --run "git clone https://github.com/nicolkrit999/nixOS.git"
-cd nixOS/
-````
-
-### 3. Create Your Host Configuration (optional)
-I provided with a sample hosts configuration `~/nixOS/hosts/template-host `
-- This host contains a very simple configuration, with only hyprland enabled, alacritty as default terminal, nord as base16Theme, us as keyboard layout, already defined wallpapers. The other aspects can be changed later
-  - Using this host as a starting point allow for a fast first-time deployment  
-
-If you intend for your computer to **not** be named `template-host` (most probably), create a new host folder by copying the reference template:
-
-```bash
-cd ~/nixOS/hosts
-cp -r template-host <your_hostname>
-cd <your_hostname>
-```
-The folder `~/nixOS/hosts/nixos-desktop/host-modules` contains some pre-configured modules that may be useful. Feel free to copy/move them to your own `host-modules` folder. Remember to change `host-modules/default.nix` to import all the modules that you intend to use
-
-
-Optionally you can delete any other host in this repo that is not desired. this allow to have a cleaner hosts folder.
-- This next command delete any other hosts directories except for the ones provided as input.
-  - It should work regardless of which shell you run, tough i think nixOS during installation has bash 
-  - If the any hostname in the input is not valid (the destination hostname does not exist) this command fail and do nothing
+Run this command inside `~/nixOS`:
 
 ```bash
 (
@@ -454,7 +497,7 @@ Optionally you can delete any other host in this repo that is not desired. this 
   fi
 
   SAFE_TO_DELETE=true
-  for host in ${=INPUT}; do
+  for host in ${INPUT}; do
       if [ ! -d "hosts/$host" ]; then
           echo "Error: 'hosts/$host' not found."
           SAFE_TO_DELETE=false
@@ -468,7 +511,7 @@ Optionally you can delete any other host in this repo that is not desired. this 
           dir_name=$(basename "$dir_path")
           
           matched=false
-          for keep_name in ${=INPUT}; do
+          for keep_name in ${INPUT}; do
               if [ "$dir_name" = "$keep_name" ]; then
                   matched=true
               fi
@@ -486,60 +529,15 @@ Optionally you can delete any other host in this repo that is not desired. this 
 )
 ```
 
+*Example input: `my-computer` (This will delete every host except this one).*
 
-After this is done it is needed to modify inside `flake.nix` the `hostNames` list.
-  - This list should contains the same name of all the hosts present inside the hosts directory.
-    - If the hostname is not added in this list then it's entire configuration is ignored and build would not work if it contains the missing hostname in the command
+---
 
-```nix
-hostNames = [
-  "template-host" # <-- replace with the chosen hostname
-];
-```  
-
-### 4. Import Hardware Configuration
-
-Copy the hardware scan generated during installation into your host folder:
-- During the previous step the other hosts hardware-configuration.nix got copied. Now since it is overwritten if asked accept when prompted to replace the file
-
-```bash
-# This assume the current terminal path is ~/nixOS/hosts/<hostname>/
-cp /etc/nixos/hardware-configuration.nix .
-# Important: Git must track this file for Flakes to see it. Add it before building
-# The flag -f means it track it regardless .gitignore rules (if presents)
-git add -f hardware-configuration.nix
-```
-
-### 5. Configure the hosts folder
-#### `variables.nix`
-
-This file contains all the aspects that may change from host to host.
-
-* Changes made here allow you to have different environments that share the same base code.
-* For example: on a desktop PC you might disable the `guest` user, while on a laptop you might enable it.
+## 🛠️ Phase 4: Customization
 
 
+### Refine `variables.nix`
 
-**Variables to define:**
-To have a working setup, every single variable needs to be defined. If a variable is missing, the build will fail.
-
-> **⚠️ CRITICAL WARNING: Edit BEFORE you build!**
-> Do not blindly install the `template-host` configuration with the intention of changing the username later.
-> **The Trap:**
-> NixOS is declarative. It does not "rename" users; it simply ensures the users you declared exist.
-> 1. If you install as `template-user` first, your data is stored in `/home/template-user`.
-> 2. If you later change the variable to `user = "francesco"`, NixOS will create a **brand new** user.
-> 3. **The Result:** You will end up with two home folders. Your old data stays in `/home/template-user` (which you can no longer log into easily), and you will be logged into a completely empty `/home/francesco`.
-> 
-> 
-> **The Fix:**
-> Always set your real `user`, `hostname`,  **before** running your first installation. The others can be changed later
-
-  * `hostname` : Must match the folder name you created in Step [ 3 (create your hostname)](#3-create-your-host-configuration-optional).
-  
-  * `system`: Architecture (e.g., `x86_64-linux`).
-  
-  * `user`: Your desired username.
 
   * `gitUserName`: Github user name.
   
@@ -716,29 +714,41 @@ nix-prefetch-url <your_raw_url>
 }
 ```
 
-#### `local-packages.nix`
+### Setup `local-packages.nix`
 - It contains packages that are intended to only be installed in that specific hosts
   - add as needed
 
-#### `flatpak.nix`
+### Setup `flatpak.nix`
 - It contains flatpak packages that are intended to only be installed in that specific hosts
   - add as needed
 
 
-#### `modules.nix`
+### Setup (optional) `modules.nix`
 This file contains specific "Power User" configurations and aesthetic tweaks that may vary significantly between machines (e.g., desktop vs. laptop).
+- See below for a guide
 
 
-#### `home.nix`
+### Setup (optional) `home.nix`
 This file contains specific home-manager aspects that are related only to a certain host. It complement well the global home.nix
+- See below for a guide
+
+### Setup (optional) `host-modules` folder
+- This is a folder that can contains modules that can be configured with home-manager but that are only active on a certain host.
+  - This help to keep clean the original home-manager/modules folder 
+
+- See below for a guide
 
 ---
 
-### 6. (Optional) Customize the host-specific `modules.nix`
+## Phase 5: Setup optional host-specific files and directories
+
+### 1. (Optional) Customize the host-specific `modules.nix`
 
 * **How it works**: The system checks if `hosts/<your_hostname>/modules.nix` exists. If it does, it merges these variables with your main configuration.
   * The file is included in the template-host, with a sample configuration. This provide a starting base. If not needed it can be deleted at any moment and all the fallback will apply 
 * **The Safety Net**: If this file is missing (or if you omit specific variables), the system applies a **safe fallback**. This ensures the build never fails, even if you don't define these complex options.
+
+* If you add any option then ideally a fallback should be defined in the target nix file
 
 **Available Options:**
 
@@ -839,7 +849,7 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
 
 
 
-### 7. (optional) Other files that may require manual attention
+### 2. (optional) Other files that may require manual attention
 - These files can be modified also after building.
   - These are files that one most likely will want to configure right from the beginning because they cause a "wrong" experience
 - Unlike `modules.nix` these are files so personal and/or so big that are better changed in their original module file
@@ -871,7 +881,7 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
 
 ---
 
-### 8. (Optional) Customize the host-specific `home.nix`
+### 3. (Optional) Customize the host-specific `home.nix`
 
 This file allows you to manage user-specific configurations that should **only** apply to the current machine. Unlike `local-packages.nix` (which installs system-wide packages), this file uses Home Manager, allowing you to configure dotfiles, environment variables, and symlinks.
 
@@ -934,57 +944,61 @@ Create or modify `hosts/<your_hostname>/home.nix`:
     '';
   };
 }
-
 ```
 
 
-### 9. First Time Build
-
-This setup contains lot of packages, dependencies and similar so first time build can take some times depending on internet speed
-
-Run the following commands to install the system and user configurations.
-
-**Replace `<hostname>` with the hostname defined in `flake.nix`.**
-
-- Remember that the hostname in `flake.nix` hosts sections and the actual directory name inside the parent `hosts` directory should match.
+### 4. (Optional) Customize the host-specific `host-modules` directory
+- This folder can contain any .nix file that you would use as a home-manager modules. The only difference is that they are put inside this folder
+- When a new file is added it needs to be defined in default.nix. For example:
 
 ```bash
-cd ~/nixOS/
-
-# 1. Build the System (Root Level)
-# For example: sudo nixos-rebuild switch --flake .#template-host
-sudo nixos-rebuild switch --flake .#<hostname>
-
-# 2. Build the Home (User Level)
-home-manager switch
+{
+  imports = [
+    ./alacrity.nix
+  ];
+}
 ```
 
-*(Note: Use `.#<hostname>` for Home Manager as well, as the flake outputs are keyed by hostname.)*
-
------
-
-## 🔄 Daily Usage
-
-Once installed, you can switch the git remote to SSH (optional) (this assume you already added the hosts-specific ssh key to github) and use the convenient aliases for maintenance (if you are `krit`). This avoid asking the github password each time a rebuild is needed.
-- If you are not krit then the only way to allow this is to fork the repository and change the url to your github username
-  - The username is visibile in the link of the repo once it is forked 
+If a module here contains aspects such as networking, boot, user or similar then home-manager alone can not configure those aspects and a rebuild would fail. To solve that specific modules needs to be added to the host `configuration.nix`. En example block is this:
 
 ```bash
-# For example: git remote set-url origin git@github.com:nicolkrit999/nixOS.git
-git remote set-url origin git@github.com:<github-username>/nixOS.git
+imports = [
+    # Hardware scan (auto-generated)
+    ./hardware-configuration.nix
+
+    # Packages specific to this machine
+    ./local-packages.nix
+
+    # Secrets Management (not added to GitHub)
+    (import /etc/nixos/secrets/secrets.nix)
+
+    # Flatpak support
+    ./flatpak.nix
+
+    # Core imports
+    ../../nixos/modules/core.nix
+
+    # These are manually imported here because they contains aspects that home-manager can not handle alone
+    ./host-modules/logitech.nix # boot
+  ];
 ```
 
-**Maintenance Aliases:**
 
-These aliases have or misses the `--impure` flag in a smart way 
 
-| Command | Action                  | Description                                                                   |
-| :------ | :---------------------- | :---------------------------------------------------------------------------- |
-| # `sw`  | `nh os switch`          | **System Rebuild**. Applies changes to `configuration.nix` or system modules. |
-| # `hms` | `nh home switch`        | **Home Rebuild**. Applies changes to Home Manager (dotfiles, themes).         |
-| # `upd` | `nh os switch --update` | **System Update**. Updates `flake.lock` inputs and rebuilds the system.       |
 
------
+---
+
+## 🔄 Daily Usage & Updates
+
+Whenever you edit a file, use these aliases to apply your changes. You don't need to type the long `nixos-rebuild` command.
+
+The normal switch command handle both a system and a home-manager rebuild.
+
+| Alias     | Command                 | Description                                                            |
+| --------- | ----------------------- | ---------------------------------------------------------------------- |
+| **`sw`**  | `nh os switch`          | **System Rebuild**. Rebuild everything                                 |  |
+| **`upd`** | `nh os switch --update` | **System Update**. Downloads the latest package versions and rebuilds. |
+
 
 ## ❓ Troubleshooting
 

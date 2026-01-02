@@ -20,28 +20,12 @@ A simple list of user-space packages (like neovim, Discord, btop) that are insta
 
 ## 📂 Modules (`home-manager/modules/`)
 
-### `alacritty.nix`
-Terminal emulator configuration.
-This is also where the package is installed. So it is not inside `local-packages` or `home-packages`
-* **Theming:** Uses the base16 themes or catppuccin official nix repo based on the user choice in `variables.nix`
-* **Font:** Set the font weight (regular/bold, etc) and it chooses the font size in a smart way based on the size of the user monitors
-  * In a multi-monitor setup it takes the first one of the monitors list  
 
 ### `bat.nix`
 Configuration for `bat` (a modern `cat` clone).
 
 * **Theming:** Uses the base16 themes or catppuccin official nix repo based on the user choice in `variables.nix`
 
-### `cava.nix`
-An audio visualizer in the terminal. It contains configurable graph stiles bars that follow the audio if the hosts is playing somethihng
-* **Theming:** Uses the base16 themes or catppuccin official nix repo based on the user choice in `variables.nix`
-
-### `chromium.nix`
-Browser configuration for Chromium.
-* **Theming:** Uses the base16 themes
-* **Extensions:** Define list of installed extension
-* * **Homepage:** It feature youtube as homepage button and at startup
-  * This is because for me it's the only use case for chromium 
 
 ### `core.nix`
 The "Hub". It imports every single other file in this directory. 
@@ -49,37 +33,22 @@ The "Hub". It imports every single other file in this directory.
 - To disable a certain module commenting it here is another way for disabling it
 - Desktop environment should not be added here because they are automatically enabled/disabled depending on the user choices in `variables.nix`
 
-### `dolphin.nix`
-Configuration for the KDE/Qt file manager.
-* **Theming:** though visual theming is largely handled by the `qt.nix` module.
-
 ### `eza.nix`
 Configuration for `eza` (a modern `ls` clone).
 * **Theming:** Uses the base16 themes or catppuccin official nix repo based on the user choice in `variables.nix`
 
-### `firefox.nix`
-The primary browser configuration.
-* **Hardening:** Includes privacy tweaks (disabling telemetry, sponsored tiles).
-* **Configuration:** Includes a profile (with the same name as the hosts username) with extensions and bookmarks and homepage
-  * The homepage needs to be changed. It's a url that only krit has access to 
-* **Theming:** Uses the base16 themes or catppuccin official nix repo based on the user choice in `variables.nix`
-  * To alllow theming to work it is necessary to force the `firefox-color` extensions
-  * For now there is a `force = true` meaning all extensions are forced to be installed
 
 ### `git.nix`
 Git version control settings.
 * **User-identity:** It takes the github username and e-mail from `variables.nix` (hosts-specific)
 
-### `kitty.nix`
-Terminal emulator configuration.
-This is also where the package is installed. So it is not inside `local-packages` or `home-packages`
-* **Theming:** Uses the base16 themes or catppuccin official nix repo based on the user choice in `variables.nix`
-* **Font:** Set the font weight (regular/bold, etc) and it chooses the font size in a smart way based on the size of the user monitors
-  * In a multi-monitor setup it takes the first one of the monitors list  
 
 ### `lazygit.nix`
 Configuration for the terminal UI for Git.
 * **Theming:** Uses the base16 themes or catppuccin official nix repo based on the user choice in `variables.nix`
+
+### `mime.nix`
+It setup the default application for some file based on `variables.nix`
 
 ### `neovim.nix`
 Wrapper for the Neovim text editor.
@@ -92,9 +61,6 @@ Wrapper for the Neovim text editor.
 Configures the appearance of **Qt (Qt5 & Qt6)** applications. Respect whatever catppuccin is enabled and the Light/Dark mode preference (`polarity`).
 - Unless heavy changes are made this file should not be styled by `stylix.nix`, doing so causes the kde plasma session to crash
 
-
-### `ranger.nix`
-Terminal file manager configuration. Styled via global Stylix Base16 rules.
 
 ### `starship.nix`
 Shell prompt configuration.
@@ -130,17 +96,6 @@ Terminal multiplexer configuration. Includes behaviour and keybindings
     * **Window Management:** Sets custom split bindings and resizing shortcuts (`Alt+Shift+Arrows`) for rapid layout control
     * **Vim Mode:** Enables standard Vim keybindings for efficient scrolling and copy-paste operations
 
-### `zathura.nix`
-Minimalist and keyboard-driven PDF viewer configuration.
-* **Theming:** Uses the base16 themes or catppuccin official nix repo based on the user choice in `variables.nix`.
-* **Font:** The size and font is hardcoded
-
-*  It features **dynamic UI scaling**, automatically adjusting the font size based on the monitor resolution defined in `variables.nix` (e.g., larger fonts for 4K screens).
-  
-* **Features:**
-    * **Vim Navigation:** Implements standard Vim-style keybindings (`j`/`k` for scrolling, `J`/`K` for page jumping, `d`/`u` for rapid navigation) for a seamless keyboard-only workflow.
-    * **Smart Resolution Logic:** Detects the primary monitor's width to apply the optimal font size (16px for 4K, 14px for 1440p, 12px for 1080p).
-    * **UX Enhancements:** Configures "Best Fit" opening mode, continuous scrolling, and automatic clipboard synchronization for text selection.
 
 ### `zsh.nix`
 Shell configuration.

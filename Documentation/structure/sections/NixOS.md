@@ -27,10 +27,6 @@ Import all the nixos modules. When a module is added in `nixos/modules/` it is n
 This file configures the system-level components required to run the cosmic Desktop Environment.
 
 * **Display Manager Strategy:** It enables the cosmic Desktop Manager but explicitly **does not enable cosmic-greeter**. This is designed to coexist with the existing **SDDM** setup, allowing SDDM to launch GNOME sessions without conflict.
-* **Guest Security:** It implements a "Lockout" mechanism for the Guest user.
-* It installs an auto-start script that checks if the current user is `guest`.
-* If a guest tries to log into GNOME, it triggers a **Zenity** warning ("Access Denied") and immediately kills the session, enforcing the restriction that guests may only use XFCE.
-
 * **Debloat:** It excludes standard "bloatware" packages
 
 
@@ -45,22 +41,11 @@ Sets system-wide environment variables and default application associations.
 
 This file configures the system-level components required to run the GNOME Desktop Environment.
 
-* **Display Manager Strategy:** It enables the GNOME Desktop Manager but explicitly **does not enable GDM**. This is designed to coexist with the existing **SDDM** setup, allowing SDDM to launch GNOME sessions without conflict.
-* **Guest Security:** It implements a "Lockout" mechanism for the Guest user.
-* It installs an auto-start script that checks if the current user is `guest`.
-* If a guest tries to log into GNOME, it triggers a **Zenity** warning ("Access Denied") and immediately kills the session, enforcing the restriction that guests may only use XFCE.
+* **Display Manager Strategy:** It enables the GNOME Desktop Manager but explicitly **does not enable GDM**. This is designed to coexist with the existing **SDDM** setup, allowing SDDM to launch GNOME sessions without 
 
 * **Debloat:** It excludes standard "bloatware" packages like Epiphany (browser), Geary (mail)
 * **Conflict Resolution:** It explicitly forces the SSH password prompt tool to use KDE's `ksshaskpass` (`lib.mkForce`) to prevent build errors caused by GNOME attempting to install its own conflicting `seahorse` agent.
 
-## `guest.nix`
-Control the behavior of the guest account.
-- Fixed uid (2000)
-- Script that tell the user the session data will be wiped and prompt to save data on cloud or external drive
-- Enable the modules only if guest = true in variables.nix
-- create guest account
-- allow login with no password while in sddm
-- setup xfce session
 
 ## `home-manager.nix`
 Hooks Home Manager into the NixOS rebuild process, allowing `nixos-rebuild` to manage home configurations
@@ -69,11 +54,13 @@ Hooks Home Manager into the NixOS rebuild process, allowing `nixos-rebuild` to m
 The system-side enabler. It installs the `Hyprland` binary, configures the session entry for the Display Manager, and enables XWayland support.
 
 
+## `kde.nix`
+This file configures the system-level components required to run the KDE Desktop Environment.
+
+
 ## `kernel.nix`
 Sets kernel parameters and loads specific kernel modules required for your hardware support.
 
-## `mime.nix`
-Configures default applications at the system level (`xdg-open`), ensuring links open in Firefox and files open in the correct tools.
 
 ## `net.nix`
 Configures NetworkManager, sets the system `hostname`, and manages firewall rules.

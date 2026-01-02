@@ -3,7 +3,6 @@
   # 🖥️ HOST VARIABLES
   # ---------------------------------------------------------------
 
-  hostname = "template-host";
   system = "x86_64-linux";
 
   # ⚙️ VERSIONS
@@ -61,10 +60,6 @@
     {
       wallpaperURL = "https://raw.githubusercontent.com/zhichaoh/catppuccin-wallpapers/refs/heads/main/os/nix-black-4k.png";
       wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
-    }
-    {
-      wallpaperURL = "https://raw.githubusercontent.com/HyDE-Project/hyde-themes/Catppuccin-Mocha/Configs/.config/hyde/themes/Catppuccin%20Mocha/wallpapers/switch_swirl.jpg";
-      wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
     }
   ];
 
