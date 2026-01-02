@@ -76,8 +76,8 @@
       wallpaperSHA256 = "1lbva41v68hns6pkksb0v7yhwckhgfvrg9s1nrp76qkqg54pcv70";
     }
     {
-      wallpaperURL = "https://raw.githubusercontent.com/HyDE-Project/hyde-themes/Catppuccin-Mocha/Configs/.config/hyde/themes/Catppuccin%20Mocha/wallpapers/switch_swirl.jpg";
-      wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/develop/wallpapers/phili-pilz-portrait-deer.jpg";
+      wallpaperSHA256 = "0fwbas4658d0dgrnx890if2ang70hilzsnw9zydda4n5cbhlfxhx";
     }
   ];
 
