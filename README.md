@@ -163,6 +163,7 @@ Comment out or remove the specific lines that handles the wallpapers logic
   - **KDE Plasma**: A highly configurable desktop environment, with a launcher similar to windows
   - **Gnome**: A famous and simple desktop environment, with a launcher similar to macOS. Ubuntu/mint user are very used to it
   - **Cosmic**: A revisited gnome made from the company system76, known for being the creators of popOS
+    - Cosmic as for now is highly unstable. Expect freezes, black screen while logging out, keybindings not working, etc etc 
   - **XFCE**: A lightweight, stable, and classic desktop experience.
     - For now xfce is enabled only if the `guest` user is enabled. 
   
@@ -251,7 +252,9 @@ A specialized secure account for visitors (basic features):
   
   - **Essential Tools**: Pre-loaded with a Browser, File Manager, Text Editor, image viewer, archive manager, calculator.
   
-  - **Forced desktop environment**: This user only has access to `xfce` and its default applications. Applications that require sudo priviliges either do not open or simply fail to do anything.
+  - **Forced desktop environment**: This user only has access to `xfce` and its default applications. If the guest tries to acces a non-allowed de/wm then the pc reboots automatically.
+   -  Applications that require sudo priviliges either do not open or simply fail to do anything.
+   - If you want the guest user to have access to all de then it is enough to remove all "rebooting" logic 
   
   - **Tailscale firewall**: This user does not have access to tailscale and can not ping even local ip regardless if tailscale is on or off
   
