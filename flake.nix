@@ -160,7 +160,6 @@
             ./home-manager/home.nix
             inputs.catppuccin.homeModules.catppuccin
             inputs.plasma-manager.homeModules.plasma-manager
-            ./home-manager/modules/wofi
           ]
           # 2. Add host-specific host-modules (Home Manager side)
           ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/host-modules) ./hosts/${hostname}/host-modules)

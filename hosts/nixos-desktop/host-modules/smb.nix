@@ -2,13 +2,15 @@
   config,
   pkgs,
   vars,
+  lib, # <--- Add lib here
   ...
 }:
 
 let
   nasIP = "100.101.189.91";
+  credentialsFile = "/etc/nixos/secrets/nicol-nas-smb-secrets";
 
-  # List of SMB shares to mount from the NAS
+  # List of SMB shares
   shares = [
     "Amministrazione-NAS"
     "Default-volume-1"
@@ -31,10 +33,7 @@ let
         device = "//${nasIP}/${shareName}";
         fsType = "cifs";
         options = [
-          # -------------------------------------------------------
-          # 🔑 PERMISSIONS (avoid not being able to write)
-          # -------------------------------------------------------
-          "credentials=/etc/nixos/secrets/nicol-nas-smb-secrets"
+          "credentials=${credentialsFile}"
           "file_mode=0777"
           "dir_mode=0777"
           "nounix"
@@ -43,18 +42,20 @@ let
           "uid=${toString config.users.users.${vars.user}.uid}"
           "gid=${toString config.users.groups.users.gid}"
 
-          # -------------------------------------------------------
-          # ⚡ FAST SHUTDOWN & NETWORK SAFETY
-          # -------------------------------------------------------
+          "noauto" # Do NOT mount at boot or rebuild
+          "x-systemd.automount" # Mount ONLY when I access the folder
+          "x-systemd.idle-timeout=600" # Disconnect after 10 mins of inactivity
+
+          # Safety flags
           "nofail"
-          "_netdev"
-          "x-systemd.mount-timeout=5s"
-          "x-systemd.device-timeout=5s"
+          "_netdev" # Tells systemd this is a network device
         ];
       };
     };
 in
 {
   environment.systemPackages = [ pkgs.cifs-utils ];
-  fileSystems = builtins.listToAttrs (map mountShare shares);
+
+  fileSystems =
+    if builtins.pathExists credentialsFile then builtins.listToAttrs (map mountShare shares) else { };
 }

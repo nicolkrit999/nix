@@ -73,6 +73,7 @@
     - [In-depth-files-expl](#in-depth-files-expl)
     - [Issues](#issues)
     - [Ideas](#ideas)
+    - [Usage guide](#usage-guide)
 
 
 ## ✨ Features
@@ -1144,6 +1145,14 @@ This folder contains an explanation of the issues that i noticed and that should
 
 ### [Ideas](./Documentation/ideas/ideas.md)
 This folder contains ideas that i think may benefit the project
+
+
+### [Usage guide](./Documentation/usage/usage-guide)
+This folder contains a guide on how basic aspects should be implemented, such as:
+- Creating a system-wide module
+- Create a general home-manager modules that apply to all hosts
+- Create a host-specific home-manager modules
+- Theming guide
 
 
 

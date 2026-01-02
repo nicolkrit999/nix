@@ -14,27 +14,6 @@ in
 {
   imports = [ inputs.stylix.homeModules.stylix ];
 
-  home.packages = with pkgs; [
-    dejavu_fonts # Classic fallback fonts
-    noto-fonts-lgc-plus # For extended Latin, Greek, Cyrillic support
-    texlivePackages.hebrew-fonts # For Hebrew script support
-    font-awesome # Icon font used by Waybarpackage
-
-    powerline-fonts # Required for shell prompts
-    powerline-symbols # Required for shell prompts
-
-    (catppuccin-gtk.override {
-      # Force install the theme package
-      accents = [ vars.catppuccinAccent ];
-      size = "standard";
-      tweaks = [
-        "rimless"
-        "black"
-      ];
-      variant = vars.catppuccinFlavor;
-    })
-  ];
-
   stylix = {
     enable = true;
     polarity = vars.polarity; # Sets a global preference for dark mode

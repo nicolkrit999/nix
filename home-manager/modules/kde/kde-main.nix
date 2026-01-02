@@ -86,12 +86,6 @@ in
     # -----------------------------------------------------------------------
     # Apps installed only when KDE is the active desktop
     home.packages = with pkgs.kdePackages; [
-      kcalc
-      kcolorchooser
-      elisa # Music Player
-      okular # PDF Viewer
-      konsole # Terminal
-
       # Theme dependencies
       pkgs.catppuccin-kde
       pkgs.catppuccin-kvantum

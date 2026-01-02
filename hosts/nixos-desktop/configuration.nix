@@ -28,7 +28,13 @@
     ./host-modules/logitech.nix # boot
     #./host-modules/smb.nix # user
     ./host-modules/gaming.nix # hardware
-    #./host-modules/borg-backup.nix # networking
+    (
+      if builtins.pathExists "/etc/nixos/secrets/borg-passphrase" then
+        ./host-modules/borg-backup.nix
+      else
+        null
+    )
+
   ];
 
   # ---------------------------------------------------------
@@ -40,8 +46,14 @@
     nerd-fonts.jetbrains-mono
     nerd-fonts.symbols-only
     noto-fonts
+    dejavu_fonts
+    noto-fonts-lgc-plus # For extended Latin, Greek, Cyrillic support
     noto-fonts-color-emoji
     noto-fonts-cjk-sans
+    texlivePackages.hebrew-fonts # For Hebrew script support
+    font-awesome # Icon font used by Waybarpackage
+    powerline-fonts # Required for shell prompts
+
   ];
   fonts.fontconfig.enable = true;
 
@@ -56,6 +68,9 @@
     gtk3
     libsForQt5.qt5.qtwayland
     kdePackages.qtwayland
+
+    powerline-symbols # Required for shell prompts
+
   ];
 
   programs.dconf.enable = true;

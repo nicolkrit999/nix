@@ -12,6 +12,10 @@
 
 
 ## DE/WM specific
+### General
+- Configure the keybindings to be declarative in regard of the file manager, the terminal and the file editor according to the host-specific variables
+
+
 ### Cosmic desktop
 - configure keybindings with a cosmic-binds.nix
 - wait for the de to be more stable and declarative to setup custom system settings
