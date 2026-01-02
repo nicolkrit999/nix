@@ -3,21 +3,17 @@ These are the issues that i observed that require attentions. They may be only o
 
 - [Things to fix](#things-to-fix)
   - [Desktop environments specific](#desktop-environments-specific)
-    - [Chromium doesn't open on kde x11](#chromium-doesnt-open-on-kde-x11)
-    - [Hyprland gestures](#hyprland-gestures)
+    - [Hyprland: gestures](#hyprland-gestures)
   - [General](#general)
-    - [During rebuild: 'system' has been renamed to/replaced by 'stdenv.hostPlatform.system'](#during-rebuild-system-has-been-renamed-toreplaced-by-stdenvhostplatformsystem)
-    - [krit profile: You have set either `nixpkgs.config` or `nixpkgs.overlays` while using `home-manager.useGlobalPkgs`.](#krit-profile-you-have-set-either-nixpkgsconfig-or-nixpkgsoverlays-while-using-home-manageruseglobalpkgs)
+    - [ profile: You have set either `nixpkgs.config` or `nixpkgs.overlays` while using `home-manager.useGlobalPkgs`. This will soon not be possible. Please remove all `nixpkgs` options when using \`home-manager](#-profile-you-have-set-either-nixpkgsconfig-or-nixpkgsoverlays-while-using-home-manageruseglobalpkgs-this-will-soon-not-be-possible-please-remove-all-nixpkgs-options-when-using-home-manager)
   - [Guest user specific](#guest-user-specific)
     - [User remains active in tty\*](#user-remains-active-in-tty)
 
 
 ## Desktop environments specific
-### Chromium doesn't open on kde x11
-- on kde wayland it is not a problem
-- Possible ideas: N/A 
 
-### Hyprland gestures
+
+### Hyprland: gestures
 - related file `home-manager/modules/hyprland/main.ni
   - I tried with the following code but didn´t work 
 - see https://wiki.hypr.land/Configuring/Gestures/
@@ -35,13 +31,11 @@ These are the issues that i observed that require attentions. They may be only o
 ```
 
 ## General
-### During rebuild: 'system' has been renamed to/replaced by 'stdenv.hostPlatform.system'
-- I tried but didn't found a proper way to handle it
-- Modifying `flake.nix` should be enough
 
-###  krit profile: You have set either `nixpkgs.config` or `nixpkgs.overlays` while using `home-manager.useGlobalPkgs`.
-                    This will soon not be possible. Please remove all `nixpkgs` options when using `home-manager
-- na
+
+###  <user> profile: You have set either `nixpkgs.config` or `nixpkgs.overlays` while using `home-manager.useGlobalPkgs`. This will soon not be possible. Please remove all `nixpkgs` options when using `home-manager
+- According to a [reddit thread](https://www.reddit.com/r/NixOS/comments/1ivo70f/what_is_the_point_of_homemanageruseglobalpkgs_if/) it is stylix fault. But since the system build anyway for now this warning is harmless
+  - For now we can ignore it 
 
 
 

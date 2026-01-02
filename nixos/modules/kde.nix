@@ -14,36 +14,38 @@
       khelpcenter # Help Center
     ];
 
-    # 🛡️ SECURITY WRAPPER: Block guest user from KDE (Wayland & X11)
-    environment.etc."xdg/autostart/guest-block-kde.desktop".text = ''
-      [Desktop Entry]
-      Name=Block Guest from KDE
-      Exec=${pkgs.writeShellScript "kick-guest" ''
-        # 1. Check if user is guest
-        if [ "$USER" = "guest" ]; then
+    /*
+        # 🛡️ SECURITY WRAPPER: Block guest user from KDE (Wayland & X11)
+        environment.etc."xdg/autostart/guest-block-kde.desktop".text = ''
+          [Desktop Entry]
+          Name=Block Guest from KDE
+          Exec=${pkgs.writeShellScript "kick-guest" ''
+            # 1. Check if user is guest
+            if [ "$USER" = "guest" ]; then
 
-           # 2. Aggressive Check: Matches "KDE", "Plasma", "KDE-Wayland", etc.
-           if [[ "$XDG_CURRENT_DESKTOP" == *"KDE"* ]] || [[ "$XDG_CURRENT_DESKTOP" == *"Plasma"* ]]; then
-              
-              # Show warning
-              ${pkgs.zenity}/bin/zenity --error --text="❌ ACCESS DENIED\n\nGuest is restricted to XFCE." --width=300
-              
-              # Try specific KDE logout command
-              ${pkgs.kdePackages.qttools}/bin/qdbus org.kde.Shutdown /Shutdown logout
-              
-              # Fallback: Kill the session
-              sleep 2
-              ${pkgs.systemd}/bin/loginctl terminate-session $XDG_SESSION_ID
-              
-              # Ultimate Fallback: Kill the user
-              sleep 2
-              ${pkgs.systemd}/bin/loginctl terminate-user guest
-           fi
-        fi
-      ''}
-      Type=Application
-      OnlyShowIn=KDE;
-      NoDisplay=true
-    '';
+               # 2. Aggressive Check: Matches "KDE", "Plasma", "KDE-Wayland", etc.
+               if [[ "$XDG_CURRENT_DESKTOP" == *"KDE"* ]] || [[ "$XDG_CURRENT_DESKTOP" == *"Plasma"* ]]; then
+
+                  # Show warning
+                  ${pkgs.zenity}/bin/zenity --error --text="❌ ACCESS DENIED\n\nGuest is restricted to XFCE." --width=300
+
+                  # Try specific KDE logout command
+                  ${pkgs.kdePackages.qttools}/bin/qdbus org.kde.Shutdown /Shutdown logout
+
+                  # Fallback: Kill the session
+                  sleep 2
+                  ${pkgs.systemd}/bin/loginctl terminate-session $XDG_SESSION_ID
+
+                  # Ultimate Fallback: Kill the user
+                  sleep 2
+                  ${pkgs.systemd}/bin/loginctl terminate-user guest
+               fi
+            fi
+          ''}
+          Type=Application
+          OnlyShowIn=KDE;
+          NoDisplay=true
+        '';
+    */
   };
 }
