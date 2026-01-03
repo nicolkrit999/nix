@@ -20,6 +20,9 @@
         background.enabled = false;
         paths.wallpaperDir = "~/Pictures/Wallpapers";
         recorder.path = "~/Videos";
+
+        # Dynamic hosts settings
+        services.useFahrenheit = vars.caelestiaUseFahrenheit or false;
       };
     };
 

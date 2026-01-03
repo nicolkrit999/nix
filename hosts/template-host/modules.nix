@@ -51,4 +51,6 @@
   # starshipZshIntegration = true;
 
   # nixImpure = false;
+
+  #caelestiaUseFahrenheit = false;
 }

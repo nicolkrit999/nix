@@ -78,4 +78,7 @@
   starshipZshIntegration = false;
 
   nixImpure = true;
+
+  caelestiaUseFahrenheit = false;
+
 }
