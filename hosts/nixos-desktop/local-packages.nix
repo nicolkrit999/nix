@@ -43,6 +43,7 @@
       gh # GitHub CLI tool
       glow # Markdown renderer for the terminal
       grex # Command-line tool for generating regular expressions
+      grim # Screenshot utility for Wayland
       lsof # List open files
       mediainfo # Display technical info about media files
       ntfs3g # NTFS read/write support

@@ -68,6 +68,7 @@
     - [Error: `evaluation warning: `programs.zsh.initExtra`is deprecated, use`programs.zsh.initContent` instead` during rebuild](#error-evaluation-warning-programszshinitextrais-deprecated-useprogramszshinitcontent-instead-during-rebuild)
     - [Error: `/home/<username>/<name>' would be clobbered` during rebuild (such as with hms)](#error-homeusernamename-would-be-clobbered-during-rebuild-such-as-with-hms)
     - [Weird keyboard layout during install](#weird-keyboard-layout-during-install)
+    - [Hyprland with caelestia: some fonts issue](#hyprland-with-caelestia-some-fonts-issue)
   - [❄️ Note on the declarative aspects](#️-note-on-the-declarative-aspects)
   - [📝 Project Origin and Customization](#-project-origin-and-customization)
   - [Showcase](#showcase)
@@ -1140,6 +1141,14 @@ This is a problem that i encountered. It may have been user error but i write it
 Even tough i selected us international during the gui installer once rebooted into cli (since i selected no desktop) i was greeted with all mixed keys. Meaning what i saw on the physical keyboard were not the keys that were pressed.
 - For me the layout that nixOS had at that moment in time was `dvorak`
 - This is solvable by manually converting the keyboards or just ask an ai what keys to press on a dvorak layout to actually input what the user wants. After the user login is successful input the following command `loadkeys <layout>` (until this command run successfully the keyboard layout is still `dvorak`). After this the problem should be solved and since the layout are chosen declarative this should not be a problem anymore
+
+
+### Hyprland with caelestia: some fonts issue
+- This is mainly caused if the font you are trying to use is not installed. You can install them, either hosts-specific (better in `configuration.nix`) or in `home-packages.nix`
+  - The default fonts in case you need it are:
+    - Material font: Materials Symbols rounder
+    - Monospace font: CaskaydiaCove NF
+    - Sans-Serif font: Rubik
 
 
 

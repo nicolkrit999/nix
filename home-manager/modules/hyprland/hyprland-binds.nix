@@ -19,8 +19,8 @@
         # APPLICATION LAUNCHING
         "$mainMod,       A, exec, $menu --show drun" # Application launcher menu (wofi)
         "$mainMod, return, exec, $term" # Default terminal chosen in ./main.nix
-        # "$mainMod,       F, exec, $fileManager" # Default file manager chosen in ./main.nix (ranger)
-        "$mainMod,       F, exec, dolphin" # Default file manager chosen in ./main.nix (dolphin) # TODO: make it declaratie
+        "$mainMod,       F, exec, $fileManager" # Default file manager chosen in ./main.nix (ranger)
+        #"$mainMod,       F, exec, dolphin" # Default file manager chosen in ./main.nix (dolphin) # TODO: make it declaratie
         "$mainMod,       B, exec, firefox" # Web browser (firefox) # TODO: Make it declarative
         "$mainMod,       Y, exec, chromium-browser" # Web browser (chromium) (this was added as a youtube logic) # TODO make it declarative
         "$mainMod,       C, exec, code" # Code editor (vscode)

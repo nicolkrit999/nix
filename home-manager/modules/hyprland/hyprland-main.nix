@@ -61,22 +61,22 @@
         # -----------------------------------------------------
         "$mainMod" = "SUPER";
         "$term" = vars.term;
-        "$fileManager" = "$term -e sh -c 'ranger'";
+        "$fileManager" = "${vars.term} --class ranger -e ranger";
         "$menu" = "wofi";
 
         # -----------------------------------------------------
         # 🚀 Startup Apps
         # ----------------------------------------------------
         exec-once = [
-          "sh -lc 'dbus-update-activation-environment --systemd --all; systemctl --user import-environment WAYLAND_DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE || true'"
+          "sh -lc 'SIG=$(hyprctl instances | head -n 1 | cut -d \" \" -f 2); systemctl --user set-environment HYPRLAND_INSTANCE_SIGNATURE=\"$SIG\" WAYLAND_DISPLAY=\"$WAYLAND_DISPLAY\" XDG_RUNTIME_DIR=\"$XDG_RUNTIME_DIR\"'"
 
           "wl-paste --type text --watch cliphist store" # Start clipboard manager for text
           "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
         ]
-        ++ lib.optionals (!(vars.caelestia or true)) [
-          "uwsm app -- waybar" # Start waybar onlyt if "caelestia" is disabled in variables.nix
+        ++ lib.optionals (!(vars.caelestia or false)) [
+          "uwsm app -- waybar" # Start waybar only if "caelestia" is disabled in variables.nix
         ];
 
         # -----------------------------------------------------

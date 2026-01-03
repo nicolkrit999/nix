@@ -5,7 +5,7 @@
   ...
 }:
 {
-  config = lib.mkIf (vars.hyprland or false) {
+  config = lib.mkIf ((vars.hyprland or false) && !(vars.caelestia or false)) {
     # -----------------------------------------------------------------------
     # 🎨 CATPPUCCIN THEME (official module)
     catppuccin.hyprlock.enable = vars.catppuccin;
