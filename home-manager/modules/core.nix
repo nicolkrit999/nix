@@ -1,6 +1,7 @@
 {
   imports = [
     # DE/WM modules
+    ./caelestia
     ./cosmic
     ./gnome
     ./hyprland

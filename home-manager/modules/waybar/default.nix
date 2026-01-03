@@ -33,7 +33,7 @@ let
 
 in
 {
-  config = lib.mkIf (vars.hyprland or false) {
+  config = lib.mkIf ((vars.hyprland or false) && !(vars.caelestia or false)) {
     catppuccin.waybar.enable = vars.catppuccin;
 
     programs.waybar = {

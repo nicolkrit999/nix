@@ -6,6 +6,7 @@
   ...
 }:
 {
+
   config = lib.mkIf (vars.hyprland or false) {
     # ----------------------------------------------------------------------------
     # 🎨 CATPPUCCIN THEME (official module)
@@ -15,7 +16,10 @@
     # ----------------------------------------------------------------------------
     wayland.windowManager.hyprland = {
       enable = true;
-      systemd.enable = true;
+      systemd = {
+        enable = true; # [cite: 318]
+        variables = [ "--all" ]; # 🟢 Add this line to sync all env vars to systemd
+      };
       settings = {
 
         # -----------------------------------------------------
@@ -64,12 +68,21 @@
         # 🚀 Startup Apps
         # ----------------------------------------------------
         exec-once = [
-          "waybar" # Start waybar
+          "uwsm app -- waybar" # Start waybar
           "wl-paste --type text --watch cliphist store" # Start clipboard manager for text
           "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
-        ];
+        ]
+        ++ (
+          if (vars.caelestia or false) then
+            [
+              # 🟢 Explicitly point to the config path we defined above
+              "uwsm app -- sh -c 'sleep 1 && QT_QPA_PLATFORM=wayland quickshell --path $HOME/.config/quickshell'"
+            ]
+          else
+            [ ]
+        );
 
         # -----------------------------------------------------
         # 🎨 Look & Feel

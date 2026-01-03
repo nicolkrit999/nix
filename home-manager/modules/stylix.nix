@@ -43,12 +43,21 @@ in
 
       # These should remain enabled to avoid conflicts with other modules (empty for now)
 
+      # -----------------------------------------------------------------------
+      # DE/WM SPECIFIC
+      # -----------------------------------------------------------------------
+      gnome.enable = vars.gnome;
+
+      # -----------------------------------------------------------------------
+      # MULTI EXCLUSIONS DUE TO CAELESTIA/QUICKSHELL
+      # -----------------------------------------------------------------------
+      gtk.enable = !vars.catppuccin && !vars.cosmic && !vars.caelestia;
+
       # ---------------------------------------------------------------------------------------
       # 🎨 GLOBAL CATPPUCCIN
       # Intelligently enable/disable stylix based on whether catppuccin is enabled
       # catppuccin = true -> .enable = false
       # catppuccin = false -> .enable = true
-      gtk.enable = !vars.catppuccin; # Avoid .gtkrc-2.0 and gtk-3.0 overrides
       alacritty.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/alacritty.nix
       hyprland.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
       hyprlock.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix

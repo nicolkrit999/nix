@@ -28,7 +28,8 @@ let
 in
 {
 
-  config = lib.mkIf (vars.hyprland or false) {
+  config = lib.mkIf ((vars.hyprland or false) && !(vars.caelestia or false)) {
+
     catppuccin.swaync.enable = vars.catppuccin;
     catppuccin.swaync.flavor = vars.catppuccinFlavor;
 

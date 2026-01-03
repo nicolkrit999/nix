@@ -22,6 +22,7 @@
   gnome = true;
   kde = true;
   cosmic = true;
+  caelestia = true;
 
   # 📦 PACKAGES & TERMINAL
   flatpak = true;
