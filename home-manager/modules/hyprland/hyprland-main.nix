@@ -7,7 +7,7 @@
 }:
 {
 
-  config = lib.mkIf (vars.hyprland or false) {
+  config = lib.mkIf ((vars.hyprland or false) && (vars.caelestia or false)) {
     # ----------------------------------------------------------------------------
     # 🎨 CATPPUCCIN THEME (official module)
     catppuccin.hyprland.enable = vars.catppuccin;
@@ -17,8 +17,8 @@
     wayland.windowManager.hyprland = {
       enable = true;
       systemd = {
-        enable = true; # [cite: 318]
-        variables = [ "--all" ]; # 🟢 Add this line to sync all env vars to systemd
+        enable = true;
+        variables = [ "--all" ]; # Pass all environment variables to Hyprland systemd service, useful for caelestia-shell
       };
       settings = {
 
@@ -44,7 +44,6 @@
 
           # SYSTEM PATHS
           "XDG_SCREENSHOTS_DIR,${vars.screenshots}" # Tells tools where to save screenshots by default.
-
         ];
 
         # -----------------------------------------------------
@@ -73,16 +72,7 @@
           "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
-        ]
-        ++ (
-          if (vars.caelestia or false) then
-            [
-              # 🟢 Explicitly point to the config path we defined above
-              "uwsm app -- sh -c 'sleep 1 && QT_QPA_PLATFORM=wayland quickshell --path $HOME/.config/quickshell'"
-            ]
-          else
-            [ ]
-        );
+        ];
 
         # -----------------------------------------------------
         # 🎨 Look & Feel

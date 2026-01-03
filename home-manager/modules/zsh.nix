@@ -42,6 +42,7 @@
 
         # Smart aliases based on nixImpure setting
         sw = "cd ${flakeDir} && ${switchCmd}";
+        gsw = "cd ${flakeDir} && git add -A && ${switchCmd}";
         upd = "cd ${flakeDir} && ${updateCmd}";
 
         # Manual are kept for reference, but use the above aliases instead

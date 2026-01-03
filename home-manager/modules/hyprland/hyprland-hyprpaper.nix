@@ -23,13 +23,16 @@ let
 
 in
 {
-  services.hyprpaper = {
-    enable = true;
-    package = pkgs.hyprpaper;
 
-    settings = {
-      preload = map (i: "${i}") images;
-      wallpaper = lib.imap0 (i: port: "${port}, ${getWallpaper i}") monitorPorts;
+  config = lib.mkIf (vars.hyprland or false) {
+    services.hyprpaper = {
+      enable = true;
+      package = pkgs.hyprpaper;
+
+      settings = {
+        preload = map (i: "${i}") images;
+        wallpaper = lib.imap0 (i: port: "${port}, ${getWallpaper i}") monitorPorts;
+      };
     };
   };
 }
