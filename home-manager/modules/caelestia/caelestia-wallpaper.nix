@@ -2,10 +2,10 @@
   pkgs,
   lib,
   vars,
-  inputs,
   ...
 }:
 let
+  # 1. Filter enabled monitors from vars.monitors
   enabledMonitors = builtins.filter (m: builtins.match ".*disable.*" m == null) (
     vars.monitors or [ ]
   );
@@ -29,7 +29,6 @@ let
   usedWallpapers = lib.unique (lib.imap0 (i: _: pickWallpaper i) monitorNames);
 
   hyprpaperConf = lib.concatStringsSep "\n" (
-    # Preload lines
     (map (p: "preload = ${toString p}") (builtins.filter (p: p != null) usedWallpapers))
     ++ (lib.imap0 (
       i: mon:
@@ -41,10 +40,6 @@ let
   );
 in
 {
-  imports = [
-    inputs.caelestia-shell.homeManagerModules.default
-  ];
-
   config = lib.mkIf ((vars.hyprland or false) && (vars.caelestia or false)) {
     home.packages = [ pkgs.hyprpaper ];
 
@@ -52,8 +47,8 @@ in
 
     wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [
       "sh -lc 'pkill hyprpaper || true; hyprpaper -c $HOME/.config/hypr/hyprpaper.conf'"
-    ];
 
-    programs.caelestia.settings.background.enabled = lib.mkForce false;
+      "sh -lc 'sleep 2; caelestia wallpaper --no-set ${builtins.head wallpaperPaths}'"
+    ];
   };
 }

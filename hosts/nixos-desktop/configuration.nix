@@ -73,7 +73,8 @@
   ];
 
   programs.dconf.enable = true;
-  programs.zsh.enable = true; # Required for user shell
+  programs.zsh.enable = true;
+  programs.gpu-screen-recorder.enable = true;
 
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY & NETWORKING
@@ -112,6 +113,21 @@
     variant = vars.keyboardVariant;
   };
   console.useXkbConfig = true;
+
+  # ---------------------------------------------------------
+  # 🛡️ SECURITY & REALTIME AUDIO
+  # ---------------------------------------------------------
+  # Fixes "Authentication required" popup when recording audio
+  security.rtkit.enable = true;
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if ((action.id == "org.freedesktop.RealtimeKit1.acquire-high-priority" ||
+           action.id == "org.freedesktop.RealtimeKit1.acquire-real-time") &&
+           subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+      }
+    });
+  '';
 
   # ---------------------------------------------------------
   # 👤 USER CONFIGURATION
