@@ -65,8 +65,6 @@
     - [Error: `home-manager: command not found`](#error-home-manager-command-not-found)
     - [Error: `permission denied` opening `flake.lock`](#error-permission-denied-opening-flakelock)
     - [Error: `returned non-zero exit status 4` during rebuild](#error-returned-non-zero-exit-status-4-during-rebuild)
-    - [Error: `evaluation warning: `programs.zsh.initExtra`is deprecated, use`programs.zsh.initContent` instead` during rebuild](#error-evaluation-warning-programszshinitextrais-deprecated-useprogramszshinitcontent-instead-during-rebuild)
-    - [Error: `/home/<username>/<name>' would be clobbered` during rebuild (such as with hms)](#error-homeusernamename-would-be-clobbered-during-rebuild-such-as-with-hms)
     - [Weird keyboard layout during install](#weird-keyboard-layout-during-install)
     - [Hyprland with caelestia: some fonts issue](#hyprland-with-caelestia-some-fonts-issue)
   - [❄️ Note on the declarative aspects](#️-note-on-the-declarative-aspects)
@@ -1112,7 +1110,7 @@ home-manager switch
 **Fix:** Fix ownership:
 
 ```bash
-# This smart command automatically fetch the useranem so no changes are needed
+# This smart command automatically fetch the username so no changes are needed
 sudo chown -R $USER:users ~/nixOS
 ```
 
@@ -1122,19 +1120,6 @@ sudo chown -R $USER:users ~/nixOS
 - Some time the rebuild seems stuck.
   - Tough it may also be a true stuck chanches are that the system correctly builded but can not show this in the cli 
 
-**Fix:** Safe to ignore. Reboot your computer.
-
-### Error: `evaluation warning: `programs.zsh.initExtra` is deprecated, use `programs.zsh.initContent` instead` during rebuild
-
-**Cause:** This seems to be a mismatch on what some inputs in flake.nix want vs what other inputs wants
-
-**Fix:** Safe to ignore (for now)
-
-### Error: `/home/<username>/<name>' would be clobbered` during rebuild (such as with hms)
-
-**Cause:** Sometime even if it is forced nix refuse to build because a certain file/directory would be clobbered. This happen especially in `gtk* files`
-
-**Fix:** Remove the file/directory interested and rebuild
 
 ### Weird keyboard layout during install
 This is a problem that i encountered. It may have been user error but i write it here just to be safe.
