@@ -64,6 +64,7 @@
     foot
     iptables
     glib
+    gpu-screen-recorder
     gsettings-desktop-schemas
     gtk3
     libsForQt5.qt5.qtwayland
@@ -74,7 +75,13 @@
 
   programs.dconf.enable = true;
   programs.zsh.enable = true;
-  programs.gpu-screen-recorder.enable = true;
+
+  security.wrappers.gpu-screen-recorder = {
+    owner = "root";
+    group = "root";
+    capabilities = "cap_sys_admin+ep";
+    source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
+  };
 
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY & NETWORKING
@@ -117,14 +124,27 @@
   # ---------------------------------------------------------
   # 🛡️ SECURITY & REALTIME AUDIO
   # ---------------------------------------------------------
-  # Fixes "Authentication required" popup when recording audio
   security.rtkit.enable = true;
+
+  # Allow members of "wheel" to:
+  # 1. Get realtime audio priority (fixes audio recording prompt)
+  # 2. Run commands as root via pkexec (fixes gpu-screen-recorder prompt)
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
-      if ((action.id == "org.freedesktop.RealtimeKit1.acquire-high-priority" ||
-           action.id == "org.freedesktop.RealtimeKit1.acquire-real-time") &&
-           subject.isInGroup("wheel")) {
-        return polkit.Result.YES;
+      if (subject.isInGroup("wheel")) {
+        // Auto-approve realtime audio requests
+        if (action.id == "org.freedesktop.RealtimeKit1.acquire-high-priority" ||
+            action.id == "org.freedesktop.RealtimeKit1.acquire-real-time") {
+          return polkit.Result.YES;
+        }
+        
+        // Auto-approve gpu-screen-recorder running as root
+        // (Caelestia uses pkexec to launch it)
+        if (action.id == "org.freedesktop.policykit.exec" &&
+            action.lookup("program") && 
+            action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
+          return polkit.Result.YES;
+        }
       }
     });
   '';

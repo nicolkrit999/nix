@@ -57,6 +57,15 @@
 
   programs.dconf.enable = true;
 
+  programs.zsh.enable = true;
+
+  security.wrappers.gpu-screen-recorder = {
+    owner = "root";
+    group = "root";
+    capabilities = "cap_sys_admin+ep";
+    source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
+  };
+
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY
   # ---------------------------------------------------------
@@ -86,6 +95,34 @@
 
   # Forces the text console (TTY) to look at the Xserver settings above.
   console.useXkbConfig = true;
+
+  # ---------------------------------------------------------
+  # 🛡️ SECURITY & REALTIME AUDIO
+  # ---------------------------------------------------------
+  security.rtkit.enable = true;
+
+  # Allow members of "wheel" to:
+  # 1. Get realtime audio priority (fixes audio recording prompt)
+  # 2. Run commands as root via pkexec (fixes gpu-screen-recorder prompt)
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (subject.isInGroup("wheel")) {
+        // Auto-approve realtime audio requests
+        if (action.id == "org.freedesktop.RealtimeKit1.acquire-high-priority" ||
+            action.id == "org.freedesktop.RealtimeKit1.acquire-real-time") {
+          return polkit.Result.YES;
+        }
+        
+        // Auto-approve gpu-screen-recorder running as root
+        // (Caelestia uses pkexec to launch it)
+        if (action.id == "org.freedesktop.policykit.exec" &&
+            action.lookup("program") && 
+            action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
+          return polkit.Result.YES;
+        }
+      }
+    });
+  '';
 
   # ---------------------------------------------------------
   # 👤 USER CONFIGURATION

@@ -4,114 +4,117 @@
     - [2. Dynamic Variable Merging vs. Module Loading](#2-dynamic-variable-merging-vs-module-loading)
   - [The Code](#the-code)
 - [~nixOS/home-manager/home.nix](#nixoshome-managerhomenix)
+  - [The Code](#the-code-1)
   - [Key Concepts](#key-concepts-1)
     - [1. User Identity \& State Version](#1-user-identity--state-version)
     - [2. Modular Architecture](#2-modular-architecture)
     - [3. XDG Integration \& KDE Fixes](#3-xdg-integration--kde-fixes)
     - [4. Imperative Actions (Activation Scripts)](#4-imperative-actions-activation-scripts)
-  - [The Code](#the-code-1)
+  - [The Code](#the-code-2)
 - [~nixOS/home-manager/home-packages.nix](#nixoshome-managerhome-packagesnix)
   - [Key Concepts](#key-concepts-2)
     - [1. Dynamic Selection](#1-dynamic-selection)
     - [2. Global vs. Host-Specific](#2-global-vs-host-specific)
     - [3. Critical Dependencies](#3-critical-dependencies)
+  - [The Code](#the-code-3)
 - [~nixOS/home-manager/modules/gnome/gnome-main.nix](#nixoshome-managermodulesgnomegnome-mainnix)
   - [Key Concepts](#key-concepts-3)
     - [1. Wallpaper Handling (Single Monitor Focus)](#1-wallpaper-handling-single-monitor-focus)
     - [2. Adaptive Theming (Polarity)](#2-adaptive-theming-polarity)
     - [3. Dconf Overrides](#3-dconf-overrides)
-  - [The Code](#the-code-2)
+  - [The Code](#the-code-4)
 - [~nixOS/home-manager/modules/hyprland/hyprland-main.nix](#nixoshome-managermoduleshyprlandhyprland-mainnix)
   - [Key Concepts](#key-concepts-4)
     - [1. Dynamic Monitor Configuration](#1-dynamic-monitor-configuration)
     - [2. Theming Bridge (Catppuccin vs. Stylix)](#2-theming-bridge-catppuccin-vs-stylix)
     - [3. Environment \& Compatibility](#3-environment--compatibility)
     - [4. Smart Rules](#4-smart-rules)
-  - [The Code](#the-code-3)
+  - [The Code](#the-code-5)
 - [~nixOS/home-manager/modules/kde/kde-main.nix](#nixoshome-managermoduleskdekde-mainnix)
   - [Key Concepts](#key-concepts-5)
     - [1. Multi-Monitor Wallpapers](#1-multi-monitor-wallpapers)
     - [2. Dynamic Theme Construction](#2-dynamic-theme-construction)
     - [3. Config Overrides](#3-config-overrides)
-  - [The Code](#the-code-4)
+  - [The Code](#the-code-6)
 - [~nixOS/home-manager/modules/waybar/default.nix](#nixoshome-managermoduleswaybardefaultnix)
   - [Key Concepts](#key-concepts-6)
     - [1. Hybrid Theming (CSS + Nix Variables)](#1-hybrid-theming-css--nix-variables)
     - [2. Host-Specific Customization](#2-host-specific-customization)
     - [3. Dynamic Weather Script](#3-dynamic-weather-script)
-  - [The Code](#the-code-5)
+  - [The Code](#the-code-7)
 - [~nixOS/home-manager/modules/wofi/default.nix](#nixoshome-managermoduleswofidefaultnix)
   - [Key Concepts](#key-concepts-7)
     - [1. Manual Palette Definition](#1-manual-palette-definition)
     - [2. Hybrid Theming Strategy (Semantic Mapping)](#2-hybrid-theming-strategy-semantic-mapping)
     - [3. CSS Injection](#3-css-injection)
-  - [The Code](#the-code-6)
+  - [The Code](#the-code-8)
 - [~nixOS/home-manager/modules/qt.nix](#nixoshome-managermodulesqtnix)
   - [Key Concepts](#key-concepts-8)
     - [1. The "Delicate" Balance (Preventing KDE Crashes)](#1-the-delicate-balance-preventing-kde-crashes)
     - [2. The Engine: Kvantum](#2-the-engine-kvantum)
     - [3. Dynamic Theme Selection](#3-dynamic-theme-selection)
-  - [The Code](#the-code-7)
+  - [The Code](#the-code-9)
 - [~nixOS/home-manager/modules/stylix.nix](#nixoshome-managermodulesstylixnix)
   - [Key Concepts](#key-concepts-9)
     - [1. The "Traffic Cop" Strategy (Catppuccin vs. Base16)](#1-the-traffic-cop-strategy-catppuccin-vs-base16)
     - [2. Preventing Desktop Crashes (The Qt/KDE Conflict)](#2-preventing-desktop-crashes-the-qtkde-conflict)
     - [3. Global Assets](#3-global-assets)
-  - [The Code](#the-code-8)
+  - [The Code](#the-code-10)
 - [~nixOS/home-manager/modules/zsh.nix](#nixoshome-managermoduleszshnix)
   - [Key Concepts](#key-concepts-10)
     - [1. Smart Rebuild Aliases (Impure vs. Pure)](#1-smart-rebuild-aliases-impure-vs-pure)
     - [2. Hybrid Configuration (`.zshrc_custom`)](#2-hybrid-configuration-zshrc_custom)
     - [3. The Startup Sequence](#3-the-startup-sequence)
-  - [The Code](#the-code-9)
+  - [The Code](#the-code-11)
 - [~nixOS/hosts/template-host/configuration.nix](#nixoshoststemplate-hostconfigurationnix)
   - [Key Concepts](#key-concepts-11)
     - [1. Graphical Stability (Preventing Crashes)](#1-graphical-stability-preventing-crashes)
     - [2. Universal Keyboard Layout](#2-universal-keyboard-layout)
     - [3. User \& Host Identity](#3-user--host-identity)
     - [4. Input Method Cleanup (ibus)](#4-input-method-cleanup-ibus)
-  - [The Code](#the-code-10)
+    - [5. Stop asking for password when screen recording with audio](#5-stop-asking-for-password-when-screen-recording-with-audio)
+  - [The Code](#the-code-12)
 - [~nixOS/nixos/modules/boot.nix](#nixosnixosmodulesbootnix)
   - [Key Concepts](#key-concepts-12)
     - [1. GRUB vs. systemd-boot](#1-grub-vs-systemd-boot)
     - [2. Dual Boot Support (`os-prober`)](#2-dual-boot-support-os-prober)
     - [3. UEFI Accessibility](#3-uefi-accessibility)
-  - [The Code](#the-code-11)
+  - [The Code](#the-code-13)
 - [~nixOS/nixos/modules/env.nix](#nixosnixosmodulesenvnix)
   - [Key Concepts](#key-concepts-13)
     - [1. Smart Editor Configuration](#1-smart-editor-configuration)
     - [2. Dynamic Defaults](#2-dynamic-defaults)
     - [3. Path Injection](#3-path-injection)
-  - [The Code](#the-code-12)
+  - [The Code](#the-code-14)
 - [~nixOS/nixos/modules/guest.nix](#nixosnixosmodulesguestnix)
   - [Key Concepts](#key-concepts-14)
     - [1. Ephemeral Home (`tmpfs`)](#1-ephemeral-home-tmpfs)
     - [2. Forced Desktop Environment (XFCE)](#2-forced-desktop-environment-xfce)
     - [3. Security Hardening](#3-security-hardening)
     - [4. User Warning](#4-user-warning)
-  - [The Code](#the-code-13)
+  - [The Code](#the-code-15)
 - [~nixOS/home-manager/modules/mime.nix](#nixoshome-managermodulesmimenix)
   - [Key Concepts](#key-concepts-15)
     - [1. Dynamic Associations](#1-dynamic-associations)
     - [2. Desktop File Translation (`mkDesktop`)](#2-desktop-file-translation-mkdesktop)
-  - [The Code](#the-code-14)
+  - [The Code](#the-code-16)
 - [~nixOS/nixos/modules/nix.nix](#nixosnixosmodulesnixnix)
   - [Key Concepts](#key-concepts-16)
     - [1. Enabling Flakes](#1-enabling-flakes)
     - [2. Binary Caching (Speed)](#2-binary-caching-speed)
     - [3. Automatic Garbage Collection](#3-automatic-garbage-collection)
-  - [The Code](#the-code-15)
+  - [The Code](#the-code-17)
 - [~nixOS/nixos/modules/sddm.nix](#nixosnixosmodulessddmnix)
   - [Key Concepts](#key-concepts-17)
     - [1. The "Astronaut" Theme](#1-the-astronaut-theme)
     - [2. X11 Backend for Stability](#2-x11-backend-for-stability)
     - [3. UWSM Integration](#3-uwsm-integration)
-  - [The Code](#the-code-16)
+  - [The Code](#the-code-18)
 - [~nixOS/nixos/modules/user.nix](#nixosnixosmodulesusernix)
   - [Key Concepts](#key-concepts-18)
     - [1. The "Safety Net" (Why configure groups twice?)](#1-the-safety-net-why-configure-groups-twice)
     - [2. Global Shell Enforcement](#2-global-shell-enforcement)
-  - [The Code](#the-code-17)
+  - [The Code](#the-code-19)
 
 
 # ~nixOS/flake.nix
@@ -182,6 +185,17 @@ Once the variables are calculated, the system loads the code. It includes the ge
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+
+    quickshell = {
+      url = "git+https://git.outfoxxed.me/quickshell/quickshell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    caelestia-shell = {
+      url = "github:caelestia-dots/shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs =
@@ -337,6 +351,103 @@ Once the variables are calculated, the system loads the code. It includes the ge
 The `home.nix` file is the **root configuration** for Home Manager. While `configuration.nix` manages the *system* (drivers, bootloader, root users), `home.nix` manages the *user* (dotfiles, themes, user-specific packages).
 
 It serves as the foundation upon which your personal environment is built.
+
+
+## The Code
+
+```nix
+{
+  inputs,
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
+{
+
+  # -----------------------------------------------------------------------
+  # 🔗 IMPORTS
+  # -----------------------------------------------------------------------
+  # Pulls in all individual program modules (Hyprland, Zsh, Neovim, etc.)
+  imports = [
+    ./modules/core.nix
+    ./home-packages.nix
+  ];
+
+  # -----------------------------------------------------------------------
+  # 👤 USER IDENTITY
+  # -----------------------------------------------------------------------
+  home = {
+    username = vars.user;
+    homeDirectory = "/home/${vars.user}";
+    stateVersion = vars.homeStateVersion; # Controls backwards compatibility logic
+  };
+
+  # -----------------------------------------------------------------------
+  # 🏠 HOME MANAGER SELF-MANAGEMENT
+  # -----------------------------------------------------------------------
+  programs.home-manager.enable = true;
+
+  xdg = {
+    enable = true;
+
+    # Ensures mime.nix settings are actually applied
+    mimeApps.enable = true;
+
+    # Create default user directories
+    # Specific directories can be disabled in the host-specific home.nix file
+    userDirs = {
+      enable = true;
+      createDirectories = true;
+    };
+  };
+
+  # Create applications.menu for kde
+  # This allow kde applications such as dolphin to pick up the default applications to use for mime types
+  xdg.configFile."menus/applications.menu".text = ''
+    <!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+    "http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">
+    <Menu>
+      <Name>Applications</Name>
+      <DefaultAppDirs/>
+      <DefaultDirectoryDirs/>
+      <Include>
+        <Category>System</Category>
+        <Category>Utility</Category>
+      </Include>
+    </Menu>
+  '';
+
+  # -----------------------------------------------------------------------
+  # 🛠️ ACTIVATION SCRIPTS
+  # -----------------------------------------------------------------------
+  # DESCRIPTION:
+  # Scripts that run during the 'switch' process to perform tasks that
+  # declarative Nix cannot do alone (like creating deep subdirectories).
+  # -----------------------------------------------------------------------
+
+  home.activation = {
+
+    # ⚠️ Do not add ~/.config/hypr/hyprland.conf otherwise during rebuild the config change and you need to manually reapply home-manager and then logging out/in to see the changes.
+    # The file need to be removed manually if needed before rebuilding
+    removeExistingConfigs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+      rm -f "/home/${vars.user}/.gtkrc-2.0"
+      rm -f "/home/${vars.user}/.config/gtk-3.0/settings.ini"
+      rm -f "/home/${vars.user}/.config/gtk-3.0/gtk.css"
+      rm -f "/home/${vars.user}/.config/gtk-4.0/settings.ini"
+      rm -f "/home/${vars.user}/.config/gtk-4.0/gtk.css"
+      rm -f "/home/${vars.user}/.config/dolphinrc"
+      rm -f "/home/${vars.user}/.local/share/applications/mimeapps.list"
+    '';
+
+    createEssentialDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      # Screenshots directory (references in other files. Make sure to change accordingly)
+      mkdir -p ${vars.screenshots}
+    '';
+  };
+}
+```
+
 
 ---
 
@@ -510,6 +621,8 @@ Instead of hardcoding "firefox" or "neovim", this module intelligently installs 
 The static list below contains utilities that are **required** for your environment to work correctly (e.g., `ueberzugpp` for file previews, `cliphist` for clipboard history).
 
 * **⚠️ Note:** Do not remove packages from the static list unless you know exactly what you are doing. Each package has an inline comment explaining exactly which feature or script depends on it.
+
+## The Code
 
 ```nix
 {
@@ -827,11 +940,13 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
         # 🚀 Startup Apps
         # ----------------------------------------------------
         exec-once = [
-          "waybar" # Start waybar
           "wl-paste --type text --watch cliphist store" # Start clipboard manager for text
           "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
+        ];
+        ++ lib.optionals (!(vars.caelestia or true)) [
+          "uwsm app -- waybar" # Start waybar onlyt if "caelestia" is disabled in variables.nix
         ];
 
         # -----------------------------------------------------
@@ -2094,6 +2209,12 @@ We explicitly disable the `ibus` input method system and force-clear related env
 * **The Problem:** The `ibus` daemon (used for typing complex characters in languages like Japanese or Chinese) often runs by default and "hijacks" keyboard input. In tiling window managers (like Hyprland) or games, this frequently causes "dead keys" (keys that don't register immediately) or interferes with custom keybindings.
 * **The Solution:** By using `lib.mkForce null` on the input method and clearing `GTK_IM_MODULE`/`QT_IM_MODULE`, we ensure that the keyboard sends raw, direct input to your applications without any software layer interfering.
 
+
+### 5. Stop asking for password when screen recording with audio
+
+It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audio recording commands as root
+
+
 ---
 
 ## The Code
@@ -2171,6 +2292,13 @@ We explicitly disable the `ibus` input method system and force-clear related env
   programs.dconf.enable = true;
   programs.zsh.enable = true; # Required for user shell
 
+  security.wrappers.gpu-screen-recorder = {
+    owner = "root";
+    group = "root";
+    capabilities = "cap_sys_admin+ep";
+    source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
+  };
+
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY & NETWORKING
   # ---------------------------------------------------------
@@ -2208,6 +2336,35 @@ We explicitly disable the `ibus` input method system and force-clear related env
     variant = vars.keyboardVariant;
   };
   console.useXkbConfig = true;
+
+
+  # ---------------------------------------------------------
+  # 🛡️ SECURITY & REALTIME AUDIO
+  # ---------------------------------------------------------
+  security.rtkit.enable = true;
+
+  # Allow members of "wheel" to:
+  # 1. Get realtime audio priority (fixes audio recording prompt)
+  # 2. Run commands as root via pkexec (fixes gpu-screen-recorder prompt)
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (subject.isInGroup("wheel")) {
+        // Auto-approve realtime audio requests
+        if (action.id == "org.freedesktop.RealtimeKit1.acquire-high-priority" ||
+            action.id == "org.freedesktop.RealtimeKit1.acquire-real-time") {
+          return polkit.Result.YES;
+        }
+        
+        // Auto-approve gpu-screen-recorder running as root
+        // (Caelestia uses pkexec to launch it)
+        if (action.id == "org.freedesktop.policykit.exec" &&
+            action.lookup("program") && 
+            action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
+          return polkit.Result.YES;
+        }
+      }
+    });
+  '';
 
   # ---------------------------------------------------------
   # 👤 USER CONFIGURATION

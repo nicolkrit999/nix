@@ -19,10 +19,11 @@
 
   # 🖥️ DESKTOP ENVIRONMENT
   hyprland = true;
+  caelestia = true;
+
   gnome = true;
   kde = true;
   cosmic = true;
-  caelestia = true;
 
   # 📦 PACKAGES & TERMINAL
   flatpak = true;

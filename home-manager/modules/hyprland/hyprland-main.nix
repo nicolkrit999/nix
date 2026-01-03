@@ -75,10 +75,8 @@
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
         ]
-
         ++ lib.optionals (!(vars.caelestia or true)) [
           "uwsm app -- waybar" # Start waybar onlyt if "caelestia" is disabled in variables.nix
-
         ];
 
         # -----------------------------------------------------

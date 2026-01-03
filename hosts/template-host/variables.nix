@@ -19,6 +19,8 @@
 
   # 🖥️ DESKTOP ENVIRONMENT
   hyprland = true;
+  caelestia = false;
+
   gnome = false;
   kde = false;
   cosmic = false;

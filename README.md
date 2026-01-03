@@ -1,7 +1,13 @@
 # ❄️ Personal NixOS Config
+## Hyprland + waybar + lazygit + ranger + firefox
 ![hyprland-showcase](./Documentation/showcase-screenshots/hyprland-showcase.png)
 
+## Hyprland + caelestia/quickshell
+![hyprland-showcase](./Documentation/showcase-screenshots/hyprland-caelestia.png)
+
 - [❄️ Personal NixOS Config](#️-personal-nixos-config)
+  - [Hyprland + waybar + lazygit + ranger + firefox](#hyprland--waybar--lazygit--ranger--firefox)
+  - [Hyprland + caelestia/quickshell](#hyprland--caelestiaquickshell)
   - [✨ Features](#-features)
     - [🖥️ Adaptive Host Support:](#️-adaptive-host-support)
     - [📦 Package version and flatpak](#-package-version-and-flatpak)
@@ -75,6 +81,7 @@
     - [Issues](#issues)
     - [Ideas](#ideas)
     - [Usage guide](#usage-guide)
+    - [Wallpapers](#wallpapers)
 
 
 ## ✨ Features
@@ -126,7 +133,7 @@ alacritty.enable = !catppuccin;
 ### 🖌️ Wallpaper(s) ## 
   
 Wallpapers are defined to be hosts specific and they are tied to the monitor list.
-- They automatically apply smartly in all desktop environments except xfce and cosmic.
+- They automatically apply smartly in all desktop environments except xfce
 
 - The first monitor get the first wallpaper, the second monitor the second wallpaper etc. 
   - In kde plasma the primary monitor override this settings. If nothing is done the behavior is as expected,
@@ -159,7 +166,11 @@ Comment out or remove the specific lines that handles the wallpapers logic
 
 ### 🪟 Multiple Desktop Environments
 
-  - **Hyprland + Waybar**: A modern, tile-based window compositor setup on Wayland.
+  - **Hyprland**: A modern, tile-based window compositor setup on Wayland. You can choose between 2 options:
+
+    - **Hyprland + caelestia with quickshell**
+    - **Hyprland + waybar**
+
   - **KDE Plasma**: A highly configurable desktop environment, with a launcher similar to windows
   - **Gnome**: A famous and simple desktop environment, with a launcher similar to macOS. Ubuntu/mint user are very used to it
   - **Cosmic**: A revisited gnome made from the company system76, known for being the creators of popOS
@@ -556,6 +567,18 @@ Run this command inside `~/nixOS`:
   
   * `hyprland`: Whatever to enable hyprland or not
 
+  * `caelestia`: Whatever to enable caelestia/quickshell or not
+  
+    ```nix
+    # If you want hyprland with waybar
+    hyprland = true;
+    caelestia = false;
+
+    # If you want hyprland with caelestia & quickshell
+    hyprland = true;
+    caelestia = true;
+    ```
+
    * `gnome`: Whatever to enable gnome or not
 
    * `kde`: Whatever to enable kde or not
@@ -675,6 +698,8 @@ nix-prefetch-url <your_raw_url>
   gitUserEmail = "template-user@example.com";
 
   hyprland = true;
+  caelestia = false;
+
   gnome = false;
   kde = false;
   cosmic = false;
@@ -710,10 +735,6 @@ nix-prefetch-url <your_raw_url>
     {
       wallpaperURL = "https://raw.githubusercontent.com/zhichaoh/catppuccin-wallpapers/refs/heads/main/os/nix-black-4k.png";
       wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
-    }
-    {
-      wallpaperURL = "https://raw.githubusercontent.com/HyDE-Project/hyde-themes/Catppuccin-Mocha/Configs/.config/hyde/themes/Catppuccin%20Mocha/wallpapers/switch_swirl.jpg";
-      wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
     }
   ];
 
@@ -1166,6 +1187,10 @@ This folder contains a guide on how basic aspects should be implemented, such as
 - Create a general home-manager modules that apply to all hosts
 - Create a host-specific home-manager modules
 - Theming guide
+
+### [Wallpapers](./wallpapers/credits)
+- This folder contains some wallpapers allowing for an easy setup using raw url.
+  - For each asset not mine a reference to the original author(s) is included in the document 
 
 
 
