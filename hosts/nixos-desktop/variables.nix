@@ -74,11 +74,11 @@
 
   wallpapers = [
     {
-      wallpaperURL = "https://w.wallhaven.cc/full/7j/wallhaven-7jjo5e.jpg";
-      wallpaperSHA256 = "1lbva41v68hns6pkksb0v7yhwckhgfvrg9s1nrp76qkqg54pcv70";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/main/wallpapers/other-user-github-repos/D3Ext/aesthetic-wallpapers/black-white-girl.png";
+      wallpaperSHA256 = "0q5j531m3a1x5x99d0xybcb9rgc7w1i3v2vgf81zpwcwqj7abnzr";
     }
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/develop/wallpapers/phili-pilz-portrait-deer.jpg";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/main/wallpapers/various/philipp-pilz_brown-deer-under-tree.jpg";
       wallpaperSHA256 = "0fwbas4658d0dgrnx890if2ang70hilzsnw9zydda4n5cbhlfxhx";
     }
   ];
