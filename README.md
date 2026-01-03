@@ -803,6 +803,7 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
 
   # Forces specific apps to always open on specific workspaces
   # To see the right class name, use `hyprctl clients` command and look for "class:"
+  # if you want the avoid switching to that workspace when opening just add "silent" after the number
   hyprlandWindowRules = [
     "workspace 2, class:^(code)$"
     "workspace 7, class:^(chromium-browser)$"

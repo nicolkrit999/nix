@@ -20,14 +20,14 @@
   # Forces specific apps to always open on specific workspaces
   # To see the right class name, use `hyprctl clients` command and look for "class:"
   hyprlandWindowRules = [
-    "workspace 2, class:^(code)$"
-    "workspace 3, class:^(org.kde.dolphin)$"
-    "workspace 3, class:^(ranger)$"
-    "workspace 7, class:^(chromium-browser)$"
-    "workspace 8, class:^(Alacritty)$"
-    "workspace 8, class:^(kitty)$"
-    "workspace 9, class:^(vesktop)$"
-    "workspace 10, class:^(org.telegram.desktop)$"
+    "workspace 2 silent, class:^(code)$"
+    "workspace 3 silent, class:^(org.kde.dolphin)$"
+    "workspace 3 silent, class:^(ranger)$"
+    "workspace 7 silent, class:^(chromium-browser)$"
+    "workspace 8 silent, class:^(Alacritty)$"
+    "workspace 8 silent, class:^(kitty)$"
+    "workspace 9 silent, class:^(vesktop)$"
+    "workspace 9 silent, class:^(org.telegram.desktop)$"
   ];
 
   # ---------------------------------------------------------------------------
