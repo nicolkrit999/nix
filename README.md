@@ -72,7 +72,8 @@
   - [❄️ Note on the declarative aspects](#️-note-on-the-declarative-aspects)
   - [📝 Project Origin and Customization](#-project-origin-and-customization)
   - [Showcase](#showcase)
-    - [Hyprland](#hyprland)
+    - [Hyprland with waybar](#hyprland-with-waybar)
+    - [Hyprland with Caelestia/quickshell lockscreen](#hyprland-with-caelestiaquickshell-lockscreen)
     - [KDE](#kde)
     - [Gnome](#gnome)
     - [XFCE](#xfce)
@@ -1209,8 +1210,12 @@ catppuccinAccent = "sky";
 ```
 
 
-### Hyprland
+### Hyprland with waybar
 ![hyprland-showcase](./Documentation/showcase-screenshots/hyprland-showcase.png)
+
+
+### Hyprland with Caelestia/quickshell lockscreen
+![hyprland-caelestia](./Documentation/showcase-screenshots/quickshell-lockscreen.png)
 
 ### KDE
 ![kde-showcase](./Documentation/showcase-screenshots/kde-showcase.png)
