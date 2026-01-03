@@ -34,11 +34,11 @@
   fileManager = "dolphin";
 
   # 🎨 THEMING
-  base16Theme = "kanagawa-dragon";
+  base16Theme = "catppuccin-mocha";
   polarity = "dark";
-  catppuccin = false;
+  catppuccin = true;
   catppuccinFlavor = "mocha";
-  catppuccinAccent = "sky";
+  catppuccinAccent = "mauve";
 
   # ⚙️ SYSTEM SETTINGS
   timeZone = "Europe/Zurich";

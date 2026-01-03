@@ -7,7 +7,7 @@
 }:
 {
 
-  config = lib.mkIf ((vars.hyprland or false) && (vars.caelestia or false)) {
+  config = lib.mkIf (vars.hyprland or false) {
     # ----------------------------------------------------------------------------
     # 🎨 CATPPUCCIN THEME (official module)
     catppuccin.hyprland.enable = vars.catppuccin;
@@ -20,6 +20,7 @@
         enable = true;
         variables = [ "--all" ]; # Pass all environment variables to Hyprland systemd service, useful for caelestia-shell
       };
+
       settings = {
 
         # -----------------------------------------------------
@@ -67,11 +68,17 @@
         # 🚀 Startup Apps
         # ----------------------------------------------------
         exec-once = [
-          "uwsm app -- waybar" # Start waybar
+          "sh -lc 'dbus-update-activation-environment --systemd --all; systemctl --user import-environment WAYLAND_DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE || true'"
+
           "wl-paste --type text --watch cliphist store" # Start clipboard manager for text
           "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
+        ]
+
+        ++ lib.optionals (!(vars.caelestia or true)) [
+          "uwsm app -- waybar" # Start waybar onlyt if "caelestia" is disabled in variables.nix
+
         ];
 
         # -----------------------------------------------------

@@ -62,6 +62,7 @@ in
       git # Version control system (used in various scripts)
       grimblast # Wayland screenshot helper for Hyprland (referenced in chromium.nix module)
       htop # Interactive process viewer (keep to kill processes easily)
+      hyprpaper # Wallpaper manager for Hyprland (needed for wallpaper management)
       hyprpicker # Wayland color picker (needed for hyprland binds)
       nixfmt-rfc-style # Nix code formatter with RFC style (used in flake.nix)
       playerctl # Control MPRIS-enabled media players (Spotify, etc.) (used in hyprland binds)

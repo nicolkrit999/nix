@@ -15,7 +15,11 @@ in
     ];
 
     wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [
-      "sh -lc 'sleep 1; caelestia-shell -d'"
+
+      "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
+
+      "sh -lc 'sleep 1; XDG_SCREENSHOTS_DIR=${vars.screenshots} caelestia-shell -d'"
+
     ];
   };
 }
