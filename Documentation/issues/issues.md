@@ -4,6 +4,7 @@ These are the issues that i observed that require attentions. They may be only o
 - [Things to fix](#things-to-fix)
   - [Desktop environments specific](#desktop-environments-specific)
     - [Hyprland: gestures](#hyprland-gestures)
+    - [Hyprland with caelestia/quickshell: fullscren recording with no audio does not work.](#hyprland-with-caelestiaquickshell-fullscren-recording-with-no-audio-does-not-work)
   - [General](#general)
     - ['system' has been renamed to/replaced by 'stdenv.hostPlatform.system'](#system-has-been-renamed-toreplaced-by-stdenvhostplatformsystem)
     - [ profile: You have set either `nixpkgs.config` or `nixpkgs.overlays` while using `home-manager.useGlobalPkgs`. This will soon not be possible. Please remove all `nixpkgs` options when using \`home-manager](#-profile-you-have-set-either-nixpkgsconfig-or-nixpkgsoverlays-while-using-home-manageruseglobalpkgs-this-will-soon-not-be-possible-please-remove-all-nixpkgs-options-when-using-home-manager)
@@ -29,6 +30,16 @@ These are the issues that i observed that require attentions. They may be only o
         gesture = [
           "3, horizontal, workspace"
         ];
+```
+
+### Hyprland with caelestia/quickshell: fullscren recording with no audio does not work.
+- It does not save it in the right folder
+- This is a known problem
+- Doing with the terminal work
+
+  - For now i created a keybinds to do that in case someone wants to use it
+```nix
+"SUPER CTRL, R, exec, pkill -SIGINT gpu-screen-recorder || gpu-screen-recorder -w screen -f 60 -c mkv -o \"$HOME/Videos/Recordings/mute-fullscreen-recording_$(date +%Y-%m-%d_%H-%M-%S).mkv\"" # Start/stop screen recording
 ```
 
 ## General
