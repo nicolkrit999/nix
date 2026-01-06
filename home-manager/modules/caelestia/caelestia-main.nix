@@ -62,7 +62,7 @@ in
       systemd.enable = false;
     };
 
-    xdg.configFile."caelestia/config.json".text = builtins.toJSON caelestiaConfig;
+    xdg.configFile."caelestia/shell.json".text = builtins.toJSON caelestiaConfig;
 
     home.packages = [
       caelestiaPkg

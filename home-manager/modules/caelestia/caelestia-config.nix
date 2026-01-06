@@ -183,7 +183,7 @@ in
     sizes = {
       button = 80;
     };
-    vimKeybinds = false;
+    vimKeybinds = true;
     enabled = true;
     dragThreshold = 30;
     commands = {
@@ -212,27 +212,31 @@ in
       explorer = explorerCmd;
       audio = [ "pavucontrol" ];
       playback = [ "mpv" ];
-      terminal = [ "foot" ];
+      terminal = [ "${vars.term}" ];
     };
     idle = {
-      timeouts = [
-        {
-          idleAction = "lock";
-          timeout = 180;
-        }
-        {
-          idleAction = "dpms off";
-          returnAction = "dpms on";
-          timeout = 300;
-        }
-        {
-          idleAction = [
-            "systemctl"
-            "suspend"
-          ];
-          timeout = 600;
-        }
-      ];
+      timeouts =
+        if (vars.idleConfig.enable or true) then
+          [
+            {
+              idleAction = "lock";
+              timeout = vars.idleConfig.lockTimeout or 300;
+            }
+            {
+              idleAction = "dpms off";
+              returnAction = "dpms on";
+              timeout = vars.idleConfig.screenOffTimeout or 600;
+            }
+            {
+              idleAction = [
+                "systemctl"
+                "suspend"
+              ];
+              timeout = vars.idleConfig.suspendTimeout or 600;
+            }
+          ]
+        else
+          [ ];
       lockBeforeSleep = true;
       inhibitWhenAudio = true;
     };
@@ -380,7 +384,7 @@ in
       {
         name = "Wallpaper";
         dangerous = false;
-        enabled = true;
+        enabled = false;
         description = "Change the current wallpaper";
         command = [
           "autocomplete"
@@ -413,7 +417,7 @@ in
       {
         name = "Random";
         dangerous = false;
-        enabled = true;
+        enabled = false;
         description = "Switch to a random wallpaper";
         command = [
           "caelestia"
