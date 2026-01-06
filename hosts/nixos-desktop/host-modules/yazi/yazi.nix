@@ -59,7 +59,27 @@
         image_delay = 20;
         image_filter = "lanczos3"; # Image scaling filter
         image_quality = 90;
-        image_preview_method = if vars.term == "kitty" then "kitty" else "ueberzug";
+        image_preview_method =
+          if
+            builtins.elem vars.term [
+              "kitty"
+              "ghostty"
+              "konsole"
+              "wezterm"
+              "rio"
+              "iterm2"
+            ]
+          then
+            "kitty"
+          else if
+            builtins.elem vars.term [
+              "foot"
+              "blackbox"
+            ]
+          then
+            "sixel"
+          else
+            "ueberzug";
         ueberzug_scale = 0.66;
         ueberzug_offset = [
           0
