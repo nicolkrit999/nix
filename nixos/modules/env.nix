@@ -13,6 +13,7 @@ let
     "gedit" = "gedit --wait";
     "subl" = "subl --wait";
     "nano" = "nano";
+    "neovim" = "nvim";
     "nvim" = "nvim";
     "vim" = "vim";
   };

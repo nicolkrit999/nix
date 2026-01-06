@@ -67,6 +67,11 @@
     JDTLS_BIN = "${pkgs.jdt-language-server}/bin/jdtls";
   };
 
+  programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
   # 5. Create/remove host-specific directories
   home.activation = {
     createHostDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

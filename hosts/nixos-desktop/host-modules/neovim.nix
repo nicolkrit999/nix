@@ -1,6 +1,11 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   programs.neovim = {
+
+    enable = true;
+    viAlias = true;
+    vimAlias = true;
+    package = lib.mkForce (lib.hiPrio pkgs.neovim-unwrapped);
 
     # Extra packages to install for Neovim's backend functionality
     extraPackages = with pkgs; [
