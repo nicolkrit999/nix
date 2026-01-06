@@ -42,6 +42,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-sops = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs =
@@ -90,6 +95,8 @@
             ./hosts/${hostname}/configuration.nix
             inputs.catppuccin.nixosModules.catppuccin
             inputs.nix-flatpak.nixosModules.nix-flatpak
+            inputs.nix-sops.nixosModules.sops
+
             # DE/WM import
             ./nixos/modules/hyprland.nix
             ./nixos/modules/gnome.nix

@@ -1,0 +1,32 @@
+keys:
+  # ---------------------------------------------------------------
+  # 👤 Users (Admins)
+  # ---------------------------------------------------------------
+  # Replace with YOUR generated Admin public key
+  - &admin_krit age1qxyp5wzwhjs4tq633gtg2d25czdgwf6rxuppasshgf4mhlu37etq909x6t
+
+  # ---------------------------------------------------------------
+  # 🖥️ Hosts (Machines)
+  # ---------------------------------------------------------------
+  # Replace with the output of `ssh-to-age` from nixos-desktop
+  - &host_nixos_desktop age1nvr3ges07kcl6h4lmmfl23lc07rl7njq9seyl4hp7uut4k8v53qquhfugp
+
+creation_rules:
+  # ---------------------------------------------------------------
+  # 🔒 Rules for nixos-desktop
+  # Any file inside hosts/nixos-desktop/ ending in .yaml will use these keys
+  # ---------------------------------------------------------------
+  - path_regex: hosts/nixos-desktop/[^/]+\.yaml$
+    key_groups:
+      - age:
+          - *admin_krit         # You can decrypt
+          - *host_nixos_desktop # The machine can decrypt
+
+  # ---------------------------------------------------------------
+  # 🔒 (Example) Rules for a future host
+  # ---------------------------------------------------------------
+  # - path_regex: hosts/nixos-laptop/[^/]+\.yaml$
+  #   key_groups:
+  #     - age:
+  #         - *admin_krit
+  #         - *host_nixos_laptop

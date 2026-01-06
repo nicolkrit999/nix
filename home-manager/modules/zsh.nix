@@ -71,7 +71,6 @@
         snap-list-root = "sudo snapper -c root list"; # List root snapshots
 
         # Utilities
-        npu = "read 'url?Enter URL: ' && nix-prefetch-url \"$url\"";
         se = "sudoedit";
 
         # Various
@@ -114,9 +113,9 @@
         fi
 
         # -----------------------------------------------------
-        # 📸 SNAPSHOT LOCK & UNLOCK START
+        # 5A SNAPSHOT LOCK & UNLOCK
         # -----------------------------------------------------
-        # 🔒 LOCK (Protect from auto-deletion)
+        # LOCK (Protect from auto-deletion)
         snap-lock() {
           echo "Which config? (1=home, 2=root)"
           read "k?Selection: "
@@ -134,7 +133,7 @@
           fi
         }
 
-        # 🔓 UNLOCK (Allow auto-deletion)
+        # UNLOCK (Allow auto-deletion)
         snap-unlock() {
           echo "Which config? (1=home, 2=root)"
           read "k?Selection: "
@@ -151,13 +150,10 @@
              echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED (timeline cleanup enabled)."
           fi
         }
-        # -----------------------------------------------------
-        # 📸 SNAPSHOT LOCK & UNLOCK END
-        # -----------------------------------------------------
 
 
       # -----------------------------------------------------------------------
-      # 📸 SNAPPER INTERACTIVE FUNCTION START
+      # 5B SNAPPER CREATE INTERACTIVE FUNCTION
       # -----------------------------------------------------------------------
       function _snap_create() {
         local config_name=$1
@@ -188,9 +184,26 @@
       alias snap-create-home="_snap_create home"
       alias snap-create-root="_snap_create root"
 
-      # -----------------------------------------------------------------------
-      # 📸 SNAPPER INTERACTIVE FUNCTION END
-      # -----------------------------------------------------------------------
+      # -----------------------------------------------------
+      # 6 📦 SMART NIX PREFETCH (npu)
+      # -----------------------------------------------------
+      npu() {
+        local url
+        if [ -z "$1" ]; then
+          read "url?Enter URL: "
+        else
+          url="$1"
+        fi
+
+        # Detect if the URL is a GitHub/GitLab repository archive
+        if [[ "$url" == *"github.com"* ]] || [[ "$url" == *"gitlab.com"* ]]; then
+          echo "📦 Git repository detected. Using --unpack for Nix compatibility..."
+          nix-prefetch-url --unpack "$url"
+        else
+          echo "📄 Direct file detected. Fetching normally..."
+          nix-prefetch-url "$url"
+        fi
+      }
     '';
   };
 }

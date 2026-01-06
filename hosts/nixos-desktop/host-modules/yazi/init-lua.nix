@@ -19,6 +19,9 @@ let
 
         return string.format(" %s | mod: %s | cre: %s ", size_mb, mtime_str, btime_str)
     end
+
+    -- 🗑️ Recycle Bin Plugin Setup
+    require("recycle-bin"):setup()
   '';
 in
 {

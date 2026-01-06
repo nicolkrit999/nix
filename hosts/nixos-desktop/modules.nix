@@ -78,7 +78,7 @@
 
   starshipZshIntegration = false;
 
-  nixImpure = true;
+  nixImpure = false;
 
   useFahrenheit = false;
 

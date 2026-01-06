@@ -2,13 +2,13 @@
   config,
   pkgs,
   vars,
-  lib, # <--- Add lib here
+  lib,
   ...
 }:
 
 let
   nasIP = "100.101.189.91";
-  credentialsFile = "/etc/nixos/secrets/nicol-nas-smb-secrets";
+  credentialsFile = config.sops.secrets.nas-smb-secrets.path;
 
   # List of SMB shares
   shares = [
@@ -56,6 +56,5 @@ in
 {
   environment.systemPackages = [ pkgs.cifs-utils ];
 
-  fileSystems =
-    if builtins.pathExists credentialsFile then builtins.listToAttrs (map mountShare shares) else { };
+  fileSystems = builtins.listToAttrs (map mountShare shares);
 }

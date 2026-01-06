@@ -17,7 +17,6 @@
         ];
         desc = "Clear selection, clipboard, and cancel search";
       }
-
       {
         on = [ "q" ];
         run = "quit";
@@ -222,10 +221,37 @@
         desc = "Jump to a directory via zoxide";
       }
 
+      # Plugin: ouch
       {
         on = [ "c" ];
         run = "plugin ouch";
         desc = "Compress with ouch";
+      }
+
+      # Plugin: recycle-bin
+      {
+        on = [
+          "R"
+          "r"
+        ];
+        run = "plugin recycle-bin -- restore";
+        desc = "Restore selected files from Trash";
+      }
+      {
+        on = [
+          "R"
+          "e"
+        ];
+        run = "plugin recycle-bin -- empty";
+        desc = "Empty the entire Trash";
+      }
+      {
+        on = [
+          "R"
+          "D"
+        ];
+        run = "plugin recycle-bin -- emptyDays";
+        desc = "Empty Trash older than 30 days (manual)";
       }
 
       # Goto
@@ -293,7 +319,14 @@
         run = "cd ~/dotfiles";
         desc = "Go ~/dotfiles";
       }
-
+      {
+        on = [
+          "g"
+          "t"
+        ];
+        run = "cd ~/.local/share/Trash/files";
+        desc = "Go to Trash";
+      }
       {
         on = [
           "g"

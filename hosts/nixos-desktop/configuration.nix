@@ -16,7 +16,6 @@
     ./local-packages.nix
 
     # Secrets Management (not added to GitHub)
-    (import /etc/nixos/secrets/secrets.nix)
 
     # Flatpak support
     ./flatpak.nix
@@ -28,14 +27,28 @@
     ./host-modules/logitech.nix # boot
     ./host-modules/smb.nix # user
     ./host-modules/gaming.nix # hardware
-    (
-      if builtins.pathExists "/etc/nixos/secrets/borg-passphrase" then
-        ./host-modules/borg-backup.nix
-      else
-        null
-    )
+    ./host-modules/borg-backup.nix # user
 
   ];
+
+  # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  # 🔐 SOPS CONFIGURATION
+  # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  sops.defaultSopsFile = ./secrets.yaml;
+  sops.defaultSopsFormat = "yaml";
+  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+
+  # 1. Local User Password
+  sops.secrets.krit-local-password = {
+    neededForUsers = true; # Required for login
+  };
+
+  # 2. NAS Secrets
+  sops.secrets.nas-smb-secrets = { };
+
+  # 3. Borg Backup Secrets
+  sops.secrets.borg-passphrase = { };
+  sops.secrets.borg-private-key = { };
 
   # ---------------------------------------------------------
   # ⚙️ GRAPHICS & FONTS
@@ -62,8 +75,8 @@
   # 📦 SYSTEM PACKAGES
   # ---------------------------------------------------------
   environment.systemPackages = with pkgs; [
-    # Tiny, zero-config terminal; critical rescue tool if your main terminal config breaks
-    foot
+    autotrash # Automatic trash cleanup utility; used to delete old files from Trash
+    foot # Tiny, zero-config terminal; critical rescue tool if your main terminal config breaks
     iptables # Core firewall utility; base dependency for network security and containers
     glib # Low-level system library; almost all software crashes without this base layer
     gpu-screen-recorder # Used for caelestia and included here to ensure proper permissions
@@ -79,6 +92,8 @@
 
   programs.dconf.enable = true;
   programs.zsh.enable = true;
+
+  services.openssh.enable = true; # Used by nix-sops to handle secrets
 
   security.wrappers.gpu-screen-recorder = {
     owner = "root";
@@ -175,6 +190,7 @@
       "audio"
     ];
     shell = pkgs.zsh;
+    hashedPasswordFile = config.sops.secrets.krit-local-password.path;
   };
 
   # ---------------------------------------------------------
@@ -188,6 +204,28 @@
       "HomepageIsNewTabPage" = false;
       "RestoreOnStartup" = 4;
       "RestoreOnStartupURLs" = [ "https://www.youtube.com" ];
+    };
+  };
+
+  # ---------------------------------------------------------
+  # 🗑️ AUTO TRASH CLEANUP
+  # ---------------------------------------------------------
+  # 2. Define the cleanup service
+  systemd.services.cleanup_trash = {
+    description = "Clean up trash older than 30 days";
+    serviceConfig = {
+      Type = "oneshot";
+      User = vars.user;
+      ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
+    };
+  };
+
+  # 3. Schedule it to run daily
+  systemd.timers.cleanup_trash = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily"; # Runs once every 24h
+      Persistent = true; # Run immediately if the computer was off during the scheduled time
     };
   };
 

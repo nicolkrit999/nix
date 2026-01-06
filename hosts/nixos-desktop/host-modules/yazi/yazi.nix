@@ -15,11 +15,20 @@
     enableZshIntegration = true;
 
     plugins = {
+      # https://github.com/ndtoan96/ouch.yazi/archive/refs/tags/v0.7.0.tar.gz
       ouch = pkgs.fetchFromGitHub {
         owner = "ndtoan96";
         repo = "ouch.yazi";
-        rev = "cfb9140";
-        sha256 = "sha256-6TyKPsapXJMiSRFrKRfP/hamOiG6LfgbPp7flh5tKoo=";
+        rev = "v0.7.0"; # If a new version is released change it here
+        sha256 = "03fjnga97bvrblvf53w7lp0k9ikkd81pa49qc0np7fg3fc8nlhyn";
+      };
+
+      # https://github.com/uhs-robert/recycle-bin.yazi/archive/refs/tags/v1.1.0.tar.gz
+      recycle-bin = pkgs.fetchFromGitHub {
+        owner = "uhs-robert";
+        repo = "recycle-bin.yazi";
+        rev = "v1.1.0"; # If a new version is released change it here
+        sha256 = "00yh6w3f088dvhcb2464l86wxq7202bzgxjdnwi0i9cc1apgc54z";
       };
     };
 
@@ -355,5 +364,6 @@
     xdg-utils
     exiftool
     ouch
+    trash-cli
   ];
 }
