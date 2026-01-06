@@ -79,6 +79,7 @@
       rm -f "/home/${vars.user}/.config/gtk-4.0/settings.ini"
       rm -f "/home/${vars.user}/.config/gtk-4.0/gtk.css"
       rm -f "/home/${vars.user}/.config/dolphinrc"
+      rm -f "/home/${vars.user}/.config/caelestia/shell.json"
       rm -f "/home/${vars.user}/.local/share/applications/mimeapps.list"
     '';
 

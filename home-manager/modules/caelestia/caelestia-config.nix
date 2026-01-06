@@ -189,8 +189,8 @@ in
     commands = {
       logout = [
         "loginctl"
-        "terminate-user"
-        ""
+        "kill-session"
+        "self"
       ];
       shutdown = [
         "systemctl"
@@ -472,9 +472,9 @@ in
         enabled = true;
         description = "Log out of the current session";
         command = [
-          "hyprctl"
-          "dispatch"
-          "exit"
+          "loginctl"
+          "kill-session"
+          "self"
         ];
         icon = "exit_to_app";
       }
