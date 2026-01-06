@@ -96,6 +96,7 @@
       asciinema # Record and share terminal sessions
       cbonsai # Grow bonsai trees in your terminal
       neo-cowsay # Cowsay reborn (ASCII art with text)
+      pipes # Terminal pipes animation
 
       # -----------------------------------------------------------------------
       # ❓ OTHER
