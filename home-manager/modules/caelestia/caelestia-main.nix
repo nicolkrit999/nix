@@ -12,19 +12,25 @@ let
   caelestiaConfig = import ./caelestia-config.nix { inherit vars; };
 
   caelestiaQS = pkgs.writeShellScriptBin "caelestiaqs" ''
+    # 1. Wait for Hyprland to finish initialization
+    sleep 2
 
-    export HYPRLAND_INSTANCE_SIGNATURE=$(systemctl --user show-environment | grep HYPRLAND_INSTANCE_SIGNATURE | cut -d '=' -f 2)
-    if [ -z "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
-      export HYPRLAND_INSTANCE_SIGNATURE=$(hyprctl instances | head -n 1 | cut -d " " -f 2 | tr -d ':')
-    fi
+    # 2. Get the signature (Your working logic)
+    export HYPRLAND_INSTANCE_SIGNATURE=$(hyprctl instances | head -n 1 | cut -d " " -f 2 | tr -d ':')
+
+    # 3. Ensure the shell can find the IPC socket (The missing piece)
+    export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+    export WAYLAND_DISPLAY="wayland-1"
 
     set -euo pipefail
     HM_PROFILE="${config.home.profileDirectory}"
 
+    # ... keep your existing unset logic ...
     unset QT_QUICK_CONTROLS_STYLE
     unset QT_QPA_PLATFORMTHEME
     unset QT_STYLE_OVERRIDE
 
+    # ... keep your existing qmlPaths loop ...
     qmlPaths=""
     for d in \
       "${caelestiaPkg}/lib/qt-6/qml" \
@@ -36,25 +42,17 @@ let
       "$HOME/.config/quickshell"
     do
       if [ -d "$d" ]; then
-        if [ -z "$qmlPaths" ]; then
-          qmlPaths="$d"
-        else
-          qmlPaths="$qmlPaths:$d"
-        fi
+        if [ -z "$qmlPaths" ]; then qmlPaths="$d"; else qmlPaths="$qmlPaths:$d"; fi
       fi
     done
 
-    if [ -n "''${QML2_IMPORT_PATH:-}" ]; then
-       export QML2_IMPORT_PATH="$qmlPaths:$QML2_IMPORT_PATH"
-    else
-       export QML2_IMPORT_PATH="$qmlPaths"
-    fi
-
+    export QML2_IMPORT_PATH="$qmlPaths''${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
     export QT_QPA_PLATFORM="wayland"
     export QT_QUICK_CONTROLS_STYLE="Basic"
 
     exec "${caelestiaPkg}/bin/caelestia-shell" -d
   '';
+
 in
 {
   imports = [
@@ -98,9 +96,8 @@ in
 
     wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [
       "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
-
       "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
-      "sh -lc 'sleep 1; XDG_SCREENSHOTS_DIR=${vars.screenshots} caelestiaqs'"
+      "sh -lc 'XDG_SCREENSHOTS_DIR=${vars.screenshots} caelestiaqs'"
     ];
   };
 }
