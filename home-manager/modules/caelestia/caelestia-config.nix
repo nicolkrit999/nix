@@ -188,9 +188,8 @@ in
     dragThreshold = 30;
     commands = {
       logout = [
-        "pkill"
-        "-KILL"
-        "Hyprland"
+        "/run/current-system/sw/bin/uwsm"
+        "stop"
       ];
       shutdown = [
         "systemctl"
@@ -476,9 +475,8 @@ in
         enabled = true;
         description = "Log out of the current session";
         command = [
-          "hyprctl"
-          "-dispatch"
-          "exit"
+          "/run/current-system/sw/bin/uwsm"
+          "stop"
         ];
         icon = "exit_to_app";
       }

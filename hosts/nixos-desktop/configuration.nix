@@ -40,6 +40,7 @@
   # ---------------------------------------------------------
   # ⚙️ GRAPHICS & FONTS
   # ---------------------------------------------------------
+  boot.initrd.kernelModules = [ "amdgpu" ];
   hardware.graphics.enable = true;
 
   fonts.packages = with pkgs; [
