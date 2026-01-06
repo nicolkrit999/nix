@@ -1,5 +1,9 @@
 {
   imports = [
+    # Folders modules
+    ./yazi
+
+    # Single-file modules
     ./alacritty.nix
     # ./borg-backup.nix # Do not include it because it is already included in configuration.nix
     ./cava.nix

@@ -32,7 +32,7 @@
   # 📂 DEFAULT APPS
   browser = "firefox";
   editor = "code";
-  fileManager = "ranger";
+  fileManager = "yazi";
 
   # 🎨 THEMING
   base16Theme = "catppuccin-mocha";

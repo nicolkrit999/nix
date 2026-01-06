@@ -1,12 +1,16 @@
 {
   imports = [
-    # DE/WM modules
+    # Folders modules
     ./caelestia
     ./cosmic
     ./gnome
     ./hyprland
     ./kde
+    ./swaync
+    ./waybar
+    ./wofi
 
+    # Single-file modules
     ./bat.nix
     ./eza.nix
     ./git.nix
@@ -15,11 +19,8 @@
     ./neovim.nix
     ./qt.nix
     ./starship.nix
-    ./swaync
     ./stylix.nix
     ./tmux.nix
     ./zsh.nix
-    ./waybar
-    ./wofi
   ];
 }

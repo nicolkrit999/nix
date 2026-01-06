@@ -73,6 +73,12 @@ in
 
       # Enable stylix but only for certain elements
       firefox.profileNames = [ vars.user ]; # Applies skin only to the defined profile
+
+      # -----------------------------------------------------------------------
+      # Other exclusions
+      # This can be enabled but you need to uncomment/remove the module-specific theming file
+      # -----------------------------------------------------------------------
+      yazi.enable = false; # Themed manually via yazi-theme.nix
     };
 
     # -----------------------------------------------------------------------
