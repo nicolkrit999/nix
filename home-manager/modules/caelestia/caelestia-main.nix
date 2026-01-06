@@ -12,6 +12,12 @@ let
   caelestiaConfig = import ./caelestia-config.nix { inherit vars; };
 
   caelestiaQS = pkgs.writeShellScriptBin "caelestiaqs" ''
+
+    export HYPRLAND_INSTANCE_SIGNATURE=$(systemctl --user show-environment | grep HYPRLAND_INSTANCE_SIGNATURE | cut -d '=' -f 2)
+    if [ -z "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
+      export HYPRLAND_INSTANCE_SIGNATURE=$(hyprctl instances | head -n 1 | cut -d " " -f 2 | tr -d ':')
+    fi
+
     set -euo pipefail
     HM_PROFILE="${config.home.profileDirectory}"
 
@@ -92,6 +98,7 @@ in
 
     wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [
       "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
+
       "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
       "sh -lc 'sleep 1; XDG_SCREENSHOTS_DIR=${vars.screenshots} caelestiaqs'"
     ];
