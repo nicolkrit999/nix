@@ -476,9 +476,9 @@ in
         enabled = true;
         description = "Log out of the current session";
         command = [
-          "pkill"
-          "-KILL"
-          "Hyprland"
+          "hyprctl"
+          "-dispatch"
+          "exit"
         ];
         icon = "exit_to_app";
       }

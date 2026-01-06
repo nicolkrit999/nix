@@ -61,7 +61,7 @@
         # -----------------------------------------------------
         "$mainMod" = "SUPER";
         "$term" = vars.term;
-        "$fileManager" = "${vars.term} --class ranger -e ranger";
+        "$fileManager" = "${vars.term} --class yazi -e yazi";
         "$menu" = "wofi";
 
         # -----------------------------------------------------

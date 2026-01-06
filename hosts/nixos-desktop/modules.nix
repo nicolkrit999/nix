@@ -23,6 +23,7 @@
     "workspace 2 silent, class:^(code)$"
     "workspace 3 silent, class:^(org.kde.dolphin)$"
     "workspace 3 silent, class:^(ranger)$"
+    "workspace 3 silent, class:^(yazi)$"
     "workspace 7 silent, class:^(chromium-browser)$"
     "workspace 8 silent, class:^(Alacritty)$"
     "workspace 8 silent, class:^(kitty)$"

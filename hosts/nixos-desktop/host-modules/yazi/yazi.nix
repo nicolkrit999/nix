@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
 {
   programs.yazi = {
     enable = true;
@@ -39,6 +44,7 @@
         image_delay = 30;
         image_filter = "triangle";
         image_quality = 75;
+        image_preview_method = if vars.term == "kitty" then "kitty" else "ueberzug";
         ueberzug_scale = 1;
         ueberzug_offset = [
           0
@@ -251,6 +257,19 @@
         ];
       };
     };
+  };
+
+  xdg.desktopEntries.yazi = lib.mkForce {
+    name = "Yazi";
+    genericName = "File Manager";
+    exec = "${vars.term} --class yazi -e yazi";
+    terminal = false;
+    categories = [
+      "System"
+      "FileTools"
+      "FileManager"
+    ];
+    mimeType = [ "inode/directory" ];
   };
 
   home.packages = with pkgs; [
