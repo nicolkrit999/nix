@@ -79,6 +79,6 @@
 
   nixImpure = true;
 
-  caelestiaUseFahrenheit = false;
+  UseFahrenheit = false;
 
 }

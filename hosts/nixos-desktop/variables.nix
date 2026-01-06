@@ -37,7 +37,7 @@
   # 🎨 THEMING
   base16Theme = "catppuccin-mocha";
   polarity = "dark";
-  catppuccin = true;
+  catppuccin = false;
   catppuccinFlavor = "mocha";
   catppuccinAccent = "mauve";
 

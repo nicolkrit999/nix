@@ -171,48 +171,6 @@ Comment out or remove the specific lines that handles the wallpapers logic
     - **Hyprland + caelestia with quickshell**
       - Note: Currently if you use the automatic wallpaper fetching from  `caelestia-wallpaper.nix` then some features like the desktop clock and the audio visualizer do not work. If you want to have those feature you can comment out the import of the `caelestia-wallpaper.nix` inside `home-manager/modules/caelestia/default.nix` and set them manually.
         - Caelestia by default search for the wallpapers in `~/Pictures/Wallpapers
-      - Currently the configuration allow the user to modify directly the configuration file `~/.config/caelestia/shell.json`. If you prefer a pure declarative approach change the code of `caelestia-main.nix` with the following which provide a base:
-
-      ```nix
-      {
-        pkgs,
-        lib,
-        vars,
-        inputs,
-        ...
-      }:
-      {
-        imports = [
-          inputs.caelestia-shell.homeManagerModules.default
-        ];
-
-        config = lib.mkIf ((vars.hyprland or false) && (vars.caelestia or false)) {
-          programs.caelestia = {
-            enable = true;
-            cli.enable = true;
-            systemd.enable = false;
-
-            settings = {
-              background.enabled = false;
-              paths.wallpaperDir = "~/Pictures/Wallpapers";
-              recorder.path = "~/Videos";
-
-              # Dynamic hosts settings
-              services.useFahrenheit = vars.caelestiaUseFahrenheit or false;
-            };
-          };
-
-          home.packages = [
-            inputs.caelestia-shell.packages.${pkgs.system}.with-cli
-          ];
-
-          wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [
-            "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
-            "sh -lc 'sleep 1; env PATH=/run/wrappers/bin:$PATH XDG_SCREENSHOTS_DIR=${vars.screenshots} caelestia-shell -d'"
-          ];
-        };
-      }
-      ```
 
 
     - **Hyprland + waybar**
@@ -841,7 +799,7 @@ This file contains specific home-manager aspects that are related only to a cert
 | **`waybarLayoutFlags`**        | Replaces keyboard layout text codes with emojis (e.g., "en" -> "🇺🇸").                                                  | **Text Codes:** Waybar displays the ISO code (en, it, de).                        |
 | **`starshipZshIntegration`**   | Controls if Starship is auto-loaded in Zsh (`eval "$(starship init zsh)"`). Set to `false` if you manually source it. | **`true` (Enabled):** Starship loads automatically for a standard setup.          |
 | **`nixImpure`**                | If `true`, the `sw` and `upd` aliases run with `--impure` (needed for unversioned files/secrets).                     | **`false` (Pure):** Aliases use standard `nh` commands (or pure `nixos-rebuild`). |
-| **`caelestiaUseFahrenheit`**   | Whatever to use celsius or fahrenheit for the weather                                                                 | **`false`** It uses celsius                                                       |
+| **`UseFahrenheit`**            | Whatever to use celsius or fahrenheit for the weather                                                                 | **`false`** It uses celsius                                                       |
 
 
 #### `modules.nix` Example
@@ -927,7 +885,7 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
   # The fallback is false
   nixImpure = false;
 
-  caelestiaUseFahrenheit = false;
+  UseFahrenheit = false;
 }
 ```
 
