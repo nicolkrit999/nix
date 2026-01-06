@@ -104,4 +104,11 @@
     ];
     mimeType = [ "inode/directory" ];
   };
+
+  home.packages = with pkgs; [
+    ffmpegthumbnailer
+    fzf
+    ueberzugpp
+  ];
+
 }

@@ -44,16 +44,16 @@
   hardware.graphics.enable = true;
 
   fonts.packages = with pkgs; [
-    nerd-fonts.jetbrains-mono
-    nerd-fonts.symbols-only
-    noto-fonts
-    dejavu_fonts
-    noto-fonts-lgc-plus
-    noto-fonts-color-emoji
-    noto-fonts-cjk-sans
-    texlivePackages.hebrew-fonts
-    font-awesome
-    powerline-fonts
+    nerd-fonts.jetbrains-mono # Primary monospace font; includes icons for coding and terminal use
+    nerd-fonts.symbols-only # Icon fallback; ensures symbols render even when the main font lacks them
+    noto-fonts # Base text coverage; Google's "No Tofu" standard to fix square boxes globally
+    dejavu_fonts # Core Linux fallback; high compatibility for standard text in older apps
+    noto-fonts-lgc-plus # Extended European support; covers complex Latin, Greek, and Cyrillic variants
+    noto-fonts-color-emoji # Emoji support; ensures emojis appear in color rather than monochrome outlines
+    noto-fonts-cjk-sans # Asian language support; mandatory for Chinese, Japanese, and Korean characters
+    texlivePackages.hebrew-fonts # Hebrew support; specialized font for correct Hebrew script rendering
+    font-awesome # System icons; standard dependency for Waybar and desktop interface elements
+    powerline-fonts # Shell prompt glyphs; prevents broken triangles/shapes in Zsh/Bash prompts
   ];
 
   fonts.fontconfig.enable = true;
@@ -62,16 +62,19 @@
   # 📦 SYSTEM PACKAGES
   # ---------------------------------------------------------
   environment.systemPackages = with pkgs; [
+    # Tiny, zero-config terminal; critical rescue tool if your main terminal config breaks
     foot
-    iptables
-    glib
-    gpu-screen-recorder
+    iptables # Core firewall utility; base dependency for network security and containers
+    glib # Low-level system library; almost all software crashes without this base layer
+    gpu-screen-recorder # Used for caelestia and included here to ensure proper permissions
+    # Global theme settings; prevents GTK apps from looking broken or crashing
     gsettings-desktop-schemas
-    gtk3
-    libsForQt5.qt5.qtwayland
-    kdePackages.qtwayland
-    powerline-symbols
-    polkit_gnome
+    gtk3 # Standard GUI toolkit; essential for drawing basic application windows
+    libsForQt5.qt5.qtwayland # Qt5 Wayland bridge; mandatory for older Qt apps to display correctly
+    kdePackages.qtwayland # Qt6 Wayland bridge; mandatory for modern Qt apps to display correctly
+    powerline-symbols # Terminal font glyphs; prevents "box" errors in shell prompts
+    polkit_gnome # Authentication agent; required for GUI apps (like Btrfs Assistant) to ask for passwords
+
   ];
 
   programs.dconf.enable = true;

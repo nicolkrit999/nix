@@ -49,27 +49,16 @@ in
       # -----------------------------------------------------------------------------------
       imv # Image viewer (referenced in window rules)
       mpv # Video player (referenced in window rules)
-      pavucontrol # Audio control (Vital for Hyprland)
+      pavucontrol # Audio control (Vital for Hyprland and caelestia)
 
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES
       # -----------------------------------------------------------------------------------
-      brightnessctl # Control device backlight/brightness (needed for hyprland binds)
       cliphist # Wayland clipboard history manager (needed for clipboard management)
-      eza # Modern ls replacement (used in shell and ranger)
-      ffmpegthumbnailer # Lightweight video thumbnailer (needed for ranger video previews)
-      fzf # Fuzzy finder (used in shell and ranger)
+      eza # Modern ls replacement (used by eza.nix module)
       git # Version control system (used in various scripts)
-      grimblast # Wayland screenshot helper for Hyprland (referenced in chromium.nix module)
-      htop # Interactive process viewer (keep to kill processes easily)
-      hyprpaper # Wallpaper manager for Hyprland (needed for wallpaper management)
-      hyprpicker # Wayland color picker (needed for hyprland binds)
       nixfmt-rfc-style # Nix code formatter with RFC style (used in flake.nix)
-      playerctl # Control MPRIS-enabled media players (Spotify, etc.) (used in hyprland binds)
-      showmethekey # Visualizer for keyboard input (used by hyprland binds)
       starship # Shell prompt (used by starship.nix)
-      ueberzugpp # Image previews for terminal (used by Ranger backend)
-      wl-clipboard # Wayland copy/paste CLI tools (needed for clipboard management)
       zsh-autosuggestions # Fish-like autosuggestions for Zsh (used in zsh config)
 
       # -----------------------------------------------------------------------------------
@@ -81,15 +70,13 @@ in
       # 🪟 WINDOW MANAGER (WM) INFRASTRUCTURE
       # -----------------------------------------------------------------------
       libnotify # Library for desktop notifications (used by hyprland-notifications)
-      xdg-desktop-portal-gtk # GTK portal backend for file pickers (needed for hyprland)
-      xdg-desktop-portal-hyprland # Hyprland specific portal for screen sharing (needed for hyprland)
+      xdg-desktop-portal-gtk # GTK portal backend for file pickers
 
       # -----------------------------------------------------------------------
       # ❓ OTHER
       # -----------------------------------------------------------------------
       bemoji # Emoji picker with dmenu/wofi support (used in hyprland binds)
-      nix-prefetch-scripts # Tools to get hashes for nix derivations (used by nixos development)
-
+      nix-prefetch-scripts # Tools to get hashes for nix derivations (used in zsh.nix module)
     ])
 
     # 3. KDE PACKAGES

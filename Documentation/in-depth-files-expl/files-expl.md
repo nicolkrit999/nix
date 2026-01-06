@@ -2277,7 +2277,6 @@ It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audi
   # 📦 SYSTEM PACKAGES
   # ---------------------------------------------------------
   environment.systemPackages = with pkgs; [
-    # Backup terminal in case other fails.
     foot # Tiny, zero-config terminal; critical rescue tool if your main terminal config breaks
     iptables # Core firewall utility; base dependency for network security and containers
     glib # Low-level system library; almost all software crashes without this base layer

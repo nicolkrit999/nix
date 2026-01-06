@@ -13,6 +13,7 @@
       xclip
       gcc
       gnumake
+      fzf
     ];
   };
 }

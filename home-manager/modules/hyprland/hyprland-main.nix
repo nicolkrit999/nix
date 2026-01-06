@@ -14,6 +14,18 @@
     catppuccin.hyprland.flavor = vars.catppuccinFlavor;
     catppuccin.hyprland.accent = vars.catppuccinAccent;
     # ----------------------------------------------------------------------------
+
+    home.packages = with pkgs; [
+      grimblast # Screenshot tool
+      hyprpaper # Wallpaper manager
+      hyprpicker # Color picker
+      brightnessctl # Screen brightness control
+      playerctl # Media player control
+      showmethekey # Keypress visualizer
+      wl-clipboard # Wayland clipboard utilities
+      xdg-desktop-portal-hyprland # Required for screen sharing
+    ];
+
     wayland.windowManager.hyprland = {
       enable = true;
       systemd = {
