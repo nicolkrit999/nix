@@ -77,7 +77,7 @@ in
       # Other exclusions
       # This can be enabled but you need to uncomment/remove the module-specific theming file
       # -----------------------------------------------------------------------
-      yazi.enable = false; # Themed manually via yazi-theme.nix
+      yazi.enable = lib.mkForce false; # Themed manually via yazi-theme.nix
     };
 
     # -----------------------------------------------------------------------

@@ -101,6 +101,8 @@ in
           "/home/*/.local/share/Zeal" # Offline doc sets (re-downloadable)
           "/home/*/.local/share/nvim"
           "/home/*/.config/libreoffice/*/cache"
+          "/home/*/.config/yazi/*"
+          "/home/*/.config/sops/*"
 
           # -------------------------------------------------------------------
           # 7. YOUR PERSONAL SYNCED FOLDERS
