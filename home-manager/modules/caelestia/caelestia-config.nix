@@ -188,9 +188,9 @@ in
     dragThreshold = 30;
     commands = {
       logout = [
-        "loginctl"
-        "kill-session"
-        "self"
+        "pkill"
+        "-KILL"
+        "Hyprland"
       ];
       shutdown = [
         "systemctl"
@@ -472,9 +472,9 @@ in
         enabled = true;
         description = "Log out of the current session";
         command = [
-          "loginctl"
-          "kill-session"
-          "self"
+          "pkill"
+          "-KILL"
+          "Hyprland"
         ];
         icon = "exit_to_app";
       }
