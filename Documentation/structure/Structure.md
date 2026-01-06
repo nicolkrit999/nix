@@ -24,6 +24,12 @@ Categories can be navigated with the links below:
 │   │
 │   └── modules/                                   # Application-specific configurations
 │       │
+│       ├── caelestia/                             # cosmic-specific configuration
+│       │   ├── caelestia-config.nix               # The configuration
+│       │   ├── caelestia-main.nix                 # The quickshell and caelestia main logic
+│       │   ├── caelestia-wallpaper.nix            # Apply the wallpaper
+│       │   └── default.nix                        # Caelestia redirector
+│       │
 │       ├── cosmic/                                # cosmic-specific configuration
 │       │   ├── cosmic-binds.nix                   # cosmic keyboard shortcuts
 │       │   ├── default.nix                        # Cosmic redirector

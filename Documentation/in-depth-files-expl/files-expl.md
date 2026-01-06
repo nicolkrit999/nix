@@ -196,6 +196,11 @@ Once the variables are calculated, the system loads the code. It includes the ge
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-sops = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs =
@@ -244,6 +249,8 @@ Once the variables are calculated, the system loads the code. It includes the ge
             ./hosts/${hostname}/configuration.nix
             inputs.catppuccin.nixosModules.catppuccin
             inputs.nix-flatpak.nixosModules.nix-flatpak
+            inputs.nix-sops.nixosModules.sops
+
             # DE/WM import
             ./nixos/modules/hyprland.nix
             ./nixos/modules/gnome.nix
@@ -676,26 +683,16 @@ in
       # -----------------------------------------------------------------------------------
       imv # Image viewer (referenced in window rules)
       mpv # Video player (referenced in window rules)
-      pavucontrol # Audio control (Vital for Hyprland)
+      pavucontrol # Audio control (Vital for Hyprland and caelestia)
 
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES
       # -----------------------------------------------------------------------------------
-      brightnessctl # Control device backlight/brightness (needed for hyprland binds)
       cliphist # Wayland clipboard history manager (needed for clipboard management)
-      eza # Modern ls replacement (used in shell and ranger)
-      ffmpegthumbnailer # Lightweight video thumbnailer (needed for ranger video previews)
-      fzf # Fuzzy finder (used in shell and ranger)
+      eza # Modern ls replacement (used by eza.nix module)
       git # Version control system (used in various scripts)
-      grimblast # Wayland screenshot helper for Hyprland (referenced in chromium.nix module)
-      htop # Interactive process viewer (keep to kill processes easily)
-      hyprpicker # Wayland color picker (needed for hyprland binds)
       nixfmt-rfc-style # Nix code formatter with RFC style (used in flake.nix)
-      playerctl # Control MPRIS-enabled media players (Spotify, etc.) (used in hyprland binds)
-      showmethekey # Visualizer for keyboard input (used by hyprland binds)
       starship # Shell prompt (used by starship.nix)
-      ueberzugpp # Image previews for terminal (used by Ranger backend)
-      wl-clipboard # Wayland copy/paste CLI tools (needed for clipboard management)
       zsh-autosuggestions # Fish-like autosuggestions for Zsh (used in zsh config)
 
       # -----------------------------------------------------------------------------------
@@ -707,15 +704,13 @@ in
       # 🪟 WINDOW MANAGER (WM) INFRASTRUCTURE
       # -----------------------------------------------------------------------
       libnotify # Library for desktop notifications (used by hyprland-notifications)
-      xdg-desktop-portal-gtk # GTK portal backend for file pickers (needed for hyprland)
-      xdg-desktop-portal-hyprland # Hyprland specific portal for screen sharing (needed for hyprland)
+      xdg-desktop-portal-gtk # GTK portal backend for file pickers
 
       # -----------------------------------------------------------------------
       # ❓ OTHER
       # -----------------------------------------------------------------------
       bemoji # Emoji picker with dmenu/wofi support (used in hyprland binds)
-      nix-prefetch-scripts # Tools to get hashes for nix derivations (used by nixos development)
-
+      nix-prefetch-scripts # Tools to get hashes for nix derivations (used in zsh.nix module)
     ])
 
     # 3. KDE PACKAGES
@@ -889,9 +884,25 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
     catppuccin.hyprland.flavor = vars.catppuccinFlavor;
     catppuccin.hyprland.accent = vars.catppuccinAccent;
     # ----------------------------------------------------------------------------
+
+    home.packages = with pkgs; [
+      grimblast # Screenshot tool
+      hyprpaper # Wallpaper manager
+      hyprpicker # Color picker
+      brightnessctl # Screen brightness control
+      playerctl # Media player control
+      showmethekey # Keypress visualizer
+      wl-clipboard # Wayland clipboard utilities
+      xdg-desktop-portal-hyprland # Required for screen sharing
+    ];
+
     wayland.windowManager.hyprland = {
       enable = true;
-      systemd.enable = true;
+      systemd = {
+        enable = true;
+        variables = [ "--all" ]; # Pass all environment variables to Hyprland systemd service, useful for caelestia-shell
+      };
+
       settings = {
 
         # -----------------------------------------------------
@@ -933,19 +944,21 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
         # -----------------------------------------------------
         "$mainMod" = "SUPER";
         "$term" = vars.term;
-        "$fileManager" = "$term -e sh -c 'ranger'";
+        "$fileManager" = "${vars.term} --class yazi -e yazi";
         "$menu" = "wofi";
 
         # -----------------------------------------------------
         # 🚀 Startup Apps
         # ----------------------------------------------------
         exec-once = [
+        "sh -lc 'SIG=$(hyprctl instances | head -n 1 | cut -d \" \" -f 2); systemctl --user set-environment HYPRLAND_INSTANCE_SIGNATURE=\"$SIG\" WAYLAND_DISPLAY=\"$WAYLAND_DISPLAY\" XDG_RUNTIME_DIR=\"$XDG_RUNTIME_DIR\"'"
+
           "wl-paste --type text --watch cliphist store" # Start clipboard manager for text
           "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
         ];
-        ++ lib.optionals (!(vars.caelestia or true)) [
+        ++ lib.optionals (!(vars.caelestia or false)) [
           "uwsm app -- waybar" # Start waybar onlyt if "caelestia" is disabled in variables.nix
         ];
 
@@ -1895,8 +1908,7 @@ in
     # -----------------------------------------------------------------------
     # Tells Stylix NOT to automatically skin these programs (except for Firefox).
     targets = {
-
-      # It is possible to enable these, but it require manual theming in the modules/program itself
+     # It is possible to enable these, but it require manual theming in the modules/program itself
       neovim.enable = false; # Custom themed via my personal neovim stow config in dotfiles
       wofi.enable = false; # Themed manually via wofi/style.css
 
@@ -1910,12 +1922,21 @@ in
 
       # These should remain enabled to avoid conflicts with other modules (empty for now)
 
+      # -----------------------------------------------------------------------
+      # DE/WM SPECIFIC
+      # -----------------------------------------------------------------------
+      gnome.enable = vars.gnome;
+
+      # -----------------------------------------------------------------------
+      # MULTI EXCLUSIONS DUE TO CAELESTIA/QUICKSHELL
+      # -----------------------------------------------------------------------
+      gtk.enable = !vars.catppuccin && !vars.cosmic && !vars.caelestia;
+
       # ---------------------------------------------------------------------------------------
       # 🎨 GLOBAL CATPPUCCIN
       # Intelligently enable/disable stylix based on whether catppuccin is enabled
       # catppuccin = true -> .enable = false
       # catppuccin = false -> .enable = true
-      gtk.enable = !vars.catppuccin; # Avoid .gtkrc-2.0 and gtk-3.0 overrides
       alacritty.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/alacritty.nix
       hyprland.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
       hyprlock.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix
@@ -1931,6 +1952,12 @@ in
 
       # Enable stylix but only for certain elements
       firefox.profileNames = [ vars.user ]; # Applies skin only to the defined profile
+
+      # -----------------------------------------------------------------------
+      # Other exclusions
+      # This can be enabled but you need to uncomment/remove the module-specific theming file
+      # -----------------------------------------------------------------------
+      yazi.enable = false; # Themed manually via yazi-theme.nix
     };
 
     # -----------------------------------------------------------------------
@@ -2056,6 +2083,14 @@ The `initExtra` block handles the logic that runs every time you open a terminal
 * **Compositor Launch:** If true, it uses `uwsm` to correctly launch your desktop (Hyprland), replacing the need for a bulky display manager like SDDM.
 
 
+5. **Snapper utilities:** 
+* **Create** Allow the user to create a home/root snapshot and lock it if needed
+* **Lock/unlock** Allow the user to list and lock/unlock as needed both home-root snapshot
+  
+6. **Nix prefetch url:**
+* **Get the sha256 smartly** It detect if the input is a file or a github repo that need the --unpack flag and give the sha256
+
+
 
 ---
 
@@ -2107,6 +2142,7 @@ This code is my personal one, but it may be change heavily based on your prefere
 
         # Smart aliases based on nixImpure setting
         sw = "cd ${flakeDir} && ${switchCmd}";
+        gsw = "cd ${flakeDir} && git add -A && ${switchCmd}";
         upd = "cd ${flakeDir} && ${updateCmd}";
 
         # Manual are kept for reference, but use the above aliases instead
@@ -2130,8 +2166,11 @@ This code is my personal one, but it may be change heavily based on your prefere
         merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop"; # Merge main with develop branch, push and return to develop branch
         merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop"; # Merge develop with main branch, push and return to develop branch
 
+        # Snapshots
+        snap-list-home = "snapper -c home list"; # List home snapshots
+        snap-list-root = "sudo snapper -c root list"; # List root snapshots
+
         # Utilities
-        npu = "read 'url?Enter URL: ' && nix-prefetch-url \"$url\"";
         se = "sudoedit";
 
         # Various
@@ -2146,32 +2185,125 @@ This code is my personal one, but it may be change heavily based on your prefere
     # ⚙️ SHELL INITIALIZATION
     # -----------------------------------------------------
     initExtra = ''
-      # 1. FIX HYPRLAND SOCKET (Dynamic Update)
-      # This ensures that even inside tmux or after a crash, the shell finds the correct socket.
-      if [ -d "/run/user/$(id -u)/hypr" ]; then
-        export HYPRLAND_INSTANCE_SIGNATURE=$(ls -w 1 /run/user/$(id -u)/hypr/ | grep -v ".lock" | head -n 1)
-      fi
+        # 1. FIX HYPRLAND SOCKET (Dynamic Update)
+        # This ensures that even inside tmux or after a crash, the shell finds the correct socket.
+        if [ -d "/run/user/$(id -u)/hypr" ]; then
+          export HYPRLAND_INSTANCE_SIGNATURE=$(ls -w 1 /run/user/$(id -u)/hypr/ | grep -v ".lock" | head -n 1)
+        fi
 
-      # 2. LOAD USER CONFIG (Stow Integration)
-      if [ -f "$HOME/.zshrc_custom" ]; then
-        source "$HOME/.zshrc_custom"
-      fi
+        # 2. LOAD USER CONFIG (Stow Integration)
+        if [ -f "$HOME/.zshrc_custom" ]; then
+          source "$HOME/.zshrc_custom"
+        fi
 
-      # 3. TMUX AUTOSTART (Only in GUI)
-      # Ensure we are in a GUI before starting tmux automatically
-      if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
-        tmux new-session
-      fi
+        # 3. TMUX AUTOSTART (Only in GUI)
+        # Ensure we are in a GUI before starting tmux automatically
+        if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
+          tmux new-session
+        fi
 
-      # 4. UWSM STARTUP (Universal & Safe)
-      # Guard: Only run if on physical TTY1 AND no graphical session is active.
-      if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+        # 4. UWSM STARTUP (Universal & Safe)
+        # Guard: Only run if on physical TTY1 AND no graphical session is active.
+        if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+            
+            # Check if uwsm is installed and ready (Safe for KDE/GNOME-only builds)
+            if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
+                exec systemd-cat -t uwsm_start uwsm start default
+            fi
+        fi
+
+        # -----------------------------------------------------
+        # 5A SNAPSHOT LOCK & UNLOCK
+        # -----------------------------------------------------
+        # LOCK (Protect from auto-deletion)
+        snap-lock() {
+          echo "Which config? (1=home, 2=root)"
+          read "k?Selection: "
+          if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
           
-          # Check if uwsm is installed and ready (Safe for KDE/GNOME-only builds)
-          if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
-              exec systemd-cat -t uwsm_start uwsm start default
+          echo "Listing snapshots for $CFG..."
+          sudo snapper -c "$CFG" list
+          
+          echo ""
+          read "ID?Enter Snapshot ID to LOCK: "
+          
+          if [[ -n "$ID" ]]; then
+             sudo snapper -c "$CFG" modify -c "" "$ID"
+             echo "✅ Snapshot #$ID in '$CFG' is now LOCKED (won't be deleted)."
           fi
-      fi
+        }
+
+        # UNLOCK (Allow auto-deletion)
+        snap-unlock() {
+          echo "Which config? (1=home, 2=root)"
+          read "k?Selection: "
+          if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
+          
+          echo "Listing snapshots for $CFG..."
+          sudo snapper -c "$CFG" list
+          
+          echo ""
+          read "ID?Enter Snapshot ID to UNLOCK: "
+          
+          if [[ -n "$ID" ]]; then
+             sudo snapper -c "$CFG" modify -c "timeline" "$ID"
+             echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED (timeline cleanup enabled)."
+          fi
+        }
+
+
+      # -----------------------------------------------------------------------
+      # 5B SNAPPER CREATE INTERACTIVE FUNCTION
+      # -----------------------------------------------------------------------
+      function _snap_create() {
+        local config_name=$1
+        
+        echo -n "📝 Enter snapshot description: "
+        read description
+        
+        if [ -z "$description" ]; then
+          echo "❌ Description cannot be empty."
+          return 1
+        fi
+
+        echo -n "🔒 Lock this snapshot (keep forever)? [y/N]: "
+        read lock_ans
+
+        local cleanup_flag="-c timeline"
+        local lock_status="UNLOCKED (will auto-delete)"
+
+        if [[ "$lock_ans" =~ ^[Yy]$ ]]; then
+          cleanup_flag=""
+          lock_status="LOCKED (safe forever)"
+        fi
+
+        echo "🚀 Creating $lock_status snapshot for '$config_name'..."
+        sudo snapper -c "$config_name" create --description "$description" $cleanup_flag
+      }
+
+      alias snap-create-home="_snap_create home"
+      alias snap-create-root="_snap_create root"
+
+      # -----------------------------------------------------
+      # 6 📦 SMART NIX PREFETCH (npu)
+      # -----------------------------------------------------
+      npu() {
+        local url
+        if [ -z "$1" ]; then
+          read "url?Enter URL: "
+        else
+          url="$1"
+        fi
+
+        # Detect if the URL is a GitHub/GitLab repository archive
+        if [[ "$url" == *"github.com"* ]] || [[ "$url" == *"gitlab.com"* ]]; then
+          echo "📦 Git repository detected. Using --unpack for Nix compatibility..."
+          nix-prefetch-url --unpack "$url"
+        else
+          echo "📄 Direct file detected. Fetching normally..."
+          nix-prefetch-url "$url"
+        fi
+      }
     '';
   };
 }
@@ -2465,6 +2597,9 @@ We add a custom menu entry called **"UEFI Firmware Settings"**.
       # 🕵️ DUAL BOOT
       # Scans for Windows/other Linux installs
       useOSProber = true;
+
+      configurationLimit = 20; # Maximum number of generations to show
+
       
       # Ensures the boot entry is named cleanly in your BIOS
       extraGrubInstallArgs = [ "--bootloader-id=nixos" ];
@@ -2540,6 +2675,7 @@ let
     "gedit" = "gedit --wait";
     "subl" = "subl --wait";
     "nano" = "nano";
+    "neovim" = "nvim";
     "nvim" = "nvim";
     "vim" = "vim";
   };
@@ -2788,28 +2924,94 @@ Linux applications require exact `.desktop` filenames to register as default han
 {
   pkgs,
   vars,
+  lib,
   ...
 }:
 let
-  mkDesktop =
-    name:
-    if name == "dolphin" then
-      "org.kde.dolphin.desktop"
-    else if name == "kate" then
-      "org.kde.kate.desktop"
-    else if name == "vscode" || name == "code" then
+  # -----------------------------------------------------------------------
+  # 1. HELPER: Terminal Editor Logic
+  # -----------------------------------------------------------------------
+  termEditors = {
+    neovim = {
+      bin = "nvim";
+      icon = "nvim";
+      name = "Neovim (User)";
+    };
+    nvim = {
+      bin = "nvim";
+      icon = "nvim";
+      name = "Neovim (User)";
+    };
+    vim = {
+      bin = "vim";
+      icon = "vim";
+      name = "Vim (User)";
+    };
+    nano = {
+      bin = "nano";
+      icon = "nano";
+      name = "Nano (User)";
+    };
+    helix = {
+      bin = "hx";
+      icon = "helix";
+      name = "Helix (User)";
+    };
+  };
+
+  # Check if the chosen editor is a terminal one
+  isTermEditor = builtins.hasAttr vars.editor termEditors;
+  editorConfig = termEditors.${vars.editor};
+
+  # -----------------------------------------------------------------------
+  # 2. LOGIC: Determine the .desktop file name
+  # -----------------------------------------------------------------------
+  myEditor =
+    if isTermEditor then
+      # If it's a terminal editor, use our custom generated file
+      "user-${vars.editor}.desktop"
+    else
+    # If it's a GUI editor (VSCode), use the standard system file
+    if vars.editor == "vscode" || vars.editor == "code" then
       "code.desktop"
     else
-      "${name}.desktop";
+      "${vars.editor}.desktop";
 
-  myBrowser = mkDesktop vars.browser;
-  myFileManager = mkDesktop vars.fileManager;
-  myEditor = mkDesktop vars.editor;
+  myBrowser = "${vars.browser}.desktop";
+  myFileManager =
+    if vars.fileManager == "dolphin" then "org.kde.dolphin.desktop" else "${vars.fileManager}.desktop";
+
 in
 {
+  # -----------------------------------------------------------------------
+  # 🖥️ CUSTOM DESKTOP ENTRY (Terminal Editors Only)
+  # -----------------------------------------------------------------------
+  # This creates a file like: ~/.local/share/applications/user-neovim.desktop
+  xdg.desktopEntries = lib.mkIf isTermEditor {
+    "user-${vars.editor}" = {
+      name = editorConfig.name;
+      genericName = "Text Editor";
+      comment = "Edit text files in ${vars.term}";
+      exec = "${vars.term} -e ${editorConfig.bin} %F";
+      icon = editorConfig.icon;
+      terminal = false;
+      categories = [
+        "Utility"
+        "TextEditor"
+      ];
+      mimeType = [
+        "text/plain"
+        "text/markdown"
+        "text/x-nix"
+      ];
+    };
+  };
+
+  # -----------------------------------------------------------------------
+  # 📂 MIME ASSOCIATIONS
+  # -----------------------------------------------------------------------
   xdg.mimeApps = {
     enable = true;
-
     defaultApplications = {
       "inode/directory" = myFileManager;
 
@@ -2819,6 +3021,7 @@ in
       "x-scheme-handler/about" = myBrowser;
       "x-scheme-handler/unknown" = myBrowser;
 
+      # Force these types to use our calculated 'myEditor'
       "text/plain" = myEditor;
       "text/markdown" = myEditor;
       "application/x-shellscript" = myEditor;
@@ -2954,7 +3157,7 @@ in
 
   services.displayManager.sddm = {
     enable = true;
-    wayland.enable = false; # keep x11 for stability
+    wayland.enable = true;
     package = lib.mkForce pkgs.kdePackages.sddm;
     theme = "sddm-astronaut-theme";
 

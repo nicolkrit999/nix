@@ -10,6 +10,8 @@
   - [Hyprland + caelestia/quickshell](#hyprland--caelestiaquickshell)
   - [✨ Features](#-features)
     - [🖥️ Adaptive Host Support:](#️-adaptive-host-support)
+      - [Host-specific home-manager modules](#host-specific-home-manager-modules)
+      - [Host-specific home options](#host-specific-home-options)
     - [📦 Package version and flatpak](#-package-version-and-flatpak)
     - [❄️ Hybrid (declarative + non declarative for some modules)](#️-hybrid-declarative--non-declarative-for-some-modules)
     - [🎨 Theming](#-theming)
@@ -25,6 +27,7 @@
     - [🧇 Tmux](#-tmux)
     - [🌟 Zsh + Starship](#-zsh--starship)
     - [🦺 BTRFS snapshots](#-btrfs-snapshots)
+    - [❔ SOPS-nix support](#-sops-nix-support)
 - [🚀 NixOS Installation Guide](#-nixos-installation-guide)
   - [📦 Phase 1: Preparation](#-phase-1-preparation)
     - [1. Download \& Flash](#1-download--flash)
@@ -91,6 +94,15 @@ Define unique hardware parameters (monitors, theming, keyboard layout,  wallpape
 - This allow to have a tailored experience right from the start,
 - For reference look point ([5. Configure the host folder](#5-configure-the-hosts-folder)).
 - A variables can be added anytime and it is automatically recognized. Then if it needs to be called it can be simply done by appending `vars.` to the name of the variable
+
+
+#### Host-specific home-manager modules
+- Inside the host folder it is possible to create home-manager modules. These are modules that unlike local packages can configure with home-manager, but they do not add noise in the general home-manager folder.
+  - This allow to have customized packages but that apply only to certain hosts 
+
+#### Host-specific home options
+- Allow to create home.nix options but that are host-specific
+  - For example on an host you may want to have certain session variables or create/remove specific directories 
 
 ---
 
@@ -345,6 +357,29 @@ ZSH is hybrid:
 
 ### 🦺 BTRFS snapshots
 - Possibility to enable snapshots and define an host-specific retention policy
+
+### ❔ SOPS-nix support
+- Sops is already enabled in `flake.nix` and `.sops.yaml` contains the necessary code to add the host-specific keys
+- For an host to use sops it must be added to the host-specific configuration.nix, otherwise it is ignored. An example is the following:
+
+```nix
+sops.defaultSopsFile = ./secrets.yaml;
+sops.defaultSopsFormat = "yaml";
+sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+```
+
+If you intend to use the hostname `nixos-desktop` you should remove the entire content of the existing one, as it contains my own personal configurations and change and create the new host public key. Basically after a new rebuild and a `nixos-desktop` which contains the bare minimum from `template-host` you would run:
+
+```bash
+# Get the new host public key
+nix-shell -p ssh-to-age --run "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub"
+
+# Then update the user with the admin public key and the host public key
+
+# Then invite the host
+sops updatekeys hosts/nixos-desktop/secrets.yaml
+```
+
 
 ---
 

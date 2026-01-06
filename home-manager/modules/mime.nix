@@ -69,10 +69,8 @@ in
       name = editorConfig.name;
       genericName = "Text Editor";
       comment = "Edit text files in ${vars.term}";
-      # ⚠️ The Fix: We manually wrap the command in your terminal
       exec = "${vars.term} -e ${editorConfig.bin} %F";
       icon = editorConfig.icon;
-      # ⚠️ Vital: Tell KDE this is a GUI window (Kitty), not a console script
       terminal = false;
       categories = [
         "Utility"

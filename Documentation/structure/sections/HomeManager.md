@@ -102,8 +102,83 @@ Shell configuration.
 * **Function:** Adds Nix-specific aliases (like `hms` for Home Manager Switch) and integrates with an existing `~/.zshrc_custom` file
   * This allow an hybrid setup where one can configure `~/.zshrc_custom` to be valid regardless of os, basically using globally valid aliases and options
 
-## 🪟 Cosmic Sub-modules (`home-manager/modules/cosmic/`)
 
+
+## 🪟 Caelestia (`home-manager/modules/caelestia/`)
+
+Caelestia is a highly customized shell environment built on Quickshell. Its logic is split across multiple files to handle configuration generation, wallpaper management, and session initialization.
+
+### `caelestia-main.nix`
+
+This is the core orchestration module. It handles the installation of the shell and ensures the environment is ready for the session.
+
+**JSON Configuration:** This module generates the file `~/.config/caelestia/shell.json` by taking the Nix attribute set defined in `caelestia-config.nix` and converting it using `builtins.toJSON`. This allows you to manage complex shell settings (like bar entries, dashboard sizes, and power commands) using native Nix syntax.
+
+
+
+**Hyprland Signature & IPC:** To ensure the shell can communicate with the window manager, it creates a wrapper script called `caelestiaqs`. This script handles the "Hyprland Signature" by:
+
+
+1. Waiting for Hyprland to finish starting.
+
+
+2. Extracting the unique `HYPRLAND_INSTANCE_SIGNATURE` directly from the `hyctl instances` command.
+
+
+3. Exporting this signature along with `WAYLAND_DISPLAY` so the shell can find the correct IPC socket to control windows and workspaces.
+
+
+
+**Dependencies:** It bundles required Qt6 libraries (SVG, Wayland, Declarative) and specialized fonts like **Material Symbols Rounded** to ensure the interface renders correctly.
+
+
+
+### `caelestia-config.nix`
+
+This file contains the "brain" of the shell logic. It is a function that takes your global `vars` as an input to stay consistent with the rest of your system.
+
+
+**Integrated Explorer:** It checks your `vars.fileManager`. If you use a terminal-based manager like **Yazi**, it automatically configures Caelestia to launch your preferred terminal with the `-e` flag when opening folders.
+
+
+**Session Commands:** It maps UI buttons (Shutdown, Reboot, Logout) to actual system commands, specifically using `uwsm stop` for clean session termination.
+
+
+
+### `caelestia-wallpaper.nix`
+
+This module manages the background images specifically for the Hyprland/Caelestia combo.
+
+
+**Fetching from `variables.nix`:** The module looks at `vars.wallpapers`. It uses `pkgs.fetchurl` and the `wallpaperSHA256` provided in your variables to download the images into the Nix store during build time.
+
+
+* **Multi-Monitor Logic:**
+1. It filters out any monitors marked as "disabled" in your variables.
+
+
+2. It maps the downloaded wallpapers to your specific monitor names (e.g., `DP-1`, `HDMI-A-1`).
+
+
+3. If you have more monitors than wallpapers, it uses a `fallbackWallpaper` (the first one in the list) to ensure no screen is left blank.
+
+
+
+
+**Application:** It generates a `hyprpaper.conf` file and uses `exec-once` to start `hyprpaper`. Finally, it runs a `caelestia wallpaper` command to sync the shell's internal theme with the current background image.
+
+
+
+Would you like me to show you how to add a new custom entry to the Caelestia launcher menu in the `shell.json` configuration?
+
+
+
+
+
+
+
+
+## 🪟 Cosmic Sub-modules (`home-manager/modules/cosmic/`)
 
 
 ### `cosmic-main.nix`

@@ -28,7 +28,6 @@ in
     # -----------------------------------------------------------------------
     # Tells Stylix NOT to automatically skin these programs (except for Firefox).
     targets = {
-
       # It is possible to enable these, but it require manual theming in the modules/program itself
       neovim.enable = false; # Custom themed via my personal neovim stow config in dotfiles
       wofi.enable = false; # Themed manually via wofi/style.css
