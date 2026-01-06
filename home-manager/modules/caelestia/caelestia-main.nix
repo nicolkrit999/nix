@@ -15,10 +15,10 @@ let
     # 1. Wait for Hyprland to finish initialization
     sleep 2
 
-    # 2. Get the signature (Your working logic)
+    # 2. Get the signature
     export HYPRLAND_INSTANCE_SIGNATURE=$(hyprctl instances | head -n 1 | cut -d " " -f 2 | tr -d ':')
 
-    # 3. Ensure the shell can find the IPC socket (The missing piece)
+    # 3. Ensure the shell can find the IPC socket
     export XDG_RUNTIME_DIR="/run/user/$(id -u)"
     export WAYLAND_DISPLAY="wayland-1"
 
