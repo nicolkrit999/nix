@@ -799,7 +799,7 @@ This file contains specific home-manager aspects that are related only to a cert
 | **`waybarLayoutFlags`**        | Replaces keyboard layout text codes with emojis (e.g., "en" -> "🇺🇸").                                                  | **Text Codes:** Waybar displays the ISO code (en, it, de).                        |
 | **`starshipZshIntegration`**   | Controls if Starship is auto-loaded in Zsh (`eval "$(starship init zsh)"`). Set to `false` if you manually source it. | **`true` (Enabled):** Starship loads automatically for a standard setup.          |
 | **`nixImpure`**                | If `true`, the `sw` and `upd` aliases run with `--impure` (needed for unversioned files/secrets).                     | **`false` (Pure):** Aliases use standard `nh` commands (or pure `nixos-rebuild`). |
-| **`UseFahrenheit`**            | Whatever to use celsius or fahrenheit for the weather                                                                 | **`false`** It uses celsius                                                       |
+| **`useFahrenheit`**            | Whatever to use celsius or fahrenheit for the weather                                                                 | **`false`** It uses celsius                                                       |
 
 
 #### `modules.nix` Example
@@ -885,7 +885,7 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
   # The fallback is false
   nixImpure = false;
 
-  UseFahrenheit = false;
+  useFahrenheit = false;
 }
 ```
 

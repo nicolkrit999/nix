@@ -79,6 +79,6 @@
 
   nixImpure = true;
 
-  UseFahrenheit = false;
+  useFahrenheit = false;
 
 }

@@ -12,6 +12,7 @@
       device = "nodev";
       efiSupport = true;
       useOSProber = true;
+      configurationLimit = 20;
       extraGrubInstallArgs = [ "--bootloader-id=nixos" ];
 
       extraEntries = ''
