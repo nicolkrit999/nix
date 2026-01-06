@@ -31,13 +31,13 @@
 
   # 📂 DEFAULT APPS
   browser = "firefox";
-  editor = "code";
+  editor = "neovim";
   fileManager = "yazi";
 
   # 🎨 THEMING
   base16Theme = "catppuccin-mocha";
   polarity = "dark";
-  catppuccin = false;
+  catppuccin = true;
   catppuccinFlavor = "mocha";
   catppuccinAccent = "mauve";
 

@@ -14,7 +14,7 @@ in
 
   services.displayManager.sddm = {
     enable = true;
-    wayland.enable = false; # keep x11 for stability
+    wayland.enable = true;
     package = lib.mkForce pkgs.kdePackages.sddm;
     theme = "sddm-astronaut-theme";
 

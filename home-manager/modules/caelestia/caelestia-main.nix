@@ -11,7 +11,7 @@ let
 
   caelestiaConfig = import ./caelestia-config.nix { inherit vars; };
 
-  caelestiaQS = pkgs.writeShellScriptBin "caelestia-fixed" ''
+  caelestiaQS = pkgs.writeShellScriptBin "caelestiaqs" ''
     set -euo pipefail
     HM_PROFILE="${config.home.profileDirectory}"
 
@@ -91,8 +91,9 @@ in
     ];
 
     wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [
+      "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
       "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
-      "sh -lc 'sleep 1; XDG_SCREENSHOTS_DIR=${vars.screenshots} caelestia-fixed'"
+      "sh -lc 'sleep 1; XDG_SCREENSHOTS_DIR=${vars.screenshots} caelestiaqs'"
     ];
   };
 }

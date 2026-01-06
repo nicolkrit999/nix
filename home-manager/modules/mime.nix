@@ -12,6 +12,8 @@ let
       "org.kde.kate.desktop"
     else if name == "vscode" || name == "code" then
       "code.desktop"
+    else if name == "neovim" then
+      "nvim.desktop"
     else
       "${name}.desktop";
 
