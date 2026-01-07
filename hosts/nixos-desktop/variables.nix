@@ -31,7 +31,7 @@
 
   # 📂 DEFAULT APPS
   browser = "firefox";
-  editor = "neovim";
+  editor = "nvim";
   fileManager = "yazi";
 
   # 🎨 THEMING

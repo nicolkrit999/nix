@@ -72,25 +72,48 @@ in
       key = "Meta+Shift+V";
       command = "${cliphistScript}";
     };
-    "launch-firefox" = {
-      key = "Meta+B"; # TODO: make it declarative
-      command = "${pkgs.firefox}/bin/firefox";
+    "launch-browser" = {
+      key = "Meta+B";
+      command = "${pkgs.${vars.browser}}/bin/${vars.browser}";
     };
     "launch-chromium" = {
       key = "Meta+Y"; # TODO: Make it declarative
       command = "chromium";
     };
-    "launch-vscode" = {
+    "launch-editor" = {
       key = "Meta+C"; # TODO: make it declarative
-      command = "code";
+      command =
+        if
+          builtins.elem vars.editor [
+            "neovim"
+            "nvim"
+            "nano"
+            "vim"
+            "helix"
+          ]
+        then
+          "${vars.term} -e ${vars.editor}"
+        else
+          "${vars.editor}";
     };
     "launch-terminal" = {
       key = "Meta+Return";
       command = vars.term;
     };
     "launch-filemanager" = {
-      key = "Meta+F"; # TODO: Make it declarative
-      command = "dolphin";
+      key = "Meta+F";
+      command =
+        if
+          builtins.elem vars.fileManager [
+            "yazi"
+            "ranger"
+            "lf"
+            "nnn"
+          ]
+        then
+          "${vars.term} -e ${vars.fileManager}"
+        else
+          "${vars.fileManager}";
     };
   };
 

@@ -20,8 +20,8 @@ let
       binding = "<Super>Return";
     }
     {
-      name = "Launch Firefox";
-      command = "${pkgs.firefox}/bin/firefox"; # TODO change to be declarative
+      name = "Launch ${vars.browser}";
+      command = "${pkgs.${vars.browser}}/bin/${vars.browser}";
       binding = "<Super>b";
     }
     {
@@ -31,12 +31,35 @@ let
     }
     {
       name = "Launch File Manager";
-      command = "dolphin"; # Change to be declarative
+      command =
+        if
+          builtins.elem vars.fileManager [
+            "yazi"
+            "ranger"
+            "lf"
+            "nnn"
+          ]
+        then
+          "${vars.term} -e ${vars.fileManager}"
+        else
+          "${vars.fileManager}";
       binding = "<Super>f";
     }
     {
-      name = "Launch VS Code";
-      command = "code"; # TODO Change to be declarative
+      name = "Launch editor";
+      command =
+        if
+          builtins.elem vars.editor [
+            "neovim"
+            "nvim"
+            "nano"
+            "vim"
+            "helix"
+          ]
+        then
+          "${vars.term} -e ${vars.editor}"
+        else
+          "${vars.editor}";
       binding = "<Super>c";
     }
     {

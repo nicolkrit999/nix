@@ -640,11 +640,11 @@ Run this command inside `~/nixOS`:
     * firefox
     * chromium
 
-  * `editor`: Default text/code editorTo make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
+  * `editor`: Default text/code editorTo make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name except for neovim)
     * vscode
     * code
     * code-cursor
-    * neovim
+    * nvim (use "nvim" it make launching it easier. the expected name "neovim" is automatically translated in home-packages.nix)
     * vim
     * emacs
     * sublime

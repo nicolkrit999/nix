@@ -5,6 +5,9 @@
   ...
 }:
 let
+  # 🔄 TRANSLATION LAYER
+  translatedEditor = if vars.editor == "nvim" then "neovim" else vars.editor;
+
   # 🛡️ SAFE FALLBACKS for browser, fileManager, editor
   # If the user's choice is invalid or missing, these are installed.
   fallbackTerm = pkgs.alacritty;
@@ -26,7 +29,7 @@ let
   myTermPkg = getPkg vars.term fallbackTerm;
   myBrowserPkg = getPkg vars.browser fallbackBrowser;
   myFileManagerPkg = getPkg vars.fileManager fallbackFileManager;
-  myEditorPkg = getPkg vars.editor fallbackEditor;
+  myEditorPkg = getPkg translatedEditor fallbackEditor;
 in
 {
   home.packages =

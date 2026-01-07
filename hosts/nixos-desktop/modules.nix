@@ -1,3 +1,12 @@
+let
+  appWorkspaces = {
+    editor = "2";
+    fileManager = "3";
+    browser = "7";
+    terminal = "8";
+    chat = "9";
+  };
+in
 {
   # ---------------------------------------------------------------------------
   # 🖥️ HYPRLAND WORKSPACES
@@ -20,15 +29,16 @@
   # Forces specific apps to always open on specific workspaces
   # To see the right class name, use `hyprctl clients` command and look for "class:"
   hyprlandWindowRules = [
-    "workspace 2 silent, class:^(code)$"
-    "workspace 3 silent, class:^(org.kde.dolphin)$"
-    "workspace 3 silent, class:^(ranger)$"
-    "workspace 3 silent, class:^(yazi)$"
+    "workspace ${appWorkspaces.editor} silent, class:^(code)$"
+    "workspace ${appWorkspaces.fileManager} silent, class:^(org.kde.dolphin)$"
+    "workspace ${appWorkspaces.fileManager} silent, class:^(yazi)$"
+    "workspace ${appWorkspaces.fileManager} silent, class:^(ranger)$"
     "workspace 7 silent, class:^(chromium-browser)$"
-    "workspace 8 silent, class:^(Alacritty)$"
-    "workspace 8 silent, class:^(kitty)$"
-    "workspace 9 silent, class:^(vesktop)$"
-    "workspace 9 silent, class:^(org.telegram.desktop)$"
+    "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
+    "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
+
+    "workspace ${appWorkspaces.chat} silent, class:^(vesktop)$"
+    "workspace ${appWorkspaces.chat} silent, class:^(org.telegram.desktop)$"
   ];
 
   # ---------------------------------------------------------------------------

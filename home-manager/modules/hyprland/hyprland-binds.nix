@@ -19,11 +19,24 @@
         # APPLICATION LAUNCHING
         "$mainMod,       A, exec, $menu --show drun" # Application launcher menu (wofi)
         "$mainMod, return, exec, $term" # Default terminal chosen in ./main.nix
-        "$mainMod,       F, exec, $fileManager" # Default file manager chosen in ./main.nix (ranger)
-        #"$mainMod,       F, exec, dolphin" # Default file manager chosen in ./main.nix (dolphin) # TODO: make it declaratie
-        "$mainMod,       B, exec, firefox" # Web browser (firefox) # TODO: Make it declarative
+
+        "$mainMod, F, exec, ${
+          if vars.fileManager == "yazi" || vars.fileManager == "ranger" then
+            "${vars.term} --class ${vars.fileManager} -e ${vars.fileManager}"
+          else
+            "${vars.fileManager}"
+        }"
+
+        "$mainMod,       B, exec, ${vars.browser}" # Web browser
         "$mainMod,       Y, exec, chromium-browser" # Web browser (chromium) (this was added as a youtube logic) # TODO make it declarative
-        "$mainMod,       C, exec, code" # Code editor (vscode)
+
+
+        # --- EDITOR ---
+        "$mainMod, C, exec, ${
+          if vars.editor == "nvim"
+          then "${vars.term} --class nvim-editor -e nvim"
+          else vars.editor
+        }"
 
         # SESSION MANAGEMENT
         "$mainMod SHIFT, L, exit," # Log out of Hyprland session
