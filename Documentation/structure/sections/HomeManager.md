@@ -18,7 +18,7 @@ A simple list of user-space packages (like neovim, Discord, btop) that are insta
   - Applications to keep: These are packages that are either referenced somewhere explicitely or that I personally need in a home-manager level
   - Other application: These are packages that i find useful for my specific uses. These can be freely removed/moved 
 
-## 📂 Modules (`home-manager/modules/`)
+## 📂 General modules
 
 
 ### `bat.nix`
@@ -104,7 +104,7 @@ Shell configuration.
 
 
 
-## 🪟 Caelestia (`home-manager/modules/caelestia/`)
+## 🪟 Caelestia (`home-manager/modules/de-wm/caelestia/`)
 
 Caelestia is a highly customized shell environment built on Quickshell. Its logic is split across multiple files to handle configuration generation, wallpaper management, and session initialization.
 
@@ -178,7 +178,7 @@ Would you like me to show you how to add a new custom entry to the Caelestia lau
 
 
 
-## 🪟 Cosmic Sub-modules (`home-manager/modules/cosmic/`)
+## 🪟 Cosmic Sub-modules (`home-manager/modules/de-wm/cosmic/`)
 
 
 ### `cosmic-main.nix`
@@ -196,7 +196,7 @@ This is the module entry point for the cosmic configuration folder. It uses the 
 This file manages custom keyboard shortcuts for cosmic.
 
 
-## 🪟 GNOME Home Manager Sub-modules (`home-manager/modules/gnome/`)
+## 🪟 GNOME Home Manager Sub-modules (`home-manager/modules/de-wm/gnome/`)
 
 ### `default.nix`
 
@@ -219,7 +219,7 @@ This file handles the visual configuration of the GNOME session, including wallp
 ### `gnome-binds.nix`
 This file manages custom keyboard shortcuts for GNOME. Since GNOME does not use a simple config file for keys, this module programmatically generates `dconf` entries to register custom actions.
 
-## 🪟 Hyprland Sub-modules (`home-manager/modules/hyprland/`)
+## 🪟 Hyprland Sub-modules (`home-manager/modules/de-wm/hyprland/`)
 
 ### `hyprland-binds.nix`
 This file defines the keybindings for Hyprland. It assigns specific keyboard combinations and mouse actions to system commands, such as launching applications (terminal, browser, menu), managing windows (move, resize, close, floating), and controlling hardware (volume, brightness).
@@ -288,7 +288,7 @@ This is the core configuration file for Hyprland. It handles the fundamental set
 * **Screenshot folders:** To make sure the directory exist in a declarative way this path needs to match the path defined in `../../home.nix`, function  `createScreenshotsDir`
 
 
-## 🪟 KDE Plasma Sub-modules (`home-manager/modules/hyprland/`)
+## 🪟 KDE Plasma Sub-modules (`home-manager/modules/de-wm/kde/`)
 These modules are generally configured using `plasma-manager` from the nix-community
 
 
@@ -341,7 +341,7 @@ This file centralizes keyboard shortcuts and global hotkeys. It manages bindings
 * **General Idea:** It acts as the "Keybinding Manager," mapping specific key combinations to system commands or DBus actions.
 
 
-## 📊 Waybar Sub-modules (`home-manager/modules/waybar/`)
+## 📊 Waybar Sub-modules (`home-manager/modules/cli-programs/waybar/`)
 
 ### `default.nix`
 This file configures Waybar, a status bar. It defines the bar's position, dimensions, module layout (left, center, right), and the specific behavior for each widget.
@@ -360,7 +360,7 @@ This file configures Waybar, a status bar. It defines the bar's position, dimens
 ### `style.css`
 Intelligently define colors based on whatever catppuccin is enabled on the hosts or not
 
-## 🚀 Wofi Sub-modules (`home-manager/modules/wofi/`)
+## 🚀 Wofi Sub-modules (`home-manager/modules/cli-programs/wofi/`)
 
 ### `default.nix`
 This file configures Wofi, the application launcher and menu utility for Wayland. It defines the window geometry, behavior, and appearance logic.

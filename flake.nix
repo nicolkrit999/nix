@@ -71,7 +71,7 @@
           # IMPORT VARIABLES FROM FILE
           baseVars = import ./hosts/${hostname}/variables.nix;
 
-          modulesPath = ./hosts/${hostname}/modules.nix;
+          modulesPath = ./hosts/${hostname}/optional/general-hm-modules/modules.nix;
           extraVars = if builtins.pathExists modulesPath then import modulesPath else { };
 
           # 3. Merge
@@ -130,11 +130,14 @@
                 ]
 
                 ++ (
-                  if builtins.pathExists ./hosts/${hostname}/home.nix then [ ./hosts/${hostname}/home.nix ] else [ ]
+                  if builtins.pathExists ./hosts/${hostname}/optional/general-hm-modules/home.nix then
+                    [ ./hosts/${hostname}/optional/general-hm-modules/home.nix ]
+                  else
+                    [ ]
                 )
                 ++ (
-                  if builtins.pathExists ./hosts/${hostname}/host-modules then
-                    [ ./hosts/${hostname}/host-modules ]
+                  if builtins.pathExists ./hosts/${hostname}/optional/host-hm-modules then
+                    [ ./hosts/${hostname}/optional/host-hm-modules ]
                   else
                     [ ]
                 );
@@ -152,7 +155,7 @@
           baseVars = import ./hosts/${hostname}/variables.nix;
 
           # 2. Import Optional Modules (nix file) (Safely)
-          modulesPath = ./hosts/${hostname}/modules.nix;
+          modulesPath = ./hosts/${hostname}/optional/general-hm-modules/modules.nix;
           extraVars = if builtins.pathExists modulesPath then import modulesPath else { };
 
           # 3. Merge them (Extra overrides Base)
@@ -180,10 +183,10 @@
             inputs.plasma-manager.homeModules.plasma-manager
           ]
           # 2. Add host-specific host-modules (Home Manager side)
-          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/host-modules) ./hosts/${hostname}/host-modules)
+          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/optional/host-hm-modules) ./hosts/${hostname}/optional/host-hm-modules)
 
           # 3. Add host-specific home.nix
-          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/home.nix) ./hosts/${hostname}/home.nix);
+          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/optional/general-hm-modules/home.nix) ./hosts/${hostname}/optional/general-hm-modules/home.nix);
         };
 
     in

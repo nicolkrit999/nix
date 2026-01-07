@@ -1,8 +1,10 @@
 {
   imports = [
     ./cli-programs
-    ./de-wm
+    ./file-managers
     ./gui-programs
+    ./nas
+    ./terminal-emulators
     ./utilities
   ];
 }

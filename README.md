@@ -363,7 +363,7 @@ ZSH is hybrid:
 - For an host to use sops it must be added to the host-specific configuration.nix, otherwise it is ignored. An example is the following:
 
 ```nix
-sops.defaultSopsFile = ./secrets.yaml;
+sops.defaultSopsFile = ./optional/host-sops-nix/secrets.yaml;
 sops.defaultSopsFormat = "yaml";
 sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 ```
@@ -377,7 +377,7 @@ nix-shell -p ssh-to-age --run "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub"
 # Then update the user with the admin public key and the host public key
 
 # Then invite the host
-sops updatekeys hosts/nixos-desktop/secrets.yaml
+sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/secrets.yaml
 ```
 
 

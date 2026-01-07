@@ -13,28 +13,23 @@
     ./hardware-configuration.nix
 
     # Packages specific to this machine
-    ./local-packages.nix
-
-    # Secrets Management (not added to GitHub)
-
-    # Flatpak support
-    ./flatpak.nix
+    ./optional/host-packages/default.nix
 
     # Core imports
     ../../nixos/modules/core.nix
 
     # These are manually imported here because they contains aspects that home-manager can not handle alone
-    ./host-modules/logitech.nix # boot
-    ./host-modules/smb.nix # user
-    ./host-modules/gaming.nix # hardware
-    ./host-modules/borg-backup.nix # user
+    ./optional/host-hm-modules/utilities/logitech.nix # boot
+    ./optional/host-hm-modules/nas/smb.nix # user
+    ./optional/host-hm-modules/utilities/gaming.nix # hardware
+    ./optional/host-hm-modules/nas/borg-backup.nix # user
 
   ];
 
   # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   # 🔐 SOPS CONFIGURATION
   # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  sops.defaultSopsFile = ./secrets.yaml;
+  sops.defaultSopsFile = ./optional/host-sops-nix/secrets.yaml;
   sops.defaultSopsFormat = "yaml";
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 

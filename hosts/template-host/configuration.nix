@@ -17,14 +17,20 @@
     ./hardware-configuration.nix
 
     # Packages specific to this machine
-    ./local-packages.nix
-
-    # Flatpak support
-    ./flatpak.nix
+    ./optional/host-packages/default.nix
 
     # Core imports
     ../../nixos/modules/core.nix
   ];
+
+  # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  # 🔐 SOPS CONFIGURATION
+  # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  /*
+    sops.defaultSopsFile = ./optional/host-sops-nix/secrets.yaml;
+    sops.defaultSopsFormat = "yaml";
+    sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+  */
 
   hardware.graphics.enable = true; # Keep enabled to avoid terminal crash when disabling certain de
 

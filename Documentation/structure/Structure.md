@@ -15,116 +15,111 @@ Categories can be navigated with the links below:
 
 ```text
 .
-├── flake.nix                                      # ❄️ Entry point: Inputs, hosts, and global variables
-│
-├── home-manager/                                  # 🏠 User-specific configuration (The "Rice")
-│   │
-│   ├── home.nix                                   # Main user entry point and directory setup
-│   ├── home-packages.nix                          # List of user-only software
-│   │
-│   └── modules/                                   # Application-specific configurations
-│       │
-│       ├── caelestia/                             # cosmic-specific configuration
-│       │   ├── caelestia-config.nix               # The configuration
-│       │   ├── caelestia-main.nix                 # The quickshell and caelestia main logic
-│       │   ├── caelestia-wallpaper.nix            # Apply the wallpaper
-│       │   └── default.nix                        # Caelestia redirector
-│       │
-│       ├── cosmic/                                # cosmic-specific configuration
-│       │   ├── cosmic-binds.nix                   # cosmic keyboard shortcuts
-│       │   ├── default.nix                        # Cosmic redirector
-│       │   └── cosmic-main.nix                    # Core Gnome rules
-│       │
-│       ├── gnome/                                 # gnome-specific configuration
-│       │   ├── gnome-binds.nix                    # gnome keyboard shortcuts
-│       │   ├── default.nix                        # Gnome redirector
-│       │   └── gnome-main.nix                     # Core Gnome rules
-│       │
-│       ├── hyprland/                              # Hyprland-specific configuration
-│       │   ├── hyprland-binds.nix                 # Keyboard shortcuts
-│       │   ├── default.nix                        # Hyprland Redirector
-│       │   ├── hyprland-hypridle.nix              # Idle daemon (auto-lock/sleep)
-│       │   ├── hyprland-hyprlock.nix              # Lock screen styling
-│       │   ├── hyprland-hyprpaper.nix             # Wallpaper daemon
-│       │   └── hyprland-main.nix                  # Core Hyprland rules
-│       │
-│       ├── kde/                                   # KDE-specific configuration
-│       │   ├── default.nix                        # KDE Redirector
-│       │   ├── kde-desktop.nix                    # KDE Desktop configuration
-│       │   ├── kde-files.nix                      # KDE Low-level files behaviour configuration
-│       │   ├── kde-inputs.nix                     # KDE hardware (mouse and trackpad) configuration
-│       │   ├── kde-krunner.nix                    # KDE Krunner configuration
-│       │   ├── kde-kscreenlock.nix                # KDE screen locker configuration
-│       │   ├── kde-main.nix                       # KDE Core rules
-│       │   ├── kde-panels.nix                     # KDE taskbar configuration
-│       │   └── kde-binds.nix                      # KDE keyboard shortcuts configuration
-│       │
-│       ├── swaync/                                # Notification Center
-│       │   ├── default.nix                        # Notification logic & CSS injection
-│       │   └── style.css                          # Custom CSS styling (ignored)
-│       │
-│       ├── waybar/                                # Status Bar
-│       │   ├── default.nix                        # Layout & module definition
-│       │   └── style.css                          # Custom CSS styling
-│       │
-│       ├── wofi/                                  # App Launcher
-│       │   ├── default.nix                        # Logic & CSS injection
-│       │   └── style.css                          # Manual CSS styling
-│       │
-│       ├── bat.nix                                # 'cat' clone settings
-│       ├── core.nix                               # Module importer
-│       ├── eza.nix                                # 'ls' clone settings
-│       ├── git.nix                                # Git credentials & aliases
-│       ├── lazygit.nix                            # Git TUI settings
-│       ├── mime.nix                               # Default app configuration
-│       ├── neovim.nix                             # Editor wrapper (uses dotfiles)
-│       ├── qt.nix                                 # Manual QT/Kvantum theming logic
-│       ├── starship.nix                           # Shell prompt customization
-│       ├── stylix.nix                             # Global Base16 theme engine
-│       ├── tmux.nix                               # Terminal Multiplexer
-│       └── zsh.nix                                # Shell aliases & history
-│
-├── hosts/                                         # 🖥️ Host-specific overrides
-│   │
-│   └── <hostname>/                                # Contains hosts-specifics aspects
-│       ├── host-modules/                          # Optional host-specific home-manager modules
-│       │   └── default.nix                        # Importer for the home-manager host-specific modules
-│       │
-│       ├── configuration.nix                      # System-level hardware tweaks
-│       ├── disko-config.nix                       # Disko configuration for partitioning with btrfs
-│       ├── flatpak.nix                            # Applications installed through flatpak
-│       ├── home.nix                               # Host-specific home directory configuration
-│       ├── hardware-configuration.nix             # Host-specific hardware configuration
-│       ├── local-packages.nix                     # Hosts-specific packages
-│       ├── modules.nix                            # More in-depth home-manager modules configuration
-│       └── variables.nix                          # Host-specific variables
-│
-├── nixos/                                         # ⚙️ System-wide Modules (Root)
-│   └── modules/                                   # OS Components (Boot, Net, Users)
-│       ├── audio.nix                              # Pipewire/PulseAudio
-│       ├── bluetooth.nix                          # Bluetooth logic
-│       ├── boot.nix                               # Bootloader (Systemd-boot)
-│       ├── core.nix                               # Import all nixOS system modules
-│       ├── cosmic.nix                             # System-level cosmic enablement
-│       ├── env.nix                                # Global environment variables
-│       ├── gnome.nix                              # System-level gnome enablement
-│       ├── guest.nix                              # Handle the guest user
-│       ├── home-manager.nix                       # HM integration hooks
-│       ├── hyprland.nix                           # System-level Hyprland enablement
-│       ├── KDE.nix                                # System-level KDE enablement
-│       ├── kernel.nix                             # Kernel parameters
-│       ├── mime.nix                               # Default app associations
-│       ├── net.nix                                # NetworkManager & Hostname
-│       ├── nh.nix                                 # Nix Helper tool config
-│       ├── nix.nix                                # Nix Daemon settings
-│       ├── sddm.nix                               # Login manager
-│       ├── snapshots.nix                          # Snapshot settings
-│       ├── tailscale.nix                          # Manage tailscale service
-│       ├── timezone.nix                           # Locale & Time settings
-│       ├── user.nix                               # User accounts & groups
-│       └── zram.nix                               # Memory optimization
-│
-└── screenshots/                                   # Assets for README
+
+├── flake.nix
+├── home-manager
+│   ├── home.nix
+│   ├── home-packages.nix
+│   └── modules
+│       ├── cli-programs
+│       │   ├── default.nix
+│       │   ├── neovim.nix
+│       │   ├── swaync
+│       │   │   └── default.nix
+│       │   ├── waybar
+│       │   │   ├── default.nix
+│       │   │   └── style.css
+│       │   └── wofi
+│       │       ├── default.nix
+│       │       └── style.css
+│       ├── core.nix                        # It import the folders inside home-manager-modules
+│       ├── de-wm
+│       │   ├── caelestia
+│       │   │   ├── caelestia-config.nix
+│       │   │   ├── caelestia-main.nix
+│       │   │   ├── caelestia-wallpaper.nix
+│       │   │   └── default.nix
+│       │   ├── cosmic
+│       │   │   ├── cosmic-main.nix
+│       │   │   └── default.nix
+│       │   ├── default.nix
+│       │   ├── gnome
+│       │   │   ├── default.nix
+│       │   │   ├── gnome-binds.nix
+│       │   │   └── gnome-main.nix
+│       │   ├── hyprland
+│       │   │   ├── default.nix
+│       │   │   ├── hyprland-binds.nix
+│       │   │   ├── hyprland-hypridle.nix
+│       │   │   ├── hyprland-hyprlock.nix
+│       │   │   ├── hyprland-hyprpaper.nix
+│       │   │   └── hyprland-main.nix
+│       │   └── kde
+│       │       ├── default.nix
+│       │       ├── kde-binds.nix
+│       │       ├── kde-desktop.nix
+│       │       ├── kde-files.nix
+│       │       ├── kde-inputs.nix
+│       │       ├── kde-krunner.nix
+│       │       ├── kde-kscreenlocker.nix
+│       │       ├── kde-main.nix
+│       │       └── kde-panels.nix
+│       ├── gui-programs
+│       │   └── default.nix
+│       └── utilities
+│           ├── bat.nix
+│           ├── default.nix
+│           ├── eza.nix
+│           ├── git.nix
+│           ├── lazygit.nix
+│           ├── mime.nix
+│           ├── qt.nix
+│           ├── starship.nix
+│           ├── stylix.nix
+│           ├── tmux.nix
+│           └── zsh.nix
+├── hosts
+│   └── template-host
+│       ├── configuration.nix
+│       ├── disko-config.nix
+│       ├── optional
+│       │   ├── default.nix                     # It import the optional host-specific folders
+│       │   ├── general-hm-modules
+│       │   │   ├── default.nix
+│       │   │   ├── home.nix
+│       │   │   └── modules.nix
+│       │   ├── host-hm-modules
+│       │   │   └── default.nix
+│       │   ├── host-packages
+│       │   │   ├── default.nix
+│       │   │   ├── flatpak.nix
+│       │   │   └── local-packages.nix
+│       │   └── host-sops-nix                   # Empty but present in case it's needed
+│       └── variables.nix
+├── LICENSE.txt
+├── nixos
+│   └── modules
+│       ├── audio.nix
+│       ├── bluetooth.nix
+│       ├── boot.nix
+│       ├── core.nix
+│       ├── cosmic.nix
+│       ├── env.nix
+│       ├── gnome.nix
+│       ├── guest.nix
+│       ├── home-manager.nix
+│       ├── hyprland.nix
+│       ├── kde.nix
+│       ├── kernel.nix
+│       ├── net.nix
+│       ├── nh.nix
+│       ├── nix.nix
+│       ├── sddm.nix
+│       ├── snapshots.nix
+│       ├── tailscale.nix
+│       ├── timezone.nix
+│       ├── user.nix
+│       └── zram.nix
 ```
 
 
