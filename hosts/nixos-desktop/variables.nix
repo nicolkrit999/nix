@@ -78,8 +78,8 @@
       wallpaperSHA256 = "0q5j531m3a1x5x99d0xybcb9rgc7w1i3v2vgf81zpwcwqj7abnzr";
     }
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/main/wallpapers/various/philipp-pilz_brown-deer-under-tree.jpg";
-      wallpaperSHA256 = "0fwbas4658d0dgrnx890if2ang70hilzsnw9zydda4n5cbhlfxhx";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/develop/wallpapers/various/mudassir-ali_pixelcop.jpg";
+      wallpaperSHA256 = "00zblsr0w0scdbz8fy7i6r97pcgnyb8hmy5gyq94cg555sd2zf9q";
     }
   ];
 
