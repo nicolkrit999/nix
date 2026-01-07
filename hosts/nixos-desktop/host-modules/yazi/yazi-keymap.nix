@@ -253,6 +253,14 @@
         run = "plugin recycle-bin -- emptyDays";
         desc = "Empty Trash older than 30 days (manual)";
       }
+      {
+        on = [
+          "R"
+          "b"
+        ];
+        run = "plugin recycle-bin -- open";
+        desc = "Open Recycle Bin";
+      }
 
       # Goto
       {
