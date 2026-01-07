@@ -48,7 +48,7 @@
       ))
     ])
     ++ (with pkgs-unstable; [
-
+      fresh-editor # Lightweight terminal text editor
     ]);
 
   # ☕ JAVA TOOLS
