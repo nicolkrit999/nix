@@ -30,12 +30,9 @@
         "$mainMod,       B, exec, ${vars.browser}" # Web browser
         "$mainMod,       Y, exec, chromium-browser" # Web browser (chromium) (this was added as a youtube logic) # TODO make it declarative
 
-
         # --- EDITOR ---
         "$mainMod, C, exec, ${
-          if vars.editor == "nvim"
-          then "${vars.term} --class nvim-editor -e nvim"
-          else vars.editor
+          if vars.editor == "nvim" then "${vars.term} --class nvim-editor -e nvim" else vars.editor
         }"
 
         # SESSION MANAGEMENT

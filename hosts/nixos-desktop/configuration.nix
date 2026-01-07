@@ -35,7 +35,8 @@
 
   # 1. Local User Password
   sops.secrets.krit-local-password = {
-    neededForUsers = true; # Required for login
+    sopsFile = ./optional/host-sops-nix/secrets.yaml;
+    neededForUsers = true;
   };
 
   # 2. NAS Secrets
