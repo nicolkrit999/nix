@@ -1,10 +1,12 @@
 {
   config,
   pkgs,
+  lib,
   vars,
   ...
 }:
-{
+
+lib.mkIf ((vars.shell or "zsh") == "zsh") {
   programs.zsh = {
     enable = true;
     enableCompletion = true;
@@ -39,7 +41,6 @@
             "nh os boot --update ${flakeDir}";
       in
       {
-
         # Smart aliases based on nixImpure setting
         sw = "cd ${flakeDir} && ${switchCmd}";
         swoff = "cd ${flakeDir} && ${switchCmd} --offline";
@@ -99,7 +100,7 @@
           export HYPRLAND_INSTANCE_SIGNATURE=$(ls -w 1 /run/user/$(id -u)/hypr/ | grep -v ".lock" | head -n 1)
         fi
 
-        # 2. LOAD USER CONFIG (Stow Integration)
+        # 2. LOAD USER CONFIG
         if [ -f "$HOME/.zshrc_custom" ]; then
           source "$HOME/.zshrc_custom"
         fi

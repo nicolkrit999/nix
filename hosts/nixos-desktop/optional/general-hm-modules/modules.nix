@@ -87,6 +87,8 @@ in
   };
 
   starshipZshIntegration = false;
+  starshipFishIntegration = true;
+  starshipBashIntegration = true;
 
   nixImpure = false;
 

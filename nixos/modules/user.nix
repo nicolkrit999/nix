@@ -1,15 +1,25 @@
 { pkgs, vars, ... }:
+let
+  # 🛡️ FALLBACK: Defaults to "zsh" if vars.shell is missing
+  currentShell = vars.shell or "zsh";
+
+  shellPkg =
+    if currentShell == "fish" then
+      pkgs.fish
+    else if currentShell == "zsh" then
+      pkgs.zsh
+    else
+      pkgs.bashInteractive;
+in
 {
-  programs.zsh.enable = true; # Enable Zsh as a shell
+  programs.zsh.enable = currentShell == "zsh";
+  programs.fish.enable = currentShell == "fish";
 
   users = {
-    defaultUserShell = pkgs.zsh; # Sets Zsh as the default shell for the user
+    defaultUserShell = shellPkg;
     users.${vars.user} = {
-      isNormalUser = true; # Marks this account as a regular user
-
-      # Group permissions:
-      # wheel: Allows use of 'sudo' for administrative tasks
-      # networkmanager: Allows the user to change Wi-Fi/Ethernet settings
+      isNormalUser = true;
+      shell = shellPkg;
       extraGroups = [
         "wheel"
         "networkmanager"

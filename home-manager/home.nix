@@ -10,7 +10,7 @@
   # -----------------------------------------------------------------------
   # 🔗 IMPORTS
   # -----------------------------------------------------------------------
-  # Pulls in all individual program modules (Hyprland, Zsh, Neovim, etc.)
+  # Pulls in all individual program modules
   imports = [
     ./modules/core.nix
     ./home-packages.nix

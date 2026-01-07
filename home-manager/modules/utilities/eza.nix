@@ -16,8 +16,10 @@
     enable = true;
 
     # --- Integration ---
-    # Injects eza as the default listing command inside your Zsh environment.
-    enableZshIntegration = true;
+    # Injects eza as the default listing command inside your shell environment.
+    enableZshIntegration = vars.shell == "zsh";
+    enableFishIntegration = vars.shell == "fish";
+    enableBashIntegration = vars.shell == "bash";
 
     # --- Display Options ---
     # ensures colored output and Nerd Font icons are always visible.

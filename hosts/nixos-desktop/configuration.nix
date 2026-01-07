@@ -5,7 +5,16 @@
   vars,
   ...
 }:
-
+let
+  # Determine which shell package to use based on the variable
+  shellPkg =
+    if vars.shell == "fish" then
+      pkgs.fish
+    else if vars.shell == "zsh" then
+      pkgs.zsh
+    else
+      pkgs.bashInteractive;
+in
 {
   # home.nix and host-modules are imported from flake.nix
   imports = [
@@ -184,10 +193,11 @@
     powerline-symbols # Terminal font glyphs; prevents "box" errors in shell prompts
     polkit_gnome # Authentication agent; required for GUI apps (like Btrfs Assistant) to ask for passwords
     sops # Secret management tool; decrypts sensitive data stored in Git repositories
+    shellPkg
   ];
 
-  programs.dconf.enable = true;
-  programs.zsh.enable = true;
+  programs.zsh.enable = vars.shell == "zsh";
+  programs.fish.enable = vars.shell == "fish";
 
   services.openssh.enable = true; # Used by nix-sops to handle secrets
 
@@ -285,7 +295,6 @@
       "video"
       "audio"
     ];
-    shell = pkgs.zsh;
     hashedPasswordFile = config.sops.secrets.krit-local-password.path;
   };
 

@@ -62,7 +62,6 @@ in
       git # Version control system (used in various scripts)
       nixfmt-rfc-style # Nix code formatter with RFC style (used in flake.nix)
       starship # Shell prompt (used by starship.nix)
-      zsh-autosuggestions # Fish-like autosuggestions for Zsh (used in zsh config)
 
       # -----------------------------------------------------------------------------------
       # 🧑🏽‍💻 CODING

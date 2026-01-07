@@ -30,7 +30,11 @@ in
     enable = true;
     # It fallback to true if not defined in the modules.nix of that specific host host
     # This allow user that have it enabled in their .zshrc_custom to not have issues
-    enableZshIntegration = vars.starshipZshIntegration or true;
+    enableZshIntegration = (vars.shell == "zsh") && (vars.starshipZshIntegration or true);
+
+    enableFishIntegration = (vars.shell == "fish") && (vars.starshipFishIntegration or true);
+
+    enableBashIntegration = (vars.shell == "bash") && (vars.starshipBashIntegration or true);
 
     settings = {
       add_newline = true;

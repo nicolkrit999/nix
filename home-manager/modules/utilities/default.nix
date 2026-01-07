@@ -10,6 +10,10 @@
     ./starship.nix
     ./stylix.nix
     ./tmux.nix
+
+    # Shell imports
     ./zsh.nix
+    ./fish.nix
+    ./bash.nix
   ];
 }

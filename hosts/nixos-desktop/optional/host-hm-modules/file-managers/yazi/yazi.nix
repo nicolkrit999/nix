@@ -12,7 +12,9 @@
 
   programs.yazi = {
     enable = true;
-    enableZshIntegration = true;
+    enableZshIntegration = vars.shell == "zsh";
+    enableFishIntegration = vars.shell == "fish";
+    enableBashIntegration = vars.shell == "bash";
 
     plugins = {
       # https://github.com/ndtoan96/ouch.yazi/archive/refs/tags/v0.7.0.tar.gz
