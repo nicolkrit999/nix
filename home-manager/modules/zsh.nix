@@ -53,7 +53,7 @@
         dedup = "nix store optimise";
         cleanup = "nh clean all";
 
-        # Home-Manager related ()
+        # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
         # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${vars.hostname}"; # Rebuild home-manager config
 
         # Pkgs editing
@@ -65,6 +65,7 @@
         fmt = "cd ${flakeDir} &&  nix fmt -- **/*.nix"; # Format Nix files using nixfmt (a regular nix fmt hangs on zed theme)
         merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop"; # Merge main with develop branch, push and return to develop branch
         merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop"; # Merge develop with main branch, push and return to develop branch
+        cdnix = "cd ${flakeDir}";
 
         # Snapshots
         snap-list-home = "snapper -c home list"; # List home snapshots

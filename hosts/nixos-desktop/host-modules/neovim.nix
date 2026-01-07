@@ -35,11 +35,21 @@
       maven # Java build tool
       gradle # Java build tool
 
+      # -- Other --
+      nixpkgs-fmt
+
       # --- Treesitter & Parsers ---
-      tree-sitter # Incremental parsing system (core for syntax highlighting)
-      vimPlugins.nvim-treesitter # Treesitter configurations
-      vimPlugins.nvim-treesitter-parsers.hyprlang # Hyprland parser for Treesitter
-      vimPlugins.nvim-treesitter-parsers.regex # Regex parser for treesitter
+      (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
+        p.python
+        p.cpp
+        p.lua
+        p.vim
+        p.json
+        p.toml
+        p.html
+        p.hyprlang
+        p.regex
+      ]))
 
       # --- debuggers ---
       vscode-extensions.vscjava.vscode-java-debug # Java debugger for Neovim DAP
@@ -55,22 +65,16 @@
     ];
   };
 
-  # This block is a helper for java-nvim. If not in use it can be removed
-  home.file.".local/share/nvim/mason/packages/java-debug-adapter/extension".source =
-    let
-      latestDebugAdapter = pkgs.fetchzip {
-        url = "https://open-vsx.org/api/vscjava/vscode-java-debug/0.58.0/file/vscjava.vscode-java-debug-0.58.0.vsix";
-        extension = "zip";
-        hash = "sha256-U/6/rWHMZIcvGqcECneVQdtxP1dEmoWcuDW/CtSVLTk="; # UPDATE THIS HASH AFTER FIRST RUN
-        stripRoot = false;
-      };
-    in
-    "${latestDebugAdapter}/extension";
-
-  # Keep Test Runner as is (it updates less often)
-  home.file.".local/share/nvim/mason/packages/java-test/extension".source =
-    "${pkgs.vscode-extensions.vscjava.vscode-java-test}/share/vscode/extensions/vscjava.vscode-java-test";
-
+  # ☕ JAVA TOOLS BRIDGE
+  # 1. Provide the JDTLS binary to your 'tools' directory for shell/nvim sync
   home.file."tools/jdtls".source = pkgs.jdt-language-server;
 
+  # 2. Link the Java Debugger extension where nvim-java expects it
+  # This resolves the "No delegateCommandHandler for resolveMainClass" error
+  home.file.".local/share/nvim/nvim-java/packages/java-debug-adapter/extension".source =
+    "${pkgs.vscode-extensions.vscjava.vscode-java-debug}/share/vscode/extensions/vscjava.vscode-java-debug";
+
+  # 3. Link the Java Test extension where nvim-java expects it
+  home.file.".local/share/nvim/nvim-java/packages/java-test/extension".source =
+    "${pkgs.vscode-extensions.vscjava.vscode-java-test}/share/vscode/extensions/vscjava.vscode-java-test";
 }
