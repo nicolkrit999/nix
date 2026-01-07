@@ -82,7 +82,7 @@
     kdePackages.qtwayland # Qt6 Wayland bridge; mandatory for modern Qt apps to display correctly
     powerline-symbols # Terminal font glyphs; prevents "box" errors in shell prompts
     polkit_gnome # Authentication agent; required for GUI apps (like Btrfs Assistant) to ask for passwords
-
+    sops # Secret management tool; decrypts sensitive data stored in Git repositories
   ];
 
   programs.dconf.enable = true;
@@ -193,6 +193,11 @@
   # Needed because otherwise the group "docker" is not created
   # ---------------------------------------------------------
   virtualisation.docker.enable = true;
+
+  # Limited mtu to make internet faster when enabled
+  virtualisation.docker.daemon.settings = {
+    "mtu" = 1450;
+  };
 
   # ---------------------------------------------------------
   # 🌐 BROWSER

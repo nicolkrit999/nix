@@ -68,6 +68,7 @@ in
           "/home/*/.cache" # The standard Linux cache folder
           "/home/*/.local/state" # Often contains logs/history
           "/home/*/.local/share/baloo" # KDE File Indexer (huge)
+          "/home/winboat/*" # Wine Prefixes (re-create as needed)
 
           # -------------------------------------------------------------------
           # 4. BROWSERS (Synced/Heavy)
