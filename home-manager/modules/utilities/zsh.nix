@@ -76,6 +76,11 @@
         # Utilities
         se = "sudoedit";
 
+        # Sops secrets editing
+        sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
+        sops-secrets = "cd ${flakeDir} && $EDITOR common/secrets.yaml"; # Edit sops secrets file
+        sops-host = "cd ${flakeDir} && $EDITOR hosts/${vars.hostname}/optional/host-sops-nix/secrets.yaml"; # Edit host-specific sops secrets file
+
         # Various
         reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
         swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment

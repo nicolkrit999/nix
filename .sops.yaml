@@ -2,31 +2,41 @@ keys:
   # ---------------------------------------------------------------
   # 👤 Users (Admins)
   # ---------------------------------------------------------------
-  # Replace with YOUR generated Admin public key
-  - &admin_krit age1qxyp5wzwhjs4tq633gtg2d25czdgwf6rxuppasshgf4mhlu37etq909x6t
+  - &krit age1qxyp5wzwhjs4tq633gtg2d25czdgwf6rxuppasshgf4mhlu37etq909x6t
 
   # ---------------------------------------------------------------
   # 🖥️ Hosts (Machines)
   # ---------------------------------------------------------------
-  # Replace with the output of `ssh-to-age` from nixos-desktop
-  - &host_nixos_desktop age1nvr3ges07kcl6h4lmmfl23lc07rl7njq9seyl4hp7uut4k8v53qquhfugp
+  - &nixos-desktop age1nvr3ges07kcl6h4lmmfl23lc07rl7njq9seyl4hp7uut4k8v53qquhfugp
+  # - &nixos-laptop
 
 creation_rules:
   # ---------------------------------------------------------------
-  # 🔒 Rules for nixos-desktop
-  # Any file inside hosts/nixos-desktop/ ending in .yaml will use these keys
+  # 🔒 Secrets for "nixos-desktop"
+  # Any file inside hosts/nixos-desktop/ ending in secrets.yaml will use these keys
   # ---------------------------------------------------------------
-  - path_regex: hosts/nixos-desktop/[^/]+\.yaml$
+  - path_regex: hosts/nixos-desktop/.*secrets\.yaml$
     key_groups:
       - age:
-          - *admin_krit         # You can decrypt
-          - *host_nixos_desktop # The machine can decrypt
+          - *krit # You can decrypt (user "krit")
+          - *nixos-desktop # The machine can decrypt (hostname "nixos-desktop")
 
   # ---------------------------------------------------------------
+  # 🔒 Common rules for user "krit"
+  # Matches any "secrets.yaml" inside the "common" folder
+  # ---------------------------------------------------------------
+  - path_regex: common/secrets.yaml$
+    key_groups:
+      - age:
+          - *krit # You can decrypt (user krit)
+          - *nixos-desktop # Desktop (nixos-desktop)
+          # - *nixos_laptop # Laptop (nixos-laptop)
+
   # 🔒 (Example) Rules for a future host
   # ---------------------------------------------------------------
-  # - path_regex: hosts/nixos-laptop/[^/]+\.yaml$
+  # ---------------------------------------------------------------
+  # - path_regex: hosts/francesco-desktop/.*secrets\.yaml$
   #   key_groups:
   #     - age:
-  #         - *admin_krit
-  #         - *host_nixos_laptop
+  #         - *francesco
+  #         - *francesco-desktop

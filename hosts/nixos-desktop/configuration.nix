@@ -45,6 +45,106 @@
   sops.secrets.borg-passphrase = { };
   sops.secrets.borg-private-key = { };
 
+  # 4a. GitHub Token for Nix Flakes
+  sops.secrets.github_token = {
+    mode = "0444";
+  };
+
+  # 4b. Tell Nix to read the token
+  nix.extraOptions = ''
+    !include ${config.sops.secrets.github_token.path}
+  '';
+
+  # ---------------------------------------------------------
+  # 🌍 COMMON SECRETS (SSH & WiFi)
+  # ---------------------------------------------------------
+
+  # 1. SSH Key (Extracts to your user folder)
+  sops.secrets.github_ssh_key = {
+    sopsFile = ../../common/secrets.yaml;
+    format = "yaml";
+    owner = vars.user;
+    path = "/home/${vars.user}/.ssh/id_github";
+  };
+
+  # 2. WiFi Passwords (The "Raw" secrets)
+  sops.secrets.Krit_Wifi_pass = {
+    sopsFile = ../../common/secrets.yaml;
+    key = "Krit_Wifi";
+    restartUnits = [ "NetworkManager.service" ];
+  };
+
+  sops.secrets.Nicol_5Ghz_pass = {
+    sopsFile = ../../common/secrets.yaml;
+    key = "Nicol_5Ghz";
+    restartUnits = [ "NetworkManager.service" ];
+  };
+  sops.secrets.Nicol_2Ghz_pass = {
+    sopsFile = ../../common/secrets.yaml;
+    key = "Nicol_2Ghz";
+    restartUnits = [ "NetworkManager.service" ];
+  };
+
+  # ---------------------------------------------------------
+  # 📡 AUTO-WIFI CONFIGURATION
+  # ---------------------------------------------------------
+  networking.networkmanager.ensureProfiles.profiles = {
+    "Krit_Wifi" = {
+      connection = {
+        id = "Krit_Wifi";
+        type = "wifi";
+      };
+      wifi = {
+        ssid = "Krit_Wifi";
+        mode = "infrastructure";
+      };
+      wifi-security = {
+        key-mgmt = "wpa-psk";
+        psk = config.sops.secrets.Krit_Wifi_pass.path;
+      };
+    };
+
+    "Nicol_5Ghz" = {
+      connection = {
+        id = "Nicol_5Ghz";
+        type = "wifi";
+      };
+      wifi = {
+        ssid = "Nicol_5Ghz";
+        mode = "infrastructure";
+      };
+      wifi-security = {
+        key-mgmt = "wpa-psk";
+        psk = config.sops.secrets.Nicol_5Ghz_pass.path;
+      };
+    };
+
+    "Nicol_2Ghz" = {
+      connection = {
+        id = "Nicol_2Ghz";
+        type = "wifi";
+      };
+      wifi = {
+        ssid = "Nicol_2Ghz";
+        mode = "infrastructure";
+      };
+      wifi-security = {
+        key-mgmt = "wpa-psk";
+        psk = config.sops.secrets.Nicol_2Ghz_pass.path;
+      };
+    };
+  };
+
+  # ---------------------------------------------------------
+  # 🔧 CONFIGURE SSH TO USE THE KEY
+  # ---------------------------------------------------------
+  programs.ssh = {
+    extraConfig = ''
+      Host github.com
+        IdentityFile ${config.sops.secrets.github_ssh_key.path}
+    '';
+  };
+
   # ---------------------------------------------------------
   # ⚙️ GRAPHICS & FONTS
   # ---------------------------------------------------------
