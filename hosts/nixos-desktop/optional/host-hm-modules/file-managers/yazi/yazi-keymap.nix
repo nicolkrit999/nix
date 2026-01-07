@@ -306,6 +306,15 @@
       {
         on = [
           "g"
+          "N"
+        ];
+        run = "cd /mnt/nicol-nas";
+        desc = "Go to the NAS";
+      }
+
+      {
+        on = [
+          "g"
           "p"
         ];
         run = "cd ~/Pictures";

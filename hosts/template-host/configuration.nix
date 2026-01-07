@@ -141,12 +141,15 @@
       "networkmanager"
       "wheel"
       "input"
-      "docker"
+      #"docker"
       "video"
       "audio"
     ];
     shell = pkgs.zsh; # Ensure zsh is installed in system packages
   };
+
+  # This is needed if you want to use docker and be part of the docker group
+  #virtualisation.docker.enable = true;
 
   # Nix Settings (Flakes & Garbage Collection)
   nix.settings.experimental-features = [

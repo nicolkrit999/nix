@@ -16,7 +16,7 @@
       ranger # It is not the default but i want to keep it
       alacritty # It is not the default but i want to keep it
 
-      #winboat # Enable to run windows programs
+      winboat # Enable to run windows programs
       kdePackages.audiotube # Client for youtube music
       # Useful command to kill processes by name, such as waybar after a crash
 

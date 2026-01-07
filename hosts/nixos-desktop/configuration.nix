@@ -189,6 +189,12 @@
   };
 
   # ---------------------------------------------------------
+  # 🐳 VIRTUALIZATION & DOCKER
+  # Needed because otherwise the group "docker" is not created
+  # ---------------------------------------------------------
+  virtualisation.docker.enable = true;
+
+  # ---------------------------------------------------------
   # 🌐 BROWSER
   # ---------------------------------------------------------
   programs.chromium = {
