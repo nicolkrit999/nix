@@ -225,7 +225,7 @@ Once the variables are calculated, the system loads the code. It includes the ge
           # IMPORT VARIABLES FROM FILE
           baseVars = import ./hosts/${hostname}/variables.nix;
 
-          modulesPath = ./hosts/${hostname}/modules.nix;
+          modulesPath = ./hosts/${hostname}/optional/general-hm-modules/modules.nix;
           extraVars = if builtins.pathExists modulesPath then import modulesPath else { };
 
           # 3. Merge
@@ -284,11 +284,14 @@ Once the variables are calculated, the system loads the code. It includes the ge
                 ]
 
                 ++ (
-                  if builtins.pathExists ./hosts/${hostname}/home.nix then [ ./hosts/${hostname}/home.nix ] else [ ]
+                  if builtins.pathExists ./hosts/${hostname}/optional/general-hm-modules/home.nix then
+                    [ ./hosts/${hostname}/optional/general-hm-modules/home.nix ]
+                  else
+                    [ ]
                 )
                 ++ (
-                  if builtins.pathExists ./hosts/${hostname}/host-modules then
-                    [ ./hosts/${hostname}/host-modules ]
+                  if builtins.pathExists ./hosts/${hostname}/optional/host-hm-modules then
+                    [ ./hosts/${hostname}/optional/host-hm-modules ]
                   else
                     [ ]
                 );
@@ -306,7 +309,7 @@ Once the variables are calculated, the system loads the code. It includes the ge
           baseVars = import ./hosts/${hostname}/variables.nix;
 
           # 2. Import Optional Modules (nix file) (Safely)
-          modulesPath = ./hosts/${hostname}/modules.nix;
+          modulesPath = ./hosts/${hostname}/optional/general-hm-modules/modules.nix;
           extraVars = if builtins.pathExists modulesPath then import modulesPath else { };
 
           # 3. Merge them (Extra overrides Base)
@@ -334,10 +337,10 @@ Once the variables are calculated, the system loads the code. It includes the ge
             inputs.plasma-manager.homeModules.plasma-manager
           ]
           # 2. Add host-specific host-modules (Home Manager side)
-          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/host-modules) ./hosts/${hostname}/host-modules)
+          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/optional/host-hm-modules) ./hosts/${hostname}/optional/host-hm-modules)
 
           # 3. Add host-specific home.nix
-          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/home.nix) ./hosts/${hostname}/home.nix);
+          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/optional/general-hm-modules/home.nix) ./hosts/${hostname}/optional/general-hm-modules/home.nix);
         };
 
     in
@@ -349,7 +352,6 @@ Once the variables are calculated, the system loads the code. It includes the ge
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
     };
 }
-
 ```
 
 
@@ -2356,7 +2358,11 @@ It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audi
   config,
   pkgs,
   lib,
-  vars,
+  user,
+  stateVersion,
+  hostname,
+  keyboardLayout,
+  keyboardVariant,
   ...
 }:
 
@@ -2367,61 +2373,53 @@ It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audi
     ./hardware-configuration.nix
 
     # Packages specific to this machine
-    ./local-packages.nix
-
-    # Secrets Management (not added to GitHub)
-    (import /etc/nixos/secrets/secrets.nix)
-
-    # Flatpak support
-    ./flatpak.nix
+    ./optional/host-packages/default.nix
 
     # Core imports
     ../../nixos/modules/core.nix
-
-    # These are manually imported here because they contains aspects that home-manager can not handle alone
-    ./host-modules/logitech.nix # boot
-    #./host-modules/smb.nix # user
-    ./host-modules/gaming.nix # hardware
-    #./host-modules/borg-backup.nix # networking
   ];
 
-  # ---------------------------------------------------------
-  # ⚙️ GRAPHICS & FONTS
-  # ---------------------------------------------------------
-  hardware.graphics.enable = true;
+  # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  # 🔐 SOPS CONFIGURATION
+  # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  /*
+    sops.defaultSopsFile = ./optional/host-sops-nix/secrets.yaml;
+    sops.defaultSopsFormat = "yaml";
+    sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+  */
+
+  hardware.graphics.enable = true; # Keep enabled to avoid terminal crash when disabling certain de
 
   fonts.packages = with pkgs; [
-    nerd-fonts.jetbrains-mono # Primary monospace font; includes icons for coding and terminal use
-    nerd-fonts.symbols-only # Icon fallback; ensures symbols render even when the main font lacks them
-    noto-fonts # Base text coverage; Google's "No Tofu" standard to fix square boxes globally
-    dejavu_fonts # Core Linux fallback; high compatibility for standard text in older apps
-    noto-fonts-lgc-plus # Extended European support; covers complex Latin, Greek, and Cyrillic variants
-    noto-fonts-color-emoji # Emoji support; ensures emojis appear in color rather than monochrome outlines
-    noto-fonts-cjk-sans # Asian language support; mandatory for Chinese, Japanese, and Korean characters
-    texlivePackages.hebrew-fonts # Hebrew support; specialized font for correct Hebrew script rendering
-    font-awesome # System icons; standard dependency for Waybar and desktop interface elements
-    powerline-fonts # Shell prompt glyphs; prevents broken triangles/shapes in Zsh/Bash prompts
+    nerd-fonts.jetbrains-mono
+    nerd-fonts.symbols-only
+    noto-fonts
+    dejavu_fonts
+    noto-fonts-lgc-plus
+    noto-fonts-color-emoji
+    noto-fonts-cjk-sans
+    texlivePackages.hebrew-fonts
+    font-awesome
+    powerline-fonts
   ];
-  
+
   fonts.fontconfig.enable = true;
 
-  # ---------------------------------------------------------
-  # 📦 SYSTEM PACKAGES
-  # ---------------------------------------------------------
   environment.systemPackages = with pkgs; [
-    foot # Tiny, zero-config terminal; critical rescue tool if your main terminal config breaks
-    iptables # Core firewall utility; base dependency for network security and containers
-    glib # Low-level system library; almost all software crashes without this base layer
-    gsettings-desktop-schemas # Global theme settings; prevents GTK apps from looking broken or crashing
-    gtk3 # Standard GUI toolkit; essential for drawing basic application windows
-    libsForQt5.qt5.qtwayland # Qt5 Wayland bridge; mandatory for older Qt apps to display correctly
-    kdePackages.qtwayland # Qt6 Wayland bridge; mandatory for modern Qt apps to display correctly
-    powerline-symbols # Terminal font glyphs; prevents "box" errors in shell prompts
-    polkit_gnome # Authentication agent; required for GUI apps (like Btrfs Assistant) to ask for passwords
+    foot
+    iptables
+    glib
+    gsettings-desktop-schemas
+    gtk3
+    libsForQt5.qt5.qtwayland
+    kdePackages.qtwayland
+    powerline-symbols
+    polkit_gnome
   ];
 
   programs.dconf.enable = true;
-  programs.zsh.enable = true; # Required for user shell
+
+  programs.zsh.enable = true;
 
   security.wrappers.gpu-screen-recorder = {
     owner = "root";
@@ -2431,43 +2429,34 @@ It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audi
   };
 
   # ---------------------------------------------------------
-  # 🖥️ HOST IDENTITY & NETWORKING
+  # 🖥️ HOST IDENTITY
   # ---------------------------------------------------------
-  networking.hostName = vars.hostname;
+  # Dynamically sets the hostname passed from flake.nix
+  networking.hostName = hostname;
+
+  # Enable networking
   networking.networkmanager.enable = true;
 
   # ---------------------------------------------------------
-  # 🛠️ NIX SETTINGS (CACHE & FLAKES)
+  # ⚔️ STABILITY FIX: Force 'Switch User' to act as 'Log Out'
   # ---------------------------------------------------------
-  nix.settings = {
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-
-    trusted-users = [
-      "root"
-      "@wheel"
-    ];
-
-    # ⚠️ CRITICAL: Use binary cache to avoid compiling from source
-    substituters = [ "https://cosmic.cachix.org" ];
-    trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
-  };
-
-  # ---------------------------------------------------------
-  # ⚔️ SYSTEM TWEAKS
-  # ---------------------------------------------------------
+  # This was done mainly to help the guest user to be kicked out from unauthorized sessions
   systemd.tmpfiles.rules = [
     "f /etc/systemd/logind.conf.d/10-logout-override.conf 0644 root root - [Login]\nKillUserProcesses=yes\nIdleAction=none\n"
   ];
 
+  # ---------------------------------------------------------
+  # ⌨️ KEYBOARD LAYOUT (Global Logic)
+  # ---------------------------------------------------------
+  # Applies the layout defined in flake.nix to X11, Wayland, and Console.
+  # This ensures that all the desktop environments and TTYs use the same layout.
   services.xserver.xkb = {
-    layout = vars.keyboardLayout;
-    variant = vars.keyboardVariant;
+    layout = keyboardLayout;
+    variant = keyboardVariant;
   };
-  console.useXkbConfig = true;
 
+  # Forces the text console (TTY) to look at the Xserver settings above.
+  console.useXkbConfig = true;
 
   # ---------------------------------------------------------
   # 🛡️ SECURITY & REALTIME AUDIO
@@ -2500,7 +2489,8 @@ It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audi
   # ---------------------------------------------------------
   # 👤 USER CONFIGURATION
   # ---------------------------------------------------------
-  users.users.${vars.user} = {
+  # Defines the user dynamically based on flake.nix input
+  users.users.${user} = {
     isNormalUser = true;
     description = "Primary user";
     extraGroups = [
@@ -2511,31 +2501,23 @@ It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audi
       "video"
       "audio"
     ];
-    shell = pkgs.zsh;
+    shell = pkgs.zsh; # Ensure zsh is installed in system packages
   };
 
-  # ---------------------------------------------------------
-  # 🌐 BROWSER
-  # ---------------------------------------------------------
-  programs.chromium = {
-    enable = true;
-    extraOpts = {
-      "ShowHomeButton" = true;
-      "HomepageLocation" = "https://www.youtube.com";
-      "HomepageIsNewTabPage" = false;
-      "RestoreOnStartup" = 4;
-      "RestoreOnStartupURLs" = [ "https://www.youtube.com" ];
-    };
-  };
+  # Nix Settings (Flakes & Garbage Collection)
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
-  system.stateVersion = vars.stateVersion;
+  # Defines the state version dynamically based on flake.nix input
+  system.stateVersion = stateVersion;
 
   i18n.inputMethod.enabled = lib.mkForce null;
   environment.variables.GTK_IM_MODULE = lib.mkForce "";
   environment.variables.QT_IM_MODULE = lib.mkForce "";
   environment.variables.XMODIFIERS = lib.mkForce "";
 }
-
 ```
 
 # ~nixOS/nixos/modules/boot.nix

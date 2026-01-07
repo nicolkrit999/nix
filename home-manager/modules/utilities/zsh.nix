@@ -42,7 +42,9 @@
 
         # Smart aliases based on nixImpure setting
         sw = "cd ${flakeDir} && ${switchCmd}";
+        swoff = "cd ${flakeDir} && ${switchCmd} --offline";
         gsw = "cd ${flakeDir} && git add -A && ${switchCmd}";
+        gswoff = "cd ${flakeDir} && git add -A && ${switchCmd} --offline";
         upd = "cd ${flakeDir} && ${updateCmd}";
 
         # Manual are kept for reference, but use the above aliases instead
@@ -57,8 +59,8 @@
         # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${vars.hostname}"; # Rebuild home-manager config
 
         # Pkgs editing
-        pkgs-home = "nvim ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list
-        pkgs-host = "nvim ${flakeDir}/hosts/${vars.hostname}/local-packages.nix"; # Edit host-specific packages list
+        pkgs-home = "$EDITOR ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list
+        pkgs-host = "$EDITOR ${flakeDir}/hosts/${vars.hostname}/optional/host-packages/local-packages.nix"; # Edit host-specific packages list
 
         # Nix repo management
         fmt-dry = "cd ${flakeDir} && nix fmt -- --check"; # Check formatting without making changes (list files that need formatting)
@@ -75,7 +77,7 @@
         se = "sudoedit";
 
         # Various
-        reb-uefi = "systemctl reboot - -firmware-setup"; # Reboot into UEFI firmware settings
+        reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
         swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
       };
 
