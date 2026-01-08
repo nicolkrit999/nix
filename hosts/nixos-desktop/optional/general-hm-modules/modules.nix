@@ -80,7 +80,7 @@ in
     # Scratchpad rules - browser
     "float, class:^(scratch-browser)$"
     "center, class:^(scratch-browser)$"
-    "size 85% 85%, class:^(scratch-browser)$"
+    "size 80% 80%, class:^(scratch-browser)$"
     "workspace special:magic, class:^(scratch-browser)$"
   ];
 
@@ -88,7 +88,7 @@ in
     # SCRATCHPAD APPLICATIONS
     "$mainMod SHIFT, return, exec, [workspace special:magic] $term --class scratch-term"
     "$mainMod SHIFT, F, exec, [workspace special:magic] $term --class scratch-fs -e yazi"
-    "$mainMod SHIFT, B, exec, [workspace special:magic] ${rawVars.browser} --new-window --name scratch-browser"
+    "$mainMod SHIFT, B, exec, [workspace special:magic] ${rawVars.browser} --new-window --class scratch-browser"
 
     # EXTRA APPLICATION LAUNCHERS
     "$mainMod,       Y, exec, chromium-browser"
