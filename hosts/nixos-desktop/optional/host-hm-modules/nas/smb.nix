@@ -1,9 +1,8 @@
-{
-  config,
-  pkgs,
-  vars,
-  lib,
-  ...
+{ config
+, pkgs
+, vars
+, lib
+, ...
 }:
 
 let
@@ -44,7 +43,8 @@ let
 
           "noauto" # Do NOT mount at boot or rebuild
           "x-systemd.automount" # Mount ONLY when I access the folder
-          "x-systemd.idle-timeout=600" # Disconnect after 10 mins of inactivity
+          "x-systemd.idle-timeout=3600" # Disconnect after 1 hour of inactivity
+          "x-systemd.mount-timeout=10s" # Kill unmount after 10 seconds if stuck
 
           # Safety flags
           "nofail"
