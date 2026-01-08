@@ -85,7 +85,11 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
     initExtra = ''
       # 1. FIX HYPRLAND SOCKET
       if [ -d "/run/user/$(id -u)/hypr" ]; then
-        export HYPRLAND_INSTANCE_SIGNATURE=$(ls -w 1 /run/user/$(id -u)/hypr/ | grep -v ".lock" | head -n 1)
+        # Use find to locate the specific socket file and extract the signature
+        SOCKET_FILE=$(find /run/user/$(id -u)/hypr/ -name ".socket.sock" -print -quit)
+        if [ -n "$SOCKET_FILE" ]; then
+          export HYPRLAND_INSTANCE_SIGNATURE=$(basename $(dirname "$SOCKET_FILE"))
+        fi
       fi
 
       # 2. LOAD USER CONFIG

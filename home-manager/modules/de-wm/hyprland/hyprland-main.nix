@@ -39,25 +39,35 @@
         # 🌍 Environment Variables
         # -----------------------------------------------------
         # These ensure apps (Electron, QT, etc.) know they are running on Wayland.
-        env = [
-          # TOOLKIT BACKENDS (Force apps to use Wayland)
-          "NIXOS_OZONE_WL,1" # Forces Electron apps (VS Code, Discord, Obsidian) to run natively on Wayland.
-          "QT_QPA_PLATFORM,wayland;xcb" # Tells Qt apps: "Try Wayland first. If that fails, use X11 (xcb)".
-          "GDK_BACKEND,wayland,x11,*" # Tells GTK apps: "Try Wayland first. If that fails, use X11".
-          "SDL_VIDEODRIVER,wayland" # Forces SDL games to run on Wayland (improves performance/scaling).
-          "CLUTTER_BACKEND,wayland" # Forces Clutter apps to use Wayland.
+        env =
+          let
+            firstMonitor = builtins.elemAt vars.monitors 0;
+            monitorParts = lib.splitString "," firstMonitor;
+            rawScale = if (builtins.length monitorParts) >= 4 then builtins.elemAt monitorParts 3 else "1";
 
-          # DESKTOP SESSION IDENTITY
-          "XDG_CURRENT_DESKTOP,Hyprland" # Tells portals (screen sharing) that you are using Hyprland.
-          "XDG_SESSION_TYPE,wayland" # Generic flag telling the session it is Wayland-based.
-          "XDG_SESSION_DESKTOP,Hyprland" # Used by some session managers to identify the desktop.
+            gdkScale = if rawScale != "1" && rawScale != "1.0" then "2" else "1";
+          in
+          [
+            # TOOLKIT BACKENDS (Force apps to use Wayland)
+            "NIXOS_OZONE_WL,1" # Forces Electron apps (VS Code, Discord, Obsidian) to run natively on Wayland.
+            "QT_QPA_PLATFORM,wayland;xcb" # Tells Qt apps: "Try Wayland first. If that fails, use X11 (xcb)".
+            "GDK_BACKEND,wayland,x11,*" # Tells GTK apps: "Try Wayland first. If that fails, use X11".
+            "SDL_VIDEODRIVER,wayland" # Forces SDL games to run on Wayland (improves performance/scaling).
+            "CLUTTER_BACKEND,wayland" # Forces Clutter apps to use Wayland.
+            "_JAVA_AWT_WM_NONREPARENTING,1" # Fixes Java GUI apps (IntelliJ, Minecraft Launcher) on Wayland.
+            "GDK_SCALE,${gdkScale}" # Sets GTK scaling based on first monitor's scale factor.
 
-          # THEMING & AESTHETICS
-          "QT_QPA_PLATFORMTHEME,qt5ct" # Tells Qt apps to use the 'qt5ct' or 'qt6ct' tool for styling (fixes ugly Qt apps).
+            # DESKTOP SESSION IDENTITY
+            "XDG_CURRENT_DESKTOP,Hyprland" # Tells portals (screen sharing) that you are using Hyprland.
+            "XDG_SESSION_TYPE,wayland" # Generic flag telling the session it is Wayland-based.
+            "XDG_SESSION_DESKTOP,Hyprland" # Used by some session managers to identify the desktop.
 
-          # SYSTEM PATHS
-          "XDG_SCREENSHOTS_DIR,${vars.screenshots}" # Tells tools where to save screenshots by default.
-        ];
+            # THEMING & AESTHETICS
+            "QT_QPA_PLATFORMTHEME,qt5ct" # Tells Qt apps to use the 'qt5ct' or 'qt6ct' tool for styling (fixes ugly Qt apps).
+
+            # SYSTEM PATHS
+            "XDG_SCREENSHOTS_DIR,${vars.screenshots}" # Tells tools where to save screenshots by default.
+          ];
 
         # -----------------------------------------------------
         # 🖥️ Monitor Configuration
@@ -154,8 +164,11 @@
           disable_hyprland_logo = true;
         };
 
+        xwayland = {
+          force_zero_scaling = true;
+        };
+
         windowrulev2 = [
-          # --- 1. System & UI Rules ---
           # Smart Borders: No border if only 1 window is on screen
           "bordersize 0, floating:0, onworkspace:w[t1]"
 
@@ -176,35 +189,39 @@
           "center, class:^(org.kde.gwenview)$"
           "size 80% 80%, class:^(org.kde.gwenview)$"
 
-        ]
-        ++ (vars.hyprlandWindowRules or [ ])
+          # FILE DIALOGS (Firefox, Upload, Download, Save As) ---
+          "float, title:^(Open File)(.*)$"
+          "float, title:^(Select a File)(.*)$"
+          "float, title:^(Choose wallpaper)(.*)$"
+          "float, title:^(Open Folder)(.*)$"
+          "float, title:^(Save As)(.*)$"
+          "float, title:^(Library)(.*)$"
+          "float, title:^(File Upload)(.*)$"
+          "float, title:^(Save File)(.*)$"
+          "float, title:^(Enter name of file)(.*)$"
 
-        ++ [
+          # Center and resize ALL the titles listed above
+          "center, title:^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"
+          "size 50% 50%, title:^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"
 
-          # Prevent apps from auto-maximizing themselves
+          "float, class:^(xdg-desktop-portal-gtk)$"
+          "center, class:^(xdg-desktop-portal-gtk)$"
+          "size 50% 50%, class:^(xdg-desktop-portal-gtk)$"
+
+          # Prevent Auto-Maximize & Focus Stealing ---
           "suppressevent maximize, class:.*"
           "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0"
 
-          # 1. Force them to FLOAT (detach from tiling grid)
-          # 2. Force them to CENTER (relative to the monitor, not the app)
-          # 3. Force a fixed SIZE (60% width/height = 20% margin on all sides)
-          "float, title:^(Open File|Save As|File Upload|Select a File|Choose wallpaper|Open Folder|Library)(.*)$"
-          "center, title:^(Open File|Save As|File Upload|Select a File|Choose wallpaper|Open Folder|Library)(.*)$"
-          "size 60% 60%, title:^(Open File|Save As|File Upload|Select a File|Choose wallpaper|Open Folder|Library)(.*)$"
-
-          # Specific fix for XDG Desktop Portal (common Linux file picker)
-          "float, class:^(xdg-desktop-portal-gtk)$"
-          "center, class:^(xdg-desktop-portal-gtk)$"
-          "size 60% 60%, class:^(xdg-desktop-portal-gtk)$"
-
-          # --- 3. original xwayland video bridge rules ---
+          # XWayland Video Bridge ---
           "opacity 0.0 override, class:^(xwaylandvideobridge)$"
           "noanim, class:^(xwaylandvideobridge)$"
           "noinitialfocus, class:^(xwaylandvideobridge)$"
           "maxsize 1 1, class:^(xwaylandvideobridge)$"
           "noblur, class:^(xwaylandvideobridge)$"
           "nofocus, class:^(xwaylandvideobridge)$"
-        ];
+
+        ]
+        ++ (vars.hyprlandWindowRules or [ ]);
 
         workspace = [
           "w[tv1], gapsout:0, gapsin:0" # No gaps if only 1 window is visible

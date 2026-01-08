@@ -251,7 +251,7 @@
           "D"
         ];
         run = "plugin recycle-bin -- emptyDays";
-        desc = "Empty Trash older than 30 days (manual)";
+        desc = "Empty Trash older than X days";
       }
       {
         on = [

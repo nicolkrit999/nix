@@ -75,12 +75,12 @@
 
   wallpapers = [
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/main/wallpapers/other-user-github-repos/D3Ext/aesthetic-wallpapers/black-white-girl.png";
-      wallpaperSHA256 = "0q5j531m3a1x5x99d0xybcb9rgc7w1i3v2vgf81zpwcwqj7abnzr";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/develop/wallpapers/landscape/benjamin-farren_seal.jpg";
+      wallpaperSHA256 = "0d0n18kr6lpx89hi7mbsllfa8c6fv7003cxr69lfw0bmwp9v69kj";
     }
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/develop/wallpapers/various/mudassir-ali_pixelcop.jpg";
-      wallpaperSHA256 = "00zblsr0w0scdbz8fy7i6r97pcgnyb8hmy5gyq94cg555sd2zf9q";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/develop/wallpapers/landscape/johannes-havn_goat.jpg";
+      wallpaperSHA256 = "13qbphjq89rj0xmyip55xs5dkiz20ddqccjazdixkizhpx2v44yj";
     }
   ];
 

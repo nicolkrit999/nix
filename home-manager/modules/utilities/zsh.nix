@@ -95,9 +95,12 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
     # -----------------------------------------------------
     initExtra = ''
         # 1. FIX HYPRLAND SOCKET (Dynamic Update)
-        # This ensures that even inside tmux or after a crash, the shell finds the correct socket.
         if [ -d "/run/user/$(id -u)/hypr" ]; then
-          export HYPRLAND_INSTANCE_SIGNATURE=$(ls -w 1 /run/user/$(id -u)/hypr/ | grep -v ".lock" | head -n 1)
+          # Search for the actual socket file and get the directory name
+          local socket_file=$(find /run/user/$(id -u)/hypr/ -name ".socket.sock" -print -quit)
+          if [ -n "$socket_file" ]; then
+            export HYPRLAND_INSTANCE_SIGNATURE=$(basename $(dirname "$socket_file"))
+          fi
         fi
 
         # 2. LOAD USER CONFIG

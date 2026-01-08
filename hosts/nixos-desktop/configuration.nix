@@ -181,6 +181,7 @@ in
   # ---------------------------------------------------------
   environment.systemPackages = with pkgs; [
     autotrash # Automatic trash cleanup utility; used to delete old files from Trash
+    distrobox # Container system for dev environments; lightweight alternative to full VMs
     foot # Tiny, zero-config terminal; critical rescue tool if your main terminal config breaks
     iptables # Core firewall utility; base dependency for network security and containers
     glib # Low-level system library; almost all software crashes without this base layer
@@ -193,7 +194,7 @@ in
     powerline-symbols # Terminal font glyphs; prevents "box" errors in shell prompts
     polkit_gnome # Authentication agent; required for GUI apps (like Btrfs Assistant) to ask for passwords
     sops # Secret management tool; decrypts sensitive data stored in Git repositories
-    shellPkg
+    shellPkg # The selected shell package (bash, zsh, or fish)
   ];
 
   programs.zsh.enable = vars.shell == "zsh";
@@ -247,6 +248,14 @@ in
     "f /etc/systemd/logind.conf.d/10-logout-override.conf 0644 root root - [Login]\nKillUserProcesses=yes\nIdleAction=none\n"
   ];
 
+  # -----------------------------------------------------
+  # ⚡ Systemd Shutdown Tweak
+  # -----------------------------------------------------
+  # This reduces the wait time for stuck services from 90s to 10s.
+  systemd.settings.Manager = {
+    DefaultTimeoutStopSec = "10s";
+  };
+
   services.xserver.xkb = {
     layout = vars.keyboardLayout;
     variant = vars.keyboardVariant;
@@ -292,9 +301,24 @@ in
       "wheel"
       "input"
       "docker"
+      "podman"
       "video"
       "audio"
     ];
+    # Required for rootless Podman/Distrobox
+    subUidRanges = [
+      {
+        startUid = 100000;
+        count = 65536;
+      }
+    ];
+    subGidRanges = [
+      {
+        startGid = 100000;
+        count = 65536;
+      }
+    ];
+
     hashedPasswordFile = config.sops.secrets.krit-local-password.path;
   };
 
@@ -309,6 +333,11 @@ in
     "mtu" = 1450;
   };
 
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
+  };
+
   # ---------------------------------------------------------
   # 🌐 BROWSER
   # ---------------------------------------------------------
@@ -321,6 +350,7 @@ in
       "RestoreOnStartup" = 1;
       "RestoreOnStartupURLs" = [
         "https://www.youtube.com"
+        "https://music.youtube.com/"
         "https://glance.nicolkrit.ch"
       ];
     };
