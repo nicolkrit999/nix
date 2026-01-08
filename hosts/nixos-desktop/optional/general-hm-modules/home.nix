@@ -2,6 +2,7 @@
   pkgs,
   pkgs-unstable,
   lib,
+  vars,
   ...
 }:
 
@@ -69,7 +70,9 @@
 
   programs.zoxide = {
     enable = true;
-    enableZshIntegration = true;
+    enableZshIntegration = vars.shell == "zsh";
+    enableFishIntegration = vars.shell == "fish";
+    enableBashIntegration = vars.shell == "bash";
   };
 
   # 5. Create/remove host-specific directories

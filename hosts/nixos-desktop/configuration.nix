@@ -317,8 +317,8 @@ in
     extraOpts = {
       "ShowHomeButton" = true;
       "HomepageLocation" = "https://www.youtube.com";
-      "HomepageIsNewTabPage" = false;
-      "RestoreOnStartup" = 4;
+      "HomepageIsNewTabPage" = true;
+      "RestoreOnStartup" = 1;
       "RestoreOnStartupURLs" = [ "https://www.youtube.com" ];
     };
   };

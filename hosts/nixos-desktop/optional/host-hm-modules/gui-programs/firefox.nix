@@ -101,7 +101,7 @@ in
       # ⚙️ internal Firefox Settings (about:config)
       settings = {
         "browser.startup.homepage" = "https://glance.nicolkrit.ch";
-        "browser.startup.page" = 1;
+        "browser.startup.page" = 3; # Restore previous session
 
         # Disable irritating first-run stuff
         "browser.disableResetPrompt" = true;

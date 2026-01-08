@@ -1,8 +1,7 @@
-{
-  pkgs,
-  pkgs-unstable,
-  vars,
-  ...
+{ pkgs
+, pkgs-unstable
+, vars
+, ...
 }:
 {
   users.users.${vars.user}.packages =
@@ -44,6 +43,7 @@
       glow # Markdown renderer for the terminal
       grex # Command-line tool for generating regular expressions
       grim # Screenshot utility for Wayland
+      htop # Process viewer and killer
       lsof # List open files
       mediainfo # Display technical info about media files
       ntfs3g # NTFS read/write support
