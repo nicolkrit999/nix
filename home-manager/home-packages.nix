@@ -58,6 +58,7 @@ in
       # 🖥️ CLI UTILITIES
       # -----------------------------------------------------------------------------------
       cliphist # Wayland clipboard history manager (needed for clipboard management)
+      dix # Nix diff viewer between generations
       eza # Modern ls replacement (used by eza.nix module)
       git # Version control system (used in various scripts)
       nixfmt-rfc-style # Nix code formatter with RFC style (used in flake.nix)
