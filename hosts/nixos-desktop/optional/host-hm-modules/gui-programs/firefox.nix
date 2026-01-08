@@ -1,23 +1,21 @@
-{
-  pkgs,
-  lib,
-  inputs,
-  vars,
-  ...
+{ pkgs
+, lib
+, inputs
+, vars
+, ...
 }:
 let
   # Allow to install "unfree" addons by rebuilding them locally
   buildFirefoxXpiAddon = lib.makeOverridable (
-    {
-      stdenv ? pkgs.stdenv,
-      fetchurl,
-      pname,
-      version,
-      addonId,
-      url,
-      sha256,
-      meta,
-      ...
+    { stdenv ? pkgs.stdenv
+    , fetchurl
+    , pname
+    , version
+    , addonId
+    , url
+    , sha256
+    , meta
+    , ...
     }:
     stdenv.mkDerivation {
       name = "${pname}-${version}";
@@ -67,7 +65,7 @@ in
         engines = {
           kagi = {
             name = "Kagi";
-            urls = [ { template = "https://kagi.com/search?q={searchTerms}"; } ]; # Search URL template query parameter
+            urls = [{ template = "https://kagi.com/search?q={searchTerms}"; }]; # Search URL template query parameter
             icon = "https://kagi.com/favicon.ico";
           };
           bing.metaData.hidden = true; # Hide unwanted search providers
@@ -119,7 +117,7 @@ in
         "browser.bookmarks.addedImportButton" = true;
 
         # Don't ask for download dir
-        "browser.download.useDownloadDir" = false;
+        "browser.download.useDownloadDir" = true;
 
         # Disable crappy home activity stream page
         # hides the default promoted/suggested tiles on Firefox's new-tab screen from several major websites.
@@ -139,7 +137,8 @@ in
           "K00ILysCaEq8+bEqV/3nuw=="
           # Twitter
           "T9nJot5PurhJSy8n038xGA=="
-        ] (_: 1);
+        ]
+          (_: 1);
 
         # Disable some telemetry
         "app.shield.optoutstudies.enabled" = false;
@@ -167,10 +166,16 @@ in
         "toolkit.telemetry.unifiedIsOptIn" = false;
         "toolkit.telemetry.updatePing.enabled" = false;
 
+        # Audio normalization
+        "media.volume_scale" = "1.0";
+        "media.cubeb.backend" = "pulse";
+        "accessibility.typeaheadfind.enablesound" = false;
+        "media.getusermedia.screensharing.allow_is_screen_content_sales" = false;
+
         # Disable fx accounts
         "identity.fxaccounts.enabled" = false;
         # Disable "save password" prompt
-        "signon.rememberSignons" = false;
+        "signon.rememberSignons" = true;
         # Harden
         "privacy.trackingprotection.enabled" = true;
         "dom.security.https_only_mode" = true;
@@ -203,6 +208,7 @@ in
               "78272b6fa58f4a1abaac99321d503a20_proton_me-browser-action" # Proton Pass
               "addon_simplelogin-browser-action" # SimpleLogin
               "jid1-mnnxcxisbpnsxq_jetpack-browser-action" # Privacy Badger
+              "enhanced-h26ifk" # Audio volume fixer
 
               "unified-extensions-button"
             ];
