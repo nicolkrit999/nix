@@ -829,6 +829,7 @@ This file contains specific home-manager aspects that are related only to a cert
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | **`hyprlandWorkspaces`**       | Binds specific workspaces to specific monitor ports (e.g., "1 on DP-1").                                              | **Auto-detect:** Workspaces open on the monitor with the mouse cursor.            |
 | **`hyprlandWindowRules`**      | Binds specific applications to specific workspaces (e.g., "Code opens on workspace 2").                               | **None:** Applications open on the currently focused workspace.                   |
+| **`*hyprland*ExtraBinds`**     | Allow to bind host-specific keybinds in kde, gnome and hyprland                                                       | **None:** Empty (no extra bind).                                                  |
 | **`kdeMice` / `kdeTouchpads`** | Applies strict settings (accel profile, speed) to specific Hardware IDs in KDE.                                       | **Plug & Play:** KDE applies standard default settings to all mice.               |
 | **`waybarWorkspaceIcons`**     | Maps specific workspace numbers to custom icons (e.g., "8" -> "Terminal Icon").                                       | **Numbers:** Waybar simply displays the workspace number (1, 2, 3...).            |
 | **`waybarLayoutFlags`**        | Replaces keyboard layout text codes with emojis (e.g., "en" -> "🇺🇸").                                                  | **Text Codes:** Waybar displays the ISO code (en, it, de).                        |
@@ -873,6 +874,32 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
     "workspace 9, class:^(vesktop)$"
     "workspace 10, class:^(org.telegram.desktop)$"
   ];
+
+  hyprlandExtraBinds = [
+    # SCRATCHPAD APPLICATIONS
+    "$mainMod SHIFT, return, exec, [workspace special:magic] $term --class scratch-term"
+    "$mainMod SHIFT, F, exec, [workspace special:magic] $term --class scratch-fs -e yazi"
+    "$mainMod SHIFT, B, exec, [workspace special:magic] ${rawVars.browser} --new-window --name scratch-browser"
+
+    # EXTRA APPLICATION LAUNCHERS
+    "$mainMod,       Y, exec, chromium-browser"
+  ];
+
+  gnomeExtraBinds = [
+    {
+      name = "Launch Chromium";
+      command = "chromium";
+      binding = "<Super>y";
+    }
+  ];
+
+  # KDE: Attribute set (unique ID = { name, key, command })
+  kdeExtraBinds = {
+    "launch-chromium" = {
+      key = "Meta+Y";
+      command = "chromium";
+    };
+  };
 
   # ---------------------------------------------------------------------------
   # 🖱️ KDE INPUT DEVICES

@@ -76,12 +76,8 @@ in
       key = "Meta+B";
       command = "${pkgs.${vars.browser}}/bin/${vars.browser}";
     };
-    "launch-chromium" = {
-      key = "Meta+Y"; # TODO: Make it declarative
-      command = "chromium";
-    };
     "launch-editor" = {
-      key = "Meta+C"; # TODO: make it declarative
+      key = "Meta+C";
       command =
         if
           builtins.elem vars.editor [
@@ -115,7 +111,8 @@ in
         else
           "${vars.fileManager}";
     };
-  };
+  }
+  // (vars.kdeExtraBinds or { });
 
   # ---------------------------------------------------------
   # 3. GLOBAL SHORTCUTS

@@ -1,4 +1,7 @@
 let
+  # Allow to use variables despite flake.nix use this to create variables
+  rawVars = import ../../variables.nix;
+
   # Keep 1 and 6 free
   # keyboard key 0 = 10
   appWorkspaces = {
@@ -61,7 +64,51 @@ in
 
     "workspace ${appWorkspaces.chat} silent, class:^(vesktop)$"
     "workspace ${appWorkspaces.chat} silent, class:^(org.telegram.desktop)$"
+
+    # Scratchpad rules - terminal
+    "float, class:^(scratch-term)$"
+    "center, class:^(scratch-term)$"
+    "size 80% 80%, class:^(scratch-term)$"
+    "workspace special:magic, class:^(scratch-term)$"
+
+    # Scratchpad rules - file manager
+    "float, class:^(scratch-fs)$"
+    "center, class:^(scratch-fs)$"
+    "size 80% 80%, class:^(scratch-fs)$"
+    "workspace special:magic, class:^(scratch-fs)$"
+
+    # Scratchpad rules - browser
+    "float, class:^(scratch-browser)$"
+    "center, class:^(scratch-browser)$"
+    "size 85% 85%, class:^(scratch-browser)$"
+    "workspace special:magic, class:^(scratch-browser)$"
   ];
+
+  hyprlandExtraBinds = [
+    # SCRATCHPAD APPLICATIONS
+    "$mainMod SHIFT, return, exec, [workspace special:magic] $term --class scratch-term"
+    "$mainMod SHIFT, F, exec, [workspace special:magic] $term --class scratch-fs -e yazi"
+    "$mainMod SHIFT, B, exec, [workspace special:magic] ${rawVars.browser} --new-window --name scratch-browser"
+
+    # EXTRA APPLICATION LAUNCHERS
+    "$mainMod,       Y, exec, chromium-browser"
+  ];
+
+  gnomeExtraBinds = [
+    {
+      name = "Launch Chromium";
+      command = "chromium";
+      binding = "<Super>y";
+    }
+  ];
+
+  # KDE: Attribute set (unique ID = { name, key, command })
+  kdeExtraBinds = {
+    "launch-chromium" = {
+      key = "Meta+Y";
+      command = "chromium";
+    };
+  };
 
   # ---------------------------------------------------------------------------
   # 🖱️ KDE INPUT DEVICES

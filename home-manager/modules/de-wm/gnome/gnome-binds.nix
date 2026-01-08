@@ -25,11 +25,6 @@ let
       binding = "<Super>b";
     }
     {
-      name = "Launch Chromium";
-      command = "chromium"; # TODO change to be declarative
-      binding = "<Super>y";
-    }
-    {
       name = "Launch File Manager";
       command =
         if
@@ -72,7 +67,8 @@ let
       command = "${cliphistScript}";
       binding = "<Super><Shift>v";
     }
-  ];
+  ]
+  ++ (vars.gnomeExtraBinds or [ ]);
 
   dconfList = lib.genList (
     i: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${toString i}/"

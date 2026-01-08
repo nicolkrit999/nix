@@ -83,7 +83,20 @@
         # -----------------------------------------------------
         "$mainMod" = "SUPER";
         "$term" = vars.term;
-        "$fileManager" = "${vars.term} --class ${vars.editor} -e ${vars.editor}";
+
+        # Distinguish between terminal-based and GUI file managers
+        "$fileManager" = "${
+          if vars.fileManager == "yazi" || vars.fileManager == "ranger" then
+            "${vars.term} --class ${vars.fileManager} -e ${vars.fileManager}"
+          else
+            "${vars.fileManager}"
+        }";
+
+        # Distinguish between terminal-based and GUI editors
+        "$editor" = "${
+          if vars.editor == "nvim" then "${vars.term} --class nvim-editor -e nvim" else "${vars.editor}"
+        }";
+
         "$menu" = "wofi";
 
         # -----------------------------------------------------

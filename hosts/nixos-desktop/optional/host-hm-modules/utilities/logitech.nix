@@ -19,7 +19,7 @@ let
     buttons: (
       { cid: 0x53; action: { type: "Keypress"; keys: ["KEY_LEFTCTRL", "KEY_C"]; }; },
       { cid: 0x56; action: { type: "Keypress"; keys: ["KEY_LEFTCTRL", "KEY_V"]; }; },
-      { cid: 0xc3; action: { type: "Keypress"; keys: ["KEY_LEFTMETA"]; }; }
+      { cid: 0xc3; action: { type: "Keypress"; keys: ["KEY_LEFTMETA", "KEY_S"]; }; }
     );
   '';
 
@@ -41,7 +41,7 @@ let
     buttons: (
       { cid: 0x53; action: { type: "Keypress"; keys: ["KEY_LEFTCTRL", "KEY_C"]; }; },
       { cid: 0x56; action: { type: "Keypress"; keys: ["KEY_LEFTCTRL", "KEY_V"]; }; },
-      { cid: 0xc3; action: { type: "Keypress"; keys: ["KEY_LEFTMETA"]; }; }
+      { cid: 0xc3; action: { type: "Keypress"; keys: ["KEY_LEFTMETA", "KEY_S"]; }; }
     );
   '';
 

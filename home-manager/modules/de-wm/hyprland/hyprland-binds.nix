@@ -13,27 +13,21 @@
         "$mainMod SHIFT, C, killactive," # Close active window
         "$mainMod,       J, togglesplit," # Toggle split/stacked layout
         "$mainMod,       V, togglefloating," # Toggle floating mode: the window can be freely moved/resized
-        "$mainMod SHIFT, F, fullscreen," # Toggle fullscreen: the window occupies the entire screen
+        "$mainMod,       M, fullscreen," # Toggle fullscreen (maximise): the window occupies the entire screen
         "$mainMod SHIFT, P, pin," # Pin/unpin window. Copy the same windows to all workspaces with same dimensions and position
 
         # APPLICATION LAUNCHING
         "$mainMod,       A, exec, $menu --show drun" # Application launcher menu (wofi)
         "$mainMod, return, exec, $term" # Default terminal chosen in ./main.nix
 
-        "$mainMod, F, exec, ${
-          if vars.fileManager == "yazi" || vars.fileManager == "ranger" then
-            "${vars.term} --class ${vars.fileManager} -e ${vars.fileManager}"
-          else
-            "${vars.fileManager}"
-        }"
+        # FILE MANAGER
+        "$mainMod,       F, exec, $fileManager"
 
+        # WEB BROWSER
         "$mainMod,       B, exec, ${vars.browser}" # Web browser
-        "$mainMod,       Y, exec, chromium-browser" # Web browser (chromium) (this was added as a youtube logic) # TODO make it declarative
 
-        # --- EDITOR ---
-        "$mainMod, C, exec, ${
-          if vars.editor == "nvim" then "${vars.term} --class nvim-editor -e nvim" else vars.editor
-        }"
+        # FILE EDITOR
+        "$mainMod, C, exec, $editor" # Code editor
 
         # SESSION MANAGEMENT
         "$mainMod SHIFT, L, exit," # Log out of Hyprland session
@@ -104,7 +98,8 @@
         # They overlay other windows and can be toggled visible/invisible
         "$mainMod,       S, togglespecialworkspace,  magic" # Toggle scratchpad visibility
         "$mainMod SHIFT, S, movetoworkspace, special:magic" # Move window to scratchpad
-      ];
+      ]
+      ++ (vars.hyprlandExtraBinds or [ ]);
 
       # MOVE/RESIZE WINDOWS WITH MAINMOD + LMB/RMB AND DRAGGING
       bindm = [

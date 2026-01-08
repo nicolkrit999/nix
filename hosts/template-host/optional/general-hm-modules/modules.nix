@@ -19,6 +19,32 @@
   #  "workspace 10, class:^(org.telegram.desktop)$"
   # ];
 
+  #hyprlandExtraBinds = [
+  # SCRATCHPAD APPLICATIONS
+  #   "$mainMod SHIFT, return, exec, [workspace special:magic] $term --class scratch-term"
+  #  "$mainMod SHIFT, F, exec, [workspace special:magic] $term --class scratch-fs -e yazi"
+  # "$mainMod SHIFT, B, exec, [workspace special:magic] ${rawVars.browser} --new-window --name scratch-browser"
+
+  # EXTRA APPLICATION LAUNCHERS
+  #"$mainMod,       Y, exec, chromium-browser"
+  #];
+
+  #gnomeExtraBinds = [
+  # {
+  #  name = "Launch Chromium";
+  # command = "chromium";
+  #binding = "<Super>y";
+  #}
+  #];
+
+  # KDE: Attribute set (unique ID = { name, key, command })
+  #kdeExtraBinds = {
+  # "launch-chromium" = {
+  #  key = "Meta+Y";
+  # command = "chromium";
+  # };
+  # };
+
   # ---------------------------------------------------------------------------
   # 🖱️ KDE INPUT DEVICES (Optional)
   # ---------------------------------------------------------------------------
