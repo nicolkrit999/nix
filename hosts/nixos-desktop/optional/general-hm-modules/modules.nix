@@ -82,6 +82,18 @@ in
     "center, class:^(scratch-browser)$"
     "size 80% 80%, class:^(scratch-browser)$"
     "workspace special:magic, class:^(scratch-browser)$"
+
+    "workspace ${appWorkspaces.vm} silent, class:^(winboat)$"
+
+    # --- WINBOAT SUB-APP RULES ---
+    "workspace ${appWorkspaces.vm}, class:^winboat-.*$"
+    "suppressevent fullscreen maximize activate activatefocus, class:^winboat-.*$"
+    "noinitialfocus, class:^winboat-.*$"
+    "noanim, class:^winboat-.*$"
+    "norounding, class:^winboat-.*$"
+    "noshadow, class:^winboat-.*$"
+    "noblur, class:^winboat-.*$"
+    "opaque, class:^winboat-.*$"
   ];
 
   hyprlandExtraBinds = [

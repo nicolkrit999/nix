@@ -92,11 +92,12 @@ in
     # 📦 GUEST PACKAGES
     environment.systemPackages = with pkgs; [
       (google-chrome.override { commandLineArgs = "--no-first-run --no-default-browser-check"; })
-      nemo
-      eog
-      file-roller
-      gnome-calculator
-      zenity
+      file-roller # Archive manager
+      zenity # keep for the startup warning
+    ];
+
+    environment.xfce.excludePackages = [
+      pkgs.xfce.parole
     ];
 
     # ⚠️ UNIVERSAL AUTOSTART MONITOR

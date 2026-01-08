@@ -36,9 +36,9 @@
   fileManager = "yazi";
 
   # 🎨 THEMING
-  base16Theme = "catppuccin-mocha";
+  base16Theme = "dracula";
   polarity = "dark";
-  catppuccin = true;
+  catppuccin = false;
   catppuccinFlavor = "mocha";
   catppuccinAccent = "mauve";
 

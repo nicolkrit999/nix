@@ -86,12 +86,13 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
     # -----------------------------------------------------
     interactiveShellInit = ''
       # 1. FIX HYPRLAND SOCKET
-      if test -d "/run/user/(id -u)/hypr"
+      set -l hypr_dir "/run/user/"(id -u)"/hypr"
+      if test -d "$hypr_dir"
         # Find the folder containing the .socket.sock and extract its name
-        set -l socket_path (find /run/user/(id -u)/hypr/ -name ".socket.sock" -print -quit)
+        set -l socket_path (find "$hypr_dir" -name ".socket.sock" -print -quit)
         if test -n "$socket_path"
           set -l real_sig (basename (dirname "$socket_path"))
-          set -gx HYPRLAND_INSTANCE_SIGNATURE $real_sig
+          set -gx HYPRLAND_INSTANCE_SIGNATURE "$real_sig"
         end
       end
 

@@ -103,7 +103,6 @@
         # 🚀 Startup Apps
         # ----------------------------------------------------
         exec-once = [
-          "sh -lc 'SIG=$(hyprctl instances | head -n 1 | cut -d \" \" -f 2); systemctl --user set-environment HYPRLAND_INSTANCE_SIGNATURE=\"$SIG\" WAYLAND_DISPLAY=\"$WAYLAND_DISPLAY\" XDG_RUNTIME_DIR=\"$XDG_RUNTIME_DIR\"'"
 
           "wl-paste --type text --watch cliphist store" # Start clipboard manager for text
           "wl-paste --type image --watch cliphist store" # Start clipboard manager for images

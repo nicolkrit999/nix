@@ -12,6 +12,10 @@
     environment.plasma6.excludePackages = with pkgs.kdePackages; [
       oxygen # Theme
       khelpcenter # Help Center
+      konsole # Terminal
+      okular # Document viewer
+      elisa # Music player
+      discover # Software center
     ];
 
     /*

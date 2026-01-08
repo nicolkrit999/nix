@@ -1,7 +1,8 @@
-{ pkgs
-, pkgs-unstable
-, vars
-, ...
+{
+  pkgs,
+  pkgs-unstable,
+  vars,
+  ...
 }:
 {
   users.users.${vars.user}.packages =
@@ -24,7 +25,6 @@
       vesktop # Discord client
       libreoffice-qt # Open source microsoft office alternative
       gsimplecal # Simple calendar application
-      normcap # Simple ocr application
       meld # Visual diff and merge tool
 
       # -----------------------------------------------------------------------------------

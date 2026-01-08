@@ -95,10 +95,12 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
     # -----------------------------------------------------
     initExtra = ''
         # 1. FIX HYPRLAND SOCKET (Dynamic Update)
-        if [ -d "/run/user/$(id -u)/hypr" ]; then
-          # Search for the actual socket file and get the directory name
-          local socket_file=$(find /run/user/$(id -u)/hypr/ -name ".socket.sock" -print -quit)
-          if [ -n "$socket_file" ]; then
+        if [ -d "/run/user/$(id -u)/hypr" ];
+        then
+          # Search for the actual socket file (Removed 'local' to fix error)
+          socket_file=$(find /run/user/$(id -u)/hypr/ -name ".socket.sock" -print -quit)
+          if [ -n "$socket_file" ];
+          then
             export HYPRLAND_INSTANCE_SIGNATURE=$(basename $(dirname "$socket_file"))
           fi
         fi
