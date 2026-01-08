@@ -317,9 +317,12 @@ in
     extraOpts = {
       "ShowHomeButton" = true;
       "HomepageLocation" = "https://www.youtube.com";
-      "HomepageIsNewTabPage" = true;
+      "HomepageIsNewTabPage" = false;
       "RestoreOnStartup" = 1;
-      "RestoreOnStartupURLs" = [ "https://www.youtube.com" ];
+      "RestoreOnStartupURLs" = [
+        "https://www.youtube.com"
+        "https://glance.nicolkrit.ch"
+      ];
     };
   };
 

@@ -70,8 +70,8 @@
       bind -n M-S-Down resize-pane -D 3
 
       # Splitting
-      bind -n M-s split-window -v
-      bind -n M-v split-window -h
+      bind -n M-v split-window -h -c "#{pane_current_path}"
+      bind -n M-h split-window -v -c "#{pane_current_path}"
 
       # --- PRODUCTIVITY SHORTCUTS ---
       bind -n M-o new-window -c ~/para "nvim -c 'Telescope find_files' '0 Inbox/todolist.md'"

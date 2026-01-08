@@ -73,7 +73,7 @@
         # -----------------------------------------------------
         "$mainMod" = "SUPER";
         "$term" = vars.term;
-        "$fileManager" = "${vars.term} --class yazi -e yazi";
+        "$fileManager" = "${vars.term} --class ${vars.editor} -e ${vars.editor}";
         "$menu" = "wofi";
 
         # -----------------------------------------------------
@@ -135,7 +135,7 @@
         input = {
           kb_layout = vars.keyboardLayout;
           kb_variant = vars.keyboardVariant;
-          kb_options = "grp:alt_shift_toggle"; # Alt+Shift to switch layout
+          kb_options = "grp:ctrl_alt_toggle"; # Ctrl+Alt to switch layout
         };
 
         dwindle = {
