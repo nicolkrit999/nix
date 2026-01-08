@@ -28,7 +28,7 @@
   # 📦 PACKAGES & TERMINAL
   flatpak = true;
   term = "kitty";
-  shell = "bash"; # Options: bash, zsh, fish
+  shell = "fish"; # Options: bash, zsh, fish
 
   # 📂 DEFAULT APPS
   browser = "firefox";

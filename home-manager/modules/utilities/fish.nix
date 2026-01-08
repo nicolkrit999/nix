@@ -91,8 +91,8 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
       end
 
       # 2. LOAD USER CONFIG
-      if test -f "$HOME/.config/fish/custom.fish"
-        source "$HOME/.config/fish/custom.fish"
+      if test -f "$HOME/.custom.fish"
+        source "$HOME/.custom.fish"
       end
 
       # 3. TMUX AUTOSTART
