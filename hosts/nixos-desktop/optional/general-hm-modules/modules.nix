@@ -1,7 +1,10 @@
 let
+  # Keep 1 and 6 free
+  # keyboard key 0 = 10
   appWorkspaces = {
     editor = "2";
     fileManager = "3";
+    vm = "4";
     browser = "7";
     terminal = "8";
     chat = "9";
@@ -30,12 +33,31 @@ in
   # To see the right class name, use `hyprctl clients` command and look for "class:"
   hyprlandWindowRules = [
     "workspace ${appWorkspaces.editor} silent, class:^(code)$"
+    "workspace ${appWorkspaces.editor} silent, class:^(nvim-editor)$"
+    "workspace ${appWorkspaces.editor} silent, class:^(org.kde.kate)$"
+    "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-pycharm-ce)$"
+    "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-Clion)$"
+    "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-idea-ce)$"
+
     "workspace ${appWorkspaces.fileManager} silent, class:^(org.kde.dolphin)$"
+    "workspace ${appWorkspaces.fileManager} silent, class:^(thunar)$"
     "workspace ${appWorkspaces.fileManager} silent, class:^(yazi)$"
     "workspace ${appWorkspaces.fileManager} silent, class:^(ranger)$"
-    "workspace 7 silent, class:^(chromium-browser)$"
+    "workspace ${appWorkspaces.fileManager} silent, class:^(org.gnome.Nautilus)$"
+    "workspace ${appWorkspaces.fileManager} silent, class:^(nemo)$"
+
+    "workspace ${appWorkspaces.vm} silent, class:^(winboat)$"
+
+    "workspace ${appWorkspaces.browser} silent, class:^(chromium-browser)$"
+
     "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
     "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
+    "workspace ${appWorkspaces.terminal} silent, class:^(foot)$"
+    "workspace ${appWorkspaces.terminal} silent, class:^(xfce4-terminal)$"
+    "workspace ${appWorkspaces.terminal} silent, class:^(com.system76.CosmicTerm)$"
+    "workspace ${appWorkspaces.terminal} silent, class:^(org.kde.konsole)$"
+    "workspace ${appWorkspaces.terminal} silent, class:^(gnome-terminal)$"
+    "workspace ${appWorkspaces.terminal} silent, class:^(XTerm)$"
 
     "workspace ${appWorkspaces.chat} silent, class:^(vesktop)$"
     "workspace ${appWorkspaces.chat} silent, class:^(org.telegram.desktop)$"
