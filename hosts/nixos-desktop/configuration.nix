@@ -343,11 +343,15 @@ in
   # ---------------------------------------------------------
   programs.chromium = {
     enable = true;
+
     extraOpts = {
       "ShowHomeButton" = true;
       "HomepageLocation" = "https://www.youtube.com";
       "HomepageIsNewTabPage" = false;
-      "RestoreOnStartup" = 1;
+
+      # 4 = Always open the URLs listed below (ignores previous session)
+      "RestoreOnStartup" = 4;
+
       "RestoreOnStartupURLs" = [
         "https://www.youtube.com"
         "https://music.youtube.com/"

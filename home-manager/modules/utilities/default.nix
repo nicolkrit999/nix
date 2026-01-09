@@ -3,6 +3,7 @@
     # Single-file modules
     ./bat.nix
     ./eza.nix
+    ./fzf.nix
     ./git.nix
     ./lazygit.nix
     ./mime.nix

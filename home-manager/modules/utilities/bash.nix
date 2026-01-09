@@ -68,6 +68,8 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
 
         # Utilities
         se = "sudoedit";
+        fzf-prev = "fzf --preview=\"cat {}\"";
+        fzf-editor = "${vars.editor} \$(fzf -m --preview='cat {}')";
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config

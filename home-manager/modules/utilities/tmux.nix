@@ -42,7 +42,7 @@
       bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "wl-copy"
 
       # --- CUSTOM BINDINGS (Alt/Meta based) ---
-      bind -n M-r source-file ~/.config/tmux/tmux.conf \; display "Reloaded!"
+      bind -n M-R source-file ~/.config/tmux/tmux.conf \; display "Reloaded!"
       bind C-p previous-window 
       bind C-n next-window
 
@@ -75,6 +75,7 @@
 
       # Sessions management
       bind -n M-d detach-client
+      bind -n M-S command-prompt -p "New Session Name:" "new-session -s '%%'"
 
       # --- PRODUCTIVITY SHORTCUTS ---
       bind -n M-Enter new-window

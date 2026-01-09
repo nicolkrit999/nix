@@ -70,6 +70,8 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
 
         # Utilities
         se = "sudoedit";
+        fzf-prev = "fzf --preview=\"cat {}\"";
+        fzf-editor = "${vars.editor} \$(fzf -m --preview='cat {}')";
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
@@ -122,6 +124,15 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
               exec systemd-cat -t uwsm_start uwsm start default
           end
       end
+
+      # FZF Keybindings
+      fzf_key_bindings
+
+      # 2. Fix fish-specific globbing and binding conflicts
+      # Also solve tmux alt c conflict
+      bind --erase --all alt-c 
+      bind ctrl-g fzf-cd-widget
+
     '';
 
     # -----------------------------------------------------
