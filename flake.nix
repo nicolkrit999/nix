@@ -50,8 +50,7 @@
   };
 
   outputs =
-    { self
-    , nixpkgs
+    { nixpkgs
     , nixpkgs-unstable
     , home-manager
     , ...
