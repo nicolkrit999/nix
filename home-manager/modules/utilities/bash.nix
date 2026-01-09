@@ -99,7 +99,7 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
 
       # 3. TMUX AUTOSTART
       if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
-        tmux new-session
+        tmux new-session -A -s main
       fi
 
       # 4. SNAPSHOT FUNCTIONS (Bash Syntax)
