@@ -113,7 +113,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         # 3. TMUX AUTOSTART (Only in GUI)
         # Ensure we are in a GUI before starting tmux automatically
         if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
-          tmux new-session
+          tmux new-session -A -s main
         fi
 
         # 4. UWSM STARTUP (Universal & Safe)
