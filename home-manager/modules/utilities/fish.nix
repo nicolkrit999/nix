@@ -103,7 +103,7 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
 
       # 3. TMUX AUTOSTART
       if not set -q TMUX; and set -q DISPLAY
-        tmux new-session
+        tmux new-session -A -s main
       end
 
       # 4. Disable greeting
