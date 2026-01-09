@@ -15,7 +15,7 @@
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------
       kdePackages.kate # Text editor from the kde theme
-      notion-app # Writing app
+      notion # Writing app
       obs-studio # Streaming/Recording
       telegram-desktop # Messaging
       teams-for-linux # Unofficial Microsoft Teams client
