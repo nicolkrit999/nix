@@ -1,8 +1,7 @@
-{
-  pkgs,
-  pkgs-unstable,
-  vars,
-  ...
+{ pkgs
+, pkgs-unstable
+, vars
+, ...
 }:
 {
   users.users.${vars.user}.packages =
@@ -27,6 +26,7 @@
       libreoffice-qt # Open source microsoft office alternative
       gsimplecal # Simple calendar application
       meld # Visual diff and merge tool
+      whatsapp-electron # Electron wrapper for whatsapp
 
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES

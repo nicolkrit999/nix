@@ -64,6 +64,7 @@ in
 
     "workspace ${appWorkspaces.chat} silent, class:^(vesktop)$"
     "workspace ${appWorkspaces.chat} silent, class:^(org.telegram.desktop)$"
+    "workspace ${appWorkspaces.chat} silent, class:^(whatsapp-electron)$"
 
     # Scratchpad rules - terminal
     "float, class:^(scratch-term)$"
