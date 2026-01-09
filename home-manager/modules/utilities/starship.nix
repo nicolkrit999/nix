@@ -45,7 +45,6 @@ in
       hostname = {
         ssh_only = false;
         format = "[$ssh_symbol$hostname]($style) ";
-        # 🟢 RESULT: "bold mauve" OR "bold #bd93f9"
         style = "bold ${mainColor}";
       };
 

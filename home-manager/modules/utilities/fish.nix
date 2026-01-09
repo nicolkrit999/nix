@@ -49,6 +49,7 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
         # System maintenance
         dedup = "nix store optimise";
         cleanup = "nh clean all";
+        gc = "nix-collect-garbage -d";
 
         # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
         # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${vars.hostname}"; # Rebuild home-manager config
@@ -80,7 +81,7 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
 
         # Various
         reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
-        swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
+        updboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
       };
 
     # -----------------------------------------------------

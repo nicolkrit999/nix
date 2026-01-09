@@ -2177,7 +2177,7 @@ This code is my personal one, but it may be change heavily based on your prefere
 
         # Various
         reb-uefi = "systemctl reboot - -firmware-setup"; # Reboot into UEFI firmware settings
-        swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
+        updboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
       };
 
     history.size = 10000;

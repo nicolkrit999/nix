@@ -7,7 +7,7 @@
   ...
 }:
 let
-  caelestiaPkg = inputs.caelestia-shell.packages.${pkgs.system}.with-cli;
+  caelestiaPkg = inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli;
 
   caelestiaConfig = import ./caelestia-config.nix { inherit vars; };
 

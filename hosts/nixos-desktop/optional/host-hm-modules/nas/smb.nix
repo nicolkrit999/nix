@@ -62,4 +62,6 @@ in
 
   # Enable Tailscale so we can reach the NAS
   services.tailscale.enable = lib.mkForce true;
+
+  sops.secrets.nas-smb-secrets = { };
 }

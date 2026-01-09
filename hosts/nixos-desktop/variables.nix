@@ -68,19 +68,19 @@
 
   # 🖼️ MONITORS & WALLPAPERS
   monitors = [
-    "DP-1,3840x2160@240,1440x560,1.5"
-    "DP-2,3840x2160@144,0x0,1.5,transform,1"
+    "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
+    "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
     "HDMI-A-1,disable"
   ];
 
   wallpapers = [
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/develop/wallpapers/landscape/benjamin-farren_seal.jpg";
-      wallpaperSHA256 = "0d0n18kr6lpx89hi7mbsllfa8c6fv7003cxr69lfw0bmwp9v69kj";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/develop/wallpapers/landscape/danny-rienecker-_turtle.jpg";
+      wallpaperSHA256 = "1zcikp7kwj4zp2vg0yjsdyc2gz49fqlgc79bdzs56alcnyphd7v7";
     }
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/develop/wallpapers/landscape/johannes-havn_goat.jpg";
-      wallpaperSHA256 = "13qbphjq89rj0xmyip55xs5dkiz20ddqccjazdixkizhpx2v44yj";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/develop/wallpapers/landscape/hassan-pasha-chess-unsplash.jpg";
+      wallpaperSHA256 = "04j2ahaxxnqr7rwiyv9vjcfd7r2n4fqn997vqyy4s05g5576my2y";
     }
   ];
 

@@ -50,12 +50,11 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      nixpkgs-unstable,
-      home-manager,
-      ...
+    { self
+    , nixpkgs
+    , nixpkgs-unstable
+    , home-manager
+    , ...
     }@inputs:
     let
 
@@ -83,7 +82,6 @@
           };
         in
         nixpkgs.lib.nixosSystem {
-          inherit (hostVars) system;
 
           specialArgs = {
             inherit inputs pkgs-unstable;
@@ -104,6 +102,9 @@
             ./nixos/modules/cosmic.nix
 
             {
+
+              nixpkgs.hostPlatform = hostVars.system;
+
               nixpkgs.pkgs = import nixpkgs {
                 inherit (hostVars) system;
                 config.allowUnfree = true;

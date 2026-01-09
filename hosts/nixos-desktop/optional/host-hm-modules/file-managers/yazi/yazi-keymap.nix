@@ -303,14 +303,6 @@
         run = "cd ~/nixOS";
         desc = "Go ~/nixOS";
       }
-      {
-        on = [
-          "g"
-          "N"
-        ];
-        run = "cd /mnt/nicol-nas";
-        desc = "Go to the NAS";
-      }
 
       {
         on = [
@@ -343,6 +335,24 @@
         ];
         run = "cd ~/.local/share/Trash/files";
         desc = "Go to Trash";
+      }
+      {
+        on = [
+          "g"
+          "m"
+          "n"
+        ];
+        run = "cd /mnt/nicol-nas";
+        desc = "Go to the NAS";
+      }
+      {
+        on = [
+          "g"
+          "m"
+          "o"
+        ];
+        run = "cd /mnt/owncloud";
+        desc = "Go to owncloud";
       }
       {
         on = [
