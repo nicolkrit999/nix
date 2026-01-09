@@ -1249,16 +1249,19 @@ This folder contains an explanation of the issues that i noticed and that should
 This folder contains ideas that i think may benefit the project
 
 
-### [Usage guide](./Documentation/usage/usage-guide)
+### [Usage guide](./Documentation/usage/)
 This folder contains a guide on how basic aspects should be implemented, such as:
 - Creating a system-wide module
 - Create a general home-manager modules that apply to all hosts
 - Create a host-specific home-manager modules
 - Theming guide
 
+It also contains some other guides such as
+- sops
+- tmux
+
 ### [Wallpapers](./wallpapers/credits)
 - This folder contains some wallpapers allowing for an easy setup using raw url.
-  - For each asset not mine a reference to the original author(s) is included in the document 
 
 
 
