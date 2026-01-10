@@ -39,7 +39,8 @@ in
 
       "_netdev"
       "nofail"
-
+      "noauto"
+      "x-systemd.automount"
     ];
   };
 

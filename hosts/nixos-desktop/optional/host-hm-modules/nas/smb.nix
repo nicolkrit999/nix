@@ -42,11 +42,14 @@ let
           "uid=${toString config.users.users.${vars.user}.uid}"
           "gid=${toString config.users.groups.users.gid}"
 
-          "soft" # mount prevents Kernel hangs on network loss
+          "soft"
 
           # Safety flags
           "nofail" # Prevents boot failure if NAS is unreachable
           "_netdev" # Tells systemd this is a network device
+          "noauto"
+          "x-systemd.automount" # Creates the mount unit systemd expects
+
         ];
       };
     };
