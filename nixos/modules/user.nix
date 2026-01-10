@@ -15,6 +15,10 @@ in
   programs.zsh.enable = currentShell == "zsh";
   programs.fish.enable = currentShell == "fish";
 
+  # Currently the user can run some sudo commands without a password
+  # To require a password, uncomment the following line
+  #security.sudo.wheelNeedsPassword = true;
+
   users = {
     defaultUserShell = shellPkg;
     users.${vars.user} = {

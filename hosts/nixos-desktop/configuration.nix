@@ -235,13 +235,6 @@ in
     trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
   };
 
-  # ---------------------------------------------------------
-  # ⚔️ SYSTEM TWEAKS
-  # ---------------------------------------------------------
-  systemd.tmpfiles.rules = [
-    "f /etc/systemd/logind.conf.d/10-logout-override.conf 0644 root root - [Login]\nKillUserProcesses=yes\nIdleAction=none\n"
-  ];
-
   # -----------------------------------------------------
   # ⚡ Systemd Shutdown Tweak
   # -----------------------------------------------------
@@ -363,6 +356,7 @@ in
     serviceConfig = {
       Type = "oneshot";
       User = vars.user;
+      Environment = "HOME=/home/${vars.user}";
       ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
     };
   };

@@ -635,6 +635,11 @@ Run this command inside `~/nixOS`:
   set -as terminal-features ",xterm-kitty:RGB"
   ```
 
+  * `shell`: The preferred shell for the user. Options are:
+    *  fish
+    *  bash
+    *  zsh
+
   * `browser`: Default browser. To make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
     * google-chrome
     * firefox
@@ -745,6 +750,7 @@ nix-prefetch-url <your_raw_url>
 
   flatpak = false;
   term = "alacritty";
+  shell = "fish";
 
   browser = "firefox";
   editor = "code";
@@ -756,8 +762,8 @@ nix-prefetch-url <your_raw_url>
   catppuccinFlavor = "mocha";
   catppuccinAccent = "sky";
 
-  timeZone = "Europe/Zurich";
-  weather = "Lugano";
+  timeZone = "UTC";
+  weather = "Greenwich";
   keyboardLayout = "us";
   keyboardVariant = "intl";
 
