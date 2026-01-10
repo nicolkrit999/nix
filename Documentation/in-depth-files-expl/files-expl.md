@@ -93,28 +93,24 @@
     - [3. Security Hardening](#3-security-hardening)
     - [4. User Warning](#4-user-warning)
   - [The Code](#the-code-15)
-- [~nixOS/home-manager/modules/mime.nix](#nixoshome-managermodulesmimenix)
-  - [Key Concepts](#key-concepts-15)
-    - [1. Dynamic Associations](#1-dynamic-associations)
-    - [2. Desktop File Translation (`mkDesktop`)](#2-desktop-file-translation-mkdesktop)
-  - [The Code](#the-code-16)
+- [🛡️ THE MONITOR SCRIPT](#️-the-monitor-script)
 - [~nixOS/nixos/modules/nix.nix](#nixosnixosmodulesnixnix)
-  - [Key Concepts](#key-concepts-16)
+  - [Key Concepts](#key-concepts-15)
     - [1. Enabling Flakes](#1-enabling-flakes)
     - [2. Binary Caching (Speed)](#2-binary-caching-speed)
     - [3. Automatic Garbage Collection](#3-automatic-garbage-collection)
-  - [The Code](#the-code-17)
+  - [The Code](#the-code-16)
 - [~nixOS/nixos/modules/sddm.nix](#nixosnixosmodulessddmnix)
-  - [Key Concepts](#key-concepts-17)
+  - [Key Concepts](#key-concepts-16)
     - [1. The "Astronaut" Theme](#1-the-astronaut-theme)
     - [2. X11 Backend for Stability](#2-x11-backend-for-stability)
     - [3. UWSM Integration](#3-uwsm-integration)
-  - [The Code](#the-code-18)
+  - [The Code](#the-code-17)
 - [~nixOS/nixos/modules/user.nix](#nixosnixosmodulesusernix)
-  - [Key Concepts](#key-concepts-18)
+  - [Key Concepts](#key-concepts-17)
     - [1. The "Safety Net" (Why configure groups twice?)](#1-the-safety-net-why-configure-groups-twice)
     - [2. Global Shell Enforcement](#2-global-shell-enforcement)
-  - [The Code](#the-code-19)
+  - [The Code](#the-code-18)
 
 
 # ~nixOS/flake.nix
@@ -204,12 +200,10 @@ Once the variables are calculated, the system loads the code. It includes the ge
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      nixpkgs-unstable,
-      home-manager,
-      ...
+    { nixpkgs
+    , nixpkgs-unstable
+    , home-manager
+    , ...
     }@inputs:
     let
 
@@ -237,7 +231,6 @@ Once the variables are calculated, the system loads the code. It includes the ge
           };
         in
         nixpkgs.lib.nixosSystem {
-          inherit (hostVars) system;
 
           specialArgs = {
             inherit inputs pkgs-unstable;
@@ -258,6 +251,9 @@ Once the variables are calculated, the system loads the code. It includes the ge
             ./nixos/modules/cosmic.nix
 
             {
+
+              nixpkgs.hostPlatform = hostVars.system;
+
               nixpkgs.pkgs = import nixpkgs {
                 inherit (hostVars) system;
                 config.allowUnfree = true;
@@ -352,6 +348,7 @@ Once the variables are calculated, the system loads the code. It includes the ge
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
     };
 }
+
 ```
 
 
@@ -641,6 +638,9 @@ The static list below contains utilities that are **required** for your environm
   ...
 }:
 let
+  # 🔄 TRANSLATION LAYER
+  translatedEditor = if vars.editor == "nvim" then "neovim" else vars.editor;
+
   # 🛡️ SAFE FALLBACKS for browser, fileManager, editor
   # If the user's choice is invalid or missing, these are installed.
   fallbackTerm = pkgs.alacritty;
@@ -662,7 +662,7 @@ let
   myTermPkg = getPkg vars.term fallbackTerm;
   myBrowserPkg = getPkg vars.browser fallbackBrowser;
   myFileManagerPkg = getPkg vars.fileManager fallbackFileManager;
-  myEditorPkg = getPkg vars.editor fallbackEditor;
+  myEditorPkg = getPkg translatedEditor fallbackEditor;
 in
 {
   home.packages =
@@ -691,11 +691,14 @@ in
       # 🖥️ CLI UTILITIES
       # -----------------------------------------------------------------------------------
       cliphist # Wayland clipboard history manager (needed for clipboard management)
+      dix # Nix diff viewer between generations
       eza # Modern ls replacement (used by eza.nix module)
+      fd # Fast file finder (used in various scripts)
+      fzf # Fuzzy finder (used in various scripts)
       git # Version control system (used in various scripts)
       nixfmt-rfc-style # Nix code formatter with RFC style (used in flake.nix)
       starship # Shell prompt (used by starship.nix)
-      zsh-autosuggestions # Fish-like autosuggestions for Zsh (used in zsh config)
+      zoxide # Jump around filesystem (used in various scripts)
 
       # -----------------------------------------------------------------------------------
       # 🧑🏽‍💻 CODING
@@ -729,7 +732,6 @@ in
       # ----------------------------------------------------------------------
     ]);
 }
-
 ```
 
 
@@ -953,8 +955,6 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
         # 🚀 Startup Apps
         # ----------------------------------------------------
         exec-once = [
-        "sh -lc 'SIG=$(hyprctl instances | head -n 1 | cut -d \" \" -f 2); systemctl --user set-environment HYPRLAND_INSTANCE_SIGNATURE=\"$SIG\" WAYLAND_DISPLAY=\"$WAYLAND_DISPLAY\" XDG_RUNTIME_DIR=\"$XDG_RUNTIME_DIR\"'"
-
           "wl-paste --type text --watch cliphist store" # Start clipboard manager for text
           "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
@@ -1077,7 +1077,8 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
           "maxsize 1 1, class:^(xwaylandvideobridge)$"
           "noblur, class:^(xwaylandvideobridge)$"
           "nofocus, class:^(xwaylandvideobridge)$"
-        ];
+        ]
+        ++ (vars.hyprlandWindowRules or [ ]);
 
         workspace = [
           "w[tv1], gapsout:0, gapsin:0" # No gaps if only 1 window is visible
@@ -1088,7 +1089,6 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
     };
   };
 }
-
 ```
 
 
@@ -2040,6 +2040,7 @@ in
 ```
 
 # ~nixOS/home-manager/modules/zsh.nix
+- Note: `bash.nix` and `fish.nix` do the same thing with slight differences based on the sintax they expect
 
 This file configures **Zsh**, your command-line shell. While Home Manager handles the installation and basic plugins (autosuggestions, syntax highlighting), this module's primary strength lies in its **intelligence**. It adapts its aliases based on the system state and integrates seamlessly with non-Nix dotfiles.
 
@@ -2103,10 +2104,12 @@ This code is my personal one, but it may be change heavily based on your prefere
 {
   config,
   pkgs,
+  lib,
   vars,
   ...
 }:
-{
+
+lib.mkIf ((vars.shell or "zsh") == "zsh") {
   programs.zsh = {
     enable = true;
     enableCompletion = true;
@@ -2141,10 +2144,11 @@ This code is my personal one, but it may be change heavily based on your prefere
             "nh os boot --update ${flakeDir}";
       in
       {
-
         # Smart aliases based on nixImpure setting
         sw = "cd ${flakeDir} && ${switchCmd}";
+        swoff = "cd ${flakeDir} && ${switchCmd} --offline";
         gsw = "cd ${flakeDir} && git add -A && ${switchCmd}";
+        gswoff = "cd ${flakeDir} && git add -A && ${switchCmd} --offline";
         upd = "cd ${flakeDir} && ${updateCmd}";
 
         # Manual are kept for reference, but use the above aliases instead
@@ -2154,19 +2158,21 @@ This code is my personal one, but it may be change heavily based on your prefere
         # System maintenance
         dedup = "nix store optimise";
         cleanup = "nh clean all";
+        gc = "nix-collect-garbage -d";
 
-        # Home-Manager related ()
+        # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
         # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${vars.hostname}"; # Rebuild home-manager config
 
         # Pkgs editing
-        pkgs-home = "nvim ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list
-        pkgs-host = "nvim ${flakeDir}/hosts/${vars.hostname}/local-packages.nix"; # Edit host-specific packages list
+        pkgs-home = "$EDITOR ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list
+        pkgs-host = "$EDITOR ${flakeDir}/hosts/${vars.hostname}/optional/host-packages/local-packages.nix"; # Edit host-specific packages list
 
         # Nix repo management
         fmt-dry = "cd ${flakeDir} && nix fmt -- --check"; # Check formatting without making changes (list files that need formatting)
         fmt = "cd ${flakeDir} &&  nix fmt -- **/*.nix"; # Format Nix files using nixfmt (a regular nix fmt hangs on zed theme)
         merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop"; # Merge main with develop branch, push and return to develop branch
         merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop"; # Merge develop with main branch, push and return to develop branch
+        cdnix = "cd ${flakeDir}";
 
         # Snapshots
         snap-list-home = "snapper -c home list"; # List home snapshots
@@ -2174,9 +2180,16 @@ This code is my personal one, but it may be change heavily based on your prefere
 
         # Utilities
         se = "sudoedit";
+        fzf-prev = "fzf --preview=\"cat {}\"";
+        fzf-editor = "${vars.editor} \$(fzf -m --preview='cat {}')";
+
+        # Sops secrets editing
+        sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
+        sops-common = "cd ${flakeDir} && sops common/secrets.yaml"; # Edit sops secrets file
+        sops-host = "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/secrets.yaml"; # Edit host-specific sops secrets file
 
         # Various
-        reb-uefi = "systemctl reboot - -firmware-setup"; # Reboot into UEFI firmware settings
+        reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
         updboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
       };
 
@@ -2188,12 +2201,17 @@ This code is my personal one, but it may be change heavily based on your prefere
     # -----------------------------------------------------
     initExtra = ''
         # 1. FIX HYPRLAND SOCKET (Dynamic Update)
-        # This ensures that even inside tmux or after a crash, the shell finds the correct socket.
-        if [ -d "/run/user/$(id -u)/hypr" ]; then
-          export HYPRLAND_INSTANCE_SIGNATURE=$(ls -w 1 /run/user/$(id -u)/hypr/ | grep -v ".lock" | head -n 1)
+        if [ -d "/run/user/$(id -u)/hypr" ];
+        then
+          # Search for the actual socket file (Removed 'local' to fix error)
+          socket_file=$(find /run/user/$(id -u)/hypr/ -name ".socket.sock" -print -quit)
+          if [ -n "$socket_file" ];
+          then
+            export HYPRLAND_INSTANCE_SIGNATURE=$(basename $(dirname "$socket_file"))
+          fi
         fi
 
-        # 2. LOAD USER CONFIG (Stow Integration)
+        # 2. LOAD USER CONFIG
         if [ -f "$HOME/.zshrc_custom" ]; then
           source "$HOME/.zshrc_custom"
         fi
@@ -2201,7 +2219,7 @@ This code is my personal one, but it may be change heavily based on your prefere
         # 3. TMUX AUTOSTART (Only in GUI)
         # Ensure we are in a GUI before starting tmux automatically
         if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
-          tmux new-session
+          tmux new-session -A -s main
         fi
 
         # 4. UWSM STARTUP (Universal & Safe)
@@ -2365,7 +2383,16 @@ It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audi
   keyboardVariant,
   ...
 }:
-
+let
+  # Determine which shell package to use based on the variable
+  shellPkg =
+    if vars.shell == "fish" then
+      pkgs.fish
+    else if vars.shell == "zsh" then
+      pkgs.zsh
+    else
+      pkgs.bashInteractive;
+in
 {
   # home.nix and host-modules are imported from flake.nix
   imports = [
@@ -2391,30 +2418,34 @@ It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audi
   hardware.graphics.enable = true; # Keep enabled to avoid terminal crash when disabling certain de
 
   fonts.packages = with pkgs; [
-    nerd-fonts.jetbrains-mono
-    nerd-fonts.symbols-only
-    noto-fonts
-    dejavu_fonts
-    noto-fonts-lgc-plus
-    noto-fonts-color-emoji
-    noto-fonts-cjk-sans
-    texlivePackages.hebrew-fonts
-    font-awesome
-    powerline-fonts
+    nerd-fonts.jetbrains-mono # Primary monospace font; includes icons for coding and terminal use
+    nerd-fonts.symbols-only # Icon fallback; ensures symbols render even when the main font lacks them
+    noto-fonts # Base text coverage; Google's "No Tofu" standard to fix square boxes globally
+    dejavu_fonts # Core Linux fallback; high compatibility for standard text in older apps
+    noto-fonts-lgc-plus # Extended European support; covers complex Latin, Greek, and Cyrillic variants
+    noto-fonts-color-emoji # Emoji support; ensures emojis appear in color rather than monochrome outlines
+    noto-fonts-cjk-sans # Asian language support; mandatory for Chinese, Japanese, and Korean characters
+    texlivePackages.hebrew-fonts # Hebrew support; specialized font for correct Hebrew script rendering
+    font-awesome # System icons; standard dependency for Waybar and desktop interface elements
+    powerline-fonts # Shell prompt glyphs; prevents broken triangles/shapes in Zsh/Bash prompts
   ];
 
   fonts.fontconfig.enable = true;
 
   environment.systemPackages = with pkgs; [
-    foot
-    iptables
-    glib
+    foot # Tiny, zero-config terminal; critical rescue tool if your main terminal config breaks
+    iptables # Core firewall utility; base dependency for network security and containers
+    glib # Low-level system library; almost all software crashes without this base layer
+    gpu-screen-recorder # Used for caelestia and included here to ensure proper permissions
+    # Global theme settings; prevents GTK apps from looking broken or crashing
     gsettings-desktop-schemas
-    gtk3
-    libsForQt5.qt5.qtwayland
-    kdePackages.qtwayland
-    powerline-symbols
-    polkit_gnome
+    gtk3 # Standard GUI toolkit; essential for drawing basic application windows
+    libsForQt5.qt5.qtwayland # Qt5 Wayland bridge; mandatory for older Qt apps to display correctly
+    kdePackages.qtwayland # Qt6 Wayland bridge; mandatory for modern Qt apps to display correctly
+    powerline-symbols # Terminal font glyphs; prevents "box" errors in shell prompts
+    polkit_gnome # Authentication agent; required for GUI apps (like Btrfs Assistant) to ask for passwords
+    sops # Secret management tool; decrypts sensitive data stored in Git repositories
+    shellPkg # The selected shell package (bash, zsh, or fish)
   ];
 
   programs.dconf.enable = true;
@@ -2437,13 +2468,13 @@ It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audi
   # Enable networking
   networking.networkmanager.enable = true;
 
-  # ---------------------------------------------------------
-  # ⚔️ STABILITY FIX: Force 'Switch User' to act as 'Log Out'
-  # ---------------------------------------------------------
-  # This was done mainly to help the guest user to be kicked out from unauthorized sessions
-  systemd.tmpfiles.rules = [
-    "f /etc/systemd/logind.conf.d/10-logout-override.conf 0644 root root - [Login]\nKillUserProcesses=yes\nIdleAction=none\n"
-  ];
+  # -----------------------------------------------------
+  # ⚡ Systemd Shutdown Tweak
+  # -----------------------------------------------------
+  # This reduces the wait time for stuck services from 90s to 10s.
+  systemd.settings.Manager = {
+    DefaultTimeoutStopSec = "10s";
+  };
 
   # ---------------------------------------------------------
   # ⌨️ KEYBOARD LAYOUT (Global Logic)
@@ -2497,12 +2528,55 @@ It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audi
       "networkmanager"
       "wheel"
       "input"
-      "docker"
+      #"docker"
+      #"podman"
       "video"
       "audio"
     ];
     shell = pkgs.zsh; # Ensure zsh is installed in system packages
   };
+
+  # This is needed if you want to use docker and be part of the docker/podman group
+
+  # Required for rootless Podman/Distrobox
+  /*
+    subUidRanges = [
+      {
+        startUid = 100000;
+        count = 65536;
+      }
+    ];
+    subGidRanges = [
+      {
+        startGid = 100000;
+        count = 65536;
+      }
+    ];
+
+    virtualisation.docker.enable = true;
+
+    virtualisation.podman = {
+      enable = true;
+      dockerCompat = false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
+    };
+  */
+
+  # ---------------------------------------------------------
+  # 🗑️ AUTO TRASH CLEANUP
+  # ---------------------------------------------------------
+  # Trash cleanup service that deletes files older than 30 days
+
+  /*
+    systemd.services.cleanup_trash = {
+      description = "Clean up trash older than 30 days";
+      serviceConfig = {
+        Type = "oneshot";
+        User = vars.user;
+        Environment = "HOME=/home/${vars.user}";
+        ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
+      };
+    };
+  */
 
   # Nix Settings (Flakes & Garbage Collection)
   nix.settings.experimental-features = [
@@ -2722,7 +2796,6 @@ A custom script (`guest-warning`) runs on login using `zenity`. It displays a bi
 
 ## The Code
 
-```nix
 {
   config,
   pkgs,
@@ -2782,7 +2855,11 @@ in
       description = "Guest Account";
       uid = guestUid;
       group = "guest";
-      extraGroups = [ "networkmanager" "audio" "video" ];
+      extraGroups = [
+        "networkmanager"
+        "audio"
+        "video"
+      ];
       hashedPassword = "$6$Cqklpmh3CX0Cix4Y$OCx6/ud5bn72K.qQ3aSjlYWX6Yqh9XwrQHSR1GnaPRud6W4KcyU9c3eh6Oqn7bjW3O60oEYti894sqVUE1e1O0";
       createHome = true;
     };
@@ -2793,7 +2870,12 @@ in
     fileSystems."/home/guest" = {
       device = "none";
       fsType = "tmpfs";
-      options = [ "size=25%" "mode=700" "uid=${toString guestUid}" "gid=${toString guestUid}" ];
+      options = [
+        "size=25%"
+        "mode=700"
+        "uid=${toString guestUid}"
+        "gid=${toString guestUid}"
+      ];
     };
 
     # 🎯 FORCE XFCE PREFERENCE
@@ -2808,11 +2890,12 @@ in
     # 📦 GUEST PACKAGES
     environment.systemPackages = with pkgs; [
       (google-chrome.override { commandLineArgs = "--no-first-run --no-default-browser-check"; })
-      nemo
-      eog
-      file-roller
-      gnome-calculator
-      zenity
+      file-roller # Archive manager
+      zenity # keep for the startup warning
+    ];
+
+    environment.xfce.excludePackages = [
+      pkgs.xfce.parole
     ];
 
     # ⚠️ UNIVERSAL AUTOSTART MONITOR
@@ -2825,7 +2908,7 @@ in
     '';
 
     # 🔓 SUDO RULES FOR REBOOT
-    # We allow the guest to run 'reboot' without a password. 
+    # We allow the guest to run 'reboot' without a password.
     # This is necessary for the enforcement script.
     security.sudo.extraRules = [
       {
@@ -2854,7 +2937,6 @@ in
     };
   };
 }
-
 ```
 
 ---
@@ -3123,19 +3205,31 @@ If **Hyprland** is enabled, we set the default session to **`hyprland-uwsm`**.
 ## The Code
 
 ```nix
-{
-  pkgs,
-  lib,
-  vars,
-  ...
+{ pkgs
+, lib
+, vars
+, ...
 }:
 let
+  # Reference for themes:
+  # Files: https://github.com/Keyitdev/sddm-astronaut-theme/tree/master/themes
   sddmTheme = pkgs.sddm-astronaut.override {
-    embeddedTheme = "jake_the_dog";
+    embeddedTheme = "hyprland_kath"; # do not include ".conf" at the end
+    themeConfig = {
+      # Clock format. The default is 24/h format. If opting for the default these "themConfig" block can be removed
+      # "hh:mm AP" = 08:00 PM
+      # "HH:mm"    = 20:00
+      HourFormat = "hh:mm AP";
+      #DateFormat = ""; # "Some theme may not support this. Commmented because i like the default but kept for reference
+    };
   };
 in
 {
+
   services.xserver.enable = true;
+  services.xserver = {
+    excludePackages = [ pkgs.xterm ];
+  };
 
   services.displayManager.sddm = {
     enable = true;
@@ -3190,29 +3284,42 @@ You might notice that `extraGroups` (permissions) are defined here **and** in th
 
 ### 2. Global Shell Enforcement
 
-We explicitly set **Zsh** as the default shell for the user account here. This ensures that even if you create a new user or move to a new host, you invariably get the advanced shell features (autosuggestions, syntax highlighting) defined in `modules/zsh.nix` without needing to configure it manually every time.
+It set the default shell based on what the user choose as a variable
 
 ---
 
 ## The Code
 
 ```nix
-{ pkgs, user, ... }:
+{ pkgs, vars, ... }:
+let
+  # 🛡️ FALLBACK: Defaults to "zsh" if vars.shell is missing
+  currentShell = vars.shell or "zsh";
+
+  shellPkg =
+    if currentShell == "fish" then
+      pkgs.fish
+    else if currentShell == "zsh" then
+      pkgs.zsh
+    else
+      pkgs.bashInteractive;
+in
 {
-  programs.zsh.enable = true; # Enable Zsh as a shell
+  programs.zsh.enable = currentShell == "zsh";
+  programs.fish.enable = currentShell == "fish";
+
+  # Currently the user can run some sudo commands without a password
+  # To require a password, uncomment the following line
+  #security.sudo.wheelNeedsPassword = true;
 
   users = {
-    defaultUserShell = pkgs.zsh; # Sets Zsh as the default shell globally
-
-    users.${user} = {
-      isNormalUser = true; # Marks this account as a regular human user
-
-      # 🛡️ BASE PERMISSIONS (Safety Net)
-      # These ensure that no matter what happens in the host config,
-      # the user can always administer the system and connect to the internet.
+    defaultUserShell = shellPkg;
+    users.${vars.user} = {
+      isNormalUser = true;
+      shell = shellPkg;
       extraGroups = [
-        "wheel"           # Sudo access
-        "networkmanager"  # Wi-Fi/Ethernet control
+        "wheel"
+        "networkmanager"
       ];
     };
   };

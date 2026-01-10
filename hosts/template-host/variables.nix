@@ -28,6 +28,7 @@
   # 📦 PACKAGES & TERMINAL
   flatpak = false;
   term = "alacritty";
+  shell = "fish"; # Options: bash, zsh, fish
 
   # 📂 DEFAULT APPS
   browser = "firefox";
@@ -41,9 +42,9 @@
   catppuccinFlavor = "mocha";
   catppuccinAccent = "sky";
 
-  # ⚙️ SYSTEM SETTINGS
-  timeZone = "Europe/Zurich";
-  weather = "Lugano";
+  # ⚙️ SYSTEM SETTINGSS
+  timeZone = "UTC";
+  weather = "Greenwich";
   keyboardLayout = "us";
   keyboardVariant = "intl";
 

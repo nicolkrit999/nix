@@ -9,7 +9,16 @@
   keyboardVariant,
   ...
 }:
-
+let
+  # Determine which shell package to use based on the variable
+  shellPkg =
+    if vars.shell == "fish" then
+      pkgs.fish
+    else if vars.shell == "zsh" then
+      pkgs.zsh
+    else
+      pkgs.bashInteractive;
+in
 {
   # home.nix and host-modules are imported from flake.nix
   imports = [
@@ -62,6 +71,7 @@
     powerline-symbols # Terminal font glyphs; prevents "box" errors in shell prompts
     polkit_gnome # Authentication agent; required for GUI apps (like Btrfs Assistant) to ask for passwords
     sops # Secret management tool; decrypts sensitive data stored in Git repositories
+    shellPkg # The selected shell package (bash, zsh, or fish)
   ];
 
   programs.dconf.enable = true;
@@ -84,13 +94,13 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
-  # ---------------------------------------------------------
-  # ⚔️ STABILITY FIX: Force 'Switch User' to act as 'Log Out'
-  # ---------------------------------------------------------
-  # This was done mainly to help the guest user to be kicked out from unauthorized sessions
-  systemd.tmpfiles.rules = [
-    "f /etc/systemd/logind.conf.d/10-logout-override.conf 0644 root root - [Login]\nKillUserProcesses=yes\nIdleAction=none\n"
-  ];
+  # -----------------------------------------------------
+  # ⚡ Systemd Shutdown Tweak
+  # -----------------------------------------------------
+  # This reduces the wait time for stuck services from 90s to 10s.
+  systemd.settings.Manager = {
+    DefaultTimeoutStopSec = "10s";
+  };
 
   # ---------------------------------------------------------
   # ⌨️ KEYBOARD LAYOUT (Global Logic)
@@ -145,14 +155,54 @@
       "wheel"
       "input"
       #"docker"
+      #"podman"
       "video"
       "audio"
     ];
     shell = pkgs.zsh; # Ensure zsh is installed in system packages
   };
 
-  # This is needed if you want to use docker and be part of the docker group
-  #virtualisation.docker.enable = true;
+  # This is needed if you want to use docker and be part of the docker/podman group
+
+  # Required for rootless Podman/Distrobox
+  /*
+    subUidRanges = [
+      {
+        startUid = 100000;
+        count = 65536;
+      }
+    ];
+    subGidRanges = [
+      {
+        startGid = 100000;
+        count = 65536;
+      }
+    ];
+
+    virtualisation.docker.enable = true;
+
+    virtualisation.podman = {
+      enable = true;
+      dockerCompat = false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
+    };
+  */
+
+  # ---------------------------------------------------------
+  # 🗑️ AUTO TRASH CLEANUP
+  # ---------------------------------------------------------
+  # Trash cleanup service that deletes files older than 30 days
+
+  /*
+    systemd.services.cleanup_trash = {
+      description = "Clean up trash older than 30 days";
+      serviceConfig = {
+        Type = "oneshot";
+        User = vars.user;
+        Environment = "HOME=/home/${vars.user}";
+        ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
+      };
+    };
+  */
 
   # Nix Settings (Flakes & Garbage Collection)
   nix.settings.experimental-features = [
