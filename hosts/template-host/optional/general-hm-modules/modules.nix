@@ -74,8 +74,6 @@
   #   "format-en" = "🇺🇸";
   # };
 
-  # starshipZshIntegration = true;
-
   # nixImpure = false;
 
   #caelestiaUseFahrenheit = false;

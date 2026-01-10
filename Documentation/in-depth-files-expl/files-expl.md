@@ -2654,8 +2654,6 @@ We add a custom menu entry called **"UEFI Firmware Settings"**.
       # Scans for Windows/other Linux installs
       useOSProber = true;
 
-      configurationLimit = 20; # Maximum number of generations to show
-
       
       # Ensures the boot entry is named cleanly in your BIOS
       extraGrubInstallArgs = [ "--bootloader-id=nixos" ];

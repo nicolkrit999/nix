@@ -831,17 +831,16 @@ This file contains specific home-manager aspects that are related only to a cert
 
 **Available Options:**
 
-| Variable                       | Description                                                                                                           | Fallback (If undefined)                                                           |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| **`hyprlandWorkspaces`**       | Binds specific workspaces to specific monitor ports (e.g., "1 on DP-1").                                              | **Auto-detect:** Workspaces open on the monitor with the mouse cursor.            |
-| **`hyprlandWindowRules`**      | Binds specific applications to specific workspaces (e.g., "Code opens on workspace 2").                               | **None:** Applications open on the currently focused workspace.                   |
-| **`*hyprland*ExtraBinds`**     | Allow to bind host-specific keybinds in kde, gnome and hyprland                                                       | **None:** Empty (no extra bind).                                                  |
-| **`kdeMice` / `kdeTouchpads`** | Applies strict settings (accel profile, speed) to specific Hardware IDs in KDE.                                       | **Plug & Play:** KDE applies standard default settings to all mice.               |
-| **`waybarWorkspaceIcons`**     | Maps specific workspace numbers to custom icons (e.g., "8" -> "Terminal Icon").                                       | **Numbers:** Waybar simply displays the workspace number (1, 2, 3...).            |
-| **`waybarLayoutFlags`**        | Replaces keyboard layout text codes with emojis (e.g., "en" -> "🇺🇸").                                                  | **Text Codes:** Waybar displays the ISO code (en, it, de).                        |
-| **`starshipZshIntegration`**   | Controls if Starship is auto-loaded in Zsh (`eval "$(starship init zsh)"`). Set to `false` if you manually source it. | **`true` (Enabled):** Starship loads automatically for a standard setup.          |
-| **`nixImpure`**                | If `true`, the `sw` and `upd` aliases run with `--impure` (needed for unversioned files/secrets).                     | **`false` (Pure):** Aliases use standard `nh` commands (or pure `nixos-rebuild`). |
-| **`useFahrenheit`**            | Whatever to use celsius or fahrenheit for the weather                                                                 | **`false`** It uses celsius                                                       |
+| Variable                       | Description                                                                                       | Fallback (If undefined)                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **`hyprlandWorkspaces`**       | Binds specific workspaces to specific monitor ports (e.g., "1 on DP-1").                          | **Auto-detect:** Workspaces open on the monitor with the mouse cursor.            |
+| **`hyprlandWindowRules`**      | Binds specific applications to specific workspaces (e.g., "Code opens on workspace 2").           | **None:** Applications open on the currently focused workspace.                   |
+| **`*hyprland*ExtraBinds`**     | Allow to bind host-specific keybinds in kde, gnome and hyprland                                   | **None:** Empty (no extra bind).                                                  |
+| **`kdeMice` / `kdeTouchpads`** | Applies strict settings (accel profile, speed) to specific Hardware IDs in KDE.                   | **Plug & Play:** KDE applies standard default settings to all mice.               |
+| **`waybarWorkspaceIcons`**     | Maps specific workspace numbers to custom icons (e.g., "8" -> "Terminal Icon").                   | **Numbers:** Waybar simply displays the workspace number (1, 2, 3...).            |
+| **`waybarLayoutFlags`**        | Replaces keyboard layout text codes with emojis (e.g., "en" -> "🇺🇸").                              | **Text Codes:** Waybar displays the ISO code (en, it, de).                        |
+| **`nixImpure`**                | If `true`, the `sw` and `upd` aliases run with `--impure` (needed for unversioned files/secrets). | **`false` (Pure):** Aliases use standard `nh` commands (or pure `nixos-rebuild`). |
+| **`useFahrenheit`**            | Whatever to use celsius or fahrenheit for the weather                                             | **`false`** It uses celsius                                                       |
 
 
 #### `modules.nix` Example
@@ -883,11 +882,13 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
 
   hyprlandExtraBinds = [
     # SCRATCHPAD APPLICATIONS
+    # You can see they have a separate class name and are assignet to the workspace special. 
+    # This allow to bind a similar keybindings to their original but put them in the scratchpad and not in a fixed location
     "$mainMod SHIFT, return, exec, [workspace special:magic] $term --class scratch-term"
     "$mainMod SHIFT, F, exec, [workspace special:magic] $term --class scratch-fs -e yazi"
     "$mainMod SHIFT, B, exec, [workspace special:magic] ${rawVars.browser} --new-window --name scratch-browser"
 
-    # EXTRA APPLICATION LAUNCHERS
+    # EXTRA desired keybindings
     "$mainMod,       Y, exec, chromium-browser"
   ];
 
@@ -947,8 +948,6 @@ Modify this file in `hosts/<your_hostname>/modules.nix` to override the defaults
     "format-de" = "🇩🇪";
   };
 
-  # The fallback is true
-  starshipZshIntegration = true;
 
   # The fallback is false
   nixImpure = false;
