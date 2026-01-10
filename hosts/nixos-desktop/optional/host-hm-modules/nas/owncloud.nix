@@ -37,11 +37,6 @@ in
       "file_mode=0664"
       "dir_mode=0775"
 
-      "noauto"
-      "x-systemd.automount"
-      "x-systemd.idle-timeout=3600"
-      "x-systemd.mount-timeout=10s"
-
       "_netdev"
       "nofail"
 
