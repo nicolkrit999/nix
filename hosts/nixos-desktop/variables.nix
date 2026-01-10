@@ -36,7 +36,7 @@
   fileManager = "yazi";
 
   # 🎨 THEMING
-  base16Theme = "dracula";
+  base16Theme = "tokyo-night-dark";
   polarity = "dark";
   catppuccin = false;
   catppuccinFlavor = "mocha";

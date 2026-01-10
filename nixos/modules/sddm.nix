@@ -1,8 +1,7 @@
-{
-  pkgs,
-  lib,
-  vars,
-  ...
+{ pkgs
+, lib
+, vars
+, ...
 }:
 let
   # Reference for themes:
@@ -19,6 +18,8 @@ let
   };
 in
 {
+
+  services.xserver.enable = true;
   services.xserver = {
     excludePackages = [ pkgs.xterm ];
   };
