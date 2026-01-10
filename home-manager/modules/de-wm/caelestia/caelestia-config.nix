@@ -372,7 +372,7 @@ in
       {
         name = "Scheme";
         dangerous = false;
-        enabled = true;
+        enabled = false;
         description = "Change the current colour scheme";
         command = [
           "autocomplete"
@@ -394,7 +394,7 @@ in
       {
         name = "Variant";
         dangerous = false;
-        enabled = true;
+        enabled = false;
         description = "Change the current scheme variant";
         command = [
           "autocomplete"
@@ -428,7 +428,7 @@ in
       {
         name = "Light";
         dangerous = false;
-        enabled = true;
+        enabled = false;
         description = "Change the scheme to light mode";
         command = [
           "setMode"
@@ -439,7 +439,7 @@ in
       {
         name = "Dark";
         dangerous = false;
-        enabled = true;
+        enabled = false;
         description = "Change the scheme to dark mode";
         command = [
           "setMode"

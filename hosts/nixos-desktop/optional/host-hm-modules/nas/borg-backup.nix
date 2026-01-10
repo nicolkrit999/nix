@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   lib,
   ...
 }:
@@ -40,21 +39,20 @@ in
           # -------------------------------------------------------------------
           # Catches junk from Discord, Obsidian, VSCode, Slack, Element, etc.
           # automatically, so you don't have to list them one by one.
-          "*/Code Cache"
-          "*/GPUCache"
-          "*/DawnWebGPUCache"
-          "*/DawnGraphiteCache"
-          "*/Session Storage"
-          "*/blob_storage"
+          "*/Code Cache" # VSCode & Electron apps
+          "*/GPUCache" # Electron apps
+          "*/DawnWebGPUCache" # Electron apps
+          "*/Session Storage" # Electron apps
+          "*/blob_storage" # Electron apps
           "*/PersistentCache" # Common in Spotify/Media apps
 
           # -------------------------------------------------------------------
           # 2. NOISY FILE EXTENSIONS
           # -------------------------------------------------------------------
-          "*.log"
-          "*.tmp"
-          "*.bak"
-          "*.sock"
+          "*.log" # Log files
+          "*.tmp" # Temporary files
+          "*.bak" # Backup files
+          "*.sock" # Socket files
           "*.vdi" # VirtualBox Disks
           "*.qcow2" # QEMU Disks
           "*.iso" # Disk Images
@@ -104,6 +102,7 @@ in
           "/home/*/.config/libreoffice/*/cache"
           "/home/*/.config/yazi/*"
           "/home/*/.config/sops/*"
+          "/home/*/.local/share/containers" # Podman/Containers cache
 
           # -------------------------------------------------------------------
           # 7. YOUR PERSONAL SYNCED FOLDERS
@@ -119,7 +118,6 @@ in
           # -------------------------------------------------------------------
           # 8. OTHER
           # -------------------------------------------------------------------
-          "/home/*/etc/nixos/secrets" # Sensitive data (handled separately)
         ];
 
         # 3. Storage & Encryption
@@ -128,9 +126,10 @@ in
         ssh_command = "ssh -i ${sshKeyPath} -o StrictHostKeyChecking=no";
 
         # 4. Retention (Keep Policy)
-        keep_daily = 7;
-        keep_weekly = 4;
-        keep_monthly = 6;
+        keep_daily = 14; # The last 2 week have a backup every day
+        keep_weekly = 8; # The last 2 months have a backup every week
+        keep_monthly = 24; # The last 2 years have a backup every month
+        keep_yearly = 3; # The last 3 years have a backup every year
 
         # 5. Consistency Checks
         checks = [
@@ -152,5 +151,8 @@ in
   };
 
   # Enable Tailscale so we can reach the NAS
-  services.tailscale.enable = true;
+  services.tailscale.enable = lib.mkForce true;
+
+  sops.secrets.borg-passphrase = { };
+  sops.secrets.borg-private-key = { };
 }

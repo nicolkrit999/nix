@@ -1,18 +1,12 @@
-{
-  pkgs,
-  lib,
-  inputs,
-  config,
-  vars,
-  ...
+{ pkgs
+, lib
+, inputs
+, vars
+, ...
 }:
-let
-  capitalize =
-    s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
-  iconThemeName = if vars.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
-in
 {
   imports = [ inputs.stylix.homeModules.stylix ];
+
 
   stylix = {
     enable = true;
@@ -22,6 +16,7 @@ in
       url = (builtins.head vars.wallpapers).wallpaperURL;
       sha256 = (builtins.head vars.wallpapers).wallpaperSHA256;
     };
+
 
     # -----------------------------------------------------------------------
     # 🎯 TARGETS (Exclusions)

@@ -58,10 +58,14 @@ in
       # 🖥️ CLI UTILITIES
       # -----------------------------------------------------------------------------------
       cliphist # Wayland clipboard history manager (needed for clipboard management)
+      dix # Nix diff viewer between generations
       eza # Modern ls replacement (used by eza.nix module)
+      fd # Fast file finder (used in various scripts)
+      fzf # Fuzzy finder (used in various scripts)
       git # Version control system (used in various scripts)
       nixfmt-rfc-style # Nix code formatter with RFC style (used in flake.nix)
       starship # Shell prompt (used by starship.nix)
+      zoxide # Jump around filesystem (used in various scripts)
 
       # -----------------------------------------------------------------------------------
       # 🧑🏽‍💻 CODING

@@ -49,6 +49,7 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
         # System maintenance
         dedup = "nix store optimise";
         cleanup = "nh clean all";
+        gc = "nix-collect-garbage -d";
 
         # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
         # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${vars.hostname}"; # Rebuild home-manager config
@@ -70,6 +71,8 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
 
         # Utilities
         se = "sudoedit";
+        fzf-prev = "fzf --preview=\"cat {}\"";
+        fzf-editor = "${vars.editor} \$(fzf -m --preview='cat {}')";
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
@@ -78,7 +81,7 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
 
         # Various
         reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
-        swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
+        updboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
       };
 
     # -----------------------------------------------------
@@ -103,7 +106,7 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
 
       # 3. TMUX AUTOSTART
       if not set -q TMUX; and set -q DISPLAY
-        tmux new-session
+        tmux new-session -A -s main
       end
 
       # 4. Disable greeting
@@ -122,6 +125,15 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
               exec systemd-cat -t uwsm_start uwsm start default
           end
       end
+
+      # FZF Keybindings
+      fzf_key_bindings
+
+      # 2. Fix fish-specific globbing and binding conflicts
+      # Also solve tmux alt c conflict
+      bind --erase --all alt-c 
+      bind ctrl-g fzf-cd-widget
+
     '';
 
     # -----------------------------------------------------

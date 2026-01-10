@@ -29,9 +29,10 @@ in
 
     # These are manually imported here because they contains aspects that home-manager can not handle alone
     ./optional/host-hm-modules/utilities/logitech.nix # boot
-    ./optional/host-hm-modules/nas/smb.nix # user
     ./optional/host-hm-modules/utilities/gaming.nix # hardware
+    ./optional/host-hm-modules/nas/smb.nix # user
     ./optional/host-hm-modules/nas/borg-backup.nix # user
+    ./optional/host-hm-modules/nas/owncloud.nix # user
 
   ];
 
@@ -48,14 +49,7 @@ in
     neededForUsers = true;
   };
 
-  # 2. NAS Secrets
-  sops.secrets.nas-smb-secrets = { };
-
-  # 3. Borg Backup Secrets
-  sops.secrets.borg-passphrase = { };
-  sops.secrets.borg-private-key = { };
-
-  # 4a. GitHub Token for Nix Flakes
+  # 4a. GitHub pat "nixos" to increase download limits
   sops.secrets.github_token = {
     mode = "0444";
   };
@@ -343,11 +337,15 @@ in
   # ---------------------------------------------------------
   programs.chromium = {
     enable = true;
+
     extraOpts = {
       "ShowHomeButton" = true;
       "HomepageLocation" = "https://www.youtube.com";
       "HomepageIsNewTabPage" = false;
-      "RestoreOnStartup" = 1;
+
+      # 4 = Always open the URLs listed below (ignores previous session)
+      "RestoreOnStartup" = 4;
+
       "RestoreOnStartupURLs" = [
         "https://www.youtube.com"
         "https://music.youtube.com/"

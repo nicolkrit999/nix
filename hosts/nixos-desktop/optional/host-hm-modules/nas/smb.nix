@@ -59,4 +59,9 @@ in
   environment.systemPackages = [ pkgs.cifs-utils ];
 
   fileSystems = builtins.listToAttrs (map mountShare shares);
+
+  # Enable Tailscale so we can reach the NAS
+  services.tailscale.enable = lib.mkForce true;
+
+  sops.secrets.nas-smb-secrets = { };
 }

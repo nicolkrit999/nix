@@ -55,6 +55,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         # System maintenance
         dedup = "nix store optimise";
         cleanup = "nh clean all";
+        gc = "nix-collect-garbage -d";
 
         # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
         # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${vars.hostname}"; # Rebuild home-manager config
@@ -76,6 +77,8 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
 
         # Utilities
         se = "sudoedit";
+        fzf-prev = "fzf --preview=\"cat {}\"";
+        fzf-editor = "${vars.editor} \$(fzf -m --preview='cat {}')";
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
@@ -84,7 +87,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
 
         # Various
         reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
-        swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
+        updboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
       };
 
     history.size = 10000;
@@ -113,7 +116,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         # 3. TMUX AUTOSTART (Only in GUI)
         # Ensure we are in a GUI before starting tmux automatically
         if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
-          tmux new-session
+          tmux new-session -A -s main
         fi
 
         # 4. UWSM STARTUP (Universal & Safe)

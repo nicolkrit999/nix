@@ -1,8 +1,7 @@
-{
-  pkgs,
-  pkgs-unstable,
-  vars,
-  ...
+{ pkgs
+, pkgs-unstable
+, vars
+, ...
 }:
 {
   users.users.${vars.user}.packages =
@@ -15,6 +14,7 @@
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------
       kdePackages.kate # Text editor from the kde theme
+      notion # Writing app
       obs-studio # Streaming/Recording
       telegram-desktop # Messaging
       teams-for-linux # Unofficial Microsoft Teams client
@@ -26,6 +26,7 @@
       libreoffice-qt # Open source microsoft office alternative
       gsimplecal # Simple calendar application
       meld # Visual diff and merge tool
+      whatsapp-electron # Electron wrapper for whatsapp
 
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES
