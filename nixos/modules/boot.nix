@@ -12,7 +12,7 @@
       device = "nodev";
       efiSupport = true;
       useOSProber = true;
-      configurationLimit = 20;
+      # configurationLimit = 20; # Example of setting a configuration limit that show up while booting
       extraGrubInstallArgs = [ "--bootloader-id=nixos" ];
 
       extraEntries = ''

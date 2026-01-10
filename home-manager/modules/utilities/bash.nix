@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   lib,
   vars,
   ...
@@ -71,6 +70,7 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
         se = "sudoedit";
         fzf-prev = "fzf --preview=\"cat {}\"";
         fzf-editor = "${vars.editor} \$(fzf -m --preview='cat {}')";
+        zlist = "zoxide query -l -s"; # List all zoxide entries with scores
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config

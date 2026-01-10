@@ -1,7 +1,8 @@
-{ pkgs
-, pkgs-unstable
-, vars
-, ...
+{
+  pkgs,
+  pkgs-unstable,
+  vars,
+  ...
 }:
 {
   users.users.${vars.user}.packages =
@@ -14,6 +15,7 @@
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------
       kdePackages.kate # Text editor from the kde theme
+      localsend # Simple file sharing over local network
       notion # Writing app
       obs-studio # Streaming/Recording
       telegram-desktop # Messaging

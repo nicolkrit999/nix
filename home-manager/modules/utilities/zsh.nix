@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   lib,
   vars,
   ...
@@ -13,8 +12,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
 
-    sessionVariables = {
-    };
+    sessionVariables = { };
 
     # -----------------------------------------------------------------------
     # ⌨️ SHELL ALIASES (Managed by Nix)
@@ -79,6 +77,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         se = "sudoedit";
         fzf-prev = "fzf --preview=\"cat {}\"";
         fzf-editor = "${vars.editor} \$(fzf -m --preview='cat {}')";
+        zlist = "zoxide query -l -s"; # List all zoxide entries with scores
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config

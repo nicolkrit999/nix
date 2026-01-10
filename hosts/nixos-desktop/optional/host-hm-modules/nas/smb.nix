@@ -42,15 +42,14 @@ let
           "uid=${toString config.users.users.${vars.user}.uid}"
           "gid=${toString config.users.groups.users.gid}"
 
-          "noauto" # Do NOT mount at boot or rebuild
-          "x-systemd.automount" # Mount ONLY when I access the folder
-          "x-systemd.idle-timeout=3600" # Disconnect after 1 hour of inactivity
-          "x-systemd.mount-timeout=1s" # Kill unmount after 1 seconds if stuck
-          "soft" # mount prevents Kernel hangs on network loss
+          "soft"
 
           # Safety flags
-          "nofail"
+          "nofail" # Prevents boot failure if NAS is unreachable
           "_netdev" # Tells systemd this is a network device
+          "noauto"
+          "x-systemd.automount" # Creates the mount unit systemd expects
+
         ];
       };
     };
