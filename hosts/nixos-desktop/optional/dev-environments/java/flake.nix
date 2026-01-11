@@ -28,17 +28,12 @@
           mkJavaShell =
             jdkPackage:
             pkgs.mkShellNoCC {
-              # Set JAVA_HOME so jdtls and Gradle know where to look
               JAVA_HOME = "${jdkPackage.home}";
 
-              packages = [
-                jdkPackage # The JDK itself (25 or 21)
-                pkgs.gradle # Build tool
-                pkgs.maven # Build tool
-                pkgs.jdt-language-server # Java LSP server
-                pkgs.jetbrains.idea-oss # Java IDE
-              ];
-
+              packages = import ./packages.nix {
+                inherit pkgs;
+                jdk = jdkPackage;
+              };
               shellHook = ''
                 echo "☕ Java Environment Active"
                 echo "JDK: $(${jdkPackage}/bin/java -version 2>&1 | head -n 1)"
@@ -48,8 +43,10 @@
         in
         {
           # Option 1: JDK 25 (Latest)
-          # Note: If jdk25 is not found, Nix usually aliases 'jdk' to the latest stable.
           default = mkJavaShell pkgs.jdk25;
+
+          # Option2: latest stable
+          jdk-stable = mkJavaShell pkgs.jdk23;
 
           # Option 2: JDK 21 (LTS)
           jdk-lts = mkJavaShell pkgs.jdk21;

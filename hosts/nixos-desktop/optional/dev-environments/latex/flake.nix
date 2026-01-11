@@ -27,13 +27,7 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              latex2html
-              latex2mathml
-              texlive.combined.scheme-full
-              texlab
-              tectonic
-            ];
+            packages = import ./packages.nix { inherit pkgs; };
           };
         }
       );

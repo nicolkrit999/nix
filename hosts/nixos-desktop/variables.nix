@@ -94,7 +94,7 @@
   };
 
   devLanguages = [
-    "c-cpp"
+    #"c-cpp"
     "go"
     "haskell"
     "java"
@@ -107,7 +107,7 @@
     "r"
     "rust"
     "shell"
-    "swift"
+    #"swift"
     "typst"
   ];
 }

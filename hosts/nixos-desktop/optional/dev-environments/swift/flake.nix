@@ -27,10 +27,7 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              swift
-              sourcekit-lsp
-            ];
+            packages = import ./packages.nix { inherit pkgs; };
           };
         }
       );

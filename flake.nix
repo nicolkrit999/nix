@@ -101,6 +101,14 @@
             ./nixos/modules/kde.nix
             ./nixos/modules/cosmic.nix
 
+            # Optional - host-specific dev-environments
+            (
+              if builtins.pathExists ./hosts/${hostname}/optional/dev-environments then
+                ./hosts/${hostname}/optional/dev-environments
+              else
+                { }
+            )
+
             {
 
               nixpkgs.hostPlatform = hostVars.system;

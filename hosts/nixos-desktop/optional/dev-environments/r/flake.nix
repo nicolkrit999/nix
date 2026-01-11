@@ -36,11 +36,7 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              rEnv
-              pandoc
-              texlive.combined.scheme-full
-            ];
+            packages = import ./packages.nix { inherit pkgs; };
           };
         }
       );

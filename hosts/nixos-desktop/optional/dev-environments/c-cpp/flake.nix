@@ -1,11 +1,10 @@
 {
   description = "A Nix-flake-based C/C++ development environment";
 
-  inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0"; # stable Nixpkgs
+  inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0";
 
   outputs =
     { self, ... }@inputs:
-
     let
       supportedSystems = [
         "x86_64-linux"
@@ -26,30 +25,9 @@
       devShells = forEachSupportedSystem (
         { pkgs }:
         {
-          default =
-            pkgs.mkShell.override
-              {
-                # Override stdenv in order to change compiler:
-                # stdenv = pkgs.clangStdenv;
-              }
-              {
-                packages =
-                  with pkgs;
-                  [
-                    clang-tools
-                    cmake
-                    codespell
-                    conan
-                    cppcheck
-                    doxygen
-                    gtest
-                    jetbrains.clion # C/C++ IDE
-                    lcov
-                    vcpkg
-                    vcpkg-tool
-                  ]
-                  ++ (if stdenv.hostPlatform.system == "aarch64-darwin" then [ ] else [ gdb ]);
-              };
+          default = pkgs.mkShell.override { } {
+            packages = import ./packages.nix { inherit pkgs; };
+          };
         }
       );
     };

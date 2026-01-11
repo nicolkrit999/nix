@@ -1,7 +1,7 @@
 {
   description = "A Nix-flake-based Python development environment";
 
-  inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
+  inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1"; # unstable Nixpkgs
 
   outputs =
     { self, ... }@inputs:
@@ -26,16 +26,15 @@
       devShells = forEachSupportedSystem (
         { pkgs }:
         let
-          # 1. We define a reusable function that takes a version string (e.g., "311")
+          # The function take a string such as "313" and returns the corresponding python package
           mkPythonShell =
             versionRaw:
             let
-              python = pkgs."python${versionRaw}";
+              selectedPython = pkgs."python${versionRaw}";
             in
             pkgs.mkShellNoCC {
               venvDir = ".venv";
 
-              # Your original hook logic, adapted to use the specific python version
               postShellHook = ''
                 venvVersionWarn() {
                   local venvVersion
@@ -50,29 +49,23 @@
                 venvVersionWarn
               '';
 
-              packages = with python.pkgs; [
-                black # The uncompromising code formatter
-                flake8 # Style guide enforcement
-                isort # Sort imports alphabetically
-                jetbrains.pycharm-oss # Python IDE
-                pip # Package installer for Python
-                pyright # Static type checker
-                pylint # Source code analyzer
-                ruff # Extremely fast Python linter
-                setuptools # Library for packaging Python projects
-                venvShellHook # Hook to create and manage virtual-environments
-
-              ];
+              packages = import ./packages.nix {
+                inherit pkgs;
+                python = selectedPython;
+              };
             };
         in
         {
-          # 2. We expose the different versions here
-          default = mkPythonShell "313"; # The default when you just type "nix develop"
+          # Option 1: latest
+          default = mkPythonShell "315";
 
-          # Option 2: python 3.12 (LTS)
+          # Option 2: latest stable
+          py-stable = mkPythonShell "313";
+
+          # Option 3: python 3.12 (LTS)
           py-lts = mkPythonShell "312";
 
-          # Option 3: python 3.11 (older)
+          # Option 4: python 3.11 (older)
           py311 = mkPythonShell "311";
         }
       );

@@ -27,18 +27,7 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            venvDir = ".venv";
-            packages =
-              with pkgs;
-              [
-                poetry
-                python311
-              ]
-              ++ (with python311Packages; [
-                ipykernel
-                pip
-                venvShellHook
-              ]);
+            packages = import ./packages.nix { inherit pkgs; };
           };
         }
       );

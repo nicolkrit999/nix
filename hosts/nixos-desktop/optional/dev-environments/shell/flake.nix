@@ -27,7 +27,7 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            packages = with pkgs; [ shellcheck ];
+            packages = import ./packages.nix { inherit pkgs; };
           };
         }
       );

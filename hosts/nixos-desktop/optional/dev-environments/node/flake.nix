@@ -35,12 +35,7 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              node2nix
-              nodejs
-              nodePackages.pnpm
-              yarn
-            ];
+            packages = import ./packages.nix { inherit pkgs; };
           };
         }
       );

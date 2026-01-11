@@ -27,10 +27,7 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              php
-              phpPackages.composer
-            ];
+            packages = import ./packages.nix { inherit pkgs; };
           };
         }
       );

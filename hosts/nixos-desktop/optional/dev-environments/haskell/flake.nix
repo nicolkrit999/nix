@@ -27,11 +27,7 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              cabal-install
-              ghc
-              haskell-language-server
-            ];
+            packages = import ./packages.nix { inherit pkgs; };
           };
         }
       );
