@@ -1,12 +1,12 @@
-{ pkgs
-, lib
-, inputs
-, vars
-, ...
+{
+  pkgs,
+  lib,
+  inputs,
+  vars,
+  ...
 }:
 {
   imports = [ inputs.stylix.homeModules.stylix ];
-
 
   stylix = {
     enable = true;
@@ -16,7 +16,6 @@
       url = (builtins.head vars.wallpapers).wallpaperURL;
       sha256 = (builtins.head vars.wallpapers).wallpaperSHA256;
     };
-
 
     # -----------------------------------------------------------------------
     # 🎯 TARGETS (Exclusions)

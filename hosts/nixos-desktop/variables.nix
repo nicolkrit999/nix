@@ -92,4 +92,22 @@
     screenOffTimeout = 3600;
     suspendTimeout = 7200;
   };
+
+  devLanguages = [
+    "c-cpp"
+    "go"
+    "haskell"
+    "java"
+    "jupyter"
+    "latex"
+    "nix"
+    "node"
+    "php"
+    "python"
+    "r"
+    "rust"
+    "shell"
+    "swift"
+    "typst"
+  ];
 }

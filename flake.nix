@@ -50,10 +50,11 @@
   };
 
   outputs =
-    { nixpkgs
-    , nixpkgs-unstable
-    , home-manager
-    , ...
+    {
+      nixpkgs,
+      nixpkgs-unstable,
+      home-manager,
+      ...
     }@inputs:
     let
 

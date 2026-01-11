@@ -1,7 +1,8 @@
-{ pkgs
-, lib
-, vars
-, ...
+{
+  pkgs,
+  lib,
+  vars,
+  ...
 }:
 let
   # Reference for themes:

@@ -29,8 +29,8 @@
           {
             "matches" = [
               { "node.name" = "~.*SPDIF.*"; }
-              { "node.name" = "~.*optical.*"; } 
-              { "node.name" = "~.*iec958.*"; }  
+              { "node.name" = "~.*optical.*"; }
+              { "node.name" = "~.*iec958.*"; }
               { "node.name" = "~.*digital-stereo.*"; }
             ];
             "actions" = {
