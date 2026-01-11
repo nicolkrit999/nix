@@ -17,7 +17,7 @@
     enableBashIntegration = vars.shell == "bash";
 
     plugins = {
-      # https://github.com/ndtoan96/ouch.yazi/archive/refs/tags/v0.7.0.tar.gz
+      # nix-prefetch-url --unpack "https://github.com/ndtoan96/ouch.yazi/archive/refs/tags/v0.7.0.tar.gz"
       ouch = pkgs.fetchFromGitHub {
         owner = "ndtoan96";
         repo = "ouch.yazi";
@@ -25,12 +25,28 @@
         sha256 = "03fjnga97bvrblvf53w7lp0k9ikkd81pa49qc0np7fg3fc8nlhyn";
       };
 
-      # https://github.com/uhs-robert/recycle-bin.yazi/archive/refs/tags/v1.1.0.tar.gz
+      # nix-prefetch-url --unpack "https://github.com/uhs-robert/recycle-bin.yazi/archive/refs/tags/v1.1.0.tar.gz"
       recycle-bin = pkgs.fetchFromGitHub {
         owner = "uhs-robert";
         repo = "recycle-bin.yazi";
         rev = "v1.1.0"; # If a new version is released change it here
         sha256 = "00yh6w3f088dvhcb2464l86wxq7202bzgxjdnwi0i9cc1apgc54z";
+      };
+
+      # nix-prefetch-url --unpack "https://github.com/dedukun/relative-motions.yazi/archive/a603d9ea924dfc0610bcf9d3129e7cba605d4501.tar.gz"
+      relative-motions = pkgs.fetchFromGitHub {
+        owner = "dedukun";
+        repo = "relative-motions.yazi";
+        rev = "a603d9ea924dfc0610bcf9d3129e7cba605d4501";
+        sha256 = "1kk8my0apb4ahp60krqalccp63crggh8jkvi0zdhsf26bkyv2bpn";
+      };
+
+      # nix-prefetch-url --unpack "https://github.com/AnirudhG07/rich-preview.yazi/archive/573b275fc0065eea3e8aa2afd07ad59e56ceff57.tar.gz"
+      rich-preview = pkgs.fetchFromGitHub {
+        owner = "AnirudhG07";
+        repo = "rich-preview.yazi";
+        rev = "573b275fc0065eea3e8aa2afd07ad59e56ceff57";
+        sha256 = "15yyy8ky0djv3b46gfsw5q7d5j47xcaar8xpnsw9axp684lvlmin";
       };
     };
 
@@ -315,6 +331,7 @@
 
       # Plugin-specific settings
       plugin = {
+
         # small plugins that run in the background to gather info about files
         fetchers = [
           {
@@ -330,6 +347,55 @@
             run = "mime";
             "if" = "!mime";
             prio = "high";
+          }
+        ];
+
+        # Previewers (Mediainfo + Rich-Preview)
+        prepend_previewers = [
+          # -- Rich Preview --
+          {
+            name = "*.csv";
+            run = "rich-preview";
+          }
+          {
+            name = "*.md";
+            run = "rich-preview";
+          }
+          {
+            name = "*.rst";
+            run = "rich-preview";
+          }
+          {
+            name = "*.ipynb";
+            run = "rich-preview";
+          }
+          {
+            name = "*.json";
+            run = "rich-preview";
+          }
+          {
+            name = "*.py";
+            run = "rich-preview";
+          }
+          {
+            name = "*.java";
+            run = "rich-preview";
+          }
+          {
+            name = "*.lua";
+            run = "rich-preview";
+          }
+          {
+            name = "*.rs";
+            run = "rich-preview";
+          }
+          {
+            name = "*.html";
+            run = "rich-preview";
+          }
+          {
+            name = "*.css";
+            run = "rich-preview";
           }
         ];
       };
@@ -367,5 +433,6 @@
     exiftool
     ouch
     trash-cli
+    rich-cli
   ];
 }

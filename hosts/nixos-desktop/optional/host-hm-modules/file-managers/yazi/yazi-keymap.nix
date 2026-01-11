@@ -8,6 +8,88 @@
 
     # S = shift, C = control, A = alt
     mgr.prepend_keymap = [
+
+      # -----------------------------------------------------------------------
+      # 📦 PLUGIN KEYBINDINGS (Prefix 'b' for Bundles/Bunny)
+      # -----------------------------------------------------------------------
+
+      # 1. Bunny (Hops)
+      {
+        on = [
+          "n"
+          "b"
+        ];
+        run = "plugin bunny";
+        desc = "🐰 Bunny Hop (Bookmarks)";
+      }
+      {
+        on = [
+          "n"
+          "B"
+        ];
+        run = "plugin bunny fuzzy";
+        desc = "🐰 Bunny Fuzzy Search";
+      }
+
+      # 2. Relative Motions
+      {
+        on = [
+          "n"
+          "m"
+        ];
+        run = "plugin relative-motions";
+        desc = "📍 Trigger Relative Motion (then type number+dir)";
+      }
+
+      {
+        on = [ "1" ];
+        run = "plugin relative-motions 1";
+        desc = "Move in relative steps";
+      }
+      {
+        on = [ "2" ];
+        run = "plugin relative-motions 2";
+        desc = "Move in relative steps";
+      }
+      {
+        on = [ "3" ];
+        run = "plugin relative-motions 3";
+        desc = "Move in relative steps";
+      }
+      {
+        on = [ "4" ];
+        run = "plugin relative-motions 4";
+        desc = "Move in relative steps";
+      }
+      {
+        on = [ "5" ];
+        run = "plugin relative-motions 5";
+        desc = "Move in relative steps";
+      }
+      {
+        on = [ "6" ];
+        run = "plugin relative-motions 6";
+        desc = "Move in relative steps";
+      }
+      {
+        on = [ "7" ];
+        run = "plugin relative-motions 7";
+        desc = "Move in relative steps";
+      }
+      {
+        on = [ "8" ];
+        run = "plugin relative-motions 8";
+        desc = "Move in relative steps";
+      }
+      {
+        on = [ "9" ];
+        run = "plugin relative-motions 9";
+        desc = "Move in relative steps";
+      }
+
+      # -----------------------------------------------------------------------
+      # Defaults
+      # -----------------------------------------------------------------------
       {
         on = [ "<Esc>" ];
         run = [
@@ -210,6 +292,11 @@
         run = "search rg";
         desc = "Search files by content via ripgrep";
       }
+      # -----------------------------------------------------------------------
+      # Plugins
+      # -----------------------------------------------------------------------
+
+      # Default plugin (keep here)
       {
         on = [ "z" ];
         run = "plugin fzf";
@@ -228,10 +315,10 @@
         desc = "Compress with ouch";
       }
 
-      # Plugin: recycle-bin
+      # Plugin: recycle-bin (keep here since it's used often)
       {
         on = [
-          "R"
+          "b"
           "r"
         ];
         run = "plugin recycle-bin -- restore";
@@ -239,7 +326,7 @@
       }
       {
         on = [
-          "R"
+          "b"
           "e"
         ];
         run = "plugin recycle-bin -- empty";
@@ -247,7 +334,7 @@
       }
       {
         on = [
-          "R"
+          "b"
           "D"
         ];
         run = "plugin recycle-bin -- emptyDays";
@@ -255,13 +342,14 @@
       }
       {
         on = [
-          "R"
+          "b"
           "b"
         ];
         run = "plugin recycle-bin -- open";
         desc = "Open Recycle Bin";
       }
 
+      # Goto
       # Goto
       {
         on = [
@@ -354,6 +442,7 @@
         run = "cd /mnt/owncloud";
         desc = "Go to owncloud";
       }
+
       {
         on = [
           "g"
