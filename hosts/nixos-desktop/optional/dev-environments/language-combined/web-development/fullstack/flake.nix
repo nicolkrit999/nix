@@ -90,16 +90,71 @@
             ];
 
             shellHook = ''
+              # --- Helper Function for Clean Checks ---
+              check() {
+                local name="$1"
+                local cmd="$2"
+                # Run command, capture stdout/stderr, get first line
+                local version=$(eval "$cmd" 2>&1 | head -n 1)
+
+                if [ -n "$version" ]; then
+                   printf "%-20s \033[0;32m✅ %s\033[0m\n" "$name" "$version"
+                else
+                   printf "%-20s \033[0;31m❌ Not Found\033[0m\n" "$name"
+                fi
+              }
+
+              echo ""
               echo "------------------------------------------------------------------"
-              echo "🚀 Mega-Stack Environment Loaded!"
+              echo "🚀 Mega-Flake: Fullstack Environment Loaded"
               echo "------------------------------------------------------------------"
-              echo "Node:   $(node --version)  |  npm: $(npm --version)"
-              echo "Python: $(python --version)"
-              echo "Java:   $(java -version 2>&1 | head -n 1)"
-              echo "Go:     $(go version | awk '{print $3}')"
-              echo "PHP:    $(php --version | head -n 1 | awk '{print $2}')"
-              echo "Ruby:   $(ruby --version | awk '{print $2}')"
-              echo "C#:     $(dotnet --version)"
+              echo "--- 📦 JavaScript / Node ---"
+              check "Node.js"     "node --version"
+              check "npm"         "npm --version"
+              check "pnpm"        "pnpm --version"
+              check "yarn"        "yarn --version"
+              check "TypeScript"  "tsc --version | awk '{print \$2}'"
+              check "HTML/CSS LS" "vscode-html-language-server --version"
+
+              echo ""
+              echo "--- 🐍 Python ---"
+              check "Python"      "python --version | awk '{print \$2}'"
+              check "Pip"         "pip --version | awk '{print \$2}'"
+              check "Django"      "python -m django --version"
+              check "Black"       "black --version | awk '{print \$3}'"
+
+              echo ""
+              echo "--- ☕ JVM (Java/Kotlin) ---"
+              # Java outputs to stderr, so we redirect
+              check "Java (JDK)"  "java -version 2>&1 | awk -F '\"' '/version/ {print \$2}'"
+              check "Kotlin"      "kotlin -version | awk '{print \$3}'"
+              check "Spring Boot" "spring --version"
+              check "Maven"       "mvn -version | awk '{print \$3}'"
+              check "Gradle"      "gradle --version | grep 'Gradle' | awk '{print \$2}'"
+
+              echo ""
+              echo "--- 🐘 PHP ---"
+              check "PHP"         "php --version | head -n 1 | awk '{print \$2}'"
+              check "Composer"    "composer --version | awk '{print \$3}'"
+
+              echo ""
+              echo "--- 💎 Ruby ---"
+              check "Ruby"        "ruby --version | awk '{print \$2}'"
+
+              echo ""
+              echo "--- 🔷 C# / .NET ---"
+              check ".NET SDK"    "dotnet --version"
+
+              echo ""
+              echo "--- 🐹 Golang ---"
+              check "Go"          "go version | awk '{print \$3}'"
+
+              echo ""
+              echo "--- 🗄️ Databases ---"
+              check "PostgreSQL"  "psql --version | awk '{print \$3}'"
+              check "MySQL"       "mysql --version | awk '{print \$3, \$5}'"
+              check "MongoDB"     "mongosh --version"
+              check "SQLite"      "sqlite3 --version | awk '{print \$1}'"
               echo "------------------------------------------------------------------"
             '';
           };
