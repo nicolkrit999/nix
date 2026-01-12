@@ -19,7 +19,7 @@
 
   # 🖥️ DESKTOP ENVIRONMENT
   hyprland = true;
-  caelestia = true;
+  caelestia = false;
 
   gnome = true;
   kde = true;
@@ -94,20 +94,22 @@
   };
 
   devLanguages = [
+    # Commenting out do not install the packages globally, saving space
+    # To use them it's needed to add a .envr file in the project folder that link to the dev-environment
     #"c-cpp"
-    "go"
-    "haskell"
-    "java"
-    "jupyter"
-    "latex"
+    #"go"
+    #"haskell"
+    #"java"
+    #"jupyter"
+    #"latex"
     "nix"
-    "node"
-    "php"
-    "python"
-    "r"
-    "rust"
+    #"node"
+    #"php"
+    #"python"
+    #"r"
+    #"rust"
     "shell"
     #"swift"
-    "typst"
+    #"typst"
   ];
 }

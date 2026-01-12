@@ -36,8 +36,16 @@
               };
               shellHook = ''
                 echo "☕ Java Environment Active"
+
+                # Check Java Version (Safe)
                 echo "JDK: $(${jdkPackage}/bin/java -version 2>&1 | head -n 1)"
-                echo "LSP: $(jdtls --version 2>/dev/null || echo 'jdtls is ready')"
+
+                # Check JDTLS location instead of running it (Prevents hanging)
+                if command -v jdtls > /dev/null; then
+                  echo "LSP: jdtls is ready"
+                else
+                  echo "LSP: jdtls NOT found"
+                fi
               '';
             };
         in

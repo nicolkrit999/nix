@@ -14,6 +14,7 @@
       # -----------------------------------------------------------------------
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------
+      cider # Electron-based music player
       kdePackages.kate # Text editor from the kde theme
       localsend # Simple file sharing over local network
       notion # Writing app

@@ -40,10 +40,10 @@
                   local venvVersion
                   venvVersion="$("$venvDir/bin/python" -c 'import platform; print(platform.python_version())')"
                   # Simple check: does the venv version start with the python version we requested?
-                  [[ "$venvVersion" == "${python.version}"* ]] && return
+                  [[ "$venvVersion" == "${selectedPython.version}"* ]] && return
                   cat <<EOF
-                  Warning: Python version mismatch: [$venvVersion (venv)] != [${python.version}]
-                  Delete '$venvDir' and reload to rebuild for version ${python.version}
+                  Warning: Python version mismatch: [$venvVersion (venv)] != [${selectedPython.version}]
+                  Delete '$venvDir' and reload to rebuild for version ${selectedPython.version}
                   EOF
                 }
                 venvVersionWarn

@@ -42,6 +42,11 @@ let
           "uid=${toString config.users.users.${vars.user}.uid}"
           "gid=${toString config.users.groups.users.gid}"
 
+          # Performance optimizations
+          "fsc" # Enable local disk caching (Requires cachefilesd below)
+          "actimeo=60" # Cache file attributes for 60s (Critical for Terminal FMs)
+          "noatime" # Don't update access times on server
+          "vers=3.1.1" # Force modern SMB protocol (safer/faster than negotiating)
           "soft"
 
           # Safety flags
@@ -56,6 +61,7 @@ let
 in
 {
   environment.systemPackages = [ pkgs.cifs-utils ];
+  services.cachefilesd.enable = true;
 
   fileSystems = builtins.listToAttrs (map mountShare shares);
 
@@ -63,4 +69,40 @@ in
   services.tailscale.enable = lib.mkForce true;
 
   sops.secrets.nas-smb-secrets = { };
+  # ---------------------------------------------------------
+  # SMB Cache Warmer
+  # ---------------------------------------------------------
+  systemd.services.smb-warmer = {
+    description = "Warm up SMB Share caches";
+    # Ensure we wait for Tailscale, otherwise this will fail
+    after = [
+      "network-online.target"
+      "tailscale.service"
+    ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+
+    serviceConfig = {
+      Type = "simple";
+      Nice = 19;
+      CPUSchedulingPolicy = "idle";
+      IOSchedulingClass = "idle";
+    };
+
+    script =
+      let
+        mkPath = name: "/mnt/nicol-nas/${builtins.replaceStrings [ " " ] [ "_" ] name}";
+        scanCommands = map (
+          share: "${pkgs.fd}/bin/fd . '${mkPath share}' --max-depth 15 --type d --threads 8"
+        ) shares;
+      in
+      ''
+        # Wait a moment for connection stability
+        sleep 10
+
+        echo "Starting SMB Warmup..."
+        ${builtins.concatStringsSep "\n" scanCommands}
+        echo "SMB Warmup complete."
+      '';
+  };
 }

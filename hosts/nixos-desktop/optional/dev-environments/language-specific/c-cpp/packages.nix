@@ -4,8 +4,11 @@ with pkgs;
   clang-tools
   cmake
   codespell
+
   (conan.overrideAttrs (oldAttrs: {
     doCheck = false;
+    checkPhase = "true";
+    pytestCheckPhase = "true";
   }))
 
   cppcheck
