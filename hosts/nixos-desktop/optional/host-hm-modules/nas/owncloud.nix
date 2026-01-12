@@ -1,4 +1,10 @@
-{ config, vars, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  vars,
+  ...
+}:
 
 let
   mountPoint = "/mnt/owncloud";
@@ -7,6 +13,12 @@ in
   # Enables the service, creating the necessary 'davfs2' group and user
   services.davfs2.enable = true;
 
+  services.davfs2.settings = {
+    globalSection = {
+      use_locks = "0";
+      gui_optimize = "1";
+    };
+  };
   # ---------------------------------------------------------
   # 1. Prepare the Secret for DAVFS2
   # ---------------------------------------------------------
@@ -44,6 +56,9 @@ in
     ];
   };
 
+  # Enable Tailscale so we can reach the NAS
+  services.tailscale.enable = lib.mkForce true;
+
   # ---------------------------------------------------------
   # 4. Sops Secrets Definition
   # ---------------------------------------------------------
@@ -54,4 +69,22 @@ in
   };
 
   users.users.${vars.user}.extraGroups = [ "davfs2" ];
+  systemd.services.owncloud-warmer = {
+    description = "Warm up OwnCloud mount cache";
+    after = [
+      "network-online.target"
+      "tailscale.service"
+    ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+
+    serviceConfig = {
+      Type = "simple";
+      Nice = 19;
+      CPUSchedulingPolicy = "idle";
+      IOSchedulingClass = "idle";
+
+      ExecStart = "${pkgs.fd}/bin/fd . /mnt/owncloud --max-depth 7 --type d --threads 1";
+    };
+  };
 }

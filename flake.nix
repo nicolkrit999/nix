@@ -50,10 +50,11 @@
   };
 
   outputs =
-    { nixpkgs
-    , nixpkgs-unstable
-    , home-manager
-    , ...
+    {
+      nixpkgs,
+      nixpkgs-unstable,
+      home-manager,
+      ...
     }@inputs:
     let
 
@@ -99,6 +100,14 @@
             ./nixos/modules/gnome.nix
             ./nixos/modules/kde.nix
             ./nixos/modules/cosmic.nix
+
+            # Optional - host-specific dev-environments
+            (
+              if builtins.pathExists ./hosts/${hostname}/optional/dev-environments then
+                ./hosts/${hostname}/optional/dev-environments
+              else
+                { }
+            )
 
             {
 

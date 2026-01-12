@@ -8,6 +8,15 @@
 
     lfs.enable = true;
 
+    ignores = [
+      ".direnv/"
+      ".envrc"
+      ".venv/"
+      "result"
+      "*.swp"
+      ".DS_Store"
+    ];
+
     # Optional: Enable Git credential helper if using HTTPS
     # extraConfig = { credential.helper = "store"; };
   };

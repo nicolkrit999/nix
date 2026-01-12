@@ -14,6 +14,7 @@
       # -----------------------------------------------------------------------
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------
+      cider # Electron-based music player
       kdePackages.kate # Text editor from the kde theme
       localsend # Simple file sharing over local network
       notion # Writing app
@@ -69,25 +70,14 @@
       # -----------------------------------------------------------------------------------
       # 🧑🏽‍💻 CODING
       # -----------------------------------------------------------------------------------
-      cmake # Cross-platform build system
       docker # Containerization platform
       github-desktop # GitHub's official desktop client
       jq # Command-line JSON processor
-      maven # Java build tool
-      tectonic # Modernized, complete, self-contained TeX/LaTeX engine
-      texliveFull # The complete TeX Live distribution (Note: Large download)
       universal-ctags # Tool to generate index (tags) files of source code
-      jetbrains.pycharm-oss # Python IDE
-      jetbrains.clion # C/C++ IDE
-      jetbrains.idea-oss # Java IDE
       zeal # Offline documentation browser
       (pkgs.python313.withPackages (
         ps: with ps; [
           faker # Generate fake data
-          isort # Sort imports alphabetically
-          pyright # Static type checker
-          pylint # Source code analyzer
-          setuptools # Library for packaging Python projectsS
           proton-keyring-linux # Proton keyring for Linux
         ]
       ))

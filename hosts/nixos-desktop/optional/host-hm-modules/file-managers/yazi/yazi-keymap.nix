@@ -403,6 +403,15 @@
       {
         on = [
           "g"
+          "P"
+        ];
+        run = "cd ~/nixOS/hosts/nixos-desktop/optional/dev-environments";
+        desc = "Go nix dev-environments";
+      }
+
+      {
+        on = [
+          "g"
           "v"
         ];
         run = "cd ~/Videos";

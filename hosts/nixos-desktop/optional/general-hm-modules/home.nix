@@ -13,48 +13,29 @@
       # -----------------------------------------------------------------------------------
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------------------
-      vscode # It is the default but i want to keep it in case i change the default editor later
-      ranger # It is not the default but i want to keep it
-      alacritty # It is not the default but i want to keep it
+      vscode # IDE
+      ranger # Terminal file manager
+      alacritty # Terminal emulator
 
       winboat # Enable to run windows programs
       kdePackages.audiotube # Client for youtube music
-      # Useful command to kill processes by name, such as waybar after a crash
 
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES
       # -----------------------------------------------------------------------------------
-      killall
+      killall # Command to kill processes by name
       nix-search-cli # CLI tool to search nixpkgs from terminal
-      ripgrep # Fast line-oriented search tool (needed by neovim) -> ⚠️ KEEP
-      unzip # Extraction utility for .zip files (used by mason in neovim) -> ⚠️ KEEP
-      wtype
-      zip # Compression utility for .zip files (used by mason in neovim) -> ⚠️ KEEP
-      zlib # Compression utility for .zip files (used by mason in neovim) -> ⚠️ KEEP
-      wget
-
-      # -----------------------------------------------------------------------------------
-      # 🧑🏽‍💻 CODING
-      # -----------------------------------------------------------------------------------
-      jdk25 # Java Development Kit (needed for some Neovim LSP servers) -> ⚠️ KEEP
-      nodejs # JavaScript runtime (needed for some Neovim plugins and LSP servers) -> ⚠️ KEEP
-
-      (pkgs.python313.withPackages (
-        ps: with ps; [
-          black # The uncompromising code formatter
-          flake8 # Style guide enforcement
-          pip # Package installer for Python
-          ruff # Extremely fast Python linter
-        ]
-      ))
+      ripgrep # Fast line-oriented search tool
+      unzip # Extraction utility for .zip files (used by mason in neovim)
+      wtype # Send keyboard input to X11 windows
+      zip # Compression utility for .zip files (used by mason in neovim)
+      zlib # Compression utility for .zip files (used by mason in neovim)
+      wget # Network downloader utility
     ])
+
     ++ (with pkgs-unstable; [
       fresh-editor # Lightweight terminal text editor
     ]);
-
-  # ☕ JAVA TOOLS
-  # This only exists on this specific machine
-  home.file."tools/jdtls".source = pkgs.jdt-language-server;
 
   # 📂 XDG OVERRIDES
   # Disable folders I don't use
@@ -64,8 +45,6 @@
   };
 
   home.sessionVariables = {
-    JAVA_HOME = "${pkgs.jdk25}";
-    JDTLS_BIN = "${pkgs.jdt-language-server}/bin/jdtls";
   };
 
   programs.zoxide = {
