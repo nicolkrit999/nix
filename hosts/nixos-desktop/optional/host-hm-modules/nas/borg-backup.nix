@@ -1,7 +1,6 @@
-{
-  config,
-  lib,
-  ...
+{ config
+, lib
+, ...
 }:
 
 let
@@ -12,8 +11,10 @@ let
   nasHost = "nicol-nas"; # Tailscale MagicDNS
   nasPath = "/volume1/Default-volume-1/0001_Docker/borgitory/${config.networking.hostName}";
 
-  sshKeyPath = config.sops.secrets.borg-private-key.path;
+  # Loc-2a. Borg-backup with tailscale backup folder passphrase
   passphraseFile = config.sops.secrets.borg-passphrase.path;
+  # Loc-2a. Borg-backup with tailscale private ssh key to access the nas
+  sshKeyPath = config.sops.secrets.borg-private-key.path;
 in
 {
   services.borgmatic = {

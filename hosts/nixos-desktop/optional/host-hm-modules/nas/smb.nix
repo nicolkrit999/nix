@@ -8,7 +8,8 @@
 
 let
   nasIP = "100.101.189.91";
-  credentialsFile = config.sops.secrets.nas-smb-secrets.path;
+  # Comm-5. NAS credentials
+  credentialsFile = config.sops.secrets.nas-krit-credentials.path;
 
   # List of SMB shares
   shares = [
@@ -28,7 +29,7 @@ let
       localName = builtins.replaceStrings [ " " ] [ "_" ] shareName;
     in
     {
-      name = "/mnt/nicol-nas/${localName}";
+      name = "/mnt/nicol_nas/smb/krit/${localName}";
       value = {
         device = "//${nasIP}/${shareName}";
         fsType = "cifs";
@@ -68,7 +69,10 @@ in
   # Enable Tailscale so we can reach the NAS
   services.tailscale.enable = lib.mkForce true;
 
-  sops.secrets.nas-smb-secrets = { };
+  sops.secrets.nas-krit-credentials = {
+    sopsFile = ../../../../../common/secrets.yaml;
+  };
+
   # ---------------------------------------------------------
   # SMB Cache Warmer
   # ---------------------------------------------------------
@@ -91,7 +95,7 @@ in
 
     script =
       let
-        mkPath = name: "/mnt/nicol-nas/${builtins.replaceStrings [ " " ] [ "_" ] name}";
+        mkPath = name: "/mnt/nicol_nas/smb/krit/${builtins.replaceStrings [ " " ] [ "_" ] name}";
         scanCommands = map (
           share: "${pkgs.fd}/bin/fd . '${mkPath share}' --max-depth 15 --type d --threads 8"
         ) shares;

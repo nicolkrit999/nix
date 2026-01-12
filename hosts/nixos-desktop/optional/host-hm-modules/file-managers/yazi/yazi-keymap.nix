@@ -439,17 +439,8 @@
           "m"
           "n"
         ];
-        run = "cd /mnt/nicol-nas";
+        run = "cd /mnt/nicol_nas";
         desc = "Go to the NAS";
-      }
-      {
-        on = [
-          "g"
-          "m"
-          "o"
-        ];
-        run = "cd /mnt/owncloud";
-        desc = "Go to owncloud";
       }
 
       {

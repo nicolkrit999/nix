@@ -1,9 +1,8 @@
-{
-  pkgs,
-  lib,
-  config,
-  vars,
-  ...
+{ pkgs
+, lib
+, config
+, vars
+, ...
 }:
 let
   cssContent = builtins.readFile ./style.css;
@@ -60,6 +59,7 @@ in
             "hyprland/language"
             "custom/weather"
             "pulseaudio"
+            "custom/music"
             "battery"
             "clock"
             "tray"
@@ -79,6 +79,8 @@ in
             format-icons = vars.waybarWorkspaceIcons or { };
           };
 
+
+
           # -----------------------------------------------------
           # ⌨️ Keyboard Layout icons
           # The flag changes based on the current keyboard layout
@@ -93,10 +95,14 @@ in
           # ☁️ Weather
           # -----------------------------------------------------
           "custom/weather" = {
-            format = " {} ";
+            format = "${vars.weather}: {} ";
             # Fetches weather for the defined city in flake.nix from wttr.in
             # %c = Condition icon, %t = Temperature
-            exec = "curl -s 'wttr.in/${vars.weather}?format=%c%t'";
+            exec =
+              let
+                unit = if (vars.useFahrenheit or false) then "°C" else "°F";
+              in
+              "curl -s 'wttr.in/${vars.weather}?format=%c%t&${unit}'";
             interval = 300; # Update every 5 minutes (300 seconds)
             class = "weather";
           };
@@ -125,6 +131,7 @@ in
             on-click = "pavucontrol"; # Open volume mixer on click
           };
 
+
           # -----------------------------------------------------
           # 🔋 Battery Status
           # If no battery is found (eg desktop pc), this module is hidden
@@ -150,8 +157,21 @@ in
           # 🕒 Clock & Calendar
           # -----------------------------------------------------
           "clock" = {
-            format = "{:%m/%d/%Y - %I:%M %p}"; # Standard Format: MM/DD/YYYY - HH:MM AM/PM
-            format-alt = "{:%A, %B %d at %I:%M %p}"; # Click Format: Full Day Name, Month, Date... When the module is clicked it switches between formats
+            format = "{:%A, %B %d, %Y}";
+            format-alt = "{:%m/%d/%Y - %I:%M %p}";
+            tooltip-format = "<tt><small>{calendar}</small></tt>";
+            calendar = {
+              mode = "year";
+              mode-mon-col = 3;
+              weeks-pos = "right";
+              on-scroll = 1;
+              format = with config.lib.stylix.colors; {
+                months = "<span color='#${base05}'><b>{}</b></span>";
+                days = "<span color='#${base05}'><b>{}</b></span>";
+                weeks = "<span color='#${base05}'><b>W{}</b></span>";
+                today = "<span color='#${base0D}'><b><u>{}</u></b></span>";
+              };
+            };
           };
 
           # -----------------------------------------------------

@@ -1,13 +1,12 @@
-{
-  config,
-  lib,
-  pkgs,
-  vars,
-  ...
+{ config
+, lib
+, pkgs
+, vars
+, ...
 }:
 
 let
-  mountPoint = "/mnt/owncloud";
+  mountPoint = "/mnt/nicol_nas/webdav/owncloud";
 in
 {
   # Enables the service, creating the necessary 'davfs2' group and user
@@ -22,9 +21,10 @@ in
   # ---------------------------------------------------------
   # 1. Prepare the Secret for DAVFS2
   # ---------------------------------------------------------
+  # Comm-6. NAS owncloud webdav remote connection
   sops.templates."davfs-secrets" = {
     content = ''
-      ${config.sops.placeholder.owncloud_url} ${config.sops.placeholder.owncloud_user} ${config.sops.placeholder.owncloud_pass}
+      ${config.sops.placeholder.nas_owncloud_url} ${config.sops.placeholder.nas_owncloud_user} ${config.sops.placeholder.nas_owncloud_pass}
     '';
     owner = "root";
     group = "root";
@@ -63,9 +63,9 @@ in
   # 4. Sops Secrets Definition
   # ---------------------------------------------------------
   sops.secrets = {
-    owncloud_user = { };
-    owncloud_pass = { };
-    owncloud_url = { };
+    nas_owncloud_user.sopsFile = ../../../../../common/secrets.yaml;
+    nas_owncloud_pass.sopsFile = ../../../../../common/secrets.yaml;
+    nas_owncloud_url.sopsFile = ../../../../../common/secrets.yaml;
   };
 
   users.users.${vars.user}.extraGroups = [ "davfs2" ];
@@ -84,7 +84,7 @@ in
       CPUSchedulingPolicy = "idle";
       IOSchedulingClass = "idle";
 
-      ExecStart = "${pkgs.fd}/bin/fd . /mnt/owncloud --max-depth 7 --type d --threads 1";
+      ExecStart = "${pkgs.fd}/bin/fd . ${mountPoint} --max-depth 7 --type d --threads 1";
     };
   };
 }
