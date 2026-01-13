@@ -41,9 +41,9 @@
         "$mainMod,       N, exec, swaync-client -t" # Open notification center
 
         # WAYBAR CONTROLS
-        "$mainMod ALT,   W, exec, pkill -SIGUSR2 waybar" # Cycle waybar themes
-        "$mainMod SHIFT, W, exec, pkill -SIGUSR1 waybar" # Toggle waybar visibility
-        "$mainMod CTRL,  W, exec, killall waybar || waybar" # Restart waybar (in case of crash)
+        "$mainMod ALT,   W, exec, pkill -SIGUSR2 waybar" # Reload config + CSS
+
+        "$mainMod SHIFT, W, exec, pkill -x -SIGUSR1 waybar" # Toggle show/hide
 
         # SCREENSHOTS (Updated to Meta+Ctrl)
         "SUPER CTRL, 3, exec, grimblast --notify --freeze copysave output" # Fullscreen

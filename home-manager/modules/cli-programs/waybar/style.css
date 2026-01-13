@@ -1,97 +1,94 @@
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
-/* 🎨 GLOBAL STYLES (Catppuccin                                 */
-/* The errors are fake. it is fixed in ~/nixOs/home-manager/modules/waybar/default.nix */
+/* 🎨 GLOBAL STYLES (Strict Base16)                               */
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
 
 * {
   border: none;
-  /* Sharp corners to match Hyprland rounding=0 */
   border-radius: 0px;
-  /* Fetched from the fonts block in stylix.nix */
   font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
-
   font-weight: bold;
   font-size: 16px;
   min-height: 0;
-
-  /* Use Catppuccin Text Color */
-  color: @text;
+  color: @base05;
 }
 
-/* The Main Bar Container */
 window#waybar {
-  background: @base;
+  background: @base00;
 }
 
-/* Workspace Buttons */
+/* ----------------------------------------------------------------------- */
+/* 🗄️ WORKSPACES                                                          */
+/* ----------------------------------------------------------------------- */
 #workspaces button label {
-  color: @text;
+  color: @base05;
   padding: 0 10px;
 }
 
-/* Current Active Workspace */
 #workspaces button.active label {
-  color: @base;
-  /* Invert text for contrast */
+  color: @base00;
 }
 
 #workspaces button.active {
-  background: @accent;
+  background: @base0D;
 }
 
-#clock,
-#battery,
-#pulseaudio,
-#tray,
-#language,
-#weather {
-  padding: 0 10px;
-  margin: 0 10px;
+#workspaces button:hover {
+  background: @base02;
 }
 
 /* ----------------------------------------------------------------------- */
 /* 🧩 RIGHT-SIDE MODULES                                                   */
 /* ----------------------------------------------------------------------- */
-/* Every module on the right has colored bottom borders to distinguish them */
+#clock,
+#battery,
+#pulseaudio,
+#tray,
+#language,
+#custom-weather {
+  padding: 0 15px;
+  margin: 0;
+  background-color: @base00;
+}
+
 
 #language {
-  margin: 0;
-  color: @peach;
-  border-bottom: 5px solid @peach;
+  border-bottom: 3px solid @base09;
 }
 
 #custom-weather {
-  margin: 0;
-  color: @green;
-  border-bottom: 5px solid @green;
+  border-bottom: 3px solid @base0C;
 }
 
 #pulseaudio {
-  margin: 0;
-  color: @teal;
-  border-bottom: 5px solid @teal;
+  border-bottom: 3px solid @base0D;
 }
 
 #pulseaudio.muted {
-  padding: 0 20px;
-  color: @red;
-  border-bottom: 5px solid @red;
+  border-bottom: 3px solid @base08;
 }
 
 #battery {
-  margin: 0;
-  color: @blue;
-  border-bottom: 5px solid @blue;
+  border-bottom: 3px solid @base0A;
+}
+
+#battery.charging {
+  border-bottom: 3px solid @base0B;
+}
+
+#battery.warning {
+  color: @base09;
+  border-bottom: 3px solid @base09;
+}
+
+#battery.critical {
+  color: @base08;
+  border-bottom: 3px solid @base08;
 }
 
 #clock {
-  margin: 0;
-  color: @accent;
-  border-bottom: 5px solid @accent;
+  border-bottom: 3px solid @base0E;
 }
 
 #tray {
-  margin: 0;
-  color: @peach;
-  border-bottom: 5px solid @peach;
+  border-bottom: 3px solid @base0F;
 }

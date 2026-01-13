@@ -97,7 +97,7 @@ in
       let
         mkPath = name: "/mnt/nicol_nas/smb/krit/${builtins.replaceStrings [ " " ] [ "_" ] name}";
         scanCommands = map (
-          share: "${pkgs.fd}/bin/fd . '${mkPath share}' --max-depth 15 --type d --threads 8"
+          share: "${pkgs.fd}/bin/fd . '${mkPath share}' --max-depth 3 --type d --threads 1"
         ) shares;
       in
       ''

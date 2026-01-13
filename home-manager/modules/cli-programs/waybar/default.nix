@@ -6,115 +6,90 @@
   ...
 }:
 let
+  c = config.lib.stylix.colors.withHashtag;
+  cssVariables = ''
+    @define-color base00 ${c.base00}; 
+    @define-color base01 ${c.base01};
+    @define-color base02 ${c.base02};
+    @define-color base03 ${c.base03};
+    @define-color base04 ${c.base04};
+    @define-color base05 ${c.base05}; 
+    @define-color base06 ${c.base06};
+    @define-color base07 ${c.base07};
+    @define-color base08 ${c.base08}; 
+    @define-color base09 ${c.base09};
+    @define-color base0A ${c.base0A};
+    @define-color base0B ${c.base0B}; 
+    @define-color base0C ${c.base0C}; 
+    @define-color base0D ${c.base0D};
+    @define-color base0E ${c.base0E};
+    @define-color base0F ${c.base0F};
+  '';
   cssContent = builtins.readFile ./style.css;
-
-  # Intelligently theme based on whatever catppuccin is enabled or not
-  cssVariables =
-    if vars.catppuccin then
-      ''
-        @define-color accent @${vars.catppuccinAccent};
-      ''
-    else
-      ''
-        /* 🔴 BASE16 FALLBACK MODE */
-        @define-color base   ${config.lib.stylix.colors.withHashtag.base00}; /* Background */
-        @define-color text   ${config.lib.stylix.colors.withHashtag.base05}; /* Foreground */
-
-        @define-color accent ${config.lib.stylix.colors.withHashtag.base0D}; /* Default Accent */
-
-        /* Map colors used in style.css to Base16 equivalents */
-        @define-color red    ${config.lib.stylix.colors.withHashtag.base08};
-        @define-color peach  ${config.lib.stylix.colors.withHashtag.base09}; /* Orange */
-        @define-color green  ${config.lib.stylix.colors.withHashtag.base0B};
-        @define-color teal   ${config.lib.stylix.colors.withHashtag.base0C}; /* Cyan */
-        @define-color blue   ${config.lib.stylix.colors.withHashtag.base0D};
-        @define-color mauve  ${config.lib.stylix.colors.withHashtag.base0E}; /* Purple */
-      '';
-
 in
 {
   config = lib.mkIf ((vars.hyprland or false) && !(vars.caelestia or false)) {
-    catppuccin.waybar.enable = vars.catppuccin;
 
     programs.waybar = {
       enable = true;
-
-      # -----------------------------------------------------------------------
-      # 🎨 STYLE CONFIGURATION
-      # -----------------------------------------------------------------------
       style = lib.mkAfter ''
         ${cssVariables}
         ${cssContent}
       '';
-
       settings = {
         mainBar = {
-          layer = "top"; # "top" layer puts it above normal windows
-          position = "top"; # Position on screen (top, bottom, left, right)
-          height = 40; # Height in pixels
+          layer = "top";
+          position = "top";
+          height = 40;
 
-          # Module Placement
           modules-left = [ "hyprland/workspaces" ];
           modules-center = [ "hyprland/window" ];
           modules-right = [
             "hyprland/language"
             "custom/weather"
             "pulseaudio"
-            "custom/music"
             "battery"
             "clock"
             "tray"
           ];
 
-          # -----------------------------------------------------
-          # 🗄️ Workspaces Module
-          # -----------------------------------------------------
           "hyprland/workspaces" = {
             disable-scroll = true;
-            show-special = true; # Show special workspaces (scratchpads)
-            special-visible-only = true; # Only show special workspace if it's actually visible
-            all-outputs = false; # Only show workspaces that live on the current monitor
-
-            # Format for workspace names and icons
+            show-special = true;
+            special-visible-only = true;
+            all-outputs = false;
             format = "{name} {icon}";
             format-icons = vars.waybarWorkspaceIcons or { };
           };
 
           # -----------------------------------------------------
-          # ⌨️ Keyboard Layout icons
-          # The flag changes based on the current keyboard layout
+          # ⌨️ Language
           # -----------------------------------------------------
+          # Logic: If 'format-en' exists in vars, it overrides this.
+          # If not, it falls back to "Icon + Text".
           "hyprland/language" = {
             min-length = 5; # prevent layout jumping when flag changes
             tooltip = true; # disable tooltip on hover
+            on-click = "hyprctl switchxkblayout all next";
           }
           // vars.waybarLayoutFlags or { };
 
-          # -----------------------------------------------------
-          # ☁️ Weather
-          # -----------------------------------------------------
           "custom/weather" = {
-            format = "${vars.weather}: {} ";
-            # Fetches weather for the defined city in flake.nix from wttr.in
-            # %c = Condition icon, %t = Temperature
+            format = "<span color='${c.base0C}'>${vars.weather}:</span> {} ";
             exec =
               let
                 unit = if (vars.useFahrenheit or false) then "°C" else "°F";
               in
-              "curl -s 'wttr.in/${vars.weather}?format=%c%t&${unit}'";
-            interval = 300; # Update every 5 minutes (300 seconds)
+              "curl -s 'wttr.in/${vars.weather}?format=%c%t&${unit}' | sed 's/ //'";
+            interval = 300;
             class = "weather";
+            on-click = "xdg-open \"https://wttr.in/${vars.weather}\"";
           };
 
-          # -----------------------------------------------------
-          # 🔊 Audio Volume (PulseAudio)
-          # -----------------------------------------------------
           "pulseaudio" = {
-            format = "{icon} {volume}%";
-            format-bluetooth = "{icon} {volume}% "; # Adds Bluetooth icon if connected
-            format-muted = "";
-
-            # Icons change based on device type
+            format = "<span color='${c.base0D}'>{icon}</span> {volume}%";
+            format-bluetooth = "<span color='${c.base0D}'>{icon}</span> {volume}% ";
+            format-muted = "<span color='${c.base08}'></span> Muted";
             format-icons = {
               "headphones" = "";
               "handsfree" = "";
@@ -125,59 +100,46 @@ in
               "default" = [
                 ""
                 ""
-              ]; # Low vol / High vol
+              ];
             };
-            on-click = "pavucontrol"; # Open volume mixer on click
+            on-click = "pavucontrol";
           };
 
-          # -----------------------------------------------------
-          # 🔋 Battery Status
-          # If no battery is found (eg desktop pc), this module is hidden
-          # -----------------------------------------------------
           "battery" = {
             states = {
-              warning = 20; # Yellow warning at 20%
-              critical = 5; # Red critical at 5%
+              warning = 20;
+              critical = 5;
             };
-            format = "{icon} {capacity}%";
-            format-charging = " {capacity}%"; # Show plug icon when charging
-            format-alt = "{time} {icon}"; # Click to show Time Remaining
+            format = "<span color='${c.base0A}'>{icon}</span> {capacity}%";
+            format-charging = "<span color='${c.base0B}'></span> {capacity}%";
+            format-alt = "{time} <span color='${c.base0A}'>{icon}</span>";
             format-icons = [
               ""
               ""
               ""
               ""
               ""
-            ]; # Icons from empty to full
+            ];
           };
 
           # -----------------------------------------------------
-          # 🕒 Clock & Calendar
+          # 🕒 Clock
           # -----------------------------------------------------
           "clock" = {
-            format = "{:%A, %B %d, %Y %I:%M %p}";
-            format-alt = "{:%m/%d/%Y}";
+            format = "{:%A, %B %d at %I:%M %p}"; # Click Format: Full Day Name, Month, Date... When the module is clicked it switches between formats
+            format-alt = "{:%m/%d/%Y - %I:%M %p}"; # Standard Format: MM/DD/YYYY - HH:MM AM/PM
             tooltip-format = "<tt><small>{calendar}</small></tt>";
             calendar = {
               mode = "year";
               mode-mon-col = 3;
-              weeks-pos = "left";
+              weeks-pos = "right";
               on-scroll = 1;
-              format = with config.lib.stylix.colors; {
-                months = "<span color='#${base05}'><b>{}</b></span>";
-                days = "<span color='#${base05}'><b>{}</b></span>";
-                weeks = "<span color='#${base05}'><b>W{}</b></span>";
-                today = "<span color='#${base0D}'><b><u>{}</u></b></span>";
-              };
             };
           };
 
-          # -----------------------------------------------------
-          # 📥 System Tray
-          # -----------------------------------------------------
           "tray" = {
-            icon-size = 20; # Size of tray icons
-            spacing = 1; # Space between tray icons
+            icon-size = 20;
+            spacing = 8;
           };
         };
       };
