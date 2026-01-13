@@ -16,8 +16,9 @@
       "*.swp"
       ".DS_Store"
     ];
-
-    # Optional: Enable Git credential helper if using HTTPS
-    # extraConfig = { credential.helper = "store"; };
+    settings = {
+      init.defaultBranch = "main";
+      pull.rebase = true;
+    };
   };
 }

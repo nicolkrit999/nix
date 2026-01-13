@@ -9,6 +9,7 @@
   xdg.configFile."dolphinrc".text = ''
     [General]
     ShowFullPath=true
+    ConfirmDelete=true
     ViewPropsTimestamp=2025,1,1,12,0,0.000
 
     [KFileDialog Settings]
@@ -100,7 +101,7 @@
           </info>
         </bookmark>
 
-        <bookmark href="file:///mnt/nicol-nas">
+        <bookmark href="file:///mnt/nicol_nas">
           <title>NAS</title>
           <info>
             <metadata owner="http://freedesktop.org">

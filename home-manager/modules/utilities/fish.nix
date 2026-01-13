@@ -76,12 +76,12 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
-        sops-common = "cd ${flakeDir} && sops common/secrets.yaml"; # Edit sops secrets file
-        sops-host = "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/secrets.yaml"; # Edit host-specific sops secrets file
+        sops-common = "cd ${flakeDir} && sops common/${vars.user}-common-secrets-sops.yaml"; # Edit sops secrets file
+        sops-host = "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/${vars.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
 
         # Various
         reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
-        updboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
+        swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
       };
 
     # -----------------------------------------------------
@@ -195,11 +195,41 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
         else
           set url "$argv[1]"
         end
-        if string match -q "*github.com*" "$url"; or string match -q "*gitlab.com*" "$url"
-          nix-prefetch-url --unpack "$url"
-        else
-          nix-prefetch-url "$url"
+
+        if string match -q "https://github.com/*/blob/*" "$url"
+          set url (string replace "github.com" "raw.githubusercontent.com" "$url" | string replace "/blob/" "/")
+          echo "🔄 Converted Github Blob to Raw: $url"
         end
+
+        set args ""
+        if string match -q "https://github.com/*" "$url"
+          if string match -q "*/commit/*" "$url"
+            set url (string replace "/commit/" "/archive/" "$url").tar.gz
+            set args "--unpack"
+            echo "📦 Detected Github Commit -> Downloading Archive"
+          else if string match -q "*/releases/tag/*" "$url"
+             set url (string replace "/releases/tag/" "/archive/refs/tags/" "$url").tar.gz
+             set args "--unpack"
+             echo "📦 Detected Github Release -> Downloading Archive"
+          else if string match -q "*/tree/*" "$url"
+             set url (string replace "/tree/" "/archive/refs/heads/" "$url").tar.gz
+             set args "--unpack"
+             echo "📦 Detected Github Branch -> Downloading Archive"
+          end
+        end
+
+        if test -z "$args" # Only apply name fix for files, not archives (archives unpack anyway)
+            set filename (basename "$url")
+            if command -v python3 > /dev/null
+                set decoded_name (python3 -c "import urllib.parse, sys; print(urllib.parse.unquote(sys.argv[1]))" "$filename")
+                if test "$filename" != "$decoded_name"
+                    set args "--name" "$decoded_name"
+                    echo "✨ Decoded filename: '$decoded_name'"
+                end
+            end
+        end
+
+        nix-prefetch-url $args "$url"
       '';
     };
   };

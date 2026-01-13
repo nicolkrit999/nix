@@ -7,7 +7,7 @@
 }:
 
 let
-  mountPoint = "/mnt/owncloud";
+  mountPoint = "/mnt/nicol_nas/webdav/owncloud";
 in
 {
   # Enables the service, creating the necessary 'davfs2' group and user
@@ -22,9 +22,10 @@ in
   # ---------------------------------------------------------
   # 1. Prepare the Secret for DAVFS2
   # ---------------------------------------------------------
+  # Comm-6. NAS owncloud webdav remote connection
   sops.templates."davfs-secrets" = {
     content = ''
-      ${config.sops.placeholder.owncloud_url} ${config.sops.placeholder.owncloud_user} ${config.sops.placeholder.owncloud_pass}
+      ${config.sops.placeholder.nas_owncloud_url} ${config.sops.placeholder.nas_owncloud_user} ${config.sops.placeholder.nas_owncloud_pass}
     '';
     owner = "root";
     group = "root";
@@ -63,28 +64,32 @@ in
   # 4. Sops Secrets Definition
   # ---------------------------------------------------------
   sops.secrets = {
-    owncloud_user = { };
-    owncloud_pass = { };
-    owncloud_url = { };
+    nas_owncloud_user.sopsFile = ../../../../../common/krit-common-secrets-sops.yaml;
+    nas_owncloud_pass.sopsFile = ../../../../../common/krit-common-secrets-sops.yaml;
+    nas_owncloud_url.sopsFile = ../../../../../common/krit-common-secrets-sops.yaml;
   };
 
   users.users.${vars.user}.extraGroups = [ "davfs2" ];
-  systemd.services.owncloud-warmer = {
-    description = "Warm up OwnCloud mount cache";
-    after = [
-      "network-online.target"
-      "tailscale.service"
-    ];
-    wants = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
 
-    serviceConfig = {
-      Type = "simple";
-      Nice = 19;
-      CPUSchedulingPolicy = "idle";
-      IOSchedulingClass = "idle";
+  # It add to much overhead and slow down dolphin opening times
+  /*
+    systemd.services.owncloud-warmer = {
+      description = "Warm up OwnCloud mount cache";
+      after = [
+        "network-online.target"
+        "tailscale.service"
+      ];
+      wants = [ "network-online.target" ];
+      wantedBy = [ "multi-user.target" ];
 
-      ExecStart = "${pkgs.fd}/bin/fd . /mnt/owncloud --max-depth 7 --type d --threads 1";
+      serviceConfig = {
+        Type = "simple";
+        Nice = 19;
+        CPUSchedulingPolicy = "idle";
+        IOSchedulingClass = "idle";
+
+        ExecStart = "${pkgs.fd}/bin/fd . ${mountPoint} --max-depth 3 --type d --threads 1";
+      };
     };
-  };
+  */
 }

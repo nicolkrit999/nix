@@ -81,12 +81,12 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
-        sops-common = "cd ${flakeDir} && sops common/secrets.yaml"; # Edit sops secrets file
-        sops-host = "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/secrets.yaml"; # Edit host-specific sops secrets file
+        sops-common = "cd ${flakeDir} && sops common/${vars.user}-common-secrets-sops.yaml"; # Edit sops secrets file
+        sops-host = "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/${vars.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
 
         # Various
         reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
-        updboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
+        swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
       };
 
     history.size = 10000;
