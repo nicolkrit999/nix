@@ -1,8 +1,9 @@
-{ pkgs
-, lib
-, config
-, vars
-, ...
+{
+  pkgs,
+  lib,
+  config,
+  vars,
+  ...
 }:
 let
   cssContent = builtins.readFile ./style.css;
@@ -79,8 +80,6 @@ in
             format-icons = vars.waybarWorkspaceIcons or { };
           };
 
-
-
           # -----------------------------------------------------
           # ⌨️ Keyboard Layout icons
           # The flag changes based on the current keyboard layout
@@ -131,7 +130,6 @@ in
             on-click = "pavucontrol"; # Open volume mixer on click
           };
 
-
           # -----------------------------------------------------
           # 🔋 Battery Status
           # If no battery is found (eg desktop pc), this module is hidden
@@ -157,13 +155,13 @@ in
           # 🕒 Clock & Calendar
           # -----------------------------------------------------
           "clock" = {
-            format = "{:%A, %B %d, %Y}";
-            format-alt = "{:%m/%d/%Y - %I:%M %p}";
+            format = "{:%A, %B %d, %Y %I:%M %p}";
+            format-alt = "{:%m/%d/%Y}";
             tooltip-format = "<tt><small>{calendar}</small></tt>";
             calendar = {
               mode = "year";
               mode-mon-col = 3;
-              weeks-pos = "right";
+              weeks-pos = "left";
               on-scroll = 1;
               format = with config.lib.stylix.colors; {
                 months = "<span color='#${base05}'><b>{}</b></span>";

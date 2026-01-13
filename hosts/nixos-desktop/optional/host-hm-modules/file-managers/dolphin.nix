@@ -9,6 +9,7 @@
   xdg.configFile."dolphinrc".text = ''
     [General]
     ShowFullPath=true
+    ConfirmDelete=true
     ViewPropsTimestamp=2025,1,1,12,0,0.000
 
     [KFileDialog Settings]

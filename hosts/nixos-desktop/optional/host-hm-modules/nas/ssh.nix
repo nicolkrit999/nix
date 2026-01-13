@@ -25,8 +25,6 @@ let
     "uid=1000"
     "gid=100"
     "umask=000"
-    #"force_uid"
-    #"force_gid"
     "idmap=user"
     "reconnect"
     "ServerAliveInterval=15"

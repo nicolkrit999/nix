@@ -32,7 +32,7 @@ in
     ./optional/host-hm-modules/utilities/gaming.nix # hardware
     ./optional/host-hm-modules/nas/smb.nix # user
     ./optional/host-hm-modules/nas/borg-backup.nix # user
-    #./optional/host-hm-modules/nas/ssh.nix # user
+    ./optional/host-hm-modules/nas/ssh.nix # user
     ./optional/host-hm-modules/nas/owncloud.nix # user
 
   ];
