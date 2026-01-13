@@ -52,21 +52,14 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # Custom waybar music modules
-    # Reference: https://github.com/Andeskjerf/waybar-module-music/
-    waybar-module-music = {
-      url = "github:Andeskjerf/waybar-module-music/bbe7c78042a014976f6760aee92c35ed88b82430";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
-    { nixpkgs
-    , waybar-module-music
-    , nixpkgs-unstable
-    , home-manager
-    , ...
+    {
+      nixpkgs,
+      nixpkgs-unstable,
+      home-manager,
+      ...
     }@inputs:
     let
 
@@ -128,7 +121,6 @@
               nixpkgs.pkgs = import nixpkgs {
                 inherit (hostVars) system;
                 config.allowUnfree = true;
-                overlays = [ waybar-module-music.overlays.default ];
               };
               time.timeZone = hostVars.timeZone;
             }
@@ -192,7 +184,6 @@
           pkgs = import nixpkgs {
             inherit (hostVars) system;
             config.allowUnfree = true;
-            overlays = [ waybar-module-music.overlays.default ];
           };
 
           extraSpecialArgs = {

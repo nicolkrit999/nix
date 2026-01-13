@@ -1,6 +1,7 @@
-{ config
-, lib
-, ...
+{
+  config,
+  lib,
+  ...
 }:
 
 let
@@ -115,6 +116,7 @@ in
           "/home/*/progettoFDI"
           "/home/*/tools"
           "/home/*/obese_dinosaurs"
+          "/home/*/wallpaper-repo"
 
           # -------------------------------------------------------------------
           # 8. OTHER

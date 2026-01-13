@@ -10,28 +10,10 @@
     mgr.prepend_keymap = [
 
       # -----------------------------------------------------------------------
-      # 📦 PLUGIN KEYBINDINGS (Prefix 'b' for Bundles/Bunny)
+      # 📦 PLUGIN KEYBINDINGS (Prefix 'b')
       # -----------------------------------------------------------------------
 
-      # 1. Bunny (Hops)
-      {
-        on = [
-          "n"
-          "b"
-        ];
-        run = "plugin bunny";
-        desc = "🐰 Bunny Hop (Bookmarks)";
-      }
-      {
-        on = [
-          "n"
-          "B"
-        ];
-        run = "plugin bunny fuzzy";
-        desc = "🐰 Bunny Fuzzy Search";
-      }
-
-      # 2. Relative Motions
+      # 1. Relative Motions
       {
         on = [
           "n"

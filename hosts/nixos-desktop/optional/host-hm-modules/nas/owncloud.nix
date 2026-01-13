@@ -70,22 +70,26 @@ in
   };
 
   users.users.${vars.user}.extraGroups = [ "davfs2" ];
-  systemd.services.owncloud-warmer = {
-    description = "Warm up OwnCloud mount cache";
-    after = [
-      "network-online.target"
-      "tailscale.service"
-    ];
-    wants = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
 
-    serviceConfig = {
-      Type = "simple";
-      Nice = 19;
-      CPUSchedulingPolicy = "idle";
-      IOSchedulingClass = "idle";
+  # It add to much overhead and slow down dolphin opening times
+  /*
+    systemd.services.owncloud-warmer = {
+      description = "Warm up OwnCloud mount cache";
+      after = [
+        "network-online.target"
+        "tailscale.service"
+      ];
+      wants = [ "network-online.target" ];
+      wantedBy = [ "multi-user.target" ];
 
-      ExecStart = "${pkgs.fd}/bin/fd . ${mountPoint} --max-depth 7 --type d --threads 1";
+      serviceConfig = {
+        Type = "simple";
+        Nice = 19;
+        CPUSchedulingPolicy = "idle";
+        IOSchedulingClass = "idle";
+
+        ExecStart = "${pkgs.fd}/bin/fd . ${mountPoint} --max-depth 3 --type d --threads 1";
+      };
     };
-  };
+  */
 }

@@ -36,7 +36,7 @@
   fileManager = "yazi";
 
   # 🎨 THEMING
-  base16Theme = "tokyo-night-moon";
+  base16Theme = "nord";
   polarity = "dark";
   catppuccin = false;
   catppuccinFlavor = "mocha";
@@ -75,12 +75,13 @@
 
   wallpapers = [
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/develop/wallpapers/landscape/danny-rienecker-_turtle.jpg";
-      wallpaperSHA256 = "1zcikp7kwj4zp2vg0yjsdyc2gz49fqlgc79bdzs56alcnyphd7v7";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/Arknights%20texas%20wolf.jpg";
+      wallpaperSHA256 = "1wylprbgl6hb4fqkqq6jjvvnqjy6mp0sps51skgvl5wdbj1n1z10";
     }
+
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/nixOS/develop/wallpapers/landscape/hassan-pasha-chess-unsplash.jpg";
-      wallpaperSHA256 = "04j2ahaxxnqr7rwiyv9vjcfd7r2n4fqn997vqyy4s05g5576my2y";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_black_and_white_logo.png";
+      wallpaperSHA256 = "1q0p9sq40lq9b3icncq8a223v5yk33w4nz3pymwz2gwv3psjzzw1";
     }
   ];
 

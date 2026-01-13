@@ -1,8 +1,9 @@
-{ config
-, pkgs
-, vars
-, lib
-, ...
+{
+  config,
+  pkgs,
+  vars,
+  lib,
+  ...
 }:
 
 let
@@ -24,7 +25,7 @@ let
     "IdentityFile=${identityFile}"
     "uid=1000"
     "gid=100"
-    "umask=000"
+    "umask=022"
     "idmap=user"
     "reconnect"
     "ServerAliveInterval=15"
