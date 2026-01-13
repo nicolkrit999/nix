@@ -1,8 +1,9 @@
-{ config
-, lib
-, pkgs
-, vars
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  vars,
+  ...
 }:
 
 let
@@ -63,9 +64,9 @@ in
   # 4. Sops Secrets Definition
   # ---------------------------------------------------------
   sops.secrets = {
-    nas_owncloud_user.sopsFile = ../../../../../common/secrets.yaml;
-    nas_owncloud_pass.sopsFile = ../../../../../common/secrets.yaml;
-    nas_owncloud_url.sopsFile = ../../../../../common/secrets.yaml;
+    nas_owncloud_user.sopsFile = ../../../../../common/krit-common-secrets-sops.yaml;
+    nas_owncloud_pass.sopsFile = ../../../../../common/krit-common-secrets-sops.yaml;
+    nas_owncloud_url.sopsFile = ../../../../../common/krit-common-secrets-sops.yaml;
   };
 
   users.users.${vars.user}.extraGroups = [ "davfs2" ];

@@ -57,10 +57,10 @@ If you accidentally save a file in `hosts/desktop/` that was meant for the `host
 
 ```bash
 # 1. Move the file
-mv hosts/desktop/secrets.yaml hosts/laptop/secrets.yaml
+mv hosts/desktop/desktop-secrets-sops.yaml hosts/laptop/laptop-secrets-sops.yaml
 
 # 2. Re-encrypt it with the correct keys (Laptop + User)
-sops updatekeys hosts/laptop/secrets.yaml
+sops updatekeys hosts/laptop/laptop-secrets-sops.yaml
 ```
 
 *Note: As long as your personal User Key is in the file's access list, you can always recover and fix this.*
@@ -74,7 +74,7 @@ sops updatekeys hosts/laptop/secrets.yaml
 1. Navigate to the correct folder (e.g., `hosts/desktop`).
 2. Run the command:
 ```bash
-sops secrets.yaml
+sops desktop-secrets-sops.yaml
 ```
 
 
@@ -88,7 +88,7 @@ Common secrets (like WiFi passwords) must be readable by **all** machines. that 
 
 1. **Update `.sops.yaml`:** Ensure there is a rule for the `common/` folder that lists **all** host keys.
 ```yaml
-- path_regex: common/secrets.yaml$
+- path_regex: common/<username>-common-secrets-sops.yaml$
   key_groups:
     - age: [ *user_krit, *pc_desktop, *pc_laptop ]
 
@@ -97,14 +97,14 @@ Common secrets (like WiFi passwords) must be readable by **all** machines. that 
 
 2. **Create/Edit the file:**
 ```bash
-sops common/secrets.yaml
+sops common/<user>-common-secrets-sops.yaml
 ```
 
 
 *Note: If you add a NEW host later, you must re-open and save this file so the new host's key is added to the encryption header.*
 3. **Use in Nix:** In your `configuration.nix`, point to this specific file:
 ```nix
-sops.secrets.wifi_password.sopsFile = ../../common/secrets.yaml;
+sops.secrets.wifi_password.sopsFile = ../../common/<user>-common-secrets-sops.yaml;
 ```
 Here is the README section. I have written it as a "Security FAQ" because this is a very common question that is important to clarify for anyone reading your repo.
 
@@ -112,7 +112,7 @@ Here is the README section. I have written it as a "Security FAQ" because this i
 
 #### 4. Security FAQ: Usernames & Common Secrets
 
-**Q: If I have a `common/secrets.yaml` shared by all my machines, can a stranger read it if they clone my repo and name their user `<username>` (same as mine)?**
+**Q: If I have a `common/<user>-common-secrets-sops.yaml` shared by all my machines, can a stranger read it if they clone my repo and name their user `<username>` (same as mine)?**
 
 **A: NO.**
 
@@ -126,11 +126,11 @@ When you encrypt a file for "The Desktop", you are encrypting it for that specif
 If a stranger clones your repo and creates a user named `krit`:
 * They have the same *name* tag.
 * But they do **not** have your computer's physical **Private Key**.
-* Therefore, when their machine tries to decrypt `common/secrets.yaml`, it fails immediately. The file looks like random garbage to them.
+* Therefore, when their machine tries to decrypt `common/<user>-common-secrets-sops.yaml`, it fails immediately. The file looks like random garbage to them.
 
 
 3. **Access Control:**
-You cannot simply "join" the common secrets club. A new machine can only read `common/secrets.yaml` if **YOU** (the owner) manually re-encrypt that file to explicitly include the new machine's public key in the header.
+You cannot simply "join" the common secrets club. A new machine can only read `common/<user>-common-secrets-sops.yaml` if **YOU** (the owner) manually re-encrypt that file to explicitly include the new machine's public key in the header.
 
 **Summary:** Your security relies on keeping your **Private Keys** (`keys.txt` and `ssh_host_ed25519_key`) safe. As long as those are not shared, your public repository is secure, regardless of what usernames people use.
 
@@ -146,7 +146,7 @@ If you buy a new computer and want to use this repo:
 1. Install NixOS. It generates a **new** unique SSH host key.
 2. Get the new public key (print it with `cat /etc/ssh/ssh_host_ed25519_key.pub`).
 3. On your old PC (or current working environment), add this new key to `.sops.yaml`.
-4. Run `sops updatekeys hosts/new-pc/secrets.yaml` to re-encrypt the file for the new machine.
+4. Run `sops updatekeys hosts/<hostname>/<hostname>-secrets-sops.yaml` to re-encrypt the file for the new machine.
 
 ### Scenario B: Restore Identity (Recommended)
 

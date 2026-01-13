@@ -36,7 +36,7 @@ in
   # 🔐 SOPS CONFIGURATION
   # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /*
-    sops.defaultSopsFile = ./optional/host-sops-nix/secrets.yaml;
+    sops.defaultSopsFile = ./optional/host-sops-nix/<hostname>-secrets-sops.yaml;
     sops.defaultSopsFormat = "yaml";
     sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
   */

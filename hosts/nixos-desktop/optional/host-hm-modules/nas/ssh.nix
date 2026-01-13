@@ -1,19 +1,18 @@
-{
-  config,
-  pkgs,
-  vars,
-  lib,
-  ...
+{ config
+, pkgs
+, vars
+, lib
+, ...
 }:
 
 let
-  nasUser = "krit";
+  nasUser = "root";
   nasHost = "100.101.189.91"; # Tailscale IP
 
-  mountVol1 = "/mnt/nicol_nas/ssh/krit/volume1";
-  mountVol2 = "/mnt/nicol_nas/ssh/krit/volume2";
+  mountPoint = "/mnt/nicol_nas/ssh/system_root";
 
-  # Comm-2. Shared private key to ssh into the nas
+  # Comm-2.
+  # Shared private key to ssh into the nas
   identityFile = config.sops.secrets.nas_ssh_key.path;
 
   commonOptions = [
@@ -25,30 +24,35 @@ let
     "IdentityFile=${identityFile}"
     "uid=1000"
     "gid=100"
+    "umask=000"
+    #"force_uid"
+    #"force_gid"
+    "idmap=user"
     "reconnect"
     "ServerAliveInterval=15"
     "StrictHostKeyChecking=accept-new"
+    "Compression=yes"
   ];
 in
 {
   environment.systemPackages = [ pkgs.sshfs ];
   services.tailscale.enable = lib.mkForce true;
+  systemd.tmpfiles.rules = [
+    "d ${mountPoint} 0755 krit users -"
+  ];
 
   # ---------------------------------------------------------
   # 🔐 SOPS: NAS SSH Key (Comm-2)
   # ---------------------------------------------------------
   sops.secrets.nas_ssh_key = {
-    sopsFile = ../../../../../common/secrets.yaml;
+    sopsFile = ../../../../../common/krit-common-secrets-sops.yaml;
   };
 
-  fileSystems."${mountVol1}" = {
-    device = "${nasUser}@${nasHost}:/volume1";
-    fsType = "fuse.sshfs";
-    options = commonOptions;
-  };
-
-  fileSystems."${mountVol2}" = {
-    device = "${nasUser}@${nasHost}:/volume2";
+  # ---------------------------------------------------------
+  # 💾 SINGLE ROOT MOUNT
+  # ---------------------------------------------------------
+  fileSystems."${mountPoint}" = {
+    device = "${nasUser}@${nasHost}:/";
     fsType = "fuse.sshfs";
     options = commonOptions;
   };

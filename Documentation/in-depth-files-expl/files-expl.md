@@ -2185,8 +2185,8 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
-        sops-common = "cd ${flakeDir} && sops common/secrets.yaml"; # Edit sops secrets file
-        sops-host = "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/secrets.yaml"; # Edit host-specific sops secrets file
+        sops-common = "cd ${flakeDir} && sops common/${vars.user}-common-secrets-sops.yaml"; # Edit sops secrets file
+        sops-host = "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/${vars.hostname}-secrets-sops"; # Edit host-specific sops secrets file
 
         # Various
         reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
@@ -2410,7 +2410,7 @@ in
   # 🔐 SOPS CONFIGURATION
   # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /*
-    sops.defaultSopsFile = ./optional/host-sops-nix/secrets.yaml;
+    sops.defaultSopsFile = ./optional/host-sops-nix/<hostname>-secrets-sops.yaml;
     sops.defaultSopsFormat = "yaml";
     sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
   */

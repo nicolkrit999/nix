@@ -363,10 +363,12 @@ ZSH is hybrid:
 - For an host to use sops it must be added to the host-specific configuration.nix, otherwise it is ignored. An example is the following:
 
 ```nix
-sops.defaultSopsFile = ./optional/host-sops-nix/secrets.yaml;
+# If you want to have the convenience of the aliases then the name must match the format here
+sops.defaultSopsFile = ./optional/host-sops-nix/<hostname>-secrets-sops.yaml;
 sops.defaultSopsFormat = "yaml";
 sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 ```
+The format for the common secrets (also according to the aliases) should be `<user>-common-secrets-sops.yaml`
 
 If you intend to use the hostname `nixos-desktop` you should remove the entire content of the existing one, as it contains my own personal configurations and change and create the new host public key. Basically after a new rebuild and a `nixos-desktop` which contains the bare minimum from `template-host` you would run:
 
@@ -377,7 +379,7 @@ nix-shell -p ssh-to-age --run "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub"
 # Then update the user with the admin public key and the host public key
 
 # Then invite the host
-sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/secrets.yaml
+sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-sops.yaml
 ```
 
 

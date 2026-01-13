@@ -1,8 +1,9 @@
-{ config
-, pkgs
-, lib
-, vars
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  vars,
+  ...
 }:
 let
   # Determine which shell package to use based on the variable
@@ -40,14 +41,14 @@ in
   # 🔐 SOPS CONFIGURATION
   # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   # 1. DEFAULT SOURCE (Host Specific)
-  sops.defaultSopsFile = ./optional/host-sops-nix/secrets.yaml;
+  sops.defaultSopsFile = ./optional/host-sops-nix/nixos-desktop-secrets-sops.yaml;
   sops.defaultSopsFormat = "yaml";
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
   # 2. GLOBAL SECRETS DEFINITION
   sops.secrets =
     let
-      commonSecrets = ../../common/secrets.yaml;
+      commonSecrets = ../../common/krit-common-secrets-sops.yaml;
     in
     {
       # LOCAL SECRETS:

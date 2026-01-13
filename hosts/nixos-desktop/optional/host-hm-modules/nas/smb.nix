@@ -70,7 +70,7 @@ in
   services.tailscale.enable = lib.mkForce true;
 
   sops.secrets.nas-krit-credentials = {
-    sopsFile = ../../../../../common/secrets.yaml;
+    sopsFile = ../../../../../common/krit-common-secrets-sops.yaml;
   };
 
   # ---------------------------------------------------------

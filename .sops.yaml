@@ -14,9 +14,9 @@ keys:
 creation_rules:
   # ---------------------------------------------------------------
   # 🔒 Secrets for "nixos-desktop"
-  # Any file inside hosts/nixos-desktop/ ending in secrets.yaml will use these keys
+  # Any file inside hosts/nixos-desktop/ ending in secrets-sops.yaml will use these keys
   # ---------------------------------------------------------------
-  - path_regex: hosts/nixos-desktop/.*secrets\.yaml$
+  - path_regex: hosts/nixos-desktop/.*secrets-sops\.yaml$
     key_groups:
       - age:
           - *krit # You can decrypt (user "krit")
@@ -24,9 +24,9 @@ creation_rules:
 
   # ---------------------------------------------------------------
   # 🔒 Common rules for user "krit"
-  # Matches any "secrets.yaml" inside the "common" folder
+  # Matches any "krit-common-secrets-sops.yaml" inside the "common" folder
   # ---------------------------------------------------------------
-  - path_regex: common/secrets.yaml$
+  - path_regex: common/krit-common-secrets-sops.yaml$
     key_groups:
       - age:
           - *krit # You can decrypt (user krit)
