@@ -12,8 +12,7 @@ let
     terminal = "8";
     chat = "9";
   };
-in
-{
+in {
   # ---------------------------------------------------------------------------
   # 🖥️ HYPRLAND WORKSPACES
   # ---------------------------------------------------------------------------
@@ -107,13 +106,11 @@ in
     "$mainMod,       Y, exec, chromium-browser"
   ];
 
-  gnomeExtraBinds = [
-    {
-      name = "Launch Chromium";
-      command = "chromium";
-      binding = "<Super>y";
-    }
-  ];
+  gnomeExtraBinds = [{
+    name = "Launch Chromium";
+    command = "chromium";
+    binding = "<Super>y";
+  }];
 
   # KDE: Attribute set (unique ID = { name, key, command })
   kdeExtraBinds = {
@@ -129,17 +126,16 @@ in
   # Strict hardware IDs for Plasma Manager.
   # If you remove this, KDE will use default plug-and-play settings.
   # Commented because i have 2 logitech mouse connected
-  /*
-    kdeMice = [
-      {
-        enable = true;
-        name = "Logitech G403";
-        vendorId = "046d"; # Logitech
-        productId = "c08f"; # G403
-        acceleration = -1.0;
-        accelerationProfile = "none";
-      }
-    ];
+  /* kdeMice = [
+       {
+         enable = true;
+         name = "Logitech G403";
+         vendorId = "046d"; # Logitech
+         productId = "c08f"; # G403
+         acceleration = -1.0;
+         accelerationProfile = "none";
+       }
+     ];
   */
 
   # Leave empty for desktop PCs
@@ -174,5 +170,13 @@ in
   nixImpure = false;
 
   useFahrenheit = false;
+
+  hyprlandStartupApps = [
+    "${vars.term}"
+    "${vars.browser}"
+    "${vars.fileManager}"
+
+    "chromium-browser"
+  ];
 
 }

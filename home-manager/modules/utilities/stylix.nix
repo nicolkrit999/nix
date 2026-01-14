@@ -29,9 +29,9 @@
 
       # These should absolutely remain disabled because they cause conflicts
       kde.enable =
-        true; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
+        false; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
       qt.enable =
-        true; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
+        false; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
 
       # These should remain enabled to avoid conflicts with other modules (empty for now)
 

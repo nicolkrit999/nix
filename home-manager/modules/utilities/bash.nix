@@ -61,6 +61,7 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
       merge_main-dev =
         "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop"; # Merge develop with main branch, push and return to develop branch
       cdnix = "cd ${flakeDir}";
+      nfc = "cd ${flakeDir} && nix flake check"; # Check flake for errors
 
       # Snapshots
       snap-list-home = "snapper -c home list"; # List home snapshots

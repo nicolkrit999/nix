@@ -50,6 +50,8 @@
           # TOOLKIT BACKENDS (Force apps to use Wayland)
           "NIXOS_OZONE_WL,1" # Forces Electron apps (VS Code, Discord, Obsidian) to run natively on Wayland.
           "QT_QPA_PLATFORM,wayland;xcb" # Tells Qt apps: "Try Wayland first. If that fails, use X11 (xcb)".
+          "QT_QPA_PLATFORMTHEME,qt6ct"
+
           "GDK_BACKEND,wayland,x11,*" # Tells GTK apps: "Try Wayland first. If that fails, use X11".
           "SDL_VIDEODRIVER,wayland" # Forces SDL games to run on Wayland (improves performance/scaling).
           "CLUTTER_BACKEND,wayland" # Forces Clutter apps to use Wayland.
@@ -109,7 +111,7 @@
           "pkill ibus-daemon" # Kill ibus given by gnome
         ] ++ lib.optionals (!(vars.caelestia or false)) [
           "uwsm app -- waybar" # Start waybar only if "caelestia" is disabled in variables.nix
-        ];
+        ] ++ (vars.hyprlandStartupApps or [ ]);
 
         # -----------------------------------------------------
         # 🎨 Look & Feel
