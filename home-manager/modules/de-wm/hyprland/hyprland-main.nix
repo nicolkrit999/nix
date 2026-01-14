@@ -110,14 +110,9 @@
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
 
-          # Set KDE apps look and feel (color scheme, icon theme)
-          "${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group General --key ColorScheme BreezeDark"
-          "${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage org.kde.breezedark.desktop"
-          "${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group Icons --key Theme Papirus-Dark"
-
         ] ++ lib.optionals (!(vars.caelestia or false)) [
           "uwsm app -- waybar" # Start waybar only if "caelestia" is disabled in variables.nix
-        ] ++ (vars.hyprlandStartup or [ ]);
+        ] ++ (vars.hyprland_Exec-Once or [ ]);
 
         # -----------------------------------------------------
         # 🎨 Look & Feel
