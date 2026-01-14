@@ -1,33 +1,10 @@
-{
-  inputs,
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
-let
-  hostOptionalPath = ../hosts/${vars.hostname}/optional;
-in
-{
+{ inputs, pkgs, lib, vars, ... }: {
 
   # -----------------------------------------------------------------------
   # 🔗 IMPORTS
   # -----------------------------------------------------------------------
   # Pulls in all individual program modules
-  imports = [
-    ./modules/default.nix
-    ./home-packages.nix
-  ]
-
-  ++ (lib.optional (builtins.pathExists (hostOptionalPath + "/general-hm-modules/home.nix")) (
-    hostOptionalPath + "/general-hm-modules/home.nix"
-  ))
-
-  # 3. 🧩 HOST SPECIFIC MODULES (optional/host-hm-modules)
-  # Imports the whole folder if it exists
-  ++ (lib.optional (builtins.pathExists (hostOptionalPath + "/host-hm-modules")) (
-    hostOptionalPath + "/host-hm-modules"
-  ));
+  imports = [ ./modules/default.nix ./home-packages.nix ];
 
   # -----------------------------------------------------------------------
   # 👤 USER IDENTITY
@@ -35,7 +12,8 @@ in
   home = {
     username = vars.user;
     homeDirectory = "/home/${vars.user}";
-    stateVersion = vars.homeStateVersion; # Controls backwards compatibility logic
+    stateVersion =
+      vars.homeStateVersion; # Controls backwards compatibility logic
   };
 
   # -----------------------------------------------------------------------

@@ -39,6 +39,7 @@ in {
     # These are always installed, regardless of user choices
     # Packages in each category are sorted alphabetically
     # ⚠️ All these packages should be kept. The reason is indicated next to each package.
+    # If a package does not need/can't be configured with home-manager then it can be in common-configuration.nix or a host-specific configuration.nix
     ++ (with pkgs; [
 
       # 🖥️ DESKTOP APPLICATIONS

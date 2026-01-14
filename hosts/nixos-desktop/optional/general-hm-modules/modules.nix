@@ -1,3 +1,4 @@
+{ vars, ... }:
 let
   # Allow to use variables despite flake.nix use this to create variables
   rawVars = import ../../variables.nix;
@@ -177,6 +178,7 @@ in {
     "${vars.fileManager}"
 
     "chromium-browser"
+
   ];
 
 }

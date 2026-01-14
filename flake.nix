@@ -67,15 +67,23 @@
           # 1. Base Vars (Always exist)
           baseVars = import ./hosts/${hostname}/variables.nix;
 
-          # 2. Extra Vars (Optional - host specific HM settings)
-          modulesPath =
-            ./hosts/${hostname}/optional/general-hm-modules/modules.nix;
-          extraVars =
-            if builtins.pathExists modulesPath then import modulesPath else { };
+          # 2. Import host-specific optional folder
+          hostPath = ./hosts/${hostname};
+          optionalPath = hostPath + "/optional";
 
-          # 3. Merge: Base + Extra + Hostname
+          # 3. Load Home-Manager variables (modules.nix)
+          modulesPath = optionalPath + "/general-hm-modules/modules.nix";
+
+          # 4. Extra Vars (Optional - host specific HM settings)
+          extraVars = if builtins.pathExists modulesPath then
+            import modulesPath { vars = baseVars; }
+          else
+            { };
+
+          # 5. Merge: Base + Extra + Hostname
           hostVars = baseVars // extraVars // { inherit hostname; };
 
+          # 6. Unstable pkgs
           pkgs-unstable = import nixpkgs-unstable {
             system = hostVars.system;
             config.allowUnfree = true;
@@ -99,14 +107,9 @@
             inputs.nix-sops.nixosModules.sops
 
             # Import entire optional host-specific directory if it exists
-            (if builtins.pathExists
-            ./hosts/${hostname}/optional/default.nix then
-              ./hosts/${hostname}/optional
-            else
-              { })
+            (if builtins.pathExists optionalPath then optionalPath else { })
 
             {
-
               # host-specific variables
               nixpkgs.hostPlatform = hostVars.system;
             }
@@ -142,16 +145,34 @@
           # 1. Base Vars (Always exist)
           baseVars = import ./hosts/${hostname}/variables.nix;
 
-          # 2. Extra Vars (Optional - host specific HM settings)
-          modulesPath =
-            ./hosts/${hostname}/optional/general-hm-modules/modules.nix;
-          extraVars =
-            if builtins.pathExists modulesPath then import modulesPath else { };
+          # 2. Import host-specific optional folder
+          hostPath = ./hosts/${hostname};
+          optionalPath = hostPath + "/optional";
 
-          # 3. Merge: Base + Extra + Hostname
+          # 3. Load Home-Manager variables (modules.nix)
+          modulesPath = optionalPath + "/general-hm-modules/modules.nix";
+
+          # 4. Extra Vars (Optional - host specific HM settings)
+          extraVars = if builtins.pathExists modulesPath then
+            import modulesPath { vars = baseVars; }
+          else
+            { };
+
+          # 5. Merge: Base + Extra + Hostname
           hostVars = baseVars // extraVars // { inherit hostname; };
 
-          # Home-manager unstable import (needed)
+          # 6. Define Optional HM Modules (Manually check, since we can't use optional/default.nix here)
+          generalHmPath = optionalPath + "/general-hm-modules/home.nix";
+          hostHmFolder = optionalPath + "/host-hm-modules";
+
+          # Create a list of extra modules to append
+          extraModules =
+            nixpkgs.lib.optional (builtins.pathExists generalHmPath)
+            generalHmPath
+            ++ nixpkgs.lib.optional (builtins.pathExists hostHmFolder)
+            hostHmFolder;
+
+          # 7. Unstable pkgs
           pkgs-unstable = import nixpkgs-unstable {
             system = hostVars.system;
             config.allowUnfree = true;
@@ -162,7 +183,6 @@
             config.allowUnfree = true;
           };
 
-          # Needed because home-manager does not import common-configuration.nix
           extraSpecialArgs = {
             inherit inputs pkgs-unstable;
             vars = hostVars;
@@ -172,7 +192,7 @@
             ./home-manager/home.nix
             inputs.catppuccin.homeModules.catppuccin
             inputs.plasma-manager.homeModules.plasma-manager
-          ];
+          ] ++ extraModules;
         };
 
     in {
