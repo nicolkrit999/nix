@@ -1,12 +1,5 @@
-{
-  pkgs,
-  pkgs-unstable,
-  vars,
-  ...
-}:
-{
-  users.users.${vars.user}.packages =
-    with pkgs;
+{ pkgs, pkgs-unstable, vars, ... }: {
+  users.users.${vars.user}.packages = with pkgs;
     [
       # This allow guest user to not have this packages installed
       # Packages in each category are sorted alphabetically
@@ -38,6 +31,7 @@
       carbon-now-cli # Create beautiful images of your code (carbon.now.sh CLI)
       cava # Console-based audio visualizer
       cloudflared # Cloudflare's command-line tool and daemon
+      cloc # Count lines of code
       croc # Securely and easily send files between two computers
       efibootmgr # Manage UEFI boot entries
       fastfetch # Fast system information fetcher
@@ -75,12 +69,11 @@
       jq # Command-line JSON processor
       universal-ctags # Tool to generate index (tags) files of source code
       zeal # Offline documentation browser
-      (pkgs.python313.withPackages (
-        ps: with ps; [
+      (pkgs.python313.withPackages (ps:
+        with ps; [
           faker # Generate fake data
           proton-keyring-linux # Proton keyring for Linux
-        ]
-      ))
+        ]))
 
       # -----------------------------------------------------------------------------------
       # 😂 FUN PACKAGES
@@ -97,9 +90,10 @@
       logiops # Logitech devices manager (currently used for my MX Master 3S)
     ]
 
-    ++ (with pkgs-unstable; [
-      # -----------------------------------------------------------------------
-      # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
-      # -----------------------------------------------------------------------
-    ]);
+    ++ (with pkgs-unstable;
+      [
+        # -----------------------------------------------------------------------
+        # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
+        # -----------------------------------------------------------------------
+      ]);
 }

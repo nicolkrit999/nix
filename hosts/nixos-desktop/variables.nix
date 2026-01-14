@@ -75,12 +75,14 @@
 
   wallpapers = [
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/Arknights%20texas%20wolf.jpg";
+      wallpaperURL =
+        "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/Arknights%20texas%20wolf.jpg";
       wallpaperSHA256 = "1wylprbgl6hb4fqkqq6jjvvnqjy6mp0sps51skgvl5wdbj1n1z10";
     }
 
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_black_and_white_logo.png";
+      wallpaperURL =
+        "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_black_and_white_logo.png";
       wallpaperSHA256 = "1q0p9sq40lq9b3icncq8a223v5yk33w4nz3pymwz2gwv3psjzzw1";
     }
   ];
@@ -111,6 +113,6 @@
     #"rust"
     "shell"
     #"swift"
-    #"typst"
+    "typst"
   ];
 }

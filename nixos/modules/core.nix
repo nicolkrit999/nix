@@ -7,6 +7,7 @@
     ./audio.nix
     ./bluetooth.nix
     ./boot.nix
+    ./common-configuration.nix
     ./cosmic.nix
     ./env.nix
     ./gnome.nix

@@ -54,138 +54,115 @@
     };
   };
 
-  outputs =
-    {
-      nixpkgs,
-      nixpkgs-unstable,
-      home-manager,
-      ...
-    }@inputs:
+  outputs = { nixpkgs, nixpkgs-unstable, home-manager, ... }@inputs:
     let
-
-      # Recognize all the hosts intelligently
-      hostNames = nixpkgs.lib.attrNames (
-        nixpkgs.lib.filterAttrs (name: type: type == "directory") (builtins.readDir ./hosts)
-      );
+      hostNames = nixpkgs.lib.attrNames (nixpkgs.lib.filterAttrs (name: type:
+        type == "directory" && builtins.pathExists
+        (./hosts + "/${name}/hardware-configuration.nix"))
+        (builtins.readDir ./hosts));
 
       # 🛠️ SYSTEM BUILDER
-      makeSystem =
-        hostname:
+      makeSystem = hostname:
         let
-          # IMPORT VARIABLES FROM FILE
+          # 1. Base Vars (Always exist)
           baseVars = import ./hosts/${hostname}/variables.nix;
 
-          modulesPath = ./hosts/${hostname}/optional/general-hm-modules/modules.nix;
-          extraVars = if builtins.pathExists modulesPath then import modulesPath else { };
+          # 2. Extra Vars (Optional - host specific HM settings)
+          modulesPath =
+            ./hosts/${hostname}/optional/general-hm-modules/modules.nix;
+          extraVars =
+            if builtins.pathExists modulesPath then import modulesPath else { };
 
-          # 3. Merge
+          # 3. Merge: Base + Extra + Hostname
           hostVars = baseVars // extraVars // { inherit hostname; };
 
           pkgs-unstable = import nixpkgs-unstable {
             system = hostVars.system;
             config.allowUnfree = true;
           };
-        in
-        nixpkgs.lib.nixosSystem {
+        in nixpkgs.lib.nixosSystem {
 
           specialArgs = {
             inherit inputs pkgs-unstable;
-            # Pass ALL variables from variables.nix to the modules
             vars = hostVars;
           };
 
           modules = [
+            # Base NixOS modules
+            ./nixos/modules/core.nix
             ./hosts/${hostname}/configuration.nix
+            ./hosts/${hostname}/hardware-configuration.nix
+
+            # Additional nixos modules from flakes
             inputs.catppuccin.nixosModules.catppuccin
             inputs.nix-flatpak.nixosModules.nix-flatpak
             inputs.nix-sops.nixosModules.sops
 
-            # DE/WM import
-            ./nixos/modules/hyprland.nix
-            ./nixos/modules/gnome.nix
-            ./nixos/modules/kde.nix
-            ./nixos/modules/cosmic.nix
-
-            # Optional - host-specific dev-environments
-            (
-              if builtins.pathExists ./hosts/${hostname}/optional/dev-environments then
-                ./hosts/${hostname}/optional/dev-environments
-              else
-                { }
-            )
+            # Import entire optional host-specific directory if it exists
+            (if builtins.pathExists
+            ./hosts/${hostname}/optional/default.nix then
+              ./hosts/${hostname}/optional
+            else
+              { })
 
             {
 
+              # host-specific variables
               nixpkgs.hostPlatform = hostVars.system;
-
-              nixpkgs.pkgs = import nixpkgs {
-                inherit (hostVars) system;
-                config.allowUnfree = true;
-              };
-              time.timeZone = hostVars.timeZone;
             }
+            # Home-Manager
             inputs.home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
 
+              # Home-manager flakes input integration
               home-manager.sharedModules = [
                 inputs.catppuccin.homeModules.catppuccin
                 inputs.plasma-manager.homeModules.plasma-manager
               ];
 
+              # Home-manager unstable import (needed)
               home-manager.extraSpecialArgs = {
                 inherit inputs pkgs-unstable hostname;
                 vars = hostVars;
               };
+
+              # Home-manager host-specific user configuration
               home-manager.users.${hostVars.user} = {
-                imports = [
-                  ./home-manager/home.nix
-                ]
-
-                ++ (
-                  if builtins.pathExists ./hosts/${hostname}/optional/general-hm-modules/home.nix then
-                    [ ./hosts/${hostname}/optional/general-hm-modules/home.nix ]
-                  else
-                    [ ]
-                )
-                ++ (
-                  if builtins.pathExists ./hosts/${hostname}/optional/host-hm-modules then
-                    [ ./hosts/${hostname}/optional/host-hm-modules ]
-                  else
-                    [ ]
-                );
+                imports = [ ./home-manager/home.nix ];
               };
-
             }
           ];
         };
 
       # 🏠 HOME BUILDER
-      makeHome =
-        hostname:
+      makeHome = hostname:
         let
-          # 1. Import Mandatory Variables
+          # 1. Base Vars (Always exist)
           baseVars = import ./hosts/${hostname}/variables.nix;
 
-          # 2. Import Optional Modules (nix file) (Safely)
-          modulesPath = ./hosts/${hostname}/optional/general-hm-modules/modules.nix;
-          extraVars = if builtins.pathExists modulesPath then import modulesPath else { };
+          # 2. Extra Vars (Optional - host specific HM settings)
+          modulesPath =
+            ./hosts/${hostname}/optional/general-hm-modules/modules.nix;
+          extraVars =
+            if builtins.pathExists modulesPath then import modulesPath else { };
 
-          # 3. Merge them (Extra overrides Base)
+          # 3. Merge: Base + Extra + Hostname
           hostVars = baseVars // extraVars // { inherit hostname; };
 
+          # Home-manager unstable import (needed)
           pkgs-unstable = import nixpkgs-unstable {
             system = hostVars.system;
             config.allowUnfree = true;
           };
-        in
-        home-manager.lib.homeManagerConfiguration {
+        in home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
             inherit (hostVars) system;
             config.allowUnfree = true;
           };
 
+          # Needed because home-manager does not import common-configuration.nix
           extraSpecialArgs = {
             inherit inputs pkgs-unstable;
             vars = hostVars;
@@ -195,20 +172,15 @@
             ./home-manager/home.nix
             inputs.catppuccin.homeModules.catppuccin
             inputs.plasma-manager.homeModules.plasma-manager
-          ]
-          # 2. Add host-specific host-modules (Home Manager side)
-          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/optional/host-hm-modules) ./hosts/${hostname}/optional/host-hm-modules)
-
-          # 3. Add host-specific home.nix
-          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/optional/general-hm-modules/home.nix) ./hosts/${hostname}/optional/general-hm-modules/home.nix);
+          ];
         };
 
-    in
-    {
+    in {
       # GENERATE CONFIGURATIONS AUTOMATICALLY
       nixosConfigurations = nixpkgs.lib.genAttrs hostNames makeSystem;
       homeConfigurations = nixpkgs.lib.genAttrs hostNames makeHome;
 
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
+      formatter.x86_64-linux =
+        nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
     };
 }

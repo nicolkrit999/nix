@@ -1,13 +1,12 @@
 {
   pkgs,
   lib,
-  inputs,
+  vars,
   ...
 }:
 
 let
-  vars = import ../../../variables.nix;
-  langs = vars.devLanguages; # e.g. ["java" "rust"]
+  langs = vars.devLanguages or [ ];
 in
 {
   config = lib.mkMerge [
