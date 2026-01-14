@@ -1,11 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  vars,
-  ...
-}:
-{
+{ config, lib, pkgs, vars, ... }: {
 
   config = lib.mkIf (vars.hyprland or false) {
     # ----------------------------------------------------------------------------
@@ -19,7 +12,10 @@
       grimblast # Screenshot tool
       hyprpaper # Wallpaper manager
       hyprpicker # Color picker
+      imv # Image viewer (referenced in window rules)
+      mpv # Video player (referenced in window rules)
       brightnessctl # Screen brightness control
+      pavucontrol # Volume control
       playerctl # Media player control
       showmethekey # Keypress visualizer
       wl-clipboard # Wayland clipboard utilities
@@ -30,7 +26,9 @@
       enable = true;
       systemd = {
         enable = true;
-        variables = [ "--all" ]; # Pass all environment variables to Hyprland systemd service, useful for caelestia-shell
+        variables = [
+          "--all"
+        ]; # Pass all environment variables to Hyprland systemd service, useful for caelestia-shell
       };
 
       settings = {
@@ -39,35 +37,36 @@
         # 🌍 Environment Variables
         # -----------------------------------------------------
         # These ensure apps (Electron, QT, etc.) know they are running on Wayland.
-        env =
-          let
-            firstMonitor = builtins.elemAt vars.monitors 0;
-            monitorParts = lib.splitString "," firstMonitor;
-            rawScale = if (builtins.length monitorParts) >= 4 then builtins.elemAt monitorParts 3 else "1";
+        env = let
+          firstMonitor = builtins.elemAt vars.monitors 0;
+          monitorParts = lib.splitString "," firstMonitor;
+          rawScale = if (builtins.length monitorParts) >= 4 then
+            builtins.elemAt monitorParts 3
+          else
+            "1";
 
-            gdkScale = if rawScale != "1" && rawScale != "1.0" then "2" else "1";
-          in
-          [
-            # TOOLKIT BACKENDS (Force apps to use Wayland)
-            "NIXOS_OZONE_WL,1" # Forces Electron apps (VS Code, Discord, Obsidian) to run natively on Wayland.
-            "QT_QPA_PLATFORM,wayland;xcb" # Tells Qt apps: "Try Wayland first. If that fails, use X11 (xcb)".
-            "GDK_BACKEND,wayland,x11,*" # Tells GTK apps: "Try Wayland first. If that fails, use X11".
-            "SDL_VIDEODRIVER,wayland" # Forces SDL games to run on Wayland (improves performance/scaling).
-            "CLUTTER_BACKEND,wayland" # Forces Clutter apps to use Wayland.
-            "_JAVA_AWT_WM_NONREPARENTING,1" # Fixes Java GUI apps (IntelliJ, Minecraft Launcher) on Wayland.
-            "GDK_SCALE,${gdkScale}" # Sets GTK scaling based on first monitor's scale factor.
+          gdkScale = if rawScale != "1" && rawScale != "1.0" then "2" else "1";
+        in [
+          # TOOLKIT BACKENDS (Force apps to use Wayland)
+          "NIXOS_OZONE_WL,1" # Forces Electron apps (VS Code, Discord, Obsidian) to run natively on Wayland.
+          "QT_QPA_PLATFORM,wayland;xcb" # Tells Qt apps: "Try Wayland first. If that fails, use X11 (xcb)".
+          "GDK_BACKEND,wayland,x11,*" # Tells GTK apps: "Try Wayland first. If that fails, use X11".
+          "SDL_VIDEODRIVER,wayland" # Forces SDL games to run on Wayland (improves performance/scaling).
+          "CLUTTER_BACKEND,wayland" # Forces Clutter apps to use Wayland.
+          "_JAVA_AWT_WM_NONREPARENTING,1" # Fixes Java GUI apps (IntelliJ, Minecraft Launcher) on Wayland.
+          "GDK_SCALE,${gdkScale}" # Sets GTK scaling based on first monitor's scale factor.
 
-            # DESKTOP SESSION IDENTITY
-            "XDG_CURRENT_DESKTOP,Hyprland" # Tells portals (screen sharing) that you are using Hyprland.
-            "XDG_SESSION_TYPE,wayland" # Generic flag telling the session it is Wayland-based.
-            "XDG_SESSION_DESKTOP,Hyprland" # Used by some session managers to identify the desktop.
+          # DESKTOP SESSION IDENTITY
+          "XDG_CURRENT_DESKTOP,Hyprland" # Tells portals (screen sharing) that you are using Hyprland.
+          "XDG_SESSION_TYPE,wayland" # Generic flag telling the session it is Wayland-based.
+          "XDG_SESSION_DESKTOP,Hyprland" # Used by some session managers to identify the desktop.
 
-            # THEMING & AESTHETICS
-            "QT_QPA_PLATFORMTHEME,qt5ct" # Tells Qt apps to use the 'qt5ct' or 'qt6ct' tool for styling (fixes ugly Qt apps).
+          # THEMING & AESTHETICS
+          "QT_QPA_PLATFORMTHEME,qt5ct" # Tells Qt apps to use the 'qt5ct' or 'qt6ct' tool for styling (fixes ugly Qt apps).
 
-            # SYSTEM PATHS
-            "XDG_SCREENSHOTS_DIR,${vars.screenshots}" # Tells tools where to save screenshots by default.
-          ];
+          # SYSTEM PATHS
+          "XDG_SCREENSHOTS_DIR,${vars.screenshots}" # Tells tools where to save screenshots by default.
+        ];
 
         # -----------------------------------------------------
         # 🖥️ Monitor Configuration
@@ -85,17 +84,17 @@
         "$term" = vars.term;
 
         # Distinguish between terminal-based and GUI file managers
-        "$fileManager" = "${
-          if vars.fileManager == "yazi" || vars.fileManager == "ranger" then
+        "$fileManager" =
+          "${if vars.fileManager == "yazi" || vars.fileManager == "ranger" then
             "${vars.term} --class ${vars.fileManager} -e ${vars.fileManager}"
           else
-            "${vars.fileManager}"
-        }";
+            "${vars.fileManager}"}";
 
         # Distinguish between terminal-based and GUI editors
-        "$editor" = "${
-          if vars.editor == "nvim" then "${vars.term} --class nvim-editor -e nvim" else "${vars.editor}"
-        }";
+        "$editor" = "${if vars.editor == "nvim" then
+          "${vars.term} --class nvim-editor -e nvim"
+        else
+          "${vars.editor}"}";
 
         "$menu" = "wofi";
 
@@ -108,8 +107,7 @@
           "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
-        ]
-        ++ lib.optionals (!(vars.caelestia or false)) [
+        ] ++ lib.optionals (!(vars.caelestia or false)) [
           "uwsm app -- waybar" # Start waybar only if "caelestia" is disabled in variables.nix
         ];
 
@@ -123,11 +121,15 @@
 
           # 🎨 BORDERS
           # Border colors adapt based on whether catppuccin is enabled
-          "col.active_border" =
-            if vars.catppuccin then "$accent" else "rgb(${config.lib.stylix.colors.base0D})";
+          "col.active_border" = if vars.catppuccin then
+            "$accent"
+          else
+            "rgb(${config.lib.stylix.colors.base0D})";
 
-          "col.inactive_border" =
-            if vars.catppuccin then "$overlay0" else "rgb(${config.lib.stylix.colors.base03})";
+          "col.inactive_border" = if vars.catppuccin then
+            "$overlay0"
+          else
+            "rgb(${config.lib.stylix.colors.base03})";
 
           resize_on_border = true;
 
@@ -139,18 +141,12 @@
           rounding = 0;
           active_opacity = 1.0;
           inactive_opacity = 1.0;
-          shadow = {
-            enabled = false;
-          };
+          shadow = { enabled = false; };
 
-          blur = {
-            enabled = false;
-          };
+          blur = { enabled = false; };
         };
 
-        animations = {
-          enabled = true;
-        };
+        animations = { enabled = true; };
 
         # Layouts are defined in flake.nix and are handled
         # in such a way that they work regardless of desktop environment
@@ -176,9 +172,7 @@
           disable_hyprland_logo = true;
         };
 
-        xwayland = {
-          force_zero_scaling = true;
-        };
+        xwayland = { force_zero_scaling = true; };
 
         windowrulev2 = [
           # Smart Borders: No border if only 1 window is on screen
@@ -232,14 +226,12 @@
           "noblur, class:^(xwaylandvideobridge)$"
           "nofocus, class:^(xwaylandvideobridge)$"
 
-        ]
-        ++ (vars.hyprlandWindowRules or [ ]);
+        ] ++ (vars.hyprlandWindowRules or [ ]);
 
         workspace = [
           "w[tv1], gapsout:0, gapsin:0" # No gaps if only 1 window is visible
           "f[1], gapsout:0, gapsin:0" # No gaps if window is fullscreen
-        ]
-        ++ (vars.hyprlandWorkspaces or [ ]);
+        ] ++ (vars.hyprlandWorkspaces or [ ]);
       };
     };
   };

@@ -5,27 +5,11 @@
   vars,
   ...
 }:
-let
-  # Determine which shell package to use based on the variable
-  shellPkg =
-    if vars.shell == "fish" then
-      pkgs.fish
-    else if vars.shell == "zsh" then
-      pkgs.zsh
-    else
-      pkgs.bashInteractive;
-in
 {
   # home.nix and host-modules are imported from flake.nix
   imports = [
-    # Hardware scan (auto-generated)
-    ./hardware-configuration.nix
-
     # Packages specific to this machine
     ./optional/host-packages/default.nix
-
-    # Core imports
-    ../../nixos/modules/core.nix
 
     # These are manually imported here because they contains aspects that home-manager can not handle alone
     ./optional/host-hm-modules/utilities/logitech.nix # boot
@@ -35,7 +19,13 @@ in
     ./optional/host-hm-modules/nas/ssh.nix # user
     ./optional/host-hm-modules/nas/owncloud.nix # user
 
-  ];
+  ]
+  ++ (lib.optional (builtins.pathExists ./optional/dev-environments/default.nix) ./optional/dev-environments/default.nix);
+
+  # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  # 🌍 LOCALE
+  # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  i18n.defaultLocale = "en_US.UTF-8";
 
   # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   # 🔐 SOPS CONFIGURATION
@@ -102,128 +92,6 @@ in
   # ---------------------------------------------------------
   boot.initrd.kernelModules = [ "amdgpu" ];
   hardware.graphics.enable = true;
-
-  fonts.packages = with pkgs; [
-    nerd-fonts.jetbrains-mono # Primary monospace font; includes icons for coding and terminal use
-    nerd-fonts.symbols-only # Icon fallback; ensures symbols render even when the main font lacks them
-    noto-fonts # Base text coverage; Google's "No Tofu" standard to fix square boxes globally
-    dejavu_fonts # Core Linux fallback; high compatibility for standard text in older apps
-    noto-fonts-lgc-plus # Extended European support; covers complex Latin, Greek, and Cyrillic variants
-    noto-fonts-color-emoji # Emoji support; ensures emojis appear in color rather than monochrome outlines
-    noto-fonts-cjk-sans # Asian language support; mandatory for Chinese, Japanese, and Korean characters
-    texlivePackages.hebrew-fonts # Hebrew support; specialized font for correct Hebrew script rendering
-    font-awesome # System icons; standard dependency for Waybar and desktop interface elements
-    powerline-fonts # Shell prompt glyphs; prevents broken triangles/shapes in Zsh/Bash prompts
-  ];
-
-  fonts.fontconfig.enable = true;
-
-  # ---------------------------------------------------------
-  # 📦 SYSTEM PACKAGES
-  # ---------------------------------------------------------
-  environment.systemPackages = with pkgs; [
-    autotrash # Automatic trash cleanup utility; used to delete old files from Trash
-    distrobox # Container system for dev environments; lightweight alternative to full VMs
-    foot # Tiny, zero-config terminal; critical rescue tool if your main terminal config breaks
-    iptables # Core firewall utility; base dependency for network security and containers
-    glib # Low-level system library; almost all software crashes without this base layer
-    gpu-screen-recorder # Used for caelestia and included here to ensure proper permissions
-    # Global theme settings; prevents GTK apps from looking broken or crashing
-    gsettings-desktop-schemas
-    gtk3 # Standard GUI toolkit; essential for drawing basic application windows
-    libsForQt5.qt5.qtwayland # Qt5 Wayland bridge; mandatory for older Qt apps to display correctly
-    kdePackages.qtwayland # Qt6 Wayland bridge; mandatory for modern Qt apps to display correctly
-    powerline-symbols # Terminal font glyphs; prevents "box" errors in shell prompts
-    polkit_gnome # Authentication agent; required for GUI apps (like Btrfs Assistant) to ask for passwords
-    sops # Secret management tool; decrypts sensitive data stored in Git repositories
-    shellPkg # The selected shell package (bash, zsh, or fish)
-  ];
-
-  programs.zsh.enable = vars.shell == "zsh";
-  programs.fish.enable = vars.shell == "fish";
-
-  services.openssh.enable = true; # Used by nix-sops to handle secrets
-
-  security.wrappers.gpu-screen-recorder = {
-    owner = "root";
-    group = "root";
-    capabilities = "cap_sys_admin+ep";
-    source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
-  };
-
-  security.wrappers.gsr-kms-server = {
-    owner = "root";
-    group = "root";
-    capabilities = "cap_sys_admin+ep";
-    source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
-  };
-
-  # ---------------------------------------------------------
-  # 🖥️ HOST IDENTITY & NETWORKING
-  # ---------------------------------------------------------
-  networking.hostName = vars.hostname;
-  networking.networkmanager.enable = true;
-
-  # ---------------------------------------------------------
-  # 🛠️ NIX SETTINGS (CACHE & FLAKES)
-  # ---------------------------------------------------------
-  nix.settings = {
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-
-    trusted-users = [
-      "root"
-      "@wheel"
-    ];
-
-    # ⚠️ CRITICAL: Use binary cache to avoid compiling from source
-    substituters = [ "https://cosmic.cachix.org" ];
-    trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
-  };
-
-  # -----------------------------------------------------
-  # ⚡ Systemd Shutdown Tweak
-  # -----------------------------------------------------
-  # This reduces the wait time for stuck services from 90s to 10s.
-  systemd.settings.Manager = {
-    DefaultTimeoutStopSec = "10s";
-  };
-
-  services.xserver.xkb = {
-    layout = vars.keyboardLayout;
-    variant = vars.keyboardVariant;
-  };
-  console.useXkbConfig = true;
-
-  # ---------------------------------------------------------
-  # 🛡️ SECURITY & REALTIME AUDIO
-  # ---------------------------------------------------------
-  security.rtkit.enable = true;
-
-  # Allow members of "wheel" to:
-  # 1. Get realtime audio priority (fixes audio recording prompt)
-  # 2. Run commands as root via pkexec (fixes gpu-screen-recorder prompt)
-  security.polkit.extraConfig = ''
-    polkit.addRule(function(action, subject) {
-      if (subject.isInGroup("wheel")) {
-        // Auto-approve realtime audio requests
-        if (action.id == "org.freedesktop.RealtimeKit1.acquire-high-priority" ||
-            action.id == "org.freedesktop.RealtimeKit1.acquire-real-time") {
-          return polkit.Result.YES;
-        }
-
-        // Auto-approve gpu-screen-recorder running as root
-        // (Caelestia uses pkexec to launch it)
-        if (action.id == "org.freedesktop.policykit.exec" &&
-            action.lookup("program") &&
-            action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
-          return polkit.Result.YES;
-        }
-      }
-    });
-  '';
 
   # ---------------------------------------------------------
   # 👤 USER CONFIGURATION
@@ -318,10 +186,6 @@ in
     };
   };
 
-  system.stateVersion = vars.stateVersion;
-
-  i18n.inputMethod.enabled = lib.mkForce null;
-  environment.variables.GTK_IM_MODULE = lib.mkForce "";
-  environment.variables.QT_IM_MODULE = lib.mkForce "";
-  environment.variables.XMODIFIERS = lib.mkForce "";
+  environment.systemPackages = with pkgs; [
+  ];
 }
