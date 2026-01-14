@@ -1,4 +1,4 @@
-{
+{ pkgs, ... }: {
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -25,23 +25,22 @@
     # Stabilizes Optical/Digital Audio
     wireplumber.extraConfig = {
       "99-optical-fix" = {
-        "monitor.alsa.rules" = [
-          {
-            "matches" = [
-              { "node.name" = "~.*SPDIF.*"; }
-              { "node.name" = "~.*optical.*"; }
-              { "node.name" = "~.*iec958.*"; }
-              { "node.name" = "~.*digital-stereo.*"; }
-            ];
-            "actions" = {
-              "update-props" = {
-                "api.alsa.soft-mixer" = true;
-                "api.alsa.ignore-dB" = true;
-              };
+        "monitor.alsa.rules" = [{
+          "matches" = [
+            { "node.name" = "~.*SPDIF.*"; }
+            { "node.name" = "~.*optical.*"; }
+            { "node.name" = "~.*iec958.*"; }
+            { "node.name" = "~.*digital-stereo.*"; }
+          ];
+          "actions" = {
+            "update-props" = {
+              "api.alsa.soft-mixer" = true;
+              "api.alsa.ignore-dB" = true;
             };
-          }
-        ];
+          };
+        }];
       };
     };
   };
+  environment.systemPackages = with pkgs; [ pipewire wireplumber ];
 }

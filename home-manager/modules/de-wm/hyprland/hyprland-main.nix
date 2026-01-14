@@ -62,7 +62,7 @@
           "XDG_SESSION_DESKTOP,Hyprland" # Used by some session managers to identify the desktop.
 
           # THEMING & AESTHETICS
-          "QT_QPA_PLATFORMTHEME,qt5ct" # Tells Qt apps to use the 'qt5ct' or 'qt6ct' tool for styling (fixes ugly Qt apps).
+          #"QT_QPA_PLATFORMTHEME,qt5ct" # Tells Qt apps to use the 'qt5ct' or 'qt6ct' tool for styling (fixes ugly Qt apps).
 
           # SYSTEM PATHS
           "XDG_SCREENSHOTS_DIR,${vars.screenshots}" # Tells tools where to save screenshots by default.

@@ -139,7 +139,6 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
       # Also solve tmux alt c conflict
       bind --erase --all alt-c 
       bind ctrl-g fzf-cd-widget
-
     '';
 
     # -----------------------------------------------------
@@ -196,45 +195,56 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
       '';
 
       npu = ''
-        if test -z "$argv[1]"
-          read -P "Enter URL: " url
+        set url ""
+        if test -n "$argv[1]"
+            set url "$argv[1]"
         else
-          set url "$argv[1]"
+            read -P "🔗 Enter URL: " url
         end
 
-        if string match -q "https://github.com/*/blob/*" "$url"
-          set url (string replace "github.com" "raw.githubusercontent.com" "$url" | string replace "/blob/" "/")
-          echo "🔄 Converted Github Blob to Raw: $url"
+        if test -z "$url"
+            echo "❌ No URL provided."
+            return 1
         end
 
-        set args ""
-        if string match -q "https://github.com/*" "$url"
-          if string match -q "*/commit/*" "$url"
-            set url (string replace "/commit/" "/archive/" "$url").tar.gz
-            set args "--unpack"
-            echo "📦 Detected Github Commit -> Downloading Archive"
-          else if string match -q "*/releases/tag/*" "$url"
-             set url (string replace "/releases/tag/" "/archive/refs/tags/" "$url").tar.gz
-             set args "--unpack"
-             echo "📦 Detected Github Release -> Downloading Archive"
-          else if string match -q "*/tree/*" "$url"
-             set url (string replace "/tree/" "/archive/refs/heads/" "$url").tar.gz
-             set args "--unpack"
-             echo "📦 Detected Github Branch -> Downloading Archive"
-          end
+        # 1. Handle GitHub Blobs (Convert to Raw)
+        if string match -q "https://github.com/*/blob/*" -- "$url"
+            set url (string replace "github.com" "raw.githubusercontent.com" "$url" | string replace "/blob/" "/")
+            echo "🔄 Converted Github Blob to Raw"
         end
 
-        if test -z "$args" # Only apply name fix for files, not archives (archives unpack anyway)
+        set args
+
+        # 2. Handle GitHub Archives (Commits, Releases, Branches)
+        if string match -q "https://github.com/*" -- "$url"
+            if string match -q "*/commit/*" -- "$url"
+                set url (string replace "/commit/" "/archive/" "$url").tar.gz
+                set args --unpack
+                echo "📦 Detected Github Commit -> Downloading Archive"
+            else if string match -q "*/releases/tag/*" -- "$url"
+                set url (string replace "/releases/tag/" "/archive/refs/tags/" "$url").tar.gz
+                set args --unpack
+                echo "📦 Detected Github Release -> Downloading Archive"
+            else if string match -q "*/tree/*" -- "$url"
+                set url (string replace "/tree/" "/archive/refs/heads/" "$url").tar.gz
+                set args --unpack
+                echo "📦 Detected Github Branch -> Downloading Archive"
+            end
+        end
+
+        # 3. Handle Filename Decoding (Only if not unpacking)
+        if test -z "$args"
             set filename (basename "$url")
-            if command -v python3 > /dev/null
+            if command -q python3
                 set decoded_name (python3 -c "import urllib.parse, sys; print(urllib.parse.unquote(sys.argv[1]))" "$filename")
                 if test "$filename" != "$decoded_name"
-                    set args "--name" "$decoded_name"
+                    set args --name "$decoded_name"
                     echo "✨ Decoded filename: '$decoded_name'"
                 end
             end
         end
 
+        # Execute
         nix-prefetch-url $args "$url"
       '';
     };

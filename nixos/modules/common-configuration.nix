@@ -153,6 +153,12 @@ in {
   environment.variables.XMODIFIERS = lib.mkForce "";
 
   # -----------------------------------------------------
+  # 🎨 GLOBAL THEME VARIABLES
+  # -----------------------------------------------------
+  environment.variables.GTK_APPLICATION_PREFER_DARK_THEME =
+    if vars.polarity == "dark" then "1" else "0";
+
+  # -----------------------------------------------------
   # ⚡ SYSTEM TWEAKS
   # -----------------------------------------------------
   # Reduce shutdown wait time for stuck services

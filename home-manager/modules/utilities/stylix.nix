@@ -1,17 +1,11 @@
-{
-  pkgs,
-  lib,
-  inputs,
-  vars,
-  ...
-}:
-{
+{ pkgs, lib, inputs, vars, ... }: {
   imports = [ inputs.stylix.homeModules.stylix ];
 
   stylix = {
     enable = true;
     polarity = vars.polarity; # Sets a global preference for dark mode
-    base16Scheme = "${pkgs.base16-schemes}/share/themes/${vars.base16Theme}.yaml";
+    base16Scheme =
+      "${pkgs.base16-schemes}/share/themes/${vars.base16Theme}.yaml";
     image = pkgs.fetchurl {
       url = (builtins.head vars.wallpapers).wallpaperURL;
       sha256 = (builtins.head vars.wallpapers).wallpaperSHA256;
@@ -23,16 +17,21 @@
     # Tells Stylix NOT to automatically skin these programs (except for Firefox).
     targets = {
       # It is possible to enable these, but it require manual theming in the modules/program itself
-      neovim.enable = false; # Custom themed via my personal neovim stow config in dotfiles
+      neovim.enable =
+        false; # Custom themed via my personal neovim stow config in dotfiles
       wofi.enable = false; # Themed manually via wofi/style.css
 
       # These should remain disabled because all edge cases are already handled
-      waybar.enable = false; # Custom themed via waybar.nix using catppuccin nix https://github.com/catppuccin/nix/blob/95042630028d613080393e0f03c694b77883c7db/modules/home-manager/waybar.nix
-      hyprpaper.enable = lib.mkForce false; # Wallpapers are handled manually in flake.nix and are hosts-specific
+      waybar.enable =
+        false; # Custom themed via waybar.nix using catppuccin nix https://github.com/catppuccin/nix/blob/95042630028d613080393e0f03c694b77883c7db/modules/home-manager/waybar.nix
+      hyprpaper.enable = lib.mkForce
+        false; # Wallpapers are handled manually in flake.nix and are hosts-specific
 
       # These should absolutely remain disabled because they cause conflicts
-      kde.enable = false; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
-      qt.enable = false; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
+      kde.enable =
+        true; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
+      qt.enable =
+        true; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
 
       # These should remain enabled to avoid conflicts with other modules (empty for now)
 
@@ -44,28 +43,38 @@
       # -----------------------------------------------------------------------
       # MULTI EXCLUSIONS DUE TO CAELESTIA/QUICKSHELL
       # -----------------------------------------------------------------------
-      gtk.enable = !vars.catppuccin && !vars.cosmic && !vars.caelestia;
-
+      gtk.enable = !vars.catppuccin;
       # ---------------------------------------------------------------------------------------
       # 🎨 GLOBAL CATPPUCCIN
       # Intelligently enable/disable stylix based on whether catppuccin is enabled
       # catppuccin = true -> .enable = false
       # catppuccin = false -> .enable = true
-      alacritty.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/alacritty.nix
-      hyprland.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
-      hyprlock.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix
-      swaync.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/swaync/default.nix
-      zathura.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/zathura.nix
+      alacritty.enable =
+        !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/alacritty.nix
+      hyprland.enable =
+        !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
+      hyprlock.enable =
+        !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix
+      swaync.enable =
+        !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/swaync/default.nix
+      zathura.enable =
+        !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/zathura.nix
       bat.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/bat.nix
-      lazygit.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/lazygit.nix
-      tmux.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/tmux.nix
-      starship.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
-      cava.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/cava.nix
-      kitty.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/kitty.nix
+      lazygit.enable =
+        !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/lazygit.nix
+      tmux.enable =
+        !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/tmux.nix
+      starship.enable =
+        !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
+      cava.enable =
+        !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/cava.nix
+      kitty.enable =
+        !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/kitty.nix
       # ---------------------------------------------------------------------------------------
 
       # Enable stylix but only for certain elements
-      firefox.profileNames = [ vars.user ]; # Applies skin only to the defined profile
+      firefox.profileNames =
+        [ vars.user ]; # Applies skin only to the defined profile
 
       # -----------------------------------------------------------------------
       # Other exclusions
@@ -114,16 +123,21 @@
     };
   };
 
-  dconf.settings = lib.mkIf vars.catppuccin {
+  # stylix.nix
+  # Move this OUT of the "lib.mkIf vars.catppuccin" block
+  dconf.settings = {
     "org/gnome/desktop/interface" = {
-      color-scheme = lib.mkForce (if vars.polarity == "dark" then "prefer-dark" else "prefer-light");
+      color-scheme =
+        if vars.polarity == "dark" then "prefer-dark" else "prefer-light";
     };
   };
 
   home.sessionVariables = lib.mkIf vars.catppuccin {
-    GTK_THEME = "catppuccin-${vars.catppuccinFlavor}-${vars.catppuccinAccent}-standard+rimless,black";
+    GTK_THEME =
+      "catppuccin-${vars.catppuccinFlavor}-${vars.catppuccinAccent}-standard+rimless,black";
 
-    XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS";
+    XDG_DATA_DIRS =
+      "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS";
   };
 
   # 3. Configure GTK Theme &amp; Settings
@@ -131,21 +145,19 @@
     enable = true;
 
     theme = {
-      package = lib.mkForce (
-        pkgs.catppuccin-gtk.override {
-          accents = [ vars.catppuccinAccent ];
-          size = "standard";
-          tweaks = [
-            "rimless"
-            "black"
-          ];
-          variant = vars.catppuccinFlavor;
-        }
-      );
-      name = lib.mkForce "catppuccin-${vars.catppuccinFlavor}-${vars.catppuccinAccent}-standard+rimless,black";
+      package = lib.mkForce (pkgs.catppuccin-gtk.override {
+        accents = [ vars.catppuccinAccent ];
+        size = "standard";
+        tweaks = [ "rimless" "black" ];
+        variant = vars.catppuccinFlavor;
+      });
+      name = lib.mkForce
+        "catppuccin-${vars.catppuccinFlavor}-${vars.catppuccinAccent}-standard+rimless,black";
     };
 
-    gtk3.extraConfig.gtk-application-prefer-dark-theme = if vars.polarity == "dark" then 1 else 0;
-    gtk4.extraConfig.gtk-application-prefer-dark-theme = if vars.polarity == "dark" then 1 else 0;
+    gtk3.extraConfig.gtk-application-prefer-dark-theme =
+      if vars.polarity == "dark" then 1 else 0;
+    gtk4.extraConfig.gtk-application-prefer-dark-theme =
+      if vars.polarity == "dark" then 1 else 0;
   };
 }

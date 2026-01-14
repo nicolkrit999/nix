@@ -1,9 +1,4 @@
-{
-  config,
-  lib,
-  vars,
-  ...
-}:
+{ config, lib, vars, ... }:
 
 lib.mkIf ((vars.shell or "zsh") == "bash") {
   programs.bash = {
@@ -13,74 +8,84 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
     # -----------------------------------------------------------------------
     # ⌨️ ALIASES
     # -----------------------------------------------------------------------
-    shellAliases =
-      let
-        flakeDir = "~/nixOS";
+    shellAliases = let
+      flakeDir = "~/nixOS";
 
-        isImpure = vars.nixImpure or false;
+      isImpure = vars.nixImpure or false;
 
-        switchCmd =
-          if isImpure then "sudo nixos-rebuild switch --flake . --impure" else "nh os switch ${flakeDir}";
+      switchCmd = if isImpure then
+        "sudo nixos-rebuild switch --flake . --impure"
+      else
+        "nh os switch ${flakeDir}";
 
-        updateCmd =
-          if isImpure then
-            "nix flake update && sudo nixos-rebuild switch --flake . --impure"
-          else
-            "nh os switch --update ${flakeDir}";
+      updateCmd = if isImpure then
+        "nix flake update && sudo nixos-rebuild switch --flake . --impure"
+      else
+        "nh os switch --update ${flakeDir}";
 
-        updateBoot =
-          if isImpure then
-            "sudo nixos-rebuild boot --flake . --impure"
-          else
-            "nh os boot --update ${flakeDir}";
-      in
-      {
-        # Smart aliases based on nixImpure setting
-        sw = "cd ${flakeDir} && ${switchCmd}";
-        swoff = "cd ${flakeDir} && ${switchCmd} --offline";
-        gsw = "cd ${flakeDir} && git add -A && ${switchCmd}";
-        gswoff = "cd ${flakeDir} && git add -A && ${switchCmd} --offline";
-        upd = "cd ${flakeDir} && ${updateCmd}";
+      updateBoot = if isImpure then
+        "sudo nixos-rebuild boot --flake . --impure"
+      else
+        "nh os boot --update ${flakeDir}";
+    in {
+      # Smart aliases based on nixImpure setting
+      sw = "cd ${flakeDir} && ${switchCmd}";
+      swoff = "cd ${flakeDir} && ${switchCmd} --offline";
+      gsw = "cd ${flakeDir} && git add -A && ${switchCmd}";
+      gswoff = "cd ${flakeDir} && git add -A && ${switchCmd} --offline";
+      upd = "cd ${flakeDir} && ${updateCmd}";
 
-        # Manual are kept for reference, but use the above aliases instead
-        swpure = "cd ${flakeDir} && nh os switch ${flakeDir}";
-        swimpure = "cd ${flakeDir} && sudo nixos-rebuild switch --flake . --impure";
+      # Manual are kept for reference, but use the above aliases instead
+      swpure = "cd ${flakeDir} && nh os switch ${flakeDir}";
+      swimpure =
+        "cd ${flakeDir} && sudo nixos-rebuild switch --flake . --impure";
 
-        # System maintenance
-        dedup = "nix store optimise";
-        cleanup = "nh clean all";
-        gc = "nix-collect-garbage -d";
+      # System maintenance
+      dedup = "nix store optimise";
+      cleanup = "nh clean all";
+      gc = "nix-collect-garbage -d";
 
-        # Pkgs editing
-        pkgs-home = "$EDITOR ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list
-        pkgs-host = "$EDITOR ${flakeDir}/hosts/${vars.hostname}/optional/host-packages/local-packages.nix"; # Edit host-specific packages list
+      # Pkgs editing
+      pkgs-home =
+        "$EDITOR ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list
+      pkgs-host =
+        "$EDITOR ${flakeDir}/hosts/${vars.hostname}/optional/host-packages/local-packages.nix"; # Edit host-specific packages list
 
-        # Nix repo management
-        fmt-dry = "cd ${flakeDir} && nix fmt -- --check"; # Check formatting without making changes (list files that need formatting)
-        fmt = "cd ${flakeDir} &&  nix fmt -- **/*.nix"; # Format Nix files using nixfmt (a regular nix fmt hangs on zed theme)
-        merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop"; # Merge main with develop branch, push and return to develop branch
-        merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop"; # Merge develop with main branch, push and return to develop branch
-        cdnix = "cd ${flakeDir}";
+      # Nix repo management
+      fmt-dry =
+        "cd ${flakeDir} && nix fmt -- --check"; # Check formatting without making changes (list files that need formatting)
+      fmt =
+        "cd ${flakeDir} &&  nix fmt -- **/*.nix"; # Format Nix files using nixfmt (a regular nix fmt hangs on zed theme)
+      merge_dev-main =
+        "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop"; # Merge main with develop branch, push and return to develop branch
+      merge_main-dev =
+        "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop"; # Merge develop with main branch, push and return to develop branch
+      cdnix = "cd ${flakeDir}";
 
-        # Snapshots
-        snap-list-home = "snapper -c home list"; # List home snapshots
-        snap-list-root = "sudo snapper -c root list"; # List root snapshots
+      # Snapshots
+      snap-list-home = "snapper -c home list"; # List home snapshots
+      snap-list-root = "sudo snapper -c root list"; # List root snapshots
 
-        # Utilities
-        se = "sudoedit";
-        fzf-prev = "fzf --preview=\"cat {}\"";
-        fzf-editor = "${vars.editor} \$(fzf -m --preview='cat {}')";
-        zlist = "zoxide query -l -s"; # List all zoxide entries with scores
+      # Utilities
+      se = "sudoedit";
+      fzf-prev = ''fzf --preview="cat {}"'';
+      fzf-editor = "${vars.editor} $(fzf -m --preview='cat {}')";
+      zlist = "zoxide query -l -s"; # List all zoxide entries with scores
 
-        # Sops secrets editing
-        sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
-        sops-common = "cd ${flakeDir} && sops common/${vars.user}-common-secrets-sops.yaml"; # Edit sops secrets file
-        sops-host = "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/${vars.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
+      # Sops secrets editing
+      sops-main =
+        "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
+      sops-common =
+        "cd ${flakeDir} && sops common/${vars.user}-common-secrets-sops.yaml"; # Edit sops secrets file
+      sops-host =
+        "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/${vars.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
 
-        # Various
-        reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
-        swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
-      };
+      # Various
+      reb-uefi =
+        "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
+      swboot =
+        "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
+    };
 
     # -----------------------------------------------------
     # ⚙️ INITIALIZATION
@@ -159,12 +164,53 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
       # 7 📦 SMART NIX PREFETCH (npu)
       # -----------------------------------------------------
       npu() {
-        if [ -z "$1" ]; then read -p "Enter URL: " url; else url="$1"; fi
-        if [[ "$url" == *"github.com"* ]] || [[ "$url" == *"gitlab.com"* ]]; then
-          nix-prefetch-url --unpack "$url"
-        else
-          nix-prefetch-url "$url"
+        local url="$1"
+        if [ -z "$url" ]; then
+          read -p "🔗 Enter URL: " url
         fi
+
+        if [ -z "$url" ]; then echo "❌ No URL provided."; return 1; fi
+
+        # 1. Handle GitHub Blobs
+        if [[ "$url" == https://github.com/*/blob/* ]]; then
+          url="''${url/github.com/raw.githubusercontent.com}"
+          url="''${url/\/blob\//\/}"
+          echo "🔄 Converted Github Blob to Raw"
+        fi
+
+        local args=""
+
+        # 2. Handle GitHub Archives
+        if [[ "$url" == https://github.com/* ]]; then
+          if [[ "$url" == */commit/* ]]; then
+            url="''${url/\/commit\//\/archive\/}.tar.gz"
+            args="--unpack"
+            echo "📦 Detected Github Commit -> Downloading Archive"
+          elif [[ "$url" == */releases/tag/* ]]; then
+            url="''${url/\/releases\/tag\//\/archive\/refs\/tags\/}.tar.gz"
+            args="--unpack"
+            echo "📦 Detected Github Release -> Downloading Archive"
+          elif [[ "$url" == */tree/* ]]; then
+            url="''${url/\/tree\//\/archive\/refs\/heads\/}.tar.gz"
+            args="--unpack"
+            echo "📦 Detected Github Branch -> Downloading Archive"
+          fi
+        fi
+
+        # 3. Decode Filename
+        if [ -z "$args" ]; then
+          local filename=$(basename "$url")
+          if command -v python3 >/dev/null 2>&1; then
+            local decoded_name=$(python3 -c "import urllib.parse, sys; print(urllib.parse.unquote(sys.argv[1]))" "$filename")
+            if [ "$filename" != "$decoded_name" ]; then
+              args="--name \"$decoded_name\""
+              echo "✨ Decoded filename: '$decoded_name'"
+            fi
+          fi
+        fi
+
+        # Execute
+        eval nix-prefetch-url $args "$url"
       }
     '';
   };

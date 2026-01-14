@@ -76,8 +76,8 @@
   wallpapers = [
     {
       wallpaperURL =
-        "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/Arknights%20texas%20wolf.jpg";
-      wallpaperSHA256 = "1wylprbgl6hb4fqkqq6jjvvnqjy6mp0sps51skgvl5wdbj1n1z10";
+        "https://raw.githubusercontent.com/HyDE-Project/hyde-themes/Graphite-Mono/Configs/.config/hyde/themes/Graphite%20Mono/wallpapers/rocket.jpg";
+      wallpaperSHA256 = "00c1p29s5wyk14l3hyb3mrxgnbkzq767b6qbc7fn47jp5k8d7h82";
     }
 
     {
