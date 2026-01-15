@@ -15,10 +15,7 @@
       forEachSupportedSystem =
         f:
         inputs.nixpkgs.lib.genAttrs supportedSystems (
-          system:
-          f {
-            pkgs = import inputs.nixpkgs { inherit system; };
-          }
+          system: f { pkgs = import inputs.nixpkgs { inherit system; }; }
         );
     in
     {
@@ -36,6 +33,18 @@
               };
               shellHook = ''
                 echo "☕ Java Environment Active"
+
+                # Setup JDTLS and DAP Extensions
+                mkdir -p tools
+                ln -sfn ${pkgs.jdt-language-server} ./tools/jdtls
+                NVIM_PACKAGES="$HOME/.local/share/nvim/nvim-java/packages"
+                mkdir -p "$NVIM_PACKAGES/java-debug-adapter"
+                mkdir -p "$NVIM_PACKAGES/java-test"
+                ln -sfn "${pkgs.vscode-extensions.vscjava.vscode-java-debug}/share/vscode/extensions/vscjava.vscode-java-debug" \
+                      "$NVIM_PACKAGES/java-debug-adapter/extension"
+                ln -sfn "${pkgs.vscode-extensions.vscjava.vscode-java-test}/share/vscode/extensions/vscjava.vscode-java-test" \
+                      "$NVIM_PACKAGES/java-test/extension"
+                echo "✅ JDTLS and DAP Extensions linked for Neovim"
 
                 # Check Java Version (Safe)
                 echo "JDK: $(${jdkPackage}/bin/java -version 2>&1 | head -n 1)"

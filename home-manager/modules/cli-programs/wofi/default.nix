@@ -6,10 +6,8 @@
   ...
 }:
 let
-  # 1. Read the CSS file (rules only, no definitions)
   cssContent = builtins.readFile ./style.css;
 
-  # 2. Define the Catppuccin Palettes manually
   palettes = {
     mocha = {
       rosewater = "#f5e0dc";
@@ -125,10 +123,8 @@ let
     };
   };
 
-  # 3. Select the correct palette based on the user's choice
   selectedPalette = palettes.${vars.catppuccinFlavor};
 
-  # 4. Define the CSS Variables Block
   cssVariables =
     if vars.catppuccin then
       ''
@@ -168,8 +164,6 @@ let
       ''
     else
       ''
-        /* 🔴 BASE16 FALLBACK MODE */
-        /* Map Wofi semantic names to Stylix Base16 colors */
         @define-color window_bg   ${config.lib.stylix.colors.withHashtag.base00}; /* Background */
         @define-color input_bg    ${config.lib.stylix.colors.withHashtag.base01}; /* Lighter Background */
         @define-color selected_bg ${config.lib.stylix.colors.withHashtag.base02}; /* Selection Background */
@@ -179,7 +173,6 @@ let
       '';
 in
 {
-
   config = lib.mkIf (vars.hyprland or vars.gnome or vars.kde or vars.cosmic or false) {
     programs.wofi = {
       enable = true;
@@ -200,7 +193,6 @@ in
         allow_images = true;
       };
 
-      # Inject variables BEFORE the CSS rules
       style = ''
         ${cssVariables}
         ${cssContent}

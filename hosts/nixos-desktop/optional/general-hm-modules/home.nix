@@ -14,7 +14,6 @@
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------------------
       vscode # IDE
-      ranger # Terminal file manager
       alacritty # Terminal emulator
 
       winboat # Enable to run windows programs
@@ -44,8 +43,7 @@
     music = null;
   };
 
-  home.sessionVariables = {
-  };
+  home.sessionVariables = { };
 
   programs.zoxide = {
     enable = true;

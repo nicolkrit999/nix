@@ -4,9 +4,7 @@
   vars,
   ...
 }:
-
 let
-  # Fallback to a default image if the list is empty
   lockWallpaper =
     if builtins.length vars.wallpapers > 0 then
       (builtins.elemAt vars.wallpapers 0).wallpaperURL
@@ -15,7 +13,6 @@ let
 in
 {
   programs.plasma.kscreenlocker = {
-    # Convert seconds (from idleConfig) to minutes for Plasma
     timeout = if vars.idleConfig != null then builtins.floor (vars.idleConfig.lockTimeout / 60) else 10;
 
     autoLock = true;
@@ -28,7 +25,6 @@ in
       wallpaperPictureOfTheDay = null;
       wallpaperSlideShow = null;
 
-      # Use the wallpaper of the primary monitor
       wallpaper = pkgs.fetchurl {
         url = lockWallpaper;
         sha256 =
@@ -37,7 +33,6 @@ in
           else
             lib.fakeSha256;
       };
-
       alwaysShowClock = true;
       showMediaControls = true;
     };

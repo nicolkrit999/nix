@@ -1,8 +1,4 @@
-{
-  config,
-  lib,
-  ...
-}:
+{ config, lib, ... }:
 
 let
   # ---------------------------------------------------------
@@ -69,6 +65,9 @@ in
           "/home/*/.local/state" # Often contains logs/history
           "/home/*/.local/share/baloo" # KDE File Indexer (huge)
           "/home/*/winboat/" # Wine Prefixes (re-create as needed)
+          "/home/*/.wine/" # Wine Prefixes (re-create as needed)
+          "/home/*/.local/share/Steam" # Steam games (re-downloadable)
+          "/home/*/.config/whatsapp-electron" # WhatsApp cache
 
           # -------------------------------------------------------------------
           # 4. BROWSERS (Synced/Heavy)

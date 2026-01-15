@@ -1,8 +1,10 @@
+{ ... }:
 {
   imports = [
-    # Single-file modules
+    ./bash.nix
     ./bat.nix
     ./eza.nix
+    ./fish.nix
     ./fzf.nix
     ./git.nix
     ./lazygit.nix
@@ -11,10 +13,6 @@
     ./starship.nix
     ./stylix.nix
     ./tmux.nix
-
-    # Shell imports
     ./zsh.nix
-    ./fish.nix
-    ./bash.nix
   ];
 }

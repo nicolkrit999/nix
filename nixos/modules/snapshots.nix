@@ -5,11 +5,9 @@
   vars,
   ...
 }:
-
 with lib;
 let
   cfg = vars.snapshots or false;
-  # Fetch retention variables, or use defaults if not defined
   retention = {
     hourly = vars.snapshotRetention.hourly or "12";
     daily = vars.snapshotRetention.daily or "3";
@@ -28,7 +26,9 @@ in
         home = {
           SUBVOLUME = "/home";
           FSTYPE = "btrfs";
-          ALLOW_USERS = [ "${vars.user}" ]; # Needed to allow the user to see root snapshots in snapper-gui
+          ALLOW_USERS = [
+            "${vars.user}"
+          ]; # Needed to allow the user to see root snapshots in snapper-gui
 
           TIMELINE_CREATE = true;
           TIMELINE_CLEANUP = true;
@@ -42,9 +42,7 @@ in
         root = {
           SUBVOLUME = "/";
           FSTYPE = "btrfs";
-          ALLOW_USERS = [
-            "${vars.user}"
-          ];
+          ALLOW_USERS = [ "${vars.user}" ];
           TIMELINE_CREATE = true;
           TIMELINE_CLEANUP = true;
 

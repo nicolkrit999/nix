@@ -4,7 +4,6 @@
   vars,
   ...
 }:
-
 let
   cliphistScript = pkgs.writeShellScript "launch-cliphist" ''
     ${pkgs.cliphist}/bin/cliphist list | ${pkgs.wofi}/bin/wofi --dmenu | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
@@ -101,7 +100,6 @@ let
 
 in
 {
-
   dconf.settings = {
     "org/gnome/settings-daemon/plugins/media-keys" = {
       custom-keybindings = dconfList;

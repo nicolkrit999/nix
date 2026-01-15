@@ -54,15 +54,24 @@
     };
   };
 
-  outputs = { nixpkgs, nixpkgs-unstable, home-manager, ... }@inputs:
+  outputs =
+    {
+      nixpkgs,
+      nixpkgs-unstable,
+      home-manager,
+      ...
+    }@inputs:
     let
-      hostNames = nixpkgs.lib.attrNames (nixpkgs.lib.filterAttrs (name: type:
-        type == "directory" && builtins.pathExists
-        (./hosts + "/${name}/hardware-configuration.nix"))
-        (builtins.readDir ./hosts));
+      hostNames = nixpkgs.lib.attrNames (
+        nixpkgs.lib.filterAttrs (
+          name: type:
+          type == "directory" && builtins.pathExists (./hosts + "/${name}/hardware-configuration.nix")
+        ) (builtins.readDir ./hosts)
+      );
 
       # 🛠️ SYSTEM BUILDER
-      makeSystem = hostname:
+      makeSystem =
+        hostname:
         let
           # 1. Base Vars (Always exist)
           baseVars = import ./hosts/${hostname}/variables.nix;
@@ -75,10 +84,8 @@
           modulesPath = optionalPath + "/general-hm-modules/modules.nix";
 
           # 4. Extra Vars (Optional - host specific HM settings)
-          extraVars = if builtins.pathExists modulesPath then
-            import modulesPath { vars = baseVars; }
-          else
-            { };
+          extraVars =
+            if builtins.pathExists modulesPath then import modulesPath { vars = baseVars; } else { };
 
           # 5. Merge: Base + Extra + Hostname
           hostVars = baseVars // extraVars // { inherit hostname; };
@@ -88,7 +95,8 @@
             system = hostVars.system;
             config.allowUnfree = true;
           };
-        in nixpkgs.lib.nixosSystem {
+        in
+        nixpkgs.lib.nixosSystem {
 
           specialArgs = {
             inherit inputs pkgs-unstable;
@@ -140,7 +148,8 @@
         };
 
       # 🏠 HOME BUILDER
-      makeHome = hostname:
+      makeHome =
+        hostname:
         let
           # 1. Base Vars (Always exist)
           baseVars = import ./hosts/${hostname}/variables.nix;
@@ -153,10 +162,8 @@
           modulesPath = optionalPath + "/general-hm-modules/modules.nix";
 
           # 4. Extra Vars (Optional - host specific HM settings)
-          extraVars = if builtins.pathExists modulesPath then
-            import modulesPath { vars = baseVars; }
-          else
-            { };
+          extraVars =
+            if builtins.pathExists modulesPath then import modulesPath { vars = baseVars; } else { };
 
           # 5. Merge: Base + Extra + Hostname
           hostVars = baseVars // extraVars // { inherit hostname; };
@@ -167,17 +174,16 @@
 
           # Create a list of extra modules to append
           extraModules =
-            nixpkgs.lib.optional (builtins.pathExists generalHmPath)
-            generalHmPath
-            ++ nixpkgs.lib.optional (builtins.pathExists hostHmFolder)
-            hostHmFolder;
+            nixpkgs.lib.optional (builtins.pathExists generalHmPath) generalHmPath
+            ++ nixpkgs.lib.optional (builtins.pathExists hostHmFolder) hostHmFolder;
 
           # 7. Unstable pkgs
           pkgs-unstable = import nixpkgs-unstable {
             system = hostVars.system;
             config.allowUnfree = true;
           };
-        in home-manager.lib.homeManagerConfiguration {
+        in
+        home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
             inherit (hostVars) system;
             config.allowUnfree = true;
@@ -192,15 +198,16 @@
             ./home-manager/home.nix
             inputs.catppuccin.homeModules.catppuccin
             inputs.plasma-manager.homeModules.plasma-manager
-          ] ++ extraModules;
+          ]
+          ++ extraModules;
         };
 
-    in {
+    in
+    {
       # GENERATE CONFIGURATIONS AUTOMATICALLY
       nixosConfigurations = nixpkgs.lib.genAttrs hostNames makeSystem;
       homeConfigurations = nixpkgs.lib.genAttrs hostNames makeHome;
 
-      formatter.x86_64-linux =
-        nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
+      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
     };
 }

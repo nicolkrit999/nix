@@ -1,5 +1,12 @@
-{ pkgs, pkgs-unstable, vars, ... }: {
-  users.users.${vars.user}.packages = with pkgs;
+{
+  pkgs,
+  pkgs-unstable,
+  vars,
+  ...
+}:
+{
+  users.users.${vars.user}.packages =
+    with pkgs;
     [
       # This allow guest user to not have this packages installed
       # Packages in each category are sorted alphabetically
@@ -7,10 +14,10 @@
       # -----------------------------------------------------------------------
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------
-      cider # Electron-based music player
+      #cider # Apple music wrapper
       kdePackages.kate # Text editor from the kde theme
       localsend # Simple file sharing over local network
-      notion # Writing app
+      notion-app-enhanced # Writing app
       obs-studio # Streaming/Recording
       telegram-desktop # Messaging
       teams-for-linux # Unofficial Microsoft Teams client
@@ -45,11 +52,7 @@
       lsof # List open files
       mediainfo # Display technical info about media files
       ntfs3g # NTFS read/write support
-      pass # Simple password manager
-      pay-respects # Cli commands autosuggestion (used in my zsh dotfiles) -> ⚠️ KEEP
-      pokemon-colorscripts # Print pokemon sprites in terminal with colors (used in my dotfiles) -> ⚠️ KEEP
       #solaar # Linux driver for Logitech devices
-      stow # Symlink farm manager (used in my dotfiles) -> ⚠️ KEEP
       tealdeer # Fast implementation of tldr (simplified man pages)
       tree # Display directory structure as a tree
       ttyd # Share your terminal over the web
@@ -58,22 +61,21 @@
       wakeonlan # Magic packets
       yt-dlp # Media downloader for YouTube and other sites
       zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
-      # Fast, lightweight alternative to 'cd'
-      zoxide # Fast, lightweight alternative to 'cd'
 
       # -----------------------------------------------------------------------------------
       # 🧑🏽‍💻 CODING
       # -----------------------------------------------------------------------------------
-      docker # Containerization platform
       github-desktop # GitHub's official desktop client
       jq # Command-line JSON processor
       universal-ctags # Tool to generate index (tags) files of source code
       zeal # Offline documentation browser
-      (pkgs.python313.withPackages (ps:
-        with ps; [
+
+      (pkgs.python313.withPackages (
+        ps: with ps; [
           faker # Generate fake data
           proton-keyring-linux # Proton keyring for Linux
-        ]))
+        ]
+      ))
 
       # -----------------------------------------------------------------------------------
       # 😂 FUN PACKAGES
@@ -90,10 +92,9 @@
       logiops # Logitech devices manager (currently used for my MX Master 3S)
     ]
 
-    ++ (with pkgs-unstable;
-      [
-        # -----------------------------------------------------------------------
-        # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
-        # -----------------------------------------------------------------------
-      ]);
+    ++ (with pkgs-unstable; [
+      # -----------------------------------------------------------------------
+      # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
+      # -----------------------------------------------------------------------
+    ]);
 }

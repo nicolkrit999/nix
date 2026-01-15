@@ -9,7 +9,7 @@
       # Middle Click -> Paste (Standard Linux behavior)
       middleClick = "paste";
     };
-    # 2. ICONS
+    # ICONS
     icons = {
       arrangement = "topToBottom";
       alignment = "left";
@@ -23,9 +23,8 @@
       size = 3; # from 0 to 6
 
       folderPreviewPopups = true;
-      # Enabled (standard size)
 
-      # 3. PREVIEW PLUGINS
+      # PREVIEW PLUGINS
       previewPlugins = [
         "imagethumbnail"
         "jpegthumbnail"
@@ -38,8 +37,7 @@
       ];
     };
 
-    # 4. DESKTOP WIDGETS
-    widgets = [
-    ];
+    # DESKTOP WIDGETS
+    widgets = [ ];
   };
 }

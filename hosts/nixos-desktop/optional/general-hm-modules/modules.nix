@@ -13,12 +13,11 @@ let
     terminal = "8";
     chat = "9";
   };
-in {
+in
+{
   # ---------------------------------------------------------------------------
   # 🖥️ HYPRLAND WORKSPACES
   # ---------------------------------------------------------------------------
-  # Strict monitor bindings for my main PC.
-  # If you remove this, Hyprland will auto-detect monitors based on mouse focus.
   hyprlandWorkspaces = [
     "1, monitor:DP-1"
     "2, monitor:DP-1"
@@ -107,11 +106,13 @@ in {
     "$mainMod,       Y, exec, chromium-browser"
   ];
 
-  gnomeExtraBinds = [{
-    name = "Launch Chromium";
-    command = "chromium";
-    binding = "<Super>y";
-  }];
+  gnomeExtraBinds = [
+    {
+      name = "Launch Chromium";
+      command = "chromium";
+      binding = "<Super>y";
+    }
+  ];
 
   # KDE: Attribute set (unique ID = { name, key, command })
   kdeExtraBinds = {
@@ -127,16 +128,17 @@ in {
   # Strict hardware IDs for Plasma Manager.
   # If you remove this, KDE will use default plug-and-play settings.
   # Commented because i have 2 logitech mouse connected
-  /* kdeMice = [
-       {
-         enable = true;
-         name = "Logitech G403";
-         vendorId = "046d"; # Logitech
-         productId = "c08f"; # G403
-         acceleration = -1.0;
-         accelerationProfile = "none";
-       }
-     ];
+  /*
+    kdeMice = [
+      {
+        enable = true;
+        name = "Logitech G403";
+        vendorId = "046d"; # Logitech
+        productId = "c08f"; # G403
+        acceleration = -1.0;
+        accelerationProfile = "none";
+      }
+    ];
   */
 
   # Leave empty for desktop PCs
@@ -161,16 +163,12 @@ in {
     "magic" = ":"; # Scratchpad
   };
 
-  waybarLayoutFlags = {
-    "format-en" = "🇺🇸";
-    "format-it" = "🇮🇹";
-    "format-de" = "🇩🇪";
-    "format-fr" = "🇫🇷";
+  waybarLayout = {
+    "format-en" = "🇺🇸-EN";
+    "format-it" = "🇮🇹-IT";
+    "format-de" = "🇩🇪-DE";
+    "format-fr" = "🇫🇷-FR";
   };
-
-  nixImpure = false;
-
-  useFahrenheit = false;
 
   hyprland_Exec-Once = [
     # Personal apps based on variables
@@ -180,11 +178,31 @@ in {
 
     # Secondary apps
     "chromium-browser"
+    "sleep 5 && protonvpn-app --start-minimized"
 
     # System tweaks
     # Implemented to fix cider
     "systemctl --user restart xdg-desktop-portal"
-
   ];
+
+  stylixExclusions = {
+    # Strictly false
+    yazi.enable = false;
+
+    # Strictly true
+    cava.enable = true;
+
+    # Catppuccin variable-based
+    kitty.enable = !vars.catppuccin;
+    alacritty.enable = !vars.catppuccin;
+    zathura.enable = !vars.catppuccin;
+
+    # Other
+    firefox.profileNames = [ vars.user ];
+  };
+
+  nixImpure = false;
+
+  useFahrenheit = false;
 
 }

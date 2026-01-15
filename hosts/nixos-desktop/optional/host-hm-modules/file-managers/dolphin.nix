@@ -1,4 +1,9 @@
-{ pkgs, config, lib, ... }:
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
 let
   placesXml = ''
     <?xml version="1.0" encoding="UTF-8"?>
@@ -51,7 +56,8 @@ let
       </bookmark>
     </xbel>
   '';
-in {
+in
+{
   xdg.configFile."dolphinrc".text = ''
     [General]
     ShowFullPath=true
@@ -66,14 +72,13 @@ in {
     Plugins=dolphingitplugin,audiothumbnail,blenderthumbnail,comicbookthumbnail,cursorthumbnail,djvuthumbnail,ebookthumbnail,exrthumbnail,directorythumbnail,fontthumbnail,imagethumbnail,jpegthumbnail,kraorauthmubnail,malthumbnail,mdthumbnail,mobithumbnail,mp3thumbnail,opendocumentthumbnail,palapeli_thumbnailer,pdfthumbnail,rawthumbnail,svgthumbnail,texthumbnail,ffmpegthumbs,videothumbnail,windowsimagethumbnail
   '';
 
-  home.activation.createDolphinPlaces =
-    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          if [ ! -f "${config.home.homeDirectory}/.local/share/user-places.xbel" ]; then
-            echo "Creating Dolphin Places file..."
-            mkdir -p "${config.home.homeDirectory}/.local/share"
-            cat > "${config.home.homeDirectory}/.local/share/user-places.xbel" <<EOF
-      ${placesXml}
-      EOF
-          fi
-    '';
+  home.activation.createDolphinPlaces = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        if [ ! -f "${config.home.homeDirectory}/.local/share/user-places.xbel" ]; then
+          echo "Creating Dolphin Places file..."
+          mkdir -p "${config.home.homeDirectory}/.local/share"
+          cat > "${config.home.homeDirectory}/.local/share/user-places.xbel" <<EOF
+    ${placesXml}
+    EOF
+        fi
+  '';
 }

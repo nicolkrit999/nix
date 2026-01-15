@@ -1,6 +1,4 @@
 { ... }:
 {
-  imports = [
-    ./cosmic-main.nix
-  ];
+  imports = [ ./cosmic-main.nix ];
 }

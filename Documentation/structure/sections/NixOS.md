@@ -34,7 +34,7 @@ This file configures the system-level components required to run the cosmic Desk
 ## `env.nix`
 Sets system-wide environment variables and default application associations.
 * **Environment:** Defines variables like `EDITOR` and `PATH` availability.
-* **MIME Types:** Explicitly maps directories (`inode/directory`) to `ranger`, ensuring that "Open Folder" actions launch your terminal file manager instead of a graphical one.
+* **MIME Types:** Explicitly maps directories (`inode/directory`) to the default file manager, ensuring that "Open Folder" actions launch your terminal file manager instead of a graphical one.
 
 
 ### `gnome.nix`

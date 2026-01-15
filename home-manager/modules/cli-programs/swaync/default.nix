@@ -27,7 +27,6 @@ let
   '';
 in
 {
-
   config = lib.mkIf ((vars.hyprland or false) && !(vars.caelestia or false)) {
 
     catppuccin.swaync.enable = vars.catppuccin;
@@ -44,13 +43,11 @@ in
       # 🎨 DYNAMIC STYLE LOGIC
       style =
         if vars.catppuccin then
-          # If Catppuccin is ON: Force the theme + layout
           lib.mkForce ''
             @import "${config.catppuccin.sources.swaync}/${vars.catppuccinFlavor}.css";
             ${customLayout}
           ''
         else
-          # If Stylix is ON: Keep Stylix colors, just add layout
           lib.mkAfter ''
             ${customLayout}
           '';

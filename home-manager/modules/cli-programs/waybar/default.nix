@@ -36,12 +36,12 @@ in
         ${cssVariables}
         ${cssContent}
       '';
+
       settings = {
         mainBar = {
           layer = "top";
           position = "top";
           height = 40;
-
           modules-left = [ "hyprland/workspaces" ];
           modules-center = [ "hyprland/window" ];
           modules-right = [
@@ -53,6 +53,8 @@ in
             "tray"
           ];
 
+          # Workspaces Icon and layout
+          # A user may define host-specific icons (optional) in vars.waybarWorkspaceIcons
           "hyprland/workspaces" = {
             disable-scroll = true;
             show-special = true;
@@ -62,18 +64,17 @@ in
             format-icons = vars.waybarWorkspaceIcons or { };
           };
 
-          # -----------------------------------------------------
-          # ⌨️ Language
-          # -----------------------------------------------------
-          # Logic: If 'format-en' exists in vars, it overrides this.
-          # If not, it falls back to "Icon + Text".
+          # Languages flags and/or text
+          # A user may define host-specific layout text (optional) in vars.waybarLayout
           "hyprland/language" = {
-            min-length = 5; # prevent layout jumping when flag changes
-            tooltip = true; # disable tooltip on hover
+            min-length = 5;
+            tooltip = true;
             on-click = "hyprctl switchxkblayout all next";
           }
-          // vars.waybarLayoutFlags or { };
+          // vars.waybarLayout or { };
 
+          # Weather module with wttr.in
+          # It fetches the location from variables.nix and when clicked the favorite browser opens wttr.in page
           "custom/weather" = {
             format = "<span color='${c.base0C}'>${vars.weather}:</span> {} ";
             exec =
@@ -83,7 +84,7 @@ in
               "curl -s 'wttr.in/${vars.weather}?format=%c%t&${unit}' | sed 's/ //'";
             interval = 300;
             class = "weather";
-            on-click = "xdg-open \"https://wttr.in/${vars.weather}\"";
+            on-click = ''xdg-open "https://wttr.in/${vars.weather}"'';
           };
 
           "pulseaudio" = {
@@ -122,13 +123,10 @@ in
             ];
           };
 
-          # -----------------------------------------------------
-          # 🕒 Clock
-          # -----------------------------------------------------
           "clock" = {
             format = "{:%A, %B %d at %I:%M %p}"; # Click Format: Full Day Name, Month, Date... When the module is clicked it switches between formats
             format-alt = "{:%m/%d/%Y - %I:%M %p}"; # Standard Format: MM/DD/YYYY - HH:MM AM/PM
-            tooltip-format = "<tt><small>{calendar}</small></tt>";
+            tooltip-format = "<tt><small>{calendar}</small></tt>"; # Tooltip Format: Small calendar in tooltip
             calendar = {
               mode = "year";
               mode-mon-col = 3;
@@ -137,6 +135,7 @@ in
             };
           };
 
+          # General app tray settings
           "tray" = {
             icon-size = 20;
             spacing = 8;

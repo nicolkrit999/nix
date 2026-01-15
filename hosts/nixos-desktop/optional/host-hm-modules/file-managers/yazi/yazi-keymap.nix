@@ -1,18 +1,11 @@
 { pkgs, ... }:
 {
   programs.yazi.keymap = {
-
-    # -----------------------------------------------------------------------
-    # ⌨️ KEYMAP.TOML CONFIGURATION
-    # -----------------------------------------------------------------------
-
     # S = shift, C = control, A = alt
     mgr.prepend_keymap = [
-
       # -----------------------------------------------------------------------
       # 📦 PLUGIN KEYBINDINGS (Prefix 'b')
       # -----------------------------------------------------------------------
-
       # 1. Relative Motions
       {
         on = [
@@ -69,6 +62,47 @@
         desc = "Move in relative steps";
       }
 
+      # 2. ouch
+      {
+        on = [ "c" ];
+        run = "plugin ouch";
+        desc = "Compress with ouch";
+      }
+
+      # 3. recycle-bin
+      {
+        on = [
+          "b"
+          "r"
+        ];
+        run = "plugin recycle-bin -- restore";
+        desc = "Restore selected files from Trash";
+      }
+      {
+        on = [
+          "b"
+          "e"
+        ];
+        run = "plugin recycle-bin -- empty";
+        desc = "Empty the entire Trash";
+      }
+      {
+        on = [
+          "b"
+          "D"
+        ];
+        run = "plugin recycle-bin -- emptyDays";
+        desc = "Empty Trash older than X days";
+      }
+      {
+        on = [
+          "b"
+          "b"
+        ];
+        run = "plugin recycle-bin -- open";
+        desc = "Open Recycle Bin";
+      }
+
       # -----------------------------------------------------------------------
       # Defaults
       # -----------------------------------------------------------------------
@@ -105,46 +139,46 @@
       # Hopping
       {
         on = [ "k" ];
-        run = "arrow -1";
+        run = "arrow -1 --wrap";
         desc = "Previous file";
       }
       {
         on = [ "K" ];
-        run = "arrow -5";
+        run = "arrow -5 --wrap";
         desc = "Move up five files";
       }
 
       {
         on = [ "j" ];
-        run = "arrow 1";
+        run = "arrow 1 --wrap";
         desc = "Next file";
       }
       {
         on = [ "J" ];
-        run = "arrow 6";
-        desc = "Move down six files";
+        run = "arrow 5 --wrap";
+        desc = "Move down five files";
       }
 
       {
         on = [ "<Up>" ];
-        run = "arrow -1";
+        run = "arrow -1 --wrap";
         desc = "Previous file";
       }
 
       {
         on = [ "<S-Up>" ];
-        run = "arrow -5";
+        run = "arrow -5 --wrap";
         desc = "Move up five files";
       }
 
       {
         on = [ "<Down>" ];
-        run = "arrow 1";
+        run = "arrow 1 --wrap";
         desc = "Next file";
       }
       {
         on = [ "<S-Down>" ];
-        run = "arrow 5";
+        run = "arrow 5 --wrap";
         desc = "Move down five files";
       }
       {
@@ -275,10 +309,8 @@
         desc = "Search files by content via ripgrep";
       }
       # -----------------------------------------------------------------------
-      # Plugins
+      # Built-in Plugins
       # -----------------------------------------------------------------------
-
-      # Default plugin (keep here)
       {
         on = [ "z" ];
         run = "plugin fzf";
@@ -290,48 +322,6 @@
         desc = "Jump to a directory via zoxide";
       }
 
-      # Plugin: ouch
-      {
-        on = [ "c" ];
-        run = "plugin ouch";
-        desc = "Compress with ouch";
-      }
-
-      # Plugin: recycle-bin (keep here since it's used often)
-      {
-        on = [
-          "b"
-          "r"
-        ];
-        run = "plugin recycle-bin -- restore";
-        desc = "Restore selected files from Trash";
-      }
-      {
-        on = [
-          "b"
-          "e"
-        ];
-        run = "plugin recycle-bin -- empty";
-        desc = "Empty the entire Trash";
-      }
-      {
-        on = [
-          "b"
-          "D"
-        ];
-        run = "plugin recycle-bin -- emptyDays";
-        desc = "Empty Trash older than X days";
-      }
-      {
-        on = [
-          "b"
-          "b"
-        ];
-        run = "plugin recycle-bin -- open";
-        desc = "Open Recycle Bin";
-      }
-
-      # Goto
       # Goto
       {
         on = [

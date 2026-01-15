@@ -5,8 +5,6 @@
   ...
 }:
 let
-
-  # Do not apply wallpapers to disabled monitors
   activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) vars.monitors;
   monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
 
@@ -23,7 +21,6 @@ let
 
 in
 {
-
   config = lib.mkIf ((vars.hyprland or false) && !(vars.caelestia or false)) {
     services.hyprpaper = {
       enable = true;

@@ -5,12 +5,10 @@
   vars,
   ...
 }:
-
 let
   mountPoint = "/mnt/nicol_nas/webdav/owncloud";
 in
 {
-  # Enables the service, creating the necessary 'davfs2' group and user
   services.davfs2.enable = true;
 
   services.davfs2.settings = {
@@ -49,7 +47,6 @@ in
       "gid=${toString config.users.groups.users.gid}"
       "file_mode=0664"
       "dir_mode=0775"
-
       "_netdev"
       "nofail"
       "noauto"

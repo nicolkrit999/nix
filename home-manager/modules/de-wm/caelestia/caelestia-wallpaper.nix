@@ -5,7 +5,6 @@
   ...
 }:
 let
-  # 1. Filter enabled monitors from vars.monitors
   enabledMonitors = builtins.filter (m: builtins.match ".*disable.*" m == null) (
     vars.monitors or [ ]
   );

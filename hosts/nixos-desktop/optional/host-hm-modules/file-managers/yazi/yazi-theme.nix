@@ -5,14 +5,10 @@
   ...
 }:
 let
-  # Grab the colors from Stylix's generated scheme
   colors = config.lib.stylix.colors;
 in
 {
   programs.yazi.theme = {
-    # -----------------------------------------------------------------------
-    # 🎨 DYNAMIC THEME (Base16)
-    # -----------------------------------------------------------------------
 
     mng = {
       cwd = {

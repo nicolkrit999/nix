@@ -1,3 +1,4 @@
+{ ... }:
 {
   imports = [
     ./init-lua.nix

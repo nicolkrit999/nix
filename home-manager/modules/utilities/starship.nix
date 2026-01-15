@@ -5,7 +5,6 @@
   ...
 }:
 let
-
   # Get the Stylix Base16 Hex Color
   base16Accent = config.lib.stylix.colors.withHashtag.base0E;
 
@@ -28,7 +27,6 @@ in
   # -----------------------------------------------------------------------
   programs.starship = {
     enable = true;
-
     enableZshIntegration = vars.shell == "zsh";
     enableFishIntegration = vars.shell == "fish";
     enableBashIntegration = vars.shell == "bash";

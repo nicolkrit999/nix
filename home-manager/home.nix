@@ -1,10 +1,19 @@
-{ inputs, pkgs, lib, vars, ... }: {
-
+{
+  inputs,
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
+{
   # -----------------------------------------------------------------------
   # 🔗 IMPORTS
   # -----------------------------------------------------------------------
   # Pulls in all individual program modules
-  imports = [ ./modules/default.nix ./home-packages.nix ];
+  imports = [
+    ./modules/default.nix
+    ./home-packages.nix
+  ];
 
   # -----------------------------------------------------------------------
   # 👤 USER IDENTITY
@@ -12,8 +21,7 @@
   home = {
     username = vars.user;
     homeDirectory = "/home/${vars.user}";
-    stateVersion =
-      vars.homeStateVersion; # Controls backwards compatibility logic
+    stateVersion = vars.homeStateVersion; # Controls backwards compatibility logic
   };
 
   # -----------------------------------------------------------------------
@@ -60,7 +68,6 @@
   # -----------------------------------------------------------------------
 
   home.activation = {
-
     # ⚠️ Do not add ~/.config/hypr/hyprland.conf otherwise during rebuild the config change and you need to manually reapply home-manager and then logging out/in to see the changes.
     # The file need to be removed manually if needed before rebuilding
     removeExistingConfigs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
