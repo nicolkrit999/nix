@@ -1,4 +1,9 @@
-{ pkgs, pkgs-unstable, vars, ... }:
+{
+  pkgs,
+  pkgs-unstable,
+  vars,
+  ...
+}:
 let
   # 🔄 TRANSLATION LAYER
   translatedEditor = if vars.editor == "nvim" then "neovim" else vars.editor;
@@ -12,7 +17,8 @@ let
 
   # 🔍 PACKAGE LOOKUP FUNCTION
   # Tries to find 'pkgs.userInput'. If not found, returns the fallback.
-  getPkg = name: fallback:
+  getPkg =
+    name: fallback:
     if builtins.hasAttr name pkgs then
       pkgs.${name}
     else if builtins.hasAttr name pkgs.kdePackages then
@@ -24,7 +30,8 @@ let
   myBrowserPkg = getPkg vars.browser fallbackBrowser;
   myFileManagerPkg = getPkg vars.fileManager fallbackFileManager;
   myEditorPkg = getPkg translatedEditor fallbackEditor;
-in {
+in
+{
   home.packages =
     # 1. DYNAMIC INSTALLATION
     # These are installed based on user choices in variables.nix: browser, fileManager, editor
@@ -39,6 +46,7 @@ in {
     # These are always installed, regardless of user choices
     # Packages in each category are sorted alphabetically
     # ⚠️ All these packages should be kept. The reason is indicated next to each package.
+    # If a package does not need/can't be configured with home-manager then it can be in common-configuration.nix or a host-specific configuration.nix
     ++ (with pkgs; [
 
       # 🖥️ DESKTOP APPLICATIONS
@@ -60,10 +68,9 @@ in {
     ])
 
     # 3. KDE PACKAGES
-    ++ (with pkgs.kdePackages;
-      [
-        gwenview # Default image viewer as defined in mime.nix
-      ])
+    ++ (with pkgs.kdePackages; [
+      gwenview # Default image viewer as defined in mime.nix
+    ])
 
     # 4. UNSTABLE PACKAGES
     ++ (with pkgs-unstable; [ ]);

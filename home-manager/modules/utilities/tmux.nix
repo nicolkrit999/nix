@@ -17,9 +17,6 @@
     set -g @catppuccin_window_current_fill "${vars.catppuccinAccent}"
   '';
 
-  # -----------------------------------------------------------------------
-  # 🧇 PROGRAM: TMUX
-  # -----------------------------------------------------------------------
   programs.tmux = {
     enable = true;
     baseIndex = 1;

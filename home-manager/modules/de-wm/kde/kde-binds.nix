@@ -6,7 +6,6 @@
   ...
 }:
 let
-  # 1. PATHS & SCRIPTS
   spectacleCmd = "${pkgs.kdePackages.spectacle}/bin/spectacle";
 
   bemojiScript = pkgs.writeShellScript "launch-bemoji" ''
@@ -59,7 +58,7 @@ in
       command = "${spectacleCmd} -u";
     };
 
-    # --- OTHER APPS (Working) ---
+    # --- OTHER APPS ---
     "launch-wofi" = {
       key = "Meta+A";
       command = "${pkgs.wofi}/bin/wofi --show drun";

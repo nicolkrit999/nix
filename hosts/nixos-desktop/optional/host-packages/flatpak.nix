@@ -1,14 +1,10 @@
-{
-  pkgs,
-  lib,
-  vars,
-  ...
+{ pkgs
+, lib
+, vars
+, ...
 }:
 {
-  # Only apply if flatpak is enabled in flake.nix
   config = lib.mkIf vars.flatpak {
-
-    services.flatpak.enable = true;
 
     # Flatpak packages. Put them inside quotes """
     # 💡 HOW TO FIND PACKAGE NAMES:
@@ -16,9 +12,16 @@
     # 2. Search in the url after /apps/
     # Examples:
     # https://flathub.org/en/apps/com.spotify.Client --> "com.spotify.Client"
+    services.flatpak.enable = true;
     services.flatpak.packages = [
+      "com.actualbudget.actual"
       "me.iepure.devtoolbox"
+      "com.github.unrud.VideoDownloader"
+      "com.github.tchx84.Flatseal"
+      "com.usebottles.bottles"
     ];
+
+    services.flatpak.update.onActivation = true;
 
     services.flatpak.remotes = [
       {
@@ -26,9 +29,6 @@
         location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
       }
     ];
-
-    # Auto-update Flatpaks
-    services.flatpak.update.onActivation = true;
 
     xdg.portal = {
       enable = true;

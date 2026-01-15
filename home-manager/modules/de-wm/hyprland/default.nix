@@ -1,5 +1,5 @@
+{ ... }:
 {
-  # INDEX FOR KDE MODULE CONFIGURATIONS
   imports = [
     ./hyprland-binds.nix
     ./hyprland-hypridle.nix

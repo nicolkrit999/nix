@@ -61,6 +61,8 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
         merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop"; # Merge main with develop branch, push and return to develop branch
         merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop"; # Merge develop with main branch, push and return to develop branch
         cdnix = "cd ${flakeDir}";
+        nfc = "cd ${flakeDir} && nix flake check"; # Check flake for errors
+        swdry = "cd ${flakeDir} && nh os test --dry --ask"; # Dry run of nixos-rebuild switch
 
         # Snapshots
         snap-list-home = "snapper -c home list"; # List home snapshots
@@ -68,8 +70,8 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
 
         # Utilities
         se = "sudoedit";
-        fzf-prev = "fzf --preview=\"cat {}\"";
-        fzf-editor = "${vars.editor} \$(fzf -m --preview='cat {}')";
+        fzf-prev = ''fzf --preview="cat {}"'';
+        fzf-editor = "${vars.editor} $(fzf -m --preview='cat {}')";
         zlist = "zoxide query -l -s"; # List all zoxide entries with scores
 
         # Sops secrets editing
@@ -159,12 +161,53 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
       # 7 📦 SMART NIX PREFETCH (npu)
       # -----------------------------------------------------
       npu() {
-        if [ -z "$1" ]; then read -p "Enter URL: " url; else url="$1"; fi
-        if [[ "$url" == *"github.com"* ]] || [[ "$url" == *"gitlab.com"* ]]; then
-          nix-prefetch-url --unpack "$url"
-        else
-          nix-prefetch-url "$url"
+        local url="$1"
+        if [ -z "$url" ]; then
+          read -p "🔗 Enter URL: " url
         fi
+
+        if [ -z "$url" ]; then echo "❌ No URL provided."; return 1; fi
+
+        # 1. Handle GitHub Blobs
+        if [[ "$url" == https://github.com/*/blob/* ]]; then
+          url="''${url/github.com/raw.githubusercontent.com}"
+          url="''${url/\/blob\//\/}"
+          echo "🔄 Converted Github Blob to Raw"
+        fi
+
+        local args=""
+
+        # 2. Handle GitHub Archives
+        if [[ "$url" == https://github.com/* ]]; then
+          if [[ "$url" == */commit/* ]]; then
+            url="''${url/\/commit\//\/archive\/}.tar.gz"
+            args="--unpack"
+            echo "📦 Detected Github Commit -> Downloading Archive"
+          elif [[ "$url" == */releases/tag/* ]]; then
+            url="''${url/\/releases\/tag\//\/archive\/refs\/tags\/}.tar.gz"
+            args="--unpack"
+            echo "📦 Detected Github Release -> Downloading Archive"
+          elif [[ "$url" == */tree/* ]]; then
+            url="''${url/\/tree\//\/archive\/refs\/heads\/}.tar.gz"
+            args="--unpack"
+            echo "📦 Detected Github Branch -> Downloading Archive"
+          fi
+        fi
+
+        # 3. Decode Filename
+        if [ -z "$args" ]; then
+          local filename=$(basename "$url")
+          if command -v python3 >/dev/null 2>&1; then
+            local decoded_name=$(python3 -c "import urllib.parse, sys; print(urllib.parse.unquote(sys.argv[1]))" "$filename")
+            if [ "$filename" != "$decoded_name" ]; then
+              args="--name \"$decoded_name\""
+              echo "✨ Decoded filename: '$decoded_name'"
+            fi
+          fi
+        fi
+
+        # Execute
+        eval nix-prefetch-url $args "$url"
       }
     '';
   };

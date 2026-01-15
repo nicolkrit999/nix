@@ -287,7 +287,7 @@ in
   controlCenter = {
     sizes = {
       ratio = 1.7777777777777777;
-      heightMult = 0.69999999999999996;
+      heightMult = 0.7;
     };
   };
 
@@ -297,8 +297,8 @@ in
     };
     transparency = {
       enabled = false;
-      base = 0.84999999999999998;
-      layers = 0.40000000000000002;
+      base = 0.85;
+      layers = 0.4;
     };
     anim = {
       durations = {
@@ -326,7 +326,7 @@ in
 
   notifs = {
     expire = true;
-    clearThreshold = 0.29999999999999999;
+    clearThreshold = 0.3;
     expandThreshold = 20;
     actionOnClick = false;
     defaultExpireTimeout = 5000;
@@ -341,7 +341,7 @@ in
   winfo = {
     sizes = {
       detailsWidth = 500;
-      heightMult = 0.69999999999999996;
+      heightMult = 0.7;
     };
   };
 
@@ -349,7 +349,7 @@ in
     sizes = {
       ratio = 1.7777777777777777;
       centerWidth = 600;
-      heightMult = 0.69999999999999996;
+      heightMult = 0.7;
     };
     recolourLogo = false;
     enableFprint = true;
@@ -550,7 +550,7 @@ in
     visualiserBars = 45;
     maxVolume = 1;
     defaultPlayer = "";
-    audioIncrement = 0.10000000000000001;
+    audioIncrement = 0.1;
     smartScheme = true;
   };
 }

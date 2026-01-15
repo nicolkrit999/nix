@@ -5,10 +5,7 @@
   ...
 }:
 {
-
-  imports = [
-    ./init-lua.nix
-  ];
+  imports = [ ./init-lua.nix ];
 
   programs.yazi = {
     enable = true;
@@ -68,7 +65,7 @@
         linemode = "custom_metadata"; # Custom linemode defined in init-lua.nix
         show_hidden = false; # Show hidden files. They can be viewed by pressing "."
         show_symlink = true; # Show symlink targets if a file is a symlink
-        scrolloff = 20; # The number of files to keep above and below the cursor when moving through the file list.
+        scrolloff = 22; # The number of files to keep above and below the cursor when moving through the file list.
         mouse_events = [
           "click" # Allows single click to select files
           "scroll" # Allows scrolling through the file list
@@ -187,12 +184,12 @@
         # Open folder in file manager (separate window)
         reveal = [
           {
-            run = ''xdg-open "''$(dirname "''$1")"'';
+            run = ''xdg-open "$(dirname "$1")"'';
             desc = "Reveal";
             for = "linux";
           }
           {
-            run = ''open -R "''$1"'';
+            run = ''open -R "$1"'';
             desc = "Reveal";
             for = "macos";
           }
@@ -203,7 +200,7 @@
             for = "windows";
           }
           {
-            run = ''clear; exiftool "''$1"; echo "Press enter to exit"; read _'';
+            run = ''clear; exiftool "$1"; echo "Press enter to exit"; read _'';
             desc = "Show EXIF";
             block = true;
             for = "unix";

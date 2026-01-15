@@ -1,3 +1,4 @@
+{ vars, ... }:
 let
   # Allow to use variables despite flake.nix use this to create variables
   rawVars = import ../../variables.nix;
@@ -8,6 +9,7 @@ let
     editor = "2";
     fileManager = "3";
     vm = "4";
+    other = "5";
     browser = "7";
     terminal = "8";
     chat = "9";
@@ -17,8 +19,6 @@ in
   # ---------------------------------------------------------------------------
   # 🖥️ HYPRLAND WORKSPACES
   # ---------------------------------------------------------------------------
-  # Strict monitor bindings for my main PC.
-  # If you remove this, Hyprland will auto-detect monitors based on mouse focus.
   hyprlandWorkspaces = [
     "1, monitor:DP-1"
     "2, monitor:DP-1"
@@ -50,6 +50,8 @@ in
     "workspace ${appWorkspaces.fileManager} silent, class:^(nemo)$"
 
     "workspace ${appWorkspaces.vm} silent, class:^(winboat)$"
+
+    "workspace ${appWorkspaces.other} silent, class:^(Actual)$"
 
     "workspace ${appWorkspaces.browser} silent, class:^(chromium-browser)$"
 
@@ -107,13 +109,11 @@ in
     "$mainMod,       Y, exec, chromium-browser"
   ];
 
-  gnomeExtraBinds = [
-    {
-      name = "Launch Chromium";
-      command = "chromium";
-      binding = "<Super>y";
-    }
-  ];
+  gnomeExtraBinds = [{
+    name = "Launch Chromium";
+    command = "chromium";
+    binding = "<Super>y";
+  }];
 
   # KDE: Attribute set (unique ID = { name, key, command })
   kdeExtraBinds = {
@@ -129,17 +129,16 @@ in
   # Strict hardware IDs for Plasma Manager.
   # If you remove this, KDE will use default plug-and-play settings.
   # Commented because i have 2 logitech mouse connected
-  /*
-    kdeMice = [
-      {
-        enable = true;
-        name = "Logitech G403";
-        vendorId = "046d"; # Logitech
-        productId = "c08f"; # G403
-        acceleration = -1.0;
-        accelerationProfile = "none";
-      }
-    ];
+  /* kdeMice = [
+       {
+         enable = true;
+         name = "Logitech G403";
+         vendorId = "046d"; # Logitech
+         productId = "c08f"; # G403
+         acceleration = -1.0;
+         accelerationProfile = "none";
+       }
+     ];
   */
 
   # Leave empty for desktop PCs
@@ -161,14 +160,52 @@ in
     "8" = ":"; # Terminal
     "9" = ":"; # Music
     "10" = ":"; # Chat
-    "magic" = ":";
+    "magic" = ":"; # Scratchpad
   };
 
-  waybarLayoutFlags = {
-    "format-en" = "🇺🇸";
-    "format-it" = "🇮🇹";
-    "format-de" = "🇩🇪";
-    "format-fr" = "🇫🇷";
+  waybarLayout = {
+    "format-en" = "🇺🇸-EN";
+    "format-it" = "🇮🇹-IT";
+    "format-de" = "🇩🇪-DE";
+    "format-fr" = "🇫🇷-FR";
+  };
+
+  hyprland_Exec-Once = [
+    # Personal apps based on variables
+    "${vars.term}"
+    "${vars.browser}"
+    "uwsm app -- $fileManager"
+
+    # Secondary apps
+    "chromium-browser"
+    "sleep 5 && protonvpn-app --start-minimized"
+
+    # System tweaks
+    # Implemented to fix cider
+    "systemctl --user restart xdg-desktop-portal"
+  ];
+
+  stylixExclusions = {
+    # Strictly false
+    yazi.enable = false;
+
+    # Strictly true
+    cava.enable = true;
+
+    # Catppuccin variable-based
+    kitty.enable = !vars.catppuccin;
+    alacritty.enable = !vars.catppuccin;
+    zathura.enable = !vars.catppuccin;
+
+    # Other
+    firefox.profileNames = [ vars.user ];
+  };
+
+  swayncExclusions = {
+    "mute-protonvpn" = {
+      state = "ignored";
+      app-name = ".*Proton.*";
+    };
   };
 
   nixImpure = false;

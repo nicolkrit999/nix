@@ -19,4 +19,10 @@ with python.pkgs;
   # 3. TOOLS (static)
   pkgs.pyright
   pkgs.jetbrains.pycharm-oss
+
+  # Neovim plugins
+  vimPlugins.coc-pyright # Python support for CoC
+
+  (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [ p.python ]))
+
 ]

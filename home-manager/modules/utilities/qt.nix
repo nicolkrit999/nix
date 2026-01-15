@@ -5,72 +5,71 @@
   vars,
   ...
 }:
-
-# This file is delicate, if modified without care it can break both Catppuccin and Stylix themes.
 let
-  capitalize =
-    s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
-
-  kvantumTheme =
-    if vars.catppuccin then
-      "Catppuccin-${capitalize vars.catppuccinFlavor}-${capitalize vars.catppuccinAccent}"
-    else if vars.polarity == "dark" then
-      "KvGnomeDark"
-    else
-      "KvFlatLight";
-
-  iconThemeName = if vars.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
+  hyprEnabled = vars.hyprland or false;
+  kdeEnabled = vars.kde or false;
+  useKdePlatformTheme = hyprEnabled || kdeEnabled;
+  isDark = (vars.polarity or "dark") == "dark";
+  kdeColorScheme = if isDark then "BreezeDark" else "BreezeLight";
+  iconThemeName = if isDark then "Papirus-Dark" else "Papirus-Light";
 in
 {
-  config = lib.mkMerge [
-    {
-      home.sessionVariables = {
-        QT_QPA_PLATFORM = "wayland;xcb";
-        QT_QUICK_CONTROLS_STYLE = "org.kde.desktop";
-        # Do not set QT_QPA_PLATFORMTHEME globally here, otherwise kde plasma crash
-      };
+  home.packages =
+    (with pkgs; [
+      libsForQt5.qt5ct
+      kdePackages.qt6ct
 
-      # Install necessary packages for both modes
-      home.packages =
-        with pkgs;
-        [
-          libsForQt5.qt5ct
-          kdePackages.qt6ct
-          libsForQt5.qtstyleplugin-kvantum # Contains the 'kvantummanager' executable
-          kdePackages.qtstyleplugin-kvantum
-          pkgs.papirus-icon-theme
-        ]
-        ++ (lib.optionals vars.catppuccin [
-          pkgs.catppuccin-kvantum
-        ]);
-    }
+      papirus-icon-theme
+    ])
+    ++ (with pkgs; [ kdePackages.breeze ])
+    ++ lib.optionals useKdePlatformTheme (
+      with pkgs;
+      [
+        kdePackages.plasma-integration
 
-    # --- CONFIG FILES (Apply to BOTH Catppuccin and Stylix modes) ---
-    {
-      # 1. Kvantum Config (The Theme Engine)
-      xdg.configFile."Kvantum/kvantum.kvconfig".text = ''
-        [General]
-        theme=${kvantumTheme}
-      '';
+        kdePackages.kconfig
+        libsForQt5.kconfig
+      ]
+    );
 
-      # 2. QtCT Configs (The Bridge)
-      xdg.configFile."qt6ct/qt6ct.conf".text = ''
-        [Appearance]
-        icon_theme=${iconThemeName}
-        style=kvantum
-      '';
+  xdg.dataFile."color-schemes/BreezeDark.colors".source =
+    "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeDark.colors";
+  xdg.dataFile."color-schemes/BreezeLight.colors".source =
+    "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeLight.colors";
 
-      xdg.configFile."qt5ct/qt5ct.conf".text = ''
-        [Appearance]
-        icon_theme=${iconThemeName}
-        style=kvantum
-      '';
-    }
+  xdg.dataFile."qt6ct/colors/BreezeDark.colors".source =
+    "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeDark.colors";
+  xdg.dataFile."qt6ct/colors/BreezeLight.colors".source =
+    "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeLight.colors";
 
-    # --- CATPPUCCIN SPECIFIC (Only copy theme files if needed) ---
-    (lib.mkIf vars.catppuccin {
-      xdg.configFile."Kvantum/${kvantumTheme}".source =
-        "${pkgs.catppuccin-kvantum}/share/Kvantum/${kvantumTheme}";
-    })
-  ];
+  xdg.dataFile."qt5ct/colors/BreezeDark.colors".source =
+    "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeDark.colors";
+  xdg.dataFile."qt5ct/colors/BreezeLight.colors".source =
+    "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeLight.colors";
+
+  xdg.configFile."qt6ct/qt6ct.conf".text = ''
+    [Appearance]
+    icon_theme=${iconThemeName}
+    style=breeze
+    color_scheme_path=${config.home.homeDirectory}/.local/share/qt6ct/colors/${kdeColorScheme}.colors
+  '';
+
+  xdg.configFile."qt5ct/qt5ct.conf".text = ''
+    [Appearance]
+    icon_theme=${iconThemeName}
+    style=breeze
+    color_scheme_path=${config.home.homeDirectory}/.local/share/qt5ct/colors/${kdeColorScheme}.colors
+  '';
+
+  home.activation.kdeglobalsFromPolarity = lib.mkIf useKdePlatformTheme (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group General    --key ColorScheme "${kdeColorScheme}" || true
+      ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group UiSettings --key ColorScheme "${kdeColorScheme}" || true
+      ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group Icons      --key Theme      "${iconThemeName}"  || true
+
+      ${pkgs.libsForQt5.kconfig}/bin/kwriteconfig5 --file kdeglobals --group General    --key ColorScheme "${kdeColorScheme}" || true
+      ${pkgs.libsForQt5.kconfig}/bin/kwriteconfig5 --file kdeglobals --group UiSettings --key ColorScheme "${kdeColorScheme}" || true
+      ${pkgs.libsForQt5.kconfig}/bin/kwriteconfig5 --file kdeglobals --group Icons      --key Theme      "${iconThemeName}"  || true
+    ''
+  );
 }

@@ -1,9 +1,5 @@
+{ vars, ... }:
 {
-  vars,
-  ...
-}:
-{
-
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME (official module)
   # -----------------------------------------------------------------------
@@ -15,7 +11,6 @@
     enable = true;
 
     settings = {
-      # Visuals
       gui.showIcons = true; # Enables Nerd Font icons to match your terminal style
     };
   };

@@ -4,7 +4,6 @@
   vars,
   ...
 }:
-
 let
   primaryMonitorStr =
     if builtins.length vars.monitors > 0 then
@@ -16,7 +15,7 @@ let
   dimSection = builtins.head (lib.splitString "@" resSection);
   heightStr = builtins.elemAt (lib.splitString "x" dimSection) 1;
   screenHeight = lib.toInt heightStr;
-  panelHeight = builtins.floor (screenHeight * 0.025);
+  panelHeight = builtins.floor (screenHeight * 2.5e-2);
 in
 {
   programs.plasma.panels = [
@@ -24,9 +23,7 @@ in
       screen = 0;
       location = "bottom";
       height = panelHeight;
-
       floating = false;
-
       hiding = "autohide";
 
       widgets = [
@@ -39,6 +36,7 @@ in
             };
           };
         }
+
         "org.kde.plasma.pager"
         "org.kde.plasma.icontasks"
         "org.kde.plasma.panelspacer"

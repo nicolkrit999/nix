@@ -5,11 +5,7 @@
   vars,
   ...
 }:
-let
-  hostOptionalPath = ../hosts/${vars.hostname}/optional;
-in
 {
-
   # -----------------------------------------------------------------------
   # 🔗 IMPORTS
   # -----------------------------------------------------------------------
@@ -17,17 +13,7 @@ in
   imports = [
     ./modules/default.nix
     ./home-packages.nix
-  ]
-
-  ++ (lib.optional (builtins.pathExists (hostOptionalPath + "/general-hm-modules/home.nix")) (
-    hostOptionalPath + "/general-hm-modules/home.nix"
-  ))
-
-  # 3. 🧩 HOST SPECIFIC MODULES (optional/host-hm-modules)
-  # Imports the whole folder if it exists
-  ++ (lib.optional (builtins.pathExists (hostOptionalPath + "/host-hm-modules")) (
-    hostOptionalPath + "/host-hm-modules"
-  ));
+  ];
 
   # -----------------------------------------------------------------------
   # 👤 USER IDENTITY
@@ -82,7 +68,6 @@ in
   # -----------------------------------------------------------------------
 
   home.activation = {
-
     # ⚠️ Do not add ~/.config/hypr/hyprland.conf otherwise during rebuild the config change and you need to manually reapply home-manager and then logging out/in to see the changes.
     # The file need to be removed manually if needed before rebuilding
     removeExistingConfigs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
@@ -92,6 +77,7 @@ in
       rm -f "/home/${vars.user}/.config/gtk-4.0/settings.ini"
       rm -f "/home/${vars.user}/.config/gtk-4.0/gtk.css"
       rm -f "/home/${vars.user}/.config/dolphinrc"
+      rm -f "/home/${vars.user}/.config/kdeglobals"
       rm -f "/home/${vars.user}/.local/share/applications/mimeapps.list"
     '';
 

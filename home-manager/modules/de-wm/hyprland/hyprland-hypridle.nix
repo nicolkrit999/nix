@@ -5,10 +5,6 @@
   ...
 }:
 let
-
-  # 🛡️ FALLBACK LOGIC
-  # If vars.idleConfig is null (not defined in flake), use these defaults.
-  # If it is defined, merge it with defaults to ensure no keys are missing.
   cfg = {
     enable = true;
     dimTimeout = 600; # 10m

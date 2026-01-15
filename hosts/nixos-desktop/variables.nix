@@ -45,8 +45,8 @@
   # ⚙️ SYSTEM SETTINGS
   timeZone = "Europe/Zurich";
   weather = "Lugano";
-  keyboardLayout = "us,ch,de,fr,it";
-  keyboardVariant = "intl,,,,";
+  keyboardLayout = "us,it,de,fr";
+  keyboardVariant = "intl,,,";
 
   screenshots = "$HOME/Pictures/screenshots";
 
@@ -75,14 +75,12 @@
 
   wallpapers = [
     {
-      wallpaperURL =
-        "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/Arknights%20texas%20wolf.jpg";
-      wallpaperSHA256 = "1wylprbgl6hb4fqkqq6jjvvnqjy6mp0sps51skgvl5wdbj1n1z10";
+      wallpaperURL = "https://raw.githubusercontent.com/HyDE-Project/hyde-themes/Graphite-Mono/Configs/.config/hyde/themes/Graphite%20Mono/wallpapers/rocket.jpg";
+      wallpaperSHA256 = "00c1p29s5wyk14l3hyb3mrxgnbkzq767b6qbc7fn47jp5k8d7h82";
     }
 
     {
-      wallpaperURL =
-        "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_black_and_white_logo.png";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_black_and_white_logo.png";
       wallpaperSHA256 = "1q0p9sq40lq9b3icncq8a223v5yk33w4nz3pymwz2gwv3psjzzw1";
     }
   ];

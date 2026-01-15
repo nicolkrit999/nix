@@ -1,5 +1,4 @@
 { config, pkgs, lib, vars, ... }:
-
 let
   shellPkg = if vars.shell == "fish" then
     pkgs.fish
@@ -31,10 +30,7 @@ in {
   # ---------------------------------------------------------
   # 🛠️ NIX SETTINGS
   # ---------------------------------------------------------
-  nix.settings = {
-    experimental-features = [ "nix-command" "flakes" ];
-    trusted-users = [ "root" "@wheel" ];
-  };
+  nix.settings = { trusted-users = [ "root" "@wheel" ]; };
 
   # Allow unfree packages globally (needed for drivers, code, etc.)
   nixpkgs.config.allowUnfree = true;
@@ -53,7 +49,6 @@ in {
       nixfmt-rfc-style # Nix formatter
       nix-prefetch-scripts # Tools to get hashes for nix derivations (used in zsh.nix module)
       starship # Shell prompt
-      zoxide # Filesystem jumper
       iptables # Firewall utility
       wget # Downloader
       curl # Downloader
@@ -69,6 +64,7 @@ in {
       sops # Secret management
       shellPkg # The selected shell package (bash, zsh, or fish)
       xdg-desktop-portal-gtk # GTK portal backend for file pickers
+      wvkbd # Virtual keyboard (for Wayland)
 
       # --- GRAPHICS & GUI SUPPORT ---
       gpu-screen-recorder # For recording/caelestia
@@ -153,8 +149,18 @@ in {
   environment.variables.XMODIFIERS = lib.mkForce "";
 
   # -----------------------------------------------------
+  # 🎨 GLOBAL THEME VARIABLES
+  # -----------------------------------------------------
+  environment.variables.GTK_APPLICATION_PREFER_DARK_THEME =
+    if vars.polarity == "dark" then "1" else "0";
+
+  #home-manager.backupFileExtension = lib.mkForce "hm-backup";
+  # -----------------------------------------------------
   # ⚡ SYSTEM TWEAKS
   # -----------------------------------------------------
   # Reduce shutdown wait time for stuck services
   systemd.settings.Manager = { DefaultTimeoutStopSec = "10s"; };
+
+  # Enable home-manager backup files
+  home-manager.backupFileExtension = lib.mkForce "hm-backup";
 }

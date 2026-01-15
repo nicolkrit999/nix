@@ -15,7 +15,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
     sessionVariables = { };
 
     # -----------------------------------------------------------------------
-    # ⌨️ SHELL ALIASES (Managed by Nix)
+    # ⌨️ SHELL ALIASES
     # -----------------------------------------------------------------------
     shellAliases =
       let
@@ -68,6 +68,8 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop"; # Merge main with develop branch, push and return to develop branch
         merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop"; # Merge develop with main branch, push and return to develop branch
         cdnix = "cd ${flakeDir}";
+        nfc = "cd ${flakeDir} && nix flake check"; # Check flake for errors
+        swdry = "cd ${flakeDir} && nh os test --dry --ask"; # Dry run of nixos-rebuild switch
 
         # Snapshots
         snap-list-home = "snapper -c home list"; # List home snapshots
@@ -75,8 +77,8 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
 
         # Utilities
         se = "sudoedit";
-        fzf-prev = "fzf --preview=\"cat {}\"";
-        fzf-editor = "${vars.editor} \$(fzf -m --preview='cat {}')";
+        fzf-prev = ''fzf --preview="cat {}"'';
+        fzf-editor = "${vars.editor} $(fzf -m --preview='cat {}')";
         zlist = "zoxide query -l -s"; # List all zoxide entries with scores
 
         # Sops secrets editing
@@ -204,21 +206,53 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
       # 6 📦 SMART NIX PREFETCH (npu)
       # -----------------------------------------------------
       npu() {
-        local url
-        if [ -z "$1" ]; then
-          read "url?Enter URL: "
-        else
-          url="$1"
+        local url="$1"
+        if [ -z "$url" ]; then
+          read "url?🔗 Enter URL: "
         fi
 
-        # Detect if the URL is a GitHub/GitLab repository archive
-        if [[ "$url" == *"github.com"* ]] || [[ "$url" == *"gitlab.com"* ]]; then
-          echo "📦 Git repository detected. Using --unpack for Nix compatibility..."
-          nix-prefetch-url --unpack "$url"
-        else
-          echo "📄 Direct file detected. Fetching normally..."
-          nix-prefetch-url "$url"
+        if [ -z "$url" ]; then echo "❌ No URL provided."; return 1; fi
+
+        # 1. Handle GitHub Blobs
+        if [[ "$url" == https://github.com/*/blob/* ]]; then
+          url="''${url/github.com/raw.githubusercontent.com}"
+          url="''${url/\/blob\//\/}"
+          echo "🔄 Converted Github Blob to Raw"
         fi
+
+        local args=""
+        
+        # 2. Handle GitHub Archives
+        if [[ "$url" == https://github.com/* ]]; then
+          if [[ "$url" == */commit/* ]]; then
+            url="''${url/\/commit\//\/archive\/}.tar.gz"
+            args="--unpack"
+            echo "📦 Detected Github Commit -> Downloading Archive"
+          elif [[ "$url" == */releases/tag/* ]]; then
+            url="''${url/\/releases\/tag\//\/archive\/refs\/tags\/}.tar.gz"
+            args="--unpack"
+            echo "📦 Detected Github Release -> Downloading Archive"
+          elif [[ "$url" == */tree/* ]]; then
+            url="''${url/\/tree\//\/archive\/refs\/heads\/}.tar.gz"
+            args="--unpack"
+            echo "📦 Detected Github Branch -> Downloading Archive"
+          fi
+        fi
+
+        # 3. Decode Filename
+        if [ -z "$args" ]; then
+          local filename=$(basename "$url")
+          if command -v python3 >/dev/null 2>&1; then
+            local decoded_name=$(python3 -c "import urllib.parse, sys; print(urllib.parse.unquote(sys.argv[1]))" "$filename")
+            if [ "$filename" != "$decoded_name" ]; then
+              args="--name \"$decoded_name\""
+              echo "✨ Decoded filename: '$decoded_name'"
+            fi
+          fi
+        fi
+
+        # Execute
+        eval nix-prefetch-url $args "$url"
       }
     '';
   };

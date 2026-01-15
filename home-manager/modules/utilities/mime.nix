@@ -35,7 +35,6 @@ let
       name = "Helix (User)";
     };
   };
-
   # Check if the chosen editor is a terminal one
   isTermEditor = builtins.hasAttr vars.editor termEditors;
   editorConfig = termEditors.${vars.editor};
@@ -63,7 +62,7 @@ in
   # -----------------------------------------------------------------------
   # 🖥️ CUSTOM DESKTOP ENTRY (Terminal Editors Only)
   # -----------------------------------------------------------------------
-  # This creates a file like: ~/.local/share/applications/user-neovim.desktop
+  # This creates a mimeapps.list file under ~/.local/share/applications/mimeapps.list
   xdg.desktopEntries = lib.mkIf isTermEditor {
     "user-${vars.editor}" = {
       name = editorConfig.name;

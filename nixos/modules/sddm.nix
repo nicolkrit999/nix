@@ -1,29 +1,12 @@
-{
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
+{ pkgs, lib, vars, ... }:
 let
-  # Reference for themes:
-  # Files: https://github.com/Keyitdev/sddm-astronaut-theme/tree/master/themes
   sddmTheme = pkgs.sddm-astronaut.override {
-    embeddedTheme = "hyprland_kath"; # do not include ".conf" at the end
-    themeConfig = {
-      # Clock format. The default is 24/h format. If opting for the default these "themConfig" block can be removed
-      # "hh:mm AP" = 08:00 PM
-      # "HH:mm"    = 20:00
-      HourFormat = "hh:mm AP";
-      #DateFormat = ""; # "Some theme may not support this. Commmented because i like the default but kept for reference
-    };
+    embeddedTheme = "hyprland_kath";
+    themeConfig = { HourFormat = "hh:mm AP"; };
   };
-in
-{
-
+in {
   services.xserver.enable = true;
-  services.xserver = {
-    excludePackages = [ pkgs.xterm ];
-  };
+  services.xserver.excludePackages = [ pkgs.xterm ];
 
   services.displayManager.sddm = {
     enable = true;
@@ -31,7 +14,6 @@ in
     package = lib.mkForce pkgs.kdePackages.sddm;
     theme = "sddm-astronaut-theme";
 
-    # Dependencies go here so SDDM can load them
     extraPackages = with pkgs; [
       kdePackages.qtsvg
       kdePackages.qtmultimedia
@@ -39,17 +21,24 @@ in
     ];
   };
 
-  # Theme goes here so it links to /run/current-system/sw/share/sddm/themes
-  environment.systemPackages = [
-    sddmTheme
-    pkgs.bibata-cursors
-  ];
+  systemd.services.sddm.environment = {
+    QT_IM_MODULE = "qtvirtualkeyboard";
+    QT_VIRTUALKEYBOARD_DESKTOP_DISABLE = "0";
+  };
+
+  environment.etc."sddm.conf.d/virtual-keyboard.conf".text = ''
+    [General]
+    InputMethod=qtvirtualkeyboard
+  '';
+
+  environment.systemPackages = [ sddmTheme pkgs.bibata-cursors ];
 
   services.displayManager.autoLogin = {
     enable = false;
     user = vars.user;
   };
 
-  services.displayManager.defaultSession = lib.mkIf vars.hyprland "hyprland-uwsm";
+  services.displayManager.defaultSession =
+    lib.mkIf vars.hyprland "hyprland-uwsm";
   services.getty.autologinUser = null;
 }

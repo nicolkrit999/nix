@@ -1,5 +1,5 @@
+{ ... }:
 {
-  # INDEX FOR KDE MODULE CONFIGURATIONS
   imports = [
     ./kde-desktop.nix
     ./kde-files.nix

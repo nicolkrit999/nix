@@ -16,7 +16,6 @@ let
   iconThemeName = if vars.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
 in
 {
-
   config = lib.mkIf (vars.gnome or false) {
     home.packages =
       (lib.optionals vars.catppuccin [
@@ -36,14 +35,11 @@ in
       ];
 
     dconf.settings = {
-
-      # --- INTERFACE & THEME ---
       "org/gnome/desktop/interface" = {
         color-scheme = lib.mkForce colorScheme;
         icon-theme = iconThemeName;
       };
 
-      # --- WALLPAPER ---
       "org/gnome/desktop/background" = {
         picture-uri = "file://${wallpaperPath}";
         picture-uri-dark = "file://${wallpaperPath}";

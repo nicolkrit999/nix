@@ -20,9 +20,7 @@
           no_fade_in = false;
         };
 
-        # 🖼️ The Background
         background = lib.mkForce [
-          # Forced to avoid problems when catppuccin is disabled
           {
             path = "screenshot"; # Takes a screenshot of your current desktop
             blur_passes = 3; # Heavily blurs it

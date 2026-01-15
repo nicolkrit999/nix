@@ -18,7 +18,6 @@
     ./optional/host-hm-modules/nas/borg-backup.nix # user
     ./optional/host-hm-modules/nas/ssh.nix # user
     ./optional/host-hm-modules/nas/owncloud.nix # user
-
   ]
   ++ (lib.optional (builtins.pathExists ./optional/dev-environments/default.nix) ./optional/dev-environments/default.nix);
 
@@ -187,5 +186,23 @@
   };
 
   environment.systemPackages = with pkgs; [
+    docker # Required because virtualisation.docker.enable is true
+    logiops # Logitech devices manager (currently used for my MX Master 3S)
+    pay-respects # Used in shell aliases dotfiles
+    pokemon-colorscripts # Used in shell aliases dotfiles
+    stow # Used to manage my dotfiles repo
+    zoxide # Used in shell aliases dotfiles
+    (symlinkJoin {
+      name = "cider";
+      paths = [ pkgs.cider ];
+      buildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/cider \
+          --unset NIXOS_OZONE_WL \
+          --set GSK_RENDERER ngl \
+          --add-flags "--disable-gpu-memory-buffer-video-frames --disable-features=WaylandFractionalScaleV1 --disable-updates"
+      '';
+    })
+
   ];
 }

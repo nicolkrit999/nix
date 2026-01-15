@@ -25,12 +25,12 @@ let
     set -euo pipefail
     HM_PROFILE="${config.home.profileDirectory}"
 
-    # ... keep your existing unset logic ...
+    # 4. Unset potentially conflicting Qt environment variables
     unset QT_QUICK_CONTROLS_STYLE
     unset QT_QPA_PLATFORMTHEME
     unset QT_STYLE_OVERRIDE
 
-    # ... keep your existing qmlPaths loop ...
+    # 5. Construct QML import paths part 1
     qmlPaths=""
     for d in \
       "${caelestiaPkg}/lib/qt-6/qml" \
@@ -46,18 +46,16 @@ let
       fi
     done
 
+    # 6. Export QML2_IMPORT_PATH part 2
     export QML2_IMPORT_PATH="$qmlPaths''${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
     export QT_QPA_PLATFORM="wayland"
     export QT_QUICK_CONTROLS_STYLE="Basic"
 
     exec "${caelestiaPkg}/bin/caelestia-shell" -d
   '';
-
 in
 {
-  imports = [
-    inputs.caelestia-shell.homeManagerModules.default
-  ];
+  imports = [ inputs.caelestia-shell.homeManagerModules.default ];
 
   config = lib.mkIf ((vars.hyprland or false) && (vars.caelestia or false)) {
     programs.caelestia = {
@@ -69,19 +67,18 @@ in
     xdg.configFile."caelestia/shell.json".text = builtins.toJSON caelestiaConfig;
 
     home.packages = [
+      # Custom package name
       caelestiaPkg
       caelestiaQS
 
+      # Regular packages
       pkgs.qt6.qt5compat
       pkgs.qt6.qtsvg
       pkgs.qt6.qtwayland
       pkgs.qt6.qtdeclarative
-
       pkgs.nerd-fonts.caskaydia-cove
       pkgs.nerd-fonts.jetbrains-mono
       pkgs.rubik
-
-      pkgs.mpv
 
       (pkgs.runCommand "material-symbols-rounded" { } ''
         mkdir -p $out/share/fonts/truetype

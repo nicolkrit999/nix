@@ -24,6 +24,7 @@
     targets = {
       # It is possible to enable these, but it require manual theming in the modules/program itself
       neovim.enable = false; # Custom themed via my personal neovim stow config in dotfiles
+
       wofi.enable = false; # Themed manually via wofi/style.css
 
       # These should remain disabled because all edge cases are already handled
@@ -34,45 +35,36 @@
       kde.enable = false; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
       qt.enable = false; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
 
-      # These should remain enabled to avoid conflicts with other modules (empty for now)
+      # These should remain enabled to avoid conflicts with other modules
 
       # -----------------------------------------------------------------------
       # DE/WM SPECIFIC
       # -----------------------------------------------------------------------
       gnome.enable = vars.gnome;
 
-      # -----------------------------------------------------------------------
-      # MULTI EXCLUSIONS DUE TO CAELESTIA/QUICKSHELL
-      # -----------------------------------------------------------------------
-      gtk.enable = !vars.catppuccin && !vars.cosmic && !vars.caelestia;
-
       # ---------------------------------------------------------------------------------------
       # 🎨 GLOBAL CATPPUCCIN
       # Intelligently enable/disable stylix based on whether catppuccin is enabled
       # catppuccin = true -> .enable = false
       # catppuccin = false -> .enable = true
-      alacritty.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/alacritty.nix
       hyprland.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
+
       hyprlock.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix
+
+      gtk.enable = !vars.catppuccin; # No ref
+
       swaync.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/swaync/default.nix
-      zathura.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/zathura.nix
+
       bat.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/bat.nix
+
       lazygit.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/lazygit.nix
+
       tmux.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/tmux.nix
+
       starship.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
-      cava.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/cava.nix
-      kitty.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/kitty.nix
-      # ---------------------------------------------------------------------------------------
 
-      # Enable stylix but only for certain elements
-      firefox.profileNames = [ vars.user ]; # Applies skin only to the defined profile
-
-      # -----------------------------------------------------------------------
-      # Other exclusions
-      # This can be enabled but you need to uncomment/remove the module-specific theming file
-      # -----------------------------------------------------------------------
-      yazi.enable = lib.mkForce false; # Themed manually via yazi-theme.nix
-    };
+    }
+    // (lib.optionalAttrs (vars.stylixExclusions != null) vars.stylixExclusions);
 
     # -----------------------------------------------------------------------
     # 🖱️ MOUSE CURSOR
@@ -105,18 +97,11 @@
         applications = 11;
       };
     };
-
-    iconTheme = {
-      enable = true;
-      package = pkgs.papirus-icon-theme;
-      dark = "Papirus-Dark";
-      light = "Papirus-Light";
-    };
   };
 
-  dconf.settings = lib.mkIf vars.catppuccin {
+  dconf.settings = {
     "org/gnome/desktop/interface" = {
-      color-scheme = lib.mkForce (if vars.polarity == "dark" then "prefer-dark" else "prefer-light");
+      color-scheme = if vars.polarity == "dark" then "prefer-dark" else "prefer-light";
     };
   };
 
@@ -129,7 +114,6 @@
   # 3. Configure GTK Theme &amp; Settings
   gtk = lib.mkIf vars.catppuccin {
     enable = true;
-
     theme = {
       package = lib.mkForce (
         pkgs.catppuccin-gtk.override {
@@ -144,7 +128,6 @@
       );
       name = lib.mkForce "catppuccin-${vars.catppuccinFlavor}-${vars.catppuccinAccent}-standard+rimless,black";
     };
-
     gtk3.extraConfig.gtk-application-prefer-dark-theme = if vars.polarity == "dark" then 1 else 0;
     gtk4.extraConfig.gtk-application-prefer-dark-theme = if vars.polarity == "dark" then 1 else 0;
   };

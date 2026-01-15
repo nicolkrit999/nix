@@ -7,21 +7,21 @@
       # -----------------------------------------------------------------------
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------
-      cider # Electron-based music player
+      gsimplecal # Simple calendar application
       kdePackages.kate # Text editor from the kde theme
+      libreoffice-qt # Open source microsoft office alternative
       localsend # Simple file sharing over local network
-      notion # Writing app
+      meld # Visual diff and merge tool
+      notion-app-enhanced # Writing app
       obs-studio # Streaming/Recording
-      telegram-desktop # Messaging
-      teams-for-linux # Unofficial Microsoft Teams client
-      signal-desktop # Encrypted messaging application
-      vlc # Media player
       proton-pass # Password manager by Proton
       protonvpn-gui # VPN client by Proton
+      signal-desktop # Encrypted messaging application
+      telegram-desktop # Messaging
+      teams-for-linux # Unofficial Microsoft Teams client
+      tor-browser # Privacy-focused web browser
       vesktop # Discord client
-      libreoffice-qt # Open source microsoft office alternative
-      gsimplecal # Simple calendar application
-      meld # Visual diff and merge tool
+      vlc # Media player
       whatsapp-electron # Electron wrapper for whatsapp
 
       # -----------------------------------------------------------------------------------
@@ -42,33 +42,32 @@
       grex # Command-line tool for generating regular expressions
       grim # Screenshot utility for Wayland
       htop # Process viewer and killer
+      killall # Command to kill processes by name
       lsof # List open files
       mediainfo # Display technical info about media files
+      nix-search-cli # CLI tool to search nixpkgs from terminal
       ntfs3g # NTFS read/write support
-      pass # Simple password manager
-      pay-respects # Cli commands autosuggestion (used in my zsh dotfiles) -> ⚠️ KEEP
-      pokemon-colorscripts # Print pokemon sprites in terminal with colors (used in my dotfiles) -> ⚠️ KEEP
-      #solaar # Linux driver for Logitech devices
-      stow # Symlink farm manager (used in my dotfiles) -> ⚠️ KEEP
+      ripgrep # Fast line-oriented search tool
       tealdeer # Fast implementation of tldr (simplified man pages)
       tree # Display directory structure as a tree
       ttyd # Share your terminal over the web
       unixtools.netstat # Network statistics
+      unzip # Extraction utility for .zip files. It is used by programs to compress/decompress data.
       usbutils # USB device utilities
       wakeonlan # Magic packets
       yt-dlp # Media downloader for YouTube and other sites
+      zip # Compression utility for .zip files. It is used by programs to compress/decompress data.
       zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
-      # Fast, lightweight alternative to 'cd'
-      zoxide # Fast, lightweight alternative to 'cd'
+      wget # Network downloader utility
 
       # -----------------------------------------------------------------------------------
       # 🧑🏽‍💻 CODING
       # -----------------------------------------------------------------------------------
-      docker # Containerization platform
       github-desktop # GitHub's official desktop client
       jq # Command-line JSON processor
       universal-ctags # Tool to generate index (tags) files of source code
       zeal # Offline documentation browser
+
       (pkgs.python313.withPackages (ps:
         with ps; [
           faker # Generate fake data
@@ -95,5 +94,6 @@
         # -----------------------------------------------------------------------
         # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
         # -----------------------------------------------------------------------
+        fresh-editor # Lightweight terminal text editor
       ]);
 }

@@ -1,3 +1,4 @@
+{ ... }:
 {
   imports = [
     #./borg-backup.nix already imported in configuration.nix

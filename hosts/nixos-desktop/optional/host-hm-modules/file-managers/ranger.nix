@@ -6,24 +6,19 @@
 }:
 {
   programs.ranger = {
-    enable = true;
-
-    # Setup default applications to open files with
+    enable = false;
     rifle = [
       {
         condition = "flag f";
-        command = "xdg-open \"$1\"";
+        command = ''xdg-open "$1"'';
       }
       {
         # Catch-all for everything else.
         condition = "else";
-        command = "xdg-open \"$1\"";
+        command = ''xdg-open "$1"'';
       }
     ];
 
-    # -----------------------------------------------------
-    # ⌨️ KEY MAPPINGS
-    # -----------------------------------------------------
     mappings = {
       e = "edit";
 

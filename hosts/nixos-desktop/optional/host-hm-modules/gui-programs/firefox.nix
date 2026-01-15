@@ -67,7 +67,11 @@ in
         engines = {
           kagi = {
             name = "Kagi";
-            urls = [ { template = "https://kagi.com/search?q={searchTerms}"; } ]; # Search URL template query parameter
+            urls = [
+              {
+                template = "https://kagi.com/search?q={searchTerms}";
+              }
+            ]; # Search URL template query parameter
             icon = "https://kagi.com/favicon.ico";
           };
           bing.metaData.hidden = true; # Hide unwanted search providers
@@ -166,6 +170,11 @@ in
         "toolkit.telemetry.unified" = false;
         "toolkit.telemetry.unifiedIsOptIn" = false;
         "toolkit.telemetry.updatePing.enabled" = false;
+
+        # DRM / Widevine for streaming services
+        "media.eme.enabled" = true;
+        "media.gmp-widevinecdm.enabled" = true;
+        "media.gmp-widevinecdm.visible" = true;
 
         # Audio normalization
         "accessibility.typeaheadfind.enablesound" = false;
