@@ -9,11 +9,13 @@ let
     editor = "2";
     fileManager = "3";
     vm = "4";
+    other = "5";
     browser = "7";
     terminal = "8";
     chat = "9";
   };
-in {
+in
+{
   # ---------------------------------------------------------------------------
   # 🖥️ HYPRLAND WORKSPACES
   # ---------------------------------------------------------------------------
@@ -48,6 +50,8 @@ in {
     "workspace ${appWorkspaces.fileManager} silent, class:^(nemo)$"
 
     "workspace ${appWorkspaces.vm} silent, class:^(winboat)$"
+
+    "workspace ${appWorkspaces.other} silent, class:^(Actual)$"
 
     "workspace ${appWorkspaces.browser} silent, class:^(chromium-browser)$"
 

@@ -1,4 +1,4 @@
 { ... }:
 {
-  imports = [ ];
+  imports = [ ./web-apps.nix ];
 }

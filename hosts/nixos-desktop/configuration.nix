@@ -191,7 +191,7 @@
     pay-respects # Used in shell aliases dotfiles
     pokemon-colorscripts # Used in shell aliases dotfiles
     stow # Used to manage my dotfiles repo
-
+    zoxide # Used in shell aliases dotfiles
     (symlinkJoin {
       name = "cider";
       paths = [ pkgs.cider ];

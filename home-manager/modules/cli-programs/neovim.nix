@@ -8,6 +8,7 @@
     extraPackages = with pkgs; [
       ripgrep
       fd
+      nodejs # Needed for copilot.lua
       xclip
     ];
   };

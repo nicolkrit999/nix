@@ -1,8 +1,7 @@
-{
-  pkgs,
-  pkgs-unstable,
-  vars,
-  ...
+{ pkgs
+, pkgs-unstable
+, vars
+, ...
 }:
 {
   users.users.${vars.user}.packages =
@@ -14,21 +13,22 @@
       # -----------------------------------------------------------------------
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------
-      #cider # Apple music wrapper
+      gsimplecal # Simple calendar application
       kdePackages.kate # Text editor from the kde theme
+      libreoffice-qt # Open source microsoft office alternative
       localsend # Simple file sharing over local network
+      meld # Visual diff and merge tool
       notion-app-enhanced # Writing app
       obs-studio # Streaming/Recording
-      telegram-desktop # Messaging
-      teams-for-linux # Unofficial Microsoft Teams client
-      signal-desktop # Encrypted messaging application
-      vlc # Media player
       proton-pass # Password manager by Proton
       protonvpn-gui # VPN client by Proton
+      signal-desktop # Encrypted messaging application
+      telegram-desktop # Messaging
+      teams-for-linux # Unofficial Microsoft Teams client
+      tor-browser # Privacy-focused web browser
       vesktop # Discord client
-      libreoffice-qt # Open source microsoft office alternative
-      gsimplecal # Simple calendar application
-      meld # Visual diff and merge tool
+      vscode # Code editor by Microsoft
+      vlc # Media player
       whatsapp-electron # Electron wrapper for whatsapp
 
       # -----------------------------------------------------------------------------------
