@@ -158,9 +158,11 @@ in {
   environment.variables.GTK_APPLICATION_PREFER_DARK_THEME =
     if vars.polarity == "dark" then "1" else "0";
 
+  #home-manager.backupFileExtension = lib.mkForce "hm-backup";
   # -----------------------------------------------------
   # ⚡ SYSTEM TWEAKS
   # -----------------------------------------------------
   # Reduce shutdown wait time for stuck services
   systemd.settings.Manager = { DefaultTimeoutStopSec = "10s"; };
+  home-manager.backupFileExtension = lib.mkForce "hm-backup";
 }

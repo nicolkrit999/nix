@@ -172,10 +172,10 @@ in {
 
   useFahrenheit = false;
 
-  hyprlandStartupApps = [
+  hyprland_Exec-Once = [
     "${vars.term}"
     "${vars.browser}"
-    "${vars.fileManager}"
+    "yazi"
 
     "chromium-browser"
 
