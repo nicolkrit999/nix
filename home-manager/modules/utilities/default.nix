@@ -1,5 +1,4 @@
-{ ... }:
-{
+{ ... }: {
   imports = [
     ./bash.nix
     ./bat.nix
@@ -13,6 +12,7 @@
     ./starship.nix
     ./stylix.nix
     ./tmux.nix
+    ./zoxide.nix
     ./zsh.nix
   ];
 }

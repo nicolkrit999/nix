@@ -1,11 +1,5 @@
-{ pkgs
-, pkgs-unstable
-, vars
-, ...
-}:
-{
-  users.users.${vars.user}.packages =
-    with pkgs;
+{ pkgs, pkgs-unstable, vars, ... }: {
+  users.users.${vars.user}.packages = with pkgs;
     [
       # This allow guest user to not have this packages installed
       # Packages in each category are sorted alphabetically
@@ -27,7 +21,6 @@
       teams-for-linux # Unofficial Microsoft Teams client
       tor-browser # Privacy-focused web browser
       vesktop # Discord client
-      vscode # Code editor by Microsoft
       vlc # Media player
       whatsapp-electron # Electron wrapper for whatsapp
 
@@ -49,18 +42,23 @@
       grex # Command-line tool for generating regular expressions
       grim # Screenshot utility for Wayland
       htop # Process viewer and killer
+      killall # Command to kill processes by name
       lsof # List open files
       mediainfo # Display technical info about media files
+      nix-search-cli # CLI tool to search nixpkgs from terminal
       ntfs3g # NTFS read/write support
-      #solaar # Linux driver for Logitech devices
+      ripgrep # Fast line-oriented search tool
       tealdeer # Fast implementation of tldr (simplified man pages)
       tree # Display directory structure as a tree
       ttyd # Share your terminal over the web
       unixtools.netstat # Network statistics
+      unzip # Extraction utility for .zip files. It is used by programs to compress/decompress data.
       usbutils # USB device utilities
       wakeonlan # Magic packets
       yt-dlp # Media downloader for YouTube and other sites
+      zip # Compression utility for .zip files. It is used by programs to compress/decompress data.
       zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
+      wget # Network downloader utility
 
       # -----------------------------------------------------------------------------------
       # 🧑🏽‍💻 CODING
@@ -70,12 +68,11 @@
       universal-ctags # Tool to generate index (tags) files of source code
       zeal # Offline documentation browser
 
-      (pkgs.python313.withPackages (
-        ps: with ps; [
+      (pkgs.python313.withPackages (ps:
+        with ps; [
           faker # Generate fake data
           proton-keyring-linux # Proton keyring for Linux
-        ]
-      ))
+        ]))
 
       # -----------------------------------------------------------------------------------
       # 😂 FUN PACKAGES
@@ -92,9 +89,11 @@
       logiops # Logitech devices manager (currently used for my MX Master 3S)
     ]
 
-    ++ (with pkgs-unstable; [
-      # -----------------------------------------------------------------------
-      # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
-      # -----------------------------------------------------------------------
-    ]);
+    ++ (with pkgs-unstable;
+      [
+        # -----------------------------------------------------------------------
+        # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
+        # -----------------------------------------------------------------------
+        fresh-editor # Lightweight terminal text editor
+      ]);
 }

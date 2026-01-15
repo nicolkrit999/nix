@@ -1,20 +1,12 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
+{ config, pkgs, lib, vars, ... }:
 let
-  shellPkg =
-    if vars.shell == "fish" then
-      pkgs.fish
-    else if vars.shell == "zsh" then
-      pkgs.zsh
-    else
-      pkgs.bashInteractive;
-in
-{
+  shellPkg = if vars.shell == "fish" then
+    pkgs.fish
+  else if vars.shell == "zsh" then
+    pkgs.zsh
+  else
+    pkgs.bashInteractive;
+in {
 
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY
@@ -38,12 +30,7 @@ in
   # ---------------------------------------------------------
   # 🛠️ NIX SETTINGS
   # ---------------------------------------------------------
-  nix.settings = {
-    trusted-users = [
-      "root"
-      "@wheel"
-    ];
-  };
+  nix.settings = { trusted-users = [ "root" "@wheel" ]; };
 
   # Allow unfree packages globally (needed for drivers, code, etc.)
   nixpkgs.config.allowUnfree = true;
@@ -51,8 +38,7 @@ in
   # ---------------------------------------------------------
   # 📦 SYSTEM PACKAGES
   # ---------------------------------------------------------
-  environment.systemPackages =
-    with pkgs;
+  environment.systemPackages = with pkgs;
     [
       # --- CLI UTILITIES ---
       dix # Nix diff viewer
@@ -63,7 +49,6 @@ in
       nixfmt-rfc-style # Nix formatter
       nix-prefetch-scripts # Tools to get hashes for nix derivations (used in zsh.nix module)
       starship # Shell prompt
-      zoxide # Filesystem jumper
       iptables # Firewall utility
       wget # Downloader
       curl # Downloader
@@ -87,8 +72,7 @@ in
       libsForQt5.qt5.qtwayland # Qt5 Wayland bridge
       kdePackages.qtwayland # Qt6 Wayland bridge
       powerline-symbols # Terminal font glyphs
-    ]
-    ++ (with pkgs.kdePackages; [
+    ] ++ (with pkgs.kdePackages; [
       gwenview # Default image viewer as defined in mime.nix
       kio-extras # Extra protocols for KDE file dialogs (needed for dolphin remote access)
       kio-fuse # Mount remote filesystems (via ssh, ftp, etc.) in Dolphin
@@ -175,9 +159,7 @@ in
   # ⚡ SYSTEM TWEAKS
   # -----------------------------------------------------
   # Reduce shutdown wait time for stuck services
-  systemd.settings.Manager = {
-    DefaultTimeoutStopSec = "10s";
-  };
+  systemd.settings.Manager = { DefaultTimeoutStopSec = "10s"; };
 
   # Enable home-manager backup files
   home-manager.backupFileExtension = lib.mkForce "hm-backup";
