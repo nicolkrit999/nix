@@ -1,24 +1,8 @@
-{
-  pkgs,
-  lib,
-  inputs,
-  vars,
-  ...
-}:
+{ pkgs, lib, inputs, vars, ... }:
 let
   # Allow to install "unfree" addons by rebuilding them locally
-  buildFirefoxXpiAddon = lib.makeOverridable (
-    {
-      stdenv ? pkgs.stdenv,
-      fetchurl,
-      pname,
-      version,
-      addonId,
-      url,
-      sha256,
-      meta,
-      ...
-    }:
+  buildFirefoxXpiAddon = lib.makeOverridable ({ stdenv ? pkgs.stdenv, fetchurl
+    , pname, version, addonId, url, sha256, meta, ... }:
     stdenv.mkDerivation {
       name = "${pname}-${version}";
       inherit meta;
@@ -31,11 +15,9 @@ let
         mkdir -p "$dst"
         install -v -m644 "$src" "$dst/${addonId}.xpi"
       '';
-    }
-  );
+    });
   firefox-addons = pkgs.callPackage inputs.firefox-addons { };
-in
-{
+in {
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME (official module)
   # -----------------------------------------------------------------------
@@ -59,15 +41,13 @@ in
         force = true; # Enforce custom search engine settings
         default = "google"; # Set Google as the default search engine
         privateDefault = "kagi"; # Set Kagi as the default for private browsing
-        order = [
-          "google"
-          "kagi"
-          "ddg"
-        ]; # Preferred search engine order
+        order = [ "google" "kagi" "ddg" ]; # Preferred search engine order
         engines = {
           kagi = {
             name = "Kagi";
-            urls = [ { template = "https://kagi.com/search?q={searchTerms}"; } ]; # Search URL template query parameter
+            urls = [{
+              template = "https://kagi.com/search?q={searchTerms}";
+            }]; # Search URL template query parameter
             icon = "https://kagi.com/favicon.ico";
           };
           bing.metaData.hidden = true; # Hide unwanted search providers
@@ -82,7 +62,8 @@ in
       # The name can be viewed in the url while the extension page in the store is opened
       # If that does not work search on "https://nur.nix-community.org/repos/rycee/" and use the "name" without version
       extensions = {
-        force = true; # Forced to allow catppuccin to modify the firefox color scheme
+        force =
+          true; # Forced to allow catppuccin to modify the firefox color scheme
         packages = with firefox-addons; [
           ublock-origin # Popular ad and tracker blocker
           proton-pass # Proton Pass password manager integration
@@ -125,7 +106,8 @@ in
         # hides the default promoted/suggested tiles on Firefox's new-tab screen from several major websites.
         "browser.newtabpage.activity-stream.feeds.topsites" = false;
         "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
-        "browser.newtabpage.activity-stream.improvesearch.topSiteSearchShortcuts" = false;
+        "browser.newtabpage.activity-stream.improvesearch.topSiteSearchShortcuts" =
+          false;
         "browser.newtabpage.blocked" = lib.genAttrs [
           # Youtube
           "26UbzFJ7qT9/4DhodHKA1Q=="
@@ -167,9 +149,15 @@ in
         "toolkit.telemetry.unifiedIsOptIn" = false;
         "toolkit.telemetry.updatePing.enabled" = false;
 
+        # DRM / Widevine for streaming services
+        "media.eme.enabled" = true;
+        "media.gmp-widevinecdm.enabled" = true;
+        "media.gmp-widevinecdm.visible" = true;
+
         # Audio normalization
         "accessibility.typeaheadfind.enablesound" = false;
-        "media.getusermedia.screensharing.allow_is_screen_content_sales" = false;
+        "media.getusermedia.screensharing.allow_is_screen_content_sales" =
+          false;
 
         # Disable fx accounts
         "identity.fxaccounts.enabled" = false;
@@ -183,10 +171,7 @@ in
         # Vertical tabs
         "sidebar.verticalTabs" = true;
         "sidebar.revamp" = true;
-        "sidebar.main.tools" = [
-          "history"
-          "bookmarks"
-        ];
+        "sidebar.main.tools" = [ "history" "bookmarks" ];
         # Toolbar placement: assigns buttons to specific navigation bar slots.
         # Pin extensions and show buttons
         "browser.uiCustomization.state" = builtins.toJSON {

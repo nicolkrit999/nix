@@ -117,8 +117,6 @@
 
   };
 
-  # stylix.nix
-  # Move this OUT of the "lib.mkIf vars.catppuccin" block
   dconf.settings = {
     "org/gnome/desktop/interface" = {
       color-scheme =

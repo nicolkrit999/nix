@@ -158,7 +158,7 @@ in {
     "8" = ":"; # Terminal
     "9" = ":"; # Music
     "10" = ":"; # Chat
-    "magic" = ":";
+    "magic" = ":"; # Scratchpad
   };
 
   waybarLayoutFlags = {
@@ -173,11 +173,17 @@ in {
   useFahrenheit = false;
 
   hyprland_Exec-Once = [
+    # Personal apps based on variables
     "${vars.term}"
     "${vars.browser}"
-    "yazi"
+    "uwsm app -- $fileManager"
 
+    # Secondary apps
     "chromium-browser"
+
+    # System tweaks
+    # Implemented to fix cider
+    "systemctl --user restart xdg-desktop-portal"
 
   ];
 

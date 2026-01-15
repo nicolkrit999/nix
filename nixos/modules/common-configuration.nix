@@ -162,7 +162,10 @@ in {
   # -----------------------------------------------------
   # ⚡ SYSTEM TWEAKS
   # -----------------------------------------------------
+
   # Reduce shutdown wait time for stuck services
   systemd.settings.Manager = { DefaultTimeoutStopSec = "10s"; };
+
+  # Enable home-manager backup files
   home-manager.backupFileExtension = lib.mkForce "hm-backup";
 }
