@@ -1,5 +1,12 @@
-{ pkgs, pkgs-unstable, vars, ... }: {
-  users.users.${vars.user}.packages = with pkgs;
+{
+  pkgs,
+  pkgs-unstable,
+  vars,
+  ...
+}:
+{
+  users.users.${vars.user}.packages =
+    with pkgs;
     [
       # This allow guest user to not have this packages installed
       # Packages in each category are sorted alphabetically
@@ -68,11 +75,12 @@
       universal-ctags # Tool to generate index (tags) files of source code
       zeal # Offline documentation browser
 
-      (pkgs.python313.withPackages (ps:
-        with ps; [
+      (pkgs.python313.withPackages (
+        ps: with ps; [
           faker # Generate fake data
           proton-keyring-linux # Proton keyring for Linux
-        ]))
+        ]
+      ))
 
       # -----------------------------------------------------------------------------------
       # 😂 FUN PACKAGES
@@ -89,11 +97,10 @@
       logiops # Logitech devices manager (currently used for my MX Master 3S)
     ]
 
-    ++ (with pkgs-unstable;
-      [
-        # -----------------------------------------------------------------------
-        # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
-        # -----------------------------------------------------------------------
-        fresh-editor # Lightweight terminal text editor
-      ]);
+    ++ (with pkgs-unstable; [
+      # -----------------------------------------------------------------------
+      # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
+      # -----------------------------------------------------------------------
+      fresh-editor # Lightweight terminal text editor
+    ]);
 }

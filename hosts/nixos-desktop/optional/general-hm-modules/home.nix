@@ -1,8 +1,14 @@
-{ pkgs, pkgs-unstable, lib, vars, ... }:
+{
+  pkgs,
+  pkgs-unstable,
+  lib,
+  vars,
+  ...
+}:
 
 {
-  home.packages = (with pkgs;
-    [
+  home.packages =
+    (with pkgs; [
 
       # -----------------------------------------------------------------------------------
       # 🖥️ DESKTOP APPLICATIONS

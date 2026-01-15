@@ -1,4 +1,10 @@
-{ pkgs, lib, config, vars, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  vars,
+  ...
+}:
 let
   # Your custom layout tweaks (Fonts, Size, Rounding)
   customLayout = ''
@@ -19,7 +25,8 @@ let
     /* Remove outline */
     .notification-row { outline: none; }
   '';
-in {
+in
+{
   config = lib.mkIf ((vars.hyprland or false) && !(vars.caelestia or false)) {
 
     catppuccin.swaync.enable = vars.catppuccin;
@@ -37,15 +44,16 @@ in {
       };
 
       # 🎨 DYNAMIC STYLE LOGIC
-      style = if vars.catppuccin then
-        lib.mkForce ''
-          @import "${config.catppuccin.sources.swaync}/${vars.catppuccinFlavor}.css";
-          ${customLayout}
-        ''
-      else
-        lib.mkAfter ''
-          ${customLayout}
-        '';
+      style =
+        if vars.catppuccin then
+          lib.mkForce ''
+            @import "${config.catppuccin.sources.swaync}/${vars.catppuccinFlavor}.css";
+            ${customLayout}
+          ''
+        else
+          lib.mkAfter ''
+            ${customLayout}
+          '';
     };
   };
 }

@@ -1,4 +1,9 @@
-{ pkgs, lib, vars, ... }:
+{
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
 let
   browserPkg = pkgs.${vars.browser};
   browserBin = "${browserPkg}/bin/${vars.browser}";
@@ -9,11 +14,12 @@ let
     inherit name icon;
     genericName = "Web Application";
     # Logic: If Firefox, use --new-window. If Chromium-based, use --app=URL for true "App Mode".
-    exec = if isFirefox
-           then "${browserBin} --new-window ${url}"
-           else "${browserBin} --app=${url}";
+    exec = if isFirefox then "${browserBin} --new-window ${url}" else "${browserBin} --app=${url}";
     terminal = false;
-    categories = [ "Network" "WebBrowser" ];
+    categories = [
+      "Network"
+      "WebBrowser"
+    ];
     type = "Application";
   };
 in
