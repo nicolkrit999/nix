@@ -75,8 +75,8 @@
 
   wallpapers = [
     {
-      wallpaperURL = "https://raw.githubusercontent.com/HyDE-Project/hyde-themes/Graphite-Mono/Configs/.config/hyde/themes/Graphite%20Mono/wallpapers/rocket.jpg";
-      wallpaperSHA256 = "00c1p29s5wyk14l3hyb3mrxgnbkzq767b6qbc7fn47jp5k8d7h82";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/various-websites/wallhaven/wallhaven-anime-girl-drink-4k-grey.png";
+      wallpaperSHA256 = "0q5j531m3a1x5x99d0xybcb9rgc7w1i3v2vgf81zpwcwqj7abnzr";
     }
 
     {
@@ -95,8 +95,9 @@
   };
 
   devLanguages = [
-    # Commenting out do not install the packages globally, saving space
-    # To use them it's needed to add a .envr file in the project folder that link to the dev-environment
+    # Development environments configurations.
+    # If a module is enabled their respective packages are installed permanently
+    # To use them it's needed to add a .envrc file in the project folder that link to the dev-environment
     #"c-cpp"
     #"go"
     #"haskell"

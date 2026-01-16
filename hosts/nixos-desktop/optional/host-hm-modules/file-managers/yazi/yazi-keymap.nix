@@ -139,46 +139,46 @@
       # Hopping
       {
         on = [ "k" ];
-        run = "arrow -1 --wrap";
-        desc = "Previous file";
+        run = "arrow prev";
+        desc = "Previous file (wrapping)";
       }
       {
         on = [ "K" ];
-        run = "arrow -5 --wrap";
+        run = "arrow -5";
         desc = "Move up five files";
       }
 
       {
         on = [ "j" ];
-        run = "arrow 1 --wrap";
-        desc = "Next file";
+        run = "arrow next";
+        desc = "Next file (wrapping)";
       }
       {
         on = [ "J" ];
-        run = "arrow 5 --wrap";
+        run = "arrow 5 ";
         desc = "Move down five files";
       }
 
       {
         on = [ "<Up>" ];
-        run = "arrow -1 --wrap";
-        desc = "Previous file";
+        run = "arrow prev ";
+        desc = "Previous file (wrapping)";
       }
 
       {
         on = [ "<S-Up>" ];
-        run = "arrow -5 --wrap";
+        run = "arrow -5 ";
         desc = "Move up five files";
       }
 
       {
         on = [ "<Down>" ];
-        run = "arrow 1 --wrap";
-        desc = "Next file";
+        run = "arrow next ";
+        desc = "Next file (wrapping)";
       }
       {
         on = [ "<S-Down>" ];
-        run = "arrow 5 --wrap";
+        run = "arrow 5 ";
         desc = "Move down five files";
       }
       {

@@ -54,10 +54,10 @@
           for arg in "$@"; do
             # Skip flags like -rf, -v
             if [[ "$arg" == -* ]]; then continue; fi
-            
+
             local ABS_PATH
             ABS_PATH=$(realpath -m "$arg")
-            
+
             if [[ "$ABS_PATH" == "$NAS_PATH"* ]]; then
               FORBIDDEN=true
               break
@@ -91,7 +91,7 @@
           # Shift arguments to remove "rm" so _nas_guard sees only flags/files
           local cmd="$1"
           shift
-          
+
           # Run the check on the files
           if _nas_guard "$@"; then
             command sudo "$cmd" "$@"

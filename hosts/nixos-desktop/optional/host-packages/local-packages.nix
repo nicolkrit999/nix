@@ -27,6 +27,7 @@
       telegram-desktop # Messaging
       teams-for-linux # Unofficial Microsoft Teams client
       tor-browser # Privacy-focused web browser
+      vscode # Microsoft visual studio code IDE
       vesktop # Discord client
       vlc # Media player
       whatsapp-electron # Electron wrapper for whatsapp
