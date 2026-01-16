@@ -191,18 +191,5 @@
     pay-respects # Used in shell aliases dotfiles
     pokemon-colorscripts # Used in shell aliases dotfiles
     stow # Used to manage my dotfiles repo
-    zoxide # Used in shell aliases dotfiles
-    (symlinkJoin {
-      name = "cider";
-      paths = [ pkgs.cider ];
-      buildInputs = [ pkgs.makeWrapper ];
-      postBuild = ''
-        wrapProgram $out/bin/cider \
-          --unset NIXOS_OZONE_WL \
-          --set GSK_RENDERER ngl \
-          --add-flags "--disable-gpu-memory-buffer-video-frames --disable-features=WaylandFractionalScaleV1 --disable-updates"
-      '';
-    })
-
   ];
 }

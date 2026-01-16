@@ -19,7 +19,6 @@
       libreoffice-qt # Open source microsoft office alternative
       localsend # Simple file sharing over local network
       meld # Visual diff and merge tool
-      notion-app-enhanced # Writing app
       obs-studio # Streaming/Recording
       proton-pass # Password manager by Proton
       protonvpn-gui # VPN client by Proton
