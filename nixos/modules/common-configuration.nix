@@ -1,9 +1,8 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
+{ config
+, pkgs
+, lib
+, vars
+, ...
 }:
 let
   shellPkg =
@@ -134,6 +133,7 @@ in
   };
 
   # Polkit Rules: Realtime Audio & GPU Recorder Permissions
+  security.polkit.enable = true;
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
       if (subject.isInGroup("wheel")) {

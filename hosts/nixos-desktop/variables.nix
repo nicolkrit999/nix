@@ -21,6 +21,8 @@
   hyprland = true;
   caelestia = false;
 
+  niri = true;
+
   gnome = true;
   kde = true;
   cosmic = true;

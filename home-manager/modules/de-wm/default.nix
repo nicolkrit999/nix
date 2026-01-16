@@ -7,5 +7,6 @@
     ./gnome
     ./hyprland
     ./kde
+    ./niri
   ];
 }

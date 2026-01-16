@@ -18,6 +18,7 @@
     ./kernel.nix
     ./net.nix
     ./nh.nix
+    ./niri.nix
     ./nix.nix
     ./sddm.nix
     ./snapshots.nix

@@ -52,6 +52,12 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    niri = {
+      url = "github:sodiboo/niri-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
   };
 
   outputs = { nixpkgs, nixpkgs-unstable, home-manager, ... }@inputs:
@@ -109,6 +115,7 @@
             inputs.catppuccin.nixosModules.catppuccin
             inputs.nix-flatpak.nixosModules.nix-flatpak
             inputs.nix-sops.nixosModules.sops
+            inputs.niri.nixosModules.niri
 
             # Import entire optional host-specific directory if it exists
             (if builtins.pathExists optionalPath then optionalPath else { })
