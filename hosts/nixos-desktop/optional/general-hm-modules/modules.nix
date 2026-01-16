@@ -1,4 +1,4 @@
-{ vars, ... }:
+{ lib, pkgs, vars, ... }:
 let
   # Allow to use variables despite flake.nix use this to create variables
   rawVars = import ../../variables.nix;
@@ -14,8 +14,29 @@ let
     terminal = "8";
     chat = "9";
   };
-in
-{
+
+  desktopMap = {
+    # Browsers
+    "firefox" = "firefox.desktop";
+    "google-chrome" = "google-chrome.desktop";
+    "chromium" = "chromium-browser.desktop"; # Found in user-apps.txt
+
+    # Editors
+    "nvim" = "custom-nvim.desktop"; # Standard package provides this
+    "code" = "code.desktop";
+    "kate" = "org.kde.kate.desktop";
+
+    # File Managers
+    "yazi" = "yazi.desktop";
+    "ranger" = "ranger.desktop";
+    "dolphin" = "org.kde.dolphin.desktop";
+    "thunar" = "thunar.desktop";
+    "Nautilus" = "org.gnome.Nautilus.desktop";
+    "nemo" = "nemo.desktop";
+  };
+
+  resolve = name: desktopMap.${name} or "${name}.desktop";
+in {
   # ---------------------------------------------------------------------------
   # 🖥️ HYPRLAND WORKSPACES
   # ---------------------------------------------------------------------------
@@ -174,15 +195,17 @@ in
     # Personal apps based on variables
     "${vars.term}"
     "${vars.browser}"
+    "uwsm app -- $editor"
     "uwsm app -- $fileManager"
 
     # Secondary apps
     "chromium-browser"
+    "whatsapp-electron"
+
+    # Opened minimized
     "sleep 5 && protonvpn-app --start-minimized"
 
     # System tweaks
-    # Implemented to fix cider
-    "systemctl --user restart xdg-desktop-portal"
   ];
 
   stylixExclusions = {
@@ -208,6 +231,21 @@ in
     };
   };
 
+  pinnedApps = [
+    (resolve vars.browser)
+    (resolve vars.editor)
+    (resolve vars.fileManager)
+
+    # Regular app
+    "github-desktop.desktop"
+    "LocalSend.desktop"
+    "proton-pass.desktop"
+    "vesktop.desktop"
+
+    # Flatpaks
+    "com.github.dagmoller.whatsapp-electron.desktop"
+    "com.actualbudget.actual.desktop"
+  ];
   nixImpure = false;
 
   useFahrenheit = false;

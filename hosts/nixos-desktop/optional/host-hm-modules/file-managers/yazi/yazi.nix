@@ -402,8 +402,14 @@
   xdg.desktopEntries.yazi = lib.mkForce {
     name = "Yazi";
     genericName = "File Manager";
-    exec = "${vars.term} --class yazi -e yazi";
+    exec = "${pkgs.${vars.term}}/bin/${vars.term} --class yazi -e yazi";
+    icon = "system-file-manager";
     terminal = false;
+    startupNotify = false;
+
+    settings = {
+      StartupWMClass = "yazi";
+    };
     categories = [
       "System"
       "FileTools"

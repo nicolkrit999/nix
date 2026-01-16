@@ -1,10 +1,18 @@
-{ pkgs, lib, vars, ... }:
+{
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
 let
   sddmTheme = pkgs.sddm-astronaut.override {
     embeddedTheme = "hyprland_kath";
-    themeConfig = { HourFormat = "hh:mm AP"; };
+    themeConfig = {
+      HourFormat = "hh:mm AP";
+    };
   };
-in {
+in
+{
   services.xserver.enable = true;
   services.xserver.excludePackages = [ pkgs.xterm ];
 
@@ -31,14 +39,16 @@ in {
     InputMethod=qtvirtualkeyboard
   '';
 
-  environment.systemPackages = [ sddmTheme pkgs.bibata-cursors ];
+  environment.systemPackages = [
+    sddmTheme
+    pkgs.bibata-cursors
+  ];
 
   services.displayManager.autoLogin = {
     enable = false;
     user = vars.user;
   };
 
-  services.displayManager.defaultSession =
-    lib.mkIf vars.hyprland "hyprland-uwsm";
+  services.displayManager.defaultSession = lib.mkIf vars.hyprland "hyprland-uwsm";
   services.getty.autologinUser = null;
 }
