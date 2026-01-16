@@ -4,6 +4,6 @@
   imports = [
     ./web-apps.nix
     ./home.nix
-    ./wrappers.nix
+    #./wrappers.nix
   ];
 }

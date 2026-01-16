@@ -22,7 +22,7 @@ let
     "chromium" = "chromium-browser.desktop"; # Found in user-apps.txt
 
     # Editors
-    "nvim" = "nvim.desktop"; # Standard package provides this
+    "nvim" = "custom-nvim.desktop"; # Standard package provides this
     "code" = "code.desktop";
     "kate" = "org.kde.kate.desktop";
 
