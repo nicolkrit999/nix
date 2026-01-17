@@ -1,8 +1,9 @@
-{ pkgs
-, lib
-, config
-, vars
-, ...
+{
+  pkgs,
+  lib,
+  config,
+  vars,
+  ...
 }:
 let
   # Your custom layout tweaks (Fonts, Size, Rounding)
@@ -26,45 +27,42 @@ let
   '';
 in
 {
-  config = lib.mkIf
-    (
-      ((vars.hyprland or false) || (vars.niri or false))
-      && !(vars.caelestia or false)
-    )
-    {
+  config =
+    lib.mkIf (((vars.hyprland or false) || (vars.niri or false)) && !(vars.caelestia or false))
+      {
 
-      catppuccin.swaync.enable = vars.catppuccin;
-      catppuccin.swaync.flavor = vars.catppuccinFlavor;
+        catppuccin.swaync.enable = vars.catppuccin;
+        catppuccin.swaync.flavor = vars.catppuccinFlavor;
 
-      services.swaync = {
-        enable = true;
-        settings = {
-          positionX = "right";
-          positionY = "top";
-          notification-icon-size = 64;
+        services.swaync = {
+          enable = true;
+          settings = {
+            positionX = "right";
+            positionY = "top";
+            notification-icon-size = 64;
 
-          layer = "overlay";
-          control-center-layer = "overlay";
+            layer = "overlay";
+            control-center-layer = "overlay";
 
-          timeout = 10;
-          timeout-low = 5;
-          timeout-critical = 0;
+            timeout = 10;
+            timeout-low = 5;
+            timeout-critical = 0;
 
-          # Host optional rules to exclude/mute notifications
-          notification-visibility = { } // vars.swayncExclusions or { };
+            # Host optional rules to exclude/mute notifications
+            notification-visibility = { } // vars.swayncExclusions or { };
+          };
+
+          # 🎨 DYNAMIC STYLE LOGIC
+          style =
+            if vars.catppuccin then
+              lib.mkForce ''
+                @import "${config.catppuccin.sources.swaync}/${vars.catppuccinFlavor}.css";
+                ${customLayout}
+              ''
+            else
+              lib.mkAfter ''
+                ${customLayout}
+              '';
         };
-
-        # 🎨 DYNAMIC STYLE LOGIC
-        style =
-          if vars.catppuccin then
-            lib.mkForce ''
-              @import "${config.catppuccin.sources.swaync}/${vars.catppuccinFlavor}.css";
-              ${customLayout}
-            ''
-          else
-            lib.mkAfter ''
-              ${customLayout}
-            '';
       };
-    };
 }

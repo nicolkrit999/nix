@@ -1,4 +1,10 @@
-{ pkgs, lib, vars, ... }: {
+{
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
+{
   config = lib.mkIf (vars.hyprland or false) {
     wayland.windowManager.hyprland.settings = {
       bind = [
@@ -41,8 +47,7 @@
         # SCREENSHOTS (Updated to Meta+Ctrl)
         "SUPER CTRL, 3, exec, grimblast --notify --freeze copysave output" # Fullscreen
         "SUPER CTRL, 4, exec, grimblast --notify --freeze copysave area" # Region
-        ''
-          SUPER CTRL, R, exec, pkill -SIGINT gpu-screen-recorder || gpu-screen-recorder -w screen -f 60 -c mkv -o "$HOME/Videos/Recordings/mute-fullscreen-recording_$(date +%Y-%m-%d_%H-%M-%S).mkv"''
+        ''SUPER CTRL, R, exec, pkill -SIGINT gpu-screen-recorder || gpu-screen-recorder -w screen -f 60 -c mkv -o "$HOME/Videos/Recordings/mute-fullscreen-recording_$(date +%Y-%m-%d_%H-%M-%S).mkv"''
 
         # MOVING FOCUS
         "$mainMod,      left, movefocus, l" # Move focus left
@@ -109,7 +114,8 @@
         # They overlay other windows and can be toggled visible/invisible
         "$mainMod,       S, togglespecialworkspace,  magic" # Toggle scratchpad visibility
         "$mainMod SHIFT, S, movetoworkspace, special:magic" # Move window to scratchpad
-      ] ++ (vars.hyprlandExtraBinds or [ ]);
+      ]
+      ++ (vars.hyprlandExtraBinds or [ ]);
 
       # MOVE/RESIZE WINDOWS WITH MAINMOD + LMB/RMB AND DRAGGING
       bindm = [

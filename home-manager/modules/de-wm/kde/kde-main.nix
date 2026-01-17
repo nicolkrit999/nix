@@ -1,32 +1,37 @@
-{ pkgs, config, lib, vars, ... }:
+{
+  pkgs,
+  config,
+  lib,
+  vars,
+  ...
+}:
 let
-  wallpaperFiles = builtins.map (wp:
+  wallpaperFiles = builtins.map (
+    wp:
     "${pkgs.fetchurl {
       url = wp.wallpaperURL;
       sha256 = wp.wallpaperSHA256;
-    }}") vars.wallpapers;
+    }}"
+  ) vars.wallpapers;
 
   polarity = vars.polarity or "dark";
 
-  capitalize = s:
-    lib.toUpper (builtins.substring 0 1 s)
-    + builtins.substring 1 (builtins.stringLength s) s;
+  capitalize =
+    s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
 
-  theme = if vars.catppuccin then
-    "Catppuccin${capitalize vars.catppuccinFlavor}${
-      capitalize vars.catppuccinAccent
-    }"
-  else if vars.polarity == "dark" then
-    "BreezeDark"
-  else
-    "BreezeLight";
+  theme =
+    if vars.catppuccin then
+      "Catppuccin${capitalize vars.catppuccinFlavor}${capitalize vars.catppuccinAccent}"
+    else if vars.polarity == "dark" then
+      "BreezeDark"
+    else
+      "BreezeLight";
 
-  lookAndFeel = if vars.polarity == "dark" then
-    "org.kde.breezedark.desktop"
-  else
-    "org.kde.breeze.desktop";
+  lookAndFeel =
+    if vars.polarity == "dark" then "org.kde.breezedark.desktop" else "org.kde.breeze.desktop";
   cursorTheme = config.stylix.cursor.name;
-in {
+in
+{
   config = lib.mkIf (vars.kde or false) {
 
     xdg.configFile."autostart/ibus-daemon.desktop".text = ''
@@ -44,8 +49,7 @@ in {
       overrideConfig = lib.mkForce true;
 
       workspace = {
-        clickItemTo =
-          "select"; # Require double-click to open files (Windows-style)
+        clickItemTo = "select"; # Require double-click to open files (Windows-style)
 
         colorScheme = theme;
         lookAndFeel = lookAndFeel;
@@ -53,13 +57,14 @@ in {
         wallpaper = wallpaperFiles;
       };
       configFile = {
-        "kdeglobals"."KDE"."widgetStyle" =
-          if vars.catppuccin then "kvantum" else "Breeze";
-        "kdeglobals"."General"."AccentColor" =
-          if vars.catppuccin then "203,166,247" else null;
+        "kdeglobals"."KDE"."widgetStyle" = if vars.catppuccin then "kvantum" else "Breeze";
+        "kdeglobals"."General"."AccentColor" = if vars.catppuccin then "203,166,247" else null;
       };
     };
 
-    home.packages = with pkgs; [ catppuccin-kde catppuccin-kvantum ];
+    home.packages = with pkgs; [
+      catppuccin-kde
+      catppuccin-kvantum
+    ];
   };
 }

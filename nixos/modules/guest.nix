@@ -1,8 +1,9 @@
-{ config
-, pkgs
-, lib
-, vars
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  vars,
+  ...
 }:
 
 let

@@ -1,7 +1,8 @@
-{ pkgs
-, lib
-, vars
-, ...
+{
+  pkgs,
+  lib,
+  vars,
+  ...
 }:
 let
   browserPkg = pkgs.${vars.browser};
@@ -36,11 +37,15 @@ in
   xdg.desktopEntries = {
 
     # Direcly from the links
-    dashboard = mkWebApp "Dashboard-Glance-PWA" "https://glance.nicolkrit.ch/" "utilities-system-monitor";
+    dashboard =
+      mkWebApp "Dashboard-Glance-PWA" "https://glance.nicolkrit.ch/"
+        "utilities-system-monitor";
 
     nas = mkWebApp "NAS-PWA" "https://nas.nicolkrit.ch" "network-server";
 
-    linkwarden = mkWebApp "Linkwarden-PWA" "https://linkwarden.nicolkrit.ch/dashboard" "emblem-favorite";
+    linkwarden =
+      mkWebApp "Linkwarden-PWA" "https://linkwarden.nicolkrit.ch/dashboard"
+        "emblem-favorite";
 
     nix-search = mkWebApp "Nix Search-PWA" "https://search.nixos.org/packages" "system-search";
 
@@ -48,14 +53,15 @@ in
 
     owncloud = mkWebApp "OwnCloud-PWA" "https://owncloud.nicolkrit.ch/" "folder-cloud";
 
-    google-gemini = mkWebApp "Google Gemini AI-PWA" "https://gemini.google.com/app" "utilities-terminal";
+    google-gemini =
+      mkWebApp "Google Gemini AI-PWA" "https://gemini.google.com/app"
+        "utilities-terminal";
 
     github = mkWebApp "Github-PWA" "https://github.com/" "vcs-git";
 
     proton-drive = mkWebApp "Proton Drive-PWA" "https://drive.proton.me/u/0/" "drive-harddisk";
 
     reddit = mkWebApp "Reddit-PWA" "https://www.reddit.com/" "internet-news-reader";
-
 
     # Manual pwa
     notion = {
@@ -71,7 +77,10 @@ in
         StartupWMClass = "notion";
       };
 
-      categories = [ "Office" "Utility" ];
+      categories = [
+        "Office"
+        "Utility"
+      ];
     };
 
     apple-music = {
@@ -84,9 +93,14 @@ in
       icon = appleMusicIcon;
 
       # Critical for the dock to recognize the window
-      settings = { StartupWMClass = "apple-music"; };
+      settings = {
+        StartupWMClass = "apple-music";
+      };
 
-      categories = [ "Audio" "AudioVideo" ];
+      categories = [
+        "Audio"
+        "AudioVideo"
+      ];
     };
   };
 }
