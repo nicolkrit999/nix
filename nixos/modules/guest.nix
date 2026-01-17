@@ -1,9 +1,8 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
+{ config
+, pkgs
+, lib
+, vars
+, ...
 }:
 
 let
@@ -32,16 +31,16 @@ let
          --width=400
     else
        # ❌ WE ARE NOT IN XFCE (FORBIDDEN)
-       
+
        # Show warning in background. User cannot stop what is coming.
        ${pkgs.zenity}/bin/zenity --error \
          --title="Access Denied" \
          --text="<span size='large' weight='bold'>❌ ACCESS DENIED</span>\n\nGuest is restricted to XFCE.\n\n<b>System will reboot in 5 seconds.</b>" \
          --width=400 &
-       
+
        # Wait 5 seconds
        sleep 5
-       
+
        # 3. REBOOT THE COMPUTER
        # This is the only way to safely reset the GPU/Drivers from a forbidden Wayland session
        # without causing a black screen hang.
@@ -84,6 +83,7 @@ in
     systemd.tmpfiles.rules = [
       "d /var/lib/AccountsService/users 0755 root root -"
       "f /var/lib/AccountsService/users/guest 0644 root root - [User]\\nSession=xfce\\n"
+      "f /home/.hidden 0644 root root - guest" # Hide the gues folder from file managers if the user is not guest
     ];
 
     # 🖥️ DESKTOP ENVIRONMENT
