@@ -1,10 +1,4 @@
-{
-  pkgs,
-  lib,
-  config,
-  vars,
-  ...
-}:
+{ pkgs, lib, config, vars, ... }:
 let
   # Styling helper functions
   c = config.lib.stylix.colors.withHashtag;
@@ -17,91 +11,74 @@ let
   };
 
   # Monitor parsing
-  activeMonitors = builtins.filter (
-    m:
+  disabledMonitors = lib.concatMap (m:
     let
       parts = lib.splitString "," m;
-    in
-    (builtins.length parts) > 2
-  ) vars.monitors;
+      len = builtins.length parts;
+      name = builtins.elemAt parts 0;
+      configStr = if len > 1 then builtins.elemAt parts 1 else "";
+    in if (configStr == "disable" || configStr == "disabled") then
+      [ name ]
+    else
+      [ ]) vars.monitors;
 
-  monitorSettings = builtins.listToAttrs (
-    map (
-      m:
+  monitorSettings = builtins.listToAttrs (lib.concatMap (m:
+    let
+      parts = lib.splitString "," m;
+      len = builtins.length parts;
+    in if len < 2 then
+      [ ]
+    else
       let
-        parts = lib.splitString "," m;
         name = builtins.elemAt parts 0;
-        modeStr = builtins.elemAt parts 1;
-        posStr = builtins.elemAt parts 2;
-        scale = builtins.fromJSON (builtins.elemAt parts 3);
+        configStr = builtins.elemAt parts 1;
+      in if (configStr == "disable" || configStr == "disabled") then
+        [ ]
+      else if len < 4 then
+        [ ]
+      else
 
-        posParts = lib.splitString "x" posStr;
-        posX = lib.toInt (builtins.elemAt posParts 0);
-        posY = lib.toInt (builtins.elemAt posParts 1);
+        let
+          name = builtins.elemAt parts 0;
+          modeStr = builtins.elemAt parts 1;
+          posStr = builtins.elemAt parts 2;
+          scale = builtins.fromJSON (builtins.elemAt parts 3);
 
-        modeSplit = lib.splitString "@" modeStr;
-        resSplit = lib.splitString "x" (builtins.head modeSplit);
-        width = lib.toInt (builtins.head resSplit);
-        height = lib.toInt (builtins.elemAt resSplit 1);
-        refresh =
-          if (builtins.length modeSplit > 1) then
+          posParts = lib.splitString "x" posStr;
+          posX = lib.toInt (builtins.elemAt posParts 0);
+          posY = lib.toInt (builtins.elemAt posParts 1);
+
+          modeSplit = lib.splitString "@" modeStr;
+          resSplit = lib.splitString "x" (builtins.head modeSplit);
+          width = lib.toInt (builtins.head resSplit);
+          height = lib.toInt (builtins.elemAt resSplit 1);
+          refresh = if (builtins.length modeSplit > 1) then
             (builtins.fromJSON (builtins.elemAt modeSplit 1)) + 0.0
           else
             60.0;
+          isRotated = (builtins.length parts > 4)
+            && (builtins.elemAt parts 4 == "transform");
+          rotationVal = if isRotated then 90 else 0;
 
-        isRotated = (builtins.length parts > 4) && (builtins.elemAt parts 4 == "transform");
-
-        rotationVal = if isRotated then 90 else 0;
-
-        # App launcher helper functions
-        isTui =
-          app:
-          builtins.elem app [
-            "nvim"
-            "neovim"
-            "vim"
-            "nano"
-            "helix"
-            "yazi"
-            "ranger"
-            "lf"
-            "nnn"
-            "btop"
-            "htop"
-          ];
-
-        spawnApp =
-          app:
-          if isTui app then
-            [
-              "${vars.term}"
-              "-e"
-              app
-            ]
-          else
-            [ app ];
-      in
-      {
-        name = name;
-        value = {
-          mode = {
-            width = width;
-            height = height;
-            refresh = refresh;
+        in [{
+          name = name;
+          value = {
+            mode = {
+              width = width;
+              height = height;
+              refresh = refresh;
+            };
+            scale = scale;
+            position = {
+              x = posX;
+              y = posY;
+            };
+            transform = {
+              rotation = rotationVal;
+              flipped = false;
+            };
           };
-          scale = scale;
-          position = {
-            x = posX;
-            y = posY;
-          };
-          transform = {
-            rotation = rotationVal;
-            flipped = false;
-          };
-        };
-      }
-    ) activeMonitors
-  );
+        }]) vars.monitors);
 
   wallpaper = builtins.head vars.wallpapers;
   wallpaperFile = pkgs.fetchurl {
@@ -109,8 +86,7 @@ let
     sha256 = wallpaper.wallpaperSHA256;
   };
 
-in
-{
+in {
   config = lib.mkIf (vars.niri or false) {
 
     home.packages = with pkgs; [
@@ -131,7 +107,8 @@ in
 
     programs.niri = {
       settings = {
-        hotkey-overlay.skip-at-startup = true; # Disable keymap overlay at startup
+        hotkey-overlay.skip-at-startup =
+          true; # Disable keymap overlay at startup
         # ⌨️ Inputs (From Variables)
         input = {
           keyboard.xkb = {
@@ -156,9 +133,7 @@ in
             { proportion = 0.5; }
             { proportion = 0.66667; }
           ];
-          default-column-width = {
-            proportion = 0.5;
-          };
+          default-column-width = { proportion = 0.5; };
 
           focus-ring = {
             enable = true;
@@ -173,9 +148,7 @@ in
           };
         };
 
-        overview = {
-          zoom = 0.5;
-        };
+        overview = { zoom = 0.5; };
 
         environment = {
           "NIXOS_OZONE_WL" = "1";
@@ -198,21 +171,12 @@ in
             ];
           }
           { command = [ "swww-daemon" ]; }
-          {
-            command = [
-              "swww"
-              "img"
-              "${wallpaperFile}"
-            ];
-          }
-        ]
-        ++ (map (cmd: {
-          command = [
-            "bash"
-            "-c"
-            cmd
-          ];
-        }) (vars.niri_Exec-Once or [ ]));
+          { command = [ "swww" "img" "${wallpaperFile}" ]; }
+        ] ++ (map (name: { command = [ "niri" "msg" "output" name "off" ]; })
+          disabledMonitors)
+
+          ++ (map (cmd: { command = [ "bash" "-c" cmd ]; })
+            (vars.niri_Exec-Once or [ ]));
       };
     };
   };
