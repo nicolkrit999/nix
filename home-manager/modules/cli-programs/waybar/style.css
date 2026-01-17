@@ -13,22 +13,35 @@ window#waybar {
 }
 
 /* ----------------------------------------------------------------------- */
+/* 🪟 WINDOW TITLE                                                         */
+/* ----------------------------------------------------------------------- */
+#window,
+#niri-window {
+  padding: 0 10px;
+  /* max-width: 500px; */
+}
+
+/* ----------------------------------------------------------------------- */
 /* 🗄️ WORKSPACES                                                          */
 /* ----------------------------------------------------------------------- */
-#workspaces button label {
+#workspaces button label,
+#niri-workspaces button label {
   color: @base05;
   padding: 0 10px;
 }
 
-#workspaces button.active label {
+#workspaces button.active label,
+#niri-workspaces button.active label {
   color: @base00;
 }
 
-#workspaces button.active {
+#workspaces button.active,
+#niri-workspaces button.active {
   background: @base0D;
 }
 
-#workspaces button:hover {
+#workspaces button:hover,
+#niri-workspaces button:hover {
   background: @base02;
 }
 

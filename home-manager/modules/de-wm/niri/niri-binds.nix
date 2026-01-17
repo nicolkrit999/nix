@@ -7,7 +7,8 @@ let
       app
     ] else
       [ app ];
-in {
+in
+{
   config = lib.mkIf (vars.niri or false) {
     programs.niri.settings.binds = {
       # -----------------------------------------------------------------------
@@ -33,26 +34,38 @@ in {
       # -----------------------------------------------------------------------
       "Mod+Shift+C".action.close-window = [ ];
       "Mod+M".action.fullscreen-window = [ ];
-      "Mod+V".action.toggle-window-floating = [ ];
+      "Mod+Space".action.toggle-window-floating = [ ];
 
-      # Quit / Lock
-      "Mod+Shift+L".action.quit = { skip-confirmation = true; };
-      "Mod+L".action.spawn = [ "loginctl" "lock-session" ];
-
+      "Mod+Delete".action.spawn = [ "loginctl" "lock-session" ];
+      "Mod+Shift+Delete".action.quit = { skip-confirmation = true; };
       # -----------------------------------------------------------------------
       # ↔️ MOVEMENT (Hyprland Translation)
       # -----------------------------------------------------------------------
       # Focus
       "Mod+Left".action.focus-column-left = [ ];
+      "Mod+H".action.focus-column-left = [ ]; # Alternative
+
       "Mod+Right".action.focus-column-right = [ ];
+      "Mod+L".action.focus-column-right = [ ]; # Alternative
+
       "Mod+Up".action.focus-window-up = [ ];
+      "Mod+K".action.focus-window-up = [ ]; # Alternative
+
       "Mod+Down".action.focus-window-down = [ ];
+      "Mod+J".action.focus-window-down = [ ]; # Alternative
 
       # Move Windows
       "Mod+Shift+Left".action.move-column-left = [ ];
+      "Mod+Shift+H".action.move-column-left = [ ]; # Alternative
+
       "Mod+Shift+Right".action.move-column-right = [ ];
+      "Mod+Shift+L".action.move-column-right = [ ]; # Alternative
+
       "Mod+Shift+Up".action.move-window-up = [ ];
+      "Mod+Shift+K".action.move-window-up = [ ]; # Alternative
+
       "Mod+Shift+Down".action.move-window-down = [ ];
+      "Mod+Shift+J".action.move-window-down = [ ]; # Alternative
 
       # -----------------------------------------------------------------------
       # 🔢 WORKSPACES (1-9)
@@ -92,20 +105,48 @@ in {
       "Mod+BracketLeft".action.spawn = [ "brightnessctl" "s" "10%-" ];
 
       # -----------------------------------------------------------------------
-      # 📸 SCREENSHOTS (Grimblast)
+      # 🔔 NOTIFICATIONS (SwayNC)
+      # -----------------------------------------------------------------------
+      # Toggle Notification Center
+      "Mod+N".action.spawn = [ "swaync-client" "-t" "-sw" ];
+
+      # -----------------------------------------------------------------------
+      # 📸 SCREENSHOTS
       # -----------------------------------------------------------------------
       # Fullscreen
-      "Mod+Ctrl+3".action.spawn =
-        [ "grimblast" "--notify" "--freeze" "copysave" "output" ];
-      # Area
-      "Mod+Ctrl+4".action.spawn =
-        [ "grimblast" "--notify" "--freeze" "copysave" "area" ];
+      "Mod+Ctrl+3".action.spawn = [
+        "bash"
+        "-c"
+        ''
+          file="$HOME/Pictures/Screenshots/Screenshot from $(date +'%Y-%m-%d %H-%M-%S').png"
+          mkdir -p "$(dirname "$file")"
+          grim "$file"
+          wl-copy < "$file"
+          notify-send "Screenshot" "Saved to $file and copied to clipboard"
+        ''
+      ];
+
+      # Area Selection (Save to Pictures + Copy to Clipboard)
+      "Mod+Ctrl+4".action.spawn = [
+        "bash"
+        "-c"
+        ''
+          file="$HOME/Pictures/Screenshots/Screenshot from $(date +'%Y-%m-%d %H-%M-%S').png"
+          mkdir -p "$(dirname "$file")"
+          slurp | grim -g - "$file"
+          wl-copy < "$file"
+          notify-send "Screenshot" "Saved to $file and copied to clipboard"
+        ''
+      ];
 
       # -----------------------------------------------------------------------
       # 🛠️ UTILITIES
       # -----------------------------------------------------------------------
-      "Mod+Alt+Space".action.spawn = [ "bemoji" "-cn" ]; # Emoji
-      "Mod+P".action.spawn = [ "hyprpicker" "-an" ]; # Color Picker
+      "Mod+Period".action.spawn = [ "bemoji" "-cn" ]; # Emoji
+      "Mod+Shift+P".action.spawn = [ "hyprpicker" "-an" ]; # Color Picker
+      "Mod+V".action.spawn = [ "bash" "-c" "${pkgs.cliphist}/bin/cliphist list | wofi --dmenu | ${pkgs.cliphist}/bin/cliphist decode | wl-copy" ]; # Clipboard History
+      "Mod+O".action.toggle-overview = [ ]; # Window Overview
+
       "Mod+Shift+R".action.spawn =
         [ "niri" "msg" "action" "reload-config" ]; # Reload
     };

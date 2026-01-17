@@ -59,12 +59,12 @@ let
     {
       name = "Emoji Picker";
       command = "${pkgs.bemoji}/bin/bemoji -cn";
-      binding = "<Super><Alt>space";
+      binding = "<Super>Period";
     }
     {
       name = "Clipboard History";
       command = "${cliphistScript}";
-      binding = "<Super><Shift>v";
+      binding = "<Super>v";
     }
   ]
   ++ (vars.gnomeExtraBinds or [ ]);
@@ -103,8 +103,8 @@ in
   dconf.settings = {
     "org/gnome/settings-daemon/plugins/media-keys" = {
       custom-keybindings = dconfList;
-      screensaver = [ "<Super>l" ];
-      logout = [ "<Super><Shift>l" ];
+      screensaver = [ "<Super>Delete" ];
+      logout = [ "<Super><Shift>Delete" ];
     };
 
     "org/gnome/desktop/wm/keybindings" = {

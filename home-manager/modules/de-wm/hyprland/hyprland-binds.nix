@@ -1,19 +1,13 @@
-{
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
-{
+{ pkgs, lib, vars, ... }: {
   config = lib.mkIf (vars.hyprland or false) {
     wayland.windowManager.hyprland.settings = {
       bind = [
         # BASIC WINDOW MANAGEMENT
         "$mainMod SHIFT, C, killactive," # Close active window
         "$mainMod,       J, togglesplit," # Toggle split/stacked layout
-        "$mainMod,       V, togglefloating," # Toggle floating mode: the window can be freely moved/resized
+        "$mainMod,        space, togglefloating," # Toggle floating mode: the window can be freely moved/resized
         "$mainMod,       M, fullscreen," # Toggle fullscreen (maximise): the window occupies the entire screen
-        "$mainMod SHIFT, P, pin," # Pin/unpin window. Copy the same windows to all workspaces with same dimensions and position
+        "$mainMod ALT,   P, pin," # Pin/unpin window. Copy the same windows to all workspaces with same dimensions and position
 
         # APPLICATION LAUNCHING
         "$mainMod,       A, exec, $menu --show drun" # Application launcher menu (wofi)
@@ -29,13 +23,13 @@
         "$mainMod, C, exec, $editor" # Code editor
 
         # SESSION MANAGEMENT
-        "$mainMod SHIFT, L, exit," # Log out of Hyprland session
-        "$mainMod,       L, exec, loginctl lock-session" # Lock screen
+        "$mainMod SHIFT, Delete, exit," # Log out
+        "$mainMod,       Delete, exec, loginctl lock-session" # Lock
 
         # EXTRA UTILITIES
-        "$mainMod ALT,   space, exec, bemoji -cn" # Emoji picker
-        "$mainMod,       P, exec, hyprpicker -an" # Color picker
-        "$mainMod SHIFT, V, exec, cliphist list | $menu --dmenu | cliphist decode | wl-copy" # Clipboard history (cliphist)
+        "$mainMod,       period, exec, bemoji -cn" # Emoji picker
+        "$mainMod SHIFT, P, exec, hyprpicker -an" # Color picker
+        "$mainMod,       V, exec, cliphist list | $menu --dmenu | cliphist decode | wl-copy" # Clipboard history (cliphist)
         "$mainMod SHIFT, R, exec, hyprctl reload" # Reload Hyprland config
         "$mainMod,       N, exec, swaync-client -t" # Open notification center
 
@@ -47,21 +41,37 @@
         # SCREENSHOTS (Updated to Meta+Ctrl)
         "SUPER CTRL, 3, exec, grimblast --notify --freeze copysave output" # Fullscreen
         "SUPER CTRL, 4, exec, grimblast --notify --freeze copysave area" # Region
-        ''SUPER CTRL, R, exec, pkill -SIGINT gpu-screen-recorder || gpu-screen-recorder -w screen -f 60 -c mkv -o "$HOME/Videos/Recordings/mute-fullscreen-recording_$(date +%Y-%m-%d_%H-%M-%S).mkv"''
+        ''
+          SUPER CTRL, R, exec, pkill -SIGINT gpu-screen-recorder || gpu-screen-recorder -w screen -f 60 -c mkv -o "$HOME/Videos/Recordings/mute-fullscreen-recording_$(date +%Y-%m-%d_%H-%M-%S).mkv"''
 
         # MOVING FOCUS
         "$mainMod,      left, movefocus, l" # Move focus left
+        "$mainMod,      H, movefocus, l" # Move focus left (alternative key)
+
         "$mainMod,      right, movefocus, r" # Move focus right
+        "$mainMod,      L, movefocus, r" # Move focus right (alternative key)
+
         "$mainMod,      up, movefocus, u" # Move focus up
+        "$mainMod,      K, movefocus, u" # Move focus up (alternative key)
+
         "$mainMod,      down, movefocus, d" # Move focus down
+        "$mainMod,      J, movefocus, d" # Move focus down (alternative key)
+
         "CONTROL, Right, workspace, m+1" # Move to next workspace number
         "CONTROL, Left, workspace, m-1" # Move to previous workspace number
 
         # MOVING WINDOWS
         "$mainMod SHIFT, left,  swapwindow, l" # Move window left
+        "$mainMod SHIFT, H,     swapwindow, l" # Move window left (alternative key)
+
         "$mainMod SHIFT, right, swapwindow, r" # Move window right
+        "$mainMod SHIFT, L,     swapwindow, r" # Move window right (alternative key)
+
         "$mainMod SHIFT, up,    swapwindow, u" # Move window up
+        "$mainMod SHIFT, K,     swapwindow, u" # Move window up (alternative key)
+
         "$mainMod SHIFT, down,  swapwindow, d" # Move window down
+        "$mainMod SHIFT, J,     swapwindow, d" # Move window down (alternative key)
 
         # RESIZEING WINDOWS                   X  Y
         "$mainMod CTRL, left,  resizeactive, -60 0" # Resize window left, -60 represent pixels
@@ -97,8 +107,7 @@
         # They overlay other windows and can be toggled visible/invisible
         "$mainMod,       S, togglespecialworkspace,  magic" # Toggle scratchpad visibility
         "$mainMod SHIFT, S, movetoworkspace, special:magic" # Move window to scratchpad
-      ]
-      ++ (vars.hyprlandExtraBinds or [ ]);
+      ] ++ (vars.hyprlandExtraBinds or [ ]);
 
       # MOVE/RESIZE WINDOWS WITH MAINMOD + LMB/RMB AND DRAGGING
       bindm = [
