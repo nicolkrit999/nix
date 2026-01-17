@@ -2,11 +2,10 @@
   # ---------------------------------------------------------------
   # 🖥️ HOST VARIABLES
   # ---------------------------------------------------------------
-
   system = "x86_64-linux";
 
   # ⚙️ VERSIONS
-  # During the first installation it is a good idea to make them the same as the other versions
+  # During the first installation it is a good idea to make them the same as the other versions (or the latest available)
   # Later where other version may be updated these 2 should not be changed, meaning they should remain what they were at the beginning
   # These 2 versions define where there system was created, and keeping them always the same it is a better idea
   stateVersion = "25.11";
@@ -20,6 +19,8 @@
   # 🖥️ DESKTOP ENVIRONMENT
   hyprland = true;
   caelestia = false;
+
+  niri = false;
 
   gnome = false;
   kde = false;

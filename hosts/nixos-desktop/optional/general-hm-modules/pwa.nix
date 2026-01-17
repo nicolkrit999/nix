@@ -14,7 +14,7 @@ let
     sha256 = "1gnm4ib1i30winhz4qhpyx21syp9ahhwdj3n1l7345l9kmjiv06s";
   };
 
-appleMusicIcon = pkgs.fetchurl {
+  appleMusicIcon = pkgs.fetchurl {
     url = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Apple_Music_icon.svg/1024px-Apple_Music_icon.svg.png";
     sha256 = "039c0xxwjvh4gfjnhfyrdc3kk09q3glvd7m8zsg9nzdg01bybkx7";
   };
@@ -57,12 +57,12 @@ in
     reddit = mkWebApp "Reddit-PWA" "https://www.reddit.com/" "internet-news-reader";
 
 
-   # Manual pwa
-   notion = {
+    # Manual pwa
+    notion = {
       name = "Notion-PWA";
       genericName = "Notes";
 
-      exec = "${pkgs.chromium}/bin/chromium --app=https://www.notion.so/ --class=notion";
+      exec = "${pkgs.google-chrome}/bin/google-chrome-stable --app=https://www.notion.so/ --class=notion";
 
       terminal = false;
       icon = notionIcon;
@@ -79,8 +79,7 @@ in
       genericName = "Music Player";
 
       # Using Chromium directly ensures "App Mode" works perfectly
-      exec = "${pkgs.chromium}/bin/chromium --app=https://music.apple.com/ --class=apple-music";
-
+      exec = "${pkgs.google-chrome}/bin/google-chrome-stable --app=\"https://music.apple.com/ch/home?l=en\" --class=apple-music";
       terminal = false;
       icon = appleMusicIcon;
 
