@@ -1,1 +1,7 @@
-{ pkgs, lib, vars, ... }: { }
+{
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
+{ }

@@ -1,8 +1,9 @@
-{ config
-, lib
-, pkgs
-, vars
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  vars,
+  ...
 }:
 let
   spectacleCmd = "${pkgs.kdePackages.spectacle}/bin/spectacle";

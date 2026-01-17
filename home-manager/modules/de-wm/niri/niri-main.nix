@@ -1,4 +1,10 @@
-{ pkgs, lib, config, vars, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  vars,
+  ...
+}:
 let
   # Styling helper functions
   c = config.lib.stylix.colors.withHashtag;
@@ -11,12 +17,17 @@ let
   };
 
   # Monitor parsing
-  activeMonitors = builtins.filter
-    (m: let parts = lib.splitString "," m; in (builtins.length parts) > 2)
-    vars.monitors;
+  activeMonitors = builtins.filter (
+    m:
+    let
+      parts = lib.splitString "," m;
+    in
+    (builtins.length parts) > 2
+  ) vars.monitors;
 
-  monitorSettings = builtins.listToAttrs (map
-    (m:
+  monitorSettings = builtins.listToAttrs (
+    map (
+      m:
       let
         parts = lib.splitString "," m;
         name = builtins.elemAt parts 0;
@@ -38,13 +49,13 @@ let
           else
             60.0;
 
-        isRotated = (builtins.length parts > 4)
-          && (builtins.elemAt parts 4 == "transform");
+        isRotated = (builtins.length parts > 4) && (builtins.elemAt parts 4 == "transform");
 
         rotationVal = if isRotated then 90 else 0;
 
         # App launcher helper functions
-        isTui = app:
+        isTui =
+          app:
           builtins.elem app [
             "nvim"
             "neovim"
@@ -59,8 +70,16 @@ let
             "htop"
           ];
 
-        spawnApp = app:
-          if isTui app then [ "${vars.term}" "-e" app ] else [ app ];
+        spawnApp =
+          app:
+          if isTui app then
+            [
+              "${vars.term}"
+              "-e"
+              app
+            ]
+          else
+            [ app ];
       in
       {
         name = name;
@@ -80,8 +99,9 @@ let
             flipped = false;
           };
         };
-      })
-    activeMonitors);
+      }
+    ) activeMonitors
+  );
 
   wallpaper = builtins.head vars.wallpapers;
   wallpaperFile = pkgs.fetchurl {
@@ -136,7 +156,9 @@ in
             { proportion = 0.5; }
             { proportion = 0.66667; }
           ];
-          default-column-width = { proportion = 0.5; };
+          default-column-width = {
+            proportion = 0.5;
+          };
 
           focus-ring = {
             enable = true;
@@ -176,9 +198,21 @@ in
             ];
           }
           { command = [ "swww-daemon" ]; }
-          { command = [ "swww" "img" "${wallpaperFile}" ]; }
-        ] ++ (map (cmd: { command = [ "bash" "-c" cmd ]; })
-          (vars.niri_Exec-Once or [ ]));
+          {
+            command = [
+              "swww"
+              "img"
+              "${wallpaperFile}"
+            ];
+          }
+        ]
+        ++ (map (cmd: {
+          command = [
+            "bash"
+            "-c"
+            cmd
+          ];
+        }) (vars.niri_Exec-Once or [ ]));
       };
     };
   };
