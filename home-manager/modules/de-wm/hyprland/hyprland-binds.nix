@@ -3,11 +3,11 @@
     wayland.windowManager.hyprland.settings = {
       bind = [
         # BASIC WINDOW MANAGEMENT
-        "$mainMod SHIFT, C, killactive," # Close active window
-        "$mainMod,       J, togglesplit," # Toggle split/stacked layout
-        "$mainMod,        space, togglefloating," # Toggle floating mode: the window can be freely moved/resized
-        "$mainMod,       M, fullscreen," # Toggle fullscreen (maximise): the window occupies the entire screen
-        "$mainMod ALT,   P, pin," # Pin/unpin window. Copy the same windows to all workspaces with same dimensions and position
+        "$mainMod SHIFT, C, killactive" # Close active window
+        "$mainMod,       T, togglesplit" # Toggle split/stacked layout
+        "$mainMod,        space, togglefloating" # Toggle floating mode: the window can be freely moved/resized
+        "$mainMod,       M, fullscreen" # Toggle fullscreen (maximise): the window occupies the entire screen
+        "$mainMod ALT,   P, pin" # Pin/unpin window. Copy the same windows to all workspaces with same dimensions and position
 
         # APPLICATION LAUNCHING
         "$mainMod,       A, exec, $menu --show drun" # Application launcher menu (wofi)
@@ -23,7 +23,7 @@
         "$mainMod, C, exec, $editor" # Code editor
 
         # SESSION MANAGEMENT
-        "$mainMod SHIFT, Delete, exit," # Log out
+        "$mainMod SHIFT, Delete, exit" # Log out
         "$mainMod,       Delete, exec, loginctl lock-session" # Lock
 
         # EXTRA UTILITIES
@@ -58,7 +58,9 @@
         "$mainMod,      J, movefocus, d" # Move focus down (alternative key)
 
         "CONTROL, Right, workspace, m+1" # Move to next workspace number
+        "CONTROL, L,     workspace, m+1" # Move to next workspace number
         "CONTROL, Left, workspace, m-1" # Move to previous workspace number
+        "CONTROL, H,    workspace, m-1" # Move to previous workspace number
 
         # MOVING WINDOWS
         "$mainMod SHIFT, left,  swapwindow, l" # Move window left

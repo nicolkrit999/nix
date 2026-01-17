@@ -10,7 +10,7 @@ let
     fileManager = "3";
     vm = "4";
     other = "5";
-    browser = "7";
+    browser-Entertainment = "7";
     terminal = "8";
     chat = "9";
   };
@@ -75,7 +75,8 @@ in
 
     "workspace ${appWorkspaces.other} silent, class:^(Actual)$"
 
-    "workspace ${appWorkspaces.browser} silent, class:^(chromium-browser)$"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chrome-music\.apple\.com.*)$"
 
     "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
     "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
