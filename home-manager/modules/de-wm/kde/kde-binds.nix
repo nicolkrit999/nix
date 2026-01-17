@@ -1,9 +1,8 @@
-{
-  config,
-  lib,
-  pkgs,
-  vars,
-  ...
+{ config
+, lib
+, pkgs
+, vars
+, ...
 }:
 let
   spectacleCmd = "${pkgs.kdePackages.spectacle}/bin/spectacle";
@@ -64,11 +63,11 @@ in
       command = "${pkgs.wofi}/bin/wofi --show drun";
     };
     "launch-bemoji" = {
-      key = "Meta+Alt+Space";
+      key = "Meta+.";
       command = "${bemojiScript}";
     };
     "launch-cliphist" = {
-      key = "Meta+Shift+V";
+      key = "Meta+V";
       command = "${cliphistScript}";
     };
     "launch-browser" = {
@@ -137,8 +136,8 @@ in
     };
 
     # Session
-    "ksmserver"."Log Out" = "Meta+Shift+L";
-    "ksmserver"."Lock Session" = "Meta+L";
+    "ksmserver"."Log Out" = "Meta+Shift+Delete";
+    "ksmserver"."Lock Session" = "Meta+Delete";
 
     "powerdevil"."Switch to Balanced" = "none";
     "plasmashell"."show-battery" = "none";

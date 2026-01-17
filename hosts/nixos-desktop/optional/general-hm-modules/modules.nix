@@ -36,7 +36,8 @@ let
   };
 
   resolve = name: desktopMap.${name} or "${name}.desktop";
-in {
+in
+{
   # ---------------------------------------------------------------------------
   # 🖥️ HYPRLAND WORKSPACES
   # ---------------------------------------------------------------------------
@@ -206,6 +207,18 @@ in {
     "sleep 5 && protonvpn-app --start-minimized"
 
     # System tweaks
+  ];
+
+  niri_Exec-Once = [
+    # Personal apps
+    "${vars.browser}"
+    "${vars.editor}"
+    "${vars.fileManager}"
+    "${vars.term}"
+
+    # Secondary apps
+    "chromium-browser"
+    # "sleep 5 && protonvpn-app --start-minimized"
   ];
 
   stylixExclusions = {

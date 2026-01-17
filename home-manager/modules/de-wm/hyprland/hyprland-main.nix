@@ -1,9 +1,8 @@
-{
-  config,
-  lib,
-  pkgs,
-  vars,
-  ...
+{ config
+, lib
+, pkgs
+, vars
+, ...
 }:
 {
 
@@ -110,11 +109,7 @@
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
           "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP" # Keeps dbus environment updated for Wayland apps.
-        ]
-        ++ lib.optionals (!(vars.caelestia or false)) [
-          "uwsm app -- waybar" # Start waybar only if "caelestia" is disabled in variables.nix
-        ]
-        ++ (vars.hyprland_Exec-Once or [ ]);
+        ] ++ (vars.hyprland_Exec-Once or [ ]);
 
         # -----------------------------------------------------
         # 🎨 Look & Feel
