@@ -1,20 +1,12 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
+{ config, pkgs, lib, vars, ... }:
 let
-  shellPkg =
-    if vars.shell == "fish" then
-      pkgs.fish
-    else if vars.shell == "zsh" then
-      pkgs.zsh
-    else
-      pkgs.bashInteractive;
-in
-{
+  shellPkg = if vars.shell == "fish" then
+    pkgs.fish
+  else if vars.shell == "zsh" then
+    pkgs.zsh
+  else
+    pkgs.bashInteractive;
+in {
 
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY
@@ -38,12 +30,7 @@ in
   # ---------------------------------------------------------
   # 🛠️ NIX SETTINGS
   # ---------------------------------------------------------
-  nix.settings = {
-    trusted-users = [
-      "root"
-      "@wheel"
-    ];
-  };
+  nix.settings = { trusted-users = [ "root" "@wheel" ]; };
 
   # Allow unfree packages globally (needed for drivers, code, etc.)
   nixpkgs.config.allowUnfree = true;
@@ -51,8 +38,7 @@ in
   # ---------------------------------------------------------
   # 📦 SYSTEM PACKAGES
   # ---------------------------------------------------------
-  environment.systemPackages =
-    with pkgs;
+  environment.systemPackages = with pkgs;
     [
       # --- CLI UTILITIES ---
       dix # Nix diff viewer
@@ -81,18 +67,24 @@ in
       wvkbd # Virtual keyboard (for Wayland)
 
       # --- GRAPHICS & GUI SUPPORT ---
-      gpu-screen-recorder # For recording/caelestia
       gtk3 # Standard GUI toolkit
       libsForQt5.qt5.qtwayland # Qt5 Wayland bridge
       kdePackages.qtwayland # Qt6 Wayland bridge
       powerline-symbols # Terminal font glyphs
     ]
+    # Installation of packages available only on x86_64 systems
+    ++ lib.optionals (stdenv.hostPlatform.system == "x86_64-linux") [
+      gpu-screen-recorder
+    ]
+
+    # Extra KDE specific packages
     ++ (with pkgs.kdePackages; [
       gwenview # Default image viewer as defined in mime.nix
       kio-extras # Extra protocols for KDE file dialogs (needed for dolphin remote access)
       kio-fuse # Mount remote filesystems (via ssh, ftp, etc.) in Dolphin
     ])
 
+    # Extra packages from unstable channel
     ++ (with pkgs-unstable; [ ]);
 
   # ---------------------------------------------------------
@@ -118,36 +110,45 @@ in
   security.rtkit.enable = true;
   services.openssh.enable = true;
 
-  # Wrappers for GPU Screen Recorder (needed for Caelestia/Recording)
-  security.wrappers.gpu-screen-recorder = {
-    owner = "root";
-    group = "root";
-    capabilities = "cap_sys_admin+ep";
-    source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
-  };
+  # Only define these wrappers if we are on an x86 system.
+  security.wrappers =
+    lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
+      gpu-screen-recorder = {
+        owner = "root";
+        group = "root";
+        capabilities = "cap_sys_admin+ep";
+        source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
+      };
 
-  security.wrappers.gsr-kms-server = {
-    owner = "root";
-    group = "root";
-    capabilities = "cap_sys_admin+ep";
-    source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
-  };
+      gsr-kms-server = {
+        owner = "root";
+        group = "root";
+        capabilities = "cap_sys_admin+ep";
+        source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
+      };
+    };
 
-  # Polkit Rules: Realtime Audio & GPU Recorder Permissions
+  # Use optionalString to inject the GPU rule ONLY on x86.
   security.polkit.enable = true;
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
       if (subject.isInGroup("wheel")) {
-        // Auto-approve realtime audio requests
+        // Auto-approve realtime audio requests (Keep this for everyone)
         if (action.id == "org.freedesktop.RealtimeKit1.acquire-high-priority" ||
             action.id == "org.freedesktop.RealtimeKit1.acquire-real-time") {
           return polkit.Result.YES;
         }
-        // Auto-approve gpu-screen-recorder running as root
-        if (action.id == "org.freedesktop.policykit.exec" &&
-            action.lookup("program") &&
-            action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
-          return polkit.Result.YES;
+
+        ${
+          lib.optionalString
+          (pkgs.stdenv.hostPlatform.system == "x86_64-linux") ''
+            // Auto-approve gpu-screen-recorder running as root (x86 ONLY)
+            if (action.id == "org.freedesktop.policykit.exec" &&
+                action.lookup("program") &&
+                action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
+              return polkit.Result.YES;
+            }
+          ''
         }
       }
     });
@@ -158,11 +159,6 @@ in
   # ---------------------------------------------------------
   programs.zsh.enable = vars.shell == "zsh";
   programs.fish.enable = vars.shell == "fish";
-
-  i18n.inputMethod.enabled = lib.mkForce null;
-  environment.variables.GTK_IM_MODULE = lib.mkForce "";
-  environment.variables.QT_IM_MODULE = lib.mkForce "";
-  environment.variables.XMODIFIERS = lib.mkForce "";
 
   # -----------------------------------------------------
   # 🎨 GLOBAL THEME VARIABLES
@@ -175,10 +171,13 @@ in
   # ⚡ SYSTEM TWEAKS
   # -----------------------------------------------------
   # Reduce shutdown wait time for stuck services
-  systemd.settings.Manager = {
-    DefaultTimeoutStopSec = "10s";
-  };
+  systemd.settings.Manager = { DefaultTimeoutStopSec = "10s"; };
 
   # Enable home-manager backup files
   home-manager.backupFileExtension = lib.mkForce "hm-backup";
+
+  # Enable emulation for aarch64 linux for testing purposes on x86_64 hosts
+  boot.binfmt.emulatedSystems =
+    lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux")
+    [ "aarch64-linux" ];
 }
