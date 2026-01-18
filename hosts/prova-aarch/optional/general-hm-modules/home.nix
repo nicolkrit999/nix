@@ -7,10 +7,7 @@
       # -----------------------------------------------------------------------------------
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------------------
-      # FIXME: Chrome not supported on aarch64
-      #google-chrome # Needed for pwa to work
-      # FIXME: Wine not supported on aarch64
-      #winboat # Enable to run windows programs
+      brave # Needed for pwa to work
 
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES

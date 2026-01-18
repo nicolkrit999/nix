@@ -3,7 +3,7 @@
 {
   imports = [
     # FIX: Commented because google-chrome based pwa are not working on aarch64
-    #./pwa.nix
+    ./pwa.nix
     ./home.nix
     #./wrappers.nix
   ];

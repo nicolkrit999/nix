@@ -13,8 +13,6 @@
       localsend # Simple file sharing over local network
       meld # Visual diff and merge tool
       obs-studio # Streaming/Recording
-      # FIXME: Proton Pass not supported on aarch64
-      #proton-pass # Password manager by Proton
       protonvpn-gui # VPN client by Proton
       signal-desktop # Encrypted messaging application
       telegram-desktop # Messaging

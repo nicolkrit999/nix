@@ -1,3 +1,4 @@
+
 {
   lib,
   pkgs,
@@ -25,6 +26,7 @@ let
     "firefox" = "firefox.desktop";
     "google-chrome" = "google-chrome.desktop";
     "chromium" = "chromium-browser.desktop"; # Found in user-apps.txt
+    "brave" = "brave-browser.desktop";
 
     # Editors
     "nvim" = "custom-nvim.desktop"; # Standard package provides this
@@ -81,7 +83,8 @@ in
     "workspace ${appWorkspaces.other} silent, class:^(Actual)$"
 
     "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$"
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chrome-music\.apple\.com.*)$"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-music\.apple\.com.*)$"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-browser)$"
 
     "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
     "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"

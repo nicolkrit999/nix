@@ -1,12 +1,14 @@
 { config, pkgs, lib, vars, ... }:
 let
-  shellPkg = if vars.shell == "fish" then
-    pkgs.fish
-  else if vars.shell == "zsh" then
-    pkgs.zsh
-  else
-    pkgs.bashInteractive;
-in {
+  shellPkg =
+    if vars.shell == "fish" then
+      pkgs.fish
+    else if vars.shell == "zsh" then
+      pkgs.zsh
+    else
+      pkgs.bashInteractive;
+in
+{
 
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY
@@ -179,5 +181,10 @@ in {
   # Enable emulation for aarch64 linux for testing purposes on x86_64 hosts
   boot.binfmt.emulatedSystems =
     lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux")
-    [ "aarch64-linux" ];
+      [ "aarch64-linux" ];
+
+  # Enable the modern power-profiles-daemon
+  services.power-profiles-daemon.enable = true;
+  # Explicitly disable TLP to avoid conflicts
+  services.tlp.enable = false;
 }

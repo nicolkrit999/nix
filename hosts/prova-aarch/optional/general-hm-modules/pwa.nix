@@ -1,10 +1,21 @@
 { pkgs, lib, vars, ... }:
-
-# FIX: Google Chrome is not supported on aarch64
 let
+  # 1. Detect Architecture
+  isX86 = pkgs.stdenv.hostPlatform.system == "x86_64-linux";
+  # pwa that needs different browsers based on architecture
+  pwaBrowser = "${pkgs.brave}/bin/brave";
+
+  # Regular pwa
   browserPkg = pkgs.${vars.browser};
   browserBin = "${browserPkg}/bin/${vars.browser}";
 
+  appleMusicCommand = if isX86 then
+    ''${pkgs.brave}/bin/brave --app="https://music.apple.com/ch/home?l=en"''
+  else
+    ''
+      ${pkgs.firefox}/bin/firefox --new-window "https://music.apple.com/ch/home?l=en"'';
+
+  # Detect firefox-based browsers
   isFirefox = vars.browser == "firefox" || vars.browser == "librewolf"
     || vars.browser == "floorp";
 
@@ -67,35 +78,28 @@ in {
       mkWebApp "Reddit-PWA" "https://www.reddit.com/" "internet-news-reader";
 
     # Manual pwa
+    # Notion
     notion = {
       name = "Notion-PWA";
       genericName = "Notes";
-
-      exec =
-        "${pkgs.google-chrome}/bin/google-chrome-stable --app=https://www.notion.so/ --class=notion";
-
+      exec = "${pwaBrowser} --app=https://www.notion.so/ --class=notion";
       terminal = false;
       icon = notionIcon;
-
       settings = { StartupWMClass = "notion"; };
-
       categories = [ "Office" "Utility" ];
     };
 
+    # --- Apple Music (Smart Switch) ---
     apple-music = {
       name = "Apple Music-PWA";
       genericName = "Music Player";
-
-      # Using Chromium directly ensures "App Mode" works perfectly
-      exec = ''
-        ${pkgs.google-chrome}/bin/google-chrome-stable --app="https://music.apple.com/ch/home?l=en" --class=apple-music'';
+      exec = appleMusicCommand;
       terminal = false;
       icon = appleMusicIcon;
-
-      # Critical for the dock to recognize the window
-      settings = { StartupWMClass = "apple-music"; };
-
-      categories = [ "Audio" "AudioVideo" ];
+      settings = {
+        StartupWMClass = if isX86 then "apple-music" else "firefox";
+      };
+      categories = [ "AudioVideo" "Audio" ];
     };
   };
 }
