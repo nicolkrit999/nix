@@ -1,0 +1,17 @@
+{
+  pkgs,
+  jdk ? pkgs.jdk25,
+}:
+[
+  jdk
+  pkgs.gradle # Build tool
+  pkgs.maven # Build tool
+  pkgs.nodejs # JavaScript runtime
+  pkgs.jdt-language-server # Java LSP server
+  pkgs.jetbrains.idea-oss # Java IDE
+  vscode-extensions.vscjava.vscode-java-debug # Java debugger for Neovim DAP
+  vscode-extensions.vscjava.vscode-java-test # Java testing support for Neovim DAP
+
+  # Neovim plugins
+  vimPlugins.nvim-java-test # Java testing support
+]
