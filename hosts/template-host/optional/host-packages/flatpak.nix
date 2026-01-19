@@ -1,8 +1,7 @@
-{
-  pkgs,
-  lib,
-  flatpak,
-  ...
+{ pkgs
+, lib
+, flatpak
+, ...
 }:
 {
   # Only apply if flatpak is enabled in flake.nix
@@ -28,6 +27,16 @@
 
     # Auto-update Flatpaks
     services.flatpak.update.onActivation = true;
+
+    systemd.services.flatpak-managed-install = {
+      serviceConfig = {
+        TimeoutStartSec = lib.mkForce "900";
+        Restart = lib.mkForce "on-failure";
+        RestartSec = lib.mkForce "10s";
+      };
+      wants = [ "network-online.target" ];
+      after = [ "network-online.target" ];
+    };
 
     xdg.portal = {
       enable = true;

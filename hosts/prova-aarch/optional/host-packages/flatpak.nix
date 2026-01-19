@@ -1,8 +1,7 @@
-{
-  pkgs,
-  lib,
-  vars,
-  ...
+{ pkgs
+, lib
+, vars
+, ...
 }:
 {
   config = lib.mkIf vars.flatpak {
@@ -30,6 +29,16 @@
         location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
       }
     ];
+
+    systemd.services.flatpak-managed-install = {
+      serviceConfig = {
+        TimeoutStartSec = lib.mkForce "900";
+        Restart = lib.mkForce "on-failure";
+        RestartSec = lib.mkForce "10s";
+      };
+      wants = [ "network-online.target" ];
+      after = [ "network-online.target" ];
+    };
 
     xdg.portal = {
       enable = true;

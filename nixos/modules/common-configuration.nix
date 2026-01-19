@@ -75,9 +75,11 @@ in
       powerline-symbols # Terminal font glyphs
     ]
     # Installation of packages available only on x86_64 systems
-    ++ lib.optionals (stdenv.hostPlatform.system == "x86_64-linux") [
-      gpu-screen-recorder
-    ]
+    ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux") (
+      builtins.trace "✅ x86_64 Architecture Detected: Installing gpu-screen-recorder and applying permission fixes" [
+        gpu-screen-recorder
+      ]
+    )
 
     # Extra KDE specific packages
     ++ (with pkgs.kdePackages; [
@@ -182,6 +184,12 @@ in
   boot.binfmt.emulatedSystems =
     lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux")
       [ "aarch64-linux" ];
+
+  # Add KWallet integration for SDDM and GDM display managers
+  security.pam.services = {
+    sddm.enableKwallet = config.services.displayManager.sddm.enable;
+    gdm.enableKwallet = config.services.displayManager.gdm.enable;
+  };
 
   # Enable the modern power-profiles-daemon
   services.power-profiles-daemon.enable = true;

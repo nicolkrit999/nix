@@ -1,8 +1,7 @@
-{
-  pkgs,
-  lib,
-  vars,
-  ...
+{ pkgs
+, lib
+, vars
+, ...
 }:
 {
   config = lib.mkIf vars.flatpak {
@@ -35,6 +34,16 @@
       enable = true;
       extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
       config.common.default = "gtk";
+    };
+
+    systemd.services.flatpak-managed-install = {
+      serviceConfig = {
+        TimeoutStartSec = lib.mkForce "900";
+        Restart = lib.mkForce "on-failure";
+        RestartSec = lib.mkForce "10s";
+      };
+      wants = [ "network-online.target" ];
+      after = [ "network-online.target" ];
     };
   };
 }
