@@ -1,8 +1,16 @@
 { pkgs, lib, inputs, vars, ... }:
 let
   # Allow to install "unfree" addons by rebuilding them locally
-  buildFirefoxXpiAddon = lib.makeOverridable ({ stdenv ? pkgs.stdenv, fetchurl
-    , pname, version, addonId, url, sha256, meta, ... }:
+  buildFirefoxXpiAddon = lib.makeOverridable ({ stdenv ? pkgs.stdenv
+                                              , fetchurl
+                                              , pname
+                                              , version
+                                              , addonId
+                                              , url
+                                              , sha256
+                                              , meta
+                                              , ...
+                                              }:
     stdenv.mkDerivation {
       name = "${pname}-${version}";
       inherit meta;
@@ -17,7 +25,8 @@ let
       '';
     });
   firefox-addons = pkgs.callPackage inputs.firefox-addons { };
-in {
+in
+{
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME (official module)
   # -----------------------------------------------------------------------
@@ -131,7 +140,8 @@ in {
           "K00ILysCaEq8+bEqV/3nuw=="
           # Twitter
           "T9nJot5PurhJSy8n038xGA=="
-        ] (_: 1);
+        ]
+          (_: 1);
 
         # Disable some telemetry
         "app.shield.optoutstudies.enabled" = false;
@@ -194,7 +204,15 @@ in {
         # Pin extensions and show buttons
         "browser.uiCustomization.state" = builtins.toJSON {
           placements = {
-            unified-extensions-area = [ ];
+
+            # Hide aggressive extensions that want to be pinned
+            # Go to "about:support" --> adds-on. Search the name and user underscore instead of dot and keep lowercase
+            # Additionally add to the "seen" list below to avoid re-adding them
+            unified-extensions-area = [
+              "sponsorblocker_ajay_app-browser-action" # SponsorBlock
+              "newtaboverride_agenedia_com-browser-action" # New Tab Override
+            ];
+
             widget-overflow-fixed-list = [ ];
             nav-bar = [
               "back-button"
@@ -226,6 +244,10 @@ in {
             "ublock0_raymondhill_net-browser-action"
             "_testpilot-containers-browser-action"
             "screenshot-button"
+
+            # Extensions to hide from the toolbar
+            "sponsorblocker_ajay_app-browser-action"
+            "newtaboverride_agenedia_com-browser-action"
           ];
           dirtyAreaCache = [
             "nav-bar"

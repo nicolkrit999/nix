@@ -21,7 +21,7 @@
       "com.usebottles.bottles"
     ];
 
-    services.flatpak.update.onActivation = true;
+    services.flatpak.update.onActivation = false;
 
     services.flatpak.remotes = [
       {
@@ -29,6 +29,11 @@
         location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
       }
     ];
+
+    services.flatpak.update.auto = {
+      enable = true;
+      onCalendar = "weekly";
+    };
 
     xdg.portal = {
       enable = true;
