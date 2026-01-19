@@ -1,23 +1,21 @@
-{
-  pkgs,
-  lib,
-  inputs,
-  vars,
-  ...
+{ pkgs
+, lib
+, inputs
+, vars
+, ...
 }:
 let
   # Allow to install "unfree" addons by rebuilding them locally
   buildFirefoxXpiAddon = lib.makeOverridable (
-    {
-      stdenv ? pkgs.stdenv,
-      fetchurl,
-      pname,
-      version,
-      addonId,
-      url,
-      sha256,
-      meta,
-      ...
+    { stdenv ? pkgs.stdenv
+    , fetchurl
+    , pname
+    , version
+    , addonId
+    , url
+    , sha256
+    , meta
+    , ...
     }:
     stdenv.mkDerivation {
       name = "${pname}-${version}";
@@ -122,8 +120,11 @@ in
         "browser.bookmarks.restore_default_bookmarks" = false;
         "browser.bookmarks.addedImportButton" = true;
 
-        # Don't ask for download dir
+        # Don't ask for download dir and force it to Downloads
         "browser.download.useDownloadDir" = true;
+        "browser.download.folderList" = 2;
+        "browser.download.dir" = "/home/${vars.user}/Downloads"; 
+        "browser.download.lastDir" = "/home/${vars.user}/Downloads";
 
         # Disable crappy home activity stream page
         # hides the default promoted/suggested tiles on Firefox's new-tab screen from several major websites.
@@ -246,3 +247,4 @@ in
     };
   };
 }
+

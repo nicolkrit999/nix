@@ -60,18 +60,19 @@
   };
 
   outputs =
-    {
-      nixpkgs,
-      nixpkgs-unstable,
-      home-manager,
-      ...
+    { nixpkgs
+    , nixpkgs-unstable
+    , home-manager
+    , ...
     }@inputs:
     let
       hostNames = nixpkgs.lib.attrNames (
-        nixpkgs.lib.filterAttrs (
-          name: type:
-          type == "directory" && builtins.pathExists (./hosts + "/${name}/hardware-configuration.nix")
-        ) (builtins.readDir ./hosts)
+        nixpkgs.lib.filterAttrs
+          (
+            name: type:
+              type == "directory" && builtins.pathExists (./hosts + "/${name}/hardware-configuration.nix")
+          )
+          (builtins.readDir ./hosts)
       );
 
       # 🛠️ SYSTEM BUILDER
@@ -91,13 +92,14 @@
           # 4. Extra Vars (Optional - host specific HM settings)
           extraVars =
             if builtins.pathExists modulesPath then
-              import modulesPath {
-                vars = baseVars;
-                lib = nixpkgs.lib;
-                pkgs = nixpkgs.pkgs;
-              }
+              builtins.trace "✅ [${hostname} System] Loading host HM Variables from: ${toString modulesPath}"
+                (import modulesPath {
+                  vars = baseVars;
+                  lib = nixpkgs.lib;
+                  pkgs = nixpkgs.pkgs;
+                })
             else
-              { };
+              builtins.trace "ℹ️ [${hostname} System] No host HM Variables module found at ${toString modulesPath}" { };
 
           # 5. Merge: Base + Extra + Hostname
           hostVars = baseVars // extraVars // { inherit hostname; };
@@ -128,7 +130,9 @@
             inputs.niri.nixosModules.niri
 
             # Import entire optional host-specific directory if it exists
-            (if builtins.pathExists optionalPath then optionalPath else { })
+            (if builtins.pathExists optionalPath
+            then builtins.trace "✅ [${hostname} System] Importing Host Optional Dir: ${toString optionalPath}" optionalPath
+            else builtins.trace "ℹ️ [${hostname} System] No Optional Dir found." { })
 
             {
               # host-specific variables
@@ -177,13 +181,14 @@
           # 4. Extra Vars (Optional - host specific HM settings)
           extraVars =
             if builtins.pathExists modulesPath then
-              import modulesPath {
-                vars = baseVars;
-                lib = nixpkgs.lib;
-                pkgs = nixpkgs.pkgs;
-              }
+              builtins.trace "✅ [${hostname} Home] Loading host HM Variables from: ${toString modulesPath}"
+                (import modulesPath {
+                  vars = baseVars;
+                  lib = nixpkgs.lib;
+                  pkgs = nixpkgs.pkgs;
+                })
             else
-              { };
+              builtins.trace "ℹ️ [${hostname} Home] No hsot HM Variables module found." { };
 
           # 5. Merge: Base + Extra + Hostname
           hostVars = baseVars // extraVars // { inherit hostname; };
@@ -194,8 +199,10 @@
 
           # Create a list of extra modules to append
           extraModules =
-            nixpkgs.lib.optional (builtins.pathExists generalHmPath) generalHmPath
-            ++ nixpkgs.lib.optional (builtins.pathExists hostHmFolder) hostHmFolder;
+            nixpkgs.lib.optional (builtins.pathExists generalHmPath)
+              (builtins.trace "✅ [${hostname} Home] Adding General HM Module: ${toString generalHmPath}" generalHmPath)
+            ++ nixpkgs.lib.optional (builtins.pathExists hostHmFolder)
+              (builtins.trace "✅ [${hostname} Home] Adding Host HM Modules: ${toString hostHmFolder}" hostHmFolder);
 
           # 7. Unstable pkgs
           pkgs-unstable = import nixpkgs-unstable {

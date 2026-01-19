@@ -1,16 +1,30 @@
 { lib, vars, ... }:
-{
-  imports = [
-    ./dev-environments
-    ./host-packages
-    ./various
-  ];
+let
+  genPath = ./general-hm-modules;
+  hostPath = ./host-hm-modules;
+  genExists = builtins.pathExists genPath;
+  hostExists = builtins.pathExists hostPath;
 
-  home-manager.users.${vars.user} = {
-    imports =
-      [ ]
-      ++ lib.optional (builtins.pathExists ./general-hm-modules) ./general-hm-modules
+  # Define the configuration logic here so we can reuse it
+  finalConfig = {
+    imports = [
+      ./dev-environments
+      ./host-packages
+      ./various
+    ];
 
-      ++ lib.optional (builtins.pathExists ./host-hm-modules) ./host-hm-modules;
+    home-manager.users.${vars.user} = {
+      imports =
+        [ ]
+        ++ lib.optional genExists ./general-hm-modules
+        ++ lib.optional hostExists ./host-hm-modules;
+    };
   };
-}
+in
+# 🟢 Logic: Check if BOTH exist.
+# If YES -> Print the success message and return config.
+# If NO  -> Just return config silently.
+if genExists && hostExists then
+  builtins.trace "✅ Success: Both General and Host HM modules detected." finalConfig
+else
+  finalConfig
