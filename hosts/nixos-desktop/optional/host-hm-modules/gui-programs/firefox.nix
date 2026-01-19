@@ -55,16 +55,16 @@ in
       # Forces Google as default while keeping privacy options like Kagi and duck duck go available.
       search = {
         force = true; # Enforce custom search engine settings
-        default = "google"; # Set Google as the default search engine
+        default = "kagi"; # Set Google as the default search engine
         privateDefault = "kagi"; # Set Kagi as the default for private browsing
         order = [
-          "google"
           "kagi"
+          "google"
           "ddg"
         ]; # Preferred search engine order
         engines = {
           kagi = {
-            name = "Kagi";
+            name = "kagi";
             urls = [
               {
                 template = "https://kagi.com/search?q={searchTerms}";
@@ -97,13 +97,16 @@ in
           behind-the-overlay-revival # Bypass popup overlays on websites
           #onetab # Save memory by converting tabs into a list
           simplelogin # Proton Mail's email alias manager
+          kagi-search # Kagi search engine integration for private browsing
+          new-tab-override # Customize the new tab page
         ];
       };
 
       # ⚙️ internal Firefox Settings (about:config)
       settings = {
-        "browser.startup.homepage" = "https://glance.nicolkrit.ch";
-        "browser.startup.page" = 3; # Restore previous session
+        "browser.startup.homepage" = "https://kagi.com/";
+        # 3= restore previous session | 1= homepage | 0= blank page
+        "browser.startup.page" = 1;
 
         # Disable irritating first-run stuff
         "browser.disableResetPrompt" = true;
@@ -123,7 +126,7 @@ in
         # Don't ask for download dir and force it to Downloads
         "browser.download.useDownloadDir" = true;
         "browser.download.folderList" = 2;
-        "browser.download.dir" = "/home/${vars.user}/Downloads"; 
+        "browser.download.dir" = "/home/${vars.user}/Downloads";
         "browser.download.lastDir" = "/home/${vars.user}/Downloads";
 
         # Disable crappy home activity stream page
@@ -144,7 +147,8 @@ in
           "K00ILysCaEq8+bEqV/3nuw=="
           # Twitter
           "T9nJot5PurhJSy8n038xGA=="
-        ] (_: 1);
+        ]
+          (_: 1);
 
         # Disable some telemetry
         "app.shield.optoutstudies.enabled" = false;
@@ -183,13 +187,20 @@ in
 
         # Disable fx accounts
         "identity.fxaccounts.enabled" = false;
+
         # Disable "save password" prompt
-        "signon.rememberSignons" = true;
+        "signon.rememberSignons" = false;
+        "signon.autofillForms" = false;
+        "extensions.formautofill.addresses.enabled" = false;
+        "extensions.formautofill.creditCards.enabled" = false;
+
         # Harden
         "privacy.trackingprotection.enabled" = true;
         "dom.security.https_only_mode" = true;
+
         # Remove close button
         "browser.tabs.inTitlebar" = 0;
+
         # Vertical tabs
         "sidebar.verticalTabs" = true;
         "sidebar.revamp" = true;
@@ -197,6 +208,7 @@ in
           "history"
           "bookmarks"
         ];
+
         # Toolbar placement: assigns buttons to specific navigation bar slots.
         # Pin extensions and show buttons
         "browser.uiCustomization.state" = builtins.toJSON {
@@ -207,13 +219,15 @@ in
               "back-button"
               "forward-button"
               "vertical-spacer" # Spacer
+              "home-button" # Home button
               "stop-reload-button"
               "urlbar-container" # Address bar
               "downloads-button"
               "_testpilot-containers-browser-action" # Multi Account Containers
               "reset-pbm-toolbar-button" # Reset private browsing session (only visible in private mode)
-              "extension_one-tab_com-browser-action" # OneTab
+              # "extension_one-tab_com-browser-action" # OneTab
               "_c0e1baea-b4cb-4b62-97f0-278392ff8c37_-browser-action" # Behind the Overlay
+              "search_kagi_com-browser-action" # Kagi Search
               "78272b6fa58f4a1abaac99321d503a20_proton_me-browser-action" # Proton Pass
               "addon_simplelogin-browser-action" # SimpleLogin
               "jid1-mnnxcxisbpnsxq_jetpack-browser-action" # Privacy Badger

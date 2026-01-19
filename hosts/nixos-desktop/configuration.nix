@@ -1,9 +1,8 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
+{ config
+, pkgs
+, lib
+, vars
+, ...
 }:
 {
   # home.nix and host-modules are imported from flake.nix
@@ -145,20 +144,29 @@
   # ---------------------------------------------------------
   programs.chromium = {
     enable = true;
-
     extraOpts = {
       "ShowHomeButton" = true;
-      "HomepageLocation" = "https://www.youtube.com";
+
+      "HomepageLocation" = "https://kagi.com";
+
+      # The extension New Tab Redirect is used to set a custom new tab page
       "HomepageIsNewTabPage" = false;
 
-      # 4 = Always open the URLs listed below (ignores previous session)
+      # 4 = Open specific URLs on startup
       "RestoreOnStartup" = 4;
 
       "RestoreOnStartupURLs" = [
         "https://www.youtube.com"
         "https://music.youtube.com/"
         "https://glance.nicolkrit.ch"
+        "https://kagi.com"
       ];
+
+      "ExtensionSettings" = {
+        "dpaefegpjhgeplnkomgbcmmlffkijbgp" = { "toolbar_pin" = true; }; # Summarizer
+        "ghmbeldphafepmbegfdlkpapadhbakde" = { "toolbar_pin" = true; }; # Proton Pass
+        "dphilobhebphkdjbpfohgikllaljmgbn" = { "toolbar_pin" = true; }; # SimpleLogin
+      };
     };
   };
 
