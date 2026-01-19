@@ -424,6 +424,7 @@
     ripgrep
     fd
     ffmpeg
+    mediainfo
     poppler
     jq
     zip

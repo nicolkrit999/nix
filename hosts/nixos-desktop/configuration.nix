@@ -204,11 +204,18 @@
     };
   };
 
+
   environment.systemPackages = with pkgs; [
-    docker # Required because virtualisation.docker.enable is true
+    docker # Required when virtualisation.docker.enable is true
+    fd # User-friendly replacement for 'find'
     logiops # Logitech devices manager (currently used for my MX Master 3S)
     pay-respects # Used in shell aliases dotfiles
     pokemon-colorscripts # Used in shell aliases dotfiles
     stow # Used to manage my dotfiles repo
+    tree # Display directory structure as a tree
+    unzip # Extraction utility for .zip files. It is used by programs to compress/decompress data.
+    wget # Network downloader utility
+    zip # Compression utility for .zip files. It is used by programs to compress/decompress data.
+    zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
   ];
 }

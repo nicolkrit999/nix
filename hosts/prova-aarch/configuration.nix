@@ -84,7 +84,6 @@
   # ---------------------------------------------------------
   # ⚙️ GRAPHICS & FONTS
   # ---------------------------------------------------------
-  boot.initrd.kernelModules = [ "amdgpu" ];
   hardware.graphics.enable = true;
 
   # ---------------------------------------------------------
@@ -113,13 +112,13 @@
   # 🐳 VIRTUALIZATION & DOCKER
   # Needed because otherwise the group "docker" is not created
   # ---------------------------------------------------------
-  virtualisation.docker.enable = true;
+  virtualisation.docker.enable = false;
 
   # Limited mtu to make internet faster when enabled
   virtualisation.docker.daemon.settings = { "mtu" = 1450; };
 
   virtualisation.podman = {
-    enable = true;
+    enable = false;
     dockerCompat =
       false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
   };
@@ -156,6 +155,33 @@
     };
   };
 
+
+  # ---------------------------------------------------------
+  # ⚡ POWER MANAGEMENT twaks
+  # ---------------------------------------------------------
+  services.speechd.enable = lib.mkForce false; # Disable speech-dispatcher as it is not needed and wastes resources
+  systemd.services.ModemManager.enable = false; # Disable unused 4G modem scanning
+  services.power-profiles-daemon.enable = lib.mkForce false; # Conflicts with auto-cpufreq
+  services.system76-scheduler.settings.cfsProfiles.enable = true; # Prioritizes foreground apps (smoothness)
+  networking.networkmanager.wifi.powersave = true; # Micro-sleeps radio between packets
+  services.auto-cpufreq.enable = true; # Active CPU scaling logic
+  powerManagement.powertop.enable = true; # Sleeps idle USB, Audio, and PCI devices
+
+  services.auto-cpufreq.settings = {
+    battery = {
+      governor = "powersave"; # Run efficiently
+      turbo = "auto"; # Allow bursts for responsiveness
+    };
+    charger = {
+      governor = "performance"; # Max speed on wall power
+      turbo = "auto";
+    };
+  };
+
+  boot.kernelParams = [
+   # "pcie_aspm=force" # Force deep sleep for SSD & Motherboard (this may cause instability, include it without it first and test)
+  ];
+
   # ---------------------------------------------------------
   # 🗑️ AUTO TRASH CLEANUP
   # ---------------------------------------------------------
@@ -181,10 +207,16 @@
   };
 
   environment.systemPackages = with pkgs; [
-    docker # Required because virtualisation.docker.enable is true
+    # docker # Required when virtualisation.docker.enable is true
+    fd # User-friendly replacement for 'find'
     logiops # Logitech devices manager (currently used for my MX Master 3S)
     pay-respects # Used in shell aliases dotfiles
     pokemon-colorscripts # Used in shell aliases dotfiles
     stow # Used to manage my dotfiles repo
+    tree # Display directory structure as a tree
+    unzip # Extraction utility for .zip files. It is used by programs to compress/decompress data.
+    wget # Network downloader utility
+    zip # Compression utility for .zip files. It is used by programs to compress/decompress data.
+    zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
   ];
 }

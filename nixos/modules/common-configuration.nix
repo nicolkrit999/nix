@@ -170,7 +170,6 @@ in
   environment.variables.GTK_APPLICATION_PREFER_DARK_THEME =
     if vars.polarity == "dark" then "1" else "0";
 
-  #home-manager.backupFileExtension = lib.mkForce "hm-backup";
   # -----------------------------------------------------
   # ⚡ SYSTEM TWEAKS
   # -----------------------------------------------------
@@ -180,10 +179,18 @@ in
   # Enable home-manager backup files
   home-manager.backupFileExtension = lib.mkForce "hm-backup";
 
-  # Enable emulation for aarch64 linux for testing purposes on x86_64 hosts
+
+  # Enable System76 Scheduler for improved desktop responsiveness
+  services.system76-scheduler.enable = true;
+  services.system76-scheduler.settings.cfsProfiles.enable = true; # Prioritizes foreground apps (smoothness)
+
+  # Disable NetworkManager-wait-online to speed up boot time
+  systemd.services.NetworkManager-wait-online.enable = false;
+
+# Enable emulation for aarch64 linux for testing purposes on x86_64 hosts
   boot.binfmt.emulatedSystems =
     lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux")
-      [ "aarch64-linux" ];
+    [ "aarch64-linux" ];
 
   # Add KWallet integration for SDDM and GDM display managers
   security.pam.services = {

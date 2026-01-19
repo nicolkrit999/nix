@@ -14,7 +14,7 @@
     # -----------------------------------------------------------------------------------
   ])
 
-    ++ (with pkgs-unstable; [ ]);
+  ++ (with pkgs-unstable; [ ]);
 
   # 📂 XDG OVERRIDES
   # Disable folders I don't use
@@ -25,70 +25,64 @@
 
   home.sessionVariables = { };
 
-  programs.zsh = {
+  #FIXME: Currently not working (ignored)
+  /*
+    programs.zsh = {
     enable = true;
     initExtra = ''
-      # =======================================================
+      # -------------------------------------------------------
       # 🛡️ NAS SAFETY CORE
-      # =======================================================
-      # This reusable function checks arguments for NAS paths.
-      # Returns 0 (Success) if safe.
-      # Returns 1 (Error) if unsafe target found.
-      function _nas_guard() {
+      # -------------------------------------------------------
+
+      unalias rm 2>/dev/null || true
+
+      # Returns 0 (True) if the operation targets the NAS.
+      function _is_nas_target() {
         local NAS_PATH="/mnt/nicol_nas"
-        local FORBIDDEN=false
 
         # 1. Check Current Directory
         if [[ "$PWD" == "$NAS_PATH"* ]]; then
-          FORBIDDEN=true
+          return 0
         fi
 
         # 2. Check Arguments
-        if [ "$FORBIDDEN" = false ]; then
-          for arg in "$@"; do
-            # Skip flags like -rf, -v
-            if [[ "$arg" == -* ]]; then continue; fi
+        for arg in "$@"; do
+          # Skip flags like -rf, -v
+          if [[ "$arg" == -* ]]; then continue; fi
 
-            local ABS_PATH
-            ABS_PATH=$(realpath -m "$arg")
+          # Resolve path
+          local ABS_PATH
+          ABS_PATH=$(realpath -m "$arg")
 
-            if [[ "$ABS_PATH" == "$NAS_PATH"* ]]; then
-              FORBIDDEN=true
-              break
-            fi
-          done
-        fi
-
-        # 3. Verdict
-        if [ "$FORBIDDEN" = true ]; then
-          echo "⛔ SAFETY BLOCK: Deletion on NAS is disabled in this terminal."
-          echo "   Target: $NAS_PATH"
-          echo "   -------------------------------------------------------------"
-          echo "   To DELETE: Use your File Manager (with forced delete) or SSH."
-          echo "   To FORCE:  Run 'sudo -i' first to become root explicitly."
-          return 1
-        fi
-        return 0
+          if [[ "$ABS_PATH" == "$NAS_PATH"* ]]; then
+            return 0
+          fi
+        done
+        return 1
       }
 
       # 1. Intercept standard 'rm'
       function rm() {
-        if _nas_guard "$@"; then
+        if _is_nas_target "$@"; then
+          echo "⚠️  NAS DETECTED: Forcing Interactive Mode (rm -i)"
+          command rm "$@" -i
+        else
+          # Run normally
           command rm "$@"
         fi
       }
 
       # 2. Intercept 'sudo'
       function sudo() {
-        # Check if the user is trying to run 'rm' with sudo
         if [[ "$1" == "rm" ]]; then
-          # Shift arguments to remove "rm" so _nas_guard sees only flags/files
           local cmd="$1"
-          shift
+          shift # Remove "rm" from args
 
-          # Run the check on the files
-          if _nas_guard "$@"; then
-            command sudo "$cmd" "$@"
+          if _is_nas_target "$@"; then
+             echo "⚠️  NAS DETECTED (Sudo): Forcing Interactive Mode (rm -i)"
+             command sudo rm "$@" -i
+          else
+             command sudo rm "$@"
           fi
         else
           # Pass any other command straight to real sudo
@@ -96,7 +90,8 @@
         fi
       }
     '';
-  };
+    };
+  */
 
   # 5. Create/remove host-specific directories
   home.activation = {
