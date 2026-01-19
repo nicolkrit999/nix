@@ -1,9 +1,8 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
+{ config
+, pkgs
+, lib
+, vars
+, ...
 }:
 {
   # home.nix and host-modules are imported from flake.nix
@@ -145,21 +144,41 @@
   # ---------------------------------------------------------
   programs.chromium = {
     enable = true;
-
     extraOpts = {
       "ShowHomeButton" = true;
-      "HomepageLocation" = "https://www.youtube.com";
+
+      "HomepageLocation" = "https://kagi.com";
+
+      # The extension New Tab Redirect is used to set a custom new tab page
       "HomepageIsNewTabPage" = false;
 
-      # 4 = Always open the URLs listed below (ignores previous session)
+      # 4 = Open specific URLs on startup
       "RestoreOnStartup" = 4;
 
       "RestoreOnStartupURLs" = [
         "https://www.youtube.com"
         "https://music.youtube.com/"
         "https://glance.nicolkrit.ch"
+        "https://kagi.com"
       ];
+
+      "ExtensionSettings" = {
+        "dpaefegpjhgeplnkomgbcmmlffkijbgp" = { "toolbar_pin" = true; }; # Summarizer
+        "ghmbeldphafepmbegfdlkpapadhbakde" = { "toolbar_pin" = true; }; # Proton Pass
+        "dphilobhebphkdjbpfohgikllaljmgbn" = { "toolbar_pin" = true; }; # SimpleLogin
+      };
     };
+  };
+
+  # ---------------------------------------------------------
+  # 🛡️ DNS PROTECTION (Quad9 + VPN Compat)
+  # ---------------------------------------------------------
+  services.resolved = {
+    enable = true;
+    dnssec = "false";
+    domains = [ "~." ];
+    fallbackDns = [ "9.9.9.9" "149.112.112.112" ];
+    dnsovertls = "opportunistic";
   };
 
   # ---------------------------------------------------------
@@ -185,11 +204,18 @@
     };
   };
 
+
   environment.systemPackages = with pkgs; [
-    docker # Required because virtualisation.docker.enable is true
+    docker # Required when virtualisation.docker.enable is true
+    fd # User-friendly replacement for 'find'
     logiops # Logitech devices manager (currently used for my MX Master 3S)
     pay-respects # Used in shell aliases dotfiles
     pokemon-colorscripts # Used in shell aliases dotfiles
     stow # Used to manage my dotfiles repo
+    tree # Display directory structure as a tree
+    unzip # Extraction utility for .zip files. It is used by programs to compress/decompress data.
+    wget # Network downloader utility
+    zip # Compression utility for .zip files. It is used by programs to compress/decompress data.
+    zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
   ];
 }

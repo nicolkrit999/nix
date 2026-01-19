@@ -17,7 +17,6 @@
       signal-desktop # Encrypted messaging application
       telegram-desktop # Messaging
       teams-for-linux # Unofficial Microsoft Teams client
-      #tor-browser # Privacy-focused web browser
       vscode # Microsoft visual studio code IDE
       vesktop # Discord client
       vlc # Media player
@@ -26,38 +25,19 @@
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES
       # -----------------------------------------------------------------------------------
-      bc # Arbitrary precision calculator
       carbon-now-cli # Create beautiful images of your code (carbon.now.sh CLI)
       cava # Console-based audio visualizer
       cloudflared # Cloudflare's command-line tool and daemon
-      cloc # Count lines of code
       croc # Securely and easily send files between two computers
-      efibootmgr # Manage UEFI boot entries
-      fastfetch # Fast system information fetcher
-      fd # User-friendly replacement for 'find'
-      ffmpeg # Multimedia framework for audio/video processing
-      gh # GitHub CLI tool
       glow # Markdown renderer for the terminal
       grex # Command-line tool for generating regular expressions
-      grim # Screenshot utility for Wayland
       htop # Process viewer and killer
       killall # Command to kill processes by name
       lsof # List open files
-      mediainfo # Display technical info about media files
       nix-search-cli # CLI tool to search nixpkgs from terminal
-      ntfs3g # NTFS read/write support
-      ripgrep # Fast line-oriented search tool
       tealdeer # Fast implementation of tldr (simplified man pages)
-      tree # Display directory structure as a tree
       ttyd # Share your terminal over the web
-      unixtools.netstat # Network statistics
-      unzip # Extraction utility for .zip files. It is used by programs to compress/decompress data.
-      usbutils # USB device utilities
-      wakeonlan # Magic packets
       yt-dlp # Media downloader for YouTube and other sites
-      zip # Compression utility for .zip files. It is used by programs to compress/decompress data.
-      zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
-      wget # Network downloader utility
 
       # -----------------------------------------------------------------------------------
       # 🧑🏽‍💻 CODING
@@ -85,14 +65,13 @@
       # -----------------------------------------------------------------------
       # ❓ OTHER
       # -----------------------------------------------------------------------
-      logiops # Logitech devices manager (currently used for my MX Master 3S)
     ]
 
     ++ (with pkgs-unstable;
-      [
-        # -----------------------------------------------------------------------
-        # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
-        # -----------------------------------------------------------------------
-        fresh-editor # Lightweight terminal text editor
-      ]);
+    [
+      # -----------------------------------------------------------------------
+      # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
+      # -----------------------------------------------------------------------
+      fresh-editor # Lightweight terminal text editor
+    ]);
 }

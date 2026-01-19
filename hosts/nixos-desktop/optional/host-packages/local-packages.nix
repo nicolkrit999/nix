@@ -42,12 +42,9 @@
       croc # Securely and easily send files between two computers
       efibootmgr # Manage UEFI boot entries
       fastfetch # Fast system information fetcher
-      fd # User-friendly replacement for 'find'
-      ffmpeg # Multimedia framework for audio/video processing
       gh # GitHub CLI tool
       glow # Markdown renderer for the terminal
       grex # Command-line tool for generating regular expressions
-      grim # Screenshot utility for Wayland
       htop # Process viewer and killer
       killall # Command to kill processes by name
       lsof # List open files
@@ -56,16 +53,11 @@
       ntfs3g # NTFS read/write support
       ripgrep # Fast line-oriented search tool
       tealdeer # Fast implementation of tldr (simplified man pages)
-      tree # Display directory structure as a tree
       ttyd # Share your terminal over the web
       unixtools.netstat # Network statistics
-      unzip # Extraction utility for .zip files. It is used by programs to compress/decompress data.
       usbutils # USB device utilities
       wakeonlan # Magic packets
       yt-dlp # Media downloader for YouTube and other sites
-      zip # Compression utility for .zip files. It is used by programs to compress/decompress data.
-      zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
-      wget # Network downloader utility
 
       # -----------------------------------------------------------------------------------
       # 🧑🏽‍💻 CODING
@@ -94,7 +86,6 @@
       # -----------------------------------------------------------------------
       # ❓ OTHER
       # -----------------------------------------------------------------------
-      logiops # Logitech devices manager (currently used for my MX Master 3S)
     ]
 
     ++ (with pkgs-unstable; [

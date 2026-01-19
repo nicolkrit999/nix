@@ -66,7 +66,7 @@
   # 🛡️ SECURITY & NETWORKING
   tailscale = true;
   guest = true;
-  zramPercent = 25;
+  zramPercent = 50; # Increased to improve battery life
 
   # 🖼️ MONITORS & WALLPAPERS
   monitors = [
@@ -92,10 +92,10 @@
   # 🔋 POWER MANAGEMENT
   idleConfig = {
     enable = true;
-    dimTimeout = 600;
-    lockTimeout = 1800;
-    screenOffTimeout = 3600;
-    suspendTimeout = 7200;
+    dimTimeout = 300;
+    lockTimeout = 900;
+    screenOffTimeout = 1200;
+    suspendTimeout = 1800;
   };
 
   devLanguages = [

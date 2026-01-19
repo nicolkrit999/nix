@@ -23,9 +23,5 @@
 
     # Disable the warning about excluded packages since we manage them ourselves.
     services.desktopManager.cosmic.showExcludedPkgsWarning = false;
-
-    # 3. System76 Scheduler (Performance)
-    # Improves responsiveness on desktop, even for non-System76 hardware.
-    services.system76-scheduler.enable = true;
   };
 }

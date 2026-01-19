@@ -26,7 +26,7 @@
     ];
 
     # Auto-update Flatpaks
-    services.flatpak.update.onActivation = true;
+    services.flatpak.update.onActivation = false;
 
     systemd.services.flatpak-managed-install = {
       serviceConfig = {
@@ -36,6 +36,11 @@
       };
       wants = [ "network-online.target" ];
       after = [ "network-online.target" ];
+    };
+
+    services.flatpak.update.auto = {
+      enable = true;
+      onCalendar = "weekly";
     };
 
     xdg.portal = {

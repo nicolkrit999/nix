@@ -1,22 +1,16 @@
-{ pkgs
-, lib
-, inputs
-, vars
-, ...
-}:
+{ pkgs, lib, inputs, vars, ... }:
 let
   # Allow to install "unfree" addons by rebuilding them locally
-  buildFirefoxXpiAddon = lib.makeOverridable (
-    { stdenv ? pkgs.stdenv
-    , fetchurl
-    , pname
-    , version
-    , addonId
-    , url
-    , sha256
-    , meta
-    , ...
-    }:
+  buildFirefoxXpiAddon = lib.makeOverridable ({ stdenv ? pkgs.stdenv
+                                              , fetchurl
+                                              , pname
+                                              , version
+                                              , addonId
+                                              , url
+                                              , sha256
+                                              , meta
+                                              , ...
+                                              }:
     stdenv.mkDerivation {
       name = "${pname}-${version}";
       inherit meta;
@@ -29,8 +23,7 @@ let
         mkdir -p "$dst"
         install -v -m644 "$src" "$dst/${addonId}.xpi"
       '';
-    }
-  );
+    });
   firefox-addons = pkgs.callPackage inputs.firefox-addons { };
 in
 {
@@ -55,21 +48,15 @@ in
       # Forces Google as default while keeping privacy options like Kagi and duck duck go available.
       search = {
         force = true; # Enforce custom search engine settings
-        default = "google"; # Set Google as the default search engine
+        default = "kagi"; # Set Google as the default search engine
         privateDefault = "kagi"; # Set Kagi as the default for private browsing
-        order = [
-          "google"
-          "kagi"
-          "ddg"
-        ]; # Preferred search engine order
+        order = [ "kagi" "google" "ddg" ]; # Preferred search engine order
         engines = {
           kagi = {
-            name = "Kagi";
-            urls = [
-              {
-                template = "https://kagi.com/search?q={searchTerms}";
-              }
-            ]; # Search URL template query parameter
+            name = "kagi";
+            urls = [{
+              template = "https://kagi.com/search?q={searchTerms}";
+            }]; # Search URL template query parameter
             icon = "https://kagi.com/favicon.ico";
           };
           bing.metaData.hidden = true; # Hide unwanted search providers
@@ -84,7 +71,8 @@ in
       # The name can be viewed in the url while the extension page in the store is opened
       # If that does not work search on "https://nur.nix-community.org/repos/rycee/" and use the "name" without version
       extensions = {
-        force = true; # Forced to allow catppuccin to modify the firefox color scheme
+        force =
+          true; # Forced to allow catppuccin to modify the firefox color scheme
         packages = with firefox-addons; [
           ublock-origin # Popular ad and tracker blocker
           proton-pass # Proton Pass password manager integration
@@ -97,13 +85,16 @@ in
           behind-the-overlay-revival # Bypass popup overlays on websites
           #onetab # Save memory by converting tabs into a list
           simplelogin # Proton Mail's email alias manager
+          kagi-search # Kagi search engine integration for private browsing
+          new-tab-override # Customize the new tab page
         ];
       };
 
       # ⚙️ internal Firefox Settings (about:config)
       settings = {
-        "browser.startup.homepage" = "https://glance.nicolkrit.ch";
-        "browser.startup.page" = 3; # Restore previous session
+        "browser.startup.homepage" = "https://kagi.com/";
+        # 3= restore previous session | 1= homepage | 0= blank page
+        "browser.startup.page" = 1;
 
         # Disable irritating first-run stuff
         "browser.disableResetPrompt" = true;
@@ -120,17 +111,22 @@ in
         "browser.bookmarks.restore_default_bookmarks" = false;
         "browser.bookmarks.addedImportButton" = true;
 
+        # 🛡️ SECURE DNS (Quad9)
+        "DnsOverHttpsMode" = "secure";
+        "DnsOverHttpsTemplates" = "https://dns.quad9.net/dns-query";
+
         # Don't ask for download dir and force it to Downloads
         "browser.download.useDownloadDir" = true;
         "browser.download.folderList" = 2;
-        "browser.download.dir" = "/home/${vars.user}/Downloads"; 
+        "browser.download.dir" = "/home/${vars.user}/Downloads";
         "browser.download.lastDir" = "/home/${vars.user}/Downloads";
 
         # Disable crappy home activity stream page
         # hides the default promoted/suggested tiles on Firefox's new-tab screen from several major websites.
         "browser.newtabpage.activity-stream.feeds.topsites" = false;
         "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
-        "browser.newtabpage.activity-stream.improvesearch.topSiteSearchShortcuts" = false;
+        "browser.newtabpage.activity-stream.improvesearch.topSiteSearchShortcuts" =
+          false;
         "browser.newtabpage.blocked" = lib.genAttrs [
           # Youtube
           "26UbzFJ7qT9/4DhodHKA1Q=="
@@ -144,7 +140,8 @@ in
           "K00ILysCaEq8+bEqV/3nuw=="
           # Twitter
           "T9nJot5PurhJSy8n038xGA=="
-        ] (_: 1);
+        ]
+          (_: 1);
 
         # Disable some telemetry
         "app.shield.optoutstudies.enabled" = false;
@@ -179,41 +176,57 @@ in
 
         # Audio normalization
         "accessibility.typeaheadfind.enablesound" = false;
-        "media.getusermedia.screensharing.allow_is_screen_content_sales" = false;
+        "media.getusermedia.screensharing.allow_is_screen_content_sales" =
+          false;
 
         # Disable fx accounts
         "identity.fxaccounts.enabled" = false;
+
         # Disable "save password" prompt
-        "signon.rememberSignons" = true;
+        "signon.rememberSignons" = false;
+        "signon.autofillForms" = false;
+        "extensions.formautofill.addresses.enabled" = false;
+        "extensions.formautofill.creditCards.enabled" = false;
+
         # Harden
         "privacy.trackingprotection.enabled" = true;
         "dom.security.https_only_mode" = true;
+
         # Remove close button
         "browser.tabs.inTitlebar" = 0;
+
         # Vertical tabs
         "sidebar.verticalTabs" = true;
         "sidebar.revamp" = true;
-        "sidebar.main.tools" = [
-          "history"
-          "bookmarks"
-        ];
+        "sidebar.main.tools" = [ "history" "bookmarks" ];
+
         # Toolbar placement: assigns buttons to specific navigation bar slots.
         # Pin extensions and show buttons
         "browser.uiCustomization.state" = builtins.toJSON {
           placements = {
-            unified-extensions-area = [ ];
+
+            # Hide aggressive extensions that want to be pinned
+            # Go to "about:support" --> adds-on. Search the name and user underscore instead of dot and keep lowercase
+            # Additionally add to the "seen" list below to avoid re-adding them
+            unified-extensions-area = [
+              "sponsorblocker_ajay_app-browser-action" # SponsorBlock
+              "newtaboverride_agenedia_com-browser-action" # New Tab Override
+            ];
+
             widget-overflow-fixed-list = [ ];
             nav-bar = [
               "back-button"
               "forward-button"
               "vertical-spacer" # Spacer
+              "home-button" # Home button
               "stop-reload-button"
               "urlbar-container" # Address bar
               "downloads-button"
               "_testpilot-containers-browser-action" # Multi Account Containers
               "reset-pbm-toolbar-button" # Reset private browsing session (only visible in private mode)
-              "extension_one-tab_com-browser-action" # OneTab
+              # "extension_one-tab_com-browser-action" # OneTab
               "_c0e1baea-b4cb-4b62-97f0-278392ff8c37_-browser-action" # Behind the Overlay
+              "search_kagi_com-browser-action" # Kagi Search
               "78272b6fa58f4a1abaac99321d503a20_proton_me-browser-action" # Proton Pass
               "addon_simplelogin-browser-action" # SimpleLogin
               "jid1-mnnxcxisbpnsxq_jetpack-browser-action" # Privacy Badger
@@ -231,6 +244,10 @@ in
             "ublock0_raymondhill_net-browser-action"
             "_testpilot-containers-browser-action"
             "screenshot-button"
+
+            # Extensions to hide from the toolbar
+            "sponsorblocker_ajay_app-browser-action"
+            "newtaboverride_agenedia_com-browser-action"
           ];
           dirtyAreaCache = [
             "nav-bar"
