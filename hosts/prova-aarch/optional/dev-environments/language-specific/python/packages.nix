@@ -1,12 +1,6 @@
-{
-  pkgs,
-  python ? pkgs.python313,
-}:
-let
-  pp = python.pkgs;
-in
-with python.pkgs;
-[
+{ pkgs, python ? pkgs.python313, }:
+let pp = python.pkgs;
+in with python.pkgs; [
   python
 
   # 2. LIBRARIES (dynamic)
@@ -21,7 +15,7 @@ with python.pkgs;
   pkgs.jetbrains.pycharm-oss
 
   # Neovim plugins
-  pkgsvimPlugins.coc-pyright # Python support for CoC
+  pkgs.vimPlugins.coc-pyright # Python support for CoC
 
   (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [ p.python ]))
 

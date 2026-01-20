@@ -6,7 +6,6 @@
 
     # These are manually imported here because they contains aspects that home-manager can not handle alone
     ./optional/host-hm-modules/utilities/logitech.nix # boot
-    ./optional/host-hm-modules/utilities/gaming.nix # hardware (enable32BIt is not supprted on arm)
     #./optional/host-hm-modules/nas/smb.nix # user
     #./optional/host-hm-modules/nas/borg-backup.nix # user
     #./optional/host-hm-modules/nas/ssh.nix # user

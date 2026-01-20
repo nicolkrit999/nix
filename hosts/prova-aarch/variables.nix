@@ -31,11 +31,14 @@
 
   # Hyprland Options
   # These 2 should not be true at the same time
+  # FIXME: They need gpu-screen-recorder to work, which is not supported on aarch64
   hyprlandCaelestia = false; # Enable Caelestia for Hyprland
-  hyprlandNoctalia = true; # Enable Noctalia for Hyprland
+  hyprlandNoctalia = false; # Enable Noctalia for Hyprland
 
   # Niri Options
-  niriNoctalia = true; # Enable Noctalia for Niri (No Caelestia support on Niri)
+  # FIXME: They need gpu-screen-recorder to work, which is not supported on aarch64
+  niriNoctalia =
+    false; # Enable Noctalia for Niri (No Caelestia support on Niri)
 
   # 📦 PACKAGES & TERMINAL
   flatpak = true;
@@ -112,18 +115,18 @@
     # Development environments configurations.
     # If a module is enabled their respective packages are installed permanently
     # To use them it's needed to add a .envrc file in the project folder that link to the dev-environment
-    #"c-cpp"
-    #"go"
-    #"haskell"
-    #"java"
-    #"jupyter"
-    #"latex"
+    "c-cpp"
+    "go"
+    "haskell"
+    "java"
+    "jupyter"
+    "latex"
     "nix"
-    #"node"
-    #"php"
-    #"python"
-    #"r"
-    #"rust"
+    "node"
+    "php"
+    "python"
+    "r"
+    "rust"
     "shell"
     #"swift"
     "typst"
