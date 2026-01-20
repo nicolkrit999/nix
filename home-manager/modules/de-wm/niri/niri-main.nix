@@ -2,7 +2,6 @@
 let
   # Styling helper functions
   c = config.lib.stylix.colors.withHashtag;
-
   colors = {
     active = c.base0D;
     inactive = c.base03;
@@ -10,18 +9,34 @@ let
     shadow = c.base00;
   };
 
-  # Monitor parsing
+  # ---------------------------------------------------------------------------
+  # 🖥️ MONITOR PARSING
+  # ---------------------------------------------------------------------------
+
+  enabledMonitors = lib.concatMap (m:
+    let
+      parts = lib.splitString "," m;
+      name = builtins.elemAt parts 0;
+      configStr =
+        if builtins.length parts > 1 then builtins.elemAt parts 1 else "";
+    in if (configStr == "disable" || configStr == "disabled") then
+      [ ]
+    else
+      [ name ]) vars.monitors;
+
+  # 2. Get a list of DISABLED monitors (for turning them off)
   disabledMonitors = lib.concatMap (m:
     let
       parts = lib.splitString "," m;
-      len = builtins.length parts;
       name = builtins.elemAt parts 0;
-      configStr = if len > 1 then builtins.elemAt parts 1 else "";
+      configStr =
+        if builtins.length parts > 1 then builtins.elemAt parts 1 else "";
     in if (configStr == "disable" || configStr == "disabled") then
       [ name ]
     else
       [ ]) vars.monitors;
 
+  # 3. Generate Settings Block for Niri (Resolution, Scale, Position)
   monitorSettings = builtins.listToAttrs (lib.concatMap (m:
     let
       parts = lib.splitString "," m;
@@ -37,7 +52,6 @@ let
       else if len < 4 then
         [ ]
       else
-
         let
           name = builtins.elemAt parts 0;
           modeStr = builtins.elemAt parts 1;
@@ -59,7 +73,6 @@ let
           isRotated = (builtins.length parts > 4)
             && (builtins.elemAt parts 4 == "transform");
           rotationVal = if isRotated then 90 else 0;
-
         in [{
           name = name;
           value = {
@@ -80,11 +93,27 @@ let
           };
         }]) vars.monitors);
 
-  wallpaper = builtins.head vars.wallpapers;
-  wallpaperFile = pkgs.fetchurl {
-    url = wallpaper.wallpaperURL;
-    sha256 = wallpaper.wallpaperSHA256;
-  };
+  # ---------------------------------------------------------------------------
+  # 🎨 WALLPAPER LOGIC
+  # ---------------------------------------------------------------------------
+
+  # 1. Fetch ALL wallpapers defined in variables.nix
+  fetchedWallpapers = map (w:
+    pkgs.fetchurl {
+      url = w.wallpaperURL;
+      sha256 = w.wallpaperSHA256;
+    }) vars.wallpapers;
+
+  # 2. Generate 'swww' commands by zipping Monitors with Wallpapers
+  wallpaperCommands = lib.imap0 (i: mon:
+    let
+      # Logic: Use wallpaper at index 'i'. 
+      # If we run out of wallpapers, fallback to the FIRST one (index 0).
+      wp = if i < builtins.length fetchedWallpapers then
+        builtins.elemAt fetchedWallpapers i
+      else
+        builtins.head fetchedWallpapers;
+    in { command = [ "swww" "img" "-o" mon "${wp}" ]; }) enabledMonitors;
 
 in {
   config = lib.mkIf (vars.niri or false) {
@@ -171,10 +200,13 @@ in {
             ];
           }
           { command = [ "swww-daemon" ]; }
-          { command = [ "swww" "img" "${wallpaperFile}" ]; }
-        ] ++ (map (name: { command = [ "niri" "msg" "output" name "off" ]; })
-          disabledMonitors)
+        ] ++ wallpaperCommands
 
+          # Disable unused monitors
+          ++ (map (name: { command = [ "niri" "msg" "output" name "off" ]; })
+            disabledMonitors)
+
+          # User defined extra execs
           ++ (map (cmd: { command = [ "bash" "-c" cmd ]; })
             (vars.niri_Exec-Once or [ ]));
       };

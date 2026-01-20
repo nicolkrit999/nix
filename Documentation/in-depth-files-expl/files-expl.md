@@ -2523,7 +2523,7 @@ in
   # Defines the user dynamically based on flake.nix input
   users.users.${user} = {
     isNormalUser = true;
-    description = "Primary user";
+    description = "${vars.user}";
     extraGroups = [
       "networkmanager"
       "wheel"

@@ -1,11 +1,4 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
-{
+{ config, pkgs, lib, vars, ... }: {
   # home.nix and host-modules are imported from flake.nix
   imports = [
     # Packages specific to this machine
@@ -23,13 +16,7 @@
   # ---------------------------------------------------------
   users.users.${vars.user} = {
     isNormalUser = true;
-    description = "Primary user";
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-      "input"
-      "video"
-      "audio"
-    ];
+    description = "${vars.user}";
+    extraGroups = [ "networkmanager" "wheel" "input" "video" "audio" ];
   };
 }

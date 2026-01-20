@@ -35,7 +35,8 @@
   hyprlandNoctalia = true; # Enable Noctalia for Hyprland
 
   # Niri Options
-  niriNoctalia = true; # Enable Noctalia for Niri (No Caelestia support on Niri)
+  niriNoctalia =
+    true; # Enable Noctalia for Niri (No Caelestia support on Niri)
 
   # 📦 PACKAGES & TERMINAL
   flatpak = true;

@@ -91,7 +91,7 @@
   # ---------------------------------------------------------
   users.users.${vars.user} = {
     isNormalUser = true;
-    description = "Primary user";
+    description = "${vars.user}";
     extraGroups =
       [ "networkmanager" "wheel" "input" "docker" "podman" "video" "audio" ];
     # Required for rootless Podman/Distrobox
@@ -148,26 +148,35 @@
       ];
 
       "ExtensionSettings" = {
-        "dpaefegpjhgeplnkomgbcmmlffkijbgp" = { "toolbar_pin" = true; }; # Summarizer
-        "ghmbeldphafepmbegfdlkpapadhbakde" = { "toolbar_pin" = true; }; # Proton Pass
-        "dphilobhebphkdjbpfohgikllaljmgbn" = { "toolbar_pin" = true; }; # SimpleLogin
+        "dpaefegpjhgeplnkomgbcmmlffkijbgp" = {
+          "toolbar_pin" = true;
+        }; # Summarizer
+        "ghmbeldphafepmbegfdlkpapadhbakde" = {
+          "toolbar_pin" = true;
+        }; # Proton Pass
+        "dphilobhebphkdjbpfohgikllaljmgbn" = {
+          "toolbar_pin" = true;
+        }; # SimpleLogin
       };
     };
   };
 
-
   # ---------------------------------------------------------
   # ⚡ POWER MANAGEMENT twaks
   # ---------------------------------------------------------
-  services.speechd.enable = lib.mkForce false; # Disable speech-dispatcher as it is not needed and wastes resources
-  systemd.services.ModemManager.enable = false; # Disable unused 4G modem scanning
-  services.system76-scheduler.settings.cfsProfiles.enable = true; # Prioritizes foreground apps (smoothness)
-  networking.networkmanager.wifi.powersave = true; # Micro-sleeps radio between packets
-  powerManagement.powertop.enable = true; # Sleeps idle USB, Audio, and PCI devices
-
+  services.speechd.enable = lib.mkForce
+    false; # Disable speech-dispatcher as it is not needed and wastes resources
+  systemd.services.ModemManager.enable =
+    false; # Disable unused 4G modem scanning
+  services.system76-scheduler.settings.cfsProfiles.enable =
+    true; # Prioritizes foreground apps (smoothness)
+  networking.networkmanager.wifi.powersave =
+    true; # Micro-sleeps radio between packets
+  powerManagement.powertop.enable =
+    true; # Sleeps idle USB, Audio, and PCI devices
 
   boot.kernelParams = [
-   # "pcie_aspm=force" # Force deep sleep for SSD & Motherboard (this may cause instability, include it without it first and test)
+    # "pcie_aspm=force" # Force deep sleep for SSD & Motherboard (this may cause instability, include it without it first and test)
   ];
 
   # ---------------------------------------------------------
