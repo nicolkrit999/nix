@@ -960,7 +960,7 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
         ];
-        ++ lib.optionals (!(vars.caelestia or false)) [
+        ++ lib.optionals (!(vars.hyprlandCaelestia or false)) [
           "uwsm app -- waybar" # Start waybar onlyt if "caelestia" is disabled in variables.nix
         ];
 
@@ -1932,7 +1932,7 @@ in
       # -----------------------------------------------------------------------
       # MULTI EXCLUSIONS DUE TO CAELESTIA/QUICKSHELL
       # -----------------------------------------------------------------------
-      gtk.enable = !vars.catppuccin && !vars.cosmic && !vars.caelestia;
+      gtk.enable = !vars.catppuccin && !vars.cosmic && !vars.hyprlandCaelestia;
 
       # ---------------------------------------------------------------------------------------
       # 🎨 GLOBAL CATPPUCCIN

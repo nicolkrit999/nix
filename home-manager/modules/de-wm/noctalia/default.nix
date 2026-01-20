@@ -1,0 +1,7 @@
+{ ... }:
+{
+  imports = [
+    ./noctalia-main.nix
+  ];
+}
+

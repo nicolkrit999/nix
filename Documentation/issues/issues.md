@@ -4,9 +4,9 @@ These are the issues that i observed that require attentions. They may be only o
 - [Things to fix](#things-to-fix)
   - [Desktop environments specific](#desktop-environments-specific)
     - [Hyprland: gestures](#hyprland-gestures)
+    - [Noctaclia + caelestia](#noctaclia--caelestia)
     - [Hyprland with caelestia/quickshell: fullscren recording with no audio does not work.](#hyprland-with-caelestiaquickshell-fullscren-recording-with-no-audio-does-not-work)
   - [General](#general)
-    - ['system' has been renamed to/replaced by 'stdenv.hostPlatform.system'](#system-has-been-renamed-toreplaced-by-stdenvhostplatformsystem)
     - [ profile: You have set either `nixpkgs.config` or `nixpkgs.overlays` while using `home-manager.useGlobalPkgs`. This will soon not be possible. Please remove all `nixpkgs` options when using \`home-manager](#-profile-you-have-set-either-nixpkgsconfig-or-nixpkgsoverlays-while-using-home-manageruseglobalpkgs-this-will-soon-not-be-possible-please-remove-all-nixpkgs-options-when-using-home-manager)
     - [programs.zsh.initExtra`is deprecated, use`programs.zsh.initContent\` instead.](#programszshinitextrais-deprecated-useprogramszshinitcontent-instead)
   - [Guest user specific](#guest-user-specific)
@@ -31,6 +31,9 @@ These are the issues that i observed that require attentions. They may be only o
           "3, horizontal, workspace"
         ];
 ```
+
+### Noctaclia + caelestia
+- The dynamic launcher button with only "super" key do not work. Currently only wofi with super + A work
 
 ### Hyprland with caelestia/quickshell: fullscren recording with no audio does not work.
 - It does not save it in the right folder

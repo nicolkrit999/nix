@@ -179,6 +179,11 @@ in
   # Enable home-manager backup files
   home-manager.backupFileExtension = lib.mkForce "hm-backup";
 
+  # Enable UPower for better power management and battery reporting (needed for noctalia shell)
+  services.upower.enable = true;
+
+# Enable the modern power-profiles-daemon (needed for noctalia shell)
+  services.power-profiles-daemon.enable = true;
 
   # Enable System76 Scheduler for improved desktop responsiveness
   services.system76-scheduler.enable = true;
@@ -187,10 +192,10 @@ in
   # Disable NetworkManager-wait-online to speed up boot time
   systemd.services.NetworkManager-wait-online.enable = false;
 
-# Enable emulation for aarch64 linux for testing purposes on x86_64 hosts
+  # Enable emulation for aarch64 linux for testing purposes on x86_64 hosts
   boot.binfmt.emulatedSystems =
     lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux")
-    [ "aarch64-linux" ];
+      [ "aarch64-linux" ];
 
   # Add KWallet integration for SDDM and GDM display managers
   security.pam.services = {
@@ -198,8 +203,6 @@ in
     gdm.enableKwallet = config.services.displayManager.gdm.enable;
   };
 
-  # Enable the modern power-profiles-daemon
-  services.power-profiles-daemon.enable = true;
   # Explicitly disable TLP to avoid conflicts
   services.tlp.enable = false;
 }

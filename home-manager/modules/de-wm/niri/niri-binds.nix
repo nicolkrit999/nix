@@ -1,28 +1,26 @@
-{
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
+{ pkgs, lib, inputs, vars, ... }:
 let
-  spawnApp =
-    app:
-    if
-      builtins.elem app [
-        "nvim"
-        "yazi"
-        "ranger"
-      ]
-    then
-      [
-        "${vars.term}"
-        "-e"
-        app
-      ]
-    else
+  spawnApp = app:
+    if builtins.elem app [ "nvim" "yazi" "ranger" ] then [
+      "${vars.term}"
+      "-e"
+      app
+    ] else
       [ app ];
-in
-{
+
+  noctaliaPkg =
+    inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
+  launcherCommand = if (vars.niriNoctalia or false) then [
+    "sh"
+    "-c"
+    "${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle"
+  ] else [
+    "wofi"
+    "--show"
+    "drun"
+  ];
+in {
   config = lib.mkIf (vars.niri or false) {
     programs.niri.settings.binds = {
       # -----------------------------------------------------------------------
@@ -31,12 +29,8 @@ in
       # Terminal
       "Mod+Return".action.spawn = [ "${vars.term}" ];
 
-      # Wofi
-      "Mod+A".action.spawn = [
-        "wofi"
-        "--show"
-        "drun"
-      ];
+      # Launcher
+      "Mod+A".action.spawn = launcherCommand;
 
       # Browser
       "Mod+B".action.spawn = [ "${vars.browser}" ];
@@ -54,13 +48,8 @@ in
       "Mod+M".action.fullscreen-window = [ ];
       "Mod+Space".action.toggle-window-floating = [ ];
 
-      "Mod+Delete".action.spawn = [
-        "loginctl"
-        "lock-session"
-      ];
-      "Mod+Shift+Delete".action.quit = {
-        skip-confirmation = true;
-      };
+      "Mod+Delete".action.spawn = [ "loginctl" "lock-session" ];
+      "Mod+Shift+Delete".action.quit = { skip-confirmation = true; };
       # -----------------------------------------------------------------------
       # ↔️ MOVEMENT (Hyprland Translation)
       # -----------------------------------------------------------------------
@@ -117,47 +106,21 @@ in
       # -----------------------------------------------------------------------
       # 🔈 MEDIA & BRIGHTNESS
       # -----------------------------------------------------------------------
-      "XF86AudioRaiseVolume".action.spawn = [
-        "wpctl"
-        "set-volume"
-        "-l"
-        "1"
-        "@DEFAULT_AUDIO_SINK@"
-        "5%+"
-      ];
-      "XF86AudioLowerVolume".action.spawn = [
-        "wpctl"
-        "set-volume"
-        "@DEFAULT_AUDIO_SINK@"
-        "5%-"
-      ];
-      "XF86AudioMute".action.spawn = [
-        "wpctl"
-        "set-mute"
-        "@DEFAULT_AUDIO_SINK@"
-        "toggle"
-      ];
+      "XF86AudioRaiseVolume".action.spawn =
+        [ "wpctl" "set-volume" "-l" "1" "@DEFAULT_AUDIO_SINK@" "5%+" ];
+      "XF86AudioLowerVolume".action.spawn =
+        [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-" ];
+      "XF86AudioMute".action.spawn =
+        [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle" ];
 
-      "Mod+BracketRight".action.spawn = [
-        "brightnessctl"
-        "s"
-        "10%+"
-      ];
-      "Mod+BracketLeft".action.spawn = [
-        "brightnessctl"
-        "s"
-        "10%-"
-      ];
+      "Mod+BracketRight".action.spawn = [ "brightnessctl" "s" "10%+" ];
+      "Mod+BracketLeft".action.spawn = [ "brightnessctl" "s" "10%-" ];
 
       # -----------------------------------------------------------------------
       # 🔔 NOTIFICATIONS (SwayNC)
       # -----------------------------------------------------------------------
       # Toggle Notification Center
-      "Mod+N".action.spawn = [
-        "swaync-client"
-        "-t"
-        "-sw"
-      ];
+      "Mod+N".action.spawn = [ "swaync-client" "-t" "-sw" ];
 
       # -----------------------------------------------------------------------
       # 📸 SCREENSHOTS
@@ -191,14 +154,8 @@ in
       # -----------------------------------------------------------------------
       # 🛠️ UTILITIES
       # -----------------------------------------------------------------------
-      "Mod+Period".action.spawn = [
-        "bemoji"
-        "-cn"
-      ]; # Emoji
-      "Mod+Shift+P".action.spawn = [
-        "hyprpicker"
-        "-an"
-      ]; # Color Picker
+      "Mod+Period".action.spawn = [ "bemoji" "-cn" ]; # Emoji
+      "Mod+Shift+P".action.spawn = [ "hyprpicker" "-an" ]; # Color Picker
       "Mod+V".action.spawn = [
         "bash"
         "-c"
@@ -206,12 +163,8 @@ in
       ]; # Clipboard History
       "Mod+O".action.toggle-overview = [ ]; # Window Overview
 
-      "Mod+Shift+R".action.spawn = [
-        "niri"
-        "msg"
-        "action"
-        "reload-config"
-      ]; # Reload
+      "Mod+Shift+R".action.spawn =
+        [ "niri" "msg" "action" "reload-config" ]; # Reload
     };
   };
 }
