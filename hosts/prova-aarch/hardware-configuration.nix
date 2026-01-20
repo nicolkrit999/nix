@@ -15,6 +15,4 @@
     fsType = "ext4";
   };
 
-  # 🟢 CRITICAL: Disable x86 specific power management
-  powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
 }

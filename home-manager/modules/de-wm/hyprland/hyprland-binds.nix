@@ -42,8 +42,6 @@
         # SCREENSHOTS (Updated to Meta+Ctrl)
         "SUPER CTRL, 3, exec, grimblast --notify --freeze copysave output" # Fullscreen
         "SUPER CTRL, 4, exec, grimblast --notify --freeze copysave area" # Region
-        ''
-          SUPER CTRL, R, exec, pkill -SIGINT gpu-screen-recorder || gpu-screen-recorder -w screen -f 60 -c mkv -o "$HOME/Videos/Recordings/mute-fullscreen-recording_$(date +%Y-%m-%d_%H-%M-%S).mkv"''
 
         # MOVING FOCUS
         "$Mod,      left, movefocus, l" # Move focus left

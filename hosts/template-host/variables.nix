@@ -16,15 +16,26 @@
   gitUserName = "template-user";
   gitUserEmail = "template-user@example.com";
 
-  # 🖥️ DESKTOP ENVIRONMENT
+  # 🖥️ DESKTOP ENVIRONMENT & WINDOW MANAGER
   hyprland = true;
-  caelestia = false;
-
   niri = false;
 
   gnome = false;
   kde = false;
   cosmic = false;
+
+  # 🐚 SHELLS & BARS
+  # Control which bar/shell to use for each Window Manager.
+  # If all are false for a WM, it falls back to Waybar.
+
+  # Hyprland Options
+  # These 2 should not be true at the same time
+  hyprlandCaelestia = false; # Enable Caelestia for Hyprland
+  hyprlandNoctalia = false; # Enable Noctalia for Hyprland
+
+  # Niri Options
+  niriNoctalia =
+    false; # Enable Noctalia for Niri (No Caelestia support on Niri)
 
   # 📦 PACKAGES & TERMINAL
   flatpak = false;
@@ -67,15 +78,13 @@
   zramPercent = 25;
 
   # 🖼️ MONITORS & WALLPAPERS
-  monitors = [
-  ];
+  monitors = [ ];
 
-  wallpapers = [
-    {
-      wallpaperURL = "https://raw.githubusercontent.com/zhichaoh/catppuccin-wallpapers/refs/heads/main/os/nix-black-4k.png";
-      wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
-    }
-  ];
+  wallpapers = [{
+    wallpaperURL =
+      "https://raw.githubusercontent.com/zhichaoh/catppuccin-wallpapers/refs/heads/main/os/nix-black-4k.png";
+    wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
+  }];
 
   # 🔋 POWER MANAGEMENT
   idleConfig = {
