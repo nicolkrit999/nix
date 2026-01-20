@@ -177,14 +177,32 @@ Comment out or remove the specific lines that handles the wallpapers logic
 
 ### 🪟 Multiple Desktop Environments
 
-  - **Hyprland**: A modern, tile-based window compositor setup on Wayland. You can choose between 2 options:
+  - **Hyprland**: A modern, tile-based window compositor setup on Wayland. You can choose between these options:
+    - **Hyprland + waybar**
+      - A regular hyprland setup with a waybar 
 
     - **Hyprland + caelestia with quickshell**
-      - Note: Currently if you use the automatic wallpaper fetching from  `caelestia-wallpaper.nix` then some features like the desktop clock and the audio visualizer do not work. If you want to have those feature you can comment out the import of the `caelestia-wallpaper.nix` inside `home-manager/modules/caelestia/default.nix` and set them manually.
-        - Caelestia by default search for the wallpapers in `~/Pictures/Wallpapers
+        - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
+      - The json config is completely declarative. It can be modified in `caelestia-config.nix`
+      - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
+      
+        - **caelestia logout crash**
+          - Note the official caelestia shell.json uses an aggressive terminate user, which does not work for uwsm
+          - replace every  of it to `"caelestia-logout` which is the name of the logout script in `caelestia-main.nix`
+
+    - **Hyprland + noctalia with quickshell**
+      - Noctalia include many configuration aspect so i choose to let the user manually change the config in the noctalia gui.
+      - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
+    - Some aspects are defined declarative. See `noctalia-config.nix`
+    - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
+
+  - **niri + noctalia with quickshell**
+      - Noctalia include many configuration aspect so i choose to let the user manually change the config in the noctalia gui.
+      - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
+    - Some aspects are defined declarative. See `noctalia-config.nix`
+    - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
 
 
-    - **Hyprland + waybar**
 
   - **KDE Plasma**: A highly configurable desktop environment, with a launcher similar to windows
   - **Gnome**: A famous and simple desktop environment, with a launcher similar to macOS. Ubuntu/mint user are very used to it

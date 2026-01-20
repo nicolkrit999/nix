@@ -17,15 +17,26 @@
   gitUserName = "nicolkrit999";
   gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
 
-  # 🖥️ DESKTOP ENVIRONMENT
+  # 🖥️ DESKTOP ENVIRONMENT & WINDOW MANAGER
   hyprland = true;
-  caelestia = false;
-
   niri = true;
 
   gnome = true;
   kde = true;
   cosmic = true;
+
+  # 🐚 SHELLS & BARS
+  # Control which bar/shell to use for each Window Manager.
+  # If all are false for a WM, it falls back to Waybar.
+
+  # Hyprland Options
+  # These 2 should not be true at the same time
+  hyprlandCaelestia = false; # Enable Caelestia for Hyprland
+  hyprlandNoctalia = true; # Enable Noctalia for Hyprland
+
+  # Niri Options
+  niriNoctalia =
+    true; # Enable Noctalia for Niri (No Caelestia support on Niri)
 
   # 📦 PACKAGES & TERMINAL
   flatpak = true;
@@ -77,12 +88,14 @@
 
   wallpapers = [
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/various-websites/wallhaven/wallhaven-anime-girl-drink-4k-grey.png";
+      wallpaperURL =
+        "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/various-websites/wallhaven/wallhaven-anime-girl-drink-4k-grey.png";
       wallpaperSHA256 = "0q5j531m3a1x5x99d0xybcb9rgc7w1i3v2vgf81zpwcwqj7abnzr";
     }
 
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_black_and_white_logo.png";
+      wallpaperURL =
+        "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_black_and_white_logo.png";
       wallpaperSHA256 = "1q0p9sq40lq9b3icncq8a223v5yk33w4nz3pymwz2gwv3psjzzw1";
     }
   ];

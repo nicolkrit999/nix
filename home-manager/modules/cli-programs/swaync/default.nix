@@ -1,10 +1,4 @@
-{
-  pkgs,
-  lib,
-  config,
-  vars,
-  ...
-}:
+{ pkgs, lib, config, vars, ... }:
 let
   # Your custom layout tweaks (Fonts, Size, Rounding)
   customLayout = ''
@@ -25,44 +19,58 @@ let
     /* Remove outline */
     .notification-row { outline: none; }
   '';
-in
-{
-  config =
-    lib.mkIf (((vars.hyprland or false) || (vars.niri or false)) && !(vars.caelestia or false))
-      {
 
-        catppuccin.swaync.enable = vars.catppuccin;
-        catppuccin.swaync.flavor = vars.catppuccinFlavor;
+  # Enable swaync only if using Hyprland or Niri without Caelestia/Noctalia
+  hyprlandSwayNC = (vars.hyprland or false)
+    && !((vars.hyprlandCaelestia or false) || (vars.hyprlandNoctalia or false));
 
-        services.swaync = {
-          enable = true;
-          settings = {
-            positionX = "right";
-            positionY = "top";
-            notification-icon-size = 64;
+  niriSwayNC = (vars.niri or false) && !(vars.niriNoctalia or false);
+in {
+  config = lib.mkIf (hyprlandSwayNC || niriSwayNC) {
 
-            layer = "overlay";
-            control-center-layer = "overlay";
+    catppuccin.swaync.enable = vars.catppuccin;
+    catppuccin.swaync.flavor = vars.catppuccinFlavor;
 
-            timeout = 10;
-            timeout-low = 5;
-            timeout-critical = 0;
+    services.swaync = {
+      enable = true;
+      settings = {
+        positionX = "right";
+        positionY = "top";
+        notification-icon-size = 64;
 
-            # Host optional rules to exclude/mute notifications
-            notification-visibility = { } // vars.swayncExclusions or { };
-          };
+        layer = "overlay";
+        control-center-layer = "overlay";
 
-          # 🎨 DYNAMIC STYLE LOGIC
-          style =
-            if vars.catppuccin then
-              lib.mkForce ''
-                @import "${config.catppuccin.sources.swaync}/${vars.catppuccinFlavor}.css";
-                ${customLayout}
-              ''
-            else
-              lib.mkAfter ''
-                ${customLayout}
-              '';
-        };
+        timeout = 10;
+        timeout-low = 5;
+        timeout-critical = 0;
+
+        # Host optional rules to exclude/mute notifications
+        notification-visibility = { } // vars.swayncExclusions or { };
       };
+
+      # 🎨 DYNAMIC STYLE LOGIC
+      style = if vars.catppuccin then
+        lib.mkForce ''
+          @import "${config.catppuccin.sources.swaync}/${vars.catppuccinFlavor}.css";
+          ${customLayout}
+        ''
+      else
+        lib.mkAfter ''
+          ${customLayout}
+        '';
+    };
+
+    systemd.user.services.swaync = {
+      Unit.PartOf = lib.mkForce
+        ((lib.optional hyprlandSwayNC "hyprland-session.target")
+          ++ (lib.optional niriSwayNC "niri.service"));
+      Unit.After = lib.mkForce
+        ((lib.optional hyprlandSwayNC "hyprland-session.target")
+          ++ (lib.optional niriSwayNC "niri.service"));
+      Install.WantedBy = lib.mkForce
+        ((lib.optional hyprlandSwayNC "hyprland-session.target")
+          ++ (lib.optional niriSwayNC "niri.service"));
+    };
+  };
 }

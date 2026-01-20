@@ -1,57 +1,59 @@
-{
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
+{ pkgs, lib, config, vars, inputs, ... }:
 let
-  cfg = {
-    enable = true;
-    dimTimeout = 600; # 10m
-    lockTimeout = 1800; # 30m
-    screenOffTimeout = 3600; # 60m
-    suspendTimeout = 7200; # 2h
-  }
-  // (if vars.idleConfig != null then vars.idleConfig else { });
+  noctaliaPkg =
+    inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-in
-{
-  config = lib.mkIf (vars.hyprland or false) {
+  # It intercepts the 'lock' command and routes it correctly.
+  # Needed to make the lock work in noctalia
+  universalLock = pkgs.writeShellScriptBin "universal-lock" ''
+    # This detects '.noctalia-shell-wrapped' which Nix creates.
+    if pgrep -f "noctalia-shell" > /dev/null; then
+       ${noctaliaPkg}/bin/noctalia-shell ipc call lockScreen lock
+       exit 0
+    fi
+
+    # 2. If Caelestia or default Hyprland is running, use Hyprlock
+    if command -v hyprlock > /dev/null; then
+       pidof hyprlock || hyprlock
+       exit 0
+    fi
+
+    echo "No locker found! (Check if Noctalia is running or Hyprlock is installed)"
+  '';
+in {
+  config = lib.mkIf (vars.idleConfig.enable or false) {
+
+    home.packages = [ universalLock ];
+
     services.hypridle = {
-      enable = cfg.enable;
-
+      enable = true;
       settings = {
         general = {
+          lock_cmd = "${universalLock}/bin/universal-lock";
+
+          unlock_cmd = "";
+
           before_sleep_cmd = "loginctl lock-session";
           after_sleep_cmd = "hyprctl dispatch dpms on";
-          ignore_dbus_inhibit = false;
-          lock_cmd = "pidof hyprlock || hyprlock";
         };
 
         listener = [
-          # Dim Screen
           {
-            timeout = cfg.dimTimeout;
-            on-timeout = "brightnessctl -s set 30";
+            timeout = vars.idleConfig.dimTimeout;
+            on-timeout = "brightnessctl -s set 10";
             on-resume = "brightnessctl -r";
           }
-
-          # Lock Screen
           {
-            timeout = cfg.lockTimeout;
+            timeout = vars.idleConfig.lockTimeout;
             on-timeout = "loginctl lock-session";
           }
-
-          # Turn Off Monitor
           {
-            timeout = cfg.screenOffTimeout;
+            timeout = vars.idleConfig.screenOffTimeout;
             on-timeout = "hyprctl dispatch dpms off";
             on-resume = "hyprctl dispatch dpms on";
           }
-
-          # Suspend System
           {
-            timeout = cfg.suspendTimeout;
+            timeout = vars.idleConfig.suspendTimeout;
             on-timeout = "systemctl suspend";
           }
         ];
