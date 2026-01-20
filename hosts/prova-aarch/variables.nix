@@ -17,15 +17,25 @@
   gitUserName = "nicolkrit999";
   gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
 
-  # 🖥️ DESKTOP ENVIRONMENT
+  # 🖥️ DESKTOP ENVIRONMENT & WINDOW MANAGER
   hyprland = true;
-  caelestia = false;
-
   niri = true;
 
   gnome = true;
   kde = true;
   cosmic = true;
+
+  # 🐚 SHELLS & BARS
+  # Control which bar/shell to use for each Window Manager.
+  # If all are false for a WM, it falls back to Waybar.
+
+  # Hyprland Options
+  # These 2 should not be true at the same time
+  hyprlandCaelestia = false; # Enable Caelestia for Hyprland
+  hyprlandNoctalia = true; # Enable Noctalia for Hyprland
+
+  # Niri Options
+  niriNoctalia = true; # Enable Noctalia for Niri (No Caelestia support on Niri)
 
   # 📦 PACKAGES & TERMINAL
   flatpak = true;

@@ -168,8 +168,7 @@
     false; # Disable speech-dispatcher as it is not needed and wastes resources
   systemd.services.ModemManager.enable =
     false; # Disable unused 4G modem scanning
-  services.system76-scheduler.settings.cfsProfiles.enable =
-    true; # Prioritizes foreground apps (smoothness)
+
   networking.networkmanager.wifi.powersave =
     true; # Micro-sleeps radio between packets
   powerManagement.powertop.enable =
