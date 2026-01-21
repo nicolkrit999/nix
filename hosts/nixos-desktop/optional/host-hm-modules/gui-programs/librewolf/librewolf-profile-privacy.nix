@@ -1,79 +1,90 @@
-{ pkgs, addons, searchConfig, commonSettings, vars, inputs, ... }:
-{
+{ pkgs, addons, searchConfig, commonSettings, vars, inputs, ... }: {
   id = 1;
   name = "Privacy";
   isDefault = false;
-
   search = searchConfig;
 
-  # 🧩 EXTENSIONS
   extensions.packages = with addons; [
     kagi-search
     privacy-badger
     proton-pass
     simplelogin
-
-    # Other
     firefox-color
     ublock-origin
-
   ];
 
-  # TODO: The extensions allowed remembers the account but the respective websites still ask to login again. Investigate.
   settings = commonSettings // {
     "sidebar.main.tools" = [ "history" "bookmarks" ];
-    # Keep cookies and use sanitzie to allow custom cookie list
-    "network.cookie.lifetimePolicy" = 0;
+
+    # 2 = Accept for Session Only.
+    # Cookies are deleted on exit UNLESS they are in the Global 'Allow' Policy.
+    "network.cookie.lifetimePolicy" = 2;
+
+    "browser.startup.page" = 1; # 1 = Home Page
+
+    # SANITIZE SETTINGS
     "privacy.sanitize.sanitizeOnShutdown" = true;
 
-    # What to DELETE on exit:
+    # What to keep true (allow custom cookies list):
     "privacy.clearOnShutdown.history" = true;
     "privacy.clearOnShutdown.downloads" = true;
     "privacy.clearOnShutdown.cache" = true;
     "privacy.clearOnShutdown.formdata" = true;
     "places.history.enabled" = true;
-    "privacy.clearOnShutdown.cookies" = true;
+    "privacy.resistFingerprinting" = true;
 
-    # Keep false to allow custom allowed cookies list
-    "privacy.clearOnShutdown.sessions" = false; # Needed to keep allowed logins
+    # What to keep false (allow custom cookies list):
+    "privacy.clearOnShutdown.cookies" = false;
+    "privacy.clearOnShutdown.sessions" = false;
     "privacy.clearOnShutdown.siteSettings" = false;
     "privacy.clearOnShutdown.offlineApps" = false;
     "browser.privatebrowsing.autostart" = false;
 
-    # 🚫 HARDENING (No DRM, Anti-Fingerprinting)
+    # 🔒 HARDENING
+    "browser.contentblocking.category" = "strict";
+
+    # Disavle DRM (Netflix/Spotify)
     "media.eme.enabled" = false;
     "media.gmp-widevinecdm.enabled" = false;
-
-    # RFP (Keep this true, forcing Light Mode for maximum privacy in this profile)
-    "privacy.resistFingerprinting" = true;
     "webgl.disabled" = true;
 
-    # 🌐 STRICT DNS (Quad9 - Mode 3: Enforced)
+    # 🌐 DNS (Quad9 - Mode 3: Enforced)
     "network.trr.mode" = 3;
     "network.trr.uri" = "https://dns.quad9.net/dns-query";
     "network.trr.custom_uri" = "https://dns.quad9.net/dns-query";
     "network.dns.disablePrefetch" = true;
 
-    # DISABLE TRANSLATION & SPELLCHECK (Prevent leakage)
-    "layout.spellcheckDefault" = 0;
-    "browser.translations.enable" = false;
-    "browser.translations.panelShown" = false;
-    "browser.download.manager.addToRecentDocs" = false;
-
-    # Other
+    # FINGERPRINTING PROTECTION
     "privacy.resistFingerprinting.letterboxing" = true;
-    "network.http.referer.XOriginPolicy" = 2;
-    "network.http.referer.XOriginTrimmingPolicy" = 2;
+
+    # HTTPS mode
     "dom.security.https_only_mode" = true;
     "dom.security.https_only_mode_ever_enabled" = true;
 
-    # URL Bar Suggestions
+    # Referrers in Privacy Mode (Might break Cloudflare, but safe for privacy)
+    # If Cloudflare fails in Privacy Profile, change these to 0.
+    "network.http.referer.XOriginPolicy" = 2;
+    "network.http.referer.XOriginTrimmingPolicy" = 2;
+
+    # Url bar suggestions
     "browser.urlbar.suggest.history" = false;
     "browser.urlbar.suggest.bookmark" = false;
     "browser.urlbar.suggest.openpage" = false;
     "browser.urlbar.suggest.topsites" = false;
     "browser.urlbar.suggest.engines" = false;
-    "browser.urlbar.quickactions.enabled" = false; # Tough in the ui it seems active it works
+    "browser.urlbar.quickactions.enabled" = false;
     "browser.urlbar.suggest.weather" = false;
+
+    # Various
+    "layout.spellcheckDefault" = 0;
+    "browser.translations.enable" = false;
+    "browser.translations.panelShown" = false;
+    "browser.download.manager.addToRecentDocs" = false;
+
+    # Tracking protection
+    "privacy.trackingprotection.fingerprinting.enabled" = true;
+    "privacy.trackingprotection.cryptomining.enabled" = true;
+    "privacy.trackingprotection.enabled" = true;
+    "privacy.trackingprotection.socialtracking.enabled" = true;
   };
 }

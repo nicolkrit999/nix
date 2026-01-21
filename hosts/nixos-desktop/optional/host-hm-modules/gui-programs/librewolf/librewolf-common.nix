@@ -114,7 +114,6 @@ let
     "browser.download.lastDir" = "/home/${vars.user}/Downloads";
 
     # Telemetry & Bloat
-    "privacy.trackingprotection.enabled" = true;
     "extensions.pocket.enabled" = false;
     "identity.fxaccounts.enabled" = false; # No Sync
     "datareporting.policy.dataSubmissionEnabled" = false;
@@ -197,9 +196,6 @@ let
     # Vertical tabs
     "sidebar.verticalTabs" = true;
     "sidebar.revamp" = true;
-
-    # Address bar
-    "browser.urlbar.suggest.calculator" = true;
   };
 
 in {
@@ -228,11 +224,7 @@ in {
     policies = {
       DisableTelemetry = true;
       DisableFirefoxStudies = true;
-      EnableTrackingProtection = {
-        Value = true;
-        Locked = true;
-        Cryptomining = true;
-      };
+
       ExtensionSettings = {
         # Allow installing other extensions manually
         "*".installation_mode = "allowed";
@@ -271,6 +263,10 @@ in {
           "https://app.simplelogin.io"
           "https://simplelogin.com"
           "https://auth.simplelogin.com"
+
+          # Cloudflare
+          "https://cloudflareaccess.com"
+          "https://cloudflare.com"
 
           # Others
           "https://nicolkrit.ch"
