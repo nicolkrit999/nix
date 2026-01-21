@@ -35,8 +35,7 @@
   hyprlandNoctalia = true; # Enable Noctalia for Hyprland
 
   # Niri Options
-  niriNoctalia =
-    true; # Enable Noctalia for Niri (No Caelestia support on Niri)
+  niriNoctalia = true; # Enable Noctalia for Niri (No Caelestia support on Niri)
 
   # 📦 PACKAGES & TERMINAL
   flatpak = true;
@@ -113,18 +112,18 @@
     # Development environments configurations.
     # If a module is enabled their respective packages are installed permanently
     # To use them it's needed to add a .envrc file in the project folder that link to the dev-environment
-    #"c-cpp"
-    #"go"
-    #"haskell"
+    "c-cpp"
+    "go"
+    "haskell"
     "java"
-    #"jupyter"
+    "jupyter"
     "latex"
     "nix"
-    #"node"
-    #"php"
+    "node"
+    "php"
     "python"
     "r"
-    #"rust"
+    "rust"
     "shell"
     #"swift"
     "typst"

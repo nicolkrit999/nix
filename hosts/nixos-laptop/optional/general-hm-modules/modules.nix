@@ -18,6 +18,7 @@ let
   desktopMap = {
     # Browsers
     "firefox" = "firefox.desktop";
+    "librewolf" = "librewolf.desktop";
     "google-chrome" = "google-chrome.desktop";
     "chromium" = "chromium-browser.desktop"; # Found in user-apps.txt
     "brave" = "brave-browser.desktop";
@@ -166,7 +167,7 @@ in {
   */
 
   # Leave empty for desktop PCs
-  kdeTouchpads = [ ];
+  #kdeTouchpads = [ ];
 
   # ---------------------------------------------------------------------------
   # 🧩 WAYBAR WORKSPACE ICONS
@@ -237,6 +238,7 @@ in {
 
     # Other
     firefox.profileNames = [ vars.user ];
+    librewolf.profileNames = [ "default" "privacy" ];
   };
 
   swayncExclusions = {
@@ -261,6 +263,9 @@ in {
     "com.github.dagmoller.whatsapp-electron.desktop"
     "com.actualbudget.actual.desktop"
   ];
+
+  customGitIgnores = [ ".envrc" ];
+
   nixImpure = false;
 
   useFahrenheit = false;

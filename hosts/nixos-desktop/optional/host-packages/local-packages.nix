@@ -53,6 +53,7 @@
       nix-search-cli # CLI tool to search nixpkgs from terminal
       ntfs3g # NTFS read/write support
       ripgrep # Fast line-oriented search tool
+      screen # Terminal multiplexer
       tealdeer # Fast implementation of tldr (simplified man pages)
       ttyd # Share your terminal over the web
       unixtools.netstat # Network statistics
