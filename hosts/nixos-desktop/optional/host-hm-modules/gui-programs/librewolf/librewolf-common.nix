@@ -16,7 +16,8 @@ let
         definedAliases = [ "@k" ];
       };
       "perplexity" = {
-        urls = [{ template = "https://www.perplexity.ai/search?q={searchTerms}"; }];
+        urls =
+          [{ template = "https://www.perplexity.ai/search?q={searchTerms}"; }];
         icon = "https://www.perplexity.ai/favicon.ico";
         updateInterval = 24 * 60 * 60 * 1000;
         definedAliases = [ "@p" ];
@@ -29,11 +30,11 @@ let
       "bing".metaData.hidden = true;
       "ebay".metaData.hidden = true;
       "wikipedia".metaData.hidden = true;
-      "Wikipedia (en)".metaData.hidden = true;
-      "MetaGer".metaData.hidden = true;
-      "Mojeek".metaData.hidden = true;
-      "Searx Belgium".metaData.hidden = true;
-      "Startpage".metaData.hidden = true;
+      "wikipedia (en)".metaData.hidden = true;
+      "metager".metaData.hidden = true;
+      "mojeek".metaData.hidden = true;
+      "wearx belgium".metaData.hidden = true;
+      "startpage".metaData.hidden = true;
     };
   };
 
@@ -60,7 +61,8 @@ let
         ];
         toolbar-menubar = [ "menubar-items" ]; # Menubar when pressing "alt"
         TabsToolbar = [ ]; # Empty because we use vertical tabs
-        vertical-tabs = [ "tabbrowser-tabs" ]; # Render the tab list in vertical tabs
+        vertical-tabs =
+          [ "tabbrowser-tabs" ]; # Render the tab list in vertical tabs
       };
       seen = [
         "save-to-pocket-button"
@@ -89,12 +91,15 @@ let
     "browser.compactmode.show" = true;
     "browser.uidensity" = 0;
     "browser.shell.checkDefaultBrowser" = false;
-    "browser.tabs.insertRelatedAfterCurrent" = true; # Open links next to active tab
+    "browser.tabs.insertRelatedAfterCurrent" =
+      true; # Open links next to active tab
     "browser.ctrlTab.sortByRecentlyUsed" = true; # Cycle tabs in MRU order
     "browser.warnOnQuit" = false; # Disable Quit Warning
     "browser.tabs.warnOnClose" = false;
-    "browser.tabs.warnOnCloseOther" = false; # Tough in the ui it seems to be still enabled it work
-    "media.videocontrols.picture-in-picture.video-toggle.enabled" = true; # Enable PiP toggle
+    "browser.tabs.warnOnCloseOther" =
+      false; # Tough in the ui it seems to be still enabled it work
+    "media.videocontrols.picture-in-picture.video-toggle.enabled" =
+      true; # Enable PiP toggle
     "browser.display.document_color_use" = 0;
     "browser.display.use_system_colors" = true;
 
@@ -107,7 +112,6 @@ let
     "browser.download.folderList" = 2;
     "browser.download.dir" = "/home/${vars.user}/Downloads";
     "browser.download.lastDir" = "/home/${vars.user}/Downloads";
-
 
     # Telemetry & Bloat
     "privacy.trackingprotection.enabled" = true;
@@ -156,7 +160,8 @@ let
     "browser.newtabpage.activity-stream.showSearch" = false;
     "browser.newtabpage.activity-stream.feeds.snippets" = false;
     "browser.newtabpage.activity-stream.feeds.section.topstories" = false;
-    "browser.newtabpage.activity-stream.section.highlights.includePocket" = false;
+    "browser.newtabpage.activity-stream.section.highlights.includePocket" =
+      false;
     "browser.newtabpage.activity-stream.showSponsored" = false;
     "browser.newtabpage.activity-stream.system.showSponsored" = false;
     "browser.newtabpage.activity-stream.feeds.topsites" = false;
@@ -178,16 +183,13 @@ let
       "K00ILysCaEq8+bEqV/3nuw=="
       # Twitter
       "T9nJot5PurhJSy8n038xGA=="
-    ]
-      (_: 1);
-
+    ] (_: 1);
 
     # Disable "save password" prompt
     "signon.rememberSignons" = false;
     "signon.autofillForms" = false;
     "extensions.formautofill.addresses.enabled" = false;
     "extensions.formautofill.creditCards.enabled" = false;
-
 
     # Remove close button
     "browser.tabs.inTitlebar" = 0;
@@ -196,14 +198,11 @@ let
     "sidebar.verticalTabs" = true;
     "sidebar.revamp" = true;
 
-
-
     # Address bar
     "browser.urlbar.suggest.calculator" = true;
   };
 
-in
-{
+in {
   # Disable Browserpass (i use proton pass)
   programs.browserpass.enable = false;
 
@@ -223,10 +222,7 @@ in
 
     # Dummy package to allow hm to install librewolf using home-packages.nix but applying these custom configs
     package = pkgs.lib.makeOverridable
-      (
-        _args: pkgs.runCommand "librewolf-dummy" { } "mkdir $out"
-      )
-      { };
+      (_args: pkgs.runCommand "librewolf-dummy" { } "mkdir $out") { };
 
     # Global Policies
     policies = {
@@ -281,7 +277,6 @@ in
         ];
       };
     };
-
 
     # Import Profiles
     profiles = {

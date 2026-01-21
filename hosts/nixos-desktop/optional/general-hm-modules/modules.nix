@@ -38,8 +38,7 @@ let
   };
 
   resolve = name: desktopMap.${name} or "${name}.desktop";
-in
-{
+in {
   # ---------------------------------------------------------------------------
   # 🖥️ HYPRLAND WORKSPACES
   # ---------------------------------------------------------------------------
@@ -168,7 +167,7 @@ in
   */
 
   # Leave empty for desktop PCs
-  kdeTouchpads = [ ];
+  #kdeTouchpads = [ ];
 
   # ---------------------------------------------------------------------------
   # 🧩 WAYBAR WORKSPACE ICONS
@@ -264,6 +263,9 @@ in
     "com.github.dagmoller.whatsapp-electron.desktop"
     "com.actualbudget.actual.desktop"
   ];
+
+  customGitIgnores = [ ".envrc" ];
+
   nixImpure = false;
 
   useFahrenheit = false;
