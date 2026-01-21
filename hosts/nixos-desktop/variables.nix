@@ -44,7 +44,7 @@
   shell = "fish"; # Options: bash, zsh, fish
 
   # 📂 DEFAULT APPS
-  browser = "firefox";
+  browser = "librewolf";
   editor = "nvim";
   fileManager = "yazi";
 

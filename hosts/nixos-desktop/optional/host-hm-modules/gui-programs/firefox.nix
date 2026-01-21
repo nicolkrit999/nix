@@ -244,7 +244,6 @@ in
             "ublock0_raymondhill_net-browser-action"
             "_testpilot-containers-browser-action"
             "screenshot-button"
-
             # Extensions to hide from the toolbar
             "sponsorblocker_ajay_app-browser-action"
             "newtaboverride_agenedia_com-browser-action"
