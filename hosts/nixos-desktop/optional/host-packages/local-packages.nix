@@ -45,6 +45,7 @@
       gh # GitHub CLI tool
       glow # Markdown renderer for the terminal
       grex # Command-line tool for generating regular expressions
+      grim # Used to make screenshots with cli
       htop # Process viewer and killer
       killall # Command to kill processes by name
       lsof # List open files
