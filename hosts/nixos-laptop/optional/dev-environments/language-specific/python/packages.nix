@@ -1,6 +1,12 @@
-{ pkgs, python ? pkgs.python313, }:
-let pp = python.pkgs;
-in with python.pkgs; [
+{
+  pkgs,
+  python ? pkgs.python313,
+}:
+let
+  pp = python.pkgs;
+in
+with python.pkgs;
+[
   python
 
   # 2. LIBRARIES (dynamic)
