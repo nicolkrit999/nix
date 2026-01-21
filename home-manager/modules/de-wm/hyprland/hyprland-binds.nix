@@ -30,7 +30,7 @@
         # EXTRA UTILITIES
         "$Mod,       period, exec, bemoji -cn" # Emoji picker
         "$Mod SHIFT, P, exec, hyprpicker -an" # Color picker
-        "$Mod,       V, exec, cliphist list | $menu --dmenu | cliphist decode | wl-copy" # Clipboard history (cliphist)
+        "$Mod,       V, exec, cliphist list | wofi --dmenu | cliphist decode | wl-copy" # Clipboard history (cliphist)
         "$Mod SHIFT, R, exec, hyprctl reload" # Reload Hyprland config
         "$Mod,       N, exec, swaync-client -t" # Open notification center
 

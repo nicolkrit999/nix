@@ -18,6 +18,7 @@ let
   desktopMap = {
     # Browsers
     "firefox" = "firefox.desktop";
+    "librewolf" = "librewolf.desktop";
     "google-chrome" = "google-chrome.desktop";
     "chromium" = "chromium-browser.desktop"; # Found in user-apps.txt
     "brave" = "brave-browser.desktop";
@@ -37,7 +38,8 @@ let
   };
 
   resolve = name: desktopMap.${name} or "${name}.desktop";
-in {
+in
+{
   # ---------------------------------------------------------------------------
   # 🖥️ HYPRLAND WORKSPACES
   # ---------------------------------------------------------------------------
@@ -237,6 +239,7 @@ in {
 
     # Other
     firefox.profileNames = [ vars.user ];
+    librewolf.profileNames = [ "default" "privacy" ];
   };
 
   swayncExclusions = {
