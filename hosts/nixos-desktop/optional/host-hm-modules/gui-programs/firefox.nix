@@ -1,16 +1,8 @@
 { pkgs, lib, inputs, vars, ... }:
 let
   # Allow to install "unfree" addons by rebuilding them locally
-  buildFirefoxXpiAddon = lib.makeOverridable ({ stdenv ? pkgs.stdenv
-                                              , fetchurl
-                                              , pname
-                                              , version
-                                              , addonId
-                                              , url
-                                              , sha256
-                                              , meta
-                                              , ...
-                                              }:
+  buildFirefoxXpiAddon = lib.makeOverridable ({ stdenv ? pkgs.stdenv, fetchurl
+    , pname, version, addonId, url, sha256, meta, ... }:
     stdenv.mkDerivation {
       name = "${pname}-${version}";
       inherit meta;
@@ -25,8 +17,7 @@ let
       '';
     });
   firefox-addons = pkgs.callPackage inputs.firefox-addons { };
-in
-{
+in {
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME (official module)
   # -----------------------------------------------------------------------
@@ -42,7 +33,7 @@ in
   programs.browserpass.enable = false;
 
   programs.firefox = {
-    enable = true;
+    enable = false;
     profiles.${vars.user} = {
       # 🔍 Search Configuration
       # Forces Google as default while keeping privacy options like Kagi and duck duck go available.
@@ -140,8 +131,7 @@ in
           "K00ILysCaEq8+bEqV/3nuw=="
           # Twitter
           "T9nJot5PurhJSy8n038xGA=="
-        ]
-          (_: 1);
+        ] (_: 1);
 
         # Disable some telemetry
         "app.shield.optoutstudies.enabled" = false;

@@ -2,7 +2,137 @@
 let
   addons = pkgs.callPackage inputs.firefox-addons { };
 
-  # 1. SEARCH ENGINES
+  policyRoot = "/home/${vars.user}/.librewolf-policyroot";
+
+  policiesJson = builtins.toJSON {
+    policies = {
+      DisableTelemetry = true;
+      DisableFirefoxStudies = true;
+
+      ExtensionSettings = { "*" = { installation_mode = "allowed"; }; };
+
+      # Allow cookie permissions for the auth domains
+      Cookies = {
+        Allow = [
+          "https://pocket-id.nicolkrit.ch"
+          "https://nicolkrit.cloudflareaccess.com"
+
+          # keep your other sites too
+          "https://kagi.com"
+          "https://proton.me"
+          "https://account.proton.me"
+          "https://api.proton.me"
+          "https://auth.proton.me"
+          "https://docs.proton.me"
+          "https://wallet.proton.me"
+          "https://mail.proton.me"
+          "https://calendar.proton.me"
+          "https://drive.proton.me"
+          "https://pass.proton.me"
+          "https://lumo.proton.me"
+          "https://protonmail.com"
+          "https://account.protonmail.com"
+          "https://protonmail.ch"
+          "https://simplelogin.io"
+          "https://app.simplelogin.io"
+          "https://simplelogin.com"
+          "https://auth.simplelogin.com"
+          "https://nicolkrit.ch"
+          "https://nas.nicolkrit.ch"
+        ];
+      };
+
+      PopupBlocking = {
+        Default = false;
+        Allow = [
+          "https://pocket-id.nicolkrit.ch"
+          "https://nicolkrit.cloudflareaccess.com"
+        ];
+      };
+
+      Preferences = {
+        "network.cookie.cookieBehavior" = {
+          Value = 0;
+          Status = "locked";
+        };
+        "network.cookie.cookieBehavior.pbmode" = {
+          Value = 0;
+          Status = "locked";
+        };
+        "network.cookie.lifetimePolicy" = {
+          Value = 0;
+          Status = "locked";
+        };
+
+        "privacy.firstparty.isolate" = {
+          Value = false;
+          Status = "locked";
+        };
+        "privacy.partition.network_state" = {
+          Value = false;
+          Status = "locked";
+        };
+
+        "privacy.resistFingerprinting" = {
+          Value = false;
+          Status = "locked";
+        };
+        "privacy.fingerprintingProtection" = {
+          Value = false;
+          Status = "locked";
+        };
+
+        "browser.contentblocking.category" = {
+          Value = "standard";
+          Status = "locked";
+        };
+        "privacy.trackingprotection.enabled" = {
+          Value = false;
+          Status = "locked";
+        };
+        "privacy.trackingprotection.fingerprinting.enabled" = {
+          Value = false;
+          Status = "locked";
+        };
+        "privacy.trackingprotection.socialtracking.enabled" = {
+          Value = false;
+          Status = "locked";
+        };
+        "privacy.trackingprotection.cryptomining.enabled" = {
+          Value = false;
+          Status = "locked";
+        };
+
+        # Self-hosted / strict OIDC compatibility knobs
+        "network.cookie.sameSite.laxByDefault" = {
+          Value = false;
+          Status = "locked";
+        };
+        "network.cookie.sameSite.noneRequiresSecure" = {
+          Value = false;
+          Status = "locked";
+        };
+
+        # Avoid DoH breaking reachability
+        "network.trr.mode" = {
+          Value = 5;
+          Status = "locked";
+        };
+
+        # Referrers permissive for redirect flows
+        "network.http.referer.XOriginPolicy" = {
+          Value = 0;
+          Status = "locked";
+        };
+        "network.http.referer.XOriginTrimmingPolicy" = {
+          Value = 0;
+          Status = "locked";
+        };
+      };
+    };
+  };
+
+  # SEARCH
   searchConfig = {
     force = true;
     default = "kagi";
@@ -22,11 +152,9 @@ let
         updateInterval = 24 * 60 * 60 * 1000;
         definedAliases = [ "@p" ];
       };
-      # Visible search engines
       "google".metaData.hidden = false;
       "duckduckgo".metaData.hidden = false;
 
-      # hidden search engines
       "bing".metaData.hidden = true;
       "ebay".metaData.hidden = true;
       "wikipedia".metaData.hidden = true;
@@ -38,7 +166,7 @@ let
     };
   };
 
-  # 2. UI LAYOUT (Toolbar Pinning)
+  # UI LAYOUT
   toolbarSettings = {
     "browser.uiCustomization.state" = builtins.toJSON {
       currentVersion = 23;
@@ -48,21 +176,20 @@ let
         nav-bar = [
           "back-button"
           "forward-button"
-          "vertical-spacer" # Spacer
-          "home-button" # Home button
+          "vertical-spacer"
+          "home-button"
           "stop-reload-button"
-          "urlbar-container" # Address bar
+          "urlbar-container"
           "downloads-button"
-          "search_kagi_com-browser-action" # Kagi Search
-          "jid1-mnnxcxisbpnsxq_jetpack-browser-action" # Privacy Badger
-          "78272b6fa58f4a1abaac99321d503a20_proton_me-browser-action" # Proton Pass
-          "addon_simplelogin-browser-action" # SimpleLogin
+          "search_kagi_com-browser-action"
+          "jid1-mnnxcxisbpnsxq_jetpack-browser-action"
+          "78272b6fa58f4a1abaac99321d503a20_proton_me-browser-action"
+          "addon_simplelogin-browser-action"
           "unified-extensions-button"
         ];
-        toolbar-menubar = [ "menubar-items" ]; # Menubar when pressing "alt"
-        TabsToolbar = [ ]; # Empty because we use vertical tabs
-        vertical-tabs =
-          [ "tabbrowser-tabs" ]; # Render the tab list in vertical tabs
+        toolbar-menubar = [ "menubar-items" ];
+        TabsToolbar = [ ];
+        vertical-tabs = [ "tabbrowser-tabs" ];
       };
       seen = [
         "save-to-pocket-button"
@@ -70,7 +197,6 @@ let
         "ublock0_raymondhill_net-browser-action"
         "_testpilot-containers-browser-action"
         "screenshot-button"
-        # Extensions to hide from the toolbar
         "sponsorblocker_ajay_app-browser-action"
         "newtaboverride_agenedia_com-browser-action"
       ];
@@ -85,76 +211,35 @@ let
     };
   };
 
+  # COMMON PREFS (“junk off”)
   commonSettings = toolbarSettings // {
-    # UI & Behavior
     "browser.startup.homepage" = "https://kagi.com/";
     "browser.compactmode.show" = true;
     "browser.uidensity" = 0;
     "browser.shell.checkDefaultBrowser" = false;
-    "browser.tabs.insertRelatedAfterCurrent" =
-      true; # Open links next to active tab
-    "browser.ctrlTab.sortByRecentlyUsed" = true; # Cycle tabs in MRU order
-    "browser.warnOnQuit" = false; # Disable Quit Warning
+    "browser.tabs.insertRelatedAfterCurrent" = true;
+    "browser.ctrlTab.sortByRecentlyUsed" = true;
+    "browser.warnOnQuit" = false;
     "browser.tabs.warnOnClose" = false;
-    "browser.tabs.warnOnCloseOther" =
-      false; # Tough in the ui it seems to be still enabled it work
-    "media.videocontrols.picture-in-picture.video-toggle.enabled" =
-      true; # Enable PiP toggle
+    "browser.tabs.warnOnCloseOther" = false;
+    "media.videocontrols.picture-in-picture.video-toggle.enabled" = true;
     "browser.display.document_color_use" = 0;
     "browser.display.use_system_colors" = true;
 
-    # Dark/light mode
     "ui.systemUsesDarkTheme" = if vars.polarity == "dark" then 1 else 0;
     "browser.in-content.dark-mode" = vars.polarity == "dark";
 
-    # Don't ask for download dir and force it to Downloads
     "browser.download.useDownloadDir" = true;
     "browser.download.folderList" = 2;
     "browser.download.dir" = "/home/${vars.user}/Downloads";
     "browser.download.lastDir" = "/home/${vars.user}/Downloads";
 
-    # Telemetry & Bloat
+    # Telemetry/junk off
     "extensions.pocket.enabled" = false;
-    "identity.fxaccounts.enabled" = false; # No Sync
+    "identity.fxaccounts.enabled" = false;
     "datareporting.policy.dataSubmissionEnabled" = false;
-    "browser.disableResetPrompt" = true;
-    "browser.download.panel.shown" = true;
-    "browser.feeds.showFirstRunUI" = false;
-    "browser.messaging-system.whatsNewPanel.enabled" = false;
-    "browser.rights.3.shown" = true;
-    "browser.shell.defaultBrowserCheckCount" = 1;
-    "browser.startup.homepage_override.mstone" = "ignore";
-    "browser.uitour.enabled" = false;
-    "startup.homepage_override_url" = "";
-    "trailhead.firstrun.didSeeAboutWelcome" = true;
-    "browser.bookmarks.restore_default_bookmarks" = false;
-    "browser.bookmarks.addedImportButton" = true;
-    "app.shield.optoutstudies.enabled" = false;
-    "browser.discovery.enabled" = false;
-    "browser.newtabpage.activity-stream.feeds.telemetry" = false;
-    "browser.newtabpage.activity-stream.telemetry" = false;
-    "browser.ping-centre.telemetry" = false;
-    "datareporting.healthreport.service.enabled" = false;
-    "datareporting.healthreport.uploadEnabled" = false;
-    "datareporting.sessions.current.clean" = true;
-    "devtools.onboarding.telemetry.logged" = false;
-    "toolkit.telemetry.archive.enabled" = false;
-    "toolkit.telemetry.bhrPing.enabled" = false;
-    "toolkit.telemetry.enabled" = false;
-    "toolkit.telemetry.firstShutdownPing.enabled" = false;
-    "toolkit.telemetry.hybridContent.enabled" = false;
-    "toolkit.telemetry.newProfilePing.enabled" = false;
-    "toolkit.telemetry.prompted" = 2;
-    "toolkit.telemetry.rejected" = true;
-    "toolkit.telemetry.reportingpolicy.firstRun" = false;
-    "toolkit.telemetry.server" = "";
-    "toolkit.telemetry.shutdownPingSender.enabled" = false;
-    "toolkit.telemetry.unified" = false;
-    "toolkit.telemetry.unifiedIsOptIn" = false;
-    "toolkit.telemetry.updatePing.enabled" = false;
 
-    # Disable crappy home activity stream page
-    # hides the default promoted/suggested tiles on Firefox's new-tab screen from several major websites.
+    # New tab junk off
     "browser.newtabpage.activity-stream.discoverystream.enabled" = false;
     "browser.newtabpage.activity-stream.showSearch" = false;
     "browser.newtabpage.activity-stream.feeds.snippets" = false;
@@ -168,41 +253,22 @@ let
     "browser.newtabpage.activity-stream.improvesearch.topSiteSearchShortcuts" =
       false;
 
-    # Disable specific blocked new tab page tiles
-    "browser.newtabpage.blocked" = lib.genAttrs [
-      # Youtube
-      "26UbzFJ7qT9/4DhodHKA1Q=="
-      # Facebook
-      "4gPpjkxgZzXPVtuEoAL9Ig=="
-      # Wikipedia
-      "eV8/WsSLxHadrTL1gAxhug=="
-      # Reddit
-      "gLv0ja2RYVgxKdp0I5qwvA=="
-      # Amazon
-      "K00ILysCaEq8+bEqV/3nuw=="
-      # Twitter
-      "T9nJot5PurhJSy8n038xGA=="
-    ] (_: 1);
-
-    # Disable "save password" prompt
+    # Password manager off
     "signon.rememberSignons" = false;
     "signon.autofillForms" = false;
     "extensions.formautofill.addresses.enabled" = false;
     "extensions.formautofill.creditCards.enabled" = false;
 
-    # Remove close button
-    "browser.tabs.inTitlebar" = 0;
-
     # Vertical tabs
+    "browser.tabs.inTitlebar" = 0;
     "sidebar.verticalTabs" = true;
     "sidebar.revamp" = true;
-  };
 
+    "browser.urlbar.suggest.calculator" = true;
+  };
 in {
-  # Disable Browserpass (i use proton pass)
   programs.browserpass.enable = false;
 
-  # Launcher for privacy profile
   xdg.desktopEntries."librewolf-privacy" = {
     name = "LibreWolf Privacy";
     genericName = "Web Browser";
@@ -213,68 +279,23 @@ in {
     comment = "Launch LibreWolf in Hardened Privacy Mode";
   };
 
+  home.file.".librewolf-policyroot/distribution/policies.json".text =
+    policiesJson;
+
   programs.librewolf = {
     enable = true;
 
-    # Dummy package to allow hm to install librewolf using home-packages.nix but applying these custom configs
-    package = pkgs.lib.makeOverridable
-      (_args: pkgs.runCommand "librewolf-dummy" { } "mkdir $out") { };
+    package = pkgs.lib.makeOverridable (_args:
+      pkgs.writeShellScriptBin "librewolf" ''
+        set -eu
+        export MOZ_APP_DISTRIBUTION="${policyRoot}"
 
-    # Global Policies
-    policies = {
-      DisableTelemetry = true;
-      DisableFirefoxStudies = true;
+        # fail loudly if policies aren’t there (no silent “nothing”)
+        test -f "${policyRoot}/distribution/policies.json"
 
-      ExtensionSettings = {
-        # Allow installing other extensions manually
-        "*".installation_mode = "allowed";
-      };
-      Cookies = {
-        # Allow certain cookies to persist even in privacy mode
-        # Everything to the right of the domain is allowed
-        # If sommething comes before the domain then it must be added
-        Allow = [
-          # Kagi
-          "https://kagi.com"
-          "https://translate.kagi.com/"
-          "https://news.kagi.com/"
-          "https://kagi.com/summarizer/"
+        exec ${pkgs.librewolf}/bin/librewolf "$@"
+      '') { };
 
-          # PROTON
-          "https://proton.me"
-          "https://account.proton.me"
-          "https://api.proton.me"
-          "https://auth.proton.me"
-          "https://docs.proton.me"
-          "https://wallet.proton.me"
-          "https://mail.proton.me"
-          "https://calendar.proton.me"
-          "https://drive.proton.me"
-          "https://pass.proton.me"
-          "https://lumo.proton.me"
-
-          # PROTON LEGACY (Required for redirects)
-          "https://protonmail.com"
-          "https://account.protonmail.com"
-          "https://protonmail.ch"
-
-          # SIMPLELOGIN
-          "https://simplelogin.io"
-          "https://app.simplelogin.io"
-          "https://simplelogin.com"
-          "https://auth.simplelogin.com"
-
-          # Cloudflare
-          "https://cloudflareaccess.com"
-          "https://cloudflare.com"
-
-          # Others
-          "https://nicolkrit.ch"
-        ];
-      };
-    };
-
-    # Import Profiles
     profiles = {
       default = (import ./librewolf-profile-default.nix {
         inherit pkgs addons searchConfig commonSettings vars inputs;

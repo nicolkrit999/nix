@@ -4,6 +4,6 @@
   imports = [
     ./pwa.nix
     ./home.nix
-    #./wrappers.nix
+    #./wrappers.nix 
   ];
 }
