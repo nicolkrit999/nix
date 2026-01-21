@@ -86,16 +86,17 @@
   ];
 
   wallpapers = [
+
     {
       wallpaperURL =
-        "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/various-websites/wallhaven/wallhaven-anime-girl-drink-4k-grey.png";
-      wallpaperSHA256 = "0q5j531m3a1x5x99d0xybcb9rgc7w1i3v2vgf81zpwcwqj7abnzr";
+        "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_white_car_parked_on_a_brick_road.png";
+      wallpaperSHA256 = "1kpagf05x4wfwi2hc5n1jdhkya5d9w60cca8x6nsrzl5sy1bslpw";
     }
 
     {
       wallpaperURL =
-        "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_black_and_white_logo.png";
-      wallpaperSHA256 = "1q0p9sq40lq9b3icncq8a223v5yk33w4nz3pymwz2gwv3psjzzw1";
+        "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/various-websites/wallhaven/wallhaven-anime-girl-drink-4k-grey.png";
+      wallpaperSHA256 = "0q5j531m3a1x5x99d0xybcb9rgc7w1i3v2vgf81zpwcwqj7abnzr";
     }
   ];
 

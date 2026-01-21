@@ -264,7 +264,7 @@ in {
     "com.actualbudget.actual.desktop"
   ];
 
-  customGitIgnores = [ ".envrc" ];
+  customGitIgnores = [ ];
 
   nixImpure = false;
 
