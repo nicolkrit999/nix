@@ -74,6 +74,8 @@ in
           # -------------------------------------------------------------------
           # These are too big and usually sync via cloud accounts anyway.
           "/home/*/.mozilla"
+          "home/*/.librewolf"
+          "home/*/.librewolf-policyroot"
           "/home/*/.config/google-chrome"
           "/home/*/.config/chromium"
           "/home/*/.config/BraveSoftware"
@@ -121,6 +123,9 @@ in
           # -------------------------------------------------------------------
           # 8. OTHER
           # -------------------------------------------------------------------
+        "home/*/.clouflared"
+        "home/*/.steam"
+        "home/*/.themes"
         ];
 
         # 3. Storage & Encryption
