@@ -1,8 +1,7 @@
-{
-  config,
-  lib,
-  vars,
-  ...
+{ config
+, lib
+, vars
+, ...
 }:
 
 lib.mkIf ((vars.shell or "zsh") == "bash") {
@@ -16,30 +15,43 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
     shellAliases =
       let
         flakeDir = "~/nixOS";
-
         isImpure = vars.nixImpure or false;
 
-        switchCmd =
-          if isImpure then "sudo nixos-rebuild switch --flake . --impure" else "nh os switch ${flakeDir}";
+        # Base commands
+        baseSwitchCmd =
+          if isImpure then "sudo nixos-rebuild switch --flake . --impure"
+          else "nh os switch ${flakeDir}";
 
-        updateCmd =
+        baseUpdateCmd =
           if isImpure then
             "nix flake update && sudo nixos-rebuild switch --flake . --impure"
           else
             "nh os switch --update ${flakeDir}";
 
-        updateBoot =
+        baseBootCmd =
           if isImpure then
             "sudo nixos-rebuild boot --flake . --impure"
           else
             "nh os boot --update ${flakeDir}";
+
+        # This wrap recognize if the current host is the "builder", allowing uploads
+        wrapCachix = cmd:
+          if (vars.cachix.enable or false) && (vars.cachix.push or false) then
+            "cachix watch-exec ${vars.cachix.name} -- ${cmd}"
+          else
+            cmd;
+
+        # wrappped commands
+        switchCmd = wrapCachix baseSwitchCmd;
+        updateCmd = wrapCachix baseUpdateCmd;
+        updateBoot = wrapCachix baseBootCmd;
       in
       {
         # Smart aliases based on nixImpure setting
         sw = "cd ${flakeDir} && ${switchCmd}";
-        swoff = "cd ${flakeDir} && ${switchCmd} --offline";
+        swoff = "cd ${flakeDir} && ${baseSwitchCmd} --offline";
         gsw = "cd ${flakeDir} && git add -A && ${switchCmd}";
-        gswoff = "cd ${flakeDir} && git add -A && ${switchCmd} --offline";
+        gswoff = "cd ${flakeDir} && git add -A && ${baseSwitchCmd} --offline";
         upd = "cd ${flakeDir} && ${updateCmd}";
 
         # Manual are kept for reference, but use the above aliases instead

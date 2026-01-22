@@ -14,5 +14,6 @@ result-*
 **/.DS_Store
 
 # Ignore Nix flake lock file
-flake.lock
+# Uncommented because cachix.nix need it in the repo
+#flake.lock
 
