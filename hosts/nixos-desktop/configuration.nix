@@ -87,6 +87,8 @@
   # ---------------------------------------------------------
   # 👤 USER CONFIGURATION
   # ---------------------------------------------------------
+  users.mutableUsers = false; # Owerwrite manual password changes
+
   users.users.${vars.user} = {
     isNormalUser = true;
     description = "${vars.user}";
