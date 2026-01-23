@@ -13,7 +13,7 @@
       localsend # Simple file sharing over local network
       meld # Visual diff and merge tool
       obs-studio # Streaming/Recording
-      protonvpn-gui # VPN client by Proton
+      #protonvpn-gui # VPN client by Proton (currently not supported on arm despite nixpkgs telling otherwise)
       signal-desktop # Encrypted messaging application
       telegram-desktop # Messaging
       teams-for-linux # Unofficial Microsoft Teams client
@@ -68,10 +68,10 @@
     ]
 
     ++ (with pkgs-unstable;
-    [
-      # -----------------------------------------------------------------------
-      # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
-      # -----------------------------------------------------------------------
-      fresh-editor # Lightweight terminal text editor
-    ]);
+      [
+        # -----------------------------------------------------------------------
+        # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
+        # -----------------------------------------------------------------------
+        fresh-editor # Lightweight terminal text editor
+      ]);
 }

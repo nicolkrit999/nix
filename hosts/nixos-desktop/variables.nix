@@ -113,22 +113,23 @@
     # Development environments configurations.
     # If a module is enabled their respective packages are installed permanently
     # To use them it's needed to add a .envrc file in the project folder that link to the dev-environment
-    "c-cpp"
-    "go"
-    "haskell"
-    "java"
-    "jupyter"
-    "latex"
-    "nix"
-    "node"
-    "php"
-    "python"
-    "r"
-    "rust"
-    "shell"
-    #"swift" # Currently disabled due to build issues
-    "typst"
-
+    # Commented out to reduce size on cachix
+    /* "c-cpp"
+       "go"
+       "haskell"
+       "java"
+       "jupyter"
+       "latex"
+       "nix"
+       "node"
+       "php"
+       "python"
+       "r"
+       "rust"
+       "shell"
+       #"swift"
+       "typst"
+    */
   ];
 
   # Cachix
