@@ -24,6 +24,7 @@ jobs:
         with:
           hatchet-protocol: 'rampage' 
           witness-carnage: true  
+          nix-permission-edict: true
 
       - uses: cachix/install-nix-action@v31
         with:
