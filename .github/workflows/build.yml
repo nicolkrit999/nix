@@ -54,7 +54,12 @@ jobs:
 
       - name: Build x86_64 Configurations
         run: |
+          # Build desktop
           nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --no-link --print-out-paths > outpaths.txt
+
+          # Build Laptop
+          #nix build .#nixosConfigurations.nixos-laptop-x86.config.system.build.toplevel --no-link --print-out-paths >> outpaths.txt
+
           cachix push krit-nixos $(cat outpaths.txt)
 
       - name: Check Disk Usage
@@ -88,7 +93,7 @@ jobs:
       - name: Maximize Nix Space
         uses: wimpysworld/nothing-but-nix@main
         with:
-          hatchet-protocol: 'cleave'
+          hatchet-protocol: 'cleave' # Switch to "rampage" if the space used is close to ~100gb for each build split
           witness-carnage: true
           nix-permission-edict: false
 
