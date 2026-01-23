@@ -21,11 +21,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. FIX PERMISSIONS on /mnt
+      # 1 Configure multi-platform builds
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 2. FIX PERMISSIONS on /mnt
       - name: Open permissions on /mnt
         run: sudo chmod 1777 /mnt
 
-      # 2. RECLAIM SPACE (Create /nix volume)
+      # 3. RECLAIM SPACE (Create /nix volume)
       - name: Maximize Nix Space
         uses: wimpysworld/nothing-but-nix@main
         with:
@@ -33,7 +37,7 @@ jobs:
           witness-carnage: true
           nix-permission-edict: false
 
-      # 3. CONFIGURE PATHS
+      # 4. CONFIGURE PATHS
       - name: Prepare Build Paths
         run: |
           set -euxo pipefail
@@ -49,10 +53,7 @@ jobs:
           sudo chmod 0755 /nix/build
           sudo chown root:root /nix/build
 
-
-      # 4 Configure multi-platform builds
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      
 
       # 5. INSTALL NIX (DeterminateSystems)
       - name: Install Nix
@@ -60,7 +61,7 @@ jobs:
         with:
           extra-conf: |
             build-dir = /nix/build
-            
+            extra-platforms = aarch64-linux
             auto-optimise-store = true
             experimental-features = nix-command flakes
 
