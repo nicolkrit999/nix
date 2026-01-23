@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Preparation: Fix SSL issues for asset fetching (logo, etc.)
+      # Resolve SSL certificate issues for asset fetching (fonts/logo)
       - name: Install CA Certificates
         run: sudo apt-get update && sudo apt-get install -y ca-certificates
 
@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Preparation: Fix SSL issues for asset fetching (logo, etc.)
+      # Resolve SSL certificate issues for asset fetching (fonts/logo)
       - name: Install CA Certificates
         run: sudo apt-get update && sudo apt-get install -y ca-certificates
 

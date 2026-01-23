@@ -75,7 +75,7 @@ in {
     # Installation of packages available only on x86_64 systems
     ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux")
     (builtins.trace
-      "✅ x86_64 Architecture Detected: Installing gpu-screen-recorder and applying permission fixes"
+      "✅ x86_64 Architecture Detected: Installing x86 only packages"
       [ gpu-screen-recorder ])
 
     # Extra KDE specific packages
@@ -113,7 +113,7 @@ in {
 
   # Only define these wrappers if we are on an x86 system.
   security.wrappers =
-    if (pkgs.stdenv.hostPlatform.system == "x86_64-linux") then {
+    lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
       gpu-screen-recorder = {
         owner = "root";
         group = "root";
@@ -126,8 +126,7 @@ in {
         capabilities = "cap_sys_admin+ep";
         source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
       };
-    } else
-      { };
+    };
 
   # Use optionalString to inject the GPU rule ONLY on x86.
   security.polkit.enable = true;
