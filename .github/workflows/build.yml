@@ -4,12 +4,14 @@ on:
   push:
     branches: [develop, main]
   pull_request:
+  schedule:
+    - cron: '0 5 * * 5'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
 
     env:
@@ -55,6 +57,11 @@ jobs:
             auto-optimise-store = true
             experimental-features = nix-command flakes
 
+      # 4b. UPDATE FLAKE LOCK (Scheduled builds only)
+      - name: Update Flake Lock
+        if: github.event_name == 'schedule'
+        run: nix flake update
+
       # 5. CACHIX
       - uses: cachix/cachix-action@v15
         with:
@@ -69,6 +76,17 @@ jobs:
             .#nixosConfigurations.nixos-desktop.config.system.build.toplevel \
             | tee outpaths.txt
 
+      # 7. PUSH TO CACHIX
       - name: Push to Cachix
         run: |
           cachix push krit-nixos $(cat outpaths.txt)
+
+      # 8. COMMIT FLAKE LOCK UPDATE (Scheduled builds only)
+      - name: Commit Flake Update
+        if: github.event_name == 'schedule'
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add flake.lock
+          git commit -m "chore: weekly flake update (automated)"
+          git push origin develop
