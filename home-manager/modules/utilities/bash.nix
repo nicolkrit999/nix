@@ -37,7 +37,7 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
         # This wrap recognize if the current host is the "builder", allowing uploads
         wrapCachix = cmd:
           if (vars.cachix.enable or false) && (vars.cachix.push or false) then
-            "cachix watch-exec ${vars.cachix.name} -- ${cmd}"
+            "env CACHIX_AUTH_TOKEN=$(command cat /run/secrets/cachix-auth-token) cachix watch-exec ${vars.cachix.name} -- ${cmd}"
           else
             cmd;
 
