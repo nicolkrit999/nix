@@ -18,11 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Fix /mnt permissions so nothing-but-nix doesn't crash runner scripts
+      # 1. Fix /mnt permissions (prevents crashes in runners using /mnt for temp)
       - name: Open permissions on /mnt
         run: sudo chmod 1777 /mnt
 
-      # 2. Create the large /nix volume
+      # 2. Create the large /nix volume (100GB+)
       - name: Maximize Nix Space
         uses: wimpysworld/nothing-but-nix@main
         with:
@@ -32,49 +32,28 @@ jobs:
           mnt-safe-haven: "2048"
           nix-permission-edict: false
 
-      # 3. Configure paths: Use /tmp for safety, /nix for storage
-      - name: Configure Nix paths
+      # 3. Configure environment: Use /tmp for safety, /nix/build for size
+      - name: Configure Build Paths
         run: |
           set -euxo pipefail
 
-          # RESET TMPDIR to /tmp (safest for execution).
-          # nothing-but-nix sets it to /mnt, which causes permissions issues.
+          # Force TMPDIR back to /tmp (root FS) to avoid permission errors on /mnt or /nix
           echo "TMPDIR=/tmp" >> "$GITHUB_ENV"
           echo "TMP=/tmp" >> "$GITHUB_ENV"
           echo "TEMP=/tmp" >> "$GITHUB_ENV"
 
-          # Setup build directory on the big disk
+          # Prepare the heavy build directory on the large volume
+          # Mode 1777 (like /tmp) ensures nixbld users can write to it
           sudo mkdir -p /nix/build
-          sudo chown -R "$(id -u)":"$(id -g)" /nix/build
-
-          # Setup caches on the big disk
-          sudo mkdir -p /nix/xdg-cache/nix
-          sudo chown -R "$(id -u)":"$(id -g)" /nix/xdg-cache
+          sudo chmod 1777 /nix/build
           
-          # Root cache for daemon
-          sudo mkdir -p /nix/xdg-cache/root-nix
-          sudo chmod 0755 /nix/xdg-cache/root-nix
-
-          # Link runner's cache to big disk
-          mkdir -p /home/runner/.cache
-          rm -rf /home/runner/.cache/nix
-          ln -s /nix/xdg-cache/nix /home/runner/.cache/nix
-
-          # Link root's cache to big disk
-          sudo mkdir -p /root/.cache
-          sudo rm -rf /root/.cache/nix
-          sudo ln -s /nix/xdg-cache/root-nix /root/.cache/nix
-
-          echo "XDG_CACHE_HOME=/nix/xdg-cache" >> "$GITHUB_ENV"
-
-      # 4. Install Nix (using /tmp for the installer script itself)
       - uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           extra_nix_config: |
             experimental-features = nix-command flakes
             auto-optimise-store = true
-            build-dir = /nix/build  # Heavy builds happen here (on the 100GB+ disk)
+            build-dir = /nix/build
 
       - uses: cachix/cachix-action@v15
         with:
