@@ -23,8 +23,13 @@ jobs:
         uses: wimpysworld/nothing-but-nix@main
         with:
           hatchet-protocol: 'rampage' 
-          witness-carnage: true  
-          nix-permission-edict: true
+          witness-carnage: true
+          nix-permission-edict: true 
+
+      - name: Prepare Build Directory
+        run: |
+          sudo mkdir -p /nix/build
+          sudo chown -R $(id -u):$(id -g) /nix/build
 
       - uses: cachix/install-nix-action@v31
         with:
