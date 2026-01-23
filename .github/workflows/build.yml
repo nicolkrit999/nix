@@ -33,7 +33,7 @@ jobs:
       - name: Maximize Nix Space
         uses: wimpysworld/nothing-but-nix@main
         with:
-          hatchet-protocol: 'rampage'
+          hatchet-protocol: 'cleave' # If not working try 'rampage'
           witness-carnage: true
           nix-permission-edict: false
 
