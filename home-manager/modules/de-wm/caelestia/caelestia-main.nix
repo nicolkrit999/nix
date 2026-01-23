@@ -94,8 +94,11 @@ let
 in {
   imports = [ inputs.caelestia-shell.homeManagerModules.default ];
 
-  config =
-    lib.mkIf ((vars.hyprland or false) && (vars.hyprlandCaelestia or false)) {
+  config = lib.mkIf (
+    (vars.hyprland or false) && 
+    (vars.hyprlandCaelestia or false) &&
+    pkgs.stdenv.hostPlatform.system == "x86_64-linux" # <--- ADD THIS GUARD
+  ) {
 
       programs.caelestia = {
         enable = true;

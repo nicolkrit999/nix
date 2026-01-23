@@ -207,7 +207,7 @@ in {
     "whatsapp-electron"
 
     # Opened minimized
-    "sleep 5 && protonvpn-app --start-minimized"
+    #"sleep 5 && protonvpn-app --start-minimized"
 
     # System tweaks
   ];

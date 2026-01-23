@@ -65,7 +65,10 @@ let
   '';
 in {
 
-  config = lib.mkIf (enableHyprland || enableNiri) {
+  config = lib.mkIf (
+    (enableHyprland || enableNiri) && 
+    pkgs.stdenv.hostPlatform.system == "x86_64-linux"
+  ) {
 
     home.packages = [
       noctaliaPkg
