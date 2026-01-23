@@ -111,18 +111,6 @@ in {
   security.rtkit.enable = true;
   services.openssh.enable = true;
 
-  nixpkgs.overlays = [
-    (final: prev: {
-      gpu-screen-recorder =
-        if prev.stdenv.hostPlatform.system == "aarch64-linux" then
-          prev.writeShellScriptBin "gpu-screen-recorder" ''
-            echo "GPU Screen Recorder is not supported on ARM"
-            exit 0
-          ''
-        else
-          prev.gpu-screen-recorder;
-    })
-  ];
 
   # Only define these wrappers if we are on an x86 system.
   security.wrappers =

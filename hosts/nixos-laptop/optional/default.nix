@@ -9,7 +9,7 @@ let
   # Define the configuration logic here so we can reuse it
   finalConfig = {
     imports = [
-      ./dev-environments
+      #./dev-environments
       ./host-packages
       ./various
     ];

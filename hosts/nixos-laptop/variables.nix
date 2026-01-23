@@ -112,12 +112,13 @@
     suspendTimeout = 1800;
   };
 
+/*
   devLanguages = [
     # Development environments configurations.
     # If a module is enabled their respective packages are installed permanently
     # To use them it's needed to add a .envrc file in the project folder that link to the dev-environment
     # Commented out to reduce size on cachix
-    /* "c-cpp"
+     "c-cpp"
        "go"
        "haskell"
        "java"
@@ -132,8 +133,9 @@
        "shell"
        #"swift"
        "typst"
-    */
+    
   ];
+  */
 
   # Cachix
   cachix = {

@@ -129,6 +129,21 @@
             ./hosts/${hostname}/configuration.nix
             ./hosts/${hostname}/hardware-configuration.nix
 
+            # Overlay needed to avoid problems for aarch64
+            ({ pkgs, lib, ... }: {
+              nixpkgs.overlays = [
+                (final: prev: {
+                  gpu-screen-recorder = if prev.stdenv.hostPlatform.system == "aarch64-linux" then
+                    prev.writeShellScriptBin "gpu-screen-recorder" ''
+                      echo "GPU Screen Recorder is not supported on ARM"
+                      exit 0
+                    ''
+                  else
+                    prev.gpu-screen-recorder;
+                })
+              ];
+            })
+
             # Additional nixos modules from flakes
             inputs.catppuccin.nixosModules.catppuccin
             inputs.nix-flatpak.nixosModules.nix-flatpak
