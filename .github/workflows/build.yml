@@ -5,6 +5,7 @@ on:
     branches: [develop, main]
   pull_request:
   schedule:
+    # Weekly on Fridays at 05:00 UTC
     - cron: '0 5 * * 5'
 
 jobs:
@@ -48,40 +49,48 @@ jobs:
           sudo chmod 0755 /nix/build
           sudo chown root:root /nix/build
 
-      # 4. INSTALL NIX (DeterminateSystems)
+
+      # 4 Configure multi-platform builds
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 5. INSTALL NIX (DeterminateSystems)
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
         with:
           extra-conf: |
             build-dir = /nix/build
+            
             auto-optimise-store = true
             experimental-features = nix-command flakes
 
-      # 4b. UPDATE FLAKE LOCK (Scheduled builds only)
+      # 6. UPDATE FLAKE LOCK (Scheduled builds only)
       - name: Update Flake Lock
         if: github.event_name == 'schedule'
         run: nix flake update
 
-      # 5. CACHIX
+      # 7. CACHIX
       - uses: cachix/cachix-action@v15
         with:
           name: krit-nixos
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
           skipPush: true
 
-      # 6. BUILD
-      - name: Build nixos-desktop
+      # 8. BUILD
+      - name: Build All Configurations
         run: |
-          nix build --no-link --print-out-paths \
-            .#nixosConfigurations.nixos-desktop.config.system.build.toplevel \
-            | tee outpaths.txt
+          # Build Desktop (x86)
+          nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --no-link --print-out-paths >> outpaths.txt
+          
+          # Build Laptop (ARM)
+          nix build .#nixosConfigurations.nixos-laptop.config.system.build.toplevel --no-link --print-out-paths >> outpaths.txt
 
-      # 7. PUSH TO CACHIX
+      # 9. PUSH TO CACHIX
       - name: Push to Cachix
         run: |
           cachix push krit-nixos $(cat outpaths.txt)
 
-      # 8. COMMIT FLAKE LOCK UPDATE (Scheduled builds only)
+      # 10. COMMIT FLAKE LOCK UPDATE (Scheduled builds only)
       - name: Commit Flake Update
         if: github.event_name == 'schedule'
         run: |
