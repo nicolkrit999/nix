@@ -17,6 +17,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Open permissions on /mnt
+        run: sudo chmod 1777 /mnt
 
       - name: Maximize Nix Space
         uses: wimpysworld/nothing-but-nix@main
@@ -27,48 +30,46 @@ jobs:
           mnt-safe-haven: "2048"
           nix-permission-edict: false
 
-      - name: Configure temp + caches to live on /nix (avoid /mnt permissions + small /)
+      - name: Configure temp + caches to live on /nix
         run: |
           set -euxo pipefail
 
-          # Make sure temp is on /nix, not /mnt
+          # Create /nix/tmp and set it as the new TMPDIR for subsequent steps
           sudo mkdir -p /nix/tmp
           sudo chmod 1777 /nix/tmp
+          
+          # Tell GitHub Actions to use /nix/tmp from now on
+          echo "TMPDIR=/nix/tmp" >> "$GITHUB_ENV"
+          echo "TMP=/nix/tmp" >> "$GITHUB_ENV"
+          echo "TEMP=/nix/tmp" >> "$GITHUB_ENV"
+          echo "TEMPDIR=/nix/tmp" >> "$GITHUB_ENV"
 
-          # Build scratch space on /nix
-          sudo mkdir -p /nix/build
-          sudo chown -R "$(id -u)":"$(id -g)" /nix/build
-
-          # Put user caches on /nix
+          # Setup cache directories on the large /nix volume
           sudo mkdir -p /nix/xdg-cache/nix
           sudo chown -R "$(id -u)":"$(id -g)" /nix/xdg-cache
 
-          # Put root caches on /nix (nix-daemon / root will write here)
           sudo mkdir -p /nix/xdg-cache/root-nix
           sudo chmod 0755 /nix/xdg-cache/root-nix
 
-          # Export env for subsequent steps
-          {
-            echo "TMPDIR=/nix/tmp"
-            echo "TMP=/nix/tmp"
-            echo "TEMP=/nix/tmp"
-            echo "TEMPDIR=/nix/tmp"
-            echo "XDG_CACHE_HOME=/nix/xdg-cache"
-          } >> "$GITHUB_ENV"
+          echo "XDG_CACHE_HOME=/nix/xdg-cache" >> "$GITHUB_ENV"
 
-          # Symlink runner cache to /nix
+          # Link runner's cache to /nix
           mkdir -p /home/runner/.cache
           rm -rf /home/runner/.cache/nix
           ln -s /nix/xdg-cache/nix /home/runner/.cache/nix
 
-          # Symlink root cache to /nix
+          # Link root's cache to /nix (for nix-daemon)
           sudo mkdir -p /root/.cache
           sudo rm -rf /root/.cache/nix
           sudo ln -s /nix/xdg-cache/root-nix /root/.cache/nix
 
+          # Setup build directory
+          sudo mkdir -p /nix/build
+          sudo chown -R "$(id -u)":"$(id -g)" /nix/build
+
+          # Verify
+          ls -ld /mnt /nix/tmp
           df -h / /mnt /nix
-          echo "TMPDIR=$TMPDIR"
-          echo "XDG_CACHE_HOME=$XDG_CACHE_HOME"
 
       - uses: cachix/install-nix-action@v31
         env:
