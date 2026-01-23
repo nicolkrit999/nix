@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. FIX PERMISSIONS on /mnt so nothing-but-nix doesn't crash
+      # 1. FIX PERMISSIONS on /mnt
       - name: Open permissions on /mnt
         run: sudo chmod 1777 /mnt
 
@@ -30,23 +30,27 @@ jobs:
           witness-carnage: true
           nix-permission-edict: false
 
+      # 3. CONFIGURE PATHS
       - name: Prepare Build Paths
         run: |
-          # Ensure TMPDIR is safe and standard
+          set -euxo pipefail
+
+          # Safe temp dir on root disk
           echo "TMPDIR=/tmp" >> "$GITHUB_ENV"
           echo "TMP=/tmp" >> "$GITHUB_ENV"
           echo "TEMP=/tmp" >> "$GITHUB_ENV"
 
-          # Create the heavy build directory on the large volume
+          # Heavy build dir on /nix
+          # Must be 755 root:root (NOT 777) to satisfy Nix security checks
           sudo mkdir -p /nix/build
-          sudo chmod 1777 /nix/build
+          sudo chmod 0755 /nix/build
+          sudo chown root:root /nix/build
 
       # 4. INSTALL NIX (DeterminateSystems)
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
         with:
           extra-conf: |
-            # Use the 100GB+ volume for builds
             build-dir = /nix/build
             auto-optimise-store = true
             experimental-features = nix-command flakes
@@ -61,7 +65,6 @@ jobs:
       # 6. BUILD
       - name: Build nixos-desktop
         run: |
-          # Build and output the path
           nix build --no-link --print-out-paths \
             .#nixosConfigurations.nixos-desktop.config.system.build.toplevel \
             | tee outpaths.txt
