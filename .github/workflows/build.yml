@@ -28,20 +28,15 @@ jobs:
 
       - name: Prepare Large Build Volume
         run: |
-          sudo mkdir -p /nix/build
-          sudo mkdir -p /nix/tmp
-          sudo chown -R $(id -u):$(id -g) /nix/build
-          sudo chown -R $(id -u):$(id -g) /nix/tmp
-          # Force the environment to use the new writable temp dir
-          echo "TMPDIR=/nix/tmp" >> $GITHUB_ENV
+          sudo mkdir -p /nix/build-tmp
+          sudo chown -R $(id -u):$(id -g) /nix/build-tmp
+          echo "TMPDIR=/nix/build-tmp" >> $GITHUB_ENV
 
-      - uses: cachix/install-nix-action@v31
+      - uses: DeterminateSystems/nix-installer-action@main
         with:
-          nix_path: nixpkgs=channel:nixos-unstable
-          extra_nix_config: |
+          extra-conf: |
             auto-optimise-store = true
-            build-dir = /nix/build
-          install_options: "--no-daemon" 
+            build-dir = /nix/build-tmp
 
       - uses: cachix/cachix-action@v15
         with:
