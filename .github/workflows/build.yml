@@ -18,52 +18,50 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Fix /mnt permissions (prevents crashes in runners using /mnt for temp)
+      # 1. FIX PERMISSIONS on /mnt so nothing-but-nix doesn't crash
       - name: Open permissions on /mnt
         run: sudo chmod 1777 /mnt
 
-      # 2. Create the large /nix volume (100GB+)
+      # 2. RECLAIM SPACE (Create /nix volume)
       - name: Maximize Nix Space
         uses: wimpysworld/nothing-but-nix@main
         with:
-          hatchet-protocol: "rampage"
+          hatchet-protocol: 'rampage'
           witness-carnage: true
-          root-safe-haven: "10240"
-          mnt-safe-haven: "2048"
           nix-permission-edict: false
 
-      # 3. Configure environment: Use /tmp for safety, /nix/build for size
-      - name: Configure Build Paths
+      - name: Prepare Build Paths
         run: |
-          set -euxo pipefail
-
-          # Force TMPDIR back to /tmp (root FS) to avoid permission errors on /mnt or /nix
+          # Ensure TMPDIR is safe and standard
           echo "TMPDIR=/tmp" >> "$GITHUB_ENV"
           echo "TMP=/tmp" >> "$GITHUB_ENV"
           echo "TEMP=/tmp" >> "$GITHUB_ENV"
 
-          # Prepare the heavy build directory on the large volume
-          # Mode 1777 (like /tmp) ensures nixbld users can write to it
+          # Create the heavy build directory on the large volume
           sudo mkdir -p /nix/build
           sudo chmod 1777 /nix/build
-          
-      - uses: cachix/install-nix-action@v31
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-            auto-optimise-store = true
-            build-dir = /nix/build
 
+      # 4. INSTALL NIX (DeterminateSystems)
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            # Use the 100GB+ volume for builds
+            build-dir = /nix/build
+            auto-optimise-store = true
+            experimental-features = nix-command flakes
+
+      # 5. CACHIX
       - uses: cachix/cachix-action@v15
         with:
           name: krit-nixos
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
           skipPush: true
 
+      # 6. BUILD
       - name: Build nixos-desktop
         run: |
-          # Build and capture output path
+          # Build and output the path
           nix build --no-link --print-out-paths \
             .#nixosConfigurations.nixos-desktop.config.system.build.toplevel \
             | tee outpaths.txt
