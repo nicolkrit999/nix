@@ -8,54 +8,90 @@ on:
     # Weekly on Fridays at 05:00 UTC
     - cron: '0 5 * * 5'
 
+# Prevents multiple pushes from building at once, saving runner time
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  # JOB 1: Build x86_64 Binaries (Desktop)
+  build-x86_64:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
-
     env:
       NIXPKGS_ALLOW_UNFREE: 1
-
     steps:
       - uses: actions/checkout@v4
 
-      # 1 Configure multi-platform builds
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      # Preparation: Fix SSL issues for asset fetching (logo, etc.)
+      - name: Install CA Certificates
+        run: sudo apt-get update && sudo apt-get install -y ca-certificates
 
-      # 2. FIX PERMISSIONS on /mnt
       - name: Open permissions on /mnt
         run: sudo chmod 1777 /mnt
 
-      # 3. RECLAIM SPACE (Create /nix volume)
       - name: Maximize Nix Space
         uses: wimpysworld/nothing-but-nix@main
         with:
-          hatchet-protocol: 'cleave' # If not working try 'rampage'
+          hatchet-protocol: 'cleave'
           witness-carnage: true
           nix-permission-edict: false
 
-      # 4. CONFIGURE PATHS
-      - name: Prepare Build Paths
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            build-dir = /nix/build
+            auto-optimise-store = true
+            experimental-features = nix-command flakes
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: krit-nixos
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Build x86_64 Configurations
         run: |
-          set -euxo pipefail
+          nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --no-link --print-out-paths > outpaths.txt
+          cachix push krit-nixos $(cat outpaths.txt)
 
-          # Safe temp dir on root disk
-          echo "TMPDIR=/tmp" >> "$GITHUB_ENV"
-          echo "TMP=/tmp" >> "$GITHUB_ENV"
-          echo "TEMP=/tmp" >> "$GITHUB_ENV"
+      - name: Check Disk Usage
+        run: |
+          echo "--- Disk Space Usage ---"
+          df -h /nix
+          echo "--- Nix Store Size ---"
+          du -sh /nix/store
 
-          # Heavy build dir on /nix
-          # Must be 755 root:root (NOT 777) to satisfy Nix security checks
-          sudo mkdir -p /nix/build
-          sudo chmod 0755 /nix/build
-          sudo chown root:root /nix/build
+  # JOB 2: Build AArch64 Binaries (Laptop)
+  build-aarch64:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      NIXPKGS_ALLOW_UNFREE: 1
+    steps:
+      - uses: actions/checkout@v4
 
-      
+      # Preparation: Fix SSL issues for asset fetching (logo, etc.)
+      - name: Install CA Certificates
+        run: sudo apt-get update && sudo apt-get install -y ca-certificates
 
-      # 5. INSTALL NIX (DeterminateSystems)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Open permissions on /mnt
+        run: sudo chmod 1777 /mnt
+
+      - name: Maximize Nix Space
+        uses: wimpysworld/nothing-but-nix@main
+        with:
+          hatchet-protocol: 'cleave'
+          witness-carnage: true
+          nix-permission-edict: false
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
         with:
@@ -65,38 +101,19 @@ jobs:
             auto-optimise-store = true
             experimental-features = nix-command flakes
 
-      # 6. UPDATE FLAKE LOCK (Scheduled builds only)
-      - name: Update Flake Lock
-        if: github.event_name == 'schedule'
-        run: nix flake update
-
-      # 7. CACHIX
       - uses: cachix/cachix-action@v15
         with:
           name: krit-nixos
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
-          skipPush: true
 
-      # 8. BUILD
-      - name: Build All Configurations
+      - name: Build AArch64 Configurations
         run: |
-          # Build Desktop (x86)
-          nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --no-link --print-out-paths >> outpaths.txt
-          
-          # Build Laptop (ARM)
-          nix build .#nixosConfigurations.nixos-laptop.config.system.build.toplevel --no-link --print-out-paths >> outpaths.txt
-
-      # 9. PUSH TO CACHIX
-      - name: Push to Cachix
-        run: |
+          nix build .#nixosConfigurations.nixos-laptop.config.system.build.toplevel --no-link --print-out-paths > outpaths.txt
           cachix push krit-nixos $(cat outpaths.txt)
 
-      # 10. COMMIT FLAKE LOCK UPDATE (Scheduled builds only)
-      - name: Commit Flake Update
-        if: github.event_name == 'schedule'
+      - name: Check Disk Usage
         run: |
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git add flake.lock
-          git commit -m "chore: weekly flake update (automated)"
-          git push origin develop
+          echo "--- Disk Space Usage ---"
+          df -h /nix
+          echo "--- Nix Store Size ---"
+          du -sh /nix/store
