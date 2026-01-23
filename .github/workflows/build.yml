@@ -24,12 +24,16 @@ jobs:
         with:
           hatchet-protocol: 'rampage' 
           witness-carnage: true
-          nix-permission-edict: true 
+          nix-permission-edict: true
 
-      - name: Prepare Build Directory
+      - name: Prepare Large Build Volume
         run: |
           sudo mkdir -p /nix/build
           sudo chown -R $(id -u):$(id -g) /nix/build
+          # Create a global temp dir on the large volume to avoid /mnt issues
+          sudo mkdir -p /nix/tmp
+          sudo chown -R $(id -u):$(id -g) /nix/tmp
+          echo "TMPDIR=/nix/tmp" >> $GITHUB_ENV
 
       - uses: cachix/install-nix-action@v31
         with:
