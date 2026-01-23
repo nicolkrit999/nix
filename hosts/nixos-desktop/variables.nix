@@ -86,7 +86,6 @@
   ];
 
   wallpapers = [
-
     {
       wallpaperURL =
         "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_white_car_parked_on_a_brick_road.png";
@@ -95,9 +94,10 @@
 
     {
       wallpaperURL =
-        "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/various-websites/wallhaven/wallhaven-anime-girl-drink-4k-grey.png";
+        "https://raw.githubusercontent.com/nicolkrit999/wallpaper-repo/main/various/various-websites/wallhaven/wallhaven-anime-girl-drink-4k-grey.png";
       wallpaperSHA256 = "0q5j531m3a1x5x99d0xybcb9rgc7w1i3v2vgf81zpwcwqj7abnzr";
     }
+
   ];
 
   # 🔋 POWER MANAGEMENT
