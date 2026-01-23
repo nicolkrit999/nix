@@ -2,19 +2,18 @@ name: "Build & Cache"
 
 on:
   push:
-    branches:
-      - develop
-      - main
+    branches: [develop, main]
   pull_request:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      NIXPKGS_ALLOW_UNFREE: 1
     permissions:
       contents: read
       id-token: write
+
+    env:
+      NIXPKGS_ALLOW_UNFREE: 1
 
     steps:
       - uses: actions/checkout@v4
@@ -22,26 +21,86 @@ jobs:
       - name: Maximize Nix Space
         uses: wimpysworld/nothing-but-nix@main
         with:
-          hatchet-protocol: 'rampage' 
+          hatchet-protocol: "rampage"
           witness-carnage: true
-          nix-permission-edict: true 
+          root-safe-haven: "10240"
+          mnt-safe-haven: "2048"
+          nix-permission-edict: false
 
-      - name: Prepare Large Build Volume
+      - name: Configure temp + caches to live on /nix (avoid /mnt permissions + small /)
         run: |
-          sudo mkdir -p /nix/build-tmp
-          sudo chown -R $(id -u):$(id -g) /nix/build-tmp
-          echo "TMPDIR=/nix/build-tmp" >> $GITHUB_ENV
+          set -euxo pipefail
 
-      - uses: DeterminateSystems/nix-installer-action@main
+          # Make sure temp is on /nix, not /mnt
+          sudo mkdir -p /nix/tmp
+          sudo chmod 1777 /nix/tmp
+
+          # Build scratch space on /nix
+          sudo mkdir -p /nix/build
+          sudo chown -R "$(id -u)":"$(id -g)" /nix/build
+
+          # Put user caches on /nix
+          sudo mkdir -p /nix/xdg-cache/nix
+          sudo chown -R "$(id -u)":"$(id -g)" /nix/xdg-cache
+
+          # Put root caches on /nix (nix-daemon / root will write here)
+          sudo mkdir -p /nix/xdg-cache/root-nix
+          sudo chmod 0755 /nix/xdg-cache/root-nix
+
+          # Export env for subsequent steps
+          {
+            echo "TMPDIR=/nix/tmp"
+            echo "TMP=/nix/tmp"
+            echo "TEMP=/nix/tmp"
+            echo "TEMPDIR=/nix/tmp"
+            echo "XDG_CACHE_HOME=/nix/xdg-cache"
+          } >> "$GITHUB_ENV"
+
+          # Symlink runner cache to /nix
+          mkdir -p /home/runner/.cache
+          rm -rf /home/runner/.cache/nix
+          ln -s /nix/xdg-cache/nix /home/runner/.cache/nix
+
+          # Symlink root cache to /nix
+          sudo mkdir -p /root/.cache
+          sudo rm -rf /root/.cache/nix
+          sudo ln -s /nix/xdg-cache/root-nix /root/.cache/nix
+
+          df -h / /mnt /nix
+          echo "TMPDIR=$TMPDIR"
+          echo "XDG_CACHE_HOME=$XDG_CACHE_HOME"
+
+      - uses: cachix/install-nix-action@v31
+        env:
+          TMPDIR: /nix/tmp
+          XDG_CACHE_HOME: /nix/xdg-cache
         with:
-          extra-conf: |
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
             auto-optimise-store = true
-            build-dir = /nix/build-tmp
+            build-dir = /nix/build
 
       - uses: cachix/cachix-action@v15
         with:
           name: krit-nixos
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          skipPush: true
 
-      - name: Build nixos-desktop
-        run: nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel
+      - name: Build nixos-desktop (capture output path)
+        env:
+          TMPDIR: /nix/tmp
+          XDG_CACHE_HOME: /nix/xdg-cache
+        run: |
+          set -euxo pipefail
+          nix build --no-link --print-out-paths \
+            .#nixosConfigurations.nixos-desktop.config.system.build.toplevel \
+            | tee outpaths.txt
+
+      - name: Push only the build output to Cachix
+        env:
+          TMPDIR: /nix/tmp
+          XDG_CACHE_HOME: /nix/xdg-cache
+        run: |
+          set -euxo pipefail
+          cachix push krit-nixos $(cat outpaths.txt)
