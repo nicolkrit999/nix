@@ -2,8 +2,8 @@
 # Importing modules.nix is not necessary since flake.nix already handle it automatically
 {
   imports = [
-    # FIX: Commented because google-chrome based pwa are not working on aarch64
-    ./pwa.nix
+    # FIXME: apple music svg logo give error
+    #./pwa.nix
     ./home.nix
     #./wrappers.nix
   ];
