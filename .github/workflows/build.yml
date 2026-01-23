@@ -10,59 +10,46 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NIXPKGS_ALLOW_UNFREE: 1
-      TMPDIR: /nix/tmp
-      XDG_CACHE_HOME: /nix/xdg-cache
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Make /mnt temp writable (needed for mktemp)
+        run: |
+          sudo mkdir -p /mnt/tmp
+          sudo chmod 1777 /mnt/tmp
+          ls -ld /mnt /mnt/tmp
+
       - name: Maximize Nix Space
         uses: wimpysworld/nothing-but-nix@main
+        env:
+          TMPDIR: /mnt/tmp
         with:
           hatchet-protocol: 'rampage'
           witness-carnage: true
-          root-safe-haven: '10240' 
-          mnt-safe-haven: '2048'     
           nix-permission-edict: false
 
-      - name: Put Nix caches on /nix (runner + root)
+      - name: Prepare Nix temp + caches on /nix (after /nix exists)
         run: |
-          sudo mkdir -p /nix/tmp /nix/xdg-cache /nix/build
+          sudo mkdir -p /nix/tmp /nix/build /nix/xdg-cache
           sudo chmod 1777 /nix/tmp
-          sudo chown -R "$(id -u)":"$(id -g)" /nix/xdg-cache /nix/build
-
-          # Runner cache -> /nix
-          mkdir -p /nix/xdg-cache/nix
-          mkdir -p /home/runner/.cache
-          rm -rf /home/runner/.cache/nix
-          ln -s /nix/xdg-cache/nix /home/runner/.cache/nix
-
-          # Root cache -> /nix (nix-daemon uses root-owned cache DBs)
-          sudo mkdir -p /nix/xdg-cache/root-nix /root/.cache
-          sudo rm -rf /root/.cache/nix
-          sudo ln -s /nix/xdg-cache/root-nix /root/.cache/nix
-
-          df -h /
-
-      - uses: actions/checkout@v4
+          sudo chown -R "$(id -u)":"$(id -g)" /nix/build /nix/xdg-cache
+          df -h / /mnt /nix
 
       - uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           extra_nix_config: |
-            auto-optimise-store = true
             build-dir = /nix/build
+            auto-optimise-store = true
 
       - uses: cachix/cachix-action@v15
         with:
           name: krit-nixos
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
-          skipPush: true
 
-      - name: Build nixos-desktop (capture output path)
-        run: |
-          nix build --no-link --print-out-paths \
-            .#nixosConfigurations.nixos-desktop.config.system.build.toplevel \
-            | tee outpaths.txt
-
-      - name: Push only the output closure to Cachix
-        run: |
-          cachix push krit-nixos $(cat outpaths.txt)
+      - name: Build nixos-desktop
+        env:
+          TMPDIR: /nix/tmp
+          XDG_CACHE_HOME: /nix/xdg-cache
+        run: nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel
