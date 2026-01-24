@@ -34,8 +34,7 @@
   hyprlandNoctalia = false; # Enable Noctalia for Hyprland
 
   # Niri Options
-  niriNoctalia =
-    false; # Enable Noctalia for Niri (No Caelestia support on Niri)
+  niriNoctalia = false; # Enable Noctalia for Niri (No Caelestia support on Niri)
 
   # 📦 PACKAGES & TERMINAL
   flatpak = false;
@@ -80,11 +79,12 @@
   # 🖼️ MONITORS & WALLPAPERS
   monitors = [ ];
 
-  wallpapers = [{
-    wallpaperURL =
-      "https://raw.githubusercontent.com/zhichaoh/catppuccin-wallpapers/refs/heads/main/os/nix-black-4k.png";
-    wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
-  }];
+  wallpapers = [
+    {
+      wallpaperURL = "https://raw.githubusercontent.com/zhichaoh/catppuccin-wallpapers/refs/heads/main/os/nix-black-4k.png";
+      wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
+    }
+  ];
 
   # 🔋 POWER MANAGEMENT
   idleConfig = {
@@ -93,5 +93,18 @@
     lockTimeout = 1800;
     screenOffTimeout = 3600;
     suspendTimeout = 7200;
+  };
+
+  useCases = [
+    "gaming"
+  ];
+
+  # Cachix
+  cachix = {
+    enable = true;
+    push = true; # Only the builder must have this true (for now "nixos-desktop")
+    name = "krit-nixos";
+    # The public key from your screenshot:
+    publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
   };
 }

@@ -1,5 +1,12 @@
-{ pkgs, pkgs-unstable, vars, ... }: {
-  users.users.${vars.user}.packages = with pkgs;
+{
+  pkgs,
+  pkgs-unstable,
+  vars,
+  ...
+}:
+{
+  users.users.${vars.user}.packages =
+    with pkgs;
     [
       # This allow guest user to not have this packages installed
       # Packages in each category are sorted alphabetically
@@ -13,7 +20,7 @@
       localsend # Simple file sharing over local network
       meld # Visual diff and merge tool
       obs-studio # Streaming/Recording
-      protonvpn-gui # VPN client by Proton
+      #protonvpn-gui # VPN client by Proton (currently not supported on arm despite nixpkgs telling otherwise)
       signal-desktop # Encrypted messaging application
       telegram-desktop # Messaging
       teams-for-linux # Unofficial Microsoft Teams client
@@ -47,11 +54,12 @@
       universal-ctags # Tool to generate index (tags) files of source code
       zeal # Offline documentation browser
 
-      (pkgs.python313.withPackages (ps:
-        with ps; [
+      (pkgs.python313.withPackages (
+        ps: with ps; [
           faker # Generate fake data
           proton-keyring-linux # Proton keyring for Linux
-        ]))
+        ]
+      ))
 
       # -----------------------------------------------------------------------------------
       # 😂 FUN PACKAGES
@@ -67,8 +75,7 @@
       # -----------------------------------------------------------------------
     ]
 
-    ++ (with pkgs-unstable;
-    [
+    ++ (with pkgs-unstable; [
       # -----------------------------------------------------------------------
       # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
       # -----------------------------------------------------------------------

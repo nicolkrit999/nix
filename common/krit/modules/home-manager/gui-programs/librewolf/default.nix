@@ -1,0 +1,5 @@
+{
+  imports = [
+    ./librewolf-common.nix
+  ];
+}

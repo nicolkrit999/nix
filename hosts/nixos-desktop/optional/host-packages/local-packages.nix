@@ -21,7 +21,8 @@
       meld # Visual diff and merge tool
       obs-studio # Streaming/Recording
       proton-pass # Password manager by Proton
-      protonvpn-gui # VPN client by Proton
+      #FIXME: possibly broken with this flake.lock
+      #protonvpn-gui # VPN client by Proton
       signal-desktop # Encrypted messaging application
       telegram-desktop # Messaging
       teams-for-linux # Unofficial Microsoft Teams client

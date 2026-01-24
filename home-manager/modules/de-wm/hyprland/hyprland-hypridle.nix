@@ -1,7 +1,13 @@
-{ pkgs, lib, config, vars, inputs, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  vars,
+  inputs,
+  ...
+}:
 let
-  noctaliaPkg =
-    inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   # It intercepts the 'lock' command and routes it correctly.
   # Needed to make the lock work in noctalia
@@ -20,7 +26,8 @@ let
 
     echo "No locker found! (Check if Noctalia is running or Hyprlock is installed)"
   '';
-in {
+in
+{
   config = lib.mkIf (vars.idleConfig.enable or false) {
 
     home.packages = [ universalLock ];

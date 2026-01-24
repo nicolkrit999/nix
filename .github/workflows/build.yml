@@ -1,0 +1,124 @@
+name: "Build & Cache"
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+  schedule:
+    # Weekly on Fridays at 05:00 UTC
+    - cron: '0 5 * * 5'
+
+# Prevents multiple pushes from building at once, saving runner time
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # JOB 1: Build x86_64 Binaries (Desktop)
+  build-x86_64:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      NIXPKGS_ALLOW_UNFREE: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      # Resolve SSL certificate issues for asset fetching (fonts/logo)
+      - name: Install CA Certificates
+        run: sudo apt-get update && sudo apt-get install -y ca-certificates
+
+      - name: Open permissions on /mnt
+        run: sudo chmod 1777 /mnt
+
+      - name: Maximize Nix Space
+        uses: wimpysworld/nothing-but-nix@main
+        with:
+          hatchet-protocol: 'cleave'
+          witness-carnage: true
+          nix-permission-edict: false
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            build-dir = /nix/build
+            auto-optimise-store = true
+            experimental-features = nix-command flakes
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: krit-nixos
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Build x86_64 Configurations
+        run: |
+          # Build desktop
+          nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --no-link --print-out-paths > outpaths.txt
+
+          # Build Laptop
+          #nix build .#nixosConfigurations.nixos-laptop-x86.config.system.build.toplevel --no-link --print-out-paths >> outpaths.txt
+
+          cachix push krit-nixos $(cat outpaths.txt)
+
+      - name: Check Disk Usage
+        run: |
+          echo "--- Disk Space Usage ---"
+          df -h /nix
+          echo "--- Nix Store Size ---"
+          du -sh /nix/store
+
+  # JOB 2: Build AArch64 Binaries (Laptop)
+  build-aarch64:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      NIXPKGS_ALLOW_UNFREE: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      # Resolve SSL certificate issues for asset fetching (fonts/logo)
+      - name: Install CA Certificates
+        run: sudo apt-get update && sudo apt-get install -y ca-certificates
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Open permissions on /mnt
+        run: sudo chmod 1777 /mnt
+
+      - name: Maximize Nix Space
+        uses: wimpysworld/nothing-but-nix@main
+        with:
+          hatchet-protocol: 'cleave' # Switch to "rampage" if the space used is close to ~100gb for each build split
+          witness-carnage: true
+          nix-permission-edict: false
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            build-dir = /nix/build
+            extra-platforms = aarch64-linux
+            auto-optimise-store = true
+            experimental-features = nix-command flakes
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: krit-nixos
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Build AArch64 Configurations
+        run: |
+          nix build .#nixosConfigurations.nixos-laptop.config.system.build.toplevel --no-link --print-out-paths > outpaths.txt
+          cachix push krit-nixos $(cat outpaths.txt)
+
+      - name: Check Disk Usage
+        run: |
+          echo "--- Disk Space Usage ---"
+          df -h /nix
+          echo "--- Nix Store Size ---"
+          du -sh /nix/store

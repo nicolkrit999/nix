@@ -1,9 +1,7 @@
 { ... }:
-# Importing modules.nix is not necessary since flake.nix already handle it automatically
+# Importing modules.nix and home.nix is not necessary since flake.nix already handle it automatically
 {
   imports = [
-    ./pwa.nix
-    ./home.nix
-    #./wrappers.nix 
+    #./wrappers.nix
   ];
 }

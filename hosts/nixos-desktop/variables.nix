@@ -86,16 +86,13 @@
   ];
 
   wallpapers = [
-
     {
-      wallpaperURL =
-        "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_white_car_parked_on_a_brick_road.png";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_white_car_parked_on_a_brick_road.png";
       wallpaperSHA256 = "1kpagf05x4wfwi2hc5n1jdhkya5d9w60cca8x6nsrzl5sy1bslpw";
     }
 
     {
-      wallpaperURL =
-        "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/various-websites/wallhaven/wallhaven-anime-girl-drink-4k-grey.png";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/various-websites/wallhaven/wallhaven-anime-girl-drink-4k-grey.png";
       wallpaperSHA256 = "0q5j531m3a1x5x99d0xybcb9rgc7w1i3v2vgf81zpwcwqj7abnzr";
     }
   ];
@@ -109,24 +106,17 @@
     suspendTimeout = 7200;
   };
 
-  devLanguages = [
-    # Development environments configurations.
-    # If a module is enabled their respective packages are installed permanently
-    # To use them it's needed to add a .envrc file in the project folder that link to the dev-environment
-    "c-cpp"
-    "go"
-    "haskell"
-    "java"
-    "jupyter"
-    "latex"
-    "nix"
-    "node"
-    "php"
-    "python"
-    "r"
-    "rust"
-    "shell"
-    #"swift"
-    "typst"
+  useCases = [
+    "gaming"
   ];
+
+  # Cachix
+  cachix = {
+    enable = true;
+    push = true; # Only the builder must have this true (for now "nixos-desktop")
+    name = "krit-nixos";
+    # The public key from your screenshot:
+    publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
+  };
+
 }

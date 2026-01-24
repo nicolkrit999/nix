@@ -4,4 +4,3 @@
     ./noctalia-main.nix
   ];
 }
-

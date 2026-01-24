@@ -1,4 +1,10 @@
-{ pkgs, lib, vars, ... }: {
+{
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
+{
   config = lib.mkIf (vars.hyprland or false) {
     wayland.windowManager.hyprland.settings = {
       bind = [
@@ -108,7 +114,8 @@
         # They overlay other windows and can be toggled visible/invisible
         "$Mod,       S, togglespecialworkspace,  magic" # Toggle scratchpad visibility
         "$Mod SHIFT, S, movetoworkspace, special:magic" # Move window to scratchpad
-      ] ++ (vars.hyprlandExtraBinds or [ ]);
+      ]
+      ++ (vars.hyprlandExtraBinds or [ ]);
 
       # MOVE/RESIZE WINDOWS WITH MAINMOD + LMB/RMB AND DRAGGING
       bindm = [

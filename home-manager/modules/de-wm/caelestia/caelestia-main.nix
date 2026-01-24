@@ -1,7 +1,13 @@
-{ pkgs, lib, config, vars, inputs, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  vars,
+  inputs,
+  ...
+}:
 let
-  caelestiaPkg =
-    inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli;
+  caelestiaPkg = inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli;
 
   caelestiaLogout = pkgs.writeShellScriptBin "caelestia-logout" ''
     # 1. If UWSM is running, use it (Most graceful)
@@ -91,48 +97,54 @@ let
        exec "${caelestiaPkg}/bin/caelestia-shell" -d
     fi
   '';
-in {
+in
+{
   imports = [ inputs.caelestia-shell.homeManagerModules.default ];
 
   config =
-    lib.mkIf ((vars.hyprland or false) && (vars.hyprlandCaelestia or false)) {
+    lib.mkIf
+      (
+        (vars.hyprland or false)
+        && (vars.hyprlandCaelestia or false)
+        && pkgs.stdenv.hostPlatform.system == "x86_64-linux" # <--- ADD THIS GUARD
+      )
+      {
 
-      programs.caelestia = {
-        enable = true;
-        cli.enable = true;
-        systemd.enable = false;
+        programs.caelestia = {
+          enable = true;
+          cli.enable = true;
+          systemd.enable = false;
+        };
+
+        home.packages = [
+          caelestiaPkg
+          caelestiaQS
+          caelestiaLogout
+
+          # Qt Dependencies
+          pkgs.qt6.qt5compat
+          pkgs.qt6.qtsvg
+          pkgs.qt6.qtwayland
+          pkgs.qt6.qtdeclarative
+          pkgs.kdePackages.kirigami
+          pkgs.nerd-fonts.caskaydia-cove
+          pkgs.nerd-fonts.jetbrains-mono
+          pkgs.rubik
+          (pkgs.runCommand "material-symbols-rounded" { } ''
+            mkdir -p $out/share/fonts/truetype
+            cp ${
+              pkgs.fetchurl {
+                url = "https://github.com/google/material-design-icons/raw/master/variablefont/MaterialSymbolsRounded%5BFILL%2CGRAD%2Copsz%2Cwght%5D.ttf";
+                sha256 = "sha256-1xnyL97ifjRLB+Rub6i1Cx/OPPywPUqE8D+vvwgS/CI=";
+              }
+            } $out/share/fonts/truetype/MaterialSymbolsRounded.ttf
+          '')
+        ];
+
+        wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [
+          "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
+          "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
+          "sh -lc 'XDG_SCREENSHOTS_DIR=${vars.screenshots} caelestiaqs'"
+        ];
       };
-
-      home.packages = [
-        caelestiaPkg
-        caelestiaQS
-        caelestiaLogout
-
-        # Qt Dependencies
-        pkgs.qt6.qt5compat
-        pkgs.qt6.qtsvg
-        pkgs.qt6.qtwayland
-        pkgs.qt6.qtdeclarative
-        pkgs.kdePackages.kirigami
-        pkgs.nerd-fonts.caskaydia-cove
-        pkgs.nerd-fonts.jetbrains-mono
-        pkgs.rubik
-        (pkgs.runCommand "material-symbols-rounded" { } ''
-          mkdir -p $out/share/fonts/truetype
-          cp ${
-            pkgs.fetchurl {
-              url =
-                "https://github.com/google/material-design-icons/raw/master/variablefont/MaterialSymbolsRounded%5BFILL%2CGRAD%2Copsz%2Cwght%5D.ttf";
-              sha256 = "sha256-1xnyL97ifjRLB+Rub6i1Cx/OPPywPUqE8D+vvwgS/CI=";
-            }
-          } $out/share/fonts/truetype/MaterialSymbolsRounded.ttf
-        '')
-      ];
-
-      wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [
-        "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
-        "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
-        "sh -lc 'XDG_SCREENSHOTS_DIR=${vars.screenshots} caelestiaqs'"
-      ];
-    };
 }
