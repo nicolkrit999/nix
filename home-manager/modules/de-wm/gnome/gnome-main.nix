@@ -20,6 +20,7 @@ let
 in
 {
   config = lib.mkIf (vars.gnome or false) {
+
     home.packages =
       (lib.optionals vars.catppuccin [
         (pkgs.catppuccin-gtk.override {

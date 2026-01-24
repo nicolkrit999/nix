@@ -4,8 +4,6 @@
 ### Add virtual keyboard support to sddm
 - I tried both with x11, wayland, maliit, qvirtualkeyboard, root access to sddm user and groups "inputs" and "wheels" but nothing worked
 
-### Improve screenshots keybinbings and default path to save
-- Currently both keybindings and the path work in kde and hyprland. It would be nice to put them also in gnome to ensure consistency
 
 
 ## DE/WM specific

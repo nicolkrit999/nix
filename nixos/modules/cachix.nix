@@ -44,5 +44,7 @@ in
           config.sops.secrets."cachix-auth-token".path
         }) && sudo nixos-rebuild switch --flake . && nix path-info -r /run/current-system | cachix push ${cfg.name}";
       };
+
+      environment.systemPackages = [ pkgs.cachix ];
     };
 }

@@ -9,6 +9,18 @@ let
     ${pkgs.cliphist}/bin/cliphist list | ${pkgs.wofi}/bin/wofi --dmenu | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
   '';
 
+  screenshotScript = pkgs.writeShellScript "launch-screenshot" ''
+    # Create the filename with timestamp
+    # Note: vars.screenshots contains "$HOME", so the shell will expand it correctly
+    FILENAME="${vars.screenshots}/Screenshot_$(date +%F_%H-%M-%S).png"
+
+    mkdir -p "${vars.screenshots}"
+
+    ${pkgs.gnome-screenshot}/bin/gnome-screenshot --file="$FILENAME"
+
+    ${pkgs.libnotify}/bin/notify-send "Screenshot Saved" "Saved to $FILENAME" -i camera-photo
+  '';
+
   customKeyPath =
     i: "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${toString i}";
 
@@ -66,6 +78,13 @@ let
       command = "${cliphistScript}";
       binding = "<Super>v";
     }
+
+    {
+      name = "Take Screenshot (Native)";
+      command = "${screenshotScript}";
+      binding = "Print";
+    }
+
   ]
   ++ (vars.gnomeExtraBinds or [ ]);
 
@@ -105,6 +124,7 @@ in
       custom-keybindings = dconfList;
       screensaver = [ "<Super>Delete" ];
       logout = [ "<Super><Shift>Delete" ];
+      screenshot = [ ];
     };
 
     "org/gnome/desktop/wm/keybindings" = {
