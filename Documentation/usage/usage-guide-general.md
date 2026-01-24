@@ -140,10 +140,9 @@ To add a generic Home Manager module (e.g., a new CLI tool config) that applies 
 1. **Create the File:**
 Add your file to `home-manager/modules/` (e.g., `home-manager/modules/git.nix`).
 2. **Import It:**
-Open `home-manager/core.nix`  and add it to the `imports` list.
+Open `home-manager/modules/default.nix`  and add it to the `imports` list.
 ```nix
 imports = [
-  ./modules/git.nix
 ];
 ```
 

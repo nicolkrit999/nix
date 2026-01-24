@@ -4,12 +4,10 @@ These are the issues that i observed that require attentions. They may be only o
 - [Things to fix](#things-to-fix)
   - [Desktop environments specific](#desktop-environments-specific)
     - [Hyprland: gestures](#hyprland-gestures)
-    - [Noctaclia + caelestia](#noctaclia--caelestia)
     - [Hyprland with caelestia/quickshell: fullscren recording with no audio does not work.](#hyprland-with-caelestiaquickshell-fullscren-recording-with-no-audio-does-not-work)
   - [General](#general)
     - [ profile: You have set either `nixpkgs.config` or `nixpkgs.overlays` while using `home-manager.useGlobalPkgs`. This will soon not be possible. Please remove all `nixpkgs` options when using \`home-manager](#-profile-you-have-set-either-nixpkgsconfig-or-nixpkgsoverlays-while-using-home-manageruseglobalpkgs-this-will-soon-not-be-possible-please-remove-all-nixpkgs-options-when-using-home-manager)
     - [programs.zsh.initExtra`is deprecated, use`programs.zsh.initContent\` instead.](#programszshinitextrais-deprecated-useprogramszshinitcontent-instead)
-  - [Guest user specific](#guest-user-specific)
 
 
 ## Desktop environments specific
@@ -32,16 +30,10 @@ These are the issues that i observed that require attentions. They may be only o
         ];
 ```
 
-### Noctaclia + caelestia
-- The dynamic launcher button with only "super" key do not work. Currently only wofi with super + A work
-
 ### Hyprland with caelestia/quickshell: fullscren recording with no audio does not work.
 - It does not save it in the right folder
 - This is a known problem
 - Doing with the terminal work
-
-  - For now i created a keybinds to do that in case someone wants to use it
-
 ## General
 
 
@@ -54,9 +46,3 @@ These are the issues that i observed that require attentions. They may be only o
 - It should be a mismatch about what some inputs in home-manager expect and what other expects. Since the system build anyway for now this warning is harmless
   - For now we can ignore it
 
-
-
-
-
-
-## Guest user specific

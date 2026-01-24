@@ -1,11 +1,4 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
-{
+{ config, pkgs, lib, vars, ... }: {
   # home.nix and host-modules are imported from flake.nix
   imports = [
 
@@ -13,10 +6,8 @@
     # Import here if you have a personal common modules folders
     #../../common
 
-    # Local modules
-    ./optional/default.nix
-
-  ];
+  ] ++ (lib.optional (builtins.pathExists ./optional/default.nix)
+    ./optional/default.nix);
 
   # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   # 🌍 LOCALE
@@ -29,15 +20,8 @@
   users.users.${vars.user} = {
     isNormalUser = true;
     description = "${vars.user}";
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-      "input"
-      "video"
-      "audio"
-    ];
+    extraGroups = [ "networkmanager" "wheel" "input" "video" "audio" ];
   };
 
-  environment.systemPackages = with pkgs; [
-  ];
+  environment.systemPackages = with pkgs; [ ];
 }

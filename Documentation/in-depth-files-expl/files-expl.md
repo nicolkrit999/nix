@@ -58,7 +58,8 @@
 - [~nixOS/home-manager/modules/stylix.nix](#nixoshome-managermodulesstylixnix)
   - [Key Concepts](#key-concepts-9)
     - [1. The "Traffic Cop" Strategy (Catppuccin vs. Base16)](#1-the-traffic-cop-strategy-catppuccin-vs-base16)
-    - [2. Preventing Desktop Crashes (The Qt/KDE Conflict)](#2-preventing-desktop-crashes-the-qtkde-conflict)
+    - [2. The Qt/KDE Cohesion Strategy (Manual Hand-off)](#2-the-qtkde-cohesion-strategy-manual-hand-off)
+      - [How the Cohesion Works:](#how-the-cohesion-works)
     - [3. Global Assets](#3-global-assets)
   - [The Code](#the-code-10)
 - [~nixOS/home-manager/modules/zsh.nix](#nixoshome-managermoduleszshnix)
@@ -93,24 +94,26 @@
     - [3. Security Hardening](#3-security-hardening)
     - [4. User Warning](#4-user-warning)
   - [The Code](#the-code-15)
-- [🛡️ THE MONITOR SCRIPT](#️-the-monitor-script)
-- [~nixOS/nixos/modules/nix.nix](#nixosnixosmodulesnixnix)
+- [~nixOS/home-manager/modules/mime.nix](#nixoshome-managermodulesmimenix)
   - [Key Concepts](#key-concepts-15)
+    - [1. Dynamic Associations](#1-dynamic-associations)
+    - [2. Desktop File Translation (`mkDesktop`)](#2-desktop-file-translation-mkdesktop)
+  - [The Code](#the-code-16)
+- [~nixOS/nixos/modules/nix.nix](#nixosnixosmodulesnixnix)
+  - [Key Concepts](#key-concepts-16)
     - [1. Enabling Flakes](#1-enabling-flakes)
     - [2. Binary Caching (Speed)](#2-binary-caching-speed)
     - [3. Automatic Garbage Collection](#3-automatic-garbage-collection)
-  - [The Code](#the-code-16)
-- [~nixOS/nixos/modules/sddm.nix](#nixosnixosmodulessddmnix)
-  - [Key Concepts](#key-concepts-16)
-    - [1. The "Astronaut" Theme](#1-the-astronaut-theme)
-    - [2. X11 Backend for Stability](#2-x11-backend-for-stability)
-    - [3. UWSM Integration](#3-uwsm-integration)
   - [The Code](#the-code-17)
-- [~nixOS/nixos/modules/user.nix](#nixosnixosmodulesusernix)
+- [~nixOS/nixos/modules/sddm.nix](#nixosnixosmodulessddmnix)
   - [Key Concepts](#key-concepts-17)
+    - [1. The "Astronaut" Theme](#1-the-astronaut-theme)
+  - [The Code](#the-code-18)
+- [~nixOS/nixos/modules/user.nix](#nixosnixosmodulesusernix)
+  - [Key Concepts](#key-concepts-18)
     - [1. The "Safety Net" (Why configure groups twice?)](#1-the-safety-net-why-configure-groups-twice)
     - [2. Global Shell Enforcement](#2-global-shell-enforcement)
-  - [The Code](#the-code-18)
+  - [The Code](#the-code-19)
 
 
 # ~nixOS/flake.nix
@@ -1962,14 +1965,14 @@ in
 }
 ```
 
+---
 
 # ~nixOS/home-manager/modules/stylix.nix
 
 This file configures **Stylix**, the central theming engine for the system. Stylix's job is to take a single "Base16" color scheme (or an image) and automatically inject it into *every* application on your system (Shell, Editor, Browser, Desktop).
 
-However, because we also support the official **Catppuccin** modules, this file acts as a **"Traffic Cop"**. It intelligently decides *who* gets to theme *what*.
+However, because we also support the official **Catppuccin** modules and require stable Qt behavior, this file acts as a **"Traffic Cop"**. It intelligently decides *who* gets to theme *what*.
 
----
 
 ## Key Concepts
 
@@ -1984,26 +1987,30 @@ We achieve this using the `!catppuccin` logic.
 
 * `hyprland.enable = !catppuccin;` → "Only let Stylix theme Hyprland if Catppuccin is false."
 
-### 2. Preventing Desktop Crashes (The Qt/KDE Conflict)
+### 2. The Qt/KDE Cohesion Strategy (Manual Hand-off)
 
-You will notice that **`kde.enable`** and **`qt.enable`** are explicitly set to **`false`**.
+You will notice that **`kde.enable`** and **`qt.enable`** are explicitly set to **`false`**. This is a deliberate "Separation of Powers" between `stylix.nix` and `qt.nix`.
 
-* **Misconception:** This does *not* disable Qt support or the KDE desktop.
-* **Reality:** This disables **Stylix's attempt to control them**.
+* **The Problem:** Stylix attempts to force generic Base16 colors onto Qt applications (using `qt5ct`). On KDE Plasma, this conflicts with the desktop's native engine, often causing login loops or crashes. On Hyprland, it often results in broken icons or unreadable text.
+* **The Solution (The Hand-off):** We tell Stylix to ignore Qt entirely. Instead, we delegate Qt theming to our custom **`modules/qt.nix`**.
 
-**Why is this critical?**
-Stylix themes Qt applications by forcing the environment variable `QT_QPA_PLATFORMTHEME` to `qt5ct`.
+#### How the Cohesion Works:
 
-* **On Hyprland:** This is fine (and necessary).
-* **On KDE Plasma:** KDE has its own internal theme engine. If Stylix forces `qt5ct` externally, it conflicts with KDE's internal logic, causing the entire desktop session to **crash** or fail to login.
+Even though they are separate files, they stay synchronized via the global **`vars.polarity`** variable:
 
-By setting these to `false`, we tell Stylix: *"Hands off Qt! Let our custom `modules/qt.nix` handle it safely."*
+1. **Stylix (GTK & Others):** Reads `vars.polarity` (Dark/Light) and generates the appropriate GTK theme and wallpaper.
+2. **`qt.nix` (Qt & KDE):** Reads the same `vars.polarity` variable.
+* If `dark`: It forces the native **Breeze Dark** theme and **Papirus-Dark** icons.
+* If `light`: It forces **Breeze Light** and **Papirus-Light**.
+
+
+3. **Result:** Your GTK apps (themed by Stylix) and Qt apps (handled by `qt.nix`) always share the same Dark/Light mode, ensuring a consistent system look without the instability of forcing Stylix upon Qt.
 
 ### 3. Global Assets
 
-Regardless of which theme engine we use for apps, Stylix always manages the **universal** assets to ensure consistency:
+Regardless of which theme engine we use for specific apps, Stylix always manages the **universal** assets to ensure consistency:
 
-* **Wallpaper:** Sets the background image.
+* **Wallpaper:** Sets the background image for the system.
 * **Fonts:** Enforces `JetBrainsMono Nerd Font` everywhere.
 * **Cursor:** Enforces the `DMZ-Black` cursor.
 
@@ -2016,15 +2023,9 @@ Regardless of which theme engine we use for apps, Stylix always manages the **un
   pkgs,
   lib,
   inputs,
-  config,
   vars,
   ...
 }:
-let
-  capitalize =
-    s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
-  iconThemeName = if vars.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
-in
 {
   imports = [ inputs.stylix.homeModules.stylix ];
 
@@ -2042,8 +2043,9 @@ in
     # -----------------------------------------------------------------------
     # Tells Stylix NOT to automatically skin these programs (except for Firefox).
     targets = {
-     # It is possible to enable these, but it require manual theming in the modules/program itself
+      # It is possible to enable these, but it require manual theming in the modules/program itself
       neovim.enable = false; # Custom themed via my personal neovim stow config in dotfiles
+
       wofi.enable = false; # Themed manually via wofi/style.css
 
       # These should remain disabled because all edge cases are already handled
@@ -2054,45 +2056,36 @@ in
       kde.enable = false; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
       qt.enable = false; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
 
-      # These should remain enabled to avoid conflicts with other modules (empty for now)
+      # These should remain enabled to avoid conflicts with other modules
 
       # -----------------------------------------------------------------------
       # DE/WM SPECIFIC
       # -----------------------------------------------------------------------
       gnome.enable = vars.gnome;
 
-      # -----------------------------------------------------------------------
-      # MULTI EXCLUSIONS DUE TO CAELESTIA/QUICKSHELL
-      # -----------------------------------------------------------------------
-      gtk.enable = !vars.catppuccin && !vars.cosmic && !vars.hyprlandCaelestia;
-
       # ---------------------------------------------------------------------------------------
       # 🎨 GLOBAL CATPPUCCIN
       # Intelligently enable/disable stylix based on whether catppuccin is enabled
       # catppuccin = true -> .enable = false
       # catppuccin = false -> .enable = true
-      alacritty.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/alacritty.nix
       hyprland.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
+
       hyprlock.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix
+
+      gtk.enable = !vars.catppuccin; # No ref
+
       swaync.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/swaync/default.nix
-      zathura.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/zathura.nix
+
       bat.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/bat.nix
+
       lazygit.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/lazygit.nix
+
       tmux.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/tmux.nix
+
       starship.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
-      cava.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/cava.nix
-      kitty.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/kitty.nix
-      # ---------------------------------------------------------------------------------------
 
-      # Enable stylix but only for certain elements
-      firefox.profileNames = [ vars.user ]; # Applies skin only to the defined profile
-
-      # -----------------------------------------------------------------------
-      # Other exclusions
-      # This can be enabled but you need to uncomment/remove the module-specific theming file
-      # -----------------------------------------------------------------------
-      yazi.enable = lib.mkForce false; # Themed manually via yazi-theme.nix
-    };
+    }
+    // (lib.optionalAttrs (vars.stylixExclusions != null) vars.stylixExclusions);
 
     # -----------------------------------------------------------------------
     # 🖱️ MOUSE CURSOR
@@ -2125,18 +2118,11 @@ in
         applications = 11;
       };
     };
-
-    iconTheme = {
-      enable = true;
-      package = pkgs.papirus-icon-theme;
-      dark = "Papirus-Dark";
-      light = "Papirus-Light";
-    };
   };
 
-  dconf.settings = lib.mkIf vars.catppuccin {
+  dconf.settings = {
     "org/gnome/desktop/interface" = {
-      color-scheme = lib.mkForce (if vars.polarity == "dark" then "prefer-dark" else "prefer-light");
+      color-scheme = if vars.polarity == "dark" then "prefer-dark" else "prefer-light";
     };
   };
 
@@ -2149,7 +2135,6 @@ in
   # 3. Configure GTK Theme &amp; Settings
   gtk = lib.mkIf vars.catppuccin {
     enable = true;
-
     theme = {
       package = lib.mkForce (
         pkgs.catppuccin-gtk.override {
@@ -2164,11 +2149,11 @@ in
       );
       name = lib.mkForce "catppuccin-${vars.catppuccinFlavor}-${vars.catppuccinAccent}-standard+rimless,black";
     };
-
     gtk3.extraConfig.gtk-application-prefer-dark-theme = if vars.polarity == "dark" then 1 else 0;
     gtk4.extraConfig.gtk-application-prefer-dark-theme = if vars.polarity == "dark" then 1 else 0;
   };
 }
+
 ```
 
 # ~nixOS/home-manager/modules/zsh.nix
@@ -2889,7 +2874,6 @@ in
     XDG_BIN_HOME = "$HOME/.local/bin";
   };
 }
-
 ```
 
 
@@ -2931,7 +2915,7 @@ A custom script (`guest-warning`) runs on login using `zenity`. It displays a bi
 ---
 
 ## The Code
-
+```nix
 {
   config,
   pkgs,
@@ -3320,52 +3304,28 @@ We use the modern **sddm-astronaut** theme (specifically the `jake_the_dog` vari
 
 **Dependencies:** To ensure the theme renders correctly (with animations and icons), we explicitly inject Qt libraries like `qtsvg`, `qtmultimedia`, and `qtvirtualkeyboard` into SDDM's environment.
 
-
-
-### 2. X11 Backend for Stability
-
-Even though we might be logging into a Wayland session (like Hyprland), the login screen itself is configured to run on **X11** (`wayland.enable = false`).
-
-* **Why?** SDDM's Wayland mode can sometimes be buggy or fail to load themes correctly. Running the login screen on X11 is a "set it and forget it" stability measure that doesn't affect the performance of your actual desktop session.
-
-
-
-### 3. UWSM Integration
-
-If **Hyprland** is enabled, we set the default session to **`hyprland-uwsm`**.
-
-* **Significance:** This tells SDDM to launch Hyprland using the **Universal Wayland Session Manager** (UWSM) rather than the raw binary. This ensures that systemd services, environment variables, and cleanup processes are handled correctly during login and logout.
-
 ---
 
 ## The Code
 
 ```nix
-{ pkgs
-, lib
-, vars
-, ...
+{
+  pkgs,
+  lib,
+  vars,
+  ...
 }:
 let
-  # Reference for themes:
-  # Files: https://github.com/Keyitdev/sddm-astronaut-theme/tree/master/themes
   sddmTheme = pkgs.sddm-astronaut.override {
-    embeddedTheme = "hyprland_kath"; # do not include ".conf" at the end
+    embeddedTheme = "hyprland_kath";
     themeConfig = {
-      # Clock format. The default is 24/h format. If opting for the default these "themConfig" block can be removed
-      # "hh:mm AP" = 08:00 PM
-      # "HH:mm"    = 20:00
       HourFormat = "hh:mm AP";
-      #DateFormat = ""; # "Some theme may not support this. Commmented because i like the default but kept for reference
     };
   };
 in
 {
-
   services.xserver.enable = true;
-  services.xserver = {
-    excludePackages = [ pkgs.xterm ];
-  };
+  services.xserver.excludePackages = [ pkgs.xterm ];
 
   services.displayManager.sddm = {
     enable = true;
@@ -3373,15 +3333,25 @@ in
     package = lib.mkForce pkgs.kdePackages.sddm;
     theme = "sddm-astronaut-theme";
 
-    # Dependencies go here so SDDM can load them
     extraPackages = with pkgs; [
-      kdePackages.qtsvg
-      kdePackages.qtmultimedia
-      kdePackages.qtvirtualkeyboard
+      kdePackages.qtsvg # Keep for the theme
+      kdePackages.qtmultimedia # Keep for the theme
+      #kdePackages.qtvirtualkeyboard
     ];
   };
 
-  # Theme goes here so it links to /run/current-system/sw/share/sddm/themes
+  /*
+    systemd.services.sddm.environment = {
+      QT_IM_MODULE = "qtvirtualkeyboard";
+      QT_VIRTUALKEYBOARD_DESKTOP_DISABLE = "0";
+    };
+
+    environment.etc."sddm.conf.d/virtual-keyboard.conf".text = ''
+      [General]
+      InputMethod=qtvirtualkeyboard
+    '';
+  */
+
   environment.systemPackages = [
     sddmTheme
     pkgs.bibata-cursors
@@ -3392,7 +3362,6 @@ in
     user = vars.user;
   };
 
-  services.displayManager.defaultSession = lib.mkIf vars.hyprland "hyprland-uwsm";
   services.getty.autologinUser = null;
 }
 ```

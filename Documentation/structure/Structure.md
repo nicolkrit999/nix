@@ -14,12 +14,14 @@ Categories can be navigated with the links below:
 ## 🌳 File Tree
 
 ```text
-.
+├── common
+│   └── ... # This is where you can create common modules
 
+├── flake.lock # It must be in the repo to allow cachix to work
 ├── flake.nix
 ├── home-manager
-│   ├── home.nix
 │   ├── home-packages.nix
+│   ├── home.nix
 │   └── modules
 │       ├── cli-programs
 │       │   ├── default.nix
@@ -32,12 +34,9 @@ Categories can be navigated with the links below:
 │       │   └── wofi
 │       │       ├── default.nix
 │       │       └── style.css
-│       ├── core.nix                        # It import the folders inside home-manager-modules
 │       ├── de-wm
 │       │   ├── caelestia
-│       │   │   ├── caelestia-config.nix
 │       │   │   ├── caelestia-main.nix
-│       │   │   ├── caelestia-wallpaper.nix
 │       │   │   └── default.nix
 │       │   ├── cosmic
 │       │   │   ├── cosmic-main.nix
@@ -54,22 +53,33 @@ Categories can be navigated with the links below:
 │       │   │   ├── hyprland-hyprlock.nix
 │       │   │   ├── hyprland-hyprpaper.nix
 │       │   │   └── hyprland-main.nix
-│       │   └── kde
+│       │   ├── kde
+│       │   │   ├── default.nix
+│       │   │   ├── kde-binds.nix
+│       │   │   ├── kde-desktop.nix
+│       │   │   ├── kde-files.nix
+│       │   │   ├── kde-inputs.nix
+│       │   │   ├── kde-krunner.nix
+│       │   │   ├── kde-kscreenlocker.nix
+│       │   │   ├── kde-main.nix
+│       │   │   └── kde-panels.nix
+│       │   ├── niri
+│       │   │   ├── default.nix
+│       │   │   ├── niri-binds.nix
+│       │   │   └── niri-main.nix
+│       │   └── noctalia
 │       │       ├── default.nix
-│       │       ├── kde-binds.nix
-│       │       ├── kde-desktop.nix
-│       │       ├── kde-files.nix
-│       │       ├── kde-inputs.nix
-│       │       ├── kde-krunner.nix
-│       │       ├── kde-kscreenlocker.nix
-│       │       ├── kde-main.nix
-│       │       └── kde-panels.nix
+│       │       └── noctalia-main.nix
+│       ├── default.nix
 │       ├── gui-programs
 │       │   └── default.nix
 │       └── utilities
+│           ├── bash.nix
 │           ├── bat.nix
 │           ├── default.nix
 │           ├── eza.nix
+│           ├── fish.nix
+│           ├── fzf.nix
 │           ├── git.nix
 │           ├── lazygit.nix
 │           ├── mime.nix
@@ -77,16 +87,17 @@ Categories can be navigated with the links below:
 │           ├── starship.nix
 │           ├── stylix.nix
 │           ├── tmux.nix
+│           ├── zoxide.nix
 │           └── zsh.nix
 ├── hosts
 │   └── template-host
 │       ├── configuration.nix
 │       ├── disko-config.nix
+│       ├── home.nix
 │       ├── optional
-│       │   ├── default.nix                     # It import the optional host-specific folders
+│       │   ├── default.nix
 │       │   ├── general-hm-modules
 │       │   │   ├── default.nix
-│       │   │   ├── home.nix
 │       │   │   └── modules.nix
 │       │   ├── host-hm-modules
 │       │   │   └── default.nix
@@ -94,14 +105,15 @@ Categories can be navigated with the links below:
 │       │   │   ├── default.nix
 │       │   │   ├── flatpak.nix
 │       │   │   └── local-packages.nix
-│       │   └── host-sops-nix                   # Empty but present in case it's needed
+│       │   └── host-sops-nix
 │       └── variables.nix
-├── LICENSE.txt
 ├── nixos
 │   └── modules
 │       ├── audio.nix
 │       ├── bluetooth.nix
 │       ├── boot.nix
+│       ├── cachix.nix
+│       ├── common-configuration.nix
 │       ├── core.nix
 │       ├── cosmic.nix
 │       ├── env.nix
@@ -113,6 +125,7 @@ Categories can be navigated with the links below:
 │       ├── kernel.nix
 │       ├── net.nix
 │       ├── nh.nix
+│       ├── niri.nix
 │       ├── nix.nix
 │       ├── sddm.nix
 │       ├── snapshots.nix
@@ -120,6 +133,7 @@ Categories can be navigated with the links below:
 │       ├── timezone.nix
 │       ├── user.nix
 │       └── zram.nix
+└── README.md
 ```
 
 
