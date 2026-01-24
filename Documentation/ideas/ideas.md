@@ -5,9 +5,7 @@
 - I tried both with x11, wayland, maliit, qvirtualkeyboard, root access to sddm user and groups "inputs" and "wheels" but nothing worked
 
 ### Improve screenshots keybinbings and default path to save
-- Currently both keybindings and the path work in kde and hyprland. It would be nice to put them also in gnome and xfce to ensure consistency
-
-
+- Currently both keybindings and the path work in kde and hyprland. It would be nice to put them also in gnome to ensure consistency
 
 
 ## DE/WM specific
@@ -20,7 +18,7 @@
 - in the future it will probably be needed to tell stylix to not customize cosmic. For now this option does not exist
 
 ### Hyprland
-
+- N/A
 
 ## guest user
 ### Change logic from reboot to kickout when accessing a non xfce session

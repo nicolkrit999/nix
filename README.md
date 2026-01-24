@@ -12,12 +12,15 @@
     - [🖥️ Adaptive Host Support:](#️-adaptive-host-support)
       - [Host-specific home-manager modules](#host-specific-home-manager-modules)
       - [Host-specific home options](#host-specific-home-options)
+      - [Host-specific general home-manager modules tweaks](#host-specific-general-home-manager-modules-tweaks)
     - [📦 Package version and flatpak](#-package-version-and-flatpak)
     - [❄️ Hybrid (declarative + non declarative for some modules)](#️-hybrid-declarative--non-declarative-for-some-modules)
     - [🎨 Theming](#-theming)
     - [🖌️ Wallpaper(s)](#️-wallpapers)
       - [kde-main.nix](#kde-mainnix)
       - [gnome-main.nix](#gnome-mainnix)
+    - [niri-main.nix](#niri-mainnix)
+    - [cosmic-main.nix](#cosmic-mainnix)
     - [🪟 Multiple Desktop Environments](#-multiple-desktop-environments)
       - [✅ The Safe Way (Prevent Lockouts)](#-the-safe-way-prevent-lockouts)
       - [🚨 Emergency Recovery (Stuck in TTY)](#-emergency-recovery-stuck-in-tty)
@@ -25,9 +28,11 @@
     - [👤 Ephemeral Guest User](#-ephemeral-guest-user)
     - [🏠 Home Manager Integration](#-home-manager-integration)
     - [🧇 Tmux](#-tmux)
-    - [🌟 Zsh + Starship](#-zsh--starship)
-    - [🦺 BTRFS snapshots](#-btrfs-snapshots)
+    - [🌟 Multiple shells + Starship](#-multiple-shells--starship)
+    - [🦺 Optional BTRFS snapshots](#-optional-btrfs-snapshots)
     - [❔ SOPS-nix support](#-sops-nix-support)
+    - [📦 Cachix support](#-cachix-support)
+    - [🖥️ Multi-architecture support](#️-multi-architecture-support)
 - [🚀 NixOS Installation Guide](#-nixos-installation-guide)
   - [📦 Phase 1: Preparation](#-phase-1-preparation)
     - [1. Download \& Flash](#1-download--flash)
@@ -46,21 +51,15 @@
   - [🛠️ Phase 4: Customization](#️-phase-4-customization)
     - [Refine `variables.nix`](#refine-variablesnix)
       - [An hosts variable config example:](#an-hosts-variable-config-example)
-    - [Setup `local-packages.nix`](#setup-local-packagesnix)
-    - [Setup `flatpak.nix`](#setup-flatpaknix)
+    - [Setup (optional) `local-packages.nix`](#setup-optional-local-packagesnix)
+    - [Setup (optional) `flatpak.nix`](#setup-optional-flatpaknix)
     - [Setup (optional) `modules.nix`](#setup-optional-modulesnix)
     - [Setup (optional) `home.nix`](#setup-optional-homenix)
     - [Setup (optional) `host-modules` folder](#setup-optional-host-modules-folder)
   - [Phase 5: Setup optional host-specific files and directories](#phase-5-setup-optional-host-specific-files-and-directories)
     - [1. (Optional) Customize the host-specific `modules.nix`](#1-optional-customize-the-host-specific-modulesnix)
-    - [2. (optional) Other files that may require manual attention](#2-optional-other-files-that-may-require-manual-attention)
-      - [~/nixOS/home-manager/modules/firefox.nix and ~/nixOS/home-manager/modules/chromium.nix](#nixoshome-managermodulesfirefoxnix-and-nixoshome-managermoduleschromiumnix)
-      - [~/nixOS/home-manager/modules/neovim.nix/](#nixoshome-managermodulesneovimnix)
-      - [~/nixOS/home-manager/modules/zathura.nix/](#nixoshome-managermoduleszathuranix)
-      - [~/nixOS/nixos/modules/mime.nix/](#nixosnixosmodulesmimenix)
-    - [3. (Optional) Customize the host-specific `home.nix`](#3-optional-customize-the-host-specific-homenix)
-      - [`home.nix` Example](#homenix-example)
-    - [4. (Optional) Customize the host-specific `host-modules` directory](#4-optional-customize-the-host-specific-host-modules-directory)
+    - [2. (Optional) Customize the host-specific `home.nix`](#2-optional-customize-the-host-specific-homenix)
+    - [3. (Optional) Customize the host-specific `host-modules` directory](#3-optional-customize-the-host-specific-host-modules-directory)
   - [🔄 Daily Usage \& Updates](#-daily-usage--updates)
   - [❓ Troubleshooting](#-troubleshooting)
     - [Error: `path '.../hardware-configuration.nix' does not exist`](#error-path-hardware-configurationnix-does-not-exist)
@@ -68,12 +67,14 @@
     - [Error: `permission denied` opening `flake.lock`](#error-permission-denied-opening-flakelock)
     - [Error: `returned non-zero exit status 4` during rebuild](#error-returned-non-zero-exit-status-4-during-rebuild)
     - [Weird keyboard layout during install](#weird-keyboard-layout-during-install)
-    - [Hyprland with caelestia: some fonts issue](#hyprland-with-caelestia-some-fonts-issue)
+    - [Caelestia/noctalia: some fonts issue](#caelestianoctalia-some-fonts-issue)
   - [❄️ Note on the declarative aspects](#️-note-on-the-declarative-aspects)
   - [📝 Project Origin and Customization](#-project-origin-and-customization)
   - [Showcase](#showcase)
     - [Hyprland with waybar](#hyprland-with-waybar)
     - [Hyprland with Caelestia/quickshell lockscreen](#hyprland-with-caelestiaquickshell-lockscreen)
+    - [Hyprland with  noctalia](#hyprland-with--noctalia)
+    - [Hyprland with noctalia/quickshell lockscreen](#hyprland-with-noctaliaquickshell-lockscreen)
     - [KDE](#kde)
     - [Gnome](#gnome)
     - [XFCE](#xfce)
@@ -101,7 +102,11 @@ Define unique hardware parameters (monitors, theming, keyboard layout,  wallpape
 
 #### Host-specific home options
 - Allow to create home.nix options but that are host-specific
-  - For example on an host you may want to have certain session variables or create/remove specific directories 
+  - For example on an host you may want to have certain session variables or create/remove specific directories
+
+#### Host-specific general home-manager modules tweaks
+- Allow to add/customize some feature of general home-manager modules (the one available for everyone)
+  - For example a host may have different keyboard layouts. This feature allow to have in the waybar specific country flags without modifying the global waybar configuration  
 
 ---
 
@@ -109,7 +114,7 @@ Define unique hardware parameters (monitors, theming, keyboard layout,  wallpape
 Allow the user to define the version of various aspects and decide if some features are enabled:
 - `flake.nix`: Nixpkgs stable (unstable is always at the latest)/home-manager/stylix,
   - These can be changed freely in the future to stay up to date.
-- `configuration.nix`: stateVersion/homeStateVersion,
+- `variables.nix`: stateVersion/homeStateVersion,
   - The first time it is a good idea to make them match the rest. However they should not be changed later. Basically they should be set at first build and then be left alone
 - Flatpak (true/false)
 
@@ -172,6 +177,92 @@ Comment out or remove the specific lines that handles the wallpapers logic
 # "org/gnome/desktop/screensaver" = {             <-- OPTIONAL: REMOVE THIS TOO
 #   picture-uri = "file://${wallpaperPath}";
 # };
+```
+
+
+### niri-main.nix
+Comment out or remove the specific lines that handles the wallpaper logic
+```nix
+  fetchedWallpapers = map (
+    w:
+    pkgs.fetchurl {
+      url = w.wallpaperURL;
+      sha256 = w.wallpaperSHA256;
+    }
+  ) vars.wallpapers;
+
+  # 2. Generate 'swww' commands by zipping Monitors with Wallpapers
+  wallpaperCommands = lib.imap0 (
+    i: mon:
+    let
+      # Logic: Use wallpaper at index 'i'.
+      # If we run out of wallpapers, fallback to the FIRST one (index 0).
+      wp =
+        if i < builtins.length fetchedWallpapers then
+          builtins.elemAt fetchedWallpapers i
+        else
+          builtins.head fetchedWallpapers;
+    in
+    {
+      command = [
+        "swww"
+        "img"
+        "-o"
+        mon
+        "${wp}"
+      ];
+    }
+  ) enabledMonitors;
+```
+```nix
+++ wallpaperCommands
+```
+
+
+### cosmic-main.nix
+Comment out or remove the specific lines that handles the wallpaper logic
+```nix
+let
+  activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) vars.monitors;
+  monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
+
+  wallpaperFiles = map (
+    wp:
+    "${pkgs.fetchurl {
+      url = wp.wallpaperURL;
+      sha256 = wp.wallpaperSHA256;
+    }}"
+  ) vars.wallpapers;
+
+  # If there are more monitors than wallpapers, reuse the last wallpaper
+  getWallpaper =
+    index:
+    if index < builtins.length wallpaperFiles then
+      builtins.elemAt wallpaperFiles index
+    else
+      lib.last wallpaperFiles;
+
+  monitorConfig = lib.concatStringsSep "\n" (
+    lib.lists.imap0 (i: port: ''
+      [output."${port}"]
+      source = "Path"
+      image = "${getWallpaper i}"
+      filter_by_theme = false
+    '') monitorPorts
+  );
+in
+```
+
+```nix
+xdg.configFile."cosmic/com.system76.CosmicBackground/v1/all".text = ''
+      ${monitorConfig}
+
+      # Fallback for any monitor not explicitly named above
+      [output."*"]
+      source = "Path"
+      image = "${builtins.head wallpaperFiles}"
+      filter_by_theme = false
+    '';
 ```
 ---
 
@@ -362,18 +453,21 @@ Fully declarative management of user dotfiles and applications.
 ### 🧇 Tmux ### 
 Customized terminal multiplexer.
 
-### 🌟 Zsh + Starship
+### 🌟 Multiple shells + Starship
 Starship provide beautiful git status symbols, programming language symbols, the time, colors and many other features.
 
-ZSH is hybrid:
-- A nix files contains nix-specific aliases and behaviour
-- It sources another file called `~/.zshrc_custom`
-  - This allow the user to define aliases which are not nix-specific inside this custom file. 
-  - This give the user the possibility to use the same zshrc for any other linux distro that it may have 
+- You can choose for each host between these user shell at any time:
+  - bash
+  - zsh
+  - fish 
 
 
-### 🦺 BTRFS snapshots
+### 🦺 Optional BTRFS snapshots
 - Possibility to enable snapshots and define an host-specific retention policy
+- These are only possible if the filesystem is `btrfs`
+- Nor the filesystem nor the snapshots modules are mandatory. If you opt for any filesystem different than `btrfs` you can simply keep the variable to false, or remove it and also remove `~/nixOS/nixos/modules/snapshots.nix`
+-  The `template-host` contains a file named `disko-config` which can be used to configure btrfs automatically. 
+   - If you prefer to not use `disko` then you should remove that file from the template-host and configure `btrfs` manually using the nix installer  
 
 ### ❔ SOPS-nix support
 - Sops is already enabled in `flake.nix` and `.sops.yaml` contains the necessary code to add the host-specific keys
@@ -403,13 +497,26 @@ sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-so
 ---
 
 
-# 🚀 NixOS Installation Guide
-
-Welcome! This guide will take you from a blank computer to a fully working NixOS desktop using our **Template Host**.
-
-We use **Disko** to automate the complex disk partitioning steps (creating Btrfs subvolumes for snapshots), so you don't have to run manual formatting commands.
+### 📦 Cachix support
+- It's a tool that allow to build the system much faster.
+  - The binaries needed to build this system are located on [cachix](https://app.cachix.org/)
+    - Assuming you have a good internet the build is much faster and does not rely on the host hardware. 
 
 ---
+
+### 🖥️ Multi-architecture support
+- It uses smart conditionals to allow support for multiple architectures
+  - `aarch64-linux`
+  - `x86_64-linux`
+- Currently the limitation for `aarch64-linux` are the following:
+  - `gpu-screen-recorder`: 
+    - It's used both by `caelestia` and `noctalia`. The shells can be installed and used in both architecture but the screen recording features will not work on `aarch64-linux`
+
+---
+
+
+# 🚀 NixOS Installation Guide
+
 
 ## 📦 Phase 1: Preparation
 
@@ -625,23 +732,19 @@ Run this command inside `~/nixOS`:
   
   * `hyprland`: Whatever to enable hyprland or not
 
-  * `caelestia`: Whatever to enable caelestia/quickshell or not
+  * `niri`: Whatever to enable niri or not
+
+  * `gnome`: Whatever to enable gnome or not
+
+  * `kde`: Whatever to enable kde or not
+
+  * `cosmic`: Whatever to enable cosmic or not
+
+  * `hyprlandCaelestia`: Whatever to enable caelestia shell in hyprland
   
-    ```nix
-    # If you want hyprland with waybar
-    hyprland = true;
-    caelestia = false;
+  * `hyprlandNoctalia`: Whatever to enable noctalia shell in hyprland
 
-    # If you want hyprland with caelestia & quickshell
-    hyprland = true;
-    caelestia = true;
-    ```
-
-   * `gnome`: Whatever to enable gnome or not
-
-   * `kde`: Whatever to enable kde or not
-
-   * `cosmic`: Whatever to enable cosmic or not
+  * `niriNoctalia`: Whatever to enable noctalia shell in niri
   
   * `flatpak`: Whatever to enable support for flatpak
   
@@ -746,6 +849,14 @@ nix-prefetch-url <your_raw_url>
 
   * `idleConfig` : Power management settings (timeouts for dimming, locking, sleeping).
 
+  * `cachix`: Whatever to enable cachix or not
+    * For a third user to be a builder the following steps must be followed:
+      * Fork/clone the repo locally. This is needed because third user do not have write access nor to the repo runners nor to my cachix cache 
+      1. Change both `name` and `publicKey` in  `variables.nix` with the new data
+      2. Put the `cachix-auth-token` in the host-specific sops file
+      3. Change `CACHIX_name` in `build.yml`. This automatically change the name in the entire build file
+      4. Add the general cachix profile auth token to github actions in the repo page. The name of the secret is`CACHIX_AUTH_TOKEN`  
+
 #### An hosts variable config example:
 
 ```nix
@@ -809,14 +920,22 @@ nix-prefetch-url <your_raw_url>
     screenOffTimeout = 3600;
     suspendTimeout = 7200;
   };
+
+   # Cachix
+  cachix = {
+    enable = true;
+    push = false;
+    name = "krit-nixos";
+    publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
+  };
 }
 ```
 
-### Setup `local-packages.nix`
+### Setup (optional) `local-packages.nix`
 - It contains packages that are intended to only be installed in that specific hosts
   - add as needed
 
-### Setup `flatpak.nix`
+### Setup (optional) `flatpak.nix`
 - It contains flatpak packages that are intended to only be installed in that specific hosts
   - add as needed
 
@@ -850,39 +969,9 @@ To see currently supported options have a look at the file for the hostname `nix
 * If you add any option then ideally a fallback should be defined in the target nix file
 
 
-### 2. (optional) Other files that may require manual attention
-- These files can be modified also after building.
-  - These are files that one most likely will want to configure right from the beginning because they cause a "wrong" experience
-- Unlike `modules.nix` these are files so personal and/or so big that are better changed in their original module file
-
-#### ~/nixOS/home-manager/modules/firefox.nix and ~/nixOS/home-manager/modules/chromium.nix
-- They contains personalized aspects like homepage, toolbars visible items, extensions. One may want to change them
-
-
-#### ~/nixOS/home-manager/modules/neovim.nix/
-- It contains my neovim specific behavior
-- To start it is suggested to replace the entire content of the file with a more basic one
-
-```nix
-{ pkgs, ... }: {
-  programs.neovim = {
-    enable = true;
-    extraPackages = with pkgs; [
-    ];
-  };
-}
-```
-
-
-#### ~/nixOS/home-manager/modules/zathura.nix/
-- The font size and family is hardcoded. One may want to change it
-
-#### ~/nixOS/nixos/modules/mime.nix/
-- It define system-wide default applications when a user perform a certain action, such as clicking open directory, or a link
-
 ---
 
-### 3. (Optional) Customize the host-specific `home.nix`
+### 2. (Optional) Customize the host-specific `home.nix`
 
 This file allows you to manage user-specific configurations that should **only** apply to the current machine. Unlike `local-packages.nix` (which installs system-wide packages), this file uses Home Manager, allowing you to configure dotfiles, environment variables, and symlinks.
 
@@ -896,96 +985,18 @@ This file allows you to manage user-specific configurations that should **only**
 | **`home.sessionVariables`** | Defines shell variables for this host only.                                                     | Setting `JAVA_HOME` or `JDTLS_BIN` only on machines used for development.                   |
 | **`home.activation`**       | Activate certain functions such as creating customs folders                                     | Make sure certain directories exist only for that host                                      |
 
-#### `home.nix` Example
 
-Create or modify `hosts/<your_hostname>/home.nix`:
-
-```nix
-{ pkgs, 
-  pkgs-unstable, 
-  lib, 
-  ... 
-}:
-{
-  # ---------------------------------------------------------------------------
-  # 🏠 HOST-SPECIFIC HOME CONFIGURATION
-  # ---------------------------------------------------------------------------
-  # This file is automatically imported if it exists.
-
-  # 1. Install specific tools
-  home.packages = (with pkgs; [
-    gimp
-    blender
-  ])
-  ++ (with pkgs-unstable; [
-    vscode
-  ]);
-
-  # 2. XDG Overrides
-  # Folders set to 'null' will be disabled/hidden
-  xdg.userDirs = {
-    publicShare = null;
-    templates = null;
-  };
-
-  # 3. Development Tools & Paths
-  # Creates a fixed path for JDTLS so external configs (like zshrc_custom) can rely on it.
-  home.file."tools/jdtls".source = pkgs.jdt-language-server;
-
-  # 4. Environment Variables
-  home.sessionVariables = {
-    JAVA_HOME = "${pkgs.jdk25}";
-    JDTLS_BIN = "${pkgs.jdt-language-server}/bin/jdtls";
-  };
-
-  # 5. other things
-  home.activation = {
-    createHostDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      mkdir -p $HOME/Pictures/wallpapers
-    '';
-  };
-}
-```
-
-
-### 4. (Optional) Customize the host-specific `host-modules` directory
+### 3. (Optional) Customize the host-specific `host-modules` directory
 - This folder can contain any .nix file that you would use as a home-manager modules. The only difference is that they are put inside this folder
 - When a new file is added it needs to be defined in default.nix. For example:
 
 ```bash
 {
   imports = [
-    ./alacrity.nix
+    ./alacritty.nix
   ];
 }
 ```
-
-If a module here contains aspects such as networking, boot, user or similar then home-manager alone can not configure those aspects and a rebuild would fail. To solve that specific modules needs to be added to the host `configuration.nix`. En example block is this:
-
-```bash
-imports = [
-    # Hardware scan (auto-generated)
-    ./hardware-configuration.nix
-
-    # Packages specific to this machine
-    ./local-packages.nix
-
-    # Secrets Management (not added to GitHub)
-    (import /etc/nixos/secrets/secrets.nix)
-
-    # Flatpak support
-    ./flatpak.nix
-
-    # Core imports
-    ../../nixos/modules/core.nix
-
-    # These are manually imported here because they contains aspects that home-manager can not handle alone
-    ./host-modules/logitech.nix # boot
-  ];
-```
-
-
-
 
 ---
 
@@ -1046,12 +1057,8 @@ Even tough i selected us international during the gui installer once rebooted in
 - This is solvable by manually converting the keyboards or just ask an ai what keys to press on a dvorak layout to actually input what the user wants. After the user login is successful input the following command `loadkeys <layout>` (until this command run successfully the keyboard layout is still `dvorak`). After this the problem should be solved and since the layout are chosen declarative this should not be a problem anymore
 
 
-### Hyprland with caelestia: some fonts issue
+### Caelestia/noctalia: some fonts issue
 - This is mainly caused if the font you are trying to use is not installed. You can install them, either hosts-specific (better in `configuration.nix`) or in `home-packages.nix`
-  - The default fonts in case you need it are:
-    - Material font: Materials Symbols rounder
-    - Monospace font: CaskaydiaCove NF
-    - Sans-Serif font: Rubik
 
 
 
@@ -1069,13 +1076,18 @@ These blocks are configured in such a way that allow 2 scenario:
 2: The user does not have a customized setup the original location is either empty or default (after installing the program)
   - In this case the behaviour in `*.nix` apply but since the rest is default it is like not applying it at all
 
-Currently this behaviour happens for 2 programs: 
+Currently this behaviour happens here: 
 - **Neovim**: 
   - Nix reference: `neovim.nix`
   - Original reference: `~/.config/nvim/*`
-- **zsh**: 
-  - Nix reference: `zsh.nix`
-  - Original reference: `~/.zshrc_custom`
+
+- **shells**: 
+  - Nix reference: `zsh.nix`, `bash.nix` `fish.nix`
+  - Original reference: `~/.zshrc_custom`, `.bashrc_custom`, `.custom.fish`
+
+- **caelestia/noctalia**: 
+  - Nix reference: `caelestia-main.nix`, `noctalia-main.nix`
+  - Original reference: `~/.config/caelestia/shell.json`, `~/.config/noctalia/config.json`
 
 
 
@@ -1093,6 +1105,9 @@ While the original repository laid the foundation, this setup has been **heavily
 * **Theming Overhaul**: Integrated a base 16 colorscheme selection alongside Catppuccin official theming via `stylix`.
 * **Hybrid Declarative Aspects**: Detailed and implemented a hybrid approach for tools like Neovim and Zsh, allowing for declarative configuration while respecting and integrating official, non-declarative customization methods.
 * **Flake Configuration**: Enhanced the `flake.nix` file to suit the logic that there are many more variables that differs from hosts to hosts
+* **Common modules**: Allow the user to have general home-manager modules for certain hosts
+* **Cachix support**: Enhanced the `flake.nix` file to suit the logic that there are many more variables that differs from hosts to hosts
+* **Multi-architecture support**: Support for both x86 and aarch pc
 
 This README documents the final, highly customized iteration of that initial framework.
 
@@ -1115,9 +1130,15 @@ catppuccinAccent = "sky";
 ### Hyprland with waybar
 ![hyprland-showcase](./Documentation/showcase-screenshots/hyprland-showcase.png)
 
-
 ### Hyprland with Caelestia/quickshell lockscreen
 ![hyprland-caelestia](./Documentation/showcase-screenshots/quickshell-lockscreen.png)
+
+### Hyprland with  noctalia
+![hyprland-caelestia](./Documentation/showcase-screenshots/noctalia_custom-neovim.png)
+
+
+### Hyprland with noctalia/quickshell lockscreen
+![hyprland-caelestia](./Documentation/showcase-screenshots/noctalia-screen_locker.png)
 
 ### KDE
 ![kde-showcase](./Documentation/showcase-screenshots/kde-showcase.png)
@@ -1156,6 +1177,7 @@ This folder contains a guide on how basic aspects should be implemented, such as
 It also contains some other guides such as
 - sops
 - tmux
+- cachix
 
 ### [Wallpapers](./wallpapers/credits)
 - This folder contains some wallpapers allowing for an easy setup using raw url.

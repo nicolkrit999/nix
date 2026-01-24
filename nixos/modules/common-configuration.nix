@@ -55,30 +55,22 @@ in
     with pkgs;
     [
       # --- CLI UTILITIES ---
-      dix # Nix diff viewer
-      eza # Modern ls replacement
-      fd # Fast file finder
-      fzf # Fuzzy finder
+      eza # Global home-manager module
+      fzf # Used by the shells
       git # Version control
       nixfmt-rfc-style # Nix formatter
       nix-prefetch-scripts # Tools to get hashes for nix derivations (used in zsh.nix module)
-      starship # Shell prompt
-      iptables # Firewall utility
-      wget # Downloader
-      curl # Downloader
+      starship # Global home-manager module
+      curl # Used by waybar
 
       # --- SYSTEM TOOLS ---
-      autotrash # Automatic trash cleanup
-      distrobox # Container system for dev environments
       foot # Tiny, zero-config terminal (Rescue tool)
-      glib # Low-level system library
       gsettings-desktop-schemas # Global theme settings
       libnotify # Library for desktop notifications (used by most de/wm modules)
       polkit_gnome # Authentication agent
       sops # Secret management
       shellPkg # The selected shell package (bash, zsh, or fish)
       xdg-desktop-portal-gtk # GTK portal backend for file pickers
-      wvkbd # Virtual keyboard (for Wayland)
 
       # --- GRAPHICS & GUI SUPPORT ---
       gtk3 # Standard GUI toolkit

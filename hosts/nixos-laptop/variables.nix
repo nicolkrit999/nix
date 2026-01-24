@@ -117,7 +117,6 @@
     enable = true;
     push = false; # Only the builder must have this true (for now "nixos-desktop")
     name = "krit-nixos";
-    # The public key from your screenshot:
     publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
   };
 }

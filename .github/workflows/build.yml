@@ -1,4 +1,6 @@
 name: "Build & Cache"
+env:
+  CACHIX_NAME: krit-nixos
 
 on:
   push:
@@ -49,7 +51,7 @@ jobs:
 
       - uses: cachix/cachix-action@v15
         with:
-          name: krit-nixos
+          name: ${{ env.CACHIX_NAME }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build x86_64 Configurations
@@ -60,7 +62,7 @@ jobs:
           # Build Laptop
           #nix build .#nixosConfigurations.nixos-laptop-x86.config.system.build.toplevel --no-link --print-out-paths >> outpaths.txt
 
-          cachix push krit-nixos $(cat outpaths.txt)
+          cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
 
       - name: Check Disk Usage
         run: |
@@ -108,13 +110,13 @@ jobs:
 
       - uses: cachix/cachix-action@v15
         with:
-          name: krit-nixos
+          name: ${{ env.CACHIX_NAME }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build AArch64 Configurations
         run: |
           nix build .#nixosConfigurations.nixos-laptop.config.system.build.toplevel --no-link --print-out-paths > outpaths.txt
-          cachix push krit-nixos $(cat outpaths.txt)
+          cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
 
       - name: Check Disk Usage
         run: |

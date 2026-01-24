@@ -212,6 +212,7 @@
 
   environment.systemPackages = with pkgs; [
     docker # Required when virtualisation.docker.enable is true
+    distrobox
     fd # User-friendly replacement for 'find'
     logiops # Logitech devices manager (currently used for my MX Master 3S)
     pay-respects # Used in shell aliases dotfiles
