@@ -70,29 +70,27 @@ let
 in
 {
 
-  config =
-    lib.mkIf ((enableHyprland || enableNiri) && pkgs.stdenv.hostPlatform.system == "x86_64-linux")
-      {
+  config = lib.mkIf ((enableHyprland || enableNiri)) {
 
-        home.packages = [
-          noctaliaPkg
-          startNoctalia
+    home.packages = [
+      noctaliaPkg
+      startNoctalia
 
-          # Runtime dependencies
-          pkgs.wlsunset
-          pkgs.cava
-          pkgs.evolution-data-server
-        ]
-        ++ extraQmlPackages;
+      # Runtime dependencies
+      pkgs.wlsunset
+      pkgs.cava
+      pkgs.evolution-data-server
+    ]
+    ++ extraQmlPackages;
 
-        # Hyprland Autostart
-        wayland.windowManager.hyprland.settings.exec-once = lib.optionals enableHyprland [
-          "start-noctalia"
-        ];
+    # Hyprland Autostart
+    wayland.windowManager.hyprland.settings.exec-once = lib.optionals enableHyprland [
+      "start-noctalia"
+    ];
 
-        # Niri Autostart
-        programs.niri.settings.spawn-at-startup = lib.optionals enableNiri [
-          { command = [ "start-noctalia" ]; }
-        ];
-      };
+    # Niri Autostart
+    programs.niri.settings.spawn-at-startup = lib.optionals enableNiri [
+      { command = [ "start-noctalia" ]; }
+    ];
+  };
 }
