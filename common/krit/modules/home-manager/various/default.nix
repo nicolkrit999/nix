@@ -1,6 +1,6 @@
 { ... }: {
   imports = [
     # We need to fix apple music svg icon
-    ./pwa.nix
+    ./progressive-web-apps.nix
   ];
 }
