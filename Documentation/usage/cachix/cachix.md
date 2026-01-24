@@ -1,4 +1,3 @@
-
 # 🏗️ NixOS Infrastructure: The Binary Cache Strategy
 
 This document explains the "Build Once, Run Everywhere" architecture used in this repository. By leveraging **Cachix** and **GitHub Actions**, we ensure that your laptop almost *never* has to compile code from scratch, saving battery, heat, and time.
@@ -102,36 +101,23 @@ This file configures your machines to talk to the warehouse.
 
 ## 5. Troubleshooting & FAQ
 
-### 🚨 My Laptop is compiling (Cache Miss)!
-
-If you see your laptop building `firefox`, `gcc`, or `linux-kernel`, **STOP** (Ctrl+C).
-**Causes:**
-
-1. **You didn't wait:** GitHub Actions hasn't finished yet. Check the repo Actions tab.
-2. **You didn't push:** You made changes locally but didn't push them to the cloud.
-3. **Dirty State:** You are building from a dirty git tree that doesn't match what is in the cache.
-
-**Solution:** Push your changes, wait for the green checkmark, then update.
-
 ### ❓ Why does the Desktop have "Push" enabled?
 
 To act as a local cache server. If GitHub is down, or if you are iterating rapidly on a private branch, your Desktop serves as the "Builder" for your Laptop.
 
-### ❓ What is the "Garbage Collection" risk?
+### ❓ My Laptop is compiling (Cache Miss)!
 
-Cachix has a storage limit (unless paid). If old binaries are deleted from the cloud cache, your laptop will be forced to rebuild them.
+If you see your laptop building `firefox`, `gcc`, or `linux-kernel`, **STOP** (Ctrl+C).
 
-* **Mitigation:** The `build.yml` runs a scheduled build every Friday at 05:00 UTC to keep the cache fresh and active.
+1. **You didn't wait:** GitHub Actions hasn't finished yet.
+2. **You didn't push:** You made changes locally but didn't push them to the cloud.
+3. **Dirty State:** You are building from a dirty git tree that doesn't match what is in the cache.
 
----
+### ❓ Can I push to `develop`, merge to `main`, and push again immediately?
 
-## 6. Secrets Management
+**Yes.** This is completely safe. GitHub Actions treats different branches as separate groups, so both builds will run in **parallel** without interfering with each other.
 
-The system is secure by design.
+### ❓ What if I push to the same branch twice?
 
-* **Public Access:** Anyone can *download* from your cache (Public Key in `cachix.nix`).
-* **Private Access:** Only GitHub Actions and your Desktop can *upload* (Auth Token).
-* **Token Storage:**
-* **GitHub:** Stored in Repo Secrets (`CACHIX_AUTH_TOKEN`).
-* **Desktop:** Stored in `sops` encrypted secrets (`cachix-auth-token`).
-* **Laptop:** Does not have the token. Cannot push even if compromised.
+The old build will **automatically stop**.
+We use `cancel-in-progress: true` in our workflow. If you push a fix 2 minutes after a previous push, the system kills the old (now obsolete) build to save resources and immediately starts the new one.
