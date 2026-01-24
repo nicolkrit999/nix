@@ -625,11 +625,11 @@ Run these three commands to format the drive and install the OS.
 
 ```bash
 # 1. Partition & Mount (Wipes the drive!)
-sudo nix run github:nix-community/disko -- --mode disko ./disko-config.nix
+sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode disko ./disko-config.nix
 
 # 2. Generate Hardware Config (Captures CPU/Kernel quirks)
 # We point this DIRECTLY to your host folder so the repo root stays clean
-nixos-generate-config --no-filesystems --root /mnt --dir /mnt/etc/nixos/hosts/my-computer
+nixos-generate-config --no-filesystems --root /mnt --dir ~/nixOS/hosts/nixos-arm-vm
 
 # 3. Install
 cd ../..  # Go back to the repo root
