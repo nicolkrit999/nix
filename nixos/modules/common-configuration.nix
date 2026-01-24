@@ -22,8 +22,8 @@ in {
 
   # Keyboard Layout
   services.xserver.xkb = {
-    layout = vars.keyboardLayout or "us" or "us";
-    variant = vars.keyboardVariant or "" or "";
+    layout = vars.keyboardLayout or "us";
+    variant = vars.keyboardVariant or "";
   };
   console.useXkbConfig = true;
 
