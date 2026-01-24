@@ -8,8 +8,13 @@
 {
   # home.nix and host-modules are imported from flake.nix
   imports = [
-    # Packages specific to this machine
-    ./optional/host-packages/default.nix
+
+    # Common  modules
+    # Import here if you have a personal common modules folders
+    #../../common
+
+    # Local modules
+    ./optional/default.nix
 
   ];
 
@@ -32,4 +37,7 @@
       "audio"
     ];
   };
+
+  environment.systemPackages = with pkgs; [
+  ];
 }

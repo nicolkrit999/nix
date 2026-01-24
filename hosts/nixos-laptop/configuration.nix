@@ -1,4 +1,11 @@
-{ config, pkgs, lib, vars, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
+{
 
   imports = [
     # Common krit modules
@@ -15,65 +22,66 @@
   # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   i18n.defaultLocale = "en_US.UTF-8";
 
-  /* # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-     # 🔐 SOPS CONFIGURATION
-     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-     # 1. DEFAULT SOURCE (Host Specific)
-     sops.defaultSopsFile = ./optional/host-sops-nix/nixos-desktop-secrets-sops.yaml;
-     sops.defaultSopsFormat = "yaml";
-     sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+  /*
+    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # 🔐 SOPS CONFIGURATION
+    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # 1. DEFAULT SOURCE (Host Specific)
+    sops.defaultSopsFile = ./optional/host-sops-nix/nixos-desktop-secrets-sops.yaml;
+    sops.defaultSopsFormat = "yaml";
+    sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
-     # 2. GLOBAL SECRETS DEFINITION
-     sops.secrets =
-       let
-         commonSecrets = ../../common/krit/sops/krit-common-secrets-sops.yaml;
-       in
-       {
-         # LOCAL SECRETS:
-         # Loc-1. Local User password
-         "krit-local-password".neededForUsers = true;
+    # 2. GLOBAL SECRETS DEFINITION
+    sops.secrets =
+      let
+        commonSecrets = ../../common/krit/sops/krit-common-secrets-sops.yaml;
+      in
+      {
+        # LOCAL SECRETS:
+        # Loc-1. Local User password
+        "krit-local-password".neededForUsers = true;
 
-         # COMMON SECRETS:
-         # Comm-3
-         github_fg_pat_token_nix = {
-           sopsFile = commonSecrets;
-           mode = "0444";
-         };
-         # Comm-1
-         github_general_ssh_key = {
-           sopsFile = commonSecrets;
-           owner = vars.user;
-           path = "/home/${vars.user}/.ssh/id_github";
-         };
+        # COMMON SECRETS:
+        # Comm-3
+        github_fg_pat_token_nix = {
+          sopsFile = commonSecrets;
+          mode = "0444";
+        };
+        # Comm-1
+        github_general_ssh_key = {
+          sopsFile = commonSecrets;
+          owner = vars.user;
+          path = "/home/${vars.user}/.ssh/id_github";
+        };
 
-         # Comm-4
-         Krit_Wifi_pass = {
-           sopsFile = commonSecrets;
-           restartUnits = [ "NetworkManager.service" ];
-         };
-         Nicol_5Ghz_pass = {
-           sopsFile = commonSecrets;
-           restartUnits = [ "NetworkManager.service" ];
-         };
-         Nicol_2Ghz_pass = {
-           sopsFile = commonSecrets;
-           restartUnits = [ "NetworkManager.service" ];
-         };
-       };
+        # Comm-4
+        Krit_Wifi_pass = {
+          sopsFile = commonSecrets;
+          restartUnits = [ "NetworkManager.service" ];
+        };
+        Nicol_5Ghz_pass = {
+          sopsFile = commonSecrets;
+          restartUnits = [ "NetworkManager.service" ];
+        };
+        Nicol_2Ghz_pass = {
+          sopsFile = commonSecrets;
+          restartUnits = [ "NetworkManager.service" ];
+        };
+      };
 
-     # Tell Nix to read the Github token
-     nix.extraOptions = ''
-       !include ${config.sops.secrets.github_fg_pat_token_nix.path}
-     '';
-     # ---------------------------------------------------------
-     # 🔧 CONFIGURE SSH TO USE THE KEY
-     # ---------------------------------------------------------
-     programs.ssh = {
-       extraConfig = ''
-         Host github.com
-           IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
-       '';
-     };
+    # Tell Nix to read the Github token
+    nix.extraOptions = ''
+      !include ${config.sops.secrets.github_fg_pat_token_nix.path}
+    '';
+    # ---------------------------------------------------------
+    # 🔧 CONFIGURE SSH TO USE THE KEY
+    # ---------------------------------------------------------
+    programs.ssh = {
+      extraConfig = ''
+        Host github.com
+          IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
+      '';
+    };
   */
 
   # ---------------------------------------------------------
@@ -84,20 +92,33 @@
   # ---------------------------------------------------------
   # 👤 USER CONFIGURATION
   # ---------------------------------------------------------
+  #users.mutableUsers = false; # Owerwrite manual password changes
+
   users.users.${vars.user} = {
     isNormalUser = true;
     description = "${vars.user}";
-    extraGroups =
-      [ "networkmanager" "wheel" "input" "docker" "podman" "video" "audio" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "input"
+      "docker"
+      "podman"
+      "video"
+      "audio"
+    ];
     # Required for rootless Podman/Distrobox
-    subUidRanges = [{
-      startUid = 100000;
-      count = 65536;
-    }];
-    subGidRanges = [{
-      startGid = 100000;
-      count = 65536;
-    }];
+    subUidRanges = [
+      {
+        startUid = 100000;
+        count = 65536;
+      }
+    ];
+    subGidRanges = [
+      {
+        startGid = 100000;
+        count = 65536;
+      }
+    ];
 
     # FIXME: sops not added yet
     #hashedPasswordFile = config.sops.secrets.krit-local-password.path;
@@ -110,12 +131,13 @@
   virtualisation.docker.enable = false;
 
   # Limited mtu to make internet faster when enabled
-  virtualisation.docker.daemon.settings = { "mtu" = 1450; };
+  virtualisation.docker.daemon.settings = {
+    "mtu" = 1450;
+  };
 
   virtualisation.podman = {
     enable = false;
-    dockerCompat =
-      false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
+    dockerCompat = false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
   };
 
   # ---------------------------------------------------------
@@ -159,15 +181,11 @@
   # ---------------------------------------------------------
   # ⚡ POWER MANAGEMENT twaks
   # ---------------------------------------------------------
-  services.speechd.enable = lib.mkForce
-    false; # Disable speech-dispatcher as it is not needed and wastes resources
-  systemd.services.ModemManager.enable =
-    false; # Disable unused 4G modem scanning
+  services.speechd.enable = lib.mkForce false; # Disable speech-dispatcher as it is not needed and wastes resources
+  systemd.services.ModemManager.enable = false; # Disable unused 4G modem scanning
 
-  networking.networkmanager.wifi.powersave =
-    true; # Micro-sleeps radio between packets
-  powerManagement.powertop.enable =
-    true; # Sleeps idle USB, Audio, and PCI devices
+  networking.networkmanager.wifi.powersave = true; # Micro-sleeps radio between packets
+  powerManagement.powertop.enable = true; # Sleeps idle USB, Audio, and PCI devices
 
   boot.kernelParams = [
     # "pcie_aspm=force" # Force deep sleep for SSD & Motherboard (this may cause instability, include it without it first and test)
@@ -192,8 +210,7 @@
     wantedBy = [ "timers.target" ];
     timerConfig = {
       OnCalendar = "daily"; # Runs once every 24h
-      Persistent =
-        true; # Run immediately if the computer was off during the scheduled time
+      Persistent = true; # Run immediately if the computer was off during the scheduled time
     };
   };
 

@@ -108,35 +108,14 @@
     suspendTimeout = 1800;
   };
 
-  /*
-    devLanguages = [
-      # Development environments configurations.
-      # If a module is enabled their respective packages are installed permanently
-      # To use them it's needed to add a .envrc file in the project folder that link to the dev-environment
-      # Commented out to reduce size on cachix
-       "c-cpp"
-         "go"
-         "haskell"
-         "java"
-         "jupyter"
-         "latex"
-         "nix"
-         "node"
-         "php"
-         "python"
-         "r"
-         "rust"
-         "shell"
-         #"swift"
-         "typst"
-
-    ];
-  */
+  useCases = [
+    #"gaming"
+  ];
 
   # Cachix
   cachix = {
     enable = true;
-    push = false; # Only the builder must have this true (for now "nixos-desktop")
+    push = true; # Only the builder must have this true (for now "nixos-desktop")
     name = "krit-nixos";
     # The public key from your screenshot:
     publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";

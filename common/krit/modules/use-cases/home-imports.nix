@@ -1,7 +1,6 @@
 { ... }:
 {
   imports = [
-    ./nas
-    ./utilities
+    ./gaming/gaming-home.nix
   ];
 }

@@ -27,7 +27,10 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            packages = import ./packages.nix { inherit pkgs; };
+            packages = with pkgs; [
+              shellcheck
+              bash-language-server
+            ];
           };
         }
       );

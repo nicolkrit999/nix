@@ -27,7 +27,16 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            packages = import ./packages.nix { inherit pkgs; };
+            packages = with pkgs; [
+              nixd
+              cachix
+              lorri
+              niv
+              nixfmt-classic
+              statix
+              vulnix
+              haskellPackages.dhall-nix
+            ];
           };
         }
       );

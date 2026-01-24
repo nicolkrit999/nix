@@ -1,7 +1,7 @@
 {
   description = "A Nix-flake-based Python development environment";
 
-  inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1"; # unstable Nixpkgs
+  inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
 
   outputs =
     { self, ... }@inputs:
@@ -26,33 +26,52 @@
       devShells = forEachSupportedSystem (
         { pkgs }:
         let
-          # The function take a string such as "313" and returns the corresponding python package
+          # 1. We define a reusable function that takes a version string (e.g., "311")
           mkPythonShell =
             versionRaw:
             let
-              selectedPython = pkgs."python${versionRaw}";
+              python = pkgs."python${versionRaw}";
             in
             pkgs.mkShellNoCC {
               venvDir = ".venv";
 
+              # Your original hook logic, adapted to use the specific python version
               postShellHook = ''
                 venvVersionWarn() {
                   local venvVersion
                   venvVersion="$("$venvDir/bin/python" -c 'import platform; print(platform.python_version())')"
                   # Simple check: does the venv version start with the python version we requested?
-                  [[ "$venvVersion" == "${selectedPython.version}"* ]] && return
+                  [[ "$venvVersion" == "${python.version}"* ]] && return
                   cat <<EOF
-                  Warning: Python version mismatch: [$venvVersion (venv)] != [${selectedPython.version}]
-                  Delete '$venvDir' and reload to rebuild for version ${selectedPython.version}
+                  Warning: Python version mismatch: [$venvVersion (venv)] != [${python.version}]
+                  Delete '$venvDir' and reload to rebuild for version ${python.version}
                   EOF
                 }
                 venvVersionWarn
               '';
 
-              packages = import ./packages.nix {
-                inherit pkgs;
-                python = selectedPython;
-              };
+              packages = with python.pkgs; [
+                black # The uncompromising code formatter
+                flake8 # Style guide enforcement
+                isort # Sort imports alphabetically
+                jetbrains.pycharm-oss # Python IDE
+                pip # Package installer for Python
+                pyright # Static type checker
+                pylint # Source code analyzer
+                ruff # Extremely fast Python linter
+                setuptools # Library for packaging Python projects
+                venvShellHook # Hook to create and manage virtual-environments
+
+                # 3. TOOLS (static)
+                pkgs.pyright
+                pkgs.jetbrains.pycharm-oss
+
+                # Neovim plugins
+                pkgs.vimPlugins.coc-pyright # Python support for CoC
+
+                (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [ p.python ]))
+
+              ];
             };
         in
         {
@@ -68,6 +87,7 @@
           # Option 4: python 3.11 (older)
           py311 = mkPythonShell "311";
         }
+
       );
     };
 }

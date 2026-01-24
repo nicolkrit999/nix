@@ -36,7 +36,16 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            packages = import ./packages.nix { inherit pkgs; };
+            packages = with pkgs; [
+              # go (version is specified by overlay)
+              go
+
+              # goimports, godoc, etc.
+              gotools
+
+              # https://github.com/golangci/golangci-lint
+              golangci-lint
+            ];
           };
         }
       );

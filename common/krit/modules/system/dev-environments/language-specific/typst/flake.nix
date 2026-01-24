@@ -33,6 +33,9 @@
               with pkgs;
               [
                 typst
+                typstyle
+                typstwriter
+
               ]
               ++ (with typstPackages; [
                 # Typst packages
