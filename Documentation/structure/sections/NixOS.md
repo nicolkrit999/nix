@@ -1,3 +1,31 @@
+- [⚙️ NixOS (`nixos/modules/`)](#️-nixos-nixosmodules)
+  - [`audio.nix`](#audionix)
+  - [`bluetooth.nix`](#bluetoothnix)
+  - [`boot.nix`](#bootnix)
+  - [`cachix.nix`](#cachixnix)
+  - [`common-configuration.nix`](#common-configurationnix)
+  - [`core.nix`](#corenix)
+  - [`cosmic.nix`](#cosmicnix)
+  - [`env.nix`](#envnix)
+  - [`gnome.nix`](#gnomenix)
+  - [`guest.nix`](#guestnix)
+  - [`home-manager.nix`](#home-managernix)
+  - [`hyprland.nix`](#hyprlandnix)
+  - [`kde.nix`](#kdenix)
+  - [`kernel.nix`](#kernelnix)
+  - [`net.nix`](#netnix)
+  - [`nh.nix`](#nhnix)
+  - [`niri.nix`](#nirinix)
+  - [`nix.nix`](#nixnix)
+  - [`sddm.nix`](#sddmnix)
+  - [`snapshots.nix`](#snapshotsnix)
+  - [`tailscale.nix`](#tailscalenix)
+  - [`timezone.nix`](#timezonenix)
+  - [`user.nix`](#usernix)
+  - [`zram.nix`](#zramnix)
+
+
+
 # ⚙️ NixOS (`nixos/modules/`)
 These modules control the Operating System itself. Changes here affect boot, hardware, and networking.
 
@@ -19,11 +47,29 @@ Enables the Bluetooth hardware and software stack (BlueZ) and management tools (
 ## `boot.nix`
 Configures the bootloader (Systemd-boot). It manages EFI variables and detects other OSes for dual-booting.
 
+## `cachix.nix`
+
+This file configures **Cachix**, a service that speeds up your builds by downloading pre-compiled binaries instead of building everything from scratch.
+
+* **Download (Pull):** Automatically adds your cache URL and public key to Nix settings so the system can fetch binaries.
+* **Upload (Push):** If enabled, it securely loads your Auth Token via **sops** and creates a convenient `rebuild-push` alias. This alias rebuilds your system and immediately uploads the new binaries to the cache in one command.
+
+
+## `common-configuration.nix`
+
+This file serves as the **shared baseline** configuration for every host in your fleet, ensuring consistent behavior across different machines.
+
+* **Core System Identity:** Sets the hostname, networking, time zone, and keyboard layouts.
+* **Universal Packages:** Installs essential CLI tools (like `git`, `fzf`, `eza`) and base GUI libraries needed by most applications.
+* **Architecture & Security:** Configures critical system-level components, including **Polkit rules** (for `gpu-screen-recorder` permissions) and **binfmt emulation** (allowing your x86 desktop to build software for your ARM laptop).
+* **Performance Tweaks:** Enables `system76-scheduler` for responsiveness and `upower` for battery management.
+
+
 ## `core.nix`
 Import all the nixos modules. When a module is added in `nixos/modules/` it is necessary to add it here to allow nixos to see it
 - Desktop environment should not be added here because they are automatically enabled/disabled depending on the user choices in `variables.nix`
 
-### `cosmic.nix`
+## `cosmic.nix`
 This file configures the system-level components required to run the cosmic Desktop Environment.
 
 * **Display Manager Strategy:** It enables the cosmic Desktop Manager but explicitly **does not enable cosmic-greeter**. This is designed to coexist with the existing **SDDM** setup, allowing SDDM to launch GNOME sessions without conflict.
@@ -37,7 +83,7 @@ Sets system-wide environment variables and default application associations.
 * **MIME Types:** Explicitly maps directories (`inode/directory`) to the default file manager, ensuring that "Open Folder" actions launch your terminal file manager instead of a graphical one.
 
 
-### `gnome.nix`
+## `gnome.nix`
 
 This file configures the system-level components required to run the GNOME Desktop Environment.
 
@@ -46,6 +92,13 @@ This file configures the system-level components required to run the GNOME Deskt
 * **Debloat:** It excludes standard "bloatware" packages like Epiphany (browser), Geary (mail)
 * **Conflict Resolution:** It explicitly forces the SSH password prompt tool to use KDE's `ksshaskpass` (`lib.mkForce`) to prevent build errors caused by GNOME attempting to install its own conflicting `seahorse` agent.
 
+
+## `guest.nix`
+This file configures a secure, ephemeral **Guest Mode**, allowing others to use your computer without risking your personal data or internal network.
+
+* **Enforced Ephemeral Session:** Uses a custom `guest-monitor` script that restricts the guest to the **XFCE** desktop. If they attempt to log into your main sessions (Hyprland/Niri), they are immediately logged out. It also warns users that all data will be wiped upon reboot.
+* **Network Isolation (Hotel Mode):** Implements strict `iptables` firewall rules that allow internet access but **block** all connections to your local network (NAS, printers, SSH), ensuring the guest cannot snoop on your devices.
+* **Restricted Privileges:** The guest user has restricted permissions but is granted a specific `sudo` exception to run `reboot` without a password, allowing them to cleanly wipe their session when finished.
 
 ## `home-manager.nix`
 Hooks Home Manager into the NixOS rebuild process, allowing `nixos-rebuild` to manage home configurations
@@ -67,6 +120,12 @@ Configures NetworkManager, sets the system `hostname`, and manages firewall rule
 
 ## `nh.nix`
 Configures `nh` (Nix Helper), a CLI tool that speeds up rebuilds and creates visual diffs of changes.
+
+## `niri.nix`
+This file is the system-level switch that enables the **Niri** Wayland compositor.
+
+* **Conditional Activation:** It checks the `vars.niri` variable. If set to `true` in your host configuration, it activates the module; otherwise, it does nothing.
+* **System Integration:** It installs the core `pkgs.niri` package and registers the desktop session, making "Niri" appear as an option in your login manager (SDDM/GDM).
 
 ## `nix.nix`
 Configures the Nix daemon itself. Enables "Flakes" (experimental feature) and sets up automatic Garbage Collection to save disk space.

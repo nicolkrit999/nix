@@ -41,6 +41,7 @@
     - [1. Hybrid Theming (CSS + Nix Variables)](#1-hybrid-theming-css--nix-variables)
     - [2. Host-Specific Customization](#2-host-specific-customization)
     - [3. Dynamic Weather Script](#3-dynamic-weather-script)
+    - [4. Conditionals](#4-conditionals)
   - [The Code](#the-code-7)
 - [~nixOS/home-manager/modules/wofi/default.nix](#nixoshome-managermoduleswofidefaultnix)
   - [Key Concepts](#key-concepts-7)
@@ -50,14 +51,15 @@
   - [The Code](#the-code-8)
 - [~nixOS/home-manager/modules/qt.nix](#nixoshome-managermodulesqtnix)
   - [Key Concepts](#key-concepts-8)
-    - [1. The "Delicate" Balance (Preventing KDE Crashes)](#1-the-delicate-balance-preventing-kde-crashes)
-    - [2. The Engine: Kvantum](#2-the-engine-kvantum)
-    - [3. Dynamic Theme Selection](#3-dynamic-theme-selection)
+    - [1. The "Magic" Fix: `QT_QPA_PLATFORMTHEME=kde`](#1-the-magic-fix-qt_qpa_platformthemekde)
+    - [2. "Faking" the KDE Environment (`kdeglobals`)](#2-faking-the-kde-environment-kdeglobals)
+    - [3. Dual Configuration (`qt5ct` as Backup)](#3-dual-configuration-qt5ct-as-backup)
   - [The Code](#the-code-9)
 - [~nixOS/home-manager/modules/stylix.nix](#nixoshome-managermodulesstylixnix)
   - [Key Concepts](#key-concepts-9)
     - [1. The "Traffic Cop" Strategy (Catppuccin vs. Base16)](#1-the-traffic-cop-strategy-catppuccin-vs-base16)
-    - [2. Preventing Desktop Crashes (The Qt/KDE Conflict)](#2-preventing-desktop-crashes-the-qtkde-conflict)
+    - [2. The Qt/KDE Cohesion Strategy (Manual Hand-off)](#2-the-qtkde-cohesion-strategy-manual-hand-off)
+      - [How the Cohesion Works:](#how-the-cohesion-works)
     - [3. Global Assets](#3-global-assets)
   - [The Code](#the-code-10)
 - [~nixOS/home-manager/modules/zsh.nix](#nixoshome-managermoduleszshnix)
@@ -66,13 +68,12 @@
     - [2. Hybrid Configuration (`.zshrc_custom`)](#2-hybrid-configuration-zshrc_custom)
     - [3. The Startup Sequence](#3-the-startup-sequence)
   - [The Code](#the-code-11)
-- [~nixOS/hosts/template-host/configuration.nix](#nixoshoststemplate-hostconfigurationnix)
+- [~nixOS/nixos/modules/common-configuration.nix](#nixosnixosmodulescommon-configurationnix)
   - [Key Concepts](#key-concepts-11)
-    - [1. Graphical Stability (Preventing Crashes)](#1-graphical-stability-preventing-crashes)
-    - [2. Universal Keyboard Layout](#2-universal-keyboard-layout)
-    - [3. User \& Host Identity](#3-user--host-identity)
-    - [4. Input Method Cleanup (ibus)](#4-input-method-cleanup-ibus)
-    - [5. Stop asking for password when screen recording with audio](#5-stop-asking-for-password-when-screen-recording-with-audio)
+    - [1. The "Survival Kit" (Universal Packages)](#1-the-survival-kit-universal-packages)
+    - [2. Architecture Intelligence (x86 vs. ARM)](#2-architecture-intelligence-x86-vs-arm)
+    - [3. Performance \& Responsiveness](#3-performance--responsiveness)
+    - [4. Security Baseline](#4-security-baseline)
   - [The Code](#the-code-12)
 - [~nixOS/nixos/modules/boot.nix](#nixosnixosmodulesbootnix)
   - [Key Concepts](#key-concepts-12)
@@ -93,24 +94,26 @@
     - [3. Security Hardening](#3-security-hardening)
     - [4. User Warning](#4-user-warning)
   - [The Code](#the-code-15)
-- [🛡️ THE MONITOR SCRIPT](#️-the-monitor-script)
-- [~nixOS/nixos/modules/nix.nix](#nixosnixosmodulesnixnix)
+- [~nixOS/home-manager/modules/mime.nix](#nixoshome-managermodulesmimenix)
   - [Key Concepts](#key-concepts-15)
+    - [1. Dynamic Associations](#1-dynamic-associations)
+    - [2. Desktop File Translation (`mkDesktop`)](#2-desktop-file-translation-mkdesktop)
+  - [The Code](#the-code-16)
+- [~nixOS/nixos/modules/nix.nix](#nixosnixosmodulesnixnix)
+  - [Key Concepts](#key-concepts-16)
     - [1. Enabling Flakes](#1-enabling-flakes)
     - [2. Binary Caching (Speed)](#2-binary-caching-speed)
     - [3. Automatic Garbage Collection](#3-automatic-garbage-collection)
-  - [The Code](#the-code-16)
-- [~nixOS/nixos/modules/sddm.nix](#nixosnixosmodulessddmnix)
-  - [Key Concepts](#key-concepts-16)
-    - [1. The "Astronaut" Theme](#1-the-astronaut-theme)
-    - [2. X11 Backend for Stability](#2-x11-backend-for-stability)
-    - [3. UWSM Integration](#3-uwsm-integration)
   - [The Code](#the-code-17)
-- [~nixOS/nixos/modules/user.nix](#nixosnixosmodulesusernix)
+- [~nixOS/nixos/modules/sddm.nix](#nixosnixosmodulessddmnix)
   - [Key Concepts](#key-concepts-17)
+    - [1. The "Astronaut" Theme](#1-the-astronaut-theme)
+  - [The Code](#the-code-18)
+- [~nixOS/nixos/modules/user.nix](#nixosnixosmodulesusernix)
+  - [Key Concepts](#key-concepts-18)
     - [1. The "Safety Net" (Why configure groups twice?)](#1-the-safety-net-why-configure-groups-twice)
     - [2. Global Shell Enforcement](#2-global-shell-enforcement)
-  - [The Code](#the-code-18)
+  - [The Code](#the-code-19)
 
 
 # ~nixOS/flake.nix
@@ -166,65 +169,107 @@ Once the variables are calculated, the system loads the code. It includes the ge
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Needed to get firefox addons from nur
     firefox-addons = {
       url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Official catppuccin-nix flake
     catppuccin = {
       url = "github:catppuccin/nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # nix-community plasma manager
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
 
+    # Official quickshell flake
     quickshell = {
       url = "git+https://git.outfoxxed.me/quickshell/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Official caelestia flake
     caelestia-shell = {
       url = "github:caelestia-dots/shell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Official noctalia flake
+    noctalia-shell = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Official sops-nix flake
     nix-sops = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    niri = {
+      url = "github:sodiboo/niri-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
-    { nixpkgs
-    , nixpkgs-unstable
-    , home-manager
-    , ...
+    {
+      nixpkgs,
+      nixpkgs-unstable,
+      home-manager,
+      ...
     }@inputs:
     let
-
-      # Recognize all the hosts intelligently
       hostNames = nixpkgs.lib.attrNames (
-        nixpkgs.lib.filterAttrs (name: type: type == "directory") (builtins.readDir ./hosts)
+        nixpkgs.lib.filterAttrs (
+          name: type:
+          type == "directory" && builtins.pathExists (./hosts + "/${name}/hardware-configuration.nix")
+        ) (builtins.readDir ./hosts)
       );
 
       # 🛠️ SYSTEM BUILDER
       makeSystem =
         hostname:
         let
-          # IMPORT VARIABLES FROM FILE
+          # 1. Base Vars (Always exist)
           baseVars = import ./hosts/${hostname}/variables.nix;
 
-          modulesPath = ./hosts/${hostname}/optional/general-hm-modules/modules.nix;
-          extraVars = if builtins.pathExists modulesPath then import modulesPath else { };
+          # 2. Import host-specific optional folder
+          hostPath = ./hosts/${hostname};
+          optionalPath = hostPath + "/optional";
 
-          # 3. Merge
+          # 3. Load Home-Manager variables (modules.nix)
+          modulesPath = optionalPath + "/general-hm-modules/modules.nix";
+
+          # 4. Extra Vars (Optional - host specific HM settings)
+          extraVars =
+            if builtins.pathExists modulesPath then
+              builtins.trace "✅ [${hostname} System] Loading host HM Variables from: ${toString modulesPath}" (
+                import modulesPath {
+                  vars = baseVars;
+                  lib = nixpkgs.lib;
+                  pkgs = nixpkgs.pkgs;
+                }
+              )
+            else
+              builtins.trace
+                "ℹ️ [${hostname} System] No host HM Variables module found at ${toString modulesPath}"
+                { };
+
+          # 5. Merge: Base + Extra + Hostname
           hostVars = baseVars // extraVars // { inherit hostname; };
 
+          # 6. Check for host home file
+          hostHomeFile = ./hosts/${hostname}/home.nix;
+          hostHomeExists = builtins.pathExists hostHomeFile;
+
+          # 7. Unstable pkgs
           pkgs-unstable = import nixpkgs-unstable {
             system = hostVars.system;
             config.allowUnfree = true;
@@ -234,65 +279,84 @@ Once the variables are calculated, the system loads the code. It includes the ge
 
           specialArgs = {
             inherit inputs pkgs-unstable;
-            # Pass ALL variables from variables.nix to the modules
             vars = hostVars;
           };
 
           modules = [
+            # Base NixOS modules
+            ./nixos/modules/core.nix
             ./hosts/${hostname}/configuration.nix
+            ./hosts/${hostname}/hardware-configuration.nix
+
+            # Overlay needed to avoid problems for aarch64
+            (
+              { pkgs, lib, ... }:
+              {
+                nixpkgs.overlays = [
+                  (final: prev: {
+                    gpu-screen-recorder =
+                      if prev.stdenv.hostPlatform.system == "aarch64-linux" then
+                        prev.writeShellScriptBin "gpu-screen-recorder" ''
+                          echo "GPU Screen Recorder is not supported on ARM"
+                          exit 0
+                        ''
+                      else
+                        prev.gpu-screen-recorder;
+                  })
+                ];
+              }
+            )
+
+            # Additional nixos modules from flakes
             inputs.catppuccin.nixosModules.catppuccin
             inputs.nix-flatpak.nixosModules.nix-flatpak
             inputs.nix-sops.nixosModules.sops
+            inputs.niri.nixosModules.niri
 
-            # DE/WM import
-            ./nixos/modules/hyprland.nix
-            ./nixos/modules/gnome.nix
-            ./nixos/modules/kde.nix
-            ./nixos/modules/cosmic.nix
+            # Import entire optional host-specific directory if it exists
+            (
+              if builtins.pathExists optionalPath then
+                builtins.trace "✅ [${hostname} System] Importing Host Optional Dir: ${toString optionalPath}" optionalPath
+              else
+                builtins.trace "ℹ️ [${hostname} System] No Optional Dir found." { }
+            )
 
             {
-
+              # host-specific variables
               nixpkgs.hostPlatform = hostVars.system;
-
-              nixpkgs.pkgs = import nixpkgs {
-                inherit (hostVars) system;
-                config.allowUnfree = true;
-              };
-              time.timeZone = hostVars.timeZone;
             }
+            # Home-Manager
             inputs.home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
 
+              # Home-manager flakes input integration
               home-manager.sharedModules = [
                 inputs.catppuccin.homeModules.catppuccin
                 inputs.plasma-manager.homeModules.plasma-manager
               ];
 
+              # Home-manager unstable import (needed)
               home-manager.extraSpecialArgs = {
                 inherit inputs pkgs-unstable hostname;
                 vars = hostVars;
               };
+
+              # Home-manager host-specific user configuration
               home-manager.users.${hostVars.user} = {
                 imports = [
                   ./home-manager/home.nix
                 ]
-
                 ++ (
-                  if builtins.pathExists ./hosts/${hostname}/optional/general-hm-modules/home.nix then
-                    [ ./hosts/${hostname}/optional/general-hm-modules/home.nix ]
-                  else
-                    [ ]
-                )
-                ++ (
-                  if builtins.pathExists ./hosts/${hostname}/optional/host-hm-modules then
-                    [ ./hosts/${hostname}/optional/host-hm-modules ]
+                  if hostHomeExists then
+                    builtins.trace "✅ [${hostname} System] Importing Host Home: ${toString hostHomeFile}" [
+                      hostHomeFile
+                    ]
                   else
                     [ ]
                 );
               };
-
             }
           ];
         };
@@ -301,16 +365,41 @@ Once the variables are calculated, the system loads the code. It includes the ge
       makeHome =
         hostname:
         let
-          # 1. Import Mandatory Variables
+          # 1. Base Vars (Always exist)
           baseVars = import ./hosts/${hostname}/variables.nix;
 
-          # 2. Import Optional Modules (nix file) (Safely)
-          modulesPath = ./hosts/${hostname}/optional/general-hm-modules/modules.nix;
-          extraVars = if builtins.pathExists modulesPath then import modulesPath else { };
+          # 2. Import host-specific optional folder
+          hostPath = ./hosts/${hostname};
+          optionalPath = hostPath + "/optional";
 
-          # 3. Merge them (Extra overrides Base)
+          # 3. Load Home-Manager variables (modules.nix)
+          modulesPath = optionalPath + "/general-hm-modules/modules.nix";
+
+          # 4. Extra Vars (Optional - host specific HM settings)
+          extraVars =
+            if builtins.pathExists modulesPath then
+              builtins.trace "✅ [${hostname} Home] Loading host HM Variables from: ${toString modulesPath}" (
+                import modulesPath {
+                  vars = baseVars;
+                  lib = nixpkgs.lib;
+                  pkgs = nixpkgs.pkgs;
+                }
+              )
+            else
+              builtins.trace "ℹ️ [${hostname} Home] No hsot HM Variables module found." { };
+
+          # 5. Merge: Base + Extra + Hostname
           hostVars = baseVars // extraVars // { inherit hostname; };
 
+          # 6. Check for host home file
+          hostHomeFile = ./hosts/${hostname}/home.nix;
+
+          # Create a list of extra modules to append
+          extraModules = nixpkgs.lib.optional (builtins.pathExists hostHomeFile) (
+            builtins.trace "✅ [${hostname} Home] Adding Host Home: ${toString hostHomeFile}" hostHomeFile
+          );
+
+          # 7. Unstable pkgs
           pkgs-unstable = import nixpkgs-unstable {
             system = hostVars.system;
             config.allowUnfree = true;
@@ -332,11 +421,7 @@ Once the variables are calculated, the system loads the code. It includes the ge
             inputs.catppuccin.homeModules.catppuccin
             inputs.plasma-manager.homeModules.plasma-manager
           ]
-          # 2. Add host-specific host-modules (Home Manager side)
-          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/optional/host-hm-modules) ./hosts/${hostname}/optional/host-hm-modules)
-
-          # 3. Add host-specific home.nix
-          ++ (nixpkgs.lib.optional (builtins.pathExists ./hosts/${hostname}/optional/general-hm-modules/home.nix) ./hosts/${hostname}/optional/general-hm-modules/home.nix);
+          ++ extraModules;
         };
 
     in
@@ -348,7 +433,6 @@ Once the variables are calculated, the system loads the code. It includes the ge
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
     };
 }
-
 ```
 
 
@@ -679,58 +763,34 @@ in
     # These are always installed, regardless of user choices
     # Packages in each category are sorted alphabetically
     # ⚠️ All these packages should be kept. The reason is indicated next to each package.
+    # If a package does not need/can't be configured with home-manager then it can be in common-configuration.nix or a host-specific configuration.nix
     ++ (with pkgs; [
 
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------------------
-      imv # Image viewer (referenced in window rules)
-      mpv # Video player (referenced in window rules)
-      pavucontrol # Audio control (Vital for Hyprland and caelestia)
 
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES
       # -----------------------------------------------------------------------------------
-      cliphist # Wayland clipboard history manager (needed for clipboard management)
-      dix # Nix diff viewer between generations
-      eza # Modern ls replacement (used by eza.nix module)
-      fd # Fast file finder (used in various scripts)
-      fzf # Fuzzy finder (used in various scripts)
-      git # Version control system (used in various scripts)
-      nixfmt-rfc-style # Nix code formatter with RFC style (used in flake.nix)
-      starship # Shell prompt (used by starship.nix)
-      zoxide # Jump around filesystem (used in various scripts)
-
-      # -----------------------------------------------------------------------------------
-      # 🧑🏽‍💻 CODING
-      # -----------------------------------------------------------------------------------
-      #
+      cliphist # Wayland clipboard history manager (needed for clipboard management in most de/wm modules)
 
       # -----------------------------------------------------------------------
       # 🪟 WINDOW MANAGER (WM) INFRASTRUCTURE
       # -----------------------------------------------------------------------
-      libnotify # Library for desktop notifications (used by hyprland-notifications)
-      xdg-desktop-portal-gtk # GTK portal backend for file pickers
 
       # -----------------------------------------------------------------------
       # ❓ OTHER
       # -----------------------------------------------------------------------
       bemoji # Emoji picker with dmenu/wofi support (used in hyprland binds)
-      nix-prefetch-scripts # Tools to get hashes for nix derivations (used in zsh.nix module)
     ])
 
     # 3. KDE PACKAGES
     ++ (with pkgs.kdePackages; [
       gwenview # Default image viewer as defined in mime.nix
-      kio-extras # Extra protocols for KDE file dialogs (needed for dolphin remote access)
-      kio-fuse # Mount remote filesystems (via ssh, ftp, etc.) in Dolphin
     ])
 
     # 4. UNSTABLE PACKAGES
-    ++ (with pkgs-unstable; [
-      # -----------------------------------------------------------------------
-      # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
-      # ----------------------------------------------------------------------
-    ]);
+    ++ (with pkgs-unstable; [ ]);
 }
 ```
 
@@ -799,7 +859,7 @@ in
             "rimless"
             "black"
           ];
-          variant = vars.catppuccinFlavor;
+          variant = vars.catppuccinFlavor or "mocha";
         })
       ])
       ++ [
@@ -876,24 +936,33 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
 {
   config,
   lib,
+  inputs,
   pkgs,
   vars,
   ...
 }:
+let
+  noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  caelestiaPkg = inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli;
+in
 {
+
   config = lib.mkIf (vars.hyprland or false) {
     # ----------------------------------------------------------------------------
     # 🎨 CATPPUCCIN THEME (official module)
-    catppuccin.hyprland.enable = vars.catppuccin;
-    catppuccin.hyprland.flavor = vars.catppuccinFlavor;
-    catppuccin.hyprland.accent = vars.catppuccinAccent;
+    catppuccin.hyprland.enable = vars.catppuccin or false;
+    catppuccin.hyprland.flavor = vars.catppuccinFlavor or "mocha";
+    catppuccin.hyprland.accent = vars.catppuccinAccent or "mauve";
     # ----------------------------------------------------------------------------
 
     home.packages = with pkgs; [
       grimblast # Screenshot tool
       hyprpaper # Wallpaper manager
       hyprpicker # Color picker
+      imv # Image viewer (referenced in window rules)
+      mpv # Video player (referenced in window rules)
       brightnessctl # Screen brightness control
+      pavucontrol # Volume control
       playerctl # Media player control
       showmethekey # Keypress visualizer
       wl-clipboard # Wayland clipboard utilities
@@ -904,7 +973,7 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
       enable = true;
       systemd = {
         enable = true;
-        variables = [ "--all" ]; # Pass all environment variables to Hyprland systemd service, useful for caelestia-shell
+        variables = [ "--all" ];
       };
 
       settings = {
@@ -913,26 +982,34 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
         # 🌍 Environment Variables
         # -----------------------------------------------------
         # These ensure apps (Electron, QT, etc.) know they are running on Wayland.
-        env = [
-          # TOOLKIT BACKENDS (Force apps to use Wayland)
-          "NIXOS_OZONE_WL,1" # Forces Electron apps (VS Code, Discord, Obsidian) to run natively on Wayland.
-          "QT_QPA_PLATFORM,wayland;xcb" # Tells Qt apps: "Try Wayland first. If that fails, use X11 (xcb)".
-          "GDK_BACKEND,wayland,x11,*" # Tells GTK apps: "Try Wayland first. If that fails, use X11".
-          "SDL_VIDEODRIVER,wayland" # Forces SDL games to run on Wayland (improves performance/scaling).
-          "CLUTTER_BACKEND,wayland" # Forces Clutter apps to use Wayland.
+        env =
+          let
+            firstMonitor = builtins.elemAt vars.monitors 0;
+            monitorParts = lib.splitString "," firstMonitor;
+            rawScale = if (builtins.length monitorParts) >= 4 then builtins.elemAt monitorParts 3 else "1";
+            gdkScale = if rawScale != "1" && rawScale != "1.0" then "2" else "1";
+          in
+          [
+            # Communicate with apps to tell them we are on Wayland
+            "NIXOS_OZONE_WL,1" # Enables Wayland support in NixOS-built Electron apps
+            "QT_QPA_PLATFORM,wayland;xcb" # Tells Qt apps: "Try Wayland first. If that fails, use X11 (xcb)".
+            "GDK_BACKEND,wayland,x11,*" # Tells GTK apps: "Try Wayland first. If that fails, use X11".
+            "SDL_VIDEODRIVER,wayland" # Forces SDL games to run on Wayland (improves performance/scaling).
+            "CLUTTER_BACKEND,wayland" # Forces Clutter apps to use Wayland.
+            "_JAVA_AWT_WM_NONREPARENTING,1" # Fixes Java GUI apps (IntelliJ, Minecraft Launcher) on Wayland.
+            "GDK_SCALE,${gdkScale}" # Sets GTK scaling based on first monitor's scale factor.
 
-          # DESKTOP SESSION IDENTITY
-          "XDG_CURRENT_DESKTOP,Hyprland" # Tells portals (screen sharing) that you are using Hyprland.
-          "XDG_SESSION_TYPE,wayland" # Generic flag telling the session it is Wayland-based.
-          "XDG_SESSION_DESKTOP,Hyprland" # Used by some session managers to identify the desktop.
+            # DESKTOP SESSION IDENTITY
+            "XDG_CURRENT_DESKTOP,Hyprland" # Tells portals (screen sharing) that you are using Hyprland.
+            "XDG_SESSION_TYPE,wayland" # Generic flag telling the session it is Wayland-based.
+            "XDG_SESSION_DESKTOP,Hyprland" # Used by some session managers to identify the desktop.
 
-          # THEMING & AESTHETICS
-          "QT_QPA_PLATFORMTHEME,qt5ct" # Tells Qt apps to use the 'qt5ct' or 'qt6ct' tool for styling (fixes ugly Qt apps).
+            # THEMING & AESTHETICS
+            "QT_QPA_PLATFORMTHEME,kde" # Tells Qt apps to use the 'kde' engine if available (enables breeze theme).
 
-          # SYSTEM PATHS
-          "XDG_SCREENSHOTS_DIR,${vars.screenshots}" # Tells tools where to save screenshots by default.
-
-        ];
+            # SYSTEM PATHS
+            "XDG_SCREENSHOTS_DIR,${vars.screenshots}" # Tells tools where to save screenshots by default.
+          ];
 
         # -----------------------------------------------------
         # 🖥️ Monitor Configuration
@@ -946,10 +1023,32 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
         # 🎛️ Main Hyprland apps
         # These are used by other modules using the variable references such as binds.nix
         # -----------------------------------------------------
-        "$mainMod" = "SUPER";
+        "$Mod" = "SUPER";
         "$term" = vars.term;
-        "$fileManager" = "${vars.term} --class yazi -e yazi";
-        "$menu" = "wofi";
+
+        # Distinguish between terminal-based and GUI file managers
+        "$fileManager" = "${
+          if vars.fileManager == "yazi" || vars.fileManager == "ranger" then
+            "${vars.term} --class ${vars.fileManager} -e ${vars.fileManager}"
+          else
+            "${vars.fileManager}"
+        }";
+
+        # Distinguish between terminal-based and GUI editors
+        "$editor" = "${
+          if vars.editor == "nvim" then "${vars.term} --class nvim-editor -e nvim" else "${vars.editor}"
+        }";
+
+        # Dynamic menu command based on launcher choice
+        "$menu" = "${
+          if (vars.hyprlandCaelestia or false) then
+            # 🟢 FIXED: Use the wrapper + the correct 'drawers' command
+            "caelestiaqs ipc call drawers toggle launcher"
+          else if (vars.hyprlandNoctalia or false) then
+            "sh -c '${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle'"
+          else
+            "wofi --show drun"
+        }";
 
         # -----------------------------------------------------
         # 🚀 Startup Apps
@@ -959,10 +1058,9 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
           "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
-        ];
-        ++ lib.optionals (!(vars.hyprlandCaelestia or false)) [
-          "uwsm app -- waybar" # Start waybar onlyt if "caelestia" is disabled in variables.nix
-        ];
+          "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP" # Keeps dbus environment updated for Wayland apps.
+        ]
+        ++ (vars.hyprland_Exec-Once or [ ]);
 
         # -----------------------------------------------------
         # 🎨 Look & Feel
@@ -1006,9 +1104,9 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
         # Layouts are defined in flake.nix and are handled
         # in such a way that they work regardless of desktop environment
         input = {
-          kb_layout = vars.keyboardLayout;
-          kb_variant = vars.keyboardVariant;
-          kb_options = "grp:alt_shift_toggle"; # Alt+Shift to switch layout
+          kb_layout = vars.keyboardLayout or "us";
+          kb_variant = vars.keyboardVariant or "";
+          kb_options = "grp:ctrl_alt_toggle"; # Ctrl+Alt to switch layout
         };
 
         dwindle = {
@@ -1027,8 +1125,11 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
           disable_hyprland_logo = true;
         };
 
+        xwayland = {
+          force_zero_scaling = true;
+        };
+
         windowrulev2 = [
-          # --- 1. System & UI Rules ---
           # Smart Borders: No border if only 1 window is on screen
           "bordersize 0, floating:0, onworkspace:w[t1]"
 
@@ -1049,34 +1150,37 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
           "center, class:^(org.kde.gwenview)$"
           "size 80% 80%, class:^(org.kde.gwenview)$"
 
-        ]
-        ++ (vars.hyprlandWindowRules or [ ])
+          # FILE DIALOGS (Firefox, Upload, Download, Save As) ---
+          "float, title:^(Open File)(.*)$"
+          "float, title:^(Select a File)(.*)$"
+          "float, title:^(Choose wallpaper)(.*)$"
+          "float, title:^(Open Folder)(.*)$"
+          "float, title:^(Save As)(.*)$"
+          "float, title:^(Library)(.*)$"
+          "float, title:^(File Upload)(.*)$"
+          "float, title:^(Save File)(.*)$"
+          "float, title:^(Enter name of file)(.*)$"
 
-        ++ [
+          # Center and resize ALL the titles listed above
+          "center, title:^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"
+          "size 50% 50%, title:^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"
 
-          # Prevent apps from auto-maximizing themselves
+          "float, class:^(xdg-desktop-portal-gtk)$"
+          "center, class:^(xdg-desktop-portal-gtk)$"
+          "size 50% 50%, class:^(xdg-desktop-portal-gtk)$"
+
+          # Prevent Auto-Maximize & Focus Stealing ---
           "suppressevent maximize, class:.*"
           "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0"
 
-          # 1. Force them to FLOAT (detach from tiling grid)
-          # 2. Force them to CENTER (relative to the monitor, not the app)
-          # 3. Force a fixed SIZE (60% width/height = 20% margin on all sides)
-          "float, title:^(Open File|Save As|File Upload|Select a File|Choose wallpaper|Open Folder|Library)(.*)$"
-          "center, title:^(Open File|Save As|File Upload|Select a File|Choose wallpaper|Open Folder|Library)(.*)$"
-          "size 60% 60%, title:^(Open File|Save As|File Upload|Select a File|Choose wallpaper|Open Folder|Library)(.*)$"
-
-          # Specific fix for XDG Desktop Portal (common Linux file picker)
-          "float, class:^(xdg-desktop-portal-gtk)$"
-          "center, class:^(xdg-desktop-portal-gtk)$"
-          "size 60% 60%, class:^(xdg-desktop-portal-gtk)$"
-
-          # --- 3. original xwayland video bridge rules ---
+          # XWayland Video Bridge ---
           "opacity 0.0 override, class:^(xwaylandvideobridge)$"
           "noanim, class:^(xwaylandvideobridge)$"
           "noinitialfocus, class:^(xwaylandvideobridge)$"
           "maxsize 1 1, class:^(xwaylandvideobridge)$"
           "noblur, class:^(xwaylandvideobridge)$"
           "nofocus, class:^(xwaylandvideobridge)$"
+
         ]
         ++ (vars.hyprlandWindowRules or [ ]);
 
@@ -1260,6 +1364,10 @@ This module consumes the custom variables passed from your host's `modules.nix` 
 
 Instead of a hardcoded weather widget, we define a `custom/weather` module. It uses the `weather` variable (your city name defined in `variables.nix`) to construct a `curl` command. This fetches live weather data from `wttr.in` and displays the condition icon and temperature.
 
+
+### 4. Conditionals
+The waybar is enabled/disabled depending on if `noctalia/caelestia` are used and it adapt to the workspace differences between `niri` and `hyprland`
+
 ---
 
 ## The Code
@@ -1274,42 +1382,42 @@ This code is my personal one, but it may be change heavily based on your prefere
   ...
 }:
 let
+  c = config.lib.stylix.colors.withHashtag;
+  cssVariables = ''
+    @define-color base00 ${c.base00};
+    @define-color base01 ${c.base01};
+    @define-color base02 ${c.base02};
+    @define-color base03 ${c.base03};
+    @define-color base04 ${c.base04};
+    @define-color base05 ${c.base05};
+    @define-color base06 ${c.base06};
+    @define-color base07 ${c.base07};
+    @define-color base08 ${c.base08};
+    @define-color base09 ${c.base09};
+    @define-color base0A ${c.base0A};
+    @define-color base0B ${c.base0B};
+    @define-color base0C ${c.base0C};
+    @define-color base0D ${c.base0D};
+    @define-color base0E ${c.base0E};
+    @define-color base0F ${c.base0F};
+  '';
   cssContent = builtins.readFile ./style.css;
+  # 1. Hyprland logic: Show Waybar if no custom shell is set
+  hyprlandWaybar =
+    (vars.hyprland or false)
+    && !((vars.hyprlandCaelestia or false) || (vars.hyprlandNoctalia or false));
 
-  # Intelligently theme based on whatever catppuccin is enabled or not
-  cssVariables =
-    if vars.catppuccin then
-      ''
-        @define-color accent @${vars.catppuccinAccent};
-      ''
-    else
-      ''
-        /* 🔴 BASE16 FALLBACK MODE */
-        @define-color base   ${config.lib.stylix.colors.withHashtag.base00}; /* Background */
-        @define-color text   ${config.lib.stylix.colors.withHashtag.base05}; /* Foreground */
-
-        @define-color accent ${config.lib.stylix.colors.withHashtag.base0D}; /* Default Accent */
-
-        /* Map colors used in style.css to Base16 equivalents */
-        @define-color red    ${config.lib.stylix.colors.withHashtag.base08};
-        @define-color peach  ${config.lib.stylix.colors.withHashtag.base09}; /* Orange */
-        @define-color green  ${config.lib.stylix.colors.withHashtag.base0B};
-        @define-color teal   ${config.lib.stylix.colors.withHashtag.base0C}; /* Cyan */
-        @define-color blue   ${config.lib.stylix.colors.withHashtag.base0D};
-        @define-color mauve  ${config.lib.stylix.colors.withHashtag.base0E}; /* Purple */
-      '';
-
+  # 2. Niri logic: Show Waybar if no custom shell is set
+  niriWaybar = (vars.niri or false) && !(vars.niriNoctalia or false);
 in
 {
-  config = lib.mkIf (vars.hyprland or false) {
-    catppuccin.waybar.enable = vars.catppuccin;
+  config = lib.mkIf (hyprlandWaybar || niriWaybar) {
 
     programs.waybar = {
       enable = true;
-
-      # -----------------------------------------------------------------------
-      # 🎨 STYLE CONFIGURATION
-      # -----------------------------------------------------------------------
+      systemd = {
+        enable = true;
+      };
       style = lib.mkAfter ''
         ${cssVariables}
         ${cssContent}
@@ -1317,15 +1425,23 @@ in
 
       settings = {
         mainBar = {
-          layer = "top"; # "top" layer puts it above normal windows
-          position = "top"; # Position on screen (top, bottom, left, right)
-          height = 40; # Height in pixels
+          layer = "top";
+          position = "top";
+          height = 40;
 
-          # Module Placement
-          modules-left = [ "hyprland/workspaces" ];
-          modules-center = [ "hyprland/window" ];
+          modules-left = [
+            "hyprland/workspaces"
+            "niri/workspaces"
+          ];
+
+          modules-center = [
+            "hyprland/window"
+            "niri/window"
+          ];
+
           modules-right = [
             "hyprland/language"
+            "niri/language"
             "custom/weather"
             "pulseaudio"
             "battery"
@@ -1333,51 +1449,64 @@ in
             "tray"
           ];
 
-          # -----------------------------------------------------
-          # 🗄️ Workspaces Module
-          # -----------------------------------------------------
+          # Workspaces Icon and layout
+          # A user may define host-specific icons (optional) in vars.waybarWorkspaceIcons
           "hyprland/workspaces" = {
             disable-scroll = true;
-            show-special = true; # Show special workspaces (scratchpads)
-            special-visible-only = true; # Only show special workspace if it's actually visible
-            all-outputs = false; # Only show workspaces that live on the current monitor
-
-            # Format for workspace names and icons
+            show-special = true;
+            special-visible-only = true;
+            all-outputs = false;
             format = "{name} {icon}";
             format-icons = vars.waybarWorkspaceIcons or { };
           };
 
-          # -----------------------------------------------------
-          # ⌨️ Keyboard Layout icons
-          # The flag changes based on the current keyboard layout
-          # -----------------------------------------------------
-          "hyprland/language" = {
-            min-length = 5; # prevent layout jumping when flag changes
-            tooltip = true; # disable tooltip on hover
-          }
-          // vars.waybarLayoutFlags or { };
-
-          # -----------------------------------------------------
-          # ☁️ Weather
-          # -----------------------------------------------------
-          "custom/weather" = {
-            format = " {} ";
-            # Fetches weather for the defined city in flake.nix from wttr.in
-            # %c = Condition icon, %t = Temperature
-            exec = "curl -s 'wttr.in/${vars.weather}?format=%c%t'";
-            interval = 300; # Update every 5 minutes (300 seconds)
-            class = "weather";
+          "niri/workspaces" = {
+            format = "{icon}";
+            format-icons = {
+              active = "";
+              default = "";
+            };
           };
 
-          # -----------------------------------------------------
-          # 🔊 Audio Volume (PulseAudio)
-          # -----------------------------------------------------
-          "pulseaudio" = {
-            format = "{icon} {volume}%";
-            format-bluetooth = "{icon} {volume}% "; # Adds Bluetooth icon if connected
-            format-muted = "";
+          "niri/window" = {
+            format = "{}";
+            separate-outputs = true;
+          };
 
-            # Icons change based on device type
+          # Languages flags and/or text
+          # A user may define host-specific layout text (optional) in vars.waybarLayout
+          "hyprland/language" = {
+            min-length = 5;
+            tooltip = true;
+            on-click = "hyprctl switchxkblayout all next";
+          }
+          // vars.waybarLayout or { };
+
+          "niri/language" = {
+            format = "{}";
+            # This command cycles to the next configured layout in Niri
+            on-click = "niri msg action switch-layout-next";
+          }
+
+          // vars.waybarLayout or { };
+          # Weather module with wttr.in
+          # It fetches the location from variables.nix and when clicked the favorite browser opens wttr.in page
+          "custom/weather" = {
+            format = "<span color='${c.base0C}'>${vars.weather}:</span> {} ";
+            exec =
+              let
+                unit = if (vars.useFahrenheit or false) then "°C" else "°F";
+              in
+              "curl -s 'wttr.in/${vars.weather}?format=%c%t&${unit}' | sed 's/ //'";
+            interval = 300;
+            class = "weather";
+            on-click = ''xdg-open "https://wttr.in/${vars.weather}"'';
+          };
+
+          "pulseaudio" = {
+            format = "<span color='${c.base0D}'>{icon}</span> {volume}%";
+            format-bluetooth = "<span color='${c.base0D}'>{icon}</span> {volume}% ";
+            format-muted = "<span color='${c.base08}'></span> Muted";
             format-icons = {
               "headphones" = "";
               "handsfree" = "";
@@ -1388,53 +1517,62 @@ in
               "default" = [
                 ""
                 ""
-              ]; # Low vol / High vol
+              ];
             };
-            on-click = "pavucontrol"; # Open volume mixer on click
+            on-click = "pavucontrol";
           };
 
-          # -----------------------------------------------------
-          # 🔋 Battery Status
-          # If no battery is found (eg desktop pc), this module is hidden
-          # -----------------------------------------------------
           "battery" = {
             states = {
-              warning = 20; # Yellow warning at 20%
-              critical = 5; # Red critical at 5%
+              warning = 20;
+              critical = 5;
             };
-            format = "{icon} {capacity}%";
-            format-charging = " {capacity}%"; # Show plug icon when charging
-            format-alt = "{time} {icon}"; # Click to show Time Remaining
+            format = "<span color='${c.base0A}'>{icon}</span> {capacity}%";
+            format-charging = "<span color='${c.base0B}'></span> {capacity}%";
+            format-alt = "{time} <span color='${c.base0A}'>{icon}</span>";
             format-icons = [
               ""
               ""
               ""
               ""
               ""
-            ]; # Icons from empty to full
+            ];
           };
 
-          # -----------------------------------------------------
-          # 🕒 Clock & Calendar
-          # -----------------------------------------------------
           "clock" = {
-            format = "{:%m/%d/%Y - %I:%M %p}"; # Standard Format: MM/DD/YYYY - HH:MM AM/PM
-            format-alt = "{:%A, %B %d at %I:%M %p}"; # Click Format: Full Day Name, Month, Date... When the module is clicked it switches between formats
+            format = "{:%A, %B %d at %I:%M %p}"; # Click Format: Full Day Name, Month, Date... When the module is clicked it switches between formats
+            format-alt = "{:%m/%d/%Y - %I:%M %p}"; # Standard Format: MM/DD/YYYY - HH:MM AM/PM
+            tooltip-format = "<tt><small>{calendar}</small></tt>"; # Tooltip Format: Small calendar in tooltip
+            calendar = {
+              mode = "year";
+              mode-mon-col = 3;
+              weeks-pos = "right";
+              on-scroll = 1;
+            };
           };
 
-          # -----------------------------------------------------
-          # 📥 System Tray
-          # -----------------------------------------------------
+          # General app tray settings
           "tray" = {
-            icon-size = 20; # Size of tray icons
-            spacing = 1; # Space between tray icons
+            icon-size = 20;
+            spacing = 8;
           };
         };
       };
     };
+
+    systemd.user.services.waybar = {
+      Unit.PartOf = lib.mkForce (
+        (lib.optional hyprlandWaybar "hyprland-session.target") ++ (lib.optional niriWaybar "niri.service")
+      );
+      Unit.After = lib.mkForce (
+        (lib.optional hyprlandWaybar "hyprland-session.target") ++ (lib.optional niriWaybar "niri.service")
+      );
+      Install.WantedBy = lib.mkForce (
+        (lib.optional hyprlandWaybar "hyprland-session.target") ++ (lib.optional niriWaybar "niri.service")
+      );
+    };
   };
 }
-
 ```
 
 
@@ -1697,52 +1835,51 @@ in
 }
 
 ```
-
-
+---
 
 # ~nixOS/home-manager/modules/qt.nix
 
-This file manages the look and feel of **Qt applications** (like Dolphin, VLC, OBS, KeepassXC). Qt theming on Linux is notoriously difficult because, unlike GTK, it doesn't always respect system settings automatically.
+This file manages the look and feel of **Qt applications** (like Dolphin, VLC, OBS, KeepassXC).
 
-This module acts as a "bridge," ensuring Qt apps look consistent with your chosen theme (Catppuccin or Base16) regardless of the desktop environment you are using.
+It aims for a **native KDE Plasma look** (using the **Breeze** style) even when running on Hyprland.
 
 ---
 
 ## Key Concepts
 
-### 1. The "Delicate" Balance (Preventing KDE Crashes)
+### 1. The "Magic" Fix: `QT_QPA_PLATFORMTHEME=kde`
 
-The file contains a warning: `# Do not set QT_QPA_PLATFORMTHEME globally here`. This is the most critical part of this configuration.
+In your `hyprland-main.nix`, you set the environment variable `QT_QPA_PLATFORMTHEME=kde`. This is the single most important setting for Qt apps on Hyprland.
 
-* **The Problem:**
-* On window managers like **Hyprland**, we **must** set `QT_QPA_PLATFORMTHEME=qt5ct` to tell Qt apps to look for our custom configuration. (We do this in `hyprland-main.nix` ).
+* **(`kde`):** By setting the platform to `kde`, we tell Qt apps: *"Act as if you are running inside a full KDE Plasma session."*
 
-
-* On **KDE Plasma**, the desktop environment *is* Qt. It has its own internal theme manager. If you force `QT_QPA_PLATFORMTHEME=qt5ct` globally in this file, it overrides KDE's internal logic.
+**Why it fixes the problem:** When Qt thinks it is in KDE, it loads the `plasma-integration` plugin (which you install in this file ). This plugin is much smarter than `qt5ct`. It automatically handles:
 
 
-* **The Consequence:** If set here, logging into a KDE session would result in a **crash** or a black screen because the desktop itself would try to theme itself using an external tool (`qt5ct`) that isn't running yet.
-* **The Solution:** We leave the variable **unset** in this global file. Hyprland sets it for itself, while KDE is left alone to manage itself.
-
-### 2. The Engine: Kvantum
-
-To theme Qt apps, we use **Kvantum**, an SVG-based theme engine.
-
-* **Configuration (`qt5ct`/`qt6ct`):** We use these tools to tell Qt: "Don't use the default style; use Kvantum instead."
-
-
-**Logic:** We generate the configuration files for `qt5ct` and `qt6ct` declaratively, forcing the `style=kvantum` setting.
+* Correct file dialogs (using the portal).
+* Icon theme association.
+* System color schemes.
+* **Crucially:** It allows the **Breeze style** to render 100% correctly, looking exactly as it would on a Plasma desktop.
 
 
 
-### 3. Dynamic Theme Selection
+### 2. "Faking" the KDE Environment (`kdeglobals`)
 
-The file dynamically determines which theme Kvantum should load:
+Since you are running Hyprland, you don't actually have the KDE settings daemon running. For the `kde` platform theme to work, it needs to find the configuration files it *expects* to see in a real Plasma session.
 
-**Catppuccin:** It constructs the specific theme name (e.g., `Catppuccin-Mocha-Sky`) using a helper function to match the capitalization required by the folder structure. It then links *only* that specific theme folder from the Nix store to `~/.config/Kvantum`.
+**The Activation Script:** This module includes a `home.activation` script. It runs every time you rebuild your system.
 
 
-**Standard/Stylix:** If Catppuccin is disabled, it falls back to reliable, pre-installed Kvantum themes (`KvGnomeDark` or `KvFlatLight`) based on your host's `polarity` variable.
+* **What it does:** It uses `kwriteconfig6` to manually write a standard KDE configuration file (`~/.config/kdeglobals`).
+* **The Result:** It injects your chosen color scheme (`BreezeDark` or `BreezeLight`) and icon theme (`Papirus`) directly into this file. When a Qt app launches, it reads this "fake" file and applies your colors perfectly.
+
+### 3. Dual Configuration (`qt5ct` as Backup)
+
+Although the `kde` platform theme is the priority, this file still generates configuration files for `qt5ct` and `qt6ct`.
+
+* **Consistency:** It ensures that even if an app ignores the `kde` platform override and falls back to generic settings, it is still forced to use the `breeze` style and your specified color scheme paths.
+
+**Color Linking:** It links the official KDE Breeze color files from the nix store into `~/.local/share/color-schemes` so both the KDE integration and generic Qt tools can find them.
 
 
 
@@ -1758,86 +1895,84 @@ The file dynamically determines which theme Kvantum should load:
   vars,
   ...
 }:
-
-# This file is delicate, if modified without care it can break both Catppuccin and Stylix themes.
 let
-  capitalize =
-    s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
-
-  kvantumTheme =
-    if vars.catppuccin then
-      "Catppuccin-${capitalize vars.catppuccinFlavor}-${capitalize vars.catppuccinAccent}"
-    else if vars.polarity == "dark" then
-      "KvGnomeDark"
-    else
-      "KvFlatLight";
-
-  iconThemeName = if vars.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
+  hyprEnabled = vars.hyprland or false;
+  kdeEnabled = vars.kde or false;
+  useKdePlatformTheme = hyprEnabled || kdeEnabled;
+  isDark = (vars.polarity or "dark") == "dark";
+  kdeColorScheme = if isDark then "BreezeDark" else "BreezeLight";
+  iconThemeName = if isDark then "Papirus-Dark" else "Papirus-Light";
 in
 {
-  config = lib.mkMerge [
-    {
-      home.sessionVariables = {
-        QT_QPA_PLATFORM = "wayland;xcb";
-        QT_QUICK_CONTROLS_STYLE = "org.kde.desktop";
-        # Do not set QT_QPA_PLATFORMTHEME globally here, otherwise kde plasma crash
-      };
+  home.packages =
+    (with pkgs; [
+      libsForQt5.qt5ct
+      kdePackages.qt6ct
 
-      # Install necessary packages for both modes
-      home.packages =
-        with pkgs;
-        [
-          libsForQt5.qt5ct
-          kdePackages.qt6ct
-          libsForQt5.qtstyleplugin-kvantum # Contains the 'kvantummanager' executable
-          kdePackages.qtstyleplugin-kvantum
-          pkgs.papirus-icon-theme
-        ]
-        ++ (lib.optionals vars.catppuccin [
-          pkgs.catppuccin-kvantum
-        ]);
-    }
+      papirus-icon-theme
+    ])
+    ++ (with pkgs; [ kdePackages.breeze ])
+    ++ lib.optionals useKdePlatformTheme (
+      with pkgs;
+      [
+        kdePackages.plasma-integration
 
-    # --- CONFIG FILES (Apply to BOTH Catppuccin and Stylix modes) ---
-    {
-      # 1. Kvantum Config (The Theme Engine)
-      xdg.configFile."Kvantum/kvantum.kvconfig".text = ''
-        [General]
-        theme=${kvantumTheme}
-      '';
+        kdePackages.kconfig
+        libsForQt5.kconfig
+      ]
+    );
 
-      # 2. QtCT Configs (The Bridge)
-      xdg.configFile."qt6ct/qt6ct.conf".text = ''
-        [Appearance]
-        icon_theme=${iconThemeName}
-        style=kvantum
-      '';
+  xdg.dataFile."color-schemes/BreezeDark.colors".source =
+    "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeDark.colors";
+  xdg.dataFile."color-schemes/BreezeLight.colors".source =
+    "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeLight.colors";
 
-      xdg.configFile."qt5ct/qt5ct.conf".text = ''
-        [Appearance]
-        icon_theme=${iconThemeName}
-        style=kvantum
-      '';
-    }
+  xdg.dataFile."qt6ct/colors/BreezeDark.colors".source =
+    "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeDark.colors";
+  xdg.dataFile."qt6ct/colors/BreezeLight.colors".source =
+    "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeLight.colors";
 
-    # --- CATPPUCCIN SPECIFIC (Only copy theme files if needed) ---
-    (lib.mkIf vars.catppuccin {
-      xdg.configFile."Kvantum/${kvantumTheme}".source =
-        "${pkgs.catppuccin-kvantum}/share/Kvantum/${kvantumTheme}";
-    })
-  ];
+  xdg.dataFile."qt5ct/colors/BreezeDark.colors".source =
+    "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeDark.colors";
+  xdg.dataFile."qt5ct/colors/BreezeLight.colors".source =
+    "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeLight.colors";
+
+  xdg.configFile."qt6ct/qt6ct.conf".text = ''
+    [Appearance]
+    icon_theme=${iconThemeName}
+    style=breeze
+    color_scheme_path=${config.home.homeDirectory}/.local/share/qt6ct/colors/${kdeColorScheme}.colors
+  '';
+
+  xdg.configFile."qt5ct/qt5ct.conf".text = ''
+    [Appearance]
+    icon_theme=${iconThemeName}
+    style=breeze
+    color_scheme_path=${config.home.homeDirectory}/.local/share/qt5ct/colors/${kdeColorScheme}.colors
+  '';
+
+  home.activation.kdeglobalsFromPolarity = lib.mkIf useKdePlatformTheme (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group General    --key ColorScheme "${kdeColorScheme}" || true
+      ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group UiSettings --key ColorScheme "${kdeColorScheme}" || true
+      ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group Icons      --key Theme      "${iconThemeName}"  || true
+
+      ${pkgs.libsForQt5.kconfig}/bin/kwriteconfig5 --file kdeglobals --group General    --key ColorScheme "${kdeColorScheme}" || true
+      ${pkgs.libsForQt5.kconfig}/bin/kwriteconfig5 --file kdeglobals --group UiSettings --key ColorScheme "${kdeColorScheme}" || true
+      ${pkgs.libsForQt5.kconfig}/bin/kwriteconfig5 --file kdeglobals --group Icons      --key Theme      "${iconThemeName}"  || true
+    ''
+  );
 }
-
 ```
 
+---
 
 # ~nixOS/home-manager/modules/stylix.nix
 
 This file configures **Stylix**, the central theming engine for the system. Stylix's job is to take a single "Base16" color scheme (or an image) and automatically inject it into *every* application on your system (Shell, Editor, Browser, Desktop).
 
-However, because we also support the official **Catppuccin** modules, this file acts as a **"Traffic Cop"**. It intelligently decides *who* gets to theme *what*.
+However, because we also support the official **Catppuccin** modules and require stable Qt behavior, this file acts as a **"Traffic Cop"**. It intelligently decides *who* gets to theme *what*.
 
----
 
 ## Key Concepts
 
@@ -1852,26 +1987,30 @@ We achieve this using the `!catppuccin` logic.
 
 * `hyprland.enable = !catppuccin;` → "Only let Stylix theme Hyprland if Catppuccin is false."
 
-### 2. Preventing Desktop Crashes (The Qt/KDE Conflict)
+### 2. The Qt/KDE Cohesion Strategy (Manual Hand-off)
 
-You will notice that **`kde.enable`** and **`qt.enable`** are explicitly set to **`false`**.
+You will notice that **`kde.enable`** and **`qt.enable`** are explicitly set to **`false`**. This is a deliberate "Separation of Powers" between `stylix.nix` and `qt.nix`.
 
-* **Misconception:** This does *not* disable Qt support or the KDE desktop.
-* **Reality:** This disables **Stylix's attempt to control them**.
+* **The Problem:** Stylix attempts to force generic Base16 colors onto Qt applications (using `qt5ct`). On KDE Plasma, this conflicts with the desktop's native engine, often causing login loops or crashes. On Hyprland, it often results in broken icons or unreadable text.
+* **The Solution (The Hand-off):** We tell Stylix to ignore Qt entirely. Instead, we delegate Qt theming to our custom **`modules/qt.nix`**.
 
-**Why is this critical?**
-Stylix themes Qt applications by forcing the environment variable `QT_QPA_PLATFORMTHEME` to `qt5ct`.
+#### How the Cohesion Works:
 
-* **On Hyprland:** This is fine (and necessary).
-* **On KDE Plasma:** KDE has its own internal theme engine. If Stylix forces `qt5ct` externally, it conflicts with KDE's internal logic, causing the entire desktop session to **crash** or fail to login.
+Even though they are separate files, they stay synchronized via the global **`vars.polarity`** variable:
 
-By setting these to `false`, we tell Stylix: *"Hands off Qt! Let our custom `modules/qt.nix` handle it safely."*
+1. **Stylix (GTK & Others):** Reads `vars.polarity` (Dark/Light) and generates the appropriate GTK theme and wallpaper.
+2. **`qt.nix` (Qt & KDE):** Reads the same `vars.polarity` variable.
+* If `dark`: It forces the native **Breeze Dark** theme and **Papirus-Dark** icons.
+* If `light`: It forces **Breeze Light** and **Papirus-Light**.
+
+
+3. **Result:** Your GTK apps (themed by Stylix) and Qt apps (handled by `qt.nix`) always share the same Dark/Light mode, ensuring a consistent system look without the instability of forcing Stylix upon Qt.
 
 ### 3. Global Assets
 
-Regardless of which theme engine we use for apps, Stylix always manages the **universal** assets to ensure consistency:
+Regardless of which theme engine we use for specific apps, Stylix always manages the **universal** assets to ensure consistency:
 
-* **Wallpaper:** Sets the background image.
+* **Wallpaper:** Sets the background image for the system.
 * **Fonts:** Enforces `JetBrainsMono Nerd Font` everywhere.
 * **Cursor:** Enforces the `DMZ-Black` cursor.
 
@@ -1884,15 +2023,9 @@ Regardless of which theme engine we use for apps, Stylix always manages the **un
   pkgs,
   lib,
   inputs,
-  config,
   vars,
   ...
 }:
-let
-  capitalize =
-    s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
-  iconThemeName = if vars.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
-in
 {
   imports = [ inputs.stylix.homeModules.stylix ];
 
@@ -1910,8 +2043,9 @@ in
     # -----------------------------------------------------------------------
     # Tells Stylix NOT to automatically skin these programs (except for Firefox).
     targets = {
-     # It is possible to enable these, but it require manual theming in the modules/program itself
+      # It is possible to enable these, but it require manual theming in the modules/program itself
       neovim.enable = false; # Custom themed via my personal neovim stow config in dotfiles
+
       wofi.enable = false; # Themed manually via wofi/style.css
 
       # These should remain disabled because all edge cases are already handled
@@ -1922,45 +2056,36 @@ in
       kde.enable = false; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
       qt.enable = false; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
 
-      # These should remain enabled to avoid conflicts with other modules (empty for now)
+      # These should remain enabled to avoid conflicts with other modules
 
       # -----------------------------------------------------------------------
       # DE/WM SPECIFIC
       # -----------------------------------------------------------------------
       gnome.enable = vars.gnome;
 
-      # -----------------------------------------------------------------------
-      # MULTI EXCLUSIONS DUE TO CAELESTIA/QUICKSHELL
-      # -----------------------------------------------------------------------
-      gtk.enable = !vars.catppuccin && !vars.cosmic && !vars.hyprlandCaelestia;
-
       # ---------------------------------------------------------------------------------------
       # 🎨 GLOBAL CATPPUCCIN
       # Intelligently enable/disable stylix based on whether catppuccin is enabled
       # catppuccin = true -> .enable = false
       # catppuccin = false -> .enable = true
-      alacritty.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/alacritty.nix
       hyprland.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
+
       hyprlock.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix
+
+      gtk.enable = !vars.catppuccin; # No ref
+
       swaync.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/swaync/default.nix
-      zathura.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/zathura.nix
+
       bat.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/bat.nix
+
       lazygit.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/lazygit.nix
+
       tmux.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/tmux.nix
+
       starship.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
-      cava.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/cava.nix
-      kitty.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/kitty.nix
-      # ---------------------------------------------------------------------------------------
 
-      # Enable stylix but only for certain elements
-      firefox.profileNames = [ vars.user ]; # Applies skin only to the defined profile
-
-      # -----------------------------------------------------------------------
-      # Other exclusions
-      # This can be enabled but you need to uncomment/remove the module-specific theming file
-      # -----------------------------------------------------------------------
-      yazi.enable = lib.mkForce false; # Themed manually via yazi-theme.nix
-    };
+    }
+    // (lib.optionalAttrs (vars.stylixExclusions != null) vars.stylixExclusions);
 
     # -----------------------------------------------------------------------
     # 🖱️ MOUSE CURSOR
@@ -1993,18 +2118,11 @@ in
         applications = 11;
       };
     };
-
-    iconTheme = {
-      enable = true;
-      package = pkgs.papirus-icon-theme;
-      dark = "Papirus-Dark";
-      light = "Papirus-Light";
-    };
   };
 
-  dconf.settings = lib.mkIf vars.catppuccin {
+  dconf.settings = {
     "org/gnome/desktop/interface" = {
-      color-scheme = lib.mkForce (if vars.polarity == "dark" then "prefer-dark" else "prefer-light");
+      color-scheme = if vars.polarity == "dark" then "prefer-dark" else "prefer-light";
     };
   };
 
@@ -2017,7 +2135,6 @@ in
   # 3. Configure GTK Theme &amp; Settings
   gtk = lib.mkIf vars.catppuccin {
     enable = true;
-
     theme = {
       package = lib.mkForce (
         pkgs.catppuccin-gtk.override {
@@ -2027,16 +2144,16 @@ in
             "rimless"
             "black"
           ];
-          variant = vars.catppuccinFlavor;
+          variant = vars.catppuccinFlavor or "mocha";
         }
       );
       name = lib.mkForce "catppuccin-${vars.catppuccinFlavor}-${vars.catppuccinAccent}-standard+rimless,black";
     };
-
     gtk3.extraConfig.gtk-application-prefer-dark-theme = if vars.polarity == "dark" then 1 else 0;
     gtk4.extraConfig.gtk-application-prefer-dark-theme = if vars.polarity == "dark" then 1 else 0;
   };
 }
+
 ```
 
 # ~nixOS/home-manager/modules/zsh.nix
@@ -2329,43 +2446,59 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
 }
 ```
 
-# ~nixOS/hosts/template-host/configuration.nix
+# ~nixOS/nixos/modules/common-configuration.nix
 
-This file is the **machine-specific** entry point for NixOS. While `flake.nix` orchestrates the build, this file defines the physical reality of the specific computer (its hardware, hostname, and core system packages).
-- This is the file that provide the simplest working environment. Other hosts can have a different one
+This file serves as the **universal baseline** for every machine in your infrastructure (desktops, laptops, etc.). It ensures that regardless of the specific hardware, every host starts with the same core tools, security policies, and performance tweaks.
 
 ---
 
 ## Key Concepts
 
-### 1. Graphical Stability (Preventing Crashes)
+### 1. The "Survival Kit" (Universal Packages)
 
-It nstall essential terminals graphics libraries (`qtwayland`) at the **system level** rather than inside the optional Desktop Environment modules.
-
-* **The Problem:** If you were to install these libraries only inside the `kde.nix` module, and then decided to disable KDE (to use only Hyprland, for example), your terminals or Qt applications might crash because they would lose the necessary display backend tools.
-* **The Solution:** By defining them here, we ensure that graphical applications always have the right tools to be displayed, regardless of which Desktop Environment is enabled or disabled.
-
-### 2. Universal Keyboard Layout
-
-Instead of configuring the keyboard in three different places (X11, Wayland, Console), we set it once here using the `keyboardLayout` variable. The `console.useXkbConfig = true` line forces the text-only TTY to inherit the layout defined for the graphical server, ensuring consistency everywhere.
-
-### 3. User & Host Identity
-
-This file consumes the variables passed from `flake.nix` (like `user`, `hostname`, `stateVersion`) to dynamically configure the user account and network identity without hardcoding values.
+It installs packages needed for every host to make this os work
 
 
-### 4. Input Method Cleanup (ibus)
+### 2. Architecture Intelligence (x86 vs. ARM)
 
-We explicitly disable the `ibus` input method system and force-clear related environment variables at the end of the configuration.
-
-* **The Problem:** The `ibus` daemon (used for typing complex characters in languages like Japanese or Chinese) often runs by default and "hijacks" keyboard input. In tiling window managers (like Hyprland) or games, this frequently causes "dead keys" (keys that don't register immediately) or interferes with custom keybindings.
-* **The Solution:** By using `lib.mkForce null` on the input method and clearing `GTK_IM_MODULE`/`QT_IM_MODULE`, we ensure that the keyboard sends raw, direct input to your applications without any software layer interfering.
+The file is smart enough to adapt based on the CPU architecture, preventing build errors on incompatible hardware.
 
 
-### 5. Stop asking for password when screen recording with audio
+**x86_64 Only:** It installs `gpu-screen-recorder` and sets up its root security wrappers *only* if the system is an Intel/AMD machine.
 
-It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audio recording commands as root
 
+
+**ARM (Laptops):** It silently skips these packages, ensuring your MacBook or ARM laptop builds successfully without trying to compile incompatible software.
+
+
+
+### 3. Performance & Responsiveness
+
+It applies global tweaks to make the system feel snappier:
+
+* 
+**System76 Scheduler:** Prioritizes the app you are currently using (foreground) for smoother performance.
+
+
+* 
+**Fast Boot:** Disables the "wait for network" service, which significantly speeds up startup times.
+
+
+* 
+**Power Management:** Enables modern daemons (`upower`, `power-profiles-daemon`) needed for battery reporting and UI integrations.
+
+
+
+### 4. Security Baseline
+
+It establishes the default security posture for the OS:
+
+* 
+**Polkit Rules:** Automatically approves specific safe actions (like realtime audio processing) for admin users to reduce annoying password prompts.
+
+
+* 
+**Privilege Wrappers:** Sets up security wrappers (like `cap_sys_admin` for screen recording) needed for specific tools to function without compromising the whole system.
 
 ---
 
@@ -2376,15 +2509,10 @@ It uses `gpu-screen-recorder` and allow members of the group `wheel` to run audi
   config,
   pkgs,
   lib,
-  user,
-  stateVersion,
-  hostname,
-  keyboardLayout,
-  keyboardVariant,
+  vars,
   ...
 }:
 let
-  # Determine which shell package to use based on the variable
   shellPkg =
     if vars.shell == "fish" then
       pkgs.fish
@@ -2394,204 +2522,199 @@ let
       pkgs.bashInteractive;
 in
 {
-  # home.nix and host-modules are imported from flake.nix
-  imports = [
-    # Hardware scan (auto-generated)
-    ./hardware-configuration.nix
-
-    # Packages specific to this machine
-    ./optional/host-packages/default.nix
-
-    # Core imports
-    ../../nixos/modules/core.nix
-  ];
-
-  # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  # 🔐 SOPS CONFIGURATION
-  # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  /*
-    sops.defaultSopsFile = ./optional/host-sops-nix/<hostname>-secrets-sops.yaml;
-    sops.defaultSopsFormat = "yaml";
-    sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-  */
-
-  hardware.graphics.enable = true; # Keep enabled to avoid terminal crash when disabling certain de
-
-  fonts.packages = with pkgs; [
-    nerd-fonts.jetbrains-mono # Primary monospace font; includes icons for coding and terminal use
-    nerd-fonts.symbols-only # Icon fallback; ensures symbols render even when the main font lacks them
-    noto-fonts # Base text coverage; Google's "No Tofu" standard to fix square boxes globally
-    dejavu_fonts # Core Linux fallback; high compatibility for standard text in older apps
-    noto-fonts-lgc-plus # Extended European support; covers complex Latin, Greek, and Cyrillic variants
-    noto-fonts-color-emoji # Emoji support; ensures emojis appear in color rather than monochrome outlines
-    noto-fonts-cjk-sans # Asian language support; mandatory for Chinese, Japanese, and Korean characters
-    texlivePackages.hebrew-fonts # Hebrew support; specialized font for correct Hebrew script rendering
-    font-awesome # System icons; standard dependency for Waybar and desktop interface elements
-    powerline-fonts # Shell prompt glyphs; prevents broken triangles/shapes in Zsh/Bash prompts
-  ];
-
-  fonts.fontconfig.enable = true;
-
-  environment.systemPackages = with pkgs; [
-    foot # Tiny, zero-config terminal; critical rescue tool if your main terminal config breaks
-    iptables # Core firewall utility; base dependency for network security and containers
-    glib # Low-level system library; almost all software crashes without this base layer
-    gpu-screen-recorder # Used for caelestia and included here to ensure proper permissions
-    # Global theme settings; prevents GTK apps from looking broken or crashing
-    gsettings-desktop-schemas
-    gtk3 # Standard GUI toolkit; essential for drawing basic application windows
-    libsForQt5.qt5.qtwayland # Qt5 Wayland bridge; mandatory for older Qt apps to display correctly
-    kdePackages.qtwayland # Qt6 Wayland bridge; mandatory for modern Qt apps to display correctly
-    powerline-symbols # Terminal font glyphs; prevents "box" errors in shell prompts
-    polkit_gnome # Authentication agent; required for GUI apps (like Btrfs Assistant) to ask for passwords
-    sops # Secret management tool; decrypts sensitive data stored in Git repositories
-    shellPkg # The selected shell package (bash, zsh, or fish)
-  ];
-
-  programs.dconf.enable = true;
-
-  programs.zsh.enable = true;
-
-  security.wrappers.gpu-screen-recorder = {
-    owner = "root";
-    group = "root";
-    capabilities = "cap_sys_admin+ep";
-    source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
-  };
 
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY
   # ---------------------------------------------------------
-  # Dynamically sets the hostname passed from flake.nix
-  networking.hostName = hostname;
-
-  # Enable networking
+  networking.hostName = vars.hostname;
   networking.networkmanager.enable = true;
-
-  # -----------------------------------------------------
-  # ⚡ Systemd Shutdown Tweak
-  # -----------------------------------------------------
-  # This reduces the wait time for stuck services from 90s to 10s.
-  systemd.settings.Manager = {
-    DefaultTimeoutStopSec = "10s";
-  };
+  system.stateVersion = vars.stateVersion;
 
   # ---------------------------------------------------------
-  # ⌨️ KEYBOARD LAYOUT (Global Logic)
+  # 🌍 LOCALE & TIME
   # ---------------------------------------------------------
-  # Applies the layout defined in flake.nix to X11, Wayland, and Console.
-  # This ensures that all the desktop environments and TTYs use the same layout.
+  time.timeZone = vars.timeZone;
+
+  # Keyboard Layout
   services.xserver.xkb = {
-    layout = keyboardLayout;
-    variant = keyboardVariant;
+    layout = vars.keyboardLayout or "us";
+    variant = vars.keyboardVariant or "";
   };
-
-  # Forces the text console (TTY) to look at the Xserver settings above.
   console.useXkbConfig = true;
 
   # ---------------------------------------------------------
-  # 🛡️ SECURITY & REALTIME AUDIO
+  # 🛠️ NIX SETTINGS
+  # ---------------------------------------------------------
+  nix.settings = {
+    trusted-users = [
+      "root"
+      "@wheel"
+    ];
+  };
+
+  # Allow unfree packages globally (needed for drivers, code, etc.)
+  nixpkgs.config.allowUnfree = true;
+
+  # ---------------------------------------------------------
+  # 📦 SYSTEM PACKAGES
+  # ---------------------------------------------------------
+  environment.systemPackages =
+    with pkgs;
+    [
+      # --- CLI UTILITIES ---
+      eza # Global home-manager module
+      fzf # Used by the shells
+      git # Version control
+      nixfmt-rfc-style # Nix formatter
+      nix-prefetch-scripts # Tools to get hashes for nix derivations (used in zsh.nix module)
+      starship # Global home-manager module
+      curl # Used by waybar
+
+      # --- SYSTEM TOOLS ---
+      foot # Tiny, zero-config terminal (Rescue tool)
+      gsettings-desktop-schemas # Global theme settings
+      libnotify # Library for desktop notifications (used by most de/wm modules)
+      polkit_gnome # Authentication agent
+      sops # Secret management
+      shellPkg # The selected shell package (bash, zsh, or fish)
+      xdg-desktop-portal-gtk # GTK portal backend for file pickers
+
+      # --- GRAPHICS & GUI SUPPORT ---
+      gtk3 # Standard GUI toolkit
+      libsForQt5.qt5.qtwayland # Qt5 Wayland bridge
+      kdePackages.qtwayland # Qt6 Wayland bridge
+      powerline-symbols # Terminal font glyphs
+    ]
+    # Installation of packages available only on x86_64 systems
+    ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux") (
+      builtins.trace "✅ x86_64 Architecture Detected: Installing x86 only packages" [
+        gpu-screen-recorder
+      ]
+    )
+
+    # Extra KDE specific packages
+    ++ (with pkgs.kdePackages; [
+      gwenview # Default image viewer as defined in mime.nix
+      kio-extras # Extra protocols for KDE file dialogs (needed for dolphin remote access)
+      kio-fuse # Mount remote filesystems (via ssh, ftp, etc.) in Dolphin
+    ])
+
+    # Extra packages from unstable channel
+    ++ (with pkgs-unstable; [ ]);
+
+  # ---------------------------------------------------------
+  # 🎨 FONTS
+  # ---------------------------------------------------------
+  fonts.packages = with pkgs; [
+    nerd-fonts.jetbrains-mono # Primary monospace font (coding/terminal)
+    nerd-fonts.symbols-only # Icon fallback
+    noto-fonts # "No Tofu" standard
+    dejavu_fonts # Core Linux fallback
+    noto-fonts-lgc-plus # Extended European/Greek/Cyrillic
+    noto-fonts-color-emoji # Color emojis
+    noto-fonts-cjk-sans # Asian language support (Chinese/Japanese/Korean)
+    texlivePackages.hebrew-fonts # Hebrew support
+    font-awesome # System icons (Waybar/Bar)
+    powerline-fonts # Shell prompt glyphs
+  ];
+  fonts.fontconfig.enable = true;
+
+  # ---------------------------------------------------------
+  # 🛡️ SECURITY & WRAPPERS
   # ---------------------------------------------------------
   security.rtkit.enable = true;
+  services.openssh.enable = true;
 
-  # Allow members of "wheel" to:
-  # 1. Get realtime audio priority (fixes audio recording prompt)
-  # 2. Run commands as root via pkexec (fixes gpu-screen-recorder prompt)
+  # Only define these wrappers if we are on an x86 system.
+  security.wrappers = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
+    gpu-screen-recorder = {
+      owner = "root";
+      group = "root";
+      capabilities = "cap_sys_admin+ep";
+      source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
+    };
+    gsr-kms-server = {
+      owner = "root";
+      group = "root";
+      capabilities = "cap_sys_admin+ep";
+      source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
+    };
+  };
+
+  # Use optionalString to inject the GPU rule ONLY on x86.
+  security.polkit.enable = true;
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
       if (subject.isInGroup("wheel")) {
-        // Auto-approve realtime audio requests
+        // Auto-approve realtime audio requests (Keep this for everyone)
         if (action.id == "org.freedesktop.RealtimeKit1.acquire-high-priority" ||
             action.id == "org.freedesktop.RealtimeKit1.acquire-real-time") {
           return polkit.Result.YES;
         }
-        
-        // Auto-approve gpu-screen-recorder running as root
-        // (Caelestia uses pkexec to launch it)
-        if (action.id == "org.freedesktop.policykit.exec" &&
-            action.lookup("program") && 
-            action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
-          return polkit.Result.YES;
-        }
+
+        ${lib.optionalString (pkgs.stdenv.hostPlatform.system == "x86_64-linux") ''
+          // Auto-approve gpu-screen-recorder running as root (x86 ONLY)
+          if (action.id == "org.freedesktop.policykit.exec" &&
+              action.lookup("program") &&
+              action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
+            return polkit.Result.YES;
+          }
+        ''}
       }
     });
   '';
 
   # ---------------------------------------------------------
-  # 👤 USER CONFIGURATION
+  # 🐚 SHELLS & ENVIRONMENT
   # ---------------------------------------------------------
-  # Defines the user dynamically based on flake.nix input
-  users.users.${user} = {
-    isNormalUser = true;
-    description = "${vars.user}";
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-      "input"
-      #"docker"
-      #"podman"
-      "video"
-      "audio"
-    ];
-    shell = pkgs.zsh; # Ensure zsh is installed in system packages
+  programs.zsh.enable = vars.shell == "zsh";
+  programs.fish.enable = vars.shell == "fish";
+
+  # -----------------------------------------------------
+  # 🎨 GLOBAL THEME VARIABLES
+  # -----------------------------------------------------
+  environment.variables.GTK_APPLICATION_PREFER_DARK_THEME =
+    if vars.polarity == "dark" then "1" else "0";
+
+  # -----------------------------------------------------
+  # ⚡ SYSTEM TWEAKS
+  # -----------------------------------------------------
+  # Reduce shutdown wait time for stuck services
+  systemd.settings.Manager = {
+    DefaultTimeoutStopSec = "10s";
   };
 
-  # This is needed if you want to use docker and be part of the docker/podman group
+  # Enable home-manager backup files
+  home-manager.backupFileExtension = lib.mkForce "hm-backup";
 
-  # Required for rootless Podman/Distrobox
-  /*
-    subUidRanges = [
-      {
-        startUid = 100000;
-        count = 65536;
-      }
-    ];
-    subGidRanges = [
-      {
-        startGid = 100000;
-        count = 65536;
-      }
-    ];
+  # Enable UPower for better power management and battery reporting (needed for noctalia shell)
+  services.upower.enable = true;
 
-    virtualisation.docker.enable = true;
+  # Enable the modern power-profiles-daemon (needed for noctalia shell)
+  services.power-profiles-daemon.enable = true;
 
-    virtualisation.podman = {
-      enable = true;
-      dockerCompat = false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
-    };
-  */
+  # Enable System76 Scheduler for improved desktop responsiveness
+  services.system76-scheduler.enable = true;
+  services.system76-scheduler.settings.cfsProfiles.enable = true; # Prioritizes foreground apps (smoothness)
 
-  # ---------------------------------------------------------
-  # 🗑️ AUTO TRASH CLEANUP
-  # ---------------------------------------------------------
-  # Trash cleanup service that deletes files older than 30 days
+  # Disable NetworkManager-wait-online to speed up boot time
+  systemd.services.NetworkManager-wait-online.enable = false;
 
-  /*
-    systemd.services.cleanup_trash = {
-      description = "Clean up trash older than 30 days";
-      serviceConfig = {
-        Type = "oneshot";
-        User = vars.user;
-        Environment = "HOME=/home/${vars.user}";
-        ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
-      };
-    };
-  */
-
-  # Nix Settings (Flakes & Garbage Collection)
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
+  # Enable emulation for aarch64 linux for testing purposes on x86_64 hosts
+  boot.binfmt.emulatedSystems = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") [
+    "aarch64-linux"
   ];
 
-  # Defines the state version dynamically based on flake.nix input
-  system.stateVersion = stateVersion;
+  # Add KWallet integration for SDDM and GDM display managers
+  security.pam.services = {
+    sddm.enableKwallet = config.services.displayManager.sddm.enable;
+    gdm.enableKwallet = config.services.displayManager.gdm.enable;
+  };
 
-  i18n.inputMethod.enabled = lib.mkForce null;
-  environment.variables.GTK_IM_MODULE = lib.mkForce "";
-  environment.variables.QT_IM_MODULE = lib.mkForce "";
-  environment.variables.XMODIFIERS = lib.mkForce "";
+  # Explicitly disable TLP to avoid conflicts
+  services.tlp.enable = false;
 }
+
 ```
 
 # ~nixOS/nixos/modules/boot.nix
@@ -2751,7 +2874,6 @@ in
     XDG_BIN_HOME = "$HOME/.local/bin";
   };
 }
-
 ```
 
 
@@ -2793,7 +2915,7 @@ A custom script (`guest-warning`) runs on login using `zenity`. It displays a bi
 ---
 
 ## The Code
-
+```nix
 {
   config,
   pkgs,
@@ -3182,52 +3304,28 @@ We use the modern **sddm-astronaut** theme (specifically the `jake_the_dog` vari
 
 **Dependencies:** To ensure the theme renders correctly (with animations and icons), we explicitly inject Qt libraries like `qtsvg`, `qtmultimedia`, and `qtvirtualkeyboard` into SDDM's environment.
 
-
-
-### 2. X11 Backend for Stability
-
-Even though we might be logging into a Wayland session (like Hyprland), the login screen itself is configured to run on **X11** (`wayland.enable = false`).
-
-* **Why?** SDDM's Wayland mode can sometimes be buggy or fail to load themes correctly. Running the login screen on X11 is a "set it and forget it" stability measure that doesn't affect the performance of your actual desktop session.
-
-
-
-### 3. UWSM Integration
-
-If **Hyprland** is enabled, we set the default session to **`hyprland-uwsm`**.
-
-* **Significance:** This tells SDDM to launch Hyprland using the **Universal Wayland Session Manager** (UWSM) rather than the raw binary. This ensures that systemd services, environment variables, and cleanup processes are handled correctly during login and logout.
-
 ---
 
 ## The Code
 
 ```nix
-{ pkgs
-, lib
-, vars
-, ...
+{
+  pkgs,
+  lib,
+  vars,
+  ...
 }:
 let
-  # Reference for themes:
-  # Files: https://github.com/Keyitdev/sddm-astronaut-theme/tree/master/themes
   sddmTheme = pkgs.sddm-astronaut.override {
-    embeddedTheme = "hyprland_kath"; # do not include ".conf" at the end
+    embeddedTheme = "hyprland_kath";
     themeConfig = {
-      # Clock format. The default is 24/h format. If opting for the default these "themConfig" block can be removed
-      # "hh:mm AP" = 08:00 PM
-      # "HH:mm"    = 20:00
       HourFormat = "hh:mm AP";
-      #DateFormat = ""; # "Some theme may not support this. Commmented because i like the default but kept for reference
     };
   };
 in
 {
-
   services.xserver.enable = true;
-  services.xserver = {
-    excludePackages = [ pkgs.xterm ];
-  };
+  services.xserver.excludePackages = [ pkgs.xterm ];
 
   services.displayManager.sddm = {
     enable = true;
@@ -3235,15 +3333,25 @@ in
     package = lib.mkForce pkgs.kdePackages.sddm;
     theme = "sddm-astronaut-theme";
 
-    # Dependencies go here so SDDM can load them
     extraPackages = with pkgs; [
-      kdePackages.qtsvg
-      kdePackages.qtmultimedia
-      kdePackages.qtvirtualkeyboard
+      kdePackages.qtsvg # Keep for the theme
+      kdePackages.qtmultimedia # Keep for the theme
+      #kdePackages.qtvirtualkeyboard
     ];
   };
 
-  # Theme goes here so it links to /run/current-system/sw/share/sddm/themes
+  /*
+    systemd.services.sddm.environment = {
+      QT_IM_MODULE = "qtvirtualkeyboard";
+      QT_VIRTUALKEYBOARD_DESKTOP_DISABLE = "0";
+    };
+
+    environment.etc."sddm.conf.d/virtual-keyboard.conf".text = ''
+      [General]
+      InputMethod=qtvirtualkeyboard
+    '';
+  */
+
   environment.systemPackages = [
     sddmTheme
     pkgs.bibata-cursors
@@ -3254,7 +3362,6 @@ in
     user = vars.user;
   };
 
-  services.displayManager.defaultSession = lib.mkIf vars.hyprland "hyprland-uwsm";
   services.getty.autologinUser = null;
 }
 ```

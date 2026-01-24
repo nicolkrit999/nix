@@ -1,12 +1,6 @@
-{
-  pkgs,
-  lib,
-  flatpak,
-  ...
-}:
-{
+{ pkgs, lib, vars, ... }: {
   # Only apply if flatpak is enabled in flake.nix
-  config = lib.mkIf flatpak {
+  config = lib.mkIf (vars.flatpak or false) {
 
     services.flatpak.enable = true;
 
@@ -16,15 +10,12 @@
     # 2. Search in the url after /apps/
     # Examples:
     # https://flathub.org/en/apps/com.spotify.Client --> "com.spotify.Client"
-    services.flatpak.packages = [
-    ];
+    services.flatpak.packages = [ ];
 
-    services.flatpak.remotes = [
-      {
-        name = "flathub";
-        location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
-      }
-    ];
+    services.flatpak.remotes = [{
+      name = "flathub";
+      location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
+    }];
 
     # Auto-update Flatpaks
     services.flatpak.update.onActivation = false;

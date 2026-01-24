@@ -1,10 +1,9 @@
-{ pkgs, vars, ... }:
-{
+{ pkgs, vars, ... }: {
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME (official module)
   # -----------------------------------------------------------------------
-  catppuccin.bat.enable = vars.catppuccin;
-  catppuccin.bat.flavor = vars.catppuccinFlavor;
+  catppuccin.bat.enable = vars.catppuccin or false;
+  catppuccin.bat.flavor = vars.catppuccinFlavor or "mocha";
   # -----------------------------------------------------------------------
 
   programs.bat = {

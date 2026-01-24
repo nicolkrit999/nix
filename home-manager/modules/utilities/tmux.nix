@@ -1,15 +1,9 @@
-{
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
-{
+{ pkgs, lib, vars, ... }: {
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME
   # -----------------------------------------------------------------------
-  catppuccin.tmux.enable = vars.catppuccin;
-  catppuccin.tmux.flavor = vars.catppuccinFlavor;
+  catppuccin.tmux.enable = vars.catppuccin or false;
+  catppuccin.tmux.flavor = vars.catppuccinFlavor or "mocha";
 
   catppuccin.tmux.extraConfig = lib.mkIf vars.catppuccin ''
     set -g @catppuccin_window_status_style "rounded"
@@ -79,8 +73,9 @@
       bind -n M-q kill-window
       bind -n M-Q kill-session
     '';
-    plugins = with pkgs; [
-      # plugins...
-    ];
+    plugins = with pkgs;
+      [
+        # plugins...
+      ];
   };
 }

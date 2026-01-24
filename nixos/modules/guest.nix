@@ -94,6 +94,7 @@ in
     environment.systemPackages = with pkgs; [
       (google-chrome.override { commandLineArgs = "--no-first-run --no-default-browser-check"; })
       file-roller # Archive manager
+      iptables # Firewall utility
       zenity # keep for the startup warning
     ];
 

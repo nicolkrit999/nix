@@ -1,3 +1,58 @@
+- [🏠 Home Manager (`home-manager/`)](#-home-manager-home-manager)
+  - [`home.nix`](#homenix)
+  - [`home-packages.nix`](#home-packagesnix)
+  - [📂 General modules](#-general-modules)
+    - [`bat.nix`](#batnix)
+    - [`core.nix`](#corenix)
+    - [`eza.nix`](#ezanix)
+    - [`git.nix`](#gitnix)
+    - [`lazygit.nix`](#lazygitnix)
+    - [`mime.nix`](#mimenix)
+    - [`neovim.nix`](#neovimnix)
+    - [`qt.nix`](#qtnix)
+    - [`starship.nix`](#starshipnix)
+    - [`stylix.nix`](#stylixnix)
+    - [`tmux.nix`](#tmuxnix)
+    - [`zsh.nix`](#zshnix)
+  - [🪟 Caelestia \& noctalia (`home-manager/modules/de-wm/.../`)](#-caelestia--noctalia-home-managermodulesde-wm)
+    - [`caelestia-main.nix` and `noctalia-main.nix`](#caelestia-mainnix-and-noctalia-mainnix)
+  - [🪟 Cosmic Sub-modules (`home-manager/modules/de-wm/cosmic/`)](#-cosmic-sub-modules-home-managermodulesde-wmcosmic)
+    - [`cosmic-main.nix`](#cosmic-mainnix)
+    - [`default.nix`](#defaultnix)
+    - [`cosmic-binds.nix`](#cosmic-bindsnix)
+  - [🪟 GNOME Home Manager Sub-modules (`home-manager/modules/de-wm/gnome/`)](#-gnome-home-manager-sub-modules-home-managermodulesde-wmgnome)
+    - [`default.nix`](#defaultnix-1)
+    - [`gnome-main.nix`](#gnome-mainnix)
+    - [`gnome-binds.nix`](#gnome-bindsnix)
+  - [🪟 Hyprland Sub-modules (`home-manager/modules/de-wm/hyprland/`)](#-hyprland-sub-modules-home-managermodulesde-wmhyprland)
+    - [`hyprland-binds.nix`](#hyprland-bindsnix)
+    - [`default.nix`](#defaultnix-2)
+    - [`hyprland-hypridle.nix`](#hyprland-hypridlenix)
+    - [`hyprland-hyprlock.nix`](#hyprland-hyprlocknix)
+    - [`hyprland-hyprpaper.nix`](#hyprland-hyprpapernix)
+    - [`hyprland-main.nix`](#hyprland-mainnix)
+  - [🪟 Niri Sub-modules (`home-manager/modules/de-wm/niri/`)](#-niri-sub-modules-home-managermodulesde-wmniri)
+    - [`niri-binds.nix`](#niri-bindsnix)
+    - [`niri-main.nix`](#niri-mainnix)
+  - [🪟 KDE Plasma Sub-modules (`home-manager/modules/de-wm/kde/`)](#-kde-plasma-sub-modules-home-managermodulesde-wmkde)
+    - [`default.nix`](#defaultnix-3)
+    - [`kde-desktop.nix`](#kde-desktopnix)
+    - [`kde-files.nix`](#kde-filesnix)
+    - [`kde-input.nix`](#kde-inputnix)
+    - [`kde-krunner.nix`](#kde-krunnernix)
+    - [`kde-kscreenlocker.nix`](#kde-kscreenlockernix)
+    - [`kde-main.nix`](#kde-mainnix)
+    - [`kde-panels.nix`](#kde-panelsnix)
+    - [`kde-binds.nix`](#kde-bindsnix)
+  - [📊 Waybar Sub-modules (`home-manager/modules/cli-programs/waybar/`)](#-waybar-sub-modules-home-managermodulescli-programswaybar)
+    - [`default.nix`](#defaultnix-4)
+    - [`style.css`](#stylecss)
+  - [🚀 Wofi Sub-modules (`home-manager/modules/cli-programs/wofi/`)](#-wofi-sub-modules-home-managermodulescli-programswofi)
+    - [`default.nix`](#defaultnix-5)
+    - [`style.css`](#stylecss-1)
+
+
+
 # 🏠 Home Manager (`home-manager/`)
 These configurations define your personal environment. Changes here do not require root access as they only affect the current user.
 - When modifying something here it is usually enough to run `hms` to rebuild 
@@ -104,77 +159,11 @@ Shell configuration.
 
 
 
-## 🪟 Caelestia (`home-manager/modules/de-wm/caelestia/`)
+## 🪟 Caelestia & noctalia (`home-manager/modules/de-wm/.../`)
 
-Caelestia is a highly customized shell environment built on Quickshell. Its logic is split across multiple files to handle configuration generation, wallpaper management, and session initialization.
-
-### `caelestia-main.nix`
-
-This is the core orchestration module. It handles the installation of the shell and ensures the environment is ready for the session.
-
-**JSON Configuration:** This module generates the file `~/.config/caelestia/shell.json` by taking the Nix attribute set defined in `caelestia-config.nix` and converting it using `builtins.toJSON`. This allows you to manage complex shell settings (like bar entries, dashboard sizes, and power commands) using native Nix syntax.
-
-
-
-**Hyprland Signature & IPC:** To ensure the shell can communicate with the window manager, it creates a wrapper script called `caelestiaqs`. This script handles the "Hyprland Signature" by:
-
-
-1. Waiting for Hyprland to finish starting.
-
-
-2. Extracting the unique `HYPRLAND_INSTANCE_SIGNATURE` directly from the `hyctl instances` command.
-
-
-3. Exporting this signature along with `WAYLAND_DISPLAY` so the shell can find the correct IPC socket to control windows and workspaces.
-
-
-
-**Dependencies:** It bundles required Qt6 libraries (SVG, Wayland, Declarative) and specialized fonts like **Material Symbols Rounded** to ensure the interface renders correctly.
-
-
-
-### `caelestia-config.nix`
-
-This file contains the "brain" of the shell logic. It is a function that takes your global `vars` as an input to stay consistent with the rest of your system.
-
-
-**Integrated Explorer:** It checks your `vars.fileManager`. If you use a terminal-based manager like **Yazi**, it automatically configures Caelestia to launch your preferred terminal with the `-e` flag when opening folders.
-
-
-**Session Commands:** It maps UI buttons (Shutdown, Reboot, Logout) to actual system commands, specifically using `uwsm stop` for clean session termination.
-
-
-
-### `caelestia-wallpaper.nix`
-
-This module manages the background images specifically for the Hyprland/Caelestia combo.
-
-
-**Fetching from `variables.nix`:** The module looks at `vars.wallpapers`. It uses `pkgs.fetchurl` and the `wallpaperSHA256` provided in your variables to download the images into the Nix store during build time.
-
-
-* **Multi-Monitor Logic:**
-1. It filters out any monitors marked as "disabled" in your variables.
-
-
-2. It maps the downloaded wallpapers to your specific monitor names (e.g., `DP-1`, `HDMI-A-1`).
-
-
-3. If you have more monitors than wallpapers, it uses a `fallbackWallpaper` (the first one in the list) to ensure no screen is left blank.
-
-
-
-
-**Application:** It generates a `hyprpaper.conf` file and uses `exec-once` to start `hyprpaper`. Finally, it runs a `caelestia wallpaper` command to sync the shell's internal theme with the current background image.
-
-
-
-Would you like me to show you how to add a new custom entry to the Caelestia launcher menu in the `shell.json` configuration?
-
-
-
-
-
+### `caelestia-main.nix` and `noctalia-main.nix`
+- There is nothing special here since it allow a complete setup using the official .json file
+- The only thing these files do is making sure the hyprland signature is valid and run some scripts to make the shell work
 
 
 
@@ -286,6 +275,24 @@ The wallpapers are hosts-specific, so they are defined and changed in `variables
 This is the core configuration file for Hyprland. It handles the fundamental setup including monitor fallback, environment variables (for Wayland support), startup applications (like bars and clipboards), window rules (where apps open and how they look), and the visual style (borders, gaps, animations) and the default screenshots folder (taken using the keybindings).
 
 * **Screenshot folders:** To make sure the directory exist in a declarative way this path needs to match the path defined in `../../home.nix`, function  `createScreenshotsDir`
+
+
+## 🪟 Niri Sub-modules (`home-manager/modules/de-wm/niri/`)
+
+### `niri-binds.nix`
+
+This file defines the keybindings for Niri. It assigns specific keyboard combinations to system commands, relying heavily on the `vars` system to remain application-agnostic. It handles application launching (terminal, browser, file manager), system utilities (screenshots, clipboard history, emoji picker), and window management (closing windows, toggling floating mode).
+
+* **Launcher Logic:** It includes conditional logic to switch between the standard `wofi` launcher and the custom `noctalia` launcher depending on your `variables.nix` configuration.
+* **Screenshots:** It defines custom scripts for taking screenshots (fullscreen or area selection) using `grim` and `slurp`, automatically saving them to the Pictures folder and copying them to the clipboard.
+
+### `niri-main.nix`
+
+This is the core configuration file for the Niri compositor. It controls the visual appearance, input devices, display layout, and startup behavior. It integrates deeply with **Stylix** to ensure the window borders and shadows match the system-wide color scheme.
+
+* **Monitor Management:** It contains complex logic to parse the `vars.monitors` list. It automatically identifies monitors marked as "disabled" in your variables and generates the corresponding Niri commands to turn them off, while configuring the resolution and scale for enabled ones.
+* **Startup & Environment:** It manages the autostart of essential background services (like `xwayland-satellite`, `polkit-gnome`, and `swww-daemon`) and sets necessary environment variables for Wayland compatibility.
+* **Input & Layout:** It configures keyboard repeat rates, touchpad gestures (tap-to-click), and window layout settings (gaps, column widths, and focus rings).
 
 
 ## 🪟 KDE Plasma Sub-modules (`home-manager/modules/de-wm/kde/`)
