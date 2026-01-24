@@ -1,10 +1,4 @@
-{
-  pkgs,
-  lib,
-  config,
-  vars,
-  ...
-}:
+{ pkgs, lib, config, vars, ... }:
 let
   # Styling helper functions
   c = config.lib.stylix.colors.withHashtag;
@@ -19,131 +13,109 @@ let
   # 🖥️ MONITOR PARSING
   # ---------------------------------------------------------------------------
 
-  enabledMonitors = lib.concatMap (
-    m:
+  enabledMonitors = lib.concatMap (m:
     let
       parts = lib.splitString "," m;
       name = builtins.elemAt parts 0;
-      configStr = if builtins.length parts > 1 then builtins.elemAt parts 1 else "";
-    in
-    if (configStr == "disable" || configStr == "disabled") then [ ] else [ name ]
-  ) vars.monitors;
+      configStr =
+        if builtins.length parts > 1 then builtins.elemAt parts 1 else "";
+    in if (configStr == "disable" || configStr == "disabled") then
+      [ ]
+    else
+      [ name ]) vars.monitors;
 
   # 2. Get a list of DISABLED monitors (for turning them off)
-  disabledMonitors = lib.concatMap (
-    m:
+  disabledMonitors = lib.concatMap (m:
     let
       parts = lib.splitString "," m;
       name = builtins.elemAt parts 0;
-      configStr = if builtins.length parts > 1 then builtins.elemAt parts 1 else "";
-    in
-    if (configStr == "disable" || configStr == "disabled") then [ name ] else [ ]
-  ) vars.monitors;
+      configStr =
+        if builtins.length parts > 1 then builtins.elemAt parts 1 else "";
+    in if (configStr == "disable" || configStr == "disabled") then
+      [ name ]
+    else
+      [ ]) vars.monitors;
 
   # 3. Generate Settings Block for Niri (Resolution, Scale, Position)
-  monitorSettings = builtins.listToAttrs (
-    lib.concatMap (
-      m:
+  monitorSettings = builtins.listToAttrs (lib.concatMap (m:
+    let
+      parts = lib.splitString "," m;
+      len = builtins.length parts;
+    in if len < 2 then
+      [ ]
+    else
       let
-        parts = lib.splitString "," m;
-        len = builtins.length parts;
-      in
-      if len < 2 then
+        name = builtins.elemAt parts 0;
+        configStr = builtins.elemAt parts 1;
+      in if (configStr == "disable" || configStr == "disabled") then
+        [ ]
+      else if len < 4 then
         [ ]
       else
         let
           name = builtins.elemAt parts 0;
-          configStr = builtins.elemAt parts 1;
-        in
-        if (configStr == "disable" || configStr == "disabled") then
-          [ ]
-        else if len < 4 then
-          [ ]
-        else
-          let
-            name = builtins.elemAt parts 0;
-            modeStr = builtins.elemAt parts 1;
-            posStr = builtins.elemAt parts 2;
-            scale = builtins.fromJSON (builtins.elemAt parts 3);
+          modeStr = builtins.elemAt parts 1;
+          posStr = builtins.elemAt parts 2;
+          scale = builtins.fromJSON (builtins.elemAt parts 3);
 
-            posParts = lib.splitString "x" posStr;
-            posX = lib.toInt (builtins.elemAt posParts 0);
-            posY = lib.toInt (builtins.elemAt posParts 1);
+          posParts = lib.splitString "x" posStr;
+          posX = lib.toInt (builtins.elemAt posParts 0);
+          posY = lib.toInt (builtins.elemAt posParts 1);
 
-            modeSplit = lib.splitString "@" modeStr;
-            resSplit = lib.splitString "x" (builtins.head modeSplit);
-            width = lib.toInt (builtins.head resSplit);
-            height = lib.toInt (builtins.elemAt resSplit 1);
-            refresh =
-              if (builtins.length modeSplit > 1) then
-                (builtins.fromJSON (builtins.elemAt modeSplit 1)) + 0.0
-              else
-                60.0;
-            isRotated = (builtins.length parts > 4) && (builtins.elemAt parts 4 == "transform");
-            rotationVal = if isRotated then 90 else 0;
-          in
-          [
-            {
-              name = name;
-              value = {
-                mode = {
-                  width = width;
-                  height = height;
-                  refresh = refresh;
-                };
-                scale = scale;
-                position = {
-                  x = posX;
-                  y = posY;
-                };
-                transform = {
-                  rotation = rotationVal;
-                  flipped = false;
-                };
-              };
-            }
-          ]
-    ) vars.monitors
-  );
+          modeSplit = lib.splitString "@" modeStr;
+          resSplit = lib.splitString "x" (builtins.head modeSplit);
+          width = lib.toInt (builtins.head resSplit);
+          height = lib.toInt (builtins.elemAt resSplit 1);
+          refresh = if (builtins.length modeSplit > 1) then
+            (builtins.fromJSON (builtins.elemAt modeSplit 1)) + 0.0
+          else
+            60.0;
+          isRotated = (builtins.length parts > 4)
+            && (builtins.elemAt parts 4 == "transform");
+          rotationVal = if isRotated then 90 else 0;
+        in [{
+          name = name;
+          value = {
+            mode = {
+              width = width;
+              height = height;
+              refresh = refresh;
+            };
+            scale = scale;
+            position = {
+              x = posX;
+              y = posY;
+            };
+            transform = {
+              rotation = rotationVal;
+              flipped = false;
+            };
+          };
+        }]) vars.monitors);
 
   # ---------------------------------------------------------------------------
   # 🎨 WALLPAPER LOGIC
   # ---------------------------------------------------------------------------
 
   # 1. Fetch ALL wallpapers defined in variables.nix
-  fetchedWallpapers = map (
-    w:
+  fetchedWallpapers = map (w:
     pkgs.fetchurl {
       url = w.wallpaperURL;
       sha256 = w.wallpaperSHA256;
-    }
-  ) vars.wallpapers;
+    }) vars.wallpapers;
 
   # 2. Generate 'swww' commands by zipping Monitors with Wallpapers
-  wallpaperCommands = lib.imap0 (
-    i: mon:
+  wallpaperCommands = lib.imap0 (i: mon:
     let
       # Logic: Use wallpaper at index 'i'.
       # If we run out of wallpapers, fallback to the FIRST one (index 0).
-      wp =
-        if i < builtins.length fetchedWallpapers then
-          builtins.elemAt fetchedWallpapers i
-        else
-          builtins.head fetchedWallpapers;
-    in
-    {
-      command = [
-        "swww"
-        "img"
-        "-o"
-        mon
-        "${wp}"
-      ];
-    }
-  ) enabledMonitors;
+      wp = if i < builtins.length fetchedWallpapers then
+        builtins.elemAt fetchedWallpapers i
+      else
+        builtins.head fetchedWallpapers;
+    in { command = [ "swww" "img" "-o" mon "${wp}" ]; }) enabledMonitors;
 
-in
-{
+in {
   config = lib.mkIf (vars.niri or false) {
 
     home.packages = with pkgs; [
@@ -164,12 +136,13 @@ in
 
     programs.niri = {
       settings = {
-        hotkey-overlay.skip-at-startup = true; # Disable keymap overlay at startup
+        hotkey-overlay.skip-at-startup =
+          true; # Disable keymap overlay at startup
         # ⌨️ Inputs (From Variables)
         input = {
           keyboard.xkb = {
-            layout = vars.keyboardLayout;
-            variant = vars.keyboardVariant;
+            layout = vars.keyboardLayout or "us";
+            variant = vars.keyboardVariant or "";
             options = "grp:ctrl_alt_toggle";
           };
           touchpad = {
@@ -189,9 +162,7 @@ in
             { proportion = 0.5; }
             { proportion = 0.66667; }
           ];
-          default-column-width = {
-            proportion = 0.5;
-          };
+          default-column-width = { proportion = 0.5; };
 
           focus-ring = {
             enable = true;
@@ -206,9 +177,7 @@ in
           };
         };
 
-        overview = {
-          zoom = 0.5;
-        };
+        overview = { zoom = 0.5; };
 
         environment = {
           "NIXOS_OZONE_WL" = "1";
@@ -231,28 +200,15 @@ in
             ];
           }
           { command = [ "swww-daemon" ]; }
-        ]
-        ++ wallpaperCommands
+        ] ++ wallpaperCommands
 
-        # Disable unused monitors
-        ++ (map (name: {
-          command = [
-            "niri"
-            "msg"
-            "output"
-            name
-            "off"
-          ];
-        }) disabledMonitors)
+          # Disable unused monitors
+          ++ (map (name: { command = [ "niri" "msg" "output" name "off" ]; })
+            disabledMonitors)
 
-        # User defined extra execs
-        ++ (map (cmd: {
-          command = [
-            "bash"
-            "-c"
-            cmd
-          ];
-        }) (vars.niri_Exec-Once or [ ]));
+          # User defined extra execs
+          ++ (map (cmd: { command = [ "bash" "-c" cmd ]; })
+            (vars.niri_Exec-Once or [ ]));
       };
     };
   };

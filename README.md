@@ -722,33 +722,38 @@ Run this command inside `~/nixOS`:
 
 
 ### Refine `variables.nix`
+- Not all variables are mandatory
+  - If a variable is missing one of these things will happen
+    - The feature is disabled
+    - The feature is ignored
+    - A fallback apply 
 
 
-  * `gitUserName`: Github user name.
+  * `gitUserName` (optional): Github user name.
   
-  * `gitUserEmail`: Github user e-mail.
+  * `gitUserEmail` (optional): Github user e-mail.
   
-  * `stateVersion` & `homeStateVersion`: Keeps your config stable (e.g., `25.11`).
+  * `stateVersion` & `homeStateVersion` (mandatory): Keeps your config stable (e.g., `25.11`).
   
-  * `hyprland`: Whatever to enable hyprland or not
+  * `hyprland` (optional): Whatever to enable hyprland or not
 
-  * `niri`: Whatever to enable niri or not
+  * `niri` (optional): Whatever to enable niri or not
 
-  * `gnome`: Whatever to enable gnome or not
+  * `gnome` (optional): Whatever to enable gnome or not
 
-  * `kde`: Whatever to enable kde or not
+  * `kde` (optional): Whatever to enable kde or not
 
-  * `cosmic`: Whatever to enable cosmic or not
+  * `cosmic` (optional): Whatever to enable cosmic or not
 
-  * `hyprlandCaelestia`: Whatever to enable caelestia shell in hyprland
+  * `hyprlandCaelestia` (optional): Whatever to enable caelestia shell in hyprland
   
-  * `hyprlandNoctalia`: Whatever to enable noctalia shell in hyprland
+  * `hyprlandNoctalia` (optional): Whatever to enable noctalia shell in hyprland
 
-  * `niriNoctalia`: Whatever to enable noctalia shell in niri
+  * `niriNoctalia` (optional): Whatever to enable noctalia shell in niri
   
-  * `flatpak`: Whatever to enable support for flatpak
+  * `flatpak` (optional): Whatever to enable support for flatpak
   
-  * `term`: Default terminal, used for keybindings and tmux
+  * `term` (optional): Default terminal, used for keybindings and tmux
     * Depending on the terminal it may be necessary to add an entry `set -as` to `tmux.nix`. This is necessary to tell tmux that the current terminal support full colors. 
   
   For example:
@@ -757,17 +762,17 @@ Run this command inside `~/nixOS`:
   set -as terminal-features ",xterm-kitty:RGB"
   ```
 
-  * `shell`: The preferred shell for the user. Options are:
+  * `shell` (optional): The preferred shell for the user. Options are:
     *  fish
     *  bash
     *  zsh
 
-  * `browser`: Default browser. To make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
+  * `browser` (optional): Default browser. To make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
     * google-chrome
     * firefox
     * chromium
 
-  * `editor`: Default text/code editorTo make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name except for neovim)
+  * `editor` (optional): Default text/code editorTo make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name except for neovim)
     * vscode
     * code
     * code-cursor
@@ -778,37 +783,37 @@ Run this command inside `~/nixOS`:
     * kate
     * gedit
 
-  * `fileManager`: Default file manager. To make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
+  * `fileManager` (optional): Default file manager. To make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
     * dolphin (the pkgs.kdePackages portion is already handled. write only `dolphin`)
     * xfce.thunar
     * ranger
     * nautilus
     * nemo
 
-  * `base16Theme`: which base 16 theme to use  
+  * `base16Theme` (mandatory): which base 16 theme to use  
     * Reference https://github.com/tinted-theming/schemes/tree/spec-0.11/base16
   
-  * `polarity`: Decide whatever to have a light or a dark theme in stylix.nix
+  * `polarity` (mandatory): Decide whatever to have a light or a dark theme in stylix.nix
     * This should make sense with the global base16 themes. This means a dark-coloured global theme should have a dark polarity and vice-versa
     * Currently it is used in the following files:
       * `qt.nix`, `kde/main.nix` 
   
-  * `catppuccin`: Whatever to enable catppuccin theming or not. If disabled all the theming is done via the base theme. Note that some modules may require attention in order to be fully customized. For more information see [(the catppuccin features)](#-theming)
+  * `catppuccin` (optional): Whatever to enable catppuccin theming or not. If disabled all the theming is done via the base theme. Note that some modules may require attention in order to be fully customized. For more information see [(the catppuccin features)](#-theming)
     
-  * `catppuccinFlavor`: What catppuccin flavor to use
+  * `catppuccinFlavor` (optional): What catppuccin flavor to use
     * the flavor name should be all lowercase. frappé needs to be written without accent so  frappe
   
-  * `catppuccinAccent`: What catppuccin Accent to use
+  * `catppuccinAccent` (optional): What catppuccin Accent to use
 
   
-  * `timezone`: Your system time zone (e.g., `Europe/Zurich`).
+  * `timezone` (optional): Your system time zone (e.g., `Europe/Zurich`).
     * To choose the timezone refer to the [(IANA time zone database)](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) 
   
-  * `weather` (waybar and kde-specific-optional): Location for the weather widget (e.g., `Lugano`).
+  * `weather` (optional): Location for the weather widget (e.g., `Lugano`).
   
-  * `keyboardLayout`: Single or list of keyboard layout
+  * `keyboardLayout` (optional): Single or list of keyboard layout
   
-  * `keyboardVariant`: Keyboard variant
+  * `keyboardVariant` (optional): Keyboard variant
     * If more layout are defined a comma is needed for each layout except the first one. For example:
 
 ```nix
@@ -816,27 +821,27 @@ Run this command inside `~/nixOS`:
   keyboardVariant = "intl,,,,"; # main variant + 4 commas (total 5 values, same as keyboardLayout)
 ```
 
-  * `screenshots`: Setup the preferred directory where screenshots are put
+  * `screenshots` (mandatory): Setup the preferred directory where screenshots are put
     * Currently the path and shortcuts only work in hyprland and kde 
 
-  * `snapshots`: Whatever to enable snapshots or not
+  * `snapshots` (optional): Whatever to enable snapshots or not
 
-  * `snapshotRetention`: How many snapshots to keep for a certain period
+  * `snapshotRetention` (optional): How many snapshots to keep for a certain period
   
-  * `tailscale`: Whatever to enable or disable the tailscale service.
+  * `tailscale` (optional): Whatever to enable or disable the tailscale service.
     * "guest" user has this service disabled using a custom firewall rules in configuration.nix (host-specific)
 
-  * `guest`: Whatever to enable or disable the guest user.
+  * `guest` (optional): Whatever to enable or disable the guest user.
   
-  * `zramPercent`: Ram swap to enhance system performance.
+  * `zramPercent` (optional): Ram swap to enhance system performance.
 
-  * `monitors`: List of monitor definitions (resolution, refresh rate, position).
+  * `monitors` (mandatory): List of monitor definitions (resolution, refresh rate, position).
     * For a guide on how to set it up refer to the [(hyprland guide)](https://wiki.hypr.land/Configuring/Monitors/) 
 
-* `wallpapers` : List of wallpapers corresponding to the monitors.
+* `wallpapers` (mandatory) : List of wallpapers corresponding to the monitors.
   * **How to get the values:**
   1. **`wallpaperURL`**: Nix requires a direct link to the raw image file. If using GitHub, standard links won't work. Copy your GitHub link and paste it into [(git-rawify)](https://git-rawify.vercel.app/) to get the correct "Raw" URL.
-  2. **`wallpaperSHA256`**: Generate the hash by running this command in your terminal:
+  2. **`wallpaperSHA256 (mandatory)`**: Generate the hash by running this command in your terminal:
 
   * **Troubleshooting URLs**:
   If your URL contains special characters (like `%20` for spaces), the command might fail or return an "invalid character" error. To fix this, **wrap the URL in single quotes**:
@@ -847,9 +852,9 @@ Run this command inside `~/nixOS`:
 nix-prefetch-url <your_raw_url>
 ```
 
-  * `idleConfig` : Power management settings (timeouts for dimming, locking, sleeping).
+  * `idleConfig` (optional) : Power management settings (timeouts for dimming, locking, sleeping).
 
-  * `cachix`: Whatever to enable cachix or not
+  * `cachix` (optional): Whatever to enable cachix or not
     * For a third user to be a builder the following steps must be followed:
       * Fork/clone the repo locally. This is needed because third user do not have write access nor to the repo runners nor to my cachix cache 
       1. Change both `name` and `publicKey` in  `variables.nix` with the new data

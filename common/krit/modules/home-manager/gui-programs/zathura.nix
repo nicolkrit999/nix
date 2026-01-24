@@ -1,15 +1,11 @@
-{
-  lib,
-  vars,
-  ...
-}:
+{ lib, vars, ... }:
 
 {
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME
   # -----------------------------------------------------------------------
-  catppuccin.zathura.enable = vars.catppuccin;
-  catppuccin.zathura.flavor = vars.catppuccinFlavor;
+  catppuccin.zathura.enable = vars.catppuccin or false;
+  catppuccin.zathura.flavor = vars.catppuccinFlavor or "mocha";
 
   programs.zathura = {
     enable = true;

@@ -1,9 +1,4 @@
-{
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
+{ pkgs, lib, vars, ... }:
 let
   cliphistScript = pkgs.writeShellScript "launch-cliphist" ''
     ${pkgs.cliphist}/bin/cliphist list | ${pkgs.wofi}/bin/wofi --dmenu | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
@@ -21,8 +16,10 @@ let
     ${pkgs.libnotify}/bin/notify-send "Screenshot Saved" "Saved to $FILENAME" -i camera-photo
   '';
 
-  customKeyPath =
-    i: "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${toString i}";
+  customKeyPath = i:
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${
+      toString i
+    }";
 
   customBindings = [
     {
@@ -38,14 +35,7 @@ let
     {
       name = "Launch File Manager";
       command =
-        if
-          builtins.elem vars.fileManager [
-            "yazi"
-            "ranger"
-            "lf"
-            "nnn"
-          ]
-        then
+        if builtins.elem vars.fileManager [ "yazi" "ranger" "lf" "nnn" ] then
           "${vars.term} -e ${vars.fileManager}"
         else
           "${vars.fileManager}";
@@ -53,19 +43,16 @@ let
     }
     {
       name = "Launch editor";
-      command =
-        if
-          builtins.elem vars.editor [
-            "neovim"
-            "nvim"
-            "nano"
-            "vim"
-            "helix"
-          ]
-        then
-          "${vars.term} -e ${vars.editor}"
-        else
-          "${vars.editor}";
+      command = if builtins.elem vars.editor [
+        "neovim"
+        "nvim"
+        "nano"
+        "vim"
+        "helix"
+      ] then
+        "${vars.term} -e ${vars.editor}"
+      else
+        "${vars.editor}";
       binding = "<Super>c";
     }
     {
@@ -85,55 +72,42 @@ let
       binding = "Print";
     }
 
-  ]
-  ++ (vars.gnomeExtraBinds or [ ]);
+  ] ++ (vars.gnomeExtraBinds or [ ]);
 
-  dconfList = lib.genList (
-    i: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${toString i}/"
-  ) (builtins.length customBindings);
+  dconfList = lib.genList (i:
+    "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${
+      toString i
+    }/") (builtins.length customBindings);
 
-  dconfSettings =
-    lib.foldl'
-      (
-        acc: item:
-        let
-          index = item.index;
-          binding = item.value;
-        in
-        acc
-        // {
-          "${customKeyPath index}" = {
-            name = binding.name;
-            command = binding.command;
-            binding = binding.binding;
-          };
-        }
-      )
-      { }
-      (
-        lib.imap0 (i: v: {
-          index = i;
-          value = v;
-        }) customBindings
-      );
+  dconfSettings = lib.foldl' (acc: item:
+    let
+      index = item.index;
+      binding = item.value;
+    in acc // {
+      "${customKeyPath index}" = {
+        name = binding.name;
+        command = binding.command;
+        binding = binding.binding;
+      };
+    }) { } (lib.imap0 (i: v: {
+      index = i;
+      value = v;
+    }) customBindings);
 
-in
-{
-  dconf.settings = {
-    "org/gnome/settings-daemon/plugins/media-keys" = {
-      custom-keybindings = dconfList;
-      screensaver = [ "<Super>Delete" ];
-      logout = [ "<Super><Shift>Delete" ];
-      screenshot = [ ];
-    };
+in {
 
-    "org/gnome/desktop/wm/keybindings" = {
-      close = [ "<Super><Shift>c" ];
-    };
+  config = lib.mkIf (vars.gnome or false) {
+    dconf.settings = {
+      "org/gnome/settings-daemon/plugins/media-keys" = {
+        custom-keybindings = dconfList;
+        screensaver = [ "<Super>Delete" ];
+        logout = [ "<Super><Shift>Delete" ];
+        screenshot = [ ];
+      };
 
-    "org/gnome/shell/keybindings" = {
-      toggle-overview = [ "<Super>w" ];
-    };
-  }
-  // dconfSettings;
+      "org/gnome/desktop/wm/keybindings" = { close = [ "<Super><Shift>c" ]; };
+
+      "org/gnome/shell/keybindings" = { toggle-overview = [ "<Super>w" ]; };
+    } // dconfSettings;
+  };
 }

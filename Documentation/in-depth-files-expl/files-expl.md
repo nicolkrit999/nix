@@ -859,7 +859,7 @@ in
             "rimless"
             "black"
           ];
-          variant = vars.catppuccinFlavor;
+          variant = vars.catppuccinFlavor or "mocha";
         })
       ])
       ++ [
@@ -950,9 +950,9 @@ in
   config = lib.mkIf (vars.hyprland or false) {
     # ----------------------------------------------------------------------------
     # 🎨 CATPPUCCIN THEME (official module)
-    catppuccin.hyprland.enable = vars.catppuccin;
-    catppuccin.hyprland.flavor = vars.catppuccinFlavor;
-    catppuccin.hyprland.accent = vars.catppuccinAccent;
+    catppuccin.hyprland.enable = vars.catppuccin or false;
+    catppuccin.hyprland.flavor = vars.catppuccinFlavor or "mocha";
+    catppuccin.hyprland.accent = vars.catppuccinAccent or "mauve";
     # ----------------------------------------------------------------------------
 
     home.packages = with pkgs; [
@@ -1104,8 +1104,8 @@ in
         # Layouts are defined in flake.nix and are handled
         # in such a way that they work regardless of desktop environment
         input = {
-          kb_layout = vars.keyboardLayout;
-          kb_variant = vars.keyboardVariant;
+          kb_layout = vars.keyboardLayout or "us";
+          kb_variant = vars.keyboardVariant or "";
           kb_options = "grp:ctrl_alt_toggle"; # Ctrl+Alt to switch layout
         };
 
@@ -2144,7 +2144,7 @@ Regardless of which theme engine we use for specific apps, Stylix always manages
             "rimless"
             "black"
           ];
-          variant = vars.catppuccinFlavor;
+          variant = vars.catppuccinFlavor or "mocha";
         }
       );
       name = lib.mkForce "catppuccin-${vars.catppuccinFlavor}-${vars.catppuccinAccent}-standard+rimless,black";
@@ -2537,8 +2537,8 @@ in
 
   # Keyboard Layout
   services.xserver.xkb = {
-    layout = vars.keyboardLayout;
-    variant = vars.keyboardVariant;
+    layout = vars.keyboardLayout or "us";
+    variant = vars.keyboardVariant or "";
   };
   console.useXkbConfig = true;
 

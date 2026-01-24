@@ -1,18 +1,11 @@
-{
-  flake,
-  vars,
-  ...
-}:
-{
+{ flake, vars, ... }: {
   programs.plasma.input = {
     # 1. KEYBOARD
     keyboard = {
-      layouts = [
-        {
-          layout = vars.keyboardLayout;
-          variant = vars.keyboardVariant;
-        }
-      ];
+      layouts = [{
+        layout = vars.keyboardLayout or "us";
+        variant = vars.keyboardVariant or "";
+      }];
       numlockOnStartup = "on";
     };
 

@@ -1,9 +1,4 @@
-{
-  lib,
-  config,
-  vars,
-  ...
-}:
+{ lib, config, vars, ... }:
 let
   # Get the Stylix Base16 Hex Color
   base16Accent = config.lib.stylix.colors.withHashtag.base0E;
@@ -12,15 +7,20 @@ let
   mainColor = if vars.catppuccin then vars.catppuccinAccent else base16Accent;
 
   # Status Colors (Dynamic)
-  successColor = if vars.catppuccin then "green" else config.lib.stylix.colors.withHashtag.base0B;
-  errorColor = if vars.catppuccin then "red" else config.lib.stylix.colors.withHashtag.base08;
-in
-{
+  successColor = if vars.catppuccin then
+    "green"
+  else
+    config.lib.stylix.colors.withHashtag.base0B;
+  errorColor = if vars.catppuccin then
+    "red"
+  else
+    config.lib.stylix.colors.withHashtag.base08;
+in {
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME
   # -----------------------------------------------------------------------
-  catppuccin.starship.enable = vars.catppuccin;
-  catppuccin.starship.flavor = vars.catppuccinFlavor;
+  catppuccin.starship.enable = vars.catppuccin or false;
+  catppuccin.starship.flavor = vars.catppuccinFlavor or "mocha";
 
   # -----------------------------------------------------------------------
   # 🚀 STARSHIP CONFIGURATION

@@ -1,12 +1,11 @@
-{ vars, ... }:
-{
+{ vars, ... }: {
   # ------------------------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME (official module)
   # a stylix.nix 'enable = false;' is not required since eza uses its own theming system
   # ------------------------------------------------------------------------------------
-  catppuccin.eza.enable = vars.catppuccin;
-  catppuccin.eza.flavor = vars.catppuccinFlavor;
-  catppuccin.eza.accent = vars.catppuccinAccent;
+  catppuccin.eza.enable = vars.catppuccin or false;
+  catppuccin.eza.flavor = vars.catppuccinFlavor or "mocha";
+  catppuccin.eza.accent = vars.catppuccinAccent or "mauve";
   # ------------------------------------------------------------------------------------
   programs.eza = {
     enable = true;
@@ -18,9 +17,6 @@
     git = true;
     icons = "always";
 
-    extraOptions = [
-      "--group-directories-first"
-      "--header"
-    ];
+    extraOptions = [ "--group-directories-first" "--header" ];
   };
 }

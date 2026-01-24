@@ -1,11 +1,5 @@
-{
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
-{
-  config = lib.mkIf vars.flatpak {
+{ pkgs, lib, vars, ... }: {
+  config = lib.mkIf (vars.flatpak or false) {
 
     # Flatpak packages. Put them inside quotes """
     # 💡 HOW TO FIND PACKAGE NAMES:
@@ -24,12 +18,10 @@
 
     services.flatpak.update.onActivation = false;
 
-    services.flatpak.remotes = [
-      {
-        name = "flathub";
-        location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
-      }
-    ];
+    services.flatpak.remotes = [{
+      name = "flathub";
+      location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
+    }];
 
     systemd.services.flatpak-managed-install = {
       serviceConfig = {

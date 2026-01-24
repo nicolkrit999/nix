@@ -1,11 +1,5 @@
-{
-  lib,
-  config,
-  vars,
-  ...
-}:
-{
-  config = lib.mkIf vars.tailscale {
+{ lib, config, vars, ... }: {
+  config = lib.mkIf (vars.tailscale or false) {
     services.tailscale.enable = true;
 
     networking.firewall = {
