@@ -1,12 +1,20 @@
-{ config, pkgs, lib, vars, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
 let
-  shellPkg = if vars.shell == "fish" then
-    pkgs.fish
-  else if vars.shell == "zsh" then
-    pkgs.zsh
-  else
-    pkgs.bashInteractive;
-in {
+  shellPkg =
+    if vars.shell == "fish" then
+      pkgs.fish
+    else if vars.shell == "zsh" then
+      pkgs.zsh
+    else
+      pkgs.bashInteractive;
+in
+{
 
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY
@@ -30,7 +38,12 @@ in {
   # ---------------------------------------------------------
   # 🛠️ NIX SETTINGS
   # ---------------------------------------------------------
-  nix.settings = { trusted-users = [ "root" "@wheel" ]; };
+  nix.settings = {
+    trusted-users = [
+      "root"
+      "@wheel"
+    ];
+  };
 
   # Allow unfree packages globally (needed for drivers, code, etc.)
   nixpkgs.config.allowUnfree = true;
@@ -38,7 +51,8 @@ in {
   # ---------------------------------------------------------
   # 📦 SYSTEM PACKAGES
   # ---------------------------------------------------------
-  environment.systemPackages = with pkgs;
+  environment.systemPackages =
+    with pkgs;
     [
       # --- CLI UTILITIES ---
       dix # Nix diff viewer
@@ -73,10 +87,11 @@ in {
       powerline-symbols # Terminal font glyphs
     ]
     # Installation of packages available only on x86_64 systems
-    ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux")
-    (builtins.trace
-      "✅ x86_64 Architecture Detected: Installing x86 only packages"
-      [ gpu-screen-recorder ])
+    ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux") (
+      builtins.trace "✅ x86_64 Architecture Detected: Installing x86 only packages" [
+        gpu-screen-recorder
+      ]
+    )
 
     # Extra KDE specific packages
     ++ (with pkgs.kdePackages; [
@@ -111,23 +126,21 @@ in {
   security.rtkit.enable = true;
   services.openssh.enable = true;
 
-
   # Only define these wrappers if we are on an x86 system.
-  security.wrappers =
-    lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
-      gpu-screen-recorder = {
-        owner = "root";
-        group = "root";
-        capabilities = "cap_sys_admin+ep";
-        source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
-      };
-      gsr-kms-server = {
-        owner = "root";
-        group = "root";
-        capabilities = "cap_sys_admin+ep";
-        source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
-      };
+  security.wrappers = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
+    gpu-screen-recorder = {
+      owner = "root";
+      group = "root";
+      capabilities = "cap_sys_admin+ep";
+      source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
     };
+    gsr-kms-server = {
+      owner = "root";
+      group = "root";
+      capabilities = "cap_sys_admin+ep";
+      source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
+    };
+  };
 
   # Use optionalString to inject the GPU rule ONLY on x86.
   security.polkit.enable = true;
@@ -140,17 +153,14 @@ in {
           return polkit.Result.YES;
         }
 
-        ${
-          lib.optionalString
-          (pkgs.stdenv.hostPlatform.system == "x86_64-linux") ''
-            // Auto-approve gpu-screen-recorder running as root (x86 ONLY)
-            if (action.id == "org.freedesktop.policykit.exec" &&
-                action.lookup("program") &&
-                action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
-              return polkit.Result.YES;
-            }
-          ''
-        }
+        ${lib.optionalString (pkgs.stdenv.hostPlatform.system == "x86_64-linux") ''
+          // Auto-approve gpu-screen-recorder running as root (x86 ONLY)
+          if (action.id == "org.freedesktop.policykit.exec" &&
+              action.lookup("program") &&
+              action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
+            return polkit.Result.YES;
+          }
+        ''}
       }
     });
   '';
@@ -171,7 +181,9 @@ in {
   # ⚡ SYSTEM TWEAKS
   # -----------------------------------------------------
   # Reduce shutdown wait time for stuck services
-  systemd.settings.Manager = { DefaultTimeoutStopSec = "10s"; };
+  systemd.settings.Manager = {
+    DefaultTimeoutStopSec = "10s";
+  };
 
   # Enable home-manager backup files
   home-manager.backupFileExtension = lib.mkForce "hm-backup";
@@ -184,16 +196,15 @@ in {
 
   # Enable System76 Scheduler for improved desktop responsiveness
   services.system76-scheduler.enable = true;
-  services.system76-scheduler.settings.cfsProfiles.enable =
-    true; # Prioritizes foreground apps (smoothness)
+  services.system76-scheduler.settings.cfsProfiles.enable = true; # Prioritizes foreground apps (smoothness)
 
   # Disable NetworkManager-wait-online to speed up boot time
   systemd.services.NetworkManager-wait-online.enable = false;
 
   # Enable emulation for aarch64 linux for testing purposes on x86_64 hosts
-  boot.binfmt.emulatedSystems =
-    lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux")
-    [ "aarch64-linux" ];
+  boot.binfmt.emulatedSystems = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") [
+    "aarch64-linux"
+  ];
 
   # Add KWallet integration for SDDM and GDM display managers
   security.pam.services = {

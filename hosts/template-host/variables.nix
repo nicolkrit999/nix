@@ -34,8 +34,7 @@
   hyprlandNoctalia = false; # Enable Noctalia for Hyprland
 
   # Niri Options
-  niriNoctalia =
-    false; # Enable Noctalia for Niri (No Caelestia support on Niri)
+  niriNoctalia = false; # Enable Noctalia for Niri (No Caelestia support on Niri)
 
   # 📦 PACKAGES & TERMINAL
   flatpak = false;
@@ -80,11 +79,12 @@
   # 🖼️ MONITORS & WALLPAPERS
   monitors = [ ];
 
-  wallpapers = [{
-    wallpaperURL =
-      "https://raw.githubusercontent.com/zhichaoh/catppuccin-wallpapers/refs/heads/main/os/nix-black-4k.png";
-    wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
-  }];
+  wallpapers = [
+    {
+      wallpaperURL = "https://raw.githubusercontent.com/zhichaoh/catppuccin-wallpapers/refs/heads/main/os/nix-black-4k.png";
+      wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
+    }
+  ];
 
   # 🔋 POWER MANAGEMENT
   idleConfig = {

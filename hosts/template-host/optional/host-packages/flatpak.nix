@@ -1,7 +1,8 @@
-{ pkgs
-, lib
-, flatpak
-, ...
+{
+  pkgs,
+  lib,
+  flatpak,
+  ...
 }:
 {
   # Only apply if flatpak is enabled in flake.nix

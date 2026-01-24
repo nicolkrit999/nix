@@ -1,4 +1,10 @@
-{ pkgs, lib, config, vars, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  vars,
+  ...
+}:
 let
   c = config.lib.stylix.colors.withHashtag;
   cssVariables = ''
@@ -21,10 +27,11 @@ let
   '';
   cssContent = builtins.readFile ./style.css;
   # 1. Hyprland logic: Show Waybar if no custom shell is set
-  hyprlandWaybar = (vars.hyprland or false)
+  hyprlandWaybar =
+    (vars.hyprland or false)
     && !((vars.hyprlandCaelestia or false) || (vars.hyprlandNoctalia or false));
 
-  # 2. Niri logic: Show Waybar if no custom shell is set 
+  # 2. Niri logic: Show Waybar if no custom shell is set
   niriWaybar = (vars.niri or false) && !(vars.niriNoctalia or false);
 in
 {
@@ -32,7 +39,9 @@ in
 
     programs.waybar = {
       enable = true;
-      systemd = { enable = true; };
+      systemd = {
+        enable = true;
+      };
       style = lib.mkAfter ''
         ${cssVariables}
         ${cssContent}
@@ -44,9 +53,15 @@ in
           position = "top";
           height = 40;
 
-          modules-left = [ "hyprland/workspaces" "niri/workspaces" ];
+          modules-left = [
+            "hyprland/workspaces"
+            "niri/workspaces"
+          ];
 
-          modules-center = [ "hyprland/window" "niri/window" ];
+          modules-center = [
+            "hyprland/window"
+            "niri/window"
+          ];
 
           modules-right = [
             "hyprland/language"
@@ -88,7 +103,8 @@ in
             min-length = 5;
             tooltip = true;
             on-click = "hyprctl switchxkblayout all next";
-          } // vars.waybarLayout or { };
+          }
+          // vars.waybarLayout or { };
 
           "niri/language" = {
             format = "{}";
@@ -102,8 +118,10 @@ in
           "custom/weather" = {
             format = "<span color='${c.base0C}'>${vars.weather}:</span> {} ";
             exec =
-              let unit = if (vars.useFahrenheit or false) then "°C" else "°F";
-              in "curl -s 'wttr.in/${vars.weather}?format=%c%t&${unit}' | sed 's/ //'";
+              let
+                unit = if (vars.useFahrenheit or false) then "°C" else "°F";
+              in
+              "curl -s 'wttr.in/${vars.weather}?format=%c%t&${unit}' | sed 's/ //'";
             interval = 300;
             class = "weather";
             on-click = ''xdg-open "https://wttr.in/${vars.weather}"'';
@@ -111,8 +129,7 @@ in
 
           "pulseaudio" = {
             format = "<span color='${c.base0D}'>{icon}</span> {volume}%";
-            format-bluetooth =
-              "<span color='${c.base0D}'>{icon}</span> {volume}% ";
+            format-bluetooth = "<span color='${c.base0D}'>{icon}</span> {volume}% ";
             format-muted = "<span color='${c.base08}'></span> Muted";
             format-icons = {
               "headphones" = "";
@@ -121,7 +138,10 @@ in
               "phone" = "";
               "portable" = "";
               "car" = "";
-              "default" = [ "" "" ];
+              "default" = [
+                ""
+                ""
+              ];
             };
             on-click = "pavucontrol";
           };
@@ -134,16 +154,19 @@ in
             format = "<span color='${c.base0A}'>{icon}</span> {capacity}%";
             format-charging = "<span color='${c.base0B}'></span> {capacity}%";
             format-alt = "{time} <span color='${c.base0A}'>{icon}</span>";
-            format-icons = [ "" "" "" "" "" ];
+            format-icons = [
+              ""
+              ""
+              ""
+              ""
+              ""
+            ];
           };
 
           "clock" = {
-            format =
-              "{:%A, %B %d at %I:%M %p}"; # Click Format: Full Day Name, Month, Date... When the module is clicked it switches between formats
-            format-alt =
-              "{:%m/%d/%Y - %I:%M %p}"; # Standard Format: MM/DD/YYYY - HH:MM AM/PM
-            tooltip-format =
-              "<tt><small>{calendar}</small></tt>"; # Tooltip Format: Small calendar in tooltip
+            format = "{:%A, %B %d at %I:%M %p}"; # Click Format: Full Day Name, Month, Date... When the module is clicked it switches between formats
+            format-alt = "{:%m/%d/%Y - %I:%M %p}"; # Standard Format: MM/DD/YYYY - HH:MM AM/PM
+            tooltip-format = "<tt><small>{calendar}</small></tt>"; # Tooltip Format: Small calendar in tooltip
             calendar = {
               mode = "year";
               mode-mon-col = 3;
@@ -162,15 +185,15 @@ in
     };
 
     systemd.user.services.waybar = {
-      Unit.PartOf = lib.mkForce
-        ((lib.optional hyprlandWaybar "hyprland-session.target")
-          ++ (lib.optional niriWaybar "niri.service"));
-      Unit.After = lib.mkForce
-        ((lib.optional hyprlandWaybar "hyprland-session.target")
-          ++ (lib.optional niriWaybar "niri.service"));
-      Install.WantedBy = lib.mkForce
-        ((lib.optional hyprlandWaybar "hyprland-session.target")
-          ++ (lib.optional niriWaybar "niri.service"));
+      Unit.PartOf = lib.mkForce (
+        (lib.optional hyprlandWaybar "hyprland-session.target") ++ (lib.optional niriWaybar "niri.service")
+      );
+      Unit.After = lib.mkForce (
+        (lib.optional hyprlandWaybar "hyprland-session.target") ++ (lib.optional niriWaybar "niri.service")
+      );
+      Install.WantedBy = lib.mkForce (
+        (lib.optional hyprlandWaybar "hyprland-session.target") ++ (lib.optional niriWaybar "niri.service")
+      );
     };
   };
 }

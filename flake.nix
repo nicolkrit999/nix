@@ -65,25 +65,15 @@
     };
   };
 
-  outputs =
-    { nixpkgs
-    , nixpkgs-unstable
-    , home-manager
-    , ...
-    }@inputs:
+  outputs = { nixpkgs, nixpkgs-unstable, home-manager, ... }@inputs:
     let
-      hostNames = nixpkgs.lib.attrNames (
-        nixpkgs.lib.filterAttrs
-          (
-            name: type:
-              type == "directory" && builtins.pathExists (./hosts + "/${name}/hardware-configuration.nix")
-          )
-          (builtins.readDir ./hosts)
-      );
+      hostNames = nixpkgs.lib.attrNames (nixpkgs.lib.filterAttrs (name: type:
+        type == "directory" && builtins.pathExists
+        (./hosts + "/${name}/hardware-configuration.nix"))
+        (builtins.readDir ./hosts));
 
       # 🛠️ SYSTEM BUILDER
-      makeSystem =
-        hostname:
+      makeSystem = hostname:
         let
           # 1. Base Vars (Always exist)
           baseVars = import ./hosts/${hostname}/variables.nix;
@@ -96,27 +86,34 @@
           modulesPath = optionalPath + "/general-hm-modules/modules.nix";
 
           # 4. Extra Vars (Optional - host specific HM settings)
-          extraVars =
-            if builtins.pathExists modulesPath then
-              builtins.trace "✅ [${hostname} System] Loading host HM Variables from: ${toString modulesPath}"
-                (import modulesPath {
-                  vars = baseVars;
-                  lib = nixpkgs.lib;
-                  pkgs = nixpkgs.pkgs;
-                })
-            else
-              builtins.trace "ℹ️ [${hostname} System] No host HM Variables module found at ${toString modulesPath}" { };
+          extraVars = if builtins.pathExists modulesPath then
+            builtins.trace
+            "✅ [${hostname} System] Loading host HM Variables from: ${
+              toString modulesPath
+            }" (import modulesPath {
+              vars = baseVars;
+              lib = nixpkgs.lib;
+              pkgs = nixpkgs.pkgs;
+            })
+          else
+            builtins.trace
+            "ℹ️ [${hostname} System] No host HM Variables module found at ${
+              toString modulesPath
+            }" { };
 
           # 5. Merge: Base + Extra + Hostname
           hostVars = baseVars // extraVars // { inherit hostname; };
+
+          hostHomeFile =
+            ./hosts/${hostname}/optional/general-hm-modules/home.nix;
+          hostHomeExists = builtins.pathExists hostHomeFile;
 
           # 6. Unstable pkgs
           pkgs-unstable = import nixpkgs-unstable {
             system = hostVars.system;
             config.allowUnfree = true;
           };
-        in
-        nixpkgs.lib.nixosSystem {
+        in nixpkgs.lib.nixosSystem {
 
           specialArgs = {
             inherit inputs pkgs-unstable;
@@ -133,13 +130,14 @@
             ({ pkgs, lib, ... }: {
               nixpkgs.overlays = [
                 (final: prev: {
-                  gpu-screen-recorder = if prev.stdenv.hostPlatform.system == "aarch64-linux" then
-                    prev.writeShellScriptBin "gpu-screen-recorder" ''
-                      echo "GPU Screen Recorder is not supported on ARM"
-                      exit 0
-                    ''
-                  else
-                    prev.gpu-screen-recorder;
+                  gpu-screen-recorder =
+                    if prev.stdenv.hostPlatform.system == "aarch64-linux" then
+                      prev.writeShellScriptBin "gpu-screen-recorder" ''
+                        echo "GPU Screen Recorder is not supported on ARM"
+                        exit 0
+                      ''
+                    else
+                      prev.gpu-screen-recorder;
                 })
               ];
             })
@@ -151,9 +149,14 @@
             inputs.niri.nixosModules.niri
 
             # Import entire optional host-specific directory if it exists
-            (if builtins.pathExists optionalPath
-            then builtins.trace "✅ [${hostname} System] Importing Host Optional Dir: ${toString optionalPath}" optionalPath
-            else builtins.trace "ℹ️ [${hostname} System] No Optional Dir found." { })
+            (if builtins.pathExists optionalPath then
+              builtins.trace
+              "✅ [${hostname} System] Importing Host Optional Dir: ${
+                toString optionalPath
+              }" optionalPath
+            else
+              builtins.trace "ℹ️ [${hostname} System] No Optional Dir found."
+              { })
 
             {
               # host-specific variables
@@ -179,15 +182,19 @@
 
               # Home-manager host-specific user configuration
               home-manager.users.${hostVars.user} = {
-                imports = [ ./home-manager/home.nix ];
+                imports = [ ./home-manager/home.nix ] ++ (if hostHomeExists then
+                  builtins.trace "✅ [${hostname} System] Importing Host Home: ${
+                    toString hostHomeFile
+                  }" [ hostHomeFile ]
+                else
+                  [ ]);
               };
             }
           ];
         };
 
       # 🏠 HOME BUILDER
-      makeHome =
-        hostname:
+      makeHome = hostname:
         let
           # 1. Base Vars (Always exist)
           baseVars = import ./hosts/${hostname}/variables.nix;
@@ -200,16 +207,18 @@
           modulesPath = optionalPath + "/general-hm-modules/modules.nix";
 
           # 4. Extra Vars (Optional - host specific HM settings)
-          extraVars =
-            if builtins.pathExists modulesPath then
-              builtins.trace "✅ [${hostname} Home] Loading host HM Variables from: ${toString modulesPath}"
-                (import modulesPath {
-                  vars = baseVars;
-                  lib = nixpkgs.lib;
-                  pkgs = nixpkgs.pkgs;
-                })
-            else
-              builtins.trace "ℹ️ [${hostname} Home] No hsot HM Variables module found." { };
+          extraVars = if builtins.pathExists modulesPath then
+            builtins.trace
+            "✅ [${hostname} Home] Loading host HM Variables from: ${
+              toString modulesPath
+            }" (import modulesPath {
+              vars = baseVars;
+              lib = nixpkgs.lib;
+              pkgs = nixpkgs.pkgs;
+            })
+          else
+            builtins.trace
+            "ℹ️ [${hostname} Home] No hsot HM Variables module found." { };
 
           # 5. Merge: Base + Extra + Hostname
           hostVars = baseVars // extraVars // { inherit hostname; };
@@ -218,20 +227,35 @@
           generalHmPath = optionalPath + "/general-hm-modules/home.nix";
           hostHmFolder = optionalPath + "/host-hm-modules";
 
+          hostHomeFile = ./hosts/${hostname}/home.nix;
+
           # Create a list of extra modules to append
           extraModules =
+            # Check for Optional General Home
             nixpkgs.lib.optional (builtins.pathExists generalHmPath)
-              (builtins.trace "✅ [${hostname} Home] Adding General HM Module: ${toString generalHmPath}" generalHmPath)
+            (builtins.trace "✅ [${hostname} Home] Adding Optional General HM: ${
+                toString generalHmPath
+              }" generalHmPath)
+
+            # Check for Optional Host Modules Folder
             ++ nixpkgs.lib.optional (builtins.pathExists hostHmFolder)
-              (builtins.trace "✅ [${hostname} Home] Adding Host HM Modules: ${toString hostHmFolder}" hostHmFolder);
+            (builtins.trace
+              "✅ [${hostname} Home] Adding Optional Host Modules: ${
+                toString hostHmFolder
+              }" hostHmFolder)
+
+            # Check for optional host home file
+            ++ nixpkgs.lib.optional (builtins.pathExists hostHomeFile)
+            (builtins.trace
+              "✅ [${hostname} Home] Adding Host Home: ${toString hostHomeFile}"
+              hostHomeFile);
 
           # 7. Unstable pkgs
           pkgs-unstable = import nixpkgs-unstable {
             system = hostVars.system;
             config.allowUnfree = true;
           };
-        in
-        home-manager.lib.homeManagerConfiguration {
+        in home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
             inherit (hostVars) system;
             config.allowUnfree = true;
@@ -246,16 +270,15 @@
             ./home-manager/home.nix
             inputs.catppuccin.homeModules.catppuccin
             inputs.plasma-manager.homeModules.plasma-manager
-          ]
-          ++ extraModules;
+          ] ++ extraModules;
         };
 
-    in
-    {
+    in {
       # GENERATE CONFIGURATIONS AUTOMATICALLY
       nixosConfigurations = nixpkgs.lib.genAttrs hostNames makeSystem;
       homeConfigurations = nixpkgs.lib.genAttrs hostNames makeHome;
 
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
+      formatter.x86_64-linux =
+        nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
     };
 }

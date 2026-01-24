@@ -1,7 +1,0 @@
-
-
-{
-  imports = [
-    ./librewolf-common.nix
-  ];
-}

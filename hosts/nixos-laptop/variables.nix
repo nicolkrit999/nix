@@ -37,8 +37,7 @@
 
   # Niri Options
   # FIXME: They need gpu-screen-recorder to work, which is not supported on aarch64
-  niriNoctalia =
-    false; # Enable Noctalia for Niri (No Caelestia support on Niri)
+  niriNoctalia = false; # Enable Noctalia for Niri (No Caelestia support on Niri)
 
   # 📦 PACKAGES & TERMINAL
   flatpak = true;
@@ -90,8 +89,7 @@
 
   wallpapers = [
     {
-      wallpaperURL =
-        "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_white_car_parked_on_a_brick_road.png";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_white_car_parked_on_a_brick_road.png";
       wallpaperSHA256 = "1kpagf05x4wfwi2hc5n1jdhkya5d9w60cca8x6nsrzl5sy1bslpw";
     }
 
@@ -110,39 +108,37 @@
     suspendTimeout = 1800;
   };
 
-/*
-  devLanguages = [
-    # Development environments configurations.
-    # If a module is enabled their respective packages are installed permanently
-    # To use them it's needed to add a .envrc file in the project folder that link to the dev-environment
-    # Commented out to reduce size on cachix
-     "c-cpp"
-       "go"
-       "haskell"
-       "java"
-       "jupyter"
-       "latex"
-       "nix"
-       "node"
-       "php"
-       "python"
-       "r"
-       "rust"
-       "shell"
-       #"swift"
-       "typst"
-    
-  ];
+  /*
+    devLanguages = [
+      # Development environments configurations.
+      # If a module is enabled their respective packages are installed permanently
+      # To use them it's needed to add a .envrc file in the project folder that link to the dev-environment
+      # Commented out to reduce size on cachix
+       "c-cpp"
+         "go"
+         "haskell"
+         "java"
+         "jupyter"
+         "latex"
+         "nix"
+         "node"
+         "php"
+         "python"
+         "r"
+         "rust"
+         "shell"
+         #"swift"
+         "typst"
+
+    ];
   */
 
   # Cachix
   cachix = {
     enable = true;
-    push =
-      false; # Only the builder must have this true (for now "nixos-desktop")
+    push = false; # Only the builder must have this true (for now "nixos-desktop")
     name = "krit-nixos";
     # The public key from your screenshot:
-    publicKey =
-      "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
+    publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
   };
 }

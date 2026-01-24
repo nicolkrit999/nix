@@ -1,4 +1,10 @@
-{ config, pkgs, lib, vars, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
 
 let
   guestUid = 2000;
@@ -42,7 +48,8 @@ let
        sudo reboot
     fi
   '';
-in {
+in
+{
   config = lib.mkIf (vars.guest or false) {
 
     users.users.guest = {
@@ -50,9 +57,12 @@ in {
       description = "Guest Account";
       uid = guestUid;
       group = "guest";
-      extraGroups = [ "networkmanager" "audio" "video" ];
-      hashedPassword =
-        "$6$Cqklpmh3CX0Cix4Y$OCx6/ud5bn72K.qQ3aSjlYWX6Yqh9XwrQHSR1GnaPRud6W4KcyU9c3eh6Oqn7bjW3O60oEYti894sqVUE1e1O0";
+      extraGroups = [
+        "networkmanager"
+        "audio"
+        "video"
+      ];
+      hashedPassword = "$6$Cqklpmh3CX0Cix4Y$OCx6/ud5bn72K.qQ3aSjlYWX6Yqh9XwrQHSR1GnaPRud6W4KcyU9c3eh6Oqn7bjW3O60oEYti894sqVUE1e1O0";
       createHome = true;
     };
 
@@ -104,24 +114,23 @@ in {
     # 🔓 SUDO RULES FOR REBOOT
     # We allow the guest to run 'reboot' without a password.
     # This is necessary for the enforcement script.
-    security.sudo.extraRules = [{
-      users = [ "guest" ];
-      commands = [{
-        command = "/run/current-system/sw/bin/reboot";
-        options = [ "NOPASSWD" ];
-      }];
-    }];
+    security.sudo.extraRules = [
+      {
+        users = [ "guest" ];
+        commands = [
+          {
+            command = "/run/current-system/sw/bin/reboot";
+            options = [ "NOPASSWD" ];
+          }
+        ];
+      }
+    ];
 
     # 🛡️ FIREWALL
-    networking.firewall.extraCommands =
-      lib.mkIf config.services.tailscale.enable ''
-        iptables -A OUTPUT -m owner --uid-owner ${
-          toString guestUid
-        } -o tailscale0 -j REJECT
-        iptables -A OUTPUT -m owner --uid-owner ${
-          toString guestUid
-        } -d 100.64.0.0/10 -j REJECT
-      '';
+    networking.firewall.extraCommands = lib.mkIf config.services.tailscale.enable ''
+      iptables -A OUTPUT -m owner --uid-owner ${toString guestUid} -o tailscale0 -j REJECT
+      iptables -A OUTPUT -m owner --uid-owner ${toString guestUid} -d 100.64.0.0/10 -j REJECT
+    '';
 
     # ⚖️ LIMITS
     systemd.slices."user-${toString guestUid}" = {

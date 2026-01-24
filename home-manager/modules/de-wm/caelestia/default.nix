@@ -1,1 +1,4 @@
-{ ... }: { imports = [ ./caelestia-main.nix ]; }
+{ ... }:
+{
+  imports = [ ./caelestia-main.nix ];
+}

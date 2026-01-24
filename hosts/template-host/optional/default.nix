@@ -1,4 +1,3 @@
-
 { lib, vars, ... }:
 let
   genPath = ./general-hm-modules;
@@ -16,9 +15,7 @@ let
 
     home-manager.users.${vars.user} = {
       imports =
-        [ ]
-        ++ lib.optional genExists ./general-hm-modules
-        ++ lib.optional hostExists ./host-hm-modules;
+        [ ] ++ lib.optional genExists ./general-hm-modules ++ lib.optional hostExists ./host-hm-modules;
     };
   };
 in

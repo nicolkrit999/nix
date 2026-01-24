@@ -1,6 +1,11 @@
 { pkgs, pkgs-unstable, lib, vars, ... }:
 let policyRoot = "/home/${vars.user}/.librewolf-policyroot";
 in {
+  imports = [
+    # Common home-manager krit modules
+    ../../../../common/krit/modules/home-manager
+  ];
+
   home.packages = (with pkgs; [
 
     # -----------------------------------------------------------------------------------

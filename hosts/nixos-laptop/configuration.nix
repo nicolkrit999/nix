@@ -1,18 +1,14 @@
 { config, pkgs, lib, vars, ... }: {
-  # home.nix and host-modules are imported from flake.nix
-  imports = [
-    # Packages specific to this machine
-    ./optional/host-packages/default.nix
 
-    # These are manually imported here because they contains aspects that home-manager can not handle alone
-    ./optional/host-hm-modules/utilities/logitech.nix # boot
-    #./optional/host-hm-modules/nas/smb.nix # user
-    #./optional/host-hm-modules/nas/borg-backup.nix # user
-    #./optional/host-hm-modules/nas/ssh.nix # user
-    #./optional/host-hm-modules/nas/owncloud.nix # user
-  ] ++ (lib.optional
-    (builtins.pathExists ./optional/dev-environments/default.nix)
-    ./optional/dev-environments/default.nix);
+  imports = [
+    # Common krit modules
+    # This import common system-wide modules
+    ../../common/krit/modules/default.nix
+
+    # Local modules
+    # This import host-specific modules
+    ./optional/default.nix
+  ];
 
   # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   # 🌍 LOCALE
@@ -30,7 +26,7 @@
      # 2. GLOBAL SECRETS DEFINITION
      sops.secrets =
        let
-         commonSecrets = ../../common/krit-common-secrets-sops.yaml;
+         commonSecrets = ../../common/krit/sops/krit-common-secrets-sops.yaml;
        in
        {
          # LOCAL SECRETS:

@@ -1,13 +1,19 @@
-{ pkgs, lib, config, vars, inputs, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  vars,
+  inputs,
+  ...
+}:
 let
   # Detect which shell hyprland has to avoid conflicts
-  enableHyprland = (vars.hyprland or false) && (vars.hyprlandNoctalia or false)
-    && !(vars.hyprlandCaelestia or false);
+  enableHyprland =
+    (vars.hyprland or false) && (vars.hyprlandNoctalia or false) && !(vars.hyprlandCaelestia or false);
 
   enableNiri = (vars.niri or false) && (vars.niriNoctalia or false);
 
-  noctaliaPkg =
-    inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   extraQmlPackages = [
     pkgs.kdePackages.kirigami
@@ -57,35 +63,36 @@ let
 
     # Optional: Sync weather location from Nix variables on boot
     sleep 5
-    ${noctaliaPkg}/bin/noctalia-shell ipc call location set "${
-      vars.weather or "London"
-    }"
+    ${noctaliaPkg}/bin/noctalia-shell ipc call location set "${vars.weather or "London"}"
 
     wait $PID
   '';
-in {
+in
+{
 
-  config = lib.mkIf (
-    (enableHyprland || enableNiri) && 
-    pkgs.stdenv.hostPlatform.system == "x86_64-linux"
-  ) {
+  config =
+    lib.mkIf ((enableHyprland || enableNiri) && pkgs.stdenv.hostPlatform.system == "x86_64-linux")
+      {
 
-    home.packages = [
-      noctaliaPkg
-      startNoctalia
+        home.packages = [
+          noctaliaPkg
+          startNoctalia
 
-      # Runtime dependencies
-      pkgs.wlsunset
-      pkgs.cava
-      pkgs.evolution-data-server
-    ] ++ extraQmlPackages;
+          # Runtime dependencies
+          pkgs.wlsunset
+          pkgs.cava
+          pkgs.evolution-data-server
+        ]
+        ++ extraQmlPackages;
 
-    # Hyprland Autostart
-    wayland.windowManager.hyprland.settings.exec-once =
-      lib.optionals enableHyprland [ "start-noctalia" ];
+        # Hyprland Autostart
+        wayland.windowManager.hyprland.settings.exec-once = lib.optionals enableHyprland [
+          "start-noctalia"
+        ];
 
-    # Niri Autostart
-    programs.niri.settings.spawn-at-startup =
-      lib.optionals enableNiri [{ command = [ "start-noctalia" ]; }];
-  };
+        # Niri Autostart
+        programs.niri.settings.spawn-at-startup = lib.optionals enableNiri [
+          { command = [ "start-noctalia" ]; }
+        ];
+      };
 }
