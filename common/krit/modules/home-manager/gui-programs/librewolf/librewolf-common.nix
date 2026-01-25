@@ -23,11 +23,15 @@ let
       # Allow cookie permissions for the auth domains
       Cookies = {
         Allow = [
+
+          # Authentication domains
           "https://pocket-id.nicolkrit.ch"
           "https://nicolkrit.cloudflareaccess.com"
 
-          # keep your other sites too
+          # Various
           "https://kagi.com"
+
+          # Proton
           "https://proton.me"
           "https://account.proton.me"
           "https://api.proton.me"
@@ -46,6 +50,8 @@ let
           "https://app.simplelogin.io"
           "https://simplelogin.com"
           "https://auth.simplelogin.com"
+
+          # Personal domain
           "https://nicolkrit.ch"
           "https://nas.nicolkrit.ch"
         ];
