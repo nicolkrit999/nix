@@ -18,7 +18,7 @@ in {
   # ---------------------------------------------------------
   # 🌍 LOCALE & TIME
   # ---------------------------------------------------------
-  time.timeZone = vars.timeZone;
+  time.timeZone = vars.timeZone or "Etc/UTC";
 
   # Keyboard Layout
   services.xserver.xkb = {

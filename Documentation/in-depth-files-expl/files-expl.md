@@ -1492,15 +1492,18 @@ in
           # Weather module with wttr.in
           # It fetches the location from variables.nix and when clicked the favorite browser opens wttr.in page
           "custom/weather" = {
-            format = "<span color='${c.base0C}'>${vars.weather}:</span> {} ";
-            exec =
-              let
-                unit = if (vars.useFahrenheit or false) then "°C" else "°F";
-              in
-              "curl -s 'wttr.in/${vars.weather}?format=%c%t&${unit}' | sed 's/ //'";
+            format = "<span color='${c.base0C}'>${
+                vars.weather or "London"
+              }:</span> {} ";
+
+            exec = let weatherLoc = vars.weather or "London";
+            in "curl -s 'wttr.in/${weatherLoc}?format=%c%t' | sed 's/ //'";
+
             interval = 300;
             class = "weather";
-            on-click = ''xdg-open "https://wttr.in/${vars.weather}"'';
+
+            on-click =
+              ''xdg-open "https://wttr.in/${vars.weather or "London"}"'';
           };
 
           "pulseaudio" = {
@@ -2533,7 +2536,7 @@ in
   # ---------------------------------------------------------
   # 🌍 LOCALE & TIME
   # ---------------------------------------------------------
-  time.timeZone = vars.timeZone;
+  time.timeZone = vars.timeZone or "Etc/UTC";
 
   # Keyboard Layout
   services.xserver.xkb = {
