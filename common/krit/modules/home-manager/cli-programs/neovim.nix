@@ -1,4 +1,10 @@
-{ pkgs, lib, vars, ... }: {
+{
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
+{
 
   # Needed to allow to launch nvim in the chosen terminal and see the icon in the "pinned" dock section
   xdg.desktopEntries.custom-nvim = lib.mkForce {
@@ -11,9 +17,14 @@
     icon = "nvim";
     startupNotify = true;
 
-    settings = { StartupWMClass = "nvim"; };
+    settings = {
+      StartupWMClass = "nvim";
+    };
 
-    categories = [ "Utility" "TextEditor" ];
+    categories = [
+      "Utility"
+      "TextEditor"
+    ];
   };
 
   programs.neovim = {
@@ -43,8 +54,15 @@
       pyright # Static type checker for Python
 
       # --- Treesitter & Parsers ---
-      (pkgs.vimPlugins.nvim-treesitter.withPlugins
-        (p: [ p.lua p.vim p.json p.toml p.html p.hyprlang p.regex ]))
+      (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
+        p.lua
+        p.vim
+        p.json
+        p.toml
+        p.html
+        p.hyprlang
+        p.regex
+      ]))
 
       # --- Fonts ---
       nerd-fonts.hack # Fonts for icons
