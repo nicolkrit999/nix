@@ -1,22 +1,14 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
+{ config, pkgs, lib, vars, ... }:
 let
   currentShell = vars.shell or "zsh";
 
-  shellPkg =
-    if currentShell == "fish" then
-      pkgs.fish
-    else if currentShell == "zsh" then
-      pkgs.zsh
-    else
-      pkgs.bashInteractive;
-in
-{
+  shellPkg = if currentShell == "fish" then
+    pkgs.fish
+  else if currentShell == "zsh" then
+    pkgs.zsh
+  else
+    pkgs.bashInteractive;
+in {
 
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY
@@ -40,12 +32,7 @@ in
   # ---------------------------------------------------------
   # 🛠️ NIX SETTINGS
   # ---------------------------------------------------------
-  nix.settings = {
-    trusted-users = [
-      "root"
-      "@wheel"
-    ];
-  };
+  nix.settings = { trusted-users = [ "root" "@wheel" ]; };
 
   # Allow unfree packages globally (needed for drivers, code, etc.)
   nixpkgs.config.allowUnfree = true;
@@ -53,8 +40,7 @@ in
   # ---------------------------------------------------------
   # 📦 SYSTEM PACKAGES
   # ---------------------------------------------------------
-  environment.systemPackages =
-    with pkgs;
+  environment.systemPackages = with pkgs;
     [
       # --- CLI UTILITIES ---
       dix # Nix diff viewer
@@ -88,8 +74,7 @@ in
       libsForQt5.qt5.qtwayland # Qt5 Wayland bridge
       kdePackages.qtwayland # Qt6 Wayland bridge
       powerline-symbols # Terminal font glyphs
-    ]
-    ++ (with pkgs.kdePackages; [
+    ] ++ (with pkgs.kdePackages; [
       gwenview # Default image viewer as defined in mime.nix
       kio-extras # Extra protocols for KDE file dialogs (needed for dolphin remote access)
       kio-fuse # Mount remote filesystems (via ssh, ftp, etc.) in Dolphin
@@ -121,20 +106,21 @@ in
   services.openssh.enable = true;
 
   # Wrappers for GPU Screen Recorder (needed for Caelestia/Recording)
-  security.wrappers = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
-    gpu-screen-recorder = {
-      owner = "root";
-      group = "root";
-      capabilities = "cap_sys_admin+ep";
-      source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
+  security.wrappers =
+    lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
+      gpu-screen-recorder = {
+        owner = "root";
+        group = "root";
+        capabilities = "cap_sys_admin+ep";
+        source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
+      };
+      gsr-kms-server = {
+        owner = "root";
+        group = "root";
+        capabilities = "cap_sys_admin+ep";
+        source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
+      };
     };
-    gsr-kms-server = {
-      owner = "root";
-      group = "root";
-      capabilities = "cap_sys_admin+ep";
-      source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
-    };
-  };
 
   # Polkit Rules: Realtime Audio & GPU Recorder Permissions
   security.polkit.enable = true;
@@ -173,14 +159,11 @@ in
   environment.variables.GTK_APPLICATION_PREFER_DARK_THEME =
     if vars.polarity == "dark" then "1" else "0";
 
-  #home-manager.backupFileExtension = lib.mkForce "hm-backup";
   # -----------------------------------------------------
   # ⚡ SYSTEM TWEAKS
   # -----------------------------------------------------
   # Reduce shutdown wait time for stuck services
-  systemd.settings.Manager = {
-    DefaultTimeoutStopSec = "10s";
-  };
+  systemd.settings.Manager = { DefaultTimeoutStopSec = "10s"; };
 
   # Enable home-manager backup files
   home-manager.backupFileExtension = lib.mkForce "hm-backup";

@@ -1,41 +1,12 @@
 - [🏠 Home Manager (`home-manager/`)](#-home-manager-home-manager)
   - [`home.nix`](#homenix)
-  - [`home-packages.nix`](#home-packagesnix)
-  - [📂 General modules](#-general-modules)
-    - [`bat.nix`](#batnix)
-    - [`core.nix`](#corenix)
-    - [`eza.nix`](#ezanix)
-    - [`git.nix`](#gitnix)
-    - [`lazygit.nix`](#lazygitnix)
-    - [`mime.nix`](#mimenix)
-    - [`neovim.nix`](#neovimnix)
-    - [`qt.nix`](#qtnix)
-    - [`starship.nix`](#starshipnix)
-    - [`stylix.nix`](#stylixnix)
-    - [`tmux.nix`](#tmuxnix)
-    - [`zsh.nix`](#zshnix)
-  - [🪟 Caelestia \& noctalia (`home-manager/modules/de-wm/.../`)](#-caelestia--noctalia-home-managermodulesde-wm)
-    - [`caelestia-main.nix` and `noctalia-main.nix`](#caelestia-mainnix-and-noctalia-mainnix)
-  - [🪟 Cosmic Sub-modules (`home-manager/modules/de-wm/cosmic/`)](#-cosmic-sub-modules-home-managermodulesde-wmcosmic)
-    - [`cosmic-main.nix`](#cosmic-mainnix)
-    - [`default.nix`](#defaultnix)
-    - [`cosmic-binds.nix`](#cosmic-bindsnix)
-  - [🪟 GNOME Home Manager Sub-modules (`home-manager/modules/de-wm/gnome/`)](#-gnome-home-manager-sub-modules-home-managermodulesde-wmgnome)
-    - [`default.nix`](#defaultnix-1)
-    - [`gnome-main.nix`](#gnome-mainnix)
-    - [`gnome-binds.nix`](#gnome-bindsnix)
-  - [🪟 Hyprland Sub-modules (`home-manager/modules/de-wm/hyprland/`)](#-hyprland-sub-modules-home-managermodulesde-wmhyprland)
-    - [`hyprland-binds.nix`](#hyprland-bindsnix)
-    - [`default.nix`](#defaultnix-2)
-    - [`hyprland-hypridle.nix`](#hyprland-hypridlenix)
-    - [`hyprland-hyprlock.nix`](#hyprland-hyprlocknix)
     - [`hyprland-hyprpaper.nix`](#hyprland-hyprpapernix)
     - [`hyprland-main.nix`](#hyprland-mainnix)
   - [🪟 Niri Sub-modules (`home-manager/modules/de-wm/niri/`)](#-niri-sub-modules-home-managermodulesde-wmniri)
     - [`niri-binds.nix`](#niri-bindsnix)
     - [`niri-main.nix`](#niri-mainnix)
   - [🪟 KDE Plasma Sub-modules (`home-manager/modules/de-wm/kde/`)](#-kde-plasma-sub-modules-home-managermodulesde-wmkde)
-    - [`default.nix`](#defaultnix-3)
+    - [`default.nix`](#defaultnix)
     - [`kde-desktop.nix`](#kde-desktopnix)
     - [`kde-files.nix`](#kde-filesnix)
     - [`kde-input.nix`](#kde-inputnix)
@@ -45,10 +16,10 @@
     - [`kde-panels.nix`](#kde-panelsnix)
     - [`kde-binds.nix`](#kde-bindsnix)
   - [📊 Waybar Sub-modules (`home-manager/modules/cli-programs/waybar/`)](#-waybar-sub-modules-home-managermodulescli-programswaybar)
-    - [`default.nix`](#defaultnix-4)
+    - [`default.nix`](#defaultnix-1)
     - [`style.css`](#stylecss)
   - [🚀 Wofi Sub-modules (`home-manager/modules/cli-programs/wofi/`)](#-wofi-sub-modules-home-managermodulescli-programswofi)
-    - [`default.nix`](#defaultnix-5)
+    - [`default.nix`](#defaultnix-2)
     - [`style.css`](#stylecss-1)
 
 # 🏠 Home Manager (`home-manager/`)
@@ -64,9 +35,6 @@ The main entry point for Home Manager. It imports the modules folder and the pac
 - It include a script `removeExistingConfigs` which fix the clobbered error for certain files
   - Files or directories that cause these kind of error can be added here.
   - A more graceful solution is to add in this file the backup block. I did not opted for this solution because i do not want to have to cleanup useless backups from time to time.
-    - While opting for the backup solution what happen is that the conflicting file, is renamed, creating a backup. Then home-manager handle the original file name. This can be achieved by adding the following code:
-  ```nix
-   home.backupFileExtension = "backup";
   ```
 
 ## `home-packages.nix`
