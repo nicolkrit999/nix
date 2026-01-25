@@ -6,14 +6,14 @@ let
   # ---------------------------------------------------------
   nasUser = "krit";
   nasHost = "nicol-nas"; # Tailscale MagicDNS
-  nasPath = "/volume1/Default-volume-1/0001_Docker/borgitory/${config.networking.hostName}";
+  nasPath =
+    "/volume1/Default-volume-1/0001_Docker/borgitory/${config.networking.hostName}";
 
   # Loc-2a. Borg-backup with tailscale backup folder passphrase
   passphraseFile = config.sops.secrets.borg-passphrase.path;
   # Loc-2a. Borg-backup with tailscale private ssh key to access the nas
   sshKeyPath = config.sops.secrets.borg-private-key.path;
-in
-{
+in {
   services.borgmatic = {
     enable = true;
 
@@ -23,12 +23,10 @@ in
         # 1. Sources & Destinations
         source_directories = [ "/home/krit" ];
 
-        repositories = [
-          {
-            path = "ssh://${nasUser}@${nasHost}${nasPath}";
-            label = "nas-repo";
-          }
-        ];
+        repositories = [{
+          path = "ssh://${nasUser}@${nasHost}${nasPath}";
+          label = "nas-repo";
+        }];
 
         # 2. Exclusions
         exclude_patterns = [
@@ -76,7 +74,6 @@ in
           "/home/*/.mozilla"
           "home/*/.librewolf"
           "home/*/.librewolf-policyroot"
-          "/home/*/.config/google-chrome"
           "/home/*/.config/chromium"
           "/home/*/.config/BraveSoftware"
 
@@ -140,10 +137,7 @@ in
         keep_yearly = 3; # The last 3 years have a backup every year
 
         # 5. Consistency Checks
-        checks = [
-          { name = "repository"; }
-          { name = "archives"; }
-        ];
+        checks = [ { name = "repository"; } { name = "archives"; } ];
         check_last = 3;
       };
     };

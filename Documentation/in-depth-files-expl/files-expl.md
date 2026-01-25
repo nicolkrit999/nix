@@ -728,7 +728,7 @@ let
   # 🛡️ SAFE FALLBACKS for browser, fileManager, editor
   # If the user's choice is invalid or missing, these are installed.
   fallbackTerm = pkgs.alacritty;
-  fallbackBrowser = pkgs.google-chrome;
+  fallbackBrowser = pkgs.brave;
   fallbackFileManager = pkgs.kdePackages.dolphin;
   fallbackEditor = pkgs.vscode;
 
