@@ -3009,7 +3009,13 @@ in
 
     # 📦 GUEST PACKAGES
     environment.systemPackages = with pkgs; [
-      (google-chrome.override { commandLineArgs = "--no-first-run --no-default-browser-check"; })
+      (firefox.override {
+        extraPolicies = {
+          DisableFirstRunPage = true;
+          DontCheckDefaultBrowser = true;
+          DisableTelemetry = true;
+        };
+      })
       file-roller # Archive manager
       zenity # keep for the startup warning
     ];
