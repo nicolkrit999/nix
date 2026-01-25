@@ -31,12 +31,12 @@
 
   # Hyprland Options
   # These 2 should not be true at the same time
-  # FIXME: They need gpu-screen-recorder to work, which is not supported on aarch64
+  # Not supported on aarch64 yet. Wait
   hyprlandCaelestia = false; # Enable Caelestia for Hyprland
   hyprlandNoctalia = false; # Enable Noctalia for Hyprland
 
   # Niri Options
-  # FIXME: They need gpu-screen-recorder to work, which is not supported on aarch64
+  # Not supported on aarch64 yet. Wait
   niriNoctalia = false; # Enable Noctalia for Niri (No Caelestia support on Niri)
 
   # 📦 PACKAGES & TERMINAL

@@ -175,7 +175,7 @@ in
 {
   config = lib.mkIf (vars.hyprland or vars.gnome or vars.kde or vars.cosmic or false) {
     programs.wofi = {
-      enable = true;
+      enable = false;
 
       settings = {
         show = "drun";

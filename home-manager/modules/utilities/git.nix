@@ -3,8 +3,8 @@
   programs.git = {
     enable = true;
 
-    userName = lib.mkIf (vars ? gitUserName) vars.gitUserName;
-    userEmail = lib.mkIf (vars ? gitUserEmail) vars.gitUserEmail;
+    settings.user.name = lib.mkIf (vars ? gitUserName) vars.gitUserName;
+    settings.user.email = lib.mkIf (vars ? gitUserEmail) vars.gitUserEmail;
 
     lfs.enable = true;
 

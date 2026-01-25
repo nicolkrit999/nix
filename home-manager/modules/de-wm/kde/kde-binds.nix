@@ -7,13 +7,6 @@
 }:
 let
   spectacleCmd = "${pkgs.kdePackages.spectacle}/bin/spectacle";
-
-  bemojiScript = pkgs.writeShellScript "launch-bemoji" ''
-    ${pkgs.bemoji}/bin/bemoji -cn
-  '';
-  cliphistScript = pkgs.writeShellScript "launch-cliphist" ''
-    ${pkgs.cliphist}/bin/cliphist list | ${pkgs.wofi}/bin/wofi --dmenu | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
-  '';
 in
 {
   # ---------------------------------------------------------
@@ -59,17 +52,18 @@ in
     };
 
     # --- OTHER APPS ---
-    "launch-wofi" = {
+    "launch-walker" = {
       key = "Meta+A";
-      command = "${pkgs.wofi}/bin/wofi --show drun";
+      command = "walker";
     };
-    "launch-bemoji" = {
+
+    "launch-emoji" = {
       key = "Meta+.";
-      command = "${bemojiScript}";
+      command = "walker -m emojis";
     };
-    "launch-cliphist" = {
+    "launch-clipboard" = {
       key = "Meta+V";
-      command = "${cliphistScript}";
+      command = "walker -m clipboard";
     };
     "launch-browser" = {
       key = "Meta+B";

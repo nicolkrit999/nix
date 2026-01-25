@@ -120,7 +120,6 @@ in
       slurp # Region selector for screenshots
       libnotify # Notifications
       hyprpicker # Color Picker
-      wofi # App Launcher
       wl-clipboard # Clipboard
       pavucontrol # GUI Volume Control
       brightnessctl # Laptop Brightness Keys (Fn+F keys)
@@ -205,6 +204,17 @@ in
               "${wallpaperFile}"
             ];
           }
+
+          {
+            command = [
+              "wl-paste"
+              "--watch"
+              "walker"
+              "--modules"
+              "clipboard"
+            ];
+          }
+
         ]
         ++ (map (cmd: {
           command = [

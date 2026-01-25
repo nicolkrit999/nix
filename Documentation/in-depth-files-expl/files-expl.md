@@ -1032,7 +1032,6 @@ in
         # Dynamic menu command based on launcher choice
         "$menu" = "${
           if (vars.hyprlandCaelestia or false) then
-            # 🟢 FIXED: Use the wrapper + the correct 'drawers' command
             "caelestiaqs ipc call drawers toggle launcher"
           else if (vars.hyprlandNoctalia or false) then
             "sh -c '${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle'"

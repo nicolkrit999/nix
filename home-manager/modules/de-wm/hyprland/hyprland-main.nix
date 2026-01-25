@@ -105,22 +105,24 @@ in
         }";
 
         # Dynamic menu command based on launcher choice
-        "$menu" = "${
+        "$menu" = "walker";
+
+        # 2. SHELL SPECIFIC LAUNCHER (Noctalia / Caelestia)
+        "$shellMenu" = "${
           if (vars.hyprlandCaelestia or false) then
-            # 🟢 FIXED: Use the wrapper + the correct 'drawers' command
             "caelestiaqs ipc call drawers toggle launcher"
           else if (vars.hyprlandNoctalia or false) then
             "sh -c '${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle'"
           else
-            "wofi --show drun"
+            "walker"
         }";
 
         # -----------------------------------------------------
         # 🚀 Startup Apps
         # ----------------------------------------------------
         exec-once = [
-          "wl-paste --type text --watch cliphist store" # Start clipboard manager for text
-          "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
+          "wl-paste --watch walker -m clipboard"
+
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
           "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP" # Keeps dbus environment updated for Wayland apps.

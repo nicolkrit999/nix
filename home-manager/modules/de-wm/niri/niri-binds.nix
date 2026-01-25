@@ -25,7 +25,9 @@ let
 
   noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-  launcherCommand =
+  walkerCommand = [ "walker" ];
+
+  shellLauncherCommand =
     if (vars.niriNoctalia or false) then
       [
         "sh"
@@ -33,11 +35,7 @@ let
         "${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle"
       ]
     else
-      [
-        "wofi"
-        "--show"
-        "drun"
-      ];
+      [ "walker" ];
 in
 {
   config = lib.mkIf (vars.niri or false) {
@@ -49,7 +47,8 @@ in
       "Mod+Return".action.spawn = [ "${vars.term}" ];
 
       # Launcher
-      "Mod+A".action.spawn = launcherCommand;
+      "Mod+A".action.spawn = walkerCommand;
+      "Mod+Shift+A".action.spawn = shellLauncherCommand;
 
       # Browser
       "Mod+B".action.spawn = [ "${vars.browser}" ];
@@ -205,18 +204,22 @@ in
       # 🛠️ UTILITIES
       # -----------------------------------------------------------------------
       "Mod+Period".action.spawn = [
-        "bemoji"
-        "-cn"
+        "walker"
+        "-m"
+        "emojis"
       ]; # Emoji
+
       "Mod+Shift+P".action.spawn = [
         "hyprpicker"
         "-an"
       ]; # Color Picker
+
       "Mod+V".action.spawn = [
-        "bash"
-        "-c"
-        "${pkgs.cliphist}/bin/cliphist list | wofi --dmenu | ${pkgs.cliphist}/bin/cliphist decode | wl-copy"
+        "walker"
+        "-m"
+        "clipboard"
       ]; # Clipboard History
+
       "Mod+O".action.toggle-overview = [ ]; # Window Overview
 
       "Mod+Shift+R".action.spawn = [

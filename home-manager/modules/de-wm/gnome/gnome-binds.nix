@@ -5,9 +5,6 @@
   ...
 }:
 let
-  cliphistScript = pkgs.writeShellScript "launch-cliphist" ''
-    ${pkgs.cliphist}/bin/cliphist list | ${pkgs.wofi}/bin/wofi --dmenu | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
-  '';
 
   screenshotScript = pkgs.writeShellScript "launch-screenshot" ''
     # Create the filename with timestamp
@@ -70,12 +67,19 @@ let
     }
     {
       name = "Emoji Picker";
-      command = "${pkgs.bemoji}/bin/bemoji -cn";
+      command = "walker -m emojis";
       binding = "<Super>Period";
     }
+
+    {
+      name = "Application Launcher";
+      command = "walker";
+      binding = "<Super>a";
+    }
+
     {
       name = "Clipboard History";
-      command = "${cliphistScript}";
+      command = "walker -m clipboard";
       binding = "<Super>v";
     }
 

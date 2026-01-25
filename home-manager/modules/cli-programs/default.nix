@@ -3,8 +3,9 @@
   imports = [
     ./swaync
     ./waybar
-    ./wofi
+    ./wofi # Unesed. Kept for reference
 
+    ./walker.nix
     ./neovim.nix
   ];
 }

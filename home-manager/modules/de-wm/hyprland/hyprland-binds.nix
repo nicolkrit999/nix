@@ -16,8 +16,8 @@
         "$Mod ALT,   P, pin" # Pin/unpin window. Copy the same windows to all workspaces with same dimensions and position
 
         # APPLICATION LAUNCHING
-        #"$Mod,      A, exec, wofi --show drun" # Fallback for the launcher
-        "$Mod,      A, exec, $menu" # Application launcher (wofi/rofi)
+        "$Mod,       A, exec, $menu" # Application launcher (walker)
+        "$Mod SHIFT, A, exec, $shellMenu" # Shell Specific launcher (Noctalia / Caelestia)
         "$Mod, return, exec, $term" # Default terminal chosen in ./main.nix
 
         # FILE MANAGER
@@ -34,9 +34,9 @@
         "$Mod,       Delete, exec, loginctl lock-session" # Lock
 
         # EXTRA UTILITIES
-        "$Mod,       period, exec, bemoji -cn" # Emoji picker
+        "$Mod, period, exec, walker -m emojis" # Emoji picker
         "$Mod SHIFT, P, exec, hyprpicker -an" # Color picker
-        "$Mod,       V, exec, cliphist list | wofi --dmenu | cliphist decode | wl-copy" # Clipboard history (cliphist)
+        "$Mod,       V, exec, walker -m clipboard" # Clipboard manager
         "$Mod SHIFT, R, exec, hyprctl reload" # Reload Hyprland config
         "$Mod,       N, exec, swaync-client -t" # Open notification center
 
