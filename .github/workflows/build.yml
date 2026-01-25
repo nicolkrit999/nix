@@ -44,6 +44,7 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
         with:
+          flakehub: false
           extra-conf: |
             build-dir = /nix/build
             auto-optimise-store = true
@@ -102,6 +103,7 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
         with:
+          flakehub: false
           extra-conf: |
             build-dir = /nix/build
             extra-platforms = aarch64-linux
