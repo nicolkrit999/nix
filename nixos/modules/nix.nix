@@ -22,9 +22,6 @@
   };
 
   # 🗑️ GARBAGE COLLECTION
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 30d";
-  };
+  # It is set in "nh.nix"
+  nix.gc.automatic = false;
 }

@@ -6,10 +6,9 @@ This guide contains an in-depth analysis of every file
 
 Categories can be navigated with the links below:
 
-* **[❄️ Core Configuration](./sections/Core.md)**: Entry point (`flake.nix`), inputs, and global variables.
-* **[⚙️ System Modules (NixOS)](./sections/NixOS.md)**: Bootloader, hardware, networking, and user management.
-* **[🏠 User Modules (Home Manager)](./sections/HomeManager.md)**: Applications, themes, Hyprland, and shell customization.
-
+- **[❄️ Core Configuration](./sections/Core.md)**: Entry point (`flake.nix`), inputs, and global variables.
+- **[⚙️ System Modules (NixOS)](./sections/NixOS.md)**: Bootloader, hardware, networking, and user management.
+- **[🏠 User Modules (Home Manager)](./sections/HomeManager.md)**: Applications, themes, Hyprland, and shell customization.
 
 ## 🌳 File Tree
 
@@ -135,5 +134,3 @@ Categories can be navigated with the links below:
 │       └── zram.nix
 └── README.md
 ```
-
-

@@ -115,7 +115,6 @@
     - [2. Global Shell Enforcement](#2-global-shell-enforcement)
   - [The Code](#the-code-19)
 
-
 # ~nixOS/flake.nix
 
 The `flake.nix` file is the **brain** of the configuration. It is the entry point where Nix starts reading. Its job is not to configure the system (it doesn't set wallpapers or install packages directly), but to **orchestrate** the build process.
@@ -134,17 +133,17 @@ It performs three main tasks:
 
 We define two distinct builders functions:
 
-* `makeSystem`: Builds the operating system (`configuration.nix`). It handles bootloaders, drivers, and root-level settings.
-* `makeHome`: Builds the user environment (`home.nix`). It handles themes, dotfiles, and user programs.
+- `makeSystem`: Builds the operating system (`configuration.nix`). It handles bootloaders, drivers, and root-level settings.
+- `makeHome`: Builds the user environment (`home.nix`). It handles themes, dotfiles, and user programs.
 
 ### 2. Dynamic Variable Merging vs. Module Loading
 
 The build process separates "Data" from "Configuration":
 
 1. **Data Merging (`variables.nix` + `modules.nix`):**
-The system loads `variables.nix` and merges it with the optional `modules.nix`. These provide the **inputs** (like "enable hyprland" or "username").
+   The system loads `variables.nix` and merges it with the optional `modules.nix`. These provide the **inputs** (like "enable hyprland" or "username").
 2. **Module Loading (`home.nix`):**
-Once the variables are calculated, the system loads the code. It includes the generic `home-manager/home.nix` and, if it exists, adds the specific `hosts/<host>/home.nix` to the load list.
+   Once the variables are calculated, the system loads the code. It includes the generic `home-manager/home.nix` and, if it exists, adds the specific `hosts/<host>/home.nix` to the load list.
 
 ---
 
@@ -435,13 +434,11 @@ Once the variables are calculated, the system loads the code. It includes the ge
 }
 ```
 
-
 # ~nixOS/home-manager/home.nix
 
-The `home.nix` file is the **root configuration** for Home Manager. While `configuration.nix` manages the *system* (drivers, bootloader, root users), `home.nix` manages the *user* (dotfiles, themes, user-specific packages).
+The `home.nix` file is the **root configuration** for Home Manager. While `configuration.nix` manages the _system_ (drivers, bootloader, root users), `home.nix` manages the _user_ (dotfiles, themes, user-specific packages).
 
 It serves as the foundation upon which your personal environment is built.
-
 
 ## The Code
 
@@ -538,7 +535,6 @@ It serves as the foundation upon which your personal environment is built.
 }
 ```
 
-
 ---
 
 ## Key Concepts
@@ -551,28 +547,26 @@ This file establishes who the user is. It receives variables like `user` and `ho
 
 Instead of listing every single program here, `home.nix` uses an **imports** list.
 
-* `modules/core.nix`: Use the `core.nix` file to import the specific modules which provide the general experience, such as `lazygit.nix`, `starship.nix` etc.
-* `home-packages.nix`: Loads the list of user-installed software. These are software that are available to all hosts.
-
+- `modules/core.nix`: Use the `core.nix` file to import the specific modules which provide the general experience, such as `lazygit.nix`, `starship.nix` etc.
+- `home-packages.nix`: Loads the list of user-installed software. These are software that are available to all hosts.
 
 ### 3. XDG Integration & KDE Fixes
 
 This section handles the crucial bridge between your declarative config and how Linux actually finds and launches applications.
 
-* **File Associations (`mimeApps`):**
-`xdg.mimeApps.enable = true;` is the switch that activates your `mime.nix` rules. Without this, your preferred default apps (like opening PDFs with Zathura or images with Gwenview) would be ignored.
-* **The KDE Launcher & Dolphin Fix (`applications.menu`):**
-KDE applications (Dolphin, KRunner) rely on a specific file, `applications.menu`, to build their internal database of installed programs. In pure Window Managers like Hyprland, this file is often missing.
-* **The Problem:** If missing, `kbuildsycoca6` (KDE's cache builder) fails. Dolphin won't know that "Gwenview" exists, so it keeps asking you "Which app should I use?" and fails to generate thumbnails.
-* **The Fix:** We manually create a standard XDG menu file. This tricks KDE into correctly scanning your system, fixing file associations, thumbnails, and ensuring apps appear correctly in menus.
-
+- **File Associations (`mimeApps`):**
+  `xdg.mimeApps.enable = true;` is the switch that activates your `mime.nix` rules. Without this, your preferred default apps (like opening PDFs with Zathura or images with Gwenview) would be ignored.
+- **The KDE Launcher & Dolphin Fix (`applications.menu`):**
+  KDE applications (Dolphin, KRunner) rely on a specific file, `applications.menu`, to build their internal database of installed programs. In pure Window Managers like Hyprland, this file is often missing.
+- **The Problem:** If missing, `kbuildsycoca6` (KDE's cache builder) fails. Dolphin won't know that "Gwenview" exists, so it keeps asking you "Which app should I use?" and fails to generate thumbnails.
+- **The Fix:** We manually create a standard XDG menu file. This tricks KDE into correctly scanning your system, fixing file associations, thumbnails, and ensuring apps appear correctly in menus.
 
 ### 4. Imperative Actions (Activation Scripts)
 
-Nix is declarative (defining *what* should exist), but sometimes we need to perform actions *when* the configuration switches.
+Nix is declarative (defining _what_ should exist), but sometimes we need to perform actions _when_ the configuration switches.
 
-* **Cleanup:** We use activation scripts to forcibly remove conflicting config files (like old GTK settings) that might prevent Home Manager from writing new symlinks.
-* **Creation:** We ensure essential directories (like `Pictures/screenshots`) exist before applications try to use them.
+- **Cleanup:** We use activation scripts to forcibly remove conflicting config files (like old GTK settings) that might prevent Home Manager from writing new symlinks.
+- **Creation:** We ensure essential directories (like `Pictures/screenshots`) exist before applications try to use them.
 
 ---
 
@@ -597,7 +591,7 @@ Nix is declarative (defining *what* should exist), but sometimes we need to perf
   imports = [
     # Import the home-manager modules defined in core.nix
     ./modules/core.nix
-    
+
     # The list of software to install for the user
     ./home-packages.nix
   ];
@@ -609,10 +603,10 @@ Nix is declarative (defining *what* should exist), but sometimes we need to perf
   home = {
     username = user;
     homeDirectory = "/home/${user}";
-    
+
     # Controls the state version for Home Manager.
     # This determines which default settings are applied and ensures backward compatibility.
-    stateVersion = homeStateVersion; 
+    stateVersion = homeStateVersion;
   };
 
   # -----------------------------------------------------------------------
@@ -657,7 +651,7 @@ Nix is declarative (defining *what* should exist), but sometimes we need to perf
   # These scripts run every time you rebuild (switch) the home configuration.
   # They handle tasks that pure declarative config cannot do easily.
   home.activation = {
-    
+
     # 1. CLEANUP (Run BEFORE linking new files)
     # Removes conflicting configuration files that might have been created
     # by the OS or desktop environment, allowing Home Manager to overwrite them cleanly.
@@ -685,7 +679,7 @@ Nix is declarative (defining *what* should exist), but sometimes we need to perf
 
 # ~nixOS/home-manager/home-packages.nix
 
-This file defines the **Global Software List** that is installed on *every* machine you own. It combines your personal preferences (defined in variables) with a static list of essential system utilities required for your configuration to function.
+This file defines the **Global Software List** that is installed on _every_ machine you own. It combines your personal preferences (defined in variables) with a static list of essential system utilities required for your configuration to function.
 
 ---
 
@@ -695,22 +689,22 @@ This file defines the **Global Software List** that is installed on *every* mach
 
 Instead of hardcoding "firefox" or "neovim", this module intelligently installs the specific applications you selected in `variables.nix` (`term`, `browser`, `fileManager`, `editor`).
 
-* **How it works:** It looks up the package name in the Nixpkgs database.
-* **Safety Fallbacks:** If you mistype a name or leave a variable empty, it automatically installs a "safe" default (e.g., `kitty`, `google-chrome`, `dolphin`, `vscode`) so you are never left without a working system.
+- **How it works:** It looks up the package name in the Nixpkgs database.
+- **Safety Fallbacks:** If you mistype a name or leave a variable empty, it automatically installs a "safe" default (e.g., `kitty`, `google-chrome`, `dolphin`, `vscode`) so you are never left without a working system.
 
 ### 2. Global vs. Host-Specific
 
-* **Edit this file** if you want an application (like `ripgrep` or `htop`) to be available on **all** your computers (desktop, laptop, server).
-* **Do NOT edit this file** for machine-specific apps (e.g., install `steam` or `lutris`) if you don't want that package to be installed in all your hosts.
-  * The host specific packages should be installed in one of those 2 location inside your specific host folder:
-    * `home.nix`: These packages are installed only in the hosts machine but can be configured as a module inside home-manager
-    * `local-packages.nix`: These packages are installed only for that host and can not be configured as a home-manager module
+- **Edit this file** if you want an application (like `ripgrep` or `htop`) to be available on **all** your computers (desktop, laptop, server).
+- **Do NOT edit this file** for machine-specific apps (e.g., install `steam` or `lutris`) if you don't want that package to be installed in all your hosts.
+  - The host specific packages should be installed in one of those 2 location inside your specific host folder:
+    - `home.nix`: These packages are installed only in the hosts machine but can be configured as a module inside home-manager
+    - `local-packages.nix`: These packages are installed only for that host and can not be configured as a home-manager module
 
 ### 3. Critical Dependencies
 
 The static list below contains utilities that are **required** for your environment to work correctly (e.g., `ueberzugpp` for file previews, `cliphist` for clipboard history).
 
-* **⚠️ Note:** Do not remove packages from the static list unless you know exactly what you are doing. Each package has an inline comment explaining exactly which feature or script depends on it.
+- **⚠️ Note:** Do not remove packages from the static list unless you know exactly what you are doing. Each package has an inline comment explaining exactly which feature or script depends on it.
 
 ## The Code
 
@@ -794,9 +788,6 @@ in
 }
 ```
 
-
-
-
 # ~nixOS/home-manager/modules/gnome/gnome-main.nix
 
 This file manages the GNOME Desktop Environment settings. Since GNOME stores most of its configuration in a binary database called `dconf`, it is not possible to edit a simple text file like `hyprland.conf`. Instead, Home Manager's `dconf.settings` module is used to inject these settings directly into the database.
@@ -809,21 +800,21 @@ This file manages the GNOME Desktop Environment settings. Since GNOME stores mos
 
 Unlike Hyprland (which assigns specific wallpapers to specific monitor ports), GNOME handles wallpapers globally.
 
-* **Logic:** We use `builtins.head wallpapers` to grab the **first** wallpaper from your list in `variables.nix`.
-* **Fetching:** Nix downloads this image at build time (using `pkgs.fetchurl`) and stores it in the Nix store. We then point GNOME to this immutable path.
+- **Logic:** We use `builtins.head wallpapers` to grab the **first** wallpaper from your list in `variables.nix`.
+- **Fetching:** Nix downloads this image at build time (using `pkgs.fetchurl`) and stores it in the Nix store. We then point GNOME to this immutable path.
 
 ### 2. Adaptive Theming (Polarity)
 
 This module respects the `polarity` variable ("dark" or "light") defined in your host configuration.
 
-* It automatically switches the GNOME system interface (`prefer-dark` vs `prefer-light`).
-* It selects the appropriate icon theme variant (`Papirus-Dark` vs `Papirus-Light`).
+- It automatically switches the GNOME system interface (`prefer-dark` vs `prefer-light`).
+- It selects the appropriate icon theme variant (`Papirus-Dark` vs `Papirus-Light`).
 
 ### 3. Dconf Overrides
 
 We use `dconf.settings` to declaratively set preferences that you would normally change in "GNOME Settings" or "GNOME Tweaks".
 
-* **Window Buttons:** We explicitly add Minimize and Maximize buttons, which modern GNOME often hides by default.
+- **Window Buttons:** We explicitly add Minimize and Maximize buttons, which modern GNOME often hides by default.
 
 ---
 
@@ -909,14 +900,14 @@ It handles window placement, monitors, theming, and startup applications.
 
 Instead of hardcoding monitor ports (which change between laptops and desktops), this module pulls the `monitors` list from `variables.nix`.
 
-* **Logic:** It iterates through your defined monitors and adds a "fallback" rule (`preferred, auto, 1`) at the end. This ensures that if you plug in a new, undefined monitor, it still works immediately.
+- **Logic:** It iterates through your defined monitors and adds a "fallback" rule (`preferred, auto, 1`) at the end. This ensures that if you plug in a new, undefined monitor, it still works immediately.
 
 ### 2. Theming Bridge (Catppuccin vs. Stylix)
 
 This file acts as a bridge between your chosen theme and Hyprland's settings.
 
-* **If Catppuccin is enabled:** It uses the official Catppuccin module variables (`$accent`, `$overlay0`) for borders.
-* **If Catppuccin is disabled:** It extracts colors directly from **Stylix** (`config.lib.stylix.colors.base0D`) to match your Base16 theme perfectly.
+- **If Catppuccin is enabled:** It uses the official Catppuccin module variables (`$accent`, `$overlay0`) for borders.
+- **If Catppuccin is disabled:** It extracts colors directly from **Stylix** (`config.lib.stylix.colors.base0D`) to match your Base16 theme perfectly.
 
 ### 3. Environment & Compatibility
 
@@ -924,9 +915,8 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
 
 ### 4. Smart Rules
 
-* **Smart Gaps:** The config includes logic to remove gaps and borders when only one window is on the screen, maximizing screen real estate.
-* **Workspace Binding:** It imports `hyprlandWorkspaces` from your host-specific `modules.nix`. This allows the workspaces numbers and binding to be host-specific
-
+- **Smart Gaps:** The config includes logic to remove gaps and borders when only one window is on the screen, maximizing screen real estate.
+- **Workspace Binding:** It imports `hyprlandWorkspaces` from your host-specific `modules.nix`. This allows the workspaces numbers and binding to be host-specific
 
 ---
 
@@ -1195,8 +1185,6 @@ in
 }
 ```
 
-
-
 # ~nixOS/home-manager/modules/kde/kde-main.nix
 
 This file configures **KDE Plasma 6** using the community-driven `plasma-manager` module. Unlike GNOME (which uses `dconf`), KDE configuration is split across many different text files. `plasma-manager` abstracts this complexity, allowing us to configure the desktop declaratively.
@@ -1209,15 +1197,15 @@ This file configures **KDE Plasma 6** using the community-driven `plasma-manager
 
 KDE Plasma handles wallpapers differently than GNOME. It supports distinct wallpapers for distinct monitors out of the box.
 
-* **Logic:** We pass the **entire list** of wallpapers from `variables.nix`.
-* **Behavior:** `plasma-manager` automatically assigns the first wallpaper to the first monitor, the second to the second, and so on.
+- **Logic:** We pass the **entire list** of wallpapers from `variables.nix`.
+- **Behavior:** `plasma-manager` automatically assigns the first wallpaper to the first monitor, the second to the second, and so on.
 
 ### 2. Dynamic Theme Construction
 
 KDE themes often require specific naming conventions (e.g., "CatppuccinMochaSky").
 
-* **If Catppuccin is Enabled:** We construct the theme name dynamically by combining the flavor and accent (capitalizing the first letter of each). We also switch the widget style to `kvantum` for better styling support.
-* **If Catppuccin is Disabled:** We fall back to the standard "Breeze" themes (Dark or Light) based on the `polarity` variable.
+- **If Catppuccin is Enabled:** We construct the theme name dynamically by combining the flavor and accent (capitalizing the first letter of each). We also switch the widget style to `kvantum` for better styling support.
+- **If Catppuccin is Disabled:** We fall back to the standard "Breeze" themes (Dark or Light) based on the `polarity` variable.
 
 ### 3. Config Overrides
 
@@ -1328,7 +1316,6 @@ in
 
 ```
 
-
 # ~nixOS/home-manager/modules/waybar/default.nix
 
 This file configures **Waybar**, the status bar used in the Hyprland desktop environment. Unlike standard configurations that use static config files, this module builds the bar dynamically, allowing it to adapt to your theme, location, and host-specific preferences automatically.
@@ -1337,40 +1324,34 @@ This file configures **Waybar**, the status bar used in the Hyprland desktop env
 
 ## Key Concepts
 
-### 1. Hybrid Theming (CSS + Nix Variables) 
+### 1. Hybrid Theming (CSS + Nix Variables)
 
 Waybar is styled using CSS. To allow switching between themes (like Nord, Dracula, or Catppuccin) without rewriting the CSS file every time, we inject Nix variables directly into the stylesheet.
 
 **Catppuccin Mode:** If Catppuccin is enabled, we rely on the official module for most colors and only define the `@accent` variable based on your selected accent color.
 
+- **Base16 Mode (Fallback):** If Catppuccin is disabled, we manually map generic Base16 hex codes (e.g., `base08`, `base0D`) to readable CSS variable names (e.g., `@red`, `@blue`). This ensures the bar looks correct regardless of which generic theme you choose.
 
-* **Base16 Mode (Fallback):** If Catppuccin is disabled, we manually map generic Base16 hex codes (e.g., `base08`, `base0D`) to readable CSS variable names (e.g., `@red`, `@blue`). This ensures the bar looks correct regardless of which generic theme you choose.
-
-
-
-### 2. Host-Specific Customization 
+### 2. Host-Specific Customization
 
 This module consumes the custom variables passed from your host's `modules.nix` file, effectively "personalizing" the bar for the specific machine it is running on.
 
-
 **`waybarWorkspaceIcons`:** Replaces standard workspace numbers (1, 2, 3) with custom icons (e.g., Terminal, Browser) defined for that specific host.
-
 
 **`waybarLayoutFlags`:** Replaces the text layout identifier (e.g., "en", "it") with an emoji flag (e.g., "🇺🇸", "🇮🇹").
 
-
-
-### 3. Dynamic Weather Script 
+### 3. Dynamic Weather Script
 
 Instead of a hardcoded weather widget, we define a `custom/weather` module. It uses the `weather` variable (your city name defined in `variables.nix`) to construct a `curl` command. This fetches live weather data from `wttr.in` and displays the condition icon and temperature.
 
-
 ### 4. Conditionals
+
 The waybar is enabled/disabled depending on if `noctalia/caelestia` are used and it adapt to the workspace differences between `niri` and `hyprland`
 
 ---
 
 ## The Code
+
 This code is my personal one, but it may be change heavily based on your preferences
 
 ```nix
@@ -1578,8 +1559,6 @@ in
 }
 ```
 
-
-
 # ~nixOS/home-manager/modules/wofi/default.nix
 
 This file configures **Wofi**, the application launcher. Wofi uses CSS for styling, which makes it powerful but tricky to theme dynamically with Nix.
@@ -1594,23 +1573,22 @@ To solve this, we implemented a **Manual Palette Injection** system.
 
 Unlike other modules where we might rely on an official Catppuccin plugin, for Wofi we explicitly defined the hex codes for all four Catppuccin flavors (Latte, Frappé, Macchiato, Mocha) directly in this file.
 
-* **Why?** Wofi doesn't support external "theme files" easily. By defining the colors here, we can inject them as CSS variables (`@define-color`) directly into the stylesheet.
+- **Why?** Wofi doesn't support external "theme files" easily. By defining the colors here, we can inject them as CSS variables (`@define-color`) directly into the stylesheet.
 
 ### 2. Hybrid Theming Strategy (Semantic Mapping)
 
-The goal is to have **one** `style.css` file that works for *any* theme. We achieve this by mapping specific colors to "Semantic" variable names.
+The goal is to have **one** `style.css` file that works for _any_ theme. We achieve this by mapping specific colors to "Semantic" variable names.
 
-* **If Catppuccin is Enabled:**
+- **If Catppuccin is Enabled:**
+
 1. We look up the user's chosen flavor (e.g., `mocha`) in our manual palette.
 2. We define variables like `@mauve`, `@base`, `@text` with the specific hex codes.
 3. We map semantic names: `@window_bg` becomes `@base`, `@accent` becomes `@mauve` (or whatever accent you chose).
 
+- **If Catppuccin is Disabled (Base16):**
 
-* **If Catppuccin is Disabled (Base16):**
 1. We skip the manual palette entirely.
 2. We map the semantic names directly to **Stylix Base16** colors (e.g., `@window_bg` becomes `base00`, `@accent` becomes `base0D`).
-
-
 
 ### 3. CSS Injection
 
@@ -1801,7 +1779,7 @@ let
         @define-color window_bg   ${config.lib.stylix.colors.withHashtag.base00}; /* Background */
         @define-color input_bg    ${config.lib.stylix.colors.withHashtag.base01}; /* Lighter Background */
         @define-color selected_bg ${config.lib.stylix.colors.withHashtag.base02}; /* Selection Background */
-        @define-color text        ${config.lib.stylix.colors.withHashtag.base05}; 
+        @define-color text        ${config.lib.stylix.colors.withHashtag.base05};
         @define-color text_color  ${config.lib.stylix.colors.withHashtag.base05}; /* Foreground */
         @define-color accent      ${config.lib.stylix.colors.withHashtag.base0D}; /* Blue/Accent */
       '';
@@ -1838,6 +1816,7 @@ in
 }
 
 ```
+
 ---
 
 # ~nixOS/home-manager/modules/qt.nix
@@ -1854,37 +1833,31 @@ It aims for a **native KDE Plasma look** (using the **Breeze** style) even when 
 
 In your `hyprland-main.nix`, you set the environment variable `QT_QPA_PLATFORMTHEME=kde`. This is the single most important setting for Qt apps on Hyprland.
 
-* **(`kde`):** By setting the platform to `kde`, we tell Qt apps: *"Act as if you are running inside a full KDE Plasma session."*
+- **(`kde`):** By setting the platform to `kde`, we tell Qt apps: _"Act as if you are running inside a full KDE Plasma session."_
 
 **Why it fixes the problem:** When Qt thinks it is in KDE, it loads the `plasma-integration` plugin (which you install in this file ). This plugin is much smarter than `qt5ct`. It automatically handles:
 
-
-* Correct file dialogs (using the portal).
-* Icon theme association.
-* System color schemes.
-* **Crucially:** It allows the **Breeze style** to render 100% correctly, looking exactly as it would on a Plasma desktop.
-
-
+- Correct file dialogs (using the portal).
+- Icon theme association.
+- System color schemes.
+- **Crucially:** It allows the **Breeze style** to render 100% correctly, looking exactly as it would on a Plasma desktop.
 
 ### 2. "Faking" the KDE Environment (`kdeglobals`)
 
-Since you are running Hyprland, you don't actually have the KDE settings daemon running. For the `kde` platform theme to work, it needs to find the configuration files it *expects* to see in a real Plasma session.
+Since you are running Hyprland, you don't actually have the KDE settings daemon running. For the `kde` platform theme to work, it needs to find the configuration files it _expects_ to see in a real Plasma session.
 
 **The Activation Script:** This module includes a `home.activation` script. It runs every time you rebuild your system.
 
-
-* **What it does:** It uses `kwriteconfig6` to manually write a standard KDE configuration file (`~/.config/kdeglobals`).
-* **The Result:** It injects your chosen color scheme (`BreezeDark` or `BreezeLight`) and icon theme (`Papirus`) directly into this file. When a Qt app launches, it reads this "fake" file and applies your colors perfectly.
+- **What it does:** It uses `kwriteconfig6` to manually write a standard KDE configuration file (`~/.config/kdeglobals`).
+- **The Result:** It injects your chosen color scheme (`BreezeDark` or `BreezeLight`) and icon theme (`Papirus`) directly into this file. When a Qt app launches, it reads this "fake" file and applies your colors perfectly.
 
 ### 3. Dual Configuration (`qt5ct` as Backup)
 
 Although the `kde` platform theme is the priority, this file still generates configuration files for `qt5ct` and `qt6ct`.
 
-* **Consistency:** It ensures that even if an app ignores the `kde` platform override and falls back to generic settings, it is still forced to use the `breeze` style and your specified color scheme paths.
+- **Consistency:** It ensures that even if an app ignores the `kde` platform override and falls back to generic settings, it is still forced to use the `breeze` style and your specified color scheme paths.
 
 **Color Linking:** It links the official KDE Breeze color files from the nix store into `~/.local/share/color-schemes` so both the KDE integration and generic Qt tools can find them.
-
-
 
 ---
 
@@ -1972,10 +1945,9 @@ in
 
 # ~nixOS/home-manager/modules/stylix.nix
 
-This file configures **Stylix**, the central theming engine for the system. Stylix's job is to take a single "Base16" color scheme (or an image) and automatically inject it into *every* application on your system (Shell, Editor, Browser, Desktop).
+This file configures **Stylix**, the central theming engine for the system. Stylix's job is to take a single "Base16" color scheme (or an image) and automatically inject it into _every_ application on your system (Shell, Editor, Browser, Desktop).
 
-However, because we also support the official **Catppuccin** modules and require stable Qt behavior, this file acts as a **"Traffic Cop"**. It intelligently decides *who* gets to theme *what*.
-
+However, because we also support the official **Catppuccin** modules and require stable Qt behavior, this file acts as a **"Traffic Cop"**. It intelligently decides _who_ gets to theme _what_.
 
 ## Key Concepts
 
@@ -1983,19 +1955,19 @@ However, because we also support the official **Catppuccin** modules and require
 
 We want the best of both worlds:
 
-* **If Catppuccin is Enabled:** We want the official Catppuccin modules (which are hand-tuned and often look better than generic generated themes) to handle applications like Hyprland, Alacritty, and Bat.
-* **If Catppuccin is Disabled:** We want Stylix to automatically generate a theme for *everything* based on the `base16Theme` variable (e.g., Dracula, Gruvbox, Nord).
+- **If Catppuccin is Enabled:** We want the official Catppuccin modules (which are hand-tuned and often look better than generic generated themes) to handle applications like Hyprland, Alacritty, and Bat.
+- **If Catppuccin is Disabled:** We want Stylix to automatically generate a theme for _everything_ based on the `base16Theme` variable (e.g., Dracula, Gruvbox, Nord).
 
 We achieve this using the `!catppuccin` logic.
 
-* `hyprland.enable = !catppuccin;` → "Only let Stylix theme Hyprland if Catppuccin is false."
+- `hyprland.enable = !catppuccin;` → "Only let Stylix theme Hyprland if Catppuccin is false."
 
 ### 2. The Qt/KDE Cohesion Strategy (Manual Hand-off)
 
 You will notice that **`kde.enable`** and **`qt.enable`** are explicitly set to **`false`**. This is a deliberate "Separation of Powers" between `stylix.nix` and `qt.nix`.
 
-* **The Problem:** Stylix attempts to force generic Base16 colors onto Qt applications (using `qt5ct`). On KDE Plasma, this conflicts with the desktop's native engine, often causing login loops or crashes. On Hyprland, it often results in broken icons or unreadable text.
-* **The Solution (The Hand-off):** We tell Stylix to ignore Qt entirely. Instead, we delegate Qt theming to our custom **`modules/qt.nix`**.
+- **The Problem:** Stylix attempts to force generic Base16 colors onto Qt applications (using `qt5ct`). On KDE Plasma, this conflicts with the desktop's native engine, often causing login loops or crashes. On Hyprland, it often results in broken icons or unreadable text.
+- **The Solution (The Hand-off):** We tell Stylix to ignore Qt entirely. Instead, we delegate Qt theming to our custom **`modules/qt.nix`**.
 
 #### How the Cohesion Works:
 
@@ -2003,9 +1975,9 @@ Even though they are separate files, they stay synchronized via the global **`va
 
 1. **Stylix (GTK & Others):** Reads `vars.polarity` (Dark/Light) and generates the appropriate GTK theme and wallpaper.
 2. **`qt.nix` (Qt & KDE):** Reads the same `vars.polarity` variable.
-* If `dark`: It forces the native **Breeze Dark** theme and **Papirus-Dark** icons.
-* If `light`: It forces **Breeze Light** and **Papirus-Light**.
 
+- If `dark`: It forces the native **Breeze Dark** theme and **Papirus-Dark** icons.
+- If `light`: It forces **Breeze Light** and **Papirus-Light**.
 
 3. **Result:** Your GTK apps (themed by Stylix) and Qt apps (handled by `qt.nix`) always share the same Dark/Light mode, ensuring a consistent system look without the instability of forcing Stylix upon Qt.
 
@@ -2013,9 +1985,9 @@ Even though they are separate files, they stay synchronized via the global **`va
 
 Regardless of which theme engine we use for specific apps, Stylix always manages the **universal** assets to ensure consistency:
 
-* **Wallpaper:** Sets the background image for the system.
-* **Fonts:** Enforces `JetBrainsMono Nerd Font` everywhere.
-* **Cursor:** Enforces the `DMZ-Black` cursor.
+- **Wallpaper:** Sets the background image for the system.
+- **Fonts:** Enforces `JetBrainsMono Nerd Font` everywhere.
+- **Cursor:** Enforces the `DMZ-Black` cursor.
 
 ---
 
@@ -2164,6 +2136,7 @@ in
 ```
 
 # ~nixOS/home-manager/modules/zsh.nix
+
 - Note: `bash.nix` and `fish.nix` do the same thing with slight differences based on the sintax they expect
 
 This file configures **Zsh**, your command-line shell. While Home Manager handles the installation and basic plugins (autosuggestions, syntax highlighting), this module's primary strength lies in its **intelligence**. It adapts its aliases based on the system state and integrates seamlessly with non-Nix dotfiles.
@@ -2176,52 +2149,53 @@ This file configures **Zsh**, your command-line shell. While Home Manager handle
 
 The standard `nixos-rebuild` command can be strict. Sometimes you need "impure" builds (e.g., when using files not tracked by Git, like ignored secrets). Instead of remembering complex flags, this module uses the `nixImpure` variable passed from your host config to decide the correct command automatically.
 
-* **If `nixImpure = true`:** The alias `sw` runs `sudo nixos-rebuild switch --flake . --impure`.
-* **If `nixImpure = false`:** The alias `sw` runs `nh os switch` (a faster, optimized Nix helper).
+- **If `nixImpure = true`:** The alias `sw` runs `sudo nixos-rebuild switch --flake . --impure`.
+- **If `nixImpure = false`:** The alias `sw` runs `nh os switch` (a faster, optimized Nix helper).
 
-**Result:** You just type `sw` on *any* machine, and it does the right thing.
+**Result:** You just type `sw` on _any_ machine, and it does the right thing.
 
 ### 2. Hybrid Configuration (`.zshrc_custom`)
 
 Nix is great for system config, but you might have personal shell preferences (aliases, functions, exports) that you want to share with non-Nix machines (like a MacBook or an Ubuntu server).
 
-* **The Logic:** The initialization block looks for a file at `~/.zshrc_custom` and sources it if it exists.
-* **The Benefit:** You can manage this file via **GNU Stow** in your personal dotfiles repo. It allows you to keep your generic shell tweaks separate from your OS-specific Nix configuration.
+- **The Logic:** The initialization block looks for a file at `~/.zshrc_custom` and sources it if it exists.
+- **The Benefit:** You can manage this file via **GNU Stow** in your personal dotfiles repo. It allows you to keep your generic shell tweaks separate from your OS-specific Nix configuration.
 
 ### 3. The Startup Sequence
 
 The `initExtra` block handles the logic that runs every time you open a terminal, ensuring your environment is robust and self-healing:
 
-1. **Hyprland Socket Recovery (The "Dead Session" Fix):** 
-* **What it does:** It dynamically searches for the active Hyprland instance signature in `/run/user/...` and exports it.
-* **Why it's needed:** This fixes the common "Couldn't connect to socket" error that happens after a reboot or crash, where the shell (or Tmux) tries to talk to an old, dead Hyprland session.
+1. **Hyprland Socket Recovery (The "Dead Session" Fix):**
 
+- **What it does:** It dynamically searches for the active Hyprland instance signature in `/run/user/...` and exports it.
+- **Why it's needed:** This fixes the common "Couldn't connect to socket" error that happens after a reboot or crash, where the shell (or Tmux) tries to talk to an old, dead Hyprland session.
 
-2. **Load Custom Config:** 
-* Sources your `stow`-managed `.zshrc_custom` file to load your personal aliases and Git functions.
+2. **Load Custom Config:**
 
+- Sources your `stow`-managed `.zshrc_custom` file to load your personal aliases and Git functions.
 
-3. **Tmux Autostart:** 
-* Automatically starts a Tmux session, but *only* if you are in a GUI environment (preventing issues in TTYs).
+3. **Tmux Autostart:**
 
+- Automatically starts a Tmux session, but _only_ if you are in a GUI environment (preventing issues in TTYs).
 
-4. **UWSM (Universal Wayland Session Manager):** 
-* **Auto-Login:** It detects if you are logging into **TTY1** (the first physical terminal) with no active graphics.
-* **Compositor Launch:** If true, it uses `uwsm` to correctly launch your desktop (Hyprland), replacing the need for a bulky display manager like SDDM.
+4. **UWSM (Universal Wayland Session Manager):**
 
+- **Auto-Login:** It detects if you are logging into **TTY1** (the first physical terminal) with no active graphics.
+- **Compositor Launch:** If true, it uses `uwsm` to correctly launch your desktop (Hyprland), replacing the need for a bulky display manager like SDDM.
 
-5. **Snapper utilities:** 
-* **Create** Allow the user to create a home/root snapshot and lock it if needed
-* **Lock/unlock** Allow the user to list and lock/unlock as needed both home-root snapshot
-  
+5. **Snapper utilities:**
+
+- **Create** Allow the user to create a home/root snapshot and lock it if needed
+- **Lock/unlock** Allow the user to list and lock/unlock as needed both home-root snapshot
+
 6. **Nix prefetch url:**
-* **Get the sha256 smartly** It detect if the input is a file or a github repo that need the --unpack flag and give the sha256
 
-
+- **Get the sha256 smartly** It detect if the input is a file or a github repo that need the --unpack flag and give the sha256
 
 ---
 
 ## The Code
+
 This code is my personal one, but it may be change heavily based on your preferences
 
 ```nix
@@ -2282,6 +2256,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         # System maintenance
         dedup = "nix store optimise";
         cleanup = "nh clean all";
+cleanup-ask = "nh clean all --ask";
         gc = "nix-collect-garbage -d";
 
         # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
@@ -2349,7 +2324,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         # 4. UWSM STARTUP (Universal & Safe)
         # Guard: Only run if on physical TTY1 AND no graphical session is active.
         if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
-            
+
             # Check if uwsm is installed and ready (Safe for KDE/GNOME-only builds)
             if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
                 exec systemd-cat -t uwsm_start uwsm start default
@@ -2364,13 +2339,13 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
           echo "Which config? (1=home, 2=root)"
           read "k?Selection: "
           if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
-          
+
           echo "Listing snapshots for $CFG..."
           sudo snapper -c "$CFG" list
-          
+
           echo ""
           read "ID?Enter Snapshot ID to LOCK: "
-          
+
           if [[ -n "$ID" ]]; then
              sudo snapper -c "$CFG" modify -c "" "$ID"
              echo "✅ Snapshot #$ID in '$CFG' is now LOCKED (won't be deleted)."
@@ -2382,13 +2357,13 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
           echo "Which config? (1=home, 2=root)"
           read "k?Selection: "
           if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
-          
+
           echo "Listing snapshots for $CFG..."
           sudo snapper -c "$CFG" list
-          
+
           echo ""
           read "ID?Enter Snapshot ID to UNLOCK: "
-          
+
           if [[ -n "$ID" ]]; then
              sudo snapper -c "$CFG" modify -c "timeline" "$ID"
              echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED (timeline cleanup enabled)."
@@ -2401,10 +2376,10 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
       # -----------------------------------------------------------------------
       function _snap_create() {
         local config_name=$1
-        
+
         echo -n "📝 Enter snapshot description: "
         read description
-        
+
         if [ -z "$description" ]; then
           echo "❌ Description cannot be empty."
           return 1
@@ -2465,47 +2440,31 @@ This file serves as the **universal baseline** for every machine in your infrast
 
 It installs packages needed for every host to make this os work
 
-
 ### 2. Architecture Intelligence (x86 vs. ARM)
 
 The file is smart enough to adapt based on the CPU architecture, preventing build errors on incompatible hardware.
 
-
-**x86_64 Only:** It installs `gpu-screen-recorder` and sets up its root security wrappers *only* if the system is an Intel/AMD machine.
-
-
+**x86_64 Only:** It installs `gpu-screen-recorder` and sets up its root security wrappers _only_ if the system is an Intel/AMD machine.
 
 **ARM (Laptops):** It silently skips these packages, ensuring your MacBook or ARM laptop builds successfully without trying to compile incompatible software.
-
-
 
 ### 3. Performance & Responsiveness
 
 It applies global tweaks to make the system feel snappier:
 
-* 
-**System76 Scheduler:** Prioritizes the app you are currently using (foreground) for smoother performance.
+- **System76 Scheduler:** Prioritizes the app you are currently using (foreground) for smoother performance.
 
+- **Fast Boot:** Disables the "wait for network" service, which significantly speeds up startup times.
 
-* 
-**Fast Boot:** Disables the "wait for network" service, which significantly speeds up startup times.
-
-
-* 
-**Power Management:** Enables modern daemons (`upower`, `power-profiles-daemon`) needed for battery reporting and UI integrations.
-
-
+- **Power Management:** Enables modern daemons (`upower`, `power-profiles-daemon`) needed for battery reporting and UI integrations.
 
 ### 4. Security Baseline
 
 It establishes the default security posture for the OS:
 
-* 
-**Polkit Rules:** Automatically approves specific safe actions (like realtime audio processing) for admin users to reduce annoying password prompts.
+- **Polkit Rules:** Automatically approves specific safe actions (like realtime audio processing) for admin users to reduce annoying password prompts.
 
-
-* 
-**Privilege Wrappers:** Sets up security wrappers (like `cap_sys_admin` for screen recording) needed for specific tools to function without compromising the whole system.
+- **Privilege Wrappers:** Sets up security wrappers (like `cap_sys_admin` for screen recording) needed for specific tools to function without compromising the whole system.
 
 ---
 
@@ -2738,7 +2697,7 @@ While NixOS defaults to `systemd-boot` for modern UEFI systems, this module expl
 
 By default, NixOS uses `systemd-boot` because it is simple and fast. However, we force it off (`lib.mkForce false`) and enable **GRUB** instead.
 
-* **Why?** GRUB is generally better at detecting other operating systems (Dual Booting) and offers more customization options for themes and visual styles.
+- **Why?** GRUB is generally better at detecting other operating systems (Dual Booting) and offers more customization options for themes and visual styles.
 
 ### 2. Dual Boot Support (`os-prober`)
 
@@ -2748,7 +2707,7 @@ We enable `useOSProber = true`. This tells GRUB to scan your hard drives for oth
 
 We add a custom menu entry called **"UEFI Firmware Settings"**.
 
-* **The Benefit:** This allows you to reboot directly into your BIOS/UEFI settings from the boot menu, without needing to spam a certain key on the keyboard.
+- **The Benefit:** This allows you to reboot directly into your BIOS/UEFI settings from the boot menu, without needing to spam a certain key on the keyboard.
 
 ---
 
@@ -2773,18 +2732,18 @@ We add a custom menu entry called **"UEFI Firmware Settings"**.
     # grub 🐌 ENABLE GRUB
     grub = {
       enable = lib.mkForce true;
-      
-      # 'nodev' is the standard value for UEFI systems 
+
+      # 'nodev' is the standard value for UEFI systems
       # (GRUB doesn't install to the MBR of a specific device like /dev/sda)
       device = "nodev";
-      
+
       efiSupport = true;
-      
+
       # 🕵️ DUAL BOOT
       # Scans for Windows/other Linux installs
       useOSProber = true;
 
-      
+
       # Ensures the boot entry is named cleanly in your BIOS
       extraGrubInstallArgs = [ "--bootloader-id=nixos" ];
 
@@ -2814,30 +2773,27 @@ This file defines global **Environment Variables** that are available to all use
 
 Setting the `EDITOR` variable isn't always straightforward. Some GUI editors (like VS Code or Kate) return control to the terminal immediately, which breaks tools like `git commit` that need to wait for you to save and close the file.
 
-* **The Solution:** We use a **Translation Layer** (`editorFlags`) that automatically appends the necessary flags to your chosen editor:
-* `vscode` → `code --wait`
-* `kate` → `kate --block`
-* `subl` → `subl --wait`
+- **The Solution:** We use a **Translation Layer** (`editorFlags`) that automatically appends the necessary flags to your chosen editor:
+- `vscode` → `code --wait`
+- `kate` → `kate --block`
+- `subl` → `subl --wait`
 
-
-* **Benefit:** You can simply set `editor = "vscode"` in your variables, and this module automatically ensures it runs with the correct flags for interactive shell tasks.
+- **Benefit:** You can simply set `editor = "vscode"` in your variables, and this module automatically ensures it runs with the correct flags for interactive shell tasks.
 
 ### 2. Dynamic Defaults
 
 Instead of hardcoding specific applications, this module applies the variables passed from `flake.nix` (`term`, `browser`, `editor`) to the system environment.
 
-* **Variables Set:**
-* `TERMINAL`: Used by window managers and scripts to launch your preferred terminal.
-* `BROWSER`: Used by CLI tools to open links.
-* `EDITOR`: Configured dynamically (as described above) for text editing.
-
-
+- **Variables Set:**
+- `TERMINAL`: Used by window managers and scripts to launch your preferred terminal.
+- `BROWSER`: Used by CLI tools to open links.
+- `EDITOR`: Configured dynamically (as described above) for text editing.
 
 ### 3. Path Injection
 
 We define `XDG_BIN_HOME` and add it to the system `PATH`.
 
-* **Benefit:** This allows you to place personal scripts or binaries in `~/.local/bin` and run them from anywhere in the terminal, just like standard system commands (`ls`, `cd`, `grep`).
+- **Benefit:** This allows you to place personal scripts or binaries in `~/.local/bin` and run them from anywhere in the terminal, just like standard system commands (`ls`, `cd`, `grep`).
 
 ---
 
@@ -2883,7 +2839,6 @@ in
 }
 ```
 
-
 # ~nixOS/nixos/modules/guest.nix
 
 This module implements a fully isolated, ephemeral **Guest Mode**. When enabled (via `guest = true` in `variables.nix`), it creates a specialized user account intended for temporary use by friends or family.
@@ -2898,22 +2853,22 @@ Unlike standard user accounts, the Guest account is designed to be **stateless**
 
 The most critical feature of this module is how it handles the guest's home directory.
 
-* **The Mechanism:** Instead of a physical disk partition, `/home/guest` is mounted as a `tmpfs` (RAM disk).
-* **The Result:** All files downloaded, cookies saved, or settings changed during the session exist **only in RAM**. As soon as the computer reboots (or the user logs out, effectively), everything is instantly and permanently wiped.
+- **The Mechanism:** Instead of a physical disk partition, `/home/guest` is mounted as a `tmpfs` (RAM disk).
+- **The Result:** All files downloaded, cookies saved, or settings changed during the session exist **only in RAM**. As soon as the computer reboots (or the user logs out, effectively), everything is instantly and permanently wiped.
 
 ### 2. Forced Desktop Environment (XFCE)
 
 While the main user might use complex environments like Hyprland or KDE, the Guest account is forced to use **XFCE**.
 
-* **Why XFCE?** It is familiar (Windows-like taskbar), lightweight, and stable. It ensures a guest doesn't get confused by tiling window managers.
-* **Implementation:** We use `systemd.tmpfiles.rules` to write directly to the `AccountsService` database, forcing the display manager to select `xfce` automatically when the guest logs in.
+- **Why XFCE?** It is familiar (Windows-like taskbar), lightweight, and stable. It ensures a guest doesn't get confused by tiling window managers.
+- **Implementation:** We use `systemd.tmpfiles.rules` to write directly to the `AccountsService` database, forcing the display manager to select `xfce` automatically when the guest logs in.
 
 ### 3. Security Hardening
 
 Since a guest is an untrusted user, we apply strict limits:
 
-* **Network Isolation:** If Tailscale (VPN) is active, firewall rules explicitly block the guest from accessing private tailnet IP addresses.
-* **Polkit Restrictions:** Custom rules prevent the guest from mounting internal hard drives (protecting your data) or suspending/hibernating the machine.
+- **Network Isolation:** If Tailscale (VPN) is active, firewall rules explicitly block the guest from accessing private tailnet IP addresses.
+- **Polkit Restrictions:** Custom rules prevent the guest from mounting internal hard drives (protecting your data) or suspending/hibernating the machine.
 
 ### 4. User Warning
 
@@ -2922,6 +2877,7 @@ A custom script (`guest-warning`) runs on login using `zenity`. It displays a bi
 ---
 
 ## The Code
+
 ```nix
 {
   config,
@@ -2957,16 +2913,16 @@ let
          --width=400
     else
        # ❌ WE ARE NOT IN XFCE (FORBIDDEN)
-       
+
        # Show warning in background. User cannot stop what is coming.
        ${pkgs.zenity}/bin/zenity --error \
          --title="Access Denied" \
          --text="<span size='large' weight='bold'>❌ ACCESS DENIED</span>\n\nGuest is restricted to XFCE.\n\n<b>System will reboot in 5 seconds.</b>" \
          --width=400 &
-       
+
        # Wait 5 seconds
        sleep 5
-       
+
        # 3. REBOOT THE COMPUTER
        # This is the only way to safely reset the GPU/Drivers from a forbidden Wayland session
        # without causing a black screen hang.
@@ -3088,35 +3044,26 @@ This is a **Home Manager module** that uses the `xdg.mimeApps` standard. Unlike 
 
 Instead of hardcoding "firefox" or "dolphin", this module consumes the variables passed from `flake.nix` (`browser`, `editor`, `fileManager`).
 
-* **Benefit:** If you change `editor = "nvim"` to `editor = "code"` in your variables, this file automatically updates all relevant file types (`text/plain`, `application/json`, `text/x-nix`, etc.) to use the new editor without you needing to edit the MIME list manually.
+- **Benefit:** If you change `editor = "nvim"` to `editor = "code"` in your variables, this file automatically updates all relevant file types (`text/plain`, `application/json`, `text/x-nix`, etc.) to use the new editor without you needing to edit the MIME list manually.
 
 ### 2. Desktop File Translation (`mkDesktop`)
 
 Linux applications require exact `.desktop` filenames to register as default handlers (e.g., VS Code is `code.desktop`, not just `code`).
 
-* 
-**The Logic:** We use a helper function `mkDesktop`  to translate your simple variable names into the official XDG desktop names:
+- **The Logic:** We use a helper function `mkDesktop` to translate your simple variable names into the official XDG desktop names:
 
+- `"dolphin"` → `"org.kde.dolphin.desktop"`
 
-* 
-`"dolphin"` → `"org.kde.dolphin.desktop"` 
+- `"vscode"` → `"code.desktop"`
 
+- `"kate"` → `"org.kde.kate.desktop"`
 
-* 
-`"vscode"` → `"code.desktop"` 
-
-
-* 
-`"kate"` → `"org.kde.kate.desktop"` 
-
-
-
-
-* **Why:** This prevents "Application not found" errors when switching between different tools that have different internal naming conventions.
+- **Why:** This prevents "Application not found" errors when switching between different tools that have different internal naming conventions.
 
 ---
 
 ## The Code
+
 ```nix
 {
   pkgs,
@@ -3254,16 +3201,16 @@ By default, the modern "Flakes" feature (which this entire configuration relies 
 
 Compiling complex software like **Hyprland** from source code can take a long time on every update.
 
-* **Substituters:** We tell Nix to check `hyprland.cachix.org` before trying to build it locally.
-* **Trusted Keys:** We cryptographically verify that the binaries coming from that server are legitimate.
-* **Result:** Updates take seconds instead of minutes (or hours).
+- **Substituters:** We tell Nix to check `hyprland.cachix.org` before trying to build it locally.
+- **Trusted Keys:** We cryptographically verify that the binaries coming from that server are legitimate.
+- **Result:** Updates take seconds instead of minutes (or hours).
 
 ### 3. Automatic Garbage Collection
 
 NixOS keeps every version of your system ever built (boot entries). While useful for rollbacks, this eats up disk space quickly.
 
-* **Policy:** We run the garbage collector **weekly**.
-* **Rule:** Any system generation older than **30 days** is deleted. This strikes a balance between having a safety net and keeping the drive clean.
+- **Policy:** We run the garbage collector **weekly**.
+- **Rule:** Any system generation older than **30 days** is deleted. This strikes a balance between having a safety net and keeping the drive clean.
 
 ---
 
@@ -3287,7 +3234,7 @@ NixOS keeps every version of your system ever built (boot entries). While useful
     auto-optimise-store = true;
 
     # 🚀 BINARY CACHES
-    # Tells Nix to download pre-built binaries for Hyprland instead of 
+    # Tells Nix to download pre-built binaries for Hyprland instead of
     # compiling them from source (which takes forever).
     substituters = [ "https://hyprland.cachix.org" ];
     trusted-public-keys = [ "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc=" ];
@@ -3379,7 +3326,6 @@ in
 }
 ```
 
-
 # ~nixOS/nixos/modules/user.nix
 
 This file defines the **Base Layer** for user configuration. It sets the absolute minimum requirements for a usable user account, regardless of which physical machine the system is running on.
@@ -3392,13 +3338,11 @@ This file defines the **Base Layer** for user configuration. It sets the absolut
 
 You might notice that `extraGroups` (permissions) are defined here **and** in the machine-specific `configuration.nix`. This is intentional.
 
-* **Fail-Safe Mechanism:** This file acts as a safety net. If you accidentally delete or break the user configuration in your host file, this module ensures your user **always** has:
-* `wheel`: Administrative privileges (`sudo`) to fix the system.
-* `networkmanager`: Internet access to download fixes.
+- **Fail-Safe Mechanism:** This file acts as a safety net. If you accidentally delete or break the user configuration in your host file, this module ensures your user **always** has:
+- `wheel`: Administrative privileges (`sudo`) to fix the system.
+- `networkmanager`: Internet access to download fixes.
 
 **Merging:** Nix automatically combines these groups with the machine-specific ones (like `docker` or `video`) defined in `configuration.nix`.
-
-
 
 ### 2. Global Shell Enforcement
 
@@ -3443,4 +3387,3 @@ in
   };
 }
 ```
-

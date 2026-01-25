@@ -1,8 +1,11 @@
 # ❄️ Personal NixOS Config
+
 ## Hyprland + waybar + lazygit + ranger + firefox
+
 ![hyprland-showcase](./Documentation/showcase-screenshots/hyprland-showcase.png)
 
 ## Hyprland + caelestia/quickshell
+
 ![hyprland-showcase](./Documentation/showcase-screenshots/hyprland-caelestia.png)
 
 - [❄️ Personal NixOS Config](#️-personal-nixos-config)
@@ -73,7 +76,7 @@
   - [Showcase](#showcase)
     - [Hyprland with waybar](#hyprland-with-waybar)
     - [Hyprland with Caelestia/quickshell lockscreen](#hyprland-with-caelestiaquickshell-lockscreen)
-    - [Hyprland with  noctalia](#hyprland-with--noctalia)
+    - [Hyprland with noctalia](#hyprland-with-noctalia)
     - [Hyprland with noctalia/quickshell lockscreen](#hyprland-with-noctaliaquickshell-lockscreen)
     - [KDE](#kde)
     - [Gnome](#gnome)
@@ -85,32 +88,37 @@
     - [Ideas](#ideas)
     - [Usage guide](#usage-guide)
 
-
 ## ✨ Features
 
-### 🖥️ Adaptive Host Support: ### 
-Define unique hardware parameters (monitors, theming, keyboard layout,  wallpapers, etc) per machine while keeping the core environment identical. All these customized options can be changed in the host-specific directory
+### 🖥️ Adaptive Host Support:
+
+Define unique hardware parameters (monitors, theming, keyboard layout, wallpapers, etc) per machine while keeping the core environment identical. All these customized options can be changed in the host-specific directory
+
 - This allow to have a tailored experience right from the start,
 - For reference look point ([5. Configure the host folder](#5-configure-the-hosts-folder)).
 - A variables can be added anytime and it is automatically recognized. Then if it needs to be called it can be simply done by appending `vars.` to the name of the variable
 
-
 #### Host-specific home-manager modules
+
 - Inside the host folder it is possible to create home-manager modules. These are modules that unlike local packages can configure with home-manager, but they do not add noise in the general home-manager folder.
-  - This allow to have customized packages but that apply only to certain hosts 
+  - This allow to have customized packages but that apply only to certain hosts
 
 #### Host-specific home options
+
 - Allow to create home.nix options but that are host-specific
   - For example on an host you may want to have certain session variables or create/remove specific directories
 
 #### Host-specific general home-manager modules tweaks
+
 - Allow to add/customize some feature of general home-manager modules (the one available for everyone)
-  - For example a host may have different keyboard layouts. This feature allow to have in the waybar specific country flags without modifying the global waybar configuration  
+  - For example a host may have different keyboard layouts. This feature allow to have in the waybar specific country flags without modifying the global waybar configuration
 
 ---
 
 ### 📦 Package version and flatpak
+
 Allow the user to define the version of various aspects and decide if some features are enabled:
+
 - `flake.nix`: Nixpkgs stable (unstable is always at the latest)/home-manager/stylix,
   - These can be changed freely in the future to stay up to date.
 - `variables.nix`: stateVersion/homeStateVersion,
@@ -121,15 +129,18 @@ To view the latest release numbers refer to the [release notes](https://nixos.or
 
 ---
 
-### ❄️ Hybrid (declarative + non declarative for some modules) ###
-  - Some modules are better customized using their official methods (aka not with nix-sintax).
-  - In this case a `.nix` file applies a basic logic and/or source an external directory/file; while other files/directories handles the rest.
-    - For a more in-depth explanation see [❄️ Note on the declarative aspects](#️-note-on-the-declarative-aspects)
- 
+### ❄️ Hybrid (declarative + non declarative for some modules)
+
+- Some modules are better customized using their official methods (aka not with nix-sintax).
+- In this case a `.nix` file applies a basic logic and/or source an external directory/file; while other files/directories handles the rest.
+  - For a more in-depth explanation see [❄️ Note on the declarative aspects](#️-note-on-the-declarative-aspects)
+
 ---
 
-### 🎨 Theming ## 
+### 🎨 Theming
+
 A base 16 colorscheme can be chosen before building (hosts-specific). The user may also chose whatever to enable catppuccin or not (along with the flavor and accent) [from the official repo](https://nix.catppuccin.com/).
+
 - To view the possible flavor and accent colors refer to [(catppuccin palette)](https://catppuccin.com/palette/)
 - The benefit over using a normal base16Theme of catppuccin is that these modules are tailored, meaning the colors are chosen by a human and not blindly applied by an algorithm, resulting in a more pleasant experience.
 
@@ -142,45 +153,52 @@ alacritty.enable = !catppuccin;
 ```
 
 - This should allow to configure almost everything globally right from the get go
-  
----  
 
-### 🖌️ Wallpaper(s) ## 
-  
+---
+
+### 🖌️ Wallpaper(s)
+
 Wallpapers are defined to be hosts specific and they are tied to the monitor list.
+
 - They automatically apply smartly in all desktop environments except xfce
 
-- The first monitor get the first wallpaper, the second monitor the second wallpaper etc. 
+- The first monitor get the first wallpaper, the second monitor the second wallpaper etc.
   - In kde plasma the primary monitor override this settings. If nothing is done the behavior is as expected,
-  -  If the "primary" monitor is changed in the system settings than it will get the first wallpaper in teh list. 
-  
+  - If the "primary" monitor is changed in the system settings than it will get the first wallpaper in teh list.
+
 If someone prefer to set the wallpaper manually then it is possible in certain desktop environment:
+
 - For hyprland they are set in hyprland-hyprpaper. Hyprland does not have an easy way to set the wallpaper so it is best to keep it as is
 - XFCE is left as default to allow the guest user a stock experience.
 
 #### kde-main.nix
+
 Comment out or remove the specific lines that handles the wallpapers logic
+
 ```nix
 # wallpaper = wallpaperFiles;
 ```
 
 #### gnome-main.nix
+
 Comment out or remove the specific lines that handles the wallpapers logic
+
 ```nix
-# "org/gnome/desktop/background" = {            
-#   picture-uri = "file://${wallpaperPath}";      
-#   picture-uri-dark = "file://${wallpaperPath}"; 
-#   picture-options = lib.mkForce "zoom";         
-# };                                             
+# "org/gnome/desktop/background" = {
+#   picture-uri = "file://${wallpaperPath}";
+#   picture-uri-dark = "file://${wallpaperPath}";
+#   picture-options = lib.mkForce "zoom";
+# };
 
 # "org/gnome/desktop/screensaver" = {             <-- OPTIONAL: REMOVE THIS TOO
 #   picture-uri = "file://${wallpaperPath}";
 # };
 ```
 
-
 ### niri-main.nix
+
 Comment out or remove the specific lines that handles the wallpaper logic
+
 ```nix
   fetchedWallpapers = map (
     w:
@@ -213,13 +231,15 @@ Comment out or remove the specific lines that handles the wallpaper logic
     }
   ) enabledMonitors;
 ```
+
 ```nix
 ++ wallpaperCommands
 ```
 
-
 ### cosmic-main.nix
+
 Comment out or remove the specific lines that handles the wallpaper logic
+
 ```nix
 let
   activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) vars.monitors;
@@ -263,44 +283,41 @@ xdg.configFile."cosmic/com.system76.CosmicBackground/v1/all".text = ''
       filter_by_theme = false
     '';
 ```
+
 ---
 
 ### 🪟 Multiple Desktop Environments
 
-  - **Hyprland**: A modern, tile-based window compositor setup on Wayland. You can choose between these options:
-    - **Hyprland + waybar**
-      - A regular hyprland setup with a waybar 
+- **Hyprland**: A modern, tile-based window compositor setup on Wayland. You can choose between these options:
+  - **Hyprland + waybar**
+    - A regular hyprland setup with a waybar
 
-    - **Hyprland + caelestia with quickshell**
-        - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
-      - The json config is completely declarative. It can be modified in `caelestia-config.nix`
-      - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
-      
-        - **caelestia logout crash**
-          - Note the official caelestia shell.json uses an aggressive terminate user, which does not work for uwsm
-          - replace every  of it to `"caelestia-logout` which is the name of the logout script in `caelestia-main.nix`
-
-    - **Hyprland + noctalia with quickshell**
-      - Noctalia include many configuration aspect so i choose to let the user manually change the config in the noctalia gui.
-      - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
-    - Some aspects are defined declarative. See `noctalia-config.nix`
+  - **Hyprland + caelestia with quickshell**
+    - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
+    - The json config is completely declarative. It can be modified in `caelestia-config.nix`
     - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
+      - **caelestia logout crash**
+        - Note the official caelestia shell.json uses an aggressive terminate user, which does not work for uwsm
+        - replace every of it to `"caelestia-logout` which is the name of the logout script in `caelestia-main.nix`
 
-  - **niri + noctalia with quickshell**
-      - Noctalia include many configuration aspect so i choose to let the user manually change the config in the noctalia gui.
-      - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
-    - Some aspects are defined declarative. See `noctalia-config.nix`
-    - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
+  - **Hyprland + noctalia with quickshell**
+    - Noctalia include many configuration aspect so i choose to let the user manually change the config in the noctalia gui.
+    - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
+  - Some aspects are defined declarative. See `noctalia-config.nix`
+  - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
 
+- **niri + noctalia with quickshell**
+  - Noctalia include many configuration aspect so i choose to let the user manually change the config in the noctalia gui.
+  - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
+  - Some aspects are defined declarative. See `noctalia-config.nix`
+  - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
 
-
-  - **KDE Plasma**: A highly configurable desktop environment, with a launcher similar to windows
-  - **Gnome**: A famous and simple desktop environment, with a launcher similar to macOS. Ubuntu/mint user are very used to it
-  - **Cosmic**: A revisited gnome made from the company system76, known for being the creators of popOS
-    - Cosmic as for now is highly unstable. Expect freezes, black screen while logging out, keybindings not working, etc etc 
-  - **XFCE**: A lightweight, stable, and classic desktop experience.
-    - For now xfce is enabled only if the `guest` user is enabled. 
-  
+- **KDE Plasma**: A highly configurable desktop environment, with a launcher similar to windows
+- **Gnome**: A famous and simple desktop environment, with a launcher similar to macOS. Ubuntu/mint user are very used to it
+- **Cosmic**: A revisited gnome made from the company system76, known for being the creators of popOS
+  - Cosmic as for now is highly unstable. Expect freezes, black screen while logging out, keybindings not working, etc etc
+- **XFCE**: A lightweight, stable, and classic desktop experience.
+  - For now xfce is enabled only if the `guest` user is enabled.
 
 You can enable or disable desktop environments (Hyprland, GNOME, KDE, etc.) by editing `variables.nix`. However, disabling the environment you are currently using requires caution to avoid being locked out of the system.
 
@@ -308,25 +325,27 @@ You can enable or disable desktop environments (Hyprland, GNOME, KDE, etc.) by e
 
 #### ✅ The Safe Way (Prevent Lockouts)
 
-When changing Desktop Environments, **do not** apply the config immediately. Instead, build it for the *next* boot. This ensures you can reboot cleanly into the new environment.
+When changing Desktop Environments, **do not** apply the config immediately. Instead, build it for the _next_ boot. This ensures you can reboot cleanly into the new environment.
 
 1. **Edit your config** (enable/disable the DE as needed).
 2. **Build the bootloader only:**
+
 ```bash
 cd ~/nixOS
 sudo nixos-rebuild boot --flake .
 ```
 
-
 3. **Reboot** your system.
 4. **Finalize the setup:** Once logged into the new session, run your standard update command to apply Home Manager customizations (themes, keybindings, etc.):
+
 ```bash
 sw && hms  # or any equivalent update alias
 ```
 
 #### 🚨 Emergency Recovery (Stuck in TTY)
 
-If you accidentally disabled your current desktop and `nixos-rebuild switch` kicked you out, you may find yourself in a text-only console (TTY). 
+If you accidentally disabled your current desktop and `nixos-rebuild switch` kicked you out, you may find yourself in a text-only console (TTY).
+
 - If logging in as regular user work then rebuilding is enough
 
 ```bash
@@ -336,12 +355,13 @@ sw && hms  # or any equivalent update alias
 If your normal user shell fails to log in, follow these steps:
 
 1. **Login as Root:**
-* **User:** `root`
-* **Password:** (Same as your admin user, unless explicitly changed).
 
+- **User:** `root`
+- **Password:** (Same as your admin user, unless explicitly changed).
 
 2. **Repair the System:**
-Run the following commands to rebuild the system from the root user. Replace `<your-username>` with your actual folder name (e.g., `krit`).
+   Run the following commands to rebuild the system from the root user. Replace `<your-username>` with your actual folder name (e.g., `krit`).
+
 ```bash
 # 1. Enter the NixOS directory
 cd /home/<your-username>/nixOS
@@ -356,7 +376,6 @@ nixos-rebuild boot --flake .
 reboot
 
 ```
-
 
 3. **Finalize:** After rebooting, log in as your normal user and run `sw && hms` to restore your dotfiles.
 
@@ -378,30 +397,31 @@ If you boot into a new desktop and it looks "vanilla" (missing keybindings or wa
 
 ---
 
-### 👤 Ephemeral Guest User ### 
+### 👤 Ephemeral Guest User
+
 A specialized secure account for visitors (basic features):
-  - **Login credentials**: both password and usernames are `guest`
-  
-  - **Restricted**: No `sudo` access and no permission to view nor modify the NixOS configuration.
-  
-  - **Essential Tools**: Pre-loaded with a Browser, File Manager, Text Editor, image viewer, archive manager, calculator.
-  
-  - **Forced desktop environment**: This user only has access to `xfce` and its default applications. If the guest tries to acces a non-allowed de/wm then the pc reboots automatically.
-   -  Applications that require sudo priviliges either do not open or simply fail to do anything.
-   - If you want the guest user to have access to all de then it is enough to remove all "rebooting" logic 
-  
-  - **Tailscale firewall**: This user does not have access to tailscale and can not ping even local ip regardless if tailscale is on or off
-  
-  - **Privacy Focused**: The entire user home folder (including browser cookies, sessions, and saved files) is wiped automatically on every reboot or shutdown (logging out keep the data).
-    - For now this is achieved by using `tmpfs`. This tells that the user data (home path) is written on ram and not ssd/hdd.
-      - This has 3 major advantages: 
-        - Lifespan of the pc component (ram is rated to last more than disks)
-        - Ensure privacy: Defining a script to delete the content in a disk is subject to silent fails. This means the data could not be completely removed. Ram is sure to be deleted once the pc restart 
-      - The main disadvantage is a possible performance issues on system with low ram. 
-        - The current config tells that the guest user can use up to a certain ram space. If a host has low ram it is possible to have freezes
 
-- It is possible to change the  of the data deletion from ram to disk by changing `guest.nix`
+- **Login credentials**: both password and usernames are `guest`
 
+- **Restricted**: No `sudo` access and no permission to view nor modify the NixOS configuration.
+
+- **Essential Tools**: Pre-loaded with a Browser, File Manager, Text Editor, image viewer, archive manager, calculator.
+
+- **Forced desktop environment**: This user only has access to `xfce` and its default applications. If the guest tries to acces a non-allowed de/wm then the pc reboots automatically.
+- Applications that require sudo priviliges either do not open or simply fail to do anything.
+- If you want the guest user to have access to all de then it is enough to remove all "rebooting" logic
+
+- **Tailscale firewall**: This user does not have access to tailscale and can not ping even local ip regardless if tailscale is on or off
+
+- **Privacy Focused**: The entire user home folder (including browser cookies, sessions, and saved files) is wiped automatically on every reboot or shutdown (logging out keep the data).
+  - For now this is achieved by using `tmpfs`. This tells that the user data (home path) is written on ram and not ssd/hdd.
+    - This has 3 major advantages:
+      - Lifespan of the pc component (ram is rated to last more than disks)
+      - Ensure privacy: Defining a script to delete the content in a disk is subject to silent fails. This means the data could not be completely removed. Ram is sure to be deleted once the pc restart
+    - The main disadvantage is a possible performance issues on system with low ram.
+      - The current config tells that the guest user can use up to a certain ram space. If a host has low ram it is possible to have freezes
+
+- It is possible to change the of the data deletion from ram to disk by changing `guest.nix`
 
 ```nix
 # 🧹 EPHEMERAL HOME  <-- REMOVE/COMMENT OUT THIS ENTIRE BLOCK
@@ -418,12 +438,13 @@ A specialized secure account for visitors (basic features):
 ```
 
 Replace with the following block:
+
 ```nix
 # 🧹 DISK-BASED AUTO-WIPE (Low RAM Alternative)
     # Wipes /home/guest at every boot before the login screen starts.
     systemd.services.wipe-guest-home = {
       description = "Wipe guest home directory on boot";
-      wantedBy = [ "multi-user.target" ]; 
+      wantedBy = [ "multi-user.target" ];
       before = [ "display-manager.service" "systemd-logind.service" ];
       serviceConfig = {
         Type = "oneshot";
@@ -433,10 +454,10 @@ Replace with the following block:
           if [ -d /home/guest ]; then
             rm -rf /home/guest
           fi
-          
+
           # 2. Recreate it fresh
           mkdir -p /home/guest
-          
+
           # 3. Set ownership (guest:guest) and permissions (read/write only for user)
           chown ${toString guestUid}:${toString guestUid} /home/guest
           chmod 700 /home/guest
@@ -445,30 +466,33 @@ Replace with the following block:
     };
 ```
 
+### 🏠 Home Manager Integration
 
-### 🏠 Home Manager Integration ### 
 Fully declarative management of user dotfiles and applications.
 
-### 🧇 Tmux ### 
+### 🧇 Tmux
+
 Customized terminal multiplexer.
 
 ### 🌟 Multiple shells + Starship
+
 Starship provide beautiful git status symbols, programming language symbols, the time, colors and many other features.
 
 - You can choose for each host between these user shell at any time:
   - bash
   - zsh
-  - fish 
-
+  - fish
 
 ### 🦺 Optional BTRFS snapshots
+
 - Possibility to enable snapshots and define an host-specific retention policy
 - These are only possible if the filesystem is `btrfs`
 - Nor the filesystem nor the snapshots modules are mandatory. If you opt for any filesystem different than `btrfs` you can simply keep the variable to false, or remove it and also remove `~/nixOS/nixos/modules/snapshots.nix`
--  The `template-host` contains a file named `disko-config` which can be used to configure btrfs automatically. 
-   - If you prefer to not use `disko` then you should remove that file from the template-host and configure `btrfs` manually using the nix installer  
+- The `template-host` contains a file named `disko-config` which can be used to configure btrfs automatically.
+  - If you prefer to not use `disko` then you should remove that file from the template-host and configure `btrfs` manually using the nix installer
 
 ### ❔ SOPS-nix support
+
 - Sops is already enabled in `flake.nix` and `.sops.yaml` contains the necessary code to add the host-specific keys
 - For an host to use sops it must be added to the host-specific configuration.nix, otherwise it is ignored. An example is the following:
 
@@ -478,6 +502,7 @@ sops.defaultSopsFile = ./optional/host-sops-nix/<hostname>-secrets-sops.yaml;
 sops.defaultSopsFormat = "yaml";
 sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 ```
+
 The format for the common secrets (also according to the aliases) should be `<user>-common-secrets-sops.yaml`
 
 If you intend to use the hostname `nixos-desktop` you should remove the entire content of the existing one, as it contains my own personal configurations and change and create the new host public key. Basically after a new rebuild and a `nixos-desktop` which contains the bare minimum from `template-host` you would run:
@@ -492,30 +517,28 @@ nix-shell -p ssh-to-age --run "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub"
 sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-sops.yaml
 ```
 
-
 ---
 
-
 ### 📦 Cachix support
+
 - It's a tool that allow to build the system much faster.
   - The binaries needed to build this system are located on [cachix](https://app.cachix.org/)
-    - Assuming you have a good internet the build is much faster and does not rely on the host hardware. 
+    - Assuming you have a good internet the build is much faster and does not rely on the host hardware.
 
 ---
 
 ### 🖥️ Multi-architecture support
+
 - It uses smart conditionals to allow support for multiple architectures
   - `aarch64-linux`
   - `x86_64-linux`
 - Currently the limitation for `aarch64-linux` are the following:
-  - `gpu-screen-recorder`: 
+  - `gpu-screen-recorder`:
     - It's used both by `caelestia` and `noctalia`. The shells can be installed and used in both architecture but the screen recording features will not work on `aarch64-linux`
 
 ---
 
-
 # 🚀 NixOS Installation Guide
-
 
 ## 📦 Phase 1: Preparation
 
@@ -523,9 +546,9 @@ sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-so
 
 1. **Download:** Get the **NixOS Minimal ISO** (64-bit Intel/AMD) from [nixos.org](https://nixos.org/download.html).
 2. **Flash:** Use **Rufus,balena etcher or similar** to write the ISO to a USB stick.
-* **Partition Scheme:** GPT
-* **Target System:** UEFI (non-CSM)
 
+- **Partition Scheme:** GPT
+- **Target System:** UEFI (non-CSM)
 
 3. **BIOS:** Ensure **Secure Boot** is Disabled and your BIOS is set to **UEFI** mode.
 
@@ -534,10 +557,9 @@ sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-so
 1. Insert the USB and boot your computer.
 2. Select **"UEFI: [Your USB Name]"** from the boot menu.
 3. Once the text console loads (`[nixos@nixos:~]$`):
-* **WiFi:** Run `sudo nmtui`, select "Activate a connection", and pick your network.
-* **Ethernet:** Should work automatically. verify with `ping google.com`.
 
-
+- **WiFi:** Run `sudo nmtui`, select "Activate a connection", and pick your network.
+- **Ethernet:** Should work automatically. verify with `ping google.com`.
 
 ---
 
@@ -561,12 +583,13 @@ We must identify which drive to wipe. **Be careful here.**
 lsblk
 ```
 
-* Look for your main disk (e.g., `476G` or `931G`).
-* Note the name: usually **`nvme0n1`** (for SSDs) or **`sda`**.
+- Look for your main disk (e.g., `476G` or `931G`).
+- Note the name: usually **`nvme0n1`** (for SSDs) or **`sda`**.
 
 ### 3. Create Your Host
 
 Copy the template to a new folder for your machine. Replace `my-computer` with your desired hostname.
+
 - The template include only a few enabled options, allowing a smaller and faster installation.
 - Only the following features are enabled:
   - hyprland
@@ -575,7 +598,7 @@ Copy the template to a new folder for your machine. Replace `my-computer` with y
   - vscode as default code editor
   - dolphin as default file manager
   - nord dark theme
-  - us international keyboard layout 
+  - us international keyboard layout
 
 ```bash
 cd hosts
@@ -591,9 +614,9 @@ Tell the installer which disk to wipe.
 nano disko-config.nix
 ```
 
-* Find the line: `device = "/dev/nvme0n1";`
-* Change it to **your actual drive name** found in step 2.
-* **Save:** `Ctrl+O` -> `Enter` -> `Ctrl+X`
+- Find the line: `device = "/dev/nvme0n1";`
+- Change it to **your actual drive name** found in step 2.
+- **Save:** `Ctrl+O` -> `Enter` -> `Ctrl+X`
 
 ### 5. Configure Critical Variables
 
@@ -603,10 +626,9 @@ We only need to set the basics now. You can customize themes and wallpapers late
 nano variables.nix
 ```
 
-* **`user`**: Change `"template-user"` to your real username.
-* **⚠️ CRITICAL:** Do not install as `template-user` and try to rename it later. You will lose access to your home folder. Set your real username **NOW**.
-* **`system`**: The template is `x86_64-linux`. If you have a newer arm-based pc then `aarch_64`
-
+- **`user`**: Change `"template-user"` to your real username.
+- **⚠️ CRITICAL:** Do not install as `template-user` and try to rename it later. You will lose access to your home folder. Set your real username **NOW**.
+- **`system`**: The template is `x86_64-linux`. If you have a newer arm-based pc then `aarch_64`
 
 You may also want to configure the keyboard. If you don't have us international you may boot into a wrong layout. Below there is an example with multiple layouts
 
@@ -616,7 +638,6 @@ You may also want to configure the keyboard. If you don't have us international 
 ```
 
 - You will notice default settings for the monitor and a default wallpaper (either black or the default one of the de/wm you chose). This is expected because the `monitors` variable is not defined yet and the wallpaper logic rely on it.
-
 
 ### 6. Install (The Magic Step)
 
@@ -647,6 +668,7 @@ nixos-install --flake .#my-computer
 ## 🎨 Phase 3: Post-Install Setup
 
 Congratulations! You are now logged into your new NixOS desktop.
+
 - After installing the cosmic de setup dialog (if you enabled it) can appear. Either configure it regardless of which de you are on or close it
 - If for any reason alacritty does not open `foot` is available and it's sure to work because it does not require any particular configuration
 
@@ -656,12 +678,11 @@ Your configuration is currently owned by `root` in a system folder. Let's move i
 
 1. Open your terminal.
 2. Move the config:
+
 ```bash
 sudo mv /etc/nixos ~/nixOS
 sudo chown -R $USER:users ~/nixOS
 ```
-
-
 
 ### 2. (Optional) Cleanup Unused Hosts
 
@@ -674,7 +695,7 @@ Run this command inside `~/nixOS`:
   cd ~/nixOS || return
   printf "Enter hostnames to KEEP (space separated): "
   read -r INPUT
-  
+
   if [ -z "$INPUT" ]; then
       echo "No input. Exiting."
       return
@@ -693,7 +714,7 @@ Run this command inside `~/nixOS`:
       for dir_path in hosts/*; do
           [ -d "$dir_path" ] || continue
           dir_name=$(basename "$dir_path")
-          
+
           matched=false
           for keep_name in ${INPUT}; do
               if [ "$dir_name" = "$keep_name" ]; then
@@ -713,33 +734,29 @@ Run this command inside `~/nixOS`:
 )
 ```
 
-*Example input: `my-computer` (This will delete every host except this one).*
+_Example input: `my-computer` (This will delete every host except this one)._
 
 ---
 
 ## 🛠️ Phase 4: Customization
 
-
 ### Refine `variables.nix`
+
 - Not all variables are mandatory
   - If a variable is missing one of these things will happen
     - The feature is disabled
     - The feature is ignored
-    - A fallback apply 
+    - A fallback apply
+  * `system` (mandatory): The architecture to use.
+  * `stateVersion` & `homeStateVersion` (optional): Keeps your config stable (e.g., `25.11`).
+    - During the first installation it is a good idea to make them the same as the other versions (or the latest available)
+      Later where other version may be updated these 2 should not be changed, meaning they should remain what they were at the beginning
+      These 2 versions define where there system was created, and keeping them always the same it is a better idea
 
-   * `system` (mandatory): The architecture to use.
-  
-   * `stateVersion` & `homeStateVersion` (optional): Keeps your config stable (e.g., `25.11`).
-     * During the first installation it is a good idea to make them the same as the other versions (or the latest available)
-  Later where other version may be updated these 2 should not be changed, meaning they should remain what they were at the beginning
-  These 2 versions define where there system was created, and keeping them always the same it is a better idea
-
-   * `user` (mandatory: The desired username)
+  * `user` (mandatory: The desired username)
 
   * `gitUserName` (optional): Github user name.
-  
   * `gitUserEmail` (optional): Github user e-mail.
-  
   * `hyprland` (optional): Whatever to enable hyprland or not
 
   * `niri` (optional): Whatever to enable niri or not
@@ -751,121 +768,109 @@ Run this command inside `~/nixOS`:
   * `cosmic` (optional): Whatever to enable cosmic or not
 
   * `hyprlandCaelestia` (optional): Whatever to enable caelestia shell in hyprland
-  
   * `hyprlandNoctalia` (optional): Whatever to enable noctalia shell in hyprland
 
   * `niriNoctalia` (optional): Whatever to enable noctalia shell in niri
-  
   * `flatpak` (optional): Whatever to enable support for flatpak
-  
   * `term` (optional): Default terminal, used for keybindings and tmux
-    * Depending on the terminal it may be necessary to add an entry `set -as` to `tmux.nix`. This is necessary to tell tmux that the current terminal support full colors. 
-  
+    - Depending on the terminal it may be necessary to add an entry `set -as` to `tmux.nix`. This is necessary to tell tmux that the current terminal support full colors.
+
   For example:
-  
+
   ```nix
   set -as terminal-features ",xterm-kitty:RGB"
   ```
 
-  * `shell` (optional): The preferred shell for the user. Options are:
-    *  fish
-    *  bash
-    *  zsh
+  - `shell` (optional): The preferred shell for the user. Options are:
+    - fish
+    - bash
+    - zsh
 
-  * `browser` (optional): Default browser. To make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
-    * google-chrome
-    * firefox
-    * chromium
+  - `browser` (optional): Default browser. To make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
+    - google-chrome
+    - firefox
+    - chromium
 
-  * `editor` (optional): Default text/code editorTo make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name except for neovim)
-    * vscode
-    * code
-    * code-cursor
-    * nvim (use "nvim" it make launching it easier. the expected name "neovim" is automatically translated in home-packages.nix)
-    * vim
-    * emacs
-    * sublime
-    * kate
-    * gedit
+  - `editor` (optional): Default text/code editorTo make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name except for neovim)
+    - vscode
+    - code
+    - code-cursor
+    - nvim (use "nvim" it make launching it easier. the expected name "neovim" is automatically translated in home-packages.nix)
+    - vim
+    - emacs
+    - sublime
+    - kate
+    - gedit
 
-  * `fileManager` (optional): Default file manager. To make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
-    * dolphin (the pkgs.kdePackages portion is already handled. write only `dolphin`)
-    * xfce.thunar
-    * ranger
-    * nautilus
-    * nemo
+  - `fileManager` (optional): Default file manager. To make sure it work 100 write the name of the official package. Common options are the following (they match an existing package name)
+    - dolphin (the pkgs.kdePackages portion is already handled. write only `dolphin`)
+    - xfce.thunar
+    - ranger
+    - nautilus
+    - nemo
 
-  * `base16Theme` (mandatory): which base 16 theme to use  
-    * Reference https://github.com/tinted-theming/schemes/tree/spec-0.11/base16
-  
-  * `polarity` (mandatory): Decide whatever to have a light or a dark theme in stylix.nix
-    * This should make sense with the global base16 themes. This means a dark-coloured global theme should have a dark polarity and vice-versa
-    * Currently it is used in the following files:
-      * `qt.nix`, `kde/main.nix` 
-  
-  * `catppuccin` (optional): Whatever to enable catppuccin theming or not. If disabled all the theming is done via the base theme. Note that some modules may require attention in order to be fully customized. For more information see [(the catppuccin features)](#-theming)
-    
-  * `catppuccinFlavor` (optional): What catppuccin flavor to use
-    * the flavor name should be all lowercase. frappé needs to be written without accent so  frappe
-  
-  * `catppuccinAccent` (optional): What catppuccin Accent to use
+  - `base16Theme` (mandatory): which base 16 theme to use
+    - Reference https://github.com/tinted-theming/schemes/tree/spec-0.11/base16
+  - `polarity` (mandatory): Decide whatever to have a light or a dark theme in stylix.nix
+    - This should make sense with the global base16 themes. This means a dark-coloured global theme should have a dark polarity and vice-versa
+    - Currently it is used in the following files:
+      - `qt.nix`, `kde/main.nix`
+  - `catppuccin` (optional): Whatever to enable catppuccin theming or not. If disabled all the theming is done via the base theme. Note that some modules may require attention in order to be fully customized. For more information see [(the catppuccin features)](#-theming)
+  - `catppuccinFlavor` (optional): What catppuccin flavor to use
+    - the flavor name should be all lowercase. frappé needs to be written without accent so frappe
+  - `catppuccinAccent` (optional): What catppuccin Accent to use
 
-  
-  * `timezone` (optional): Your system time zone (e.g., `Europe/Zurich`).
-    * To choose the timezone refer to the [(IANA time zone database)](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) 
-  
-  * `weather` (optional): Location for the weather widget (e.g., `Lugano`).
-  
-  * `keyboardLayout` (optional): Single or list of keyboard layout
-  
-  * `keyboardVariant` (optional): Keyboard variant
-    * If more layout are defined a comma is needed for each layout except the first one. For example:
+  - `timezone` (optional): Your system time zone (e.g., `Europe/Zurich`).
+    - To choose the timezone refer to the [(IANA time zone database)](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+  - `weather` (optional): Location for the weather widget (e.g., `Lugano`).
+  - `keyboardLayout` (optional): Single or list of keyboard layout
+  - `keyboardVariant` (optional): Keyboard variant
+    - If more layout are defined a comma is needed for each layout except the first one. For example:
 
 ```nix
  keyboardLayout = "us,ch,de,fr,it"; # 5 different layouts
   keyboardVariant = "intl,,,,"; # main variant + 4 commas (total 5 values, same as keyboardLayout)
 ```
 
-  * `screenshots` (mandatory): Setup the preferred directory where screenshots are put
-    * Currently the path and shortcuts only work in hyprland and kde 
+- `screenshots` (mandatory): Setup the preferred directory where screenshots are put
+  - Currently the path and shortcuts only work in hyprland and kde
 
-  * `snapshots` (optional): Whatever to enable snapshots or not
+- `snapshots` (optional): Whatever to enable snapshots or not
 
-  * `snapshotRetention` (optional): How many snapshots to keep for a certain period
-  
-  * `tailscale` (optional): Whatever to enable or disable the tailscale service.
-    * "guest" user has this service disabled using a custom firewall rules in configuration.nix (host-specific)
+- `snapshotRetention` (optional): How many snapshots to keep for a certain period
 
-  * `guest` (optional): Whatever to enable or disable the guest user.
-  
-  * `zramPercent` (optional): Ram swap to enhance system performance.
+- `tailscale` (optional): Whatever to enable or disable the tailscale service.
+  - "guest" user has this service disabled using a custom firewall rules in configuration.nix (host-specific)
 
-  * `monitors` (mandatory): List of monitor definitions (resolution, refresh rate, position).
-    * For a guide on how to set it up refer to the [(hyprland guide)](https://wiki.hypr.land/Configuring/Monitors/) 
+- `guest` (optional): Whatever to enable or disable the guest user.
 
-* `wallpapers` (mandatory) : List of wallpapers corresponding to the monitors.
-  * **How to get the values:**
+- `zramPercent` (optional): Ram swap to enhance system performance.
+
+- `monitors` (mandatory): List of monitor definitions (resolution, refresh rate, position).
+  - For a guide on how to set it up refer to the [(hyprland guide)](https://wiki.hypr.land/Configuring/Monitors/)
+
+- `wallpapers` (mandatory) : List of wallpapers corresponding to the monitors.
+  - **How to get the values:**
   1. **`wallpaperURL`**: Nix requires a direct link to the raw image file. If using GitHub, standard links won't work. Copy your GitHub link and paste it into [(git-rawify)](https://git-rawify.vercel.app/) to get the correct "Raw" URL.
   2. **`wallpaperSHA256 (mandatory)`**: Generate the hash by running this command in your terminal:
+  - **Troubleshooting URLs**:
+    If your URL contains special characters (like `%20` for spaces), the command might fail or return an "invalid character" error. To fix this, **wrap the URL in single quotes**:
+  - ❌ _Fail:_ `nix-prefetch-url https://example.com/my%20wallpaper.png`
+  - ✅ _Success:_ `nix-prefetch-url 'https://example.com/my%20wallpaper.png'`
 
-  * **Troubleshooting URLs**:
-  If your URL contains special characters (like `%20` for spaces), the command might fail or return an "invalid character" error. To fix this, **wrap the URL in single quotes**:
-  * ❌ *Fail:* `nix-prefetch-url https://example.com/my%20wallpaper.png`
-  * ✅ *Success:* `nix-prefetch-url 'https://example.com/my%20wallpaper.png'`
-  
 ```bash
 nix-prefetch-url <your_raw_url>
 ```
 
-  * `idleConfig` (optional) : Power management settings (timeouts for dimming, locking, sleeping).
+- `idleConfig` (optional) : Power management settings (timeouts for dimming, locking, sleeping).
 
-  * `cachix` (optional): Whatever to enable cachix or not
-    * For a third user to be a builder the following steps must be followed:
-      * Fork/clone the repo locally. This is needed because third user do not have write access nor to the repo runners nor to my cachix cache 
-      1. Change both `name` and `publicKey` in  `variables.nix` with the new data
-      2. Put the `cachix-auth-token` in the host-specific sops file
-      3. Change `CACHIX_name` in `build.yml`. This automatically change the name in the entire build file
-      4. Add the general cachix profile auth token to github actions in the repo page. The name of the secret is`CACHIX_AUTH_TOKEN`  
+- `cachix` (optional): Whatever to enable cachix or not
+  - For a third user to be a builder the following steps must be followed:
+    - Fork/clone the repo locally. This is needed because third user do not have write access nor to the repo runners nor to my cachix cache
+    1. Change both `name` and `publicKey` in `variables.nix` with the new data
+    2. Put the `cachix-auth-token` in the host-specific sops file
+    3. Change `CACHIX_name` in `build.yml`. This automatically change the name in the entire build file
+    4. Add the general cachix profile auth token to github actions in the repo page. The name of the secret is`CACHIX_AUTH_TOKEN`
 
 #### An hosts variable config example:
 
@@ -942,26 +947,31 @@ nix-prefetch-url <your_raw_url>
 ```
 
 ### Setup (optional) `local-packages.nix`
+
 - It contains packages that are intended to only be installed in that specific hosts
   - add as needed
 
 ### Setup (optional) `flatpak.nix`
+
 - It contains flatpak packages that are intended to only be installed in that specific hosts
   - add as needed
 
-
 ### Setup (optional) `modules.nix`
+
 This file contains specific "Power User" configurations and aesthetic tweaks that may vary significantly between machines (e.g., desktop vs. laptop).
+
 - See below for a guide
 
-
 ### Setup (optional) `home.nix`
+
 This file contains specific home-manager aspects that are related only to a certain host. It complement well the global home.nix
+
 - See below for a guide
 
 ### Setup (optional) `host-modules` folder
+
 - This is a folder that can contains modules that can be configured with home-manager but that are only active on a certain host.
-  - This help to keep clean the original home-manager/modules folder 
+  - This help to keep clean the original home-manager/modules folder
 
 - See below for a guide
 
@@ -970,14 +980,14 @@ This file contains specific home-manager aspects that are related only to a cert
 ## Phase 5: Setup optional host-specific files and directories
 
 ### 1. (Optional) Customize the host-specific `modules.nix`
+
 To see currently supported options have a look at the file for the hostname `nixos-desktop`
 
-* **How it works**: The system checks if this file exists. If it does, it merges these variables with your main configuration.
-  * The file is included in the template-host, with a sample configuration. This provide a starting base. If not needed it can be deleted at any moment and all the fallback will apply 
-* **The Safety Net**: If this file is missing (or if you omit specific variables), the system applies a **safe fallback**. This ensures the build never fails, even if you don't define these complex options.
+- **How it works**: The system checks if this file exists. If it does, it merges these variables with your main configuration.
+  - The file is included in the template-host, with a sample configuration. This provide a starting base. If not needed it can be deleted at any moment and all the fallback will apply
+- **The Safety Net**: If this file is missing (or if you omit specific variables), the system applies a **safe fallback**. This ensures the build never fails, even if you don't define these complex options.
 
-* If you add any option then ideally a fallback should be defined in the target nix file
-
+- If you add any option then ideally a fallback should be defined in the target nix file
 
 ---
 
@@ -995,8 +1005,8 @@ This file allows you to manage user-specific configurations that should **only**
 | **`home.sessionVariables`** | Defines shell variables for this host only.                                                     | Setting `JAVA_HOME` or `JDTLS_BIN` only on machines used for development.                   |
 | **`home.activation`**       | Activate certain functions such as creating customs folders                                     | Make sure certain directories exist only for that host                                      |
 
-
 ### 3. (Optional) Customize the host-specific `host-modules` directory
+
 - This folder can contain any .nix file that you would use as a home-manager modules. The only difference is that they are put inside this folder
 - When a new file is added it needs to be defined in default.nix. For example:
 
@@ -1017,10 +1027,9 @@ Whenever you edit a file, use these aliases to apply your changes. You don't nee
 The normal switch command handle both a system and a home-manager rebuild.
 
 | Alias     | Command                 | Description                                                            |
-| --------- | ----------------------- | ---------------------------------------------------------------------- |
-| **`sw`**  | `nh os switch`          | **System Rebuild**. Rebuild everything                                 |  |
+| --------- | ----------------------- | ---------------------------------------------------------------------- | --- |
+| **`sw`**  | `nh os switch`          | **System Rebuild**. Rebuild everything                                 |     |
 | **`upd`** | `nh os switch --update` | **System Update**. Downloads the latest package versions and rebuilds. |
-
 
 ## ❓ Troubleshooting
 
@@ -1055,22 +1064,22 @@ sudo chown -R $USER:users ~/nixOS
 ### Error: `returned non-zero exit status 4` during rebuild
 
 **Cause:** Common during massive updates. System built fine but failed to restart a service (often DBus).
-- Some time the rebuild seems stuck.
-  - Tough it may also be a true stuck chanches are that the system correctly builded but can not show this in the cli 
 
+- Some time the rebuild seems stuck.
+  - Tough it may also be a true stuck chanches are that the system correctly builded but can not show this in the cli
 
 ### Weird keyboard layout during install
+
 This is a problem that i encountered. It may have been user error but i write it here just to be safe.
 
 Even tough i selected us international during the gui installer once rebooted into cli (since i selected no desktop) i was greeted with all mixed keys. Meaning what i saw on the physical keyboard were not the keys that were pressed.
+
 - For me the layout that nixOS had at that moment in time was `dvorak`
 - This is solvable by manually converting the keyboards or just ask an ai what keys to press on a dvorak layout to actually input what the user wants. After the user login is successful input the following command `loadkeys <layout>` (until this command run successfully the keyboard layout is still `dvorak`). After this the problem should be solved and since the layout are chosen declarative this should not be a problem anymore
 
-
 ### Caelestia/noctalia: some fonts issue
+
 - This is mainly caused if the font you are trying to use is not installed. You can install them, either hosts-specific (better in `configuration.nix`) or in `home-packages.nix`
-
-
 
 ## ❄️ Note on the declarative aspects
 
@@ -1081,25 +1090,26 @@ These modules uses a dedicated `*.nix` file where it defines that the main confi
 These blocks are configured in such a way that allow 2 scenario:
 
 1: The user has a customized setup (either with stowing from another github repo) or directly in the original intended location.
-  - In this case there is an hybrid environment. Meaning everything defined in both `*.nix` files and the original file/directory apply
+
+- In this case there is an hybrid environment. Meaning everything defined in both `*.nix` files and the original file/directory apply
 
 2: The user does not have a customized setup the original location is either empty or default (after installing the program)
-  - In this case the behaviour in `*.nix` apply but since the rest is default it is like not applying it at all
 
-Currently this behaviour happens here: 
-- **Neovim**: 
+- In this case the behaviour in `*.nix` apply but since the rest is default it is like not applying it at all
+
+Currently this behaviour happens here:
+
+- **Neovim**:
   - Nix reference: `neovim.nix`
   - Original reference: `~/.config/nvim/*`
 
-- **shells**: 
+- **shells**:
   - Nix reference: `zsh.nix`, `bash.nix` `fish.nix`
   - Original reference: `~/.zshrc_custom`, `.bashrc_custom`, `.custom.fish`
 
-- **caelestia/noctalia**: 
+- **caelestia/noctalia**:
   - Nix reference: `caelestia-main.nix`, `noctalia-main.nix`
   - Original reference: `~/.config/caelestia/shell.json`, `~/.config/noctalia/config.json`
-
-
 
 ## 📝 Project Origin and Customization
 
@@ -1109,89 +1119,94 @@ I would like to extend my thanks to **Andrey0189** for providing a robust starti
 
 While the original repository laid the foundation, this setup has been **heavily customized** and expanded over time to suit my personal needs and workflows. Key changes include:
 
-* **Heavily improved hosts variables**: Modified the hosts directory such that it contains many more aspects that can differs from host to host
-* **Multiple Desktop Environments**: Added configuration and support for multiple desktop environments
-* **Ephemeral Guest User**: Implemented a secure, non-persistent guest account with automatic home directory wiping on reboot.
-* **Theming Overhaul**: Integrated a base 16 colorscheme selection alongside Catppuccin official theming via `stylix`.
-* **Hybrid Declarative Aspects**: Detailed and implemented a hybrid approach for tools like Neovim and Zsh, allowing for declarative configuration while respecting and integrating official, non-declarative customization methods.
-* **Flake Configuration**: Enhanced the `flake.nix` file to suit the logic that there are many more variables that differs from hosts to hosts
-* **Common modules**: Allow the user to have general home-manager modules for certain hosts
-* **Cachix support**: Enhanced the `flake.nix` file to suit the logic that there are many more variables that differs from hosts to hosts
-* **Multi-architecture support**: Support for both x86 and aarch pc
+- **Heavily improved hosts variables**: Modified the hosts directory such that it contains many more aspects that can differs from host to host
+- **Multiple Desktop Environments**: Added configuration and support for multiple desktop environments
+- **Ephemeral Guest User**: Implemented a secure, non-persistent guest account with automatic home directory wiping on reboot.
+- **Theming Overhaul**: Integrated a base 16 colorscheme selection alongside Catppuccin official theming via `stylix`.
+- **Hybrid Declarative Aspects**: Detailed and implemented a hybrid approach for tools like Neovim and Zsh, allowing for declarative configuration while respecting and integrating official, non-declarative customization methods.
+- **Flake Configuration**: Enhanced the `flake.nix` file to suit the logic that there are many more variables that differs from hosts to hosts
+- **Common modules**: Allow the user to have general home-manager modules for certain hosts
+- **Cachix support**: Enhanced the `flake.nix` file to suit the logic that there are many more variables that differs from hosts to hosts
+- **Multi-architecture support**: Support for both x86 and aarch pc
 
 This README documents the final, highly customized iteration of that initial framework.
 
 The LICENCE.txt file is copied from the original repo and should respect the GPLv3 terms
+
 - If there are any problems reach me by e-mail githubgitlabmain.hu5b7@passfwd.com
 
-
 ## Showcase
+
 These photos contains the following options:
+
 ```nix
 guest = true;
 base16Theme = "nord";
 polarity = "dark";
 catppuccin = false;
-catppuccinFlavor = "mocha"; 
-catppuccinAccent = "sky"; 
+catppuccinFlavor = "mocha";
+catppuccinAccent = "sky";
 ```
 
-
 ### Hyprland with waybar
+
 ![hyprland-showcase](./Documentation/showcase-screenshots/hyprland-showcase.png)
 
 ### Hyprland with Caelestia/quickshell lockscreen
+
 ![hyprland-caelestia](./Documentation/showcase-screenshots/quickshell-lockscreen.png)
 
-### Hyprland with  noctalia
+### Hyprland with noctalia
+
 ![hyprland-caelestia](./Documentation/showcase-screenshots/noctalia_custom-neovim.png)
 
-
 ### Hyprland with noctalia/quickshell lockscreen
+
 ![hyprland-caelestia](./Documentation/showcase-screenshots/noctalia-screen_locker.png)
 
 ### KDE
+
 ![kde-showcase](./Documentation/showcase-screenshots/kde-showcase.png)
 
 ### Gnome
+
 ![gnome-showcase](./Documentation/showcase-screenshots/gnome-showcase.png)
 
 ### XFCE
+
 ![xfce-showcase](./Documentation/showcase-screenshots/xfce-showcase.png)
 
-
-
-
 ## Other resources
+
 ### [Structure](./Documentation/structure/Structure.md)
+
 This folder contains the entire structure of the project, with a general of every single file
 
 ### [In-depth-files-expl](./Documentation/in-depth-files-expl/files-expl.md)
+
 This folder contains an in-depth explanation of files that could be difficult to understand
 
 ### [Issues](./Documentation/issues/issues.md)
+
 This folder contains an explanation of the issues that i noticed and that should eventually be resolved
+
 - Issues include both warnings than critical one
 
 ### [Ideas](./Documentation/ideas/ideas.md)
+
 This folder contains ideas that i think may benefit the project
 
-
 ### [Usage guide](./Documentation/usage/)
+
 This folder contains a guide on how basic aspects should be implemented, such as:
+
 - Creating a system-wide module
 - Create a general home-manager modules that apply to all hosts
 - Create a host-specific home-manager modules
 - Theming guide
 
 It also contains some other guides such as
+
 - sops
 - tmux
 - cachix
-
-
-
-
-
-
-

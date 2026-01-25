@@ -37,8 +37,7 @@
 
   # Niri Options
   # FIXME: They need gpu-screen-recorder to work, which is not supported on aarch64
-  niriNoctalia =
-    false; # Enable Noctalia for Niri (No Caelestia support on Niri)
+  niriNoctalia = false; # Enable Noctalia for Niri (No Caelestia support on Niri)
 
   # 📦 PACKAGES & TERMINAL
   flatpak = true;
@@ -84,11 +83,12 @@
   # 🖼️ MONITORS & WALLPAPERS
   monitors = [ "Virtual-1, 1920x1080@60, 0x0, 1" ];
 
-  wallpapers = [{
-    wallpaperURL =
-      "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/various-websites/wallhaven/wallhaven-anime-girl-drink-4k-grey.png";
-    wallpaperSHA256 = "0q5j531m3a1x5x99d0xybcb9rgc7w1i3v2vgf81zpwcwqj7abnzr";
-  }];
+  wallpapers = [
+    {
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/various-websites/wallhaven/wallhaven-anime-girl-drink-4k-grey.png";
+      wallpaperSHA256 = "0q5j531m3a1x5x99d0xybcb9rgc7w1i3v2vgf81zpwcwqj7abnzr";
+    }
+  ];
 
   # 🔋 POWER MANAGEMENT
   idleConfig = {
@@ -106,10 +106,8 @@
   # Cachix
   cachix = {
     enable = true;
-    push =
-      false; # Only the builder must have this true (for now "nixos-desktop")
+    push = false; # Only the builder must have this true (for now "nixos-desktop")
     name = "krit-nixos";
-    publicKey =
-      "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
+    publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
   };
 }

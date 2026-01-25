@@ -69,6 +69,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         # System maintenance
         dedup = "nix store optimise";
         cleanup = "nh clean all";
+        cleanup-ask = "nh clean all --ask";
         gc = "nix-collect-garbage -d";
 
         # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference

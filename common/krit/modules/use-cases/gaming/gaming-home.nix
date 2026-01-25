@@ -1,6 +1,11 @@
-{ pkgs, lib, vars, ... }:
+{
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
 let
-  isEnabled = builtins.elem "gaming" (vars.useCases or []);
+  isEnabled = builtins.elem "gaming" (vars.useCases or [ ]);
 in
 {
   config = lib.mkIf isEnabled {

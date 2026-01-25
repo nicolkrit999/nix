@@ -1,4 +1,10 @@
-{ pkgs, lib, vars, ... }: {
+{
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
+{
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME
   # -----------------------------------------------------------------------
@@ -73,9 +79,8 @@
       bind -n M-q kill-window
       bind -n M-Q kill-session
     '';
-    plugins = with pkgs;
-      [
-        # plugins...
-      ];
+    plugins = with pkgs; [
+      # plugins...
+    ];
   };
 }

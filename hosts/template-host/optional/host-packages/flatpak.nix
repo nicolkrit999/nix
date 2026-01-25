@@ -1,4 +1,10 @@
-{ pkgs, lib, vars, ... }: {
+{
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
+{
   # Only apply if flatpak is enabled in flake.nix
   config = lib.mkIf (vars.flatpak or false) {
 
@@ -12,10 +18,12 @@
     # https://flathub.org/en/apps/com.spotify.Client --> "com.spotify.Client"
     services.flatpak.packages = [ ];
 
-    services.flatpak.remotes = [{
-      name = "flathub";
-      location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
-    }];
+    services.flatpak.remotes = [
+      {
+        name = "flathub";
+        location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
+      }
+    ];
 
     # Auto-update Flatpaks
     services.flatpak.update.onActivation = false;

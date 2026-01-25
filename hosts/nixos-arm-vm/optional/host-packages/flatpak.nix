@@ -1,4 +1,10 @@
-{ pkgs, lib, vars, ... }: {
+{
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
+{
   config = lib.mkIf (vars.flatpak or false) {
 
     # Flatpak packages. Put them inside quotes """
@@ -12,10 +18,12 @@
 
     services.flatpak.update.onActivation = false;
 
-    services.flatpak.remotes = [{
-      name = "flathub";
-      location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
-    }];
+    services.flatpak.remotes = [
+      {
+        name = "flathub";
+        location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
+      }
+    ];
 
     systemd.services.flatpak-managed-install = {
       serviceConfig = {

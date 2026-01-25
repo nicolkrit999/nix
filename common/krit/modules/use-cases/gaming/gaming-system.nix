@@ -1,4 +1,10 @@
-{ pkgs, lib, vars, config, ... }:
+{
+  pkgs,
+  lib,
+  vars,
+  config,
+  ...
+}:
 let
   enable = builtins.elem "gaming" (vars.useCases or [ ]);
 in
@@ -11,6 +17,8 @@ in
 
     hardware.graphics.enable32Bit = true;
 
-    boot.kernel.sysctl = { "vm.max_map_count" = 2147483642; };
+    boot.kernel.sysctl = {
+      "vm.max_map_count" = 2147483642;
+    };
   };
 }

@@ -1,4 +1,5 @@
-{ vars, ... }: {
+{ vars, ... }:
+{
   zramSwap = {
     enable = true;
 

@@ -65,6 +65,7 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
         # System maintenance
         dedup = "nix store optimise";
         cleanup = "nh clean all";
+        cleanup-ask = "nh clean all --ask";
         gc = "nix-collect-garbage -d";
 
         # Pkgs editing

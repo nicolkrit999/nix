@@ -1,4 +1,3 @@
-
 # 🚨 NixOS Emergency Recovery & Maintenance Manual
 
 ## 1. Live USB Recovery (The "Deep" Fix)
@@ -9,8 +8,8 @@ Use this if you encounter the **"GNU GRUB minimal bash-like"** screen or a total
 
 Run `lsblk -o NAME,FSTYPE,SIZE,MOUNTPOINT,UUID` to confirm partition names. Search for this pattern:
 
-* **`nvme3n1p1` (1GB)**: EFI/Boot partition (FAT32).
-* **`nvme3n1p2` (1.8TB)**: Main Btrfs partition containing system subvolumes.
+- **`nvme3n1p1` (1GB)**: EFI/Boot partition (FAT32).
+- **`nvme3n1p2` (1.8TB)**: Main Btrfs partition containing system subvolumes.
 
 ### B. The Mounting Sequence
 
@@ -31,7 +30,6 @@ mount /dev/nvme3n1p1 /mnt/boot
 ```
 
 ### C. Reinstalling from the Host Config
-
 
 ```bash
 cd /mnt/home/<username>/nixOS
@@ -64,7 +62,7 @@ boot.loader.grub.configurationLimit = 20; # Always keep 20 versions available
 
 ## 3. Post-Recovery Safety Checklist
 
-* **Safe Logout**: If the screen hangs at a blinking `_`, do not force-reboot. Press `Ctrl+Alt+F3`, login, and type `sudo reboot` to safely unmount Btrfs.
-* **Testing**: Always use `sudo nixos-rebuild test --flake .#nixos-desktop` for experimental changes. If it fails, a simple reboot returns you to safety because `test` does not update the GRUB menu.
+- **Safe Logout**: If the screen hangs at a blinking `_`, do not force-reboot. Press `Ctrl+Alt+F3`, login, and type `sudo reboot` to safely unmount Btrfs.
+- **Testing**: Always use `sudo nixos-rebuild test --flake .#nixos-desktop` for experimental changes. If it fails, a simple reboot returns you to safety because `test` does not update the GRUB menu.
 
 Would you like me to explain how to "pin" your current working recovery state so it never gets deleted by garbage collection?

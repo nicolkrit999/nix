@@ -1,4 +1,10 @@
-{ pkgs, lib, config, vars, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  vars,
+  ...
+}:
 let
   # Your custom layout tweaks (Fonts, Size, Rounding)
   customLayout = ''
@@ -21,11 +27,13 @@ let
   '';
 
   # Enable swaync only if using Hyprland or Niri without Caelestia/Noctalia
-  hyprlandSwayNC = (vars.hyprland or false)
+  hyprlandSwayNC =
+    (vars.hyprland or false)
     && !((vars.hyprlandCaelestia or false) || (vars.hyprlandNoctalia or false));
 
   niriSwayNC = (vars.niri or false) && !(vars.niriNoctalia or false);
-in {
+in
+{
   config = lib.mkIf (hyprlandSwayNC || niriSwayNC) {
 
     catppuccin.swaync.enable = vars.catppuccin or false;
@@ -50,27 +58,28 @@ in {
       };
 
       # 🎨 DYNAMIC STYLE LOGIC
-      style = if vars.catppuccin then
-        lib.mkForce ''
-          @import "${config.catppuccin.sources.swaync}/${vars.catppuccinFlavor}.css";
-          ${customLayout}
-        ''
-      else
-        lib.mkAfter ''
-          ${customLayout}
-        '';
+      style =
+        if vars.catppuccin then
+          lib.mkForce ''
+            @import "${config.catppuccin.sources.swaync}/${vars.catppuccinFlavor}.css";
+            ${customLayout}
+          ''
+        else
+          lib.mkAfter ''
+            ${customLayout}
+          '';
     };
 
     systemd.user.services.swaync = {
-      Unit.PartOf = lib.mkForce
-        ((lib.optional hyprlandSwayNC "hyprland-session.target")
-          ++ (lib.optional niriSwayNC "niri.service"));
-      Unit.After = lib.mkForce
-        ((lib.optional hyprlandSwayNC "hyprland-session.target")
-          ++ (lib.optional niriSwayNC "niri.service"));
-      Install.WantedBy = lib.mkForce
-        ((lib.optional hyprlandSwayNC "hyprland-session.target")
-          ++ (lib.optional niriSwayNC "niri.service"));
+      Unit.PartOf = lib.mkForce (
+        (lib.optional hyprlandSwayNC "hyprland-session.target") ++ (lib.optional niriSwayNC "niri.service")
+      );
+      Unit.After = lib.mkForce (
+        (lib.optional hyprlandSwayNC "hyprland-session.target") ++ (lib.optional niriSwayNC "niri.service")
+      );
+      Install.WantedBy = lib.mkForce (
+        (lib.optional hyprlandSwayNC "hyprland-session.target") ++ (lib.optional niriSwayNC "niri.service")
+      );
     };
   };
 }
