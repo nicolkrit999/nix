@@ -7,7 +7,6 @@
 }:
 let
   addons = pkgs.callPackage inputs.firefox-addons { };
-
   policyRoot = "/home/${vars.user}/.librewolf-policyroot";
 
   policiesJson = builtins.toJSON {
@@ -58,86 +57,6 @@ let
           "https://pocket-id.nicolkrit.ch"
           "https://nicolkrit.cloudflareaccess.com"
         ];
-      };
-
-      Preferences = {
-        "network.cookie.cookieBehavior" = {
-          Value = 0;
-          Status = "locked";
-        };
-        "network.cookie.cookieBehavior.pbmode" = {
-          Value = 0;
-          Status = "locked";
-        };
-        "network.cookie.lifetimePolicy" = {
-          Value = 0;
-          Status = "locked";
-        };
-
-        "privacy.firstparty.isolate" = {
-          Value = false;
-          Status = "locked";
-        };
-        "privacy.partition.network_state" = {
-          Value = false;
-          Status = "locked";
-        };
-
-        "privacy.resistFingerprinting" = {
-          Value = false;
-          Status = "locked";
-        };
-        "privacy.fingerprintingProtection" = {
-          Value = false;
-          Status = "locked";
-        };
-
-        "browser.contentblocking.category" = {
-          Value = "standard";
-          Status = "locked";
-        };
-        "privacy.trackingprotection.enabled" = {
-          Value = false;
-          Status = "locked";
-        };
-        "privacy.trackingprotection.fingerprinting.enabled" = {
-          Value = false;
-          Status = "locked";
-        };
-        "privacy.trackingprotection.socialtracking.enabled" = {
-          Value = false;
-          Status = "locked";
-        };
-        "privacy.trackingprotection.cryptomining.enabled" = {
-          Value = false;
-          Status = "locked";
-        };
-
-        # Self-hosted / strict OIDC compatibility knobs
-        "network.cookie.sameSite.laxByDefault" = {
-          Value = false;
-          Status = "locked";
-        };
-        "network.cookie.sameSite.noneRequiresSecure" = {
-          Value = false;
-          Status = "locked";
-        };
-
-        # Avoid DoH breaking reachability
-        "network.trr.mode" = {
-          Value = 5;
-          Status = "locked";
-        };
-
-        # Referrers permissive for redirect flows
-        "network.http.referer.XOriginPolicy" = {
-          Value = 0;
-          Status = "locked";
-        };
-        "network.http.referer.XOriginTrimmingPolicy" = {
-          Value = 0;
-          Status = "locked";
-        };
       };
     };
   };
@@ -239,7 +158,6 @@ let
     "media.videocontrols.picture-in-picture.video-toggle.enabled" = true;
     "browser.display.document_color_use" = 0;
     "browser.display.use_system_colors" = true;
-
     "ui.systemUsesDarkTheme" = if vars.polarity == "dark" then 1 else 0;
     "browser.in-content.dark-mode" = vars.polarity == "dark";
 
