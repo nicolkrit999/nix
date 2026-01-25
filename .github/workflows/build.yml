@@ -1,4 +1,4 @@
-name: "Build & Cache"
+name: "Build NixOS Configurations, push to cachix and flake checks"
 env:
   CACHIX_NAME: krit-nixos
 
@@ -8,7 +8,7 @@ on:
   pull_request:
   schedule:
     # Weekly on Fridays at 05:00 UTC
-    - cron: '0 5 * * 5'
+    - cron: "0 5 * * 5"
 
 # Prevents multiple pushes from building at once, saving runner time
 concurrency:
@@ -37,7 +37,7 @@ jobs:
       - name: Maximize Nix Space
         uses: wimpysworld/nothing-but-nix@main
         with:
-          hatchet-protocol: 'cleave'
+          hatchet-protocol: "cleave"
           witness-carnage: true
           nix-permission-edict: false
 
@@ -49,11 +49,15 @@ jobs:
             build-dir = /nix/build
             auto-optimise-store = true
             experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - uses: cachix/cachix-action@v15
         with:
           name: ${{ env.CACHIX_NAME }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Check Flake
+        run: nix flake check
 
       - name: Build x86_64 Configurations
         run: |
@@ -96,7 +100,7 @@ jobs:
       - name: Maximize Nix Space
         uses: wimpysworld/nothing-but-nix@main
         with:
-          hatchet-protocol: 'cleave' # Switch to "rampage" if the space used is close to ~100gb for each build split
+          hatchet-protocol: "cleave" # Switch to "rampage" if the space used is close to ~100gb for each build split
           witness-carnage: true
           nix-permission-edict: false
 
@@ -109,6 +113,7 @@ jobs:
             extra-platforms = aarch64-linux
             auto-optimise-store = true
             experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - uses: cachix/cachix-action@v15
         with:
