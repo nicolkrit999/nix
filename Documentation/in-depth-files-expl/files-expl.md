@@ -470,7 +470,7 @@ It serves as the foundation upon which your personal environment is built.
   home = {
     username = vars.user;
     homeDirectory = "/home/${vars.user}";
-    stateVersion = vars.homeStateVersion; # Controls backwards compatibility logic
+    stateVersion = vars.homeStateVersion or "25.11"; # Controls backwards compatibility logic
   };
 
   # -----------------------------------------------------------------------
@@ -2029,6 +2029,10 @@ Regardless of which theme engine we use for specific apps, Stylix always manages
   vars,
   ...
 }:
+let
+  # If the variable is missing given the ! then the default is "true"
+  isCatppuccin = vars.catppuccin or false;
+in
 {
   imports = [ inputs.stylix.homeModules.stylix ];
 
@@ -2064,28 +2068,28 @@ Regardless of which theme engine we use for specific apps, Stylix always manages
       # -----------------------------------------------------------------------
       # DE/WM SPECIFIC
       # -----------------------------------------------------------------------
-      gnome.enable = vars.gnome;
+      gnome.enable = vars.gnome or true;
 
       # ---------------------------------------------------------------------------------------
       # 🎨 GLOBAL CATPPUCCIN
       # Intelligently enable/disable stylix based on whether catppuccin is enabled
       # catppuccin = true -> .enable = false
       # catppuccin = false -> .enable = true
-      hyprland.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
+      hyprland.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
 
-      hyprlock.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix
+      hyprlock.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix
 
-      gtk.enable = !vars.catppuccin; # No ref
+      gtk.enable = !isCatppuccin; # No ref
 
-      swaync.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/swaync/default.nix
+      swaync.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/swaync/default.nix
 
-      bat.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/bat.nix
+      bat.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/bat.nix
 
-      lazygit.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/lazygit.nix
+      lazygit.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/lazygit.nix
 
-      tmux.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/tmux.nix
+      tmux.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/tmux.nix
 
-      starship.enable = !vars.catppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
+      starship.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
 
     }
     // (lib.optionalAttrs (vars.stylixExclusions != null) vars.stylixExclusions);
@@ -2301,7 +2305,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         # Utilities
         se = "sudoedit";
         fzf-prev = "fzf --preview=\"cat {}\"";
-        fzf-editor = "${vars.editor} \$(fzf -m --preview='cat {}')";
+        fzf-editor = "${safeEditor} \$(fzf -m --preview='cat {}')";
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
@@ -2531,7 +2535,7 @@ in
   # ---------------------------------------------------------
   networking.hostName = vars.hostname;
   networking.networkmanager.enable = true;
-  system.stateVersion = vars.stateVersion;
+  system.stateVersion = vars.stateVersion or "25.11";
 
   # ---------------------------------------------------------
   # 🌍 LOCALE & TIME

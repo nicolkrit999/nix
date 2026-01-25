@@ -5,7 +5,7 @@
   ...
 }:
 {
-  config = lib.mkIf (vars.hyprland or false) {
+  config = lib.mkIf (vars.hyprland or true) {
     programs.hyprland = {
       enable = true;
       withUWSM = true;

@@ -1,11 +1,11 @@
 {
   pkgs,
   pkgs-unstable,
-  user,
+  vars,
   ...
 }:
 {
-  users.users.${user}.packages =
+  users.users.${vars.user}.packages =
     with pkgs;
     [
     ]

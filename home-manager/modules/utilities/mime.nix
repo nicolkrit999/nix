@@ -5,6 +5,10 @@
   ...
 }:
 let
+
+  safeEditor = vars.editor or "vscode";
+  safeBrowser = vars.browser or "brave";
+  safeTerm = vars.term or "alacritty";
   # -----------------------------------------------------------------------
   # 1. HELPER: Terminal Editor Logic
   # -----------------------------------------------------------------------
@@ -35,27 +39,29 @@ let
       name = "Helix (User)";
     };
   };
+
   # Check if the chosen editor is a terminal one
-  isTermEditor = builtins.hasAttr vars.editor termEditors;
-  editorConfig = termEditors.${vars.editor};
+  isTermEditor = builtins.hasAttr safeEditor termEditors;
+  editorConfig = termEditors.${safeEditor};
 
   # -----------------------------------------------------------------------
   # 2. LOGIC: Determine the .desktop file name
   # -----------------------------------------------------------------------
   myEditor =
     if isTermEditor then
-      # If it's a terminal editor, use our custom generated file
-      "user-${vars.editor}.desktop"
-    else
-    # If it's a GUI editor (VSCode), use the standard system file
-    if vars.editor == "vscode" || vars.editor == "code" then
+      "user-${safeEditor}.desktop"
+    else if safeEditor == "vscode" || safeEditor == "code" then
       "code.desktop"
     else
-      "${vars.editor}.desktop";
+      "${safeEditor}.desktop";
 
-  myBrowser = "${vars.browser}.desktop";
+  myBrowser = "${safeBrowser}.desktop";
+
   myFileManager =
-    if vars.fileManager == "dolphin" then "org.kde.dolphin.desktop" else "${vars.fileManager}.desktop";
+    if (vars.fileManager or "dolphin") == "dolphin" then
+      "org.kde.dolphin.desktop"
+    else
+      "${vars.fileManager}.desktop";
 
 in
 {
@@ -64,11 +70,11 @@ in
   # -----------------------------------------------------------------------
   # This creates a mimeapps.list file under ~/.local/share/applications/mimeapps.list
   xdg.desktopEntries = lib.mkIf isTermEditor {
-    "user-${vars.editor}" = {
+    "user-${safeEditor}" = {
       name = editorConfig.name;
       genericName = "Text Editor";
-      comment = "Edit text files in ${vars.term}";
-      exec = "${vars.term} -e ${editorConfig.bin} %F";
+      comment = "Edit text files in ${safeTerm}";
+      exec = "${safeTerm} -e ${editorConfig.bin} %F";
       icon = editorConfig.icon;
       terminal = false;
       categories = [

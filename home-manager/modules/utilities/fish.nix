@@ -15,6 +15,7 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
     shellAbbrs =
       let
         flakeDir = "~/nixOS";
+        safeEditor = vars.editor or "vscode";
         isImpure = vars.nixImpure or false;
 
         # Base commands
@@ -79,6 +80,7 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
         merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop"; # Merge develop with main branch, push and return to develop branch
         cdnix = "cd ${flakeDir}";
         nfc = "cd ${flakeDir} && nix flake check"; # Check flake for errors
+        nfcall = "cd ${flakeDir} && nix flake check --all-systems"; # Check flake for errors (all hosts)
         swdry = "cd ${flakeDir} && nh os test --dry --ask"; # Dry run of nixos-rebuild switch
 
         # Snapshots
@@ -88,7 +90,7 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
         # Utilities
         se = "sudoedit";
         fzf-prev = ''fzf --preview="cat {}"'';
-        fzf-editor = "${vars.editor} $(fzf -m --preview='cat {}')";
+        fzf-editor = "${safeEditor} $(fzf -m --preview='cat {}')";
         zlist = "zoxide query -l -s"; # List all zoxide entries with scores
 
         # Sops secrets editing

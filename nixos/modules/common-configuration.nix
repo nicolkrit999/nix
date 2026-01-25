@@ -1,19 +1,29 @@
-{ config, pkgs, lib, vars, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
 let
-  shellPkg = if vars.shell == "fish" then
-    pkgs.fish
-  else if vars.shell == "zsh" then
-    pkgs.zsh
-  else
-    pkgs.bashInteractive;
-in {
+  currentShell = vars.shell or "zsh";
+
+  shellPkg =
+    if currentShell == "fish" then
+      pkgs.fish
+    else if currentShell == "zsh" then
+      pkgs.zsh
+    else
+      pkgs.bashInteractive;
+in
+{
 
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY
   # ---------------------------------------------------------
   networking.hostName = vars.hostname;
   networking.networkmanager.enable = true;
-  system.stateVersion = vars.stateVersion;
+  system.stateVersion = vars.stateVersion or "25.11";
 
   # ---------------------------------------------------------
   # 🌍 LOCALE & TIME
@@ -22,15 +32,20 @@ in {
 
   # Keyboard Layout
   services.xserver.xkb = {
-    layout = vars.keyboardLayout;
-    variant = vars.keyboardVariant;
+    layout = vars.keyboardLayout or "us";
+    variant = vars.keyboardVariant or "";
   };
   console.useXkbConfig = true;
 
   # ---------------------------------------------------------
   # 🛠️ NIX SETTINGS
   # ---------------------------------------------------------
-  nix.settings = { trusted-users = [ "root" "@wheel" ]; };
+  nix.settings = {
+    trusted-users = [
+      "root"
+      "@wheel"
+    ];
+  };
 
   # Allow unfree packages globally (needed for drivers, code, etc.)
   nixpkgs.config.allowUnfree = true;
@@ -38,7 +53,8 @@ in {
   # ---------------------------------------------------------
   # 📦 SYSTEM PACKAGES
   # ---------------------------------------------------------
-  environment.systemPackages = with pkgs;
+  environment.systemPackages =
+    with pkgs;
     [
       # --- CLI UTILITIES ---
       dix # Nix diff viewer
@@ -72,7 +88,8 @@ in {
       libsForQt5.qt5.qtwayland # Qt5 Wayland bridge
       kdePackages.qtwayland # Qt6 Wayland bridge
       powerline-symbols # Terminal font glyphs
-    ] ++ (with pkgs.kdePackages; [
+    ]
+    ++ (with pkgs.kdePackages; [
       gwenview # Default image viewer as defined in mime.nix
       kio-extras # Extra protocols for KDE file dialogs (needed for dolphin remote access)
       kio-fuse # Mount remote filesystems (via ssh, ftp, etc.) in Dolphin
@@ -104,21 +121,20 @@ in {
   services.openssh.enable = true;
 
   # Wrappers for GPU Screen Recorder (needed for Caelestia/Recording)
-  security.wrappers =
-    lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
-      gpu-screen-recorder = {
-        owner = "root";
-        group = "root";
-        capabilities = "cap_sys_admin+ep";
-        source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
-      };
-      gsr-kms-server = {
-        owner = "root";
-        group = "root";
-        capabilities = "cap_sys_admin+ep";
-        source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
-      };
+  security.wrappers = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
+    gpu-screen-recorder = {
+      owner = "root";
+      group = "root";
+      capabilities = "cap_sys_admin+ep";
+      source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
     };
+    gsr-kms-server = {
+      owner = "root";
+      group = "root";
+      capabilities = "cap_sys_admin+ep";
+      source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
+    };
+  };
 
   # Polkit Rules: Realtime Audio & GPU Recorder Permissions
   security.polkit.enable = true;
@@ -143,8 +159,8 @@ in {
   # ---------------------------------------------------------
   # 🐚 SHELLS & ENVIRONMENT
   # ---------------------------------------------------------
-  programs.zsh.enable = vars.shell == "zsh";
-  programs.fish.enable = vars.shell == "fish";
+  programs.zsh.enable = currentShell == "zsh";
+  programs.fish.enable = currentShell == "fish";
 
   i18n.inputMethod.enabled = lib.mkForce null;
   environment.variables.GTK_IM_MODULE = lib.mkForce "";
@@ -162,7 +178,9 @@ in {
   # ⚡ SYSTEM TWEAKS
   # -----------------------------------------------------
   # Reduce shutdown wait time for stuck services
-  systemd.settings.Manager = { DefaultTimeoutStopSec = "10s"; };
+  systemd.settings.Manager = {
+    DefaultTimeoutStopSec = "10s";
+  };
 
   # Enable home-manager backup files
   home-manager.backupFileExtension = lib.mkForce "hm-backup";

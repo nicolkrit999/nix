@@ -1,10 +1,12 @@
 { pkgs, vars, ... }:
+let
+  currentShell = vars.shell or "zsh";
+in
 {
   programs.zoxide = {
     enable = true;
-    enableZshIntegration = vars.shell == "zsh";
-    enableFishIntegration = vars.shell == "fish";
-    enableBashIntegration = vars.shell == "bash";
-
+    enableZshIntegration = currentShell == "zsh";
+    enableFishIntegration = currentShell == "fish";
+    enableBashIntegration = currentShell == "bash";
   };
 }

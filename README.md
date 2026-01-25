@@ -84,7 +84,6 @@
     - [Issues](#issues)
     - [Ideas](#ideas)
     - [Usage guide](#usage-guide)
-    - [Wallpapers](#wallpapers)
 
 
 ## ✨ Features
@@ -728,12 +727,18 @@ Run this command inside `~/nixOS`:
     - The feature is ignored
     - A fallback apply 
 
+   * `system` (mandatory): The architecture to use.
+  
+   * `stateVersion` & `homeStateVersion` (optional): Keeps your config stable (e.g., `25.11`).
+     * During the first installation it is a good idea to make them the same as the other versions (or the latest available)
+  Later where other version may be updated these 2 should not be changed, meaning they should remain what they were at the beginning
+  These 2 versions define where there system was created, and keeping them always the same it is a better idea
+
+   * `user` (mandatory: The desired username)
 
   * `gitUserName` (optional): Github user name.
   
   * `gitUserEmail` (optional): Github user e-mail.
-  
-  * `stateVersion` & `homeStateVersion` (mandatory): Keeps your config stable (e.g., `25.11`).
   
   * `hyprland` (optional): Whatever to enable hyprland or not
 

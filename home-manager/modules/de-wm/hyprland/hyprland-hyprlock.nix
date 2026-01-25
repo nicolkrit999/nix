@@ -1,13 +1,20 @@
-{ config, lib, vars, ... }:
+{
+  config,
+  lib,
+  vars,
+  ...
+}:
 let
   # 1. Hyprland needs Hyprlock if it is enabled but has NO custom shell
-  hyprlandFallback = (vars.hyprland or false)
+  hyprlandFallback =
+    (vars.hyprland or false)
     && !((vars.hyprlandCaelestia or false) || (vars.hyprlandNoctalia or false));
 
   # 2. Niri needs Hyprlock if it is enabled but has NO custom shell
   niriFallback = (vars.niri or false) && !(vars.niriNoctalia or false);
 
-in {
+in
+{
   config = lib.mkIf (hyprlandFallback || niriFallback) {
     # -----------------------------------------------------------------------
     # 🎨 CATPPUCCIN THEME (official module)
@@ -23,11 +30,13 @@ in {
           no_fade_in = false;
         };
 
-        background = lib.mkForce [{
-          path = "screenshot"; # Takes a screenshot of your current desktop
-          blur_passes = 3; # Heavily blurs it
-          blur_size = 8; # Larger blur size for stronger effect
-        }];
+        background = lib.mkForce [
+          {
+            path = "screenshot"; # Takes a screenshot of your current desktop
+            blur_passes = 3; # Heavily blurs it
+            blur_size = 8; # Larger blur size for stronger effect
+          }
+        ];
 
       };
     };

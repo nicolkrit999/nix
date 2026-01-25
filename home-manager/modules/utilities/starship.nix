@@ -1,25 +1,27 @@
-{ lib, config, vars, ... }:
+{
+  lib,
+  config,
+  vars,
+  ...
+}:
 let
-  # Get the Stylix Base16 Hex Color
+  # 🛡️ SAFE FALLBACKS
+  isCatppuccin = vars.catppuccin or false;
+  currentShell = vars.shell or "zsh";
+
   base16Accent = config.lib.stylix.colors.withHashtag.base0E;
 
-  # Determine the "Main" color based on whatever catppuccin is enabled or not
-  mainColor = if vars.catppuccin then vars.catppuccinAccent else base16Accent;
+  mainColor = if isCatppuccin then (vars.catppuccinAccent or "mauve") else base16Accent;
 
-  # Status Colors (Dynamic)
-  successColor = if vars.catppuccin then
-    "green"
-  else
-    config.lib.stylix.colors.withHashtag.base0B;
-  errorColor = if vars.catppuccin then
-    "red"
-  else
-    config.lib.stylix.colors.withHashtag.base08;
-in {
+  successColor = if isCatppuccin then "green" else config.lib.stylix.colors.withHashtag.base0B;
+
+  errorColor = if isCatppuccin then "red" else config.lib.stylix.colors.withHashtag.base08;
+in
+{
   # -----------------------------------------------------------------------
   # 🎨 CATPPUCCIN THEME
   # -----------------------------------------------------------------------
-  catppuccin.starship.enable = vars.catppuccin or false;
+  catppuccin.starship.enable = isCatppuccin;
   catppuccin.starship.flavor = vars.catppuccinFlavor or "mocha";
 
   # -----------------------------------------------------------------------
@@ -27,9 +29,9 @@ in {
   # -----------------------------------------------------------------------
   programs.starship = {
     enable = true;
-    enableZshIntegration = vars.shell == "zsh";
-    enableFishIntegration = vars.shell == "fish";
-    enableBashIntegration = vars.shell == "bash";
+    enableZshIntegration = currentShell == "zsh";
+    enableFishIntegration = currentShell == "fish";
+    enableBashIntegration = currentShell == "bash";
 
     settings = {
       add_newline = true;

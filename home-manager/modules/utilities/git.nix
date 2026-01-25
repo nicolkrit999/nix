@@ -1,14 +1,21 @@
-{ lib, vars, ... }: {
+{ lib, vars, ... }:
+{
   programs.git = {
     enable = true;
 
-    userName = vars.gitUserName or null;
-    userEmail = vars.gitUserEmail or null;
+    userName = lib.mkIf (vars ? gitUserName) vars.gitUserName;
+    userEmail = lib.mkIf (vars ? gitUserEmail) vars.gitUserEmail;
 
     lfs.enable = true;
 
-    ignores = [ ".direnv/" ".venv/" "result" "*.swp" ".DS_Store" ]
-      ++ (vars.customGitIgnores or [ ]);
+    ignores = [
+      ".direnv/"
+      ".venv/"
+      "result"
+      "*.swp"
+      ".DS_Store"
+    ]
+    ++ (vars.customGitIgnores or [ ]);
 
     settings = {
       init.defaultBranch = "main";

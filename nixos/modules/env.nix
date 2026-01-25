@@ -4,6 +4,11 @@
 }:
 
 let
+
+  safeBrowser = vars.browser or "firefox";
+  safeTerm = vars.term or "alacritty";
+  safeEditor = vars.editor or "vscode";
+
   # Translation layer for editor commands with necessary flags
   # It may be necessary to add more editors and their flags here
   editorFlags = {
@@ -19,16 +24,16 @@ let
   };
 
   # Select the correct command, or default to the name itself if unknown
-  finalEditor = editorFlags.${vars.editor} or vars.editor;
+  finalEditor = editorFlags.${safeEditor} or safeEditor;
 in
 {
 
   environment.localBinInPath = true;
 
   environment.sessionVariables = {
-    BROWSER = vars.browser;
+    BROWSER = safeBrowser;
 
-    TERMINAL = vars.term;
+    TERMINAL = safeTerm;
 
     EDITOR = finalEditor;
 

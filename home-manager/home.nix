@@ -21,7 +21,7 @@
   home = {
     username = vars.user;
     homeDirectory = "/home/${vars.user}";
-    stateVersion = vars.homeStateVersion; # Controls backwards compatibility logic
+    stateVersion = vars.homeStateVersion or "25.11"; # Controls backwards compatibility logic
   };
 
   # -----------------------------------------------------------------------

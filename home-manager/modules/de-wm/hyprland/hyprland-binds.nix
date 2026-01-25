@@ -5,7 +5,7 @@
   ...
 }:
 {
-  config = lib.mkIf (vars.hyprland or false) {
+  config = lib.mkIf (vars.hyprland or true) {
     wayland.windowManager.hyprland.settings = {
       bind = [
         # BASIC WINDOW MANAGEMENT
