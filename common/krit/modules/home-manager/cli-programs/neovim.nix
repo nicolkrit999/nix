@@ -1,10 +1,4 @@
-{
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
-{
+{ pkgs, lib, vars, ... }: {
 
   # Needed to allow to launch nvim in the chosen terminal and see the icon in the "pinned" dock section
   xdg.desktopEntries.custom-nvim = lib.mkForce {
@@ -17,14 +11,9 @@
     icon = "nvim";
     startupNotify = true;
 
-    settings = {
-      StartupWMClass = "nvim";
-    };
+    settings = { StartupWMClass = "nvim"; };
 
-    categories = [
-      "Utility"
-      "TextEditor"
-    ];
+    categories = [ "Utility" "TextEditor" ];
   };
 
   programs.neovim = {
@@ -32,9 +21,13 @@
     enable = true;
     viAlias = true;
     vimAlias = true;
-    package = lib.mkForce (lib.hiPrio pkgs.neovim-unwrapped);
-    # Extra packages to install for Neovim's backend functionality
+
     extraPackages = with pkgs; [
+
+      ripgrep
+      fd
+      nodejs # Needed for copilot.lua
+      xclip
 
       # --- Language Servers (LSP) ---
       bash-language-server # Bash Language Server
@@ -50,15 +43,8 @@
       pyright # Static type checker for Python
 
       # --- Treesitter & Parsers ---
-      (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
-        p.lua
-        p.vim
-        p.json
-        p.toml
-        p.html
-        p.hyprlang
-        p.regex
-      ]))
+      (pkgs.vimPlugins.nvim-treesitter.withPlugins
+        (p: [ p.lua p.vim p.json p.toml p.html p.hyprlang p.regex ]))
 
       # --- Fonts ---
       nerd-fonts.hack # Fonts for icons
