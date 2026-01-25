@@ -1184,8 +1184,6 @@ It also contains some other guides such as
 - tmux
 - cachix
 
-### [Wallpapers](./wallpapers/credits)
-- This folder contains some wallpapers allowing for an easy setup using raw url.
 
 
 
