@@ -2530,7 +2530,7 @@ in
       eza # Global home-manager module
       fzf # Used by the shells
       git # Version control
-      nixfmt-rfc-style # Nix formatter
+      nixfmt # Nix formatter
       nix-prefetch-scripts # Tools to get hashes for nix derivations (used in zsh.nix module)
       starship # Global home-manager module
       curl # Used by waybar

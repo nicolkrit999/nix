@@ -74,20 +74,17 @@
       };
     };
 
-    theme = {
+    themes.default = {
       style = with config.lib.stylix.colors.withHashtag; ''
-        /* Global Reset */
         * {
           font-family: 'JetBrainsMono Nerd Font', monospace;
           color: ${base05}; 
         }
 
-        /* Main Window */
         #window {
           background-color: ${base00};
         }
 
-        /* Input Bar */
         #input {
           background-color: ${base01};
           color: ${base05};
@@ -97,37 +94,31 @@
           border: 2px solid ${base0D};
         }
 
-        /* Placeholder Text */
         #input.empty {
           color: ${base03};
         }
 
-        /* The List */
         #list {
           margin: 20px;
           background-color: transparent;
         }
 
-        /* Individual Items */
         .item {
           padding: 10px;
           border-radius: 8px;
           color: ${base05};
         }
 
-        /* Selected Item */
         .item.active {
           background-color: ${base02};
           color: ${base0D};
           border: 1px solid ${base0D};
         }
 
-        /* Icons */
         .icon {
           margin-right: 12px;
         }
 
-        /* Clipboard Image Previews */
         #clipboard_image {
           border-radius: 12px;
           margin: 20px;
@@ -135,7 +126,6 @@
           background-color: ${base01};
         }
 
-        /* Scrollbar */
         trough {
           background-color: transparent;
         }

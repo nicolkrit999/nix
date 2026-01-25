@@ -287,6 +287,8 @@
       nixosConfigurations = nixpkgs.lib.genAttrs hostNames makeSystem;
       homeConfigurations = nixpkgs.lib.genAttrs hostNames makeHome;
 
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
+      formatter = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (
+        system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style
+      );
     };
 }
