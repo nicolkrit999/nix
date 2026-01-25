@@ -20,7 +20,7 @@ jobs:
   build-x86_64:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       id-token: write
     env:
       NIXPKGS_ALLOW_UNFREE: 1
@@ -80,7 +80,7 @@ jobs:
   build-aarch64:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       id-token: write
     env:
       NIXPKGS_ALLOW_UNFREE: 1
