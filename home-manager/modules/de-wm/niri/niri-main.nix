@@ -205,16 +205,6 @@ in
             ];
           }
 
-          {
-            command = [
-              "wl-paste"
-              "--watch"
-              "walker"
-              "--modules"
-              "clipboard"
-            ];
-          }
-
         ]
         ++ (map (cmd: {
           command = [

@@ -87,6 +87,17 @@
   boot.initrd.kernelModules = [ "amdgpu" ];
   hardware.graphics.enable = true;
 
+  /*
+    boot.kernelParams = [
+      "video=HDMI-A-2:1920x1080@60"
+    ];
+  */
+
+  services.logind = {
+    powerKey = "poweroff";
+    powerKeyLongPress = "poweroff";
+  };
+
   # ---------------------------------------------------------
   # 👤 USER CONFIGURATION
   # ---------------------------------------------------------

@@ -121,8 +121,6 @@ in
         # 🚀 Startup Apps
         # ----------------------------------------------------
         exec-once = [
-          "wl-paste --watch walker -m clipboard"
-
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
           "pkill ibus-daemon" # Kill ibus given by gnome
           "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP" # Keeps dbus environment updated for Wayland apps.

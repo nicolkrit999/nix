@@ -82,7 +82,8 @@
   monitors = [
     "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
     "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
-    "HDMI-A-1,disable"
+    "DP-3, disable"
+    "HDMI-A-1,1920x1080@60, 0x0, 1, mirror, DP-1"
   ];
 
   wallpapers = [
