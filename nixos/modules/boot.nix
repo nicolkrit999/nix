@@ -12,6 +12,7 @@
       device = "nodev";
       efiSupport = true;
       useOSProber = true;
+      gfxmodeEfi = "1920x1080";
       # configurationLimit = 20; # Example of setting a configuration limit that show up while booting
       extraGrubInstallArgs = [ "--bootloader-id=nixos" ];
 
