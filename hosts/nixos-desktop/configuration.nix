@@ -215,6 +215,7 @@
     docker # Required when virtualisation.docker.enable is true
     distrobox
     fd # User-friendly replacement for 'find'
+    libvdpau-va-gl # VDPAU backend for VAAPI (needed for video acceleration with AMD GPUs)
     logiops # Logitech devices manager (currently used for my MX Master 3S)
     pay-respects # Used in shell aliases dotfiles
     pokemon-colorscripts # Used in shell aliases dotfiles

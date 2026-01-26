@@ -90,6 +90,10 @@
     "media.gmp-widevinecdm.visible" = true;
     "media.gmp-widevinecdm.enabled" = true;
 
+    # JetKVM tweaks
+    "media.peerconnection.enabled" = true;
+    "media.webrtc.hw.h264.enabled" = true;
+
     # UI
     "sidebar.main.tools" = [
       "history"
