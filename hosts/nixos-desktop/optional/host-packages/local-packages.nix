@@ -14,6 +14,7 @@
       # -----------------------------------------------------------------------
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------
+      cryptomator # Client side encryptions for cloud drives
       gsimplecal # Simple calendar application
       kdePackages.kate # Text editor from the kde theme
       libreoffice-qt # Open source microsoft office alternative
