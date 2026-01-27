@@ -215,7 +215,7 @@ in
     "uwsm app -- $fileManager"
 
     # Secondary apps
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-www.youtube.com)$"
+    "vivaldi --app=https://www.youtube.com"
     "whatsapp-electron"
 
     # Opened minimized
