@@ -1,11 +1,16 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
+{ config
+, pkgs
+, lib
+, vars
+, ...
 }:
 let
+  # Standardize to gnome keyring
+  needsGnomeKeyring =
+    (vars.hyprland or false) ||
+    (vars.niri or false) ||
+    (vars.gnome or false) ||
+    (vars.cosmic or false);
   currentShell = vars.shell or "zsh";
 
   shellPkg =
@@ -156,6 +161,12 @@ in
     });
   '';
 
+  # Keyrings & Wallets
+  services.gnome.gnome-keyring.enable = lib.mkIf needsGnomeKeyring true;
+  security.pam.services.login.enableGnomeKeyring = lib.mkIf needsGnomeKeyring true;
+  security.pam.services.sddm.enableGnomeKeyring = lib.mkIf needsGnomeKeyring true;
+  security.pam.services.gdm.enableGnomeKeyring = lib.mkIf needsGnomeKeyring true;
+
   # ---------------------------------------------------------
   # 🐚 SHELLS & ENVIRONMENT
   # ---------------------------------------------------------
@@ -183,4 +194,5 @@ in
 
   # Enable home-manager backup files
   home-manager.backupFileExtension = lib.mkForce "hm-backup";
+
 }
