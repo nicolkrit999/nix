@@ -5,10 +5,12 @@
   ...
 }:
 let
-
+  # If variables are missing, these defaults will be used.
   safeEditor = vars.editor or "vscode";
   safeBrowser = vars.browser or "brave";
   safeTerm = vars.term or "alacritty";
+  safeFileManager = vars.fileManager or "dolphin";
+
   # -----------------------------------------------------------------------
   # 1. HELPER: Terminal Editor Logic
   # -----------------------------------------------------------------------
@@ -44,9 +46,15 @@ let
   isTermEditor = builtins.hasAttr safeEditor termEditors;
   editorConfig = termEditors.${safeEditor};
 
-  # -----------------------------------------------------------------------
-  # 2. LOGIC: Determine the .desktop file name
-  # -----------------------------------------------------------------------
+  # Fixes browsers that don't follow the "name.desktop" convention
+  browserDesktopMap = {
+    "vivaldi" = "vivaldi-stable.desktop";
+    "brave" = "brave-browser.desktop";
+    "chrome" = "google-chrome.desktop";
+    "chromium" = "chromium-browser.desktop";
+  };
+
+  # EDITOR
   myEditor =
     if isTermEditor then
       "user-${safeEditor}.desktop"
@@ -55,20 +63,18 @@ let
     else
       "${safeEditor}.desktop";
 
-  myBrowser = "${safeBrowser}.desktop";
+  # BROWSER (Uses the map, defaults to name.desktop)
+  myBrowser = browserDesktopMap.${safeBrowser} or "${safeBrowser}.desktop";
 
+  # FILE MANAGER
   myFileManager =
-    if (vars.fileManager or "dolphin") == "dolphin" then
-      "org.kde.dolphin.desktop"
-    else
-      "${vars.fileManager}.desktop";
+    if safeFileManager == "dolphin" then "org.kde.dolphin.desktop" else "${safeFileManager}.desktop";
 
 in
 {
   # -----------------------------------------------------------------------
   # 🖥️ CUSTOM DESKTOP ENTRY (Terminal Editors Only)
   # -----------------------------------------------------------------------
-  # This creates a mimeapps.list file under ~/.local/share/applications/mimeapps.list
   xdg.desktopEntries = lib.mkIf isTermEditor {
     "user-${safeEditor}" = {
       name = editorConfig.name;
@@ -95,29 +101,30 @@ in
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
+      # Directories
       "inode/directory" = myFileManager;
 
+      # Browser
       "text/html" = myBrowser;
       "x-scheme-handler/http" = myBrowser;
       "x-scheme-handler/https" = myBrowser;
       "x-scheme-handler/about" = myBrowser;
       "x-scheme-handler/unknown" = myBrowser;
+      "application/pdf" = myBrowser;
 
-      # Force these types to use our calculated 'myEditor'
+      # Editor
       "text/plain" = myEditor;
       "text/markdown" = myEditor;
       "application/x-shellscript" = myEditor;
       "application/json" = myEditor;
       "text/x-nix" = myEditor;
 
-      # Images
+      # Images (defaults to Gwenview)
       "image/jpeg" = "org.kde.gwenview.desktop";
       "image/png" = "org.kde.gwenview.desktop";
       "image/gif" = "org.kde.gwenview.desktop";
       "image/webp" = "org.kde.gwenview.desktop";
 
-      # PDFs
-      "application/pdf" = myBrowser;
     };
   };
 }

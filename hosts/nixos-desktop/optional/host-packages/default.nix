@@ -2,9 +2,12 @@
 {
   imports =
     [ ]
-    # 1. Local Packages (Standard packages for this host)
+    # 1. Local Packages
     ++ lib.optional (builtins.pathExists ./local-packages.nix) ./local-packages.nix
 
-    # 2. Flatpak Support (Only if the file exists)
-    ++ lib.optional (builtins.pathExists ./flatpak.nix) ./flatpak.nix;
+    # 2. Flatpak Support
+    ++ lib.optional (builtins.pathExists ./flatpak.nix) ./flatpak.nix
+
+    # 3. Custom Packages
+    ++ lib.optional (builtins.pathExists ./custom-packages/default.nix) ./custom-packages/default.nix;
 }

@@ -24,6 +24,7 @@ let
     # Browsers
     "firefox" = "firefox.desktop";
     "librewolf" = "librewolf.desktop";
+    "google-chrome" = "google-chrome.desktop";
     "chromium" = "chromium-browser.desktop"; # Found in user-apps.txt
     "brave" = "brave-browser.desktop";
 
@@ -83,7 +84,10 @@ in
 
     "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$"
     "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-music.apple.com.*)$"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-music.apple.com.*)$"
     "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-browser)$"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-www\.youtube\.com.*)$"
+    #"workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-www.youtube.com)$"
 
     "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
     "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
@@ -211,7 +215,7 @@ in
     "uwsm app -- $fileManager"
 
     # Secondary apps
-    "chromium-browser"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-www.youtube.com)$"
     "whatsapp-electron"
 
     # Opened minimized
@@ -252,7 +256,12 @@ in
     ];
   };
 
-  swayncExclusions = { };
+  swayncExclusions = {
+    "mute-protonvpn" = {
+      state = "ignored";
+      app-name = ".*Proton.*";
+    };
+  };
 
   pinnedApps = [
     (resolve vars.browser)

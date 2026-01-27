@@ -20,14 +20,6 @@
       close_when_open = true;
 
       keybinds = {
-        next = [
-          "j"
-          "Down"
-        ];
-        previous = [
-          "k"
-          "Up"
-        ];
         close = [ "Escape" ];
         page_down = [
           "ctrl d"

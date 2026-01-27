@@ -1,12 +1,11 @@
-{
-  pkgs,
-  pkgs-unstable,
-  lib,
-  vars,
-  ...
+{ pkgs
+, pkgs-unstable
+, lib
+, vars
+, ...
 }:
 let
-  policyRoot = "/home/${vars.user}/.librewolf-policyroot";
+  #policyRoot = "/home/${vars.user}/.librewolf-policyroot";
 in
 {
   imports = [
@@ -15,6 +14,9 @@ in
 
     # use-cases home-manager modules
     ../../common/krit/modules/use-cases/home-imports.nix
+
+    # Architecture specific home-packages
+    ../../common/krit/packages/default.nix
 
     # Local Host Modules
     ./optional/general-hm-modules
@@ -31,6 +33,7 @@ in
       winboat # Enable to run windows programs
       librewolf
 
+      /*
       (pkgs.writeShellScriptBin "librewolf" ''
         set -eu
         echo "WRAPPER IS RUNNING" >&2
@@ -45,7 +48,7 @@ in
 
         exec ${pkgs.librewolf}/bin/librewolf "$@"
       '')
-
+      */
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES
       # -----------------------------------------------------------------------------------
@@ -59,6 +62,8 @@ in
     publicShare = null;
     music = null;
   };
+
+  
 
   home.sessionVariables = { };
 

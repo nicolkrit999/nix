@@ -35,7 +35,7 @@
 ## 🔀 Scenario: "Working on Multiple Projects"
 | I want to...                  | Action / Command                                                                                                       | Why use it?                                                                                        |
 | :---------------------------- | :--------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------- |
-| **Create separate workspace** | **1.** Open Terminal (Auto-joins "main")<br>**2.** Type (`Alt`+`Sfhit` + `s`)<br>**3.** Then type the new session name | Keeps your "Side Project" windows completely separate from your "Main" work.                       |
+| **Create separate workspace** | **1.** Open Terminal (Auto-joins "main")<br>**2.** Type (`Alt`+`Shift` + `s`)<br>**3.** Then type the new session name | Keeps your "Side Project" windows completely separate from your "Main" work.                       |
 | **Switch Sessions**           | **Ctrl + b**, then **s**                                                                                               | Opens a **Menu List** of all your running sessions. Use arrows to choose which project to work on. |
 | **Rename Session**            | **Ctrl + b**, then **$**                                                                                               | Renames the current session (e.g., rename "main" to "work"). Helps you stay organized in the list. |
 

@@ -107,7 +107,10 @@
                 import modulesPath {
                   vars = baseVars;
                   lib = nixpkgs.lib;
-                  pkgs = nixpkgs.pkgs;
+                  pkgs = import nixpkgs {
+                    system = baseVars.system;
+                    config.allowUnfree = true;
+                  };
                 }
               )
             else

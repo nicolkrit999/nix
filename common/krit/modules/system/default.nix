@@ -1,6 +1,6 @@
 { ... }:
 {
-  # We do not import the "nas" folder here because not every host need it.
-  #  It's easier to import it manually in configuration.nix when needed.
-  imports = [ ./utilities ];
+  # ./dev-environments is handled by ".envrc" files in the relevant projects
+  # ./nas must be imported in the host "configuration.nix"
+  imports = [ ./gui-programs ./utilities ];
 }

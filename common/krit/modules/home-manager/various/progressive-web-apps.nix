@@ -1,43 +1,26 @@
 {
   pkgs,
   lib,
-  vars,
   ...
 }:
 let
-  # 1. Detect Architecture
-  isX86 = pkgs.stdenv.hostPlatform.system == "x86_64-linux";
-  # pwa that needs different browsers based on architecture
-  pwaBrowser = "${pkgs.brave}/bin/brave";
+  browserBin = "${pkgs.vivaldi}/bin/vivaldi";
 
-  # Regular pwa
-  browserPkg = pkgs.${vars.browser};
-  browserBin = "${browserPkg}/bin/${vars.browser}";
-
-  appleMusicCommand =
-    if isX86 then
-      ''${pkgs.brave}/bin/brave --app="https://music.apple.com/ch/home?l=en"''
-    else
-      ''${pkgs.firefox}/bin/firefox --new-window "https://music.apple.com/ch/home?l=en"'';
-
-  # Detect firefox-based browsers
-  isFirefox = vars.browser == "firefox" || vars.browser == "librewolf" || vars.browser == "floorp";
-
+  # 🎨 ICONS
   notionIcon = pkgs.fetchurl {
     url = "https://upload.wikimedia.org/wikipedia/commons/e/e9/Notion-logo.svg";
     sha256 = "0q0i6cz44q0b54w0gm5lcndg8c7fi4bxavf1ylwr6v8nv22s2lhv";
   };
-
   appleMusicIcon = pkgs.fetchurl {
     url = "https://upload.wikimedia.org/wikipedia/commons/5/5f/Apple_Music_icon.svg";
     sha256 = "0lw10k2x25gnhjykllf0crkwff43a69i9pmsglmhnyhbsmx3qz71";
   };
 
+  # 🛠️ GENERATOR FUNCTION
   mkWebApp = name: url: icon: {
     inherit name icon;
     genericName = "Web Application";
-    # Logic: If Firefox, use --new-window. If Chromium-based, use --app=URL for true "App Mode".
-    exec = if isFirefox then "${browserBin} --new-window ${url}" else "${browserBin} --app=${url}";
+    exec = "${browserBin} --app=${url}";
     terminal = false;
     categories = [
       "Network"
@@ -49,7 +32,9 @@ in
 {
   xdg.desktopEntries = {
 
-    # Direcly from the links
+    # ---------------------------------------------------------
+    # 🔗 SIMPLE LINKS
+    # ---------------------------------------------------------
     dashboard =
       mkWebApp "Dashboard-Glance-PWA" "https://glance.nicolkrit.ch/"
         "utilities-system-monitor";
@@ -76,12 +61,14 @@ in
 
     reddit = mkWebApp "Reddit-PWA" "https://www.reddit.com/" "internet-news-reader";
 
-    # Manual pwa
+    # ---------------------------------------------------------
+    # 📝 MANUAL APPS
+    # ---------------------------------------------------------
     # Notion
     notion = {
       name = "Notion-PWA";
       genericName = "Notes";
-      exec = "${pwaBrowser} --app=https://www.notion.so/ --class=notion";
+      exec = "${browserBin} --app=https://www.notion.so/ --class=notion";
       terminal = false;
       icon = notionIcon;
       settings = {
@@ -93,15 +80,34 @@ in
       ];
     };
 
-    # --- Apple Music (Smart Switch) ---
+    # YouTube
+    youtube-pwa = {
+      name = "YouTube-PWA";
+      genericName = "Video Player";
+
+      exec = "${browserBin} --app=https://www.youtube.com --class=vivaldi-www.youtube.com";
+
+      terminal = false;
+      icon = "youtube";
+      settings = {
+        StartupWMClass = "vivaldi-www.youtube.com";
+      };
+      categories = [
+        "AudioVideo"
+        "Video"
+        "Network"
+      ];
+    };
+
+    # Apple Music
     apple-music = {
       name = "Apple Music-PWA";
       genericName = "Music Player";
-      exec = appleMusicCommand;
+      exec = "${browserBin} --app=\"https://music.apple.com/ch/home?l=en\"";
       terminal = false;
       icon = appleMusicIcon;
       settings = {
-        StartupWMClass = if isX86 then "apple-music" else "firefox";
+        StartupWMClass = "music.apple.com";
       };
       categories = [
         "AudioVideo"

@@ -1,8 +1,7 @@
-{
-  config,
-  lib,
-  vars,
-  ...
+{ config
+, lib
+, vars
+, ...
 }:
 
 lib.mkIf ((vars.shell or "zsh") == "fish") {
@@ -137,28 +136,30 @@ lib.mkIf ((vars.shell or "zsh") == "fish") {
       if test (tty) = "/dev/tty1"
           and test -z "$DISPLAY"
           and test -z "$WAYLAND_DISPLAY"
-          
+
           if command -v uwsm > /dev/null
               and uwsm check may-start > /dev/null
               and uwsm select
-              
+
               exec systemd-cat -t uwsm_start uwsm start default
           end
       end
-
-      # FZF Keybindings
-      fzf_key_bindings
-
-      # 2. Fix fish-specific globbing and binding conflicts
-      # Also solve tmux alt c conflict
-      bind --erase --all alt-c 
-      bind ctrl-g fzf-cd-widget
     '';
 
     # -----------------------------------------------------
     # 📝 FUNCTIONS
     # -----------------------------------------------------
     functions = {
+      fish_user_key_bindings = ''
+        if functions -q fzf_key_bindings
+          fzf_key_bindings
+        end
+
+        bind ctrl-g fzf-cd-widget
+
+        bind --erase --all alt-c
+      '';
+
       snap-lock = ''
         echo "Which config? (1=home, 2=root)"
         read -P "Selection: " k

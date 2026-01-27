@@ -32,6 +32,7 @@
       vesktop # Discord client
       vlc # Media player
       whatsapp-electron # Electron wrapper for whatsapp
+      youtube-music # Electron wrapper for youtube music
 
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES

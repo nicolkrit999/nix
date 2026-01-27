@@ -10,7 +10,7 @@
   imports = [
     # Common krit modules
     # This import common system-wide modules
-    ../../common/krit/modules/default.nix
+    ../../common/krit/modules/default.nix     # General import (since desktop contains everything) (both system and home-manager) (do not incude NAS modules)
 
     # Local modules
     # This import host-specific modules
@@ -139,44 +139,7 @@
     enable = false;
     dockerCompat = false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
   };
-
-  # ---------------------------------------------------------
-  # 🌐 BROWSER
-  # ---------------------------------------------------------
-
-  programs.chromium = {
-    enable = true;
-    extraOpts = {
-      "ShowHomeButton" = true;
-
-      "HomepageLocation" = "https://kagi.com";
-
-      # The extension New Tab Redirect is used to set a custom new tab page
-      "HomepageIsNewTabPage" = false;
-
-      # 4 = Open specific URLs on startup
-      "RestoreOnStartup" = 4;
-
-      "RestoreOnStartupURLs" = [
-        "https://www.youtube.com"
-        "https://music.youtube.com/"
-        "https://glance.nicolkrit.ch"
-        "https://kagi.com"
-      ];
-
-      "ExtensionSettings" = {
-        "dpaefegpjhgeplnkomgbcmmlffkijbgp" = {
-          "toolbar_pin" = true;
-        }; # Summarizer
-        "ghmbeldphafepmbegfdlkpapadhbakde" = {
-          "toolbar_pin" = true;
-        }; # Proton Pass
-        "dphilobhebphkdjbpfohgikllaljmgbn" = {
-          "toolbar_pin" = true;
-        }; # SimpleLogin
-      };
-    };
-  };
+ 
 
   # ---------------------------------------------------------
   # ⚡ POWER MANAGEMENT twaks

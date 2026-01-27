@@ -84,7 +84,10 @@ in
 
     "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$"
     "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-music.apple.com.*)$"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-music.apple.com.*)$"
     "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-browser)$"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-www\.youtube\.com.*)$"
+    #"workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-www.youtube.com)$"
 
     "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
     "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
@@ -212,7 +215,7 @@ in
     "uwsm app -- $fileManager"
 
     # Secondary apps
-    "chromium-browser"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-www.youtube.com)$"
     "whatsapp-electron"
 
     # Opened minimized

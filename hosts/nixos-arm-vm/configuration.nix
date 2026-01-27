@@ -141,44 +141,6 @@
   };
 
   # ---------------------------------------------------------
-  # 🌐 BROWSER
-  # ---------------------------------------------------------
-
-  programs.chromium = {
-    enable = true;
-    extraOpts = {
-      "ShowHomeButton" = true;
-
-      "HomepageLocation" = "https://kagi.com";
-
-      # The extension New Tab Redirect is used to set a custom new tab page
-      "HomepageIsNewTabPage" = false;
-
-      # 4 = Open specific URLs on startup
-      "RestoreOnStartup" = 4;
-
-      "RestoreOnStartupURLs" = [
-        "https://www.youtube.com"
-        "https://music.youtube.com/"
-        "https://glance.nicolkrit.ch"
-        "https://kagi.com"
-      ];
-
-      "ExtensionSettings" = {
-        "dpaefegpjhgeplnkomgbcmmlffkijbgp" = {
-          "toolbar_pin" = true;
-        }; # Summarizer
-        "ghmbeldphafepmbegfdlkpapadhbakde" = {
-          "toolbar_pin" = true;
-        }; # Proton Pass
-        "dphilobhebphkdjbpfohgikllaljmgbn" = {
-          "toolbar_pin" = true;
-        }; # SimpleLogin
-      };
-    };
-  };
-
-  # ---------------------------------------------------------
   # ⚡ POWER MANAGEMENT twaks
   # ---------------------------------------------------------
   services.speechd.enable = lib.mkForce false; # Disable speech-dispatcher as it is not needed and wastes resources

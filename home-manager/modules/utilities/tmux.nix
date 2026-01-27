@@ -72,6 +72,7 @@
 
       # Sessions management
       bind -n M-d detach-client
+      bind -n M-S command-prompt -p "New Session:" "new-session -A -s '%%'"
 
       # --- PRODUCTIVITY SHORTCUTS ---
       bind -n M-Enter new-window
