@@ -1,10 +1,13 @@
-{ pkgs, lib, vars, ... }:
+{
+  pkgs,
+  lib,
+  vars,
+  ...
+}:
 let
   needsGnomeKeyring =
-    (vars.hyprland or false) ||
-    (vars.niri or false) ||
-    (vars.gnome or false) ||
-    (vars.cosmic or false);
+    (vars.hyprland or false) || (vars.niri or false) || (vars.gnome or false) || (vars.cosmic or false);
+
   passwordStore = if needsGnomeKeyring then "gnome" else "kwallet6";
 
   myVivaldi = pkgs.vivaldi.override {
