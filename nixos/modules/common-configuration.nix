@@ -7,9 +7,6 @@
   ...
 }:
 let
-  # Standardize to gnome keyring
-  needsGnomeKeyring =
-    (vars.hyprland or false) || (vars.niri or false) || (vars.gnome or false) || (vars.cosmic or false);
   currentShell = vars.shell or "zsh";
 
   shellPkg =
@@ -62,9 +59,7 @@ in
     [
       # --- CLI UTILITIES ---
       dix # Nix diff viewer
-      eza # Modern ls replacement
-      fd # Fast file finder
-      fzf # Fuzzy finder
+      fzf # Fuzzy finder (used by shells)
       git # Version control
       nixfmt # Nix formatter
       nix-prefetch-scripts # Tools to get hashes for nix derivations (used in zsh.nix module)
@@ -74,13 +69,12 @@ in
       curl # Downloader
 
       # --- SYSTEM TOOLS ---
-      autotrash # Automatic trash cleanup
-      distrobox # Container system for dev environments
       foot # Tiny, zero-config terminal (Rescue tool)
       glib # Low-level system library
       gsettings-desktop-schemas # Global theme settings
       libnotify # Library for desktop notifications (used by most de/wm modules)
       polkit_gnome # Authentication agent
+      seahorse # GNOME key and password manager
       sops # Secret management
       shellPkg # The selected shell package (bash, zsh, or fish)
       xdg-desktop-portal-gtk # GTK portal backend for file pickers
@@ -161,9 +155,15 @@ in
   '';
 
   # Keyrings & Wallets
-  services.gnome.gnome-keyring.enable = lib.mkIf needsGnomeKeyring true;
-  security.pam.services.login.enableGnomeKeyring = lib.mkIf needsGnomeKeyring true;
-  security.pam.services.sddm.enableGnomeKeyring = lib.mkIf needsGnomeKeyring true;
+  # Globally enable GNOME Keyring
+  services.gnome.gnome-keyring.enable = true;
+
+  # Disable KWallet to avoid conflicts with GNOME Keyring
+  security.pam.services.login.enableGnomeKeyring = true;
+  security.pam.services.sddm.enableGnomeKeyring = true;
+  security.pam.services.login.enableKwallet = lib.mkForce false;
+  security.pam.services.kde.enableKwallet = lib.mkForce false;
+  security.pam.services.sddm.enableKwallet = lib.mkForce false;
 
   # ---------------------------------------------------------
   # 🐚 SHELLS & ENVIRONMENT
