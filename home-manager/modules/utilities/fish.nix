@@ -1,7 +1,8 @@
-{ config
-, lib
-, vars
-, ...
+{
+  config,
+  lib,
+  vars,
+  ...
 }:
 
 lib.mkIf ((vars.shell or "zsh") == "fish") {

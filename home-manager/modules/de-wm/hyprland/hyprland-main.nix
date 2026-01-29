@@ -89,7 +89,8 @@ in
         # These are used by other modules using the variable references such as binds.nix
         # -----------------------------------------------------
         "$Mod" = "SUPER";
-        "$term" = vars.term;
+        "$term" = "${vars.term}";
+        "$browser" = "${vars.browser}";
 
         # Distinguish between terminal-based and GUI file managers
         "$fileManager" = "${
@@ -121,9 +122,10 @@ in
         # 🚀 Startup Apps
         # ----------------------------------------------------
         exec-once = [
-          "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
+          "${pkgs.bash}/bin/bash $HOME/.local/bin/init-gnome-keyring.sh"
+          "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
+
           "pkill ibus-daemon" # Kill ibus given by gnome
-          "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP" # Keeps dbus environment updated for Wayland apps.
         ]
         ++ (vars.hyprland_Exec-Once or [ ]);
 

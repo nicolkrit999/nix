@@ -4,17 +4,16 @@
   vars,
   ...
 }:
-let
-  needsGnomeKeyring =
-    (vars.hyprland or false) || (vars.niri or false) || (vars.gnome or false) || (vars.cosmic or false);
-
-  passwordStore = if needsGnomeKeyring then "gnome" else "kwallet6";
-
-  myVivaldi = pkgs.vivaldi.override {
-    commandLineArgs = "--password-store=${passwordStore} --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations";
-  };
-in
 {
+  nixpkgs.overlays = [
+    (final: prev: {
+      vivaldi = prev.vivaldi.override {
+        commandLineArgs = "--password-store=gnome --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations";
+      };
+    })
+  ];
+
+  # 2. Allow Unfree & Codecs
   nixpkgs.config = {
     allowUnfree = true;
     vivaldi = {
@@ -23,7 +22,8 @@ in
     };
   };
 
+  # 3. System Install
   environment.systemPackages = [
-    myVivaldi
+    pkgs.vivaldi
   ];
 }

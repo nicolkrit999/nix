@@ -182,20 +182,30 @@ in
         };
 
         spawn-at-startup = [
-          { command = [ "xwayland-satellite" ]; }
+          # 1. Kill stuck portals from other sessions (Fixes slow load)
+
           {
             command = [
-              "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
+              "/bin/sh"
+              "-c"
+              "$HOME/.local/bin/init-gnome-keyring.sh"
             ];
           }
+
+          # 2. CORE SERVICES
+          { command = [ "xwayland-satellite" ]; }
+          { command = [ "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" ]; }
+
+          # 3. DBUS UPDATE
           {
             command = [
               "dbus-update-activation-environment"
               "--systemd"
-              "WAYLAND_DISPLAY"
-              "XDG_CURRENT_DESKTOP"
+              "--all"
             ];
           }
+
+          # 4. WALLPAPER
           { command = [ "swww-daemon" ]; }
           {
             command = [
@@ -204,7 +214,6 @@ in
               "${wallpaperFile}"
             ];
           }
-
         ]
         ++ (map (cmd: {
           command = [

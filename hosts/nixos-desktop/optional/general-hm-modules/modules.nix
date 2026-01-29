@@ -209,13 +209,13 @@ in
 
   hyprland_Exec-Once = [
     # Personal apps based on variables
-    "${vars.term}"
-    "${vars.browser}"
+    "uwsm app -- $term"
+    "sleep 4 && uwsm app -- $browser"
     "uwsm app -- $editor"
     "uwsm app -- $fileManager"
 
     # Secondary apps
-    "vivaldi --app=https://www.youtube.com"
+    "sleep 6 && uwsm app -- $browser --app=https://www.youtube.com"
     "whatsapp-electron"
 
     # Opened minimized

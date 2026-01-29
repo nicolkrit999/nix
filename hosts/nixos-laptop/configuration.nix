@@ -10,7 +10,7 @@
   imports = [
     # Common krit modules
     # This import common system-wide modules
-    ../../common/krit/modules/default.nix     # General import (since desktop contains everything) (both system and home-manager) (do not incude NAS modules)
+    ../../common/krit/modules/default.nix # General import (since desktop contains everything) (both system and home-manager) (do not incude NAS modules)
 
     # Local modules
     # This import host-specific modules
@@ -139,7 +139,6 @@
     enable = false;
     dockerCompat = false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
   };
- 
 
   # ---------------------------------------------------------
   # ⚡ POWER MANAGEMENT twaks
@@ -178,6 +177,7 @@
   };
 
   environment.systemPackages = with pkgs; [
+    autotrash # Automatic trash cleanup
     # docker # Required when virtualisation.docker.enable is true
     fd # User-friendly replacement for 'find'
     logiops # Logitech devices manager (currently used for my MX Master 3S)

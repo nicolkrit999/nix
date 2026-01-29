@@ -24,7 +24,7 @@
         "$Mod,       F, exec, $fileManager"
 
         # WEB BROWSER
-        "$Mod,       B, exec, ${vars.browser}" # Web browser
+        "$Mod,       B, exec, $browser" # Web browser
 
         # FILE EDITOR
         "$Mod, C, exec, $editor" # Code editor
