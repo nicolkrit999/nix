@@ -9,6 +9,7 @@ These are the issues that i observed that require attentions. They may be only o
   - [General](#general)
     - [ profile: You have set either `nixpkgs.config` or `nixpkgs.overlays` while using `home-manager.useGlobalPkgs`. This will soon not be possible. Please remove all `nixpkgs` options when using \`home-manager](#-profile-you-have-set-either-nixpkgsconfig-or-nixpkgsoverlays-while-using-home-manageruseglobalpkgs-this-will-soon-not-be-possible-please-remove-all-nixpkgs-options-when-using-home-manager)
     - [programs.zsh.initExtra`is deprecated, use`programs.zsh.initContent\` instead.](#programszshinitextrais-deprecated-useprogramszshinitcontent-instead)
+    - [Walker emojii keybind `waiting for elephant`](#walker-emojii-keybind-waiting-for-elephant)
 
 ## Desktop environments specific
 
@@ -47,3 +48,6 @@ These are the issues that i observed that require attentions. They may be only o
 
 - It should be a mismatch about what some inputs in home-manager expect and what other expects. Since the system build anyway for now this warning is harmless
   - For now we can ignore it
+
+### Walker emojii keybind `waiting for elephant`
+- While launching the emojii from the launcher it work, but with the keybinds not. It says "waiting for elephant"

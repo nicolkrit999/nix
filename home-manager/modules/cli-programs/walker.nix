@@ -41,7 +41,7 @@
         history = true;
         typeahead = true;
         exec = "wl-copy";
-        show_unqualified = false;
+        show_unqualified = true;
         prefix = ".";
       };
 
