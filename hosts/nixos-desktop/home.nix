@@ -1,12 +1,10 @@
-{ pkgs
-, pkgs-unstable
-, lib
-, vars
-, ...
+{
+  pkgs,
+  pkgs-unstable,
+  lib,
+  vars,
+  ...
 }:
-let
-  #policyRoot = "/home/${vars.user}/.librewolf-policyroot";
-in
 {
   imports = [
     # Common home-manager krit modules
@@ -23,6 +21,36 @@ in
     ./optional/host-hm-modules
   ];
 
+  xdg.desktopEntries.vivaldi = {
+    name = "Vivaldi";
+    genericName = "Web Browser";
+    # CRITICAL: Point directly to our wrapper script so the flags are ALWAYS applied
+    exec = "/home/${vars.user}/.local/bin/vivaldi %U";
+    terminal = false;
+    categories = [
+      "Network"
+      "WebBrowser"
+    ];
+    mimeType = [
+      "text/html"
+      "application/xhtml+xml"
+      "x-scheme-handler/http"
+      "x-scheme-handler/https"
+    ];
+    icon = "vivaldi";
+  };
+
+  # 2. VIVALDI WRAPPER SCRIPT
+  # This applies the flags that force Gnome Keyring and fake the GTK theme.
+  home.file.".local/bin/vivaldi" = {
+    executable = true;
+    text = ''
+      #!/bin/sh
+      # We trick Vivaldi into thinking it's in GTK to stop it from looking for KWallet
+      exec env QT_QPA_PLATFORMTHEME=gtk3 ${pkgs.vivaldi}/bin/vivaldi --password-store=gnome-libsecret "$@"
+    '';
+  };
+
   home.packages =
     (with pkgs; [
 
@@ -33,22 +61,6 @@ in
       winboat # Enable to run windows programs
       librewolf
 
-      /*
-      (pkgs.writeShellScriptBin "librewolf" ''
-        set -eu
-        echo "WRAPPER IS RUNNING" >&2
-        echo "MOZ_APP_DISTRIBUTION=${policyRoot}" >&2
-
-        export MOZ_APP_DISTRIBUTION="${policyRoot}"
-
-        if [ ! -f "${policyRoot}/distribution/policies.json" ]; then
-            echo "MISSING ${policyRoot}/distribution/policies.json" >&2
-            exit 123
-        fi
-
-        exec ${pkgs.librewolf}/bin/librewolf "$@"
-      '')
-      */
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES
       # -----------------------------------------------------------------------------------
@@ -63,9 +75,7 @@ in
     music = null;
   };
 
-  
-
-  home.sessionVariables = { };
+  #home.sessionVariables = { };
 
   #FIXME: Currently not working (ignored)
   /*
@@ -143,12 +153,14 @@ in
 
   };
 
-  home.file.".librewolf-policyroot/distribution/policies.json".text = builtins.toJSON {
-    policies = {
-      SupportMenu = {
-        Title = "HM POLICY ACTIVE";
-        URL = "https://example.com";
+  /*
+    home.file.".librewolf-policyroot/distribution/policies.json".text = builtins.toJSON {
+      policies = {
+        SupportMenu = {
+          Title = "HM POLICY ACTIVE";
+          URL = "https://example.com";
+        };
       };
     };
-  };
+  */
 }

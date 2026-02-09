@@ -9,7 +9,7 @@
   imports = [
     # Common krit modules
     # This import common system-wide modules
-    ../../common/krit/modules/default.nix     # General import (since desktop contains everything) (both system and home-manager) (do not incude NAS modules)
+    ../../common/krit/modules/default.nix # General import (since desktop contains everything) (both system and home-manager) (do not incude NAS modules)
     ../../common/krit/modules/system/nas/default.nix # General NAS system modules
 
     # Local modules
@@ -148,7 +148,6 @@
     dockerCompat = false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
   };
 
-
   # ---------------------------------------------------------
   # 🛡️ DNS PROTECTION (Quad9 + VPN Compat)
   # ---------------------------------------------------------
@@ -187,6 +186,7 @@
   };
 
   environment.systemPackages = with pkgs; [
+    autotrash # Automatic trash cleanup
     docker # Required when virtualisation.docker.enable is true
     distrobox
     fd # User-friendly replacement for 'find'

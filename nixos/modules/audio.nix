@@ -48,5 +48,6 @@
   environment.systemPackages = with pkgs; [
     pipewire
     wireplumber
+    wiremix
   ];
 }

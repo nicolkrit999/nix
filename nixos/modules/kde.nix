@@ -16,7 +16,21 @@
       okular # Document viewer
       elisa # Music player
       discover # Software center
+
+      # Kwallet mandatory to ensure that only gnome-keyring is enabled
+      kwallet
+      kwallet-pam
+      kwalletmanager
+
     ];
+
+    environment.etc."xdg/kwalletrc".text = ''
+      [Wallet]
+      First Use=false
+      Enabled=false
+      [org.freedesktop.secrets]
+      apiEnabled=false
+    '';
 
     /*
         # 🛡️ SECURITY WRAPPER: Block guest user from KDE (Wayland & X11)
