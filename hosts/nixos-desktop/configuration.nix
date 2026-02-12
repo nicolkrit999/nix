@@ -10,7 +10,6 @@
     # This import common system-wide modules
     ../../common/krit/modules/default.nix # General import (since desktop contains everything) (both system and home-manager) (do not incude NAS modules)
     ../../common/krit/modules/system/nas/default.nix # General NAS system modules
-    ../../common/krit/modules/system/gui-programs/vivaldi.nix # Imported here to avoid nixpkgs.config and nixpkgs.overlays issues in home-manager modules
     # Local modules
     ./optional/default.nix
   ];
