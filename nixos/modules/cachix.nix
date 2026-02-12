@@ -7,16 +7,13 @@
 }:
 
 let
-  cfg =
-    if (builtins.isAttrs (vars.cachix or false)) then
-      vars.cachix
-    else
-      {
-        enable = false;
-        push = false;
-        name = "";
-        publicKey = "";
-      };
+  # Forced to false allowing this file to remain but as the stable branch want there is no cachix
+  cfg = {
+    enable = false;
+    push = false;
+    name = "";
+    publicKey = "";
+  };
 
   sopsFilePath = ../../hosts/${vars.hostname}/optional/host-sops-nix/${vars.hostname}-secrets-sops.yaml;
 
