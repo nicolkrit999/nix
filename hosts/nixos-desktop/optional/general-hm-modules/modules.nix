@@ -1,8 +1,7 @@
-{
-  lib,
-  pkgs,
-  vars,
-  ...
+{ lib
+, pkgs
+, vars
+, ...
 }:
 let
   # Allow to use variables despite flake.nix use this to create variables
@@ -82,12 +81,9 @@ in
 
     "workspace ${appWorkspaces.other} silent, class:^(Actual)$"
 
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$"
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-music.apple.com.*)$"
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-music.apple.com.*)$"
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-browser)$"
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-www\.youtube\.com.*)$"
-    #"workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-www.youtube.com)$"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$" # Secondary browser
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-browser)$" # Secondary browser
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-.*\..*)$" # Brave's PWAs
 
     "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
     "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
@@ -210,12 +206,12 @@ in
   hyprland_Exec-Once = [
     # Personal apps based on variables
     "uwsm app -- $term"
-    "sleep 4 && uwsm app -- $browser"
+    "sleep 2 && uwsm app -- $browser"
     "uwsm app -- $editor"
     "uwsm app -- $fileManager"
 
     # Secondary apps
-    "sleep 6 && uwsm app -- $browser --app=https://www.youtube.com"
+    "sleep 4 && uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
     "whatsapp-electron"
 
     # Opened minimized

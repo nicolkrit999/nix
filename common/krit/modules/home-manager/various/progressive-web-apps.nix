@@ -1,118 +1,65 @@
-{
-  pkgs,
-  lib,
-  ...
-}:
-let
-  browserBin = "${pkgs.vivaldi}/bin/vivaldi";
+{ pkgs, lib, ... }:
 
-  # 🎨 ICONS
-  notionIcon = pkgs.fetchurl {
+let
+  # ---------------------------------------------------------
+  # 🛠️ HELPER FUNCTION
+  # ---------------------------------------------------------
+  makeBravePwa = name: url: icon: startupClass: {
+    name = "pwa-${builtins.replaceStrings [" "] ["-"] (lib.toLower name)}";
+    value = {
+      name = name;
+      genericName = "Web App";
+      comment = "Launch ${name} as a PWA";
+
+      exec = "${pkgs.brave}/bin/brave --app=\"${url}\" --password-store=gnome";
+
+      icon = icon;
+
+      settings = {
+        StartupWMClass = startupClass;
+      };
+
+      terminal = false;
+      type = "Application";
+      categories = [ "Network" "WebBrowser" ];
+      mimeType = [ "x-scheme-handler/https" "x-scheme-handler/http" ];
+    };
+  };
+
+  # Custom icons
+  notionIconFile = pkgs.fetchurl {
     url = "https://upload.wikimedia.org/wikipedia/commons/e/e9/Notion-logo.svg";
     sha256 = "0q0i6cz44q0b54w0gm5lcndg8c7fi4bxavf1ylwr6v8nv22s2lhv";
   };
-  appleMusicIcon = pkgs.fetchurl {
+
+  appleMusicIconFile = pkgs.fetchurl {
     url = "https://upload.wikimedia.org/wikipedia/commons/5/5f/Apple_Music_icon.svg";
     sha256 = "0lw10k2x25gnhjykllf0crkwff43a69i9pmsglmhnyhbsmx3qz71";
   };
 
-  # 🛠️ GENERATOR FUNCTION
-  mkWebApp = name: url: icon: {
-    inherit name icon;
-    genericName = "Web Application";
-    exec = "${browserBin} --app=${url}";
-    terminal = false;
-    categories = [
-      "Network"
-      "WebBrowser"
-    ];
-    type = "Application";
-  };
 in
 {
-  xdg.desktopEntries = {
+  home.packages = [ pkgs.brave ];
 
-    # ---------------------------------------------------------
-    # 🔗 SIMPLE LINKS
-    # ---------------------------------------------------------
-    dashboard =
-      mkWebApp "Dashboard-Glance-PWA" "https://glance.nicolkrit.ch/"
-        "utilities-system-monitor";
+  xdg.desktopEntries = builtins.listToAttrs [
+    # Manual Apps
+    (makeBravePwa "YouTube" "https://www.youtube.com" "youtube" "brave-www.youtube.com__-Default")
+    (makeBravePwa "YouTube Music" "https://music.youtube.com/" "youtube-music" "brave-music.youtube.com__-Default")
+    (makeBravePwa "Apple Music" "https://music.apple.com/ch/home?l=en" "${appleMusicIconFile}" "brave-music.apple.com__ch_home-Default")
+    (makeBravePwa "Notion" "https://www.notion.so/" "${notionIconFile}" "brave-www.notion.so__-Default")
 
-    nas = mkWebApp "NAS-PWA" "https://nas.nicolkrit.ch" "network-server";
+    # Self-Hosted / Home Lab
+    (makeBravePwa "Dashboard-Glance" "https://glance.nicolkrit.ch/" "utilities-system-monitor" "brave-glance.nicolkrit.ch__-Default")
+    (makeBravePwa "NAS" "https://nas.nicolkrit.ch" "network-server" "brave-nas.nicolkrit.ch__-Default")
+    (makeBravePwa "Linkwarden" "https://linkwarden.nicolkrit.ch/dashboard" "emblem-favorite" "brave-linkwarden.nicolkrit.ch__dashboard-Default")
+    (makeBravePwa "OwnCloud" "https://owncloud.nicolkrit.ch/" "folder-cloud" "brave-owncloud.nicolkrit.ch__-Default")
 
-    linkwarden =
-      mkWebApp "Linkwarden-PWA" "https://linkwarden.nicolkrit.ch/dashboard"
-        "emblem-favorite";
-
-    nix-search = mkWebApp "Nix Search-PWA" "https://search.nixos.org/packages" "system-search";
-
-    proton-mail = mkWebApp "Proton Mail-PWA" "https://mail.proton.me/u" "internet-mail";
-
-    owncloud = mkWebApp "OwnCloud-PWA" "https://owncloud.nicolkrit.ch/" "folder-cloud";
-
-    google-gemini =
-      mkWebApp "Google Gemini AI-PWA" "https://gemini.google.com/app"
-        "utilities-terminal";
-
-    github = mkWebApp "Github-PWA" "https://github.com/" "vcs-git";
-
-    proton-drive = mkWebApp "Proton Drive-PWA" "https://drive.proton.me/u/0/" "drive-harddisk";
-
-    reddit = mkWebApp "Reddit-PWA" "https://www.reddit.com/" "internet-news-reader";
-
-    # ---------------------------------------------------------
-    # 📝 MANUAL APPS
-    # ---------------------------------------------------------
-    # Notion
-    notion = {
-      name = "Notion-PWA";
-      genericName = "Notes";
-      exec = "${browserBin} --app=https://www.notion.so/ --class=notion";
-      terminal = false;
-      icon = notionIcon;
-      settings = {
-        StartupWMClass = "notion";
-      };
-      categories = [
-        "Office"
-        "Utility"
-      ];
-    };
-
-    # YouTube
-    youtube-pwa = {
-      name = "YouTube-PWA";
-      genericName = "Video Player";
-
-      exec = "${browserBin} --app=https://www.youtube.com --class=vivaldi-www.youtube.com";
-
-      terminal = false;
-      icon = "youtube";
-      settings = {
-        StartupWMClass = "vivaldi-www.youtube.com";
-      };
-      categories = [
-        "AudioVideo"
-        "Video"
-        "Network"
-      ];
-    };
-
-    # Apple Music
-    apple-music = {
-      name = "Apple Music-PWA";
-      genericName = "Music Player";
-      exec = "${browserBin} --app=\"https://music.apple.com/ch/home?l=en\"";
-      terminal = false;
-      icon = appleMusicIcon;
-      settings = {
-        StartupWMClass = "music.apple.com";
-      };
-      categories = [
-        "AudioVideo"
-        "Audio"
-      ];
-    };
-  };
+    # Cloud Services
+    (makeBravePwa "Proton Mail" "https://mail.proton.me/u" "internet-mail" "brave-mail.proton.me__u-Default")
+    (makeBravePwa "Proton Drive" "https://drive.proton.me/u/0/" "folder-remote" "brave-drive.proton.me__u_0_-Default")
+    (makeBravePwa "Google Gemini" "https://gemini.google.com/app" "utilities-terminal" "brave-gemini.google.com__app-Default")
+    (makeBravePwa "Nix Search" "https://search.nixos.org/packages" "system-search" "brave-search.nixos.org__packages-Default")
+    (makeBravePwa "GitHub" "https://github.com/" "vcs-git" "brave-github.com__-Default")
+    (makeBravePwa "Reddit" "https://www.reddit.com/" "internet-news-reader" "brave-www.reddit.com__-Default")
+  ];
 }

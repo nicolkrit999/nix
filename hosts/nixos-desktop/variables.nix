@@ -43,7 +43,7 @@
   shell = "fish"; # Options: bash, zsh, fish
 
   # 📂 DEFAULT APPS
-  browser = "vivaldi";
+  browser = "librewolf";
   editor = "nvim";
   fileManager = "yazi";
 

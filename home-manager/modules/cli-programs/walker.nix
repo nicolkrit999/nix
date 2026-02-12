@@ -39,7 +39,7 @@
         placeholder = "Emojis";
         switcher_only = true;
         history = true;
-        typeahead = true;
+        typeahead = false;
         exec = "wl-copy";
         show_unqualified = true;
         prefix = ".";

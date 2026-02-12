@@ -11,6 +11,7 @@ These are the issues that i observed that require attentions. They may be only o
     - [programs.zsh.initExtra`is deprecated, use`programs.zsh.initContent\` instead.](#programszshinitextrais-deprecated-useprogramszshinitcontent-instead)
     - [Walker emojii keybind `waiting for elephant`](#walker-emojii-keybind-waiting-for-elephant)
 
+
 ## Desktop environments specific
 
 ### Hyprland: gestures
@@ -51,3 +52,7 @@ These are the issues that i observed that require attentions. They may be only o
 
 ### Walker emojii keybind `waiting for elephant`
 - While launching the emojii from the launcher it work, but with the keybinds not. It says "waiting for elephant"
+
+## Krit specific
+### Pwa youtube, youtube music and apple music
+- they lack icons
