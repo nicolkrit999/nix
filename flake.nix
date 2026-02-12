@@ -144,29 +144,6 @@
             ./hosts/${hostname}/configuration.nix
             ./hosts/${hostname}/hardware-configuration.nix
 
-            # Overlay needed to avoid problems for aarch64
-            (
-              { pkgs, lib, ... }:
-              {
-                nixpkgs.overlays = [
-                  (final: prev: {
-                    gpu-screen-recorder =
-                      if prev.stdenv.hostPlatform.system == "aarch64-linux" then
-                        prev.runCommand "gpu-screen-recorder-dummy" { } ''
-                          mkdir -p $out/bin
-                          # Create dummy main binary
-                          echo 'echo "GPU Screen Recorder is not supported on ARM"' > $out/bin/gpu-screen-recorder
-                          # Create dummy server binary (THIS FIXES YOUR ERROR)
-                          echo 'echo "Not supported"' > $out/bin/gsr-kms-server
-                          chmod +x $out/bin/*
-                        ''
-                      else
-                        prev.gpu-screen-recorder;
-                  })
-                ];
-              }
-            )
-
             # Additional nixos modules from flakes
             inputs.catppuccin.nixosModules.catppuccin
             inputs.nix-flatpak.nixosModules.nix-flatpak

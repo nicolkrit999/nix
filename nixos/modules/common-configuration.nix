@@ -48,6 +48,22 @@ in
     ];
   };
 
+# Gpu screen recorder overlay due to missing ARM support in the main package
+nixpkgs.overlays = [
+    (final: prev: {
+      gpu-screen-recorder =
+        if prev.stdenv.hostPlatform.system == "aarch64-linux" then
+          prev.runCommand "gpu-screen-recorder-dummy" { } ''
+            mkdir -p $out/bin
+            echo 'echo "GPU Screen Recorder is not supported on ARM"' > $out/bin/gpu-screen-recorder
+            echo 'echo "Not supported"' > $out/bin/gsr-kms-server
+            chmod +x $out/bin/*
+          ''
+        else
+          prev.gpu-screen-recorder;
+    })
+  ];
+
   # Allow unfree packages globally (needed for drivers, code, etc.)
   nixpkgs.config.allowUnfree = true;
 
