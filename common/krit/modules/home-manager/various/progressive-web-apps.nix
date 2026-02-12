@@ -27,24 +27,37 @@ let
   };
 
   # Custom icons
+  # Notion
   notionIconFile = pkgs.fetchurl {
     url = "https://upload.wikimedia.org/wikipedia/commons/e/e9/Notion-logo.svg";
     sha256 = "0q0i6cz44q0b54w0gm5lcndg8c7fi4bxavf1ylwr6v8nv22s2lhv";
   };
 
+  # Apple music
   appleMusicIconFile = pkgs.fetchurl {
     url = "https://upload.wikimedia.org/wikipedia/commons/5/5f/Apple_Music_icon.svg";
     sha256 = "0lw10k2x25gnhjykllf0crkwff43a69i9pmsglmhnyhbsmx3qz71";
   };
 
+  # YouTube
+  youtubeIcon = pkgs.fetchurl {
+    url = "https://upload.wikimedia.org/wikipedia/commons/f/fd/YouTube_full-color_icon_%282024%29.svg";
+    sha256 = "8igmt9medFu9pU3EIcLC8IY3OyAMXn97QExNecPfaOI=";
+  };
+
+  # Youtube music
+  youtubeMusicIcon = pkgs.fetchurl {
+    url = "https://upload.wikimedia.org/wikipedia/commons/6/6a/Youtube_Music_icon.svg";
+    sha256 = "02wdzksr3viwys3rzz9b10p2fl9vra2izxfnjswpc8b8nzwskyrb";
+  };
 in
 {
   home.packages = [ pkgs.brave ];
 
   xdg.desktopEntries = builtins.listToAttrs [
     # Manual Apps
-    (makeBravePwa "YouTube" "https://www.youtube.com" "youtube" "brave-www.youtube.com__-Default")
-    (makeBravePwa "YouTube Music" "https://music.youtube.com/" "youtube-music" "brave-music.youtube.com__-Default")
+    (makeBravePwa "YouTube" "https://www.youtube.com" "${youtubeIcon}" "brave-www.youtube.com__-Default")
+    (makeBravePwa "YouTube Music" "https://music.youtube.com/" "${youtubeMusicIcon}" "brave-music.youtube.com__-Default")
     (makeBravePwa "Apple Music" "https://music.apple.com/ch/home?l=en" "${appleMusicIconFile}" "brave-music.apple.com__ch_home-Default")
     (makeBravePwa "Notion" "https://www.notion.so/" "${notionIconFile}" "brave-www.notion.so__-Default")
 
