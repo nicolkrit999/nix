@@ -1,3 +1,6 @@
+# Branch
+- This stable branch is meant to not use cachix, meaning flake.lock and relevant version can be older one
+
 # ❄️ Personal NixOS Config
 
 ## Hyprland + waybar + lazygit + ranger + firefox
