@@ -1,10 +1,9 @@
-{
-  config,
-  lib,
-  inputs,
-  pkgs,
-  vars,
-  ...
+{ config
+, lib
+, inputs
+, pkgs
+, vars
+, ...
 }:
 let
   noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -196,58 +195,108 @@ in
           force_zero_scaling = true;
         };
 
-        windowrulev2 = [
-          # Smart Borders: No border if only 1 window is on screen
-          "bordersize 0, floating:0, onworkspace:w[t1]"
+        # Hyprland 0.53.0+ Structured Window Rules
+        windowrule = [
+          # 1. Smart Borders: No border if only 1 window is on screen
+          ''
+            {
+              name = smart_borders
+              match:floating = false
+              match:onworkspace = w[t1]
+              bordersize = 0
+            }
+          ''
 
-          #ShowMeTheKey  fixes. ShowMetheKey is a GTK app for displaying keypresses on screen.
-          "float,class:(mpv)|(imv)|(showmethekey-gtk)" # Float media viewers and ShowMeTheKey
-          "move 990 60,size 900 170,pin,noinitialfocus,class:(showmethekey-gtk)" # Position ShowMeTheKey
-          "noborder,nofocus,class:(showmethekey-gtk)" # No border for ShowMeTheKey
+          # 2. Media & ShowMeTheKey Floating
+          ''
+            {
+              name = media_floating
+              match:class = (mpv)|(imv)|(showmethekey-gtk)
+              float = on
+            }
+          ''
 
-          # Ueberzug fix for image previews
-          "float, class:^(ueberzugpp_layer)$"
-          "noanim, class:^(ueberzugpp_layer)$"
-          "noshadow, class:^(ueberzugpp_layer)$"
-          "noblur, class:^(ueberzugpp_layer)$"
-          "noinitialfocus, class:^(ueberzugpp_layer)$"
+          # 3. ShowMeTheKey Positioning & Stealth
+          ''
+            {
+              name = showmethekey_layout
+              match:class = showmethekey-gtk
+              move = 990 60
+              size = 900 170
+              pin = on
+              noinitialfocus = on
+              noborder = on
+              nofocus = on
+            }
+          ''
 
-          # Gwenview fix for opening images
-          "float, class:^(org.kde.gwenview)$"
-          "center, class:^(org.kde.gwenview)$"
-          "size 80% 80%, class:^(org.kde.gwenview)$"
+          # 4. Ueberzug Image Previews
+          ''
+            {
+              name = ueberzug_fix
+              match:class = ^(ueberzugpp_layer)$
+              float = on
+              noanim = on
+              noshadow = on
+              noblur = on
+              noinitialfocus = on
+            }
+          ''
 
-          # FILE DIALOGS (Firefox, Upload, Download, Save As) ---
-          "float, title:^(Open File)(.*)$"
-          "float, title:^(Select a File)(.*)$"
-          "float, title:^(Choose wallpaper)(.*)$"
-          "float, title:^(Open Folder)(.*)$"
-          "float, title:^(Save As)(.*)$"
-          "float, title:^(Library)(.*)$"
-          "float, title:^(File Upload)(.*)$"
-          "float, title:^(Save File)(.*)$"
-          "float, title:^(Enter name of file)(.*)$"
+          # 5. Gwenview / KDE File Dialogs
+          ''
+            {
+              name = kde_dialogs
+              match:class = ^(org.kde.gwenview|xdg-desktop-portal-gtk)$
+              float = on
+              center = on
+              size = 80% 80%
+            }
+          ''
 
-          # Center and resize ALL the titles listed above
-          "center, title:^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"
-          "size 50% 50%, title:^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"
+          # 6. Global File Dialogs (Firefox, etc.)
+          ''
+            {
+              name = file_dialog_titles
+              match:title = ^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$
+              float = on
+              center = on
+              size = 50% 50%
+            }
+          ''
 
-          "float, class:^(xdg-desktop-portal-gtk)$"
-          "center, class:^(xdg-desktop-portal-gtk)$"
-          "size 50% 50%, class:^(xdg-desktop-portal-gtk)$"
+          # 7. Security: Prevent Auto-Maximize & Ghost Focus
+          ''
+            {
+              name = suppress_maximize
+              match:class = .*
+              suppressevent = maximize
+            }
+          ''
+          ''
+            {
+              name = ghost_focus_fix
+              match:class = ^$
+              match:title = ^$
+              match:xwayland = on
+              match:floating = on
+              nofocus = on
+            }
+          ''
 
-          # Prevent Auto-Maximize & Focus Stealing ---
-          "suppressevent maximize, class:.*"
-          "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0"
-
-          # XWayland Video Bridge ---
-          "opacity 0.0 override, class:^(xwaylandvideobridge)$"
-          "noanim, class:^(xwaylandvideobridge)$"
-          "noinitialfocus, class:^(xwaylandvideobridge)$"
-          "maxsize 1 1, class:^(xwaylandvideobridge)$"
-          "noblur, class:^(xwaylandvideobridge)$"
-          "nofocus, class:^(xwaylandvideobridge)$"
-
+          # 8. XWayland Video Bridge (Invisible)
+          ''
+            {
+              name = xwayland_bridge_fix
+              match:class = ^(xwaylandvideobridge)$
+              opacity = 0.0
+              noanim = on
+              noinitialfocus = on
+              maxsize = 1 1
+              noblur = on
+              nofocus = on
+            }
+          ''
         ]
         ++ (vars.hyprlandWindowRules or [ ]);
 

@@ -60,73 +60,41 @@ in
     "10, monitor:DP-2"
   ];
 
-  # Forces specific apps to always open on specific workspaces
-  # To see the right class name, use `hyprctl clients` command and look for "class:"
+  # Forces specific apps to always open on specific workspaces (0.53.0 Format)
   hyprlandWindowRules = [
-    "workspace ${appWorkspaces.editor} silent, class:^(code)$"
-    "workspace ${appWorkspaces.editor} silent, class:^(nvim-editor)$"
-    "workspace ${appWorkspaces.editor} silent, class:^(org.kde.kate)$"
-    "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-pycharm-ce)$"
-    "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-Clion)$"
-    "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-idea-ce)$"
+    # Editor Workspace
+    "workspace ${appWorkspaces.editor} silent, match:class:^(code|nvim-editor|org.kde.kate|jetbrains-pycharm-ce|jetbrains-Clion|jetbrains-idea-ce)$"
 
-    "workspace ${appWorkspaces.fileManager} silent, class:^(org.kde.dolphin)$"
-    "workspace ${appWorkspaces.fileManager} silent, class:^(thunar)$"
-    "workspace ${appWorkspaces.fileManager} silent, class:^(yazi)$"
-    "workspace ${appWorkspaces.fileManager} silent, class:^(ranger)$"
-    "workspace ${appWorkspaces.fileManager} silent, class:^(org.gnome.Nautilus)$"
-    "workspace ${appWorkspaces.fileManager} silent, class:^(nemo)$"
+    # FileManager Workspace
+    "workspace ${appWorkspaces.fileManager} silent, match:class:^(org.kde.dolphin|thunar|yazi|ranger|org.gnome.Nautilus|nemo)$"
 
-    "workspace ${appWorkspaces.vm} silent, class:^(winboat)$"
+    # Virtual Machines
+    "workspace ${appWorkspaces.vm} silent, match:class:^(winboat)$"
 
-    "workspace ${appWorkspaces.other} silent, class:^(Actual)$"
+    # Browsers / Entertainment
+    "workspace ${appWorkspaces.browser-Entertainment} silent, match:class:^(chromium-browser|brave-browser|brave-.*)$"
 
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$" # Secondary browser
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-browser)$" # Secondary browser
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-.*\..*)$" # Brave's PWAs
+    # Terminals
+    "workspace ${appWorkspaces.terminal} silent, match:class:^(kitty|alacritty|foot|xfce4-terminal|com.system76.CosmicTerm|org.kde.konsole|gnome-terminal|XTerm)$"
 
-    "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(foot)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(xfce4-terminal)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(com.system76.CosmicTerm)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(org.kde.konsole)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(gnome-terminal)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(XTerm)$"
+    # Chat
+    "workspace ${appWorkspaces.chat} silent, match:class:^(vesktop|org.telegram.desktop|whatsapp-electron)$"
 
-    "workspace ${appWorkspaces.chat} silent, class:^(vesktop)$"
-    "workspace ${appWorkspaces.chat} silent, class:^(org.telegram.desktop)$"
-    "workspace ${appWorkspaces.chat} silent, class:^(whatsapp-electron)$"
+    # Scratchpad Rules (Magic Workspace)
+    "float, match:class:^(scratch-term|scratch-fs|scratch-browser)$"
+    "center, match:class:^(scratch-term|scratch-fs|scratch-browser)$"
+    "size 80% 80%, match:class:^(scratch-term|scratch-fs|scratch-browser)$"
+    "workspace special:magic, match:class:^(scratch-term|scratch-fs|scratch-browser)$"
 
-    # Scratchpad rules - terminal
-    "float, class:^(scratch-term)$"
-    "center, class:^(scratch-term)$"
-    "size 80% 80%, class:^(scratch-term)$"
-    "workspace special:magic, class:^(scratch-term)$"
-
-    # Scratchpad rules - file manager
-    "float, class:^(scratch-fs)$"
-    "center, class:^(scratch-fs)$"
-    "size 80% 80%, class:^(scratch-fs)$"
-    "workspace special:magic, class:^(scratch-fs)$"
-
-    # Scratchpad rules - browser
-    "float, class:^(scratch-browser)$"
-    "center, class:^(scratch-browser)$"
-    "size 80% 80%, class:^(scratch-browser)$"
-    "workspace special:magic, class:^(scratch-browser)$"
-
-    "workspace ${appWorkspaces.vm} silent, class:^(winboat)$"
-
-    # --- WINBOAT SUB-APP RULES ---
-    "workspace ${appWorkspaces.vm}, class:^winboat-.*$"
-    "suppressevent fullscreen maximize activate activatefocus, class:^winboat-.*$"
-    "noinitialfocus, class:^winboat-.*$"
-    "noanim, class:^winboat-.*$"
-    "norounding, class:^winboat-.*$"
-    "noshadow, class:^winboat-.*$"
-    "noblur, class:^winboat-.*$"
-    "opaque, class:^winboat-.*$"
+    # --- WINBOAT SUB-APP RULES (0.53 Strict) ---
+    "workspace ${appWorkspaces.vm}, match:class:^winboat-.*$"
+    "suppressevent fullscreen maximize activate activatefocus, match:class:^winboat-.*$"
+    "noinitialfocus = on, match:class:^winboat-.*$"
+    "noanim = on, match:class:^winboat-.*$"
+    "norounding = on, match:class:^winboat-.*$"
+    "noshadow = on, match:class:^winboat-.*$"
+    "noblur = on, match:class:^winboat-.*$"
+    "opaque = on, match:class:^winboat-.*$"
   ];
 
   hyprlandExtraBinds = [
