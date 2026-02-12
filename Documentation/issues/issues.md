@@ -40,15 +40,6 @@ These are the issues that i observed that require attentions. They may be only o
 
 ## General
 
-### <user> profile: You have set either `nixpkgs.config` or `nixpkgs.overlays` while using `home-manager.useGlobalPkgs`. This will soon not be possible. Please remove all `nixpkgs` options when using `home-manager
-
-- According to a [reddit thread](https://www.reddit.com/r/NixOS/comments/1ivo70f/what_is_the_point_of_homemanageruseglobalpkgs_if/) it is stylix fault. Since the system build anyway for now this warning is harmless
-  - For now we can ignore it
-
-### programs.zsh.initExtra`is deprecated, use`programs.zsh.initContent` instead.
-
-- It should be a mismatch about what some inputs in home-manager expect and what other expects. Since the system build anyway for now this warning is harmless
-  - For now we can ignore it
 
 ### Walker emojii keybind `waiting for elephant`
 - While launching the emojii from the launcher it work, but with the keybinds not. It says "waiting for elephant"
