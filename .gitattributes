@@ -1,0 +1,7 @@
+# Protect these files from being overwritten/re-added during merges
+# Overwite protection
+**/cachix.nix merge=ours
+.gitignore merge=ours
+
+# Re-add protection
+.github/workflows/build.yml merge=ours

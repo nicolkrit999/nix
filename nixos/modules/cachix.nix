@@ -7,16 +7,17 @@
 }:
 
 let
-  # Forced to false allowing this file to remain but as the stable branch want there is no cachix
+# Cachix is forcibly disabled regardless of the host variable
+# This allow to have a stable branch where flake.lock can be anything
   cfg = {
-    enable = false;
+    enable = false; 
     push = false;
     name = "";
     publicKey = "";
   };
 
+  # Path to host-specific secrets
   sopsFilePath = ../../hosts/${vars.hostname}/optional/host-sops-nix/${vars.hostname}-secrets-sops.yaml;
-
   sopsFile = if builtins.pathExists sopsFilePath then sopsFilePath else null;
 
 in
