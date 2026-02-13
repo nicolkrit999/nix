@@ -24,7 +24,7 @@
 
     # Official catppuccin-nix flake
     catppuccin = {
-      url = "github:catppuccin/nix";
+      url = "github:catppuccin/nix/release-25.11"; # Changed from "github:catppuccin/nix" to pin to it and avoid the "services.displayManager.generic" does not exist evalution warning after a "nix flake update" done on february, 13, 2026
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

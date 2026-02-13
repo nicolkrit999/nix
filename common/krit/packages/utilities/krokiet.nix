@@ -28,10 +28,7 @@ pkgs.stdenv.mkDerivation rec {
     sha256 = "048ch85j1pmp1y7riscrprb08q2ikxjbz7wfc6a5kwrxlx8qhdia";
   };
 
-  iconSrc = pkgs.fetchurl {
-    url = "https://raw.githubusercontent.com/qarmin/czkawka/master/krokiet/icons/krokiet_logo.svg";
-    sha256 = "1ia7dyjahn4d8n5i4kfh54mw7zd6sc9g6y4a1rb4qlwpa6vlv4x7";
-  };
+  iconSrc = ../../src/svg-images/utilities/czkawka-krokiet_logo.svg;
 
   dontUnpack = true;
 
