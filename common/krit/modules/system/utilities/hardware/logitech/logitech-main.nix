@@ -1,35 +1,20 @@
 { pkgs, ... }:
 
-let
-  # Import MX Master config string
-  mxConfig = import ./mx-master.nix;
-in
 {
-  # Superlight (using keyd)
-  imports = [ ./superlight.nix ];
-
-  # -----------------------------------------------------
-  # 🖱️ MX MASTER CONFIGURATION (via logid)
-  # -----------------------------------------------------
-  boot.kernelModules = [
-    "uinput"
-    "hid-logitech-hidpp"
+  imports = [
+    ./superlight.nix
+    ./mx-master.nix
   ];
-  environment.systemPackages = [ pkgs.logiops ];
 
-  # Generate logid.cfg ONLY for MX Master
-  environment.etc."logid.cfg".text = ''
-    devices: (
-      {
-        name: "Wireless Mouse MX Master 3S";
-        ${mxConfig.sharedConfig}
-      },
-      {
-        name: "MX Master 3S";
-        ${mxConfig.sharedConfig}
-      }
-    );
-  '';
+  environment.systemPackages = with pkgs; [
+    keyd # for Superlight
+    logiops # for MX Master
+    libinput # for debugging
+    evtest # for hardware testing
+  ];
+
+  services.keyd.enable = true;
+  boot.kernelModules = [ "uinput" "hid-logitech-hidpp" ];
 
   # Service Definition
   systemd.services.logid = {
