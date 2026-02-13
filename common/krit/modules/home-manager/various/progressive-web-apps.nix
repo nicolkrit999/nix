@@ -50,6 +50,9 @@ let
     url = "https://upload.wikimedia.org/wikipedia/commons/6/6a/Youtube_Music_icon.svg";
     sha256 = "02wdzksr3viwys3rzz9b10p2fl9vra2izxfnjswpc8b8nzwskyrb";
   };
+
+  # Radio fm1-Switzerland
+  radioFM1Icon = ../../../src/svg-images/entertainment/radiofm1.svg;
 in
 {
   home.packages = [ pkgs.brave ];
@@ -60,6 +63,7 @@ in
     (makeBravePwa "YouTube Music" "https://music.youtube.com/" "${youtubeMusicIcon}" "brave-music.youtube.com__-Default")
     (makeBravePwa "Apple Music" "https://music.apple.com/ch/home?l=en" "${appleMusicIconFile}" "brave-music.apple.com__ch_home-Default")
     (makeBravePwa "Notion" "https://www.notion.so/" "${notionIconFile}" "brave-www.notion.so__-Default")
+    (makeBravePwa "Radio fm1-Switzerland" "https://www.radiofm1.ch" "${radioFM1Icon}" "brave-www.radiofm1.ch__-Default")
 
     # Self-Hosted / Home Lab
     (makeBravePwa "Dashboard-Glance" "https://glance.nicolkrit.ch/" "utilities-system-monitor" "brave-glance.nicolkrit.ch__-Default")
@@ -74,5 +78,7 @@ in
     (makeBravePwa "Nix Search" "https://search.nixos.org/packages" "system-search" "brave-search.nixos.org__packages-Default")
     (makeBravePwa "GitHub" "https://github.com/" "vcs-git" "brave-github.com__-Default")
     (makeBravePwa "Reddit" "https://www.reddit.com/" "internet-news-reader" "brave-www.reddit.com__-Default")
+
+    # Entertainments
   ];
 }
