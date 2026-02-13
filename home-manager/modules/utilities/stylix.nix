@@ -38,13 +38,10 @@ in
       # These should absolutely remain disabled because they cause conflicts
       kde.enable = false; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
       qt.enable = false; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
+      gnome.enable = vars.gnome or false;
 
       # These should remain enabled to avoid conflicts with other modules
-
-      # -----------------------------------------------------------------------
-      # DE/WM SPECIFIC
-      # -----------------------------------------------------------------------
-      gnome.enable = vars.gnome or false;
+      # N/A
 
       # ---------------------------------------------------------------------------------------
       # 🎨 GLOBAL CATPPUCCIN
