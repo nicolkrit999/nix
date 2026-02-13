@@ -48,8 +48,8 @@ in
     ];
   };
 
-# Gpu screen recorder overlay due to missing ARM support in the main package
-nixpkgs.overlays = [
+  # Gpu screen recorder overlay due to missing ARM support in the main package
+  nixpkgs.overlays = [
     (final: prev: {
       gpu-screen-recorder =
         if prev.stdenv.hostPlatform.system == "aarch64-linux" then

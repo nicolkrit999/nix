@@ -72,19 +72,18 @@
   };
 
   outputs =
-    { nixpkgs
-    , nixpkgs-unstable
-    , home-manager
-    , ...
+    {
+      nixpkgs,
+      nixpkgs-unstable,
+      home-manager,
+      ...
     }@inputs:
     let
       hostNames = nixpkgs.lib.attrNames (
-        nixpkgs.lib.filterAttrs
-          (
-            name: type:
-              type == "directory" && builtins.pathExists (./hosts + "/${name}/hardware-configuration.nix")
-          )
-          (builtins.readDir ./hosts)
+        nixpkgs.lib.filterAttrs (
+          name: type:
+          type == "directory" && builtins.pathExists (./hosts + "/${name}/hardware-configuration.nix")
+        ) (builtins.readDir ./hosts)
       );
 
       # 🛠️ SYSTEM BUILDER
@@ -104,17 +103,16 @@
           # 4. Extra Vars (Optional - host specific HM settings)
           extraVars =
             if builtins.pathExists modulesPath then
-              builtins.trace "✅ [${hostname} System] Loading host HM Variables from: ${toString modulesPath}"
-                (
-                  import modulesPath {
-                    vars = baseVars;
-                    lib = nixpkgs.lib;
-                    pkgs = import nixpkgs {
-                      system = baseVars.system;
-                      config.allowUnfree = true;
-                    };
-                  }
-                )
+              builtins.trace "✅ [${hostname} System] Loading host HM Variables from: ${toString modulesPath}" (
+                import modulesPath {
+                  vars = baseVars;
+                  lib = nixpkgs.lib;
+                  pkgs = import nixpkgs {
+                    system = baseVars.system;
+                    config.allowUnfree = true;
+                  };
+                }
+              )
             else
               builtins.trace
                 "ℹ️ [${hostname} System] No host HM Variables module found at ${toString modulesPath}"
@@ -218,14 +216,13 @@
           # 4. Extra Vars (Optional - host specific HM settings)
           extraVars =
             if builtins.pathExists modulesPath then
-              builtins.trace "✅ [${hostname} Home] Loading host HM Variables from: ${toString modulesPath}"
-                (
-                  import modulesPath {
-                    vars = baseVars;
-                    lib = nixpkgs.lib;
-                    pkgs = nixpkgs.pkgs;
-                  }
-                )
+              builtins.trace "✅ [${hostname} Home] Loading host HM Variables from: ${toString modulesPath}" (
+                import modulesPath {
+                  vars = baseVars;
+                  lib = nixpkgs.lib;
+                  pkgs = nixpkgs.pkgs;
+                }
+              )
             else
               builtins.trace "ℹ️ [${hostname} Home] No hsot HM Variables module found." { };
 

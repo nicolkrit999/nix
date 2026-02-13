@@ -1,6 +1,6 @@
 { ... }:
 {
   imports = [
-  ./vivaldi.nix
+    ./vivaldi.nix
   ];
 }

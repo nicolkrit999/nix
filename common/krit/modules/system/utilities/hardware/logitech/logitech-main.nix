@@ -11,7 +11,10 @@ in
   # -----------------------------------------------------
   # 🖱️ MX MASTER CONFIGURATION (via logid)
   # -----------------------------------------------------
-  boot.kernelModules = [ "uinput" "hid-logitech-hidpp" ];
+  boot.kernelModules = [
+    "uinput"
+    "hid-logitech-hidpp"
+  ];
   environment.systemPackages = [ pkgs.logiops ];
 
   # Generate logid.cfg ONLY for MX Master

@@ -1,7 +1,8 @@
-{ lib
-, pkgs
-, vars
-, ...
+{
+  lib,
+  pkgs,
+  vars,
+  ...
 }:
 let
   # Allow to use variables despite flake.nix use this to create variables
