@@ -14,7 +14,10 @@
   ];
 
   services.keyd.enable = true;
-  boot.kernelModules = [ "uinput" "hid-logitech-hidpp" ];
+  boot.kernelModules = [
+    "uinput"
+    "hid-logitech-hidpp"
+  ];
 
   # Service Definition
   systemd.services.logid = {

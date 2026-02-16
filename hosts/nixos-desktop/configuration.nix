@@ -1,8 +1,9 @@
-{ config
-, pkgs
-, lib
-, vars
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  vars,
+  ...
 }:
 {
   imports = [
@@ -63,18 +64,19 @@
         sopsFile = commonSecrets;
         restartUnits = [ "NetworkManager.service" ];
       };
+
+      # Comm-7. PGP signing key (git)
       commit_signing_key = {
         sopsFile = commonSecrets;
         owner = vars.user;
       };
     };
 
-  # Comm-7. PGP signing key (git)
-
   # Tell Nix to read the Github token
   nix.extraOptions = ''
     !include ${config.sops.secrets.github_fg_pat_token_nix.path}
   '';
+
   # ---------------------------------------------------------
   # 👤 HOST-SPECIFIC GIT
   # ---------------------------------------------------------
@@ -109,7 +111,7 @@
         boot.kernelParams = [
       "video=HDMI-A-2:1920x1080@60"
         ];
-      */
+  */
 
   services.logind = {
     settings = {

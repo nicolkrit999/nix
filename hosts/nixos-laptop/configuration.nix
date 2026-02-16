@@ -66,22 +66,52 @@
           sopsFile = commonSecrets;
           restartUnits = [ "NetworkManager.service" ];
         };
+
+      # Comm-7. PGP signing key (git)
+      commit_signing_key = {
+        sopsFile = commonSecrets;
+        owner = vars.user;
       };
+    };
 
     # Tell Nix to read the Github token
     nix.extraOptions = ''
-      !include ${config.sops.secrets.github_fg_pat_token_nix.path}
+    !include ${config.sops.secrets.github_fg_pat_token_nix.path}
     '';
-    # ---------------------------------------------------------
-    # 🔧 CONFIGURE SSH TO USE THE KEY
-    # ---------------------------------------------------------
-    programs.ssh = {
-      extraConfig = ''
-        Host github.com
-          IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
-      '';
-    };
-  */
+   */
+
+  # ---------------------------------------------------------
+  # 👤 HOST-SPECIFIC GIT
+  # ---------------------------------------------------------
+
+  # ---------------------------------------------------------
+  # 🔐 GPG SIGNING SETUP (Manual Steps for New Hosts)
+  # ---------------------------------------------------------
+  # This config automates the "Git" side, but the "GPG" keychain
+  # is strictly local and must be initialized once manually.
+  #
+  # 1. Rebuild the system to decrypt the key:
+  #    $ nh os switch
+  #
+  # 2. Import the private key from SOPS into your local keyring:
+  #    $ gpg --import /run/secrets/commit_signing_key
+  #
+  # 3. Trust the key (Essential, otherwise Git fails to sign):
+  #    $ gpg --edit-key D93A24D8E063EECF
+  #      > trust
+  #      > 5  (Ultimate)
+  #      > y  (Confirm)
+  #      > quit
+  #
+  # 4. Verify it works (should show "Good signature"):
+  #    $ git commit --allow-empty -m "test: gpg signing"
+  #    $ git log --show-signature -1
+  # ---------------------------------------------------------
+  programs.git.enable = true; # Needed to make signing work since home-manager git module can't to it
+  programs.git.config = {
+    user.signingkey = "D93A24D8E063EECF";
+    commit.gpgsign = true;
+  };
 
   # Gnupg agent with pinentry-qt for graphical passphrase entry (required for git commits signing with gpg key)
   programs.gnupg.agent = {
@@ -90,113 +120,124 @@
     pinentryPackage = pkgs.pinentry-qt;
   };
 
-    # ---------------------------------------------------------
-    # ⚙️ GRAPHICS & FONTS
-    # ---------------------------------------------------------
-    hardware.graphics.enable = true;
+  # SSH configuration to use the key for github access (Comm-1)
+  /*
+  programs.ssh = {
+    extraConfig = ''
+      Host github.com
+      IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
+    '';
+  };
+    */
 
-    # ---------------------------------------------------------
-    # 👤 USER CONFIGURATION
-    # ---------------------------------------------------------
-    #users.mutableUsers = false; # Owerwrite manual password changes
+  # ---------------------------------------------------------
+  # ⚙️ GRAPHICS & FONTS
+  # ---------------------------------------------------------
+  hardware.graphics.enable = true;
 
-    users.users.${vars.user} = {
-      isNormalUser = true;
-      description = "${vars.user}";
-      extraGroups = [
-        "networkmanager"
-        "wheel"
-        "input"
-        "docker"
-        "podman"
-        "video"
-        "audio"
-      ];
-      # Required for rootless Podman/Distrobox
-      subUidRanges = [
-        {
-          startUid = 100000;
-          count = 65536;
-        }
-      ];
-      subGidRanges = [
-        {
-          startGid = 100000;
-          count = 65536;
-        }
-      ];
+  # ---------------------------------------------------------
+  # 👤 USER CONFIGURATION
+  # ---------------------------------------------------------
+  #users.mutableUsers = false; # Owerwrite manual password changes
 
-      # FIXME: sops not added yet
-      #hashedPasswordFile = config.sops.secrets.krit-local-password.path;
-    };
-
-    # ---------------------------------------------------------
-    # 🐳 VIRTUALIZATION & DOCKER
-    # Needed because otherwise the group "docker" is not created
-    # ---------------------------------------------------------
-    virtualisation.docker.enable = false;
-
-    # Limited mtu to make internet faster when enabled
-    virtualisation.docker.daemon.settings = {
-      "mtu" = 1450;
-    };
-
-    virtualisation.podman = {
-      enable = false;
-      dockerCompat = false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
-    };
-
-    # ---------------------------------------------------------
-    # ⚡ POWER MANAGEMENT twaks
-    # ---------------------------------------------------------
-    services.speechd.enable = lib.mkForce false; # Disable speech-dispatcher as it is not needed and wastes resources
-    systemd.services.ModemManager.enable = false; # Disable unused 4G modem scanning
-
-    networking.networkmanager.wifi.powersave = true; # Micro-sleeps radio between packets
-    powerManagement.powertop.enable = true; # Sleeps idle USB, Audio, and PCI devices
-
-    boot.kernelParams = [
-      # "pcie_aspm=force" # Force deep sleep for SSD & Motherboard (this may cause instability, include it without it first and test)
+  users.users.${vars.user} = {
+    isNormalUser = true;
+    description = "${vars.user}";
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "input"
+      "docker"
+      "podman"
+      "video"
+      "audio"
+    ];
+    # Required for rootless Podman/Distrobox
+    subUidRanges = [
+      {
+        startUid = 100000;
+        count = 65536;
+      }
+    ];
+    subGidRanges = [
+      {
+        startGid = 100000;
+        count = 65536;
+      }
     ];
 
-    # ---------------------------------------------------------
-    # 🗑️ AUTO TRASH CLEANUP
-    # ---------------------------------------------------------
-    # 2. Define the cleanup service
-    systemd.services.cleanup_trash = {
-      description = "Clean up trash older than 30 days";
-      serviceConfig = {
-        Type = "oneshot";
-        User = vars.user;
-        Environment = "HOME=/home/${vars.user}";
-        ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
-      };
-    };
+    # FIXME: sops not added yet
+    #hashedPasswordFile = config.sops.secrets.krit-local-password.path;
+  };
 
-    # 3. Schedule it to run daily
-    systemd.timers.cleanup_trash = {
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnCalendar = "daily"; # Runs once every 24h
-        Persistent = true; # Run immediately if the computer was off during the scheduled time
-      };
-    };
+  # ---------------------------------------------------------
+  # 🐳 VIRTUALIZATION & DOCKER
+  # Needed because otherwise the group "docker" is not created
+  # ---------------------------------------------------------
+  virtualisation.docker.enable = false;
 
-    environment.systemPackages = with pkgs; [
-      autotrash # Automatic trash cleanup
-      # docker # Required when virtualisation.docker.enable is true
-      fd # User-friendly replacement for 'find'
-      gnupg # Required for gpg key for settings git commits
-      pinentry-qt # Required for gpg key for settings git commits
-      pinentry-curses # Required for gpg key for settings git commits (fallback)
-      logiops # Logitech devices manager (currently used for my MX Master 3S)
-      pay-respects # Used in shell aliases dotfiles
-      pokemon-colorscripts # Used in shell aliases dotfiles
-      stow # Used to manage my dotfiles repo
-      tree # Display directory structure as a tree
-      unzip # Extraction utility for .zip files. It is used by programs to compress/decompress data.
-      wget # Network downloader utility
-      zip # Compression utility for .zip files. It is used by programs to compress/decompress data.
-      zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
-    ];
-  }
+  # Limited mtu to make internet faster when enabled
+  virtualisation.docker.daemon.settings = {
+    "mtu" = 1450;
+  };
+
+  virtualisation.podman = {
+    enable = false;
+    dockerCompat = false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
+  };
+
+  # ---------------------------------------------------------
+  # ⚡ POWER MANAGEMENT twaks
+  # ---------------------------------------------------------
+  services.speechd.enable = lib.mkForce false; # Disable speech-dispatcher as it is not needed and wastes resources
+  systemd.services.ModemManager.enable = false; # Disable unused 4G modem scanning
+
+  networking.networkmanager.wifi.powersave = true; # Micro-sleeps radio between packets
+  powerManagement.powertop.enable = true; # Sleeps idle USB, Audio, and PCI devices
+
+  boot.kernelParams = [
+    # "pcie_aspm=force" # Force deep sleep for SSD & Motherboard (this may cause instability, include it without it first and test)
+  ];
+
+  # ---------------------------------------------------------
+  # 🗑️ AUTO TRASH CLEANUP
+  # ---------------------------------------------------------
+  # 2. Define the cleanup service
+  systemd.services.cleanup_trash = {
+    description = "Clean up trash older than 30 days";
+    serviceConfig = {
+      Type = "oneshot";
+      User = vars.user;
+      Environment = "HOME=/home/${vars.user}";
+      ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
+    };
+  };
+
+  # 3. Schedule it to run daily
+  systemd.timers.cleanup_trash = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily"; # Runs once every 24h
+      Persistent = true; # Run immediately if the computer was off during the scheduled time
+    };
+  };
+
+  environment.systemPackages = with pkgs; [
+    autotrash # Automatic trash cleanup
+    # docker # Required when virtualisation.docker.enable is true
+    fd # User-friendly replacement for 'find'
+    gnupg # Required for gpg key for settings git commits
+    pinentry-qt # Required for gpg key for settings git commits
+    pinentry-curses # Required for gpg key for settings git commits (fallback)
+    logiops # Logitech devices manager (currently used for my MX Master 3S)
+    pay-respects # Used in shell aliases dotfiles
+    pokemon-colorscripts # Used in shell aliases dotfiles
+    stow # Used to manage my dotfiles repo
+    tree # Display directory structure as a tree
+    unzip # Extraction utility for .zip files. It is used by programs to compress/decompress data.
+    wget # Network downloader utility
+    zip # Compression utility for .zip files. It is used by programs to compress/decompress data.
+    zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
+  ];
+}
+
