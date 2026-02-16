@@ -78,6 +78,7 @@
   # ---------------------------------------------------------
   # 👤 HOST-SPECIFIC GIT
   # ---------------------------------------------------------
+  programs.git.enable = true; # Needed to make signing work since home-manager git module can't to it
   programs.git.config = {
     user.signingkey = "D93A24D8E063EECF";
     commit.gpgsign = true;
