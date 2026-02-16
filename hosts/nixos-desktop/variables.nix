@@ -32,10 +32,10 @@
   # Hyprland Options
   # These 2 should not be true at the same time
   hyprlandCaelestia = false; # Enable Caelestia for Hyprland
-  hyprlandNoctalia = true; # Enable Noctalia for Hyprland
+  hyprlandNoctalia = false; # Enable Noctalia for Hyprland
 
   # Niri Options
-  niriNoctalia = true; # Enable Noctalia for Niri (No Caelestia support on Niri)
+  niriNoctalia = false; # Enable Noctalia for Niri (No Caelestia support on Niri)
 
   # 📦 PACKAGES & TERMINAL
   flatpak = true;
@@ -48,11 +48,11 @@
   fileManager = "yazi";
 
   # 🎨 THEMING
-  base16Theme = "nord";
+  base16Theme = "catppuccin-mocha";
   polarity = "dark";
-  catppuccin = false;
+  catppuccin = true;
   catppuccinFlavor = "mocha";
-  catppuccinAccent = "mauve";
+  catppuccinAccent = "teal";
 
   # ⚙️ SYSTEM SETTINGS
   timeZone = "Europe/Zurich";
@@ -88,13 +88,13 @@
 
   wallpapers = [
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/a_white_car_parked_on_a_brick_road.png";
-      wallpaperSHA256 = "1kpagf05x4wfwi2hc5n1jdhkya5d9w60cca8x6nsrzl5sy1bslpw";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/Anime-Girl2.png";
+      wallpaperSHA256 = "05ad0c4lm47rh67hsymz0si7x62b7sanz91dsf2vaz68973fq6k6";
     }
 
     {
-      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/dotfiles/main/wallpaper-repo/Pictures/wallpapers/various/various-websites/wallhaven/wallhaven-anime-girl-drink-4k-grey.png";
-      wallpaperSHA256 = "0q5j531m3a1x5x99d0xybcb9rgc7w1i3v2vgf81zpwcwqj7abnzr";
+      wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/zhichaoh-catppuccin-wallpapers-main/os/nix-black-4k.png";
+      wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
     }
   ];
 
