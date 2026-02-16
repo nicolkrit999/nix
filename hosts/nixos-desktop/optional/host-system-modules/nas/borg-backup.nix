@@ -118,7 +118,7 @@ in
           "/home/*/progettoFDI"
           "/home/*/tools"
           "/home/*/obese_dinosaurs"
-          "/home/*/wallpaper-repo"
+          "/home/*/wallpapers"
 
           # -------------------------------------------------------------------
           # 8. OTHER

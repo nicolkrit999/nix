@@ -1,9 +1,8 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
+{ config
+, pkgs
+, lib
+, vars
+, ...
 }:
 {
 
@@ -84,110 +83,120 @@
     };
   */
 
-  # ---------------------------------------------------------
-  # ⚙️ GRAPHICS & FONTS
-  # ---------------------------------------------------------
-  hardware.graphics.enable = true;
-
-  # ---------------------------------------------------------
-  # 👤 USER CONFIGURATION
-  # ---------------------------------------------------------
-  #users.mutableUsers = false; # Owerwrite manual password changes
-
-  users.users.${vars.user} = {
-    isNormalUser = true;
-    description = "${vars.user}";
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-      "input"
-      "docker"
-      "podman"
-      "video"
-      "audio"
-    ];
-    # Required for rootless Podman/Distrobox
-    subUidRanges = [
-      {
-        startUid = 100000;
-        count = 65536;
-      }
-    ];
-    subGidRanges = [
-      {
-        startGid = 100000;
-        count = 65536;
-      }
-    ];
-
-    # FIXME: sops not added yet
-    #hashedPasswordFile = config.sops.secrets.krit-local-password.path;
+  # Gnupg agent with pinentry-qt for graphical passphrase entry (required for git commits signing with gpg key)
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+    pinentryPackage = pkgs.pinentry-qt;
   };
 
-  # ---------------------------------------------------------
-  # 🐳 VIRTUALIZATION & DOCKER
-  # Needed because otherwise the group "docker" is not created
-  # ---------------------------------------------------------
-  virtualisation.docker.enable = false;
+    # ---------------------------------------------------------
+    # ⚙️ GRAPHICS & FONTS
+    # ---------------------------------------------------------
+    hardware.graphics.enable = true;
 
-  # Limited mtu to make internet faster when enabled
-  virtualisation.docker.daemon.settings = {
-    "mtu" = 1450;
-  };
+    # ---------------------------------------------------------
+    # 👤 USER CONFIGURATION
+    # ---------------------------------------------------------
+    #users.mutableUsers = false; # Owerwrite manual password changes
 
-  virtualisation.podman = {
-    enable = false;
-    dockerCompat = false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
-  };
+    users.users.${vars.user} = {
+      isNormalUser = true;
+      description = "${vars.user}";
+      extraGroups = [
+        "networkmanager"
+        "wheel"
+        "input"
+        "docker"
+        "podman"
+        "video"
+        "audio"
+      ];
+      # Required for rootless Podman/Distrobox
+      subUidRanges = [
+        {
+          startUid = 100000;
+          count = 65536;
+        }
+      ];
+      subGidRanges = [
+        {
+          startGid = 100000;
+          count = 65536;
+        }
+      ];
 
-  # ---------------------------------------------------------
-  # ⚡ POWER MANAGEMENT twaks
-  # ---------------------------------------------------------
-  services.speechd.enable = lib.mkForce false; # Disable speech-dispatcher as it is not needed and wastes resources
-  systemd.services.ModemManager.enable = false; # Disable unused 4G modem scanning
-
-  networking.networkmanager.wifi.powersave = true; # Micro-sleeps radio between packets
-  powerManagement.powertop.enable = true; # Sleeps idle USB, Audio, and PCI devices
-
-  boot.kernelParams = [
-    # "pcie_aspm=force" # Force deep sleep for SSD & Motherboard (this may cause instability, include it without it first and test)
-  ];
-
-  # ---------------------------------------------------------
-  # 🗑️ AUTO TRASH CLEANUP
-  # ---------------------------------------------------------
-  # 2. Define the cleanup service
-  systemd.services.cleanup_trash = {
-    description = "Clean up trash older than 30 days";
-    serviceConfig = {
-      Type = "oneshot";
-      User = vars.user;
-      Environment = "HOME=/home/${vars.user}";
-      ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
+      # FIXME: sops not added yet
+      #hashedPasswordFile = config.sops.secrets.krit-local-password.path;
     };
-  };
 
-  # 3. Schedule it to run daily
-  systemd.timers.cleanup_trash = {
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnCalendar = "daily"; # Runs once every 24h
-      Persistent = true; # Run immediately if the computer was off during the scheduled time
+    # ---------------------------------------------------------
+    # 🐳 VIRTUALIZATION & DOCKER
+    # Needed because otherwise the group "docker" is not created
+    # ---------------------------------------------------------
+    virtualisation.docker.enable = false;
+
+    # Limited mtu to make internet faster when enabled
+    virtualisation.docker.daemon.settings = {
+      "mtu" = 1450;
     };
-  };
 
-  environment.systemPackages = with pkgs; [
-    autotrash # Automatic trash cleanup
-    # docker # Required when virtualisation.docker.enable is true
-    fd # User-friendly replacement for 'find'
-    logiops # Logitech devices manager (currently used for my MX Master 3S)
-    pay-respects # Used in shell aliases dotfiles
-    pokemon-colorscripts # Used in shell aliases dotfiles
-    stow # Used to manage my dotfiles repo
-    tree # Display directory structure as a tree
-    unzip # Extraction utility for .zip files. It is used by programs to compress/decompress data.
-    wget # Network downloader utility
-    zip # Compression utility for .zip files. It is used by programs to compress/decompress data.
-    zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
-  ];
-}
+    virtualisation.podman = {
+      enable = false;
+      dockerCompat = false; # Allows Podman to answer to 'docker' commands (false as it clash with docker)
+    };
+
+    # ---------------------------------------------------------
+    # ⚡ POWER MANAGEMENT twaks
+    # ---------------------------------------------------------
+    services.speechd.enable = lib.mkForce false; # Disable speech-dispatcher as it is not needed and wastes resources
+    systemd.services.ModemManager.enable = false; # Disable unused 4G modem scanning
+
+    networking.networkmanager.wifi.powersave = true; # Micro-sleeps radio between packets
+    powerManagement.powertop.enable = true; # Sleeps idle USB, Audio, and PCI devices
+
+    boot.kernelParams = [
+      # "pcie_aspm=force" # Force deep sleep for SSD & Motherboard (this may cause instability, include it without it first and test)
+    ];
+
+    # ---------------------------------------------------------
+    # 🗑️ AUTO TRASH CLEANUP
+    # ---------------------------------------------------------
+    # 2. Define the cleanup service
+    systemd.services.cleanup_trash = {
+      description = "Clean up trash older than 30 days";
+      serviceConfig = {
+        Type = "oneshot";
+        User = vars.user;
+        Environment = "HOME=/home/${vars.user}";
+        ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
+      };
+    };
+
+    # 3. Schedule it to run daily
+    systemd.timers.cleanup_trash = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnCalendar = "daily"; # Runs once every 24h
+        Persistent = true; # Run immediately if the computer was off during the scheduled time
+      };
+    };
+
+    environment.systemPackages = with pkgs; [
+      autotrash # Automatic trash cleanup
+      # docker # Required when virtualisation.docker.enable is true
+      fd # User-friendly replacement for 'find'
+      gnupg # Required for gpg key for settings git commits
+      pinentry-qt # Required for gpg key for settings git commits
+      pinentry-curses # Required for gpg key for settings git commits (fallback)
+      logiops # Logitech devices manager (currently used for my MX Master 3S)
+      pay-respects # Used in shell aliases dotfiles
+      pokemon-colorscripts # Used in shell aliases dotfiles
+      stow # Used to manage my dotfiles repo
+      tree # Display directory structure as a tree
+      unzip # Extraction utility for .zip files. It is used by programs to compress/decompress data.
+      wget # Network downloader utility
+      zip # Compression utility for .zip files. It is used by programs to compress/decompress data.
+      zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
+    ];
+  }

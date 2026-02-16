@@ -1,9 +1,8 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
+{ config
+, pkgs
+, lib
+, vars
+, ...
 }:
 {
   imports = [
@@ -64,19 +63,38 @@
         sopsFile = commonSecrets;
         restartUnits = [ "NetworkManager.service" ];
       };
+      commit_signing_key = {
+        sopsFile = commonSecrets;
+        owner = vars.user;
+      };
     };
+
+  # Comm-7. PGP signing key (git)
 
   # Tell Nix to read the Github token
   nix.extraOptions = ''
     !include ${config.sops.secrets.github_fg_pat_token_nix.path}
   '';
   # ---------------------------------------------------------
-  # 🔧 CONFIGURE SSH TO USE THE KEY
+  # 👤 HOST-SPECIFIC GIT
   # ---------------------------------------------------------
+  programs.git.config = {
+    user.signingkey = "D93A24D8E063EECF";
+    commit.gpgsign = true;
+  };
+
+  # Gnupg agent with pinentry-qt for graphical passphrase entry (required for git commits signing with gpg key)
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+    pinentryPackage = pkgs.pinentry-qt;
+  };
+
+  # SSH configuration to use the key for github access (Comm-1)
   programs.ssh = {
     extraConfig = ''
       Host github.com
-        IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
+      IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
     '';
   };
 
@@ -87,10 +105,10 @@
   hardware.graphics.enable = true;
 
   /*
-    boot.kernelParams = [
+        boot.kernelParams = [
       "video=HDMI-A-2:1920x1080@60"
-    ];
-  */
+        ];
+      */
 
   services.logind = {
     settings = {
@@ -193,6 +211,9 @@
     docker # Required when virtualisation.docker.enable is true
     distrobox
     fd # User-friendly replacement for 'find'
+    gnupg # Required for gpg key for settings git commits
+    pinentry-qt # Required for gpg key for settings git commits
+    pinentry-curses # Required for gpg key for settings git commits (fallback)
     libvdpau-va-gl # VDPAU backend for VAAPI (needed for video acceleration with AMD GPUs)
     logiops # Logitech devices manager (currently used for my MX Master 3S)
     pay-respects # Used in shell aliases dotfiles
