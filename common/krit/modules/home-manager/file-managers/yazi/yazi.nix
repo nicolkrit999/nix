@@ -1,33 +1,37 @@
 {
   pkgs,
   lib,
+  config,
   vars,
   ...
 }:
 {
   imports = [ ./init-lua.nix ];
 
-  home.packages = lib.mkIf config.programs.yazi.enable [
-    fzf
-    zoxide
-    ripgrep
-    fd
-    ffmpeg
-    mediainfo
-    poppler
-    jq
-    zip
-    unzip
-    p7zip
-    gnutar
-    ueberzugpp
-    chafa
-    xdg-utils
-    exiftool
-    ouch
-    trash-cli
-    rich-cli
-  ];
+  home.packages = lib.mkIf config.programs.yazi.enable (
+    with pkgs;
+    [
+      fzf
+      zoxide
+      ripgrep
+      fd
+      ffmpeg
+      mediainfo
+      poppler
+      jq
+      zip
+      unzip
+      p7zip
+      gnutar
+      ueberzugpp
+      chafa
+      xdg-utils
+      exiftool
+      ouch
+      trash-cli
+      rich-cli
+    ]
+  );
 
   programs.yazi = {
     enable = true;

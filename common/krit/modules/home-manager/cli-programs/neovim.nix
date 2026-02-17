@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  config,
   vars,
   ...
 }:
@@ -27,9 +28,12 @@
     ];
   };
 
-  home.packages = lib.mkIf config.programs.neovim.enable [
-    pkgs.nodejs # Ensure it's installed to allow copilot.lua to work
-  ];
+  home.packages = lib.mkIf config.programs.neovim.enable (
+    with pkgs;
+    [
+      nodejs # Ensure it's installed to allow copilot.lua to work
+    ]
+  );
 
   programs.neovim = {
 
