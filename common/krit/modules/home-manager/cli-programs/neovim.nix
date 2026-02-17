@@ -27,6 +27,10 @@
     ];
   };
 
+  home.packages = lib.mkIf config.programs.neovim.enable [
+    pkgs.nodejs # Ensure it's installed to allow copilot.lua to work
+  ];
+
   programs.neovim = {
 
     enable = true;
@@ -37,7 +41,6 @@
 
       ripgrep
       fd
-      nodejs # Needed for copilot.lua
       xclip
 
       # --- Language Servers (LSP) ---

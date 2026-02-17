@@ -7,7 +7,9 @@
 {
   imports = [ inputs.walker.homeManagerModules.default ];
 
-  home.packages = [ pkgs.xdg-utils ];
+  home.packages = lib.mkIf config.programs.walker.enable [
+    pkgs.xdg-utils
+  ];
 
   programs.walker = {
     enable = true;

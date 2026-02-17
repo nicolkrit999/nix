@@ -5,6 +5,12 @@
   ...
 }:
 {
+
+  home.packages = lib.mkIf config.programs.ranger.enable [
+    ffmpegthumbnailer
+    fzf
+    ueberzugpp
+  ];
   programs.ranger = {
     enable = false;
     rifle = [
@@ -119,11 +125,4 @@
     ];
     mimeType = [ "inode/directory" ];
   };
-
-  home.packages = with pkgs; [
-    ffmpegthumbnailer
-    fzf
-    ueberzugpp
-  ];
-
 }
