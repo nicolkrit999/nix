@@ -206,6 +206,28 @@ in
 {
   programs.browserpass.enable = false;
 
+  # Desktop entry for the main profile
+  xdg.desktopEntries."librewolf" = {
+    name = "LibreWolf";
+    genericName = "Web Browser";
+    exec = "librewolf %U";
+    icon = "librewolf";
+    terminal = false;
+    categories = [
+      "Network"
+      "WebBrowser"
+    ];
+    mimeType = [
+      "text/html"
+      "application/xhtml+xml"
+      "application/vnd.mozilla.xul+xml"
+      "x-scheme-handler/http"
+      "x-scheme-handler/https"
+    ];
+    comment = "Web Browser";
+  };
+
+  # Desktop entry for the privacy profile
   xdg.desktopEntries."librewolf-privacy" = {
     name = "LibreWolf Privacy";
     genericName = "Web Browser";

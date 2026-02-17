@@ -28,7 +28,6 @@
       # -----------------------------------------------------------------------------------
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------------------
-      brave # Needed for pwa to work
 
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES
@@ -118,6 +117,7 @@
   home.activation = {
     createHostDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       mkdir -p $HOME/Pictures/wallpapers
+      mkdir -p $HOME/momentary
     '';
   };
 }

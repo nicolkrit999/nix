@@ -57,9 +57,7 @@
       # -----------------------------------------------------------------------------------
       # 🖥️ DESKTOP APPLICATIONS
       # -----------------------------------------------------------------------------------
-      brave # Needed for pwa to work
       winboat # Enable to run windows programs
-      librewolf
 
       # -----------------------------------------------------------------------------------
       # 🖥️ CLI UTILITIES
@@ -149,18 +147,9 @@
   home.activation = {
     createHostDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       mkdir -p $HOME/Pictures/wallpapers
+      mkdir -p $HOME/momentary
     '';
 
   };
 
-  /*
-    home.file.".librewolf-policyroot/distribution/policies.json".text = builtins.toJSON {
-      policies = {
-        SupportMenu = {
-          Title = "HM POLICY ACTIVE";
-          URL = "https://example.com";
-        };
-      };
-    };
-  */
 }
