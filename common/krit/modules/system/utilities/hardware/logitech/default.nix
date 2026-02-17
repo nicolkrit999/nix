@@ -1,0 +1,5 @@
+{
+  imports = [
+    ./logitech-main.nix
+  ];
+}

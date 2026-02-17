@@ -19,7 +19,7 @@
 
   # 🖥️ DESKTOP ENVIRONMENT & WINDOW MANAGER
   hyprland = true;
-  niri = true;
+  niri = false; # Does not load correctly on mac using utm
 
   gnome = true;
   kde = true;

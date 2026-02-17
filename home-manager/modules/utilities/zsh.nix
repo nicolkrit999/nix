@@ -70,7 +70,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         dedup = "nix store optimise";
         cleanup = "nh clean all";
         cleanup-ask = "nh clean all --ask";
-        gc = "nix-collect-garbage -d";
+        cg = "nix-collect-garbage -d";
 
         # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
         # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${vars.hostname}"; # Rebuild home-manager config
@@ -101,7 +101,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
-        sops-common = "cd ${flakeDir} && sops common/${vars.user}-common-secrets-sops.yaml"; # Edit sops secrets file
+        sops-common = "cd ${flakeDir}/common/${vars.user}/sops && sops ${vars.user}-common-secrets-sops.yaml"; # Edit sops secrets file
         sops-host = "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/${vars.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
 
         # Various
