@@ -70,7 +70,7 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         dedup = "nix store optimise";
         cleanup = "nh clean all";
         cleanup-ask = "nh clean all --ask";
-        gc = "nix-collect-garbage -d";
+        cg = "nix-collect-garbage -d";
 
         # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
         # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${vars.hostname}"; # Rebuild home-manager config

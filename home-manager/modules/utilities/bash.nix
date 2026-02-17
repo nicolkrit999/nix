@@ -66,7 +66,7 @@ lib.mkIf ((vars.shell or "zsh") == "bash") {
         dedup = "nix store optimise";
         cleanup = "nh clean all";
         cleanup-ask = "nh clean all --ask";
-        gc = "nix-collect-garbage -d";
+        cg = "nix-collect-garbage -d";
 
         # Pkgs editing
         pkgs-home = "$EDITOR ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list

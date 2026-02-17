@@ -121,6 +121,7 @@ in
           "home/*/.clouflared"
           "home/*/.steam"
           "home/*/.themes"
+          "home/*/momentary"
         ];
 
         # 3. Storage & Encryption
