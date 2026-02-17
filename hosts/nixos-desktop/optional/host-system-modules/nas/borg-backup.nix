@@ -111,14 +111,7 @@ in
           # 7. YOUR PERSONAL SYNCED FOLDERS
           # -------------------------------------------------------------------
           # Assuming these are backed up via Git or Syncthing already
-          # The nixos-desktop repo is backed up. This allow the recovery of the repo backup using the borg credentials
-          # This allow a complete recovery of all the secrets even if both the original repo and the host pc are down/not accessible
-          "/home/*/developing-projects"
-          "/home/*/dotfiles"
-          "/home/*/progettoFDI"
-          "/home/*/tools"
-          "/home/*/obese_dinosaurs"
-          "/home/*/wallpapers"
+          "/home/*/github-repos" # General repositories folder
 
           # -------------------------------------------------------------------
           # 8. OTHER
