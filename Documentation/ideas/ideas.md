@@ -16,9 +16,6 @@
 - wait for the de to be more stable and declarative to setup custom system settings
 - in the future it will probably be needed to tell stylix to not customize cosmic. For now this option does not exist
 
-### Hyprland
-
-- N/A
 
 ## guest user
 

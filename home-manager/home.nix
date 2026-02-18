@@ -73,7 +73,6 @@
       #!/bin/sh
 
       # 1. CLEAN SLATE: Kill interfering services
-      # We REMOVED 'pkill xdg-desktop-portal' to fix the KDE slow load issue.
       pkill -f kwallet || true
       sleep 0.5
 
@@ -123,7 +122,6 @@
       mkdir -p "${vars.screenshots}"
     '';
 
-    # FORCE KDE CACHE UPDATE: Ensures KDE sees the new Vivaldi desktop file immediately
     updateKDECache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       if command -v kbuildsycoca6 >/dev/null; then
         kbuildsycoca6 --noincremental || true

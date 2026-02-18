@@ -30,9 +30,8 @@ Categories can be navigated with the links below:
 │       │   ├── waybar
 │       │   │   ├── default.nix
 │       │   │   └── style.css
-│       │   └── wofi
-│       │       ├── default.nix
-│       │       └── style.css
+│       │   └── walker.nix
+│       │ 
 │       ├── de-wm
 │       │   ├── caelestia
 │       │   │   ├── caelestia-main.nix

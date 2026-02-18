@@ -4,116 +4,114 @@
     - [2. Dynamic Variable Merging vs. Module Loading](#2-dynamic-variable-merging-vs-module-loading)
   - [The Code](#the-code)
 - [~nixOS/home-manager/home.nix](#nixoshome-managerhomenix)
-  - [The Code](#the-code-1)
   - [Key Concepts](#key-concepts-1)
     - [1. User Identity \& State Version](#1-user-identity--state-version)
     - [2. Modular Architecture](#2-modular-architecture)
     - [3. XDG Integration \& KDE Fixes](#3-xdg-integration--kde-fixes)
     - [4. Imperative Actions (Activation Scripts)](#4-imperative-actions-activation-scripts)
-  - [The Code](#the-code-2)
+  - [The Code](#the-code-1)
 - [~nixOS/home-manager/home-packages.nix](#nixoshome-managerhome-packagesnix)
   - [Key Concepts](#key-concepts-2)
     - [1. Dynamic Selection](#1-dynamic-selection)
     - [2. Global vs. Host-Specific](#2-global-vs-host-specific)
     - [3. Critical Dependencies](#3-critical-dependencies)
-  - [The Code](#the-code-3)
+  - [The Code](#the-code-2)
 - [~nixOS/home-manager/modules/gnome/gnome-main.nix](#nixoshome-managermodulesgnomegnome-mainnix)
   - [Key Concepts](#key-concepts-3)
     - [1. Wallpaper Handling (Single Monitor Focus)](#1-wallpaper-handling-single-monitor-focus)
     - [2. Adaptive Theming (Polarity)](#2-adaptive-theming-polarity)
     - [3. Dconf Overrides](#3-dconf-overrides)
-  - [The Code](#the-code-4)
+  - [The Code](#the-code-3)
 - [~nixOS/home-manager/modules/hyprland/hyprland-main.nix](#nixoshome-managermoduleshyprlandhyprland-mainnix)
   - [Key Concepts](#key-concepts-4)
     - [1. Dynamic Monitor Configuration](#1-dynamic-monitor-configuration)
     - [2. Theming Bridge (Catppuccin vs. Stylix)](#2-theming-bridge-catppuccin-vs-stylix)
     - [3. Environment \& Compatibility](#3-environment--compatibility)
     - [4. Smart Rules](#4-smart-rules)
-  - [The Code](#the-code-5)
+  - [The Code](#the-code-4)
 - [~nixOS/home-manager/modules/kde/kde-main.nix](#nixoshome-managermoduleskdekde-mainnix)
   - [Key Concepts](#key-concepts-5)
     - [1. Multi-Monitor Wallpapers](#1-multi-monitor-wallpapers)
     - [2. Dynamic Theme Construction](#2-dynamic-theme-construction)
     - [3. Config Overrides](#3-config-overrides)
-  - [The Code](#the-code-6)
+  - [The Code](#the-code-5)
 - [~nixOS/home-manager/modules/waybar/default.nix](#nixoshome-managermoduleswaybardefaultnix)
   - [Key Concepts](#key-concepts-6)
     - [1. Hybrid Theming (CSS + Nix Variables)](#1-hybrid-theming-css--nix-variables)
     - [2. Host-Specific Customization](#2-host-specific-customization)
     - [3. Dynamic Weather Script](#3-dynamic-weather-script)
     - [4. Conditionals](#4-conditionals)
-  - [The Code](#the-code-7)
-- [~nixOS/home-manager/modules/wofi/default.nix](#nixoshome-managermoduleswofidefaultnix)
+  - [The Code](#the-code-6)
+- [~nixOS/home-manager/modules/walker.nix/](#nixoshome-managermoduleswalkernix)
   - [Key Concepts](#key-concepts-7)
-    - [1. Manual Palette Definition](#1-manual-palette-definition)
-    - [2. Hybrid Theming Strategy (Semantic Mapping)](#2-hybrid-theming-strategy-semantic-mapping)
-    - [3. CSS Injection](#3-css-injection)
-  - [The Code](#the-code-8)
+    - [1. Stylix theming](#1-stylix-theming)
+    - [2. Create some shortcuts](#2-create-some-shortcuts)
+  - [The Code](#the-code-7)
 - [~nixOS/home-manager/modules/qt.nix](#nixoshome-managermodulesqtnix)
   - [Key Concepts](#key-concepts-8)
     - [1. The "Magic" Fix: `QT_QPA_PLATFORMTHEME=kde`](#1-the-magic-fix-qt_qpa_platformthemekde)
     - [2. "Faking" the KDE Environment (`kdeglobals`)](#2-faking-the-kde-environment-kdeglobals)
     - [3. Dual Configuration (`qt5ct` as Backup)](#3-dual-configuration-qt5ct-as-backup)
-  - [The Code](#the-code-9)
+  - [The Code](#the-code-8)
 - [~nixOS/home-manager/modules/stylix.nix](#nixoshome-managermodulesstylixnix)
   - [Key Concepts](#key-concepts-9)
     - [1. The "Traffic Cop" Strategy (Catppuccin vs. Base16)](#1-the-traffic-cop-strategy-catppuccin-vs-base16)
     - [2. The Qt/KDE Cohesion Strategy (Manual Hand-off)](#2-the-qtkde-cohesion-strategy-manual-hand-off)
       - [How the Cohesion Works:](#how-the-cohesion-works)
     - [3. Global Assets](#3-global-assets)
-  - [The Code](#the-code-10)
+  - [The Code](#the-code-9)
 - [~nixOS/home-manager/modules/zsh.nix](#nixoshome-managermoduleszshnix)
   - [Key Concepts](#key-concepts-10)
     - [1. Smart Rebuild Aliases (Impure vs. Pure)](#1-smart-rebuild-aliases-impure-vs-pure)
     - [2. Hybrid Configuration (`.zshrc_custom`)](#2-hybrid-configuration-zshrc_custom)
     - [3. The Startup Sequence](#3-the-startup-sequence)
-  - [The Code](#the-code-11)
+  - [The Code](#the-code-10)
 - [~nixOS/nixos/modules/common-configuration.nix](#nixosnixosmodulescommon-configurationnix)
   - [Key Concepts](#key-concepts-11)
     - [1. The "Survival Kit" (Universal Packages)](#1-the-survival-kit-universal-packages)
     - [2. Architecture Intelligence (x86 vs. ARM)](#2-architecture-intelligence-x86-vs-arm)
     - [3. Performance \& Responsiveness](#3-performance--responsiveness)
     - [4. Security Baseline](#4-security-baseline)
-  - [The Code](#the-code-12)
+  - [The Code](#the-code-11)
 - [~nixOS/nixos/modules/boot.nix](#nixosnixosmodulesbootnix)
   - [Key Concepts](#key-concepts-12)
     - [1. GRUB vs. systemd-boot](#1-grub-vs-systemd-boot)
     - [2. Dual Boot Support (`os-prober`)](#2-dual-boot-support-os-prober)
     - [3. UEFI Accessibility](#3-uefi-accessibility)
-  - [The Code](#the-code-13)
+  - [The Code](#the-code-12)
 - [~nixOS/nixos/modules/env.nix](#nixosnixosmodulesenvnix)
   - [Key Concepts](#key-concepts-13)
     - [1. Smart Editor Configuration](#1-smart-editor-configuration)
     - [2. Dynamic Defaults](#2-dynamic-defaults)
     - [3. Path Injection](#3-path-injection)
-  - [The Code](#the-code-14)
+  - [The Code](#the-code-13)
 - [~nixOS/nixos/modules/guest.nix](#nixosnixosmodulesguestnix)
   - [Key Concepts](#key-concepts-14)
     - [1. Ephemeral Home (`tmpfs`)](#1-ephemeral-home-tmpfs)
     - [2. Forced Desktop Environment (XFCE)](#2-forced-desktop-environment-xfce)
     - [3. Security Hardening](#3-security-hardening)
     - [4. User Warning](#4-user-warning)
-  - [The Code](#the-code-15)
+  - [The Code](#the-code-14)
 - [~nixOS/home-manager/modules/mime.nix](#nixoshome-managermodulesmimenix)
   - [Key Concepts](#key-concepts-15)
     - [1. Dynamic Associations](#1-dynamic-associations)
     - [2. Desktop File Translation (`mkDesktop`)](#2-desktop-file-translation-mkdesktop)
-  - [The Code](#the-code-16)
+  - [The Code](#the-code-15)
 - [~nixOS/nixos/modules/nix.nix](#nixosnixosmodulesnixnix)
   - [Key Concepts](#key-concepts-16)
     - [1. Enabling Flakes](#1-enabling-flakes)
     - [2. Binary Caching (Speed)](#2-binary-caching-speed)
     - [3. Automatic Garbage Collection](#3-automatic-garbage-collection)
-  - [The Code](#the-code-17)
+  - [The Code](#the-code-16)
 - [~nixOS/nixos/modules/sddm.nix](#nixosnixosmodulessddmnix)
   - [Key Concepts](#key-concepts-17)
     - [1. The "Astronaut" Theme](#1-the-astronaut-theme)
-  - [The Code](#the-code-18)
+  - [The Code](#the-code-17)
 - [~nixOS/nixos/modules/user.nix](#nixosnixosmodulesusernix)
   - [Key Concepts](#key-concepts-18)
     - [1. The "Safety Net" (Why configure groups twice?)](#1-the-safety-net-why-configure-groups-twice)
     - [2. Global Shell Enforcement](#2-global-shell-enforcement)
-  - [The Code](#the-code-19)
+  - [The Code](#the-code-18)
 
 # ~nixOS/flake.nix
 
@@ -176,7 +174,7 @@ The build process separates "Data" from "Configuration":
 
     # Official catppuccin-nix flake
     catppuccin = {
-      url = "github:catppuccin/nix";
+      url = "github:catppuccin/nix/release-25.11"; # Changed from "github:catppuccin/nix" to pin to it and avoid the "services.displayManager.generic" does not exist evalution warning after a "nix flake update" done on february, 13, 2026
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -214,6 +212,12 @@ The build process separates "Data" from "Configuration":
     niri = {
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    elephant.url = "github:abenz1267/elephant";
+    walker = {
+      url = "github:abenz1267/walker";
+      inputs.elephant.follows = "elephant";
     };
   };
 
@@ -253,7 +257,10 @@ The build process separates "Data" from "Configuration":
                 import modulesPath {
                   vars = baseVars;
                   lib = nixpkgs.lib;
-                  pkgs = nixpkgs.pkgs;
+                  pkgs = import nixpkgs {
+                    system = baseVars.system;
+                    config.allowUnfree = true;
+                  };
                 }
               )
             else
@@ -287,25 +294,6 @@ The build process separates "Data" from "Configuration":
             ./hosts/${hostname}/configuration.nix
             ./hosts/${hostname}/hardware-configuration.nix
 
-            # Overlay needed to avoid problems for aarch64
-            (
-              { pkgs, lib, ... }:
-              {
-                nixpkgs.overlays = [
-                  (final: prev: {
-                    gpu-screen-recorder =
-                      if prev.stdenv.hostPlatform.system == "aarch64-linux" then
-                        prev.writeShellScriptBin "gpu-screen-recorder" ''
-                          echo "GPU Screen Recorder is not supported on ARM"
-                          exit 0
-                        ''
-                      else
-                        prev.gpu-screen-recorder;
-                  })
-                ];
-              }
-            )
-
             # Additional nixos modules from flakes
             inputs.catppuccin.nixosModules.catppuccin
             inputs.nix-flatpak.nixosModules.nix-flatpak
@@ -324,10 +312,11 @@ The build process separates "Data" from "Configuration":
               # host-specific variables
               nixpkgs.hostPlatform = hostVars.system;
             }
+
             # Home-Manager
             inputs.home-manager.nixosModules.home-manager
             {
-              home-manager.useGlobalPkgs = true;
+              home-manager.useGlobalPkgs = false; # This solves the evaluation warning related to nixpkgs.config and/or nixpkgs.overlay in home-manager modules
               home-manager.useUserPackages = true;
 
               # Home-manager flakes input integration
@@ -336,14 +325,14 @@ The build process separates "Data" from "Configuration":
                 inputs.plasma-manager.homeModules.plasma-manager
               ];
 
-              # Home-manager unstable import (needed)
               home-manager.extraSpecialArgs = {
                 inherit inputs pkgs-unstable hostname;
                 vars = hostVars;
               };
 
-              # Home-manager host-specific user configuration
               home-manager.users.${hostVars.user} = {
+                nixpkgs.config.allowUnfree = true;
+
                 imports = [
                   ./home-manager/home.nix
                 ]
@@ -429,7 +418,9 @@ The build process separates "Data" from "Configuration":
       nixosConfigurations = nixpkgs.lib.genAttrs hostNames makeSystem;
       homeConfigurations = nixpkgs.lib.genAttrs hostNames makeHome;
 
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
+      formatter = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (
+        system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style
+      );
     };
 }
 ```
@@ -439,101 +430,6 @@ The build process separates "Data" from "Configuration":
 The `home.nix` file is the **root configuration** for Home Manager. While `configuration.nix` manages the _system_ (drivers, bootloader, root users), `home.nix` manages the _user_ (dotfiles, themes, user-specific packages).
 
 It serves as the foundation upon which your personal environment is built.
-
-## The Code
-
-```nix
-{
-  inputs,
-  pkgs,
-  lib,
-  vars,
-  ...
-}:
-{
-
-  # -----------------------------------------------------------------------
-  # 🔗 IMPORTS
-  # -----------------------------------------------------------------------
-  # Pulls in all individual program modules (Hyprland, Zsh, Neovim, etc.)
-  imports = [
-    ./modules/core.nix
-    ./home-packages.nix
-  ];
-
-  # -----------------------------------------------------------------------
-  # 👤 USER IDENTITY
-  # -----------------------------------------------------------------------
-  home = {
-    username = vars.user;
-    homeDirectory = "/home/${vars.user}";
-    stateVersion = vars.homeStateVersion or "25.11"; # Controls backwards compatibility logic
-  };
-
-  # -----------------------------------------------------------------------
-  # 🏠 HOME MANAGER SELF-MANAGEMENT
-  # -----------------------------------------------------------------------
-  programs.home-manager.enable = true;
-
-  xdg = {
-    enable = true;
-
-    # Ensures mime.nix settings are actually applied
-    mimeApps.enable = true;
-
-    # Create default user directories
-    # Specific directories can be disabled in the host-specific home.nix file
-    userDirs = {
-      enable = true;
-      createDirectories = true;
-    };
-  };
-
-  # Create applications.menu for kde
-  # This allow kde applications such as dolphin to pick up the default applications to use for mime types
-  xdg.configFile."menus/applications.menu".text = ''
-    <!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
-    "http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">
-    <Menu>
-      <Name>Applications</Name>
-      <DefaultAppDirs/>
-      <DefaultDirectoryDirs/>
-      <Include>
-        <Category>System</Category>
-        <Category>Utility</Category>
-      </Include>
-    </Menu>
-  '';
-
-  # -----------------------------------------------------------------------
-  # 🛠️ ACTIVATION SCRIPTS
-  # -----------------------------------------------------------------------
-  # DESCRIPTION:
-  # Scripts that run during the 'switch' process to perform tasks that
-  # declarative Nix cannot do alone (like creating deep subdirectories).
-  # -----------------------------------------------------------------------
-
-  home.activation = {
-
-    # ⚠️ Do not add ~/.config/hypr/hyprland.conf otherwise during rebuild the config change and you need to manually reapply home-manager and then logging out/in to see the changes.
-    # The file need to be removed manually if needed before rebuilding
-    removeExistingConfigs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-      rm -f "/home/${vars.user}/.gtkrc-2.0"
-      rm -f "/home/${vars.user}/.config/gtk-3.0/settings.ini"
-      rm -f "/home/${vars.user}/.config/gtk-3.0/gtk.css"
-      rm -f "/home/${vars.user}/.config/gtk-4.0/settings.ini"
-      rm -f "/home/${vars.user}/.config/gtk-4.0/gtk.css"
-      rm -f "/home/${vars.user}/.config/dolphinrc"
-      rm -f "/home/${vars.user}/.local/share/applications/mimeapps.list"
-    '';
-
-    createEssentialDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      # Screenshots directory (references in other files. Make sure to change accordingly)
-      mkdir -p ${vars.screenshots}
-    '';
-  };
-}
-```
 
 ---
 
@@ -573,107 +469,142 @@ Nix is declarative (defining _what_ should exist), but sometimes we need to perf
 ## The Code
 
 ```nix
+## The Code
+
+```nix
 {
-  homeStateVersion,
-  screenshots,
-  user,
   inputs,
   pkgs,
   lib,
+  vars,
+  config,
   ...
 }:
 {
-
-  # -----------------------------------------------------------------------
-  # 🔌 IMPORTS
-  # -----------------------------------------------------------------------
-  # Pulls in the modular parts of the configuration.
   imports = [
-    # Import the home-manager modules defined in core.nix
-    ./modules/core.nix
-
-    # The list of software to install for the user
+    ./modules/default.nix
     ./home-packages.nix
   ];
 
-  # -----------------------------------------------------------------------
-  # 👤 USER IDENTITY
-  # -----------------------------------------------------------------------
-  # Create the username and the home directory using the chosen name
   home = {
-    username = user;
-    homeDirectory = "/home/${user}";
+    username = vars.user;
+    homeDirectory = "/home/${vars.user}";
+    stateVersion = vars.homeStateVersion or "25.11";
 
-    # Controls the state version for Home Manager.
-    # This determines which default settings are applied and ensures backward compatibility.
-    stateVersion = homeStateVersion;
+    # -------------------------------------------------------------------------
+    # CRITICAL: Force .local/bin to be first in PATH
+    # This guarantees our wrappers (Vivaldi fix) override system binaries.
+    # -------------------------------------------------------------------------
+    sessionPath = [ "$HOME/.local/bin" ];
   };
 
-  # -----------------------------------------------------------------------
-  # ⚙️ HOME MANAGER SELF-MANAGEMENT
-  # -----------------------------------------------------------------------
-  # Allows Home Manager to manage its own installation and configuration.
   programs.home-manager.enable = true;
 
   xdg = {
     enable = true;
-
-    # Ensures mime.nix settings are actually applied
     mimeApps.enable = true;
-
-    # Create default user directories
-    # Specific directories can be disabled in the host-specific home.nix file
     userDirs = {
       enable = true;
       createDirectories = true;
     };
-  };
 
-  # Create applications.menu for kde
-  # This allow kde applications such as dolphin to pick up the default applications to use for mime types
-  xdg.configFile."menus/applications.menu".text = ''
-    <!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
-    "http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">
-    <Menu>
-      <Name>Applications</Name>
-      <DefaultAppDirs/>
-      <DefaultDirectoryDirs/>
-      <Include>
-        <Category>System</Category>
-        <Category>Utility</Category>
-      </Include>
-    </Menu>
-  '';
-
-  # -----------------------------------------------------------------------
-  # 🚀 ACTIVATION SCRIPTS
-  # -----------------------------------------------------------------------
-  # These scripts run every time you rebuild (switch) the home configuration.
-  # They handle tasks that pure declarative config cannot do easily.
-  home.activation = {
-
-    # 1. CLEANUP (Run BEFORE linking new files)
-    # Removes conflicting configuration files that might have been created
-    # by the OS or desktop environment, allowing Home Manager to overwrite them cleanly.
-    # If you find yourself with a clobbered error often that file/directory can be added here
-    removeExistingConfigs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-      rm -f "/home/${user}/.gtkrc-2.0"
-      rm -f "/home/${user}/.config/gtk-3.0/settings.ini"
-      rm -f "/home/${user}/.config/gtk-3.0/gtk.css"
-      rm -f "/home/${user}/.config/gtk-4.0/settings.ini"
-      rm -f "/home/${user}/.config/gtk-4.0/gtk.css"
-      rm -f "/home/${user}/.config/dolphinrc"
+    # 1. APPLICATION MENU
+    configFile."menus/applications.menu".text = ''
+      <!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+      "http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">
+      <Menu>
+        <Name>Applications</Name>
+        <DefaultAppDirs/>
+        <DefaultDirectoryDirs/>
+        <Include>
+          <Category>System</Category>
+          <Category>Utility</Category>
+        </Include>
+      </Menu>
     '';
 
-    # 2. SETUP (Run AFTER writing new files)
-    # Ensures specific directories exist.
-    # The ${screenshots} variable is pulled from variables.nix
+    # 2. GLOBAL DBUS MASK (Block KWallet Everywhere)
+    # This guarantees that NO app can ever find KWallet, forcing the fallback to Gnome Keyring.
+    dataFile."dbus-1/services/org.kde.kwalletd5.service".text = ''
+      [D-BUS Service]
+      Name=org.kde.kwalletd5
+      Exec=${pkgs.coreutils}/bin/false
+    '';
+    dataFile."dbus-1/services/org.kde.kwalletd.service".text = ''
+      [D-BUS Service]
+      Name=org.kde.kwalletd
+      Exec=${pkgs.coreutils}/bin/false
+    '';
+  };
+
+  # -----------------------------------------------------------------------
+  # 🔑 THE MASTER KEYRING SCRIPT
+  # -----------------------------------------------------------------------
+  # This runs on login for ALL desktops.
+  home.file.".local/bin/init-gnome-keyring.sh" = {
+    executable = true;
+    text = ''
+      #!/bin/sh
+
+      # 1. CLEAN SLATE: Kill interfering services
+      pkill -f kwallet || true
+      sleep 0.5
+
+      # 2. Connect to the (already unlocked) Gnome Keyring Daemon
+      eval $(${pkgs.gnome-keyring}/bin/gnome-keyring-daemon --start --components=secrets,ssh,pkcs11)
+      export SSH_AUTH_SOCK
+      export GNOME_KEYRING_CONTROL
+      export GNOME_KEYRING_PID
+
+      # 3. Push variables to DBus/Systemd
+      ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
+      ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd SSH_AUTH_SOCK GNOME_KEYRING_CONTROL GNOME_KEYRING_PID
+
+      # 4. HYPRLAND INJECTION
+      # Ensures Hyprland sessions get the variables even if started before the daemon.
+      if [ "$XDG_CURRENT_DESKTOP" = "Hyprland" ]; then
+         if command -v hyprctl >/dev/null; then
+            hyprctl setenv SSH_AUTH_SOCK "$SSH_AUTH_SOCK"
+            hyprctl setenv GNOME_KEYRING_CONTROL "$GNOME_KEYRING_CONTROL"
+            hyprctl setenv GNOME_KEYRING_PID "$GNOME_KEYRING_PID"
+         fi
+      fi
+    '';
+  };
+
+  # Link the script so KDE can find it
+  home.file.".config/plasma-workspace/env/99-init-keyring.sh".source =
+    config.lib.file.mkOutOfStoreSymlink "/home/${vars.user}/.local/bin/init-gnome-keyring.sh";
+
+  # -----------------------------------------------------------------------
+  # 🧹 ACTIVATION: CLEANUP
+  # -----------------------------------------------------------------------
+  home.activation = {
+    removeExistingConfigs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+      rm -f "$HOME/.config/autostart/gnome-keyring-force.desktop"
+      rm -f "$HOME/.gtkrc-2.0"
+      rm -f "$HOME/.config/gtk-3.0/settings.ini"
+      rm -f "$HOME/.config/gtk-3.0/gtk.css"
+      rm -f "$HOME/.config/gtk-4.0/settings.ini"
+      rm -f "$HOME/.config/gtk-4.0/gtk.css"
+      rm -f "$HOME/.config/dolphinrc"
+      rm -f "$HOME/.config/kdeglobals"
+      rm -f "$HOME/.local/share/applications/mimeapps.list"
+    '';
+
     createEssentialDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      mkdir -p ${screenshots}
+      mkdir -p "${vars.screenshots}"
+    '';
+
+    updateKDECache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      if command -v kbuildsycoca6 >/dev/null; then
+        kbuildsycoca6 --noincremental || true
+      fi
     '';
   };
 }
 ```
+
 
 ---
 
@@ -713,21 +644,26 @@ The static list below contains utilities that are **required** for your environm
   pkgs,
   pkgs-unstable,
   vars,
+  lib,
+  config,
   ...
 }:
 let
   # 🔄 TRANSLATION LAYER
-  translatedEditor = if vars.editor == "nvim" then "neovim" else vars.editor;
+  # Ensure these names match the 'programs.<name>' module in Home Manager
+  translatedEditor =
+    let
+      e = vars.editor or "vscode";
+    in
+    if e == "nvim" then "neovim" else e;
 
-  # 🛡️ SAFE FALLBACKS for browser, fileManager, editor
-  # If the user's choice is invalid or missing, these are installed.
+  # 🛡️ SAFE FALLBACKS
   fallbackTerm = pkgs.alacritty;
   fallbackBrowser = pkgs.brave;
   fallbackFileManager = pkgs.kdePackages.dolphin;
   fallbackEditor = pkgs.vscode;
 
-  # 🔍 PACKAGE LOOKUP FUNCTION
-  # Tries to find 'pkgs.userInput'. If not found, returns the fallback.
+  # 🔍 PACKAGE LOOKUP
   getPkg =
     name: fallback:
     if builtins.hasAttr name pkgs then
@@ -737,21 +673,30 @@ let
     else
       fallback;
 
-  myTermPkg = getPkg vars.term fallbackTerm;
-  myBrowserPkg = getPkg vars.browser fallbackBrowser;
-  myFileManagerPkg = getPkg vars.fileManager fallbackFileManager;
-  myEditorPkg = getPkg translatedEditor fallbackEditor;
+  termName = vars.term or "alacritty";
+  myTermPkg = getPkg termName fallbackTerm;
+
+  browserName = vars.browser or "brave";
+  myBrowserPkg = getPkg browserName fallbackBrowser;
+
+  fileManagerName = vars.fileManager or "dolphin";
+  myFileManagerPkg = getPkg fileManagerName fallbackFileManager;
+
+  editorName = translatedEditor;
+  myEditorPkg = getPkg editorName fallbackEditor;
+
+  # If a program is installed with a module it's skipped to avoid build problems
+  isModuleEnabled = name: lib.attrByPath [ "programs" name "enable" ] false config;
+
 in
 {
   home.packages =
     # 1. DYNAMIC INSTALLATION
     # These are installed based on user choices in variables.nix: browser, fileManager, editor
-    [
-      myTermPkg
-      myBrowserPkg
-      myFileManagerPkg
-      myEditorPkg
-    ]
+    (lib.optional (!isModuleEnabled termName) myTermPkg)
+    ++ (lib.optional (!isModuleEnabled browserName) myBrowserPkg)
+    ++ (lib.optional (!isModuleEnabled fileManagerName) myFileManagerPkg)
+    ++ (lib.optional (!isModuleEnabled editorName) myEditorPkg)
 
     # 2. STATIC INSTALLATION
     # These are always installed, regardless of user choices
@@ -775,7 +720,6 @@ in
       # -----------------------------------------------------------------------
       # ❓ OTHER
       # -----------------------------------------------------------------------
-      bemoji # Emoji picker with dmenu/wofi support (used in hyprland binds)
     ])
 
     # 3. KDE PACKAGES
@@ -974,7 +918,7 @@ in
         # These ensure apps (Electron, QT, etc.) know they are running on Wayland.
         env =
           let
-            firstMonitor = builtins.elemAt vars.monitors 0;
+            firstMonitor = if builtins.length vars.monitors > 0 then builtins.head vars.monitors else "";
             monitorParts = lib.splitString "," firstMonitor;
             rawScale = if (builtins.length monitorParts) >= 4 then builtins.elemAt monitorParts 3 else "1";
             gdkScale = if rawScale != "1" && rawScale != "1.0" then "2" else "1";
@@ -1014,7 +958,8 @@ in
         # These are used by other modules using the variable references such as binds.nix
         # -----------------------------------------------------
         "$Mod" = "SUPER";
-        "$term" = vars.term;
+        "$term" = "${vars.term}";
+        "$browser" = "${vars.browser}";
 
         # Distinguish between terminal-based and GUI file managers
         "$fileManager" = "${
@@ -1030,24 +975,26 @@ in
         }";
 
         # Dynamic menu command based on launcher choice
-        "$menu" = "${
+        "$menu" = "walker";
+
+        # 2. SHELL SPECIFIC LAUNCHER (Noctalia / Caelestia)
+        "$shellMenu" = "${
           if (vars.hyprlandCaelestia or false) then
             "caelestiaqs ipc call drawers toggle launcher"
           else if (vars.hyprlandNoctalia or false) then
             "sh -c '${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle'"
           else
-            "wofi --show drun"
+            "walker"
         }";
 
         # -----------------------------------------------------
         # 🚀 Startup Apps
         # ----------------------------------------------------
         exec-once = [
-          "wl-paste --type text --watch cliphist store" # Start clipboard manager for text
-          "wl-paste --type image --watch cliphist store" # Start clipboard manager for images
-          "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" # Keep for snapper polkit support
+          "${pkgs.bash}/bin/bash $HOME/.local/bin/init-gnome-keyring.sh"
+          "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
+
           "pkill ibus-daemon" # Kill ibus given by gnome
-          "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP" # Keeps dbus environment updated for Wayland apps.
         ]
         ++ (vars.hyprland_Exec-Once or [ ]);
 
@@ -1469,21 +1416,20 @@ in
           }
 
           // vars.waybarLayout or { };
-          # Weather module with wttr.in
-          # It fetches the location from variables.nix and when clicked the favorite browser opens wttr.in page
-          "custom/weather" = {
-            format = "<span color='${c.base0C}'>${
-                vars.weather or "London"
-              }:</span> {} ";
 
-            exec = let weatherLoc = vars.weather or "London";
-            in "curl -s 'wttr.in/${weatherLoc}?format=%c%t' | sed 's/ //'";
+          "custom/weather" = {
+            format = "<span color='${c.base0C}'>${vars.weather or "London"}:</span> {} ";
+
+            exec =
+              let
+                weatherLoc = vars.weather or "London";
+              in
+              "curl -s 'wttr.in/${weatherLoc}?format=%c%t' | sed 's/ //'";
 
             interval = 300;
             class = "weather";
 
-            on-click =
-              ''xdg-open "https://wttr.in/${vars.weather or "London"}"'';
+            on-click = ''xdg-open "https://wttr.in/${vars.weather or "London"}"'';
           };
 
           "pulseaudio" = {
@@ -1558,45 +1504,19 @@ in
 }
 ```
 
-# ~nixOS/home-manager/modules/wofi/default.nix
+# ~nixOS/home-manager/modules/walker.nix/
 
-This file configures **Wofi**, the application launcher. Wofi uses CSS for styling, which makes it powerful but tricky to theme dynamically with Nix.
-
-To solve this, we implemented a **Manual Palette Injection** system.
+This file configures **walker**, the application launcher.
 
 ---
 
 ## Key Concepts
 
-### 1. Manual Palette Definition
+### 1. Stylix theming
+- Uses the base16 theme to manually set a theme
 
-Unlike other modules where we might rely on an official Catppuccin plugin, for Wofi we explicitly defined the hex codes for all four Catppuccin flavors (Latte, Frappé, Macchiato, Mocha) directly in this file.
-
-- **Why?** Wofi doesn't support external "theme files" easily. By defining the colors here, we can inject them as CSS variables (`@define-color`) directly into the stylesheet.
-
-### 2. Hybrid Theming Strategy (Semantic Mapping)
-
-The goal is to have **one** `style.css` file that works for _any_ theme. We achieve this by mapping specific colors to "Semantic" variable names.
-
-- **If Catppuccin is Enabled:**
-
-1. We look up the user's chosen flavor (e.g., `mocha`) in our manual palette.
-2. We define variables like `@mauve`, `@base`, `@text` with the specific hex codes.
-3. We map semantic names: `@window_bg` becomes `@base`, `@accent` becomes `@mauve` (or whatever accent you chose).
-
-- **If Catppuccin is Disabled (Base16):**
-
-1. We skip the manual palette entirely.
-2. We map the semantic names directly to **Stylix Base16** colors (e.g., `@window_bg` becomes `base00`, `@accent` becomes `base0D`).
-
-### 3. CSS Injection
-
-The final CSS sent to Wofi is a concatenation of:
-
-1. The **Dynamic Variables** block (generated by Nix).
-2. The **Static Rules** (read from `style.css`).
-
-This allows the styling rules (padding, border-radius, font-size) to stay in a clean `.css` file while the colors change instantly when you rebuild the system.
+### 2. Create some shortcuts
+- Create shortcuts for some actions like clipboard manager and emojii
 
 ---
 
@@ -1604,216 +1524,304 @@ This allows the styling rules (padding, border-radius, font-size) to stay in a c
 
 ```nix
 {
-  pkgs,
   lib,
   config,
-  vars,
+  pkgs,
+  inputs,
   ...
 }:
-let
-  # 1. Read the CSS file (rules only, no definitions)
-  cssContent = builtins.readFile ./style.css;
-
-  # 2. Define the Catppuccin Palettes manually
-  palettes = {
-    mocha = {
-      rosewater = "#f5e0dc";
-      flamingo = "#f2cdcd";
-      pink = "#f5c2e7";
-      mauve = "#cba6f7";
-      red = "#f38ba8";
-      maroon = "#eba0ac";
-      peach = "#fab387";
-      yellow = "#f9e2af";
-      green = "#a6e3a1";
-      teal = "#94e2d5";
-      sky = "#89dceb";
-      sapphire = "#74c7ec";
-      blue = "#89b4fa";
-      lavender = "#b4befe";
-      text = "#cdd6f4";
-      subtext1 = "#bac2de";
-      subtext0 = "#a6adc8";
-      overlay2 = "#9399b2";
-      overlay1 = "#7f849c";
-      overlay0 = "#6c7086";
-      surface2 = "#585b70";
-      surface1 = "#45475a";
-      surface0 = "#313244";
-      base = "#1e1e2e";
-      mantle = "#181825";
-      crust = "#11111b";
-    };
-    macchiato = {
-      rosewater = "#f4dbd6";
-      flamingo = "#f0c6c6";
-      pink = "#f5bde6";
-      mauve = "#c6a0f6";
-      red = "#ed8796";
-      maroon = "#ee99a0";
-      peach = "#f5a97f";
-      yellow = "#eed49f";
-      green = "#a6da95";
-      teal = "#8bd5ca";
-      sky = "#91d7e3";
-      sapphire = "#74c7ec";
-      blue = "#8aadf4";
-      lavender = "#b7bdf8";
-      text = "#cad3f5";
-      subtext1 = "#b8c0e0";
-      subtext0 = "#a5adcb";
-      overlay2 = "#939ab7";
-      overlay1 = "#8087a2";
-      overlay0 = "#6e738d";
-      surface2 = "#5b6078";
-      surface1 = "#494d64";
-      surface0 = "#363a4f";
-      base = "#24273a";
-      mantle = "#1e2030";
-      crust = "#181926";
-    };
-    frappe = {
-      rosewater = "#f2d5cf";
-      flamingo = "#eebebe";
-      pink = "#f4b8e4";
-      mauve = "#ca9ee6";
-      red = "#e78284";
-      maroon = "#ea999c";
-      peach = "#ef9f76";
-      yellow = "#e5c890";
-      green = "#a6d189";
-      teal = "#81c8be";
-      sky = "#99d1db";
-      sapphire = "#85c1dc";
-      blue = "#8caaee";
-      lavender = "#babbf1";
-      text = "#c6d0f5";
-      subtext1 = "#b5bfe2";
-      subtext0 = "#a5adce";
-      overlay2 = "#949cbb";
-      overlay1 = "#838ba7";
-      overlay0 = "#737994";
-      surface2 = "#626880";
-      surface1 = "#51576d";
-      surface0 = "#414559";
-      base = "#303446";
-      mantle = "#292c3c";
-      crust = "#232634";
-    };
-    latte = {
-      rosewater = "#dc8a78";
-      flamingo = "#dd7878";
-      pink = "#ea76cb";
-      mauve = "#8839ef";
-      red = "#d20f39";
-      maroon = "#e64553";
-      peach = "#fe640b";
-      yellow = "#df8e1d";
-      green = "#40a02b";
-      teal = "#179299";
-      sky = "#04a5e5";
-      sapphire = "#209fb5";
-      blue = "#1e66f5";
-      lavender = "#7287fd";
-      text = "#4c4f69";
-      subtext1 = "#5c5f77";
-      subtext0 = "#6c6f85";
-      overlay2 = "#7c7f93";
-      overlay1 = "#8c8fa1";
-      overlay0 = "#9ca0b0";
-      surface2 = "#acb0be";
-      surface1 = "#bcc0cc";
-      surface0 = "#ccd0da";
-      base = "#eff1f5";
-      mantle = "#e6e9ef";
-      crust = "#dce0e8";
-    };
-  };
-
-  # 3. Select the correct palette based on the user's choice
-  selectedPalette = palettes.${vars.catppuccinFlavor};
-
-  # 4. Define the CSS Variables Block
-  cssVariables =
-    if vars.catppuccin then
-      ''
-        @define-color rosewater ${selectedPalette.rosewater};
-        @define-color flamingo ${selectedPalette.flamingo};
-        @define-color pink ${selectedPalette.pink};
-        @define-color mauve ${selectedPalette.mauve};
-        @define-color red ${selectedPalette.red};
-        @define-color maroon ${selectedPalette.maroon};
-        @define-color peach ${selectedPalette.peach};
-        @define-color yellow ${selectedPalette.yellow};
-        @define-color green ${selectedPalette.green};
-        @define-color teal ${selectedPalette.teal};
-        @define-color sky ${selectedPalette.sky};
-        @define-color sapphire ${selectedPalette.sapphire};
-        @define-color blue ${selectedPalette.blue};
-        @define-color lavender ${selectedPalette.lavender};
-        @define-color text ${selectedPalette.text};
-        @define-color subtext1 ${selectedPalette.subtext1};
-        @define-color subtext0 ${selectedPalette.subtext0};
-        @define-color overlay2 ${selectedPalette.overlay2};
-        @define-color overlay1 ${selectedPalette.overlay1};
-        @define-color overlay0 ${selectedPalette.overlay0};
-        @define-color surface2 ${selectedPalette.surface2};
-        @define-color surface1 ${selectedPalette.surface1};
-        @define-color surface0 ${selectedPalette.surface0};
-        @define-color base ${selectedPalette.base};
-        @define-color mantle ${selectedPalette.mantle};
-        @define-color crust ${selectedPalette.crust};
-
-        /* Semantic Mappings */
-        @define-color accent      @${vars.catppuccinAccent};
-        @define-color window_bg   @base;
-        @define-color input_bg    @surface0;
-        @define-color selected_bg @surface1;
-        @define-color text_color  @text;
-      ''
-    else
-      ''
-        /* 🔴 BASE16 FALLBACK MODE */
-        /* Map Wofi semantic names to Stylix Base16 colors */
-        @define-color window_bg   ${config.lib.stylix.colors.withHashtag.base00}; /* Background */
-        @define-color input_bg    ${config.lib.stylix.colors.withHashtag.base01}; /* Lighter Background */
-        @define-color selected_bg ${config.lib.stylix.colors.withHashtag.base02}; /* Selection Background */
-        @define-color text        ${config.lib.stylix.colors.withHashtag.base05};
-        @define-color text_color  ${config.lib.stylix.colors.withHashtag.base05}; /* Foreground */
-        @define-color accent      ${config.lib.stylix.colors.withHashtag.base0D}; /* Blue/Accent */
-      '';
-in
 {
+  imports = [ inputs.walker.homeManagerModules.default ];
 
-  config = lib.mkIf (vars.hyprland or vars.gnome or vars.kde or vars.cosmic or false) {
-    programs.wofi = {
-      enable = true;
+  home.packages = lib.mkIf config.programs.walker.enable (
+    with pkgs;
+    [
+      xdg-utils
+    ]
+  );
 
-      settings = {
-        show = "drun";
-        width = 950;
-        height = 500;
-        always_parse_args = true;
-        show_all = false;
-        term = vars.term;
-        hide_scroll = true;
-        print_command = true;
-        insensitive = true;
-        prompt = "";
-        columns = 2;
-        allow_markup = true;
-        allow_images = true;
+  programs.walker = {
+    enable = true;
+    runAsService = true;
+
+    config = {
+      theme = "default";
+      force_keyboard_focus = true;
+      close_when_open = true;
+
+      keybinds = {
+        close = [ "Escape" ];
+        page_down = [
+          "ctrl d"
+          "Page_Down"
+        ];
+        page_up = [
+          "ctrl u"
+          "Page_Up"
+        ];
+        resume_last_query = [ "ctrl r" ];
+        accept_type = [ "ctrl ;" ];
       };
 
-      # Inject variables BEFORE the CSS rules
-      style = ''
-        ${cssVariables}
-        ${cssContent}
+      builtins.emojis = {
+        enable = true;
+        name = "emojis";
+        icon = "face-smile";
+        placeholder = "Emojis";
+        switcher_only = true;
+        history = true;
+        typeahead = false;
+        exec = "wl-copy";
+        show_unqualified = true;
+        prefix = ".";
+      };
+
+      ui = {
+        fullscreen = true;
+        width = 1600;
+        height = 1200;
+        anchors = {
+          top = true;
+          bottom = true;
+          left = true;
+          right = true;
+        };
+      };
+
+      list.max_results = 50;
+      providers = {
+        clipboard.max_results = 50;
+        websearch.prefix = "@";
+        finder.prefix = "/";
+        commands.prefix = ":";
+      };
+    };
+
+    themes.default = {
+      style = with config.lib.stylix.colors.withHashtag; ''
+        /* DYNAMIC BASE16 MAPPING */
+        @define-color window_bg_color ${base00};
+        @define-color accent_bg_color ${base0D};
+        @define-color theme_fg_color  ${base05};
+        @define-color error_bg_color  ${base08};
+        @define-color error_fg_color  ${base00};
+
+        * {
+          all: unset;
+          font-family: 'JetBrainsMono Nerd Font', monospace;
+        }
+
+        popover {
+          background: lighter(@window_bg_color);
+          border: 1px solid darker(@accent_bg_color);
+          border-radius: 18px;
+          padding: 10px;
+        }
+
+        .normal-icons {
+          -gtk-icon-size: 16px;
+        }
+
+        .large-icons {
+          -gtk-icon-size: 32px;
+        }
+
+        scrollbar {
+          opacity: 0;
+        }
+
+        .box-wrapper {
+          box-shadow:
+            0 19px 38px rgba(0, 0, 0, 0.3),
+            0 15px 12px rgba(0, 0, 0, 0.22);
+          background: @window_bg_color;
+          padding: 20px;
+          border-radius: 20px;
+          border: 1px solid darker(@accent_bg_color);
+        }
+
+        .preview-box,
+        .elephant-hint,
+        .placeholder {
+          color: @theme_fg_color;
+        }
+
+        .box {
+        }
+
+        .search-container {
+          border-radius: 10px;
+        }
+
+        .input placeholder {
+          opacity: 0.5;
+        }
+
+        .input selection {
+          background: lighter(lighter(lighter(@window_bg_color)));
+        }
+
+        .input {
+          caret-color: @theme_fg_color;
+          background: lighter(@window_bg_color);
+          padding: 10px;
+          color: @theme_fg_color;
+        }
+
+        .input:focus,
+        .input:active {
+        }
+
+        .content-container {
+        }
+
+        .placeholder {
+        }
+
+        .scroll {
+        }
+
+        .list {
+          color: @theme_fg_color;
+        }
+
+        child {
+        }
+
+        .item-box {
+          border-radius: 10px;
+          padding: 10px;
+        }
+
+        .item-quick-activation {
+          background: alpha(@accent_bg_color, 0.25);
+          border-radius: 5px;
+          padding: 10px;
+        }
+
+        /* child:hover .item-box, */
+        child:selected .item-box {
+          background: alpha(@accent_bg_color, 0.25);
+        }
+
+        .item-text-box {
+        }
+
+        .item-subtext {
+          font-size: 12px;
+          opacity: 0.5;
+        }
+
+        .providerlist .item-subtext {
+          font-size: unset;
+          opacity: 0.75;
+        }
+
+        .item-image-text {
+          font-size: 28px;
+        }
+
+        .preview {
+          border: 1px solid alpha(@accent_bg_color, 0.25);
+          /* padding: 10px; */
+          border-radius: 10px;
+          color: @theme_fg_color;
+        }
+
+        #clipboard label,
+        #clipboard textview,
+        #clipboard #text {
+          background-color: lighter(@window_bg_color);
+          color: @theme_fg_color;
+          margin: 10px;
+          padding: 10px;
+          border-radius: 10px;
+        }
+
+        .calc .item-text {
+          font-size: 24px;
+        }
+
+        .calc .item-subtext {
+        }
+
+        .symbols .item-image {
+          font-size: 24px;
+        }
+
+        .todo.done .item-text-box {
+          opacity: 0.25;
+        }
+
+        .todo.urgent {
+          font-size: 24px;
+        }
+
+        .todo.active {
+          font-weight: bold;
+        }
+
+        .bluetooth.disconnected {
+          opacity: 0.5;
+        }
+
+        .preview .large-icons {
+          -gtk-icon-size: 64px;
+        }
+
+        .keybinds {
+          padding-top: 10px;
+          border-top: 1px solid lighter(@window_bg_color);
+          font-size: 12px;
+          color: @theme_fg_color;
+        }
+
+        .global-keybinds {
+        }
+
+        .item-keybinds {
+        }
+
+        .keybind {
+        }
+
+        .keybind-button {
+          opacity: 0.5;
+        }
+
+        .keybind-button:hover {
+          opacity: 0.75;
+          cursor: pointer;
+        }
+
+        .keybind-bind {
+          text-transform: lowercase;
+          opacity: 0.35;
+        }
+
+        .keybind-label {
+          padding: 2px 4px;
+          border-radius: 4px;
+          border: 1px solid @theme_fg_color;
+        }
+
+        .error {
+          padding: 10px;
+          background: @error_bg_color;
+          color: @error_fg_color;
+        }
+
+        :not(.calc).current {
+          font-style: italic;
+        }
+
+        .preview-content.archlinuxpkgs {
+          font-family: monospace;
+        }
       '';
     };
   };
 }
-
 ```
 
 ---
@@ -2033,13 +2041,10 @@ in
       # These should absolutely remain disabled because they cause conflicts
       kde.enable = false; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
       qt.enable = false; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
+      gnome.enable = vars.gnome or false;
 
       # These should remain enabled to avoid conflicts with other modules
-
-      # -----------------------------------------------------------------------
-      # DE/WM SPECIFIC
-      # -----------------------------------------------------------------------
-      gnome.enable = vars.gnome or true;
+      # N/A
 
       # ---------------------------------------------------------------------------------------
       # 🎨 GLOBAL CATPPUCCIN
@@ -2063,7 +2068,7 @@ in
       starship.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
 
     }
-    // (lib.optionalAttrs (vars.stylixExclusions != null) vars.stylixExclusions);
+    // (vars.stylixExclusions or { });
 
     # -----------------------------------------------------------------------
     # 🖱️ MOUSE CURSOR
@@ -2104,19 +2109,21 @@ in
     };
   };
 
-  home.sessionVariables = lib.mkIf vars.catppuccin {
-    GTK_THEME = "catppuccin-${vars.catppuccinFlavor}-${vars.catppuccinAccent}-standard+rimless,black";
+  home.sessionVariables = lib.mkIf (vars.catppuccin or false) {
+    # Fallback to mocha/mauve if flavor/accent are missing
+    GTK_THEME = "catppuccin-${vars.catppuccinFlavor or "mocha"}-${
+      vars.catppuccinAccent or "mauve"
+    }-standard+rimless,black";
 
     XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS";
   };
 
-  # 3. Configure GTK Theme &amp; Settings
-  gtk = lib.mkIf vars.catppuccin {
+  gtk = lib.mkIf (vars.catppuccin or false) {
     enable = true;
     theme = {
       package = lib.mkForce (
         pkgs.catppuccin-gtk.override {
-          accents = [ vars.catppuccinAccent ];
+          accents = [ (vars.catppuccinAccent or "mauve") ];
           size = "standard";
           tweaks = [
             "rimless"
@@ -2125,13 +2132,18 @@ in
           variant = vars.catppuccinFlavor or "mocha";
         }
       );
-      name = lib.mkForce "catppuccin-${vars.catppuccinFlavor}-${vars.catppuccinAccent}-standard+rimless,black";
+      # Fallback values for the theme name string
+      name = lib.mkForce "catppuccin-${vars.catppuccinFlavor or "mocha"}-${
+        vars.catppuccinAccent or "mauve"
+      }-standard+rimless,black";
     };
-    gtk3.extraConfig.gtk-application-prefer-dark-theme = if vars.polarity == "dark" then 1 else 0;
-    gtk4.extraConfig.gtk-application-prefer-dark-theme = if vars.polarity == "dark" then 1 else 0;
+    # 🌙 Fallback to dark mode (1) if vars.polarity is missing
+    gtk3.extraConfig.gtk-application-prefer-dark-theme =
+      if (vars.polarity or "dark") == "dark" then 1 else 0;
+    gtk4.extraConfig.gtk-application-prefer-dark-theme =
+      if (vars.polarity or "dark") == "dark" then 1 else 0;
   };
 }
-
 ```
 
 # ~nixOS/home-manager/modules/zsh.nix
@@ -2200,7 +2212,6 @@ This code is my personal one, but it may be change heavily based on your prefere
 ```nix
 {
   config,
-  pkgs,
   lib,
   vars,
   ...
@@ -2213,39 +2224,54 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
 
-    sessionVariables = {
-    };
+    sessionVariables = { };
 
     # -----------------------------------------------------------------------
-    # ⌨️ SHELL ALIASES (Managed by Nix)
+    # ⌨️ SHELL ALIASES
     # -----------------------------------------------------------------------
     shellAliases =
       let
         flakeDir = "~/nixOS";
-
+        safeEditor = vars.editor or "vscode";
         isImpure = vars.nixImpure or false;
 
-        switchCmd =
+        # Base commands
+        baseSwitchCmd =
           if isImpure then "sudo nixos-rebuild switch --flake . --impure" else "nh os switch ${flakeDir}";
 
-        updateCmd =
+        baseUpdateCmd =
           if isImpure then
             "nix flake update && sudo nixos-rebuild switch --flake . --impure"
           else
             "nh os switch --update ${flakeDir}";
 
-        updateBoot =
+        baseBootCmd =
           if isImpure then
             "sudo nixos-rebuild boot --flake . --impure"
           else
             "nh os boot --update ${flakeDir}";
+
+        # This wrap recognize if the current host is the "builder", allowing uploads
+        wrapCachix =
+          cmd:
+          if (vars.cachix.enable or false) && (vars.cachix.push or false) then
+            "env CACHIX_AUTH_TOKEN=$(command cat /run/secrets/cachix-auth-token) cachix watch-exec ${vars.cachix.name} -- ${cmd}"
+          else
+            cmd;
+
+        # wrappped commands
+        switchCmd = wrapCachix baseSwitchCmd;
+        updateCmd = wrapCachix baseUpdateCmd;
+        updateBoot = wrapCachix baseBootCmd;
       in
       {
         # Smart aliases based on nixImpure setting
         sw = "cd ${flakeDir} && ${switchCmd}";
-        swoff = "cd ${flakeDir} && ${switchCmd} --offline";
+        swsrc = "cd ${flakeDir} && ${switchCmd} --option substitute false";
+        tswsrc = "cd ${flakeDir} && time ${switchCmd} --option substitute false";
+        swoff = "cd ${flakeDir} && ${baseSwitchCmd} --offline";
         gsw = "cd ${flakeDir} && git add -A && ${switchCmd}";
-        gswoff = "cd ${flakeDir} && git add -A && ${switchCmd} --offline";
+        gswoff = "cd ${flakeDir} && git add -A && ${baseSwitchCmd} --offline";
         upd = "cd ${flakeDir} && ${updateCmd}";
 
         # Manual are kept for reference, but use the above aliases instead
@@ -2255,8 +2281,8 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         # System maintenance
         dedup = "nix store optimise";
         cleanup = "nh clean all";
-cleanup-ask = "nh clean all --ask";
-        gc = "nix-collect-garbage -d";
+        cleanup-ask = "nh clean all --ask";
+        cg = "nix-collect-garbage -d";
 
         # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
         # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${vars.hostname}"; # Rebuild home-manager config
@@ -2271,6 +2297,9 @@ cleanup-ask = "nh clean all --ask";
         merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop"; # Merge main with develop branch, push and return to develop branch
         merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop"; # Merge develop with main branch, push and return to develop branch
         cdnix = "cd ${flakeDir}";
+        nfc = "cd ${flakeDir} && nix flake check"; # Check flake for errors
+        nfcall = "cd ${flakeDir} && nix flake check --all-systems"; # Check flake for errors (all hosts)
+        swdry = "cd ${flakeDir} && nh os test --dry --ask"; # Dry run of nixos-rebuild switch
 
         # Snapshots
         snap-list-home = "snapper -c home list"; # List home snapshots
@@ -2278,17 +2307,18 @@ cleanup-ask = "nh clean all --ask";
 
         # Utilities
         se = "sudoedit";
-        fzf-prev = "fzf --preview=\"cat {}\"";
-        fzf-editor = "${safeEditor} \$(fzf -m --preview='cat {}')";
+        fzf-prev = ''fzf --preview="cat {}"'';
+        fzf-editor = "${safeEditor} $(fzf -m --preview='cat {}')";
+        zlist = "zoxide query -l -s"; # List all zoxide entries with scores
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
         sops-common = "cd ${flakeDir}/common/${vars.user}/sops && sops ${vars.user}-common-secrets-sops.yaml"; # Edit sops secrets file
-        sops-host = "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/${vars.hostname}-secrets-sops"; # Edit host-specific sops secrets file
+        sops-host = "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/${vars.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
 
         # Various
         reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
-        updboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
+        swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
       };
 
     history.size = 10000;
@@ -2323,7 +2353,7 @@ cleanup-ask = "nh clean all --ask";
         # 4. UWSM STARTUP (Universal & Safe)
         # Guard: Only run if on physical TTY1 AND no graphical session is active.
         if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
-
+            
             # Check if uwsm is installed and ready (Safe for KDE/GNOME-only builds)
             if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
                 exec systemd-cat -t uwsm_start uwsm start default
@@ -2338,13 +2368,13 @@ cleanup-ask = "nh clean all --ask";
           echo "Which config? (1=home, 2=root)"
           read "k?Selection: "
           if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
-
+          
           echo "Listing snapshots for $CFG..."
           sudo snapper -c "$CFG" list
-
+          
           echo ""
           read "ID?Enter Snapshot ID to LOCK: "
-
+          
           if [[ -n "$ID" ]]; then
              sudo snapper -c "$CFG" modify -c "" "$ID"
              echo "✅ Snapshot #$ID in '$CFG' is now LOCKED (won't be deleted)."
@@ -2356,13 +2386,13 @@ cleanup-ask = "nh clean all --ask";
           echo "Which config? (1=home, 2=root)"
           read "k?Selection: "
           if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
-
+          
           echo "Listing snapshots for $CFG..."
           sudo snapper -c "$CFG" list
-
+          
           echo ""
           read "ID?Enter Snapshot ID to UNLOCK: "
-
+          
           if [[ -n "$ID" ]]; then
              sudo snapper -c "$CFG" modify -c "timeline" "$ID"
              echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED (timeline cleanup enabled)."
@@ -2375,10 +2405,10 @@ cleanup-ask = "nh clean all --ask";
       # -----------------------------------------------------------------------
       function _snap_create() {
         local config_name=$1
-
+        
         echo -n "📝 Enter snapshot description: "
         read description
-
+        
         if [ -z "$description" ]; then
           echo "❌ Description cannot be empty."
           return 1
@@ -2406,21 +2436,53 @@ cleanup-ask = "nh clean all --ask";
       # 6 📦 SMART NIX PREFETCH (npu)
       # -----------------------------------------------------
       npu() {
-        local url
-        if [ -z "$1" ]; then
-          read "url?Enter URL: "
-        else
-          url="$1"
+        local url="$1"
+        if [ -z "$url" ]; then
+          read "url?🔗 Enter URL: "
         fi
 
-        # Detect if the URL is a GitHub/GitLab repository archive
-        if [[ "$url" == *"github.com"* ]] || [[ "$url" == *"gitlab.com"* ]]; then
-          echo "📦 Git repository detected. Using --unpack for Nix compatibility..."
-          nix-prefetch-url --unpack "$url"
-        else
-          echo "📄 Direct file detected. Fetching normally..."
-          nix-prefetch-url "$url"
+        if [ -z "$url" ]; then echo "❌ No URL provided."; return 1; fi
+
+        # 1. Handle GitHub Blobs
+        if [[ "$url" == https://github.com/*/blob/* ]]; then
+          url="''${url/github.com/raw.githubusercontent.com}"
+          url="''${url/\/blob\//\/}"
+          echo "🔄 Converted Github Blob to Raw"
         fi
+
+        local args=""
+        
+        # 2. Handle GitHub Archives
+        if [[ "$url" == https://github.com/* ]]; then
+          if [[ "$url" == */commit/* ]]; then
+            url="''${url/\/commit\//\/archive\/}.tar.gz"
+            args="--unpack"
+            echo "📦 Detected Github Commit -> Downloading Archive"
+          elif [[ "$url" == */releases/tag/* ]]; then
+            url="''${url/\/releases\/tag\//\/archive\/refs\/tags\/}.tar.gz"
+            args="--unpack"
+            echo "📦 Detected Github Release -> Downloading Archive"
+          elif [[ "$url" == */tree/* ]]; then
+            url="''${url/\/tree\//\/archive\/refs\/heads\/}.tar.gz"
+            args="--unpack"
+            echo "📦 Detected Github Branch -> Downloading Archive"
+          fi
+        fi
+
+        # 3. Decode Filename
+        if [ -z "$args" ]; then
+          local filename=$(basename "$url")
+          if command -v python3 >/dev/null 2>&1; then
+            local decoded_name=$(python3 -c "import urllib.parse, sys; print(urllib.parse.unquote(sys.argv[1]))" "$filename")
+            if [ "$filename" != "$decoded_name" ]; then
+              args="--name \"$decoded_name\""
+              echo "✨ Decoded filename: '$decoded_name'"
+            fi
+          fi
+        fi
+
+        # Execute
+        eval nix-prefetch-url $args "$url"
       }
     '';
   };
@@ -2473,15 +2535,18 @@ It establishes the default security posture for the OS:
 {
   config,
   pkgs,
+  pkgs-unstable,
   lib,
   vars,
   ...
 }:
 let
+  currentShell = vars.shell or "zsh";
+
   shellPkg =
-    if vars.shell == "fish" then
+    if currentShell == "fish" then
       pkgs.fish
-    else if vars.shell == "zsh" then
+    else if currentShell == "zsh" then
       pkgs.zsh
     else
       pkgs.bashInteractive;
@@ -2517,6 +2582,22 @@ in
     ];
   };
 
+  # Gpu screen recorder overlay due to missing ARM support in the main package
+  nixpkgs.overlays = [
+    (final: prev: {
+      gpu-screen-recorder =
+        if prev.stdenv.hostPlatform.system == "aarch64-linux" then
+          prev.runCommand "gpu-screen-recorder-dummy" { } ''
+            mkdir -p $out/bin
+            echo 'echo "GPU Screen Recorder is not supported on ARM"' > $out/bin/gpu-screen-recorder
+            echo 'echo "Not supported"' > $out/bin/gsr-kms-server
+            chmod +x $out/bin/*
+          ''
+        else
+          prev.gpu-screen-recorder;
+    })
+  ];
+
   # Allow unfree packages globally (needed for drivers, code, etc.)
   nixpkgs.config.allowUnfree = true;
 
@@ -2527,44 +2608,41 @@ in
     with pkgs;
     [
       # --- CLI UTILITIES ---
-      eza # Global home-manager module
-      fzf # Used by the shells
+      dix # Nix diff viewer
+      fzf # Fuzzy finder (used by shells)
       git # Version control
       nixfmt # Nix formatter
       nix-prefetch-scripts # Tools to get hashes for nix derivations (used in zsh.nix module)
-      starship # Global home-manager module
-      curl # Used by waybar
+      starship # Shell prompt
+      iptables # Firewall utility
+      wget # Downloader
+      curl # Downloader
 
       # --- SYSTEM TOOLS ---
       foot # Tiny, zero-config terminal (Rescue tool)
+      glib # Low-level system library
       gsettings-desktop-schemas # Global theme settings
       libnotify # Library for desktop notifications (used by most de/wm modules)
       polkit_gnome # Authentication agent
+      seahorse # GNOME key and password manager
       sops # Secret management
       shellPkg # The selected shell package (bash, zsh, or fish)
       xdg-desktop-portal-gtk # GTK portal backend for file pickers
+      wvkbd # Virtual keyboard (for Wayland)
 
       # --- GRAPHICS & GUI SUPPORT ---
+      gpu-screen-recorder # For recording/caelestia
       gtk3 # Standard GUI toolkit
       libsForQt5.qt5.qtwayland # Qt5 Wayland bridge
       kdePackages.qtwayland # Qt6 Wayland bridge
       powerline-symbols # Terminal font glyphs
     ]
-    # Installation of packages available only on x86_64 systems
-    ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux") (
-      builtins.trace "✅ x86_64 Architecture Detected: Installing x86 only packages" [
-        gpu-screen-recorder
-      ]
-    )
-
-    # Extra KDE specific packages
     ++ (with pkgs.kdePackages; [
       gwenview # Default image viewer as defined in mime.nix
       kio-extras # Extra protocols for KDE file dialogs (needed for dolphin remote access)
       kio-fuse # Mount remote filesystems (via ssh, ftp, etc.) in Dolphin
     ])
 
-    # Extra packages from unstable channel
     ++ (with pkgs-unstable; [ ]);
 
   # ---------------------------------------------------------
@@ -2590,7 +2668,7 @@ in
   security.rtkit.enable = true;
   services.openssh.enable = true;
 
-  # Only define these wrappers if we are on an x86 system.
+  # Wrappers for GPU Screen Recorder (needed for Caelestia/Recording)
   security.wrappers = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
     gpu-screen-recorder = {
       owner = "root";
@@ -2606,34 +2684,47 @@ in
     };
   };
 
-  # Use optionalString to inject the GPU rule ONLY on x86.
+  # Polkit Rules: Realtime Audio & GPU Recorder Permissions
   security.polkit.enable = true;
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
       if (subject.isInGroup("wheel")) {
-        // Auto-approve realtime audio requests (Keep this for everyone)
+        // Auto-approve realtime audio requests
         if (action.id == "org.freedesktop.RealtimeKit1.acquire-high-priority" ||
             action.id == "org.freedesktop.RealtimeKit1.acquire-real-time") {
           return polkit.Result.YES;
         }
-
-        ${lib.optionalString (pkgs.stdenv.hostPlatform.system == "x86_64-linux") ''
-          // Auto-approve gpu-screen-recorder running as root (x86 ONLY)
-          if (action.id == "org.freedesktop.policykit.exec" &&
-              action.lookup("program") &&
-              action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
-            return polkit.Result.YES;
-          }
-        ''}
+        // Auto-approve gpu-screen-recorder running as root
+        if (action.id == "org.freedesktop.policykit.exec" &&
+            action.lookup("program") &&
+            action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
+          return polkit.Result.YES;
+        }
       }
     });
   '';
 
+  # Keyrings & Wallets
+  # Globally enable GNOME Keyring
+  services.gnome.gnome-keyring.enable = true;
+
+  # Disable KWallet to avoid conflicts with GNOME Keyring
+  security.pam.services.login.enableGnomeKeyring = true;
+  security.pam.services.sddm.enableGnomeKeyring = true;
+  security.pam.services.login.enableKwallet = lib.mkForce false;
+  security.pam.services.kde.enableKwallet = lib.mkForce false;
+  security.pam.services.sddm.enableKwallet = lib.mkForce false;
+
   # ---------------------------------------------------------
   # 🐚 SHELLS & ENVIRONMENT
   # ---------------------------------------------------------
-  programs.zsh.enable = vars.shell == "zsh";
-  programs.fish.enable = vars.shell == "fish";
+  programs.zsh.enable = currentShell == "zsh";
+  programs.fish.enable = currentShell == "fish";
+
+  i18n.inputMethod.enabled = lib.mkForce null;
+  environment.variables.GTK_IM_MODULE = lib.mkForce "";
+  environment.variables.QT_IM_MODULE = lib.mkForce "";
+  environment.variables.XMODIFIERS = lib.mkForce "";
 
   # -----------------------------------------------------
   # 🎨 GLOBAL THEME VARIABLES
@@ -2652,34 +2743,7 @@ in
   # Enable home-manager backup files
   home-manager.backupFileExtension = lib.mkForce "hm-backup";
 
-  # Enable UPower for better power management and battery reporting (needed for noctalia shell)
-  services.upower.enable = true;
-
-  # Enable the modern power-profiles-daemon (needed for noctalia shell)
-  services.power-profiles-daemon.enable = true;
-
-  # Enable System76 Scheduler for improved desktop responsiveness
-  services.system76-scheduler.enable = true;
-  services.system76-scheduler.settings.cfsProfiles.enable = true; # Prioritizes foreground apps (smoothness)
-
-  # Disable NetworkManager-wait-online to speed up boot time
-  systemd.services.NetworkManager-wait-online.enable = false;
-
-  # Enable emulation for aarch64 linux for testing purposes on x86_64 hosts
-  boot.binfmt.emulatedSystems = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") [
-    "aarch64-linux"
-  ];
-
-  # Add KWallet integration for SDDM and GDM display managers
-  security.pam.services = {
-    sddm.enableKwallet = config.services.displayManager.sddm.enable;
-    gdm.enableKwallet = config.services.displayManager.gdm.enable;
-  };
-
-  # Explicitly disable TLP to avoid conflicts
-  services.tlp.enable = false;
 }
-
 ```
 
 # ~nixOS/nixos/modules/boot.nix
@@ -2964,6 +3028,7 @@ in
     systemd.tmpfiles.rules = [
       "d /var/lib/AccountsService/users 0755 root root -"
       "f /var/lib/AccountsService/users/guest 0644 root root - [User]\\nSession=xfce\\n"
+      "f /home/.hidden 0644 root root - guest" # Hide the gues folder from file managers if the user is not guest
     ];
 
     # 🖥️ DESKTOP ENVIRONMENT
@@ -2982,9 +3047,7 @@ in
       zenity # keep for the startup warning
     ];
 
-    environment.xfce.excludePackages = [
-      pkgs.xfce.parole
-    ];
+    environment.xfce.excludePackages = [ pkgs.xfce.parole ];
 
     # ⚠️ UNIVERSAL AUTOSTART MONITOR
     environment.etc."xdg/autostart/guest-monitor.desktop".text = ''
@@ -3259,9 +3322,8 @@ This file configures **SDDM** (Simple Desktop Display Manager), the graphical lo
 
 ### 1. The "Astronaut" Theme
 
-We use the modern **sddm-astronaut** theme (specifically the `jake_the_dog` variant).
+We use the modern **sddm-astronaut** theme
 
-**Dependencies:** To ensure the theme renders correctly (with animations and icons), we explicitly inject Qt libraries like `qtsvg`, `qtmultimedia`, and `qtvirtualkeyboard` into SDDM's environment.
 
 ---
 
@@ -3288,28 +3350,15 @@ in
 
   services.displayManager.sddm = {
     enable = true;
-    wayland.enable = true;
+    wayland.enable = false;
     package = lib.mkForce pkgs.kdePackages.sddm;
     theme = "sddm-astronaut-theme";
 
     extraPackages = with pkgs; [
       kdePackages.qtsvg # Keep for the theme
       kdePackages.qtmultimedia # Keep for the theme
-      #kdePackages.qtvirtualkeyboard
     ];
   };
-
-  /*
-    systemd.services.sddm.environment = {
-      QT_IM_MODULE = "qtvirtualkeyboard";
-      QT_VIRTUALKEYBOARD_DESKTOP_DISABLE = "0";
-    };
-
-    environment.etc."sddm.conf.d/virtual-keyboard.conf".text = ''
-      [General]
-      InputMethod=qtvirtualkeyboard
-    '';
-  */
 
   environment.systemPackages = [
     sddmTheme
@@ -3323,6 +3372,7 @@ in
 
   services.getty.autologinUser = null;
 }
+
 ```
 
 # ~nixOS/nixos/modules/user.nix

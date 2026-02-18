@@ -21,7 +21,7 @@ The brain of the operation. It defines the inputs (Nixpkgs source, Home Manager 
 
 This directory contains the configurations for specific machines. Each folder name need to match the name of a `hostname` defined in `flake.nix`.
 
-Each hosts folder should contain at least these 4 files
+Each hosts folder should contain at least these 3 files otherwise the build would fail
 
 - ### `configuration.nix`
 - The machine-specific entry point. It imports the hardware scan and any host-specific module overrides.
@@ -29,9 +29,6 @@ Each hosts folder should contain at least these 4 files
 - ### `hardware-configuration.nix`
 - An auto-generated file which contains optimization based on the hardware of that specific machine.
 - This file should not be changed unless the user is confident
-
-- ### `modules.nix`
-- These is an enhancement of variables.nix. It contains module-specific behavior that should be changed for a more tailored experience
 
 - ### `variables.nix`
 - It is the place where the user change all the aspects that may be host-specific. For example the theming, the username and similar

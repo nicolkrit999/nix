@@ -18,9 +18,6 @@
   - [📊 Waybar Sub-modules (`home-manager/modules/cli-programs/waybar/`)](#-waybar-sub-modules-home-managermodulescli-programswaybar)
     - [`default.nix`](#defaultnix-1)
     - [`style.css`](#stylecss)
-  - [🚀 Wofi Sub-modules (`home-manager/modules/cli-programs/wofi/`)](#-wofi-sub-modules-home-managermodulescli-programswofi)
-    - [`default.nix`](#defaultnix-2)
-    - [`style.css`](#stylecss-1)
 
 # 🏠 Home Manager (`home-manager/`)
 
@@ -134,6 +131,16 @@ Terminal multiplexer configuration. Includes behaviour and keybindings
   - **Workflow Shortcuts:** Includes custom bindings to launch specific workspaces like the system configuration or notes directly in Neovim
   - **Window Management:** Sets custom split bindings and resizing shortcuts (`Alt+Shift+Arrows`) for rapid layout control
   - **Vim Mode:** Enables standard Vim keybindings for efficient scrolling and copy-paste operations
+
+
+
+### `walker.nix.nix`
+
+This file configures walker, the application launcher and menu utility for Wayland. It defines the window geometry, behavior, and appearance logic.
+
+- **General Idea:** It serves as the "Start Menu" and a generic selection tool for scripts (like clipboard managers).
+
+- **Theming:** Uses the base 16 theme
 
 ### `zsh.nix`
 
@@ -268,7 +275,7 @@ This is the core configuration file for Hyprland. It handles the fundamental set
 
 This file defines the keybindings for Niri. It assigns specific keyboard combinations to system commands, relying heavily on the `vars` system to remain application-agnostic. It handles application launching (terminal, browser, file manager), system utilities (screenshots, clipboard history, emoji picker), and window management (closing windows, toggling floating mode).
 
-- **Launcher Logic:** It includes conditional logic to switch between the standard `wofi` launcher and the custom `noctalia` launcher depending on your `variables.nix` configuration.
+- **Launcher Logic:** It includes conditional logic to switch between the standard `walker` launcher and the custom `noctalia` launcher depending on your `variables.nix` configuration.
 - **Screenshots:** It defines custom scripts for taking screenshots (fullscreen or area selection) using `grim` and `slurp`, automatically saving them to the Pictures folder and copying them to the clipboard.
 
 ### `niri-main.nix`
@@ -334,7 +341,7 @@ This file defines the configuration for Plasma panels (taskbar). It controls the
 
 ### `kde-binds.nix`
 
-This file centralizes keyboard shortcuts and global hotkeys. It manages bindings for launching applications (like wofi), system actions (like Spectacle screenshots), and window manager overrides.
+This file centralizes keyboard shortcuts and global hotkeys. It manages bindings for launching applications (like walker), system actions (like Spectacle screenshots), and window manager overrides.
 
 - After doing changes to a previous config that did not work (basically when building some set of shortcuts, but after a log in/log out they do not work), once the code is fixed it is necessary to remove `~/.config/kglobalshortcutsrc` and then build, then log in/log out
   - This is because if certain shortcuts config are stuck then the only way to apply the new logic is to first remove the file that contains the broken state and then rebuild
@@ -361,23 +368,3 @@ This file configures Waybar, a status bar. It defines the bar's position, dimens
 ### `style.css`
 
 Intelligently define colors based on whatever catppuccin is enabled on the hosts or not
-
-## 🚀 Wofi Sub-modules (`home-manager/modules/cli-programs/wofi/`)
-
-### `default.nix`
-
-This file configures Wofi, the application launcher and menu utility for Wayland. It defines the window geometry, behavior, and appearance logic.
-
-- **General Idea:** It serves as the "Start Menu" (drun mode) and a generic selection tool for scripts (like clipboard managers).
-- **Configuration:** It sets a fixed window size (950x500), enables a 2-column layout for results, and configures case-insensitive search matching.
-- **Theming:** It explicitly disables global Stylix theming to inject a custom `style.css` file. This is necessary because there is no official Catppuccin module for Wofi yet, and the default Stylix generation does not match the desired aesthetic.
-
-### `style.css`
-
-A fully manual CSS file that strictly defines the visual appearance of the launcher.
-
-- **Palette:** It intelligently take the theming based on whatever catppuccin is enabled or not. If it is not it applies the base16 themes
-- **Styling:**
-  - **Window:** Applies a 3px border and rounded corners (12px) to match the Hyprland window rules.
-  - **Animations:** Includes custom `slideIn` and `fadeIn` animations for a smoother opening experience.
-  - **Typography:** Forces `JetBrains Mono` at 20px for high legibility.

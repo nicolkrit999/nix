@@ -58,11 +58,9 @@
     - [Setup (optional) `flatpak.nix`](#setup-optional-flatpaknix)
     - [Setup (optional) `modules.nix`](#setup-optional-modulesnix)
     - [Setup (optional) `home.nix`](#setup-optional-homenix)
-    - [Setup (optional) `host-modules` folder](#setup-optional-host-modules-folder)
   - [Phase 5: Setup optional host-specific files and directories](#phase-5-setup-optional-host-specific-files-and-directories)
     - [1. (Optional) Customize the host-specific `modules.nix`](#1-optional-customize-the-host-specific-modulesnix)
     - [2. (Optional) Customize the host-specific `home.nix`](#2-optional-customize-the-host-specific-homenix)
-    - [3. (Optional) Customize the host-specific `host-modules` directory](#3-optional-customize-the-host-specific-host-modules-directory)
   - [🔄 Daily Usage \& Updates](#-daily-usage--updates)
   - [❓ Troubleshooting](#-troubleshooting)
     - [Error: `path '.../hardware-configuration.nix' does not exist`](#error-path-hardware-configurationnix-does-not-exist)
@@ -645,17 +643,16 @@ Run these three commands to format the drive and install the OS.
 
 ```bash
 # 1. Partition & Mount (Wipes the drive!)
-sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode disko ./disko-config.nix
+sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode disko ~/nixOS/hosts/template-host/disko-config.nix
 
 # 2. Generate Hardware Config (Captures CPU/Kernel quirks)
-# We point this DIRECTLY to your host folder so the repo root stays clean
-nixos-generate-config --no-filesystems --root /mnt --dir ~/nixOS/hosts/nixos-arm-vm
+nixos-generate-config --no-filesystems --root /mnt --dir /etc/nixos/hosts/<hostname>
 
 # 3. Install
-cd ../..  # Go back to the repo root
+cd /etc/nixos  # Go back to the repo root
 
 # If for some reason you need the impure flag just add it at the end of the following command
-nixos-install --flake .#my-computer
+nixos-install --flake .<hostname>
 ```
 
 ### 7. Finish
@@ -686,7 +683,7 @@ sudo chown -R $USER:users ~/nixOS
 
 ### 2. (Optional) Cleanup Unused Hosts
 
-Now that you have your own host (`my-computer`), you might want to delete `template-host` or other examples to keep your folder clean.
+Now that you have your own host (`hostname`), you might want to delete the other hosts, such as `template-host`
 
 Run this command inside `~/nixOS`:
 
@@ -968,14 +965,6 @@ This file contains specific home-manager aspects that are related only to a cert
 
 - See below for a guide
 
-### Setup (optional) `host-modules` folder
-
-- This is a folder that can contains modules that can be configured with home-manager but that are only active on a certain host.
-  - This help to keep clean the original home-manager/modules folder
-
-- See below for a guide
-
----
 
 ## Phase 5: Setup optional host-specific files and directories
 
@@ -1005,18 +994,7 @@ This file allows you to manage user-specific configurations that should **only**
 | **`home.sessionVariables`** | Defines shell variables for this host only.                                                     | Setting `JAVA_HOME` or `JDTLS_BIN` only on machines used for development.                   |
 | **`home.activation`**       | Activate certain functions such as creating customs folders                                     | Make sure certain directories exist only for that host                                      |
 
-### 3. (Optional) Customize the host-specific `host-modules` directory
 
-- This folder can contain any .nix file that you would use as a home-manager modules. The only difference is that they are put inside this folder
-- When a new file is added it needs to be defined in default.nix. For example:
-
-```bash
-{
-  imports = [
-    ./alacritty.nix
-  ];
-}
-```
 
 ---
 
@@ -1098,10 +1076,6 @@ These blocks are configured in such a way that allow 2 scenario:
 - In this case the behaviour in `*.nix` apply but since the rest is default it is like not applying it at all
 
 Currently this behaviour happens here:
-
-- **Neovim**:
-  - Nix reference: `neovim.nix`
-  - Original reference: `~/.config/nvim/*`
 
 - **shells**:
   - Nix reference: `zsh.nix`, `bash.nix` `fish.nix`
