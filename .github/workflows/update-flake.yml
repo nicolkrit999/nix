@@ -1,8 +1,10 @@
 name: "Update Flake Lockfile"
 on:
+  push:
+    branches: [develop]
   schedule:
-    - cron: "0 4 * * 3" # Runs every Wednesday at 04:00 UTC
-  workflow_dispatch: # Allows you to click a button to run it manually
+    - cron: "0 4 * * 3"
+  workflow_dispatch:
 
 jobs:
   update:
