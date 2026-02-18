@@ -25,6 +25,7 @@ jobs:
       id-token: write
     env:
       NIXPKGS_ALLOW_UNFREE: 1
+      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -89,7 +90,7 @@ jobs:
           nix run nixpkgs#nvd -- tree $OUT_PATHS
 
       - name: Notify on Failure (x86_64)
-        if: failure() && github.event_name == 'schedule' && secrets.DISCORD_WEBHOOK_ID != ''
+        if: failure() && github.event_name == 'schedule' && env.WEBHOOK_ID != ''
         uses: appleboy/discord-action@master
         with:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
@@ -104,6 +105,7 @@ jobs:
       id-token: write
     env:
       NIXPKGS_ALLOW_UNFREE: 1
+      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -168,9 +170,10 @@ jobs:
           nix run nixpkgs#nvd -- tree $OUT_PATHS
 
       - name: Notify on Failure (AArch64)
-        if: failure() && github.event_name == 'schedule' && secrets.DISCORD_WEBHOOK_ID != ''
+        if: failure() && github.event_name == 'schedule' && env.WEBHOOK_ID != ''
         uses: appleboy/discord-action@master
         with:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
           webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
           message: "🚨 Weekly NixOS build failed on **AArch64**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
