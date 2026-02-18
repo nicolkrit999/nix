@@ -19,7 +19,7 @@
 
   # 🖥️ DESKTOP ENVIRONMENT & WINDOW MANAGER
   hyprland = true;
-  niri = true;
+  niri = false;
 
   gnome = true;
   kde = true;
