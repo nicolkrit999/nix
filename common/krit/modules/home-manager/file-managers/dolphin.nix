@@ -58,8 +58,8 @@ let
 in
 {
   home.packages = with pkgs; [
-    kio-extras
-    kio-fuse
+    kdePackages.kio-extras
+    kdePackages.kio-fuse
   ];
 
   xdg.configFile."dolphinrc".text = ''
