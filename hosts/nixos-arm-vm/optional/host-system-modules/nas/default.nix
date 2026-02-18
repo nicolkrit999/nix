@@ -1,4 +1,6 @@
 { ... }:
 {
-  imports = [ ];
+  imports = [
+    ./borg-backup.nix
+  ];
 }

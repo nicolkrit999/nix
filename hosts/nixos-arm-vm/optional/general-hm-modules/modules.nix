@@ -24,6 +24,7 @@ let
     # Browsers
     "firefox" = "firefox.desktop";
     "librewolf" = "librewolf.desktop";
+    "google-chrome" = "google-chrome.desktop";
     "chromium" = "chromium-browser.desktop"; # Found in user-apps.txt
     "brave" = "brave-browser.desktop";
 
@@ -47,7 +48,18 @@ in
   # ---------------------------------------------------------------------------
   # 🖥️ HYPRLAND WORKSPACES
   # ---------------------------------------------------------------------------
-  hyprlandWorkspaces = [ ];
+  hyprlandWorkspaces = [
+    "1, monitor:DP-1"
+    "2, monitor:DP-1"
+    "3, monitor:DP-1"
+    "4, monitor:DP-1"
+    "5, monitor:DP-1"
+    "6, monitor:DP-2"
+    "7, monitor:DP-2"
+    "8, monitor:DP-2"
+    "9, monitor:DP-2"
+    "10, monitor:DP-2"
+  ];
 
   # Forces specific apps to always open on specific workspaces
   # To see the right class name, use `hyprctl clients` command and look for "class:"
@@ -72,7 +84,10 @@ in
 
     "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$"
     "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-music.apple.com.*)$"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-music.apple.com.*)$"
     "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-browser)$"
+    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-www\.youtube\.com.*)$"
+    #"workspace ${appWorkspaces.browser-Entertainment} silent, class:^(vivaldi-www.youtube.com)$"
 
     "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
     "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
@@ -200,7 +215,7 @@ in
     "uwsm app -- $fileManager"
 
     # Secondary apps
-    "chromium-browser"
+    "vivaldi --app=https://www.youtube.com"
     "whatsapp-electron"
 
     # Opened minimized
@@ -241,7 +256,12 @@ in
     ];
   };
 
-  swayncExclusions = { };
+  swayncExclusions = {
+    "mute-protonvpn" = {
+      state = "ignored";
+      app-name = ".*Proton.*";
+    };
+  };
 
   pinnedApps = [
     (resolve vars.browser)
@@ -255,6 +275,8 @@ in
     "vesktop.desktop"
 
     # Flatpaks
+    "com.github.dagmoller.whatsapp-electron.desktop"
+    "com.actualbudget.actual.desktop"
   ];
 
   customGitIgnores = [ ];

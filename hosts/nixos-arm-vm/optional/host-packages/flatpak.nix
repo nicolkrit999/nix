@@ -14,7 +14,13 @@
     # Examples:
     # https://flathub.org/en/apps/com.spotify.Client --> "com.spotify.Client"
     services.flatpak.enable = true;
-    services.flatpak.packages = [ "com.github.tchx84.Flatseal" ];
+    services.flatpak.packages = [
+      "com.actualbudget.actual"
+      "me.iepure.devtoolbox"
+      "com.github.unrud.VideoDownloader"
+      "com.github.tchx84.Flatseal"
+      "com.usebottles.bottles"
+    ];
 
     services.flatpak.update.onActivation = false;
 

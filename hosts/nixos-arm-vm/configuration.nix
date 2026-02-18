@@ -1,16 +1,15 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
+{ config
+, pkgs
+, lib
+, vars
+, ...
 }:
 {
 
   imports = [
     # Common krit modules
     # This import common system-wide modules
-    ../../common/krit/modules/default.nix
+    ../../common/krit/modules/default.nix # General import (since desktop contains everything) (both system and home-manager) (do not incude NAS modules)
 
     # Local modules
     # This import host-specific modules
@@ -67,22 +66,69 @@
           sopsFile = commonSecrets;
           restartUnits = [ "NetworkManager.service" ];
         };
+
+      # Comm-7. PGP signing key (git)
+      commit_signing_key = {
+        sopsFile = commonSecrets;
+        owner = vars.user;
       };
+    };
 
     # Tell Nix to read the Github token
     nix.extraOptions = ''
-      !include ${config.sops.secrets.github_fg_pat_token_nix.path}
+    !include ${config.sops.secrets.github_fg_pat_token_nix.path}
     '';
-    # ---------------------------------------------------------
-    # 🔧 CONFIGURE SSH TO USE THE KEY
-    # ---------------------------------------------------------
-    programs.ssh = {
-      extraConfig = ''
-        Host github.com
-          IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
-      '';
-    };
-  */
+   */
+
+  # ---------------------------------------------------------
+  # 👤 HOST-SPECIFIC GIT
+  # ---------------------------------------------------------
+
+  # ---------------------------------------------------------
+  # 🔐 GPG SIGNING SETUP (Manual Steps for New Hosts)
+  # ---------------------------------------------------------
+  # This config automates the "Git" side, but the "GPG" keychain
+  # is strictly local and must be initialized once manually.
+  #
+  # 1. Rebuild the system to decrypt the key:
+  #    $ nh os switch
+  #
+  # 2. Import the private key from SOPS into your local keyring:
+  #    $ gpg --import /run/secrets/commit_signing_key
+  #
+  # 3. Trust the key (Essential, otherwise Git fails to sign):
+  #    $ gpg --edit-key D93A24D8E063EECF
+  #      > trust
+  #      > 5  (Ultimate)
+  #      > y  (Confirm)
+  #      > quit
+  #
+  # 4. Verify it works (should show "Good signature"):
+  #    $ git commit --allow-empty -m "test: gpg signing"
+  #    $ git log --show-signature -1
+  # ---------------------------------------------------------
+  programs.git.enable = true; # Needed to make signing work since home-manager git module can't to it
+  programs.git.config = {
+    user.signingkey = "D93A24D8E063EECF";
+    commit.gpgsign = true;
+  };
+
+  # Gnupg agent with pinentry-qt for graphical passphrase entry (required for git commits signing with gpg key)
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+    pinentryPackage = pkgs.pinentry-qt;
+  };
+
+  # SSH configuration to use the key for github access (Comm-1)
+  /*
+  programs.ssh = {
+    extraConfig = ''
+      Host github.com
+      IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
+    '';
+  };
+    */
 
   # ---------------------------------------------------------
   # ⚙️ GRAPHICS & FONTS
@@ -177,7 +223,14 @@
   };
 
   environment.systemPackages = with pkgs; [
+    autotrash # Automatic trash cleanup
     # docker # Required when virtualisation.docker.enable is true
+    fd # User-friendly replacement for 'find'
+    gnupg # Required for gpg key for settings git commits
+    pinentry-qt # Required for gpg key for settings git commits
+    pinentry-curses # Required for gpg key for settings git commits (fallback)
+    logiops # Logitech devices manager (currently used for my MX Master 3S)
+    pay-respects # Used in shell aliases dotfiles
     pokemon-colorscripts # Used in shell aliases dotfiles
     stow # Used to manage my dotfiles repo
     tree # Display directory structure as a tree
@@ -187,3 +240,4 @@
     zlib # Compression utility for .zip files. It is used by programs to compress/decompress data.
   ];
 }
+

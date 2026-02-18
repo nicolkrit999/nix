@@ -14,6 +14,9 @@
     # use-cases home-manager modules
     ../../common/krit/modules/use-cases/home-imports.nix
 
+    # Architecture specific home-packages
+    ../../common/krit/packages/default.nix
+
     # Local Host Modules
     ./optional/general-hm-modules
     ./optional/host-hm-modules
@@ -114,6 +117,7 @@
   home.activation = {
     createHostDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       mkdir -p $HOME/Pictures/wallpapers
+      mkdir -p $HOME/momentary
     '';
   };
 }
