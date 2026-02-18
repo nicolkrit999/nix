@@ -1,0 +1,24 @@
+name: "Update Flake Lockfile"
+on:
+  schedule:
+    - cron: "0 4 * * 3" # Runs every Wednesday at 04:00 UTC
+  workflow_dispatch: # Allows you to click a button to run it manually
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop # Forces the action to use the develop branch
+
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          flakehub: false
+
+      - name: Update flake.lock
+        uses: DeterminateSystems/update-flake-lock@main
+        with:
+          target-branch: develop # Opens the PR against develop, not main
+          pr-title: "chore: update flake.lock"
+          pr-labels: "dependencies, automated"

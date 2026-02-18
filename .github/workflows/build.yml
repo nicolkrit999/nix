@@ -8,7 +8,7 @@ on:
   pull_request:
   schedule:
     # Weekly on Fridays at 05:00 UTC
-    - cron: "0 5 * * 5"
+    - cron: "0 5 * * 5" # Run the action automatically. This ensure configurations work even if the code is not changed for more than a week
 
 # Prevents multiple pushes from building at once, saving runner time
 concurrency:
@@ -67,7 +67,11 @@ jobs:
           # Build Laptop
           #nix build .#nixosConfigurations.nixos-laptop-x86.config.system.build.toplevel --no-link --print-out-paths >> outpaths.txt
 
-          cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
+          if [ -n "$CACHIX_TOKEN" ]; then
+            cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
+          else
+            echo "Skipping Cachix push: No auth token found (likely a fork)."
+          fi
 
       - name: Check Disk Usage
         run: |
@@ -75,6 +79,19 @@ jobs:
           df -h /nix
           echo "--- Nix Store Size ---"
           du -sh /nix/store
+
+      - name: Show Package Tree (x86_64)
+        run: |
+          OUT_PATHS=$(cat outpaths.txt)
+          nix run nixpkgs#nvd -- tree $OUT_PATHS
+
+      - name: Notify on Failure (x86_64)
+        if: failure() && github.event_name == 'schedule' && secrets.DISCORD_WEBHOOK_ID != ''
+        uses: appleboy/discord-action@master
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          message: "🚨 Weekly NixOS build failed on **x86_64**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   # JOB 2: Build AArch64 Binaries (Laptop)
   build-aarch64:
@@ -120,10 +137,18 @@ jobs:
           name: ${{ env.CACHIX_NAME }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
+      - name: Check Flake (AArch64)
+        run: nix flake check
+
       - name: Build AArch64 Configurations
         run: |
           nix build .#nixosConfigurations.nixos-laptop.config.system.build.toplevel --no-link --print-out-paths > outpaths.txt
-          cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
+
+          if [ -n "$CACHIX_TOKEN" ]; then
+            cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
+          else
+            echo "Skipping Cachix push: No auth token found (likely a fork)."
+          fi
 
       - name: Check Disk Usage
         run: |
@@ -131,3 +156,16 @@ jobs:
           df -h /nix
           echo "--- Nix Store Size ---"
           du -sh /nix/store
+
+      - name: Show Package Tree (AArch64)
+        run: |
+          OUT_PATHS=$(cat outpaths.txt)
+          nix run nixpkgs#nvd -- tree $OUT_PATHS
+
+      - name: Notify on Failure (AArch64)
+        if: failure() && github.event_name == 'schedule' && secrets.DISCORD_WEBHOOK_ID != ''
+        uses: appleboy/discord-action@master
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          message: "🚨 Weekly NixOS build failed on **AArch64**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
