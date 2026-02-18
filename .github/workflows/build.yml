@@ -87,10 +87,10 @@ jobs:
       - name: Show Package Tree (x86_64)
         run: |
           OUT_PATHS=$(cat outpaths.txt)
-          nix-store -q --tree $OUT_PATHS
+          nix path-info -sh -r $OUT_PATHS
 
       - name: Notify on Failure (x86_64)
-        if: failure() && github.event_name == 'schedule' && env.WEBHOOK_ID != ''
+        if: failure() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && env.WEBHOOK_ID != ''
         uses: appleboy/discord-action@master
         with:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
@@ -167,10 +167,10 @@ jobs:
       - name: Show Package Tree (AArch64)
         run: |
           OUT_PATHS=$(cat outpaths.txt)
-          nix-store -q --tree $OUT_PATHS
+          nix path-info -sh -r $OUT_PATHS
 
       - name: Notify on Failure (AArch64)
-        if: failure() && github.event_name == 'schedule' && env.WEBHOOK_ID != ''
+        if: failure() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && env.WEBHOOK_ID != ''
         uses: appleboy/discord-action@master
         with:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
