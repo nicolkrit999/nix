@@ -87,7 +87,7 @@ jobs:
       - name: Show Package Tree (x86_64)
         run: |
           OUT_PATHS=$(cat outpaths.txt)
-          nix path-info --tree $OUT_PATHS
+          nix-store -q --tree $OUT_PATHS
 
       - name: Notify on Failure (x86_64)
         if: failure() && github.event_name == 'schedule' && env.WEBHOOK_ID != ''
@@ -167,7 +167,7 @@ jobs:
       - name: Show Package Tree (AArch64)
         run: |
           OUT_PATHS=$(cat outpaths.txt)
-          nix path-info --tree $OUT_PATHS
+          nix-store -q --tree $OUT_PATHS
 
       - name: Notify on Failure (AArch64)
         if: failure() && github.event_name == 'schedule' && env.WEBHOOK_ID != ''
