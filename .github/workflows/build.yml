@@ -6,6 +6,7 @@ on:
   push:
     branches: [develop, main]
   pull_request:
+  workflow_dispatch:
   schedule:
     # Weekly on Fridays at 05:00 UTC
     - cron: "0 5 * * 5" # Run the action automatically. This ensure configurations work even if the code is not changed for more than a week
