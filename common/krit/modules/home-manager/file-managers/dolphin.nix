@@ -1,8 +1,7 @@
-{
-  pkgs,
-  config,
-  lib,
-  ...
+{ pkgs
+, config
+, lib
+, ...
 }:
 let
   placesXml = ''
@@ -58,6 +57,11 @@ let
   '';
 in
 {
+  environment.systemPackages = with pkgs; [
+    kio-extras
+    kio-fuse
+  ];
+
   xdg.configFile."dolphinrc".text = ''
     [General]
     ShowFullPath=true

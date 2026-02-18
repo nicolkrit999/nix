@@ -1,9 +1,8 @@
-{
-  config,
-  pkgs,
-  lib,
-  vars,
-  ...
+{ config
+, pkgs
+, lib
+, vars
+, ...
 }:
 
 let
@@ -52,6 +51,7 @@ in
 {
   config = lib.mkIf (vars.guest or false) {
 
+
     users.users.guest = {
       isNormalUser = true;
       description = "Guest Account";
@@ -99,6 +99,7 @@ in
           DisableTelemetry = true;
         };
       })
+      iptables
       file-roller # Archive manager
       zenity # keep for the startup warning
     ];

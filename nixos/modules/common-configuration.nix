@@ -78,35 +78,28 @@ in
       fzf # Fuzzy finder (used by shells)
       git # Version control
       nixfmt # Nix formatter
-      nix-prefetch-scripts # Tools to get hashes for nix derivations (used in zsh.nix module)
-      starship # Shell prompt
-      iptables # Firewall utility
+      nix-prefetch-scripts # Tools to get hashes for nix derivations (used in every shell modules)
       wget # Downloader
       curl # Downloader
 
       # --- SYSTEM TOOLS ---
       foot # Tiny, zero-config terminal (Rescue tool)
-      glib # Low-level system library
       gsettings-desktop-schemas # Global theme settings
       libnotify # Library for desktop notifications (used by most de/wm modules)
-      polkit_gnome # Authentication agent
+      polkit_gnome # Authentication agent, forced in every de/wm
       seahorse # GNOME key and password manager
       sops # Secret management
       shellPkg # The selected shell package (bash, zsh, or fish)
       xdg-desktop-portal-gtk # GTK portal backend for file pickers
-      wvkbd # Virtual keyboard (for Wayland)
 
       # --- GRAPHICS & GUI SUPPORT ---
       gpu-screen-recorder # For recording/caelestia
       gtk3 # Standard GUI toolkit
       libsForQt5.qt5.qtwayland # Qt5 Wayland bridge
       kdePackages.qtwayland # Qt6 Wayland bridge
-      powerline-symbols # Terminal font glyphs
     ]
     ++ (with pkgs.kdePackages; [
       gwenview # Default image viewer as defined in mime.nix
-      kio-extras # Extra protocols for KDE file dialogs (needed for dolphin remote access)
-      kio-fuse # Mount remote filesystems (via ssh, ftp, etc.) in Dolphin
     ])
 
     ++ (with pkgs-unstable; [ ]);
@@ -125,6 +118,7 @@ in
     texlivePackages.hebrew-fonts # Hebrew support
     font-awesome # System icons (Waybar/Bar)
     powerline-fonts # Shell prompt glyphs
+    powerline-symbols # Terminal font glyphs
   ];
   fonts.fontconfig.enable = true;
 
