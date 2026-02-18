@@ -87,7 +87,7 @@ jobs:
       - name: Show Package Tree (x86_64)
         run: |
           OUT_PATHS=$(cat outpaths.txt)
-          nix run nixpkgs#nvd -- tree $OUT_PATHS
+          nix path-info --tree $OUT_PATHS
 
       - name: Notify on Failure (x86_64)
         if: failure() && github.event_name == 'schedule' && env.WEBHOOK_ID != ''
@@ -167,7 +167,7 @@ jobs:
       - name: Show Package Tree (AArch64)
         run: |
           OUT_PATHS=$(cat outpaths.txt)
-          nix run nixpkgs#nvd -- tree $OUT_PATHS
+          nix path-info --tree $OUT_PATHS
 
       - name: Notify on Failure (AArch64)
         if: failure() && github.event_name == 'schedule' && env.WEBHOOK_ID != ''
@@ -176,4 +176,3 @@ jobs:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
           webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
           message: "🚨 Weekly NixOS build failed on **AArch64**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
