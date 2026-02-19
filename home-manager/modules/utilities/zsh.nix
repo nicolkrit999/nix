@@ -1,8 +1,7 @@
-{
-  config,
-  lib,
-  vars,
-  ...
+{ config
+, lib
+, vars
+, ...
 }:
 
 lib.mkIf ((vars.shell or "zsh") == "zsh") {
@@ -98,6 +97,8 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         fzf-prev = ''fzf --preview="cat {}"'';
         fzf-editor = "${safeEditor} $(fzf -m --preview='cat {}')";
         zlist = "zoxide query -l -s"; # List all zoxide entries with scores
+        tksession = "tmux kill-session -t"; # Kill a tmux session by name
+        tks = "tmux kill-server"; # Kill all tmux sessions
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
