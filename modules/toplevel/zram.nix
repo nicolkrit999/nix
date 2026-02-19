@@ -1,14 +1,15 @@
-{ vars, ... }:
-{
-  zramSwap = {
-    enable = true;
+{ delib, ... }:
+delib.module {
+  name = "system.zram";
 
-    # Algorithm Selection:
-    # "lz4"  = Fastest, lower compression. Prioritizes speed/latency.
-    # "zstd" = Slower, better compression. Best for lower RAM.
-    algorithm = "zstd";
-    memoryPercent = vars.zramPercent or 50; # Default to 25% of RAM
-
-    priority = 999; # High priority to prioritize zram over disk swap
-  };
+  nixos.always =
+    { myconfig, ... }:
+    {
+      zramSwap = {
+        enable = true;
+        algorithm = "zstd";
+        memoryPercent = myconfig.constants.zramPercent or 50;
+        priority = 999;
+      };
+    };
 }

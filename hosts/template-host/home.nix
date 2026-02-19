@@ -1,7 +1,0 @@
-{
-  pkgs,
-  pkgs-unstable,
-  lib,
-  ...
-}:
-{ }

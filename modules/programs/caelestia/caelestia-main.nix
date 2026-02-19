@@ -1,17 +1,22 @@
-{ delib, inputs, ... }:
+{
+  delib,
+  inputs,
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 delib.module {
   name = "programs.caelestia";
   options.programs.caelestia = with delib; {
-    enable = boolOption false;
+    # Specifically toggle Caelestia for Hyprland
+    enableOnHyprland = boolOption false;
   };
 
-  home.ifEnabled =
-    {
-      pkgs,
-      lib,
-      myconfig,
-      ...
-    }:
+  # Notice we use `home.always` and check our custom option
+  home.always =
+    { cfg, myconfig, ... }:
+
     let
       caelestiaPkg = inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli;
 
@@ -104,7 +109,7 @@ delib.module {
         fi
       '';
     in
-    {
+    lib.mkIf cfg.enableOnHyprland {
       imports = [ inputs.caelestia-shell.homeManagerModules.default ];
 
       programs.caelestia = {

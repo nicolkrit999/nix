@@ -1,4 +1,10 @@
-{ delib, ... }:
+{
+  delib,
+  pkgs,
+  lib,
+  myconfig,
+  ...
+}:
 delib.module {
   name = "programs.cosmic";
   options.programs.cosmic = with delib; {
@@ -6,12 +12,6 @@ delib.module {
   };
 
   home.ifEnabled =
-    {
-      pkgs,
-      lib,
-      myconfig,
-      ...
-    }:
     let
       activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
       monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;

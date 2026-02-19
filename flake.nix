@@ -74,8 +74,14 @@
   };
 
   outputs =
-    { denix, ... }@inputs:
+    { denix, nixpkgs, ... }@inputs:
     let
+      allSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
+
+      forAllSystems = nixpkgs.lib.genAttrs allSystems;
       mkConfigurations =
         moduleSystem:
         denix.lib.configurations {
@@ -87,8 +93,8 @@
           paths = [
             ./hosts
             ./modules
-            ./rices
-            ./krit
+            ./packages
+            ./users
           ];
 
           specialArgs = { inherit inputs; };
@@ -96,5 +102,6 @@
     in
     {
       nixosConfigurations = mkConfigurations "nixos";
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
     };
 }

@@ -1,17 +1,27 @@
-{ config, vars, ... }:
 {
-  programs.plasma.overrideConfig = false;
+  delib,
+  ...
+}:
+delib.module {
+  name = "programs.kde";
 
-  programs.plasma.configFile = {
-    "spectaclerc" = {
-      "General" = {
-        "screenshotLocation" = "file://${vars.screenshots}/";
-        "filenameString" = "Screenshot_%Y%M%D_%H%m%S";
-        "rememberLastScreenshotPath" = false;
-      };
-      "ImageSave" = {
-        "imageSaveLocation" = "file://${vars.screenshots}/";
+  home.ifEnabled =
+    { cfg, myconfig, ... }:
+    {
+      programs.plasma.overrideConfig = false;
+
+      programs.plasma.configFile = {
+        "spectaclerc" = {
+          "General" = {
+            # 🌟 FIXED VARS
+            "screenshotLocation" = "file://${myconfig.constants.screenshots}/";
+            "filenameString" = "Screenshot_%Y%M%D_%H%m%S";
+            "rememberLastScreenshotPath" = false;
+          };
+          "ImageSave" = {
+            "imageSaveLocation" = "file://${myconfig.constants.screenshots}/";
+          };
+        };
       };
     };
-  };
 }

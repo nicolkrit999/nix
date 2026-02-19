@@ -1,147 +1,152 @@
 {
-  config,
+  delib,
   lib,
   pkgs,
-  vars,
   ...
 }:
-let
-  spectacleCmd = "${pkgs.kdePackages.spectacle}/bin/spectacle";
-in
-{
-  # ---------------------------------------------------------
-  # 2. HOTKEYS (Custom Commands)
-  # ---------------------------------------------------------
-  programs.plasma.hotkeys.commands = {
+delib.module {
+  name = "programs.kde";
 
-    # --- SPECTACLE (Meta + Ctrl) ---
-    "spectacle-open" = {
-      name = "Spectacle: Open";
-      key = "Meta+Ctrl+0";
-      command = "${spectacleCmd}";
-    };
-    "spectacle-launch" = {
-      name = "Spectacle: Launch";
-      key = "Meta+Ctrl+1";
-      command = "${spectacleCmd}";
-    };
-    "spectacle-active" = {
-      name = "Spectacle: Active Window";
-      key = "Meta+Ctrl+2";
-      command = "${spectacleCmd} -a";
-    };
-    "spectacle-fullscreen" = {
-      name = "Spectacle: Full Screen";
-      key = "Meta+Ctrl+3";
-      command = "${spectacleCmd} -f";
-    };
-    "spectacle-region" = {
-      name = "Spectacle: Region";
-      key = "Meta+Ctrl+4";
-      command = "${spectacleCmd} -r";
-    };
-    "spectacle-monitor" = {
-      name = "Spectacle: Current Monitor";
-      key = "Meta+Ctrl+5";
-      command = "${spectacleCmd} -m";
-    };
-    "spectacle-under-cursor" = {
-      name = "Spectacle: Window Under Cursor";
-      key = "Meta+Ctrl+6";
-      command = "${spectacleCmd} -u";
-    };
+  home.ifEnabled =
+    { cfg, myconfig, ... }:
+    let
+      spectacleCmd = "${pkgs.kdePackages.spectacle}/bin/spectacle";
+    in
+    {
+      # ---------------------------------------------------------
+      # 2. HOTKEYS (Custom Commands)
+      # ---------------------------------------------------------
+      programs.plasma.hotkeys.commands = {
 
-    # --- OTHER APPS ---
-    "launch-walker" = {
-      key = "Meta+A";
-      command = "walker";
-    };
+        # --- SPECTACLE (Meta + Ctrl) ---
+        "spectacle-open" = {
+          name = "Spectacle: Open";
+          key = "Meta+Ctrl+0";
+          command = "${spectacleCmd}";
+        };
+        "spectacle-launch" = {
+          name = "Spectacle: Launch";
+          key = "Meta+Ctrl+1";
+          command = "${spectacleCmd}";
+        };
+        "spectacle-active" = {
+          name = "Spectacle: Active Window";
+          key = "Meta+Ctrl+2";
+          command = "${spectacleCmd} -a";
+        };
+        "spectacle-fullscreen" = {
+          name = "Spectacle: Full Screen";
+          key = "Meta+Ctrl+3";
+          command = "${spectacleCmd} -f";
+        };
+        "spectacle-region" = {
+          name = "Spectacle: Region";
+          key = "Meta+Ctrl+4";
+          command = "${spectacleCmd} -r";
+        };
+        "spectacle-monitor" = {
+          name = "Spectacle: Current Monitor";
+          key = "Meta+Ctrl+5";
+          command = "${spectacleCmd} -m";
+        };
+        "spectacle-under-cursor" = {
+          name = "Spectacle: Window Under Cursor";
+          key = "Meta+Ctrl+6";
+          command = "${spectacleCmd} -u";
+        };
 
-    "launch-emoji" = {
-      key = "Meta+.";
-      command = "walker -m emojis";
-    };
-    "launch-clipboard" = {
-      key = "Meta+V";
-      command = "walker -m clipboard";
-    };
-    "launch-browser" = {
-      key = "Meta+B";
-      command = "${pkgs.${vars.browser}}/bin/${vars.browser}";
-    };
-    "launch-editor" = {
-      key = "Meta+C";
-      command =
-        if
-          builtins.elem vars.editor [
-            "neovim"
-            "nvim"
-            "nano"
-            "vim"
-            "helix"
-          ]
-        then
-          "${vars.term} -e ${vars.editor}"
-        else
-          "${vars.editor}";
-    };
-    "launch-terminal" = {
-      key = "Meta+Return";
-      command = vars.term;
-    };
-    "launch-filemanager" = {
-      key = "Meta+F";
-      command =
-        if
-          builtins.elem vars.fileManager [
-            "yazi"
-            "ranger"
-            "lf"
-            "nnn"
-          ]
-        then
-          "${vars.term} -e ${vars.fileManager}"
-        else
-          "${vars.fileManager}";
-    };
-  }
-  // (vars.kdeExtraBinds or { });
+        # --- OTHER APPS ---
+        "launch-walker" = {
+          key = "Meta+A";
+          command = "walker";
+        };
 
-  # ---------------------------------------------------------
-  # 3. GLOBAL SHORTCUTS
-  # ---------------------------------------------------------
-  programs.plasma.shortcuts = lib.mkForce {
+        "launch-emoji" = {
+          key = "Meta+.";
+          command = "walker -m emojis";
+        };
+        "launch-clipboard" = {
+          key = "Meta+V";
+          command = "walker -m clipboard";
+        };
+        "launch-browser" = {
+          key = "Meta+B";
+          command = "${pkgs.${myconfig.constants.browser}}/bin/${myconfig.constants.browser}";
+        };
+        "launch-editor" = {
+          key = "Meta+C";
+          command =
+            if
+              builtins.elem myconfig.constants.editor [
+                "neovim"
+                "nvim"
+                "nano"
+                "vim"
+                "helix"
+              ]
+            then
+              "${myconfig.constants.term} -e ${myconfig.constants.editor}"
+            else
+              "${myconfig.constants.editor}";
+        };
+        "launch-terminal" = {
+          key = "Meta+Return";
+          command = myconfig.constants.term;
+        };
+        "launch-filemanager" = {
+          key = "Meta+F";
+          command =
+            if
+              builtins.elem myconfig.constants.fileManager [
+                "yazi"
+                "ranger"
+                "lf"
+                "nnn"
+              ]
+            then
+              "${myconfig.constants.term} -e ${myconfig.constants.fileManager}"
+            else
+              "${myconfig.constants.fileManager}";
+        };
+      }
+      // cfg.extraBinds;
 
-    # --- UNBIND DEFAULTS ---
-    # Unbind conflicting keys
-    "plasmashell"."manage activities" = "none";
-    "kwin"."Show Activity Switcher" = "none";
-    "kwin"."Switch to Next Keyboard Layout" = "none";
+      # ---------------------------------------------------------
+      # 3. GLOBAL SHORTCUTS
+      # ---------------------------------------------------------
+      programs.plasma.shortcuts = lib.mkForce {
 
-    # Unbind standard Spectacle
-    "org.kde.spectacle.desktop" = {
-      "ActiveWindowScreenShot" = "none";
-      "FullScreenScreenShot" = "none";
-      "RectangularRegionScreenShot" = "none";
-      "_launch" = "none";
-      # Keep recording (Meta+Ctrl)
-      "RecordRegion" = "Meta+Ctrl+7";
-      "RecordScreen" = "Meta+Ctrl+8";
-      "RecordWindow" = "Meta+Ctrl+9";
+        # --- UNBIND DEFAULTS ---
+        # Unbind conflicting keys
+        "plasmashell"."manage activities" = "none";
+        "kwin"."Show Activity Switcher" = "none";
+        "kwin"."Switch to Next Keyboard Layout" = "none";
+
+        # Unbind standard Spectacle
+        "org.kde.spectacle.desktop" = {
+          "ActiveWindowScreenShot" = "none";
+          "FullScreenScreenShot" = "none";
+          "RectangularRegionScreenShot" = "none";
+          "_launch" = "none";
+          # Keep recording (Meta+Ctrl)
+          "RecordRegion" = "Meta+Ctrl+7";
+          "RecordScreen" = "Meta+Ctrl+8";
+          "RecordWindow" = "Meta+Ctrl+9";
+        };
+
+        # Session
+        "ksmserver"."Log Out" = "Meta+Shift+Delete";
+        "ksmserver"."Lock Session" = "Meta+Delete";
+
+        "powerdevil"."Switch to Balanced" = "none";
+        "plasmashell"."show-battery" = "none";
+
+        "org.kde.krunner.desktop"."_launch" = "Meta+Shift+K";
+        "kwin"."Window Close" = "Meta+Shift+C";
+        "kwin"."Overview" = "Meta+W";
+      };
+
+      # Ensure desktop entries are cleared
+      xdg.desktopEntries = { };
     };
-
-    # Session
-    "ksmserver"."Log Out" = "Meta+Shift+Delete";
-    "ksmserver"."Lock Session" = "Meta+Delete";
-
-    "powerdevil"."Switch to Balanced" = "none";
-    "plasmashell"."show-battery" = "none";
-
-    "org.kde.krunner.desktop"."_launch" = "Meta+Shift+K";
-    "kwin"."Window Close" = "Meta+Shift+C";
-    "kwin"."Overview" = "Meta+W";
-  };
-
-  # Ensure desktop entries are cleared
-  xdg.desktopEntries = { };
 }

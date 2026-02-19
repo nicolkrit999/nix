@@ -19,8 +19,8 @@ cinnamon = false;
    Create a file in `nixos/modules/cinnamon.nix`. Use `lib.mkIf` to ensure it only loads when the variable is true. For example:
 
 ```nix
-{ pkgs, lib, vars, ... }: {
-  services.xserver.desktopManager.cinnamon.enable = lib.mkIf (vars.cinnamon or false) true;
+{ pkgs, lib, myconfig, ... }: {
+  services.xserver.desktopManager.cinnamon.enable = lib.mkIf (myconfig.constants.cinnamon or false) true;
 
   # Exclude default packages if necessary
   environment.cinnamon.excludePackages = [  ];
@@ -52,7 +52,7 @@ To add Catppuccin theming support for a specific program:
    Open `home-manager/modules/stylix.nix` and add the program to the `targets` list to prevent conflicts.
 
 ```nix
-stylix.targets.program-name.enable = !vars.catppuccin;
+stylix.targets.program-name.enable = !myconfig.constants.catppuccin;
 
 ```
 
@@ -63,9 +63,9 @@ stylix.targets.program-name.enable = !vars.catppuccin;
 programs.program-name = {
   enable = true;
   # If Catppuccin is enabled, use its specific setting
-  theme = if vars.catppuccin then "catppuccin-${vars.catppuccinFlavor}"
+  theme = if myconfig.constants.catppuccin then "catppuccin-${myconfig.constants.catppuccinFlavor}"
           # Fallback to the generic Base16 theme
-          else "base16-${vars.base16Theme}";
+          else "base16-${myconfig.constants.base16Theme}";
 };
 
 ```
@@ -112,8 +112,8 @@ Best for simple flags (true/false) or strings (usernames, themes) that every hos
 2. **Usage:** In any module, simply add `vars` to the arguments and reference it.
 
 ```nix
-{ pkgs, vars, ... }: {
-  someOption = vars.myNewVariable;
+{ pkgs, myconfig, ... }: {
+  someOption = myconfig.constants.myNewVariable;
 }
 ```
 
@@ -125,8 +125,8 @@ Best for complex, per-host logic (e.g., defining monitor layouts or specific har
 2. **Usage:** In your code, use `vars` but provide a fallback in case the variable is missing.
 
 ```nix
-# If 'vars.mySpecialVar' doesn't exist, default to "default-value"
-someOption = vars.mySpecialVar or "default-value";
+# If 'myconfig.constants.mySpecialVar' doesn't exist, default to "default-value"
+someOption = myconfig.constants.mySpecialVar or "default-value";
 ```
 
 ---

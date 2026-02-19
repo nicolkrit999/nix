@@ -1,11 +1,11 @@
 {
   pkgs,
   lib,
-  vars,
+  myconfig,
   ...
 }:
 {
-  config = lib.mkIf (vars.flatpak or false) {
+  config = lib.mkIf (myconfig.constants.flatpak or false) {
 
     # Flatpak packages. Put them inside quotes """
     # 💡 HOW TO FIND PACKAGE NAMES:

@@ -1,17 +1,26 @@
-{ vars, ... }:
-{
-  # -----------------------------------------------------------------------
-  # 🎨 CATPPUCCIN THEME (official module)
-  # -----------------------------------------------------------------------
-  catppuccin.lazygit.enable = vars.catppuccin or false;
-  catppuccin.lazygit.flavor = vars.catppuccinFlavor or "mocha";
-  catppuccin.lazygit.accent = vars.catppuccinAccent or "mauve";
-  # -----------------------------------------------------------------------
-  programs.lazygit = {
-    enable = true;
-
-    settings = {
-      gui.showIcons = true; # Enables Nerd Font icons to match your terminal style
-    };
+{ delib, ... }:
+delib.module {
+  name = "programs.lazygit";
+  options.programs.lazygit = with delib; {
+    enable = boolOption false;
   };
+
+  home.ifEnabled =
+    { myconfig, ... }:
+    {
+      # -----------------------------------------------------------------------
+      # 🎨 CATPPUCCIN THEME (official module)
+      # -----------------------------------------------------------------------
+      catppuccin.lazygit.enable = myconfig.constants.catppuccin or false;
+      catppuccin.lazygit.flavor = myconfig.constants.catppuccinFlavor or "mocha";
+      catppuccin.lazygit.accent = myconfig.constants.catppuccinAccent or "mauve";
+      # -----------------------------------------------------------------------
+      programs.lazygit = {
+        enable = true;
+
+        settings = {
+          gui.showIcons = true; # Enables Nerd Font icons to match your terminal style
+        };
+      };
+    };
 }

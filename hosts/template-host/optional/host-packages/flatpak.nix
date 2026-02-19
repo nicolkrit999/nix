@@ -1,12 +1,12 @@
 {
   pkgs,
   lib,
-  vars,
+  myconfig,
   ...
 }:
 {
   # Only apply if flatpak is enabled in flake.nix
-  config = lib.mkIf (vars.flatpak or false) {
+  config = lib.mkIf (myconfig.constants.flatpak or false) {
 
     services.flatpak.enable = true;
 

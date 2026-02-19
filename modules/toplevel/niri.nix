@@ -1,14 +1,21 @@
 {
-  pkgs,
+  delib,
   lib,
-  vars,
+  pkgs,
   ...
 }:
-{
-  config = lib.mkIf (vars.niri or false) {
-    programs.niri = {
-      enable = true;
-      package = pkgs.niri;
+delib.module {
+  name = "programs.niri";
+
+  nixos.ifEnabled =
+    {
+      myconfig,
+      ...
+    }:
+    {
+      programs.niri = {
+        enable = true;
+        package = pkgs.niri;
+      };
     };
-  };
 }

@@ -131,7 +131,7 @@ Configures `nh` (Nix Helper), a CLI tool that speeds up rebuilds and creates vis
 
 This file is the system-level switch that enables the **Niri** Wayland compositor.
 
-- **Conditional Activation:** It checks the `vars.niri` variable. If set to `true` in your host configuration, it activates the module; otherwise, it does nothing.
+- **Conditional Activation:** It checks the `myconfig.constants.niri` variable. If set to `true` in your host configuration, it activates the module; otherwise, it does nothing.
 - **System Integration:** It installs the core `pkgs.niri` package and registers the desktop session, making "Niri" appear as an option in your login manager (SDDM/GDM).
 
 ## `nix.nix`

@@ -2,20 +2,19 @@
   inputs,
   pkgs,
   lib,
-  vars,
+  myconfig,
   config,
   ...
 }:
 {
   imports = [
-    ./modules/default.nix
     ./home-packages.nix
   ];
 
   home = {
-    username = vars.user;
-    homeDirectory = "/home/${vars.user}";
-    stateVersion = vars.homeStateVersion or "25.11";
+    username = myconfig.constants.user;
+    homeDirectory = "/home/${myconfig.constants.user}";
+    stateVersion = myconfig.constants.homeStateVersion or "25.11";
 
     # -------------------------------------------------------------------------
     # CRITICAL: Force .local/bin to be first in PATH
@@ -100,7 +99,7 @@
 
   # Link the script so KDE can find it
   home.file.".config/plasma-workspace/env/99-init-keyring.sh".source =
-    config.lib.file.mkOutOfStoreSymlink "/home/${vars.user}/.local/bin/init-gnome-keyring.sh";
+    config.lib.file.mkOutOfStoreSymlink "/home/${myconfig.constants.user}/.local/bin/init-gnome-keyring.sh";
 
   # -----------------------------------------------------------------------
   # 🧹 ACTIVATION: CLEANUP
@@ -119,7 +118,7 @@
     '';
 
     createEssentialDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      mkdir -p "${vars.screenshots}"
+      mkdir -p "${myconfig.constants.screenshots}"
     '';
 
     updateKDECache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

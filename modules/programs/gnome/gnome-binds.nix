@@ -1,14 +1,14 @@
-{ delib, ... }:
+{
+  delib,
+  pkgs,
+  lib,
+  ...
+}:
 delib.module {
   name = "programs.gnome";
   home.ifEnabled =
-    {
-      pkgs,
-      lib,
-      myconfig,
-      cfg,
-      ...
-    }:
+    { cfg, myconfig, ... }:
+
     let
 
       screenshotScript = pkgs.writeShellScript "launch-screenshot" ''
@@ -129,24 +129,22 @@ delib.module {
     in
     {
 
-      config = lib.mkIf (myconfig.constants.gnome or false) {
-        dconf.settings = {
-          "org/gnome/settings-daemon/plugins/media-keys" = {
-            custom-keybindings = dconfList;
-            screensaver = [ "<Super>Delete" ];
-            logout = [ "<Super><Shift>Delete" ];
-            screenshot = [ ];
-          };
+      dconf.settings = {
+        "org/gnome/settings-daemon/plugins/media-keys" = {
+          custom-keybindings = dconfList;
+          screensaver = [ "<Super>Delete" ];
+          logout = [ "<Super><Shift>Delete" ];
+          screenshot = [ ];
+        };
 
-          "org/gnome/desktop/wm/keybindings" = {
-            close = [ "<Super><Shift>c" ];
-          };
+        "org/gnome/desktop/wm/keybindings" = {
+          close = [ "<Super><Shift>c" ];
+        };
 
-          "org/gnome/shell/keybindings" = {
-            toggle-overview = [ "<Super>w" ];
-          };
-        }
-        // dconfSettings;
-      };
+        "org/gnome/shell/keybindings" = {
+          toggle-overview = [ "<Super>w" ];
+        };
+      }
+      // dconfSettings;
     };
 }

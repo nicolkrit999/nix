@@ -258,7 +258,7 @@ The build process separates "Data" from "Configuration":
                   vars = baseVars;
                   lib = nixpkgs.lib;
                   pkgs = import nixpkgs {
-                    system = baseVars.system;
+                    system = basemyconfig.constants.system;
                     config.allowUnfree = true;
                   };
                 }
@@ -277,7 +277,7 @@ The build process separates "Data" from "Configuration":
 
           # 7. Unstable pkgs
           pkgs-unstable = import nixpkgs-unstable {
-            system = hostVars.system;
+            system = hostmyconfig.constants.system;
             config.allowUnfree = true;
           };
         in
@@ -310,7 +310,7 @@ The build process separates "Data" from "Configuration":
 
             {
               # host-specific variables
-              nixpkgs.hostPlatform = hostVars.system;
+              nixpkgs.hostPlatform = hostmyconfig.constants.system;
             }
 
             # Home-Manager
@@ -330,7 +330,7 @@ The build process separates "Data" from "Configuration":
                 vars = hostVars;
               };
 
-              home-manager.users.${hostVars.user} = {
+              home-manager.users.${hostmyconfig.constants.user} = {
                 nixpkgs.config.allowUnfree = true;
 
                 imports = [
@@ -389,7 +389,7 @@ The build process separates "Data" from "Configuration":
 
           # 7. Unstable pkgs
           pkgs-unstable = import nixpkgs-unstable {
-            system = hostVars.system;
+            system = hostmyconfig.constants.system;
             config.allowUnfree = true;
           };
         in
@@ -476,7 +476,7 @@ Nix is declarative (defining _what_ should exist), but sometimes we need to perf
   inputs,
   pkgs,
   lib,
-  vars,
+  myconfig,
   config,
   ...
 }:
@@ -487,9 +487,9 @@ Nix is declarative (defining _what_ should exist), but sometimes we need to perf
   ];
 
   home = {
-    username = vars.user;
-    homeDirectory = "/home/${vars.user}";
-    stateVersion = vars.homeStateVersion or "25.11";
+    username = myconfig.constants.user;
+    homeDirectory = "/home/${myconfig.constants.user}";
+    stateVersion = myconfig.constants.homeStateVersion or "25.11";
 
     # -------------------------------------------------------------------------
     # CRITICAL: Force .local/bin to be first in PATH
@@ -574,7 +574,7 @@ Nix is declarative (defining _what_ should exist), but sometimes we need to perf
 
   # Link the script so KDE can find it
   home.file.".config/plasma-workspace/env/99-init-keyring.sh".source =
-    config.lib.file.mkOutOfStoreSymlink "/home/${vars.user}/.local/bin/init-gnome-keyring.sh";
+    config.lib.file.mkOutOfStoreSymlink "/home/${myconfig.constants.user}/.local/bin/init-gnome-keyring.sh";
 
   # -----------------------------------------------------------------------
   # 🧹 ACTIVATION: CLEANUP
@@ -593,7 +593,7 @@ Nix is declarative (defining _what_ should exist), but sometimes we need to perf
     '';
 
     createEssentialDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      mkdir -p "${vars.screenshots}"
+      mkdir -p "${myconfig.constants.screenshots}"
     '';
 
     updateKDECache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -643,7 +643,7 @@ The static list below contains utilities that are **required** for your environm
 {
   pkgs,
   pkgs-unstable,
-  vars,
+  myconfig,
   lib,
   config,
   ...
@@ -653,7 +653,7 @@ let
   # Ensure these names match the 'programs.<name>' module in Home Manager
   translatedEditor =
     let
-      e = vars.editor or "vscode";
+      e = myconfig.constants.editor or "vscode";
     in
     if e == "nvim" then "neovim" else e;
 
@@ -673,13 +673,13 @@ let
     else
       fallback;
 
-  termName = vars.term or "alacritty";
+  termName = myconfig.constants.term or "alacritty";
   myTermPkg = getPkg termName fallbackTerm;
 
-  browserName = vars.browser or "brave";
+  browserName = myconfig.constants.browser or "brave";
   myBrowserPkg = getPkg browserName fallbackBrowser;
 
-  fileManagerName = vars.fileManager or "dolphin";
+  fileManagerName = myconfig.constants.fileManager or "dolphin";
   myFileManagerPkg = getPkg fileManagerName fallbackFileManager;
 
   editorName = translatedEditor;
@@ -769,32 +769,32 @@ We use `dconf.settings` to declaratively set preferences that you would normally
   pkgs,
   lib,
   config,
-  vars,
+  myconfig,
   ...
 }:
 let
-  firstWallpaper = builtins.head vars.wallpapers;
+  firstWallpaper = builtins.head myconfig.constants.wallpapers;
   wallpaperPath = pkgs.fetchurl {
     url = firstWallpaper.wallpaperURL;
     sha256 = firstWallpaper.wallpaperSHA256;
   };
 
-  colorScheme = if vars.polarity == "dark" then "prefer-dark" else "prefer-light";
-  iconThemeName = if vars.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
+  colorScheme = if myconfig.constants.polarity == "dark" then "prefer-dark" else "prefer-light";
+  iconThemeName = if myconfig.constants.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
 in
 {
 
-  config = lib.mkIf (vars.gnome or false) {
+  config = lib.mkIf (myconfig.constants.gnome or false) {
     home.packages =
-      (lib.optionals vars.catppuccin [
+      (lib.optionals myconfig.constants.catppuccin [
         (pkgs.catppuccin-gtk.override {
-          accents = [ vars.catppuccinAccent ];
+          accents = [ myconfig.constants.catppuccinAccent ];
           size = "standard";
           tweaks = [
             "rimless"
             "black"
           ];
-          variant = vars.catppuccinFlavor or "mocha";
+          variant = myconfig.constants.catppuccinFlavor or "mocha";
         })
       ])
       ++ [
@@ -872,7 +872,7 @@ Wayland is newer than X11, so some apps need "convincing" to run correctly. We d
   lib,
   inputs,
   pkgs,
-  vars,
+  myconfig,
   ...
 }:
 let
@@ -881,12 +881,12 @@ let
 in
 {
 
-  config = lib.mkIf (vars.hyprland or false) {
+  config = lib.mkIf (myconfig.constants.hyprland or false) {
     # ----------------------------------------------------------------------------
     # 🎨 CATPPUCCIN THEME (official module)
-    catppuccin.hyprland.enable = vars.catppuccin or false;
-    catppuccin.hyprland.flavor = vars.catppuccinFlavor or "mocha";
-    catppuccin.hyprland.accent = vars.catppuccinAccent or "mauve";
+    catppuccin.hyprland.enable = myconfig.constants.catppuccin or false;
+    catppuccin.hyprland.flavor = myconfig.constants.catppuccinFlavor or "mocha";
+    catppuccin.hyprland.accent = myconfig.constants.catppuccinAccent or "mauve";
     # ----------------------------------------------------------------------------
 
     home.packages = with pkgs; [
@@ -918,7 +918,7 @@ in
         # These ensure apps (Electron, QT, etc.) know they are running on Wayland.
         env =
           let
-            firstMonitor = if builtins.length vars.monitors > 0 then builtins.head vars.monitors else "";
+            firstMonitor = if builtins.length myconfig.constants.monitors > 0 then builtins.head myconfig.constants.monitors else "";
             monitorParts = lib.splitString "," firstMonitor;
             rawScale = if (builtins.length monitorParts) >= 4 then builtins.elemAt monitorParts 3 else "1";
             gdkScale = if rawScale != "1" && rawScale != "1.0" then "2" else "1";
@@ -942,14 +942,14 @@ in
             "QT_QPA_PLATFORMTHEME,kde" # Tells Qt apps to use the 'kde' engine if available (enables breeze theme).
 
             # SYSTEM PATHS
-            "XDG_SCREENSHOTS_DIR,${vars.screenshots}" # Tells tools where to save screenshots by default.
+            "XDG_SCREENSHOTS_DIR,${myconfig.constants.screenshots}" # Tells tools where to save screenshots by default.
           ];
 
         # -----------------------------------------------------
         # 🖥️ Monitor Configuration
         # -----------------------------------------------------
         # Syntax: "PORT, RESOLUTION@HERTZ, POSITION, SCALE, TRANSFORM"
-        monitor = vars.monitors ++ [
+        monitor = myconfig.constants.monitors ++ [
           ",preferred,auto,1" # Fallback in case no monitors are defined in flake.nix
         ];
 
@@ -958,20 +958,20 @@ in
         # These are used by other modules using the variable references such as binds.nix
         # -----------------------------------------------------
         "$Mod" = "SUPER";
-        "$term" = "${vars.term}";
-        "$browser" = "${vars.browser}";
+        "$term" = "${myconfig.constants.term}";
+        "$browser" = "${myconfig.constants.browser}";
 
         # Distinguish between terminal-based and GUI file managers
         "$fileManager" = "${
-          if vars.fileManager == "yazi" || vars.fileManager == "ranger" then
-            "${vars.term} --class ${vars.fileManager} -e ${vars.fileManager}"
+          if myconfig.constants.fileManager == "yazi" || myconfig.constants.fileManager == "ranger" then
+            "${myconfig.constants.term} --class ${myconfig.constants.fileManager} -e ${myconfig.constants.fileManager}"
           else
-            "${vars.fileManager}"
+            "${myconfig.constants.fileManager}"
         }";
 
         # Distinguish between terminal-based and GUI editors
         "$editor" = "${
-          if vars.editor == "nvim" then "${vars.term} --class nvim-editor -e nvim" else "${vars.editor}"
+          if myconfig.constants.editor == "nvim" then "${myconfig.constants.term} --class nvim-editor -e nvim" else "${myconfig.constants.editor}"
         }";
 
         # Dynamic menu command based on launcher choice
@@ -979,9 +979,9 @@ in
 
         # 2. SHELL SPECIFIC LAUNCHER (Noctalia / Caelestia)
         "$shellMenu" = "${
-          if (vars.hyprlandCaelestia or false) then
+          if (myconfig.constants.hyprlandCaelestia or false) then
             "caelestiaqs ipc call drawers toggle launcher"
-          else if (vars.hyprlandNoctalia or false) then
+          else if (myconfig.constants.hyprlandNoctalia or false) then
             "sh -c '${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle'"
           else
             "walker"
@@ -996,7 +996,7 @@ in
 
           "pkill ibus-daemon" # Kill ibus given by gnome
         ]
-        ++ (vars.hyprland_Exec-Once or [ ]);
+        ++ (myconfig.constants.hyprland_Exec-Once or [ ]);
 
         # -----------------------------------------------------
         # 🎨 Look & Feel
@@ -1009,10 +1009,10 @@ in
           # 🎨 BORDERS
           # Border colors adapt based on whether catppuccin is enabled
           "col.active_border" =
-            if vars.catppuccin then "$accent" else "rgb(${config.lib.stylix.colors.base0D})";
+            if myconfig.constants.catppuccin then "$accent" else "rgb(${config.lib.stylix.colors.base0D})";
 
           "col.inactive_border" =
-            if vars.catppuccin then "$overlay0" else "rgb(${config.lib.stylix.colors.base03})";
+            if myconfig.constants.catppuccin then "$overlay0" else "rgb(${config.lib.stylix.colors.base03})";
 
           resize_on_border = true;
 
@@ -1040,8 +1040,8 @@ in
         # Layouts are defined in flake.nix and are handled
         # in such a way that they work regardless of desktop environment
         input = {
-          kb_layout = vars.keyboardLayout or "us";
-          kb_variant = vars.keyboardVariant or "";
+          kb_layout = myconfig.constants.keyboardLayout or "us";
+          kb_variant = myconfig.constants.keyboardVariant or "";
           kb_options = "grp:ctrl_alt_toggle"; # Ctrl+Alt to switch layout
         };
 
@@ -1118,13 +1118,13 @@ in
           "nofocus, class:^(xwaylandvideobridge)$"
 
         ]
-        ++ (vars.hyprlandWindowRules or [ ]);
+        ++ (myconfig.constants.hyprlandWindowRules or [ ]);
 
         workspace = [
           "w[tv1], gapsout:0, gapsin:0" # No gaps if only 1 window is visible
           "f[1], gapsout:0, gapsin:0" # No gaps if window is fullscreen
         ]
-        ++ (vars.hyprlandWorkspaces or [ ]);
+        ++ (myconfig.constants.hyprlandWorkspaces or [ ]);
       };
     };
   };
@@ -1166,7 +1166,7 @@ We use `overrideConfig = true` to ensure that our declarative settings take prec
   pkgs,
   config,
   lib,
-  vars,
+  myconfig,
   ...
 }:
 let
@@ -1178,11 +1178,11 @@ let
       url = wp.wallpaperURL;
       sha256 = wp.wallpaperSHA256;
     }}"
-  ) vars.wallpapers;
+  ) myconfig.constants.wallpapers;
 
   # 2. DETERMINE POLARITY
   # Helper to determine if we are in dark or light mode
-  polarity = vars.polarity or "dark";
+  polarity = myconfig.constants.polarity or "dark";
 
   # 3. HELPER FUNCTION
   # Capitalizes the first letter of a string (mocha -> Mocha)
@@ -1192,21 +1192,21 @@ let
   # 4. CONSTRUCT THEME NAME
   # Builds the exact theme string required by KDE (e.g., "CatppuccinMochaSky")
   theme =
-    if vars.catppuccin then
-      "Catppuccin${capitalize vars.catppuccinFlavor}${capitalize vars.catppuccinAccent}"
-    else if vars.polarity == "dark" then
+    if myconfig.constants.catppuccin then
+      "Catppuccin${capitalize myconfig.constants.catppuccinFlavor}${capitalize myconfig.constants.catppuccinAccent}"
+    else if myconfig.constants.polarity == "dark" then
       "BreezeDark"
     else
       "BreezeLight";
 
   # 5. LOOK AND FEEL
   lookAndFeel =
-    if vars.polarity == "dark" then "org.kde.breezedark.desktop" else "org.kde.breeze.desktop";
+    if myconfig.constants.polarity == "dark" then "org.kde.breezedark.desktop" else "org.kde.breeze.desktop";
   cursorTheme = config.stylix.cursor.name;
 in
 {
 
-  config = lib.mkIf (vars.kde or false) {
+  config = lib.mkIf (myconfig.constants.kde or false) {
 
     xdg.configFile."autostart/ibus-daemon.desktop".text = ''
       [Desktop Entry]
@@ -1240,8 +1240,8 @@ in
       # 6. ADVANCED CONFIG (kdeglobals)
       # Direct edits to the KDE configuration database
       configFile = {
-        "kdeglobals"."KDE"."widgetStyle" = if vars.catppuccin then "kvantum" else "Breeze";
-        "kdeglobals"."General"."AccentColor" = if vars.catppuccin then "203,166,247" else null; # Manual mauve fallback
+        "kdeglobals"."KDE"."widgetStyle" = if myconfig.constants.catppuccin then "kvantum" else "Breeze";
+        "kdeglobals"."General"."AccentColor" = if myconfig.constants.catppuccin then "203,166,247" else null; # Manual mauve fallback
       };
     };
 
@@ -1305,7 +1305,7 @@ This code is my personal one, but it may be change heavily based on your prefere
   pkgs,
   lib,
   config,
-  vars,
+  myconfig,
   ...
 }:
 let
@@ -1331,11 +1331,11 @@ let
   cssContent = builtins.readFile ./style.css;
   # 1. Hyprland logic: Show Waybar if no custom shell is set
   hyprlandWaybar =
-    (vars.hyprland or false)
-    && !((vars.hyprlandCaelestia or false) || (vars.hyprlandNoctalia or false));
+    (myconfig.constants.hyprland or false)
+    && !((myconfig.constants.hyprlandCaelestia or false) || (myconfig.constants.hyprlandNoctalia or false));
 
   # 2. Niri logic: Show Waybar if no custom shell is set
-  niriWaybar = (vars.niri or false) && !(vars.niriNoctalia or false);
+  niriWaybar = (myconfig.constants.niri or false) && !(myconfig.constants.niriNoctalia or false);
 in
 {
   config = lib.mkIf (hyprlandWaybar || niriWaybar) {
@@ -1377,14 +1377,14 @@ in
           ];
 
           # Workspaces Icon and layout
-          # A user may define host-specific icons (optional) in vars.waybarWorkspaceIcons
+          # A user may define host-specific icons (optional) in myconfig.constants.waybarWorkspaceIcons
           "hyprland/workspaces" = {
             disable-scroll = true;
             show-special = true;
             special-visible-only = true;
             all-outputs = false;
             format = "{name} {icon}";
-            format-icons = vars.waybarWorkspaceIcons or { };
+            format-icons = myconfig.constants.waybarWorkspaceIcons or { };
           };
 
           "niri/workspaces" = {
@@ -1401,13 +1401,13 @@ in
           };
 
           # Languages flags and/or text
-          # A user may define host-specific layout text (optional) in vars.waybarLayout
+          # A user may define host-specific layout text (optional) in myconfig.constants.waybarLayout
           "hyprland/language" = {
             min-length = 5;
             tooltip = true;
             on-click = "hyprctl switchxkblayout all next";
           }
-          // vars.waybarLayout or { };
+          // myconfig.constants.waybarLayout or { };
 
           "niri/language" = {
             format = "{}";
@@ -1415,21 +1415,21 @@ in
             on-click = "niri msg action switch-layout-next";
           }
 
-          // vars.waybarLayout or { };
+          // myconfig.constants.waybarLayout or { };
 
           "custom/weather" = {
-            format = "<span color='${c.base0C}'>${vars.weather or "London"}:</span> {} ";
+            format = "<span color='${c.base0C}'>${myconfig.constants.weather or "London"}:</span> {} ";
 
             exec =
               let
-                weatherLoc = vars.weather or "London";
+                weatherLoc = myconfig.constants.weather or "London";
               in
               "curl -s 'wttr.in/${weatherLoc}?format=%c%t' | sed 's/ //'";
 
             interval = 300;
             class = "weather";
 
-            on-click = ''xdg-open "https://wttr.in/${vars.weather or "London"}"'';
+            on-click = ''xdg-open "https://wttr.in/${myconfig.constants.weather or "London"}"'';
           };
 
           "pulseaudio" = {
@@ -1875,14 +1875,14 @@ Although the `kde` platform theme is the priority, this file still generates con
   pkgs,
   lib,
   config,
-  vars,
+  myconfig,
   ...
 }:
 let
-  hyprEnabled = vars.hyprland or false;
-  kdeEnabled = vars.kde or false;
+  hyprEnabled = myconfig.constants.hyprland or false;
+  kdeEnabled = myconfig.constants.kde or false;
   useKdePlatformTheme = hyprEnabled || kdeEnabled;
-  isDark = (vars.polarity or "dark") == "dark";
+  isDark = (myconfig.constants.polarity or "dark") == "dark";
   kdeColorScheme = if isDark then "BreezeDark" else "BreezeLight";
   iconThemeName = if isDark then "Papirus-Dark" else "Papirus-Light";
 in
@@ -1978,10 +1978,10 @@ You will notice that **`kde.enable`** and **`qt.enable`** are explicitly set to 
 
 #### How the Cohesion Works:
 
-Even though they are separate files, they stay synchronized via the global **`vars.polarity`** variable:
+Even though they are separate files, they stay synchronized via the global **`myconfig.constants.polarity`** variable:
 
-1. **Stylix (GTK & Others):** Reads `vars.polarity` (Dark/Light) and generates the appropriate GTK theme and wallpaper.
-2. **`qt.nix` (Qt & KDE):** Reads the same `vars.polarity` variable.
+1. **Stylix (GTK & Others):** Reads `myconfig.constants.polarity` (Dark/Light) and generates the appropriate GTK theme and wallpaper.
+2. **`qt.nix` (Qt & KDE):** Reads the same `myconfig.constants.polarity` variable.
 
 - If `dark`: It forces the native **Breeze Dark** theme and **Papirus-Dark** icons.
 - If `light`: It forces **Breeze Light** and **Papirus-Light**.
@@ -2005,23 +2005,23 @@ Regardless of which theme engine we use for specific apps, Stylix always manages
   pkgs,
   lib,
   inputs,
-  vars,
+  myconfig,
   ...
 }:
 let
   # If the variable is missing given the ! then the default is "true"
-  isCatppuccin = vars.catppuccin or false;
+  isCatppuccin = myconfig.constants.catppuccin or false;
 in
 {
   imports = [ inputs.stylix.homeModules.stylix ];
 
   stylix = {
     enable = true;
-    polarity = vars.polarity; # Sets a global preference for dark mode
-    base16Scheme = "${pkgs.base16-schemes}/share/themes/${vars.base16Theme}.yaml";
+    polarity = myconfig.constants.polarity; # Sets a global preference for dark mode
+    base16Scheme = "${pkgs.base16-schemes}/share/themes/${myconfig.constants.base16Theme}.yaml";
     image = pkgs.fetchurl {
-      url = (builtins.head vars.wallpapers).wallpaperURL;
-      sha256 = (builtins.head vars.wallpapers).wallpaperSHA256;
+      url = (builtins.head myconfig.constants.wallpapers).wallpaperURL;
+      sha256 = (builtins.head myconfig.constants.wallpapers).wallpaperSHA256;
     };
 
     # -----------------------------------------------------------------------
@@ -2041,7 +2041,7 @@ in
       # These should absolutely remain disabled because they cause conflicts
       kde.enable = false; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
       qt.enable = false; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
-      gnome.enable = vars.gnome or false;
+      gnome.enable = myconfig.constants.gnome or false;
 
       # These should remain enabled to avoid conflicts with other modules
       # N/A
@@ -2068,7 +2068,7 @@ in
       starship.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
 
     }
-    // (vars.stylixExclusions or { });
+    // (myconfig.constants.stylixExclusions or { });
 
     # -----------------------------------------------------------------------
     # 🖱️ MOUSE CURSOR
@@ -2105,43 +2105,43 @@ in
 
   dconf.settings = {
     "org/gnome/desktop/interface" = {
-      color-scheme = if vars.polarity == "dark" then "prefer-dark" else "prefer-light";
+      color-scheme = if myconfig.constants.polarity == "dark" then "prefer-dark" else "prefer-light";
     };
   };
 
-  home.sessionVariables = lib.mkIf (vars.catppuccin or false) {
+  home.sessionVariables = lib.mkIf (myconfig.constants.catppuccin or false) {
     # Fallback to mocha/mauve if flavor/accent are missing
-    GTK_THEME = "catppuccin-${vars.catppuccinFlavor or "mocha"}-${
-      vars.catppuccinAccent or "mauve"
+    GTK_THEME = "catppuccin-${myconfig.constants.catppuccinFlavor or "mocha"}-${
+      myconfig.constants.catppuccinAccent or "mauve"
     }-standard+rimless,black";
 
     XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS";
   };
 
-  gtk = lib.mkIf (vars.catppuccin or false) {
+  gtk = lib.mkIf (myconfig.constants.catppuccin or false) {
     enable = true;
     theme = {
       package = lib.mkForce (
         pkgs.catppuccin-gtk.override {
-          accents = [ (vars.catppuccinAccent or "mauve") ];
+          accents = [ (myconfig.constants.catppuccinAccent or "mauve") ];
           size = "standard";
           tweaks = [
             "rimless"
             "black"
           ];
-          variant = vars.catppuccinFlavor or "mocha";
+          variant = myconfig.constants.catppuccinFlavor or "mocha";
         }
       );
       # Fallback values for the theme name string
-      name = lib.mkForce "catppuccin-${vars.catppuccinFlavor or "mocha"}-${
-        vars.catppuccinAccent or "mauve"
+      name = lib.mkForce "catppuccin-${myconfig.constants.catppuccinFlavor or "mocha"}-${
+        myconfig.constants.catppuccinAccent or "mauve"
       }-standard+rimless,black";
     };
-    # 🌙 Fallback to dark mode (1) if vars.polarity is missing
+    # 🌙 Fallback to dark mode (1) if myconfig.constants.polarity is missing
     gtk3.extraConfig.gtk-application-prefer-dark-theme =
-      if (vars.polarity or "dark") == "dark" then 1 else 0;
+      if (myconfig.constants.polarity or "dark") == "dark" then 1 else 0;
     gtk4.extraConfig.gtk-application-prefer-dark-theme =
-      if (vars.polarity or "dark") == "dark" then 1 else 0;
+      if (myconfig.constants.polarity or "dark") == "dark" then 1 else 0;
   };
 }
 ```
@@ -2213,11 +2213,11 @@ This code is my personal one, but it may be change heavily based on your prefere
 {
   config,
   lib,
-  vars,
+  myconfig,
   ...
 }:
 
-lib.mkIf ((vars.shell or "zsh") == "zsh") {
+lib.mkIf ((myconfig.constants.shell or "zsh") == "zsh") {
   programs.zsh = {
     enable = true;
     enableCompletion = true;
@@ -2232,8 +2232,8 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
     shellAliases =
       let
         flakeDir = "~/nixOS";
-        safeEditor = vars.editor or "vscode";
-        isImpure = vars.nixImpure or false;
+        safeEditor = myconfig.constants.editor or "vscode";
+        isImpure = myconfig.constants.nixImpure or false;
 
         # Base commands
         baseSwitchCmd =
@@ -2254,8 +2254,8 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         # This wrap recognize if the current host is the "builder", allowing uploads
         wrapCachix =
           cmd:
-          if (vars.cachix.enable or false) && (vars.cachix.push or false) then
-            "env CACHIX_AUTH_TOKEN=$(command cat /run/secrets/cachix-auth-token) cachix watch-exec ${vars.cachix.name} -- ${cmd}"
+          if (myconfig.constants.cachix.enable or false) && (myconfig.constants.cachix.push or false) then
+            "env CACHIX_AUTH_TOKEN=$(command cat /run/secrets/cachix-auth-token) cachix watch-exec ${myconfig.constants.cachix.name} -- ${cmd}"
           else
             cmd;
 
@@ -2285,11 +2285,11 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
         cg = "nix-collect-garbage -d";
 
         # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
-        # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${vars.hostname}"; # Rebuild home-manager config
+        # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${myconfig.constants.hostname}"; # Rebuild home-manager config
 
         # Pkgs editing
         pkgs-home = "$EDITOR ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list
-        pkgs-host = "$EDITOR ${flakeDir}/hosts/${vars.hostname}/optional/host-packages/local-packages.nix"; # Edit host-specific packages list
+        pkgs-host = "$EDITOR ${flakeDir}/hosts/${myconfig.constants.hostname}/optional/host-packages/local-packages.nix"; # Edit host-specific packages list
 
         # Nix repo management
         fmt-dry = "cd ${flakeDir} && nix fmt -- --check"; # Check formatting without making changes (list files that need formatting)
@@ -2313,8 +2313,8 @@ lib.mkIf ((vars.shell or "zsh") == "zsh") {
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
-        sops-common = "cd ${flakeDir}/common/${vars.user}/sops && sops ${vars.user}-common-secrets-sops.yaml"; # Edit sops secrets file
-        sops-host = "cd ${flakeDir} && sops hosts/${vars.hostname}/optional/host-sops-nix/${vars.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
+        sops-common = "cd ${flakeDir}/common/${myconfig.constants.user}/sops && sops ${myconfig.constants.user}-common-secrets-sops.yaml"; # Edit sops secrets file
+        sops-host = "cd ${flakeDir} && sops hosts/${myconfig.constants.hostname}/optional/host-sops-nix/${myconfig.constants.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
 
         # Various
         reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
@@ -2537,11 +2537,11 @@ It establishes the default security posture for the OS:
   pkgs,
   pkgs-unstable,
   lib,
-  vars,
+  myconfig,
   ...
 }:
 let
-  currentShell = vars.shell or "zsh";
+  currentShell = myconfig.constants.shell or "zsh";
 
   shellPkg =
     if currentShell == "fish" then
@@ -2556,19 +2556,19 @@ in
   # ---------------------------------------------------------
   # 🖥️ HOST IDENTITY
   # ---------------------------------------------------------
-  networking.hostName = vars.hostname;
+  networking.hostName = myconfig.constants.hostname;
   networking.networkmanager.enable = true;
-  system.stateVersion = vars.stateVersion or "25.11";
+  system.stateVersion = myconfig.constants.stateVersion or "25.11";
 
   # ---------------------------------------------------------
   # 🌍 LOCALE & TIME
   # ---------------------------------------------------------
-  time.timeZone = vars.timeZone or "Etc/UTC";
+  time.timeZone = myconfig.constants.timeZone or "Etc/UTC";
 
   # Keyboard Layout
   services.xserver.xkb = {
-    layout = vars.keyboardLayout or "us";
-    variant = vars.keyboardVariant or "";
+    layout = myconfig.constants.keyboardLayout or "us";
+    variant = myconfig.constants.keyboardVariant or "";
   };
   console.useXkbConfig = true;
 
@@ -2730,7 +2730,7 @@ in
   # 🎨 GLOBAL THEME VARIABLES
   # -----------------------------------------------------
   environment.variables.GTK_APPLICATION_PREFER_DARK_THEME =
-    if vars.polarity == "dark" then "1" else "0";
+    if myconfig.constants.polarity == "dark" then "1" else "0";
 
   # -----------------------------------------------------
   # ⚡ SYSTEM TWEAKS
@@ -2864,7 +2864,7 @@ We define `XDG_BIN_HOME` and add it to the system `PATH`.
 
 ```nix
 {
-  vars,
+  myconfig,
   ...
 }:
 
@@ -2884,16 +2884,16 @@ let
   };
 
   # Select the correct command, or default to the name itself if unknown
-  finalEditor = editorFlags.${vars.editor} or vars.editor;
+  finalEditor = editorFlags.${myconfig.constants.editor} or myconfig.constants.editor;
 in
 {
 
   environment.localBinInPath = true;
 
   environment.sessionVariables = {
-    BROWSER = vars.browser;
+    BROWSER = myconfig.constants.browser;
 
-    TERMINAL = vars.term;
+    TERMINAL = myconfig.constants.term;
 
     EDITOR = finalEditor;
 
@@ -2946,7 +2946,7 @@ A custom script (`guest-warning`) runs on login using `zenity`. It displays a bi
   config,
   pkgs,
   lib,
-  vars,
+  myconfig,
   ...
 }:
 
@@ -2994,7 +2994,7 @@ let
   '';
 in
 {
-  config = lib.mkIf (vars.guest or false) {
+  config = lib.mkIf (myconfig.constants.guest or false) {
 
     users.users.guest = {
       isNormalUser = true;
@@ -3129,7 +3129,7 @@ Linux applications require exact `.desktop` filenames to register as default han
 ```nix
 {
   pkgs,
-  vars,
+  myconfig,
   lib,
   ...
 }:
@@ -3166,8 +3166,8 @@ let
   };
 
   # Check if the chosen editor is a terminal one
-  isTermEditor = builtins.hasAttr vars.editor termEditors;
-  editorConfig = termEditors.${vars.editor};
+  isTermEditor = builtins.hasAttr myconfig.constants.editor termEditors;
+  editorConfig = termEditors.${myconfig.constants.editor};
 
   # -----------------------------------------------------------------------
   # 2. LOGIC: Determine the .desktop file name
@@ -3175,17 +3175,17 @@ let
   myEditor =
     if isTermEditor then
       # If it's a terminal editor, use our custom generated file
-      "user-${vars.editor}.desktop"
+      "user-${myconfig.constants.editor}.desktop"
     else
     # If it's a GUI editor (VSCode), use the standard system file
-    if vars.editor == "vscode" || vars.editor == "code" then
+    if myconfig.constants.editor == "vscode" || myconfig.constants.editor == "code" then
       "code.desktop"
     else
-      "${vars.editor}.desktop";
+      "${myconfig.constants.editor}.desktop";
 
-  myBrowser = "${vars.browser}.desktop";
+  myBrowser = "${myconfig.constants.browser}.desktop";
   myFileManager =
-    if vars.fileManager == "dolphin" then "org.kde.dolphin.desktop" else "${vars.fileManager}.desktop";
+    if myconfig.constants.fileManager == "dolphin" then "org.kde.dolphin.desktop" else "${myconfig.constants.fileManager}.desktop";
 
 in
 {
@@ -3194,11 +3194,11 @@ in
   # -----------------------------------------------------------------------
   # This creates a file like: ~/.local/share/applications/user-neovim.desktop
   xdg.desktopEntries = lib.mkIf isTermEditor {
-    "user-${vars.editor}" = {
+    "user-${myconfig.constants.editor}" = {
       name = editorConfig.name;
       genericName = "Text Editor";
-      comment = "Edit text files in ${vars.term}";
-      exec = "${vars.term} -e ${editorConfig.bin} %F";
+      comment = "Edit text files in ${myconfig.constants.term}";
+      exec = "${myconfig.constants.term} -e ${editorConfig.bin} %F";
       icon = editorConfig.icon;
       terminal = false;
       categories = [
@@ -3333,7 +3333,7 @@ We use the modern **sddm-astronaut** theme
 {
   pkgs,
   lib,
-  vars,
+  myconfig,
   ...
 }:
 let
@@ -3367,7 +3367,7 @@ in
 
   services.displayManager.autoLogin = {
     enable = false;
-    user = vars.user;
+    user = myconfig.constants.user;
   };
 
   services.getty.autologinUser = null;
@@ -3402,10 +3402,10 @@ It set the default shell based on what the user choose as a variable
 ## The Code
 
 ```nix
-{ pkgs, vars, ... }:
+{ pkgs, myconfig, ... }:
 let
-  # 🛡️ FALLBACK: Defaults to "zsh" if vars.shell is missing
-  currentShell = vars.shell or "zsh";
+  # 🛡️ FALLBACK: Defaults to "zsh" if myconfig.constants.shell is missing
+  currentShell = myconfig.constants.shell or "zsh";
 
   shellPkg =
     if currentShell == "fish" then
@@ -3425,7 +3425,7 @@ in
 
   users = {
     defaultUserShell = shellPkg;
-    users.${vars.user} = {
+    users.${myconfig.constants.user} = {
       isNormalUser = true;
       shell = shellPkg;
       extraGroups = [

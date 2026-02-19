@@ -1,11 +1,11 @@
 {
   pkgs,
   pkgs-unstable,
-  vars,
+  myconfig,
   ...
 }:
 {
-  users.users.${vars.user}.packages =
+  users.users.${myconfig.constants.user}.packages =
     with pkgs;
     [
       # This allow guest user to not have this packages installed

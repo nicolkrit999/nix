@@ -282,7 +282,7 @@ This file defines the keybindings for Niri. It assigns specific keyboard combina
 
 This is the core configuration file for the Niri compositor. It controls the visual appearance, input devices, display layout, and startup behavior. It integrates deeply with **Stylix** to ensure the window borders and shadows match the system-wide color scheme.
 
-- **Monitor Management:** It contains complex logic to parse the `vars.monitors` list. It automatically identifies monitors marked as "disabled" in your variables and generates the corresponding Niri commands to turn them off, while configuring the resolution and scale for enabled ones.
+- **Monitor Management:** It contains complex logic to parse the `myconfig.constants.monitors` list. It automatically identifies monitors marked as "disabled" in your variables and generates the corresponding Niri commands to turn them off, while configuring the resolution and scale for enabled ones.
 - **Startup & Environment:** It manages the autostart of essential background services (like `xwayland-satellite`, `polkit-gnome`, and `swww-daemon`) and sets necessary environment variables for Wayland compatibility.
 - **Input & Layout:** It configures keyboard repeat rates, touchpad gestures (tap-to-click), and window layout settings (gaps, column widths, and focus rings).
 

@@ -1,23 +1,32 @@
-{ pkgs, lib, ... }:
 {
-  boot.loader = {
-    timeout = 30;
-    efi.canTouchEfiVariables = true;
+  delib,
+  lib,
+  pkgs,
+  ...
+}:
+delib.module {
+  name = "system.boot";
 
-    systemd-boot.enable = lib.mkForce false;
+  nixos.always = {
+    boot.loader = {
+      timeout = 30;
+      efi.canTouchEfiVariables = true;
 
-    grub = {
-      enable = lib.mkForce true;
-      device = "nodev";
-      efiSupport = true;
-      useOSProber = true;
-      extraGrubInstallArgs = [ "--bootloader-id=nixos" ];
+      systemd-boot.enable = lib.mkForce false;
 
-      extraEntries = ''
-        menuentry "UEFI Firmware Settings" {
-          fwsetup
-        }
-      '';
+      grub = {
+        enable = lib.mkForce true;
+        device = "nodev";
+        efiSupport = true;
+        useOSProber = true;
+        extraGrubInstallArgs = [ "--bootloader-id=nixos" ];
+
+        extraEntries = ''
+          menuentry "UEFI Firmware Settings" {
+            fwsetup
+          }
+        '';
+      };
     };
   };
 }

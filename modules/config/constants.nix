@@ -52,7 +52,26 @@ delib.module {
       base16Theme = strOption "catppuccin-mocha";
       catppuccin = boolOption false;
       catppuccinFlavor = strOption "mocha";
-      catppuccinAccent = "mauve";
+      catppuccinAccent = strOption "mauve";
     };
+
+    screenshots = strOption "$HOME/Pictures/Screenshots";
+    keyboardLayout = strOption "us";
+    keyboardVariant = strOption "";
+    pinnedApps = listOfOption str [ ];
+
+    # 🌟 RESTORED FROM VARIABLES.NIX.BAK
+    weather = strOption "Lugano";
+    useFahrenheit = boolOption false;
+    nixImpure = boolOption false;
+    customGitIgnores = listOfOption str [ ];
+
+    cachix = {
+      enable = boolOption false;
+      push = boolOption false;
+      name = strOption "";
+    };
+
+    timeZone = strOption "Etc/UTC";
   };
 }

@@ -1,33 +1,34 @@
-{ pkgs, vars, ... }:
-let
-  # 🛡️ FALLBACK: Defaults to "zsh" if vars.shell is missing
-  currentShell = vars.shell or "zsh";
+{ delib, pkgs, ... }:
+delib.module {
+  name = "system.user";
 
-  shellPkg =
-    if currentShell == "fish" then
-      pkgs.fish
-    else if currentShell == "zsh" then
-      pkgs.zsh
-    else
-      pkgs.bashInteractive;
-in
-{
-  programs.zsh.enable = currentShell == "zsh";
-  programs.fish.enable = currentShell == "fish";
+  nixos.always =
+    { myconfig, ... }:
+    let
+      currentShell = myconfig.constants.shell or "zsh";
 
-  # Currently the user can run some sudo commands without a password
-  # To require a password, uncomment the following line
-  #security.sudo.wheelNeedsPassword = true;
+      shellPkg =
+        if currentShell == "fish" then
+          pkgs.fish
+        else if currentShell == "zsh" then
+          pkgs.zsh
+        else
+          pkgs.bashInteractive;
+    in
+    {
+      programs.zsh.enable = currentShell == "zsh";
+      programs.fish.enable = currentShell == "fish";
 
-  users = {
-    defaultUserShell = shellPkg;
-    users.${vars.user} = {
-      isNormalUser = true;
-      shell = shellPkg;
-      extraGroups = [
-        "wheel"
-        "networkmanager"
-      ];
+      users = {
+        defaultUserShell = shellPkg;
+        users.${myconfig.constants.user} = {
+          isNormalUser = true;
+          shell = shellPkg;
+          extraGroups = [
+            "wheel"
+            "networkmanager"
+          ];
+        };
+      };
     };
-  };
 }

@@ -1,11 +1,11 @@
-{
-  lib,
-  config,
-  vars,
-  ...
-}:
-{
-  config = lib.mkIf (vars.tailscale or false) {
+{ delib, lib, ... }:
+delib.module {
+  name = "services.tailscale";
+  options.services.tailscale = with delib; {
+    enable = boolOption false;
+  };
+
+  nixos.ifEnabled = {
     services.tailscale.enable = true;
 
     networking.firewall = {
