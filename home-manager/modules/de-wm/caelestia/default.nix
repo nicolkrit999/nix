@@ -1,4 +1,0 @@
-{ ... }:
-{
-  imports = [ ./caelestia-main.nix ];
-}
