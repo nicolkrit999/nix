@@ -51,26 +51,24 @@
               '';
 
               packages = with python.pkgs; [
+                python # The Python interpreter itself
+                # 1. PYTHON PACKAGES & HOOKS
                 black # The uncompromising code formatter
                 flake8 # Style guide enforcement
                 isort # Sort imports alphabetically
-                jetbrains.pycharm-oss # Python IDE
                 pip # Package installer for Python
-                pyright # Static type checker
                 pylint # Source code analyzer
-                ruff # Extremely fast Python linter
                 setuptools # Library for packaging Python projects
                 venvShellHook # Hook to create and manage virtual-environments
 
-                # 3. TOOLS (static)
-                pkgs.pyright
-                pkgs.jetbrains.pycharm-oss
+                # 2. TOP-LEVEL TOOLS (static)
+                pkgs.pyright # Static type checker (Written in TS, top-level pkg)
+                pkgs.ruff # Extremely fast Python linter (Written in Rust, top-level pkg)
+                #pkgs.jetbrains.pycharm-oss
 
-                # Neovim plugins
+                # 3. NEOVIM PLUGINS
                 pkgs.vimPlugins.coc-pyright # Python support for CoC
-
                 (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [ p.python ]))
-
               ];
             };
         in
