@@ -1,21 +1,18 @@
+# 🌟 1. ALL standard NixOS variables go up here at the top!
 {
   delib,
-  config,
+  pkgs,
+  pkgs-unstable,
   lib,
+  config,
   ...
 }:
 delib.module {
   name = "system.home-packages";
 
+  # 🌟 2. Denix only provides its own variables here!
   nixos.always =
-    {
-      pkgs,
-      pkgs-unstable,
-      myconfig,
-      config,
-      lib,
-      ...
-    }:
+    { myconfig, ... }:
     let
       # 🔄 TRANSLATION LAYER
       translatedEditor =
@@ -54,7 +51,7 @@ delib.module {
     in
     {
       home-manager.users.${myconfig.constants.user} =
-        { config, lib, ... }: # 🌟 Home Manager's config safely loads here!
+        { config, lib, ... }: # 🌟 Home Manager's internal config & lib load here!
         let
           # ✅ The module check ONLY lives here now
           isModuleEnabled = name: lib.attrByPath [ "programs" name "enable" ] false config;
