@@ -13,7 +13,7 @@ delib.module {
   nixos.ifEnabled =
     {
 
-      nixos,
+      myconfig,
       ...
     }:
     let

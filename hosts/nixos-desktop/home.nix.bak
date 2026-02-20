@@ -2,7 +2,7 @@
   pkgs,
   pkgs-unstable,
   lib,
-  nixos,
+  myconfig,
   ...
 }:
 {

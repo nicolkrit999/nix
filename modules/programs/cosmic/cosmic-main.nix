@@ -2,7 +2,6 @@
   delib,
   pkgs,
   lib,
-  myconfig,
   ...
 }:
 delib.module {
@@ -12,6 +11,7 @@ delib.module {
   };
 
   home.ifEnabled =
+    { myconfig, ... }:
     let
       activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
       monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;

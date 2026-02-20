@@ -1,4 +1,4 @@
-{ delib, ... }:
+{ delib, pkgs, ... }:
 delib.module {
   name = "programs.bat";
   options.programs.bat = with delib; {
@@ -7,7 +7,6 @@ delib.module {
 
   home.ifEnabled =
     {
-      pkgs,
       myconfig,
       ...
     }:

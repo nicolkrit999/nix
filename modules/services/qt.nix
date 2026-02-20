@@ -1,4 +1,10 @@
-{ delib, ... }:
+{
+  delib,
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 delib.module {
   name = "programs.qt";
   options.programs.qt = with delib; {
@@ -7,10 +13,7 @@ delib.module {
 
   home.ifEnabled =
     {
-      pkgs,
-      lib,
-      config,
-      nixos,
+      myconfig,
       ...
     }:
     let

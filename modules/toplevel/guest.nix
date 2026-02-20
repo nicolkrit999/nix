@@ -12,9 +12,6 @@ delib.module {
   };
 
   nixos.ifEnabled =
-    {
-      ...
-    }:
     let
       guestUid = 2000;
 

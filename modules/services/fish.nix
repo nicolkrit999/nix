@@ -1,12 +1,15 @@
-{ delib, ... }:
+{
+  delib,
+  config,
+  lib,
+  ...
+}:
 delib.module {
   name = "programs.fish";
 
   home.always =
     {
-      config,
-      lib,
-      nixos,
+      myconfig,
       ...
     }:
     let

@@ -4,7 +4,7 @@
   addons,
   searchConfig,
   commonSettings,
-  nixos,
+  myconfig,
   ...
 }:
 delib.module {

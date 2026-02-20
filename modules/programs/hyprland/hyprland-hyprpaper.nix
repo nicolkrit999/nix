@@ -2,13 +2,13 @@
   delib,
   pkgs,
   lib,
-  myconfig,
   ...
 }:
 delib.module {
   name = "programs.hyprpaper"; # Assuming you register it directly
 
   home.always =
+    { myconfig, ... }:
     let
       activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
       monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;

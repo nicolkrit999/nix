@@ -10,7 +10,7 @@ delib.module {
 
   nixos.always =
     {
-      nixos,
+      myconfig,
       ...
     }:
     let

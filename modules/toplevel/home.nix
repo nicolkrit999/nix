@@ -1,4 +1,10 @@
-{ delib, pkgs, ... }:
+{
+  delib,
+  pkgs,
+  config,
+  lib,
+  ...
+}:
 delib.module {
   name = "system.home";
 

@@ -1,4 +1,9 @@
-{ delib, ... }:
+{
+  delib,
+  lib,
+  config,
+  ...
+}:
 delib.module {
   name = "programs.starship";
   options.programs.starship = with delib; {
@@ -7,9 +12,8 @@ delib.module {
 
   home.ifEnabled =
     {
-      lib,
-      config,
-      nixos,
+
+      myconfig,
       ...
     }:
     let

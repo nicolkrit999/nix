@@ -1,4 +1,9 @@
-{ delib, pkgs, ... }:
+{
+  delib,
+  pkgs,
+  lib,
+  ...
+}:
 delib.module {
   name = "programs.tmux";
   options.programs.tmux = with delib; {
@@ -7,7 +12,6 @@ delib.module {
 
   home.ifEnabled =
     {
-      lib,
       myconfig,
       ...
     }:

@@ -1,4 +1,4 @@
-{ delib, ... }:
+{ delib, lib, ... }:
 delib.module {
   name = "programs.git";
   # 🌟 Enabled by default!
@@ -8,7 +8,6 @@ delib.module {
 
   home.ifEnabled =
     {
-      lib,
       myconfig,
       ...
     }:
@@ -16,8 +15,8 @@ delib.module {
       programs.git = {
         enable = true;
 
-        settings.user.name = lib.mkIf (nixos.constants ? gitUserName) myconfig.constants.gitUserName;
-        settings.user.email = lib.mkIf (nixos.constants ? gitUserEmail) myconfig.constants.gitUserEmail;
+        settings.user.name = lib.mkIf (myconfig.constants ? gitUserName) myconfig.constants.gitUserName;
+        settings.user.email = lib.mkIf (myconfig.constants ? gitUserEmail) myconfig.constants.gitUserEmail;
 
         lfs.enable = true;
 

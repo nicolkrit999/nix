@@ -1,9 +1,9 @@
-{ delib, ... }:
+{ delib, lib, ... }:
 delib.module {
   name = "programs.hyprlock";
 
   home.always =
-    { lib, myconfig, ... }:
+    { myconfig, ... }:
     let
       # 🌟 EXACT ORIGINAL FALLBACK LOGIC
       hyprlandFallback =

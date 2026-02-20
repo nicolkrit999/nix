@@ -1,4 +1,9 @@
-{ delib, ... }:
+{
+  delib,
+  pkgs,
+  lib,
+  ...
+}:
 delib.module {
   name = "programs.mime";
   # 🌟 Enabled by default to protect your desktop routing!
@@ -8,9 +13,7 @@ delib.module {
 
   home.ifEnabled =
     {
-      pkgs,
-      lib,
-      nixos,
+      myconfig,
       ...
     }:
     let

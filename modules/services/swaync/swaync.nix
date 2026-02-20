@@ -14,7 +14,7 @@ delib.module {
   home.ifEnabled =
     {
 
-      nixos,
+      myconfig,
       cfg,
       ...
     }:
