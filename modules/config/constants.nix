@@ -70,6 +70,7 @@ delib.module {
       enable = boolOption false;
       push = boolOption false;
       name = strOption "";
+      publicKey = strOption "";
     };
 
     timeZone = strOption "Etc/UTC";

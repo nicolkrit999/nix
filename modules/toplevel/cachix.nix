@@ -11,41 +11,32 @@ delib.module {
   nixos.always =
     { myconfig, ... }:
     let
-      # Define your local variable 'cfg' from constants
-      cfg =
-        myconfig.constants.cachix or {
-          enable = false;
-          push = false;
-          name = "";
-          publicKey = "";
-        };
+      # Use exactly what is defined in constants.nix
+      cfg = myconfig.constants.cachix;
+      user = myconfig.constants.username;
 
       sopsFile = ../../hosts/${config.networking.hostName}/optional/host-sops-nix/${config.networking.hostName}-secrets-sops.yaml;
     in
     {
-      # 🌟 The fix: Wrap the merge logic inside 'config'
-      config = lib.mkMerge [
-        (lib.mkIf cfg.enable {
-          nix.settings = {
-            substituters = [ "https://${cfg.name}.cachix.org" ];
-            trusted-public-keys = [ cfg.publicKey ];
-          };
-          environment.systemPackages = [ pkgs.cachix ];
-        })
-        (lib.mkIf (cfg.enable && cfg.push) {
-          sops.secrets."cachix-auth-token" = {
-            inherit sopsFile;
-            mode = "0440";
-            owner = myconfig.constants.username; # Ensure this matches your constants naming
-            group = "wheel";
-          };
+      # Use standard NixOS syntax inside the return set
+      nix.settings = lib.mkIf cfg.enable {
+        substituters = [ "https://${cfg.name}.cachix.org" ];
+        trusted-public-keys = [ cfg.publicKey ];
+      };
 
-          environment.shellAliases = {
-            rebuild-push = "export CACHIX_AUTH_TOKEN=$(cat ${
-              config.sops.secrets."cachix-auth-token".path
-            }) && sudo nixos-rebuild switch --flake . && nix path-info -r /run/current-system | cachix push ${cfg.name}";
-          };
-        })
-      ];
+      environment.systemPackages = lib.mkIf cfg.enable [ pkgs.cachix ];
+
+      sops.secrets."cachix-auth-token" = lib.mkIf (cfg.enable && cfg.push) {
+        inherit sopsFile;
+        mode = "0440";
+        owner = user;
+        group = "wheel";
+      };
+
+      environment.shellAliases = lib.mkIf (cfg.enable && cfg.push) {
+        rebuild-push = "export CACHIX_AUTH_TOKEN=$(cat ${
+          config.sops.secrets."cachix-auth-token".path
+        }) && sudo nixos-rebuild switch --flake . && nix path-info -r /run/current-system | cachix push ${cfg.name}";
+      };
     };
 }
