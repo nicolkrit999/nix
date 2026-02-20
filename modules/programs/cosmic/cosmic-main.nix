@@ -2,7 +2,7 @@
   delib,
   pkgs,
   lib,
-  nixos,
+  myconfig,
   ...
 }:
 delib.module {

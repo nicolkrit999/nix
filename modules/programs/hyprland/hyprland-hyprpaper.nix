@@ -2,7 +2,7 @@
   delib,
   pkgs,
   lib,
-  nixos,
+  myconfig,
   ...
 }:
 delib.module {
@@ -24,9 +24,9 @@ delib.module {
 
       # 🌟 EXACT ORIGINAL CONDITION
       hyprlandFallback =
-        (nixos.programs.hyprland.enable or false)
-        && !(nixos.programs.caelestia.enableOnHyprland or false)
-        && !(nixos.programs.noctalia.enableOnHyprland or false);
+        (myconfig.programs.hyprland.enable or false)
+        && !(myconfig.programs.caelestia.enableOnHyprland or false)
+        && !(myconfig.programs.noctalia.enableOnHyprland or false);
     in
     lib.mkIf hyprlandFallback {
       services.hyprpaper = {
