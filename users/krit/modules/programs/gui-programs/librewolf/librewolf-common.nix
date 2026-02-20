@@ -267,7 +267,7 @@ delib.module {
 
         profiles = {
           default = (
-            import ./profiles/librewolf-profile-default.nix-snippet {
+            import ./profiles/librewolf-profile-default.nix {
               constants = myconfig.constants;
               inherit
                 pkgs
@@ -280,7 +280,7 @@ delib.module {
           );
 
           privacy = (
-            import ./profiles/librewolf-profile-privacy.nix-snippet {
+            import ./profiles/librewolf-profile-privacy.nix {
               constants = myconfig.constants;
               inherit
                 pkgs

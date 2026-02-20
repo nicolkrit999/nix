@@ -1,16 +1,8 @@
 { delib, ... }:
 delib.module {
-  name = "programs.home-packages";
+  name = "system.home-packages";
 
   home.always =
-    {
-      pkgs,
-      pkgs-unstable,
-      myconfig,
-      lib,
-      config,
-      ...
-    }:
     let
       # 🔄 TRANSLATION LAYER
       # Ensure these names match the 'programs.<name>' module in Home Manager

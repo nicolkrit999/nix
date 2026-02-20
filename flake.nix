@@ -86,6 +86,8 @@
         moduleSystem:
         denix.lib.configurations {
           inherit moduleSystem;
+
+          homeManager = inputs.home-manager;
           homeManagerUser = "krit";
 
           # 🌟 DENIX MAGIC: This tells Denix to recursively scan these 4 folders.
