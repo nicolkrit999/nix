@@ -23,6 +23,7 @@ delib.module {
     # ⚙️ ADVANCED SYSTEM CONSTANTS
     # ---------------------------------------------------------------
     zramPercent = intOption 25;
+    snapshots = boolOption false;
     snapshotRetention = {
       hourly = strOption "24";
       daily = strOption "7";
