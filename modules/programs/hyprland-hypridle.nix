@@ -17,7 +17,7 @@ delib.module {
   home.always =
     {
       cfg,
-      nixos,
+      myconfig,
       ...
     }:
     let
