@@ -22,7 +22,7 @@ delib.module {
           "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Kay/contents/images/1080x1920.png";
 
       # Fetch the timeout from your new Hypridle module (fallback to 600 if not enabled)
-      idleTimeout = nixos.services.hypridle.lockTimeout or 600;
+      idleTimeout = myconfig.services.hypridle.lockTimeout or 600;
     in
     {
       programs.plasma.kscreenlocker = {
