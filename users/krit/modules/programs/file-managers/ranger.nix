@@ -58,7 +58,7 @@ delib.module {
           preview_images = true; # Enable image previews in terminal
           preview_images_method =
             if
-              builtins.elem constants.term [
+              builtins.elem myconfig.constants.term [
                 "kitty"
                 "ghostty"
                 "konsole"
@@ -69,7 +69,7 @@ delib.module {
             then
               "kitty"
             else if
-              builtins.elem constants.term [
+              builtins.elem myconfig.constants.term [
                 "foot"
                 "blackbox"
               ]
@@ -132,7 +132,7 @@ delib.module {
       xdg.desktopEntries.ranger = lib.mkForce {
         name = "Ranger";
         genericName = "File Manager";
-        exec = "${constants.term} --class ranger -e ranger";
+        exec = "${myconfig.constants.term} --class ranger -e ranger";
         terminal = false;
         categories = [
           "System"

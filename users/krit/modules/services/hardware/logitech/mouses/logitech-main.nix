@@ -6,7 +6,7 @@ delib.module {
   };
 
   nixos.ifEnabled =
-    { cfg, ... }:
+    { cfg, myconfig, ... }:
     {
 
       environment.systemPackages = with pkgs; [

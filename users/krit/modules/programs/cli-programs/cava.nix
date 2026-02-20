@@ -7,7 +7,7 @@ delib.module {
   };
 
   home.ifEnabled =
-    { cfg, ... }:
+    { cfg, myconfig, ... }:
     {
       # Only applies if enabled
       programs.cava = {

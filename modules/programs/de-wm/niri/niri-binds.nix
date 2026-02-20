@@ -12,7 +12,7 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      constants,
+      myconfig,
       ...
     }: # Corrected: added the lambda required by delib
     let
@@ -27,7 +27,7 @@ delib.module {
 
         then
           [
-            "${constants.terminal}"
+            "${myconfig.constants.terminal}"
             "-e"
             app
           ]
@@ -39,7 +39,7 @@ delib.module {
       walkerCommand = [ "walker" ];
 
       shellLauncherCommand =
-        if (constants.niriNoctalia or false) then
+        if (myconfig.constants.niriNoctalia or false) then
           [
             "sh"
             "-c"
@@ -54,12 +54,12 @@ delib.module {
       # -----------------------------------------------------------------------
       # 🚀 APPLICATIONS
       # -----------------------------------------------------------------------
-      "Mod+Return".action.spawn = [ "${constants.terminal}" ];
+      "Mod+Return".action.spawn = [ "${myconfig.constants.terminal}" ];
       "Mod+A".action.spawn = walkerCommand;
       "Mod+Shift+A".action.spawn = shellLauncherCommand;
-      "Mod+B".action.spawn = [ "${constants.browser}" ];
-      "Mod+F".action.spawn = spawnApp constants.fileManager;
-      "Mod+C".action.spawn = spawnApp constants.editor;
+      "Mod+B".action.spawn = [ "${myconfig.constants.browser}" ];
+      "Mod+F".action.spawn = spawnApp myconfig.constants.fileManager;
+      "Mod+C".action.spawn = spawnApp myconfig.constants.editor;
 
       # -----------------------------------------------------------------------
       # 🪟 WINDOW MANAGEMENT

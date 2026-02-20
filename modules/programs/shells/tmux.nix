@@ -12,20 +12,21 @@ delib.module {
 
   home.ifEnabled =
     {
-      constants,
+      cfg,
+      myconfig,
       ...
     }:
     {
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME
       # -----------------------------------------------------------------------
-      catppuccin.tmux.enable = constants.catppuccin or false;
-      catppuccin.tmux.flavor = constants.catppuccinFlavor or "mocha";
+      catppuccin.tmux.enable = myconfig.constants.catppuccin or false;
+      catppuccin.tmux.flavor = myconfig.constants.catppuccinFlavor or "mocha";
 
-      catppuccin.tmux.extraConfig = lib.mkIf constants.catppuccin ''
+      catppuccin.tmux.extraConfig = lib.mkIf myconfig.constants.catppuccin ''
         set -g @catppuccin_window_status_style "rounded"
         set -g @catppuccin_status_modules_right "directory session user host"
-        set -g @catppuccin_window_current_fill "${constants.catppuccinAccent}"
+        set -g @catppuccin_window_current_fill "${myconfig.constants.catppuccinAccent}"
       '';
 
       programs.tmux = {

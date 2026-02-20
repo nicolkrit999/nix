@@ -8,14 +8,14 @@ delib.module {
 
   home.ifEnabled =
     {
-      constants,
       cfg,
+      myconfig,
       ...
     }:
     let
       primaryMonitorStr =
-        if builtins.length constants.monitors > 0 then
-          builtins.elemAt constants.monitors 0
+        if builtins.length myconfig.constants.monitors > 0 then
+          builtins.elemAt myconfig.constants.monitors 0
         else
           "DP-1,1920x1080@60,0x0,1";
       monitorParts = lib.splitString "," primaryMonitorStr;
@@ -25,7 +25,7 @@ delib.module {
       screenHeight = lib.toInt heightStr;
       panelHeight = builtins.floor (screenHeight * 2.5e-2);
 
-      rawPinnedApps = constants.pinnedApps or [ ];
+      rawPinnedApps = myconfig.constants.pinnedApps or [ ];
 
       hasPins = builtins.length rawPinnedApps > 0;
       pinnedLaunchers = builtins.map (app: "applications:${app}") rawPinnedApps;

@@ -8,7 +8,7 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      constants,
+      myconfig,
       ...
     }:
     {
@@ -16,8 +16,8 @@ delib.module {
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME
       # -----------------------------------------------------------------------
-      catppuccin.zathura.enable = constants.catppuccin or false;
-      catppuccin.zathura.flavor = constants.catppuccinFlavor or "mocha";
+      catppuccin.zathura.enable = myconfig.constants.catppuccin or false;
+      catppuccin.zathura.flavor = myconfig.constants.catppuccinFlavor or "mocha";
 
       programs.zathura = {
         enable = true;

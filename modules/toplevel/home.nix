@@ -9,16 +9,16 @@ delib.module {
   name = "home";
 
   nixos.always =
-    { constants, ... }:
+    { cfg, myconfig, ... }:
     {
-      home-manager.users.${constants.user} =
+      home-manager.users.${myconfig.constants.user} =
         { config, lib, ... }:
         {
 
           home = {
-            username = constants.user;
-            homeDirectory = "/home/${constants.user}";
-            stateVersion = constants.homeStateVersion or "25.11";
+            username = myconfig.constants.user;
+            homeDirectory = "/home/${myconfig.constants.user}";
+            stateVersion = myconfig.constants.homeStateVersion or "25.11";
             sessionPath = [ "$HOME/.local/bin" ];
           };
 
@@ -82,7 +82,7 @@ delib.module {
           };
 
           home.file.".config/plasma-workspace/env/99-init-keyring.sh".source =
-            config.lib.file.mkOutOfStoreSymlink "/home/${constants.user}/.local/bin/init-gnome-keyring.sh";
+            config.lib.file.mkOutOfStoreSymlink "/home/${myconfig.constants.user}/.local/bin/init-gnome-keyring.sh";
 
           home.activation = {
             removeExistingConfigs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
@@ -97,7 +97,7 @@ delib.module {
               rm -f "$HOME/.local/share/applications/mimeapps.list"
             '';
             createEssentialDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-              mkdir -p "${constants.screenshots}"
+              mkdir -p "${myconfig.constants.screenshots}"
             '';
             updateKDECache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
               if command -v kbuildsycoca6 >/dev/null; then

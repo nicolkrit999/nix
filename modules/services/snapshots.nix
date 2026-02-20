@@ -12,20 +12,21 @@ delib.module {
 
   nixos.ifEnabled =
     {
-      constants,
+      cfg,
+      myconfig,
       ...
     }:
     let
       # Use the retention constants from your host configuration
       retention = {
-        hourly = constants.snapshotRetention.hourly or "12";
-        daily = constants.snapshotRetention.daily or "3";
-        weekly = constants.snapshotRetention.weekly or "3";
-        monthly = constants.snapshotRetention.monthly or "2";
-        yearly = constants.snapshotRetention.yearly or "1";
+        hourly = myconfig.constants.snapshotRetention.hourly or "12";
+        daily = myconfig.constants.snapshotRetention.daily or "3";
+        weekly = myconfig.constants.snapshotRetention.weekly or "3";
+        monthly = myconfig.constants.snapshotRetention.monthly or "2";
+        yearly = myconfig.constants.snapshotRetention.yearly or "1";
       };
 
-      user = constants.user; # Align with constants.nix
+      user = myconfig.constants.user; # Align with myconfig.constants.nix
     in
     {
       # 🌟 Removed the extra 'config =' wrapper and 'lib.mkIf cfg'

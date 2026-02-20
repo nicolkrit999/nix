@@ -13,7 +13,8 @@ delib.module {
   nixos.ifEnabled =
     {
 
-      constants,
+      cfg,
+      myconfig,
       ...
     }:
     let
@@ -60,7 +61,7 @@ delib.module {
 
       services.displayManager.autoLogin = {
         enable = false;
-        user = constants.user;
+        user = myconfig.constants.user;
       };
 
       services.getty.autologinUser = null;

@@ -6,9 +6,9 @@ delib.module {
   };
 
   home.ifEnabled =
-    { constants, ... }:
+    { cfg, myconfig, ... }:
     let
-      currentShell = constants.shell or "zsh";
+      currentShell = myconfig.constants.shell or "zsh";
     in
     {
       programs.zoxide = {

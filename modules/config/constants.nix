@@ -67,6 +67,9 @@ delib.module {
     nixImpure = boolOption false;
     customGitIgnores = listOfOption str [ ];
 
+    waybarLayout = attrsOption { };
+    waybarWorkspaceIcons = attrsOption { };
+
     cachix = {
       enable = boolOption false;
       push = boolOption false;

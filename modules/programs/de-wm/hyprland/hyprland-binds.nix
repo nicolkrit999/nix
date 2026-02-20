@@ -9,7 +9,7 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      constants,
+      myconfig,
       ...
     }:
     {
@@ -123,7 +123,7 @@ delib.module {
           "$Mod,       S, togglespecialworkspace,  magic" # Toggle scratchpad visibility
           "$Mod SHIFT, S, movetoworkspace, special:magic" # Move window to scratchpad
         ]
-        ++ (constants.hyprlandExtraBinds or [ ]);
+        ++ (myconfig.constants.hyprlandExtraBinds or [ ]);
 
         # MOVE/RESIZE WINDOWS WITH MAINMOD + LMB/RMB AND DRAGGING
         bindm = [

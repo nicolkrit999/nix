@@ -13,14 +13,14 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      constants,
+      myconfig,
       ...
     }:
     {
       xdg.desktopEntries.custom-nvim = lib.mkForce {
         name = "Neovim";
         genericName = "Text Editor";
-        exec = "${pkgs.${constants.term}}/bin/${constants.term} --class nvim -e nvim %F";
+        exec = "${pkgs.${myconfig.constants.term}}/bin/${myconfig.constants.term} --class nvim -e nvim %F";
         terminal = false;
         icon = "nvim";
         startupNotify = true;

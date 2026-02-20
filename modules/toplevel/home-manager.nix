@@ -4,7 +4,7 @@ delib.module {
 
   # 🌟 Use 'nixos.always' so the 'home-manager' option is at the system root
   nixos.always =
-    { constants, ... }:
+    { cfg, myconfig, ... }:
     {
       imports = [ inputs.home-manager.nixosModules.default ];
 

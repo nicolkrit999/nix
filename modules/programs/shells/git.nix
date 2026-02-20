@@ -8,15 +8,20 @@ delib.module {
 
   home.ifEnabled =
     {
-      constants,
+      cfg,
+      myconfig,
       ...
     }:
     {
       programs.git = {
         enable = true;
 
-        settings.user.name = lib.mkIf (constants.constants ? gitUserName) constants.gitUserName;
-        settings.user.email = lib.mkIf (constants.constants ? gitUserEmail) constants.gitUserEmail;
+        settings.user.name = lib.mkIf (
+          myconfig.constants.constants ? gitUserName
+        ) myconfig.constants.gitUserName;
+        settings.user.email = lib.mkIf (
+          myconfig.constants.constants ? gitUserEmail
+        ) myconfig.constants.gitUserEmail;
 
         lfs.enable = true;
 
@@ -27,7 +32,7 @@ delib.module {
           "*.swp"
           ".DS_Store"
         ]
-        ++ (constants.customGitIgnores or [ ]);
+        ++ (myconfig.constants.customGitIgnores or [ ]);
 
         settings = {
           init.defaultBranch = "main";

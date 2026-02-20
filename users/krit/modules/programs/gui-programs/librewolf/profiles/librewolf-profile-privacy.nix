@@ -15,7 +15,7 @@ delib.module {
 
   # 🌟 The fix: Everything HM-related goes inside home.ifEnabled
   home.ifEnabled =
-    { constants, ... }:
+    { cfg, myconfig, ... }:
     {
       id = 1;
       name = "Privacy";

@@ -11,9 +11,11 @@ delib.module {
   };
 
   home.ifEnabled =
-    { cfg, ... }:
+    { cfg, myconfig, ... }:
     let
-      enabledMonitors = builtins.filter (m: builtins.match ".*disable.*" m == null) constants.monitors;
+      enabledMonitors = builtins.filter (
+        m: builtins.match ".*disable.*" m == null
+      ) myconfig.constants.monitors;
 
       primaryMonitor = if builtins.length enabledMonitors > 0 then builtins.head enabledMonitors else "";
       parts = lib.splitString "," primaryMonitor;
@@ -32,8 +34,8 @@ delib.module {
           11.0;
     in
     {
-      catppuccin.alacritty.enable = constants.theme.catppuccin or false;
-      catppuccin.alacritty.flavor = constants.theme.catppuccinFlavor or "mocha";
+      catppuccin.alacritty.enable = myconfig.constants.theme.catppuccin or false;
+      catppuccin.alacritty.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
 
       programs.alacritty = {
         enable = true;

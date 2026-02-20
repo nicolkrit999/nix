@@ -6,7 +6,7 @@ delib.module {
   };
 
   home.ifEnabled =
-    { cfg, ... }:
+    { cfg, myconfig, ... }:
     {
       programs.direnv = {
         enable = true;

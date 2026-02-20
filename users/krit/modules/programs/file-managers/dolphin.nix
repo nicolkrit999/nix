@@ -1,5 +1,7 @@
 {
   delib,
+  lib,
+  pkgs,
   ...
 }:
 delib.module {
@@ -12,14 +14,12 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      constants,
-      pkgs,
-      lib,
+      myconfig,
       ...
     }:
     let
       # 🌟 THE FIX: Safely construct the home directory using your constants
-      homeDir = "/home/${constants.user}";
+      homeDir = "/home/${myconfig.constants.user}";
 
       # 🌟 THE FIX: Moved the massive string inside the hook so it only evaluates if enabled
       placesXml = ''

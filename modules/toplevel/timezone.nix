@@ -3,8 +3,8 @@ delib.module {
   name = "timezone";
 
   nixos.always =
-    { constants, ... }:
+    { cfg, myconfig, ... }:
     {
-      time.timeZone = lib.mkDefault (constants.timeZone or "Etc/UTC");
+      time.timeZone = lib.mkDefault (myconfig.constants.timeZone or "Etc/UTC");
     };
 }

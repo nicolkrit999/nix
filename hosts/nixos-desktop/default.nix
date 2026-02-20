@@ -179,6 +179,9 @@ delib.host {
         gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
         shell = "fish";
 
+        waybarLayout = myWaybarLayout;
+        waybarWorkspaceIcons = myWaybarWorkspaceIcons;
+
         keyboardLayout = "us,it,de,fr";
         keyboardVariant = "intl,,,";
         weather = "Lugano";
@@ -280,11 +283,7 @@ delib.host {
 
       programs.cosmic.enable = true;
 
-      programs.waybar = {
-        enable = true;
-        workspaceIcons = myWaybarWorkspaceIcons;
-        layout = myWaybarLayout;
-      };
+      programs.waybar.enable = true;
 
       programs.stylix = {
         targets = {

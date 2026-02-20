@@ -10,15 +10,16 @@ delib.module {
 
   nixos.ifEnabled =
     {
-      constants,
+      cfg,
+      myconfig,
       ...
     }:
     let
       # If variables are missing, these defaults will be used.
-      safeEditor = constants.editor or "vscode";
-      safeBrowser = constants.browser or "brave";
-      safeTerm = constants.term or "alacritty";
-      safeFileManager = constants.fileManager or "dolphin";
+      safeEditor = myconfig.constants.editor or "vscode";
+      safeBrowser = myconfig.constants.browser or "brave";
+      safeTerm = myconfig.constants.term or "alacritty";
+      safeFileManager = myconfig.constants.fileManager or "dolphin";
 
       # -----------------------------------------------------------------------
       # 1. HELPER: Terminal Editor Logic

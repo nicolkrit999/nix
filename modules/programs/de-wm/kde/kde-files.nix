@@ -8,7 +8,7 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      constants,
+      myconfig,
       ...
     }:
     {
@@ -18,12 +18,12 @@ delib.module {
         "spectaclerc" = {
           "General" = {
             # 🌟 FIXED VARS
-            "screenshotLocation" = "file://${constants.screenshots}/";
+            "screenshotLocation" = "file://${myconfig.constants.screenshots}/";
             "filenameString" = "Screenshot_%Y%M%D_%H%m%S";
             "rememberLastScreenshotPath" = false;
           };
           "ImageSave" = {
-            "imageSaveLocation" = "file://${constants.screenshots}/";
+            "imageSaveLocation" = "file://${myconfig.constants.screenshots}/";
           };
         };
       };

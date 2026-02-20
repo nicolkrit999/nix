@@ -11,16 +11,16 @@ delib.module {
     let
       # 🌟 EXACT ORIGINAL FALLBACK LOGIC
       hyprlandFallback =
-        (myconfig.contants.programs.hyprland.enable or false)
-        && !(myconfig.contants.programs.caelestia.enableOnHyprland or false)
-        && !(myconfig.contants.programs.noctalia.enableOnHyprland or false);
+        (myconfig.constants.programs.hyprland.enable or false)
+        && !(myconfig.constants.programs.caelestia.enableOnHyprland or false)
+        && !(myconfig.constants.programs.noctalia.enableOnHyprland or false);
 
       niriFallback =
-        (myconfig.contants.programs.niri.enable or false)
-        && !(myconfig.contants.programs.noctalia.enableOnNiri or false);
+        (myconfig.constants.programs.niri.enable or false)
+        && !(myconfig.constants.programs.noctalia.enableOnNiri or false);
     in
     lib.mkIf (hyprlandFallback || niriFallback) {
-      catppuccin.hyprlock.enable = myconfig.contants.catppuccin;
+      catppuccin.hyprlock.enable = myconfig.constants.catppuccin;
       programs.hyprlock = {
         enable = true;
         settings = {

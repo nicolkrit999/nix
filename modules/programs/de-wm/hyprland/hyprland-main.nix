@@ -19,15 +19,15 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      constants,
+      myconfig,
       ...
     }:
     {
       # ----------------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
-      catppuccin.hyprland.enable = constants.catppuccin or false;
-      catppuccin.hyprland.flavor = constants.catppuccinFlavor or "mocha";
-      catppuccin.hyprland.accent = constants.catppuccinAccent or "mauve";
+      catppuccin.hyprland.enable = myconfig.constants.catppuccin or false;
+      catppuccin.hyprland.flavor = myconfig.constants.catppuccinFlavor or "mocha";
+      catppuccin.hyprland.accent = myconfig.constants.catppuccinAccent or "mauve";
       # ----------------------------------------------------------------------------
 
       home.packages = with pkgs; [
@@ -60,7 +60,10 @@ delib.module {
           env =
             let
               firstMonitor =
-                if builtins.length constants.monitors > 0 then builtins.head constants.monitors else "";
+                if builtins.length myconfig.constants.monitors > 0 then
+                  builtins.head myconfig.constants.monitors
+                else
+                  "";
               monitorParts = lib.splitString "," firstMonitor;
               rawScale = if (builtins.length monitorParts) >= 4 then builtins.elemAt monitorParts 3 else "1";
               gdkScale = if rawScale != "1" && rawScale != "1.0" then "2" else "1";
@@ -84,14 +87,14 @@ delib.module {
               "QT_QPA_PLATFORMTHEME,kde" # Tells Qt apps to use the 'kde' engine if available (enables breeze theme).
 
               # SYSTEM PATHS
-              "XDG_SCREENSHOTS_DIR,${constants.screenshots}" # Tells tools where to save screenshots by default.
+              "XDG_SCREENSHOTS_DIR,${myconfig.constants.screenshots}" # Tells tools where to save screenshots by default.
             ];
 
           # -----------------------------------------------------
           # 🖥️ Monitor Configuration
           # -----------------------------------------------------
           # Syntax: "PORT, RESOLUTION@HERTZ, POSITION, SCALE, TRANSFORM"
-          monitor = constants.monitors ++ [
+          monitor = myconfig.constants.monitors ++ [
             ",preferred,auto,1" # Fallback in case no monitors are defined in flake.nix
           ];
 
@@ -100,15 +103,15 @@ delib.module {
           # These are used by other modules using the variable references such as binds.nix
           # -----------------------------------------------------
           "$Mod" = "SUPER";
-          "$term" = "${constants.terminal}";
-          "$browser" = "${constants.browser}";
-          "$fileManager" = "${constants.terminal} -e ${constants.fileManager}";
-          "$editor" = "${constants.terminal} -e ${constants.editor}";
+          "$term" = "${myconfig.constants.terminal}";
+          "$browser" = "${myconfig.constants.browser}";
+          "$fileManager" = "${myconfig.constants.terminal} -e ${myconfig.constants.fileManager}";
+          "$editor" = "${myconfig.constants.terminal} -e ${myconfig.constants.editor}";
           "$menu" = "walker";
           "$shellMenu" =
-            if constants.programs.caelestia.enableOnHyprland or false then
+            if myconfig.constants.programs.caelestia.enableOnHyprland or false then
               "caelestiaQS"
-            else if constants.programs.noctalia.enableOnHyprland or false then
+            else if myconfig.constants.programs.noctalia.enableOnHyprland or false then
               "noctalia-shell ipc call toggleAppLauncher"
             else
               "walker";
@@ -135,10 +138,10 @@ delib.module {
             # 🎨 BORDERS
             # Border colors adapt based on whether catppuccin is enabled
             "col.active_border" =
-              if constants.catppuccin then "$accent" else "rgb(${config.lib.stylix.colors.base0D})";
+              if myconfig.constants.catppuccin then "$accent" else "rgb(${config.lib.stylix.colors.base0D})";
 
             "col.inactive_border" =
-              if constants.catppuccin then "$overlay0" else "rgb(${config.lib.stylix.colors.base03})";
+              if myconfig.constants.catppuccin then "$overlay0" else "rgb(${config.lib.stylix.colors.base03})";
 
             resize_on_border = true;
 
@@ -166,8 +169,8 @@ delib.module {
           # Layouts are defined in flake.nix and are handled
           # in such a way that they work regardless of desktop environment
           input = {
-            kb_layout = constants.keyboardLayout or "us";
-            kb_variant = constants.keyboardVariant or "";
+            kb_layout = myconfig.constants.keyboardLayout or "us";
+            kb_variant = myconfig.constants.keyboardVariant or "";
             kb_options = "grp:ctrl_alt_toggle"; # Ctrl+Alt to switch layout
           };
 
@@ -250,7 +253,7 @@ delib.module {
             "w[tv1], gapsout:0, gapsin:0" # No gaps if only 1 window is visible
             "f[1], gapsout:0, gapsin:0" # No gaps if window is fullscreen
           ]
-          ++ (constants.hyprlandWorkspaces or [ ]);
+          ++ (myconfig.constants.hyprlandWorkspaces or [ ]);
         };
       };
     };

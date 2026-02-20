@@ -7,19 +7,20 @@ delib.module {
 
   home.ifEnabled =
     {
-      constants,
+      cfg,
+      myconfig,
       ...
     }:
     let
-      currentShell = constants.shell or "zsh";
+      currentShell = myconfig.constants.shell or "zsh";
     in
     {
       # ------------------------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
       # ------------------------------------------------------------------------------------
-      catppuccin.eza.enable = constants.catppuccin or false;
-      catppuccin.eza.flavor = constants.catppuccinFlavor or "mocha";
-      catppuccin.eza.accent = constants.catppuccinAccent or "mauve";
+      catppuccin.eza.enable = myconfig.constants.catppuccin or false;
+      catppuccin.eza.flavor = myconfig.constants.catppuccinFlavor or "mocha";
+      catppuccin.eza.accent = myconfig.constants.catppuccinAccent or "mauve";
 
       # ------------------------------------------------------------------------------------
       programs.eza = {

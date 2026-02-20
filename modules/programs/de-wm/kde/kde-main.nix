@@ -18,8 +18,8 @@ delib.module {
 
   home.ifEnabled =
     {
-      constants,
       cfg,
+      myconfig,
       ...
     }:
     let
@@ -29,23 +29,26 @@ delib.module {
           url = wp.wallpaperURL;
           sha256 = wp.wallpaperSHA256;
         }}"
-      ) constants.wallpapers;
+      ) myconfig.constants.wallpapers;
 
-      polarity = constants.polarity or "dark";
+      polarity = myconfig.constants.polarity or "dark";
 
       capitalize =
         s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
 
       theme =
-        if constants.catppuccin then
-          "Catppuccin${capitalize constants.catppuccinFlavor}${capitalize constants.catppuccinAccent}"
-        else if constants.polarity == "dark" then
+        if myconfig.constants.catppuccin then
+          "Catppuccin${capitalize myconfig.constants.catppuccinFlavor}${capitalize myconfig.constants.catppuccinAccent}"
+        else if myconfig.constants.polarity == "dark" then
           "BreezeDark"
         else
           "BreezeLight";
 
       lookAndFeel =
-        if constants.polarity == "dark" then "org.kde.breezedark.desktop" else "org.kde.breeze.desktop";
+        if myconfig.constants.polarity == "dark" then
+          "org.kde.breezedark.desktop"
+        else
+          "org.kde.breeze.desktop";
       cursorTheme = config.stylix.cursor.name;
     in
     {
@@ -73,8 +76,9 @@ delib.module {
           wallpaper = wallpaperFiles;
         };
         configFile = {
-          "kdeglobals"."KDE"."widgetStyle" = if constants.catppuccin then "kvantum" else "Breeze";
-          "kdeglobals"."General"."AccentColor" = if constants.catppuccin then "203,166,247" else null;
+          "kdeglobals"."KDE"."widgetStyle" = if myconfig.constants.catppuccin then "kvantum" else "Breeze";
+          "kdeglobals"."General"."AccentColor" =
+            if myconfig.constants.catppuccin then "203,166,247" else null;
         };
       };
 

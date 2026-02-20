@@ -12,11 +12,11 @@ delib.module {
   };
 
   nixos.ifEnabled =
-    { constants, ... }:
+    { cfg, myconfig, ... }:
     let
-      # Use exactly what is defined in constants.nix
-      cfg = constants.cachix;
-      user = constants.user;
+      # Use exactly what is defined in myconfig.constants.nix
+      cfg = myconfig.constants.cachix;
+      user = myconfig.constants.user;
 
       sopsFile = ../../hosts/${config.networking.hostName}/optional/host-sops-nix/${config.networking.hostName}-secrets-sops.yaml;
     in

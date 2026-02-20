@@ -4,11 +4,12 @@ delib.module {
 
   home.always =
     {
-      constants,
+      cfg,
+      myconfig,
       ...
     }:
     let
-      currentShell = constants.shell or "zsh";
+      currentShell = myconfig.constants.shell or "zsh";
     in
     {
       programs.fzf = {
