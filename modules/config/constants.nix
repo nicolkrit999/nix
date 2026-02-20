@@ -7,6 +7,7 @@ delib.module {
     # 👤 USER IDENTITY
     # ---------------------------------------------------------------
     user = strOption "nixos";
+    hostname = strOption "nixos-host";
     gitUserName = strOption "";
     gitUserEmail = strOption "";
 

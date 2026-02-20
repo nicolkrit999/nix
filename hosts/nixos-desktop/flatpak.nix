@@ -1,16 +1,13 @@
+# modules/services/flatpak.nix
 { delib, pkgs, ... }:
 delib.module {
   name = "krit.services.flatpak";
 
-  # 🌟 This option name must match the path used in your default.nix myconfig block
-  options.krit.services.flatpak = with delib; {
-    enable = boolOption false;
-  };
+  options.krit.services.flatpak.enable = delib.boolOption false;
 
-  nixos.ifEnabled =
+  home.ifEnabled =
     { cfg, myconfig, ... }:
     {
-      # This block only runs if you set krit.services.flatpak.enable = true; in default.nix
       services.flatpak = {
         enable = true;
         packages = [

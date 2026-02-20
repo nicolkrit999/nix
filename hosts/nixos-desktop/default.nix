@@ -2,6 +2,8 @@
   delib,
   inputs,
   pkgs,
+  lib,
+  config,
   ...
 }:
 let
@@ -174,7 +176,7 @@ delib.host {
       # ---------------------------------------------------------------
       desktop.local-packages.enable = true;
       desktop.nas.borg-backup.enable = true;
-      krit.services.flatpak.enable = true;
+      krit.services.flatpak.enable = true; # FIX "services.flatpak.packages" does not exist
       services.samba.enable = true;
       services.bluetooth.enable = true;
       services.tailscale.enable = true;
@@ -186,6 +188,7 @@ delib.host {
       constants = {
         # 🌟 OPEN CONSTANTS: Starts the data bucket
         user = "krit";
+        hostname = "nixos-desktop";
         browser = myBrowser;
         terminal = myTerminal;
         editor = myEditor;
@@ -242,8 +245,6 @@ delib.host {
           catppuccinFlavor = "mocha";
           catppuccinAccent = "teal";
         };
-
-        timeZone = "Europe/Zurich";
       }; # 🌟 CLOSE CONSTANTS: Ends the data bucket
 
       # ---------------------------------------------------------------
@@ -348,16 +349,16 @@ delib.host {
   # ---------------------------------------------------------------
   nixos =
     {
-      config,
       pkgs,
-      lib,
       ...
     }:
     {
       system.stateVersion = "25.11";
       imports = [
-        inputs.nix-sops.nixosModules.sops # 🌟 Registers 'sops' options
+        inputs.catppuccin.nixosModules.catppuccin
         inputs.nix-flatpak.nixosModules.nix-flatpak
+        inputs.nix-sops.nixosModules.sops
+        inputs.niri.nixosModules.niri
 
         ./hardware-configuration.nix
       ];
@@ -523,14 +524,14 @@ delib.host {
     {
       pkgs,
       pkgs-unstable,
-      config,
-      lib,
       ...
     }:
     {
       home.stateVersion = "25.11";
       imports = [
         inputs.catppuccin.homeManagerModules.catppuccin # 🌟 Registers 'catppuccin' options
+        inputs.nix-sops.homeManagerModules.sops
+
         inputs.niri.homeManagerModules.niri # 🌟 Registers 'programs.niri' options
         inputs.walker.homeManagerModules.default # 🌟 Registers 'programs.walker' options
         inputs.plasma-manager.homeManagerModules.plasma-manager

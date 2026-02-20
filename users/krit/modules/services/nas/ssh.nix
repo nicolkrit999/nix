@@ -49,7 +49,7 @@ delib.module {
       # 🔐 SOPS: NAS SSH Key (Comm-2)
       # ---------------------------------------------------------
       sops.secrets.nas_ssh_key = {
-        sopsFile = ../../../../../common/krit/sops/krit-common-secrets-sops.yaml;
+        sopsFile = ../../../sops/krit-common-secrets-sops.yaml;
       };
 
       # ---------------------------------------------------------

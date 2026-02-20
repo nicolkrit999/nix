@@ -10,7 +10,7 @@ delib.module {
     enable = boolOption false;
   };
 
-  nixos.ifEnabled =
+  home.ifEnabled =
     { myconfig, ... }:
     let
       # ---------------------------------------------------------

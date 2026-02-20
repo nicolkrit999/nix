@@ -81,7 +81,7 @@ delib.module {
       services.tailscale.enable = lib.mkForce true;
 
       sops.secrets.nas-krit-credentials = {
-        sopsFile = ../../../../../common/krit/sops/krit-common-secrets-sops.yaml;
+        sopsFile = ../../../sops/krit-common-secrets-sops.yaml;
       };
 
       # ---------------------------------------------------------

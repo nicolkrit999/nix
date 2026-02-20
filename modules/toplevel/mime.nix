@@ -8,7 +8,7 @@ delib.module {
   name = "mime";
   # 🌟 Enabled by default to protect your desktop routing!
 
-  nixos.ifEnabled =
+  home.ifEnabled =
     {
       cfg,
       myconfig,

@@ -73,9 +73,9 @@ delib.module {
       # 4. Sops Secrets Definition
       # ---------------------------------------------------------
       sops.secrets = {
-        nas_owncloud_user.sopsFile = ../../../../../common/krit/sops/krit-common-secrets-sops.yaml;
-        nas_owncloud_pass.sopsFile = ../../../../../common/krit/sops/krit-common-secrets-sops.yaml;
-        nas_owncloud_url.sopsFile = ../../../../../common/krit/sops/krit-common-secrets-sops.yaml;
+        nas_owncloud_user.sopsFile = ../../../sops/krit-common-secrets-sops.yaml;
+        nas_owncloud_pass.sopsFile = ../../../sops/krit-common-secrets-sops.yaml;
+        nas_owncloud_url.sopsFile = ../../../sops/krit-common-secrets-sops.yaml;
       };
 
       users.users.${myconfig.constants.user}.extraGroups = [ "davfs2" ];
