@@ -14,6 +14,7 @@ delib.module {
   myconfig.always =
     { myconfig, ... }:
     let
+      user = myconfig.constants.username;
       # 🔄 TRANSLATION LAYER
       translatedEditor =
         let
