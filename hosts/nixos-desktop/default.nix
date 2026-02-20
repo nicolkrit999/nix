@@ -166,178 +166,180 @@ delib.host {
 
   homeManagerSystem = "x86_64-linux";
 
-  constants = {
-    constants = {
-      user = "krit";
-      browser = myBrowser;
-      terminal = myTerminal;
-      editor = myEditor;
-      fileManager = myFileManager;
-      gitUserName = "nicolkrit999";
-      gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
-      shell = "fish";
+  myconfig =
+    { name, ... }:
+    {
+      constants = {
+        user = "krit";
+        browser = myBrowser;
+        terminal = myTerminal;
+        editor = myEditor;
+        fileManager = myFileManager;
+        gitUserName = "nicolkrit999";
+        gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
+        shell = "fish";
 
-      keyboardLayout = "us,it,de,fr";
-      keyboardVariant = "intl,,,";
-      weather = "Lugano";
-      useFahrenheit = false;
-      nixImpure = false;
-      customGitIgnores = [ ];
+        keyboardLayout = "us,it,de,fr";
+        keyboardVariant = "intl,,,";
+        weather = "Lugano";
+        useFahrenheit = false;
+        nixImpure = false;
+        customGitIgnores = [ ];
 
-      zramPercent = 25;
+        zramPercent = 25;
 
-      snapshots = true;
-      snapshotRetention = {
-        hourly = "24";
-        daily = "7";
-        weekly = "4";
-        monthly = "3";
-        yearly = "2";
+        snapshots = true;
+        snapshotRetention = {
+          hourly = "24";
+          daily = "7";
+          weekly = "4";
+          monthly = "3";
+          yearly = "2";
+        };
+
+        cachix = {
+          enable = true;
+          push = true; # Only the builder must have this true (for now "nixos-desktop")
+          name = "krit-nixos";
+          publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
+        };
+
+        monitors = [
+          "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
+          "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
+          "DP-3, disable"
+          "HDMI-A-1,1920x1080@60, 0x0, 1, mirror, DP-1"
+        ];
+        wallpapers = [
+          {
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/Anime-Girl2.png";
+            wallpaperSHA256 = "05ad0c4lm47rh67hsymz0si7x62b7sanz91dsf2vaz68973fq6k6";
+          }
+        ];
+
+        theme = {
+          polarity = "dark";
+          base16Theme = "catppuccin-mocha";
+          catppuccin = true;
+          catppuccinFlavor = "mocha";
+          catppuccinAccent = "teal";
+        };
+
       };
 
-      cachix = {
+      # 🎛️ MODULE TOGGLES & INJECTIONS
+      programs.hyprland = {
         enable = true;
-        push = true; # Only the builder must have this true (for now "nixos-desktop")
-        name = "krit-nixos";
-        publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
+        execOnce = [
+          "uwsm app -- $term"
+          "sleep 2 && uwsm app -- $browser"
+          "uwsm app -- $editor"
+          "uwsm app -- $fileManager"
+          "sleep 4 && uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
+          "whatsapp-electron"
+        ];
+        # Appending the strict lists mapped in the `let` block
+        monitorWorkspaces = myHyprlandWorkspaces;
+        windowRules = myHyprlandWindowRules;
+        extraBinds = myHyprlandExtraBinds;
       };
 
-      monitors = [
-        "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
-        "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
-        "DP-3, disable"
-        "HDMI-A-1,1920x1080@60, 0x0, 1, mirror, DP-1"
-      ];
-      wallpapers = [
-        {
-          wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/Anime-Girl2.png";
-          wallpaperSHA256 = "05ad0c4lm47rh67hsymz0si7x62b7sanz91dsf2vaz68973fq6k6";
-        }
-      ];
-
-      theme = {
-        polarity = "dark";
-        base16Theme = "catppuccin-mocha";
-        catppuccin = true;
-        catppuccinFlavor = "mocha";
-        catppuccinAccent = "teal";
-      };
-
-    };
-
-    # 🎛️ MODULE TOGGLES & INJECTIONS
-    programs.hyprland = {
-      enable = true;
-      execOnce = [
-        "uwsm app -- $term"
-        "sleep 2 && uwsm app -- $browser"
-        "uwsm app -- $editor"
-        "uwsm app -- $fileManager"
-        "sleep 4 && uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
-        "whatsapp-electron"
-      ];
-      # Appending the strict lists mapped in the `let` block
-      monitorWorkspaces = myHyprlandWorkspaces;
-      windowRules = myHyprlandWindowRules;
-      extraBinds = myHyprlandExtraBinds;
-    };
-
-    programs.niri = {
-      enable = true;
-      execOnce = [
-        "${myBrowser}"
-        "${myEditor}"
-        "${myFileManager}"
-        "${myTerminal}"
-        "chromium-browser"
-      ];
-    };
-
-    programs.gnome = {
-      enable = true;
-      screenshots = "/home/krit/Pictures/Screenshots";
-      pinnedApps = [
-        (resolve myBrowser)
-        (resolve myEditor)
-        (resolve myFileManager)
-        "github-desktop.desktop"
-        "LocalSend.desktop"
-        "proton-pass.desktop"
-        "vesktop.desktop"
-        "com.github.dagmoller.whatsapp-electron.desktop"
-        "com.actualbudget.actual.desktop"
-      ];
-      gnomeExtraBinds = myGnomeExtraBinds;
-    };
-
-    programs.kde = {
-      enable = true;
-      extraBinds = myKdeExtraBinds;
-      # mice = kdeMice;
-    };
-
-    programs.cosmic.enable = true;
-
-    programs.waybar = {
-      enable = true;
-      workspaceIcons = myWaybarWorkspaceIcons;
-      layout = myWaybarLayout;
-    };
-
-    programs.stylix = {
-      targets = {
-        yazi.enable = false;
-        cava.enable = true;
-        kitty.enable = !isCatppuccin;
-        alacritty.enable = !isCatppuccin;
-        zathura.enable = !isCatppuccin;
-        firefox.profileNames = [ userName ];
-        librewolf.profileNames = [
-          "default"
-          "privacy"
+      programs.niri = {
+        enable = true;
+        execOnce = [
+          "${myBrowser}"
+          "${myEditor}"
+          "${myFileManager}"
+          "${myTerminal}"
+          "chromium-browser"
         ];
       };
-    };
 
-    programs.swaync = {
-      enable = true;
-      customSettings = {
-        "mute-protonvpn" = {
-          state = "ignored";
-          app-name = ".*Proton.*";
+      programs.gnome = {
+        enable = true;
+        screenshots = "/home/krit/Pictures/Screenshots";
+        pinnedApps = [
+          (resolve myBrowser)
+          (resolve myEditor)
+          (resolve myFileManager)
+          "github-desktop.desktop"
+          "LocalSend.desktop"
+          "proton-pass.desktop"
+          "vesktop.desktop"
+          "com.github.dagmoller.whatsapp-electron.desktop"
+          "com.actualbudget.actual.desktop"
+        ];
+        gnomeExtraBinds = myGnomeExtraBinds;
+      };
+
+      programs.kde = {
+        enable = true;
+        extraBinds = myKdeExtraBinds;
+        # mice = kdeMice;
+      };
+
+      programs.cosmic.enable = true;
+
+      programs.waybar = {
+        enable = true;
+        workspaceIcons = myWaybarWorkspaceIcons;
+        layout = myWaybarLayout;
+      };
+
+      programs.stylix = {
+        targets = {
+          yazi.enable = false;
+          cava.enable = true;
+          kitty.enable = !isCatppuccin;
+          alacritty.enable = !isCatppuccin;
+          zathura.enable = !isCatppuccin;
+          firefox.profileNames = [ userName ];
+          librewolf.profileNames = [
+            "default"
+            "privacy"
+          ];
         };
       };
+
+      programs.swaync = {
+        enable = true;
+        customSettings = {
+          "mute-protonvpn" = {
+            state = "ignored";
+            app-name = ".*Proton.*";
+          };
+        };
+      };
+
+      services.hypridle = {
+        enable = true;
+        dimTimeout = 300;
+        lockTimeout = 330;
+        screenOffTimeout = 360;
+      };
+      programs.hyprlock.enable = true;
+
+      krit.guest.enable = true;
+      services.tailscale.enable = true;
+      services.bluetooth.enable = true;
+      services.samba.enable = true;
+      services.flatpak.enable = true;
+
+      # -----------------------------------------------
+      # 🪟 CUSTOM SHELLS
+      # -----------------------------------------------
+      programs.caelestia.enableOnHyprland = false;
+
+      programs.noctalia = {
+        enableOnHyprland = false;
+        enableOnNiri = false;
+      };
+
+      # ... keep the rest ...
+      krit.hardware.logitech.enable = true;
+
+      timeZone = "Europe/Zurich";
     };
-
-    services.hypridle = {
-      enable = true;
-      dimTimeout = 300;
-      lockTimeout = 330;
-      screenOffTimeout = 360;
-    };
-    programs.hyprlock.enable = true;
-
-    krit.guest.enable = true;
-    services.tailscale.enable = true;
-    services.bluetooth.enable = true;
-    services.samba.enable = true;
-    services.flatpak.enable = true;
-
-    # -----------------------------------------------
-    # 🪟 CUSTOM SHELLS
-    # -----------------------------------------------
-    programs.caelestia.enableOnHyprland = false;
-
-    programs.noctalia = {
-      enableOnHyprland = false;
-      enableOnNiri = false;
-    };
-
-    # ... keep the rest ...
-    krit.hardware.logitech.enable = true;
-
-    timeZone = "Europe/Zurich";
-  };
 
   # ---------------------------------------------------------------
   # ⚙️ SYSTEM-LEVEL CONFIGURATIONS
