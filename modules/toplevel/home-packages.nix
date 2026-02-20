@@ -1,4 +1,3 @@
-# 🌟 1. ALL standard NixOS variables go up here at the top!
 {
   delib,
   pkgs,
@@ -10,9 +9,9 @@
 delib.module {
   name = "system.home-packages";
 
-  # 🌟 2. Denix provides its own variables here
-  myconfig.always =
-    { myconfig, ... }:
+  # 🌟 THE FIX: Use 'nixos.always' so standard options like 'environment' work.
+  nixos.always =
+    { myconfig, ... }: # 🌟 Keep 'myconfig' as the variable name for your logic.
     let
       # 🔄 TRANSLATION LAYER
       translatedEditor =
@@ -50,7 +49,7 @@ delib.module {
       myEditorPkg = getPkg editorName fallbackEditor;
     in
     {
-      # 🌟 THE FIX: Since you removed Home Manager, use environment.systemPackages
+      # Now that we are in a 'nixos' hook, 'environment' is a valid top-level option.
       environment.systemPackages =
         let
           # ✅ This checks if a NixOS module is already handling the program
