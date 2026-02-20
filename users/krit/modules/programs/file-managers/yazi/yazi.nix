@@ -6,8 +6,10 @@
   ...
 }:
 delib.module {
-  name = "krit-yazi";
-  options.krit.programs.yazi.enable = delib.boolOption true;
+  name = "krit.programs.yazi";
+  options.krit.programs.yazi = with delib; {
+    enable = boolOption true;
+  };
 
   nixos.ifEnabled =
     {

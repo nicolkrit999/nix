@@ -1,8 +1,11 @@
-{ delib, ... }:
+{ delib, pkgs, ... }:
 delib.module {
-  name = "krit-mx-master";
+  name = "krit.services.logitech.mouses";
+  options.krit.services.logitech.mouses = with delib; {
+    enable = boolOption false;
+  };
 
-  nixos.always = {
+  nixos.ifEnabled = {
     environment.etc."logid.cfg".text = ''
       devices: (
         {

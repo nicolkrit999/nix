@@ -6,9 +6,10 @@
   ...
 }:
 delib.module {
-  name = "krit-nvim";
-  options.krit.programs.neovim.enable = delib.boolOption true;
-
+  name = "krit.programs.neovim";
+  options.krit.programs.neovim = with delib; {
+    enable = boolOption true;
+  };
   home.ifEnabled =
     {
       cfg,

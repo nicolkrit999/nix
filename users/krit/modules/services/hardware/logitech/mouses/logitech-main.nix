@@ -1,7 +1,9 @@
 { delib, pkgs, ... }:
 delib.module {
-  name = "krit-logitech";
-  options.krit.hardware.logitech.enable = delib.boolOption true;
+  name = "krit.services.logitech.mouses";
+  options.krit.services.logitech.mouses = with delib; {
+    enable = boolOption false;
+  };
 
   nixos.ifEnabled =
     { cfg, ... }:

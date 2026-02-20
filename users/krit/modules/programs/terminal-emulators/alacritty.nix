@@ -5,8 +5,10 @@
   ...
 }:
 delib.module {
-  name = "krit-alacritty";
-  options.krit.programs.alacritty.enable = delib.boolOption true;
+  name = "krit.programs.alacritty";
+  options.krit.programs.alacritty = with delib; {
+    enable = boolOption false;
+  };
 
   home.ifEnabled =
     { cfg, ... }:

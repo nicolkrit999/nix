@@ -8,10 +8,13 @@
   ...
 }:
 delib.module {
-  name = "krit-librewolf";
+  name = "krit.programs.librewolf";
+  options.krit.programs.librewolf = with delib; {
+    enable = boolOption true;
+  };
 
-  # 🌟 The fix: Everything HM-related goes inside home.always
-  home.always =
+  # 🌟 The fix: Everything HM-related goes inside home.ifEnabled
+  home.ifEnabled =
     { constants, ... }:
     {
       id = 1;

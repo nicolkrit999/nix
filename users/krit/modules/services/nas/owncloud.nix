@@ -6,8 +6,10 @@
   ...
 }:
 delib.module {
-  name = "krit-owncloud";
-  options.krit.services.owncloud.enable = delib.boolOption true;
+  name = "krit.services.nas.owncloud";
+  options.krit.services.nas.owncloud = with delib; {
+    enable = boolOption false;
+  };
 
   nixos.ifEnabled =
     {

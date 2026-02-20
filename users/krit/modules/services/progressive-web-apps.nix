@@ -5,8 +5,10 @@
   ...
 }:
 delib.module {
-  name = "krit-pwas";
-  options.krit.programs.pwas.enable = delib.boolOption true;
+  name = "krit.programs.pwas";
+  options.krit.programs.pwas = with delib; {
+    enable = boolOption false;
+  };
 
   home.ifEnabled =
     { cfg, ... }:

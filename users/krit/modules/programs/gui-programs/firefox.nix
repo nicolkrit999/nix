@@ -7,8 +7,10 @@
   ...
 }:
 delib.module {
-  name = "krit-firefox";
-  options.krit.programs.firefox.enable = delib.boolOption true;
+  name = "krit.programs.firefox";
+  options.krit.programs.firefox = with delib; {
+    enable = boolOption false;
+  };
 
   home.ifEnabled =
     {

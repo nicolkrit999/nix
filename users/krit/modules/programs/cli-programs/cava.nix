@@ -1,7 +1,10 @@
 { delib, config, ... }:
 delib.module {
-  name = "krit-cava"; # Isolated name
-  options.krit.programs.cava.enable = delib.boolOption true; # Default to true [cite: 407]
+  name = "krit.programs.cava"; # Isolated name
+  options.krit.programs.cava = with delib; {
+    enable = boolOption false;
+    extraConfig = strOption "";
+  };
 
   home.ifEnabled =
     { cfg, ... }:

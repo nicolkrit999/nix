@@ -6,8 +6,10 @@
   ...
 }:
 delib.module {
-  name = "krit-sshfs";
-  options.krit.services.sshfs.enable = delib.boolOption true;
+  name = "krit.services.nas.sshfs";
+  options.krit.services.nas.sshfs = with delib; {
+    enable = boolOption false;
+  };
 
   nixos.ifEnabled =
     { cfg, ... }:

@@ -1,15 +1,16 @@
 {
   delib,
-  pkgs,
   config,
-  base16Theme,
   ...
 }:
 delib.module {
-  name = "krit-yazi";
-  options.krit.programs.yazi.enable = delib.boolOption true;
+  name = "krit.programs.yazi";
+  options.krit.programs.yazi = with delib; {
+    enable = boolOption true;
+  };
 
   home.ifEnabled =
+    { ... }:
     let
       colors = config.lib.stylix.colors;
     in

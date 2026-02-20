@@ -6,8 +6,10 @@
   ...
 }:
 delib.module {
-  name = "krit-ranger";
-  options.krit.programs.ranger.enable = delib.boolOption true;
+  name = "krit.programs.ranger";
+  options.krit.programs.ranger = with delib; {
+    enable = boolOption false;
+  };
 
   home.ifEnabled =
     {

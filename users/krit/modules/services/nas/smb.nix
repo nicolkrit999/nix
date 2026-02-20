@@ -6,8 +6,10 @@
   ...
 }:
 delib.module {
-  name = "krit-smb";
-  options.krit.services.smb.enable = delib.boolOption true;
+  name = "krit.services.nas.smb";
+  options.krit.services.nas.smb = with delib; {
+    enable = boolOption false;
+  };
 
   nixos.ifEnabled =
     {
