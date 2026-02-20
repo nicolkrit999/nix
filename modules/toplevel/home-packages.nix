@@ -10,11 +10,10 @@
 delib.module {
   name = "system.home-packages";
 
-  # 🌟 2. Denix only provides its own variables here!
+  # 🌟 2. Denix provides its own variables here
   myconfig.always =
     { myconfig, ... }:
     let
-      user = myconfig.constants.username;
       # 🔄 TRANSLATION LAYER
       translatedEditor =
         let
@@ -51,25 +50,22 @@ delib.module {
       myEditorPkg = getPkg editorName fallbackEditor;
     in
     {
-      home-manager.users.${myconfig.constants.user} =
-        { config, lib, ... }: # 🌟 Home Manager's internal config & lib load here!
+      # 🌟 THE FIX: Since you removed Home Manager, use environment.systemPackages
+      environment.systemPackages =
         let
-          # ✅ The module check ONLY lives here now
+          # ✅ This checks if a NixOS module is already handling the program
           isModuleEnabled = name: lib.attrByPath [ "programs" name "enable" ] false config;
         in
-        {
-          home.packages =
-            (lib.optional (!isModuleEnabled termName) myTermPkg)
-            ++ (lib.optional (!isModuleEnabled browserName) myBrowserPkg)
-            ++ (lib.optional (!isModuleEnabled fileManagerName) myFileManagerPkg)
-            ++ (lib.optional (!isModuleEnabled editorName) myEditorPkg)
-            ++ (with pkgs; [
-              cliphist
-            ])
-            ++ (with pkgs.kdePackages; [
-              gwenview
-            ])
-            ++ (with pkgs-unstable; [ ]);
-        };
+        (lib.optional (!isModuleEnabled termName) myTermPkg)
+        ++ (lib.optional (!isModuleEnabled browserName) myBrowserPkg)
+        ++ (lib.optional (!isModuleEnabled fileManagerName) myFileManagerPkg)
+        ++ (lib.optional (!isModuleEnabled editorName) myEditorPkg)
+        ++ (with pkgs; [
+          cliphist
+        ])
+        ++ (with pkgs.kdePackages; [
+          gwenview
+        ])
+        ++ (with pkgs-unstable; [ ]);
     };
 }
