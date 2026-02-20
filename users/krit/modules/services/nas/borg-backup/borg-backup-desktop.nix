@@ -6,10 +6,9 @@
 }:
 delib.module {
   name = "krit.services.nas.desktop-borg-backup";
-options.krit.serviecs.nas.desktop-borg-backup = with delib; {
-enable = boolOption false;
-};
-
+  options.krit.services.nas.desktop-borg-backup = with delib; {
+    enable = boolOption false;
+  };
 
   nixos.ifEnabled =
     { myconfig, ... }:

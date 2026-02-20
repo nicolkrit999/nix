@@ -137,13 +137,6 @@ let
     };
   };
 
-  # Commented because 2 logitech mice connected, but preserved for logic
-  /*
-    kdeMice = [
-      { enable = true; name = "Logitech G403"; vendorId = "046d"; productId = "c08f"; acceleration = -1.0; accelerationProfile = "none"; }
-    ];
-  */
-
   myWaybarWorkspaceIcons = {
     "1" = "";
     "2" = "";
@@ -173,12 +166,25 @@ delib.host {
 
   myconfig =
     { name, ... }:
-
     {
-      constants = {
-        desktop.local-packages.enable = true;
-        desktop.nas.borg-backup.enable = true;
+      # 🌟 OPEN HOOK: This starts the myconfig block
 
+      # ---------------------------------------------------------------
+      # 🎛️ FUNCTIONAL MODULES (Outside constants)
+      # ---------------------------------------------------------------
+      desktop.local-packages.enable = true;
+      desktop.nas.borg-backup.enable = true;
+      krit.services.flatpak.enable = true;
+      services.samba.enable = true;
+      services.bluetooth.enable = true;
+      services.tailscale.enable = true;
+      krit.hardware.logitech.enable = true;
+
+      # ---------------------------------------------------------------
+      # 📦 CONSTANTS BLOCK (Inside constants)
+      # ---------------------------------------------------------------
+      constants = {
+        # 🌟 OPEN CONSTANTS: Starts the data bucket
         user = "krit";
         browser = myBrowser;
         terminal = myTerminal;
@@ -197,7 +203,6 @@ delib.host {
         useFahrenheit = false;
         nixImpure = false;
         customGitIgnores = [ ];
-
         zramPercent = 25;
 
         snapshots = true;
@@ -211,7 +216,7 @@ delib.host {
 
         cachix = {
           enable = true;
-          push = true; # Only the builder must have this true (for now "nixos-desktop")
+          push = true;
           name = "krit-nixos";
           publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
         };
@@ -222,6 +227,7 @@ delib.host {
           "DP-3, disable"
           "HDMI-A-1,1920x1080@60, 0x0, 1, mirror, DP-1"
         ];
+
         wallpapers = [
           {
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/Anime-Girl2.png";
@@ -237,9 +243,12 @@ delib.host {
           catppuccinAccent = "teal";
         };
 
-      };
+        timeZone = "Europe/Zurich";
+      }; # 🌟 CLOSE CONSTANTS: Ends the data bucket
 
-      # 🎛️ MODULE TOGGLES & INJECTIONS
+      # ---------------------------------------------------------------
+      # 🚀 PROGRAM TOGGLES (Outside constants)
+      # ---------------------------------------------------------------
       programs.hyprland = {
         enable = true;
         execOnce = [
@@ -250,7 +259,6 @@ delib.host {
           "sleep 4 && uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
           "whatsapp-electron"
         ];
-        # Appending the strict lists mapped in the `let` block
         monitorWorkspaces = myHyprlandWorkspaces;
         windowRules = myHyprlandWindowRules;
         extraBinds = myHyprlandExtraBinds;
@@ -287,26 +295,22 @@ delib.host {
       programs.kde = {
         enable = true;
         extraBinds = myKdeExtraBinds;
-        # mice = kdeMice;
       };
 
       programs.cosmic.enable = true;
-
       programs.waybar.enable = true;
 
-      programs.stylix = {
-        targets = {
-          yazi.enable = false;
-          cava.enable = true;
-          kitty.enable = !isCatppuccin;
-          alacritty.enable = !isCatppuccin;
-          zathura.enable = !isCatppuccin;
-          firefox.profileNames = [ userName ];
-          librewolf.profileNames = [
-            "default"
-            "privacy"
-          ];
-        };
+      programs.stylix.targets = {
+        yazi.enable = false;
+        cava.enable = true;
+        kitty.enable = !isCatppuccin;
+        alacritty.enable = !isCatppuccin;
+        zathura.enable = !isCatppuccin;
+        firefox.profileNames = [ userName ];
+        librewolf.profileNames = [
+          "default"
+          "privacy"
+        ];
       };
 
       programs.swaync = {
@@ -325,28 +329,18 @@ delib.host {
         lockTimeout = 330;
         screenOffTimeout = 360;
       };
+
+      timeZone = "Europe/Zurich";
+
       programs.hyprlock.enable = true;
-
       krit.guest.enable = true;
-      services.tailscale.enable = true;
-      services.bluetooth.enable = true;
-      services.samba.enable = true;
-      services.flatpak.enable = true;
 
-      # -----------------------------------------------
-      # 🪟 CUSTOM SHELLS
-      # -----------------------------------------------
       programs.caelestia.enableOnHyprland = false;
-
       programs.noctalia = {
         enableOnHyprland = false;
         enableOnNiri = false;
       };
 
-      # ... keep the rest ...
-      krit.hardware.logitech.enable = true;
-
-      timeZone = "Europe/Zurich";
     };
 
   # ---------------------------------------------------------------
@@ -363,7 +357,7 @@ delib.host {
       system.stateVersion = "25.11";
       imports = [
         inputs.nix-sops.nixosModules.sops # 🌟 Registers 'sops' options
-        inputs.nix-flatpak.nixosModules.nix-flatpak # 🌟 Registers 'services.flatpak'
+        inputs.nix-flatpak.nixosModules.nix-flatpak
 
         ./hardware-configuration.nix
       ];
