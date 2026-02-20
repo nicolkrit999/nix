@@ -109,9 +109,9 @@ delib.module {
           "$editor" = "${myconfig.constants.terminal} -e ${myconfig.constants.editor}";
           "$menu" = "walker";
           "$shellMenu" =
-            if nixos.programs.caelestia.enableOnHyprland or false then
+            if myconfig.programs.caelestia.enableOnHyprland or false then
               "caelestiaQS"
-            else if nixos.programs.noctalia.enableOnHyprland or false then
+            else if myconfig.programs.noctalia.enableOnHyprland or false then
               "noctalia-shell ipc call toggleAppLauncher"
             else
               "walker";

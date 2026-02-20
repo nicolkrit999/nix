@@ -39,7 +39,8 @@ delib.module {
       '';
 
       # Original trigger condition
-      isWmEnabled = (nixos.programs.hyprland.enable or false) || (nixos.programs.niri.enable or false);
+      isWmEnabled =
+        (myconfig.programs.hyprland.enable or false) || (myconfig.programs.niri.enable or false);
     in
     lib.mkIf isWmEnabled {
       home.packages = [ universalLock ];
