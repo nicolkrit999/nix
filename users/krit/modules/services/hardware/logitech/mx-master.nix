@@ -2,7 +2,7 @@
 delib.module {
   name = "krit-mx-master";
 
-  nixos.always =
+  myconfig.always =
     { ... }:
     {
       environment.etc."logid.cfg".text = ''

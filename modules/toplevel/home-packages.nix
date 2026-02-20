@@ -11,7 +11,7 @@ delib.module {
   name = "system.home-packages";
 
   # 🌟 2. Denix only provides its own variables here!
-  nixos.always =
+  myconfig.always =
     { myconfig, ... }:
     let
       # 🔄 TRANSLATION LAYER

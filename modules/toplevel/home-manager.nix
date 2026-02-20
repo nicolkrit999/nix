@@ -2,7 +2,7 @@
 delib.module {
   name = "system.home-manager";
 
-  nixos.always =
+  myconfig.always =
     { myconfig, ... }:
     {
       imports = [ inputs.home-manager.nixosModules.default ];

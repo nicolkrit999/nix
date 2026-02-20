@@ -7,7 +7,7 @@
 delib.module {
   name = "system.boot";
 
-  nixos.always = {
+  myconfig.always = {
     boot.loader = {
       timeout = 30;
       efi.canTouchEfiVariables = true;

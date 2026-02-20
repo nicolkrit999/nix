@@ -1,7 +1,7 @@
 { delib, ... }:
 delib.module {
   name = "system.nix";
-  nixos.always =
+  myconfig.always =
     { ... }:
     {
       nix.settings = {

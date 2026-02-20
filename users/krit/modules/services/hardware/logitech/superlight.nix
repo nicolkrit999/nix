@@ -2,7 +2,7 @@
 delib.module {
   name = "krit-superlight";
 
-  nixos.always =
+  myconfig.always =
     { ... }:
     {
       services.keyd = {
