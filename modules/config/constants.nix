@@ -39,12 +39,17 @@ delib.module {
     monitors = listOfOption str [ ];
 
     # Using a submodule to strictly define the wallpaper attribute set
-    wallpapers = listOfOption (submodule {
-      options = {
-        wallpaperURL = strOption "";
-        wallpaperSHA256 = strOption "";
-      };
-    }) [ ];
+    wallpapers =
+      listOfOption
+        (submodule {
+          options = {
+            wallpaperURL = strOption "";
+            wallpaperSHA256 = strOption "";
+          };
+        })
+        [
+
+        ];
 
     # ---------------------------------------------------------------
     # 🎨 THEMING
