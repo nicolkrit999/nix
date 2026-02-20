@@ -1,4 +1,4 @@
-{ delib, ... }:
+{ delib, config, ... }:
 delib.module {
   name = "system.home-packages";
 
@@ -7,12 +7,12 @@ delib.module {
       pkgs,
       pkgs-unstable,
       myconfig,
+      config,
       lib,
       ...
     }:
     let
       # 🔄 TRANSLATION LAYER
-      # Ensure these names match the 'programs.<name>' module in Home Manager
       translatedEditor =
         let
           e = myconfig.constants.editor or "vscode";
@@ -46,58 +46,26 @@ delib.module {
 
       editorName = translatedEditor;
       myEditorPkg = getPkg editorName fallbackEditor;
-
-      # If a program is installed with a module it's skipped to avoid build problems
-      isModuleEnabled = name: lib.attrByPath [ "programs" name "enable" ] false config;
-
     in
-
     {
-
       home-manager.users.${myconfig.constants.user} =
-        { config, ... }:
+        { config, ... }: # 🌟 Home Manager's config safely loads here!
         let
+          # ✅ The module check ONLY lives here now
           isModuleEnabled = name: lib.attrByPath [ "programs" name "enable" ] false config;
         in
         {
           home.packages =
-            # 1. DYNAMIC INSTALLATION
-            # These are installed based on user choices in variables.nix: browser, fileManager, editor
             (lib.optional (!isModuleEnabled termName) myTermPkg)
             ++ (lib.optional (!isModuleEnabled browserName) myBrowserPkg)
             ++ (lib.optional (!isModuleEnabled fileManagerName) myFileManagerPkg)
             ++ (lib.optional (!isModuleEnabled editorName) myEditorPkg)
-
-            # 2. STATIC INSTALLATION
-            # These are always installed, regardless of user choices
-            # Packages in each category are sorted alphabetically
-            # ⚠️ All these packages should be kept. The reason is indicated next to each package.
-            # If a package does not need/can't be configured with home-manager then it can be in common-configuration.nix or a host-specific configuration.nix
             ++ (with pkgs; [
-
-              # 🖥️ DESKTOP APPLICATIONS
-              # -----------------------------------------------------------------------------------
-
-              # -----------------------------------------------------------------------------------
-              # 🖥️ CLI UTILITIES
-              # -----------------------------------------------------------------------------------
-              cliphist # Wayland clipboard history manager (needed for clipboard management in most de/wm modules)
-
-              # -----------------------------------------------------------------------
-              # 🪟 WINDOW MANAGER (WM) INFRASTRUCTURE
-              # -----------------------------------------------------------------------
-
-              # -----------------------------------------------------------------------
-              # ❓ OTHER
-              # -----------------------------------------------------------------------
+              cliphist
             ])
-
-            # 3. KDE PACKAGES
             ++ (with pkgs.kdePackages; [
-              gwenview # Default image viewer as defined in mime.nix
+              gwenview
             ])
-
-            # 4. UNSTABLE PACKAGES
             ++ (with pkgs-unstable; [ ]);
         };
     };
