@@ -7,7 +7,11 @@
 delib.module {
   name = "programs.hyprland";
   home.ifEnabled =
-    { cfg, nixos, ... }:
+    {
+      cfg,
+      myconfig,
+      ...
+    }:
     {
 
       wayland.windowManager.hyprland.settings = {
@@ -119,7 +123,7 @@ delib.module {
           "$Mod,       S, togglespecialworkspace,  magic" # Toggle scratchpad visibility
           "$Mod SHIFT, S, movetoworkspace, special:magic" # Move window to scratchpad
         ]
-        ++ (nixos.constants.hyprlandExtraBinds or [ ]);
+        ++ (myconfig.constants.hyprlandExtraBinds or [ ]);
 
         # MOVE/RESIZE WINDOWS WITH MAINMOD + LMB/RMB AND DRAGGING
         bindm = [

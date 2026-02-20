@@ -41,16 +41,18 @@ delib.module {
 
       # Enable swaync only if using Hyprland or Niri without Caelestia/Noctalia
       hyprlandSwayNC =
-        (nixos.constants.hyprland or false)
-        && !((nixos.constants.hyprlandCaelestia or false) || (nixos.constants.hyprlandNoctalia or false));
+        (myconfig.constants.hyprland or false)
+        && !(
+          (myconfig.constants.hyprlandCaelestia or false) || (myconfig.constants.hyprlandNoctalia or false)
+        );
 
-      niriSwayNC = (nixos.constants.niri or false) && !(nixos.constants.niriNoctalia or false);
+      niriSwayNC = (myconfig.constants.niri or false) && !(myconfig.constants.niriNoctalia or false);
     in
     {
       config = lib.mkIf (hyprlandSwayNC || niriSwayNC) {
 
-        catppuccin.swaync.enable = nixos.constants.catppuccin or false;
-        catppuccin.swaync.flavor = nixos.constants.catppuccinFlavor or "mocha";
+        catppuccin.swaync.enable = myconfig.constants.catppuccin or false;
+        catppuccin.swaync.flavor = myconfig.constants.catppuccinFlavor or "mocha";
 
         services.swaync = {
           enable = true;
@@ -67,14 +69,14 @@ delib.module {
             timeout-critical = 0;
 
             # Host optional rules to exclude/mute notifications
-            notification-visibility = { } // nixos.constants.swayncExclusions or { };
+            notification-visibility = { } // myconfig.constants.swayncExclusions or { };
           };
 
           # 🎨 DYNAMIC STYLE LOGIC
           style =
-            if nixos.constants.catppuccin then
+            if myconfig.constants.catppuccin then
               lib.mkForce ''
-                @import "${config.catppuccin.sources.swaync}/${nixos.constants.catppuccinFlavor}.css";
+                @import "${config.catppuccin.sources.swaync}/${myconfig.constants.catppuccinFlavor}.css";
                 ${customLayout}
               ''
             else

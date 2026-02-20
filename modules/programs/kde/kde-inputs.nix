@@ -8,7 +8,11 @@ delib.module {
   name = "programs.kde";
 
   home.ifEnabled =
-    { cfg, nixos, ... }:
+    {
+      cfg,
+      myconfig,
+      ...
+    }:
 
     lib.mkMerge [
       # 🌟 RESTORED ORIGINAL KEYBOARD LOGIC
@@ -16,8 +20,8 @@ delib.module {
         programs.plasma.input.keyboard = {
           layouts = [
             {
-              layout = nixos.constants.keyboardLayout or "us";
-              variant = nixos.constants.keyboardVariant or "";
+              layout = myconfig.constants.keyboardLayout or "us";
+              variant = myconfig.constants.keyboardVariant or "";
             }
           ];
           numlockOnStartup = "on";

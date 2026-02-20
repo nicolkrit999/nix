@@ -60,7 +60,7 @@ delib.module {
 
       services.displayManager.autoLogin = {
         enable = false;
-        user = nixos.constants.user;
+        user = myconfig.constants.user;
       };
 
       services.getty.autologinUser = null;

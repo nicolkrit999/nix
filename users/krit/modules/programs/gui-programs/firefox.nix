@@ -11,7 +11,11 @@ delib.module {
   options.krit.programs.firefox.enable = delib.boolOption true;
 
   home.ifEnabled =
-    { cfg, nixos, ... }:
+    {
+      cfg,
+      myconfig,
+      ...
+    }:
     let
       # Allow to install "unfree" addons by rebuilding them locally
       buildFirefoxXpiAddon = lib.makeOverridable (
@@ -46,9 +50,9 @@ delib.module {
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
       # -----------------------------------------------------------------------
-      catppuccin.firefox.enable = nixos.constants.catppuccin or false;
-      catppuccin.firefox.flavor = nixos.constants.catppuccinFlavor or "mocha";
-      catppuccin.firefox.accent = nixos.constants.catppuccinAccent or "mauve";
+      catppuccin.firefox.enable = myconfig.constants.catppuccin or false;
+      catppuccin.firefox.flavor = myconfig.constants.catppuccinFlavor or "mocha";
+      catppuccin.firefox.accent = myconfig.constants.catppuccinAccent or "mauve";
       # Since it is a gtk theme, no firefox.enable = false; is needed in stylix.nix
       # -----------------------------------------------------------------------
 
@@ -59,7 +63,7 @@ delib.module {
 
       programs.firefox = {
         enable = false;
-        profiles.${nixos.constants.user} = {
+        profiles.${myconfig.constants.user} = {
           # 🔍 Search Configuration
           # Forces Google as default while keeping privacy options like Kagi and duck duck go available.
           search = {
@@ -139,8 +143,8 @@ delib.module {
             # Don't ask for download dir and force it to Downloads
             "browser.download.useDownloadDir" = true;
             "browser.download.folderList" = 2;
-            "browser.download.dir" = "/home/${nixos.constants.user}/Downloads";
-            "browser.download.lastDir" = "/home/${nixos.constants.user}/Downloads";
+            "browser.download.dir" = "/home/${myconfig.constants.user}/Downloads";
+            "browser.download.lastDir" = "/home/${myconfig.constants.user}/Downloads";
 
             # Disable crappy home activity stream page
             # hides the default promoted/suggested tiles on Firefox's new-tab screen from several major websites.

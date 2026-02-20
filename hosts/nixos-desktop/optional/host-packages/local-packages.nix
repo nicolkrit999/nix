@@ -5,7 +5,7 @@
   ...
 }:
 {
-  users.users.${nixos.constants.user}.packages =
+  users.users.${myconfig.constants.user}.packages =
     with pkgs;
     [
       # This allow guest user to not have this packages installed

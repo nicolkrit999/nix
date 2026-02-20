@@ -4,7 +4,7 @@ delib.module {
 
   # 🌟 Use 'nixos.always' so the 'home-manager' option is at the system root
   nixos.always =
-    { nixos, ... }:
+    { myconfig, ... }:
     {
       imports = [ inputs.home-manager.nixosModules.default ];
 
@@ -14,7 +14,7 @@ delib.module {
 
         # 🌟 THE FIX: Filter inputs to prevent the 'armv5tel' evaluation crash
         extraSpecialArgs = {
-          inherit nixos;
+          inherit myconfig;
           inputs = {
             inherit (inputs)
               nixpkgs

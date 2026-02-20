@@ -3,12 +3,12 @@ delib.module {
   name = "system.zram";
 
   nixos.always =
-    { nixos, ... }:
+    { myconfig, ... }:
     {
       zramSwap = {
         enable = true;
         algorithm = "zstd";
-        memoryPercent = nixos.constants.zramPercent or 50;
+        memoryPercent = myconfig.constants.zramPercent or 50;
         priority = 999;
       };
     };

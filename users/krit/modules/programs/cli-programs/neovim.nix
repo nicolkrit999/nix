@@ -10,12 +10,16 @@ delib.module {
   options.krit.programs.neovim.enable = delib.boolOption true;
 
   home.ifEnabled =
-    { cfg, nixos, ... }:
+    {
+      cfg,
+      myconfig,
+      ...
+    }:
     {
       xdg.desktopEntries.custom-nvim = lib.mkForce {
         name = "Neovim";
         genericName = "Text Editor";
-        exec = "${pkgs.${nixos.constants.term}}/bin/${nixos.constants.term} --class nvim -e nvim %F";
+        exec = "${pkgs.${myconfig.constants.term}}/bin/${myconfig.constants.term} --class nvim -e nvim %F";
         terminal = false;
         icon = "nvim";
         startupNotify = true;

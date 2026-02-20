@@ -15,10 +15,10 @@ delib.module {
     }:
     let
       # If variables are missing, these defaults will be used.
-      safeEditor = nixos.constants.editor or "vscode";
-      safeBrowser = nixos.constants.browser or "brave";
-      safeTerm = nixos.constants.term or "alacritty";
-      safeFileManager = nixos.constants.fileManager or "dolphin";
+      safeEditor = myconfig.constants.editor or "vscode";
+      safeBrowser = myconfig.constants.browser or "brave";
+      safeTerm = myconfig.constants.term or "alacritty";
+      safeFileManager = myconfig.constants.fileManager or "dolphin";
 
       # -----------------------------------------------------------------------
       # 1. HELPER: Terminal Editor Logic

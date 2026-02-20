@@ -10,9 +10,13 @@ delib.module {
   options.krit.programs.yazi.enable = delib.boolOption true;
 
   nixos.ifEnabled =
-    { cfg, nixos, ... }:
     {
-      home-manager.users.${nixos.constants.user} = {
+      cfg,
+      myconfig,
+      ...
+    }:
+    {
+      home-manager.users.${myconfig.constants.user} = {
         imports = [ ./init-lua.nix ];
 
         home.packages =
@@ -41,9 +45,9 @@ delib.module {
 
         programs.yazi = {
           enable = true;
-          enableZshIntegration = nixos.constants.shell == "zsh";
-          enableFishIntegration = nixos.constants.shell == "fish";
-          enableBashIntegration = nixos.constants.shell == "bash";
+          enableZshIntegration = myconfig.constants.shell == "zsh";
+          enableFishIntegration = myconfig.constants.shell == "fish";
+          enableBashIntegration = myconfig.constants.shell == "bash";
 
           plugins = {
             # nix-prefetch-url --unpack "https://github.com/ndtoan96/ouch.yazi/archive/refs/tags/v0.7.0.tar.gz"
@@ -117,7 +121,7 @@ delib.module {
               image_quality = 90;
               image_preview_method =
                 if
-                  builtins.elem nixos.constants.term [
+                  builtins.elem myconfig.constants.term [
                     "kitty"
                     "ghostty"
                     "konsole"
@@ -128,7 +132,7 @@ delib.module {
                 then
                   "kitty"
                 else if
-                  builtins.elem nixos.constants.term [
+                  builtins.elem myconfig.constants.term [
                     "foot"
                     "blackbox"
                   ]
@@ -434,7 +438,7 @@ delib.module {
         xdg.desktopEntries.yazi = lib.mkForce {
           name = "Yazi";
           genericName = "File Manager";
-          exec = "${pkgs.${nixos.constants.term}}/bin/${nixos.constants.term} --class yazi -e yazi";
+          exec = "${pkgs.${myconfig.constants.term}}/bin/${myconfig.constants.term} --class yazi -e yazi";
           icon = "system-file-manager";
           terminal = false;
           startupNotify = false;

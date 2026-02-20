@@ -14,10 +14,10 @@ delib.module {
       ...
     }:
     let
-      hyprEnabled = nixos.constants.hyprland or false;
-      kdeEnabled = nixos.constants.kde or false;
+      hyprEnabled = myconfig.constants.hyprland or false;
+      kdeEnabled = myconfig.constants.kde or false;
       useKdePlatformTheme = hyprEnabled || kdeEnabled;
-      isDark = (nixos.constants.polarity or "dark") == "dark";
+      isDark = (myconfig.constants.polarity or "dark") == "dark";
       kdeColorScheme = if isDark then "BreezeDark" else "BreezeLight";
       iconThemeName = if isDark then "Papirus-Dark" else "Papirus-Light";
     in

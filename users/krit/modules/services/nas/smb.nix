@@ -10,7 +10,11 @@ delib.module {
   options.krit.services.smb.enable = delib.boolOption true;
 
   nixos.ifEnabled =
-    { cfg, nixos, ... }:
+    {
+      cfg,
+      myconfig,
+      ...
+    }:
     let
       nasIP = "100.101.189.91";
       # Comm-5. NAS credentials
@@ -45,7 +49,7 @@ delib.module {
               "nounix"
               "forceuid"
               "forcegid"
-              "uid=${toString config.users.users.${nixos.constants.user}.uid}"
+              "uid=${toString config.users.users.${myconfig.constants.user}.uid}"
               "gid=${toString config.users.groups.users.gid}"
 
               # Performance optimizations

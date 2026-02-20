@@ -25,7 +25,7 @@
     name = "Vivaldi";
     genericName = "Web Browser";
     # CRITICAL: Point directly to our wrapper script so the flags are ALWAYS applied
-    exec = "/home/${nixos.constants.user}/.local/bin/vivaldi %U";
+    exec = "/home/${myconfig.constants.user}/.local/bin/vivaldi %U";
     terminal = false;
     categories = [
       "Network"

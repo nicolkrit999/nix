@@ -12,7 +12,7 @@ delib.module {
 
   # 🌟 The fix: Everything HM-related goes inside home.always
   home.always =
-    { nixos, ... }:
+    { myconfig, ... }:
     {
       id = 0;
       name = "Default";

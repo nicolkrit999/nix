@@ -54,16 +54,16 @@ delib.module {
           };
           listener = [
             {
-              timeout = nixos.constants.dimTimeout;
+              timeout = myconfig.constants.dimTimeout;
               on-timeout = "brightnessctl -s set 10";
               on-resume = "brightnessctl -r";
             }
             {
-              timeout = nixos.constants.lockTimeout;
+              timeout = myconfig.constants.lockTimeout;
               on-timeout = "loginctl lock-session";
             }
             {
-              timeout = nixos.constants.screenOffTimeout;
+              timeout = myconfig.constants.screenOffTimeout;
               on-timeout = "hyprctl dispatch dpms off";
               on-resume = "hyprctl dispatch dpms on";
             }

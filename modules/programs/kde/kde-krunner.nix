@@ -7,7 +7,11 @@ delib.module {
   name = "programs.kde";
 
   home.ifEnabled =
-    { cfg, nixos, ... }:
+    {
+      cfg,
+      myconfig,
+      ...
+    }:
 
     {
       programs.plasma.krunner = {

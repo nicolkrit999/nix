@@ -10,7 +10,7 @@ delib.module {
 
   home.always =
     let
-      activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) nixos.constants.monitors;
+      activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
       monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
       images = map (
         w:
@@ -18,7 +18,7 @@ delib.module {
           url = w.wallpaperURL;
           sha256 = w.wallpaperSHA256;
         }
-      ) nixos.constants.wallpapers;
+      ) myconfig.constants.wallpapers;
       getWallpaper =
         index: if index < builtins.length images then builtins.elemAt images index else lib.last images;
 

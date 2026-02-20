@@ -6,10 +6,14 @@ delib.module {
   };
 
   home.ifEnabled =
-    { pkgs, nixos, ... }:
     {
-      catppuccin.bat.enable = nixos.constants.catppuccin or false;
-      catppuccin.bat.flavor = nixos.constants.catppuccinFlavor or "mocha";
+      pkgs,
+      myconfig,
+      ...
+    }:
+    {
+      catppuccin.bat.enable = myconfig.constants.catppuccin or false;
+      catppuccin.bat.flavor = myconfig.constants.catppuccinFlavor or "mocha";
       # -----------------------------------------------------------------------
 
       programs.bat = {

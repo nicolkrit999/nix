@@ -23,18 +23,18 @@ delib.module {
     }:
     let
       # If the variable is missing given the ! then the default is "true"
-      isCatppuccin = nixos.constants.catppuccin or false;
+      isCatppuccin = myconfig.constants.catppuccin or false;
     in
     {
       imports = [ inputs.stylix.homeModules.stylix ];
 
       stylix = {
         enable = true;
-        polarity = nixos.constants.polarity; # Sets a global preference for dark mode
-        base16Scheme = "${pkgs.base16-schemes}/share/themes/${nixos.constants.base16Theme}.yaml";
+        polarity = myconfig.constants.polarity; # Sets a global preference for dark mode
+        base16Scheme = "${pkgs.base16-schemes}/share/themes/${myconfig.constants.base16Theme}.yaml";
         image = pkgs.fetchurl {
-          url = (builtins.head nixos.constants.wallpapers).wallpaperURL;
-          sha256 = (builtins.head nixos.constants.wallpapers).wallpaperSHA256;
+          url = (builtins.head myconfig.constants.wallpapers).wallpaperURL;
+          sha256 = (builtins.head myconfig.constants.wallpapers).wallpaperSHA256;
         };
 
         # -----------------------------------------------------------------------
@@ -54,7 +54,7 @@ delib.module {
           # These should absolutely remain disabled because they cause conflicts
           kde.enable = false; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
           qt.enable = false; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
-          gnome.enable = nixos.constants.gnome or false;
+          gnome.enable = myconfig.constants.gnome or false;
 
           # These should remain enabled to avoid conflicts with other modules
           # N/A
@@ -81,7 +81,7 @@ delib.module {
           starship.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
 
         }
-        // (nixos.constants.stylixExclusions or { });
+        // (myconfig.constants.stylixExclusions or { });
 
         # -----------------------------------------------------------------------
         # 🖱️ MOUSE CURSOR
@@ -118,43 +118,43 @@ delib.module {
 
       dconf.settings = {
         "org/gnome/desktop/interface" = {
-          color-scheme = if nixos.constants.polarity == "dark" then "prefer-dark" else "prefer-light";
+          color-scheme = if myconfig.constants.polarity == "dark" then "prefer-dark" else "prefer-light";
         };
       };
 
-      home.sessionVariables = lib.mkIf (nixos.constants.catppuccin or false) {
+      home.sessionVariables = lib.mkIf (myconfig.constants.catppuccin or false) {
         # Fallback to mocha/mauve if flavor/accent are missing
-        GTK_THEME = "catppuccin-${nixos.constants.catppuccinFlavor or "mocha"}-${
-          nixos.constants.catppuccinAccent or "mauve"
+        GTK_THEME = "catppuccin-${myconfig.constants.catppuccinFlavor or "mocha"}-${
+          myconfig.constants.catppuccinAccent or "mauve"
         }-standard+rimless,black";
 
         XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS";
       };
 
-      gtk = lib.mkIf (nixos.constants.catppuccin or false) {
+      gtk = lib.mkIf (myconfig.constants.catppuccin or false) {
         enable = true;
         theme = {
           package = lib.mkForce (
             pkgs.catppuccin-gtk.override {
-              accents = [ (nixos.constants.catppuccinAccent or "mauve") ];
+              accents = [ (myconfig.constants.catppuccinAccent or "mauve") ];
               size = "standard";
               tweaks = [
                 "rimless"
                 "black"
               ];
-              variant = nixos.constants.catppuccinFlavor or "mocha";
+              variant = myconfig.constants.catppuccinFlavor or "mocha";
             }
           );
           # Fallback values for the theme name string
-          name = lib.mkForce "catppuccin-${nixos.constants.catppuccinFlavor or "mocha"}-${
-            nixos.constants.catppuccinAccent or "mauve"
+          name = lib.mkForce "catppuccin-${myconfig.constants.catppuccinFlavor or "mocha"}-${
+            myconfig.constants.catppuccinAccent or "mauve"
           }-standard+rimless,black";
         };
-        # 🌙 Fallback to dark mode (1) if nixos.constants.polarity is missing
+        # 🌙 Fallback to dark mode (1) if myconfig.constants.polarity is missing
         gtk3.extraConfig.gtk-application-prefer-dark-theme =
-          if (nixos.constants.polarity or "dark") == "dark" then 1 else 0;
+          if (myconfig.constants.polarity or "dark") == "dark" then 1 else 0;
         gtk4.extraConfig.gtk-application-prefer-dark-theme =
-          if (nixos.constants.polarity or "dark") == "dark" then 1 else 0;
+          if (myconfig.constants.polarity or "dark") == "dark" then 1 else 0;
       };
     };
 }

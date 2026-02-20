@@ -10,7 +10,7 @@ delib.module {
       ...
     }:
     let
-      currentShell = nixos.constants.shell or "bash";
+      currentShell = myconfig.constants.shell or "bash";
     in
     lib.mkIf (currentShell == "fish") {
       programs.fish = {
@@ -22,8 +22,8 @@ delib.module {
         shellAbbrs =
           let
             flakeDir = "~/nixOS";
-            safeEditor = nixos.constants.editor or "vscode";
-            isImpure = nixos.constants.nixImpure or false;
+            safeEditor = myconfig.constants.editor or "vscode";
+            isImpure = myconfig.constants.nixImpure or false;
 
             # Base commands
             baseSwitchCmd =
@@ -44,8 +44,8 @@ delib.module {
             # This wrap recognize if the current host is the "builder", allowing uploads
             wrapCachix =
               cmd:
-              if (nixos.constants.cachix.enable or false) && (nixos.constants.cachix.push or false) then
-                "env CACHIX_AUTH_TOKEN=$(command cat /run/secrets/cachix-auth-token) cachix watch-exec ${nixos.constants.cachix.name} -- ${cmd}"
+              if (myconfig.constants.cachix.enable or false) && (myconfig.constants.cachix.push or false) then
+                "env CACHIX_AUTH_TOKEN=$(command cat /run/secrets/cachix-auth-token) cachix watch-exec ${myconfig.constants.cachix.name} -- ${cmd}"
               else
                 cmd;
 
@@ -75,11 +75,11 @@ delib.module {
             cg = "nix-collect-garbage -d";
 
             # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
-            # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${nixos.constants.hostname}"; # Rebuild home-manager config
+            # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${myconfig.constants.hostname}"; # Rebuild home-manager config
 
             # Pkgs editing
             pkgs-home = "$EDITOR ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list
-            pkgs-host = "$EDITOR ${flakeDir}/hosts/${nixos.constants.hostname}/optional/host-packages/local-packages.nix"; # Edit host-specific packages list
+            pkgs-host = "$EDITOR ${flakeDir}/hosts/${myconfig.constants.hostname}/optional/host-packages/local-packages.nix"; # Edit host-specific packages list
 
             # Nix repo management
             fmt-dry = "cd ${flakeDir} && nix fmt -- --check"; # Check formatting without making changes (list files that need formatting)
@@ -105,8 +105,8 @@ delib.module {
 
             # Sops secrets editing
             sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
-            sops-common = "cd ${flakeDir}/common/${nixos.constants.user}/sops && sops ${nixos.constants.user}-common-secrets-sops.yaml"; # Edit sops secrets file
-            sops-host = "cd ${flakeDir} && sops hosts/${nixos.constants.hostname}/optional/host-sops-nix/${nixos.constants.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
+            sops-common = "cd ${flakeDir}/common/${myconfig.constants.user}/sops && sops ${myconfig.constants.user}-common-secrets-sops.yaml"; # Edit sops secrets file
+            sops-host = "cd ${flakeDir} && sops hosts/${myconfig.constants.hostname}/optional/host-sops-nix/${myconfig.constants.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
 
             # Various
             reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings

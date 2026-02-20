@@ -8,12 +8,16 @@ delib.module {
   name = "programs.kde";
 
   home.ifEnabled =
-    { cfg, nixos, ... }:
+    {
+      cfg,
+      myconfig,
+      ...
+    }:
     let
       # 🌟 FIXED VARS
       lockWallpaper =
-        if builtins.length nixos.constants.wallpapers > 0 then
-          (builtins.elemAt nixos.constants.wallpapers 0).wallpaperURL
+        if builtins.length myconfig.constants.wallpapers > 0 then
+          (builtins.elemAt myconfig.constants.wallpapers 0).wallpaperURL
         else
           "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Kay/contents/images/1080x1920.png";
 
@@ -38,8 +42,8 @@ delib.module {
           wallpaper = pkgs.fetchurl {
             url = lockWallpaper;
             sha256 =
-              if (builtins.length nixos.constants.wallpapers) > 0 then
-                (builtins.elemAt nixos.constants.wallpapers 0).wallpaperSHA256
+              if (builtins.length myconfig.constants.wallpapers) > 0 then
+                (builtins.elemAt myconfig.constants.wallpapers 0).wallpaperSHA256
               else
                 lib.fakeSha256;
           };

@@ -8,7 +8,11 @@ delib.module {
   name = "programs.kde";
 
   home.ifEnabled =
-    { cfg, nixos, ... }:
+    {
+      cfg,
+      myconfig,
+      ...
+    }:
     let
       spectacleCmd = "${pkgs.kdePackages.spectacle}/bin/spectacle";
     in
@@ -71,13 +75,13 @@ delib.module {
         };
         "launch-browser" = {
           key = "Meta+B";
-          command = "${pkgs.${nixos.constants.browser}}/bin/${nixos.constants.browser}";
+          command = "${pkgs.${myconfig.constants.browser}}/bin/${myconfig.constants.browser}";
         };
         "launch-editor" = {
           key = "Meta+C";
           command =
             if
-              builtins.elem nixos.constants.editor [
+              builtins.elem myconfig.constants.editor [
                 "neovim"
                 "nvim"
                 "nano"
@@ -85,28 +89,28 @@ delib.module {
                 "helix"
               ]
             then
-              "${nixos.constants.term} -e ${nixos.constants.editor}"
+              "${myconfig.constants.term} -e ${myconfig.constants.editor}"
             else
-              "${nixos.constants.editor}";
+              "${myconfig.constants.editor}";
         };
         "launch-terminal" = {
           key = "Meta+Return";
-          command = nixos.constants.term;
+          command = myconfig.constants.term;
         };
         "launch-filemanager" = {
           key = "Meta+F";
           command =
             if
-              builtins.elem nixos.constants.fileManager [
+              builtins.elem myconfig.constants.fileManager [
                 "yazi"
                 "ranger"
                 "lf"
                 "nnn"
               ]
             then
-              "${nixos.constants.term} -e ${nixos.constants.fileManager}"
+              "${myconfig.constants.term} -e ${myconfig.constants.fileManager}"
             else
-              "${nixos.constants.fileManager}";
+              "${myconfig.constants.fileManager}";
         };
       }
       // cfg.extraBinds;
