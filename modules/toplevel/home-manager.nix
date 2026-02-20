@@ -14,7 +14,7 @@ delib.module {
 
         # 🌟 THE FIX: Filter inputs to prevent the 'armv5tel' evaluation crash
         extraSpecialArgs = {
-          inherit constants;
+          inherit myconfig;
           inputs = {
             inherit (inputs)
               nixpkgs
