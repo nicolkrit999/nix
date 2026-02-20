@@ -1,4 +1,5 @@
 {
+  delib,
   pkgs,
   addons,
   searchConfig,
