@@ -86,6 +86,8 @@
         moduleSystem:
         denix.lib.configurations {
           inherit moduleSystem;
+          home-manager = inputs.home-manager;
+          homeManagerUser = "krit";
 
           paths = [
             ./hosts
@@ -97,7 +99,7 @@
         };
     in
     {
-      nixosConfigurations = mkConfigurations "nixos";
+      nixosConfigurations = mkConfigurations "myconfig";
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
     };
 }
