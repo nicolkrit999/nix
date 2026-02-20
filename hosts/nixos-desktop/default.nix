@@ -330,9 +330,10 @@ delib.host {
     krit.hardware.logitech.enable = true;
 
     cachix = {
-      enable = false;
-      push = false;
-      name = "krit-nixos"; # Or whatever your cachix name is
+      enable = true;
+      push = true; # Only the builder must have this true (for now "nixos-desktop")
+      name = "krit-nixos";
+      publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
     };
 
     timeZone = "Europe/Zurich";
