@@ -99,7 +99,7 @@
         };
     in
     {
-      nixosConfigurations = mkConfigurations "myconfig";
+      nixosConfigurations = mkConfigurations "nixos";
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
     };
 }
