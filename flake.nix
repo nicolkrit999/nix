@@ -86,8 +86,6 @@
         moduleSystem:
         denix.lib.configurations {
           inherit moduleSystem;
-          home-manager = inputs.home-manager;
-          homeManagerUser = "krit";
 
           paths = [
             ./hosts
