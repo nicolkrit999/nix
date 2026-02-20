@@ -195,6 +195,13 @@ delib.host {
         yearly = "2";
       };
 
+      cachix = {
+        enable = true;
+        push = true; # Only the builder must have this true (for now "nixos-desktop")
+        name = "krit-nixos";
+        publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
+      };
+
       monitors = [
         "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
         "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
@@ -328,13 +335,6 @@ delib.host {
 
     # ... keep the rest ...
     krit.hardware.logitech.enable = true;
-
-    cachix = {
-      enable = true;
-      push = true; # Only the builder must have this true (for now "nixos-desktop")
-      name = "krit-nixos";
-      publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
-    };
 
     timeZone = "Europe/Zurich";
   };
