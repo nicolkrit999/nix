@@ -5,7 +5,7 @@
   base16Theme,
   ...
 }:
-s delib.module {
+delib.module {
   name = "krit-yazi";
   options.krit.programs.yazi.enable = delib.boolOption true;
 
