@@ -17,7 +17,7 @@ delib.module {
     {
 
       cfg,
-      nixos,
+      myconfig,
       ...
     }:
     let

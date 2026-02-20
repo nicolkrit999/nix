@@ -1,12 +1,15 @@
-{ delib, ... }:
+{
+  delib,
+  lib,
+  config,
+  ...
+}:
 delib.module {
   name = "programs.bash";
 
   home.always =
     {
-      config,
-      lib,
-      nixos,
+      myconfig,
       ...
     }:
     let

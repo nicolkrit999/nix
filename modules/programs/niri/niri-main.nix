@@ -1,4 +1,10 @@
-{ delib, ... }:
+{
+  delib,
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 delib.module {
   name = "programs.niri";
   options.programs.niri = with delib; {
@@ -8,10 +14,7 @@ delib.module {
 
   home.ifEnabled =
     {
-      pkgs,
-      lib,
-      config,
-      nixos,
+      myconfig,
       cfg,
       ...
     }:
