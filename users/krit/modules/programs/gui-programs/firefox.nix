@@ -52,9 +52,9 @@ delib.module {
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
       # -----------------------------------------------------------------------
-      catppuccin.firefox.enable = myconfig.constants.catppuccin or false;
-      catppuccin.firefox.flavor = myconfig.constants.catppuccinFlavor or "mocha";
-      catppuccin.firefox.accent = myconfig.constants.catppuccinAccent or "mauve";
+      catppuccin.firefox.enable = myconfig.constants.theme.catppuccin or false;
+      catppuccin.firefox.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
+      catppuccin.firefox.accent = myconfig.constants.theme.catppuccinAccent or "mauve";
       # Since it is a gtk theme, no firefox.enable = false; is needed in stylix.nix
       # -----------------------------------------------------------------------
 

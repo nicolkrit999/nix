@@ -23,11 +23,11 @@ delib.module {
     let
       # Detect which shell hyprland has to avoid conflicts
       enableHyprland =
-        (myconfig.constants.hyprland or false)
+        (myconfig.programs.hyprland.enable or false)
         && (myconfig.constants.hyprlandNoctalia or false)
         && !(myconfig.constants.hyprlandCaelestia or false);
 
-      enableNiri = (myconfig.constants.niri or false) && (myconfig.constants.niriNoctalia or false);
+      enableNiri = (myconfig.programs.niri.enable or false) && (myconfig.constants.niriNoctalia or false);
 
       noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 

@@ -87,7 +87,7 @@ delib.module {
               app:
               if isTui app then
                 [
-                  "${myconfig.constants.term}"
+                  "${myconfig.myconfig.constants.terminal}"
                   "-e"
                   app
                 ]

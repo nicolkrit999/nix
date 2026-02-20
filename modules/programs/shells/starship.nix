@@ -19,12 +19,13 @@ delib.module {
     }:
     let
       # 🛡️ SAFE FALLBACKS
-      isCatppuccin = myconfig.constants.catppuccin or false;
+      isCatppuccin = myconfig.constants.theme.catppuccin or false;
       currentShell = myconfig.constants.shell or "zsh";
 
       base16Accent = config.lib.stylix.colors.withHashtag.base0E;
 
-      mainColor = if isCatppuccin then (myconfig.constants.catppuccinAccent or "mauve") else base16Accent;
+      mainColor =
+        if isCatppuccin then (myconfig.constants.theme.catppuccinAccent or "mauve") else base16Accent;
 
       successColor = if isCatppuccin then "green" else config.lib.stylix.colors.withHashtag.base0B;
 
@@ -35,7 +36,7 @@ delib.module {
       # 🎨 CATPPUCCIN THEME
       # -----------------------------------------------------------------------
       catppuccin.starship.enable = isCatppuccin;
-      catppuccin.starship.flavor = myconfig.constants.catppuccinFlavor or "mocha";
+      catppuccin.starship.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
 
       # -----------------------------------------------------------------------
       # 🚀 STARSHIP CONFIGURATION

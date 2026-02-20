@@ -16,8 +16,8 @@ delib.module {
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME
       # -----------------------------------------------------------------------
-      catppuccin.zathura.enable = myconfig.constants.catppuccin or false;
-      catppuccin.zathura.flavor = myconfig.constants.catppuccinFlavor or "mocha";
+      catppuccin.zathura.enable = myconfig.constants.theme.catppuccin or false;
+      catppuccin.zathura.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
 
       programs.zathura = {
         enable = true;

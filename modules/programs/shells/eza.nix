@@ -18,9 +18,9 @@ delib.module {
       # ------------------------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
       # ------------------------------------------------------------------------------------
-      catppuccin.eza.enable = myconfig.constants.catppuccin or false;
-      catppuccin.eza.flavor = myconfig.constants.catppuccinFlavor or "mocha";
-      catppuccin.eza.accent = myconfig.constants.catppuccinAccent or "mauve";
+      catppuccin.eza.enable = myconfig.constants.theme.catppuccin or false;
+      catppuccin.eza.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
+      catppuccin.eza.accent = myconfig.constants.theme.catppuccinAccent or "mauve";
 
       # ------------------------------------------------------------------------------------
       programs.eza = {

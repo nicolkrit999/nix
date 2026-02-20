@@ -11,9 +11,9 @@ delib.module {
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
       # -----------------------------------------------------------------------
-      catppuccin.lazygit.enable = myconfig.constants.catppuccin or false;
-      catppuccin.lazygit.flavor = myconfig.constants.catppuccinFlavor or "mocha";
-      catppuccin.lazygit.accent = myconfig.constants.catppuccinAccent or "mauve";
+      catppuccin.lazygit.enable = myconfig.constants.theme.catppuccin or false;
+      catppuccin.lazygit.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
+      catppuccin.lazygit.accent = myconfig.constants.theme.catppuccinAccent or "mauve";
       # -----------------------------------------------------------------------
       programs.lazygit = {
         enable = true;

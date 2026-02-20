@@ -176,8 +176,8 @@ delib.module {
         "media.videocontrols.picture-in-picture.video-toggle.enabled" = true;
         "browser.display.document_color_use" = 0;
         "browser.display.use_system_colors" = true;
-        "ui.systemUsesDarkTheme" = if myconfig.constants.polarity == "dark" then 1 else 0;
-        "browser.in-content.dark-mode" = myconfig.constants.polarity == "dark";
+        "ui.systemUsesDarkTheme" = if myconfig.constants.theme.polarity == "dark" then 1 else 0;
+        "browser.in-content.dark-mode" = myconfig.constants.theme.polarity == "dark";
 
         "browser.download.useDownloadDir" = true;
         "browser.download.folderList" = 2;

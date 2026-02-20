@@ -11,17 +11,19 @@ delib.module {
     enable = boolOption true;
   };
 
-  nixos.ifEnabled =
+  home.ifEnabled =
     {
       cfg,
       myconfig,
+      config,
       ...
     }:
     let
-      hyprEnabled = myconfig.constants.hyprland or false;
-      kdeEnabled = myconfig.constants.kde or false;
+      hyprEnabled = myconfig.programs.hyprland.enable or false;
+      kdeEnabled = myconfig.programs.kde.enable or false;
       useKdePlatformTheme = hyprEnabled || kdeEnabled;
-      isDark = (myconfig.constants.polarity or "dark") == "dark";
+
+      isDark = (myconfig.constants.theme.polarity or "dark") == "dark";
       kdeColorScheme = if isDark then "BreezeDark" else "BreezeLight";
       iconThemeName = if isDark then "Papirus-Dark" else "Papirus-Light";
     in
@@ -74,7 +76,7 @@ delib.module {
       '';
 
       home.activation.kdeglobalsFromPolarity = lib.mkIf useKdePlatformTheme (
-        lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        config.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group General    --key ColorScheme "${kdeColorScheme}" || true
           ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group UiSettings --key ColorScheme "${kdeColorScheme}" || true
           ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group Icons      --key Theme      "${iconThemeName}"  || true

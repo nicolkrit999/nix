@@ -8,7 +8,7 @@ delib.module {
     let
 
       safeBrowser = myconfig.constants.browser or "firefox";
-      safeTerm = myconfig.constants.term or "alacritty";
+      safeTerm = myconfig.myconfig.constants.terminal or "alacritty";
       safeEditor = myconfig.constants.editor or "vscode";
 
       # Translation layer for editor commands with necessary flags

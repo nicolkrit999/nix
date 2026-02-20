@@ -20,7 +20,6 @@ delib.module {
         && !(myconfig.constants.programs.noctalia.enableOnNiri or false);
     in
     lib.mkIf (hyprlandFallback || niriFallback) {
-      catppuccin.hyprlock.enable = myconfig.constants.catppuccin;
       programs.hyprlock = {
         enable = true;
         settings = {

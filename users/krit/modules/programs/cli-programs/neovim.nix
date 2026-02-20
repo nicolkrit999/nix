@@ -20,7 +20,9 @@ delib.module {
       xdg.desktopEntries.custom-nvim = lib.mkForce {
         name = "Neovim";
         genericName = "Text Editor";
-        exec = "${pkgs.${myconfig.constants.term}}/bin/${myconfig.constants.term} --class nvim -e nvim %F";
+        exec = "${
+          pkgs.${myconfig.myconfig.constants.terminal}
+        }/bin/${myconfig.myconfig.constants.terminal} --class nvim -e nvim %F";
         terminal = false;
         icon = "nvim";
         startupNotify = true;

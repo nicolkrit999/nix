@@ -25,9 +25,9 @@ delib.module {
     {
       # ----------------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
-      catppuccin.hyprland.enable = myconfig.constants.catppuccin or false;
-      catppuccin.hyprland.flavor = myconfig.constants.catppuccinFlavor or "mocha";
-      catppuccin.hyprland.accent = myconfig.constants.catppuccinAccent or "mauve";
+      catppuccin.hyprland.enable = myconfig.constants.theme.catppuccin or false;
+      catppuccin.hyprland.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
+      catppuccin.hyprland.accent = myconfig.constants.theme.catppuccinAccent or "mauve";
       # ----------------------------------------------------------------------------
 
       home.packages = with pkgs; [
@@ -138,10 +138,16 @@ delib.module {
             # 🎨 BORDERS
             # Border colors adapt based on whether catppuccin is enabled
             "col.active_border" =
-              if myconfig.constants.catppuccin then "$accent" else "rgb(${config.lib.stylix.colors.base0D})";
+              if myconfig.constants.theme.catppuccin then
+                "$accent"
+              else
+                "rgb(${config.lib.stylix.colors.base0D})";
 
             "col.inactive_border" =
-              if myconfig.constants.catppuccin then "$overlay0" else "rgb(${config.lib.stylix.colors.base03})";
+              if myconfig.constants.theme.catppuccin then
+                "$overlay0"
+              else
+                "rgb(${config.lib.stylix.colors.base03})";
 
             resize_on_border = true;
 

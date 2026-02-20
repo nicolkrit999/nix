@@ -123,7 +123,7 @@ delib.module {
               image_quality = 90;
               image_preview_method =
                 if
-                  builtins.elem myconfig.constants.term [
+                  builtins.elem myconfig.myconfig.constants.terminal [
                     "kitty"
                     "ghostty"
                     "konsole"
@@ -134,7 +134,7 @@ delib.module {
                 then
                   "kitty"
                 else if
-                  builtins.elem myconfig.constants.term [
+                  builtins.elem myconfig.myconfig.constants.terminal [
                     "foot"
                     "blackbox"
                   ]
@@ -440,7 +440,9 @@ delib.module {
         xdg.desktopEntries.yazi = lib.mkForce {
           name = "Yazi";
           genericName = "File Manager";
-          exec = "${pkgs.${myconfig.constants.term}}/bin/${myconfig.constants.term} --class yazi -e yazi";
+          exec = "${
+            pkgs.${myconfig.myconfig.constants.terminal}
+          }/bin/${myconfig.myconfig.constants.terminal} --class yazi -e yazi";
           icon = "system-file-manager";
           terminal = false;
           startupNotify = false;

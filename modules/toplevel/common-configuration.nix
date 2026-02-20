@@ -198,7 +198,7 @@ delib.module {
       # 🎨 GLOBAL THEME VARIABLES
       # -----------------------------------------------------
       environment.variables.GTK_APPLICATION_PREFER_DARK_THEME =
-        if myconfig.constants.polarity == "dark" then "1" else "0";
+        if myconfig.constants.theme.polarity == "dark" then "1" else "0";
 
       # -----------------------------------------------------
       # ⚡ SYSTEM TWEAKS

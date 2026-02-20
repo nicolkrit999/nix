@@ -40,12 +40,13 @@ delib.module {
       cssContent = builtins.readFile ./style.css;
       # 1. Hyprland logic: Show Waybar if no custom shell is set
       hyprlandWaybar =
-        (myconfig.constants.hyprland or false)
+        (myconfig.programs.hyprland.enable or false)
         && !(
           (myconfig.constants.hyprlandCaelestia or false) || (myconfig.constants.hyprlandNoctalia or false)
         );
 
-      niriWaybar = (myconfig.constants.niri or false) && !(myconfig.constants.niriNoctalia or false);
+      niriWaybar =
+        (myconfig.programs.niri.enable or false) && !(myconfig.constants.niriNoctalia or false);
 
       isWaybarNeeded = hyprlandWaybar || niriWaybar;
     in

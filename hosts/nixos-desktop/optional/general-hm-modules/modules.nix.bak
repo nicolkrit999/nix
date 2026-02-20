@@ -226,7 +226,7 @@ in
     "${constants.browser}"
     "${constants.editor}"
     "${constants.fileManager}"
-    "${constants.term}"
+    "${myconfig.constants.terminal}"
 
     # Secondary apps
     "chromium-browser"
@@ -241,9 +241,9 @@ in
     cava.enable = true;
 
     # Catppuccin variable-based
-    kitty.enable = !constants.catppuccin;
-    alacritty.enable = !constants.catppuccin;
-    zathura.enable = !constants.catppuccin;
+    kitty.enable = !constants.theme.catppuccin;
+    alacritty.enable = !constants.theme.catppuccin;
+    zathura.enable = !constants.theme.catppuccin;
 
     # Other
     firefox.profileNames = [ constants.user ];
