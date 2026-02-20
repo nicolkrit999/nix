@@ -15,7 +15,7 @@ delib.module {
     screenOffTimeout = intOption 360;
   };
 
-  nixos.ifEnabled =
+  home.ifEnabled =
     {
       cfg,
       myconfig,

@@ -14,6 +14,7 @@ delib.module {
       ...
     }:
     {
+
       programs.plasma.desktop = {
         mouseActions = {
           # Right Click -> Context Menu

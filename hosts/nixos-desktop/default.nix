@@ -1,4 +1,9 @@
-{ delib, ... }:
+{
+  delib,
+  inputs,
+  pkgs,
+  ...
+}:
 let
   # 🌟 CORE APPS & THEME
   myBrowser = "librewolf";
@@ -168,8 +173,12 @@ delib.host {
 
   myconfig =
     { name, ... }:
+
     {
       constants = {
+        desktop.local-packages.enable = true;
+        desktop.nas.borg-backup.enable = true;
+
         user = "krit";
         browser = myBrowser;
         terminal = myTerminal;
@@ -353,13 +362,15 @@ delib.host {
     {
       system.stateVersion = "25.11";
       imports = [
+        inputs.nix-sops.nixosModules.sops # 🌟 Registers 'sops' options
+        inputs.nix-flatpak.nixosModules.nix-flatpak # 🌟 Registers 'services.flatpak'
+
         ./hardware-configuration.nix
-        ./optional/default.nix
       ];
 
       i18n.defaultLocale = "en_US.UTF-8";
 
-      sops.defaultSopsFile = ./optional/host-sops-nix/nixos-desktop-secrets-sops.yaml;
+      sops.defaultSopsFile = ./nixos-desktop-secrets-sops.yaml;
       sops.defaultSopsFormat = "yaml";
       sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
@@ -525,6 +536,10 @@ delib.host {
     {
       home.stateVersion = "25.11";
       imports = [
+        inputs.catppuccin.homeManagerModules.catppuccin # 🌟 Registers 'catppuccin' options
+        inputs.niri.homeManagerModules.niri # 🌟 Registers 'programs.niri' options
+        inputs.walker.homeManagerModules.default # 🌟 Registers 'programs.walker' options
+        inputs.plasma-manager.homeManagerModules.plasma-manager
         ./optional/host-hm-modules
       ];
 

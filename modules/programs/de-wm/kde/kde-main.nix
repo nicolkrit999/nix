@@ -20,6 +20,7 @@ delib.module {
     {
       cfg,
       myconfig,
+      config,
       ...
     }:
     let
@@ -52,6 +53,8 @@ delib.module {
       cursorTheme = config.stylix.cursor.name;
     in
     {
+
+      #imports = [ inputs.plasma-manager.homeManagerModules.plasma-manager ];
 
       xdg.configFile."autostart/ibus-daemon.desktop".text = ''
         [Desktop Entry]

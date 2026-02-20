@@ -17,6 +17,7 @@ delib.module {
       spectacleCmd = "${pkgs.kdePackages.spectacle}/bin/spectacle";
     in
     {
+
       # ---------------------------------------------------------
       # 2. HOTKEYS (Custom Commands)
       # ---------------------------------------------------------
@@ -89,13 +90,13 @@ delib.module {
                 "helix"
               ]
             then
-              "${myconfig.myconfig.constants.terminal} -e ${myconfig.constants.editor}"
+              "${myconfig.constants.terminal} -e ${myconfig.constants.editor}"
             else
               "${myconfig.constants.editor}";
         };
         "launch-terminal" = {
           key = "Meta+Return";
-          command = myconfig.myconfig.constants.terminal;
+          command = myconfig.constants.terminal;
         };
         "launch-filemanager" = {
           key = "Meta+F";
@@ -108,7 +109,7 @@ delib.module {
                 "nnn"
               ]
             then
-              "${myconfig.myconfig.constants.terminal} -e ${myconfig.constants.fileManager}"
+              "${myconfig.constants.terminal} -e ${myconfig.constants.fileManager}"
             else
               "${myconfig.constants.fileManager}";
         };

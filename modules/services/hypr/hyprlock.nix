@@ -6,7 +6,7 @@ delib.module {
     settings = attrsOption { };
   };
 
-  nixos.always =
+  home.always =
     { cfg, myconfig, ... }:
     let
       # 🌟 EXACT ORIGINAL FALLBACK LOGIC
