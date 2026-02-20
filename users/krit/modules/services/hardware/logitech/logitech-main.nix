@@ -6,10 +6,6 @@ delib.module {
   nixos.ifEnabled =
     { cfg, ... }:
     {
-      imports = [
-        ./superlight.nix
-        ./mx-master.nix
-      ];
 
       environment.systemPackages = with pkgs; [
         keyd # for Superlight
