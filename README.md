@@ -358,11 +358,11 @@ If your normal user shell fails to log in, follow these steps:
 - **Password:** (Same as your admin user, unless explicitly changed).
 
 2. **Repair the System:**
-   Run the following commands to rebuild the system from the root user. Replace `<your-username>` with your actual folder name (e.g., `krit`).
+   Run the following commands to rebuild the system from the root user. Replace `<your-user>` with your actual folder name (e.g., `krit`).
 
 ```bash
 # 1. Enter the NixOS directory
-cd /home/<your-username>/nixOS
+cd /home/<your-user>/nixOS
 
 # 2. Allow root to access the user's git repo
 nix-shell -p git --command "git config --global --add safe.directory '*'"
@@ -624,8 +624,8 @@ We only need to set the basics now. You can customize themes and wallpapers late
 nano variables.nix
 ```
 
-- **`user`**: Change `"template-user"` to your real username.
-- **⚠️ CRITICAL:** Do not install as `template-user` and try to rename it later. You will lose access to your home folder. Set your real username **NOW**.
+- **`user`**: Change `"template-user"` to your real user.
+- **⚠️ CRITICAL:** Do not install as `template-user` and try to rename it later. You will lose access to your home folder. Set your real user **NOW**.
 - **`system`**: The template is `x86_64-linux`. If you have a newer arm-based pc then `aarch_64`
 
 You may also want to configure the keyboard. If you don't have us international you may boot into a wrong layout. Below there is an example with multiple layouts
@@ -750,7 +750,7 @@ _Example input: `my-computer` (This will delete every host except this one)._
       Later where other version may be updated these 2 should not be changed, meaning they should remain what they were at the beginning
       These 2 versions define where there system was created, and keeping them always the same it is a better idea
 
-  * `user` (mandatory: The desired username)
+  * `user` (mandatory: The desired user)
 
   * `gitUserName` (optional): Github user name.
   * `gitUserEmail` (optional): Github user e-mail.
@@ -1035,7 +1035,7 @@ home-manager switch
 **Fix:** Fix ownership:
 
 ```bash
-# This smart command automatically fetch the username so no changes are needed
+# This smart command automatically fetch the user so no changes are needed
 sudo chown -R $USER:users ~/nixOS
 ```
 

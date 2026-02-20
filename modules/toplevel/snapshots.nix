@@ -25,7 +25,7 @@ delib.module {
         yearly = myconfig.constants.snapshotRetention.yearly or "1";
       };
 
-      user = myconfig.constants.username; # Align with constants.nix
+      user = myconfig.constants.user; # Align with constants.nix
     in
     {
       # 🌟 Removed the extra 'config =' wrapper and 'lib.mkIf cfg'

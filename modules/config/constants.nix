@@ -6,7 +6,7 @@ delib.module {
     # ---------------------------------------------------------------
     # 👤 USER IDENTITY
     # ---------------------------------------------------------------
-    username = strOption "nixos";
+    user = strOption "nixos";
     gitUserName = strOption "";
     gitUserEmail = strOption "";
 

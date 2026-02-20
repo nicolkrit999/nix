@@ -168,7 +168,7 @@ delib.host {
 
   shared.myconfig = {
     constants = {
-      username = "krit";
+      user = "krit";
       browser = myBrowser;
       terminal = myTerminal;
       editor = myEditor;

@@ -10,7 +10,7 @@ delib.module {
         {
 
           home = {
-            username = myconfig.constants.user;
+            user = myconfig.constants.user;
             homeDirectory = "/home/${myconfig.constants.user}";
             stateVersion = myconfig.constants.homeStateVersion or "25.11";
             sessionPath = [ "$HOME/.local/bin" ];
