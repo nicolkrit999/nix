@@ -1,7 +1,7 @@
 {
   delib,
   pkgs,
-  pkgs-unstable,
+  inputs,
   ...
 }:
 delib.module {
@@ -11,6 +11,11 @@ delib.module {
 
   nixos.ifEnabled =
     { myconfig, ... }:
+    let
+      # 🌟 THE FIX: Define pkgs-unstable here so it's always available
+      pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+    in
+
     {
       users.users.${myconfig.constants.user}.packages =
         (with pkgs; [
@@ -37,7 +42,7 @@ delib.module {
           vscode # Microsoft visual studio code IDE
           vesktop # Discord client
           vlc # Media player
-          whatsapp-electron # Electron wrapper for whatsapp
+          #whatsapp-electron # Electron wrapper for whatsapp # TODO: check why it says it does not exist
 
           # -----------------------------------------------------------------------------------
           # 🖥️ CLI UTILITIES

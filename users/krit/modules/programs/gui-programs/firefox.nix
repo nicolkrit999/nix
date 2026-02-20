@@ -19,11 +19,11 @@ delib.module {
       ...
     }:
     let
-      # Allow to install "unfree" addons by rebuilding them locally
+      # 🌟 ADD THIS DEFINITION HERE
       buildFirefoxXpiAddon = lib.makeOverridable (
         {
           stdenv ? pkgs.stdenv,
-          fetchurl,
+          fetchurl ? pkgs.fetchurl,
           pname,
           version,
           addonId,
@@ -46,8 +46,13 @@ delib.module {
           '';
         }
       );
-      firefox-addons = pkgs.callPackage inputs.firefox-addons { };
+
+      # 🌟 NOW the call will work because 'buildFirefoxXpiAddon' is defined above
+      addons = pkgs.callPackage inputs.firefox-addons {
+        buildMozillaXpiAddon = buildFirefoxXpiAddon;
+      };
     in
+
     {
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
@@ -100,7 +105,7 @@ delib.module {
           # If that does not work search on "https://nur.nix-community.org/repos/rycee/" and use the "name" without version
           extensions = {
             force = true; # Forced to allow catppuccin to modify the firefox color scheme
-            packages = with firefox-addons; [
+            packages = with addons; [
               ublock-origin # Popular ad and tracker blocker
               proton-pass # Proton Pass password manager integration
               firefox-color # Custom Firefox themes and color schemes. Needed for catppuccin

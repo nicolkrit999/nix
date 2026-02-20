@@ -1,0 +1,65 @@
+{ delib, lib, ... }:
+delib.module {
+  name = "upstream-compat-shadow";
+
+  # 🛡️ THE SHIELD: This hook creates landing spots for all broken data
+  # to stop external flakes from crashing your Home Manager evaluation.
+  home.always =
+    { ... }:
+    {
+      options = {
+        programs.delta = lib.mkOption {
+          type = lib.types.anything;
+          default = { };
+        };
+        programs.opencode.themes = lib.mkOption {
+          type = lib.types.anything;
+          default = { };
+        };
+        programs.vicinae = lib.mkOption {
+          type = lib.types.anything;
+          default = { };
+        };
+        programs.vivid = lib.mkOption {
+          type = lib.types.anything;
+          default = { };
+        };
+        programs.wleave = lib.mkOption {
+          type = lib.types.anything;
+          default = { };
+        };
+
+        # Fixes the Flatpak "option does not exist" error in HM
+        /*
+          # TODO: Wait for fix for "services.flatpak.packages does not exist"
+          services.flatpak = lib.mkOption {
+            type = lib.types.anything;
+            default = { };
+          };
+        */
+
+        # Fixes the Catppuccin Qt settings crash
+        qt = {
+          qt5ctSettings = lib.mkOption {
+            type = lib.types.anything;
+            default = { };
+          };
+          qt6ctSettings = lib.mkOption {
+            type = lib.types.anything;
+            default = { };
+          };
+          platformTheme = lib.mkOption {
+            type = lib.types.submodule {
+              options.name = lib.mkOption {
+                type = lib.types.str;
+                default = "";
+              };
+            };
+            default = {
+              name = "";
+            };
+          };
+        };
+      };
+    };
+}

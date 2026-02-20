@@ -32,7 +32,8 @@
             ./users
           ];
 
-          exclude = [ ./users/krit/dev-environments
+          exclude = [
+            ./users/krit/dev-environments
             ./users/krit/modules/programs/gui-programs/librewolf/profiles
           ];
 
@@ -50,7 +51,11 @@
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
-    denix.url = "github:yunfachi/denix";
+    denix = {
+      url = "github:yunfachi/denix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
 
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
@@ -70,9 +75,11 @@
 
     # Official catppuccin-nix flake
     catppuccin = {
-      url = "github:catppuccin/nix/release-25.11";
+      url = "github:catppuccin/nix/release-25.11"; # Changed from "github:catppuccin/nix" to pin to it and avoid the "services.displayManager.generic" does not exist evalution warning after a "nix flake update" done on february, 13, 2026
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # nix-community plasma manager
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -114,4 +121,5 @@
       inputs.elephant.follows = "elephant";
     };
   };
+
 }

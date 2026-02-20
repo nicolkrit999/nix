@@ -27,12 +27,11 @@ delib.module {
       isCatppuccin = myconfig.constants.theme.catppuccin or false;
     in
     {
-      imports = [ inputs.stylix.homeModules.stylix ];
 
       stylix = {
         enable = true;
         polarity = myconfig.constants.theme.polarity; # Sets a global preference for dark mode
-        base16Scheme = "${pkgs.base16-schemes}/share/themes/${myconfig.constants.base16Theme}.yaml";
+        base16Scheme = lib.mkForce "${pkgs.base16-schemes}/share/themes/${myconfig.constants.theme.base16Theme}.yaml";
         image = pkgs.fetchurl {
           url = (builtins.head myconfig.constants.wallpapers).wallpaperURL;
           sha256 = (builtins.head myconfig.constants.wallpapers).wallpaperSHA256;

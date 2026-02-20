@@ -1,30 +1,31 @@
 { delib, lib, ... }:
 delib.module {
   name = "programs.git";
-  # 🌟 Enabled by default!
-  options.programs.git = with delib; {
-    enable = boolOption true;
-  };
+  options.programs.git.enable = delib.boolOption true;
 
+  # 🏠 HOME MANAGER HOOK ONLY
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
-    }:
+    { cfg, myconfig, ... }:
     {
       programs.git = {
         enable = true;
 
-        settings.user.name = lib.mkIf (
-          myconfig.constants.constants ? gitUserName
-        ) myconfig.constants.gitUserName;
-        settings.user.email = lib.mkIf (
-          myconfig.constants.constants ? gitUserEmail
-        ) myconfig.constants.gitUserEmail;
-
+        # 🌟 THE FIX: Correct Home Manager identity attributes
+        userName = myconfig.constants.gitUserName;
+        userEmail = myconfig.constants.gitUserEmail;
         lfs.enable = true;
 
+        # 🌟 THE FIX: Correct nesting for Delta inside Git
+        delta = {
+          enable = true;
+          options = {
+            navigate = true;
+            light = false;
+            side-by-side = true;
+          };
+        };
+
+        # 🌟 THE FIX: 'ignores' belongs here in Home Manager
         ignores = [
           ".direnv/"
           ".venv/"
@@ -34,7 +35,8 @@ delib.module {
         ]
         ++ (myconfig.constants.customGitIgnores or [ ]);
 
-        settings = {
+        # 🌟 THE FIX: Use 'extraConfig' for branch/rebase settings
+        extraConfig = {
           init.defaultBranch = "main";
           pull.rebase = true;
         };

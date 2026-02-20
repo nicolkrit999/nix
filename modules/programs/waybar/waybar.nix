@@ -2,7 +2,6 @@
   delib,
   pkgs,
   lib,
-  inputs,
   config,
   ...
 }:

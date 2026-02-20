@@ -20,6 +20,7 @@ delib.module {
               home-manager
               catppuccin
               plasma-manager
+              stylix
               ;
           };
         };
