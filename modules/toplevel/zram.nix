@@ -2,7 +2,7 @@
 delib.module {
   name = "system.zram";
 
-  myconfig.always =
+  nixos.always =
     { myconfig, ... }:
     {
       zramSwap = {

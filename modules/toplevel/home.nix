@@ -2,7 +2,7 @@
 delib.module {
   name = "system.home";
 
-  myconfig.always =
+  nixos.always =
     { myconfig, ... }:
     {
       home-manager.users.${myconfig.constants.user} =

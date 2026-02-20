@@ -8,7 +8,7 @@
 delib.module {
   name = "system.cachix";
 
-  myconfig.always =
+  nixos.always =
     { myconfig, ... }:
     let
       # Use exactly what is defined in constants.nix

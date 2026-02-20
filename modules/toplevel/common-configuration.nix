@@ -8,7 +8,7 @@
 delib.module {
   name = "system.common";
 
-  myconfig.always =
+  nixos.always =
     {
       myconfig,
       ...

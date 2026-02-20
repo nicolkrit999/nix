@@ -2,7 +2,7 @@
 delib.module {
   name = "system.env";
 
-  myconfig.always =
+  nixos.always =
     { myconfig, ... }:
 
     let

@@ -2,7 +2,7 @@
 delib.module {
   name = "system.user";
 
-  myconfig.always =
+  nixos.always =
     { myconfig, ... }:
     let
       currentShell = myconfig.constants.shell or "zsh";
