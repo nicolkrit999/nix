@@ -1,4 +1,9 @@
-{ delib, config, ... }:
+{
+  delib,
+  config,
+  lib,
+  ...
+}:
 delib.module {
   name = "system.home-packages";
 
@@ -49,7 +54,7 @@ delib.module {
     in
     {
       home-manager.users.${myconfig.constants.user} =
-        { config, ... }: # 🌟 Home Manager's config safely loads here!
+        { config, lib, ... }: # 🌟 Home Manager's config safely loads here!
         let
           # ✅ The module check ONLY lives here now
           isModuleEnabled = name: lib.attrByPath [ "programs" name "enable" ] false config;
