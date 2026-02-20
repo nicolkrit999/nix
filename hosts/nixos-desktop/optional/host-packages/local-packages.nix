@@ -1,7 +1,7 @@
 {
   pkgs,
   pkgs-unstable,
-  nixos,
+  myconfig,
   ...
 }:
 {

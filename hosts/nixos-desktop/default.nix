@@ -166,7 +166,7 @@ delib.host {
 
   homeManagerSystem = "x86_64-linux";
 
-  shared.nixos = {
+  shared.myconfig = {
     constants = {
       user = "krit";
       browser = myBrowser;
