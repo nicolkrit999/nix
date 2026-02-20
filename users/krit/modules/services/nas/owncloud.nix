@@ -12,7 +12,7 @@ delib.module {
   nixos.ifEnabled =
     {
       cfg,
-      myconfig,
+      constants,
       ...
     }:
     let
@@ -53,7 +53,7 @@ delib.module {
         fsType = "davfs";
 
         options = [
-          "uid=${toString config.users.users.${myconfig.constants.user}.uid}"
+          "uid=${toString config.users.users.${constants.user}.uid}"
           "gid=${toString config.users.groups.users.gid}"
           "file_mode=0664"
           "dir_mode=0775"
@@ -76,7 +76,7 @@ delib.module {
         nas_owncloud_url.sopsFile = ../../../../../common/krit/sops/krit-common-secrets-sops.yaml;
       };
 
-      users.users.${myconfig.constants.user}.extraGroups = [ "davfs2" ];
+      users.users.${constants.user}.extraGroups = [ "davfs2" ];
 
       # It add to much overhead and slow down dolphin opening times
       /*

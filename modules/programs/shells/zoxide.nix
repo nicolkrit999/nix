@@ -1,17 +1,17 @@
 { delib, ... }:
 delib.module {
-  name = "programs.fzf";
+  name = "programs.zoxide";
+  options.programs.zoxide = with delib; {
+    enable = boolOption false;
+  };
 
-  home.always =
-    {
-      myconfig,
-      ...
-    }:
+  home.ifEnabled =
+    { constants, ... }:
     let
-      currentShell = myconfig.constants.shell or "zsh";
+      currentShell = constants.shell or "zsh";
     in
     {
-      programs.fzf = {
+      programs.zoxide = {
         enable = true;
         enableZshIntegration = currentShell == "zsh";
         enableFishIntegration = currentShell == "fish";

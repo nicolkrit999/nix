@@ -8,9 +8,9 @@ delib.module {
   name = "programs.hyprpaper"; # Assuming you register it directly
 
   home.always =
-    { myconfig, ... }:
+    { constants, ... }:
     let
-      activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
+      activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) constants.monitors;
       monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
       images = map (
         w:
@@ -18,15 +18,15 @@ delib.module {
           url = w.wallpaperURL;
           sha256 = w.wallpaperSHA256;
         }
-      ) myconfig.constants.wallpapers;
+      ) constants.wallpapers;
       getWallpaper =
         index: if index < builtins.length images then builtins.elemAt images index else lib.last images;
 
       # 🌟 EXACT ORIGINAL CONDITION
       hyprlandFallback =
-        (myconfig.programs.hyprland.enable or false)
-        && !(myconfig.programs.caelestia.enableOnHyprland or false)
-        && !(myconfig.programs.noctalia.enableOnHyprland or false);
+        (constants.programs.hyprland.enable or false)
+        && !(constants.programs.caelestia.enableOnHyprland or false)
+        && !(constants.programs.noctalia.enableOnHyprland or false);
     in
     lib.mkIf hyprlandFallback {
       services.hyprpaper = {

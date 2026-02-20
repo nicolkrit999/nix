@@ -1,6 +1,46 @@
 {
   description = "NixOS configuration with multiple hosts, denix, cachix, sops";
 
+  outputs =
+    { denix, nixpkgs, ... }@inputs:
+    let
+      allSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
+
+      forAllSystems = nixpkgs.lib.genAttrs allSystems;
+
+      mkConfigurations =
+        moduleSystem:
+        denix.lib.configurations {
+          inherit moduleSystem;
+          homeManagerUser = "krit";
+
+          extensions = with denix.lib.extensions; [
+            args
+            (base.withConfig {
+              args.enable = true;
+              rices.enable = false;
+            })
+          ];
+
+          paths = [
+            ./hosts
+            ./modules
+            ./packages
+            ./users
+          ];
+
+          specialArgs = { inherit inputs moduleSystem; };
+        };
+    in
+    {
+      nixosConfigurations = mkConfigurations "nixos";
+      homeConfigurations = mkConfigurations "home";
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
+    };
+
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -26,11 +66,9 @@
 
     # Official catppuccin-nix flake
     catppuccin = {
-      url = "github:catppuccin/nix/release-25.11"; # Changed from "github:catppuccin/nix" to pin to it and avoid the "services.displayManager.generic" does not exist evalution warning after a "nix flake update" done on february, 13, 2026
-      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:catppuccin/nix/release-25.11";
     };
 
-    # nix-community plasma manager
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -72,32 +110,4 @@
       inputs.elephant.follows = "elephant";
     };
   };
-
-  outputs =
-    { denix, nixpkgs, ... }@inputs:
-    let
-      allSystems = [
-        "x86_64-linux"
-        "aarch64-linux"
-      ];
-
-      forAllSystems = nixpkgs.lib.genAttrs allSystems;
-      mkConfigurations =
-        moduleSystem:
-        denix.lib.configurations {
-          inherit moduleSystem;
-
-          paths = [
-            ./hosts
-            ./modules
-            ./packages
-            ./users
-          ];
-          specialArgs = { inherit inputs; };
-        };
-    in
-    {
-      nixosConfigurations = mkConfigurations "nixos";
-      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
-    };
 }

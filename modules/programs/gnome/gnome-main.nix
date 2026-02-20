@@ -16,19 +16,19 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      myconfig,
+      constants,
       ...
     }:
 
     let
-      firstWallpaper = builtins.head myconfig.constants.wallpapers;
+      firstWallpaper = builtins.head constants.wallpapers;
       wallpaperPath = pkgs.fetchurl {
         url = firstWallpaper.wallpaperURL;
         sha256 = firstWallpaper.wallpaperSHA256;
       };
 
-      colorScheme = if myconfig.constants.polarity == "dark" then "prefer-dark" else "prefer-light";
-      iconThemeName = if myconfig.constants.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
+      colorScheme = if constants.polarity == "dark" then "prefer-dark" else "prefer-light";
+      iconThemeName = if constants.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
 
       rawPinnedApps = cfg.pinnedApps;
       hasPins = builtins.length rawPinnedApps > 0;
@@ -36,15 +36,15 @@ delib.module {
     {
 
       home.packages =
-        (lib.optionals myconfig.constants.catppuccin [
+        (lib.optionals constants.catppuccin [
           (pkgs.catppuccin-gtk.override {
-            accents = [ myconfig.constants.catppuccinAccent ];
+            accents = [ constants.catppuccinAccent ];
             size = "standard";
             tweaks = [
               "rimless"
               "black"
             ];
-            variant = myconfig.constants.catppuccinFlavor or "mocha";
+            variant = constants.catppuccinFlavor or "mocha";
           })
         ])
         ++ [

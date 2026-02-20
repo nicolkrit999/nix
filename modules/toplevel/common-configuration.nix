@@ -6,15 +6,15 @@
   ...
 }:
 delib.module {
-  name = "system.common";
+  name = "common-configuration";
 
   nixos.always =
     {
-      myconfig,
+      constants,
       ...
     }:
     let
-      currentShell = myconfig.constants.shell or "zsh";
+      currentShell = constants.shell or "zsh";
 
       shellPkg =
         if currentShell == "fish" then
@@ -29,19 +29,19 @@ delib.module {
       # ---------------------------------------------------------
       # 🖥️ HOST IDENTITY
       # ---------------------------------------------------------
-      networking.hostName = myconfig.constants.hostname;
+      networking.hostName = constants.hostname;
       networking.networkmanager.enable = true;
-      system.stateVersion = myconfig.constants.stateVersion or "25.11";
+      system.stateVersion = constants.stateVersion or "25.11";
 
       # ---------------------------------------------------------
       # 🌍 LOCALE & TIME
       # ---------------------------------------------------------
-      time.timeZone = myconfig.constants.timeZone or "Etc/UTC";
+      time.timeZone = constants.timeZone or "Etc/UTC";
 
       # Keyboard Layout
       services.xserver.xkb = {
-        layout = myconfig.constants.keyboardLayout or "us";
-        variant = myconfig.constants.keyboardVariant or "";
+        layout = constants.keyboardLayout or "us";
+        variant = constants.keyboardVariant or "";
       };
       console.useXkbConfig = true;
 
@@ -197,7 +197,7 @@ delib.module {
       # 🎨 GLOBAL THEME VARIABLES
       # -----------------------------------------------------
       environment.variables.GTK_APPLICATION_PREFER_DARK_THEME =
-        if myconfig.constants.polarity == "dark" then "1" else "0";
+        if constants.polarity == "dark" then "1" else "0";
 
       # -----------------------------------------------------
       # ⚡ SYSTEM TWEAKS

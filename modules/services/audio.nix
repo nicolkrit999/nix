@@ -1,7 +1,7 @@
 { delib, pkgs, ... }:
 delib.module {
   name = "services.audio";
-  options.services.audio = with delib; {
+  options.audio = with delib; {
     enable = boolOption true;
   };
 

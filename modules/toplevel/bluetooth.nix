@@ -1,7 +1,7 @@
 { delib, pkgs, ... }:
 delib.module {
-  name = "services.bluetooth";
-  options.services.bluetooth = with delib; {
+  name = "bluetooth";
+  options.bluetooth = with delib; {
     enable = boolOption false;
   };
 

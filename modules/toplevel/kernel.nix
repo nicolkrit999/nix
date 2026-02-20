@@ -1,6 +1,6 @@
 { delib, pkgs, ... }:
 delib.module {
-  name = "system.kernel";
+  name = "kernel";
   nixos.always = {
     # Use Zen kernel on x86 (Desktop), but standard Linux on ARM (VM/Pi/Apple)
     boot.kernelPackages =

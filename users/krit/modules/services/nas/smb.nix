@@ -12,7 +12,7 @@ delib.module {
   nixos.ifEnabled =
     {
       cfg,
-      myconfig,
+      constants,
       ...
     }:
     let
@@ -49,7 +49,7 @@ delib.module {
               "nounix"
               "forceuid"
               "forcegid"
-              "uid=${toString config.users.users.${myconfig.constants.user}.uid}"
+              "uid=${toString config.users.users.${constants.user}.uid}"
               "gid=${toString config.users.groups.users.gid}"
 
               # Performance optimizations

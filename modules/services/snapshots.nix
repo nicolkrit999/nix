@@ -5,27 +5,27 @@
   ...
 }:
 delib.module {
-  name = "services.snapper";
-  options.services.snapper = with delib; {
+  name = "snapper";
+  options.snapper = with delib; {
     enable = boolOption false;
   };
 
   nixos.ifEnabled =
     {
-      myconfig,
+      constants,
       ...
     }:
     let
       # Use the retention constants from your host configuration
       retention = {
-        hourly = myconfig.constants.snapshotRetention.hourly or "12";
-        daily = myconfig.constants.snapshotRetention.daily or "3";
-        weekly = myconfig.constants.snapshotRetention.weekly or "3";
-        monthly = myconfig.constants.snapshotRetention.monthly or "2";
-        yearly = myconfig.constants.snapshotRetention.yearly or "1";
+        hourly = constants.snapshotRetention.hourly or "12";
+        daily = constants.snapshotRetention.daily or "3";
+        weekly = constants.snapshotRetention.weekly or "3";
+        monthly = constants.snapshotRetention.monthly or "2";
+        yearly = constants.snapshotRetention.yearly or "1";
       };
 
-      user = myconfig.constants.user; # Align with constants.nix
+      user = constants.user; # Align with constants.nix
     in
     {
       # 🌟 Removed the extra 'config =' wrapper and 'lib.mkIf cfg'

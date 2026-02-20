@@ -10,7 +10,7 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      myconfig,
+      constants,
       ...
     }:
 
@@ -20,8 +20,8 @@ delib.module {
         programs.plasma.input.keyboard = {
           layouts = [
             {
-              layout = myconfig.constants.keyboardLayout or "us";
-              variant = myconfig.constants.keyboardVariant or "";
+              layout = constants.keyboardLayout or "us";
+              variant = constants.keyboardVariant or "";
             }
           ];
           numlockOnStartup = "on";

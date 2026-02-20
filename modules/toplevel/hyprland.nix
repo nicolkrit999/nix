@@ -5,11 +5,14 @@
   ...
 }:
 delib.module {
-  name = "programs.hyprland";
+  name = "hyprland";
+  options.hyprland = with delib; {
+    enable = boolOption false;
+  };
 
   nixos.ifEnabled =
     {
-      myconfig,
+      constants,
       ...
     }:
     {

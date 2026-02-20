@@ -6,8 +6,8 @@
   ...
 }:
 delib.module {
-  name = "krit.guest";
-  options.krit.guest = with delib; {
+  name = "guest";
+  options.guest = with delib; {
     enable = boolOption false;
   };
 

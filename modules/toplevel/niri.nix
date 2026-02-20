@@ -5,11 +5,14 @@
   ...
 }:
 delib.module {
-  name = "programs.niri";
+  name = "niri";
+  options.niri = with delib; {
+    enable = boolOption false;
+  };
 
   nixos.ifEnabled =
     {
-      myconfig,
+      constants,
       ...
     }:
     {

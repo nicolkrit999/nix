@@ -9,7 +9,7 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      myconfig,
+      constants,
       ...
     }:
 
@@ -33,35 +33,35 @@ delib.module {
       customBindings = [
         {
           name = "Launch Terminal";
-          command = myconfig.constants.term;
+          command = constants.term;
           binding = "<Super>Return";
         }
         {
-          name = "Launch ${myconfig.constants.browser}";
-          command = "${pkgs.${myconfig.constants.browser}}/bin/${myconfig.constants.browser}";
+          name = "Launch ${constants.browser}";
+          command = "${pkgs.${constants.browser}}/bin/${constants.browser}";
           binding = "<Super>b";
         }
         {
           name = "Launch File Manager";
           command =
             if
-              builtins.elem myconfig.constants.fileManager [
+              builtins.elem constants.fileManager [
                 "yazi"
                 "ranger"
                 "lf"
                 "nnn"
               ]
             then
-              "${myconfig.constants.term} -e ${myconfig.constants.fileManager}"
+              "${constants.term} -e ${constants.fileManager}"
             else
-              "${myconfig.constants.fileManager}";
+              "${constants.fileManager}";
           binding = "<Super>f";
         }
         {
           name = "Launch editor";
           command =
             if
-              builtins.elem myconfig.constants.editor [
+              builtins.elem constants.editor [
                 "neovim"
                 "nvim"
                 "nano"
@@ -69,9 +69,9 @@ delib.module {
                 "helix"
               ]
             then
-              "${myconfig.constants.term} -e ${myconfig.constants.editor}"
+              "${constants.term} -e ${constants.editor}"
             else
-              "${myconfig.constants.editor}";
+              "${constants.editor}";
           binding = "<Super>c";
         }
         {

@@ -10,7 +10,7 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      myconfig,
+      constants,
       ...
     }:
     {

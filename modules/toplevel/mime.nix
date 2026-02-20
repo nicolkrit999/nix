@@ -5,23 +5,20 @@
   ...
 }:
 delib.module {
-  name = "programs.mime";
+  name = "mime";
   # 🌟 Enabled by default to protect your desktop routing!
-  options.programs.mime = with delib; {
-    enable = boolOption true;
-  };
 
-  home.ifEnabled =
+  nixos.ifEnabled =
     {
-      myconfig,
+      constants,
       ...
     }:
     let
       # If variables are missing, these defaults will be used.
-      safeEditor = myconfig.constants.editor or "vscode";
-      safeBrowser = myconfig.constants.browser or "brave";
-      safeTerm = myconfig.constants.term or "alacritty";
-      safeFileManager = myconfig.constants.fileManager or "dolphin";
+      safeEditor = constants.editor or "vscode";
+      safeBrowser = constants.browser or "brave";
+      safeTerm = constants.term or "alacritty";
+      safeFileManager = constants.fileManager or "dolphin";
 
       # -----------------------------------------------------------------------
       # 1. HELPER: Terminal Editor Logic

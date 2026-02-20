@@ -4,7 +4,7 @@
   addons,
   searchConfig,
   commonSettings,
-  myconfig,
+  constants,
   ...
 }:
 delib.module {
@@ -12,7 +12,7 @@ delib.module {
 
   # 🌟 The fix: Everything HM-related goes inside home.always
   home.always =
-    { myconfig, ... }:
+    { constants, ... }:
     {
       id = 0;
       name = "Default";

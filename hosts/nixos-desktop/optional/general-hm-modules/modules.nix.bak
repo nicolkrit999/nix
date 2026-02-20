@@ -1,7 +1,7 @@
 {
   lib,
   pkgs,
-  myconfig,
+  constants,
   ...
 }:
 let
@@ -134,7 +134,7 @@ in
     # SCRATCHPAD APPLICATIONS
     "$Mod SHIFT, return, exec, [workspace special:magic] $term --class scratch-term"
     "$Mod SHIFT, F, exec, [workspace special:magic] $term --class scratch-fs -e yazi"
-    "$Mod SHIFT, B, exec, [workspace special:magic] ${rawmyconfig.constants.browser} --new-window --class scratch-browser"
+    "$Mod SHIFT, B, exec, [workspace special:magic] ${rawconstants.browser} --new-window --class scratch-browser"
 
     # EXTRA APPLICATION LAUNCHERS
     "$Mod,       Y, exec, chromium-browser"
@@ -223,10 +223,10 @@ in
 
   niri_Exec-Once = [
     # Personal apps
-    "${myconfig.constants.browser}"
-    "${myconfig.constants.editor}"
-    "${myconfig.constants.fileManager}"
-    "${myconfig.constants.term}"
+    "${constants.browser}"
+    "${constants.editor}"
+    "${constants.fileManager}"
+    "${constants.term}"
 
     # Secondary apps
     "chromium-browser"
@@ -241,12 +241,12 @@ in
     cava.enable = true;
 
     # Catppuccin variable-based
-    kitty.enable = !myconfig.constants.catppuccin;
-    alacritty.enable = !myconfig.constants.catppuccin;
-    zathura.enable = !myconfig.constants.catppuccin;
+    kitty.enable = !constants.catppuccin;
+    alacritty.enable = !constants.catppuccin;
+    zathura.enable = !constants.catppuccin;
 
     # Other
-    firefox.profileNames = [ myconfig.constants.user ];
+    firefox.profileNames = [ constants.user ];
     librewolf.profileNames = [
       "default"
       "privacy"
@@ -261,9 +261,9 @@ in
   };
 
   pinnedApps = [
-    (resolve myconfig.constants.browser)
-    (resolve myconfig.constants.editor)
-    (resolve myconfig.constants.fileManager)
+    (resolve constants.browser)
+    (resolve constants.editor)
+    (resolve constants.fileManager)
 
     # Regular app
     "github-desktop.desktop"

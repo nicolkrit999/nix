@@ -17,17 +17,17 @@ delib.module {
     {
 
       cfg,
-      myconfig,
+      constants,
       ...
     }:
     let
       # Detect which shell hyprland has to avoid conflicts
       enableHyprland =
-        (myconfig.constants.hyprland or false)
-        && (myconfig.constants.hyprlandNoctalia or false)
-        && !(myconfig.constants.hyprlandCaelestia or false);
+        (constants.hyprland or false)
+        && (constants.hyprlandNoctalia or false)
+        && !(constants.hyprlandCaelestia or false);
 
-      enableNiri = (myconfig.constants.niri or false) && (myconfig.constants.niriNoctalia or false);
+      enableNiri = (constants.niri or false) && (constants.niriNoctalia or false);
 
       noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
@@ -79,7 +79,7 @@ delib.module {
 
         # Optional: Sync weather location from Nix variables on boot
         sleep 5
-        ${noctaliaPkg}/bin/noctalia-shell ipc call location set "${myconfig.constants.weather or "London"}"
+        ${noctaliaPkg}/bin/noctalia-shell ipc call location set "${constants.weather or "London"}"
 
         wait $PID
       '';

@@ -1,6 +1,6 @@
 { delib, pkgs, ... }:
 delib.module {
-  name = "system.net";
+  name = "net";
   nixos.always = {
     networking.networkmanager.enable = true;
     environment.systemPackages = with pkgs; [ impala ];

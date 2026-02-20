@@ -5,11 +5,14 @@
   ...
 }:
 delib.module {
-  name = "programs.kde";
+  name = "kde";
+  options.kde = with delib; {
+    enable = boolOption false;
+  };
 
   nixos.ifEnabled =
     {
-      myconfig,
+      constants,
       ...
     }:
     {

@@ -76,4 +76,10 @@ delib.module {
 
     timeZone = strOption "Etc/UTC";
   };
+
+  constants.always =
+    { cfg, ... }:
+    {
+      args.shared.constants = cfg;
+    };
 }

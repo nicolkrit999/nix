@@ -9,15 +9,16 @@ delib.module {
   name = "services.hypridle";
 
   options.services.hypridle = with delib; {
+    enable = boolOption true;
     dimTimeout = intOption 300;
     lockTimeout = intOption 330;
     screenOffTimeout = intOption 360;
   };
 
-  home.always =
+  nixos.ifEnabled =
     {
       cfg,
-      myconfig,
+      constants,
       ...
     }:
     let
@@ -40,7 +41,7 @@ delib.module {
 
       # Original trigger condition
       isWmEnabled =
-        (myconfig.programs.hyprland.enable or false) || (myconfig.programs.niri.enable or false);
+        (constants.programs.hyprland.enable or false) || (constants.programs.niri.enable or false);
     in
     lib.mkIf isWmEnabled {
       home.packages = [ universalLock ];
@@ -55,16 +56,16 @@ delib.module {
           };
           listener = [
             {
-              timeout = myconfig.constants.dimTimeout;
+              timeout = constants.dimTimeout;
               on-timeout = "brightnessctl -s set 10";
               on-resume = "brightnessctl -r";
             }
             {
-              timeout = myconfig.constants.lockTimeout;
+              timeout = constants.lockTimeout;
               on-timeout = "loginctl lock-session";
             }
             {
-              timeout = myconfig.constants.screenOffTimeout;
+              timeout = constants.screenOffTimeout;
               on-timeout = "hyprctl dispatch dpms off";
               on-resume = "hyprctl dispatch dpms on";
             }

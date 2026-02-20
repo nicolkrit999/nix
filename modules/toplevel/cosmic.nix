@@ -6,7 +6,10 @@
   ...
 }:
 delib.module {
-  name = "programs.cosmic";
+  name = "cosmic";
+  options.cosmic = with delib; {
+    enable = boolOption false;
+  };
 
   nixos.ifEnabled =
 

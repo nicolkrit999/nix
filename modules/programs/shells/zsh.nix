@@ -1,34 +1,37 @@
 {
   delib,
-  lib,
   config,
+  lib,
   ...
 }:
 delib.module {
-  name = "programs.bash";
+  name = "programs.zsh";
 
   home.always =
     {
-      myconfig,
+      constants,
       ...
     }:
     let
-      # Use the constant exactly as the original file did
-      currentShell = myconfig.constants.shell or "zsh";
+      currentShell = constants.shell or "bash";
     in
-    lib.mkIf (currentShell == "bash") {
-      programs.bash = {
+    lib.mkIf (currentShell == "zsh") {
+      programs.zsh = {
         enable = true;
         enableCompletion = true;
+        autosuggestion.enable = true;
+        syntaxHighlighting.enable = true;
+
+        sessionVariables = { };
 
         # -----------------------------------------------------------------------
-        # ⌨️ ALIASES
+        # ⌨️ SHELL ALIASES
         # -----------------------------------------------------------------------
         shellAliases =
           let
             flakeDir = "~/nixOS";
-            safeEditor = myconfig.constants.editor or "vscode";
-            isImpure = myconfig.constants.nixImpure or false;
+            safeEditor = constants.editor or "vscode";
+            isImpure = constants.nixImpure or false;
 
             # Base commands
             baseSwitchCmd =
@@ -49,8 +52,8 @@ delib.module {
             # This wrap recognize if the current host is the "builder", allowing uploads
             wrapCachix =
               cmd:
-              if (myconfig.constants.cachix.enable or false) && (myconfig.constants.cachix.push or false) then
-                "env CACHIX_AUTH_TOKEN=$(command cat /run/secrets/cachix-auth-token) cachix watch-exec ${myconfig.constants.cachix.name} -- ${cmd}"
+              if (constants.cachix.enable or false) && (constants.cachix.push or false) then
+                "env CACHIX_AUTH_TOKEN=$(command cat /run/secrets/cachix-auth-token) cachix watch-exec ${constants.cachix.name} -- ${cmd}"
               else
                 cmd;
 
@@ -79,9 +82,12 @@ delib.module {
             cleanup-ask = "nh clean all --ask";
             cg = "nix-collect-garbage -d";
 
+            # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
+            # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${constants.hostname}"; # Rebuild home-manager config
+
             # Pkgs editing
             pkgs-home = "$EDITOR ${flakeDir}/home-manager/home-packages.nix"; # Edit home-manager packages list
-            pkgs-host = "$EDITOR ${flakeDir}/hosts/${myconfig.constants.hostname}/optional/host-packages/local-packages.nix"; # Edit host-specific packages list
+            pkgs-host = "$EDITOR ${flakeDir}/hosts/${constants.hostname}/optional/host-packages/local-packages.nix"; # Edit host-specific packages list
 
             # Nix repo management
             fmt-dry = "cd ${flakeDir} && nix fmt -- --check"; # Check formatting without making changes (list files that need formatting)
@@ -107,94 +113,132 @@ delib.module {
 
             # Sops secrets editing
             sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
-            sops-common = "cd ${flakeDir}/common/${myconfig.constants.user}/sops && sops ${myconfig.constants.user}-common-secrets-sops.yaml"; # Edit sops secrets file
-            sops-host = "cd ${flakeDir} && sops hosts/${myconfig.constants.hostname}/optional/host-sops-nix/${myconfig.constants.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
+            sops-common = "cd ${flakeDir}/common/${constants.user}/sops && sops ${constants.user}-common-secrets-sops.yaml"; # Edit sops secrets file
+            sops-host = "cd ${flakeDir} && sops hosts/${constants.hostname}/optional/host-sops-nix/${constants.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
 
             # Various
             reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
             swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
           };
 
+        history.size = 10000;
+        history.path = "${config.xdg.dataHome}/zsh/history";
+
         # -----------------------------------------------------
-        # ⚙️ INITIALIZATION
+        # ⚙️ SHELL INITIALIZATION
         # -----------------------------------------------------
         initExtra = ''
-          # 1. FIX HYPRLAND SOCKET
-          if [ -d "/run/user/$(id -u)/hypr" ]; then
-            # Use find to locate the specific socket file and extract the signature
-            SOCKET_FILE=$(find /run/user/$(id -u)/hypr/ -name ".socket.sock" -print -quit)
-            if [ -n "$SOCKET_FILE" ]; then
-              export HYPRLAND_INSTANCE_SIGNATURE=$(basename $(dirname "$SOCKET_FILE"))
-            fi
-          fi
-
-          # 2. LOAD USER CONFIG
-          if [ -f "$HOME/.bashrc_custom" ]; then
-            source "$HOME/.bashrc_custom"
-          fi
-
-          # 3. TMUX AUTOSTART
-          if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
-            tmux new-session -A -s main
-          fi
-
-          # 4. SNAPSHOT FUNCTIONS (Bash Syntax)
-          snap-lock() {
-            echo "Which config? (1=home, 2=root)"
-            read -p "Selection: " k
-            if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
-            sudo snapper -c "$CFG" list
-            echo ""
-            read -p "Enter Snapshot ID to LOCK: " ID
-            if [[ -n "$ID" ]]; then
-               sudo snapper -c "$CFG" modify -c "" "$ID"
-               echo "✅ Snapshot #$ID in '$CFG' is now LOCKED."
-            fi
-          }
-
-          # 5. UWSM STARTUP (Universal & Safe)
-          if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
-              if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
-                  exec systemd-cat -t uwsm_start uwsm start default
+            # 1. FIX HYPRLAND SOCKET (Dynamic Update)
+            if [ -d "/run/user/$(id -u)/hypr" ];
+            then
+              # Search for the actual socket file (Removed 'local' to fix error)
+              socket_file=$(find /run/user/$(id -u)/hypr/ -name ".socket.sock" -print -quit)
+              if [ -n "$socket_file" ];
+              then
+                export HYPRLAND_INSTANCE_SIGNATURE=$(basename $(dirname "$socket_file"))
               fi
-          fi
-
-          # -----------------------------------------------------
-          # 6 SNAPSHOT LOCK & UNLOCK
-          # -----------------------------------------------------
-          snap-unlock() {
-            echo "Which config? (1=home, 2=root)"
-            read -p "Selection: " k
-            if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
-            sudo snapper -c "$CFG" list
-            echo ""
-            read -p "Enter Snapshot ID to UNLOCK: " ID
-            if [[ -n "$ID" ]]; then
-               sudo snapper -c "$CFG" modify -c "timeline" "$ID"
-               echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED."
             fi
-          }
 
-          _snap_create() {
+            # 2. LOAD USER CONFIG
+            if [ -f "$HOME/.zshrc_custom" ]; then
+              source "$HOME/.zshrc_custom"
+            fi
+
+            # 3. TMUX AUTOSTART (Only in GUI)
+            # Ensure we are in a GUI before starting tmux automatically
+            if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
+              tmux new-session -A -s main
+            fi
+
+            # 4. UWSM STARTUP (Universal & Safe)
+            # Guard: Only run if on physical TTY1 AND no graphical session is active.
+            if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+                
+                # Check if uwsm is installed and ready (Safe for KDE/GNOME-only builds)
+                if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
+                    exec systemd-cat -t uwsm_start uwsm start default
+                fi
+            fi
+
+            # -----------------------------------------------------
+            # 5A SNAPSHOT LOCK & UNLOCK
+            # -----------------------------------------------------
+            # LOCK (Protect from auto-deletion)
+            snap-lock() {
+              echo "Which config? (1=home, 2=root)"
+              read "k?Selection: "
+              if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
+              
+              echo "Listing snapshots for $CFG..."
+              sudo snapper -c "$CFG" list
+              
+              echo ""
+              read "ID?Enter Snapshot ID to LOCK: "
+              
+              if [[ -n "$ID" ]]; then
+                 sudo snapper -c "$CFG" modify -c "" "$ID"
+                 echo "✅ Snapshot #$ID in '$CFG' is now LOCKED (won't be deleted)."
+              fi
+            }
+
+            # UNLOCK (Allow auto-deletion)
+            snap-unlock() {
+              echo "Which config? (1=home, 2=root)"
+              read "k?Selection: "
+              if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
+              
+              echo "Listing snapshots for $CFG..."
+              sudo snapper -c "$CFG" list
+              
+              echo ""
+              read "ID?Enter Snapshot ID to UNLOCK: "
+              
+              if [[ -n "$ID" ]]; then
+                 sudo snapper -c "$CFG" modify -c "timeline" "$ID"
+                 echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED (timeline cleanup enabled)."
+              fi
+            }
+
+
+          # -----------------------------------------------------------------------
+          # 5B SNAPPER CREATE INTERACTIVE FUNCTION
+          # -----------------------------------------------------------------------
+          function _snap_create() {
             local config_name=$1
-            read -p "📝 Enter snapshot description: " description
-            if [ -z "$description" ]; then echo "❌ Description cannot be empty."; return 1; fi
-            read -p "🔒 Lock this snapshot (keep forever)? [y/N]: " lock_ans
+            
+            echo -n "📝 Enter snapshot description: "
+            read description
+            
+            if [ -z "$description" ]; then
+              echo "❌ Description cannot be empty."
+              return 1
+            fi
+
+            echo -n "🔒 Lock this snapshot (keep forever)? [y/N]: "
+            read lock_ans
+
             local cleanup_flag="-c timeline"
+            local lock_status="UNLOCKED (will auto-delete)"
+
             if [[ "$lock_ans" =~ ^[Yy]$ ]]; then
               cleanup_flag=""
+              lock_status="LOCKED (safe forever)"
             fi
+
+            echo "🚀 Creating $lock_status snapshot for '$config_name'..."
             sudo snapper -c "$config_name" create --description "$description" $cleanup_flag
           }
 
+          alias snap-create-home="_snap_create home"
+          alias snap-create-root="_snap_create root"
 
           # -----------------------------------------------------
-          # 7 📦 SMART NIX PREFETCH (npu)
+          # 6 📦 SMART NIX PREFETCH (npu)
           # -----------------------------------------------------
           npu() {
             local url="$1"
             if [ -z "$url" ]; then
-              read -p "🔗 Enter URL: " url
+              read "url?🔗 Enter URL: "
             fi
 
             if [ -z "$url" ]; then echo "❌ No URL provided."; return 1; fi
@@ -207,7 +251,7 @@ delib.module {
             fi
 
             local args=""
-
+            
             # 2. Handle GitHub Archives
             if [[ "$url" == https://github.com/* ]]; then
               if [[ "$url" == */commit/* ]]; then

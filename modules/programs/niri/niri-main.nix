@@ -14,7 +14,7 @@ delib.module {
 
   home.ifEnabled =
     {
-      myconfig,
+      constants,
       cfg,
       ...
     }:
@@ -36,7 +36,7 @@ delib.module {
           parts = lib.splitString "," m;
         in
         (builtins.length parts) > 2
-      ) myconfig.constants.monitors;
+      ) constants.monitors;
 
       monitorSettings = builtins.listToAttrs (
         map (
@@ -87,7 +87,7 @@ delib.module {
               app:
               if isTui app then
                 [
-                  "${myconfig.constants.term}"
+                  "${constants.term}"
                   "-e"
                   app
                 ]
@@ -116,7 +116,7 @@ delib.module {
         ) activeMonitors
       );
 
-      wallpaper = builtins.head myconfig.constants.wallpapers;
+      wallpaper = builtins.head constants.wallpapers;
       wallpaperFile = pkgs.fetchurl {
         url = wallpaper.wallpaperURL;
         sha256 = wallpaper.wallpaperSHA256;
@@ -146,8 +146,8 @@ delib.module {
           # ⌨️ Inputs (From Variables)
           input = {
             keyboard.xkb = {
-              layout = myconfig.constants.keyboardLayout;
-              variant = myconfig.constants.keyboardVariant;
+              layout = constants.keyboardLayout;
+              variant = constants.keyboardVariant;
               options = "grp:ctrl_alt_toggle";
             };
             touchpad = {

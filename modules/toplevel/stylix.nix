@@ -7,34 +7,34 @@
   ...
 }:
 delib.module {
-  name = "programs.stylix";
+  name = "stylix";
 
   # Define the schema to catch your host's exclusions!
-  options.programs.stylix = with delib; {
+  options.stylix = with delib; {
     enable = boolOption true;
     targets = attrsOption { };
   };
 
-  home.ifEnabled =
+  nixos.ifEnabled =
     {
-      myconfig,
+      constants,
       cfg,
       ...
     }:
     let
       # If the variable is missing given the ! then the default is "true"
-      isCatppuccin = myconfig.constants.catppuccin or false;
+      isCatppuccin = constants.catppuccin or false;
     in
     {
       imports = [ inputs.stylix.homeModules.stylix ];
 
       stylix = {
         enable = true;
-        polarity = myconfig.constants.polarity; # Sets a global preference for dark mode
-        base16Scheme = "${pkgs.base16-schemes}/share/themes/${myconfig.constants.base16Theme}.yaml";
+        polarity = constants.polarity; # Sets a global preference for dark mode
+        base16Scheme = "${pkgs.base16-schemes}/share/themes/${constants.base16Theme}.yaml";
         image = pkgs.fetchurl {
-          url = (builtins.head myconfig.constants.wallpapers).wallpaperURL;
-          sha256 = (builtins.head myconfig.constants.wallpapers).wallpaperSHA256;
+          url = (builtins.head constants.wallpapers).wallpaperURL;
+          sha256 = (builtins.head constants.wallpapers).wallpaperSHA256;
         };
 
         # -----------------------------------------------------------------------
@@ -54,7 +54,7 @@ delib.module {
           # These should absolutely remain disabled because they cause conflicts
           kde.enable = false; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
           qt.enable = false; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
-          gnome.enable = myconfig.constants.gnome or false;
+          gnome.enable = constants.gnome or false;
 
           # These should remain enabled to avoid conflicts with other modules
           # N/A
@@ -81,7 +81,7 @@ delib.module {
           starship.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
 
         }
-        // (myconfig.constants.stylixExclusions or { });
+        // (constants.stylixExclusions or { });
 
         # -----------------------------------------------------------------------
         # 🖱️ MOUSE CURSOR
@@ -118,43 +118,43 @@ delib.module {
 
       dconf.settings = {
         "org/gnome/desktop/interface" = {
-          color-scheme = if myconfig.constants.polarity == "dark" then "prefer-dark" else "prefer-light";
+          color-scheme = if constants.polarity == "dark" then "prefer-dark" else "prefer-light";
         };
       };
 
-      home.sessionVariables = lib.mkIf (myconfig.constants.catppuccin or false) {
+      home.sessionVariables = lib.mkIf (constants.catppuccin or false) {
         # Fallback to mocha/mauve if flavor/accent are missing
-        GTK_THEME = "catppuccin-${myconfig.constants.catppuccinFlavor or "mocha"}-${
-          myconfig.constants.catppuccinAccent or "mauve"
+        GTK_THEME = "catppuccin-${constants.catppuccinFlavor or "mocha"}-${
+          constants.catppuccinAccent or "mauve"
         }-standard+rimless,black";
 
         XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS";
       };
 
-      gtk = lib.mkIf (myconfig.constants.catppuccin or false) {
+      gtk = lib.mkIf (constants.catppuccin or false) {
         enable = true;
         theme = {
           package = lib.mkForce (
             pkgs.catppuccin-gtk.override {
-              accents = [ (myconfig.constants.catppuccinAccent or "mauve") ];
+              accents = [ (constants.catppuccinAccent or "mauve") ];
               size = "standard";
               tweaks = [
                 "rimless"
                 "black"
               ];
-              variant = myconfig.constants.catppuccinFlavor or "mocha";
+              variant = constants.catppuccinFlavor or "mocha";
             }
           );
           # Fallback values for the theme name string
-          name = lib.mkForce "catppuccin-${myconfig.constants.catppuccinFlavor or "mocha"}-${
-            myconfig.constants.catppuccinAccent or "mauve"
+          name = lib.mkForce "catppuccin-${constants.catppuccinFlavor or "mocha"}-${
+            constants.catppuccinAccent or "mauve"
           }-standard+rimless,black";
         };
-        # 🌙 Fallback to dark mode (1) if myconfig.constants.polarity is missing
+        # 🌙 Fallback to dark mode (1) if constants.polarity is missing
         gtk3.extraConfig.gtk-application-prefer-dark-theme =
-          if (myconfig.constants.polarity or "dark") == "dark" then 1 else 0;
+          if (constants.polarity or "dark") == "dark" then 1 else 0;
         gtk4.extraConfig.gtk-application-prefer-dark-theme =
-          if (myconfig.constants.polarity or "dark") == "dark" then 1 else 0;
+          if (constants.polarity or "dark") == "dark" then 1 else 0;
       };
     };
 }

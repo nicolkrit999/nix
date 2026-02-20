@@ -5,11 +5,14 @@
   ...
 }:
 delib.module {
-  name = "programs.gnome";
+  name = "gnome";
+  options.gnome = with delib; {
+    enable = boolOption false;
+  };
 
   nixos.ifEnabled =
     {
-      myconfig,
+      constants,
       ...
     }:
     {

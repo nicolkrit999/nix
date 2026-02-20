@@ -1,15 +1,15 @@
 { delib, ... }:
 delib.module {
-  name = "system.env";
+  name = "env";
 
   nixos.always =
-    { myconfig, ... }:
+    { constants, ... }:
 
     let
 
-      safeBrowser = myconfig.constants.browser or "firefox";
-      safeTerm = myconfig.constants.term or "alacritty";
-      safeEditor = myconfig.constants.editor or "vscode";
+      safeBrowser = constants.browser or "firefox";
+      safeTerm = constants.term or "alacritty";
+      safeEditor = constants.editor or "vscode";
 
       # Translation layer for editor commands with necessary flags
       # It may be necessary to add more editors and their flags here

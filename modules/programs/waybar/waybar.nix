@@ -14,7 +14,7 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      myconfig,
+      constants,
       ...
     }:
     let
@@ -40,12 +40,10 @@ delib.module {
       cssContent = builtins.readFile ./style.css;
       # 1. Hyprland logic: Show Waybar if no custom shell is set
       hyprlandWaybar =
-        (myconfig.constants.hyprland or false)
-        && !(
-          (myconfig.constants.hyprlandCaelestia or false) || (myconfig.constants.hyprlandNoctalia or false)
-        );
+        (constants.hyprland or false)
+        && !((constants.hyprlandCaelestia or false) || (constants.hyprlandNoctalia or false));
 
-      niriWaybar = (myconfig.constants.niri or false) && !(myconfig.constants.niriNoctalia or false);
+      niriWaybar = (constants.niri or false) && !(constants.niriNoctalia or false);
 
       isWaybarNeeded = hyprlandWaybar || niriWaybar;
     in
@@ -88,14 +86,14 @@ delib.module {
             ];
 
             # Workspaces Icon and layout
-            # A user may define host-specific icons (optional) in myconfig.constants.waybarWorkspaceIcons
+            # A user may define host-specific icons (optional) in constants.waybarWorkspaceIcons
             "hyprland/workspaces" = {
               disable-scroll = true;
               show-special = true;
               special-visible-only = true;
               all-outputs = false;
               format = "{name} {icon}";
-              format-icons = myconfig.constants.waybarWorkspaceIcons or { };
+              format-icons = constants.waybarWorkspaceIcons or { };
             };
 
             "niri/workspaces" = {
@@ -112,13 +110,13 @@ delib.module {
             };
 
             # Languages flags and/or text
-            # A user may define host-specific layout text (optional) in myconfig.constants.waybarLayout
+            # A user may define host-specific layout text (optional) in constants.waybarLayout
             "hyprland/language" = {
               min-length = 5;
               tooltip = true;
               on-click = "hyprctl switchxkblayout all next";
             }
-            // myconfig.constants.waybarLayout or { };
+            // constants.waybarLayout or { };
 
             "niri/language" = {
               format = "{}";
@@ -126,21 +124,21 @@ delib.module {
               on-click = "niri msg action switch-layout-next";
             }
 
-            // myconfig.constants.waybarLayout or { };
+            // constants.waybarLayout or { };
 
             "custom/weather" = {
-              format = "<span color='${c.base0C}'>${myconfig.constants.weather or "London"}:</span> {} ";
+              format = "<span color='${c.base0C}'>${constants.weather or "London"}:</span> {} ";
 
               exec =
                 let
-                  weatherLoc = myconfig.constants.weather or "London";
+                  weatherLoc = constants.weather or "London";
                 in
                 "curl -s 'wttr.in/${weatherLoc}?format=%c%t' | sed 's/ //'";
 
               interval = 300;
               class = "weather";
 
-              on-click = ''xdg-open "https://wttr.in/${myconfig.constants.weather or "London"}"'';
+              on-click = ''xdg-open "https://wttr.in/${constants.weather or "London"}"'';
             };
 
             "pulseaudio" = {

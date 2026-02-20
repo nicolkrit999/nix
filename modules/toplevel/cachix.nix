@@ -6,14 +6,17 @@
   ...
 }:
 delib.module {
-  name = "system.cachix";
+  name = "cachix";
+  options.cachix = with delib; {
+    enable = boolOption false;
+  };
 
-  nixos.always =
-    { myconfig, ... }:
+  nixos.ifEnabled =
+    { constants, ... }:
     let
       # Use exactly what is defined in constants.nix
-      cfg = myconfig.constants.cachix;
-      user = myconfig.constants.user;
+      cfg = constants.cachix;
+      user = constants.user;
 
       sopsFile = ../../hosts/${config.networking.hostName}/optional/host-sops-nix/${config.networking.hostName}-secrets-sops.yaml;
     in

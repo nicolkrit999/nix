@@ -1,6 +1,7 @@
 { delib, ... }:
 delib.module {
-  name = "system.nix";
+  name = "nix";
+
   nixos.always = {
     nix.settings = {
       experimental-features = [

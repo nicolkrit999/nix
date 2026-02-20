@@ -12,9 +12,7 @@ delib.module {
   home.ifEnabled =
     { cfg, ... }:
     let
-      enabledMonitors = builtins.filter (
-        m: builtins.match ".*disable.*" m == null
-      ) config.myconfig.constants.monitors;
+      enabledMonitors = builtins.filter (m: builtins.match ".*disable.*" m == null) constants.monitors;
 
       primaryMonitor = if builtins.length enabledMonitors > 0 then builtins.head enabledMonitors else "";
       parts = lib.splitString "," primaryMonitor;
@@ -33,8 +31,8 @@ delib.module {
           11.0;
     in
     {
-      catppuccin.kitty.enable = config.myconfig.constants.theme.catppuccin or false;
-      catppuccin.kitty.flavor = config.myconfig.constants.theme.catppuccinFlavor or "mocha";
+      catppuccin.kitty.enable = constants.theme.catppuccin or false;
+      catppuccin.kitty.flavor = constants.theme.catppuccinFlavor or "mocha";
 
       programs.kitty = {
         enable = true;

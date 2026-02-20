@@ -10,7 +10,7 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
-      myconfig,
+      constants,
       ...
     }:
     let
@@ -75,13 +75,13 @@ delib.module {
         };
         "launch-browser" = {
           key = "Meta+B";
-          command = "${pkgs.${myconfig.constants.browser}}/bin/${myconfig.constants.browser}";
+          command = "${pkgs.${constants.browser}}/bin/${constants.browser}";
         };
         "launch-editor" = {
           key = "Meta+C";
           command =
             if
-              builtins.elem myconfig.constants.editor [
+              builtins.elem constants.editor [
                 "neovim"
                 "nvim"
                 "nano"
@@ -89,28 +89,28 @@ delib.module {
                 "helix"
               ]
             then
-              "${myconfig.constants.term} -e ${myconfig.constants.editor}"
+              "${constants.term} -e ${constants.editor}"
             else
-              "${myconfig.constants.editor}";
+              "${constants.editor}";
         };
         "launch-terminal" = {
           key = "Meta+Return";
-          command = myconfig.constants.term;
+          command = constants.term;
         };
         "launch-filemanager" = {
           key = "Meta+F";
           command =
             if
-              builtins.elem myconfig.constants.fileManager [
+              builtins.elem constants.fileManager [
                 "yazi"
                 "ranger"
                 "lf"
                 "nnn"
               ]
             then
-              "${myconfig.constants.term} -e ${myconfig.constants.fileManager}"
+              "${constants.term} -e ${constants.fileManager}"
             else
-              "${myconfig.constants.fileManager}";
+              "${constants.fileManager}";
         };
       }
       // cfg.extraBinds;

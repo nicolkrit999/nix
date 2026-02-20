@@ -2,7 +2,7 @@
   config,
   pkgs,
   lib,
-  myconfig,
+  constants,
   ...
 }:
 {
@@ -47,8 +47,8 @@
       # Comm-1
       github_general_ssh_key = {
         sopsFile = commonSecrets;
-        owner = myconfig.constants.user;
-        path = "/home/${myconfig.constants.user}/.ssh/id_github";
+        owner = constants.user;
+        path = "/home/${constants.user}/.ssh/id_github";
       };
 
       # Comm-4
@@ -68,7 +68,7 @@
       # Comm-7. PGP signing key (git)
       commit_signing_key = {
         sopsFile = commonSecrets;
-        owner = myconfig.constants.user;
+        owner = constants.user;
       };
     };
 
@@ -127,9 +127,9 @@
   # ---------------------------------------------------------
   users.mutableUsers = false; # Owerwrite manual password changes
 
-  users.users.${myconfig.constants.user} = {
+  users.users.${constants.user} = {
     isNormalUser = true;
-    description = "${myconfig.constants.user}";
+    description = "${constants.user}";
     extraGroups = [
       "networkmanager"
       "wheel"
@@ -194,8 +194,8 @@
     description = "Clean up trash older than 30 days";
     serviceConfig = {
       Type = "oneshot";
-      User = myconfig.constants.user;
-      Environment = "HOME=/home/${myconfig.constants.user}";
+      User = constants.user;
+      Environment = "HOME=/home/${constants.user}";
       ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
     };
   };

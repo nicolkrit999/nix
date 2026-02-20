@@ -1,7 +1,7 @@
 { delib, lib, ... }:
 delib.module {
-  name = "services.tailscale";
-  options.services.tailscale = with delib; {
+  name = "tailscale";
+  options.tailscale = with delib; {
     enable = boolOption false;
   };
 

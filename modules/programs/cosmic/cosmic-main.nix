@@ -11,9 +11,9 @@ delib.module {
   };
 
   home.ifEnabled =
-    { myconfig, ... }:
+    { constants, ... }:
     let
-      activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
+      activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) constants.monitors;
       monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
 
       wallpaperFiles = map (
@@ -22,7 +22,7 @@ delib.module {
           url = wp.wallpaperURL;
           sha256 = wp.wallpaperSHA256;
         }}"
-      ) myconfig.constants.wallpapers;
+      ) constants.wallpapers;
 
       # If there are more monitors than wallpapers, reuse the last wallpaper
       getWallpaper =

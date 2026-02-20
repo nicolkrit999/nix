@@ -1,10 +1,10 @@
 { delib, lib, ... }:
 delib.module {
-  name = "system.timezone";
+  name = "timezone";
 
   nixos.always =
-    { myconfig, ... }:
+    { constants, ... }:
     {
-      time.timeZone = lib.mkDefault (myconfig.constants.timeZone or "Etc/UTC");
+      time.timeZone = lib.mkDefault (constants.timeZone or "Etc/UTC");
     };
 }

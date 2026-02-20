@@ -1,21 +1,25 @@
 { delib, lib, ... }:
 delib.module {
-  name = "programs.hyprlock";
+  name = "services.hyprlock";
+  options.services.hyprlock = with delib; {
+    enable = boolOption true;
+    settings = attrsOption { };
+  };
 
-  home.always =
-    { myconfig, ... }:
+  nixos.always =
+    { constants, ... }:
     let
       # 🌟 EXACT ORIGINAL FALLBACK LOGIC
       hyprlandFallback =
-        (myconfig.programs.hyprland.enable or false)
-        && !(myconfig.programs.caelestia.enableOnHyprland or false)
-        && !(myconfig.programs.noctalia.enableOnHyprland or false);
+        (constants.programs.hyprland.enable or false)
+        && !(constants.programs.caelestia.enableOnHyprland or false)
+        && !(constants.programs.noctalia.enableOnHyprland or false);
 
       niriFallback =
-        (myconfig.programs.niri.enable or false) && !(myconfig.programs.noctalia.enableOnNiri or false);
+        (constants.programs.niri.enable or false) && !(constants.programs.noctalia.enableOnNiri or false);
     in
     lib.mkIf (hyprlandFallback || niriFallback) {
-      catppuccin.hyprlock.enable = myconfig.constants.catppuccin;
+      catppuccin.hyprlock.enable = constants.catppuccin;
       programs.hyprlock = {
         enable = true;
         settings = {

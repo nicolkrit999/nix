@@ -5,7 +5,7 @@
   ...
 }:
 delib.module {
-  name = "services.sddm";
+  name = "sddm";
   options.services.sddm = with delib; {
     enable = boolOption true;
   };
@@ -13,7 +13,7 @@ delib.module {
   nixos.ifEnabled =
     {
 
-      myconfig,
+      constants,
       ...
     }:
     let
@@ -60,7 +60,7 @@ delib.module {
 
       services.displayManager.autoLogin = {
         enable = false;
-        user = myconfig.constants.user;
+        user = constants.user;
       };
 
       services.getty.autologinUser = null;

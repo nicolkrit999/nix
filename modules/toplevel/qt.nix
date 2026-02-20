@@ -6,21 +6,21 @@
   ...
 }:
 delib.module {
-  name = "programs.qt";
-  options.programs.qt = with delib; {
+  name = "qt";
+  options.qt = with delib; {
     enable = boolOption true;
   };
 
-  home.ifEnabled =
+  nixos.ifEnabled =
     {
-      myconfig,
+      constants,
       ...
     }:
     let
-      hyprEnabled = myconfig.constants.hyprland or false;
-      kdeEnabled = myconfig.constants.kde or false;
+      hyprEnabled = constants.hyprland or false;
+      kdeEnabled = constants.kde or false;
       useKdePlatformTheme = hyprEnabled || kdeEnabled;
-      isDark = (myconfig.constants.polarity or "dark") == "dark";
+      isDark = (constants.polarity or "dark") == "dark";
       kdeColorScheme = if isDark then "BreezeDark" else "BreezeLight";
       iconThemeName = if isDark then "Papirus-Dark" else "Papirus-Light";
     in

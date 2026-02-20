@@ -6,14 +6,14 @@ delib.module {
   };
 
   home.ifEnabled =
-    { myconfig, ... }:
+    { constants, ... }:
     {
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
       # -----------------------------------------------------------------------
-      catppuccin.lazygit.enable = myconfig.constants.catppuccin or false;
-      catppuccin.lazygit.flavor = myconfig.constants.catppuccinFlavor or "mocha";
-      catppuccin.lazygit.accent = myconfig.constants.catppuccinAccent or "mauve";
+      catppuccin.lazygit.enable = constants.catppuccin or false;
+      catppuccin.lazygit.flavor = constants.catppuccinFlavor or "mocha";
+      catppuccin.lazygit.accent = constants.catppuccinAccent or "mauve";
       # -----------------------------------------------------------------------
       programs.lazygit = {
         enable = true;

@@ -7,12 +7,12 @@ delib.module {
 
   home.ifEnabled =
     {
-      myconfig,
+      constants,
       ...
     }:
     {
-      catppuccin.bat.enable = myconfig.constants.catppuccin or false;
-      catppuccin.bat.flavor = myconfig.constants.catppuccinFlavor or "mocha";
+      catppuccin.bat.enable = constants.catppuccin or false;
+      catppuccin.bat.flavor = constants.catppuccinFlavor or "mocha";
       # -----------------------------------------------------------------------
 
       programs.bat = {

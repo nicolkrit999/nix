@@ -7,16 +7,16 @@
   ...
 }:
 delib.module {
-  name = "system.home-packages";
+  name = "home-packages";
 
   # 🌟 THE FIX: Use 'nixos.always' so standard options like 'environment' work.
   nixos.always =
-    { myconfig, ... }: # 🌟 Keep 'nixos' as the variable name for your logic.
+    { constants, ... }: # 🌟 Keep 'nixos' as the variable name for your logic.
     let
       # 🔄 TRANSLATION LAYER
       translatedEditor =
         let
-          e = myconfig.constants.editor or "vscode";
+          e = constants.editor or "vscode";
         in
         if e == "nvim" then "neovim" else e;
 
@@ -36,13 +36,13 @@ delib.module {
         else
           fallback;
 
-      termName = myconfig.constants.term or "alacritty";
+      termName = constants.term or "alacritty";
       myTermPkg = getPkg termName fallbackTerm;
 
-      browserName = myconfig.constants.browser or "brave";
+      browserName = constants.browser or "brave";
       myBrowserPkg = getPkg browserName fallbackBrowser;
 
-      fileManagerName = myconfig.constants.fileManager or "dolphin";
+      fileManagerName = constants.fileManager or "dolphin";
       myFileManagerPkg = getPkg fileManagerName fallbackFileManager;
 
       editorName = translatedEditor;

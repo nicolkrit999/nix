@@ -5,7 +5,7 @@
   ...
 }:
 delib.module {
-  name = "system.boot";
+  name = "boot";
 
   nixos.always = {
     boot.loader = {
