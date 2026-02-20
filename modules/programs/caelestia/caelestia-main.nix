@@ -15,7 +15,7 @@ delib.module {
 
   # Notice we use `home.always` and check our custom option
   home.always =
-    { cfg, myconfig, ... }:
+    { cfg, nixos, ... }:
 
     let
       caelestiaPkg = inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli;
@@ -146,7 +146,7 @@ delib.module {
       wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [
         "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
         "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
-        "sh -lc 'XDG_SCREENSHOTS_DIR=${myconfig.constants.screenshots} caelestiaqs'"
+        "sh -lc 'XDG_SCREENSHOTS_DIR=${nixos.constants.screenshots} caelestiaqs'"
       ];
     };
 }

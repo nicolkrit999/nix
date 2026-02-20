@@ -18,7 +18,7 @@ delib.module {
 
   home.ifEnabled =
     {
-      myconfig,
+      nixos,
       cfg,
       ...
     }:
@@ -29,23 +29,23 @@ delib.module {
           url = wp.wallpaperURL;
           sha256 = wp.wallpaperSHA256;
         }}"
-      ) myconfig.constants.wallpapers;
+      ) nixos.constants.wallpapers;
 
-      polarity = myconfig.constants.polarity or "dark";
+      polarity = nixos.constants.polarity or "dark";
 
       capitalize =
         s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
 
       theme =
-        if myconfig.constants.catppuccin then
-          "Catppuccin${capitalize myconfig.constants.catppuccinFlavor}${capitalize myconfig.constants.catppuccinAccent}"
-        else if myconfig.constants.polarity == "dark" then
+        if nixos.constants.catppuccin then
+          "Catppuccin${capitalize nixos.constants.catppuccinFlavor}${capitalize nixos.constants.catppuccinAccent}"
+        else if nixos.constants.polarity == "dark" then
           "BreezeDark"
         else
           "BreezeLight";
 
       lookAndFeel =
-        if myconfig.constants.polarity == "dark" then
+        if nixos.constants.polarity == "dark" then
           "org.kde.breezedark.desktop"
         else
           "org.kde.breeze.desktop";
@@ -76,9 +76,8 @@ delib.module {
           wallpaper = wallpaperFiles;
         };
         configFile = {
-          "kdeglobals"."KDE"."widgetStyle" = if myconfig.constants.catppuccin then "kvantum" else "Breeze";
-          "kdeglobals"."General"."AccentColor" =
-            if myconfig.constants.catppuccin then "203,166,247" else null;
+          "kdeglobals"."KDE"."widgetStyle" = if nixos.constants.catppuccin then "kvantum" else "Breeze";
+          "kdeglobals"."General"."AccentColor" = if nixos.constants.catppuccin then "203,166,247" else null;
         };
       };
 

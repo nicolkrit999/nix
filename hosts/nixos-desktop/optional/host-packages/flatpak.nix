@@ -1,11 +1,11 @@
 {
   pkgs,
   lib,
-  myconfig,
+  nixos,
   ...
 }:
 {
-  config = lib.mkIf (myconfig.constants.flatpak or false) {
+  config = lib.mkIf (nixos.constants.flatpak or false) {
 
     # Flatpak packages. Put them inside quotes """
     # 💡 HOW TO FIND PACKAGE NAMES:

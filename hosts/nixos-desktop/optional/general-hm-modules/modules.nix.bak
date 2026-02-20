@@ -1,7 +1,7 @@
 {
   lib,
   pkgs,
-  myconfig,
+  nixos,
   ...
 }:
 let
@@ -223,10 +223,10 @@ in
 
   niri_Exec-Once = [
     # Personal apps
-    "${myconfig.constants.browser}"
-    "${myconfig.constants.editor}"
-    "${myconfig.constants.fileManager}"
-    "${myconfig.constants.term}"
+    "${nixos.constants.browser}"
+    "${nixos.constants.editor}"
+    "${nixos.constants.fileManager}"
+    "${nixos.constants.term}"
 
     # Secondary apps
     "chromium-browser"
@@ -241,12 +241,12 @@ in
     cava.enable = true;
 
     # Catppuccin variable-based
-    kitty.enable = !myconfig.constants.catppuccin;
-    alacritty.enable = !myconfig.constants.catppuccin;
-    zathura.enable = !myconfig.constants.catppuccin;
+    kitty.enable = !nixos.constants.catppuccin;
+    alacritty.enable = !nixos.constants.catppuccin;
+    zathura.enable = !nixos.constants.catppuccin;
 
     # Other
-    firefox.profileNames = [ myconfig.constants.user ];
+    firefox.profileNames = [ nixos.constants.user ];
     librewolf.profileNames = [
       "default"
       "privacy"
@@ -261,9 +261,9 @@ in
   };
 
   pinnedApps = [
-    (resolve myconfig.constants.browser)
-    (resolve myconfig.constants.editor)
-    (resolve myconfig.constants.fileManager)
+    (resolve nixos.constants.browser)
+    (resolve nixos.constants.editor)
+    (resolve nixos.constants.fileManager)
 
     # Regular app
     "github-desktop.desktop"

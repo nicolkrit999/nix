@@ -94,7 +94,7 @@ Define unique hardware parameters (monitors, theming, keyboard layout, wallpaper
 
 - This allow to have a tailored experience right from the start,
 - For reference look point ([5. Configure the host folder](#5-configure-the-hosts-folder)).
-- A variables can be added anytime and it is automatically recognized. Then if it needs to be called it can be simply done by appending `myconfig.constants.` to the name of the variable
+- A variables can be added anytime and it is automatically recognized. Then if it needs to be called it can be simply done by appending `nixos.constants.` to the name of the variable
 
 #### Host-specific home-manager modules
 
@@ -204,7 +204,7 @@ Comment out or remove the specific lines that handles the wallpaper logic
       url = w.wallpaperURL;
       sha256 = w.wallpaperSHA256;
     }
-  ) myconfig.constants.wallpapers;
+  ) nixos.constants.wallpapers;
 
   # 2. Generate 'swww' commands by zipping Monitors with Wallpapers
   wallpaperCommands = lib.imap0 (
@@ -240,7 +240,7 @@ Comment out or remove the specific lines that handles the wallpaper logic
 
 ```nix
 let
-  activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
+  activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) nixos.constants.monitors;
   monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
 
   wallpaperFiles = map (
@@ -249,7 +249,7 @@ let
       url = wp.wallpaperURL;
       sha256 = wp.wallpaperSHA256;
     }}"
-  ) myconfig.constants.wallpapers;
+  ) nixos.constants.wallpapers;
 
   # If there are more monitors than wallpapers, reuse the last wallpaper
   getWallpaper =

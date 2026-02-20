@@ -6,17 +6,17 @@ delib.module {
   };
 
   home.ifEnabled =
-    { myconfig, ... }:
+    { nixos, ... }:
     let
-      currentShell = myconfig.constants.shell or "zsh";
+      currentShell = nixos.constants.shell or "zsh";
     in
     {
       # ------------------------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
       # ------------------------------------------------------------------------------------
-      catppuccin.eza.enable = myconfig.constants.catppuccin or false;
-      catppuccin.eza.flavor = myconfig.constants.catppuccinFlavor or "mocha";
-      catppuccin.eza.accent = myconfig.constants.catppuccinAccent or "mauve";
+      catppuccin.eza.enable = nixos.constants.catppuccin or false;
+      catppuccin.eza.flavor = nixos.constants.catppuccinFlavor or "mocha";
+      catppuccin.eza.accent = nixos.constants.catppuccinAccent or "mauve";
 
       # ------------------------------------------------------------------------------------
       programs.eza = {

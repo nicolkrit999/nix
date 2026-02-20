@@ -2,7 +2,7 @@
   delib,
   pkgs,
   lib,
-  myconfig,
+  nixos,
   ...
 }:
 delib.module {
@@ -13,7 +13,7 @@ delib.module {
 
   home.ifEnabled =
     let
-      activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
+      activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) nixos.constants.monitors;
       monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
 
       wallpaperFiles = map (
@@ -22,7 +22,7 @@ delib.module {
           url = wp.wallpaperURL;
           sha256 = wp.wallpaperSHA256;
         }}"
-      ) myconfig.constants.wallpapers;
+      ) nixos.constants.wallpapers;
 
       # If there are more monitors than wallpapers, reuse the last wallpaper
       getWallpaper =

@@ -4,14 +4,14 @@ delib.module {
   options.krit.programs.zathura.enable = delib.boolOption true;
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
+    { cfg, nixos, ... }:
     {
 
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME
       # -----------------------------------------------------------------------
-      catppuccin.zathura.enable = myconfig.constants.catppuccin or false;
-      catppuccin.zathura.flavor = myconfig.constants.catppuccinFlavor or "mocha";
+      catppuccin.zathura.enable = nixos.constants.catppuccin or false;
+      catppuccin.zathura.flavor = nixos.constants.catppuccinFlavor or "mocha";
 
       programs.zathura = {
         enable = true;

@@ -10,10 +10,10 @@ delib.module {
 
   # 🌟 The fix: Everything HM-related goes inside home.always
   home.always =
-    { myconfig, config, ... }:
+    { nixos, config, ... }:
     let
       addons = pkgs.callPackage inputs.firefox-addons { };
-      policyRoot = "/home/${myconfig.constants.user}/.librewolf-policyroot";
+      policyRoot = "/home/${nixos.constants.user}/.librewolf-policyroot";
 
       policiesJson = builtins.toJSON {
         policies = {
@@ -170,13 +170,13 @@ delib.module {
         "media.videocontrols.picture-in-picture.video-toggle.enabled" = true;
         "browser.display.document_color_use" = 0;
         "browser.display.use_system_colors" = true;
-        "ui.systemUsesDarkTheme" = if myconfig.constants.polarity == "dark" then 1 else 0;
-        "browser.in-content.dark-mode" = myconfig.constants.polarity == "dark";
+        "ui.systemUsesDarkTheme" = if nixos.constants.polarity == "dark" then 1 else 0;
+        "browser.in-content.dark-mode" = nixos.constants.polarity == "dark";
 
         "browser.download.useDownloadDir" = true;
         "browser.download.folderList" = 2;
-        "browser.download.dir" = "/home/${myconfig.constants.user}/Downloads";
-        "browser.download.lastDir" = "/home/${myconfig.constants.user}/Downloads";
+        "browser.download.dir" = "/home/${nixos.constants.user}/Downloads";
+        "browser.download.lastDir" = "/home/${nixos.constants.user}/Downloads";
 
         # Telemetry/junk off
         "extensions.pocket.enabled" = false;
@@ -268,7 +268,7 @@ delib.module {
         profiles = {
           default = (
             import ./profiles/librewolf-profile-default.nix {
-              constants = myconfig.constants;
+              constants = nixos.constants;
               inherit
                 pkgs
                 addons
@@ -281,7 +281,7 @@ delib.module {
 
           privacy = (
             import ./profiles/librewolf-profile-privacy.nix {
-              constants = myconfig.constants;
+              constants = nixos.constants;
               inherit
                 pkgs
                 addons

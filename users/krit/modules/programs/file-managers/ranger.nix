@@ -10,7 +10,7 @@ delib.module {
   options.krit.programs.ranger.enable = delib.boolOption true;
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
+    { cfg, nixos, ... }:
     {
       home.packages =
         with pkgs;
@@ -52,7 +52,7 @@ delib.module {
           preview_images = true; # Enable image previews in terminal
           preview_images_method =
             if
-              builtins.elem myconfig.constants.term [
+              builtins.elem nixos.constants.term [
                 "kitty"
                 "ghostty"
                 "konsole"
@@ -63,7 +63,7 @@ delib.module {
             then
               "kitty"
             else if
-              builtins.elem myconfig.constants.term [
+              builtins.elem nixos.constants.term [
                 "foot"
                 "blackbox"
               ]
@@ -126,7 +126,7 @@ delib.module {
       xdg.desktopEntries.ranger = lib.mkForce {
         name = "Ranger";
         genericName = "File Manager";
-        exec = "${myconfig.constants.term} --class ranger -e ranger";
+        exec = "${nixos.constants.term} --class ranger -e ranger";
         terminal = false;
         categories = [
           "System"

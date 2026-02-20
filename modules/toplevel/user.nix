@@ -3,9 +3,9 @@ delib.module {
   name = "system.user";
 
   nixos.always =
-    { myconfig, ... }:
+    { nixos, ... }:
     let
-      currentShell = myconfig.constants.shell or "zsh";
+      currentShell = nixos.constants.shell or "zsh";
 
       shellPkg =
         if currentShell == "fish" then
@@ -21,7 +21,7 @@ delib.module {
 
       users = {
         defaultUserShell = shellPkg;
-        users.${myconfig.constants.user} = {
+        users.${nixos.constants.user} = {
           isNormalUser = true;
           shell = shellPkg;
           extraGroups = [

@@ -7,13 +7,13 @@ delib.module {
   };
 
   home.ifEnabled =
-    { lib, myconfig, ... }:
+    { lib, nixos, ... }:
     {
       programs.git = {
         enable = true;
 
-        settings.user.name = lib.mkIf (myconfig.constants ? gitUserName) myconfig.constants.gitUserName;
-        settings.user.email = lib.mkIf (myconfig.constants ? gitUserEmail) myconfig.constants.gitUserEmail;
+        settings.user.name = lib.mkIf (nixos.constants ? gitUserName) nixos.constants.gitUserName;
+        settings.user.email = lib.mkIf (nixos.constants ? gitUserEmail) nixos.constants.gitUserEmail;
 
         lfs.enable = true;
 
@@ -24,7 +24,7 @@ delib.module {
           "*.swp"
           ".DS_Store"
         ]
-        ++ (myconfig.constants.customGitIgnores or [ ]);
+        ++ (nixos.constants.customGitIgnores or [ ]);
 
         settings = {
           init.defaultBranch = "main";

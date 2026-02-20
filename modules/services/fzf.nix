@@ -3,9 +3,9 @@ delib.module {
   name = "programs.fzf";
 
   home.always =
-    { myconfig, ... }:
+    { nixos, ... }:
     let
-      currentShell = myconfig.constants.shell or "zsh";
+      currentShell = nixos.constants.shell or "zsh";
     in
     {
       programs.fzf = {

@@ -6,9 +6,9 @@ delib.module {
   };
 
   home.ifEnabled =
-    { myconfig, ... }:
+    { nixos, ... }:
     let
-      currentShell = myconfig.constants.shell or "zsh";
+      currentShell = nixos.constants.shell or "zsh";
     in
     {
       programs.zoxide = {

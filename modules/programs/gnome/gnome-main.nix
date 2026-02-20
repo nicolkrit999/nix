@@ -14,17 +14,17 @@ delib.module {
     gnomeExtraBinds = listOfOption attrs [ ];
   };
   home.ifEnabled =
-    { cfg, myconfig, ... }:
+    { cfg, nixos, ... }:
 
     let
-      firstWallpaper = builtins.head myconfig.constants.wallpapers;
+      firstWallpaper = builtins.head nixos.constants.wallpapers;
       wallpaperPath = pkgs.fetchurl {
         url = firstWallpaper.wallpaperURL;
         sha256 = firstWallpaper.wallpaperSHA256;
       };
 
-      colorScheme = if myconfig.constants.polarity == "dark" then "prefer-dark" else "prefer-light";
-      iconThemeName = if myconfig.constants.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
+      colorScheme = if nixos.constants.polarity == "dark" then "prefer-dark" else "prefer-light";
+      iconThemeName = if nixos.constants.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
 
       rawPinnedApps = cfg.pinnedApps;
       hasPins = builtins.length rawPinnedApps > 0;
@@ -32,15 +32,15 @@ delib.module {
     {
 
       home.packages =
-        (lib.optionals myconfig.constants.catppuccin [
+        (lib.optionals nixos.constants.catppuccin [
           (pkgs.catppuccin-gtk.override {
-            accents = [ myconfig.constants.catppuccinAccent ];
+            accents = [ nixos.constants.catppuccinAccent ];
             size = "standard";
             tweaks = [
               "rimless"
               "black"
             ];
-            variant = myconfig.constants.catppuccinFlavor or "mocha";
+            variant = nixos.constants.catppuccinFlavor or "mocha";
           })
         ])
         ++ [

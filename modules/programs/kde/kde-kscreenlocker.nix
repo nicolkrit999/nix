@@ -8,17 +8,17 @@ delib.module {
   name = "programs.kde";
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
+    { cfg, nixos, ... }:
     let
       # 🌟 FIXED VARS
       lockWallpaper =
-        if builtins.length myconfig.constants.wallpapers > 0 then
-          (builtins.elemAt myconfig.constants.wallpapers 0).wallpaperURL
+        if builtins.length nixos.constants.wallpapers > 0 then
+          (builtins.elemAt nixos.constants.wallpapers 0).wallpaperURL
         else
           "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Kay/contents/images/1080x1920.png";
 
       # Fetch the timeout from your new Hypridle module (fallback to 600 if not enabled)
-      idleTimeout = myconfig.services.hypridle.lockTimeout or 600;
+      idleTimeout = nixos.services.hypridle.lockTimeout or 600;
     in
     {
       programs.plasma.kscreenlocker = {
@@ -38,8 +38,8 @@ delib.module {
           wallpaper = pkgs.fetchurl {
             url = lockWallpaper;
             sha256 =
-              if (builtins.length myconfig.constants.wallpapers) > 0 then
-                (builtins.elemAt myconfig.constants.wallpapers 0).wallpaperSHA256
+              if (builtins.length nixos.constants.wallpapers) > 0 then
+                (builtins.elemAt nixos.constants.wallpapers 0).wallpaperSHA256
               else
                 lib.fakeSha256;
           };

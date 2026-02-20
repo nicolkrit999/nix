@@ -7,7 +7,7 @@
 delib.module {
   name = "programs.gnome";
   home.ifEnabled =
-    { cfg, myconfig, ... }:
+    { cfg, nixos, ... }:
 
     let
 
@@ -29,35 +29,35 @@ delib.module {
       customBindings = [
         {
           name = "Launch Terminal";
-          command = myconfig.constants.term;
+          command = nixos.constants.term;
           binding = "<Super>Return";
         }
         {
-          name = "Launch ${myconfig.constants.browser}";
-          command = "${pkgs.${myconfig.constants.browser}}/bin/${myconfig.constants.browser}";
+          name = "Launch ${nixos.constants.browser}";
+          command = "${pkgs.${nixos.constants.browser}}/bin/${nixos.constants.browser}";
           binding = "<Super>b";
         }
         {
           name = "Launch File Manager";
           command =
             if
-              builtins.elem myconfig.constants.fileManager [
+              builtins.elem nixos.constants.fileManager [
                 "yazi"
                 "ranger"
                 "lf"
                 "nnn"
               ]
             then
-              "${myconfig.constants.term} -e ${myconfig.constants.fileManager}"
+              "${nixos.constants.term} -e ${nixos.constants.fileManager}"
             else
-              "${myconfig.constants.fileManager}";
+              "${nixos.constants.fileManager}";
           binding = "<Super>f";
         }
         {
           name = "Launch editor";
           command =
             if
-              builtins.elem myconfig.constants.editor [
+              builtins.elem nixos.constants.editor [
                 "neovim"
                 "nvim"
                 "nano"
@@ -65,9 +65,9 @@ delib.module {
                 "helix"
               ]
             then
-              "${myconfig.constants.term} -e ${myconfig.constants.editor}"
+              "${nixos.constants.term} -e ${nixos.constants.editor}"
             else
-              "${myconfig.constants.editor}";
+              "${nixos.constants.editor}";
           binding = "<Super>c";
         }
         {

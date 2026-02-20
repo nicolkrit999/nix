@@ -9,11 +9,11 @@ delib.module {
   name = "system.cachix";
 
   nixos.always =
-    { myconfig, ... }:
+    { nixos, ... }:
     let
       # Use exactly what is defined in constants.nix
-      cfg = myconfig.constants.cachix;
-      user = myconfig.constants.user;
+      cfg = nixos.constants.cachix;
+      user = nixos.constants.user;
 
       sopsFile = ../../hosts/${config.networking.hostName}/optional/host-sops-nix/${config.networking.hostName}-secrets-sops.yaml;
     in

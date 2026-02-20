@@ -10,7 +10,7 @@ delib.module {
   name = "programs.niri"; # Changed name to match the actual content
 
   home.ifEnabled =
-    { cfg, myconfig, ... }: # Corrected: added the lambda required by delib
+    { cfg, nixos, ... }: # Corrected: added the lambda required by delib
     let
       spawnApp =
         app:
@@ -23,7 +23,7 @@ delib.module {
 
         then
           [
-            "${config.myconfig.constants.terminal}"
+            "${config.nixos.constants.terminal}"
             "-e"
             app
           ]
@@ -35,7 +35,7 @@ delib.module {
       walkerCommand = [ "walker" ];
 
       shellLauncherCommand =
-        if (config.myconfig.constants.niriNoctalia or false) then
+        if (config.nixos.constants.niriNoctalia or false) then
           [
             "sh"
             "-c"
@@ -46,16 +46,16 @@ delib.module {
     in
     {
       # The actual configuration goes here
-      programs.niri.settings.binds = lib.mkIf (config.myconfig.constants.niri or false) {
+      programs.niri.settings.binds = lib.mkIf (config.nixos.constants.niri or false) {
         # -----------------------------------------------------------------------
         # 🚀 APPLICATIONS
         # -----------------------------------------------------------------------
-        "Mod+Return".action.spawn = [ "${config.myconfig.constants.terminal}" ];
+        "Mod+Return".action.spawn = [ "${config.nixos.constants.terminal}" ];
         "Mod+A".action.spawn = walkerCommand;
         "Mod+Shift+A".action.spawn = shellLauncherCommand;
-        "Mod+B".action.spawn = [ "${config.myconfig.constants.browser}" ];
-        "Mod+F".action.spawn = spawnApp config.myconfig.constants.fileManager;
-        "Mod+C".action.spawn = spawnApp config.myconfig.constants.editor;
+        "Mod+B".action.spawn = [ "${config.nixos.constants.browser}" ];
+        "Mod+F".action.spawn = spawnApp config.nixos.constants.fileManager;
+        "Mod+C".action.spawn = spawnApp config.nixos.constants.editor;
 
         # -----------------------------------------------------------------------
         # 🪟 WINDOW MANAGEMENT
