@@ -6,7 +6,6 @@ delib.module {
   nixos.always =
     { cfg, myconfig, ... }:
     {
-      imports = [ inputs.home-manager.nixosModules.default ];
 
       home-manager = {
         useGlobalPkgs = false;

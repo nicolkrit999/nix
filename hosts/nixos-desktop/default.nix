@@ -3,10 +3,10 @@
   inputs,
   pkgs,
   lib,
-  config,
   ...
 }:
 let
+  pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
   # 🌟 CORE APPS & THEME
   myBrowser = "librewolf";
   myTerminal = "kitty";
@@ -175,12 +175,16 @@ delib.host {
       # 🎛️ FUNCTIONAL MODULES (Outside constants)
       # ---------------------------------------------------------------
       desktop.local-packages.enable = true;
-      desktop.nas.borg-backup.enable = true;
+      krit.services.nas.desktop-borg-backup.enable = true;
+      krit.services.nas.sshfs.enable = true;
+      krit.services.nas.owncloud.enable = true;
       krit.services.flatpak.enable = true; # FIX "services.flatpak.packages" does not exist
-      services.samba.enable = true;
-      services.bluetooth.enable = true;
+      krit.services.nas.smb.enable = true;
+      bluetooth.enable = true;
       services.tailscale.enable = true;
-      krit.hardware.logitech.enable = true;
+      krit.services.logitech.enable = true;
+      krit.services.logitech.mouses.mx-master.enable = true;
+      krit.services.logitech.mouses.superlight.enable = true;
 
       # ---------------------------------------------------------------
       # 📦 CONSTANTS BLOCK (Inside constants)
@@ -196,6 +200,8 @@ delib.host {
         gitUserName = "nicolkrit999";
         gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
         shell = "fish";
+
+        timeZone = "Europe/Zurich";
 
         waybarLayout = myWaybarLayout;
         waybarWorkspaceIcons = myWaybarWorkspaceIcons;
@@ -301,20 +307,23 @@ delib.host {
       programs.cosmic.enable = true;
       programs.waybar.enable = true;
 
-      programs.stylix.targets = {
-        yazi.enable = false;
-        cava.enable = true;
-        kitty.enable = !isCatppuccin;
-        alacritty.enable = !isCatppuccin;
-        zathura.enable = !isCatppuccin;
-        firefox.profileNames = [ userName ];
-        librewolf.profileNames = [
-          "default"
-          "privacy"
-        ];
+      stylix = {
+        enable = true;
+        targets = {
+          yazi.enable = false;
+          cava.enable = true;
+          kitty.enable = !isCatppuccin;
+          alacritty.enable = !isCatppuccin;
+          zathura.enable = !isCatppuccin;
+          firefox.profileNames = [ userName ];
+          librewolf.profileNames = [
+            "default"
+            "privacy"
+          ];
+        };
       };
 
-      programs.swaync = {
+      services.swaync = {
         enable = true;
         customSettings = {
           "mute-protonvpn" = {
@@ -331,10 +340,8 @@ delib.host {
         screenOffTimeout = 360;
       };
 
-      timeZone = "Europe/Zurich";
-
-      programs.hyprlock.enable = true;
-      krit.guest.enable = true;
+      services.hyprlock.enable = true;
+      guest.enable = true;
 
       programs.caelestia.enableOnHyprland = false;
       programs.noctalia = {
@@ -347,11 +354,11 @@ delib.host {
   # ---------------------------------------------------------------
   # ⚙️ SYSTEM-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
+  # ---------------------------------------------------------------
+  # ⚙️ SYSTEM-LEVEL CONFIGURATIONS
+  # ---------------------------------------------------------------
   nixos =
-    {
-      pkgs,
-      ...
-    }:
+    { ... }:
     {
       system.stateVersion = "25.11";
       imports = [
@@ -359,8 +366,44 @@ delib.host {
         inputs.nix-flatpak.nixosModules.nix-flatpak
         inputs.nix-sops.nixosModules.sops
         inputs.niri.nixosModules.niri
-
         ./hardware-configuration.nix
+
+        # 🌟 THE INLINE MODULE FIX 🌟
+        # Anything that uses the word 'config' MUST be inside here!
+        (
+          { config, ... }:
+          {
+            sops.templates."davfs-secrets" = {
+              content = ''
+                ${config.sops.placeholder.nas_owncloud_url} ${config.sops.placeholder.nas_owncloud_user} ${config.sops.placeholder.nas_owncloud_pass}
+              '';
+              owner = "root";
+              group = "root";
+              mode = "0600";
+            };
+
+            # 🚀 INJECT SECRETS INTO MODULES
+            myconfig.krit.services.nas.sshfs.identityFile = config.sops.secrets.nas_ssh_key.path;
+            myconfig.krit.services.nas.smb.credentialsFile = config.sops.secrets.nas-krit-credentials.path;
+            myconfig.krit.services.nas.desktop-borg-backup.passphraseFile =
+              config.sops.secrets.borg-passphrase.path;
+            myconfig.krit.services.nas.desktop-borg-backup.sshKeyPath =
+              config.sops.secrets.borg-private-key.path;
+            myconfig.krit.services.nas.owncloud.secretsFile = config.sops.templates."davfs-secrets".path;
+
+            # Other config-dependent settings
+            nix.extraOptions = ''
+              !include ${config.sops.secrets.github_fg_pat_token_nix.path}
+            '';
+
+            programs.ssh.extraConfig = ''
+              Host github.com
+              IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
+            '';
+
+            users.users.${userName}.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
+          }
+        )
       ];
 
       i18n.defaultLocale = "en_US.UTF-8";
@@ -369,9 +412,12 @@ delib.host {
       sops.defaultSopsFormat = "yaml";
       sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
+      # ---------------------------------------------------------
+      # 🔐 CENTRALIZED SOPS DEFINITIONS
+      # ---------------------------------------------------------
       sops.secrets =
         let
-          commonSecrets = ../../../krit/sops/krit-common-secrets-sops.yaml;
+          commonSecrets = ../../users/krit/sops/krit-common-secrets-sops.yaml;
         in
         {
           "krit-local-password".neededForUsers = true;
@@ -400,11 +446,15 @@ delib.host {
             sopsFile = commonSecrets;
             owner = userName;
           };
-        };
 
-      nix.extraOptions = ''
-        !include ${config.sops.secrets.github_fg_pat_token_nix.path}
-      '';
+          nas_ssh_key.sopsFile = commonSecrets;
+          nas-krit-credentials.sopsFile = commonSecrets;
+          borg-passphrase.sopsFile = commonSecrets;
+          borg-private-key.sopsFile = commonSecrets;
+          nas_owncloud_url.sopsFile = commonSecrets;
+          nas_owncloud_user.sopsFile = commonSecrets;
+          nas_owncloud_pass.sopsFile = commonSecrets;
+        };
 
       programs.git.enable = true;
       programs.git.config = {
@@ -418,20 +468,13 @@ delib.host {
         pinentryPackage = pkgs.pinentry-qt;
       };
 
-      programs.ssh = {
-        extraConfig = ''
-          Host github.com
-          IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
-        '';
-      };
-
       boot.initrd.kernelModules = [ "amdgpu" ];
       hardware.graphics.enable = true;
 
-      services.logind.settings.Login = {
-        HandlePowerKey = "poweroff";
-        HandlePowerKeyLongPress = "poweroff";
-      };
+      services.logind.extraConfig = ''
+        HandlePowerKey=poweroff
+        HandlePowerKeyLongPress=poweroff
+      '';
 
       users.mutableUsers = false;
       users.users.${userName} = {
@@ -458,7 +501,6 @@ delib.host {
             count = 65536;
           }
         ];
-        hashedPasswordFile = config.sops.secrets.krit-local-password.path;
       };
 
       virtualisation.docker.enable = true;
@@ -515,15 +557,13 @@ delib.host {
         zip
         zlib
       ];
-    };
+    }; # 🌟 THIS CORRECTLY CLOSES THE NIXOS BLOCK
 
   # ---------------------------------------------------------------
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
     {
-      pkgs,
-      pkgs-unstable,
       ...
     }:
     {

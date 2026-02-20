@@ -1,7 +1,7 @@
 { delib, pkgs, ... }:
 delib.module {
-  name = "krit.services.logitech.mouses";
-  options.krit.services.logitech.mouses = with delib; {
+  name = "krit.services.logitech";
+  options.krit.services.logitech = with delib; {
     enable = boolOption false;
   };
 
@@ -34,8 +34,11 @@ delib.module {
       };
 
       # Auto-Restart logid ONLY when MX Master connects
-      services.udev.extraRules = ''
-        ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c548", RUN+="${pkgs.systemd}/bin/systemctl restart logid.service"
-      '';
+      /*
+        services.udev.extraRules = ''
+          ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c548", RUN+="${pkgs.systemd}/bin/systemctl restart logid.service"
+        '';
+      */
+
     };
 }

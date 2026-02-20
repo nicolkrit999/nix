@@ -1,7 +1,7 @@
 { delib, pkgs, ... }:
 delib.module {
-  name = "krit.services.logitech.mouses";
-  options.krit.services.logitech.mouses = with delib; {
+  name = "krit.services.logitech.mouses.mx-master";
+  options.krit.services.logitech.mouses.mx-master = with delib; {
     enable = boolOption false;
   };
 

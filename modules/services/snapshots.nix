@@ -5,8 +5,8 @@
   ...
 }:
 delib.module {
-  name = "snapper";
-  options.snapper = with delib; {
+  name = "services.snapshots";
+  options.services.snapshots = with delib; {
     enable = boolOption false;
   };
 

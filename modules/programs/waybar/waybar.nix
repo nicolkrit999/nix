@@ -9,7 +9,9 @@
 
 delib.module {
   name = "programs.waybar";
-  options.krit.programs.waybar.enable = delib.boolOption true;
+  options.programs.waybar = with delib; {
+    enable = boolOption true;
+  };
 
   home.ifEnabled =
     {

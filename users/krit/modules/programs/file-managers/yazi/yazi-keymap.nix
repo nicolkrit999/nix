@@ -1,9 +1,6 @@
 { delib, pkgs, ... }:
 delib.module {
   name = "krit.programs.yazi";
-  options.krit.programs.yazi = with delib; {
-    enable = boolOption true;
-  };
 
   home.ifEnabled =
     { ... }:

@@ -6,9 +6,10 @@
 }:
 delib.module {
   # 🌟 Aligned the module name to match how you toggle it in default.nix
-  name = "krit.programs.swaync";
-  options.krit.programs.swaync = with delib; {
+  name = "services.swaync";
+  options.services.swaync = with delib; {
     enable = boolOption true;
+    customSettings = attrsOption { };
   };
 
   # 🌟 Changed to home.ifEnabled because SwayNC is a user-level GUI program
@@ -71,7 +72,7 @@ delib.module {
           timeout-critical = 0;
 
           # Host optional rules to exclude/mute notifications
-          notification-visibility = { } // myconfig.constants.swayncExclusions or { };
+          notification-visibility = { } // cfg.customSettings;
         };
 
         # 🎨 DYNAMIC STYLE LOGIC

@@ -1,45 +1,32 @@
 {
   delib,
   pkgs,
-  config,
   lib,
   ...
-}:
+}: # 🌟 Removed 'config'
 delib.module {
   name = "cachix";
   options.cachix = with delib; {
     enable = boolOption false;
+    authTokenPath = strOption ""; # 🌟 Receiver Option
   };
 
   nixos.ifEnabled =
     { cfg, myconfig, ... }:
     let
-      # Use exactly what is defined in myconfig.constants.nix
-      cfg = myconfig.constants.cachix;
-      user = myconfig.constants.user;
-
-      sopsFile = ../../hosts/${config.networking.hostName}/optional/host-sops-nix/${config.networking.hostName}-secrets-sops.yaml;
+      const = myconfig.constants.cachix;
     in
     {
-      # Use standard NixOS syntax inside the return set
-      nix.settings = lib.mkIf cfg.enable {
-        substituters = [ "https://${cfg.name}.cachix.org" ];
-        trusted-public-keys = [ cfg.publicKey ];
+      nix.settings = lib.mkIf const.enable {
+        substituters = [ "https://${const.name}.cachix.org" ];
+        trusted-public-keys = [ const.publicKey ];
       };
 
-      environment.systemPackages = lib.mkIf cfg.enable [ pkgs.cachix ];
+      environment.systemPackages = lib.mkIf const.enable [ pkgs.cachix ];
 
-      sops.secrets."cachix-auth-token" = lib.mkIf (cfg.enable && cfg.push) {
-        inherit sopsFile;
-        mode = "0440";
-        owner = user;
-        group = "wheel";
-      };
-
-      environment.shellAliases = lib.mkIf (cfg.enable && cfg.push) {
-        rebuild-push = "export CACHIX_AUTH_TOKEN=$(cat ${
-          config.sops.secrets."cachix-auth-token".path
-        }) && sudo nixos-rebuild switch --flake . && nix path-info -r /run/current-system | cachix push ${cfg.name}";
+      environment.shellAliases = lib.mkIf (const.enable && const.push) {
+        # 🌟 Read the token path directly from our option
+        rebuild-push = "export CACHIX_AUTH_TOKEN=$(cat ${cfg.authTokenPath}) && sudo nixos-rebuild switch --flake . && nix path-info -r /run/current-system | cachix push ${const.name}";
       };
     };
 }
