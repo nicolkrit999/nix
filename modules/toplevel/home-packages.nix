@@ -10,7 +10,7 @@ delib.module {
   name = "home-packages";
 
   # 🌟 THE FIX: Use 'nixos.always' so standard options like 'environment' work.
-  home.always =
+  nixos.always =
     { cfg, myconfig, ... }: # 🌟 Keep 'nixos' as the variable name for your logic.
     let
       # 🔄 TRANSLATION LAYER
@@ -49,24 +49,24 @@ delib.module {
       myEditorPkg = getPkg editorName fallbackEditor;
     in
     {
-      nixos.always = {
-        # Now that we are in a 'nixos' hook, 'environment' is a valid top-level option.
-        environment.systemPackages =
-          let
-            # ✅ This checks if a NixOS module is already handling the program
-            isModuleEnabled = name: lib.attrByPath [ "programs" name "enable" ] false config;
-          in
-          (lib.optional (!isModuleEnabled termName) myTermPkg)
-          ++ (lib.optional (!isModuleEnabled browserName) myBrowserPkg)
-          ++ (lib.optional (!isModuleEnabled fileManagerName) myFileManagerPkg)
-          ++ (lib.optional (!isModuleEnabled editorName) myEditorPkg)
-          ++ (with pkgs; [
-            cliphist
-          ])
-          ++ (with pkgs.kdePackages; [
-            gwenview
-          ])
-          ++ (with pkgs-unstable; [ ]);
-      };
+
+      # Now that we are in a 'nixos' hook, 'environment' is a valid top-level option.
+      environment.systemPackages =
+        let
+          # ✅ This checks if a NixOS module is already handling the program
+          isModuleEnabled = name: lib.attrByPath [ "programs" name "enable" ] false config;
+        in
+        (lib.optional (!isModuleEnabled termName) myTermPkg)
+        ++ (lib.optional (!isModuleEnabled browserName) myBrowserPkg)
+        ++ (lib.optional (!isModuleEnabled fileManagerName) myFileManagerPkg)
+        ++ (lib.optional (!isModuleEnabled editorName) myEditorPkg)
+        ++ (with pkgs; [
+          cliphist
+        ])
+        ++ (with pkgs.kdePackages; [
+          gwenview
+        ])
+        ++ (with pkgs-unstable; [ ]);
     };
+
 }

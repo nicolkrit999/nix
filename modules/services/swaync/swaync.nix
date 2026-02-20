@@ -2,6 +2,7 @@
   delib,
   pkgs,
   lib,
+  config,
   ...
 }:
 delib.module {
@@ -17,7 +18,6 @@ delib.module {
     {
       cfg,
       myconfig,
-      config, # 🌟 Added 'config' so your Catppuccin CSS path works!
       ...
     }:
     let

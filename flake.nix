@@ -32,6 +32,10 @@
             ./users
           ];
 
+          exclude = [ ./users/krit/dev-environments
+            ./users/krit/modules/programs/gui-programs/librewolf/profiles
+          ];
+
           specialArgs = { inherit inputs moduleSystem; };
         };
     in

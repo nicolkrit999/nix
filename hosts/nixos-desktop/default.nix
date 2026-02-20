@@ -569,13 +569,19 @@ delib.host {
     {
       home.stateVersion = "25.11";
       imports = [
-        inputs.catppuccin.homeManagerModules.catppuccin # 🌟 Registers 'catppuccin' options
+        # 🌟 THE FIX: Changed to homeModules (Fixes the warning)
+        inputs.catppuccin.homeModules.catppuccin
+
         inputs.nix-sops.homeManagerModules.sops
 
-        inputs.niri.homeManagerModules.niri # 🌟 Registers 'programs.niri' options
-        inputs.walker.homeManagerModules.default # 🌟 Registers 'programs.walker' options
-        inputs.plasma-manager.homeManagerModules.plasma-manager
-        ./optional/host-hm-modules
+        # 🌟 THE FIX: Changed to homeModules (Fixes the fatal crash)
+        inputs.niri.homeModules.niri
+
+        inputs.walker.homeManagerModules.default
+
+        # 🌟 THE FIX: Updated for consistency
+        inputs.plasma-manager.homeModules.plasma-manager
+
       ];
 
       xdg.desktopEntries.vivaldi = {

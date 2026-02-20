@@ -20,7 +20,6 @@ delib.module {
     {
       cfg,
       myconfig,
-      config,
       ...
     }:
     let

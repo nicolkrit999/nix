@@ -15,7 +15,6 @@ delib.module {
     {
       cfg,
       myconfig,
-      config,
       ...
     }:
     let
@@ -65,18 +64,18 @@ delib.module {
         [Appearance]
         icon_theme=${iconThemeName}
         style=breeze
-        color_scheme_path=${config.home.homeDirectory}/.local/share/qt6ct/colors/${kdeColorScheme}.colors
+        color_scheme_path=/home/${myconfig.constants.user}/.local/share/qt6ct/colors/${kdeColorScheme}.colors
       '';
 
       xdg.configFile."qt5ct/qt5ct.conf".text = ''
         [Appearance]
         icon_theme=${iconThemeName}
         style=breeze
-        color_scheme_path=${config.home.homeDirectory}/.local/share/qt5ct/colors/${kdeColorScheme}.colors
+        color_scheme_path=/home/${myconfig.constants.user}/.local/share/qt5ct/colors/${kdeColorScheme}.colors
       '';
 
       home.activation.kdeglobalsFromPolarity = lib.mkIf useKdePlatformTheme (
-        config.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group General    --key ColorScheme "${kdeColorScheme}" || true
           ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group UiSettings --key ColorScheme "${kdeColorScheme}" || true
           ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group Icons      --key Theme      "${iconThemeName}"  || true

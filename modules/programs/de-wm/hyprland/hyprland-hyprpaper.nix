@@ -5,9 +5,9 @@
   ...
 }:
 delib.module {
-  name = "programs.hyprpaper"; # Assuming you register it directly
+  name = "programs.hyprland"; # Assuming you register it directly
 
-  home.always =
+  home.ifEnabled =
     { cfg, myconfig, ... }:
     let
       activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
