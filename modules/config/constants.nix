@@ -11,6 +11,8 @@ delib.module {
     gitUserName = strOption "";
     gitUserEmail = strOption "";
 
+    # FIX: Fix evaluation warnings for git module
+
     # ---------------------------------------------------------------
     # 🐚 SHELLS & APPS
     # ---------------------------------------------------------------
@@ -23,14 +25,22 @@ delib.module {
     # ---------------------------------------------------------------
     # ⚙️ ADVANCED SYSTEM CONSTANTS
     # ---------------------------------------------------------------
+
+    # FIX: Fix evaluation warnings with teh complete block
     zramPercent = intOption 25;
-    snapshots = boolOption false;
-    snapshotRetention = {
-      hourly = strOption "24";
-      daily = strOption "7";
-      weekly = strOption "4";
-      monthly = strOption "3";
-      yearly = strOption "2";
+
+    # ---------------------------------------------------------------
+    # 💾 SNAPSHOT CONFIGURATION
+    # ---------------------------------------------------------------
+    snapshots = {
+      enable = boolOption false;
+      retention = {
+        hourly = strOption "24";
+        daily = strOption "7";
+        weekly = strOption "4";
+        monthly = strOption "3";
+        yearly = strOption "2";
+      };
     };
 
     # ---------------------------------------------------------------
@@ -39,17 +49,13 @@ delib.module {
     monitors = listOfOption str [ ];
 
     # Using a submodule to strictly define the wallpaper attribute set
-    wallpapers =
-      listOfOption
-        (submodule {
-          options = {
-            wallpaperURL = strOption "";
-            wallpaperSHA256 = strOption "";
-          };
-        })
-        [
-
-        ];
+    # Using a submodule to strictly define the wallpaper attribute set
+    wallpapers = listOfOption (submodule {
+      options = {
+        wallpaperURL = strOption "";
+        wallpaperSHA256 = strOption "";
+      };
+    }) [ ];
 
     # ---------------------------------------------------------------
     # 🎨 THEMING
@@ -65,7 +71,7 @@ delib.module {
     screenshots = strOption "$HOME/Pictures/Screenshots";
     keyboardLayout = strOption "us";
     keyboardVariant = strOption "";
-    pinnedApps = listOfOption str [ ];
+    #pinnedApps = listOfOption str [ ]; # TODO: should not be needed
 
     # 🌟 RESTORED FROM VARIABLES.NIX.BAK
     weather = strOption "Lugano";
@@ -73,9 +79,11 @@ delib.module {
     nixImpure = boolOption false;
     customGitIgnores = listOfOption str [ ];
 
+    # FIX: Fix evaluation warnings
     waybarLayout = attrsOption { };
     waybarWorkspaceIcons = attrsOption { };
 
+    # FIX: Fix evaluation warnings
     cachix = {
       enable = boolOption false;
       push = boolOption false;

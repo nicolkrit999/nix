@@ -5,6 +5,7 @@ delib.module {
     enable = boolOption true;
   };
 
+  # FIX: Fix evaluation warnings
   nixos.always =
     { cfg, myconfig, ... }:
     {

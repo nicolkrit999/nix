@@ -173,17 +173,86 @@ delib.host {
       # 📦 CONSTANTS BLOCK (Data Bucket)
       # ---------------------------------------------------------------
       constants = {
-        # 🌟 Keep your existing constants block exactly as it is here!
-        user = "krit";
         hostname = "nixos-desktop";
-        # ... (rest of your constants)
+        # ---------------------------------------------------------------
+        # 👤 USER IDENTITY
+        # ---------------------------------------------------------------
+        user = "krit";
+        gitUserName = "nicolkrit999";
+        gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
+
+        # ---------------------------------------------------------------
+        # 🐚 SHELLS & APPS
+        # ---------------------------------------------------------------
+        terminal = "kitty";
+        shell = "fish";
+        browser = "librewolf";
+        editor = "nvim";
+        fileManager = "yazi";
+        # ---------------------------------------------------------------
+        # ⚙️ ADVANCED SYSTEM CONSTANTS
+        # ---------------------------------------------------------------
+
+        # ---------------------------------------------------------------
+        # 🖼️ MONITORS & WALLPAPERS
+        # ---------------------------------------------------------------
+        monitors = [
+          "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
+          "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
+          "DP-3, disable"
+          "HDMI-A-1,1920x1080@60, 0x0, 1, mirror, DP-1"
+        ];
+
+        wallpapers = [
+          {
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/Anime-Girl2.png";
+            wallpaperSHA256 = "05ad0c4lm47rh67hsymz0si7x62b7sanz91dsf2vaz68973fq6k6";
+          }
+
+          {
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/zhichaoh-catppuccin-wallpapers-main/os/nix-black-4k.png";
+            wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
+          }
+        ];
+
+        # ---------------------------------------------------------------
+        # 🎨 THEMING
+        # ---------------------------------------------------------------
+        theme = {
+          polarity = "dark";
+          base16Theme = "catppuccin-mocha";
+          catppuccin = true;
+          catppuccinFlavor = "mocha";
+          catppuccinAccent = "teal";
+        };
+
+        screenshots = "$HOME/Pictures/Screenshots";
+        keyboardLayout = "us,it,de,fr";
+        keyboardVariant = "intl,,,";
+
+        # 🌟 RESTORED FROM VARIABLES.NIX.BAK
+        weather = "Lugano";
+        useFahrenheit = false;
+        nixImpure = false;
+
+        timeZone = "Etc/UTC";
       };
 
       # ---------------------------------------------------------------
       # 🌐 TOP-LEVEL MODULES
       # ---------------------------------------------------------------
       bluetooth.enable = true;
-      cachix.enable = true;
+
+      # FIX: Fix evaluation warnings
+      /*
+        cachix = {
+          enable = true;
+          push = true; # Only the builder must have this true (for now "nixos-desktop")
+          name = "krit-nixos";
+          publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
+        };
+      */
+
       cosmic.enable = true;
       gnome.enable = true;
       guest.enable = true;
@@ -194,7 +263,14 @@ delib.host {
       nh.enable = true;
       niri.enable = true;
       qt.enable = true;
-      zram.enable = true;
+
+      # FIX: Fix evaluation warnings
+      /*
+        zram = {
+          enable = true;
+          zramPercent = 25;
+        };
+      */
 
       stylix = {
         enable = true;
@@ -219,12 +295,29 @@ delib.host {
       programs.cosmic.enable = true;
       programs.eza.enable = true;
       programs.fzf.enable = true;
-      programs.git.enable = true;
+
+      # FIX: Fix evaluation warnings
+      /*
+        programs.git = {
+          enable = true;
+          customGitIgnores = [ ];
+        };
+      */
+
       programs.lazygit.enable = true;
       programs.starship.enable = true;
       programs.tmux.enable = true;
       programs.walker.enable = true;
-      programs.waybar.enable = true;
+
+      # FIX: Fix evaluation warnings
+      /*
+        programs.waybar = {
+          enable = true;
+          waybarLayout = { };
+          waybarWorkspaceIcons = { };
+        };
+      */
+
       programs.zoxide.enable = true;
 
       programs.caelestia = {
@@ -292,7 +385,21 @@ delib.host {
       services.audio.enable = true;
       services.hyprlock.enable = true;
       services.sddm.enable = true;
-      services.snapshots.enable = true;
+
+      # FIX: Fix evaluation warnings
+      /*
+        snapshots = {
+          enable = false;
+          retention = {
+            hourly = "24";
+            daily = "7";
+            weekly = "4";
+            monthly = "3";
+            yearly = "2";
+          };
+        };
+      */
+
       services.tailscale.enable = true;
 
       services.hypridle = {

@@ -3,6 +3,8 @@ delib.module {
   name = "programs.git";
   options.programs.git.enable = delib.boolOption true;
 
+  # FIX: Fix evaluation warnings
+
   # 🏠 HOME MANAGER HOOK ONLY
   home.ifEnabled =
     { cfg, myconfig, ... }:

@@ -71,7 +71,7 @@ delib.module {
       };
 
       # Radio fm1-Switzerland
-      radioFM1Icon = ../../src/svg-images/entertainment/radioFM1Icon.svg;
+      radioFM1Icon = ../../src/svg-images/entertainment/radiofm1.svg;
     in
     {
       home.packages = [ pkgs.brave ];

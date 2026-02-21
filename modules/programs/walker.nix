@@ -12,6 +12,8 @@ delib.module {
     enable = boolOption false;
   };
 
+  # FIX: Fix evaluation warnings
+
   home.ifEnabled =
     { cfg, myconfig, ... }:
     let

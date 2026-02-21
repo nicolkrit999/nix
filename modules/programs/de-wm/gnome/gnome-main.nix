@@ -9,7 +9,7 @@ delib.module {
   # Define the toggle here
   options.programs.gnome = with delib; {
     enable = boolOption false;
-    screenshots = strOption "$HOME/Pictures/Screenshots";
+    screenshots = strOption "$HOME/Pictures/Screenshots"; # TODO: Move to a single constant in constants.nix and default.nix for the host
     pinnedApps = listOfOption str [ ];
     gnomeExtraBinds = listOfOption attrs [ ];
   };
