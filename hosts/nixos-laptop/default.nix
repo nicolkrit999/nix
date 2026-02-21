@@ -185,14 +185,15 @@ delib.host {
         # ---------------------------------------------------------------
         monitors = [
           # 💻 Built-in Laptop Screen (Adjust resolution/scale as needed)
-          "eDP-1,2880x1800@120,auto,1"
+          "eDP-1,2880x1800@120,0x0,1"
 
           # 🖥️ Your Desktop Monitors (Ignored until plugged in)
           "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
           "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
 
           # 🔌 Catch-all fallback for any other random screen you plug in
-          ",preferred,auto,1"
+          # FIXME: This is a good thing but to enable it the wallpaper applying logic must be changed to allow this kind of sintax
+          #",preferred,auto,1"
         ];
 
         # Keep all 3 wallpaper to work when connected to external monitors (built in monitor is disabled and so the external monitors still ahve the right one)
@@ -568,7 +569,7 @@ delib.host {
         HandlePowerKeyLongPress = "poweroff";
       };
 
-      users.mutableUsers = false;
+      #users.mutableUsers = false;
       users.users.${userName} = {
         isNormalUser = true;
         description = "${userName}";

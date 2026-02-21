@@ -48,7 +48,15 @@ delib.module {
             posStr = builtins.elemAt parts 2;
             scale = builtins.fromJSON (builtins.elemAt parts 3);
 
-            posParts = lib.splitString "x" posStr;
+            isAutoPos = posStr == "auto";
+            posParts =
+              if isAutoPos then
+                [
+                  "0"
+                  "0"
+                ]
+              else
+                lib.splitString "x" posStr;
             posX = lib.toInt (builtins.elemAt posParts 0);
             posY = lib.toInt (builtins.elemAt posParts 1);
 
@@ -103,10 +111,14 @@ delib.module {
                 refresh = refresh;
               };
               scale = scale;
-              position = {
-                x = posX;
-                y = posY;
-              };
+              position =
+                if isAutoPos then
+                  null
+                else
+                  {
+                    x = posX;
+                    y = posY;
+                  };
               transform = {
                 rotation = rotationVal;
                 flipped = false;
