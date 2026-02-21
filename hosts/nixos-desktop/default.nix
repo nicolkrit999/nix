@@ -366,7 +366,6 @@ delib.host {
         #inputs.nix-flatpak.nixosModules.nix-flatpak
         inputs.nix-sops.nixosModules.sops
         inputs.niri.nixosModules.niri
-        inputs.stylix.nixosModules.stylix
 
         ./hardware-configuration.nix
 
@@ -473,10 +472,10 @@ delib.host {
       boot.initrd.kernelModules = [ "amdgpu" ];
       hardware.graphics.enable = true;
 
-      services.logind.extraConfig = ''
-        HandlePowerKey=poweroff
-        HandlePowerKeyLongPress=poweroff
-      '';
+      services.logind.settings.Login = {
+        HandlePowerKey = "poweroff";
+        HandlePowerKeyLongPress = "poweroff";
+      };
 
       users.mutableUsers = false;
       users.users.${userName} = {
@@ -541,6 +540,12 @@ delib.host {
         };
       };
 
+      # Solve Home-manager portal assertion
+      environment.pathsToLink = [
+        "/share/applications"
+        "/share/xdg-desktop-portal"
+      ];
+
       environment.systemPackages = with pkgs; [
         autotrash
         docker
@@ -566,6 +571,7 @@ delib.host {
   # ---------------------------------------------------------------
   home =
     {
+      lib,
       ...
     }:
     {
@@ -574,12 +580,7 @@ delib.host {
         # 🌟 THE FIX: Changed to homeModules (Fixes the warning)
         inputs.catppuccin.homeModules.catppuccin
 
-        inputs.nix-sops.homeManagerModules.sops
-
-        # 🌟 THE FIX: Changed to homeModules (Fixes the fatal crash)
-        inputs.niri.homeModules.niri
-
-        inputs.walker.homeManagerModules.default
+        inputs.nix-sops.homeModules.sops
 
         # 🌟 THE FIX: Updated for consistency
         inputs.plasma-manager.homeModules.plasma-manager

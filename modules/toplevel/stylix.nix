@@ -1,97 +1,57 @@
 {
   delib,
-  inputs,
   pkgs,
   lib,
-  input,
+  inputs,
   ...
 }:
 delib.module {
   name = "stylix";
 
-  # Define the schema to catch your host's exclusions!
   options.stylix = with delib; {
     enable = boolOption true;
     targets = attrsOption { };
   };
 
-  home.ifEnabled =
+  # 🌟 1. NIXOS ALWAYS: Import the module globally (Unconditional)
+  nixos.always =
+    { ... }:
     {
+      imports = [ inputs.stylix.nixosModules.stylix ];
+    };
 
-      cfg,
-      myconfig,
-      ...
-    }:
+  # 🌟 2. NIXOS CONFIG: Global Stylix settings (Image, Polarity, Fonts)
+  nixos.ifEnabled =
+    { cfg, myconfig, ... }:
     let
-      # If the variable is missing given the ! then the default is "true"
-      isCatppuccin = myconfig.constants.theme.catppuccin or false;
+      wallpapers = myconfig.constants.wallpapers or [ ];
+      hasWallpaper = builtins.length wallpapers > 0;
+      wallpaper =
+        if hasWallpaper then
+          builtins.head wallpapers
+        else
+          {
+            wallpaperURL = "https://raw.githubusercontent.com/NixOS/nixos-artwork/master/wallpapers/nix-wallpaper-dracula.png";
+            wallpaperSHA256 = "011cbqn0jzifrbjbkmngnlq77lwpxxdrkby0r36h7j5w1yxxn4ik";
+          };
     in
     {
-
       stylix = {
         enable = true;
-        polarity = myconfig.constants.theme.polarity; # Sets a global preference for dark mode
-        base16Scheme = lib.mkForce "${pkgs.base16-schemes}/share/themes/${myconfig.constants.theme.base16Theme}.yaml";
+        polarity = myconfig.constants.theme.polarity or "dark";
+        base16Scheme = "${pkgs.base16-schemes}/share/themes/${
+          myconfig.constants.theme.base16Theme or "catppuccin-mocha"
+        }.yaml";
         image = pkgs.fetchurl {
-          url = (builtins.head myconfig.constants.wallpapers).wallpaperURL;
-          sha256 = (builtins.head myconfig.constants.wallpapers).wallpaperSHA256;
+          url = wallpaper.wallpaperURL;
+          sha256 = wallpaper.wallpaperSHA256;
         };
 
-        # -----------------------------------------------------------------------
-        # 🎯 TARGETS (Exclusions)
-        # -----------------------------------------------------------------------
-        # Tells Stylix NOT to automatically skin these programs (except for Firefox).
-        targets = {
-          # It is possible to enable these, but it require manual theming in the modules/program itself
-          neovim.enable = false; # Custom themed via my personal neovim stow config in dotfiles
-
-          wofi.enable = false; # Themed manually via wofi/style.css
-
-          # These should remain disabled because all edge cases are already handled
-          waybar.enable = false; # Custom themed via waybar.nix using catppuccin nix https://github.com/catppuccin/nix/blob/95042630028d613080393e0f03c694b77883c7db/modules/home-manager/waybar.nix
-          hyprpaper.enable = lib.mkForce false; # Wallpapers are handled manually in flake.nix and are hosts-specific
-
-          # These should absolutely remain disabled because they cause conflicts
-          kde.enable = false; # Needed to prevent stylix to override kde settings. Enabling this crash kde plasma session
-          qt.enable = false; # Needed to prevent stylix to override qt settings. Enabling this crash kde plasma session
-          gnome.enable = myconfig.programs.gnome.enable or false;
-
-          # These should remain enabled to avoid conflicts with other modules
-          # N/A
-
-          # ---------------------------------------------------------------------------------------
-          # 🎨 GLOBAL CATPPUCCIN
-          # Intelligently enable/disable stylix based on whether catppuccin is enabled
-          # catppuccin = true -> .enable = false
-          # catppuccin = false -> .enable = true
-          hyprland.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/main.nix
-
-          hyprlock.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/hyprland/hyprlock.nix
-
-          gtk.enable = !isCatppuccin; # No ref
-
-          swaync.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/swaync/default.nix
-
-          bat.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/bat.nix
-
-          lazygit.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/lazygit.nix
-
-          tmux.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/tmux.nix
-
-          starship.enable = !isCatppuccin; # Ref: ~/nixOS/home-manager/modules/starship.nix
-
-        }
-        // (myconfig.constants.stylixExclusions or { });
-
-        # -----------------------------------------------------------------------
-        # 🖱️ MOUSE CURSOR
-        # -----------------------------------------------------------------------
         cursor = {
           name = "DMZ-Black";
           size = 24;
           package = pkgs.vanilla-dmz;
         };
-
         fonts = {
           emoji = {
             name = "Noto Color Emoji";
@@ -115,43 +75,64 @@ delib.module {
           };
         };
       };
+    };
+
+  # 🌟 3. HOME MANAGER CONFIG: Application Targets & Catppuccin GTK overrides
+  home.ifEnabled =
+    { cfg, myconfig, ... }:
+    let
+      isCatppuccin = myconfig.constants.theme.catppuccin or false;
+    in
+    {
+      # THE FIX: Targets are now safely in the Home Manager block!
+      stylix.targets = {
+        neovim.enable = false;
+        wofi.enable = false;
+        waybar.enable = false;
+        hyprpaper.enable = false;
+        kde.enable = false;
+        qt.enable = false;
+        gnome.enable = myconfig.programs.gnome.enable or false;
+
+        hyprland.enable = !isCatppuccin;
+        hyprlock.enable = !isCatppuccin;
+        gtk.enable = !isCatppuccin;
+        swaync.enable = !isCatppuccin;
+        bat.enable = !isCatppuccin;
+        lazygit.enable = !isCatppuccin;
+        tmux.enable = !isCatppuccin;
+        starship.enable = !isCatppuccin;
+      }
+      // cfg.targets; # <--- This cleanly applies your host exclusions from default.nix!
 
       dconf.settings = {
-        "org/gnome/desktop/interface" = {
-          color-scheme =
-            if myconfig.constants.theme.polarity == "dark" then "prefer-dark" else "prefer-light";
-        };
+        "org/gnome/desktop/interface".color-scheme =
+          if (myconfig.constants.theme.polarity or "dark") == "dark" then "prefer-dark" else "prefer-light";
       };
 
-      home.sessionVariables = lib.mkIf (myconfig.constants.theme.catppuccin or false) {
-        # Fallback to mocha/mauve if flavor/accent are missing
+      home.sessionVariables = lib.mkIf isCatppuccin {
         GTK_THEME = "catppuccin-${myconfig.constants.theme.catppuccinFlavor or "mocha"}-${
           myconfig.constants.theme.catppuccinAccent or "mauve"
         }-standard+rimless,black";
-
         XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS";
       };
 
-      gtk = lib.mkIf (myconfig.constants.theme.catppuccin or false) {
+      gtk = lib.mkIf isCatppuccin {
         enable = true;
         theme = {
-          package = lib.mkForce (
-            pkgs.catppuccin-gtk.override {
-              accents = [ (myconfig.constants.theme.catppuccinAccent or "mauve") ];
-              size = "standard";
-              tweaks = [
-                "rimless"
-                "black"
-              ];
-              variant = myconfig.constants.theme.catppuccinFlavor or "mocha";
-            }
-          );
-          # Fallback values for the theme name string
-          name = lib.mkForce "catppuccin-${myconfig.constants.theme.catppuccinFlavor or "mocha"}-${
+          package = pkgs.catppuccin-gtk.override {
+            accents = [ (myconfig.constants.theme.catppuccinAccent or "mauve") ];
+            size = "standard";
+            tweaks = [
+              "rimless"
+              "black"
+            ];
+            variant = myconfig.constants.theme.catppuccinFlavor or "mocha";
+          };
+          name = "catppuccin-${myconfig.constants.theme.catppuccinFlavor or "mocha"}-${
             myconfig.constants.theme.catppuccinAccent or "mauve"
           }-standard+rimless,black";
         };
-        # 🌙 Fallback to dark mode (1) if myconfig.constants.theme.polarity is missing
         gtk3.extraConfig.gtk-application-prefer-dark-theme =
           if (myconfig.constants.theme.polarity or "dark") == "dark" then 1 else 0;
         gtk4.extraConfig.gtk-application-prefer-dark-theme =
