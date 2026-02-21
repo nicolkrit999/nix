@@ -174,11 +174,11 @@ delib.host {
       # ---------------------------------------------------------------
       # 🎛️ FUNCTIONAL MODULES (Outside constants)
       # ---------------------------------------------------------------
-      desktop.local-packages.enable = true;
+      krit.services.desktop.local-packages.enable = true;
       krit.services.nas.desktop-borg-backup.enable = true;
       krit.services.nas.sshfs.enable = true;
       krit.services.nas.owncloud.enable = true;
-      #krit.services.flatpak.enable = true; # TODO: Wait for fix for "services.flatpak.packages does not exist"
+      krit.services.desktop.flatpak.enable = true;
       krit.services.nas.smb.enable = true;
       bluetooth.enable = true;
       services.tailscale.enable = true;
@@ -363,7 +363,6 @@ delib.host {
       system.stateVersion = "25.11";
       imports = [
         inputs.catppuccin.nixosModules.catppuccin
-        #inputs.nix-flatpak.nixosModules.nix-flatpak
         inputs.nix-sops.nixosModules.sops
         inputs.niri.nixosModules.niri
 
@@ -457,7 +456,7 @@ delib.host {
           nas_owncloud_pass.sopsFile = commonSecrets;
         };
 
-      programs.git.enable = true; # FIXME
+      programs.git.enable = true;
       programs.git.config = {
         user.signingkey = "D93A24D8E063EECF";
         commit.gpgsign = true;

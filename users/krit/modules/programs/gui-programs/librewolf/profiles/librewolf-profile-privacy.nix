@@ -38,7 +38,7 @@
     "privacy.resistFingerprinting.letterboxing" = false;
     "webgl.disabled" = true;
 
-    # Fix Cookie/Login Persistence
+    # Solve Cookie/Login Persistence
     "privacy.firstparty.isolate" = false;
 
     # 🔒 LIFETIME POLICY

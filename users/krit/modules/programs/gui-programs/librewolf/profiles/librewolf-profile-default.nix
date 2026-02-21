@@ -51,7 +51,7 @@
     # DNS
     "network.trr.mode" = 5;
 
-    # Fixed WebAuthn/U2F support for authentication domains
+    # Solve WebAuthn/U2F support for authentication domains
     "security.webauth.webauthn" = true;
     "security.webauth.u2f" = true;
     "dom.credentialmanagement.enabled" = true;

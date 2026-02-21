@@ -5,9 +5,9 @@
   ...
 }:
 delib.module {
-  name = "desktop.local-packages";
+  name = "krit.services.desktop.local-packages";
 
-  options.desktop.local-packages.enable = delib.boolOption false;
+  options.krit.services.desktop.local-packages.enable = delib.boolOption false;
 
   nixos.ifEnabled =
     { myconfig, ... }:
@@ -42,7 +42,7 @@ delib.module {
           vscode # Microsoft visual studio code IDE
           vesktop # Discord client
           vlc # Media player
-          #whatsapp-electron # Electron wrapper for whatsapp # TODO: check why it says it does not exist
+          #whatsapp-electron # Electron wrapper for whatsapp
 
           # -----------------------------------------------------------------------------------
           # 🖥️ CLI UTILITIES

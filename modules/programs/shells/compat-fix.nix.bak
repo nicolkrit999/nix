@@ -29,16 +29,13 @@ delib.module {
           default = { };
         };
 
-        # Fixes the Flatpak "option does not exist" error in HM
         /*
-          # TODO: Wait for fix for "services.flatpak.packages does not exist"
           services.flatpak = lib.mkOption {
             type = lib.types.anything;
             default = { };
           };
         */
 
-        # Fixes the Catppuccin Qt settings crash
         qt = {
           qt5ctSettings = lib.mkOption {
             type = lib.types.anything;

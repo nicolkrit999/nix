@@ -56,7 +56,7 @@ delib.module {
       isTermEditor = builtins.hasAttr safeEditor termEditors;
       editorConfig = termEditors.${safeEditor};
 
-      # Fixes browsers that don't follow the "name.desktop" convention
+      # Resolve browsers that don't follow the "name.desktop" convention
       browserDesktopMap = {
         "vivaldi" = "vivaldi-stable.desktop";
         "brave" = "brave-browser.desktop";
