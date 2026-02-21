@@ -421,6 +421,7 @@ delib.host {
         in
         {
           "krit-local-password".neededForUsers = true;
+
           github_fg_pat_token_nix = {
             sopsFile = commonSecrets;
             mode = "0444";
@@ -449,11 +450,14 @@ delib.host {
 
           nas_ssh_key.sopsFile = commonSecrets;
           nas-krit-credentials.sopsFile = commonSecrets;
-          borg-passphrase.sopsFile = commonSecrets;
-          borg-private-key.sopsFile = commonSecrets;
           nas_owncloud_url.sopsFile = commonSecrets;
           nas_owncloud_user.sopsFile = commonSecrets;
           nas_owncloud_pass.sopsFile = commonSecrets;
+
+          # 🌟 THE FIX: Remove the commonSecrets override so they use defaultSopsFile
+          borg-passphrase = { };
+          borg-private-key = { };
+          cachix-auth-token = { }; # Added this so Cachix can push!
         };
 
       programs.git.enable = true;
