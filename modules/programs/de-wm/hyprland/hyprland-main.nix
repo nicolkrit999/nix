@@ -259,7 +259,7 @@ delib.module {
             "w[tv1], gapsout:0, gapsin:0" # No gaps if only 1 window is visible
             "f[1], gapsout:0, gapsin:0" # No gaps if window is fullscreen
           ]
-          ++ (myconfig.constants.hyprlandWorkspaces or [ ]);
+          ++ (myconfig.constants.monitorWorkspaces or [ ]);
         };
       };
     };
