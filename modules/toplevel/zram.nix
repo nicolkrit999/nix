@@ -3,16 +3,17 @@ delib.module {
   name = "zram";
   options.zram = with delib; {
     enable = boolOption true;
+    zramPercent = intOption 25; # 🌟 Moved here
   };
 
-  # FIX: Fix evaluation warnings
-  nixos.always =
-    { cfg, myconfig, ... }:
+  # 🌟 Changed from 'always' to 'ifEnabled' so it actually obeys the toggle switch!
+  nixos.ifEnabled =
+    { cfg, ... }:
     {
       zramSwap = {
         enable = true;
         algorithm = "zstd";
-        memoryPercent = myconfig.constants.zramPercent or 50;
+        memoryPercent = cfg.zramPercent; # 🌟 Read from cfg
         priority = 999;
       };
     };

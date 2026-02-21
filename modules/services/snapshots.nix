@@ -8,9 +8,14 @@ delib.module {
   name = "services.snapshots";
   options.services.snapshots = with delib; {
     enable = boolOption false;
+    retention = {
+      hourly = strOption "24";
+      daily = strOption "7";
+      weekly = strOption "4";
+      monthly = strOption "3";
+      yearly = strOption "2";
+    };
   };
-
-  # FIX: Fix evaluation warnings
 
   nixos.ifEnabled =
     {
@@ -19,15 +24,6 @@ delib.module {
       ...
     }:
     let
-      # Use the retention constants from your host configuration
-      retention = {
-        hourly = myconfig.constants.retention.hourly or "12";
-        daily = myconfig.constants.retention.daily or "3";
-        weekly = myconfig.constants.retention.weekly or "3";
-        monthly = myconfig.constants.retention.monthly or "2";
-        yearly = myconfig.constants.retention.yearly or "1";
-      };
-
       user = myconfig.constants.user; # Align with myconfig.constants.nix
     in
     {
@@ -46,11 +42,11 @@ delib.module {
             TIMELINE_CREATE = true;
             TIMELINE_CLEANUP = true;
 
-            TIMELINE_LIMIT_HOURLY = retention.hourly;
-            TIMELINE_LIMIT_DAILY = retention.daily;
-            TIMELINE_LIMIT_WEEKLY = retention.weekly;
-            TIMELINE_LIMIT_MONTHLY = retention.monthly;
-            TIMELINE_LIMIT_YEARLY = retention.yearly;
+            TIMELINE_LIMIT_HOURLY = cfg.retention.hourly;
+            TIMELINE_LIMIT_DAILY = cfg.retention.daily;
+            TIMELINE_LIMIT_WEEKLY = cfg.retention.weekly;
+            TIMELINE_LIMIT_MONTHLY = cfg.retention.monthly;
+            TIMELINE_LIMIT_YEARLY = cfg.retention.yearly;
           };
           root = {
             SUBVOLUME = "/";
@@ -59,11 +55,11 @@ delib.module {
             TIMELINE_CREATE = true;
             TIMELINE_CLEANUP = true;
 
-            TIMELINE_LIMIT_HOURLY = "6";
-            TIMELINE_LIMIT_DAILY = "3";
-            TIMELINE_LIMIT_WEEKLY = "3";
-            TIMELINE_LIMIT_MONTHLY = "1";
-            TIMELINE_LIMIT_YEARLY = "1";
+            TIMELINE_LIMIT_HOURLY = cfg.retention.hourly;
+            TIMELINE_LIMIT_DAILY = cfg.retention.daily;
+            TIMELINE_LIMIT_WEEKLY = cfg.retention.weekly;
+            TIMELINE_LIMIT_MONTHLY = cfg.retention.monthly;
+            TIMELINE_LIMIT_YEARLY = cfg.retention.yearly;
           };
         };
       };

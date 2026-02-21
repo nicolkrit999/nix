@@ -5,11 +5,12 @@
   config,
   ...
 }:
-
 delib.module {
   name = "programs.waybar";
   options.programs.waybar = with delib; {
     enable = boolOption true;
+    waybarLayout = attrsOption { }; # 🌟 Moved here
+    waybarWorkspaceIcons = attrsOption { }; # 🌟 Moved here
   };
 
   home.ifEnabled =
@@ -97,7 +98,7 @@ delib.module {
               special-visible-only = true;
               all-outputs = false;
               format = "{name} {icon}";
-              format-icons = myconfig.constants.waybarWorkspaceIcons or { };
+              format-icons = cfg.waybarWorkspaceIcons;
             };
 
             "niri/workspaces" = {
@@ -120,7 +121,7 @@ delib.module {
               tooltip = true;
               on-click = "hyprctl switchxkblayout all next";
             }
-            // myconfig.constants.waybarLayout or { };
+            // cfg.waybarLayout;
 
             "niri/language" = {
               format = "{}";
@@ -128,7 +129,7 @@ delib.module {
               on-click = "niri msg action switch-layout-next";
             }
 
-            // myconfig.constants.waybarLayout or { };
+            // cfg.waybarLayout;
 
             "custom/weather" = {
               format = "<span color='${c.base0C}'>${myconfig.constants.weather or "London"}:</span> {} ";

@@ -243,15 +243,12 @@ delib.host {
       # ---------------------------------------------------------------
       bluetooth.enable = true;
 
-      # FIX: Fix evaluation warnings
-      /*
-        cachix = {
-          enable = true;
-          push = true; # Only the builder must have this true (for now "nixos-desktop")
-          name = "krit-nixos";
-          publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
-        };
-      */
+      cachix = {
+        enable = true;
+        push = true; # Only the builder must have this true (for now "nixos-desktop")
+        name = "krit-nixos";
+        publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
+      };
 
       cosmic.enable = true;
       gnome.enable = true;
@@ -264,13 +261,10 @@ delib.host {
       niri.enable = true;
       qt.enable = true;
 
-      # FIX: Fix evaluation warnings
-      /*
-        zram = {
-          enable = true;
-          zramPercent = 25;
-        };
-      */
+      zram = {
+        enable = true;
+        zramPercent = 25;
+      };
 
       stylix = {
         enable = true;
@@ -296,27 +290,21 @@ delib.host {
       programs.eza.enable = true;
       programs.fzf.enable = true;
 
-      # FIX: Fix evaluation warnings
-      /*
-        programs.git = {
-          enable = true;
-          customGitIgnores = [ ];
-        };
-      */
+      programs.git = {
+        enable = true;
+        customGitIgnores = [ ];
+      };
 
       programs.lazygit.enable = true;
       programs.starship.enable = true;
       programs.tmux.enable = true;
       programs.walker.enable = true;
 
-      # FIX: Fix evaluation warnings
-      /*
-        programs.waybar = {
-          enable = true;
-          waybarLayout = { };
-          waybarWorkspaceIcons = { };
-        };
-      */
+      programs.waybar = {
+        enable = true;
+        waybarLayout = myWaybarLayout;
+        waybarWorkspaceIcons = myWaybarWorkspaceIcons;
+      };
 
       programs.zoxide.enable = true;
 
@@ -386,19 +374,16 @@ delib.host {
       services.hyprlock.enable = true;
       services.sddm.enable = true;
 
-      # FIX: Fix evaluation warnings
-      /*
-        snapshots = {
-          enable = false;
-          retention = {
-            hourly = "24";
-            daily = "7";
-            weekly = "4";
-            monthly = "3";
-            yearly = "2";
-          };
+      services.snapshots = {
+        enable = true;
+        retention = {
+          hourly = "24";
+          daily = "7";
+          weekly = "4";
+          monthly = "3";
+          yearly = "2";
         };
-      */
+      };
 
       services.tailscale.enable = true;
 

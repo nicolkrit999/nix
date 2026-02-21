@@ -1,11 +1,11 @@
 { delib, lib, ... }:
 delib.module {
   name = "programs.git";
-  options.programs.git.enable = delib.boolOption true;
+  options.programs.git = with delib; {
+    enable = boolOption true;
+    customGitIgnores = listOfOption str [ ]; # 🌟 Moved here
+  };
 
-  # FIX: Fix evaluation warnings
-
-  # 🏠 HOME MANAGER HOOK ONLY
   home.ifEnabled =
     { cfg, myconfig, ... }:
     {
@@ -13,7 +13,6 @@ delib.module {
         enable = true;
         lfs.enable = true;
 
-        # 'ignores' remains a top-level attribute in Home Manager
         ignores = [
           ".direnv/"
           ".venv/"
@@ -21,9 +20,8 @@ delib.module {
           "*.swp"
           ".DS_Store"
         ]
-        ++ (myconfig.constants.customGitIgnores or [ ]);
+        ++ cfg.customGitIgnores; # 🌟 Read from cfg
 
-        # 🌟 THE FIX: Consolidated userName, userEmail, and extraConfig into 'settings'
         settings = {
           user = {
             name = myconfig.constants.gitUserName;
@@ -34,10 +32,9 @@ delib.module {
         };
       };
 
-      # 🌟 THE FIX: Delta is now its own top-level program configuration
       programs.delta = {
         enable = true;
-        enableGitIntegration = true; # Explicitly set to silence the warning
+        enableGitIntegration = true;
         options = {
           navigate = true;
           light = false;
