@@ -13,10 +13,10 @@ delib.module {
         nix-direnv.enable = true;
         stdlib = ''
           use_dev_env() {
-            use flake ${config.home.homeDirectory}/nixOS/users/krit/dev-environments/language-specific/$1
+            use flake /home/krit/nixOS/users/krit/dev-environments/language-specific/$1
           }
           use_combined_env() {
-            use flake ${config.home.homeDirectory}/nixOS/users/krit/dev-environments/language-combined/$1
+            use flake /home/krit/nixOS/users/krit/dev-environments/language-combined/$1
           }
         '';
       };

@@ -9,11 +9,11 @@
 delib.module {
   name = "programs.caelestia";
   options.programs.caelestia = with delib; {
-    # Specifically toggle Caelestia for Hyprland
+    enable = boolOption false; # 🌟 THE FIX: Added base enable option
     enableOnHyprland = boolOption false;
   };
 
-  # Notice we use `home.always` and check our custom option
+  # Keep always to let the rest of the logic handling the activation
   home.always =
     {
       cfg,

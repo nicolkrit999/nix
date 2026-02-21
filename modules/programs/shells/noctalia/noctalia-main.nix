@@ -8,26 +8,26 @@
 delib.module {
   name = "programs.noctalia";
   options.programs.noctalia = with delib; {
-    # Specifically toggle Noctalia for each WM
+    enable = boolOption false; # 🌟 THE FIX: Added base enable option
     enableOnHyprland = boolOption false;
     enableOnNiri = boolOption false;
   };
 
+  # Keep always to let the rest of the logic handling the activation
   home.always =
     {
-
       cfg,
       myconfig,
       ...
     }:
     let
-      # Detect which shell hyprland has to avoid conflicts
+      # 🌟 THE FIX: Updated conflict logic to check Caelestia's actual option
       enableHyprland =
         (myconfig.programs.hyprland.enable or false)
-        && (myconfig.constants.hyprlandNoctalia or false)
-        && !(myconfig.constants.hyprlandCaelestia or false);
+        && cfg.enableOnHyprland
+        && !(myconfig.programs.caelestia.enableOnHyprland or false);
 
-      enableNiri = (myconfig.programs.niri.enable or false) && (myconfig.constants.niriNoctalia or false);
+      enableNiri = (myconfig.programs.niri.enable or false) && cfg.enableOnNiri;
 
       noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 

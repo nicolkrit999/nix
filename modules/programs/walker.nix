@@ -14,7 +14,26 @@ delib.module {
 
   home.ifEnabled =
     { cfg, myconfig, ... }:
+    let
+      # 🧠 THE MASTER SWITCH LOGIC
+      hyprlandWantsWaybar =
+        (myconfig.programs.hyprland.enable or false)
+        && !(myconfig.programs.caelestia.enableOnHyprland or false)
+        && !(myconfig.programs.noctalia.enableOnHyprland or false);
+
+      niriWantsWaybar =
+        (myconfig.programs.niri.enable or false) && !(myconfig.programs.noctalia.enableOnNiri or false);
+
+      # If neither WM wants it (because they use custom shells), turn Waybar off
+      shouldRunWaybar = hyprlandWantsWaybar || niriWantsWaybar;
+    in
     {
+      # Enable the actual Home Manager waybar module dynamically
+      programs.waybar.enable = shouldRunWaybar;
+
+      # Only enable the systemd service if shouldRunWaybar is true
+      programs.waybar.systemd.enable = shouldRunWaybar;
+
       imports = [ inputs.walker.homeManagerModules.default ];
 
       home.packages = with pkgs; [

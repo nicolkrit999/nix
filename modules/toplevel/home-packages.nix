@@ -8,9 +8,12 @@
 }:
 delib.module {
   name = "home-packages";
+  options.home-packages = with delib; {
+    enable = boolOption true;
+  };
 
-  # 🌟 THE FIX: Use 'nixos.always' so standard options like 'environment' work.
-  nixos.always =
+  # 🌟 THE FIX: Use 'nixos.ifEnabled' so standard options like 'environment' work.
+  nixos.ifEnabled =
     { cfg, myconfig, ... }: # 🌟 Keep 'nixos' as the variable name for your logic.
     let
       # 🔄 TRANSLATION LAYER

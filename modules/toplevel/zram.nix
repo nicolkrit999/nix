@@ -1,6 +1,9 @@
 { delib, ... }:
 delib.module {
   name = "zram";
+  options.zram = with delib; {
+    enable = boolOption true;
+  };
 
   nixos.always =
     { cfg, myconfig, ... }:

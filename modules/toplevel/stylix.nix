@@ -89,7 +89,7 @@ delib.module {
         neovim.enable = false;
         wofi.enable = false;
         waybar.enable = false;
-        hyprpaper.enable = false;
+        #hyprpaper.enable = false;
         kde.enable = false;
         qt.enable = false;
         gnome.enable = myconfig.programs.gnome.enable or false;

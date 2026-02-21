@@ -169,75 +169,93 @@ delib.host {
   myconfig =
     { name, ... }:
     {
+      # 🌟 OPEN HOOK: This starts the myconfig block
+
       # ---------------------------------------------------------------
-      # 📦 CONSTANTS BLOCK (Data Bucket)
+      # 🎛️ FUNCTIONAL MODULES (Outside constants)
+      # ---------------------------------------------------------------
+      krit.services.desktop.local-packages.enable = true;
+      krit.services.nas.desktop-borg-backup.enable = true;
+      krit.services.nas.sshfs.enable = true;
+      krit.services.nas.owncloud.enable = true;
+      krit.services.desktop.flatpak.enable = true;
+      krit.services.nas.smb.enable = true;
+      bluetooth.enable = true;
+      services.tailscale.enable = true;
+      krit.services.logitech.enable = true;
+      krit.services.logitech.mouses.mx-master.enable = true;
+      krit.services.logitech.mouses.superlight.enable = true;
+
+      # ---------------------------------------------------------------
+      # 📦 CONSTANTS BLOCK (Inside constants)
       # ---------------------------------------------------------------
       constants = {
-        # 🌟 Keep your existing constants block exactly as it is here!
+        # 🌟 OPEN CONSTANTS: Starts the data bucket
         user = "krit";
         hostname = "nixos-desktop";
-        # ... (rest of your constants)
-      };
+        browser = myBrowser;
+        terminal = myTerminal;
+        editor = myEditor;
+        fileManager = myFileManager;
+        gitUserName = "nicolkrit999";
+        gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
+        shell = "fish";
 
-      # ---------------------------------------------------------------
-      # 🌐 TOP-LEVEL MODULES
-      # ---------------------------------------------------------------
-      bluetooth.enable = true;
-      cachix.enable = true;
-      cosmic.enable = true;
-      gnome.enable = true;
-      guest.enable = true;
-      home-packages.enable = true;
-      hyprland.enable = true;
-      kde.enable = true;
-      mime.enable = true;
-      nh.enable = true;
-      niri.enable = true;
-      qt.enable = true;
-      zram.enable = true;
+        timeZone = "Europe/Zurich";
 
-      stylix = {
-        enable = true;
-        targets = {
-          yazi.enable = false;
-          cava.enable = true;
-          kitty.enable = !isCatppuccin;
-          alacritty.enable = !isCatppuccin;
-          zathura.enable = !isCatppuccin;
-          firefox.profileNames = [ userName ];
-          librewolf.profileNames = [
-            "default"
-            "privacy"
-          ];
+        waybarLayout = myWaybarLayout;
+        waybarWorkspaceIcons = myWaybarWorkspaceIcons;
+
+        keyboardLayout = "us,it,de,fr";
+        keyboardVariant = "intl,,,";
+        weather = "Lugano";
+        useFahrenheit = false;
+        nixImpure = false;
+        customGitIgnores = [ ];
+        zramPercent = 25;
+
+        snapshots = true;
+        snapshotRetention = {
+          hourly = "24";
+          daily = "7";
+          weekly = "4";
+          monthly = "3";
+          yearly = "2";
         };
-      };
+
+        cachix = {
+          enable = true;
+          push = true;
+          name = "krit-nixos";
+          publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
+        };
+
+        monitors = [
+          "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
+          "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
+          "DP-3, disable"
+          "HDMI-A-1,1920x1080@60, 0x0, 1, mirror, DP-1"
+        ];
+
+        wallpapers = [
+          {
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/Anime-Girl2.png";
+            wallpaperSHA256 = "05ad0c4lm47rh67hsymz0si7x62b7sanz91dsf2vaz68973fq6k6";
+          }
+        ];
+
+        theme = {
+          polarity = "dark";
+          base16Theme = "catppuccin-mocha";
+          catppuccin = true;
+          catppuccinFlavor = "mocha";
+          catppuccinAccent = "teal";
+        };
+      }; # 🌟 CLOSE CONSTANTS: Ends the data bucket
 
       # ---------------------------------------------------------------
-      # 🚀 PROGRAMS
+      # 🚀 PROGRAM TOGGLES (Outside constants)
       # ---------------------------------------------------------------
-      programs.bat.enable = true;
-      programs.cosmic.enable = true;
-      programs.eza.enable = true;
-      programs.fzf.enable = true;
-      programs.git.enable = true;
-      programs.lazygit.enable = true;
-      programs.starship.enable = true;
-      programs.tmux.enable = true;
-      programs.walker.enable = true;
-      programs.waybar.enable = true;
-      programs.zoxide.enable = true;
-
-      programs.caelestia = {
-        enable = true;
-        enableOnHyprland = false;
-      };
-
-      programs.noctalia = {
-        enable = true;
-        enableOnHyprland = false;
-        enableOnNiri = true;
-      };
-
       programs.hyprland = {
         enable = true;
         execOnce = [
@@ -286,20 +304,23 @@ delib.host {
         extraBinds = myKdeExtraBinds;
       };
 
-      # ---------------------------------------------------------------
-      # ⚙️ SERVICES
-      # ---------------------------------------------------------------
-      services.audio.enable = true;
-      services.hyprlock.enable = true;
-      services.sddm.enable = true;
-      services.snapshots.enable = true;
-      services.tailscale.enable = true;
+      programs.cosmic.enable = true;
+      programs.waybar.enable = true;
 
-      services.hypridle = {
+      stylix = {
         enable = true;
-        dimTimeout = 300;
-        lockTimeout = 330;
-        screenOffTimeout = 360;
+        targets = {
+          yazi.enable = false;
+          cava.enable = true;
+          kitty.enable = !isCatppuccin;
+          alacritty.enable = !isCatppuccin;
+          zathura.enable = !isCatppuccin;
+          firefox.profileNames = [ userName ];
+          librewolf.profileNames = [
+            "default"
+            "privacy"
+          ];
+        };
       };
 
       services.swaync = {
@@ -312,39 +333,20 @@ delib.host {
         };
       };
 
-      # ---------------------------------------------------------------
-      # 👤 KRIT PROGRAMS
-      # ---------------------------------------------------------------
-      krit.programs.alacritty.enable = true;
-      krit.programs.cava.enable = true;
-      krit.programs.chromium.enable = true;
-      krit.programs.direnv.enable = true;
-      krit.programs.dolphin.enable = true;
-      krit.programs.firefox.enable = true;
-      krit.programs.librewolf.enable = true;
-      krit.programs.neovim.enable = true;
-      krit.programs.pwas.enable = true;
-      krit.programs.ranger.enable = true;
-      krit.programs.yazi.enable = true;
-      krit.programs.zathura.enable = true;
-
-      # ---------------------------------------------------------------
-      # 👤 KRIT SERVICES
-      # ---------------------------------------------------------------
-      krit.services.desktop.flatpak.enable = true;
-      krit.services.desktop.local-packages.enable = true;
-
-      krit.services.logitech = {
+      services.hypridle = {
         enable = true;
-        mouses.mx-master.enable = true;
-        mouses.superlight.enable = true;
+        dimTimeout = 300;
+        lockTimeout = 330;
+        screenOffTimeout = 360;
       };
 
-      krit.services.nas = {
-        desktop-borg-backup.enable = true;
-        owncloud.enable = true;
-        smb.enable = true;
-        sshfs.enable = true;
+      services.hyprlock.enable = true;
+      guest.enable = true;
+
+      programs.caelestia.enableOnHyprland = false;
+      programs.noctalia = {
+        enableOnHyprland = false;
+        enableOnNiri = false;
       };
 
     };

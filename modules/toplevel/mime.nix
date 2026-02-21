@@ -6,7 +6,9 @@
 }:
 delib.module {
   name = "mime";
-  # 🌟 Enabled by default to protect your desktop routing!
+  options.mime = with delib; {
+    enable = boolOption true;
+  };
 
   home.ifEnabled =
     {
