@@ -9,23 +9,9 @@ delib.module {
     {
       programs.git = {
         enable = true;
-
-        # 🌟 THE FIX: Correct Home Manager identity attributes
-        userName = myconfig.constants.gitUserName;
-        userEmail = myconfig.constants.gitUserEmail;
         lfs.enable = true;
 
-        # 🌟 THE FIX: Correct nesting for Delta inside Git
-        delta = {
-          enable = true;
-          options = {
-            navigate = true;
-            light = false;
-            side-by-side = true;
-          };
-        };
-
-        # 🌟 THE FIX: 'ignores' belongs here in Home Manager
+        # 'ignores' remains a top-level attribute in Home Manager
         ignores = [
           ".direnv/"
           ".venv/"
@@ -35,10 +21,25 @@ delib.module {
         ]
         ++ (myconfig.constants.customGitIgnores or [ ]);
 
-        # 🌟 THE FIX: Use 'extraConfig' for branch/rebase settings
-        extraConfig = {
+        # 🌟 THE FIX: Consolidated userName, userEmail, and extraConfig into 'settings'
+        settings = {
+          user = {
+            name = myconfig.constants.gitUserName;
+            email = myconfig.constants.gitUserEmail;
+          };
           init.defaultBranch = "main";
           pull.rebase = true;
+        };
+      };
+
+      # 🌟 THE FIX: Delta is now its own top-level program configuration
+      programs.delta = {
+        enable = true;
+        enableGitIntegration = true; # Explicitly set to silence the warning
+        options = {
+          navigate = true;
+          light = false;
+          side-by-side = true;
         };
       };
     };
