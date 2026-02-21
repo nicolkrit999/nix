@@ -50,6 +50,13 @@ delib.module {
     useFahrenheit = boolOption false;
     nixImpure = boolOption false;
     timeZone = strOption "Etc/UTC";
+
+    cachix = {
+      enable = boolOption false;
+      push = boolOption false;
+      name = strOption "krit-nixos";
+      publicKey = strOption "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
+    };
   };
 
   myconfig.always =

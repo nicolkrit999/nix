@@ -35,6 +35,9 @@
           exclude = [
             ./users/krit/dev-environments
             ./users/krit/modules/programs/gui-programs/librewolf/profiles
+            ./hosts/nixos-desktop/hardware-configuration.nix
+            ./hosts/nixos-laptop/hardware-configuration.nix
+
           ];
 
           specialArgs = { inherit inputs moduleSystem; };

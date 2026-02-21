@@ -54,6 +54,7 @@ delib.module {
           "root"
           "@wheel"
         ];
+        extra-platforms = [ "aarch64-linux" ]; # Accept aarch64-linux derivations
       };
 
       # Gpu screen recorder overlay due to missing ARM support in the main package

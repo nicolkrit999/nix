@@ -15,7 +15,7 @@ let
   isCatppuccin = true;
   userName = "krit";
 
-  # 🌟 APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
+  # For a laptop it would make sense to change them but i keep them the same as desktop for muscle memory
   appWorkspaces = {
     editor = "2";
     fileManager = "3";
@@ -48,19 +48,6 @@ let
   # ---------------------------------------------------------------------------
   # 🖥️ WM / DE SPECIFIC CONFIGURATIONS (Migrated from modules.nix)
   # ---------------------------------------------------------------------------
-
-  myHyprlandWorkspaces = [
-    "1, monitor:DP-1"
-    "2, monitor:DP-1"
-    "3, monitor:DP-1"
-    "4, monitor:DP-1"
-    "5, monitor:DP-1"
-    "6, monitor:DP-2"
-    "7, monitor:DP-2"
-    "8, monitor:DP-2"
-    "9, monitor:DP-2"
-    "10, monitor:DP-2"
-  ];
 
   myHyprlandWindowRules = [
     "workspace ${appWorkspaces.editor} silent, class:^(code)$"
@@ -161,10 +148,10 @@ let
   };
 in
 delib.host {
-  name = "nixos-desktop";
-  type = "desktop";
+  name = "nixos-laptop";
+  type = "laptop";
 
-  homeManagerSystem = "x86_64-linux";
+  homeManagerSystem = "aarch64-linux";
 
   myconfig =
     { name, ... }:
@@ -173,7 +160,7 @@ delib.host {
       # 📦 CONSTANTS BLOCK (Data Bucket)
       # ---------------------------------------------------------------
       constants = {
-        hostname = "nixos-desktop";
+        hostname = "nixos-laptop";
         # ---------------------------------------------------------------
         # 👤 USER IDENTITY
         # ---------------------------------------------------------------
@@ -197,13 +184,25 @@ delib.host {
         # 🖼️ MONITORS & WALLPAPERS
         # ---------------------------------------------------------------
         monitors = [
+          # 💻 Built-in Laptop Screen (Adjust resolution/scale as needed)
+          "eDP-1,2880x1800@120,auto,1"
+
+          # 🖥️ Your Desktop Monitors (Ignored until plugged in)
           "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
           "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
-          "DP-3, disable"
-          "HDMI-A-1,1920x1080@60, 0x0, 1, mirror, DP-1"
+
+          # 🔌 Catch-all fallback for any other random screen you plug in
+          ",preferred,auto,1"
         ];
 
+        # Keep all 3 wallpaper to work when connected to external monitors (built in monitor is disabled and so the external monitors still ahve the right one)
         wallpapers = [
+
+          {
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/Anime-Girl2.png";
+            wallpaperSHA256 = "05ad0c4lm47rh67hsymz0si7x62b7sanz91dsf2vaz68973fq6k6";
+          }
+
           {
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/Anime-Girl2.png";
             wallpaperSHA256 = "05ad0c4lm47rh67hsymz0si7x62b7sanz91dsf2vaz68973fq6k6";
@@ -245,7 +244,7 @@ delib.host {
 
       cachix = {
         enable = true;
-        push = true; # Only the builder must have this true (for now "nixos-desktop")
+        push = false; # Only the builder must have this true (for now "nixos-desktop")
       };
 
       cosmic.enable = true;
@@ -307,27 +306,20 @@ delib.host {
       programs.zoxide.enable = true;
 
       programs.caelestia = {
-        enable = true;
+        enable = false;
         enableOnHyprland = false;
       };
 
       programs.noctalia = {
-        enable = true;
+        enable = false;
         enableOnHyprland = false;
-        enableOnNiri = true;
+        enableOnNiri = false;
       };
 
       programs.hyprland = {
         enable = true;
         execOnce = [
-          "uwsm app -- $term"
-          "sleep 2 && uwsm app -- $browser"
-          "uwsm app -- $editor"
-          "uwsm app -- $fileManager"
-          "sleep 4 && uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
-          "whatsapp-electron"
         ];
-        monitorWorkspaces = myHyprlandWorkspaces;
         windowRules = myHyprlandWindowRules;
         extraBinds = myHyprlandExtraBinds;
       };
@@ -335,11 +327,6 @@ delib.host {
       programs.niri = {
         enable = true;
         execOnce = [
-          "${myBrowser}"
-          "${myEditor}"
-          "${myFileManager}"
-          "${myTerminal}"
-          "chromium-browser"
         ];
       };
 
@@ -375,11 +362,11 @@ delib.host {
       services.snapshots = {
         enable = true;
         retention = {
-          hourly = "24";
-          daily = "7";
-          weekly = "4";
-          monthly = "3";
-          yearly = "2";
+          hourly = "6";
+          daily = "3";
+          weekly = "2";
+          monthly = "1";
+          yearly = "0";
         };
       };
 
@@ -387,9 +374,9 @@ delib.host {
 
       services.hypridle = {
         enable = true;
-        dimTimeout = 900;
-        lockTimeout = 1800;
-        screenOffTimeout = 3600;
+        dimTimeout = 180;
+        lockTimeout = 300;
+        screenOffTimeout = 360;
       };
 
       services.swaync = {
@@ -405,43 +392,44 @@ delib.host {
       # ---------------------------------------------------------------
       # 👤 KRIT PROGRAMS
       # ---------------------------------------------------------------
-      krit.programs.alacritty.enable = true;
+      krit.programs.alacritty.enable = false;
       krit.programs.cava.enable = true;
-      krit.programs.chromium.enable = true;
+      krit.programs.chromium.enable = false;
       krit.programs.direnv.enable = true;
       krit.programs.dolphin.enable = true;
-      krit.programs.firefox.enable = true;
+      krit.programs.firefox.enable = false;
       krit.programs.librewolf.enable = true;
       krit.programs.neovim.enable = true;
       krit.programs.pwas.enable = true;
-      krit.programs.ranger.enable = true;
+      krit.programs.ranger.enable = false;
       krit.programs.yazi.enable = true;
       krit.programs.zathura.enable = true;
 
       # ---------------------------------------------------------------
       # 👤 KRIT SERVICES
       # ---------------------------------------------------------------
-      krit.services.desktop.flatpak.enable = true;
-      krit.services.desktop.local-packages.enable = true;
+      krit.services.laptop.flatpak.enable = true;
+      krit.services.laptop.local-packages.enable = true;
 
       krit.services.logitech = {
         enable = true;
         mouses.mx-master.enable = true;
-        mouses.superlight.enable = true;
+        mouses.superlight.enable = false;
       };
 
-      krit.services.nas = {
-        desktop-borg-backup.enable = true;
-        owncloud.enable = true;
-        smb.enable = true;
-        sshfs.enable = true;
-      };
+      # TODO: Enable when host sops secrets are configured
+      # They can all be enabled since they are active only on request
+      /*
+        krit.services.nas = {
+          laptop-borg-backup.enable = true;
+          owncloud.enable = true;
+          smb.enable = true;
+          sshfs.enable = true;
+        };
+      */
 
     };
 
-  # ---------------------------------------------------------------
-  # ⚙️ SYSTEM-LEVEL CONFIGURATIONS
-  # ---------------------------------------------------------------
   # ---------------------------------------------------------------
   # ⚙️ SYSTEM-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
@@ -451,102 +439,112 @@ delib.host {
       system.stateVersion = "25.11";
       imports = [
         inputs.catppuccin.nixosModules.catppuccin
-        inputs.nix-sops.nixosModules.sops
+        #inputs.nix-sops.nixosModules.sops # TODO: Enable when host sops secrets are configured
         inputs.niri.nixosModules.niri
 
         ./hardware-configuration.nix
 
         # 🌟 THE INLINE MODULE FIX 🌟
         # Anything that uses the word 'config' MUST be inside here!
-        (
-          { config, ... }:
-          {
-            sops.templates."davfs-secrets" = {
-              content = ''
-                ${config.sops.placeholder.nas_owncloud_url} ${config.sops.placeholder.nas_owncloud_user} ${config.sops.placeholder.nas_owncloud_pass}
+        /*
+          (
+            { config, ... }:
+            # TODO: Enable when host sops secrets are configured
+
+            {
+              sops.templates."davfs-secrets" = {
+                content = ''
+                  ${config.sops.placeholder.nas_owncloud_url} ${config.sops.placeholder.nas_owncloud_user} ${config.sops.placeholder.nas_owncloud_pass}
+                '';
+                owner = "root";
+                group = "root";
+                mode = "0600";
+              };
+
+              # 🚀 INJECT SECRETS INTO MODULES
+              myconfig.krit.services.nas.sshfs.identityFile = config.sops.secrets.nas_ssh_key.path;
+              myconfig.krit.services.nas.smb.credentialsFile = config.sops.secrets.nas-krit-credentials.path;
+              myconfig.krit.services.nas.laptop-borg-backup.passphraseFile =
+                config.sops.secrets.borg-passphrase.path;
+              myconfig.krit.services.nas.laptop-borg-backup.sshKeyPath =
+                config.sops.secrets.borg-private-key.path;
+              myconfig.krit.services.nas.owncloud.secretsFile = config.sops.templates."davfs-secrets".path;
+
+              # Other config-dependent settings
+              nix.extraOptions = ''
+                !include ${config.sops.secrets.github_fg_pat_token_nix.path}
               '';
-              owner = "root";
-              group = "root";
-              mode = "0600";
-            };
 
-            # 🚀 INJECT SECRETS INTO MODULES
-            myconfig.krit.services.nas.sshfs.identityFile = config.sops.secrets.nas_ssh_key.path;
-            myconfig.krit.services.nas.smb.credentialsFile = config.sops.secrets.nas-krit-credentials.path;
-            myconfig.krit.services.nas.desktop-borg-backup.passphraseFile =
-              config.sops.secrets.borg-passphrase.path;
-            myconfig.krit.services.nas.desktop-borg-backup.sshKeyPath =
-              config.sops.secrets.borg-private-key.path;
-            myconfig.krit.services.nas.owncloud.secretsFile = config.sops.templates."davfs-secrets".path;
+              programs.ssh.extraConfig = ''
+                Host github.com
+                IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
+              '';
 
-            # Other config-dependent settings
-            nix.extraOptions = ''
-              !include ${config.sops.secrets.github_fg_pat_token_nix.path}
-            '';
+              users.users.${userName}.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
+            }
 
-            programs.ssh.extraConfig = ''
-              Host github.com
-              IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
-            '';
-
-            users.users.${userName}.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
-          }
-        )
+          )
+        */
       ];
 
       i18n.defaultLocale = "en_US.UTF-8";
 
-      sops.defaultSopsFile = ./nixos-desktop-secrets-sops.yaml;
-      sops.defaultSopsFormat = "yaml";
-      sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+      # TODO: Enable when host sops secrets are configured
+      /*
+        sops.defaultSopsFile = ./nixos-laptop-secrets-sops.yaml;
+        sops.defaultSopsFormat = "yaml";
+        sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+      */
 
       # ---------------------------------------------------------
       # 🔐 CENTRALIZED SOPS DEFINITIONS
       # ---------------------------------------------------------
-      sops.secrets =
-        let
-          commonSecrets = ../../users/krit/sops/krit-common-secrets-sops.yaml;
-        in
-        {
-          "krit-local-password".neededForUsers = true;
+      /*
+        sops.secrets =
+          let
+            commonSecrets = ../../users/krit/sops/krit-common-secrets-sops.yaml;
+          in
+          {
+            "krit-local-password".neededForUsers = true;
 
-          github_fg_pat_token_nix = {
-            sopsFile = commonSecrets;
-            mode = "0444";
-          };
-          github_general_ssh_key = {
-            sopsFile = commonSecrets;
-            owner = userName;
-            path = "/home/${userName}/.ssh/id_github";
-          };
-          Krit_Wifi_pass = {
-            sopsFile = commonSecrets;
-            restartUnits = [ "NetworkManager.service" ];
-          };
-          Nicol_5Ghz_pass = {
-            sopsFile = commonSecrets;
-            restartUnits = [ "NetworkManager.service" ];
-          };
-          Nicol_2Ghz_pass = {
-            sopsFile = commonSecrets;
-            restartUnits = [ "NetworkManager.service" ];
-          };
-          commit_signing_key = {
-            sopsFile = commonSecrets;
-            owner = userName;
-          };
+            github_fg_pat_token_nix = {
+              sopsFile = commonSecrets;
+              mode = "0444";
+            };
+            github_general_ssh_key = {
+              sopsFile = commonSecrets;
+              owner = userName;
+              path = "/home/${userName}/.ssh/id_github";
+            };
+            Krit_Wifi_pass = {
+              sopsFile = commonSecrets;
+              restartUnits = [ "NetworkManager.service" ];
+            };
+            Nicol_5Ghz_pass = {
+              sopsFile = commonSecrets;
+              restartUnits = [ "NetworkManager.service" ];
+            };
+            Nicol_2Ghz_pass = {
+              sopsFile = commonSecrets;
+              restartUnits = [ "NetworkManager.service" ];
+            };
+            commit_signing_key = {
+              sopsFile = commonSecrets;
+              owner = userName;
+            };
 
-          nas_ssh_key.sopsFile = commonSecrets;
-          nas-krit-credentials.sopsFile = commonSecrets;
-          nas_owncloud_url.sopsFile = commonSecrets;
-          nas_owncloud_user.sopsFile = commonSecrets;
-          nas_owncloud_pass.sopsFile = commonSecrets;
+            nas_ssh_key.sopsFile = commonSecrets;
+            nas-krit-credentials.sopsFile = commonSecrets;
+            nas_owncloud_url.sopsFile = commonSecrets;
+            nas_owncloud_user.sopsFile = commonSecrets;
+            nas_owncloud_pass.sopsFile = commonSecrets;
 
-          # 🌟 THE FIX: Remove the commonSecrets override so they use defaultSopsFile
-          borg-passphrase = { };
-          borg-private-key = { };
-          cachix-auth-token = { }; # Added this so Cachix can push!
-        };
+            # 🌟 THE FIX: Remove the commonSecrets override so they use defaultSopsFile
+            borg-passphrase = { };
+            borg-private-key = { };
+            cachix-auth-token = { }; # Added this so Cachix can push!
+          };
+      */
 
       programs.git.enable = true;
       programs.git.config = {
@@ -560,10 +558,11 @@ delib.host {
         pinentryPackage = pkgs.pinentry-qt;
       };
 
-      boot.binfmt.emulatedSystems = [ "aarch64-linux" ]; # Allow emulation of aarch64-linux. For example allow nix-flake-check for the arm laptop
-      boot.initrd.kernelModules = [ "amdgpu" ];
-      hardware.graphics.enable = true;
+      # TODO: configure with the intel one
+      #boot.initrd.kernelModules = [ "" ];
+      #hardware.graphics.enable = true;
 
+      # TODO: see without it if the button already does a
       services.logind.settings.Login = {
         HandlePowerKey = "poweroff";
         HandlePowerKeyLongPress = "poweroff";
@@ -596,13 +595,14 @@ delib.host {
         ];
       };
 
-      virtualisation.docker.enable = true;
+      virtualisation.docker.enable = false;
       virtualisation.docker.daemon.settings."mtu" = 1450;
       virtualisation.podman = {
-        enable = true;
+        enable = false;
         dockerCompat = false;
       };
 
+      # TODO: check stability. Ideally keep enabled. If it cause problems on public wifi remove it
       services.resolved = {
         enable = true;
         dnssec = "false";
@@ -615,12 +615,12 @@ delib.host {
       };
 
       systemd.services.cleanup_trash = {
-        description = "Clean up trash older than 30 days";
+        description = "Clean up trash older than 5 days";
         serviceConfig = {
           Type = "oneshot";
           User = userName;
           Environment = "HOME=/home/${userName}";
-          ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
+          ExecStart = "${pkgs.autotrash}/bin/autotrash -d 5";
         };
       };
 
@@ -636,6 +636,19 @@ delib.host {
       environment.pathsToLink = [
         "/share/applications"
         "/share/xdg-desktop-portal"
+      ];
+
+      # ---------------------------------------------------------
+      # ⚡ POWER MANAGEMENT twaks
+      # ---------------------------------------------------------
+      services.speechd.enable = lib.mkForce false; # Disable speech-dispatcher as it is not needed and wastes resources
+      systemd.services.ModemManager.enable = false; # Disable unused 4G modem scanning
+
+      networking.networkmanager.wifi.powersave = true; # Micro-sleeps radio between packets
+      powerManagement.powertop.enable = true; # Sleeps idle USB, Audio, and PCI devices
+
+      boot.kernelParams = [
+        # "pcie_aspm=force" # Force deep sleep for SSD & Motherboard (this may cause instability, include it without it first and test)
       ];
 
       environment.systemPackages = with pkgs; [
@@ -669,12 +682,12 @@ delib.host {
       home.stateVersion = "25.11";
       imports = [
 
-        inputs.nix-sops.homeModules.sops
+        # TODO: Enable when host sops secrets are configured
+        #inputs.nix-sops.homeModules.sops
 
       ];
 
       # TODO: check stability. It should not be necessary since vivaldi was removed
-
       /*
         xdg.desktopEntries.vivaldi = {
           name = "Vivaldi";
@@ -703,7 +716,7 @@ delib.host {
         };
       */
 
-      home.packages = (with pkgs; [ winboat ]) ++ (with pkgs-unstable; [ ]);
+      home.packages = (with pkgs; [ ]) ++ (with pkgs-unstable; [ ]);
 
       xdg.userDirs = {
         publicShare = null;
