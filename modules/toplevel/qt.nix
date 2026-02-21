@@ -3,6 +3,7 @@
   pkgs,
   lib,
   config,
+  inputs,
   ...
 }:
 delib.module {
@@ -75,7 +76,8 @@ delib.module {
       '';
 
       home.activation.kdeglobalsFromPolarity = lib.mkIf useKdePlatformTheme (
-        lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        # 🌟 THE FIX: Call the hm library directly from inputs
+        inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group General    --key ColorScheme "${kdeColorScheme}" || true
           ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group UiSettings --key ColorScheme "${kdeColorScheme}" || true
           ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kdeglobals --group Icons      --key Theme      "${iconThemeName}"  || true

@@ -2,6 +2,7 @@
   delib,
   pkgs,
   config,
+  inputs,
   lib,
   ...
 }:
@@ -85,7 +86,7 @@ delib.module {
             config.lib.file.mkOutOfStoreSymlink "/home/${myconfig.constants.user}/.local/bin/init-gnome-keyring.sh";
 
           home.activation = {
-            removeExistingConfigs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+            removeExistingConfigs = inputs.home-manager.lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
               rm -f "$HOME/.config/autostart/gnome-keyring-force.desktop"
               rm -f "$HOME/.gtkrc-2.0"
               rm -f "$HOME/.config/gtk-3.0/settings.ini"
@@ -96,10 +97,10 @@ delib.module {
               rm -f "$HOME/.config/kdeglobals"
               rm -f "$HOME/.local/share/applications/mimeapps.list"
             '';
-            createEssentialDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            createEssentialDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
               mkdir -p "${myconfig.constants.screenshots}"
             '';
-            updateKDECache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            updateKDECache = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
               if command -v kbuildsycoca6 >/dev/null; then
                 kbuildsycoca6 --noincremental || true
               fi

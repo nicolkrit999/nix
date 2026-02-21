@@ -2,6 +2,7 @@
   delib,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 delib.module {
@@ -79,12 +80,15 @@ delib.module {
       '';
 
       # 🌟 THE FIX: Updated to use the safe 'homeDir' variable
-      home.activation.createDolphinPlaces = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        if [ ! -f "${homeDir}/.local/share/user-places.xbel" ]; then
-          echo "Creating Dolphin Places file..."
-          mkdir -p "${homeDir}/.local/share"
-          echo '${placesXml}' > "${homeDir}/.local/share/user-places.xbel"
-        fi
-      '';
+      # 🌟 THE FIX: Call the hm library directly from inputs
+      home.activation.createDolphinPlaces =
+        inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ]
+          ''
+            if [ ! -f "${homeDir}/.local/share/user-places.xbel" ]; then
+              echo "Creating Dolphin Places file..."
+              mkdir -p "${homeDir}/.local/share"
+              echo '${placesXml}' > "${homeDir}/.local/share/user-places.xbel"
+            fi
+          '';
     };
 }

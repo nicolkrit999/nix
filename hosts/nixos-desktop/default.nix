@@ -571,19 +571,13 @@ delib.host {
   # ---------------------------------------------------------------
   home =
     {
-      lib,
       ...
     }:
     {
       home.stateVersion = "25.11";
       imports = [
-        # 🌟 THE FIX: Changed to homeModules (Fixes the warning)
-        inputs.catppuccin.homeModules.catppuccin
 
         inputs.nix-sops.homeModules.sops
-
-        # 🌟 THE FIX: Updated for consistency
-        inputs.plasma-manager.homeModules.plasma-manager
 
       ];
 
@@ -621,7 +615,8 @@ delib.host {
       };
 
       home.activation = {
-        createHostDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        # Input home manager here to bypass "function home" and "attributes hm missing" evaluation errors
+        createHostDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           mkdir -p $HOME/Pictures/wallpapers
           mkdir -p $HOME/momentary
         '';
