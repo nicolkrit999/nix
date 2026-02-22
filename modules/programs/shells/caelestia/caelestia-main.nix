@@ -1,10 +1,9 @@
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  config,
-  ...
+{ delib
+, inputs
+, pkgs
+, lib
+, config
+, ...
 }:
 delib.module {
   name = "programs.caelestia";
@@ -18,15 +17,14 @@ delib.module {
 
   # Keep always to let the rest of the logic handling the activation
   home.always =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
-
     let
       caelestiaPkg = inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli;
 
+      # Needed because the original logout button is too aggressive and causes a system hang
       caelestiaLogout = pkgs.writeShellScriptBin "caelestia-logout" ''
         # 1. If UWSM is running, use it (Most graceful)
         if command -v uwsm >/dev/null && pgrep -u $UID -x uwsm >/dev/null; then
@@ -135,6 +133,7 @@ delib.module {
         pkgs.qt6.qtsvg
         pkgs.qt6.qtwayland
         pkgs.qt6.qtdeclarative
+
         pkgs.kdePackages.kirigami
         pkgs.nerd-fonts.caskaydia-cove
         pkgs.nerd-fonts.jetbrains-mono

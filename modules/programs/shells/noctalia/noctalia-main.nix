@@ -1,9 +1,8 @@
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  ...
+{ delib
+, inputs
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "programs.noctalia";
@@ -17,14 +16,12 @@ delib.module {
 
   # Keep always to let the rest of the logic handling the activation
   home.always =
-    {
-      cfg,
-      parent,
-      myconfig,
-      ...
+    { cfg
+    , parent
+    , myconfig
+    , ...
     }:
     let
-      # 🌟 THE FIX: Updated conflict logic to check Caelestia's actual option
       enableHyprland =
         (parent.hyprland.enable or false)
         && cfg.enableOnHyprland
@@ -55,7 +52,6 @@ delib.module {
         # -----------------------------------------------------------
         # 🔧 ENVIRONMENT FIXES
         # -----------------------------------------------------------
-
         if [ "$XDG_CURRENT_DESKTOP" = "Hyprland" ] && [ -z "$HYPRLAND_INSTANCE_SIGNATURE" ] && command -v hyprctl &> /dev/null; then
             for i in {1..10}; do
                 DETECTED_SIG=$(hyprctl instances | head -n 1 | cut -d " " -f 2 | tr -d ':')
@@ -80,7 +76,7 @@ delib.module {
         ${noctaliaPkg}/bin/noctalia-shell &
         PID=$!
 
-        # Optional: Sync weather location from Nix variables on boot
+        # Sync weather location from Nix variables on boot
         sleep 5
         ${noctaliaPkg}/bin/noctalia-shell ipc call location set "${myconfig.constants.weather or "London"}"
 

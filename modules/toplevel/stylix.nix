@@ -1,9 +1,8 @@
-{
-  delib,
-  pkgs,
-  lib,
-  inputs,
-  ...
+{ delib
+, pkgs
+, lib
+, inputs
+, ...
 }:
 delib.module {
   name = "stylix";
@@ -13,16 +12,14 @@ delib.module {
     targets = attrsOption { };
   };
 
-  # 🌟 1. NIXOS ALWAYS: Import the module globally (Unconditional)
   nixos.always =
     { ... }:
     {
       imports = [ inputs.stylix.nixosModules.stylix ];
     };
 
-  # 🌟 2. NIXOS CONFIG: Global Stylix settings (Image, Polarity, Fonts)
   nixos.ifEnabled =
-    { cfg, myconfig, ... }:
+    { myconfig, ... }:
     let
       wallpapers = myconfig.constants.wallpapers or [ ];
       hasWallpaper = builtins.length wallpapers > 0;
@@ -31,8 +28,9 @@ delib.module {
           builtins.head wallpapers
         else
           {
-            wallpaperURL = "https://raw.githubusercontent.com/NixOS/nixos-artwork/master/wallpapers/nix-wallpaper-dracula.png";
-            wallpaperSHA256 = "011cbqn0jzifrbjbkmngnlq77lwpxxdrkby0r36h7j5w1yxxn4ik";
+
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/zhichaoh-catppuccin-wallpapers-main/os/nix-black-4k.png";
+            wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
           };
     in
     {
@@ -77,14 +75,12 @@ delib.module {
       };
     };
 
-  # 🌟 3. HOME MANAGER CONFIG: Application Targets & Catppuccin GTK overrides
   home.ifEnabled =
     { cfg, myconfig, ... }:
     let
       isCatppuccin = myconfig.constants.theme.catppuccin or false;
     in
     {
-      # THE FIX: Targets are now safely in the Home Manager block!
       stylix.targets = {
         neovim.enable = false;
         wofi.enable = false;
@@ -103,7 +99,7 @@ delib.module {
         tmux.enable = !isCatppuccin;
         starship.enable = !isCatppuccin;
       }
-      // cfg.targets; # <--- This cleanly applies your host exclusions from default.nix!
+      // cfg.targets;
 
       dconf.settings = {
         "org/gnome/desktop/interface".color-scheme =

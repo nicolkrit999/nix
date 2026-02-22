@@ -1,13 +1,11 @@
-{
-  delib,
-  config,
-  lib,
-  pkgs,
-  ...
+{ delib
+, config
+, lib
+, pkgs
+, ...
 }:
 delib.module {
   name = "programs.hyprland";
-
   options =
     with delib;
     moduleOptions {
@@ -19,18 +17,16 @@ delib.module {
     };
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
     let
-      # 🌟 SMART LAUNCHER LOGIC
       term = myconfig.constants.terminal or "alacritty";
       rawFm = myconfig.constants.fileManager or "dolphin";
       rawEd = myconfig.constants.editor or "vscode";
 
-      # List of known terminal-based apps
+      # List of known terminal-based apps. Add more as needed
       termApps = [
         "nvim"
         "neovim"
@@ -78,11 +74,6 @@ delib.module {
         };
 
         settings = {
-
-          # -----------------------------------------------------
-          # 🌍 Environment Variables
-          # -----------------------------------------------------
-          # These ensure apps (Electron, QT, etc.) know they are running on Wayland.
           env =
             let
               firstMonitor =
@@ -95,7 +86,6 @@ delib.module {
               gdkScale = if rawScale != "1" && rawScale != "1.0" then "2" else "1";
             in
             [
-              # Communicate with apps to tell them we are on Wayland
               "NIXOS_OZONE_WL,1" # Enables Wayland support in NixOS-built Electron apps
               "QT_QPA_PLATFORM,wayland;xcb" # Tells Qt apps: "Try Wayland first. If that fails, use X11 (xcb)".
               "GDK_BACKEND,wayland,x11,*" # Tells GTK apps: "Try Wayland first. If that fails, use X11".
@@ -113,23 +103,15 @@ delib.module {
               "XDG_SCREENSHOTS_DIR,${myconfig.constants.screenshots}" # Tells tools where to save screenshots by default.
             ];
 
-          # -----------------------------------------------------
-          # 🖥️ Monitor Configuration
-          # -----------------------------------------------------
-          # Syntax: "PORT, RESOLUTION@HERTZ, POSITION, SCALE, TRANSFORM"
           monitor = myconfig.constants.monitors ++ [
-            ",preferred,auto,1" # Fallback in case no monitors are defined in flake.nix
+            ",preferred,auto,1"
           ];
 
-          # -----------------------------------------------------
-          # 🎛️ Main Hyprland apps
-          # These are used by other modules using the variable references such as binds.nix
-          # -----------------------------------------------------
           "$Mod" = "SUPER";
           "$terminal" = term;
           "$browser" = myconfig.constants.browser or "firefox";
-          "$fileManager" = smartFm; # 🌟 NOW DEFINED AND SMART
-          "$editor" = smartEd; # 🌟 NOW DEFINED AND SMART
+          "$fileManager" = smartFm;
+          "$editor" = smartEd;
           "$menu" = "walker";
           "$shellMenu" =
             if myconfig.programs.caelestia.enableOnHyprland or false then
@@ -139,27 +121,18 @@ delib.module {
             else
               "walker";
 
-          # -----------------------------------------------------
-          # 🚀 Startup Apps
-          # ----------------------------------------------------
           exec-once = [
             "${pkgs.bash}/bin/bash $HOME/.local/bin/init-gnome-keyring.sh"
             "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
-
-            "pkill ibus-daemon" # Kill ibus given by gnome
+            "pkill ibus-daemon"
           ]
           ++ cfg.execOnce;
 
-          # -----------------------------------------------------
-          # 🎨 Look & Feel
-          # -----------------------------------------------------
           general = {
             gaps_in = 0; # Gaps between windows
             gaps_out = 0; # Gaps between windows and monitor edge
             border_size = 5; # Thickness of window borders
 
-            # 🎨 BORDERS
-            # Border colors adapt based on whether catppuccin is enabled
             "col.active_border" =
               if myconfig.constants.theme.catppuccin then
                 "$accent"
@@ -195,8 +168,6 @@ delib.module {
             enabled = true;
           };
 
-          # Layouts are defined in flake.nix and are handled
-          # in such a way that they work regardless of desktop environment
           input = {
             kb_layout = myconfig.constants.keyboardLayout or "us";
             kb_variant = myconfig.constants.keyboardVariant or "";
@@ -274,7 +245,6 @@ delib.module {
             "maxsize 1 1, class:^(xwaylandvideobridge)$"
             "noblur, class:^(xwaylandvideobridge)$"
             "nofocus, class:^(xwaylandvideobridge)$"
-
           ]
           ++ cfg.windowRules;
 

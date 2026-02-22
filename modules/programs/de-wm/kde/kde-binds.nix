@@ -1,28 +1,22 @@
-{
-  delib,
-  lib,
-  pkgs,
-  ...
+# Configure kde keybinds using the community "plasma-manager" flake
+{ delib
+, lib
+, pkgs
+, ...
 }:
 delib.module {
   name = "programs.kde";
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
     let
       spectacleCmd = "${pkgs.kdePackages.spectacle}/bin/spectacle";
     in
     {
-
-      # ---------------------------------------------------------
-      # 2. HOTKEYS (Custom Commands)
-      # ---------------------------------------------------------
       programs.plasma.hotkeys.commands = {
-
         # --- SPECTACLE (Meta + Ctrl) ---
         "spectacle-open" = {
           name = "Spectacle: Open";
@@ -102,6 +96,7 @@ delib.module {
           key = "Meta+F";
           command =
             if
+            # Add more if needed
               builtins.elem myconfig.constants.fileManager [
                 "yazi"
                 "ranger"
@@ -116,30 +111,22 @@ delib.module {
       }
       // cfg.extraBinds;
 
-      # ---------------------------------------------------------
-      # 3. GLOBAL SHORTCUTS
-      # ---------------------------------------------------------
       programs.plasma.shortcuts = lib.mkForce {
-
         # --- UNBIND DEFAULTS ---
-        # Unbind conflicting keys
         "plasmashell"."manage activities" = "none";
         "kwin"."Show Activity Switcher" = "none";
         "kwin"."Switch to Next Keyboard Layout" = "none";
 
-        # Unbind standard Spectacle
         "org.kde.spectacle.desktop" = {
           "ActiveWindowScreenShot" = "none";
           "FullScreenScreenShot" = "none";
           "RectangularRegionScreenShot" = "none";
           "_launch" = "none";
-          # Keep recording (Meta+Ctrl)
           "RecordRegion" = "Meta+Ctrl+7";
           "RecordScreen" = "Meta+Ctrl+8";
           "RecordWindow" = "Meta+Ctrl+9";
         };
 
-        # Session
         "ksmserver"."Log Out" = "Meta+Shift+Delete";
         "ksmserver"."Lock Session" = "Meta+Delete";
 

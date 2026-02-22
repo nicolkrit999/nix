@@ -10,17 +10,16 @@ delib.module {
       enable = true;
       powerOnBoot = true;
 
-      # Force the controller to be powered on via BlueZ settings
       settings = {
         Policy = {
-          AutoEnable = "true";
+          AutoEnable = "true"; # Enable on boot
         };
       };
     };
 
     services.blueman.enable = true;
 
-    # Clear rfkill block states that might persist across reboots
+    # TODO: check if really needed
     systemd.services.bluetooth-unblock = {
       description = "Unblock Bluetooth on boot";
       after = [ "bluetooth.service" ];

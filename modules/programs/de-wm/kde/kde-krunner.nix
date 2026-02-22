@@ -1,18 +1,12 @@
-{
-  delib,
-  lib,
-  ...
+# 🌟 Configure krunner using the community "plasma-manager" flake
+{ delib
+, lib
+, ...
 }:
 delib.module {
   name = "programs.kde";
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
-    }:
-
     {
       programs.plasma.krunner = {
         position = "top";

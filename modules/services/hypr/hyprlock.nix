@@ -7,9 +7,8 @@ delib.module {
   };
 
   home.always =
-    { cfg, myconfig, ... }:
+    { myconfig, ... }:
     let
-      # 🛠️ FIX: Removed .constants so it reads from default.nix top-level
       hyprlandFallback =
         (myconfig.programs.hyprland.enable or false)
         && !(myconfig.programs.caelestia.enableOnHyprland or false)
@@ -20,7 +19,6 @@ delib.module {
     in
     lib.mkIf (hyprlandFallback || niriFallback) {
 
-      # 🎨 CATPPUCCIN INJECTION
       catppuccin.hyprlock.enable = myconfig.constants.theme.catppuccin or false;
       catppuccin.hyprlock.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
       catppuccin.hyprlock.accent = myconfig.constants.theme.catppuccinAccent or "mauve";

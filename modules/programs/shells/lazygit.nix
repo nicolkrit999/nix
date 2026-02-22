@@ -17,7 +17,7 @@ delib.module {
         enable = true;
 
         settings = {
-          gui.showIcons = true; # Enables Nerd Font icons to match your terminal style
+          gui.showIcons = true;
         };
       };
     };

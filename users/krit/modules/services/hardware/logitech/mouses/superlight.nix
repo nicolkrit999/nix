@@ -1,4 +1,4 @@
-{ delib, pkgs, ... }:
+{ delib, ... }:
 delib.module {
   name = "krit.services.logitech.mouses.superlight";
   options.krit.services.logitech.mouses.superlight = with delib; {

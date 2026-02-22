@@ -1,4 +1,4 @@
-{ delib, config, ... }:
+{ delib, ... }:
 delib.module {
   name = "krit.programs.direnv";
   options.krit.programs.direnv = with delib; {
@@ -6,7 +6,6 @@ delib.module {
   };
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
     {
       programs.direnv = {
         enable = true;

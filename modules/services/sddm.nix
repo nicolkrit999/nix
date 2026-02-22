@@ -1,8 +1,7 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "services.sddm";
@@ -11,11 +10,8 @@ delib.module {
   };
 
   nixos.ifEnabled =
-    {
-
-      cfg,
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
       sddmTheme = pkgs.sddm-astronaut.override {
@@ -38,21 +34,8 @@ delib.module {
         extraPackages = with pkgs; [
           kdePackages.qtsvg # Keep for the theme
           kdePackages.qtmultimedia # Keep for the theme
-          #kdePackages.qtvirtualkeyboard
         ];
       };
-
-      /*
-        systemd.services.sddm.environment = {
-          QT_IM_MODULE = "qtvirtualkeyboard";
-          QT_VIRTUALKEYBOARD_DESKTOP_DISABLE = "0";
-        };
-
-        environment.etc."sddm.conf.d/virtual-keyboard.conf".text = ''
-          [General]
-          InputMethod=qtvirtualkeyboard
-        '';
-      */
 
       environment.systemPackages = [
         sddmTheme

@@ -1,8 +1,7 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+# Set defaults applications. If not enabled the system does not know with what to open file/directories/links and similar
+{ delib
+, lib
+, ...
 }:
 delib.module {
   name = "mime";
@@ -11,21 +10,17 @@ delib.module {
   };
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
       # If variables are missing, these defaults will be used.
+      # TODO: check if needed
       safeEditor = myconfig.constants.editor or "vscode";
-      safeBrowser = myconfig.constants.browser or "brave";
+      safeBrowser = myconfig.constants.browser or "firefox";
       safeTerm = myconfig.constants.terminal or "alacritty";
       safeFileManager = myconfig.constants.fileManager or "dolphin";
 
-      # -----------------------------------------------------------------------
-      # 1. HELPER: Terminal Editor Logic
-      # -----------------------------------------------------------------------
       termEditors = {
         neovim = {
           bin = "nvim";
@@ -59,6 +54,7 @@ delib.module {
       editorConfig = termEditors.${safeEditor};
 
       # Resolve browsers that don't follow the "name.desktop" convention
+      # Add more as needed
       browserDesktopMap = {
         "vivaldi" = "vivaldi-stable.desktop";
         "brave" = "brave-browser.desktop";

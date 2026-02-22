@@ -1,35 +1,33 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
-  name = "programs.hyprland"; # Assuming you register it directly
+  name = "programs.hyprland";
 
   home.ifEnabled =
-    {
-      cfg,
-      parent,
-      myconfig,
-      ...
+    { cfg
+    , parent
+    , myconfig
+    , ...
     }:
-
     let
       activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
       monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
-      images = map (
-        w:
-        pkgs.fetchurl {
-          url = w.wallpaperURL;
-          sha256 = w.wallpaperSHA256;
-        }
-      ) myconfig.constants.wallpapers;
+      images = map
+        (
+          w:
+          pkgs.fetchurl {
+            url = w.wallpaperURL;
+            sha256 = w.wallpaperSHA256;
+          }
+        )
+        myconfig.constants.wallpapers;
 
       getWallpaper =
         index: if index < builtins.length images then builtins.elemAt images index else lib.last images;
 
-      # 🛠️ FIX: Removed .constants
       hyprlandFallback =
         (cfg.enable or false)
         && !(parent.caelestia.enableOnHyprland or false)

@@ -1,10 +1,10 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
+  # TODO: probably can be renamed to "programs.gnome" so that it's not enabled at all if the user does not want it
   name = "gnome";
   options.gnome = with delib; {
     enable = boolOption false;
@@ -12,15 +12,8 @@ delib.module {
 
   nixos.ifEnabled =
     {
-      cfg,
-      myconfig,
-      ...
-    }:
-    {
-
       services.desktopManager.gnome.enable = true;
 
-      # 2. Exclude default bloatware
       environment.gnome.excludePackages = with pkgs; [
         gnome-tour # Onboarding
         epiphany # Default browser
@@ -50,48 +43,12 @@ delib.module {
 
       ];
 
-      /*
-        # 3. 🛡️ SECURITY WRAPPER: Block guest user from GNOME
-        environment.etc."xdg/autostart/guest-block-gnome.desktop".text = ''
-          [Desktop Entry]
-          Name=Block Guest from GNOME
-          Exec=${pkgs.writeShellScript "kick-guest-gnome" ''
-            # 1. Check if user is guest
-            if [ "$USER" = "guest" ]; then
-
-               # 2. Check if the session is GNOME
-               if [[ "$XDG_CURRENT_DESKTOP" == *"GNOME"* ]]; then
-
-                  # Show warning using Zenity
-                  ${pkgs.zenity}/bin/zenity --error --width=300 \
-                    --text="❌ ACCESS DENIED\n\nThe Guest account is restricted to XFCE.\nYou have been logged out."
-
-                  # 3. Force Logout
-                  # Try GNOME specific logout
-                  ${pkgs.gnome-session}/bin/gnome-session-quit --no-prompt --logout
-
-                  # Fallback: Kill the session
-                  sleep 2
-                  ${pkgs.systemd}/bin/loginctl terminate-session $XDG_SESSION_ID
-
-                  # Ultimate Fallback: Kill the user processes
-                  sleep 2
-                  ${pkgs.systemd}/bin/loginctl terminate-user guest
-               fi
-            fi
-          ''}
-          Type=Application
-          OnlyShowIn=GNOME;
-          NoDisplay=true
-        '';
-      */
-
       # 4. 🔧 CONFLICT RESOLUTION (SSH Askpass)
       # Depending on the primary de (gnome vs kde) then use ksshaskpass (kde) or seahorse (gnome).
       # Hyprland does not provide one. If the main is hyprland then choose either one based on user preference.
       programs.ssh.askPassword = lib.mkForce "${pkgs.kdePackages.ksshaskpass}/bin/ksshaskpass";
 
-      services.gnome.rygel.enable = false; # Needed to uninstall "rygel" since it is not in nixpkgs
+      services.gnome.rygel.enable = false;
 
     };
 }

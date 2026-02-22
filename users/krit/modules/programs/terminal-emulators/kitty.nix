@@ -1,9 +1,6 @@
-{
-  delib,
-  lib,
-  pkgs,
-  config,
-  ...
+{ delib
+, lib
+, ...
 }:
 delib.module {
   name = "krit-kitty";
@@ -12,11 +9,13 @@ delib.module {
   };
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
+    { myconfig, ... }:
     let
-      enabledMonitors = builtins.filter (
-        m: builtins.match ".*disable.*" m == null
-      ) myconfig.constants.monitors;
+      enabledMonitors = builtins.filter
+        (
+          m: builtins.match ".*disable.*" m == null
+        )
+        myconfig.constants.monitors;
 
       primaryMonitor = if builtins.length enabledMonitors > 0 then builtins.head enabledMonitors else "";
       parts = lib.splitString "," primaryMonitor;

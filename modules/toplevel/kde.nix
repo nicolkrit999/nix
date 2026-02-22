@@ -1,21 +1,16 @@
 {
   delib,
   pkgs,
-  lib,
   ...
 }:
 delib.module {
+  # TODO: probably can be renamed to "programs.kde" so that it's not enabled at all if the user does not want it
   name = "kde";
   options.kde = with delib; {
     enable = boolOption false;
   };
 
   nixos.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
-    }:
     {
       services.desktopManager.plasma6.enable = true;
 

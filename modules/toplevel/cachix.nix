@@ -1,8 +1,7 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "cachix";
@@ -10,7 +9,7 @@ delib.module {
   options.cachix = with delib; {
     enable = boolOption false;
     push = boolOption false;
-    name = strOption "use-constant"; # 🌟 Default to our trigger keyword
+    name = strOption "use-constant";
     publicKey = strOption "use-constant";
     authTokenPath = strOption "";
   };
@@ -18,7 +17,6 @@ delib.module {
   nixos.ifEnabled =
     { cfg, myconfig, ... }:
     let
-      # 🌟 Dynamically fetch the constant if the user didn't override it in default.nix
       finalName = if cfg.name == "use-constant" then myconfig.constants.cachix.name else cfg.name;
       finalKey =
         if cfg.publicKey == "use-constant" then myconfig.constants.cachix.publicKey else cfg.publicKey;

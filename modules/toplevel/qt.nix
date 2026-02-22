@@ -2,7 +2,6 @@
   delib,
   pkgs,
   lib,
-  config,
   inputs,
   ...
 }:
@@ -15,7 +14,6 @@ delib.module {
 
   home.ifEnabled =
     {
-      cfg,
       myconfig,
       ...
     }:
@@ -49,13 +47,11 @@ delib.module {
       widgetStyle = if isCatppuccin then "kvantum" else "Breeze";
     in
     {
-      # 1. 🌐 GLOBAL ENVIRONMENT VARIABLES
       # Ensures WMs like Niri and Cosmic correctly theme Qt apps even without KDE running
       home.sessionVariables = {
         QT_QPA_PLATFORMTHEME = if useKdePlatformTheme then "kde" else "qt5ct";
       };
 
-      # 2. 📦 REQUIRED PACKAGES
       home.packages =
         (with pkgs; [
           libsForQt5.qt5ct
@@ -80,7 +76,7 @@ delib.module {
           ]
         );
 
-      # 3. 🎨 QT5CT / QT6CT CONFIGURATION (Used by Niri, Cosmic, Gnome)
+      # QT5CT / QT6CT CONFIGURATION (Used by Niri, Cosmic, Gnome)
       xdg.configFile."qt6ct/qt6ct.conf".text = ''
         [Appearance]
         icon_theme=${iconThemeName}
@@ -113,10 +109,6 @@ delib.module {
       xdg.dataFile."qt5ct/colors/BreezeLight.colors".source =
         "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeLight.colors";
 
-      # 4. 🖌️ KVANTUM CONFIGURATION
-      # Directly configure Kvantum here so it works across all DEs, not just KDE.
-      # 4. 🖌️ KVANTUM CONFIGURATION
-      # Directly configure Kvantum here so it works across all DEs, not just KDE.
       xdg.configFile."Kvantum/kvantum.kvconfig" = lib.mkIf isCatppuccin {
         text = ''
           [General]
@@ -124,7 +116,7 @@ delib.module {
         '';
       };
 
-      # 5. ⚙️ KDEGLOBALS ACTIVATION SCRIPT (Used by Hyprland and KDE)
+      # KDEGLOBALS ACTIVATION SCRIPT (Used by Hyprland and KDE)
       # Forcefully aligns the KDE engine with our calculated values on every rebuild
       home.activation.kdeglobalsFromPolarity = lib.mkIf useKdePlatformTheme (
         inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''

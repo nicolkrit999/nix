@@ -1,21 +1,17 @@
-{
-  delib,
-  pkgs,
-  config,
-  inputs,
-  lib,
-  ...
+{ delib
+, pkgs
+, inputs
+, ...
 }:
 delib.module {
   name = "home";
 
   nixos.always =
-    { cfg, myconfig, ... }:
+    { myconfig, ... }:
     {
       home-manager.users.${myconfig.constants.user} =
-        { config, lib, ... }:
+        { config, ... }:
         {
-
           home = {
             username = myconfig.constants.user;
             homeDirectory = "/home/${myconfig.constants.user}";
@@ -59,6 +55,7 @@ delib.module {
             '';
           };
 
+          # TODO: check if it really works. This is closely related to "common-configuration.nix" and the keyring logic in "hyprland-main.nix" "kde-main.nix" "niri-main.nix" and "gnome-main.nix"
           home.file.".local/bin/init-gnome-keyring.sh" = {
             executable = true;
             text = ''
@@ -82,6 +79,7 @@ delib.module {
             '';
           };
 
+          # TODO: check if it really works. This is closely related to "common-configuration.nix" and the keyring logic in "hyprland-main.nix" "kde-main.nix" "niri-main.nix" and "gnome-main.nix"
           home.file.".config/plasma-workspace/env/99-init-keyring.sh".source =
             config.lib.file.mkOutOfStoreSymlink "/home/${myconfig.constants.user}/.local/bin/init-gnome-keyring.sh";
 
@@ -100,6 +98,8 @@ delib.module {
             createEssentialDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
               mkdir -p "${myconfig.constants.screenshots}"
             '';
+
+            # TODO: check if related to keyring logic
             updateKDECache = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
               if command -v kbuildsycoca6 >/dev/null; then
                 kbuildsycoca6 --noincremental || true

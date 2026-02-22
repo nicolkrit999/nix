@@ -1,17 +1,13 @@
-{
-  delib,
-  config,
-  lib,
-  ...
+{ delib
+, lib
+, ...
 }:
 delib.module {
   name = "programs.fish";
 
   home.always =
-    {
-      cfg,
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
       currentShell = myconfig.constants.shell or "bash";
@@ -20,9 +16,6 @@ delib.module {
       programs.fish = {
         enable = true;
 
-        # -----------------------------------------------------------------------
-        # ⌨️ ABBREVIATIONS
-        # -----------------------------------------------------------------------
         shellAbbrs =
           let
             flakeDir = "~/nixOS";
@@ -125,9 +118,6 @@ delib.module {
             swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
           };
 
-        # -----------------------------------------------------
-        # ⚙️ INITIALIZATION
-        # -----------------------------------------------------
         interactiveShellInit = ''
           # 1. FIX HYPRLAND SOCKET
           set -l hypr_dir "/run/user/"(id -u)"/hypr"
@@ -168,9 +158,6 @@ delib.module {
           end
         '';
 
-        # -----------------------------------------------------
-        # 📝 FUNCTIONS
-        # -----------------------------------------------------
         functions = {
           fish_user_key_bindings = ''
             if functions -q fzf_key_bindings

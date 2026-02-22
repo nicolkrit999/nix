@@ -1,7 +1,6 @@
 {
   delib,
   pkgs,
-  config,
   inputs,
   lib,
   ...
@@ -14,12 +13,10 @@ delib.module {
 
   home.ifEnabled =
     {
-      cfg,
       myconfig,
       ...
     }:
     let
-      # 🌟 ADD THIS DEFINITION HERE
       buildFirefoxXpiAddon = lib.makeOverridable (
         {
           stdenv ? pkgs.stdenv,
@@ -47,12 +44,10 @@ delib.module {
         }
       );
 
-      # 🌟 NOW the call will work because 'buildFirefoxXpiAddon' is defined above
       addons = pkgs.callPackage inputs.firefox-addons {
         buildMozillaXpiAddon = buildFirefoxXpiAddon;
       };
     in
-
     {
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)

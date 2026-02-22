@@ -1,17 +1,14 @@
-{
-  delib,
-  config,
-  lib,
-  ...
+{ delib
+, config
+, lib
+, ...
 }:
 delib.module {
   name = "programs.zsh";
 
   home.always =
-    {
-      cfg,
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
       currentShell = myconfig.constants.shell or "bash";
@@ -25,9 +22,6 @@ delib.module {
 
         sessionVariables = { };
 
-        # -----------------------------------------------------------------------
-        # ⌨️ SHELL ALIASES
-        # -----------------------------------------------------------------------
         shellAliases =
           let
             flakeDir = "~/nixOS";
@@ -133,9 +127,6 @@ delib.module {
         history.size = 10000;
         history.path = "${config.xdg.dataHome}/zsh/history";
 
-        # -----------------------------------------------------
-        # ⚙️ SHELL INITIALIZATION
-        # -----------------------------------------------------
         initExtra = ''
             # 1. FIX HYPRLAND SOCKET (Dynamic Update)
             if [ -d "/run/user/$(id -u)/hypr" ];
@@ -154,15 +145,13 @@ delib.module {
             fi
 
             # 3. TMUX AUTOSTART (Only in GUI)
-            # Ensure we are in a GUI before starting tmux automatically
             if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
               tmux new-session -A -s main
             fi
 
             # 4. UWSM STARTUP (Universal & Safe)
-            # Guard: Only run if on physical TTY1 AND no graphical session is active.
             if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
-                
+
                 # Check if uwsm is installed and ready (Safe for KDE/GNOME-only builds)
                 if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
                     exec systemd-cat -t uwsm_start uwsm start default
@@ -177,13 +166,13 @@ delib.module {
               echo "Which config? (1=home, 2=root)"
               read "k?Selection: "
               if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
-              
+
               echo "Listing snapshots for $CFG..."
               sudo snapper -c "$CFG" list
-              
+
               echo ""
               read "ID?Enter Snapshot ID to LOCK: "
-              
+
               if [[ -n "$ID" ]]; then
                  sudo snapper -c "$CFG" modify -c "" "$ID"
                  echo "✅ Snapshot #$ID in '$CFG' is now LOCKED (won't be deleted)."
@@ -195,13 +184,13 @@ delib.module {
               echo "Which config? (1=home, 2=root)"
               read "k?Selection: "
               if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
-              
+
               echo "Listing snapshots for $CFG..."
               sudo snapper -c "$CFG" list
-              
+
               echo ""
               read "ID?Enter Snapshot ID to UNLOCK: "
-              
+
               if [[ -n "$ID" ]]; then
                  sudo snapper -c "$CFG" modify -c "timeline" "$ID"
                  echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED (timeline cleanup enabled)."
@@ -214,10 +203,10 @@ delib.module {
           # -----------------------------------------------------------------------
           function _snap_create() {
             local config_name=$1
-            
+
             echo -n "📝 Enter snapshot description: "
             read description
-            
+
             if [ -z "$description" ]; then
               echo "❌ Description cannot be empty."
               return 1
@@ -260,7 +249,7 @@ delib.module {
             fi
 
             local args=""
-            
+
             # 2. Handle GitHub Archives
             if [[ "$url" == https://github.com/* ]]; then
               if [[ "$url" == */commit/* ]]; then

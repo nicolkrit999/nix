@@ -1,21 +1,16 @@
-{
-  delib,
-  lib,
-  pkgs,
-  inputs, # Added inputs here so it can be used in the let block
-  config,
-  ...
+{ delib
+, pkgs
+, inputs
+, ...
 }:
 delib.module {
-  name = "programs.niri"; # Changed name to match the actual content
+  name = "programs.niri";
 
   home.ifEnabled =
-    {
-      cfg,
-      parent,
-      myconfig,
-      ...
-    }: # Corrected: added the lambda required by delib
+    { parent
+    , myconfig
+    , ...
+    }:
     let
       spawnApp =
         app:
@@ -53,8 +48,6 @@ delib.module {
     {
 
       programs.niri.settings.binds = {
-        # The actual configuration goes here
-
         # -----------------------------------------------------------------------
         # 🚀 APPLICATIONS
         # -----------------------------------------------------------------------
@@ -90,7 +83,6 @@ delib.module {
         "Mod+K".action.focus-window-up = [ ];
         "Mod+Down".action.focus-window-down = [ ];
         "Mod+J".action.focus-window-down = [ ];
-
         "Mod+Shift+Left".action.move-column-left = [ ];
         "Mod+Shift+H".action.move-column-left = [ ];
         "Mod+Shift+Right".action.move-column-right = [ ];

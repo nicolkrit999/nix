@@ -1,4 +1,4 @@
-{ delib, lib, ... }:
+{ delib, ... }:
 delib.module {
   name = "services.tailscale";
   options.services.tailscale = with delib; {
@@ -9,7 +9,7 @@ delib.module {
     services.tailscale.enable = true;
 
     networking.firewall = {
-      allowedUDPPorts = [ 41641 ]; # Default Tailscale port
+      allowedUDPPorts = [ 41641 ];
       trustedInterfaces = [ "tailscale0" ];
       checkReversePath = "loose"; # Strict reverse path filtering breaks VPNs
     };

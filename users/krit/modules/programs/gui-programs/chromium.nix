@@ -6,7 +6,6 @@ delib.module {
   };
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
     {
       programs.chromium = {
         enable = true;

@@ -9,6 +9,7 @@ delib.module {
         "flakes"
       ];
       auto-optimise-store = true;
+      # TODO: check if needed due to the user of cachix
       substituters = [
         "https://hyprland.cachix.org"
         "https://cosmic.cachix.org"

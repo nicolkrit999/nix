@@ -3,16 +3,13 @@ delib.module {
   name = "env";
 
   nixos.always =
-    { cfg, myconfig, ... }:
-
+    { myconfig, ... }:
     let
-
       safeBrowser = myconfig.constants.browser or "firefox";
       safeTerm = myconfig.constants.terminal or "alacritty";
       safeEditor = myconfig.constants.editor or "vscode";
 
-      # Translation layer for editor commands with necessary flags
-      # It may be necessary to add more editors and their flags here
+      # Add more if needed
       editorFlags = {
         "code" = "code --wait";
         "vscode" = "code --wait";
@@ -25,20 +22,15 @@ delib.module {
         "vim" = "vim";
       };
 
-      # Select the correct command, or default to the name itself if unknown
       finalEditor = editorFlags.${safeEditor} or safeEditor;
     in
     {
-
       environment.localBinInPath = true;
 
       environment.sessionVariables = {
         BROWSER = safeBrowser;
-
         TERMINAL = safeTerm;
-
         EDITOR = finalEditor;
-
         XDG_BIN_HOME = "$HOME/.local/bin";
       };
     };

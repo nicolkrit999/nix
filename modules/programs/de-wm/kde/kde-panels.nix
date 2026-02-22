@@ -1,16 +1,15 @@
-{
-  delib,
-  lib,
-  ...
+# Configure taskbar and panels using the community "plasma-manager" flake
+{ delib
+, lib
+, ...
 }:
 delib.module {
   name = "programs.kde";
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
     let
       primaryMonitorStr =
@@ -49,7 +48,6 @@ delib.module {
                 };
               };
             }
-
             {
               name = "org.kde.plasma.icontasks";
               config = lib.mkIf hasPins {
@@ -58,7 +56,6 @@ delib.module {
                 };
               };
             }
-
             "org.kde.plasma.pager"
             "org.kde.plasma.panelspacer"
             "org.kde.plasma.systemtray"

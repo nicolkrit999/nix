@@ -1,9 +1,7 @@
-{
-  delib,
-  pkgs,
-  lib,
-  config,
-  ...
+{ delib
+, lib
+, config
+, ...
 }:
 delib.module {
   name = "programs.waybar";
@@ -12,16 +10,15 @@ delib.module {
     with delib;
     moduleOptions {
       enable = boolOption true;
-      waybarLayout = attrsOption { }; # 🌟 Moved here
-      waybarWorkspaceIcons = attrsOption { }; # 🌟 Moved here
+      waybarLayout = attrsOption { };
+      waybarWorkspaceIcons = attrsOption { };
     };
 
   home.ifEnabled =
-    {
-      cfg,
-      parent,
-      myconfig,
-      ...
+    { cfg
+    , parent
+    , myconfig
+    , ...
     }:
     let
       c = config.lib.stylix.colors.withHashtag;
@@ -45,7 +42,7 @@ delib.module {
       '';
 
       cssContent = builtins.readFile ./style.css;
-      # 1. Hyprland logic: Show Waybar if no custom shell is set
+      # 1. hyprland logic: show waybar if no custom shell is set
       hyprlandWaybar =
         (parent.hyprland.enable or false)
         && !((parent.caelestia.enableOnHyprland or false) || (parent.noctalia.enableOnHyprland or false));
@@ -127,7 +124,6 @@ delib.module {
 
             "niri/language" = {
               format = "{}";
-              # This command cycles to the next configured layout in Niri
               on-click = "niri msg action switch-layout-next";
             }
 
@@ -196,7 +192,6 @@ delib.module {
               };
             };
 
-            # General app tray settings
             "tray" = {
               icon-size = 20;
               spacing = 8;

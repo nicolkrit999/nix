@@ -1,8 +1,7 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "krit.programs.pwas";
@@ -11,12 +10,7 @@ delib.module {
   };
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
-
     let
-      # ---------------------------------------------------------
-      # 🛠️ HELPER FUNCTION
-      # ---------------------------------------------------------
       makeBravePwa = name: url: icon: startupClass: {
         name = "pwa-${builtins.replaceStrings [ " " ] [ "-" ] (lib.toLower name)}";
         value = {
@@ -46,6 +40,7 @@ delib.module {
       };
 
       # Custom icons
+
       # Notion
       notionIconFile = pkgs.fetchurl {
         url = "https://upload.wikimedia.org/wikipedia/commons/e/e9/Notion-logo.svg";
@@ -121,8 +116,8 @@ delib.module {
         (makeBravePwa "Reddit" "https://www.reddit.com/" "internet-news-reader"
           "brave-www.reddit.com__-Default"
         )
-
         # Entertainments
+
       ];
     };
 }

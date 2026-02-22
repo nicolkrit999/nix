@@ -1,6 +1,5 @@
 {
   delib,
-  lib,
   pkgs,
   inputs,
   ...
@@ -11,18 +10,14 @@ delib.module {
     enable = boolOption false;
   };
 
-  # 🌟 THE FIX: The hook is now a function that requests what it needs
   home.ifEnabled =
     {
-      cfg,
       myconfig,
       ...
     }:
     let
-      # 🌟 THE FIX: Safely construct the home directory using your constants
       homeDir = "/home/${myconfig.constants.user}";
 
-      # 🌟 THE FIX: Moved the massive string inside the hook so it only evaluates if enabled
       placesXml = ''
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE xbel>
@@ -79,8 +74,6 @@ delib.module {
         Plugins=dolphingitplugin,audiothumbnail,blenderthumbnail,comicbookthumbnail,cursorthumbnail,djvuthumbnail,ebookthumbnail,exrthumbnail,directorythumbnail,fontthumbnail,imagethumbnail,jpegthumbnail,kraorauthmubnail,malthumbnail,mdthumbnail,mobithumbnail,mp3thumbnail,opendocumentthumbnail,palapeli_thumbnailer,pdfthumbnail,rawthumbnail,svgthumbnail,texthumbnail,ffmpegthumbs,videothumbnail,windowsimagethumbnail
       '';
 
-      # 🌟 THE FIX: Updated to use the safe 'homeDir' variable
-      # 🌟 THE FIX: Call the hm library directly from inputs
       home.activation.createDolphinPlaces =
         inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ]
           ''

@@ -1,4 +1,4 @@
-{ delib, lib, ... }:
+{ delib, ... }:
 delib.module {
   name = "programs.git";
   options =
@@ -22,7 +22,7 @@ delib.module {
           "*.swp"
           ".DS_Store"
         ]
-        ++ cfg.customGitIgnores; # 🌟 Read from cfg
+        ++ cfg.customGitIgnores;
 
         settings = {
           user = {

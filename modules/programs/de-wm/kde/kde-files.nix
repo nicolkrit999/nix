@@ -1,15 +1,13 @@
-{
-  delib,
-  ...
+# configure Low-level access to changing Plasma settings using the community "plasma-manager" flake
+{ delib
+, ...
 }:
 delib.module {
   name = "programs.kde";
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     {
       programs.plasma.overrideConfig = false;

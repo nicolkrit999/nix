@@ -1,15 +1,14 @@
-{
-  delib,
-  lib,
-  config,
-  ...
+{ delib
+, lib
+, config
+, ...
 }:
 delib.module {
   name = "krit.services.nas.desktop-borg-backup";
   options.krit.services.nas.desktop-borg-backup = with delib; {
     enable = boolOption false;
-    passphraseFile = strOption ""; # 🌟 Receiver Option
-    sshKeyPath = strOption ""; # 🌟 Receiver Option
+    passphraseFile = strOption "";
+    sshKeyPath = strOption "";
   };
 
   nixos.ifEnabled =

@@ -1,25 +1,21 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "programs.tmux";
   options = delib.singleEnableOption false;
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     {
       # -----------------------------------------------------------------------
-      # 🎨 CATPPUCCIN THEME
-      # -----------------------------------------------------------------------
       catppuccin.tmux.enable = myconfig.constants.theme.catppuccin or false;
       catppuccin.tmux.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
+      # -----------------------------------------------------------------------
 
       catppuccin.tmux.extraConfig = lib.mkIf myconfig.constants.theme.catppuccin ''
         set -g @catppuccin_window_status_style "rounded"
@@ -36,7 +32,7 @@ delib.module {
         terminal = "screen-256color";
 
         extraConfig = ''
-          # YAZI IMAGE PREVIEW SUPPORT
+          # TERMINAL FILE MANAGERS IMAGE PREVIEW SUPPORT
           set -g allow-passthrough on
           set -ga update-environment TERM
           set -ga update-environment TERM_PROGRAM
@@ -50,7 +46,7 @@ delib.module {
 
           # --- CUSTOM BINDINGS (Alt/Meta based) ---
           bind -n M-r source-file ~/.config/tmux/tmux.conf \; display "Reloaded!"
-          bind C-p previous-window 
+          bind C-p previous-window
           bind C-n next-window
 
           # Window Navigation
@@ -90,9 +86,6 @@ delib.module {
           bind -n M-q kill-window
           bind -n M-Q kill-session
         '';
-        plugins = with pkgs; [
-          # plugins...
-        ];
       };
     };
 }

@@ -1,8 +1,6 @@
-{
-  delib,
-  lib,
-  pkgs,
-  ...
+{ delib
+, lib
+, ...
 }:
 delib.module {
   name = "boot";
@@ -19,7 +17,7 @@ delib.module {
         device = "nodev";
         efiSupport = true;
         useOSProber = true;
-        extraGrubInstallArgs = [ "--bootloader-id=nixos" ];
+        extraGrubInstallArgs = [ "--bootloader-id=nixos" ]; # TODO: check if really needed
 
         extraEntries = ''
           menuentry "UEFI Firmware Settings" {

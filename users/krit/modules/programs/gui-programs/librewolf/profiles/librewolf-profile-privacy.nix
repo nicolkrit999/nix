@@ -1,9 +1,7 @@
 {
-  pkgs,
   addons,
   searchConfig,
   commonSettings,
-  inputs ? { },
   ...
 }:
 {

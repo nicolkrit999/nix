@@ -1,3 +1,5 @@
+# Install home-manager related packages for every host
+# Not enabling it breaks the logic that automatically install the terminal, browser, file manager and editor depending on host-specific constants
 {
   delib,
   pkgs,
@@ -12,9 +14,8 @@ delib.module {
     enable = boolOption true;
   };
 
-  # 🌟 THE FIX: Use 'nixos.ifEnabled' so standard options like 'environment' work.
   nixos.ifEnabled =
-    { cfg, myconfig, ... }: # 🌟 Keep 'nixos' as the variable name for your logic.
+    { myconfig, ... }:
     let
       # 🔄 TRANSLATION LAYER
       translatedEditor =
@@ -53,10 +54,10 @@ delib.module {
     in
     {
 
-      # Now that we are in a 'nixos' hook, 'environment' is a valid top-level option.
       environment.systemPackages =
         let
           # ✅ This checks if a NixOS module is already handling the program
+          # If the host has enabled a module in this way then it's not installed from this file to avoid evaluations errors due to duplicates
           isModuleEnabled = name: lib.attrByPath [ "programs" name "enable" ] false config;
         in
         (lib.optional (!isModuleEnabled termName) myTermPkg)

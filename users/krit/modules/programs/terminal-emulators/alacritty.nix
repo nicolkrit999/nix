@@ -1,7 +1,6 @@
 {
   delib,
   lib,
-  config,
   ...
 }:
 delib.module {
@@ -11,7 +10,7 @@ delib.module {
   };
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
+    { myconfig, ... }:
     let
       enabledMonitors = builtins.filter (
         m: builtins.match ".*disable.*" m == null

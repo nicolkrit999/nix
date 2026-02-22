@@ -1,19 +1,17 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+# "Multi functional app to find duplicates, empty folders, similar images etc. "
+# Reference: https://github.com/qarmin/czkawka
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "krit-krokiet";
 
-  # Define a toggle for the package
   options.krit.programs.krokiet.enable = delib.boolOption true;
 
   home.ifEnabled =
     { ... }:
-    # "Multi functional app to find duplicates, empty folders, similar images etc. "
-    # Reference: https://github.com/qarmin/czkawka
     let
       runtimeLibs = with pkgs; [
         glib

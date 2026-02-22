@@ -22,7 +22,6 @@ delib.module {
         #,preferred,auto,1
       ];
 
-      # modules/config/constants.nix
       wallpapers =
         listOfOption
           (submodule {
@@ -32,8 +31,6 @@ delib.module {
             };
           })
           [
-            # 🌟 THIS IS THE FALLBACK!
-            # If default.nix provides no wallpapers, it will use this Nix Catppuccin one.
             {
               wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/zhichaoh-catppuccin-wallpapers-main/os/nix-black-4k.png";
               wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
@@ -60,8 +57,8 @@ delib.module {
       cachix = {
         enable = boolOption false;
         push = boolOption false;
-        name = strOption "krit-nixos";
-        publicKey = strOption "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
+        name = strOption "krit-nixos"; # Allow general users to use my custom cachix cache. Change if needed
+        publicKey = strOption "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks="; # Public key of the krit cachix cache, change as needd
       };
     };
 

@@ -2,16 +2,14 @@
 delib.module {
   name = "home-manager";
 
-  # 🌟 Use 'nixos.always' so the 'home-manager' option is at the system root
   nixos.always =
-    { cfg, myconfig, ... }:
+    { myconfig, ... }:
     {
 
       home-manager = {
         useGlobalPkgs = false;
         useUserPackages = true;
 
-        # 🌟 THE FIX: Filter inputs to prevent the 'armv5tel' evaluation crash
         extraSpecialArgs = {
           inherit myconfig;
           inputs = {

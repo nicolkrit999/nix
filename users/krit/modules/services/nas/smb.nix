@@ -1,15 +1,14 @@
-{
-  delib,
-  pkgs,
-  lib,
-  config,
-  ...
+{ delib
+, pkgs
+, lib
+, config
+, ...
 }:
 delib.module {
   name = "krit.services.nas.smb";
   options.krit.services.nas.smb = with delib; {
     enable = boolOption false;
-    credentialsFile = strOption ""; # 🌟 Receiver Option
+    credentialsFile = strOption "";
   };
 
   nixos.ifEnabled =
@@ -38,7 +37,7 @@ delib.module {
             device = "//${nasIP}/${shareName}";
             fsType = "cifs";
             options = [
-              "credentials=${cfg.credentialsFile}" # 🌟 Read from Option
+              "credentials=${cfg.credentialsFile}"
               "file_mode=0777"
               "dir_mode=0777"
               "nounix"

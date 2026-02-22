@@ -1,26 +1,19 @@
-{
-  delib,
-  inputs,
-  lib,
-  config,
-  pkgs,
-  ...
+{ delib
+, inputs
+, config
+, pkgs
+, ...
 }:
 delib.module {
   name = "programs.walker";
   options = delib.singleEnableOption false;
 
-  # FIX: Fix evaluation warnings
 
   home.ifEnabled =
-    {
-      cfg,
-      parent,
-      myconfig,
-      ...
+    { parent
+    , ...
     }:
     let
-      # 🧠 THE MASTER SWITCH LOGIC
       hyprlandWantsWaybar =
         (parent.hyprland.enable or false)
         && !(parent.caelestia.enableOnHyprland or false)
@@ -33,10 +26,8 @@ delib.module {
 
     in
     {
-      # Enable the actual Home Manager waybar module dynamically
       programs.waybar.enable = shouldRunWaybar;
 
-      # Only enable the systemd service if shouldRunWaybar is true
       programs.waybar.systemd.enable = shouldRunWaybar;
 
       imports = [ inputs.walker.homeManagerModules.default ];

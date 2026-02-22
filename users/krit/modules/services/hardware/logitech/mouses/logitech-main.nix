@@ -6,7 +6,6 @@ delib.module {
   };
 
   nixos.ifEnabled =
-    { cfg, myconfig, ... }:
     {
 
       environment.systemPackages = with pkgs; [
@@ -32,13 +31,5 @@ delib.module {
           RestartSec = "3s";
         };
       };
-
-      # Auto-Restart logid ONLY when MX Master connects
-      /*
-        services.udev.extraRules = ''
-          ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c548", RUN+="${pkgs.systemd}/bin/systemctl restart logid.service"
-        '';
-      */
-
     };
 }

@@ -1,19 +1,13 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, ...
 }:
 delib.module {
   name = "programs.hyprland";
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , ...
     }:
     {
-
       wayland.windowManager.hyprland.settings = {
         bind = [
           # BASIC WINDOW MANAGEMENT
@@ -27,14 +21,8 @@ delib.module {
           "$Mod,       A, exec, $menu" # Application launcher (walker)
           "$Mod SHIFT, A, exec, $shellMenu" # Shell Specific launcher (Noctalia / Caelestia)
           "$Mod, return, exec, $terminal" # Default terminal chosen in ./main.nix
-
-          # FILE MANAGER
           "$Mod,       F, exec, $fileManager"
-
-          # WEB BROWSER
           "$Mod,       B, exec, $browser" # Web browser
-
-          # FILE EDITOR
           "$Mod, C, exec, $editor" # Code editor
 
           # SESSION MANAGEMENT

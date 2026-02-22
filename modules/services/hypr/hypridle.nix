@@ -1,9 +1,8 @@
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  ...
+{ delib
+, inputs
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "services.hypridle";
@@ -16,10 +15,9 @@ delib.module {
   };
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
     let
       noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -39,7 +37,6 @@ delib.module {
         fi
       '';
 
-      # 🛠️ FIX: Removed .constants to check the actual host config
       isWmEnabled =
         (myconfig.programs.hyprland.enable or false) || (myconfig.programs.niri.enable or false);
     in
@@ -59,7 +56,6 @@ delib.module {
 
           listener = [
             {
-              # 🛠️ FIX: Use cfg to grab from default.nix OR fallback
               timeout = cfg.dimTimeout;
               on-timeout = "brightnessctl -s set 10";
               on-resume = "brightnessctl -r";

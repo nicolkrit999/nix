@@ -1,9 +1,8 @@
-{
-  delib,
-  pkgs,
-  lib,
-  inputs,
-  ...
+{ delib
+, pkgs
+, lib
+, inputs
+, ...
 }:
 delib.module {
   name = "krit.programs.librewolf";
@@ -12,24 +11,20 @@ delib.module {
   };
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
-      # 🌟 ADD THIS DEFINITION HERE
       buildFirefoxXpiAddon = lib.makeOverridable (
-        {
-          stdenv ? pkgs.stdenv,
-          fetchurl ? pkgs.fetchurl,
-          pname,
-          version,
-          addonId,
-          url,
-          sha256,
-          meta,
-          ...
+        { stdenv ? pkgs.stdenv
+        , fetchurl ? pkgs.fetchurl
+        , pname
+        , version
+        , addonId
+        , url
+        , sha256
+        , meta
+        , ...
         }:
         stdenv.mkDerivation {
           name = "${pname}-${version}";
@@ -46,7 +41,6 @@ delib.module {
         }
       );
 
-      # 🌟 NOW the call will work because 'buildFirefoxXpiAddon' is defined above
       addons = pkgs.callPackage inputs.firefox-addons {
         buildMozillaXpiAddon = buildFirefoxXpiAddon;
       };
@@ -124,13 +118,13 @@ delib.module {
         ];
         engines = {
           "kagi" = {
-            urls = [ { template = "https://kagi.com/search?q={searchTerms}"; } ];
+            urls = [{ template = "https://kagi.com/search?q={searchTerms}"; }];
             icon = "https://kagi.com/favicon.ico";
             updateInterval = 24 * 60 * 60 * 1000;
             definedAliases = [ "@k" ];
           };
           "perplexity" = {
-            urls = [ { template = "https://www.perplexity.ai/search?q={searchTerms}"; } ];
+            urls = [{ template = "https://www.perplexity.ai/search?q={searchTerms}"; }];
             icon = "https://www.perplexity.ai/favicon.ico";
             updateInterval = 24 * 60 * 60 * 1000;
             definedAliases = [ "@p" ];
@@ -290,18 +284,20 @@ delib.module {
       programs.librewolf = {
         enable = true;
 
-        package = pkgs.lib.makeOverridable (
-          _args:
-          pkgs.writeShellScriptBin "librewolf" ''
-            set -eu
-            export MOZ_APP_DISTRIBUTION="${policyRoot}"
+        package = pkgs.lib.makeOverridable
+          (
+            _args:
+            pkgs.writeShellScriptBin "librewolf" ''
+              set -eu
+              export MOZ_APP_DISTRIBUTION="${policyRoot}"
 
-            # fail loudly if policies aren’t there (no silent “nothing”)
-            test -f "${policyRoot}/distribution/policies.json"
+              # fail loudly if policies aren’t there (no silent “nothing”)
+              test -f "${policyRoot}/distribution/policies.json"
 
-            exec ${pkgs.librewolf}/bin/librewolf "$@"
-          ''
-        ) { };
+              exec ${pkgs.librewolf}/bin/librewolf "$@"
+            ''
+          )
+          { };
 
         profiles = {
           default = (

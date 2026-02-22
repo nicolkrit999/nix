@@ -1,20 +1,15 @@
-{
-  delib,
-  lib,
-  config,
-  ...
+{ delib
+, lib
+, ...
 }:
 delib.module {
   name = "programs.bash";
 
   home.always =
-    {
-      cfg,
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
-      # Use the constant exactly as the original file did
       currentShell = myconfig.constants.shell or "zsh";
     in
     lib.mkIf (currentShell == "bash") {
@@ -22,9 +17,7 @@ delib.module {
         enable = true;
         enableCompletion = true;
 
-        # -----------------------------------------------------------------------
-        # ⌨️ ALIASES
-        # -----------------------------------------------------------------------
+        # TODO: create a single "shell-aliases.nix" file for fish.nix bash.nix and zsh.nix and import it in all 3 so it's enough to change them only one time
         shellAliases =
           let
             flakeDir = "~/nixOS";
@@ -47,13 +40,10 @@ delib.module {
               else
                 "nh os boot --update ${flakeDir}";
 
-            # This wrap recognize if the current host is the "builder", allowing uploads
-            # This wrap recognize if the current host is the "builder", allowing uploads
             wrapCachix =
               cmd:
               if (myconfig.cachix.enable or false) && (myconfig.cachix.push or false) then
                 let
-                  # Safely resolve the Cachix name using the same logic as cachix.nix
                   cName =
                     if myconfig.cachix.name == "use-constant" then
                       myconfig.constants.cachix.name
@@ -64,13 +54,11 @@ delib.module {
               else
                 cmd;
 
-            # wrappped commands
             switchCmd = wrapCachix baseSwitchCmd;
             updateCmd = wrapCachix baseUpdateCmd;
             updateBoot = wrapCachix baseBootCmd;
           in
           {
-            # Smart aliases based on nixImpure setting
             sw = "cd ${flakeDir} && ${switchCmd}";
             swsrc = "cd ${flakeDir} && ${switchCmd} --option substitute false";
             tswsrc = "cd ${flakeDir} && time ${switchCmd} --option substitute false";
@@ -125,13 +113,9 @@ delib.module {
             swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
           };
 
-        # -----------------------------------------------------
-        # ⚙️ INITIALIZATION
-        # -----------------------------------------------------
         initExtra = ''
           # 1. FIX HYPRLAND SOCKET
           if [ -d "/run/user/$(id -u)/hypr" ]; then
-            # Use find to locate the specific socket file and extract the signature
             SOCKET_FILE=$(find /run/user/$(id -u)/hypr/ -name ".socket.sock" -print -quit)
             if [ -n "$SOCKET_FILE" ]; then
               export HYPRLAND_INSTANCE_SIGNATURE=$(basename $(dirname "$SOCKET_FILE"))
@@ -215,7 +199,6 @@ delib.module {
               url="''${url/\/blob\//\/}"
               echo "🔄 Converted Github Blob to Raw"
             fi
-
             local args=""
 
             # 2. Handle GitHub Archives

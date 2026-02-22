@@ -1,9 +1,8 @@
-{
-  delib,
-  config,
-  pkgs,
-  lib,
-  ...
+{ delib
+, config
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "guest";
@@ -15,7 +14,7 @@ delib.module {
     let
       guestUid = 2000;
 
-      # 🛡️ THE MONITOR SCRIPT
+      # 🛡️ THE MONITOR SCRIPT (reboot if on non-XFCE session)
       guestMonitorScript = pkgs.writeShellScriptBin "guest-monitor" ''
         # Safety check: Only run for guest
         if [ "$USER" != "guest" ]; then exit 0; fi
@@ -56,7 +55,6 @@ delib.module {
       '';
     in
     {
-
       users.users.guest = {
         isNormalUser = true;
         description = "Guest Account";
@@ -89,7 +87,7 @@ delib.module {
       systemd.tmpfiles.rules = [
         "d /var/lib/AccountsService/users 0755 root root -"
         "f /var/lib/AccountsService/users/guest 0644 root root - [User]\\nSession=xfce\\n"
-        "f /home/.hidden 0644 root root - guest" # Hide the gues folder from file managers if the user is not guest
+        "f /home/.hidden 0644 root root - guest" # Hide the guest folder from file managers if the user is not guest
       ];
 
       # 🖥️ DESKTOP ENVIRONMENT
@@ -104,14 +102,13 @@ delib.module {
             DisableTelemetry = true;
           };
         })
-        iptables
+        iptables # Firewall management (for the enforcement script)
         file-roller # Archive manager
         zenity # keep for the startup warning
       ];
 
       environment.xfce.excludePackages = [ pkgs.xfce.parole ];
 
-      # ⚠️ UNIVERSAL AUTOSTART MONITOR
       environment.etc."xdg/autostart/guest-monitor.desktop".text = ''
         [Desktop Entry]
         Name=Guest Session Monitor

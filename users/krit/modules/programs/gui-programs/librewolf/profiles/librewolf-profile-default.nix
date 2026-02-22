@@ -1,5 +1,4 @@
 {
-  pkgs,
   addons,
   searchConfig,
   commonSettings,

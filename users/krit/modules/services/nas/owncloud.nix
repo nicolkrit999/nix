@@ -1,14 +1,13 @@
-{
-  delib,
-  lib,
-  config,
-  ...
+{ delib
+, lib
+, config
+, ...
 }:
 delib.module {
   name = "krit.services.nas.owncloud";
   options.krit.services.nas.owncloud = with delib; {
     enable = boolOption false;
-    secretsFile = strOption ""; # 🌟 Receiver Option for the template
+    secretsFile = strOption "";
   };
 
   nixos.ifEnabled =

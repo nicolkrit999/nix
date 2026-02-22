@@ -1,20 +1,12 @@
-{
-  delib,
-  lib,
-
-  ...
+# Configure kde plasma desktop appearance using the community "plasma-manager" flake
+{ delib
+, ...
 }:
 delib.module {
   name = "programs.kde";
 
   home.ifEnabled =
     {
-      cfg,
-      myconfig,
-      ...
-    }:
-    {
-
       programs.plasma.desktop = {
         mouseActions = {
           # Right Click -> Context Menu
@@ -24,7 +16,6 @@ delib.module {
           # Middle Click -> Paste (Standard Linux behavior)
           middleClick = "paste";
         };
-        # ICONS
         icons = {
           arrangement = "topToBottom";
           alignment = "left";

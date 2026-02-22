@@ -1,4 +1,4 @@
-{ delib, pkgs, ... }:
+{ delib, ... }:
 delib.module {
   name = "krit.programs.yazi";
 
@@ -436,12 +436,12 @@ delib.module {
             desc = "Create a new tab with CWD";
           }
           {
-            on = [ "1" ];
+            on = [ "<A-1>" ];
             run = "tab_switch 0";
             desc = "Switch to first tab";
           }
           {
-            on = [ "2" ];
+            on = [ "<A-2>" ];
             run = "tab_switch 1";
             desc = "Switch to second tab";
           }

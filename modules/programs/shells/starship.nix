@@ -1,22 +1,16 @@
-{
-  delib,
-  lib,
-  config,
-  ...
+{ delib
+, config
+, ...
 }:
 delib.module {
   name = "programs.starship";
   options = delib.singleEnableOption false;
 
   home.ifEnabled =
-    {
-
-      cfg,
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
-      # 🛡️ SAFE FALLBACKS
       isCatppuccin = myconfig.constants.theme.catppuccin or false;
       currentShell = myconfig.constants.shell or "zsh";
 
@@ -31,14 +25,9 @@ delib.module {
     in
     {
       # -----------------------------------------------------------------------
-      # 🎨 CATPPUCCIN THEME
-      # -----------------------------------------------------------------------
       catppuccin.starship.enable = isCatppuccin;
       catppuccin.starship.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
 
-      # -----------------------------------------------------------------------
-      # 🚀 STARSHIP CONFIGURATION
-      # -----------------------------------------------------------------------
       programs.starship = {
         enable = true;
         enableZshIntegration = currentShell == "zsh";
@@ -48,34 +37,22 @@ delib.module {
         settings = {
           add_newline = true;
 
-          # -----------------------------------------------------
-          # 👤 HOSTNAME
-          # -----------------------------------------------------
           hostname = {
             ssh_only = false;
             format = "[$ssh_symbol$hostname]($style) ";
             style = "bold ${mainColor}";
           };
 
-          # -----------------------------------------------------
-          # 👤 USER
-          # -----------------------------------------------------
           username = {
             show_always = true;
             format = "[$user](bold ${mainColor})@";
           };
 
-          # -----------------------------------------------------
-          # ⚡ COMMAND SYMBOLS
-          # -----------------------------------------------------
           character = {
             success_symbol = "[ & ](bold ${successColor})";
             error_symbol = "[ & ](bold ${errorColor})";
           };
 
-          # -----------------------------------------------------
-          # 📁 DIRECTORY
-          # -----------------------------------------------------
           directory = {
             read_only = " 🔒";
             truncation_symbol = "…/";

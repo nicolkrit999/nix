@@ -6,10 +6,8 @@ delib.module {
   };
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     {
 
@@ -22,9 +20,6 @@ delib.module {
       programs.zathura = {
         enable = true;
 
-        # -----------------------------------------------------
-        # ⌨️ KEY MAPPINGS
-        # -----------------------------------------------------
         mappings = {
           # Standard Vim Scrolling
           j = "scroll down";
@@ -49,9 +44,6 @@ delib.module {
           D = "toggle_page_mode";
         };
 
-        # -----------------------------------------------------
-        # ⚙️ OPTIONS
-        # -----------------------------------------------------
         options = {
           font = "JetBrains Mono Bold 16";
 

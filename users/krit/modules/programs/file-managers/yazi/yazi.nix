@@ -2,7 +2,6 @@
   delib,
   pkgs,
   lib,
-  config,
   ...
 }:
 delib.module {
@@ -13,7 +12,6 @@ delib.module {
 
   home.ifEnabled =
     {
-      cfg,
       myconfig,
       ...
     }:

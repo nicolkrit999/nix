@@ -1,4 +1,4 @@
-{ delib, pkgs, ... }:
+{ delib, ... }:
 delib.module {
   name = "krit.programs.yazi";
 
@@ -20,10 +20,10 @@ delib.module {
         end
 
         -- 2. Relative Motions (Vim style motions)
-        require("relative-motions"):setup({ 
-            show_numbers = "relative", 
-            show_motion = true, 
-            enter_mode = "first" 
+        require("relative-motions"):setup({
+            show_numbers = "relative",
+            show_motion = true,
+            enter_mode = "first"
         })
 
         -- 3. Recycle Bin

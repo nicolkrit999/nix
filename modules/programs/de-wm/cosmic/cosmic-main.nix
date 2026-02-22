@@ -1,26 +1,27 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "programs.cosmic";
   options = delib.singleEnableOption false;
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
+    { myconfig, ... }:
     let
       activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
       monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
 
-      wallpaperFiles = map (
-        wp:
-        "${pkgs.fetchurl {
+      wallpaperFiles = map
+        (
+          wp:
+          "${pkgs.fetchurl {
           url = wp.wallpaperURL;
           sha256 = wp.wallpaperSHA256;
         }}"
-      ) myconfig.constants.wallpapers;
+        )
+        myconfig.constants.wallpapers;
 
       # If there are more monitors than wallpapers, reuse the last wallpaper
       getWallpaper =
@@ -31,14 +32,15 @@ delib.module {
           lib.last wallpaperFiles;
 
       monitorConfig = lib.concatStringsSep "\n" (
-        lib.lists.imap0 (i: port: ''
-          [output."${port}"]
-          source = "Path"
-          image = "${getWallpaper i}"
-          filter_by_theme = false
-        '') monitorPorts
+        lib.lists.imap0
+          (i: port: ''
+            [output."${port}"]
+            source = "Path"
+            image = "${getWallpaper i}"
+            filter_by_theme = false
+          '')
+          monitorPorts
       );
-
     in
     {
       # Enable data control for clipboard tools
@@ -47,7 +49,6 @@ delib.module {
       xdg.configFile."cosmic/com.system76.CosmicBackground/v1/all".text = ''
         ${monitorConfig}
 
-        # Fallback for any monitor not explicitly named above
         [output."*"]
         source = "Path"
         image = "${builtins.head wallpaperFiles}"

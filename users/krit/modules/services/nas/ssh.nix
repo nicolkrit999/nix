@@ -1,14 +1,13 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "krit.services.nas.sshfs";
   options.krit.services.nas.sshfs = with delib; {
     enable = boolOption false;
-    identityFile = strOption ""; # 🌟 Receiver Option
+    identityFile = strOption "";
   };
 
   nixos.ifEnabled =
@@ -32,7 +31,7 @@ delib.module {
           "noauto"
           "x-systemd.automount"
           "allow_other"
-          "IdentityFile=${cfg.identityFile}" # 🌟 Read from Option
+          "IdentityFile=${cfg.identityFile}"
           "uid=1000"
           "gid=100"
           "umask=022"

@@ -1,7 +1,6 @@
-{
-  delib,
-  config,
-  ...
+{ delib
+, config
+, ...
 }:
 delib.module {
   name = "krit.programs.yazi";

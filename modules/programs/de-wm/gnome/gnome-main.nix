@@ -1,12 +1,10 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "programs.gnome";
-  # Define the toggle here
   options =
     with delib;
     moduleOptions {
@@ -17,12 +15,10 @@ delib.module {
     };
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
-
     let
       firstWallpaper = builtins.head myconfig.constants.wallpapers;
       wallpaperPath = pkgs.fetchurl {
@@ -38,7 +34,6 @@ delib.module {
       hasPins = builtins.length rawPinnedApps > 0;
     in
     {
-
       home.packages =
         (lib.optionals myconfig.constants.theme.catppuccin [
           (pkgs.catppuccin-gtk.override {

@@ -1,9 +1,8 @@
-{
-  delib,
-  pkgs,
-  lib,
-  config,
-  ...
+{ delib
+, pkgs
+, lib
+, config
+, ...
 }:
 delib.module {
   name = "programs.niri";
@@ -15,10 +14,9 @@ delib.module {
     };
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
     let
       # Styling helper functions
@@ -32,102 +30,78 @@ delib.module {
       };
 
       # Monitor parsing
-      activeMonitors = builtins.filter (
-        m:
-        let
-          parts = lib.splitString "," m;
-        in
-        (builtins.length parts) > 2
-      ) myconfig.constants.monitors;
-
-      monitorSettings = builtins.listToAttrs (
-        map (
+      activeMonitors = builtins.filter
+        (
           m:
           let
             parts = lib.splitString "," m;
-            name = builtins.elemAt parts 0;
-            modeStr = builtins.elemAt parts 1;
-            posStr = builtins.elemAt parts 2;
-            scale = builtins.fromJSON (builtins.elemAt parts 3);
-
-            isAutoPos = posStr == "auto";
-            posParts =
-              if isAutoPos then
-                [
-                  "0"
-                  "0"
-                ]
-              else
-                lib.splitString "x" posStr;
-            posX = lib.toInt (builtins.elemAt posParts 0);
-            posY = lib.toInt (builtins.elemAt posParts 1);
-
-            modeSplit = lib.splitString "@" modeStr;
-            resSplit = lib.splitString "x" (builtins.head modeSplit);
-            width = lib.toInt (builtins.head resSplit);
-            height = lib.toInt (builtins.elemAt resSplit 1);
-            refresh =
-              if (builtins.length modeSplit > 1) then
-                (builtins.fromJSON (builtins.elemAt modeSplit 1)) + 0.0
-              else
-                60.0;
-
-            isRotated = (builtins.length parts > 4) && (builtins.elemAt parts 4 == "transform");
-
-            rotationVal = if isRotated then 90 else 0;
-
-            # App launcher helper functions
-            isTui =
-              app:
-              builtins.elem app [
-                "nvim"
-                "neovim"
-                "vim"
-                "nano"
-                "helix"
-                "yazi"
-                "ranger"
-                "lf"
-                "nnn"
-                "btop"
-                "htop"
-              ];
-
-            spawnApp =
-              app:
-              if isTui app then
-                [
-                  "${myconfig.constants.terminal}"
-                  "-e"
-                  app
-                ]
-              else
-                [ app ];
           in
-          {
-            name = name;
-            value = {
-              mode = {
-                width = width;
-                height = height;
-                refresh = refresh;
-              };
-              scale = scale;
-              position =
+          (builtins.length parts) > 2
+        )
+        myconfig.constants.monitors;
+
+      monitorSettings = builtins.listToAttrs (
+        map
+          (
+            m:
+            let
+              parts = lib.splitString "," m;
+              name = builtins.elemAt parts 0;
+              modeStr = builtins.elemAt parts 1;
+              posStr = builtins.elemAt parts 2;
+              scale = builtins.fromJSON (builtins.elemAt parts 3);
+
+              isAutoPos = posStr == "auto";
+              posParts =
                 if isAutoPos then
-                  null
+                  [
+                    "0"
+                    "0"
+                  ]
                 else
-                  {
-                    x = posX;
-                    y = posY;
-                  };
-              transform = {
-                rotation = rotationVal;
-                flipped = false;
+                  lib.splitString "x" posStr;
+              posX = lib.toInt (builtins.elemAt posParts 0);
+              posY = lib.toInt (builtins.elemAt posParts 1);
+
+              modeSplit = lib.splitString "@" modeStr;
+              resSplit = lib.splitString "x" (builtins.head modeSplit);
+              width = lib.toInt (builtins.head resSplit);
+              height = lib.toInt (builtins.elemAt resSplit 1);
+              refresh =
+                if (builtins.length modeSplit > 1) then
+                  (builtins.fromJSON (builtins.elemAt modeSplit 1)) + 0.0
+                else
+                  60.0;
+
+              isRotated = (builtins.length parts > 4) && (builtins.elemAt parts 4 == "transform");
+
+              rotationVal = if isRotated then 90 else 0;
+            in
+            {
+              name = name;
+              value = {
+                mode = {
+                  width = width;
+                  height = height;
+                  refresh = refresh;
+                };
+                scale = scale;
+                position =
+                  if isAutoPos then
+                    null
+                  else
+                    {
+                      x = posX;
+                      y = posY;
+                    };
+                transform = {
+                  rotation = rotationVal;
+                  flipped = false;
+                };
               };
-            };
-          }
-        ) activeMonitors
+            }
+          )
+          activeMonitors
       );
 
       wallpaper = builtins.head myconfig.constants.wallpapers;
@@ -241,13 +215,15 @@ delib.module {
               ];
             }
           ]
-          ++ (map (cmd: {
-            command = [
-              "bash"
-              "-c"
-              cmd
-            ];
-          }) cfg.execOnce);
+          ++ (map
+            (cmd: {
+              command = [
+                "bash"
+                "-c"
+                cmd
+              ];
+            })
+            cfg.execOnce);
         };
       };
     };

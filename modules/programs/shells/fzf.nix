@@ -5,10 +5,8 @@ delib.module {
   options = delib.singleEnableOption true;
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
       currentShell = myconfig.constants.shell or "zsh";

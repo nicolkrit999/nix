@@ -1,10 +1,8 @@
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  config,
-  ...
+{ delib
+, pkgs
+, lib
+, config
+, ...
 }:
 delib.module {
   name = "programs.kde";
@@ -20,21 +18,20 @@ delib.module {
     };
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
-      wallpaperFiles = builtins.map (
-        wp:
-        "${pkgs.fetchurl {
+      wallpaperFiles = builtins.map
+        (
+          wp:
+          "${pkgs.fetchurl {
           url = wp.wallpaperURL;
           sha256 = wp.wallpaperSHA256;
         }}"
-      ) myconfig.constants.wallpapers;
+        )
+        myconfig.constants.wallpapers;
 
-      polarity = myconfig.constants.theme.polarity or "dark";
 
       capitalize =
         s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
@@ -55,9 +52,6 @@ delib.module {
       cursorTheme = config.stylix.cursor.name;
     in
     {
-
-      #imports = [ inputs.plasma-manager.homeManagerModules.plasma-manager ];
-
       xdg.configFile."autostart/ibus-daemon.desktop".text = ''
         [Desktop Entry]
         Type=Application
@@ -82,7 +76,5 @@ delib.module {
         };
       };
 
-      home.packages = with pkgs; [
-      ];
     };
 }

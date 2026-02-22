@@ -1,15 +1,13 @@
 { delib, config, ... }:
 delib.module {
-  name = "krit.programs.cava"; # Isolated name
+  name = "krit.programs.cava";
   options.krit.programs.cava = with delib; {
     enable = boolOption false;
     extraConfig = strOption "";
   };
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
     {
-      # Only applies if enabled
       programs.cava = {
         enable = true;
         settings = {

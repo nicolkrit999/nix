@@ -1,21 +1,18 @@
-{
-  delib,
-  lib,
-
-  ...
+# This module configures KDE input devices, such as keyboards, mice, and touchpads using the community "plasma-manager" flake
+{ delib
+, lib
+, ...
 }:
 delib.module {
   name = "programs.kde";
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
 
     lib.mkMerge [
-      # 🌟 RESTORED ORIGINAL KEYBOARD LOGIC
       {
         programs.plasma.input.keyboard = {
           layouts = [

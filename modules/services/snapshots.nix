@@ -1,8 +1,7 @@
-{
-  delib,
-  lib,
-  pkgs,
-  ...
+{ delib
+, lib
+, pkgs
+, ...
 }:
 delib.module {
   name = "services.snapshots";
@@ -18,17 +17,14 @@ delib.module {
   };
 
   nixos.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
     let
-      user = myconfig.constants.user; # Align with myconfig.constants.nix
+      user = myconfig.constants.user;
     in
     {
-      # 🌟 Removed the extra 'config =' wrapper and 'lib.mkIf cfg'
-      # because ifEnabled handles the 'cfg.enable' check for you!
       services.snapper = {
         snapshotInterval = "hourly";
         cleanupInterval = "1d";
