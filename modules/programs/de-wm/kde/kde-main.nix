@@ -9,13 +9,15 @@
 delib.module {
   name = "programs.kde";
 
-  options.programs.kde = with delib; {
-    enable = boolOption false;
-    extraBinds = attrsOption { };
-    mice = listOfOption attrs [ ];
-    touchpads = listOfOption attrs [ ];
-    pinnedApps = listOfOption str [ ];
-  };
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      extraBinds = attrsOption { };
+      mice = listOfOption attrs [ ];
+      touchpads = listOfOption attrs [ ];
+      pinnedApps = listOfOption str [ ];
+    };
 
   home.ifEnabled =
     {

@@ -7,10 +7,12 @@
 }:
 delib.module {
   name = "programs.niri";
-  options.programs.niri = with delib; {
-    enable = boolOption false;
-    execOnce = listOfOption str [ ];
-  };
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      execOnce = listOfOption str [ ];
+    };
 
   home.ifEnabled =
     {

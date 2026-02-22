@@ -7,15 +7,19 @@
 }:
 delib.module {
   name = "programs.waybar";
-  options.programs.waybar = with delib; {
-    enable = boolOption true;
-    waybarLayout = attrsOption { }; # 🌟 Moved here
-    waybarWorkspaceIcons = attrsOption { }; # 🌟 Moved here
-  };
+
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption true;
+      waybarLayout = attrsOption { }; # 🌟 Moved here
+      waybarWorkspaceIcons = attrsOption { }; # 🌟 Moved here
+    };
 
   home.ifEnabled =
     {
       cfg,
+      parent,
       myconfig,
       ...
     }:
@@ -39,17 +43,14 @@ delib.module {
         @define-color base0E ${c.base0E};
         @define-color base0F ${c.base0F};
       '';
+
       cssContent = builtins.readFile ./style.css;
       # 1. Hyprland logic: Show Waybar if no custom shell is set
       hyprlandWaybar =
-        (myconfig.programs.hyprland.enable or false)
-        && !(
-          (myconfig.programs.caelestia.enableOnHyprland or false)
-          || (myconfig.programs.noctalia.enableOnHyprland or false)
-        );
+        (parent.hyprland.enable or false)
+        && !((parent.caelestia.enableOnHyprland or false) || (parent.noctalia.enableOnHyprland or false));
 
-      niriWaybar =
-        (myconfig.programs.niri.enable or false) && !(myconfig.programs.noctalia.enableOnNiri or false);
+      niriWaybar = (parent.niri.enable or false) && !(parent.noctalia.enableOnNiri or false);
 
       isWaybarNeeded = hyprlandWaybar || niriWaybar;
     in

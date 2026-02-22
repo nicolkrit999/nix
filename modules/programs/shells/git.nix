@@ -1,10 +1,12 @@
 { delib, lib, ... }:
 delib.module {
   name = "programs.git";
-  options.programs.git = with delib; {
-    enable = boolOption true;
-    customGitIgnores = listOfOption str [ ]; # 🌟 Moved here
-  };
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption true;
+      customGitIgnores = listOfOption str [ ];
+    };
 
   home.ifEnabled =
     { cfg, myconfig, ... }:

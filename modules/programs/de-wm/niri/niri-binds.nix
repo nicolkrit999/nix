@@ -12,6 +12,7 @@ delib.module {
   home.ifEnabled =
     {
       cfg,
+      parent,
       myconfig,
       ...
     }: # Corrected: added the lambda required by delib
@@ -39,7 +40,7 @@ delib.module {
       walkerCommand = [ "walker" ];
 
       shellLauncherCommand =
-        if (myconfig.programs.noctalia.enableOnNiri or false) then
+        if (parent.noctalia.enableOnNiri or false) then
 
           [
             "sh"

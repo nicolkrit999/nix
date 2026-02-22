@@ -1,9 +1,7 @@
 { delib, ... }:
 delib.module {
   name = "programs.zoxide";
-  options.programs.zoxide = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     { cfg, myconfig, ... }:

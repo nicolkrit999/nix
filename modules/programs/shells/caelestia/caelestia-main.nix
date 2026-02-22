@@ -8,10 +8,13 @@
 }:
 delib.module {
   name = "programs.caelestia";
-  options.programs.caelestia = with delib; {
-    enable = boolOption false; # 🌟 THE FIX: Added base enable option
-    enableOnHyprland = boolOption false;
-  };
+
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      enableOnHyprland = boolOption false;
+    };
 
   # Keep always to let the rest of the logic handling the activation
   home.always =

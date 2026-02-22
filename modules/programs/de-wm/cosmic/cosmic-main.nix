@@ -6,9 +6,7 @@
 }:
 delib.module {
   name = "programs.cosmic";
-  options.programs.cosmic = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     { cfg, myconfig, ... }:

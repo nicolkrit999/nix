@@ -2,9 +2,7 @@
 delib.module {
   # Disabling this module disable some aliases inside the shells .nix files
   name = "programs.fzf";
-  options.programs.fzf = with delib; {
-    enable = boolOption true;
-  };
+  options = delib.singleEnableOption true;
 
   home.ifEnabled =
     {

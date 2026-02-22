@@ -1,9 +1,7 @@
 { delib, pkgs, ... }:
 delib.module {
   name = "programs.bat";
-  options.programs.bat = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     {

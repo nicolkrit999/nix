@@ -8,13 +8,15 @@
 delib.module {
   name = "programs.hyprland";
 
-  options.programs.hyprland = with delib; {
-    enable = boolOption false;
-    execOnce = listOfOption str [ ];
-    monitorWorkspaces = listOfOption str [ ];
-    windowRules = listOfOption str [ ];
-    extraBinds = listOfOption str [ ];
-  };
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      execOnce = listOfOption str [ ];
+      monitorWorkspaces = listOfOption str [ ];
+      windowRules = listOfOption str [ ];
+      extraBinds = listOfOption str [ ];
+    };
 
   home.ifEnabled =
     {

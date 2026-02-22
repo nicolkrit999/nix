@@ -6,9 +6,7 @@
 }:
 delib.module {
   name = "programs.starship";
-  options.programs.starship = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     {

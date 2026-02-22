@@ -8,7 +8,12 @@ delib.module {
   name = "programs.hyprland"; # Assuming you register it directly
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
+    {
+      cfg,
+      parent,
+      myconfig,
+      ...
+    }:
 
     let
       activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
@@ -26,9 +31,9 @@ delib.module {
 
       # 🛠️ FIX: Removed .constants
       hyprlandFallback =
-        (myconfig.programs.hyprland.enable or false)
-        && !(myconfig.programs.caelestia.enableOnHyprland or false)
-        && !(myconfig.programs.noctalia.enableOnHyprland or false);
+        (cfg.enable or false)
+        && !(parent.caelestia.enableOnHyprland or false)
+        && !(parent.noctalia.enableOnHyprland or false);
 
     in
     lib.mkIf hyprlandFallback {

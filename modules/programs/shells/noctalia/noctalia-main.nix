@@ -7,27 +7,30 @@
 }:
 delib.module {
   name = "programs.noctalia";
-  options.programs.noctalia = with delib; {
-    enable = boolOption false; # 🌟 THE FIX: Added base enable option
-    enableOnHyprland = boolOption false;
-    enableOnNiri = boolOption false;
-  };
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      enableOnHyprland = boolOption false;
+      enableOnNiri = boolOption false;
+    };
 
   # Keep always to let the rest of the logic handling the activation
   home.always =
     {
       cfg,
+      parent,
       myconfig,
       ...
     }:
     let
       # 🌟 THE FIX: Updated conflict logic to check Caelestia's actual option
       enableHyprland =
-        (myconfig.programs.hyprland.enable or false)
+        (parent.hyprland.enable or false)
         && cfg.enableOnHyprland
-        && !(myconfig.programs.caelestia.enableOnHyprland or false);
+        && !(parent.caelestia.enableOnHyprland or false);
 
-      enableNiri = (myconfig.programs.niri.enable or false) && cfg.enableOnNiri;
+      enableNiri = (parent.niri.enable or false) && cfg.enableOnNiri;
 
       noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 

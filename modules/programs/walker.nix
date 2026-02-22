@@ -8,26 +8,29 @@
 }:
 delib.module {
   name = "programs.walker";
-  options.programs.walker = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   # FIX: Fix evaluation warnings
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
+    {
+      cfg,
+      parent,
+      myconfig,
+      ...
+    }:
     let
       # 🧠 THE MASTER SWITCH LOGIC
       hyprlandWantsWaybar =
-        (myconfig.programs.hyprland.enable or false)
-        && !(myconfig.programs.caelestia.enableOnHyprland or false)
-        && !(myconfig.programs.noctalia.enableOnHyprland or false);
+        (parent.hyprland.enable or false)
+        && !(parent.caelestia.enableOnHyprland or false)
+        && !(parent.noctalia.enableOnHyprland or false);
 
-      niriWantsWaybar =
-        (myconfig.programs.niri.enable or false) && !(myconfig.programs.noctalia.enableOnNiri or false);
+      niriWantsWaybar = (parent.niri.enable or false) && !(parent.noctalia.enableOnNiri or false);
 
       # If neither WM wants it (because they use custom shells), turn Waybar off
       shouldRunWaybar = hyprlandWantsWaybar || niriWantsWaybar;
+
     in
     {
       # Enable the actual Home Manager waybar module dynamically

@@ -6,9 +6,7 @@
 }:
 delib.module {
   name = "programs.tmux";
-  options.programs.tmux = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     {
