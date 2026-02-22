@@ -1,0 +1,429 @@
+# TEMPLATE-HOST CONFIGURATION
+{
+  delib,
+  inputs,
+  pkgs,
+  lib,
+  ...
+}:
+let
+  pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+
+  # ⚠️ The following section provide example for all the host-specific modules enanchement
+  # A host may not have them at all. To remove one it's necessary to remove it both here than in the "myConfig" section
+
+  # 🌟 CORE APPS & THEME
+  myBrowser = "firefox";
+  myTerminal = "alacritty";
+  myEditor = "vscode";
+  myFileManager = "dolphin";
+  isCatppuccin = true;
+  userName = "nixos";
+
+  # 🌟 APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
+  appWorkspaces = {
+    editor = "2";
+    fileManager = "3";
+    other = "5";
+    terminal = "8";
+    chat = "9";
+  };
+
+  # 🌟 DESKTOP MAP & RESOLVE FUNCTION
+  desktopMap = {
+    "firefox" = "firefox.desktop";
+    "librewolf" = "librewolf.desktop";
+    "google-chrome" = "google-chrome.desktop";
+    "chromium" = "chromium-browser.desktop";
+    "brave" = "brave-browser.desktop";
+    "nvim" = "custom-nvim.desktop";
+    "code" = "code.desktop";
+    "kate" = "org.kde.kate.desktop";
+    "yazi" = "yazi.desktop";
+    "ranger" = "ranger.desktop";
+    "dolphin" = "org.kde.dolphin.desktop";
+    "thunar" = "thunar.desktop";
+    "Nautilus" = "org.gnome.Nautilus.desktop";
+    "nemo" = "nemo.desktop";
+  };
+  resolve = name: desktopMap.${name} or "${name}.desktop";
+
+  # ---------------------------------------------------------------------------
+  # 🖥️ WM / DE SPECIFIC CONFIGURATIONS (Migrated from modules.nix)
+  # ---------------------------------------------------------------------------
+
+  myHyprlandWorkspaces = [
+    "1, monitor:DP-1"
+    "2, monitor:DP-1"
+    "3, monitor:DP-1"
+    "4, monitor:DP-1"
+    "5, monitor:DP-1"
+    "6, monitor:DP-2"
+    "7, monitor:DP-2"
+    "8, monitor:DP-2"
+    "9, monitor:DP-2"
+    "10, monitor:DP-2"
+  ];
+
+  myHyprlandWindowRules = [
+    "workspace ${appWorkspaces.editor} silent, class:^(code)$"
+    "workspace ${appWorkspaces.fileManager} silent, class:^(org.kde.dolphin)$"
+    "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
+    "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
+    "workspace ${appWorkspaces.chat} silent, class:^(vesktop)$"
+
+    # Scratchpad rules
+    "float, class:^(scratch-term)$"
+    "center, class:^(scratch-term)$"
+    "size 80% 80%, class:^(scratch-term)$"
+    "workspace special:magic, class:^(scratch-term)$"
+    "float, class:^(scratch-fs)$"
+    "center, class:^(scratch-fs)$"
+    "size 80% 80%, class:^(scratch-fs)$"
+    "workspace special:magic, class:^(scratch-fs)$"
+    "float, class:^(scratch-browser)$"
+    "center, class:^(scratch-browser)$"
+    "size 80% 80%, class:^(scratch-browser)$"
+    "workspace special:magic, class:^(scratch-browser)$"
+  ];
+
+  myHyprlandExtraBinds = [
+    "$Mod SHIFT, return, exec, [workspace special:magic] $term --class scratch-term"
+    "$Mod SHIFT, F, exec, [workspace special:magic] $term --class scratch-fs -e yazi"
+    "$Mod SHIFT, B, exec, [workspace special:magic] ${myBrowser} --new-window --class scratch-browser"
+    "$Mod,       Y, exec, chromium-browser"
+  ];
+
+  myGnomeExtraBinds = [
+    {
+      name = "Launch Chromium";
+      command = "chromium";
+      binding = "<Super>y";
+    }
+  ];
+
+  myKdeExtraBinds = {
+    "launch-chromium" = {
+      key = "Meta+Y";
+      command = "chromium";
+    };
+  };
+
+  myWaybarWorkspaceIcons = {
+    "1" = "";
+    "2" = "";
+    "3" = "";
+    "4" = "";
+    "5" = "";
+    "6" = "";
+    "7" = ":";
+    "8" = ":";
+    "9" = ":";
+    "10" = ":";
+    "magic" = ":";
+  };
+
+  myWaybarLayout = {
+    "format-en" = "🇺🇸-EN";
+  };
+in
+delib.host {
+  name = "template-host";
+  type = "desktop";
+
+  homeManagerSystem = "x86_64-linux";
+
+  myconfig =
+    { name, ... }:
+    {
+      # ---------------------------------------------------------------
+      # 📦 CONSTANTS BLOCK (Data Bucket)
+      # ---------------------------------------------------------------
+      constants = {
+        monitors = [
+
+          "eDP-1, 1920x1080@60, 0x0, 1"
+        ];
+
+      };
+
+      # ⚠️ The following section contains absolutely everything.
+      # Most modules are disabled to have a low weight installation
+      # It's kept as reference so a user know what could be enabled/disabled
+      # Modules always enabled are not defined here
+      # Modules enabled by default with "boolOption true" are defined here anyway, allowing "false"
+
+      # ---------------------------------------------------------------
+      # 🌐 TOP-LEVEL MODULES
+      # ---------------------------------------------------------------
+      bluetooth.enable = true;
+
+      cachix = {
+        enable = true;
+        push = false;
+      };
+
+      cosmic.enable = false;
+      gnome.enable = false;
+      guest.enable = false;
+      home-packages.enable = true;
+      hyprland.enable = true; # Enabled to have at least one wm
+      kde.enable = false;
+      # Disabling this would cause the shortcuts that open "browser, editor, file manager"
+      # To fail
+      mime.enable = true;
+
+      nh.enable = true; # Disabling this would cause most nix-related aliases to fail
+      niri.enable = false;
+      qt.enable = true; # Disabling this would cause graphical inconsistencies
+
+      zram = {
+        enable = true;
+        zramPercent = 25;
+      };
+
+      # Disabling this would cause massive graphical inconsistencies
+      stylix = {
+        enable = true;
+        # These are host-specific targets exclusion/inclusion. They are optional
+        targets = { };
+      };
+
+      # ---------------------------------------------------------------
+      # 🚀 PROGRAMS
+      # ---------------------------------------------------------------
+      programs.bat.enable = false;
+      programs.cosmic.enable = false;
+      programs.eza.enable = false;
+      programs.fzf.enable = true; # Disabling this would cause some shell aliases to not work
+
+      programs.git = {
+        enable = false;
+        # These are host-specific git exclusion/inclusion. They are optional
+        customGitIgnores = [ ];
+      };
+
+      programs.lazygit.enable = false;
+      programs.starship.enable = false;
+      programs.tmux.enable = false;
+      programs.walker.enable = true; # Disabling this mean missing an app launcher in hyprland/niri
+
+      programs.waybar = {
+        enable = false;
+        waybarLayout = myWaybarLayout; # These are host-specific optional waybar layout customizations
+        waybarWorkspaceIcons = myWaybarWorkspaceIcons; # These are host-specific optional waybar workspace icons
+      };
+
+      programs.zoxide.enable = true; # Disabling this would cause some aliases to not work
+
+      programs.caelestia = {
+        enable = false;
+        enableOnHyprland = false;
+      };
+
+      programs.noctalia = {
+        enable = false;
+        enableOnHyprland = false;
+        enableOnNiri = false;
+      };
+
+      programs.hyprland = {
+        enable = true; # Needed since hyprland is enabled in this template
+        execOnce = [
+
+        ];
+        monitorWorkspaces = myHyprlandWorkspaces;
+        windowRules = myHyprlandWindowRules;
+        extraBinds = myHyprlandExtraBinds;
+      };
+
+      programs.niri = {
+        enable = false;
+        # These are host-specific optional programs that start on boot
+        execOnce = [
+          "${myBrowser}"
+          "${myEditor}"
+          "${myFileManager}"
+          "${myTerminal}"
+        ];
+      };
+
+      programs.gnome = {
+        enable = false;
+        screenshots = "/home/krit/Pictures/Screenshots";
+        # These are host-specific optional gnome pinned apps
+        pinnedApps = [
+          (resolve myBrowser)
+          (resolve myEditor)
+          (resolve myFileManager)
+
+        ];
+        # These are host-specific optional gnome shortcuts
+        gnomeExtraBinds = myGnomeExtraBinds;
+      };
+
+      programs.kde = {
+        enable = false;
+        # These are host-specific optional kde shortcuts
+        extraBinds = myKdeExtraBinds;
+      };
+
+      # ---------------------------------------------------------------
+      # ⚙️ SERVICES
+      # ---------------------------------------------------------------
+      services.audio.enable = true;
+      services.hyprlock.enable = false;
+      services.sddm.enable = true; # Without this there would not be a display manager, forcing to use a tty
+
+      services.snapshots = {
+        enable = false;
+        retention = {
+          hourly = "24";
+          daily = "7";
+          weekly = "4";
+          monthly = "3";
+          yearly = "2";
+        };
+      };
+
+      services.tailscale.enable = false;
+
+      services.hypridle = {
+        enable = false;
+        dimTimeout = 900;
+        lockTimeout = 1800;
+        screenOffTimeout = 3600;
+      };
+
+      services.swaync = {
+        enable = false;
+        customSettings = {
+          "mute-protonvpn" = {
+            state = "ignored";
+            app-name = ".*Proton.*";
+          };
+        };
+      };
+
+    };
+
+  # ---------------------------------------------------------------
+  # ⚙️ SYSTEM-LEVEL CONFIGURATIONS
+  # ---------------------------------------------------------------
+  nixos =
+    { ... }:
+    {
+      system.stateVersion = "25.11";
+      imports = [
+        inputs.catppuccin.nixosModules.catppuccin
+        #inputs.nix-sops.nixosModules.sops # Tough an import does not cause the build to fail it's removed for lightness. Enable if used
+        inputs.niri.nixosModules.niri
+
+        ./hardware-configuration.nix
+
+      ];
+
+      i18n.defaultLocale = "en_US.UTF-8";
+
+      #users.mutableUsers = false; # Enable this only if the password is setup with sops. This bring the risk of being locked out of the system if enabled without
+      users.users.${userName} = {
+        isNormalUser = true;
+        description = "${userName}";
+        extraGroups = [
+          "networkmanager"
+          "wheel"
+          "input"
+          "video"
+          "audio"
+        ];
+        subUidRanges = [
+          {
+            startUid = 100000;
+            count = 65536;
+          }
+        ];
+        subGidRanges = [
+          {
+            startGid = 100000;
+            count = 65536;
+          }
+        ];
+      };
+
+      # Kept for reference
+      /*
+        virtualisation.docker.enable = false;
+        virtualisation.podman = {
+          enable = false;
+          dockerCompat = false;
+        };
+      */
+
+      # Kept for reference
+      /*
+        systemd.services.cleanup_trash = {
+          description = "Clean up trash older than 30 days";
+          serviceConfig = {
+            Type = "oneshot";
+            User = userName;
+            Environment = "HOME=/home/${userName}";
+            ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
+          };
+        };
+
+        systemd.timers.cleanup_trash = {
+          wantedBy = [ "timers.target" ];
+          timerConfig = {
+            OnCalendar = "daily";
+            Persistent = true;
+          };
+        };
+      */
+
+      # Solve Home-manager portal assertion
+      environment.pathsToLink = [
+        "/share/applications"
+        "/share/xdg-desktop-portal"
+      ];
+
+      environment.systemPackages = with pkgs; [
+        #autotrash # Uncomment if using autotrash
+        #docker # Uncomment if using docker
+      ];
+    };
+
+  # ---------------------------------------------------------------
+  # 🏠 USER-LEVEL CONFIGURATIONS
+  # ---------------------------------------------------------------
+  home =
+    {
+      ...
+    }:
+    {
+      home.stateVersion = "25.11";
+      imports = [
+
+        #inputs.nix-sops.homeModules.sops # Tough an import does not cause the build to fail it's removed for lightness. Enable if used
+
+      ];
+
+      home.packages = (with pkgs; [ ]) ++ (with pkgs-unstable; [ ]);
+
+      # Kept for reference
+      /*
+        xdg.userDirs = {
+          publicShare = null;
+          music = null;
+        };
+
+        home.activation = {
+          # Input home manager here to bypass "function home" and "attributes hm missing" evaluation errors
+          createHostDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            mkdir -p $HOME/Pictures/wallpapers
+            mkdir -p $HOME/momentary
+          '';
+        };
+      */
+    };
+
+}

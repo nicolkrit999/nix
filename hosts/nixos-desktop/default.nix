@@ -248,15 +248,15 @@ delib.host {
         push = true; # Only the builder must have this true (for now "nixos-desktop")
       };
 
-      cosmic.enable = true;
-      gnome.enable = true;
+      cosmic.enable = true; # TODO: Change name to programs.cosmic to allow a single switch (do a nix flake check and a dry build before confiirming this change)
+      gnome.enable = true; # TODO: Change name to programs.cosmic to allow a single switch (do a nix flake check and a dry build before confiirming this change)
       guest.enable = true;
       home-packages.enable = true;
-      hyprland.enable = true;
-      kde.enable = true;
+      hyprland.enable = true; # TODO: Change name to programs.cosmic to allow a single switch (do a nix flake check and a dry build before confiirming this change)
+      kde.enable = true; # TODO: Change name to programs.cosmic to allow a single switch (do a nix flake check and a dry build before confiirming this change)
       mime.enable = true;
       nh.enable = true;
-      niri.enable = true;
+      niri.enable = true; # TODO: Change name to programs.cosmic to allow a single switch (do a nix flake check and a dry build before confiirming this change)
       qt.enable = true;
 
       zram = {

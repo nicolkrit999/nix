@@ -14,7 +14,10 @@ delib.module {
     editor = strOption "nano";
     fileManager = strOption "nnn";
 
-    monitors = listOfOption str [ ];
+    monitors = listOfOption str [
+      # FIXME: This is a good thing but to enable it the wallpaper applying logic must be changed to allow this kind of sintax
+      #,preferred,auto,1
+    ];
 
     # modules/config/constants.nix
     wallpapers =
