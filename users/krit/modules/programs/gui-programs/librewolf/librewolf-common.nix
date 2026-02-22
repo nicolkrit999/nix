@@ -8,7 +8,7 @@
 delib.module {
   name = "krit.programs.librewolf";
   options.krit.programs.librewolf = with delib; {
-    enable = boolOption true;
+    enable = boolOption false;
   };
 
   home.ifEnabled =

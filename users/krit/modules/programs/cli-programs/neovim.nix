@@ -8,7 +8,7 @@
 delib.module {
   name = "krit.programs.neovim";
   options.krit.programs.neovim = with delib; {
-    enable = boolOption true;
+    enable = boolOption false;
   };
   home.ifEnabled =
     {

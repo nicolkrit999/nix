@@ -99,7 +99,7 @@ delib.module {
         }
 
       ]
-      ++ (cfg.gnomeExtraBinds or [ ]);
+      ++ (cfg.extraBinds or [ ]);
 
       dconfList = lib.genList (
         i: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${toString i}/"

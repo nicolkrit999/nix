@@ -8,7 +8,7 @@
 delib.module {
   name = "krit-kitty";
   options.krit.programs.kitty = with delib; {
-    enable = boolOption true;
+    enable = boolOption false;
   };
 
   home.ifEnabled =

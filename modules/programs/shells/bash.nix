@@ -48,10 +48,19 @@ delib.module {
                 "nh os boot --update ${flakeDir}";
 
             # This wrap recognize if the current host is the "builder", allowing uploads
+            # This wrap recognize if the current host is the "builder", allowing uploads
             wrapCachix =
               cmd:
-              if (myconfig.constants.cachix.enable or false) && (myconfig.constants.cachix.push or false) then
-                "env CACHIX_AUTH_TOKEN=$(command cat /run/secrets/cachix-auth-token) cachix watch-exec ${myconfig.constants.cachix.name} -- ${cmd}"
+              if (myconfig.cachix.enable or false) && (myconfig.cachix.push or false) then
+                let
+                  # Safely resolve the Cachix name using the same logic as cachix.nix
+                  cName =
+                    if myconfig.cachix.name == "use-constant" then
+                      myconfig.constants.cachix.name
+                    else
+                      myconfig.cachix.name;
+                in
+                "${cmd} && nix path-info -r /run/current-system | cachix push ${cName}"
               else
                 cmd;
 

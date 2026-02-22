@@ -10,12 +10,13 @@ let
   # 🌟 CORE APPS & THEME
   myBrowser = "librewolf";
   myTerminal = "kitty";
+  myShell = "fish";
   myEditor = "nvim";
   myFileManager = "yazi";
+  myUserName = "krit";
   isCatppuccin = true;
-  userName = "krit";
 
-  # For a laptop it would make sense to change them but i keep them the same as desktop for muscle memory
+  # 🌟 APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
   appWorkspaces = {
     editor = "2";
     fileManager = "3";
@@ -25,6 +26,21 @@ let
     terminal = "8";
     chat = "9";
   };
+
+  termApps = [
+    "nvim"
+    "neovim"
+    "vim"
+    "nano"
+    "hx"
+    "helix"
+    "yazi"
+    "ranger"
+    "lf"
+    "nnn"
+  ];
+  smartLaunch =
+    app: if builtins.elem app termApps then "${myTerminal} --class ${app} -e ${app}" else app;
 
   # 🌟 DESKTOP MAP & RESOLVE FUNCTION
   desktopMap = {
@@ -49,104 +65,8 @@ let
   # 🖥️ WM / DE SPECIFIC CONFIGURATIONS (Migrated from modules.nix)
   # ---------------------------------------------------------------------------
 
-  myHyprlandWindowRules = [
-    "workspace ${appWorkspaces.editor} silent, class:^(code)$"
-    "workspace ${appWorkspaces.editor} silent, class:^(nvim-editor)$"
-    "workspace ${appWorkspaces.editor} silent, class:^(org.kde.kate)$"
-    "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-pycharm-ce)$"
-    "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-Clion)$"
-    "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-idea-ce)$"
-    "workspace ${appWorkspaces.fileManager} silent, class:^(org.kde.dolphin)$"
-    "workspace ${appWorkspaces.fileManager} silent, class:^(thunar)$"
-    "workspace ${appWorkspaces.fileManager} silent, class:^(yazi)$"
-    "workspace ${appWorkspaces.fileManager} silent, class:^(ranger)$"
-    "workspace ${appWorkspaces.fileManager} silent, class:^(org.gnome.Nautilus)$"
-    "workspace ${appWorkspaces.fileManager} silent, class:^(nemo)$"
-    "workspace ${appWorkspaces.vm} silent, class:^(winboat)$"
-    "workspace ${appWorkspaces.other} silent, class:^(Actual)$"
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$"
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-browser)$"
-    "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-.*\..*)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(foot)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(xfce4-terminal)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(com.system76.CosmicTerm)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(org.kde.konsole)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(gnome-terminal)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(XTerm)$"
-    "workspace ${appWorkspaces.chat} silent, class:^(vesktop)$"
-    "workspace ${appWorkspaces.chat} silent, class:^(org.telegram.desktop)$"
-    "workspace ${appWorkspaces.chat} silent, class:^(whatsapp-electron)$"
-
-    # Scratchpad rules
-    "float, class:^(scratch-term)$"
-    "center, class:^(scratch-term)$"
-    "size 80% 80%, class:^(scratch-term)$"
-    "workspace special:magic, class:^(scratch-term)$"
-    "float, class:^(scratch-fs)$"
-    "center, class:^(scratch-fs)$"
-    "size 80% 80%, class:^(scratch-fs)$"
-    "workspace special:magic, class:^(scratch-fs)$"
-    "float, class:^(scratch-browser)$"
-    "center, class:^(scratch-browser)$"
-    "size 80% 80%, class:^(scratch-browser)$"
-    "workspace special:magic, class:^(scratch-browser)$"
-
-    # Winboat rules
-    "workspace ${appWorkspaces.vm}, class:^winboat-.*$"
-    "suppressevent fullscreen maximize activate activatefocus, class:^winboat-.*$"
-    "noinitialfocus, class:^winboat-.*$"
-    "noanim, class:^winboat-.*$"
-    "norounding, class:^winboat-.*$"
-    "noshadow, class:^winboat-.*$"
-    "noblur, class:^winboat-.*$"
-    "opaque, class:^winboat-.*$"
-  ];
-
-  myHyprlandExtraBinds = [
-    "$Mod SHIFT, return, exec, [workspace special:magic] $term --class scratch-term"
-    "$Mod SHIFT, F, exec, [workspace special:magic] $term --class scratch-fs -e yazi"
-    "$Mod SHIFT, B, exec, [workspace special:magic] ${myBrowser} --new-window --class scratch-browser"
-    "$Mod,       Y, exec, chromium-browser"
-  ];
-
-  myGnomeExtraBinds = [
-    {
-      name = "Launch Chromium";
-      command = "chromium";
-      binding = "<Super>y";
-    }
-  ];
-
-  myKdeExtraBinds = {
-    "launch-chromium" = {
-      key = "Meta+Y";
-      command = "chromium";
-    };
-  };
-
-  myWaybarWorkspaceIcons = {
-    "1" = "";
-    "2" = "";
-    "3" = "";
-    "4" = "";
-    "5" = "";
-    "6" = "";
-    "7" = ":";
-    "8" = ":";
-    "9" = ":";
-    "10" = ":";
-    "magic" = ":";
-  };
-
-  myWaybarLayout = {
-    "format-en" = "🇺🇸-EN";
-    "format-it" = "🇮🇹-IT";
-    "format-de" = "🇩🇪-DE";
-    "format-fr" = "🇫🇷-FR";
-  };
 in
+
 delib.host {
   name = "nixos-laptop";
   type = "laptop";
@@ -164,18 +84,18 @@ delib.host {
         # ---------------------------------------------------------------
         # 👤 USER IDENTITY
         # ---------------------------------------------------------------
-        user = "krit";
+        user = myUserName;
         gitUserName = "nicolkrit999";
         gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
 
         # ---------------------------------------------------------------
         # 🐚 SHELLS & APPS
         # ---------------------------------------------------------------
-        terminal = "kitty";
-        shell = "fish";
-        browser = "librewolf";
-        editor = "nvim";
-        fileManager = "yazi";
+        terminal = myTerminal;
+        shell = myShell;
+        browser = myBrowser;
+        editor = myEditor;
+        fileManager = myFileManager;
         # ---------------------------------------------------------------
         # ⚙️ ADVANCED SYSTEM CONSTANTS
         # ---------------------------------------------------------------
@@ -272,7 +192,7 @@ delib.host {
           kitty.enable = !isCatppuccin;
           alacritty.enable = !isCatppuccin;
           zathura.enable = !isCatppuccin;
-          firefox.profileNames = [ userName ];
+          firefox.profileNames = [ myUserName ];
           librewolf.profileNames = [
             "default"
             "privacy"
@@ -300,8 +220,25 @@ delib.host {
 
       programs.waybar = {
         enable = true;
-        waybarLayout = myWaybarLayout;
-        waybarWorkspaceIcons = myWaybarWorkspaceIcons;
+        waybarLayout = {
+          "format-en" = "🇺🇸-EN";
+          "format-it" = "🇮🇹-IT";
+          "format-de" = "🇩🇪-DE";
+          "format-fr" = "🇫🇷-FR";
+        };
+        waybarWorkspaceIcons = {
+          "1" = "";
+          "2" = "";
+          "3" = "";
+          "4" = "";
+          "5" = "";
+          "6" = "";
+          "7" = ":";
+          "8" = ":";
+          "9" = ":";
+          "10" = ":";
+          "magic" = ":";
+        };
       };
 
       programs.zoxide.enable = true;
@@ -320,14 +257,94 @@ delib.host {
       programs.hyprland = {
         enable = true;
         execOnce = [
+          "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
+          "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
+          "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
+
+          "sleep 4 && uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
+          "whatsapp-electron"
         ];
-        windowRules = myHyprlandWindowRules;
-        extraBinds = myHyprlandExtraBinds;
+        monitorWorkspaces = [
+          "1, monitor:DP-1"
+          "2, monitor:DP-1"
+          "3, monitor:DP-1"
+          "4, monitor:DP-1"
+          "5, monitor:DP-1"
+          "6, monitor:DP-2"
+          "7, monitor:DP-2"
+          "8, monitor:DP-2"
+          "9, monitor:DP-2"
+          "10, monitor:DP-2"
+        ];
+
+        windowRules = [
+
+          # 1. Smart Launcher Rules
+          "workspace ${appWorkspaces.editor}, class:^(${myEditor})$"
+          "workspace ${appWorkspaces.fileManager}, class:^(${myFileManager})$"
+          "workspace ${appWorkspaces.terminal}, class:^(${myTerminal})$"
+
+          "workspace ${appWorkspaces.editor} silent, class:^(code)$"
+          "workspace ${appWorkspaces.editor} silent, class:^(nvim-editor)$"
+          "workspace ${appWorkspaces.editor} silent, class:^(org.kde.kate)$"
+          "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-pycharm-ce)$"
+          "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-Clion)$"
+          "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-idea-ce)$"
+          "workspace ${appWorkspaces.fileManager} silent, class:^(org.kde.dolphin)$"
+          "workspace ${appWorkspaces.fileManager} silent, class:^(thunar)$"
+          "workspace ${appWorkspaces.fileManager} silent, class:^(yazi)$"
+          "workspace ${appWorkspaces.fileManager} silent, class:^(ranger)$"
+          "workspace ${appWorkspaces.fileManager} silent, class:^(org.gnome.Nautilus)$"
+          "workspace ${appWorkspaces.fileManager} silent, class:^(nemo)$"
+          "workspace ${appWorkspaces.vm} silent, class:^(winboat)$"
+          "workspace ${appWorkspaces.other} silent, class:^(Actual)$"
+          "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$"
+          "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-browser)$"
+          "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-.*\..*)$"
+          "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
+          "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
+          "workspace ${appWorkspaces.terminal} silent, class:^(foot)$"
+          "workspace ${appWorkspaces.terminal} silent, class:^(xfce4-terminal)$"
+          "workspace ${appWorkspaces.terminal} silent, class:^(com.system76.CosmicTerm)$"
+          "workspace ${appWorkspaces.terminal} silent, class:^(org.kde.konsole)$"
+          "workspace ${appWorkspaces.terminal} silent, class:^(gnome-terminal)$"
+          "workspace ${appWorkspaces.terminal} silent, class:^(XTerm)$"
+          "workspace ${appWorkspaces.chat} silent, class:^(vesktop)$"
+          "workspace ${appWorkspaces.chat} silent, class:^(org.telegram.desktop)$"
+          "workspace ${appWorkspaces.chat} silent, class:^(whatsapp-electron)$"
+
+          # Scratchpad rules
+          "float, class:^(scratch-term)$"
+          "center, class:^(scratch-term)$"
+          "size 80% 80%, class:^(scratch-term)$"
+          "workspace special:magic, class:^(scratch-term)$"
+          "float, class:^(scratch-fs)$"
+          "center, class:^(scratch-fs)$"
+          "size 80% 80%, class:^(scratch-fs)$"
+          "workspace special:magic, class:^(scratch-fs)$"
+          "float, class:^(scratch-browser)$"
+          "center, class:^(scratch-browser)$"
+          "size 80% 80%, class:^(scratch-browser)$"
+          "workspace special:magic, class:^(scratch-browser)$"
+
+        ];
+
+        extraBinds = [
+          "$Mod SHIFT, return, exec, [workspace special:magic] $term --class scratch-term"
+          "$Mod SHIFT, F, exec, [workspace special:magic] $term --class scratch-fs -e yazi"
+          "$Mod SHIFT, B, exec, [workspace special:magic] ${myBrowser} --new-window --class scratch-browser"
+          "$Mod,       Y, exec, chromium-browser"
+        ];
       };
 
       programs.niri = {
         enable = true;
         execOnce = [
+          "${myBrowser}"
+          "${myEditor}"
+          "${myFileManager}"
+          "${myTerminal}"
+          "chromium-browser"
         ];
       };
 
@@ -345,12 +362,34 @@ delib.host {
           "com.github.dagmoller.whatsapp-electron.desktop"
           "com.actualbudget.actual.desktop"
         ];
-        gnomeExtraBinds = myGnomeExtraBinds;
+        extraBinds = [
+          {
+            name = "Launch Chromium";
+            command = "chromium";
+            binding = "<Super>y";
+          }
+        ];
       };
 
       programs.kde = {
         enable = true;
-        extraBinds = myKdeExtraBinds;
+        pinnedApps = [
+          (resolve myBrowser)
+          (resolve myEditor)
+          (resolve myFileManager)
+          "github-desktop.desktop"
+          "LocalSend.desktop"
+          "proton-pass.desktop"
+          "vesktop.desktop"
+          "com.github.dagmoller.whatsapp-electron.desktop"
+          "com.actualbudget.actual.desktop"
+        ];
+        extraBinds = {
+          "launch-chromium" = {
+            key = "Meta+Y";
+            command = "chromium";
+          };
+        };
       };
 
       # ---------------------------------------------------------------
@@ -394,6 +433,7 @@ delib.host {
       # 👤 KRIT PROGRAMS
       # ---------------------------------------------------------------
       krit.programs.alacritty.enable = false;
+      krit.programs.kitty.enable = true;
       krit.programs.cava.enable = true;
       krit.programs.chromium.enable = false;
       krit.programs.direnv.enable = true;
@@ -481,7 +521,7 @@ delib.host {
                 IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
               '';
 
-              users.users.${userName}.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
+              users.users.${myUserName}.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
             }
 
           )
@@ -514,8 +554,8 @@ delib.host {
             };
             github_general_ssh_key = {
               sopsFile = commonSecrets;
-              owner = userName;
-              path = "/home/${userName}/.ssh/id_github";
+              owner = myUserName;
+              path = "/home/${myUserName}/.ssh/id_github";
             };
             Krit_Wifi_pass = {
               sopsFile = commonSecrets;
@@ -531,7 +571,7 @@ delib.host {
             };
             commit_signing_key = {
               sopsFile = commonSecrets;
-              owner = userName;
+              owner = myUserName;
             };
 
             nas_ssh_key.sopsFile = commonSecrets;
@@ -570,9 +610,9 @@ delib.host {
       };
 
       #users.mutableUsers = false;
-      users.users.${userName} = {
+      users.users.${myUserName} = {
         isNormalUser = true;
-        description = "${userName}";
+        description = "${myUserName}";
         extraGroups = [
           "networkmanager"
           "wheel"
@@ -619,8 +659,8 @@ delib.host {
         description = "Clean up trash older than 5 days";
         serviceConfig = {
           Type = "oneshot";
-          User = userName;
-          Environment = "HOME=/home/${userName}";
+          User = myUserName;
+          Environment = "HOME=/home/${myUserName}";
           ExecStart = "${pkgs.autotrash}/bin/autotrash -d 5";
         };
       };

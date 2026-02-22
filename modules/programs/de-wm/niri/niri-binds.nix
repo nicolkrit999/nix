@@ -39,7 +39,8 @@ delib.module {
       walkerCommand = [ "walker" ];
 
       shellLauncherCommand =
-        if (myconfig.constants.niriNoctalia or false) then
+        if (myconfig.programs.noctalia.enableOnNiri or false) then
+
           [
             "sh"
             "-c"

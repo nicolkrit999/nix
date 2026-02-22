@@ -14,7 +14,6 @@ delib.module {
         (myconfig.programs.hyprland.enable or false)
         && !(myconfig.programs.caelestia.enableOnHyprland or false)
         && !(myconfig.programs.noctalia.enableOnHyprland or false);
-
       niriFallback =
         (myconfig.programs.niri.enable or false) && !(myconfig.programs.noctalia.enableOnNiri or false);
 

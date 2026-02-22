@@ -26,7 +26,7 @@ delib.module {
           # APPLICATION LAUNCHING
           "$Mod,       A, exec, $menu" # Application launcher (walker)
           "$Mod SHIFT, A, exec, $shellMenu" # Shell Specific launcher (Noctalia / Caelestia)
-          "$Mod, return, exec, $term" # Default terminal chosen in ./main.nix
+          "$Mod, return, exec, $terminal" # Default terminal chosen in ./main.nix
 
           # FILE MANAGER
           "$Mod,       F, exec, $fileManager"
@@ -123,7 +123,7 @@ delib.module {
           "$Mod,       S, togglespecialworkspace,  magic" # Toggle scratchpad visibility
           "$Mod SHIFT, S, movetoworkspace, special:magic" # Move window to scratchpad
         ]
-        ++ (myconfig.constants.hyprlandExtraBinds or [ ]);
+        ++ (cfg.extraBinds or [ ]);
 
         # MOVE/RESIZE WINDOWS WITH MAINMOD + LMB/RMB AND DRAGGING
         bindm = [

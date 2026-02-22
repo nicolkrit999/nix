@@ -8,7 +8,7 @@
 delib.module {
   name = "krit.programs.yazi";
   options.krit.programs.yazi = with delib; {
-    enable = boolOption true;
+    enable = boolOption false;
   };
 
   home.ifEnabled =
@@ -19,29 +19,28 @@ delib.module {
     }:
     {
 
-      home.packages =
-        with pkgs;
-        (with pkgs; [
-          fzf
-          zoxide
-          ripgrep
-          fd
-          ffmpeg
-          mediainfo
-          poppler
-          jq
-          zip
-          unzip
-          p7zip
-          gnutar
-          ueberzugpp
-          chafa
-          xdg-utils
-          exiftool
-          ouch
-          trash-cli
-          rich-cli
-        ]);
+      home.packages = with pkgs; [
+
+        fzf
+        zoxide
+        ripgrep
+        fd
+        ffmpeg
+        mediainfo
+        poppler
+        jq
+        zip
+        unzip
+        p7zip
+        gnutar
+        ueberzugpp
+        chafa
+        xdg-utils
+        exiftool
+        ouch
+        trash-cli
+        rich-cli
+      ];
 
       programs.yazi = {
         enable = true;

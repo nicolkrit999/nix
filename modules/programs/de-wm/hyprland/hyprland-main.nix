@@ -22,6 +22,30 @@ delib.module {
       myconfig,
       ...
     }:
+    let
+      # 🌟 SMART LAUNCHER LOGIC
+      term = myconfig.constants.terminal or "alacritty";
+      rawFm = myconfig.constants.fileManager or "dolphin";
+      rawEd = myconfig.constants.editor or "vscode";
+
+      # List of known terminal-based apps
+      termApps = [
+        "nvim"
+        "neovim"
+        "vim"
+        "nano"
+        "hx"
+        "helix"
+        "yazi"
+        "ranger"
+        "lf"
+        "nnn"
+      ];
+
+      smartFm = if builtins.elem rawFm termApps then "${term} --class ${rawFm} -e ${rawFm}" else rawFm;
+      smartEd = if builtins.elem rawEd termApps then "${term} --class ${rawEd} -e ${rawEd}" else rawEd;
+    in
+
     {
       # ----------------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
@@ -83,9 +107,6 @@ delib.module {
               "XDG_SESSION_TYPE,wayland" # Generic flag telling the session it is Wayland-based.
               "XDG_SESSION_DESKTOP,Hyprland" # Used by some session managers to identify the desktop.
 
-              # THEMING & AESTHETICS
-              "QT_QPA_PLATFORMTHEME,kde" # Tells Qt apps to use the 'kde' engine if available (enables breeze theme).
-
               # SYSTEM PATHS
               "XDG_SCREENSHOTS_DIR,${myconfig.constants.screenshots}" # Tells tools where to save screenshots by default.
             ];
@@ -103,15 +124,15 @@ delib.module {
           # These are used by other modules using the variable references such as binds.nix
           # -----------------------------------------------------
           "$Mod" = "SUPER";
-          "$term" = "${myconfig.constants.terminal}";
-          "$browser" = "${myconfig.constants.browser}";
-          "$fileManager" = "${myconfig.constants.terminal} -e ${myconfig.constants.fileManager}";
-          "$editor" = "${myconfig.constants.terminal} -e ${myconfig.constants.editor}";
+          "$terminal" = term;
+          "$browser" = myconfig.constants.browser or "firefox";
+          "$fileManager" = smartFm; # 🌟 NOW DEFINED AND SMART
+          "$editor" = smartEd; # 🌟 NOW DEFINED AND SMART
           "$menu" = "walker";
           "$shellMenu" =
-            if myconfig.constants.programs.caelestia.enableOnHyprland or false then
+            if myconfig.programs.caelestia.enableOnHyprland or false then
               "caelestiaQS"
-            else if myconfig.constants.programs.noctalia.enableOnHyprland or false then
+            else if myconfig.programs.noctalia.enableOnHyprland or false then
               "noctalia-shell ipc call toggleAppLauncher"
             else
               "walker";
@@ -259,7 +280,7 @@ delib.module {
             "w[tv1], gapsout:0, gapsin:0" # No gaps if only 1 window is visible
             "f[1], gapsout:0, gapsin:0" # No gaps if window is fullscreen
           ]
-          ++ (myconfig.constants.monitorWorkspaces or [ ]);
+          ++ (cfg.monitorWorkspaces or [ ]);
         };
       };
     };

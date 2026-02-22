@@ -1,12 +1,12 @@
-{ delib
-, pkgs
-, inputs
-, ...
+{
+  delib,
+  pkgs,
+  inputs,
+  ...
 }:
 delib.module {
-  name = "template-host.services.desktop.local-packages";
-
-  options.template-host.services.desktop.local-packages.enable = delib.boolOption false;
+  name = "full-host.services.local-packages";
+  options.full-host.services.local-packages.enable = delib.boolOption false;
 
   nixos.ifEnabled =
     { myconfig, ... }:
@@ -17,7 +17,6 @@ delib.module {
     {
       users.users.${myconfig.constants.user}.packages =
         (with pkgs; [
-
 
         ])
 

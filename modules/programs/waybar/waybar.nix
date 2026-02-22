@@ -44,11 +44,12 @@ delib.module {
       hyprlandWaybar =
         (myconfig.programs.hyprland.enable or false)
         && !(
-          (myconfig.constants.hyprlandCaelestia or false) || (myconfig.constants.hyprlandNoctalia or false)
+          (myconfig.programs.caelestia.enableOnHyprland or false)
+          || (myconfig.programs.noctalia.enableOnHyprland or false)
         );
 
       niriWaybar =
-        (myconfig.programs.niri.enable or false) && !(myconfig.constants.niriNoctalia or false);
+        (myconfig.programs.niri.enable or false) && !(myconfig.programs.noctalia.enableOnNiri or false);
 
       isWaybarNeeded = hyprlandWaybar || niriWaybar;
     in

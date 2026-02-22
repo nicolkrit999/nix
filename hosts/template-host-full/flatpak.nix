@@ -5,8 +5,8 @@
   ...
 }: # 🌟 THE FIX: Added inputs here
 delib.module {
-  name = "template-host.services.desktop.flatpak";
-  options.template-host.services.desktop.flatpak.enable = delib.boolOption false;
+  name = "full-host.services.flatpak";
+  options.full-host.services.flatpak.enable = delib.boolOption false;
 
   nixos.always = {
     imports = [ inputs.nix-flatpak.nixosModules.nix-flatpak ];

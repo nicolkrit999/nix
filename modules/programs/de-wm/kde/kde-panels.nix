@@ -25,7 +25,7 @@ delib.module {
       screenHeight = lib.toInt heightStr;
       panelHeight = builtins.floor (screenHeight * 2.5e-2);
 
-      rawPinnedApps = myconfig.constants.pinnedApps or [ ];
+      rawPinnedApps = cfg.pinnedApps;
 
       hasPins = builtins.length rawPinnedApps > 0;
       pinnedLaunchers = builtins.map (app: "applications:${app}") rawPinnedApps;

@@ -42,7 +42,7 @@ delib.module {
           vscode # Microsoft visual studio code IDE
           vesktop # Discord client
           vlc # Media player
-          #whatsapp-electron # Electron wrapper for whatsapp
+          whatsapp-electron # Electron wrapper for whatsapp
 
           # -----------------------------------------------------------------------------------
           # 🖥️ CLI UTILITIES

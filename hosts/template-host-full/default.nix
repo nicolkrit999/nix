@@ -1,34 +1,51 @@
-# TEMPLATE-HOST CONFIGURATION
-{ delib
-, inputs
-, pkgs
-, lib
-, ...
+# TEMPLATE-HOST FULL CONFIGURATION
+# THIS IS A TEMPLATE THAT SHOW A CONFIGURATION OF EVERY POSSIBLE FEATURE THE CURRENT SETUP ALLOW
+{
+  delib,
+  inputs,
+  pkgs,
+  lib,
+  ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-
-  # ⚠️ The following section provide example for all the host-specific modules enanchement
-  # A host may not have them at all. To remove one it's necessary to remove it both here than in the "myConfig" section
-
   # 🌟 CORE APPS & THEME
   myBrowser = "firefox";
   myTerminal = "alacritty";
-  myEditor = "vscode";
+  myShell = "bash";
+  myEditor = "nvim";
   myFileManager = "dolphin";
-  isCatppuccin = true;
-  userName = "nixos";
+  myUserName = "krit";
+  isCatppuccin = true; # Choose if enabling the  official catppuccin-nix module or not
 
   # 🌟 APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
   appWorkspaces = {
     editor = "2";
     fileManager = "3";
+    vm = "4";
     other = "5";
+    browser-Entertainment = "7";
     terminal = "8";
     chat = "9";
   };
 
-  # 🌟 DESKTOP MAP & RESOLVE FUNCTION
+  # This is used to distinguish between terminal-based and gui applications to make keybindings smart
+  termApps = [
+    "nvim"
+    "neovim"
+    "vim"
+    "nano"
+    "hx"
+    "helix"
+    "yazi"
+    "ranger"
+    "lf"
+    "nnn"
+  ];
+  smartLaunch =
+    app: if builtins.elem app termApps then "${myTerminal} --class ${app} -e ${app}" else app;
+
+  # # This is used to distinguish between terminal-based and gui applications to make desktop name smart
   desktopMap = {
     "firefox" = "firefox.desktop";
     "librewolf" = "librewolf.desktop";
@@ -51,80 +68,6 @@ let
   # 🖥️ WM / DE SPECIFIC CONFIGURATIONS (Migrated from modules.nix)
   # ---------------------------------------------------------------------------
 
-  myHyprlandWorkspaces = [
-    "1, monitor:DP-1"
-    "2, monitor:DP-1"
-    "3, monitor:DP-1"
-    "4, monitor:DP-1"
-    "5, monitor:DP-1"
-    "6, monitor:DP-2"
-    "7, monitor:DP-2"
-    "8, monitor:DP-2"
-    "9, monitor:DP-2"
-    "10, monitor:DP-2"
-  ];
-
-  myHyprlandWindowRules = [
-    "workspace ${appWorkspaces.editor} silent, class:^(code)$"
-    "workspace ${appWorkspaces.fileManager} silent, class:^(org.kde.dolphin)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
-    "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
-    "workspace ${appWorkspaces.chat} silent, class:^(vesktop)$"
-
-    # Scratchpad rules
-    "float, class:^(scratch-term)$"
-    "center, class:^(scratch-term)$"
-    "size 80% 80%, class:^(scratch-term)$"
-    "workspace special:magic, class:^(scratch-term)$"
-    "float, class:^(scratch-fs)$"
-    "center, class:^(scratch-fs)$"
-    "size 80% 80%, class:^(scratch-fs)$"
-    "workspace special:magic, class:^(scratch-fs)$"
-    "float, class:^(scratch-browser)$"
-    "center, class:^(scratch-browser)$"
-    "size 80% 80%, class:^(scratch-browser)$"
-    "workspace special:magic, class:^(scratch-browser)$"
-  ];
-
-  myHyprlandExtraBinds = [
-    "$Mod SHIFT, return, exec, [workspace special:magic] $term --class scratch-term"
-    "$Mod SHIFT, F, exec, [workspace special:magic] $term --class scratch-fs -e yazi"
-    "$Mod SHIFT, B, exec, [workspace special:magic] ${myBrowser} --new-window --class scratch-browser"
-    "$Mod,       Y, exec, chromium-browser"
-  ];
-
-  myGnomeExtraBinds = [
-    {
-      name = "Launch Chromium";
-      command = "chromium";
-      binding = "<Super>y";
-    }
-  ];
-
-  myKdeExtraBinds = {
-    "launch-chromium" = {
-      key = "Meta+Y";
-      command = "chromium";
-    };
-  };
-
-  myWaybarWorkspaceIcons = {
-    "1" = "";
-    "2" = "";
-    "3" = "";
-    "4" = "";
-    "5" = "";
-    "6" = "";
-    "7" = ":";
-    "8" = ":";
-    "9" = ":";
-    "10" = ":";
-    "magic" = ":";
-  };
-
-  myWaybarLayout = {
-    "format-en" = "🇺🇸-EN";
-  };
 in
 delib.host {
   name = "template-host";
@@ -139,10 +82,62 @@ delib.host {
       # 📦 CONSTANTS BLOCK (Data Bucket)
       # ---------------------------------------------------------------
       constants = {
-        monitors = [
+        hostname = "template-host";
+        # ---------------------------------------------------------------
+        # 👤 USER IDENTITY
+        # ---------------------------------------------------------------
+        user = myUserName;
+        gitUserName = myUserName;
+        gitUserEmail = "${myUserName}@example.com";
 
+        # ---------------------------------------------------------------
+        # 🐚 SHELLS & APPS
+        # ---------------------------------------------------------------
+        terminal = myTerminal;
+        shell = myShell;
+        browser = myBrowser;
+        editor = myEditor;
+        fileManager = myFileManager;
+        # ---------------------------------------------------------------
+        # ⚙️ ADVANCED SYSTEM CONSTANTS
+        # ---------------------------------------------------------------
+
+        # ---------------------------------------------------------------
+        # 🖼️ MONITORS & WALLPAPERS
+        # ---------------------------------------------------------------
+        monitors = [
           "eDP-1, 1920x1080@60, 0x0, 1"
         ];
+
+        wallpapers = [
+
+          {
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/zhichaoh-catppuccin-wallpapers-main/os/nix-black-4k.png";
+            wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
+          }
+        ];
+
+        # ---------------------------------------------------------------
+        # 🎨 THEMING
+        # ---------------------------------------------------------------
+        theme = {
+          polarity = "dark";
+          base16Theme = "catppuccin-mocha";
+          catppuccin = true;
+          catppuccinFlavor = "mocha";
+          catppuccinAccent = "teal";
+        };
+
+        screenshots = "$HOME/Pictures/Screenshots";
+        keyboardLayout = "us";
+        keyboardVariant = "intl";
+
+        # 🌟 RESTORED FROM VARIABLES.NIX.BAK
+        weather = "London";
+        useFahrenheit = false;
+        nixImpure = false;
+
+        timeZone = "Etc/UTC";
 
       };
 
@@ -208,9 +203,25 @@ delib.host {
       programs.walker.enable = true; # Disabling this mean missing an app launcher in hyprland/niri
 
       programs.waybar = {
-        enable = false;
-        waybarLayout = myWaybarLayout; # These are host-specific optional waybar layout customizations
-        waybarWorkspaceIcons = myWaybarWorkspaceIcons; # These are host-specific optional waybar workspace icons
+        enable = true;
+
+        waybarLayout = {
+          "format-en" = "🇺🇸-EN";
+        };
+
+        waybarWorkspaceIcons = {
+          "1" = "";
+          "2" = "";
+          "3" = "";
+          "4" = "";
+          "5" = "";
+          "6" = "";
+          "7" = ":";
+          "8" = ":";
+          "9" = ":";
+          "10" = ":";
+          "magic" = ":";
+        };
       };
 
       programs.zoxide.enable = true; # Disabling this would cause some aliases to not work
@@ -227,18 +238,66 @@ delib.host {
       };
 
       programs.hyprland = {
-        enable = true; # Needed since hyprland is enabled in this template
+        enable = true;
         execOnce = [
+          "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
+          "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
+          "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
 
+          "sleep 4 && uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
+          "whatsapp-electron"
         ];
-        monitorWorkspaces = myHyprlandWorkspaces;
-        windowRules = myHyprlandWindowRules;
-        extraBinds = myHyprlandExtraBinds;
+        monitorWorkspaces = [
+          "1, monitor:DP-1"
+          "2, monitor:DP-1"
+          "3, monitor:DP-1"
+          "4, monitor:DP-1"
+          "5, monitor:DP-1"
+          "6, monitor:DP-2"
+          "7, monitor:DP-2"
+          "8, monitor:DP-2"
+          "9, monitor:DP-2"
+          "10, monitor:DP-2"
+        ];
+
+        windowRules = [
+
+          # 1. Smart Launcher Rules
+          "workspace ${appWorkspaces.editor}, class:^(${myEditor})$"
+          "workspace ${appWorkspaces.fileManager}, class:^(${myFileManager})$"
+          "workspace ${appWorkspaces.terminal}, class:^(${myTerminal})$"
+
+          "workspace ${appWorkspaces.editor} silent, class:^(code)$"
+
+          "workspace ${appWorkspaces.fileManager} silent, class:^(org.kde.dolphin)$"
+
+          "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$"
+
+          "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
+          "workspace ${appWorkspaces.chat} silent, class:^(vesktop)$"
+
+          # Scratchpad rules
+          "float, class:^(scratch-term)$"
+          "center, class:^(scratch-term)$"
+          "size 80% 80%, class:^(scratch-term)$"
+          "workspace special:magic, class:^(scratch-term)$"
+          "float, class:^(scratch-fs)$"
+          "center, class:^(scratch-fs)$"
+          "size 80% 80%, class:^(scratch-fs)$"
+          "workspace special:magic, class:^(scratch-fs)$"
+          "float, class:^(scratch-browser)$"
+          "center, class:^(scratch-browser)$"
+          "size 80% 80%, class:^(scratch-browser)$"
+          "workspace special:magic, class:^(scratch-browser)$"
+        ];
+
+        extraBinds = [
+          "$Mod SHIFT, B, exec, [workspace special:magic] ${myBrowser} --new-window --class scratch-browser"
+        ];
       };
 
       programs.niri = {
         enable = false;
-        # These are host-specific optional programs that start on boot
         execOnce = [
           "${myBrowser}"
           "${myEditor}"
@@ -250,21 +309,34 @@ delib.host {
       programs.gnome = {
         enable = false;
         screenshots = "/home/krit/Pictures/Screenshots";
-        # These are host-specific optional gnome pinned apps
         pinnedApps = [
           (resolve myBrowser)
           (resolve myEditor)
           (resolve myFileManager)
 
         ];
-        # These are host-specific optional gnome shortcuts
-        gnomeExtraBinds = myGnomeExtraBinds;
+        extraBinds = [
+          {
+            name = "Launch Chromium";
+            command = "chromium";
+            binding = "<Super>y";
+          }
+        ];
       };
 
       programs.kde = {
         enable = false;
-        # These are host-specific optional kde shortcuts
-        extraBinds = myKdeExtraBinds;
+        pinnedApps = [
+          (resolve myBrowser)
+          (resolve myEditor)
+          (resolve myFileManager)
+        ];
+        extraBinds = {
+          "launch-chromium" = {
+            key = "Meta+Y";
+            command = "chromium";
+          };
+        };
       };
 
       # ---------------------------------------------------------------
@@ -304,8 +376,8 @@ delib.host {
         };
       };
 
-      template-host.services.desktop.flatpak.enable = true;
-      template-host.services.desktop.local-packages.enable = true;
+      full-host.services.flatpak.enable = true;
+      full-host.services.local-packages.enable = true;
     };
 
   # ---------------------------------------------------------------
@@ -327,9 +399,9 @@ delib.host {
       i18n.defaultLocale = "en_US.UTF-8";
 
       #users.mutableUsers = false; # Enable this only if the password is setup with sops. This bring the risk of being locked out of the system if enabled without
-      users.users.${userName} = {
+      users.users.${myUserName} = {
         isNormalUser = true;
-        description = "${userName}";
+        description = "${myUserName}";
         extraGroups = [
           "networkmanager"
           "wheel"
@@ -366,8 +438,8 @@ delib.host {
           description = "Clean up trash older than 30 days";
           serviceConfig = {
             Type = "oneshot";
-            User = userName;
-            Environment = "HOME=/home/${userName}";
+            User = myUserName;
+            Environment = "HOME=/home/${myUserName}";
             ExecStart = "${pkgs.autotrash}/bin/autotrash -d 30";
           };
         };
@@ -397,7 +469,8 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    { ...
+    {
+      ...
     }:
     {
       home.stateVersion = "25.11";

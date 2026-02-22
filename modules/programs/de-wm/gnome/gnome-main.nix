@@ -11,7 +11,7 @@ delib.module {
     enable = boolOption false;
     screenshots = strOption "$HOME/Pictures/Screenshots"; # TODO: Move to a single constant in constants.nix and default.nix for the host
     pinnedApps = listOfOption str [ ];
-    gnomeExtraBinds = listOfOption attrs [ ];
+    extraBinds = listOfOption attrs [ ];
   };
   home.ifEnabled =
     {

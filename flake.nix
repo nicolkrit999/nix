@@ -35,8 +35,16 @@
           exclude = [
             ./users/krit/dev-environments
             ./users/krit/modules/programs/gui-programs/librewolf/profiles
+
+            # TODO: see for hardware configuration if it support a wildcard to match any "hardware-configuration.nix"
             ./hosts/nixos-desktop/hardware-configuration.nix
             ./hosts/nixos-laptop/hardware-configuration.nix
+            ./hosts/template-host-minimal/hardware-configuration.nix
+            ./hosts/template-host-full/hardware-configuration.nix
+
+            # TODO: see for disko configuration if it support a wildcard to match any "disko-config.nix"
+            ./hosts/template-host-minimal/disko-config.nix
+            ./hosts/template-host-full/disko-config.nix
 
           ];
 

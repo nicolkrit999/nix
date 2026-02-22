@@ -14,6 +14,7 @@ delib.module {
     extraBinds = attrsOption { };
     mice = listOfOption attrs [ ];
     touchpads = listOfOption attrs [ ];
+    pinnedApps = listOfOption str [ ];
   };
 
   home.ifEnabled =
@@ -77,17 +78,9 @@ delib.module {
           cursor.theme = cursorTheme;
           wallpaper = wallpaperFiles;
         };
-        configFile = {
-          "kdeglobals"."KDE"."widgetStyle" =
-            if myconfig.constants.theme.catppuccin then "kvantum" else "Breeze";
-          "kdeglobals"."General"."AccentColor" =
-            if myconfig.constants.theme.catppuccin then "203,166,247" else null;
-        };
       };
 
       home.packages = with pkgs; [
-        catppuccin-kde
-        catppuccin-kvantum
       ];
     };
 }
