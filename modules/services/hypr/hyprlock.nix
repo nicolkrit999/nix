@@ -9,19 +9,26 @@ delib.module {
   home.always =
     { cfg, myconfig, ... }:
     let
-      # 🌟 EXACT ORIGINAL FALLBACK LOGIC
+      # 🛠️ FIX: Removed .constants so it reads from default.nix top-level
       hyprlandFallback =
-        (myconfig.constants.programs.hyprland.enable or false)
-        && !(myconfig.constants.programs.caelestia.enableOnHyprland or false)
-        && !(myconfig.constants.programs.noctalia.enableOnHyprland or false);
+        (myconfig.programs.hyprland.enable or false)
+        && !(myconfig.programs.caelestia.enableOnHyprland or false)
+        && !(myconfig.programs.noctalia.enableOnHyprland or false);
 
       niriFallback =
-        (myconfig.constants.programs.niri.enable or false)
-        && !(myconfig.constants.programs.noctalia.enableOnNiri or false);
+        (myconfig.programs.niri.enable or false) && !(myconfig.programs.noctalia.enableOnNiri or false);
+
     in
     lib.mkIf (hyprlandFallback || niriFallback) {
+
+      # 🎨 CATPPUCCIN INJECTION
+      catppuccin.hyprlock.enable = myconfig.constants.theme.catppuccin or false;
+      catppuccin.hyprlock.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
+      catppuccin.hyprlock.accent = myconfig.constants.theme.catppuccinAccent or "mauve";
+
       programs.hyprlock = {
         enable = true;
+
         settings = {
           general = {
             disable_loading_bar = true;
@@ -29,6 +36,7 @@ delib.module {
             hide_cursor = true;
             no_fade_in = false;
           };
+
           background = lib.mkForce [
             {
               path = "screenshot";

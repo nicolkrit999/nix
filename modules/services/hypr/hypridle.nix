@@ -23,7 +23,7 @@ delib.module {
     }:
     let
       noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
-      # 🌟 EXACT ORIGINAL SCRIPT
+
       universalLock = pkgs.writeShellScriptBin "universal-lock" ''
         if pgrep -f "noctalia-shell" > /dev/null; then
            ${noctaliaPkg}/bin/noctalia-shell ipc call lockScreen lock
@@ -39,15 +39,16 @@ delib.module {
         fi
       '';
 
-      # Original trigger condition
+      # 🛠️ FIX: Removed .constants to check the actual host config
       isWmEnabled =
-        (myconfig.constants.programs.hyprland.enable or false)
-        || (myconfig.constants.programs.niri.enable or false);
+        (myconfig.programs.hyprland.enable or false) || (myconfig.programs.niri.enable or false);
     in
     lib.mkIf isWmEnabled {
       home.packages = [ universalLock ];
+
       services.hypridle = {
         enable = true;
+
         settings = {
           general = {
             lock_cmd = "${universalLock}/bin/universal-lock";
@@ -55,18 +56,20 @@ delib.module {
             before_sleep_cmd = "loginctl lock-session";
             after_sleep_cmd = "hyprctl dispatch dpms on";
           };
+
           listener = [
             {
-              timeout = myconfig.constants.dimTimeout;
+              # 🛠️ FIX: Use cfg to grab from default.nix OR fallback
+              timeout = cfg.dimTimeout;
               on-timeout = "brightnessctl -s set 10";
               on-resume = "brightnessctl -r";
             }
             {
-              timeout = myconfig.constants.lockTimeout;
+              timeout = cfg.lockTimeout;
               on-timeout = "loginctl lock-session";
             }
             {
-              timeout = myconfig.constants.screenOffTimeout;
+              timeout = cfg.screenOffTimeout;
               on-timeout = "hyprctl dispatch dpms off";
               on-resume = "hyprctl dispatch dpms on";
             }

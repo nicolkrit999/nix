@@ -9,6 +9,7 @@ delib.module {
 
   home.ifEnabled =
     { cfg, myconfig, ... }:
+
     let
       activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
       monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
@@ -19,14 +20,16 @@ delib.module {
           sha256 = w.wallpaperSHA256;
         }
       ) myconfig.constants.wallpapers;
+
       getWallpaper =
         index: if index < builtins.length images then builtins.elemAt images index else lib.last images;
 
-      # 🌟 EXACT ORIGINAL CONDITION
+      # 🛠️ FIX: Removed .constants
       hyprlandFallback =
-        (myconfig.constants.programs.hyprland.enable or false)
-        && !(myconfig.constants.programs.caelestia.enableOnHyprland or false)
-        && !(myconfig.constants.programs.noctalia.enableOnHyprland or false);
+        (myconfig.programs.hyprland.enable or false)
+        && !(myconfig.programs.caelestia.enableOnHyprland or false)
+        && !(myconfig.programs.noctalia.enableOnHyprland or false);
+
     in
     lib.mkIf hyprlandFallback {
       services.hyprpaper = {
