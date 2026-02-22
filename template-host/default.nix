@@ -1,10 +1,9 @@
 # TEMPLATE-HOST CONFIGURATION
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  ...
+{ delib
+, inputs
+, pkgs
+, lib
+, ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
@@ -305,6 +304,8 @@ delib.host {
         };
       };
 
+      template-host.services.desktop.flatpak.enable = true;
+      template-host.services.desktop.local-packages.enable = true;
     };
 
   # ---------------------------------------------------------------
@@ -396,8 +397,7 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    {
-      ...
+    { ...
     }:
     {
       home.stateVersion = "25.11";
