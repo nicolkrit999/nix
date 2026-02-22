@@ -12,7 +12,6 @@ delib.module {
   nixos.ifEnabled =
     { myconfig, ... }:
     let
-      # 🌟 THE FIX: Define pkgs-unstable here so it's always available
       pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
     in
 

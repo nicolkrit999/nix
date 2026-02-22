@@ -1,8 +1,7 @@
-{
-  delib,
-  pkgs,
-  inputs,
-  ...
+{ delib
+, pkgs
+, inputs
+, ...
 }:
 delib.module {
   name = "krit.services.laptop.local-packages";
@@ -18,7 +17,7 @@ delib.module {
 
     {
       users.users.${myconfig.constants.user}.packages = (
-        with pkgs;
+        (with pkgs;
         [
           # This allow guest user to not have this packages installed
           # Packages in each category are sorted alphabetically
@@ -86,7 +85,15 @@ delib.module {
           # ❓ OTHER
           # -----------------------------------------------------------------------
 
-        ]
+        ])
+
+        ++ (with pkgs-unstable; [
+          # -----------------------------------------------------------------------
+          # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
+          # -----------------------------------------------------------------------
+          fresh-editor # Lightweight terminal text editor
+
+        ])
       );
     };
 }

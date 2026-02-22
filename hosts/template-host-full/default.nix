@@ -1,15 +1,14 @@
 # TEMPLATE-HOST FULL CONFIGURATION
 # THIS IS A TEMPLATE THAT SHOW A CONFIGURATION OF EVERY POSSIBLE FEATURE THE CURRENT SETUP ALLOW
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  ...
+{ delib
+, inputs
+, pkgs
+, ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
   # 🌟 CORE APPS & THEME
+  # Choose core preferences
   myBrowser = "firefox";
   myTerminal = "alacritty";
   myShell = "bash";
@@ -19,6 +18,7 @@ let
   isCatppuccin = true; # Choose if enabling the  official catppuccin-nix module or not
 
   # 🌟 APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
+  # Choose if binding a certain application to a specific workspace. Currently only in hyprland
   appWorkspaces = {
     editor = "2";
     fileManager = "3";
@@ -63,11 +63,6 @@ let
     "nemo" = "nemo.desktop";
   };
   resolve = name: desktopMap.${name} or "${name}.desktop";
-
-  # ---------------------------------------------------------------------------
-  # 🖥️ WM / DE SPECIFIC CONFIGURATIONS (Migrated from modules.nix)
-  # ---------------------------------------------------------------------------
-
 in
 delib.host {
   name = "template-host";
@@ -76,7 +71,7 @@ delib.host {
   homeManagerSystem = "x86_64-linux";
 
   myconfig =
-    { name, ... }:
+    { ... }:
     {
       # ---------------------------------------------------------------
       # 📦 CONSTANTS BLOCK (Data Bucket)
@@ -98,9 +93,6 @@ delib.host {
         browser = myBrowser;
         editor = myEditor;
         fileManager = myFileManager;
-        # ---------------------------------------------------------------
-        # ⚙️ ADVANCED SYSTEM CONSTANTS
-        # ---------------------------------------------------------------
 
         # ---------------------------------------------------------------
         # 🖼️ MONITORS & WALLPAPERS
@@ -132,7 +124,6 @@ delib.host {
         keyboardLayout = "us";
         keyboardVariant = "intl";
 
-        # 🌟 RESTORED FROM VARIABLES.NIX.BAK
         weather = "London";
         useFahrenheit = false;
         nixImpure = false;
@@ -160,19 +151,19 @@ delib.host {
       cosmic.enable = false;
       gnome.enable = false;
       guest.enable = false;
-      home-packages.enable = true;
+      home-packages.enable = true; # Enabled to enable automatic installation of browser, editor, file manager and terminal based on the host preferences
       hyprland.enable = true; # Enabled to have at least one wm
       kde.enable = false;
-      # Disabling this would cause the shortcuts that open "browser, editor, file manager"
-      # To fail
-      mime.enable = true;
+
+      mime.enable = true; # Disabling this would cause the shortcuts that open "browser, editor, file manager" to fail
+
 
       nh.enable = true; # Disabling this would cause most nix-related aliases to fail
       niri.enable = false;
       qt.enable = true; # Disabling this would cause graphical inconsistencies
 
       zram = {
-        enable = true;
+        enable = true; # Enabled because it's beneficial everywhere
         zramPercent = 25;
       };
 
@@ -180,7 +171,7 @@ delib.host {
       stylix = {
         enable = true;
         # These are host-specific targets exclusion/inclusion. They are optional
-        targets = { };
+        targets = { alacritty.enable = !isCatppuccin; };
       };
 
       # ---------------------------------------------------------------
@@ -192,7 +183,7 @@ delib.host {
       programs.fzf.enable = true; # Disabling this would cause some shell aliases to not work
 
       programs.git = {
-        enable = false;
+        enable = false; # Note git as package is installed anyway, disabling this only means disabling the custom configuration such as setting the user identity
         # These are host-specific git exclusion/inclusion. They are optional
         customGitIgnores = [ ];
       };
@@ -238,7 +229,7 @@ delib.host {
       };
 
       programs.hyprland = {
-        enable = true;
+        enable = true; # Enabled to give the template at least one window manager
         execOnce = [
           "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
           "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
@@ -261,7 +252,6 @@ delib.host {
         ];
 
         windowRules = [
-
           # 1. Smart Launcher Rules
           "workspace ${appWorkspaces.editor}, class:^(${myEditor})$"
           "workspace ${appWorkspaces.fileManager}, class:^(${myFileManager})$"
@@ -376,8 +366,8 @@ delib.host {
         };
       };
 
-      full-host.services.flatpak.enable = true;
-      full-host.services.local-packages.enable = true;
+      full-host.services.flatpak.enable = false;
+      full-host.services.local-packages.enable = false;
     };
 
   # ---------------------------------------------------------------
@@ -469,8 +459,7 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    {
-      ...
+    { ...
     }:
     {
       home.stateVersion = "25.11";

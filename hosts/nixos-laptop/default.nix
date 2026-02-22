@@ -1,9 +1,8 @@
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  ...
+{ delib
+, inputs
+, pkgs
+, lib
+, ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
@@ -27,6 +26,7 @@ let
     chat = "9";
   };
 
+  # Add more if needed
   termApps = [
     "nvim"
     "neovim"
@@ -60,11 +60,6 @@ let
     "nemo" = "nemo.desktop";
   };
   resolve = name: desktopMap.${name} or "${name}.desktop";
-
-  # ---------------------------------------------------------------------------
-  # 🖥️ WM / DE SPECIFIC CONFIGURATIONS (Migrated from modules.nix)
-  # ---------------------------------------------------------------------------
-
 in
 
 delib.host {
@@ -74,11 +69,8 @@ delib.host {
   homeManagerSystem = "aarch64-linux";
 
   myconfig =
-    { name, ... }:
+    { ... }:
     {
-      # ---------------------------------------------------------------
-      # 📦 CONSTANTS BLOCK (Data Bucket)
-      # ---------------------------------------------------------------
       constants = {
         hostname = "nixos-laptop";
         # ---------------------------------------------------------------
@@ -150,7 +142,6 @@ delib.host {
         keyboardLayout = "us,it,de,fr";
         keyboardVariant = "intl,,,";
 
-        # 🌟 RESTORED FROM VARIABLES.NIX.BAK
         weather = "Lugano";
         useFahrenheit = false;
         nixImpure = false;
@@ -485,8 +476,6 @@ delib.host {
 
         ./hardware-configuration.nix
 
-        # 🌟 THE INLINE MODULE FIX 🌟
-        # Anything that uses the word 'config' MUST be inside here!
         /*
           (
             { config, ... }:
@@ -710,14 +699,13 @@ delib.host {
         zip
         zlib
       ];
-    }; # 🌟 THIS CORRECTLY CLOSES THE NIXOS BLOCK
+    };
 
   # ---------------------------------------------------------------
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    {
-      ...
+    { ...
     }:
     {
       home.stateVersion = "25.11";
@@ -727,35 +715,6 @@ delib.host {
         #inputs.nix-sops.homeModules.sops
 
       ];
-
-      # TODO: check stability. It should not be necessary since vivaldi was removed
-      /*
-        xdg.desktopEntries.vivaldi = {
-          name = "Vivaldi";
-          genericName = "Web Browser";
-          exec = "/home/${userName}/.local/bin/vivaldi %U";
-          terminal = false;
-          categories = [
-            "Network"
-            "WebBrowser"
-          ];
-          mimeType = [
-            "text/html"
-            "application/xhtml+xml"
-            "x-scheme-handler/http"
-            "x-scheme-handler/https"
-          ];
-          icon = "vivaldi";
-        };
-
-        home.file.".local/bin/vivaldi" = {
-          executable = true;
-          text = ''
-            #!/bin/sh
-            exec env QT_QPA_PLATFORMTHEME=gtk3 ${pkgs.vivaldi}/bin/vivaldi --password-store=gnome-libsecret "$@"
-          '';
-        };
-      */
 
       home.packages = (with pkgs; [ ]) ++ (with pkgs-unstable; [ ]);
 

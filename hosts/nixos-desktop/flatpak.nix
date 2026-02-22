@@ -3,19 +3,16 @@
   pkgs,
   inputs,
   ...
-}: # 🌟 THE FIX: Added inputs here
+}:
 delib.module {
   name = "krit.services.desktop.flatpak";
   options.krit.services.desktop.flatpak.enable = delib.boolOption false;
 
-  # 🌟 THE FIX: Import the flatpak schema globally so it exists for ALL hosts
   nixos.always = {
     imports = [ inputs.nix-flatpak.nixosModules.nix-flatpak ];
   };
 
-  # Configuration strictly in the nixos hook
   nixos.ifEnabled =
-    { cfg, myconfig, ... }:
     {
       services.flatpak = {
         enable = true;

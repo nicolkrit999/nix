@@ -1,9 +1,7 @@
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  ...
+{ delib
+, inputs
+, pkgs
+, ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
@@ -27,6 +25,7 @@ let
     chat = "9";
   };
 
+  # Add more if needed
   termApps = [
     "nvim"
     "neovim"
@@ -60,11 +59,6 @@ let
     "nemo" = "nemo.desktop";
   };
   resolve = name: desktopMap.${name} or "${name}.desktop";
-
-  # ---------------------------------------------------------------------------
-  # 🖥️ WM / DE SPECIFIC CONFIGURATIONS (Migrated from modules.nix)
-  # ---------------------------------------------------------------------------
-
 in
 
 delib.host {
@@ -74,7 +68,7 @@ delib.host {
   homeManagerSystem = "x86_64-linux";
 
   myconfig =
-    { name, ... }:
+    { ... }:
     {
       # ---------------------------------------------------------------
       # 📦 CONSTANTS BLOCK (Data Bucket)
@@ -469,9 +463,6 @@ delib.host {
   # ---------------------------------------------------------------
   # ⚙️ SYSTEM-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
-  # ---------------------------------------------------------------
-  # ⚙️ SYSTEM-LEVEL CONFIGURATIONS
-  # ---------------------------------------------------------------
   nixos =
     { ... }:
     {
@@ -483,8 +474,6 @@ delib.host {
 
         ./hardware-configuration.nix
 
-        # 🌟 THE INLINE MODULE FIX 🌟
-        # Anything that uses the word 'config' MUST be inside here!
         (
           { config, ... }:
           {
@@ -569,10 +558,9 @@ delib.host {
           nas_owncloud_user.sopsFile = commonSecrets;
           nas_owncloud_pass.sopsFile = commonSecrets;
 
-          # 🌟 THE FIX: Remove the commonSecrets override so they use defaultSopsFile
           borg-passphrase = { };
           borg-private-key = { };
-          cachix-auth-token = { }; # Added this so Cachix can push!
+          cachix-auth-token = { };
         };
 
       programs.git.enable = true;
@@ -683,14 +671,13 @@ delib.host {
         zip
         zlib
       ];
-    }; # 🌟 THIS CORRECTLY CLOSES THE NIXOS BLOCK
+    };
 
   # ---------------------------------------------------------------
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    {
-      ...
+    { ...
     }:
     {
       home.stateVersion = "25.11";
@@ -700,35 +687,6 @@ delib.host {
 
       ];
 
-      # TODO: check stability. It should not be necessary since vivaldi was removed
-
-      /*
-        xdg.desktopEntries.vivaldi = {
-          name = "Vivaldi";
-          genericName = "Web Browser";
-          exec = "/home/${userName}/.local/bin/vivaldi %U";
-          terminal = false;
-          categories = [
-            "Network"
-            "WebBrowser"
-          ];
-          mimeType = [
-            "text/html"
-            "application/xhtml+xml"
-            "x-scheme-handler/http"
-            "x-scheme-handler/https"
-          ];
-          icon = "vivaldi";
-        };
-
-        home.file.".local/bin/vivaldi" = {
-          executable = true;
-          text = ''
-            #!/bin/sh
-            exec env QT_QPA_PLATFORMTHEME=gtk3 ${pkgs.vivaldi}/bin/vivaldi --password-store=gnome-libsecret "$@"
-          '';
-        };
-      */
 
       home.packages = (with pkgs; [ winboat ]) ++ (with pkgs-unstable; [ ]);
 
