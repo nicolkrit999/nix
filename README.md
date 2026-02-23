@@ -14,9 +14,7 @@
   - [✨ Features](#-features)
     - [🖥️ Adaptive Host Support:](#️-adaptive-host-support)
       - [Host-specific home-manager modules](#host-specific-home-manager-modules)
-      - [Host-specific home options](#host-specific-home-options)
       - [Host-specific general home-manager modules tweaks](#host-specific-general-home-manager-modules-tweaks)
-    - [📦 Package version and flatpak](#-package-version-and-flatpak)
     - [❄️ Hybrid (declarative + non declarative for some modules)](#️-hybrid-declarative--non-declarative-for-some-modules)
     - [🎨 Theming](#-theming)
     - [🖌️ Wallpaper(s)](#️-wallpapers)
@@ -35,6 +33,7 @@
     - [🦺 Optional BTRFS snapshots](#-optional-btrfs-snapshots)
     - [❔ SOPS-nix support](#-sops-nix-support)
     - [📦 Cachix support](#-cachix-support)
+    - [🧑‍🍳 Denix support](#-denix-support)
     - [🖥️ Multi-architecture support](#️-multi-architecture-support)
 - [🚀 NixOS Installation Guide](#-nixos-installation-guide)
   - [📦 Phase 1: Preparation](#-phase-1-preparation)
@@ -43,24 +42,22 @@
   - [💾 Phase 2: The Terminal Installation](#-phase-2-the-terminal-installation)
     - [1. Download the Config](#1-download-the-config)
     - [2. Identify Your Disk](#2-identify-your-disk)
-    - [3. Create Your Host](#3-create-your-host)
+    - [3. Create Your Host and import the chosen disko-config](#3-create-your-host-and-import-the-chosen-disko-config)
     - [4. Configure the Drive](#4-configure-the-drive)
-    - [5. Configure Critical Variables](#5-configure-critical-variables)
+      - [Option A: Standard (No Encryption)](#option-a-standard-no-encryption)
+      - [Option B: Secure (LUKS + TPM 2.0)](#option-b-secure-luks--tpm-20)
+    - [5a. Configure Critical Variables](#5a-configure-critical-variables)
+    - [5b. Enable suggested modules](#5b-enable-suggested-modules)
     - [6. Install (The Magic Step)](#6-install-the-magic-step)
+      - [For Option A (Standard):](#for-option-a-standard)
+      - [For Option B (LUKS + TPM):](#for-option-b-luks--tpm)
     - [7. Finish](#7-finish)
   - [🎨 Phase 3: Post-Install Setup](#-phase-3-post-install-setup)
     - [1. Move Config to Home](#1-move-config-to-home)
     - [2. (Optional) Cleanup Unused Hosts](#2-optional-cleanup-unused-hosts)
   - [🛠️ Phase 4: Customization](#️-phase-4-customization)
-    - [Refine `variables.nix`](#refine-variablesnix)
-      - [An hosts variable config example:](#an-hosts-variable-config-example)
     - [Setup (optional) `local-packages.nix`](#setup-optional-local-packagesnix)
     - [Setup (optional) `flatpak.nix`](#setup-optional-flatpaknix)
-    - [Setup (optional) `modules.nix`](#setup-optional-modulesnix)
-    - [Setup (optional) `home.nix`](#setup-optional-homenix)
-  - [Phase 5: Setup optional host-specific files and directories](#phase-5-setup-optional-host-specific-files-and-directories)
-    - [1. (Optional) Customize the host-specific `modules.nix`](#1-optional-customize-the-host-specific-modulesnix)
-    - [2. (Optional) Customize the host-specific `home.nix`](#2-optional-customize-the-host-specific-homenix)
   - [🔄 Daily Usage \& Updates](#-daily-usage--updates)
   - [❓ Troubleshooting](#-troubleshooting)
     - [Error: `path '.../hardware-configuration.nix' does not exist`](#error-path-hardware-configurationnix-does-not-exist)
@@ -563,86 +560,127 @@ cd nixOS
 We must identify which drive to wipe. **Be careful here.**
 
 ```bash
-lsblk
+lsblk -o NAME,SIZE,FSAVAIL
 ```
 
-- Look for your main disk (e.g., `476G` or `931G`).
-- Note the name: usually **`nvme0n1`** (for SSDs) or **`sda`**.
+* Look for your main disk (e.g., `476G` or `931G`).
 
-### 3. Create Your Host
+
+* Note the name: usually **`nvme0n1`** (for SSDs) or **`sda`**.
+
+
+
+### 3. Create Your Host and import the chosen disko-config
 
 Copy the template to a new folder for your machine. Replace `my-computer` with your desired hostname.
-
+You may choose between copying the `minimal` or the `full` template host
 
 ```bash
 cd hosts
-cp -r template-host-minimal my-computer
+cp -r template-host-full my-computer
 cd my-computer
+```
+
+Edit the host `default.nix` and add in the `nixos` block the import for the chosen disko-config. Remember to only have one of the 2 imported
+```nix
+  nixos =
+    { ... }:
+    {
+      nixpkgs.hostPlatform = "x86_64-linux";
+      system.stateVersion = "25.11";
+      imports = [
+        inputs.catppuccin.nixosModules.catppuccin
+        #inputs.nix-sops.nixosModules.sops # Tough an import does not cause the build to fail it's removed for lightness. Enable if used
+        inputs.niri.nixosModules.niri
+
+        ./hardware-configuration.nix
+        
+        ./disko-config-btrfs
+        ./disko-config-btrfs-luks-impermanence
+      ];
 ```
 
 ### 4. Configure the Drive
 
-Tell the installer which disk to wipe.
+Choose **ONE** of the following methods depending on whether you want encryption.
+- Both disko-config are under ~/nixOS/hosts/template-host-full
 
-```bash
-nano disko-config.nix
-```
+#### Option A: Standard (No Encryption)
 
-- Find the line: `device = "/dev/nvme0n1";`
-- Change it to **your actual drive name** found in step 2.
-- **Save:** `Ctrl+O` -> `Enter` -> `Ctrl+X`
+1. Open the standard config: `nano disko-config-btrfs.nix`.
+2. Find the line: `device = "/dev/nvme0n1";` and change it to your actual drive name from step 2.
+3. **Save**: `Ctrl+O` -> `Enter` -> `Ctrl+X`.
+
+#### Option B: Secure (LUKS + TPM 2.0)
+
+1. Open the encrypted config: `nano disko-config-btrfs-luks-impermanence.nix`.
+
+
+2. Find the linse: `device = "/dev/nvme0n1";` and `nvme0n1 = {` and change them to your actual drive name from step 2.
+
+
+3. **Save**: `Ctrl+O` -> `Enter` -> `Ctrl+X`.
 
 ### 5a. Configure Critical Variables
 
 We only need to set the basics now. You can customize themes and wallpapers later in the GUI.
 
 ```bash
-nano variables.nix
+nano default.nix
 ```
 
-- **`user`**: Change `"template-user"` to your real user.
-- **⚠️ CRITICAL:** Do not install as `template-user` and try to rename it later. You will lose access to your home folder. Set your real user **NOW**.
-- **`homeManagerSystem`**: The template is `x86_64-linux`. If you have a newer arm-based pc then `aarch_64`
-- **`monitors`** Configure the available monitor/s using hyprland sintax. This is a good thing to do at the beginning to have a customized system
-
-You may also want to configure the keyboard. If you don't have us international you may boot into a wrong layout. Below there is an example with multiple layouts
-
-keyboardVariant = "intl,,,,"; # main variant + 4 commas (total 5 values, same as keyboardLayout)
-
-```nix
-keyboardLayout = "us,ch,de,fr,it"; # 5 different layouts
-```
-
+* **`user`**: Change `"template-user"` to your real user.
+* **⚠️ CRITICAL**: Do not install as `template-user` and try to rename it later. Set your real user **NOW**.
+* **`homeManagerSystem`**: The template is `x86_64-linux`. If you have a newer ARM-based PC then `aarch64-linux`.
+* **Keyboard**: Set `keyboardLayout` (e.g., `"us,it"`) and `keyboardVariant` (e.g., `"intl,,"`) to have an easier time to login and user  the terminal right from teh beginning
 
 ### 5b. Enable suggested modules
-TODO: complete using the modules that are in the template-full but that do not have boolOption = true. Tell why it's suggested
 
+Check the documentation [denix starting documentation](#-denix-support). To find a descriptions of possible modules that are available and check `template-host-full-default.nix` for suggested modules (one that have a `enable = true;` block)
 
+---
 
 ### 6. Install (The Magic Step)
 
-Run these three commands to format the drive and install the OS.
+Run the commands corresponding to the configuration you chose in Step 4.
+
+#### For Option A (Standard):
 
 ```bash
 # 1. Partition & Mount (Wipes the drive!)
-sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode disko ~/nixOS/hosts/template-host/disko-config.nix
+sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode disko ~/nixOS/hosts/my-computer/disko-config-btrfs.nix
 
-# 2. Generate Hardware Config (Captures CPU/Kernel quirks)
-nixos-generate-config --no-filesystems --root /mnt --dir /etc/nixos/hosts/<hostname>
+# 2. Generate Hardware Config
+nixos-generate-config --no-filesystems --root /mnt --dir /etc/nixos/hosts/my-computer
 
 # 3. Install
-cd /etc/nixos  # Go back to the repo root
+cd /etc/nixos
+nixos-install --flake .#my-computer
+```
 
-# If for some reason you need the impure flag just add it at the end of the following command
-# If using sops and `users.mutableUsers` is enabled then the chosen password will be overwritten
-nixos-install --flake .<hostname>
+#### For Option B (LUKS + TPM):
+
+```bash
+# 1. Partition & Mount (Wipes the drive! You will be prompted for a LUKS passphrase)
+sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode disko ~/nixOS/hosts/my-computer/disko-config-btrfs-luks-impermanence.nix
+
+# 2. Generate Hardware Config
+nixos-generate-config --no-filesystems --root /mnt --dir /etc/nixos/hosts/my-computer
+
+# 3. Install
+cd /etc/nixos
+nixos-install --flake .#my-computer
 ```
 
 ### 7. Finish
 
-1. Set your **root password** when prompted at the end. Note the password is not displayed while typing (note that this password can be different from the user one)
+1. Set your **root password** when prompted.
 2. Type `reboot` and remove the USB stick.
+3. **(LUKS Only)**: Once you boot into your new system, bind the TPM for auto-unlock:
 
+```bash
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 /dev/nvme0n1p2
+```
 ---
 
 ## 🎨 Phase 3: Post-Install Setup

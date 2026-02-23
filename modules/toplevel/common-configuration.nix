@@ -97,6 +97,7 @@ delib.module {
           seahorse # GNOME key and password manager
           sops # Secret management
           shellPkg # The selected shell package (bash, zsh, or fish)
+          tpm2-tss # Used for hosts that installed using disko-cnfig with luks
           xdg-desktop-portal-gtk # GTK portal backend for file pickers
 
           # --- GRAPHICS & GUI SUPPORT ---
@@ -202,6 +203,8 @@ delib.module {
       # -----------------------------------------------------
       # ⚡ SYSTEM TWEAKS
       # -----------------------------------------------------
+
+      boot.initrd.systemd.enable = true; # Used for hosts that installed using disko-cnfig with luks
       # Reduce shutdown wait time for stuck services
       systemd.settings.Manager = {
         DefaultTimeoutStopSec = "10s";

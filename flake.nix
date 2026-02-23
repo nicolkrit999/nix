@@ -41,8 +41,8 @@
             ./hosts/template-host-minimal/hardware-configuration.nix
             ./hosts/template-host-full/hardware-configuration.nix
 
-            ./hosts/template-host-minimal/disko-config.nix
-            ./hosts/template-host-full/disko-config.nix
+            ./hosts/template-host-full/disko-config-btrfs.nix
+            ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
 
           ];
 

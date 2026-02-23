@@ -5,7 +5,6 @@
   ...
 }:
 delib.module {
-  # TODO: probably can be renamed to "programs.gnome" so that it's not enabled at all if the user does not want it
   name = "programs.gnome";
   options = delib.singleEnableOption false;
 

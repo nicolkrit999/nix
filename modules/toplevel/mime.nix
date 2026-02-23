@@ -1,19 +1,20 @@
 # Set defaults applications. If not enabled the system does not know with what to open file/directories/links and similar
-{ delib
-, lib
-, ...
+{
+  delib,
+  lib,
+  ...
 }:
 delib.module {
   name = "mime";
   options = delib.singleEnableOption true;
 
   home.ifEnabled =
-    { myconfig
-    , ...
+    {
+      myconfig,
+      ...
     }:
     let
       # If variables are missing, these defaults will be used.
-      # TODO: check if needed
       safeEditor = myconfig.constants.editor or "vscode";
       safeBrowser = myconfig.constants.browser or "firefox";
       safeTerm = myconfig.constants.terminal or "alacritty";
