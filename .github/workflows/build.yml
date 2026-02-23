@@ -4,7 +4,7 @@ env:
 
 on:
   push:
-    branches: [develop, main, swtich-to-denix]
+    branches: [develop, main, switch-to-denix]
   pull_request:
   workflow_dispatch:
   schedule:
