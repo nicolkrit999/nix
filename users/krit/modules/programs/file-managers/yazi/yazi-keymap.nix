@@ -441,6 +441,11 @@ delib.module {
           { on = [ "t" "2" ]; run = "tab_switch 1"; desc = "Switch to second tab"; }
           { on = [ "t" "3" ]; run = "tab_switch 2"; desc = "Switch to third tab"; }
           { on = [ "t" "4" ]; run = "tab_switch 3"; desc = "Switch to fourth tab"; }
+          { on = [ "t" "5" ]; run = "tab_switch 4"; desc = "Switch to fifth tab"; }
+          { on = [ "t" "6" ]; run = "tab_switch 5"; desc = "Switch to sixth tab"; }
+          { on = [ "t" "7" ]; run = "tab_switch 6"; desc = "Switch to seventh tab"; }
+          { on = [ "t" "8" ]; run = "tab_switch 7"; desc = "Switch to eighth tab"; }
+          { on = [ "t" "9" ]; run = "tab_switch 8"; desc = "Switch to ninth tab"; }
 
           # 2. Relative Switching (Left/Right) - Keeping these fast and single-key
           {
