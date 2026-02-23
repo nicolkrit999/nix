@@ -79,13 +79,19 @@ delib.module {
     { cfg, myconfig, ... }:
     let
       isCatppuccin = myconfig.constants.theme.catppuccin or false;
+
+      hyprlandEnabled = myconfig.programs.hyprland.enable or false;
+      caelestiaEnabled = myconfig.programs.caelestia.enableOnHyprland or false;
+      noctaliaEnabled = myconfig.programs.noctalia.enableOnHyprland or false;
+
+      useHyprpaper = hyprlandEnabled && !caelestiaEnabled && !noctaliaEnabled;
     in
     {
       stylix.targets = {
         neovim.enable = false;
         wofi.enable = false;
         waybar.enable = false;
-        hyprpaper.enable = false;
+        hyprpaper.enable = lib.mkForce (!isCatppuccin && useHyprpaper);
         kde.enable = false;
         qt.enable = false;
         gnome.enable = myconfig.programs.gnome.enable or false;
