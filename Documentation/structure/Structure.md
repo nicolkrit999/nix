@@ -1,6 +1,6 @@
 # 📂 Project Structure
 
-This repository separates the **System Configuration** (root-level/OS) from the **User Configuration** (home-manager/apps).
+This repository leverage denix. This means modules can be put anywhere and do not need nor an import block somewhere nor a default.nix as long as their path is included in `flake.nix`. The modules can therefore be moved at will
 
 This guide contains an in-depth analysis of every file
 
@@ -10,126 +10,180 @@ Categories can be navigated with the links below:
 - **[⚙️ System Modules (NixOS)](./sections/NixOS.md)**: Bootloader, hardware, networking, and user management.
 - **[🏠 User Modules (Home Manager)](./sections/HomeManager.md)**: Applications, themes, Hyprland, and shell customization.
 
-## 🌳 File Tree
+## 🌳 Current file Tree
 
 ```text
-├── common
-│   └── ... # This is where you can create common modules
-
-├── flake.lock # It must be in the repo to allow cachix to work
+.
+├── Documentation
+│   ├── ideas
+│   │   └── ideas.md
+│   ├── in-depth-files-expl
+│   │   └── files-expl.md
+│   ├── issues
+│   │   └── issues.md
+│   ├── showcase-screenshots
+│   │   ├── gnome-showcase.png
+│   │   ├── hyprland-caelestia.png
+│   │   ├── hyprland-showcase.png
+│   │   ├── kde-showcase.png
+│   │   ├── noctalia_custom-neovim.png
+│   │   ├── noctalia-screen_locker.png
+│   │   ├── quickshell-lockscreen.png
+│   │   └── xfce-showcase.png
+│   ├── structure
+│   │   ├── sections
+│   │   │   ├── Core.md
+│   │   │   ├── HomeManager.md
+│   │   │   └── NixOS.md
+│   │   └── Structure.md
+│   ├── troubleshooting
+│   │   └── emergency-recovery-gnu-grub.md
+│   └── usage
+│       ├── cachix
+│       │   └── cachix.md
+│       ├── denix
+│       │   └── possibilities.md
+│       ├── sops
+│       │   └── sops-guide.md
+│       ├── tmux
+│       │   └── tmux-guide.md
+│       └── usage-guide-general.md
+├── flake.lock
 ├── flake.nix
-├── home-manager
-│   ├── home-packages.nix
-│   ├── home.nix
-│   └── modules
-│       ├── cli-programs
-│       │   ├── default.nix
-│       │   ├── neovim.nix
-│       │   ├── swaync
-│       │   │   └── default.nix
-│       │   ├── waybar
-│       │   │   ├── default.nix
-│       │   │   └── style.css
-│       │   └── walker.nix
-│       │ 
-│       ├── de-wm
-│       │   ├── caelestia
-│       │   │   ├── caelestia-main.nix
-│       │   │   └── default.nix
-│       │   ├── cosmic
-│       │   │   ├── cosmic-main.nix
-│       │   │   └── default.nix
-│       │   ├── default.nix
-│       │   ├── gnome
-│       │   │   ├── default.nix
-│       │   │   ├── gnome-binds.nix
-│       │   │   └── gnome-main.nix
-│       │   ├── hyprland
-│       │   │   ├── default.nix
-│       │   │   ├── hyprland-binds.nix
-│       │   │   ├── hyprland-hypridle.nix
-│       │   │   ├── hyprland-hyprlock.nix
-│       │   │   ├── hyprland-hyprpaper.nix
-│       │   │   └── hyprland-main.nix
-│       │   ├── kde
-│       │   │   ├── default.nix
-│       │   │   ├── kde-binds.nix
-│       │   │   ├── kde-desktop.nix
-│       │   │   ├── kde-files.nix
-│       │   │   ├── kde-inputs.nix
-│       │   │   ├── kde-krunner.nix
-│       │   │   ├── kde-kscreenlocker.nix
-│       │   │   ├── kde-main.nix
-│       │   │   └── kde-panels.nix
-│       │   ├── niri
-│       │   │   ├── default.nix
-│       │   │   ├── niri-binds.nix
-│       │   │   └── niri-main.nix
-│       │   └── noctalia
-│       │       ├── default.nix
-│       │       └── noctalia-main.nix
-│       ├── default.nix
-│       ├── gui-programs
-│       │   └── default.nix
-│       └── utilities
-│           ├── bash.nix
-│           ├── bat.nix
-│           ├── default.nix
-│           ├── eza.nix
-│           ├── fish.nix
-│           ├── fzf.nix
-│           ├── git.nix
-│           ├── lazygit.nix
-│           ├── mime.nix
-│           ├── qt.nix
-│           ├── starship.nix
-│           ├── stylix.nix
-│           ├── tmux.nix
-│           ├── zoxide.nix
-│           └── zsh.nix
 ├── hosts
-│   └── template-host
-│       ├── configuration.nix
+│   ├── nixos-desktop
+│   │   ├── default.nix
+│   │   ├── flatpak.nix
+│   │   ├── hardware-configuration.nix
+│   │   ├── local-packages.nix
+│   │   └── nixos-desktop-secrets-sops.yaml
+│   ├── nixos-laptop
+│   │   ├── default.nix
+│   │   ├── flatpak.nix
+│   │   ├── hardware-configuration.nix
+│   │   └── local-packages.nix
+│   ├── template-host-full
+│   │   ├── default.nix
+│   │   ├── disko-config.nix
+│   │   ├── flatpak.nix
+│   │   ├── hardware-configuration.nix
+│   │   └── local-packages.nix
+│   └── template-host-minimal
+│       ├── default.nix
 │       ├── disko-config.nix
-│       ├── home.nix
-│       ├── optional
-│       │   ├── default.nix
-│       │   ├── general-hm-modules
-│       │   │   ├── default.nix
-│       │   │   └── modules.nix
-│       │   ├── host-hm-modules
-│       │   │   └── default.nix
-│       │   ├── host-packages
-│       │   │   ├── default.nix
-│       │   │   ├── flatpak.nix
-│       │   │   └── local-packages.nix
-│       │   └── host-sops-nix
-│       └── variables.nix
-├── nixos
-│   └── modules
-│       ├── audio.nix
+│       └── hardware-configuration.nix
+├── LICENSE.txt
+├── modules
+│   ├── config
+│   │   └── constants.nix
+│   ├── programs
+│   │   ├── de-wm
+│   │   │   ├── cosmic
+│   │   │   │   └── cosmic-main.nix
+│   │   │   ├── gnome
+│   │   │   │   ├── gnome-binds.nix
+│   │   │   │   └── gnome-main.nix
+│   │   │   ├── hyprland
+│   │   │   │   ├── hyprland-binds.nix
+│   │   │   │   ├── hyprland-hyprpaper.nix
+│   │   │   │   └── hyprland-main.nix
+│   │   │   ├── kde
+│   │   │   │   ├── kde-binds.nix
+│   │   │   │   ├── kde-desktop.nix
+│   │   │   │   ├── kde-files.nix
+│   │   │   │   ├── kde-inputs.nix
+│   │   │   │   ├── kde-krunner.nix
+│   │   │   │   ├── kde-kscreenlocker.nix
+│   │   │   │   ├── kde-main.nix
+│   │   │   │   └── kde-panels.nix
+│   │   │   └── niri
+│   │   │       ├── niri-binds.nix
+│   │   │       └── niri-main.nix
+│   │   ├── shells
+│   │   │   ├── bash.nix
+│   │   │   ├── bat.nix
+│   │   │   ├── caelestia
+│   │   │   │   └── caelestia-main.nix
+│   │   │   ├── eza.nix
+│   │   │   ├── fish.nix
+│   │   │   ├── fzf.nix
+│   │   │   ├── git.nix
+│   │   │   ├── lazygit.nix
+│   │   │   ├── noctalia
+│   │   │   │   └── noctalia-main.nix
+│   │   │   ├── shell-aliases.nix
+│   │   │   ├── starship.nix
+│   │   │   ├── tmux.nix
+│   │   │   ├── zoxide.nix
+│   │   │   └── zsh.nix
+│   │   ├── walker.nix
+│   │   └── waybar
+│   │       ├── style.css
+│   │       └── waybar.nix
+│   ├── services
+│   │   ├── audio.nix
+│   │   ├── hypr
+│   │   │   ├── hypridle.nix
+│   │   │   └── hyprlock.nix
+│   │   ├── sddm.nix
+│   │   ├── snapshots.nix
+│   │   ├── swaync
+│   │   │   └── swaync.nix
+│   │   └── tailscale.nix
+│   └── toplevel
 │       ├── bluetooth.nix
 │       ├── boot.nix
 │       ├── cachix.nix
 │       ├── common-configuration.nix
-│       ├── core.nix
 │       ├── cosmic.nix
 │       ├── env.nix
 │       ├── gnome.nix
 │       ├── guest.nix
 │       ├── home-manager.nix
+│       ├── home-packages.nix
+│       ├── home.nix
 │       ├── hyprland.nix
 │       ├── kde.nix
 │       ├── kernel.nix
+│       ├── mime.nix
 │       ├── net.nix
 │       ├── nh.nix
 │       ├── niri.nix
 │       ├── nix.nix
-│       ├── sddm.nix
-│       ├── snapshots.nix
-│       ├── tailscale.nix
+│       ├── qt.nix
+│       ├── stylix.nix
 │       ├── timezone.nix
 │       ├── user.nix
 │       └── zram.nix
-└── README.md
+├── packages
+│   └── utilities
+│       └── krokiet
+│           ├── czkawka-krokiet_logo.svg
+│           └── krokiet.nix
+├── README.md
+├── rices
+├── templates
+│   └── dev-environments
+│       └── language-specific
+│           ├── c-cpp
+│           ├── go
+│           ├── haskell
+│           ├── java
+│           ├── jupyter
+│           ├── latex
+│           ├── nix
+│           ├── node
+│           ├── php
+│           ├── python
+│           ├── r
+│           ├── rust
+│           ├── shell
+│           ├── swift
+│           └── typst
+└── users
+    └── krit
+
+
+102 directories, 160 files
 ```
+

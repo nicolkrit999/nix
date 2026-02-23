@@ -1,5 +1,6 @@
 # 🛠️ Development &amp; Customization Guide
 
+TODO: REfine it because now we use denix
 This guide explains how to extend and modify the configuration. Follow these standard procedures to ensure consistency across all hosts.
 
 ## 🖥️ Adding a Desktop Environment (DE)

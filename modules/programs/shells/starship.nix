@@ -4,7 +4,7 @@
 }:
 delib.module {
   name = "programs.starship";
-  options = delib.singleEnableOption false;
+  options = delib.singleEnableOption true;
 
   home.ifEnabled =
     { myconfig

@@ -19,7 +19,7 @@
     - [`default.nix`](#defaultnix-1)
     - [`style.css`](#stylecss)
 
-# 🏠 Home Manager (`home-manager/`)
+# 🏠 Home Manager related
 
 These configurations define your personal environment. Changes here do not require root access as they only affect the current user.
 
@@ -38,11 +38,8 @@ The main entry point for Home Manager. It imports the modules folder and the pac
 
 A simple list of user-space packages (like neovim, Discord, btop) that are installed only for your user (but for all hosts), keeping the system root clean.
 
-- It contains packages divided into 2 sectiosn:
-  - Applications to keep: These are packages that are either referenced somewhere explicitely or that I personally need in a home-manager level
-  - Other application: These are packages that i find useful for my specific uses. These can be freely removed/moved
 
-## 📂 General modules
+## 📂 General home-manager related modules
 
 ### `bat.nix`
 
@@ -50,13 +47,6 @@ Configuration for `bat` (a modern `cat` clone).
 
 - **Theming:** Uses the base16 themes or catppuccin official nix repo based on the user choice in `variables.nix`
 
-### `core.nix`
-
-The "Hub". It imports every single other file in this directory.
-
-- If a new module is created, it _must_ be added here for Home Manager to see it.
-- To disable a certain module commenting it here is another way for disabling it
-- Desktop environment should not be added here because they are automatically enabled/disabled depending on the user choices in `variables.nix`
 
 ### `eza.nix`
 
@@ -80,13 +70,6 @@ Configuration for the terminal UI for Git.
 
 It setup the default application for some file based on `variables.nix`
 
-### `neovim.nix`
-
-Wrapper for the Neovim text editor.
-
-- **Note:** This module only defines a few nix-specific behaviour. The remaining of the config is taken from the regular `~/.config/nvim` folder
-- Since neovim is highly customizable it is better to let lua files handle the main configuration
-- Stylix is explicitly disabled here to allow for complex, manual Lua-based theming.
 
 ### `qt.nix`
 
@@ -149,14 +132,14 @@ Shell configuration.
 - **Function:** Adds Nix-specific aliases (like `hms` for Home Manager Switch) and integrates with an existing `~/.zshrc_custom` file
   - This allow an hybrid setup where one can configure `~/.zshrc_custom` to be valid regardless of os, basically using globally valid aliases and options
 
-## 🪟 Caelestia & noctalia (`home-manager/modules/de-wm/.../`)
+## 🪟 Caelestia & noctalia
 
 ### `caelestia-main.nix` and `noctalia-main.nix`
 
 - There is nothing special here since it allow a complete setup using the official .json file
 - The only thing these files do is making sure the hyprland signature is valid and run some scripts to make the shell work
 
-## 🪟 Cosmic Sub-modules (`home-manager/modules/de-wm/cosmic/`)
+## 🪟 Cosmic Sub-modules
 
 ### `cosmic-main.nix`
 
@@ -173,7 +156,7 @@ This is the module entry point for the cosmic configuration folder. It uses the 
 
 This file manages custom keyboard shortcuts for cosmic.
 
-## 🪟 GNOME Home Manager Sub-modules (`home-manager/modules/de-wm/gnome/`)
+## 🪟 GNOME Home Manager Sub-modules
 
 ### `default.nix`
 
@@ -197,7 +180,7 @@ This file handles the visual configuration of the GNOME session, including wallp
 
 This file manages custom keyboard shortcuts for GNOME. Since GNOME does not use a simple config file for keys, this module programmatically generates `dconf` entries to register custom actions.
 
-## 🪟 Hyprland Sub-modules (`home-manager/modules/de-wm/hyprland/`)
+## 🪟 Hyprland Sub-modules
 
 ### `hyprland-binds.nix`
 
@@ -269,7 +252,7 @@ This is the core configuration file for Hyprland. It handles the fundamental set
 
 - **Screenshot folders:** To make sure the directory exist in a declarative way this path needs to match the path defined in `../../home.nix`, function `createScreenshotsDir`
 
-## 🪟 Niri Sub-modules (`home-manager/modules/de-wm/niri/`)
+## 🪟 Niri Sub-modules
 
 ### `niri-binds.nix`
 
@@ -286,7 +269,7 @@ This is the core configuration file for the Niri compositor. It controls the vis
 - **Startup & Environment:** It manages the autostart of essential background services (like `xwayland-satellite`, `polkit-gnome`, and `swww-daemon`) and sets necessary environment variables for Wayland compatibility.
 - **Input & Layout:** It configures keyboard repeat rates, touchpad gestures (tap-to-click), and window layout settings (gaps, column widths, and focus rings).
 
-## 🪟 KDE Plasma Sub-modules (`home-manager/modules/de-wm/kde/`)
+## 🪟 KDE Plasma Sub-modules
 
 These modules are generally configured using `plasma-manager` from the nix-community
 
@@ -348,7 +331,7 @@ This file centralizes keyboard shortcuts and global hotkeys. It manages bindings
 
 * **General Idea:** It acts as the "Keybinding Manager," mapping specific key combinations to system commands or DBus actions.
 
-## 📊 Waybar Sub-modules (`home-manager/modules/cli-programs/waybar/`)
+## 📊 Waybar Sub-modules
 
 ### `default.nix`
 

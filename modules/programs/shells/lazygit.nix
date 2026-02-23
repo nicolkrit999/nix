@@ -1,7 +1,7 @@
 { delib, ... }:
 delib.module {
   name = "programs.lazygit";
-  options = delib.singleEnableOption false;
+  options = delib.singleEnableOption true;
 
   home.ifEnabled =
     { cfg, myconfig, ... }:

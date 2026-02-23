@@ -6,7 +6,7 @@
 }:
 delib.module {
   name = "programs.walker";
-  options = delib.singleEnableOption false;
+  options = delib.singleEnableOption true;
 
 
   home.ifEnabled =

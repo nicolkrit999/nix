@@ -24,7 +24,7 @@
   - [`user.nix`](#usernix)
   - [`zram.nix`](#zramnix)
 
-# ⚙️ NixOS (`nixos/modules/`)
+# ⚙️ system-modules
 
 These modules control the Operating System itself. Changes here affect boot, hardware, and networking.
 
@@ -66,11 +66,6 @@ This file serves as the **shared baseline** configuration for every host in your
 - **Architecture & Security:** Configures critical system-level components, including **Polkit rules** (for `gpu-screen-recorder` permissions) and **binfmt emulation** (allowing your x86 desktop to build software for your ARM laptop).
 - **Performance Tweaks:** Enables `system76-scheduler` for responsiveness and `upower` for battery management.
 
-## `core.nix`
-
-Import all the nixos modules. When a module is added in `nixos/modules/` it is necessary to add it here to allow nixos to see it
-
-- Desktop environment should not be added here because they are automatically enabled/disabled depending on the user choices in `variables.nix`
 
 ## `cosmic.nix`
 

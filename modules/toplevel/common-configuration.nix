@@ -80,7 +80,6 @@ delib.module {
         [
           # --- CLI UTILITIES ---
           dix # Nix diff viewer
-          fzf # Fuzzy finder (used by shells)
           git # Version control
           nixfmt # Nix formatter
           nix-prefetch-scripts # Tools to get hashes for nix derivations (used in every shell modules)

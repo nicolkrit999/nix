@@ -5,7 +5,7 @@
 }:
 delib.module {
   name = "programs.tmux";
-  options = delib.singleEnableOption false;
+  options = delib.singleEnableOption true;
 
   home.ifEnabled =
     { myconfig
