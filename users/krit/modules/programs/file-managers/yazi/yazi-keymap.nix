@@ -431,36 +431,27 @@ delib.module {
 
           # Tabs
           {
-            on = [ "t" ];
+            on = [ "t" "c" ]; # Press 't' then 'c'
             run = "tab_create --current";
             desc = "Create a new tab with CWD";
           }
-          {
-            on = [ "<A-1>" ];
-            run = "tab_switch 0";
-            desc = "Switch to first tab";
-          }
-          {
-            on = [ "<A-2>" ];
-            run = "tab_switch 1";
-            desc = "Switch to second tab";
-          }
+
+          # 1. Absolute Switching
+          { on = [ "t" "1" ]; run = "tab_switch 0"; desc = "Switch to first tab"; }
+          { on = [ "t" "2" ]; run = "tab_switch 1"; desc = "Switch to second tab"; }
+          { on = [ "t" "3" ]; run = "tab_switch 2"; desc = "Switch to third tab"; }
+          { on = [ "t" "4" ]; run = "tab_switch 3"; desc = "Switch to fourth tab"; }
+
+          # 2. Relative Switching (Left/Right) - Keeping these fast and single-key
           {
             on = [ "[" ];
             run = "tab_switch -1 --relative";
-            desc = "Switch to previous tab";
+            desc = "Switch to previous tab (Left)";
           }
           {
             on = [ "]" ];
             run = "tab_switch 1 --relative";
-            desc = "Switch to next tab";
-          }
-
-          # Help
-          {
-            on = [ "~" ];
-            run = "help";
-            desc = "Open help";
+            desc = "Switch to next tab (Right)";
           }
         ];
 

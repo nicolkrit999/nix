@@ -33,6 +33,9 @@ jobs:
       - name: Install CA Certificates
         run: sudo apt-get update && sudo apt-get install -y ca-certificates
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Open permissions on /mnt
         run: sudo chmod 1777 /mnt
 
