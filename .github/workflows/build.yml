@@ -52,6 +52,7 @@ jobs:
           flakehub: false
           extra-conf: |
             build-dir = /nix/build
+            extra-platforms = aarch64-linux
             auto-optimise-store = true
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
