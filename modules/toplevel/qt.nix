@@ -8,9 +8,8 @@
 delib.module {
   name = "qt";
 
-  options.qt = with delib; {
-    enable = boolOption true;
-  };
+  # Not enabling this module causes qt apps theming issue, especially regarding the polarity
+  options = delib.singleEnableOption true;
 
   home.ifEnabled =
     {

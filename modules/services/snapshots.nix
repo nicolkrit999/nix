@@ -1,11 +1,10 @@
 { delib
-, lib
 , pkgs
 , ...
 }:
 delib.module {
   name = "services.snapshots";
-  options.services.snapshots = with delib; {
+  options = with delib; moduleOptions {
     enable = boolOption false;
     retention = {
       hourly = strOption "24";

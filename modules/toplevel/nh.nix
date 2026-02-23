@@ -1,9 +1,8 @@
 { delib, ... }:
 delib.module {
   name = "nh";
-  options.nh = with delib; {
-    enable = boolOption false;
-  };
+  # Not enabling this module causes some shell aliases to not work
+  options = delib.singleEnableOption true;
 
   nixos.ifEnabled =
     { myconfig, ... }:

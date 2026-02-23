@@ -189,6 +189,7 @@ delib.host {
       };
 
       programs.lazygit.enable = false;
+      programs.shell-aliases.enable = true; # Enabled for convenience
       programs.starship.enable = false;
       programs.tmux.enable = false;
       programs.walker.enable = true; # Disabling this mean missing an app launcher in hyprland/niri

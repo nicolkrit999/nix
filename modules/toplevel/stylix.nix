@@ -7,7 +7,7 @@
 delib.module {
   name = "stylix";
 
-  options.stylix = with delib; {
+  options = with delib; moduleOptions {
     enable = boolOption true;
     targets = attrsOption { };
   };

@@ -1,9 +1,7 @@
 { delib, pkgs, ... }:
 delib.module {
   name = "services.audio";
-  options.services.audio = with delib; {
-    enable = boolOption true;
-  };
+  options = delib.singleEnableOption true;
 
   nixos.ifEnabled = {
     security.rtkit.enable = true;

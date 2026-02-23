@@ -9,7 +9,7 @@ delib.module {
   options =
     with delib;
     moduleOptions {
-      enable = boolOption false;
+      enable = boolOption true;
       execOnce = listOfOption str [ ];
       monitorWorkspaces = listOfOption str [ ];
       windowRules = listOfOption str [ ];

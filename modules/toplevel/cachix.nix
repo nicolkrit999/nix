@@ -6,7 +6,7 @@
 delib.module {
   name = "cachix";
 
-  options.cachix = with delib; {
+  options = with delib; moduleOptions {
     enable = boolOption false;
     push = boolOption false;
     name = strOption "use-constant";

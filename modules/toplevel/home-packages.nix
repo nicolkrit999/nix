@@ -10,9 +10,7 @@
 }:
 delib.module {
   name = "home-packages";
-  options.home-packages = with delib; {
-    enable = boolOption true;
-  };
+  options = delib.singleEnableOption true;
 
   nixos.ifEnabled =
     { myconfig, ... }:

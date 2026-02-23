@@ -16,6 +16,7 @@ delib.module {
           pkgs.bashInteractive;
     in
     {
+      # Bash is enabled by default thus not needed here
       programs.zsh.enable = currentShell == "zsh";
       programs.fish.enable = currentShell == "fish";
 

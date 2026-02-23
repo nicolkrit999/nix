@@ -6,9 +6,7 @@
 }:
 delib.module {
   name = "guest";
-  options.guest = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   nixos.ifEnabled =
     let

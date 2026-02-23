@@ -6,9 +6,7 @@
 delib.module {
   # TODO: probably can be renamed to "programs.kde" so that it's not enabled at all if the user does not want it
   name = "kde";
-  options.kde = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   nixos.ifEnabled =
     {

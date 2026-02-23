@@ -1,7 +1,7 @@
 { delib, lib, ... }:
 delib.module {
   name = "services.hyprlock";
-  options.services.hyprlock = with delib; {
+  options = with delib; moduleOptions {
     enable = boolOption true;
     settings = attrsOption { };
   };

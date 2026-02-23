@@ -195,6 +195,7 @@ delib.host {
       };
 
       programs.lazygit.enable = true;
+      programs.shell-aliases.enable = true;
       programs.starship.enable = true;
       programs.tmux.enable = true;
       programs.walker.enable = true;
@@ -589,8 +590,8 @@ delib.host {
         isNormalUser = true;
         description = "${myUserName}";
         extraGroups = [
-          "networkmanager"
           "wheel"
+          "networkmanager"
           "input"
           "docker"
           "podman"

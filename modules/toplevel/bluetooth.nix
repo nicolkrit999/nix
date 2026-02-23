@@ -1,9 +1,7 @@
 { delib, pkgs, ... }:
 delib.module {
   name = "bluetooth";
-  options.bluetooth = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   nixos.ifEnabled = {
     hardware.bluetooth = {

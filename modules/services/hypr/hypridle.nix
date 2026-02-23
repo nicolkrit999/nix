@@ -7,12 +7,13 @@
 delib.module {
   name = "services.hypridle";
 
-  options.services.hypridle = with delib; {
+  options = with delib; moduleOptions {
     enable = boolOption true;
     dimTimeout = intOption 300;
     lockTimeout = intOption 330;
     screenOffTimeout = intOption 360;
   };
+
 
   home.ifEnabled =
     { cfg

@@ -6,9 +6,7 @@
 delib.module {
   # TODO: probably can be renamed to "programs.cosmic" so that it's not enabled at all if the user does not want it
   name = "cosmic";
-  options.cosmic = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   nixos.ifEnabled =
 

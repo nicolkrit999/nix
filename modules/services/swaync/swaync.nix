@@ -5,7 +5,7 @@
 }:
 delib.module {
   name = "services.swaync";
-  options.services.swaync = with delib; {
+  options = with delib; moduleOptions {
     enable = boolOption true;
     customSettings = attrsOption { };
   };

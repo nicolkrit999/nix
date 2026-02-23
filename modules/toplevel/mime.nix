@@ -5,9 +5,7 @@
 }:
 delib.module {
   name = "mime";
-  options.mime = with delib; {
-    enable = boolOption true;
-  };
+  options = delib.singleEnableOption true;
 
   home.ifEnabled =
     { myconfig

@@ -5,9 +5,7 @@
 }:
 delib.module {
   name = "services.sddm";
-  options.services.sddm = with delib; {
-    enable = boolOption true;
-  };
+  options = delib.singleEnableOption true;
 
   nixos.ifEnabled =
     { myconfig
