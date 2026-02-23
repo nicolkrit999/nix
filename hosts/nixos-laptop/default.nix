@@ -1,8 +1,9 @@
-{ delib
-, inputs
-, pkgs
-, lib
-, ...
+{
+  delib,
+  inputs,
+  pkgs,
+  lib,
+  ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
@@ -509,6 +510,7 @@ delib.host {
         inputs.niri.nixosModules.niri
 
         ./hardware-configuration.nix
+        ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
 
         /*
           (
@@ -740,7 +742,8 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    { ...
+    {
+      ...
     }:
     {
       home.stateVersion = "25.11";
