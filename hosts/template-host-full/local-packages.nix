@@ -1,8 +1,7 @@
-{
-  delib,
-  pkgs,
-  inputs,
-  ...
+{ delib
+, pkgs
+, inputs
+, ...
 }:
 delib.module {
   name = "full-host.services.local-packages";

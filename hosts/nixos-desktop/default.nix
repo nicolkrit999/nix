@@ -326,7 +326,7 @@ delib.host {
         ];
       };
 
-programs.niri = {
+      programs.niri = {
         enable = true;
         outputs = {
           "DP-1" = {

@@ -10,7 +10,7 @@ delib.module {
     { cfg
     , ...
     }:
- let
+    let
 
       rawPinnedApps = cfg.pinnedApps;
 

@@ -1,8 +1,7 @@
-{
-  delib,
-  pkgs,
-  inputs,
-  ...
+{ delib
+, pkgs
+, inputs
+, ...
 }:
 delib.module {
   name = "krit.services.desktop.local-packages";

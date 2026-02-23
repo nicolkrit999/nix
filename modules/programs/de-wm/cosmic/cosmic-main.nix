@@ -11,12 +11,14 @@ delib.module {
     { myconfig, ... }:
     let
       monitorConfig = lib.concatStringsSep "\n" (
-        builtins.map (w: ''
-          [output."${if w.targetMonitor == "*" then "all" else w.targetMonitor}"]
-          source = "Path"
-          image = "${pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; }}"
-          filter_by_theme = false
-        '') myconfig.constants.wallpapers
+        builtins.map
+          (w: ''
+            [output."${if w.targetMonitor == "*" then "all" else w.targetMonitor}"]
+            source = "Path"
+            image = "${pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; }}"
+            filter_by_theme = false
+          '')
+          myconfig.constants.wallpapers
       );
     in
     {

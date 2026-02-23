@@ -1,8 +1,7 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "krit.programs.yazi";
@@ -11,9 +10,8 @@ delib.module {
   };
 
   home.ifEnabled =
-    {
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     {
 

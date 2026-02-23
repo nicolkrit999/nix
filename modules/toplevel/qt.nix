@@ -1,9 +1,8 @@
-{
-  delib,
-  pkgs,
-  lib,
-  inputs,
-  ...
+{ delib
+, pkgs
+, lib
+, inputs
+, ...
 }:
 delib.module {
   name = "qt";
@@ -12,9 +11,8 @@ delib.module {
   options = delib.singleEnableOption true;
 
   home.ifEnabled =
-    {
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
       # Determine which environments are active

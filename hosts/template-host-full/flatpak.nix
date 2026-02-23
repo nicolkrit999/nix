@@ -1,8 +1,7 @@
-{
-  delib,
-  pkgs,
-  inputs,
-  ...
+{ delib
+, pkgs
+, inputs
+, ...
 }: # 🌟 THE FIX: Added inputs here
 delib.module {
   name = "full-host.services.flatpak";

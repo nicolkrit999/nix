@@ -4,12 +4,11 @@
 # Note that some important features for theming and functionality are not enabled here. Meaning the actual configuration would build but be "broken"
 # For a reference on the bare minimum options to setup for a better experience look
 # at ../hosts/template-host-full/default.nix and look for options that are enabled so ".enable = true"
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  ...
+{ delib
+, inputs
+, pkgs
+, lib
+, ...
 }:
 delib.host {
   name = "template-host-minimal";

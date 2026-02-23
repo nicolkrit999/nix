@@ -1,4 +1,4 @@
-{ delib,... }:
+{ delib, ... }:
 delib.module {
   name = "krit.services.logitech.mouses.mx-master";
   options.krit.services.logitech.mouses.mx-master = with delib; {

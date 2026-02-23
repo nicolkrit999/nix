@@ -1,8 +1,7 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "krit.programs.neovim";
@@ -10,9 +9,8 @@ delib.module {
     enable = boolOption false;
   };
   home.ifEnabled =
-    {
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     {
       xdg.desktopEntries.custom-nvim = lib.mkForce {

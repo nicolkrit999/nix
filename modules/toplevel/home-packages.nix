@@ -1,12 +1,11 @@
 # Install home-manager related packages for every host
 # Not enabling it breaks the logic that automatically install the terminal, browser, file manager and editor depending on host-specific constants
-{
-  delib,
-  pkgs,
-  pkgs-unstable,
-  lib,
-  config,
-  ...
+{ delib
+, pkgs
+, pkgs-unstable
+, lib
+, config
+, ...
 }:
 delib.module {
   name = "home-packages";
