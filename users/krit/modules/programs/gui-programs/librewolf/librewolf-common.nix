@@ -239,6 +239,8 @@ delib.module {
         "sidebar.revamp" = true;
 
         "browser.urlbar.suggest.calculator" = true;
+
+        "media.videocontrols.picture-in-picture.enabled" = true;
       };
     in
     {

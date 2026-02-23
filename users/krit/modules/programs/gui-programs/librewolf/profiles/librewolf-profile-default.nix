@@ -1,8 +1,7 @@
-{
-  addons,
-  searchConfig,
-  commonSettings,
-  ...
+{ addons
+, searchConfig
+, commonSettings
+, ...
 }:
 {
   id = 0;

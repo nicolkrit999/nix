@@ -1,9 +1,8 @@
-{
-  delib,
-  pkgs,
-  inputs,
-  lib,
-  ...
+{ delib
+, pkgs
+, inputs
+, lib
+, ...
 }:
 delib.module {
   name = "krit.programs.firefox";
@@ -12,22 +11,20 @@ delib.module {
   };
 
   home.ifEnabled =
-    {
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
       buildFirefoxXpiAddon = lib.makeOverridable (
-        {
-          stdenv ? pkgs.stdenv,
-          fetchurl ? pkgs.fetchurl,
-          pname,
-          version,
-          addonId,
-          url,
-          sha256,
-          meta,
-          ...
+        { stdenv ? pkgs.stdenv
+        , fetchurl ? pkgs.fetchurl
+        , pname
+        , version
+        , addonId
+        , url
+        , sha256
+        , meta
+        , ...
         }:
         stdenv.mkDerivation {
           name = "${pname}-${version}";
@@ -166,7 +163,8 @@ delib.module {
               "K00ILysCaEq8+bEqV/3nuw=="
               # Twitter
               "T9nJot5PurhJSy8n038xGA=="
-            ] (_: 1);
+            ]
+              (_: 1);
 
             # Disable some telemetry
             "app.shield.optoutstudies.enabled" = false;
@@ -227,6 +225,7 @@ delib.module {
               "bookmarks"
             ];
 
+            "media.videocontrols.picture-in-picture.enabled" = true;
             # Toolbar placement: assigns buttons to specific navigation bar slots.
             # Pin extensions and show buttons
             "browser.uiCustomization.state" = builtins.toJSON {
