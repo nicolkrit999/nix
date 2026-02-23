@@ -506,6 +506,7 @@ delib.host {
       system.stateVersion = "25.11";
       imports = [
         inputs.catppuccin.nixosModules.catppuccin
+        inputs.disko.nixosModules.disko
         #inputs.nix-sops.nixosModules.sops # TODO: Enable when host sops secrets are configured
         inputs.niri.nixosModules.niri
 

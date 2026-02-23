@@ -655,6 +655,8 @@ nixos-generate-config --no-filesystems --root /mnt --dir /etc/nixos/hosts/my-com
 
 # 3. Install
 cd /etc/nixos
+
+# If there are permissions error append "sudo"
 nixos-install --flake .#my-computer
 ```
 
