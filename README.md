@@ -589,21 +589,23 @@ Edit the host `default.nix` and add in the `nixos` block the import for the chos
       nixpkgs.hostPlatform = "x86_64-linux";
       system.stateVersion = "25.11";
       imports = [
+        inputs.disko.nixosModules.disko
         inputs.catppuccin.nixosModules.catppuccin
         #inputs.nix-sops.nixosModules.sops # Tough an import does not cause the build to fail it's removed for lightness. Enable if used
         inputs.niri.nixosModules.niri
 
         ./hardware-configuration.nix
         
-        ./disko-config-btrfs
-        ./disko-config-btrfs-luks-impermanence
+        #./disko-config-btrfs
+        #./disko-config-btrfs-luks-impermanence
       ];
 ```
 
 ### 4. Configure the Drive
 
 Choose **ONE** of the following methods depending on whether you want encryption.
-- Both disko-config are under ~/nixOS/hosts/template-host-full
+- Both disko-config sample are under ~/nixOS/hosts/template-host-full
+  - Remember to copy them to your chosen host folder 
 
 #### Option A: Standard (No Encryption)
 
@@ -641,43 +643,46 @@ Check the documentation [denix starting documentation](#-denix-support). To find
 ---
 
 ### 6. Install (The Magic Step)
-
 Run the commands corresponding to the configuration you chose in Step 4.
 
 #### For Option A (Standard):
 
 ```bash
-# 1. Partition & Mount (Wipes the drive!)
-sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode format ~/nixOS/hosts/my-computer/disko-config-btrfs.nix
+cd ~/nixOS/hosts/my-computer
 
-# 2. Generate Hardware Config
-nixos-generate-config --no-filesystems --root /mnt --dir /etc/nixos/hosts/my-computer
+# 1. Format the drive (Wipes the drive!)
+sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode format ./disko-config-btrfs.nix
 
-# 3. Mount
-sudo nix --extra-experimental-features 'nix-command flakes' run github:nix-community/disko -- --mode format ~/nixOS/hosts/my-computer/disko-config-btrfs.nix
+# 2. Mount the drive
+sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode mount ./disko-config-btrfs.nix
+
+# 3. Generate Hardware Config
+nixos-generate-config --no-filesystems --root /mnt --dir .
 
 # 4. Install
-cd /etc/nixos
-
+cd ~/nixOS
 sudo nixos-install --flake .#my-computer
+
 ```
 
 #### For Option B (LUKS + TPM):
 
 ```bash
-# 1. Partition & Mount (Wipes the drive!)
-sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode format ~/nixOS/hosts/my-computer/disko-config-btrfs-luks-impermanence.nix
+cd ~/nixOS/hosts/my-computer
 
-# 2. Generate Hardware Config
-nixos-generate-config --no-filesystems --root /mnt --dir /etc/nixos/hosts/my-computer
+# 1. Format the drive (Wipes the drive! You will be prompted to create a LUKS password)
+sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode format ./disko-config-btrfs-luks-impermanence.nix
 
-# 3. Mount
-sudo nix --extra-experimental-features 'nix-command flakes' run github:nix-community/disko -- --mode format ~/nixOS/hosts/my-computer/disko-config-btrfs-luks-impermanence.nix
+# 2. Mount the drive (You will be prompted to enter your new LUKS password)
+sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode mount ./disko-config-btrfs-luks-impermanence.nix
+
+# 3. Generate Hardware Config
+nixos-generate-config --no-filesystems --root /mnt --dir .
 
 # 4. Install
-cd /etc/nixos
-
+cd ~/nixOS
 sudo nixos-install --flake .#my-computer
+
 ```
 
 ### 7. Finish
