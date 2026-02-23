@@ -648,12 +648,15 @@ Run the commands corresponding to the configuration you chose in Step 4.
 
 ```bash
 # 1. Partition & Mount (Wipes the drive!)
-sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode disko ~/nixOS/hosts/my-computer/disko-config-btrfs.nix
+sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode format ~/nixOS/hosts/my-computer/disko-config-btrfs.nix
 
 # 2. Generate Hardware Config
 nixos-generate-config --no-filesystems --root /mnt --dir /etc/nixos/hosts/my-computer
 
-# 3. Install
+# 3. Mount
+sudo nix --extra-experimental-features 'nix-command flakes' run github:nix-community/disko -- --mode format ~/nixOS/hosts/my-computer/disko-config-btrfs.nix
+
+# 4. Install
 cd /etc/nixos
 
 # If there are permissions error append "sudo"
@@ -663,14 +666,19 @@ nixos-install --flake .#my-computer
 #### For Option B (LUKS + TPM):
 
 ```bash
-# 1. Partition & Mount (Wipes the drive! You will be prompted for a LUKS passphrase)
-sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode disko ~/nixOS/hosts/my-computer/disko-config-btrfs-luks-impermanence.nix
+# 1. Partition & Mount (Wipes the drive!)
+sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode format ~/nixOS/hosts/my-computer/disko-config-btrfs-luks-impermanence.nix
 
 # 2. Generate Hardware Config
 nixos-generate-config --no-filesystems --root /mnt --dir /etc/nixos/hosts/my-computer
 
-# 3. Install
+# 3. Mount
+sudo nix --extra-experimental-features 'nix-command flakes' run github:nix-community/disko -- --mode format ~/nixOS/hosts/my-computer/disko-config-btrfs-luks-impermanence.nix
+
+# 4. Install
 cd /etc/nixos
+
+# If there are permissions error append "sudo"
 nixos-install --flake .#my-computer
 ```
 
