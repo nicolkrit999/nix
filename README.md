@@ -681,6 +681,8 @@ nixos-install --flake .#my-computer
 ```bash
 sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 /dev/nvme0n1p2
 ```
+
+- This command can be run to re-bind if needed (such as after a motherboard change)
 ---
 
 ## 🎨 Phase 3: Post-Install Setup
