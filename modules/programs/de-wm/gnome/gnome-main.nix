@@ -20,12 +20,11 @@ delib.module {
     , ...
     }:
     let
-      firstWallpaper = builtins.head myconfig.constants.wallpapers;
+      fallbackWp = lib.findFirst (w: w.targetMonitor == "*") (builtins.head myconfig.constants.wallpapers) myconfig.constants.wallpapers;
       wallpaperPath = pkgs.fetchurl {
-        url = firstWallpaper.wallpaperURL;
-        sha256 = firstWallpaper.wallpaperSHA256;
+        url = fallbackWp.wallpaperURL;
+        sha256 = fallbackWp.wallpaperSHA256;
       };
-
       colorScheme = if myconfig.constants.theme.polarity == "dark" then "prefer-dark" else "prefer-light";
       iconThemeName =
         if myconfig.constants.theme.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";

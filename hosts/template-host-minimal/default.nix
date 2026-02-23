@@ -26,9 +26,6 @@ delib.host {
       constants = {
         user = "krit"; # ⚠️ This is put because flake.nix hardcode the name and it can't be a variable since it's the first thing it's evaluated. Change as needed
 
-        monitors = [
-          "eDP-1, 1920x1080@60, 0x0, 1"
-        ];
       };
 
       # You can enable specific modules for this host here:

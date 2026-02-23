@@ -88,40 +88,24 @@ delib.host {
         browser = myBrowser;
         editor = myEditor;
         fileManager = myFileManager;
-        # ---------------------------------------------------------------
-        # ⚙️ ADVANCED SYSTEM CONSTANTS
-        # ---------------------------------------------------------------
-
-        # ---------------------------------------------------------------
-        # 🖼️ MONITORS & WALLPAPERS
-        # ---------------------------------------------------------------
-        monitors = [
-          # 💻 Built-in Laptop Screen (Adjust resolution/scale as needed)
-          "eDP-1,2880x1800@120,0x0,1"
-
-          # 🖥️ Your Desktop Monitors (Ignored until plugged in)
-          "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
-          "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
-
-          # 🔌 Catch-all fallback for any other random screen you plug in
-          # FIXME: This is a good thing but to enable it the wallpaper applying logic must be changed to allow this kind of sintax
-          #",preferred,auto,1"
-        ];
 
         # Keep all 3 wallpaper to work when connected to external monitors (built in monitor is disabled and so the external monitors still ahve the right one)
         wallpapers = [
 
           {
+            targetMonitor = "eDP-1";
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/Anime-Girl2.png";
             wallpaperSHA256 = "05ad0c4lm47rh67hsymz0si7x62b7sanz91dsf2vaz68973fq6k6";
           }
 
           {
+            targetMonitor = "DP-1";
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/Anime-Girl2.png";
             wallpaperSHA256 = "05ad0c4lm47rh67hsymz0si7x62b7sanz91dsf2vaz68973fq6k6";
           }
 
           {
+            targetMonitor = "*";
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/zhichaoh-catppuccin-wallpapers-main/os/nix-black-4k.png";
             wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
           }
@@ -248,6 +232,18 @@ delib.host {
 
       programs.hyprland = {
         enable = true;
+        monitors = [
+          # 💻 Built-in Laptop Screen (Adjust resolution/scale as needed)
+          "eDP-1,2880x1800@120,0x0,1"
+
+          # 🖥️ Your Desktop Monitors (Ignored until plugged in)
+          "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
+          "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
+
+          # 🔌 Catch-all fallback for any other random screen you plug in
+          # FIXME: This is a good thing but to enable it the wallpaper applying logic must be changed to allow this kind of sintax
+          #",preferred,auto,1"
+        ];
         execOnce = [
           "${myBrowser}"
           "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"

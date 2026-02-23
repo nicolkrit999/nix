@@ -10,36 +10,13 @@ delib.module {
   home.ifEnabled =
     { myconfig, ... }:
     let
-      activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
-      monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
-
-      wallpaperFiles = map
-        (
-          wp:
-          "${pkgs.fetchurl {
-          url = wp.wallpaperURL;
-          sha256 = wp.wallpaperSHA256;
-        }}"
-        )
-        myconfig.constants.wallpapers;
-
-      # If there are more monitors than wallpapers, reuse the last wallpaper
-      getWallpaper =
-        index:
-        if index < builtins.length wallpaperFiles then
-          builtins.elemAt wallpaperFiles index
-        else
-          lib.last wallpaperFiles;
-
       monitorConfig = lib.concatStringsSep "\n" (
-        lib.lists.imap0
-          (i: port: ''
-            [output."${port}"]
-            source = "Path"
-            image = "${getWallpaper i}"
-            filter_by_theme = false
-          '')
-          monitorPorts
+        builtins.map (w: ''
+          [output."${if w.targetMonitor == "*" then "all" else w.targetMonitor}"]
+          source = "Path"
+          image = "${pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; }}"
+          filter_by_theme = false
+        '') myconfig.constants.wallpapers
       );
     in
     {
@@ -49,10 +26,8 @@ delib.module {
       xdg.configFile."cosmic/com.system76.CosmicBackground/v1/all".text = ''
         ${monitorConfig}
 
-        [output."*"]
-        source = "Path"
-        image = "${builtins.head wallpaperFiles}"
-        filter_by_theme = false
+        [workspace]
+        source = "Output"
       '';
     };
 }

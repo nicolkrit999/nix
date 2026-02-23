@@ -1,32 +1,21 @@
-{ delib
-, pkgs
-, lib
-, ...
-}:
+{ delib, pkgs, lib, ... }:
 delib.module {
   name = "programs.hyprland";
 
+
   home.ifEnabled =
-    { cfg
-    , parent
-    , myconfig
-    , ...
-    }:
+    { cfg, parent, myconfig, ... }:
     let
-      activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) myconfig.constants.monitors;
-      monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
-      images = map
-        (
-          w:
-          pkgs.fetchurl {
-            url = w.wallpaperURL;
-            sha256 = w.wallpaperSHA256;
-          }
-        )
+      wallpapersWithPaths = map
+        (w: {
+          monitor = if w.targetMonitor == "*" then "" else w.targetMonitor;
+          path = pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
+        })
         myconfig.constants.wallpapers;
 
-      getWallpaper =
-        index: if index < builtins.length images then builtins.elemAt images index else lib.last images;
+      preloads = lib.unique (map (w: "${w.path}") wallpapersWithPaths);
+
+      wallpaperSettings = map (w: "${w.monitor},${w.path}") wallpapersWithPaths;
 
       hyprlandFallback =
         (cfg.enable or false)
@@ -38,8 +27,8 @@ delib.module {
       services.hyprpaper = {
         enable = true;
         settings = {
-          preload = map (i: "${i}") images;
-          wallpaper = lib.imap0 (i: port: "${port}, ${getWallpaper i}") monitorPorts;
+          preload = preloads;
+          wallpaper = wallpaperSettings;
         };
       };
     };

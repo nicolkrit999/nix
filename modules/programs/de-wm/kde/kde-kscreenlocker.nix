@@ -13,12 +13,7 @@ delib.module {
     , ...
     }:
     let
-      lockWallpaper =
-        if builtins.length myconfig.constants.wallpapers > 0 then
-          (builtins.elemAt myconfig.constants.wallpapers 0).wallpaperURL
-        else
-          "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Kay/contents/images/1080x1920.png";
-
+      fallbackWp = lib.findFirst (w: w.targetMonitor == "*") (builtins.head myconfig.constants.wallpapers) myconfig.constants.wallpapers;
       idleTimeout = myconfig.services.hypridle.lockTimeout or 600;
     in
     {
@@ -35,12 +30,8 @@ delib.module {
           wallpaperSlideShow = null;
 
           wallpaper = pkgs.fetchurl {
-            url = lockWallpaper;
-            sha256 =
-              if (builtins.length myconfig.constants.wallpapers) > 0 then
-                (builtins.elemAt myconfig.constants.wallpapers 0).wallpaperSHA256
-              else
-                lib.fakeSha256;
+            url = fallbackWp.wallpaperURL;
+            sha256 = fallbackWp.wallpaperSHA256;
           };
           alwaysShowClock = true;
           showMediaControls = true;

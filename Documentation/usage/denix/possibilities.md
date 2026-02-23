@@ -115,6 +115,7 @@ delib.host {
 
         wallpapers = [
           {
+            targetMonitor = "*";
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/zhichaoh-catppuccin-wallpapers-main/os/nix-black-4k.png";
             wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
           }
@@ -217,6 +218,9 @@ delib.host {
 
       programs.hyprland = {
         enable = true;
+        monitors = [
+          "eDP-1, 1920x1080@60, 0x0, 1"
+        ];
         execOnce = [
           "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
           "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
@@ -362,8 +366,6 @@ The `constants` block acts as the central data bucket for the framework, distrib
 * **`hostname` & `user**`: Define the machine's hostname and the primary Unix user account.
 * **`gitUserName` & `gitUserEmail**`: Global Git identity defaults.
 * **`terminal`, `shell`, `browser`, `editor`, `fileManager**`: Defines the user's primary default applications. The smart-launch logic automatically handles terminal wrappers if terminal-based apps (like `nvim` or `yazi`) are selected.
-* **`monitors`**: A list of output device configurations (resolution, position, scale) primarily consumed by Wayland compositors (Hyprland sintax but they are needed to apply the wallpaper logic to most modules).
-* **`wallpapers`**: URL and SHA256 hashes of wallpapers dynamically fetched and applied across desktop environments and lock screens.
 * **`theme`**: Master styling settings dictating `polarity` (dark/light), the core Base16 color scheme, and the exact Catppuccin flavor/accent if enabled.
 * **`screenshots`**: Absolute default directory path for screen captures.
 * **`keyboardLayout` & `keyboardVariant**`: Defines system-wide keyboard mapping and variant configurations.
@@ -405,7 +407,7 @@ The `constants` block acts as the central data bucket for the framework, distrib
 
 * **`cosmic`**: The Rust-based COSMIC desktop environment built by System76.
 * **`gnome`**: The GNOME desktop environment, with optional extra app pinning and keyboard shortcut configurations.
-* **`hyprland`**: A highly customizable, dynamic tiling Wayland compositor. Includes optional extra window rules, workspace configurations, and scratchpad setups.
+* **`hyprland`**: A highly customizable, dynamic tiling Wayland compositor. Includes monitor config and optional extra window rules, workspace configurations, and scratchpad setups.
 * **Warning:** Enabled to have at least one wm.
 
 

@@ -10,6 +10,7 @@ delib.module {
     with delib;
     moduleOptions {
       enable = boolOption false;
+      monitors = listOfOption str [ ];
       execOnce = listOfOption str [ ];
     };
 
@@ -38,7 +39,7 @@ delib.module {
           in
           (builtins.length parts) > 2
         )
-        myconfig.constants.monitors;
+        cfg.monitors;
 
       monitorSettings = builtins.listToAttrs (
         map
@@ -103,13 +104,6 @@ delib.module {
           )
           activeMonitors
       );
-
-      wallpaper = builtins.head myconfig.constants.wallpapers;
-      wallpaperFile = pkgs.fetchurl {
-        url = wallpaper.wallpaperURL;
-        sha256 = wallpaper.wallpaperSHA256;
-      };
-
     in
     {
 
@@ -207,14 +201,18 @@ delib.module {
 
             # 4. WALLPAPER
             { command = [ "swww-daemon" ]; }
-            {
-              command = [
-                "swww"
-                "img"
-                "${wallpaperFile}"
-              ];
-            }
           ]
+          ++ (map
+            (w:
+              let
+                imgPath = pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
+                targetArgs = if w.targetMonitor == "*" then [ ] else [ "-o" w.targetMonitor ];
+              in
+              {
+                command = [ "swww" "img" ] ++ targetArgs ++ [ "${imgPath}" ];
+              }
+            )
+            myconfig.constants.wallpapers)
           ++ (map
             (cmd: {
               command = [

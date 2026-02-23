@@ -94,16 +94,10 @@ delib.host {
         editor = myEditor;
         fileManager = myFileManager;
 
-        # ---------------------------------------------------------------
-        # 🖼️ MONITORS & WALLPAPERS
-        # ---------------------------------------------------------------
-        monitors = [
-          "eDP-1, 1920x1080@60, 0x0, 1"
-        ];
-
         wallpapers = [
 
           {
+            targetMonitor = "*";
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/zhichaoh-catppuccin-wallpapers-main/os/nix-black-4k.png";
             wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
           }
@@ -231,6 +225,9 @@ delib.host {
 
       programs.hyprland = {
         enable = true; # Enabled to give the template at least one window manager
+        monitors = [
+          "eDP-1, 1920x1080@60, 0x0, 1"
+        ];
         execOnce = [
           "${myBrowser}"
           "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"

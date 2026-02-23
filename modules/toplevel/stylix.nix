@@ -21,17 +21,7 @@ delib.module {
   nixos.ifEnabled =
     { myconfig, ... }:
     let
-      wallpapers = myconfig.constants.wallpapers or [ ];
-      hasWallpaper = builtins.length wallpapers > 0;
-      wallpaper =
-        if hasWallpaper then
-          builtins.head wallpapers
-        else
-          {
-
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/zhichaoh-catppuccin-wallpapers-main/os/nix-black-4k.png";
-            wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
-          };
+      fallbackWp = lib.findFirst (w: w.targetMonitor == "*") (builtins.head myconfig.constants.wallpapers) myconfig.constants.wallpapers;
     in
     {
       stylix = {
@@ -41,8 +31,8 @@ delib.module {
           myconfig.constants.theme.base16Theme or "catppuccin-mocha"
         }.yaml";
         image = pkgs.fetchurl {
-          url = wallpaper.wallpaperURL;
-          sha256 = wallpaper.wallpaperSHA256;
+          url = fallbackWp.wallpaperURL;
+          sha256 = fallbackWp.wallpaperSHA256;
         };
 
         cursor = {

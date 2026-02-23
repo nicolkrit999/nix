@@ -17,21 +17,19 @@ delib.module {
       editor = strOption "nano";
       fileManager = strOption "nnn";
 
-      monitors = listOfOption str [
-        # FIXME: This is a good thing but to enable it the wallpaper applying logic must be changed to allow this kind of sintax
-        #,preferred,auto,1
-      ];
 
       wallpapers =
         listOfOption
           (submodule {
             options = {
+              targetMonitor = strOption "*"; # Match any unassigned monitors
               wallpaperURL = strOption "";
               wallpaperSHA256 = strOption "";
             };
           })
           [
             {
+              targetMonitor = "*"; # Fallback applied automatically to any unassigned monitors
               wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/zhichaoh-catppuccin-wallpapers-main/os/nix-black-4k.png";
               wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
             }

@@ -90,27 +90,16 @@ delib.host {
         browser = myBrowser;
         editor = myEditor;
         fileManager = myFileManager;
-        # ---------------------------------------------------------------
-        # ⚙️ ADVANCED SYSTEM CONSTANTS
-        # ---------------------------------------------------------------
-
-        # ---------------------------------------------------------------
-        # 🖼️ MONITORS & WALLPAPERS
-        # ---------------------------------------------------------------
-        monitors = [
-          "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
-          "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
-          "DP-3, disable"
-          "HDMI-A-1,1920x1080@60, 0x0, 1, mirror, DP-1"
-        ];
 
         wallpapers = [
           {
+            targetMonitor = "DP-1";
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/JoydeepMallick/Wallpapers/Anime-Girl2.png";
             wallpaperSHA256 = "05ad0c4lm47rh67hsymz0si7x62b7sanz91dsf2vaz68973fq6k6";
           }
 
           {
+            targetMonitor = "*";
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/zhichaoh-catppuccin-wallpapers-main/os/nix-black-4k.png";
             wallpaperSHA256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
           }
@@ -240,6 +229,12 @@ delib.host {
 
       programs.hyprland = {
         enable = true;
+        monitors = [
+          "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
+          "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
+          "DP-3, disable"
+          "HDMI-A-1,1920x1080@60, 0x0, 1, mirror, DP-1"
+        ];
         execOnce = [
           "${myBrowser}"
           "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"

@@ -10,6 +10,7 @@ delib.module {
     with delib;
     moduleOptions {
       enable = boolOption true;
+      monitors = listOfOption str [ ",preferred, auto,1" ];
       execOnce = listOfOption str [ ];
       monitorWorkspaces = listOfOption str [ ];
       windowRules = listOfOption str [ ];
@@ -77,8 +78,8 @@ delib.module {
           env =
             let
               firstMonitor =
-                if builtins.length myconfig.constants.monitors > 0 then
-                  builtins.head myconfig.constants.monitors
+                if builtins.length cfg.monitors > 0 then
+                  builtins.head cfg.monitors
                 else
                   "";
               monitorParts = lib.splitString "," firstMonitor;
@@ -103,9 +104,7 @@ delib.module {
               "XDG_SCREENSHOTS_DIR,${myconfig.constants.screenshots}" # Tells tools where to save screenshots by default.
             ];
 
-          monitor = myconfig.constants.monitors ++ [
-            ",preferred,auto,1"
-          ];
+          monitor = cfg.monitors;
 
           "$Mod" = "SUPER";
           "$terminal" = term;
