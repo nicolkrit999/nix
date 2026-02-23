@@ -15,24 +15,6 @@ delib.module {
       enableOnNiri = boolOption false;
     };
 
-  nixos.ifEnabled = {
-    # Wrappers for GPU Screen Recorder
-    security.wrappers = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
-      gpu-screen-recorder = {
-        owner = "root";
-        group = "root";
-        capabilities = "cap_sys_admin+ep";
-        source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
-      };
-      gsr-kms-server = {
-        owner = "root";
-        group = "root";
-        capabilities = "cap_sys_admin+ep";
-        source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
-      };
-    };
-  };
-
   # Keep always to let the rest of the logic handling the activation
   home.always =
     {

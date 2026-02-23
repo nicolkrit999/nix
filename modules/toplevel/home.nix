@@ -1,7 +1,8 @@
-{ delib
-, pkgs
-, inputs
-, ...
+{
+  delib,
+  pkgs,
+  inputs,
+  ...
 }:
 delib.module {
   name = "home";
@@ -55,34 +56,6 @@ delib.module {
             '';
           };
 
-          # TODO: check if it really works. This is closely related to "common-configuration.nix" and the keyring logic in "hyprland-main.nix" "kde-main.nix" "niri-main.nix" and "gnome-main.nix"
-          home.file.".local/bin/init-gnome-keyring.sh" = {
-            executable = true;
-            text = ''
-              #!/bin/sh
-              pkill -f kwallet || true
-              sleep 0.5
-              eval $(${pkgs.gnome-keyring}/bin/gnome-keyring-daemon --start --components=secrets,ssh,pkcs11)
-              export SSH_AUTH_SOCK
-              export GNOME_KEYRING_CONTROL
-              export GNOME_KEYRING_PID
-              ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
-              ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd SSH_AUTH_SOCK GNOME_KEYRING_CONTROL GNOME_KEYRING_PID
-
-              if [ "$XDG_CURRENT_DESKTOP" = "Hyprland" ]; then
-                 if command -v hyprctl >/dev/null; then
-                    hyprctl setenv SSH_AUTH_SOCK "$SSH_AUTH_SOCK"
-                    hyprctl setenv GNOME_KEYRING_CONTROL "$GNOME_KEYRING_CONTROL"
-                    hyprctl setenv GNOME_KEYRING_PID "$GNOME_KEYRING_PID"
-                 fi
-              fi
-            '';
-          };
-
-          # TODO: check if it really works. This is closely related to "common-configuration.nix" and the keyring logic in "hyprland-main.nix" "kde-main.nix" "niri-main.nix" and "gnome-main.nix"
-          home.file.".config/plasma-workspace/env/99-init-keyring.sh".source =
-            config.lib.file.mkOutOfStoreSymlink "/home/${myconfig.constants.user}/.local/bin/init-gnome-keyring.sh";
-
           home.activation = {
             removeExistingConfigs = inputs.home-manager.lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
               rm -f "$HOME/.config/autostart/gnome-keyring-force.desktop"
@@ -99,7 +72,6 @@ delib.module {
               mkdir -p "${myconfig.constants.screenshots}"
             '';
 
-            # TODO: check if related to keyring logic
             updateKDECache = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
               if command -v kbuildsycoca6 >/dev/null; then
                 kbuildsycoca6 --noincremental || true

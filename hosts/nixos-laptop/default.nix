@@ -1,9 +1,8 @@
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  ...
+{ delib
+, inputs
+, pkgs
+, lib
+, ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
@@ -546,6 +545,7 @@ delib.host {
               '';
 
               users.users.${myUserName}.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
+          users.users.root.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
             }
 
           )
@@ -740,8 +740,7 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    {
-      ...
+    { ...
     }:
     {
       home.stateVersion = "25.11";

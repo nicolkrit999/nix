@@ -103,14 +103,6 @@ delib.module {
           };
 
           spawn-at-startup = [
-            # 1. Kill stuck portals from other sessions (Fixes slow load)
-            {
-              command = [
-                "/bin/sh"
-                "-c"
-                "$HOME/.local/bin/init-gnome-keyring.sh"
-              ];
-            }
             # 2. CORE SERVICES
             { command = [ "xwayland-satellite" ]; }
             { command = [ "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" ]; }

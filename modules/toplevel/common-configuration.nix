@@ -92,6 +92,7 @@ delib.module {
           foot # Tiny, zero-config terminal (Rescue tool)
           gsettings-desktop-schemas # Global theme settings
           libnotify # Library for desktop notifications (used by most de/wm modules)
+          libsecret # Library for storing and retrieving passwords and other secrets
           polkit_gnome # Authentication agent, forced in every de/wm
           seahorse # GNOME key and password manager
           sops # Secret management
@@ -133,6 +134,22 @@ delib.module {
       security.rtkit.enable = true;
       services.openssh.enable = true;
 
+      # Force wrapper definition to prevent upstream Caelestia/Noctalia merge conflicts
+      security.wrappers = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
+        "gpu-screen-recorder" = lib.mkForce {
+          owner = "root";
+          group = "root";
+          capabilities = "cap_sys_admin+ep";
+          source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
+        };
+        "gsr-kms-server" = lib.mkForce {
+          owner = "root";
+          group = "root";
+          capabilities = "cap_sys_admin+ep";
+          source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
+        };
+      };
+
       # Polkit Rules: Realtime Audio & GPU Recorder Permissions
       security.polkit.enable = true;
 
@@ -159,7 +176,6 @@ delib.module {
       services.gnome.gnome-keyring.enable = true;
 
       # Disable KWallet to avoid conflicts with GNOME Keyring
-      # TODO: check if this really work. IF not must be improved to avoid conflicts when both gnome and kde are enabled
       security.pam.services.login.enableGnomeKeyring = true;
       security.pam.services.sddm.enableGnomeKeyring = true;
       security.pam.services.login.enableKwallet = lib.mkForce false;
