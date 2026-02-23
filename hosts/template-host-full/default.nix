@@ -65,7 +65,7 @@ let
   resolve = name: desktopMap.${name} or "${name}.desktop";
 in
 delib.host {
-  name = "template-host";
+  name = "template-host-full";
   type = "desktop";
 
   homeManagerSystem = "x86_64-linux";
@@ -77,7 +77,7 @@ delib.host {
       # 📦 CONSTANTS BLOCK (Data Bucket)
       # ---------------------------------------------------------------
       constants = {
-        hostname = "template-host";
+        hostname = "template-host-full";
         # ---------------------------------------------------------------
         # 👤 USER IDENTITY
         # ---------------------------------------------------------------
@@ -287,6 +287,14 @@ delib.host {
 
       programs.niri = {
         enable = false;
+        outputs = {
+          "eDP-1" = {
+            mode = { width = 1920; height = 1080; refresh = 60.0; };
+            scale = 1.5;
+          };
+        };
+
+
         execOnce = [
           "${myBrowser}"
           "${myEditor}"
@@ -375,6 +383,7 @@ delib.host {
   nixos =
     { ... }:
     {
+      nixpkgs.hostPlatform = "x86_64-linux";
       system.stateVersion = "25.11";
       imports = [
         inputs.catppuccin.nixosModules.catppuccin
@@ -419,7 +428,7 @@ delib.host {
           enable = false;
           dockerCompat = false;
         };
-      */
+          */
 
       # Kept for reference
       /*
@@ -440,7 +449,7 @@ delib.host {
             Persistent = true;
           };
         };
-      */
+          */
 
       # Solve Home-manager portal assertion
       environment.pathsToLink = [
@@ -484,7 +493,7 @@ delib.host {
             mkdir -p $HOME/momentary
           '';
         };
-      */
+          */
     };
 
 }

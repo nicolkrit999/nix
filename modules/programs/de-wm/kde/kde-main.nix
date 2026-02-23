@@ -22,8 +22,7 @@ delib.module {
     , ...
     }:
     let
-      fallbackWp = lib.findFirst (w: w.targetMonitor == "*") (builtins.head myconfig.constants.wallpapers) myconfig.constants.wallpapers;
-      wallpaperPath = "${pkgs.fetchurl { url = fallbackWp.wallpaperURL; sha256 = fallbackWp.wallpaperSHA256; }}";
+      wallpaperPaths = builtins.map (w: "${pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; }}") myconfig.constants.wallpapers;
 
 
       capitalize =
@@ -65,7 +64,7 @@ delib.module {
           colorScheme = theme;
           lookAndFeel = lookAndFeel;
           cursor.theme = cursorTheme;
-          wallpaper = wallpaperPath;
+          wallpaper = wallpaperPaths;
         };
       };
 

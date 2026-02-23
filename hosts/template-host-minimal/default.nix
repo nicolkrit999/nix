@@ -39,6 +39,7 @@ delib.host {
   nixos =
     { ... }:
     {
+      nixpkgs.hostPlatform = "x86_64-linux";
       system.stateVersion = "25.11";
       imports = [
         ./hardware-configuration.nix

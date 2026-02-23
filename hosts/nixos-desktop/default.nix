@@ -326,8 +326,28 @@ delib.host {
         ];
       };
 
-      programs.niri = {
+programs.niri = {
         enable = true;
+        outputs = {
+          "DP-1" = {
+            mode = { width = 3840; height = 2160; refresh = 240.0; };
+            scale = 1.5;
+            position = { x = 1440; y = 560; };
+          };
+          "DP-2" = {
+            mode = { width = 3840; height = 2160; refresh = 144.0; };
+            scale = 1.5;
+            position = { x = 0; y = 0; };
+            transform = { rotation = 90; flipped = false; };
+          };
+          "DP-3" = {
+            enable = false;
+          };
+          "HDMI-A-1" = {
+            mode = { width = 1920; height = 1080; refresh = 60.0; };
+            scale = 1.0;
+          };
+        };
         execOnce = [
           "${myBrowser}"
           "${myEditor}"

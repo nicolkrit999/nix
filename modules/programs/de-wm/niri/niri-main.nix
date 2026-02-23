@@ -10,7 +10,11 @@ delib.module {
     with delib;
     moduleOptions {
       enable = boolOption false;
-      monitors = listOfOption str [ ];
+      outputs = lib.mkOption {
+        type = lib.types.attrs;
+        default = { };
+        description = "Native Niri outputs configuration. If empty, Niri auto-configures connected monitors.";
+      };
       execOnce = listOfOption str [ ];
     };
 
@@ -22,91 +26,14 @@ delib.module {
     let
       # Styling helper functions
       c = config.lib.stylix.colors.withHashtag;
-
       colors = {
         active = c.base0D;
         inactive = c.base03;
         urgent = c.base08;
         shadow = c.base00;
       };
-
-      # Monitor parsing
-      activeMonitors = builtins.filter
-        (
-          m:
-          let
-            parts = lib.splitString "," m;
-          in
-          (builtins.length parts) > 2
-        )
-        cfg.monitors;
-
-      monitorSettings = builtins.listToAttrs (
-        map
-          (
-            m:
-            let
-              parts = lib.splitString "," m;
-              name = builtins.elemAt parts 0;
-              modeStr = builtins.elemAt parts 1;
-              posStr = builtins.elemAt parts 2;
-              scale = builtins.fromJSON (builtins.elemAt parts 3);
-
-              isAutoPos = posStr == "auto";
-              posParts =
-                if isAutoPos then
-                  [
-                    "0"
-                    "0"
-                  ]
-                else
-                  lib.splitString "x" posStr;
-              posX = lib.toInt (builtins.elemAt posParts 0);
-              posY = lib.toInt (builtins.elemAt posParts 1);
-
-              modeSplit = lib.splitString "@" modeStr;
-              resSplit = lib.splitString "x" (builtins.head modeSplit);
-              width = lib.toInt (builtins.head resSplit);
-              height = lib.toInt (builtins.elemAt resSplit 1);
-              refresh =
-                if (builtins.length modeSplit > 1) then
-                  (builtins.fromJSON (builtins.elemAt modeSplit 1)) + 0.0
-                else
-                  60.0;
-
-              isRotated = (builtins.length parts > 4) && (builtins.elemAt parts 4 == "transform");
-
-              rotationVal = if isRotated then 90 else 0;
-            in
-            {
-              name = name;
-              value = {
-                mode = {
-                  width = width;
-                  height = height;
-                  refresh = refresh;
-                };
-                scale = scale;
-                position =
-                  if isAutoPos then
-                    null
-                  else
-                    {
-                      x = posX;
-                      y = posY;
-                    };
-                transform = {
-                  rotation = rotationVal;
-                  flipped = false;
-                };
-              };
-            }
-          )
-          activeMonitors
-      );
     in
     {
-
       home.packages = with pkgs; [
         xwayland-satellite # X11 Support
         swww # Wallpaper
@@ -124,8 +51,8 @@ delib.module {
 
       programs.niri = {
         settings = {
-          hotkey-overlay.skip-at-startup = true; # Disable keymap overlay at startup
-          # ⌨️ Inputs (From Variables)
+          hotkey-overlay.skip-at-startup = true;
+
           input = {
             keyboard.xkb = {
               layout = myconfig.constants.keyboardLayout;
@@ -139,7 +66,7 @@ delib.module {
             mouse.accel-profile = "flat";
           };
 
-          outputs = monitorSettings;
+          outputs = cfg.outputs;
 
           layout = {
             gaps = 12;
@@ -152,7 +79,6 @@ delib.module {
             default-column-width = {
               proportion = 0.5;
             };
-
             focus-ring = {
               enable = true;
               width = 2;
@@ -177,28 +103,12 @@ delib.module {
 
           spawn-at-startup = [
             # 1. Kill stuck portals from other sessions (Fixes slow load)
-
-            {
-              command = [
-                "/bin/sh"
-                "-c"
-                "$HOME/.local/bin/init-gnome-keyring.sh"
-              ];
-            }
-
+            { command = [ "/bin/sh" "-c" "$HOME/.local/bin/init-gnome-keyring.sh" ]; }
             # 2. CORE SERVICES
             { command = [ "xwayland-satellite" ]; }
             { command = [ "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" ]; }
-
             # 3. DBUS UPDATE
-            {
-              command = [
-                "dbus-update-activation-environment"
-                "--systemd"
-                "--all"
-              ];
-            }
-
+            { command = [ "dbus-update-activation-environment" "--systemd" "--all" ]; }
             # 4. WALLPAPER
             { command = [ "swww-daemon" ]; }
           ]
@@ -215,11 +125,7 @@ delib.module {
             myconfig.constants.wallpapers)
           ++ (map
             (cmd: {
-              command = [
-                "bash"
-                "-c"
-                cmd
-              ];
+              command = [ "bash" "-c" cmd ];
             })
             cfg.execOnce);
         };

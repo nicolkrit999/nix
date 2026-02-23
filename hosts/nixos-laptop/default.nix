@@ -328,6 +328,24 @@ delib.host {
 
       programs.niri = {
         enable = true;
+        outputs = {
+          "eDP-1" = {
+            mode = { width = 2880; height = 1800; refresh = 120.0; };
+            scale = 1;
+            position = { x = 0; y = 0; };
+          };
+          "DP-1" = {
+            mode = { width = 3840; height = 2160; refresh = 240.0; };
+            scale = 1.5;
+            position = { x = 1440; y = 560; };
+          };
+          "DP-2" = {
+            mode = { width = 3840; height = 2160; refresh = 144.0; };
+            scale = 1.5;
+            position = { x = 0; y = 0; };
+            transform = { rotation = 90; flipped = false; };
+          };
+        };
         execOnce = [
           "${myBrowser}"
           "${myEditor}"
