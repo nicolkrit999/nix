@@ -1,14 +1,16 @@
-{ delib
-, lib
-, pkgs
-, ...
+{
+  delib,
+  lib,
+  pkgs,
+  ...
 }:
 delib.module {
   name = "common-configuration";
 
   nixos.always =
-    { myconfig
-    , ...
+    {
+      myconfig,
+      ...
     }:
     let
       currentShell = myconfig.constants.shell or "zsh";
@@ -53,17 +55,17 @@ delib.module {
       };
 
       # Gpu screen recorder overlay due to missing ARM support in the main package
-      # TODO: check if it can be improved/if needed here or in another place
       nixpkgs.overlays = [
         (final: prev: {
           gpu-screen-recorder =
             if prev.stdenv.hostPlatform.system == "aarch64-linux" then
-              prev.runCommand "gpu-screen-recorder-dummy" { } ''
-                mkdir -p $out/bin
-                echo 'echo "GPU Screen Recorder is not supported on ARM"' > $out/bin/gpu-screen-recorder
-                echo 'echo "Not supported"' > $out/bin/gsr-kms-server
-                chmod +x $out/bin/*
-              ''
+              prev.symlinkJoin {
+                name = "gpu-screen-recorder-dummy";
+                paths = [
+                  (prev.writeShellScriptBin "gpu-screen-recorder" "echo 'GPU Screen Recorder is not supported on ARM'")
+                  (prev.writeShellScriptBin "gsr-kms-server" "echo 'Not supported'")
+                ];
+              }
             else
               prev.gpu-screen-recorder;
         })
@@ -97,7 +99,6 @@ delib.module {
           xdg-desktop-portal-gtk # GTK portal backend for file pickers
 
           # --- GRAPHICS & GUI SUPPORT ---
-          gpu-screen-recorder # For recording/caelestia
           gtk3 # Standard GUI toolkit
           libsForQt5.qt5.qtwayland # Qt5 Wayland bridge
           kdePackages.qtwayland # Qt6 Wayland bridge
@@ -132,25 +133,9 @@ delib.module {
       security.rtkit.enable = true;
       services.openssh.enable = true;
 
-      # Wrappers for GPU Screen Recorder (needed for Caelestia/Recording)
-      # TODO: check if it can be improved/if needed here or in another place
-      security.wrappers = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
-        gpu-screen-recorder = {
-          owner = "root";
-          group = "root";
-          capabilities = "cap_sys_admin+ep";
-          source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
-        };
-        gsr-kms-server = {
-          owner = "root";
-          group = "root";
-          capabilities = "cap_sys_admin+ep";
-          source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
-        };
-      };
-
       # Polkit Rules: Realtime Audio & GPU Recorder Permissions
       security.polkit.enable = true;
+
       security.polkit.extraConfig = ''
         polkit.addRule(function(action, subject) {
           if (subject.isInGroup("wheel")) {
