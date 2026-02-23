@@ -504,13 +504,13 @@ delib.host {
     {
       system.stateVersion = "25.11";
       imports = [
-        inputs.catppuccin.nixosModules.catppuccin
         inputs.disko.nixosModules.disko
+        inputs.catppuccin.nixosModules.catppuccin
         #inputs.nix-sops.nixosModules.sops # TODO: Enable when host sops secrets are configured
         inputs.niri.nixosModules.niri
 
         ./hardware-configuration.nix
-        ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
+        ./disko-config-btrfs-luks-impermanence.nix
 
         /*
           (
