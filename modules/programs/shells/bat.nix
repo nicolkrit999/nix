@@ -15,7 +15,7 @@ delib.module {
         enable = true;
 
         config = {
-          colors = "always";
+          color = "always";
           style = "numbers";
         };
       };

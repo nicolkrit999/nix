@@ -232,6 +232,7 @@ delib.host {
       programs.hyprland = {
         enable = true; # Enabled to give the template at least one window manager
         execOnce = [
+          "${myBrowser}"
           "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
           "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
           "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
