@@ -44,9 +44,11 @@
             ./hosts/template-host-full/disko-config-btrfs.nix
             ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
 
+            ./hosts/nixos-laptop/disko-config-btrfs-luks-impermanence.nix
           ];
 
           specialArgs = { inherit inputs moduleSystem; };
+
         };
     in
     {

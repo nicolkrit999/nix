@@ -659,8 +659,7 @@ sudo nix --extra-experimental-features 'nix-command flakes' run github:nix-commu
 # 4. Install
 cd /etc/nixos
 
-# If there are permissions error append "sudo"
-nixos-install --flake .#my-computer
+sudo nixos-install --flake .#my-computer
 ```
 
 #### For Option B (LUKS + TPM):
@@ -678,8 +677,7 @@ sudo nix --extra-experimental-features 'nix-command flakes' run github:nix-commu
 # 4. Install
 cd /etc/nixos
 
-# If there are permissions error append "sudo"
-nixos-install --flake .#my-computer
+sudo nixos-install --flake .#my-computer
 ```
 
 ### 7. Finish
