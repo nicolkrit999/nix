@@ -1,8 +1,9 @@
-{ delib
-, inputs
-, pkgs
-, lib
-, ...
+{
+  delib,
+  inputs,
+  pkgs,
+  lib,
+  ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
@@ -239,10 +240,6 @@ delib.host {
           # 🖥️ Your Desktop Monitors (Ignored until plugged in)
           "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
           "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
-
-          # 🔌 Catch-all fallback for any other random screen you plug in
-          # FIXME: This is a good thing but to enable it the wallpaper applying logic must be changed to allow this kind of sintax
-          #",preferred,auto,1"
         ];
         execOnce = [
           "${myBrowser}"
@@ -330,20 +327,44 @@ delib.host {
         enable = true;
         outputs = {
           "eDP-1" = {
-            mode = { width = 2880; height = 1800; refresh = 120.0; };
+            mode = {
+              width = 2880;
+              height = 1800;
+              refresh = 120.0;
+            };
             scale = 1;
-            position = { x = 0; y = 0; };
+            position = {
+              x = 0;
+              y = 0;
+            };
           };
           "DP-1" = {
-            mode = { width = 3840; height = 2160; refresh = 240.0; };
+            mode = {
+              width = 3840;
+              height = 2160;
+              refresh = 240.0;
+            };
             scale = 1.5;
-            position = { x = 1440; y = 560; };
+            position = {
+              x = 1440;
+              y = 560;
+            };
           };
           "DP-2" = {
-            mode = { width = 3840; height = 2160; refresh = 144.0; };
+            mode = {
+              width = 3840;
+              height = 2160;
+              refresh = 144.0;
+            };
             scale = 1.5;
-            position = { x = 0; y = 0; };
-            transform = { rotation = 90; flipped = false; };
+            position = {
+              x = 0;
+              y = 0;
+            };
+            transform = {
+              rotation = 90;
+              flipped = false;
+            };
           };
         };
         execOnce = [
@@ -721,7 +742,8 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    { ...
+    {
+      ...
     }:
     {
       home.stateVersion = "25.11";
