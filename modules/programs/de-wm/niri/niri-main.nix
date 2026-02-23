@@ -1,15 +1,15 @@
-{ delib
-, pkgs
-, lib
-, config
-, ...
+{
+  delib,
+  pkgs,
+  lib,
+  config,
+  ...
 }:
 delib.module {
   name = "programs.niri";
   options =
     with delib;
     moduleOptions {
-      enable = boolOption false;
       outputs = lib.mkOption {
         type = lib.types.attrs;
         default = { };
@@ -19,9 +19,10 @@ delib.module {
     };
 
   home.ifEnabled =
-    { cfg
-    , myconfig
-    , ...
+    {
+      cfg,
+      myconfig,
+      ...
     }:
     let
       # Styling helper functions
@@ -103,31 +104,59 @@ delib.module {
 
           spawn-at-startup = [
             # 1. Kill stuck portals from other sessions (Fixes slow load)
-            { command = [ "/bin/sh" "-c" "$HOME/.local/bin/init-gnome-keyring.sh" ]; }
+            {
+              command = [
+                "/bin/sh"
+                "-c"
+                "$HOME/.local/bin/init-gnome-keyring.sh"
+              ];
+            }
             # 2. CORE SERVICES
             { command = [ "xwayland-satellite" ]; }
             { command = [ "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" ]; }
             # 3. DBUS UPDATE
-            { command = [ "dbus-update-activation-environment" "--systemd" "--all" ]; }
+            {
+              command = [
+                "dbus-update-activation-environment"
+                "--systemd"
+                "--all"
+              ];
+            }
             # 4. WALLPAPER
             { command = [ "swww-daemon" ]; }
           ]
-          ++ (map
-            (w:
-              let
-                imgPath = pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
-                targetArgs = if w.targetMonitor == "*" then [ ] else [ "-o" w.targetMonitor ];
-              in
-              {
-                command = [ "swww" "img" ] ++ targetArgs ++ [ "${imgPath}" ];
-              }
-            )
-            myconfig.constants.wallpapers)
-          ++ (map
-            (cmd: {
-              command = [ "bash" "-c" cmd ];
-            })
-            cfg.execOnce);
+          ++ (map (
+            w:
+            let
+              imgPath = pkgs.fetchurl {
+                url = w.wallpaperURL;
+                sha256 = w.wallpaperSHA256;
+              };
+              targetArgs =
+                if w.targetMonitor == "*" then
+                  [ ]
+                else
+                  [
+                    "-o"
+                    w.targetMonitor
+                  ];
+            in
+            {
+              command = [
+                "swww"
+                "img"
+              ]
+              ++ targetArgs
+              ++ [ "${imgPath}" ];
+            }
+          ) myconfig.constants.wallpapers)
+          ++ (map (cmd: {
+            command = [
+              "bash"
+              "-c"
+              cmd
+            ];
+          }) cfg.execOnce);
         };
       };
     };

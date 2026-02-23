@@ -144,15 +144,10 @@ delib.host {
         push = false; # Only the builder must have this true (for now "nixos-desktop")
       };
 
-      cosmic.enable = true;
-      gnome.enable = true;
       guest.enable = true;
       home-packages.enable = true;
-      hyprland.enable = true;
-      kde.enable = true;
       mime.enable = true;
       nh.enable = true;
-      niri.enable = true;
       qt.enable = true;
 
       zram = {
@@ -180,7 +175,6 @@ delib.host {
       # 🚀 PROGRAMS
       # ---------------------------------------------------------------
       programs.bat.enable = true;
-      programs.cosmic.enable = true;
       programs.eza.enable = true;
       programs.fzf.enable = true;
 
@@ -397,6 +391,10 @@ delib.host {
             binding = "<Super>y";
           }
         ];
+      };
+
+      programs.cosmic = {
+        enable = true;
       };
 
       programs.kde = {

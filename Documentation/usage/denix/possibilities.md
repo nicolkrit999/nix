@@ -162,11 +162,6 @@ delib.host {
         targets = { alacritty.enable = !isCatppuccin; };
       };
 
-      cosmic.enable = false;
-      gnome.enable = false;
-      hyprland.enable = true;
-      kde.enable = false;
-      niri.enable = false;
 
       programs.bat.enable = false;
       programs.eza.enable = false;

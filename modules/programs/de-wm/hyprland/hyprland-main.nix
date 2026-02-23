@@ -1,15 +1,15 @@
-{ delib
-, config
-, lib
-, pkgs
-, ...
+{
+  delib,
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 delib.module {
   name = "programs.hyprland";
   options =
     with delib;
     moduleOptions {
-      enable = boolOption true;
       monitors = listOfOption str [ ",preferred, auto,1" ];
       execOnce = listOfOption str [ ];
       monitorWorkspaces = listOfOption str [ ];
@@ -18,9 +18,10 @@ delib.module {
     };
 
   home.ifEnabled =
-    { cfg
-    , myconfig
-    , ...
+    {
+      cfg,
+      myconfig,
+      ...
     }:
     let
       term = myconfig.constants.terminal or "alacritty";
@@ -77,11 +78,7 @@ delib.module {
         settings = {
           env =
             let
-              firstMonitor =
-                if builtins.length cfg.monitors > 0 then
-                  builtins.head cfg.monitors
-                else
-                  "";
+              firstMonitor = if builtins.length cfg.monitors > 0 then builtins.head cfg.monitors else "";
               monitorParts = lib.splitString "," firstMonitor;
               rawScale = if (builtins.length monitorParts) >= 4 then builtins.elemAt monitorParts 3 else "1";
               gdkScale = if rawScale != "1" && rawScale != "1.0" then "2" else "1";

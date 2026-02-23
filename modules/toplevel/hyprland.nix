@@ -1,16 +1,15 @@
-{ delib
-, ...
+{
+  delib,
+  ...
 }:
 delib.module {
-  # TODO: probably can be renamed to "programs.hyprland" so that it's not enabled at all if the user does not want it
-  name = "hyprland";
+  name = "programs.hyprland";
   options = delib.singleEnableOption true;
 
-  nixos.ifEnabled =
-    {
-      programs.hyprland = {
-        enable = true;
-        withUWSM = true;
-      };
+  nixos.ifEnabled = {
+    programs.hyprland = {
+      enable = true;
+      withUWSM = true;
     };
+  };
 }

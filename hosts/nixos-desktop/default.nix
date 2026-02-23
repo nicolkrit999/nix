@@ -1,7 +1,8 @@
-{ delib
-, inputs
-, pkgs
-, ...
+{
+  delib,
+  inputs,
+  pkgs,
+  ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
@@ -138,15 +139,10 @@ delib.host {
         push = true; # Only the builder must have this true (for now "nixos-desktop")
       };
 
-      cosmic.enable = true; # TODO: Change name to programs.cosmic to allow a single switch (do a nix flake check and a dry build before confiirming this change)
-      gnome.enable = true; # TODO: Change name to programs.cosmic to allow a single switch (do a nix flake check and a dry build before confiirming this change)
       guest.enable = true;
       home-packages.enable = true;
-      hyprland.enable = true; # TODO: Change name to programs.cosmic to allow a single switch (do a nix flake check and a dry build before confiirming this change)
-      kde.enable = true; # TODO: Change name to programs.cosmic to allow a single switch (do a nix flake check and a dry build before confiirming this change)
       mime.enable = true;
       nh.enable = true;
-      niri.enable = true; # TODO: Change name to programs.cosmic to allow a single switch (do a nix flake check and a dry build before confiirming this change)
       qt.enable = true;
 
       zram = {
@@ -174,7 +170,6 @@ delib.host {
       # 🚀 PROGRAMS
       # ---------------------------------------------------------------
       programs.bat.enable = true;
-      programs.cosmic.enable = true;
       programs.eza.enable = true;
       programs.fzf.enable = true;
 
@@ -330,21 +325,42 @@ delib.host {
         enable = true;
         outputs = {
           "DP-1" = {
-            mode = { width = 3840; height = 2160; refresh = 240.0; };
+            mode = {
+              width = 3840;
+              height = 2160;
+              refresh = 240.0;
+            };
             scale = 1.5;
-            position = { x = 1440; y = 560; };
+            position = {
+              x = 1440;
+              y = 560;
+            };
           };
           "DP-2" = {
-            mode = { width = 3840; height = 2160; refresh = 144.0; };
+            mode = {
+              width = 3840;
+              height = 2160;
+              refresh = 144.0;
+            };
             scale = 1.5;
-            position = { x = 0; y = 0; };
-            transform = { rotation = 90; flipped = false; };
+            position = {
+              x = 0;
+              y = 0;
+            };
+            transform = {
+              rotation = 90;
+              flipped = false;
+            };
           };
           "DP-3" = {
             enable = false;
           };
           "HDMI-A-1" = {
-            mode = { width = 1920; height = 1080; refresh = 60.0; };
+            mode = {
+              width = 1920;
+              height = 1080;
+              refresh = 60.0;
+            };
             scale = 1.0;
           };
         };
@@ -378,6 +394,10 @@ delib.host {
             binding = "<Super>y";
           }
         ];
+      };
+
+      programs.cosmic = {
+        enable = true;
       };
 
       programs.kde = {
@@ -694,7 +714,8 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    { ...
+    {
+      ...
     }:
     {
       home.stateVersion = "25.11";
@@ -703,7 +724,6 @@ delib.host {
         inputs.nix-sops.homeModules.sops
 
       ];
-
 
       home.packages = (with pkgs; [ winboat ]) ++ (with pkgs-unstable; [ ]);
 

@@ -2157,7 +2157,6 @@ delib.module {
       };
 
       # Gpu screen recorder overlay due to missing ARM support in the main package
-      # TODO: check if it can be improved/if needed here or in another place
       nixpkgs.overlays = [
         (final: prev: {
           gpu-screen-recorder =
@@ -2237,7 +2236,6 @@ delib.module {
       services.openssh.enable = true;
 
       # Wrappers for GPU Screen Recorder (needed for Caelestia/Recording)
-      # TODO: check if it can be improved/if needed here or in another place
       security.wrappers = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
         gpu-screen-recorder = {
           owner = "root";
@@ -2278,7 +2276,6 @@ delib.module {
       services.gnome.gnome-keyring.enable = true;
 
       # Disable KWallet to avoid conflicts with GNOME Keyring
-      # TODO: check if this really work. IF not must be improved to avoid conflicts when both gnome and kde are enabled
       security.pam.services.login.enableGnomeKeyring = true;
       security.pam.services.sddm.enableGnomeKeyring = true;
       security.pam.services.login.enableKwallet = lib.mkForce false;

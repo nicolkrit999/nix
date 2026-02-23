@@ -1,9 +1,10 @@
 # TEMPLATE-HOST FULL CONFIGURATION
 # THIS IS A TEMPLATE THAT SHOW A CONFIGURATION OF EVERY POSSIBLE FEATURE THE CURRENT SETUP ALLOW
-{ delib
-, inputs
-, pkgs
-, ...
+{
+  delib,
+  inputs,
+  pkgs,
+  ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
@@ -142,18 +143,12 @@ delib.host {
         push = false;
       };
 
-      cosmic.enable = false;
-      gnome.enable = false;
       guest.enable = false;
       home-packages.enable = true; # Enabled to enable automatic installation of browser, editor, file manager and terminal based on the host preferences
-      hyprland.enable = true; # Enabled to have at least one wm
-      kde.enable = false;
 
       mime.enable = true; # Disabling this would cause the shortcuts that open "browser, editor, file manager" to fail
 
-
       nh.enable = true; # Disabling this would cause most nix-related aliases to fail
-      niri.enable = false;
       qt.enable = true; # Disabling this would cause graphical inconsistencies
 
       zram = {
@@ -165,14 +160,15 @@ delib.host {
       stylix = {
         enable = true;
         # These are host-specific targets exclusion/inclusion. They are optional
-        targets = { alacritty.enable = !isCatppuccin; };
+        targets = {
+          alacritty.enable = !isCatppuccin;
+        };
       };
 
       # ---------------------------------------------------------------
       # 🚀 PROGRAMS
       # ---------------------------------------------------------------
       programs.bat.enable = false;
-      programs.cosmic.enable = false;
       programs.eza.enable = false;
       programs.fzf.enable = true; # Disabling this would cause some shell aliases to not work
 
@@ -289,11 +285,14 @@ delib.host {
         enable = false;
         outputs = {
           "eDP-1" = {
-            mode = { width = 1920; height = 1080; refresh = 60.0; };
+            mode = {
+              width = 1920;
+              height = 1080;
+              refresh = 60.0;
+            };
             scale = 1.5;
           };
         };
-
 
         execOnce = [
           "${myBrowser}"
@@ -319,6 +318,10 @@ delib.host {
             binding = "<Super>y";
           }
         ];
+      };
+
+      programs.cosmic = {
+        enable = false;
       };
 
       programs.kde = {
@@ -428,7 +431,7 @@ delib.host {
           enable = false;
           dockerCompat = false;
         };
-          */
+      */
 
       # Kept for reference
       /*
@@ -449,7 +452,7 @@ delib.host {
             Persistent = true;
           };
         };
-          */
+      */
 
       # Solve Home-manager portal assertion
       environment.pathsToLink = [
@@ -467,7 +470,8 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    { ...
+    {
+      ...
     }:
     {
       home.stateVersion = "25.11";
@@ -493,7 +497,7 @@ delib.host {
             mkdir -p $HOME/momentary
           '';
         };
-          */
+      */
     };
 
 }

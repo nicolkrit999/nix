@@ -1,8 +1,9 @@
-{ delib
-, pkgs
-, lib
-, config
-, ...
+{
+  delib,
+  pkgs,
+  lib,
+  config,
+  ...
 }:
 delib.module {
   name = "programs.kde";
@@ -10,7 +11,6 @@ delib.module {
   options =
     with delib;
     moduleOptions {
-      enable = boolOption false;
       extraBinds = attrsOption { };
       mice = listOfOption attrs [ ];
       touchpads = listOfOption attrs [ ];
@@ -18,12 +18,18 @@ delib.module {
     };
 
   home.ifEnabled =
-    { myconfig
-    , ...
+    {
+      myconfig,
+      ...
     }:
     let
-      wallpaperPaths = builtins.map (w: "${pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; }}") myconfig.constants.wallpapers;
-
+      wallpaperPaths = builtins.map (
+        w:
+        "${pkgs.fetchurl {
+          url = w.wallpaperURL;
+          sha256 = w.wallpaperSHA256;
+        }}"
+      ) myconfig.constants.wallpapers;
 
       capitalize =
         s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
