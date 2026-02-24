@@ -1,8 +1,9 @@
-{ delib
-, inputs
-, pkgs
-, lib
-, ...
+{
+  delib,
+  inputs,
+  pkgs,
+  lib,
+  ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
@@ -130,7 +131,7 @@ delib.host {
         useFahrenheit = false;
         nixImpure = false;
 
-        timeZone = "Etc/UTC";
+        timeZone = "Europe/Zurich";
       };
 
       # ---------------------------------------------------------------
@@ -554,7 +555,6 @@ delib.host {
         */
       ];
 
-
       # Keep the main interface, terminal, and system language in English
       i18n.defaultLocale = "en_US.UTF-8";
 
@@ -757,7 +757,8 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    { ...
+    {
+      ...
     }:
     {
       home.stateVersion = "25.11";
