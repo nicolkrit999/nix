@@ -524,7 +524,7 @@ sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-so
 
 ### 1. Download & Flash
 
-1. **Download:** Get the **NixOS Minimal ISO** (64-bit Intel/AMD) from [nixos.org](https://nixos.org/download.html).
+1. **Download:** Get the **NixOS Minimal ISO** (64-bit Intel/AMD or 64-bit ARM) from [nixos.org](https://nixos.org/download.html).
 2. **Flash:** Use **Rufus,balena etcher or similar** to write the ISO to a USB stick.
 
 - **Partition Scheme:** GPT
