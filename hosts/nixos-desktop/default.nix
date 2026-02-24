@@ -125,7 +125,8 @@ delib.host {
         useFahrenheit = false;
         nixImpure = false;
 
-        timeZone = "Etc/UTC";
+
+        timeZone = "Europe/Zurich";
       };
 
       # ---------------------------------------------------------------
