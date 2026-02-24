@@ -1,9 +1,8 @@
-{
-  delib,
-  pkgs,
-  lib,
-  config,
-  ...
+{ delib
+, pkgs
+, lib
+, config
+, ...
 }:
 delib.module {
   name = "programs.kde";
@@ -18,18 +17,19 @@ delib.module {
     };
 
   home.ifEnabled =
-    {
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
-      wallpaperPaths = builtins.map (
-        w:
-        "${pkgs.fetchurl {
+      wallpaperPaths = builtins.map
+        (
+          w:
+          "${pkgs.fetchurl {
           url = w.wallpaperURL;
           sha256 = w.wallpaperSHA256;
         }}"
-      ) myconfig.constants.wallpapers;
+        )
+        myconfig.constants.wallpapers;
 
       capitalize =
         s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;

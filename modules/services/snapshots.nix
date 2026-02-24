@@ -1,7 +1,6 @@
-{
-  delib,
-  pkgs,
-  ...
+{ delib
+, pkgs
+, ...
 }:
 delib.module {
   name = "services.snapshots";
@@ -19,10 +18,9 @@ delib.module {
     };
 
   nixos.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
     let
       user = myconfig.constants.user;

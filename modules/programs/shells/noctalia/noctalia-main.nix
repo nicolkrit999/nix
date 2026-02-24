@@ -1,9 +1,8 @@
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  ...
+{ delib
+, inputs
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "programs.noctalia";
@@ -17,11 +16,10 @@ delib.module {
 
   # Keep always to let the rest of the logic handling the activation
   home.always =
-    {
-      cfg,
-      parent,
-      myconfig,
-      ...
+    { cfg
+    , parent
+    , myconfig
+    , ...
     }:
     let
       enableHyprland =

@@ -1,9 +1,8 @@
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  ...
+{ delib
+, inputs
+, pkgs
+, lib
+, ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
@@ -743,8 +742,7 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    {
-      ...
+    { ...
     }:
     {
       home.stateVersion = "25.11";

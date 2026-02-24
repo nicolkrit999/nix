@@ -1,10 +1,9 @@
 # TEMPLATE-HOST FULL CONFIGURATION
 # THIS IS A TEMPLATE THAT SHOW A CONFIGURATION OF EVERY POSSIBLE FEATURE THE CURRENT SETUP ALLOW
-{
-  delib,
-  inputs,
-  pkgs,
-  ...
+{ delib
+, inputs
+, pkgs
+, ...
 }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
@@ -470,8 +469,7 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home =
-    {
-      ...
+    { ...
     }:
     {
       home.stateVersion = "25.11";

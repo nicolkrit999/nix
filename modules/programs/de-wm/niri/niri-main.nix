@@ -1,9 +1,8 @@
-{
-  delib,
-  pkgs,
-  lib,
-  config,
-  ...
+{ delib
+, pkgs
+, lib
+, config
+, ...
 }:
 delib.module {
   name = "programs.niri";
@@ -19,10 +18,9 @@ delib.module {
     };
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
     let
       # Styling helper functions
@@ -117,38 +115,42 @@ delib.module {
             # 4. WALLPAPER
             { command = [ "swww-daemon" ]; }
           ]
-          ++ (map (
-            w:
-            let
-              imgPath = pkgs.fetchurl {
-                url = w.wallpaperURL;
-                sha256 = w.wallpaperSHA256;
-              };
-              targetArgs =
-                if w.targetMonitor == "*" then
-                  [ ]
-                else
-                  [
-                    "-o"
-                    w.targetMonitor
-                  ];
-            in
-            {
+          ++ (map
+            (
+              w:
+              let
+                imgPath = pkgs.fetchurl {
+                  url = w.wallpaperURL;
+                  sha256 = w.wallpaperSHA256;
+                };
+                targetArgs =
+                  if w.targetMonitor == "*" then
+                    [ ]
+                  else
+                    [
+                      "-o"
+                      w.targetMonitor
+                    ];
+              in
+              {
+                command = [
+                  "swww"
+                  "img"
+                ]
+                ++ targetArgs
+                ++ [ "${imgPath}" ];
+              }
+            )
+            myconfig.constants.wallpapers)
+          ++ (map
+            (cmd: {
               command = [
-                "swww"
-                "img"
-              ]
-              ++ targetArgs
-              ++ [ "${imgPath}" ];
-            }
-          ) myconfig.constants.wallpapers)
-          ++ (map (cmd: {
-            command = [
-              "bash"
-              "-c"
-              cmd
-            ];
-          }) cfg.execOnce);
+                "bash"
+                "-c"
+                cmd
+              ];
+            })
+            cfg.execOnce);
         };
       };
     };

@@ -34,31 +34,31 @@
                   "--perf-no_write_workqueue"
                 ];
                 settings = {
-                  crypttabExtraOpts = ["fido2-device=auto" "tpm2-device=auto" "token-timeout=10"];
+                  crypttabExtraOpts = [ "fido2-device=auto" "tpm2-device=auto" "token-timeout=10" ];
                 };
                 content = {
                   type = "btrfs";
-                  extraArgs = ["-L" "nixos" "-f"];
+                  extraArgs = [ "-L" "nixos" "-f" ];
                   subvolumes = {
                     "/root" = {
                       mountpoint = "/";
-                      mountOptions = ["subvol=root" "compress=zstd" "noatime"];
+                      mountOptions = [ "subvol=root" "compress=zstd" "noatime" ];
                     };
                     "/home" = {
                       mountpoint = "/home";
-                      mountOptions = ["subvol=home" "compress=zstd" "noatime"];
+                      mountOptions = [ "subvol=home" "compress=zstd" "noatime" ];
                     };
                     "/nix" = {
                       mountpoint = "/nix";
-                      mountOptions = ["subvol=nix" "compress=zstd" "noatime"];
+                      mountOptions = [ "subvol=nix" "compress=zstd" "noatime" ];
                     };
                     "/persist" = {
                       mountpoint = "/persist";
-                      mountOptions = ["subvol=persist" "compress=zstd" "noatime"];
+                      mountOptions = [ "subvol=persist" "compress=zstd" "noatime" ];
                     };
                     "/log" = {
                       mountpoint = "/var/log";
-                      mountOptions = ["subvol=log" "compress=zstd" "noatime"];
+                      mountOptions = [ "subvol=log" "compress=zstd" "noatime" ];
                     };
                     "/swap" = {
                       mountpoint = "/swap";

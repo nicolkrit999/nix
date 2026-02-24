@@ -1,6 +1,5 @@
-{
-  delib,
-  ...
+{ delib
+, ...
 }:
 delib.module {
   name = "programs.hyprland";

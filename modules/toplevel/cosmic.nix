@@ -1,7 +1,6 @@
-{
-  delib,
-  pkgs,
-  ...
+{ delib
+, pkgs
+, ...
 }:
 delib.module {
   name = "programs.cosmic";

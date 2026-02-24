@@ -1,8 +1,7 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "programs.gnome";

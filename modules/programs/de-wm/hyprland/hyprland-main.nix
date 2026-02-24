@@ -1,9 +1,8 @@
-{
-  delib,
-  config,
-  lib,
-  pkgs,
-  ...
+{ delib
+, config
+, lib
+, pkgs
+, ...
 }:
 delib.module {
   name = "programs.hyprland";
@@ -18,10 +17,9 @@ delib.module {
     };
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
     let
       term = myconfig.constants.terminal or "alacritty";

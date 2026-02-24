@@ -596,8 +596,8 @@ Edit the host `default.nix` and add in the `nixos` block the import for the chos
 
         ./hardware-configuration.nix
         
-        #./disko-config-btrfs
-        #./disko-config-btrfs-luks-impermanence
+        #./disko-config-btrfs.nix
+        #./disko-config-btrfs-luks-impermanence.nix
       ];
 ```
 
@@ -687,16 +687,24 @@ sudo nixos-install --flake .#my-computer
 
 ### 7. Finish
 
+
+
 1. Set your **root password** when prompted.
-2. Type `reboot` and remove the USB stick.
-3. **(LUKS Only)**: Once you boot into your new system, bind the TPM for auto-unlock:
+2. **CRITICAL:** Copy your configuration to the new persistent drive before restarting!
+```bash
+sudo cp -r ~/nixOS /mnt/etc/nixos
+```
+
+3. Type `reboot` and remove the USB stick.
+4. **(LUKS Only)**: Once you boot into your new system, bind the TPM for auto-unlock:
 
 ```bash
 sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 /dev/nvme0n1p2
 ```
 
-- This command can be run to re-bind if needed (such as after a motherboard change)
----
+* This command can be run to re-bind if needed (such as after a motherboard change)
+
+
 
 ## 🎨 Phase 3: Post-Install Setup
 

@@ -1,16 +1,14 @@
-{
-  delib,
-  lib,
-  pkgs,
-  ...
+{ delib
+, lib
+, pkgs
+, ...
 }:
 delib.module {
   name = "common-configuration";
 
   nixos.always =
-    {
-      myconfig,
-      ...
+    { myconfig
+    , ...
     }:
     let
       currentShell = myconfig.constants.shell or "zsh";
@@ -59,13 +57,14 @@ delib.module {
         (final: prev: {
           gpu-screen-recorder =
             if prev.stdenv.hostPlatform.system == "aarch64-linux" then
-              prev.symlinkJoin {
-                name = "gpu-screen-recorder-dummy";
-                paths = [
-                  (prev.writeShellScriptBin "gpu-screen-recorder" "echo 'GPU Screen Recorder is not supported on ARM'")
-                  (prev.writeShellScriptBin "gsr-kms-server" "echo 'Not supported'")
-                ];
-              }
+              prev.symlinkJoin
+                {
+                  name = "gpu-screen-recorder-dummy";
+                  paths = [
+                    (prev.writeShellScriptBin "gpu-screen-recorder" "echo 'GPU Screen Recorder is not supported on ARM'")
+                    (prev.writeShellScriptBin "gsr-kms-server" "echo 'Not supported'")
+                  ];
+                }
             else
               prev.gpu-screen-recorder;
         })

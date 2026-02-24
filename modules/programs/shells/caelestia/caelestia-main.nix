@@ -1,10 +1,9 @@
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  config,
-  ...
+{ delib
+, inputs
+, pkgs
+, lib
+, config
+, ...
 }:
 delib.module {
   name = "programs.caelestia";
@@ -18,10 +17,9 @@ delib.module {
 
   # Keep always to let the rest of the logic handling the activation
   home.always =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
     let
       caelestiaPkg = inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli;

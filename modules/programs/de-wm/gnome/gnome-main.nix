@@ -1,8 +1,7 @@
-{
-  delib,
-  pkgs,
-  lib,
-  ...
+{ delib
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "programs.gnome";
@@ -15,15 +14,17 @@ delib.module {
     };
 
   home.ifEnabled =
-    {
-      cfg,
-      myconfig,
-      ...
+    { cfg
+    , myconfig
+    , ...
     }:
     let
-      fallbackWp = lib.findFirst (
-        w: w.targetMonitor == "*"
-      ) (builtins.head myconfig.constants.wallpapers) myconfig.constants.wallpapers;
+      fallbackWp = lib.findFirst
+        (
+          w: w.targetMonitor == "*"
+        )
+        (builtins.head myconfig.constants.wallpapers)
+        myconfig.constants.wallpapers;
       wallpaperPath = pkgs.fetchurl {
         url = fallbackWp.wallpaperURL;
         sha256 = fallbackWp.wallpaperSHA256;
