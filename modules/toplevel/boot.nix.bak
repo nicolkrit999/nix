@@ -6,9 +6,6 @@ delib.module {
   name = "boot";
 
   nixos.always = {
-    boot.plymouth.enable = true;
-    boot.kernelParams = [ "quiet" "splash" ];
-
     boot.loader = {
       timeout = 30;
       efi.canTouchEfiVariables = true;
@@ -20,8 +17,6 @@ delib.module {
         device = "nodev";
         efiSupport = true;
         useOSProber = true;
-        gfxmodeEfi = "3840x2160,2560x1440,1920x1080,1024x768,auto";
-        gfxpayloadEfi = "text";
 
         extraEntries = ''
           menuentry "UEFI Firmware Settings" {
