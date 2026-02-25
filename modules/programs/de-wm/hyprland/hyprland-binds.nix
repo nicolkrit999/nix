@@ -30,7 +30,7 @@ delib.module {
           "$Mod,       Delete, exec, loginctl lock-session" # Lock
 
           # EXTRA UTILITIES
-          "$Mod, period, exec, walker -m emojis" # Emoji picker
+          "$Mod, period, exec, walker -m symbols" # Emoji picker
           "$Mod SHIFT, P, exec, hyprpicker -an" # Color picker
           "$Mod,       V, exec, walker -m clipboard" # Clipboard manager
           "$Mod SHIFT, R, exec, hyprctl reload" # Reload Hyprland config
