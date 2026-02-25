@@ -745,6 +745,7 @@ delib.host {
         pay-respects
         pokemon-colorscripts
         stow
+        tmate
         tree
         unzip
         wget
