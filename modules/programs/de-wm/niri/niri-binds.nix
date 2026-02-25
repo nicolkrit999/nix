@@ -190,7 +190,7 @@ delib.module {
         "Mod+Period".action.spawn = [
           "walker"
           "-m"
-          "emojis"
+          "symbols"
         ];
         "Mod+Shift+P".action.spawn = [
           "hyprpicker"

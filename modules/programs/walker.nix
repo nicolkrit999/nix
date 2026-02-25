@@ -59,18 +59,6 @@ delib.module {
             accept_type = [ "ctrl ;" ];
           };
 
-          builtins.emojis = {
-            enable = true;
-            name = "emojis";
-            icon = "face-smile";
-            placeholder = "Emojis";
-            switcher_only = true;
-            history = true;
-            typeahead = false;
-            exec = "wl-copy";
-            show_unqualified = true;
-            prefix = ".";
-          };
 
           ui = {
             fullscreen = true;
