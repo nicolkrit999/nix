@@ -35,7 +35,7 @@
     - [📦 Cachix support](#-cachix-support)
     - [🧑‍🍳 Denix support](#-denix-support)
     - [🖥️ Multi-architecture support](#️-multi-architecture-support)
-- [🚀 NixOS Installation Guide (dual boot, no disko, ext4, manual partitioning)](#-nixos-installation-guide-dual-boot-no-disko-ext4-manual-partitioning)
+- [🚀 NixOS Installation Guide (dual boot, manual partitioning, btrfs, snapshots and impermenance support)](#-nixos-installation-guide-dual-boot-manual-partitioning-btrfs-snapshots-and-impermenance-support)
   - [📦 Phase 1: Preparation](#-phase-1-preparation)
     - [1. Download \& Flash](#1-download--flash)
     - [2. Boot \& Connect](#2-boot--connect)
@@ -532,15 +532,11 @@ sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-so
 ---
 
 
-# 🚀 NixOS Installation Guide (dual boot, no disko, ext4, manual partitioning)
+# 🚀 NixOS Installation Guide (dual boot, manual partitioning, btrfs, snapshots and impermenance support)
 
 
 
 > **⚠️ Prerequisite for Dual Booting:** Before starting, boot into Windows, open "Disk Management," right-click your main Windows partition, and select "Shrink Volume." Shrink it to create the desired amount of **Unallocated Space** for NixOS. Leave this space completely unallocated (do not format it in Windows).
-
-- If opting for this route the snapshot feature is lost, you may delete the enabling option in the host `default.nix` and the modules itself `snapshots.nix`.
-  - Keeping the snapshot feature is possible but the partition with btrfs must be done manually ad disko automatically uses all the disk and we don't want that here.
-    - You may look at the `disko-config` and the `snapshots.nix` files to see the right partition layout  
 
 ## 📦 Phase 1: Preparation
 
