@@ -17,9 +17,9 @@ delib.host {
 
     home.activation = {
       createHostDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        mkdir -p $HOME/Pictures/wallpapers
-        mkdir -p $HOME/momentary
-        mkdir -p $HOME/web-clients
+        mkdir -p $HOME/Pictures/wallpapers || true
+        mkdir -p $HOME/momentary || true
+        mkdir -p $HOME/web-clients || true
       '';
     };
   };
