@@ -23,6 +23,7 @@ delib.module {
         gfxmodeEfi = "3840x2160,2560x1440,1920x1080,1024x768,auto";
         gfxpayloadEfi = "text";
 
+        configurationLimit = 10;
         extraEntries = ''
           menuentry "UEFI Firmware Settings" {
             fwsetup
