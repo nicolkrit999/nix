@@ -1,8 +1,6 @@
 { delib
 , inputs
 , pkgs
-, config
-, lib
 , ...
 }:
 let
@@ -238,7 +236,7 @@ delib.host {
           "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
           "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
 
-          "sleep 4 && uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
+          "uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
           "whatsapp-electron"
         ];
         monitorWorkspaces = [
@@ -275,6 +273,7 @@ delib.host {
           "workspace ${appWorkspaces.fileManager} silent, class:^(nemo)$"
           "workspace ${appWorkspaces.vm} silent, class:^(winboat)$"
           "workspace ${appWorkspaces.other} silent, class:^(Actual)$"
+          "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(org.jellyfin.JellyfinDesktop)$"
           "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$"
           "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-browser)$"
           "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-.*\..*)$"

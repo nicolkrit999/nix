@@ -166,6 +166,9 @@ delib.module {
             kb_layout = myconfig.constants.keyboardLayout or "us";
             kb_variant = myconfig.constants.keyboardVariant or "";
             kb_options = "grp:ctrl_alt_toggle"; # Ctrl+Alt to switch layout
+            touchpad = {
+              natural_scroll = false;
+            };
           };
 
           dwindle = {

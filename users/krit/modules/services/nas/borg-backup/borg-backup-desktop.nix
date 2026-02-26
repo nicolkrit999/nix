@@ -77,6 +77,7 @@ delib.module {
             "/home/*/.config/google-chrome"
             "/home/*/.config/chromium"
             "/home/*/.config/BraveSoftware"
+            "/home/*/web-clients" # Web clients apps, such as owncloud, pcloud, etc
 
             # -------------------------------------------------------------------
             # 5. DEVELOPER TOOLS & LANGUAGES
