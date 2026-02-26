@@ -11,7 +11,6 @@ delib.module {
   nixos.ifEnabled =
     { myconfig, ... }:
     let
-      # 🌟 THE FIX: Define pkgs-unstable here so it's always available
       pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
     in
 
@@ -25,7 +24,10 @@ delib.module {
           # -----------------------------------------------------------------------
           # 🖥️ DESKTOP APPLICATIONS
           # -----------------------------------------------------------------------
+          cryptomator # Client side encryptions for cloud drives
           gsimplecal # Simple calendar application
+          home-assistant # Home automation platform
+          jellyfin # Media server
           kdePackages.kate # Text editor from the kde theme
           libreoffice-qt # Open source microsoft office alternative
           localsend # Simple file sharing over local network
@@ -35,6 +37,7 @@ delib.module {
           signal-desktop # Encrypted messaging application
           telegram-desktop # Messaging
           teams-for-linux # Unofficial Microsoft Teams client
+          owncloud-client # OwnCloud desktop client
           vscode # Microsoft visual studio code IDE
           vesktop # Discord client
           vlc # Media player
@@ -43,18 +46,31 @@ delib.module {
           # -----------------------------------------------------------------------------------
           # 🖥️ CLI UTILITIES
           # -----------------------------------------------------------------------------------
+          bc # Arbitrary precision calculator
           carbon-now-cli # Create beautiful images of your code (carbon.now.sh CLI)
           cava # Console-based audio visualizer
           cloudflared # Cloudflare's command-line tool and daemon
+          cloc # Count lines of code
           croc # Securely and easily send files between two computers
+          efibootmgr # Manage UEFI boot entries
+          fastfetch # Fast system information fetcher
+          gh # GitHub CLI tool
           glow # Markdown renderer for the terminal
           grex # Command-line tool for generating regular expressions
+          grim # Used to make screenshots with cli
           htop # Process viewer and killer
           killall # Command to kill processes by name
           lsof # List open files
+          mediainfo # Display technical info about media files
           nix-search-cli # CLI tool to search nixpkgs from terminal
+          ntfs3g # NTFS read/write support
+          ripgrep # Fast line-oriented search tool
+          screen # Terminal multiplexer
           tealdeer # Fast implementation of tldr (simplified man pages)
           ttyd # Share your terminal over the web
+          unixtools.netstat # Network statistics
+          usbutils # USB device utilities
+          wakeonlan # Magic packets
           yt-dlp # Media downloader for YouTube and other sites
 
           # -----------------------------------------------------------------------------------

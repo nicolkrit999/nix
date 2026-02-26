@@ -20,7 +20,7 @@
   # Dummy filesystems just to satisfy the build checker
   fileSystems."/" = {
     device = "/dev/disk/by-label/nixos";
-    fsType = "ext4";
+    fsType = "btrfs";
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
