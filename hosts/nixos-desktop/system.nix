@@ -32,7 +32,7 @@ delib.host {
 
             config.sops.secrets.borg-passphrase.path;
           myconfig.krit.services.nas.desktop-borg-backup.sshKeyPath =
-          config.sops.secrets.borg-private-key.path;
+            config.sops.secrets.borg-private-key.path;
 
           myconfig.krit.services.nas.owncloud.secretsFile = config.sops.templates."davfs-secrets".path;
 
@@ -202,7 +202,7 @@ delib.host {
       };
     };
 
-    # Solve Home-manager portal assertion
+
     environment.pathsToLink = [
       "/share/applications"
       "/share/xdg-desktop-portal"
