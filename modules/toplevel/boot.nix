@@ -20,8 +20,6 @@ delib.module {
         device = "nodev";
         efiSupport = true;
         useOSProber = true;
-        gfxmodeEfi = "3840x2160,2560x1440,1920x1080,1024x768,auto";
-        gfxpayloadEfi = "text";
 
         configurationLimit = 10;
         extraEntries = ''

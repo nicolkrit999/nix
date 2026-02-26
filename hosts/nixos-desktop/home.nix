@@ -3,7 +3,7 @@ let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
 in
 delib.host {
-  name = "nixos-desktop"; # 🌟 Magic merge tag
+  name = "nixos-desktop";
 
   home = {
     home.stateVersion = "25.11";
@@ -19,6 +19,7 @@ delib.host {
       createHostDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         mkdir -p $HOME/Pictures/wallpapers
         mkdir -p $HOME/momentary
+        mkdir -p $HOME/web-clients
       '';
     };
   };

@@ -26,7 +26,7 @@ delib.module {
           cryptomator # Client side encryptions for cloud drives
           gsimplecal # Simple calendar application
           home-assistant # Home automation platform
-          jellyfin # Media server
+          jellyfin-desktop # Media server
           kdePackages.kate # Text editor from the kde theme
           libreoffice-qt # Open source microsoft office alternative
           localsend # Simple file sharing over local network
@@ -34,7 +34,7 @@ delib.module {
           obs-studio # Streaming/Recording
           proton-pass # Password manager by Proton
           #FIXME: possibly broken with this flake.lock
-          #protonvpn-gui # VPN client by Proton
+          protonvpn-gui # VPN client by Proton
           signal-desktop # Encrypted messaging application
           telegram-desktop # Messaging
           owncloud-client # OwnCloud desktop client
