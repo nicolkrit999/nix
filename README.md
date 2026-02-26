@@ -599,9 +599,8 @@ We will now create the NixOS partitions in the unallocated space.
 sudo cfdisk /dev/nvme0n1  # Replace with your actual disk name
 
 ```
-
 1. Use the arrow keys to select the **Free space** (this is the unallocated space you made in Windows).
-2. Select **New** and set the size to **`1G`**.
+2. Select **New** and set the size to **`1G`**. (or any size you may want. I suggest anywhere between 1 and 4 GB)
 * **Crucial:** NixOS requires a large boot partition to store multiple system generations. Even if Windows already has an EFI partition, creating a dedicated 1GB EFI partition for NixOS prevents space issues.
 * Change the **Type** of this new partition to **EFI System**.
 
@@ -857,17 +856,16 @@ Choose **ONE** of the following methods depending on whether you want encryption
 
 1. Open the standard config: `nano disko-config-btrfs.nix`.
 2. Find the line: `device = "/dev/nvme0n1";` and change it to your actual drive name from step 2.
-3. **Save**: `Ctrl+O` -> `Enter` -> `Ctrl+X`.
+3. Change the `boot` partition size as needed. It is reccomended something between 1 and 4 gb depending on the size of the drive. The bigger it is the bigger it can be
+4. **Save**: `Ctrl+O` -> `Enter` -> `Ctrl+X`.
 
 #### Option B: Secure (LUKS + TPM 2.0)
 
 1. Open the encrypted config: `nano disko-config-btrfs-luks-impermanence.nix`.
-
-
 2. Find the linse: `device = "/dev/nvme0n1";` and `nvme0n1 = {` and change them to your actual drive name from step 2.
-
-
-3. **Save**: `Ctrl+O` -> `Enter` -> `Ctrl+X`.
+3. Change the `boot` partition size as needed. It is reccomended something between 1 and 4 gb depending on the size of the drive. The bigger it is the bigger it can be
+4. Change the `swap` size as needed. The less ram you have the lower this value should be. This value should be a bit higher if you want to hybernate
+5. **Save**: `Ctrl+O` -> `Enter` -> `Ctrl+X`.
 
 ### 5a. Configure Critical Variables
 
