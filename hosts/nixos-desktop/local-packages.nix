@@ -34,7 +34,7 @@ delib.module {
           gsimplecal # Simple calendar application
           home-assistant # Home automation platform
           gitnuro # Git client
-          handlbrake # Video transcoder
+          handbrake # Video transcoder
           jellyfin-desktop # Media server
           kdePackages.kate # Text editor from the kde theme
           libreoffice-qt # Open source microsoft office alternative
