@@ -23,10 +23,18 @@ delib.module {
           # -----------------------------------------------------------------------
           # 🖥️ DESKTOP APPLICATIONS
           # -----------------------------------------------------------------------
+          anydesk # Remote management desktop application
+          bottles # Windows compatibility layer and game launcher
+          cartridges # Simple and elegant game launcher for Linux
           cryptomator # Client side encryptions for cloud drives
+          cpu-x # Hardware information visualizer application
+          drawio # Diagramming application
+          gearlever # Manager appimages
+          gramps # Genealogy software
           gsimplecal # Simple calendar application
           home-assistant # Home automation platform
           gitnuro # Git client
+          handlbrake # Video transcoder
           jellyfin-desktop # Media server
           kdePackages.kate # Text editor from the kde theme
           libreoffice-qt # Open source microsoft office alternative
@@ -35,8 +43,8 @@ delib.module {
           meld # Visual diff and merge tool
           obs-studio # Streaming/Recording
           proton-pass # Password manager by Proton
-          #FIXME: possibly broken with this flake.lock
           protonvpn-gui # VPN client by Proton
+          remmina # Remote management desktop client
           signal-desktop # Encrypted messaging application
           telegram-desktop # Messaging
           teams-for-linux # Unofficial Microsoft Teams client
@@ -47,6 +55,7 @@ delib.module {
           vlc # Media player
           whatsapp-electron # Electron wrapper for whatsapp
           xmind # Mind mapping software
+          yubikey-manager # Yubikey manager for configuring Yubikeys
 
           # -----------------------------------------------------------------------------------
           # 🖥️ CLI UTILITIES
@@ -77,6 +86,10 @@ delib.module {
           usbutils # USB device utilities
           wakeonlan # Magic packets
           yt-dlp # Media downloader for YouTube and other sites
+
+          age-plugin-yubikey # Age plugin for Yubikeys
+          yubikey-agent # Yubikey agent for managing Yubikeys
+          yubikey-touch-detector # Detect if a Yubikey is touched
 
           # -----------------------------------------------------------------------------------
           # 🧑🏽‍💻 CODING
