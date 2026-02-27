@@ -26,10 +26,12 @@ delib.module {
           cryptomator # Client side encryptions for cloud drives
           gsimplecal # Simple calendar application
           home-assistant # Home automation platform
+          gitnuro # Git client
           jellyfin-desktop # Media server
           kdePackages.kate # Text editor from the kde theme
           libreoffice-qt # Open source microsoft office alternative
           localsend # Simple file sharing over local network
+          lutris # Gaming platform
           meld # Visual diff and merge tool
           obs-studio # Streaming/Recording
           proton-pass # Password manager by Proton
@@ -37,13 +39,14 @@ delib.module {
           protonvpn-gui # VPN client by Proton
           signal-desktop # Encrypted messaging application
           telegram-desktop # Messaging
-          owncloud-client # OwnCloud desktop client
           teams-for-linux # Unofficial Microsoft Teams client
           tor-browser # Privacy-focused web browser
+          owncloud-client # OwnCloud desktop client
           vscode # Microsoft visual studio code IDE
           vesktop # Discord client
           vlc # Media player
           whatsapp-electron # Electron wrapper for whatsapp
+          xmind # Mind mapping software
 
           # -----------------------------------------------------------------------------------
           # 🖥️ CLI UTILITIES
