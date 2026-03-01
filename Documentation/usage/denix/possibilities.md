@@ -3,9 +3,6 @@
 - [Host Configuration Guide](#host-configuration-guide)
   - [Introduction](#introduction)
   - [Configuration Template](#configuration-template)
-  - [Module enabled by default](#module-enabled-by-default)
-    - [Module that can be disabled but are enabled by default](#module-that-can-be-disabled-but-are-enabled-by-default)
-    - [Module that are always enabled](#module-that-are-always-enabled)
   - [Detailed Component Explanations](#detailed-component-explanations)
     - [Constants](#constants)
     - [Top-Level Modules](#top-level-modules)
@@ -346,11 +343,6 @@ delib.host {
 
 ---
 
-## Module enabled by default
-### Module that can be disabled but are enabled by default
-TODO: complete
-### Module that are always enabled
-TODO: complete
 
 ## Detailed Component Explanations
 

@@ -18,10 +18,6 @@
     - [❄️ Hybrid (declarative + non declarative for some modules)](#️-hybrid-declarative--non-declarative-for-some-modules)
     - [🎨 Theming](#-theming)
     - [🖌️ Wallpaper(s)](#️-wallpapers)
-      - [kde-main.nix](#kde-mainnix)
-      - [gnome-main.nix](#gnome-mainnix)
-    - [niri-main.nix](#niri-mainnix)
-    - [cosmic-main.nix](#cosmic-mainnix)
     - [🪟 Multiple Desktop Environments](#-multiple-desktop-environments)
       - [✅ The Safe Way (Prevent Lockouts)](#-the-safe-way-prevent-lockouts)
       - [🚨 Emergency Recovery (Stuck in TTY)](#-emergency-recovery-stuck-in-tty)
@@ -103,12 +99,11 @@
 Leverage `denix` to create a customized environments where it's possible to choose the modules to enable and configure their behaviour using `constants` which acts as variables passed to that file logic
 
 - This allow to have a tailored experience right from the start,
-- For reference look point ([5. Configure the host folder](#5-configure-the-hosts-folder)). TODO: change path to denix usage guide
+- For reference look point ([5. Configure the host folder](#-phase-3-post-install-setup)).
 
 #### Host-specific home-manager modules
 
-Using the `/Users` folder it's possible to define modules separated from the system-wide one allowing to have highly opinionated and user/host specific modules separated
-
+Using the `/users` folder it's possible to define modules separated from the system-wide one allowing to have highly opinionated and user/host specific modules separated
 
 #### Host-specific general home-manager modules tweaks
 
@@ -116,7 +111,6 @@ Using the `/Users` folder it's possible to define modules separated from the sys
   - For example a host may have different keyboard layouts. This feature allow to have in the waybar specific country flags without modifying the global waybar configuration
 
 ---
-
 
 ### ❄️ Hybrid (declarative + non declarative for some modules)
 
@@ -155,123 +149,6 @@ Wallpapers are defined to be hosts specific and they are tied to the monitor lis
   - In kde plasma the primary monitor override this settings. If nothing is done the behavior is as expected,
   - If the "primary" monitor is changed in the system settings than it will get the first wallpaper in teh list.
 
-If someone prefer to set the wallpaper manually then it is possible in certain desktop environment:
-
-- For hyprland they are set in hyprland-hyprpaper. Hyprland does not have an easy way to set the wallpaper so it is best to keep it as is
-- XFCE is left as default to allow the guest user a stock experience.
-
-#### kde-main.nix
-
-Comment out or remove the specific lines that handles the wallpapers logic
-
-```nix
-# wallpaper = wallpaperFiles;
-```
-
-#### gnome-main.nix
-
-Comment out or remove the specific lines that handles the wallpapers logic
-
-```nix
-# "org/gnome/desktop/background" = {
-#   picture-uri = "file://${wallpaperPath}";
-#   picture-uri-dark = "file://${wallpaperPath}";
-#   picture-options = lib.mkForce "zoom";
-# };
-
-# "org/gnome/desktop/screensaver" = {             <-- OPTIONAL: REMOVE THIS TOO
-#   picture-uri = "file://${wallpaperPath}";
-# };
-```
-
-### niri-main.nix
-
-Comment out or remove the specific lines that handles the wallpaper logic
-
-```nix
-  fetchedWallpapers = map (
-    w:
-    pkgs.fetchurl {
-      url = w.wallpaperURL;
-      sha256 = w.wallpaperSHA256;
-    }
-  ) constants.wallpapers;
-
-  # 2. Generate 'swww' commands by zipping Monitors with Wallpapers
-  wallpaperCommands = lib.imap0 (
-    i: mon:
-    let
-      # Logic: Use wallpaper at index 'i'.
-      # If we run out of wallpapers, fallback to the FIRST one (index 0).
-      wp =
-        if i < builtins.length fetchedWallpapers then
-          builtins.elemAt fetchedWallpapers i
-        else
-          builtins.head fetchedWallpapers;
-    in
-    {
-      command = [
-        "swww"
-        "img"
-        "-o"
-        mon
-        "${wp}"
-      ];
-    }
-  ) enabledMonitors;
-```
-
-```nix
-++ wallpaperCommands
-```
-
-### cosmic-main.nix
-
-Comment out or remove the specific lines that handles the wallpaper logic
-
-```nix
-let
-  activeMonitors = builtins.filter (m: !(lib.hasInfix "disable" m)) constants.monitors;
-  monitorPorts = map (m: builtins.head (lib.splitString "," m)) activeMonitors;
-
-  wallpaperFiles = map (
-    wp:
-    "${pkgs.fetchurl {
-      url = wp.wallpaperURL;
-      sha256 = wp.wallpaperSHA256;
-    }}"
-  ) constants.wallpapers;
-
-  # If there are more monitors than wallpapers, reuse the last wallpaper
-  getWallpaper =
-    index:
-    if index < builtins.length wallpaperFiles then
-      builtins.elemAt wallpaperFiles index
-    else
-      lib.last wallpaperFiles;
-
-  monitorConfig = lib.concatStringsSep "\n" (
-    lib.lists.imap0 (i: port: ''
-      [output."${port}"]
-      source = "Path"
-      image = "${getWallpaper i}"
-      filter_by_theme = false
-    '') monitorPorts
-  );
-in
-```
-
-```nix
-xdg.configFile."cosmic/com.system76.CosmicBackground/v1/all".text = ''
-      ${monitorConfig}
-
-      # Fallback for any monitor not explicitly named above
-      [output."*"]
-      source = "Path"
-      image = "${builtins.head wallpaperFiles}"
-      filter_by_theme = false
-    '';
-```
 
 ---
 
@@ -283,11 +160,9 @@ xdg.configFile."cosmic/com.system76.CosmicBackground/v1/all".text = ''
 
   - **Hyprland + caelestia with quickshell**
     - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
-    - The json config is completely declarative. It can be modified in `caelestia-config.nix`
+
     - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
-      - **caelestia logout crash**
-        - Note the official caelestia shell.json uses an aggressive terminate user, which does not work for uwsm
-        - replace every of it to `"caelestia-logout` which is the name of the logout script in `caelestia-main.nix`
+  
 
   - **Hyprland + noctalia with quickshell**
     - Noctalia include many configuration aspect so i choose to let the user manually change the config in the noctalia gui.
@@ -296,9 +171,8 @@ xdg.configFile."cosmic/com.system76.CosmicBackground/v1/all".text = ''
   - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
 
 - **niri + noctalia with quickshell**
-  - Noctalia include many configuration aspect so i choose to let the user manually change the config in the noctalia gui.
   - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
-  - Some aspects are defined declarative. See `noctalia-config.nix`
+
   - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
 
 - **KDE Plasma**: A highly configurable desktop environment, with a launcher similar to windows
@@ -308,7 +182,7 @@ xdg.configFile."cosmic/com.system76.CosmicBackground/v1/all".text = ''
 - **XFCE**: A lightweight, stable, and classic desktop experience.
   - For now xfce is enabled only if the `guest` user is enabled.
 
-You can enable or disable desktop environments (Hyprland, GNOME, KDE, etc.) by editing `variables.nix`. However, disabling the environment you are currently using requires caution to avoid being locked out of the system.
+You can enable or disable desktop environments (Hyprland, GNOME, KDE, etc.) by editing disabling it in the host folder using denix. However, disabling the environment you are currently using requires caution to avoid being locked out of the system.
 
 > **⚠️ Warning:** If you set your **current** desktop to `false` and run `nixos-rebuild switch`, the graphical interface will terminate immediately. You will be dropped into a TTY, and in some cases, your user shell may break, forcing you to recover via `root`.
 
@@ -517,9 +391,11 @@ sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-so
 ---
 
 ### 🧑‍🍳 Denix support
-- Leverange [denix](https://github.com/yunfachi/denix) to provide a simple way to add, remove, enable/disable modules and their options
+
+- Leverage [denix](https://github.com/yunfachi/denix) to provide a simple way to add, remove, enable/disable modules and their options
 
 ---
+
 ### 🖥️ Multi-architecture support
 
 - It uses smart conditionals to allow support for multiple architectures
@@ -531,10 +407,7 @@ sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-so
 
 ---
 
-
 # 🚀 NixOS Installation Guide (dual boot, manual partitioning, btrfs, snapshots and impermenance support)
-
-
 
 > **⚠️ Prerequisite for Dual Booting:** Before starting, boot into Windows, open "Disk Management," right-click your main Windows partition, and select "Shrink Volume." Shrink it to create the desired amount of **Unallocated Space** for NixOS. Leave this space completely unallocated (do not format it in Windows).
 
@@ -544,9 +417,9 @@ sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-so
 
 1. **Download:** Get the **NixOS Minimal ISO** (64-bit Intel/AMD or 64-bit ARM) from [nixos.org](https://nixos.org/download.html). The graphical installer is not needed.
 2. **Flash:** Use **Rufus, Balena Etcher or similar** to write the ISO to a USB stick.
-* **Partition Scheme:** GPT
-* **Target System:** UEFI (non-CSM)
 
+- **Partition Scheme:** GPT
+- **Target System:** UEFI (non-CSM)
 
 3. **BIOS:** Ensure **Secure Boot** is Disabled and your BIOS is set to **UEFI** mode.
 
@@ -555,10 +428,9 @@ sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-so
 1. Insert the USB and boot your computer.
 2. Select **"UEFI: [Your USB Name]"** from the boot menu.
 3. Once the text console loads (`[nixos@nixos:~]$`):
-* **WiFi:** Run `sudo nmtui`, select "Activate a connection", and pick your network.
-* **Ethernet:** Should work automatically. Verify with `ping google.com`.
 
-
+- **WiFi:** Run `sudo nmtui`, select "Activate a connection", and pick your network.
+- **Ethernet:** Should work automatically. Verify with `ping google.com`.
 
 ---
 
@@ -572,7 +444,6 @@ Fetch the installer template from your repository.
 nix-shell -p git
 git clone https://github.com/nicolkrit999/nixOS.git
 cd ~/nixOS
-
 ```
 
 ### 2. Identify the Disk and Unallocated Space
@@ -580,12 +451,11 @@ cd ~/nixOS
 Find your main drive containing the Windows installation and the free space.
 
 ```bash
-lsblk
-
+lsblk -o NAME,SIZE,FSAVAIL
 ```
 
-* Look for your main disk (e.g., `nvme0n1` or `sda`).
-* You will see your existing Windows partitions. Take note of the disk name.
+- Look for your main disk (e.g., `nvme0n1` or `sda`).
+- You will see your existing Windows partitions. Take note of the disk name.
 
 ### 3. Partition the Drive (cfdisk)
 
@@ -593,31 +463,28 @@ We will now create the NixOS partitions in the unallocated space.
 
 ```bash
 sudo cfdisk /dev/nvme0n1  # Replace with your actual disk name
-
 ```
+
 1. Use the arrow keys to select the **Free space** (this is the unallocated space you made in Windows).
 2. Select **New** and set the size to **`1G`**. (or any size you may want. I suggest anywhere between 1 and 4 GB)
-* **Crucial:** NixOS requires a large boot partition to store multiple system generations. Even if Windows already has an EFI partition, creating a dedicated 1GB EFI partition for NixOS prevents space issues.
-* Change the **Type** of this new partition to **EFI System**.
 
+- **Crucial:** NixOS requires a large boot partition to store multiple system generations. Even if Windows already has an EFI partition, creating a dedicated 1GB EFI partition for NixOS prevents space issues.
+- Change the **Type** of this new partition to **EFI System**.
 
 3. Select the remaining **Free space** again.
 4. Select **New** and press Enter to use the rest of the available space.
-* Keep the **Type** as **Linux filesystem**.
 
+- Keep the **Type** as **Linux filesystem**.
 
 5. Select **Write**, type `yes`, and then **Quit**.
 
-Run `lsblk` again to see your new partition numbers (e.g., `/dev/nvme0n1p3` for Boot and `/dev/nvme0n1p4` for Linux).
+Run `lsblk -o NAME,SIZE,FSAVAIL` again to see your new partition numbers (e.g., `/dev/nvme0n1p3` for Boot and `/dev/nvme0n1p4` for Linux).
 
 ### 4. Format and Mount the BTRFS Filesystem
 
-*Note: In the commands below, carefully replace `/dev/nvme0n1pX` with your new 1GB EFI partition and `/dev/nvme0n1pY` with your new Linux partition.*
+_Note: In the commands below, carefully replace `/dev/nvme0n1pX` with your new 1GB EFI partition and `/dev/nvme0n1pY` with your new Linux partition._
 
-```bash
-### 4. Format and Mount the BTRFS Filesystem
 
-*Note: In the commands below, carefully replace `/dev/nvme0n1pX` with your new 1GB EFI partition and `/dev/nvme0n1pY` with your new Linux partition.*
 
 ```bash
 # 1. Format the partitions
@@ -678,7 +545,7 @@ sudo swapon /mnt/swap/swapfile
 
 # 8. Mount the boot partition
 sudo mount /dev/nvme0n1pX /mnt/boot
-```
+````
 
 ### 5. Create Your Host
 
@@ -688,7 +555,6 @@ Copy the template to a new folder for your machine. Replace `my-computer` with y
 cd ~/nixOS/hosts
 cp -r template-host-full my-computer
 cd my-computer
-
 ```
 
 **Clean up Disko:** Since we partitioned manually, we must remove automated partitioning scripts from the template.
@@ -702,9 +568,9 @@ cd my-computer
 
 Still in `default.nix`:
 
-* **`user`**: Change `"template-user"` to your real user.
-* **`homeManagerSystem`**: `x86_64-linux` for Intel/AMD, or `aarch64-linux` for ARM.
-* **Keyboard**: Set `keyboardLayout` and `keyboardVariant` to have an easier time logging in.
+- **`user`**: Change `"template-user"` to your real user.
+- **`homeManagerSystem`**: `x86_64-linux` for Intel/AMD, or `aarch64-linux` for ARM.
+- **Keyboard**: Set `keyboardLayout` and `keyboardVariant` to have an easier time logging in.
 
 ### 7. Generate Hardware Config & Install
 
@@ -723,21 +589,18 @@ git add hosts/my-computer/hardware-configuration.nix
 
 # 4. Install the system!
 sudo nixos-install --flake .#my-computer
-
 ```
 
 ### 8. Finish
 
 1. Set your **user password** when prompted.
-* If not prompted do it manually:
 
-
+- If not prompted do it manually:
 
 ```bash
 sudo nixos-enter
 passwd your-username
 exit
-
 ```
 
 2. Set your **root password** if needed (same steps as above but just `passwd`).
@@ -745,19 +608,13 @@ exit
 
 ```bash
 sudo cp -r ~/nixOS /mnt/etc/nixos
-
 ```
 
 4. Reboot!
 
 ```bash
 reboot
-
 ```
-
-*(Once rebooted, select NixOS from the GRUB menu. Windows will automatically be detected by OSProber and added to your boot list!).*
-
-
 
 # 🚀 NixOS Installation Guide (with disko)
 
@@ -804,12 +661,9 @@ We must identify which drive to wipe. **Be careful here.**
 lsblk -o NAME,SIZE,FSAVAIL
 ```
 
-* Look for your main disk (e.g., `476G` or `931G`).
+- Look for your main disk (e.g., `476G` or `931G`).
 
-
-* Note the name: usually **`nvme0n1`** (for SSDs) or **`sda`**.
-
-
+- Note the name: usually **`nvme0n1`** (for SSDs) or **`sda`**.
 
 ### 3. Create Your Host and import the chosen disko-config
 
@@ -823,6 +677,7 @@ cd my-computer
 ```
 
 Edit the host `default.nix` and add in the `nixos` block the import for the chosen disko-config. Remember to only have one of the 2 imported
+
 ```nix
   nixos =
     { ... }:
@@ -836,7 +691,7 @@ Edit the host `default.nix` and add in the `nixos` block the import for the chos
         inputs.niri.nixosModules.niri
 
         ./hardware-configuration.nix
-        
+
         #./disko-config-btrfs.nix
         #./disko-config-btrfs-luks-impermanence.nix
       ];
@@ -845,8 +700,9 @@ Edit the host `default.nix` and add in the `nixos` block the import for the chos
 ### 4. Configure the Drive
 
 Choose **ONE** of the following methods depending on whether you want encryption.
+
 - Both disko-config sample are under ~/nixOS/hosts/template-host-full
-  - Remember to copy them to your chosen host folder 
+  - Remember to copy them to your chosen host folder
 
 #### Option A: Standard (No Encryption)
 
@@ -871,10 +727,10 @@ We only need to set the basics now. You can customize themes and wallpapers late
 nano default.nix
 ```
 
-* **`user`**: Change `"template-user"` to your real user.
-* **⚠️ CRITICAL**: Do not install as `template-user` and try to rename it later. Set your real user **NOW**.
-* **`homeManagerSystem`**: The template is `x86_64-linux`. If you have a newer ARM-based PC then `aarch64-linux`.
-* **Keyboard**: Set `keyboardLayout` (e.g., `"us,it"`) and `keyboardVariant` (e.g., `"intl,,"`) to have an easier time to login and user  the terminal right from teh beginning
+- **`user`**: Change `"template-user"` to your real user.
+- **⚠️ CRITICAL**: Do not install as `template-user` and try to rename it later. Set your real user **NOW**.
+- **`homeManagerSystem`**: The template is `x86_64-linux`. If you have a newer ARM-based PC then `aarch64-linux`.
+- **Keyboard**: Set `keyboardLayout` (e.g., `"us,it"`) and `keyboardVariant` (e.g., `"intl,,"`) to have an easier time to login and user the terminal right from teh beginning
 
 ### 5b. Enable suggested modules
 
@@ -883,6 +739,7 @@ Check the documentation [denix starting documentation](#-denix-support). To find
 ---
 
 ### 6. Install (The Magic Step)
+
 Run the commands corresponding to the configuration you chose in Step 4.
 
 #### For Option A (Standard):
@@ -927,10 +784,9 @@ sudo nixos-install --flake .#my-computer
 
 ### 7. Finish
 
-
-
 1. Set your **root password** when prompted.
 2. **CRITICAL:** Copy your configuration to the new persistent drive before restarting!
+
 ```bash
 sudo cp -r ~/nixOS /mnt/etc/nixos
 ```
@@ -942,9 +798,7 @@ sudo cp -r ~/nixOS /mnt/etc/nixos
 sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 /dev/nvme0n1p2
 ```
 
-* This command can be run to re-bind if needed (such as after a motherboard change)
-
-
+- This command can be run to re-bind if needed (such as after a motherboard change)
 
 ## 🎨 Phase 3: Post-Install Setup
 
@@ -1020,7 +874,6 @@ _Example input: `my-computer` (This will delete every host except this one)._
 
 ## 🛠️ Phase 4: Customization
 
-
 ### Setup (optional) `local-packages.nix`
 
 - It contains packages that are intended to only be installed in that specific hosts
@@ -1030,9 +883,6 @@ _Example input: `my-computer` (This will delete every host except this one)._
 
 - It contains flatpak packages that are intended to only be installed in that specific hosts
   - add as needed
-
-
-
 
 ---
 
@@ -1149,16 +999,7 @@ The LICENCE.txt file is copied from the original repo and should respect the GPL
 
 ## Showcase
 
-These photos contains the following options:
 
-```nix
-guest = true;
-base16Theme = "nord";
-polarity = "dark";
-catppuccin = false;
-catppuccinFlavor = "mocha";
-catppuccinAccent = "sky";
-```
 
 ### Hyprland with waybar
 
@@ -1210,15 +1051,9 @@ This folder contains ideas that i think may benefit the project
 
 ### [Usage guide](./Documentation/usage/)
 
-This folder contains a guide on how basic aspects should be implemented, such as:
-
-- Creating a system-wide module
-- Create a general home-manager modules that apply to all hosts
-- Create a host-specific home-manager modules
-- Theming guide
-
-It also contains some other guides such as
+This folder contains the following guides on some aspects of the configuration:
 
 - sops
 - tmux
 - cachix
+- Denix
