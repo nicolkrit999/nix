@@ -80,8 +80,8 @@ delib.host {
         programs.git = {
           enable = true;
           settings = {
-            user.signingKey = "D93A24D8E063EECF";
-            gpg.format = "openpgp";
+            gpg.format = "ssh";
+            user.signingKey = "/home/${myUserName}/.ssh/id_github";
             commit.gpgSign = true;
 
             gpg.ssh.allowedSignersFile = "/home/${myUserName}/.ssh/allowed_signers";
@@ -289,11 +289,11 @@ delib.host {
               gpg.format = lib.mkForce "ssh";
               gpg.ssh.allowedSignersFile = "/home/${myUserName}/.ssh/allowed_signers";
 
-              user.signingkey = lib.mkForce ""; # Clear the personal GPG key ID
-              commit.gpgSign = lib.mkForce true; # Ensure signing is still active
+              user.signingkey = lib.mkForce "/home/${myUserName}/.ssh/id_school";
+              commit.gpgSign = lib.mkForce true;
             };
             signing = lib.mkForce {
-              key = "/home/${myUserName}/.ssh/id_school"; # Use the student SSH key
+              key = "/home/${myUserName}/.ssh/id_school";
               signByDefault = true;
             };
           };
@@ -306,8 +306,7 @@ delib.host {
               "github.com" = lib.mkForce {
                 hostname = "github.com";
                 identityFile = "/home/${myUserName}/.ssh/id_school";
-                # 🌟 ADD THESE TWO LINES:
-                identitiesOnly = true; # Only use the file specified above
+                identitiesOnly = true;
                 extraOptions = {
                   "PubkeyAuthentication" = "yes";
                 };
