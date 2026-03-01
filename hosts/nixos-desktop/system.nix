@@ -1,8 +1,9 @@
-{ delib
-, inputs
-, pkgs
-, lib
-, ...
+{
+  delib,
+  inputs,
+  pkgs,
+  lib,
+  ...
 }:
 let
   myUserName = "krit";
@@ -73,23 +74,25 @@ delib.host {
     };
 
     # Setup git signing and allowed signers for the user, and also make the allowed signers available as a home file for use in other contexts (e.g. SSH configuration)
-    home-manager.users.${myUserName} = { ... }: {
-      programs.git = {
-        enable = true;
-        settings = {
-          user.signingKey = "D93A24D8E063EECF";
-          gpg.format = "openpgp";
-          commit.gpgSign = true;
+    home-manager.users.${myUserName} =
+      { ... }:
+      {
+        programs.git = {
+          enable = true;
+          settings = {
+            user.signingKey = "D93A24D8E063EECF";
+            gpg.format = "openpgp";
+            commit.gpgSign = true;
 
-          gpg.ssh.allowedSignersFile = "/home/${myUserName}/.ssh/allowed_signers";
+            gpg.ssh.allowedSignersFile = "/home/${myUserName}/.ssh/allowed_signers";
+          };
         };
-      };
 
-      home.file.".ssh/allowed_signers".text = ''
-        githubgitlabmain.hu5b7@passfwd.com ssh-ed25519 AAAAC3Nza...
-        kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3Nza...
-      '';
-    };
+        home.file.".ssh/allowed_signers".text = ''
+          githubgitlabmain.hu5b7@passfwd.com ssh-ed25519 AAAAC3Nza...
+          kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3Nza...
+        '';
+      };
     sops.defaultSopsFile = ./nixos-desktop-secrets-sops.yaml;
     sops.defaultSopsFormat = "yaml";
     sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
@@ -154,7 +157,6 @@ delib.host {
         borg-private-key = { };
         cachix-auth-token = { };
       };
-
 
     programs.gnupg.agent = {
       enable = true;
@@ -283,16 +285,20 @@ delib.host {
             enable = true;
             settings = {
               user.email = lib.mkForce "kritpio.nicol@student.supsi.ch";
+              user.name = lib.mkForce "nicolkrit999-uni";
               gpg.format = lib.mkForce "ssh";
               gpg.ssh.allowedSignersFile = "/home/${myUserName}/.ssh/allowed_signers";
+
+              user.signingkey = lib.mkForce ""; # Clear the personal GPG key ID
+              commit.gpgSign = lib.mkForce true; # Ensure signing is still active
             };
             signing = lib.mkForce {
-              key = "/home/${myUserName}/.ssh/id_school";
+              key = "/home/${myUserName}/.ssh/id_school"; # Use the student SSH key
               signByDefault = true;
             };
           };
 
-          # Setup SSH to use the school specialization key for specific hosts
+          # 🎓 SSH Setup: Force student identity and block personal keys
           programs.ssh = {
             enable = true;
             enableDefaultConfig = lib.mkForce false;
@@ -300,14 +306,21 @@ delib.host {
               "github.com" = lib.mkForce {
                 hostname = "github.com";
                 identityFile = "/home/${myUserName}/.ssh/id_school";
+                # 🌟 ADD THESE TWO LINES:
+                identitiesOnly = true; # Only use the file specified above
+                extraOptions = {
+                  "PubkeyAuthentication" = "yes";
+                };
               };
               "gitlab.com" = lib.mkForce {
                 hostname = "gitlab.com";
                 identityFile = "/home/${myUserName}/.ssh/id_school";
+                identitiesOnly = true;
               };
               "gitlab-edu.supsi.ch" = lib.mkForce {
                 hostname = "gitlab-edu.supsi.ch";
                 identityFile = "/home/${myUserName}/.ssh/id_school";
+                identitiesOnly = true;
               };
             };
           };
