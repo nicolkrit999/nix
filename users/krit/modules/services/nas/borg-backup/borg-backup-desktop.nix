@@ -112,7 +112,7 @@ delib.module {
             # Assuming these are backed up via Git or Syncthing already
             "/home/*/github-repos" # General repositories folder
             "/home/*/dotfiles " # Dotfiles repositories (must be in root of home to be stowed)
-            "/home/*/wallpapers" # Wallpaper repo (must be in root of home to be stowed)
+            "/home/*/wallpapers-repo" # Wallpaper repo (must be in root of home to be stowed)
 
             # -------------------------------------------------------------------
             # 8. OTHER
