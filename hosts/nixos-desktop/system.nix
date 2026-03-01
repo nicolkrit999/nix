@@ -150,10 +150,6 @@ delib.host {
           sopsFile = commonSecrets;
           restartUnits = [ "NetworkManager.service" ];
         };
-        commit_signing_key = {
-          sopsFile = commonSecrets;
-          owner = myUserName;
-        };
 
         nas_ssh_key.sopsFile = commonSecrets;
         nas-krit-credentials.sopsFile = commonSecrets;
