@@ -89,8 +89,8 @@ delib.host {
         };
 
         home.file.".ssh/allowed_signers".text = ''
-          githubgitlabmain.hu5b7@passfwd.com ssh-ed25519 AAAAC3Nza...
-          kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3Nza...
+          githubgitlabmain.hu5b7@passfwd.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO4fJZtoawnvuR2D/CAk7fBrioEyhyagheH4RtTaf8gD
+          kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs + KkQg8GewHnm66
         '';
       };
     sops.defaultSopsFile = ./nixos-desktop-secrets-sops.yaml;
@@ -125,6 +125,13 @@ delib.host {
           sopsFile = commonSecrets;
           mode = "0444";
         };
+
+        github_general_ssh_pub = {
+          sopsFile = commonSecrets;
+          owner = myUserName;
+          path = "/home/${myUserName}/.ssh/id_github.pub";
+        };
+
         github_general_ssh_key = {
           sopsFile = commonSecrets;
           owner = myUserName;
