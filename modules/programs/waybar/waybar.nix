@@ -182,9 +182,9 @@ delib.module {
 
             "clock" = {
               locale = myconfig.constants.mainLocale or "en_US.UTF-8";
-              format = "{:%A, %B %d at %I:%M %p}"; # Click Format: Full Day Name, Month, Date... When the module is clicked it switches between formats
-              format-alt = "{:%m/%d/%Y - %I:%M %p}"; # Standard Format: MM/DD/YYYY - HH:MM AM/PM
-              tooltip-format = "<tt><small>{calendar}</small></tt>"; # Tooltip Format: Small calendar in tooltip
+              format = "<span color='${c.base0E}'></span> {:%I:%M %p}";
+              format-alt = "<span color='${c.base0E}'></span> {:%m/%d/%Y - %I:%M %p}";
+              tooltip-format = "<tt><small>{calendar}</small></tt>";
               calendar = {
                 mode = "year";
                 mode-mon-col = 3;
