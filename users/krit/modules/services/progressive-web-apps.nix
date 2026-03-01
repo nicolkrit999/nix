@@ -92,11 +92,9 @@ delib.module {
           "brave-glance.nicolkrit.ch__-Default"
         )
         (makeBravePwa "NAS" "https://nas.nicolkrit.ch" "network-server" "brave-nas.nicolkrit.ch__-Default")
+
         (makeBravePwa "Linkwarden" "https://linkwarden.nicolkrit.ch/dashboard" "emblem-favorite"
           "brave-linkwarden.nicolkrit.ch__dashboard-Default"
-        )
-        (makeBravePwa "OwnCloud" "https://owncloud.nicolkrit.ch/" "folder-cloud"
-          "brave-owncloud.nicolkrit.ch__-Default"
         )
 
         # Cloud Services

@@ -4,16 +4,15 @@ delib.module {
   options = delib.singleEnableOption true;
 
   # Always enabled
-  home.ifEnabled = { myconfig, ... }:
+  home.ifEnabled =
+    { myconfig, ... }:
     let
       flakeDir = "~/nixOS";
       safeEditor = myconfig.constants.editor;
       isImpure = myconfig.constants.nixImpure;
 
       baseSwitchCmd =
-        if isImpure then "sudo nixos-rebuild switch --flake . --impure"
-        else "nh os switch ${flakeDir}";
-
+        if isImpure then "sudo nixos-rebuild switch --flake . --impure" else "nh os switch ${flakeDir}";
 
       baseUpdateCmd =
         if isImpure then
@@ -99,8 +98,8 @@ delib.module {
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml"; # Edit main sops config
-        sops-common = "cd ${flakeDir}/common/${myconfig.constants.user}/sops && sops ${myconfig.constants.user}-common-secrets-sops.yaml"; # Edit sops secrets file
-        sops-host = "cd ${flakeDir} && sops hosts/${myconfig.constants.hostname}/optional/host-sops-nix/${myconfig.constants.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
+        sops-common = "cd ${flakeDir}/users/${myconfig.constants.user}/sops && sops ${myconfig.constants.user}-common-secrets-sops.yaml"; # Edit sops secrets file
+        sops-host = "cd ${flakeDir} && sops hosts/${myconfig.constants.hostname}/${myconfig.constants.hostname}-secrets-sops.yaml"; # Edit host-specific sops secrets file
 
         # Various
         reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
