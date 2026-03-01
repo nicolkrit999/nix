@@ -24,20 +24,22 @@ delib.module {
     let
       caelestiaPkg = inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli;
 
-      # Needed because the original logout button is too aggressive and causes a system hang
       caelestiaLogout = pkgs.writeShellScriptBin "caelestia-logout" ''
         # 1. If UWSM is running, use it (Most graceful)
-        if command -v uwsm >/dev/null && pgrep -u $UID -x uwsm >/dev/null; then
+        if command -v uwsm >/dev/null && pgrep -u $UID -x uwsm >/dev/null;
+        then
             exec uwsm stop
         fi
 
         # 2. Fallback: If in Hyprland (without UWSM), exit Hyprland directly
-        if [ "$XDG_CURRENT_DESKTOP" = "Hyprland" ]; then
+        if [ "$XDG_CURRENT_DESKTOP" = "Hyprland" ];
+        then
             exec hyprctl dispatch exit
         fi
 
         # 3. Fallback: If in Niri, exit Niri
-        if [ "$XDG_CURRENT_DESKTOP" = "Niri" ]; then
+        if [ "$XDG_CURRENT_DESKTOP" = "Niri" ];
+        then
             exec niri msg action quit
         fi
 
@@ -58,11 +60,15 @@ delib.module {
         export HYPRLAND_INSTANCE_SIGNATURE="$(${pkgs.hyprland}/bin/hyprctl instances | head -n 1 | cut -d " " -f 2 | tr -d ':')"
 
         # Fallback: If empty (startup race condition), retry loop
-        if [ -z "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
-            for i in {1..10}; do
+        if [ -z "$HYPRLAND_INSTANCE_SIGNATURE" ];
+        then
+            for i in {1..10};
+            do
                 export HYPRLAND_INSTANCE_SIGNATURE="$(${pkgs.hyprland}/bin/hyprctl instances | head -n 1 | cut -d " " -f 2 | tr -d ':')"
-                if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then break; fi
-                if [ "$#" -eq 0 ]; then sleep 0.5; else break; fi
+                if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ];
+                then break; fi
+                if [ "$#" -eq 0 ];
+                then sleep 0.5; else break; fi
             done
         fi
 
@@ -73,7 +79,8 @@ delib.module {
         export WAYLAND_DISPLAY="wayland-1"
 
         set -euo pipefail
-        HM_PROFILE="${config.home.profileDirectory}"
+
+        HM_PROFILE="/etc/profiles/per-user/${myconfig.constants.user}"
 
         # 3. Unset conflicting vars
         unset QT_QUICK_CONTROLS_STYLE
@@ -91,8 +98,10 @@ delib.module {
           "$HM_PROFILE/lib/qml" \
           "$HOME/.config/quickshell"
         do
-          if [ -d "$d" ]; then
-            if [ -z "$qmlPaths" ]; then qmlPaths="$d"; else qmlPaths="$qmlPaths:$d"; fi
+          if [ -d "$d" ];
+          then
+            if [ -z "$qmlPaths" ]; then qmlPaths="$d";
+            else qmlPaths="$qmlPaths:$d"; fi
           fi
         done
 
@@ -123,6 +132,8 @@ delib.module {
         systemd.enable = false;
       };
 
+      fonts.fontconfig.enable = true;
+
       home.packages = [
         caelestiaPkg
         caelestiaQS
@@ -138,15 +149,7 @@ delib.module {
         pkgs.nerd-fonts.caskaydia-cove
         pkgs.nerd-fonts.jetbrains-mono
         pkgs.rubik
-        (pkgs.runCommand "material-symbols-rounded" { } ''
-          mkdir -p $out/share/fonts/truetype
-          cp ${
-            pkgs.fetchurl {
-              url = "https://github.com/google/material-design-icons/raw/master/variablefont/MaterialSymbolsRounded%5BFILL%2CGRAD%2Copsz%2Cwght%5D.ttf";
-              sha256 = "sha256-1xnyL97ifjRLB+Rub6i1Cx/OPPywPUqE8D+vvwgS/CI=";
-            }
-          } $out/share/fonts/truetype/MaterialSymbolsRounded.ttf
-        '')
+        pkgs.material-symbols
       ];
 
       wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [

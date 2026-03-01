@@ -32,7 +32,6 @@ delib.module {
           gearlever # Manager appimages
           gramps # Genealogy software
           gsimplecal # Simple calendar application
-          home-assistant # Home automation platform
           gitnuro # Git client
           handbrake # Video transcoder
           jellyfin-desktop # Media server

@@ -12,6 +12,7 @@ let
   myEditor = "nvim";
   myFileManager = "yazi";
   myUserName = "krit";
+  myLocale = "en_US.UTF-8";
   isCatppuccin = true;
 
   # 🌟 APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
@@ -75,6 +76,7 @@ delib.host {
       # ---------------------------------------------------------------
       constants = {
         hostname = "nixos-desktop";
+        mainLocale = myLocale;
         # ---------------------------------------------------------------
         # 👤 USER IDENTITY
         # ---------------------------------------------------------------
@@ -219,7 +221,7 @@ delib.host {
       programs.noctalia = {
         enable = true;
         enableOnHyprland = false;
-        enableOnNiri = true;
+        enableOnNiri = false;
       };
 
       programs.hyprland = {
@@ -237,7 +239,7 @@ delib.host {
           "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
 
           "uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
-          "whatsapp-electron"
+          "flatpak run com.rtosta.zapzap"
         ];
         monitorWorkspaces = [
           "1, monitor:DP-1"
@@ -288,6 +290,7 @@ delib.host {
           "workspace ${appWorkspaces.chat} silent, class:^(vesktop)$"
           "workspace ${appWorkspaces.chat} silent, class:^(org.telegram.desktop)$"
           "workspace ${appWorkspaces.chat} silent, class:^(whatsapp-electron)$"
+          "workspace ${appWorkspaces.chat} silent, class:^(com.rtosta.zapzap)$"
 
           # Scratchpad rules
           "float, class:^(scratch-term)$"
@@ -371,6 +374,7 @@ delib.host {
           "${myFileManager}"
           "${myTerminal}"
           "chromium-browser"
+          "flatpak run com.rtosta.zapzap"
         ];
       };
 
@@ -385,8 +389,8 @@ delib.host {
           "LocalSend.desktop"
           "proton-pass.desktop"
           "vesktop.desktop"
-          "com.github.dagmoller.whatsapp-electron.desktop"
           "com.actualbudget.actual.desktop"
+          "com.rtosta.zapzap.desktop"
         ];
         extraBinds = [
           {
@@ -411,8 +415,9 @@ delib.host {
           "LocalSend.desktop"
           "proton-pass.desktop"
           "vesktop.desktop"
-          "com.github.dagmoller.whatsapp-electron.desktop"
           "com.actualbudget.actual.desktop"
+          "com.actualbudget.actual.desktop"
+          "com.rtosta.zapzap.desktop"
         ];
         extraBinds = {
           "launch-chromium" = {

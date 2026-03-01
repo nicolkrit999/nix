@@ -17,6 +17,8 @@ delib.host {
       (
         { config, ... }:
         {
+          i18n.defaultLocale = config.myconfig.constants.mainLocale;
+
           sops.templates."davfs-secrets" = {
             content = ''
               ${config.sops.placeholder.nas_owncloud_url} ${config.sops.placeholder.nas_owncloud_user} ${config.sops.placeholder.nas_owncloud_pass}
@@ -52,7 +54,6 @@ delib.host {
       )
     ];
 
-    i18n.defaultLocale = "en_US.UTF-8";
 
     # Override only the formats for numbers, dates, and measurements
     i18n.extraLocaleSettings = {
