@@ -1,9 +1,8 @@
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  ...
+{ delib
+, inputs
+, pkgs
+, lib
+, ...
 }:
 let
   myUserName = "krit";
@@ -73,6 +72,24 @@ delib.host {
       LC_TIME = "it_CH.UTF-8"; # 24-hour clock and DD.MM.YYYY
     };
 
+    # Setup git signing and allowed signers for the user, and also make the allowed signers available as a home file for use in other contexts (e.g. SSH configuration)
+    home-manager.users.${myUserName} = { ... }: {
+      programs.git = {
+        enable = true;
+        settings = {
+          user.signingKey = "D93A24D8E063EECF";
+          gpg.format = "openpgp";
+          commit.gpgSign = true;
+
+          gpg.ssh.allowedSignersFile = "/home/${myUserName}/.ssh/allowed_signers";
+        };
+      };
+
+      home.file.".ssh/allowed_signers".text = ''
+        githubgitlabmain.hu5b7@passfwd.com ssh-ed25519 AAAAC3Nza...
+        kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3Nza...
+      '';
+    };
     sops.defaultSopsFile = ./nixos-desktop-secrets-sops.yaml;
     sops.defaultSopsFormat = "yaml";
     sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
@@ -138,11 +155,6 @@ delib.host {
         cachix-auth-token = { };
       };
 
-    programs.git.enable = true;
-    programs.git.config = {
-      user.signingkey = "D93A24D8E063EECF";
-      commit.gpgsign = true;
-    };
 
     programs.gnupg.agent = {
       enable = true;
@@ -262,7 +274,7 @@ delib.host {
         {
           nixpkgs.config.allowUnfree = true;
 
-          home.file.".ssh/allowed_signers".text = ''
+          home.file.".ssh/allowed_signers".text = lib.mkForce ''
             kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs+KkQg8GewHnm66 kritpio.nicol@student.supsi.ch
           '';
 
