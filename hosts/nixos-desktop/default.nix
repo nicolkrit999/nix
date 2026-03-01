@@ -81,7 +81,7 @@ delib.host {
         # 👤 USER IDENTITY
         # ---------------------------------------------------------------
         user = "krit";
-        gitUserName = "nicolkrit999";
+        gitUserName = "Krit Pio Nicol";
         gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
 
         # ---------------------------------------------------------------
