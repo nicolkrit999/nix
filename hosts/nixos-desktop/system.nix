@@ -289,7 +289,7 @@ delib.host {
             enable = true;
             settings = {
               user.email = lib.mkForce "kritpio.nicol@student.supsi.ch";
-              user.name = lib.mkForce "nicolkrit999-uni";
+              user.name = lib.mkForce "Krit Pio Nicol-University";
               gpg.format = lib.mkForce "ssh";
               gpg.ssh.allowedSignersFile = "/home/${myUserName}/.ssh/allowed_signers";
 
