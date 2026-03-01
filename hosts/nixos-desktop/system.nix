@@ -1,7 +1,9 @@
-{ delib
-, inputs
-, pkgs
-, ...
+{
+  delib,
+  inputs,
+  pkgs,
+  lib,
+  ...
 }:
 let
   myUserName = "krit";
@@ -249,6 +251,11 @@ delib.host {
     specialisation.school.configuration = {
       system.nixos.tags = [ "school" ];
 
+      # Clear default profile behaviour
+      myconfig.programs.hyprland.execOnce = lib.mkForce [ ]; # Disable startup apps in hyprland
+      myconfig.programs.niri.execOnce = lib.mkForce [ ]; # Disable startup apps in niri
+      myconfig.programs.hyprland.windowRules = lib.mkForce [ ]; # Disable forced workspaces
+
       # 2. Home Manager Overrides for the School Environment
       home-manager.users.${myUserName} =
         { pkgs, lib, ... }:
@@ -259,6 +266,7 @@ delib.host {
             kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs+KkQg8GewHnm66 kritpio.nicol@student.supsi.ch
           '';
 
+          # Setup git identity and GPG signing with the school specialization key
           programs.git = {
             enable = true;
             settings = {
@@ -272,6 +280,7 @@ delib.host {
             };
           };
 
+          # Setup SSH to use the school specialization key for specific hosts
           programs.ssh = {
             enable = true;
             enableDefaultConfig = lib.mkForce false;
