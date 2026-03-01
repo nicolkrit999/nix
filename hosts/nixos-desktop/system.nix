@@ -88,9 +88,10 @@ delib.host {
           };
         };
 
+        # 🏠 hosts/nixos-desktop/system.nix (Around line 115)
         home.file.".ssh/allowed_signers".text = ''
           githubgitlabmain.hu5b7@passfwd.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO4fJZtoawnvuR2D/CAk7fBrioEyhyagheH4RtTaf8gD
-          kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs + KkQg8GewHnm66
+          kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs+KkQg8GewHnm66
         '';
       };
     sops.defaultSopsFile = ./nixos-desktop-secrets-sops.yaml;
