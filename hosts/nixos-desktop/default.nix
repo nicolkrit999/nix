@@ -239,7 +239,7 @@ delib.host {
           "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
 
           "uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
-          "flatpak run com.rtosta.zapzap"
+          "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
         ];
         monitorWorkspaces = [
           "1, monitor:DP-1"
@@ -374,7 +374,7 @@ delib.host {
           "${myFileManager}"
           "${myTerminal}"
           "chromium-browser"
-          "flatpak run com.rtosta.zapzap"
+          "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
         ];
       };
 
