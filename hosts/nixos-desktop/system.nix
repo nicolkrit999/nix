@@ -350,7 +350,7 @@ delib.host {
                   name = name;
                   genericName = "School Web App";
                   comment = "Launch ${name}";
-                  exec = "brave-school --app=\"${url}\" --password-store=gnome";
+                  exec = "brave-school --app=\"${url}\" --password-store=basic";
                   icon = icon;
                   settings = {
                     StartupWMClass = startupClass;
@@ -379,6 +379,12 @@ delib.host {
                 "brave-notebooklm.google.com__-Default"
               )
               (makeSchoolPwa "USI Rooms" "https://usirooms.xyz/" "office-calendar" "brave-usirooms.xyz__-Default")
+
+              (makeSchoolPwa "School OneDrive"
+                "https://supsi-my.sharepoint.com/personal/kritpio_nicol_supsi_ch/_layouts/15/onedrive.aspx?sw=bypass&bypassReason=abandoned&startedResponseCatch=true"
+                "folder-remote"
+                "brave-supsi--my.sharepoint.com__-Default"
+              )
             ];
 
           home.packages = [
