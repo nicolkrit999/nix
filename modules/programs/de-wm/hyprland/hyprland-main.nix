@@ -53,6 +53,7 @@ delib.module {
       # ----------------------------------------------------------------------------
 
       home.packages = with pkgs; [
+        kdePackages.gwenview # Default image viewer
         grimblast # Screenshot tool
         hyprpaper # Wallpaper manager
         hyprpicker # Color picker

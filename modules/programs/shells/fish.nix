@@ -6,7 +6,6 @@ delib.module {
   name = "programs.fish";
 
   # Always enabled to ensure the fixes functions works
-
   home.always =
     { myconfig, ... }:
     let

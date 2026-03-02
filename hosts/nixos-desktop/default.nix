@@ -77,6 +77,7 @@ delib.host {
       constants = {
         hostname = "nixos-desktop";
         mainLocale = myLocale;
+
         # ---------------------------------------------------------------
         # 👤 USER IDENTITY
         # ---------------------------------------------------------------
@@ -374,7 +375,7 @@ delib.host {
           "${myFileManager}"
           "${myTerminal}"
           "chromium-browser"
-          "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
+          "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
         ];
       };
 
@@ -417,7 +418,7 @@ delib.host {
           "vesktop.desktop"
           "com.actualbudget.actual.desktop"
           "com.actualbudget.actual.desktop"
-          "com.rtosta.zapzap.desktop"
+          "com.rtosta.zapzap.desktop" # Sleep necessary to allow loading right polarity
         ];
         extraBinds = {
           "launch-chromium" = {

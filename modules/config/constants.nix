@@ -16,7 +16,7 @@ delib.module {
       shell = strOption "bash";
       browser = strOption "chromium";
       editor = strOption "nano";
-      fileManager = strOption "nnn";
+      fileManager = strOption "dolphin";
 
 
       wallpapers =
