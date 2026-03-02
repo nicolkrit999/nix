@@ -29,7 +29,7 @@ delib.module {
         }
         {
           name = "Launch ${myconfig.constants.browser}";
-          command = "${pkgs.${myconfig.constants.browser}}/bin/${myconfig.constants.browser}";
+          command = myconfig.constants.browser;
           binding = "<Super>b";
         }
         {

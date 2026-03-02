@@ -13,7 +13,7 @@ delib.module {
     }:
     let
       sddmTheme = pkgs.sddm-astronaut.override {
-        embeddedTheme = "hyprland_kath";
+        embeddedTheme = "jake_the_dog";
         themeConfig = {
           HourFormat = "hh:mm AP";
         };
@@ -29,10 +29,29 @@ delib.module {
         package = lib.mkForce pkgs.kdePackages.sddm;
         theme = "sddm-astronaut-theme";
 
+        settings = {
+          General = {
+            InputMethod = "qtvirtualkeyboard";
+          };
+        };
+
         extraPackages = with pkgs; [
-          kdePackages.qtsvg # Keep for the theme
-          kdePackages.qtmultimedia # Keep for the theme
+          kdePackages.qtsvg
+          kdePackages.qtmultimedia
+          kdePackages.qtvirtualkeyboard
+          kdePackages.qtdeclarative
+          gst_all_1.gstreamer
+          gst_all_1.gst-plugins-base
+          gst_all_1.gst-plugins-good
+          gst_all_1.gst-plugins-bad
+          gst_all_1.gst-libav
         ];
+      };
+
+      # 🌟 THE REAL FIX: "1" forces the keyboard to embed natively so it doesn't steal focus
+      systemd.services.display-manager.environment = {
+        QT_IM_MODULE = "qtvirtualkeyboard";
+        QT_VIRTUALKEYBOARD_DESKTOP_DISABLE = "1";
       };
 
       environment.systemPackages = [

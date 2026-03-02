@@ -69,8 +69,9 @@ delib.module {
           command = "walker -m clipboard";
         };
         "launch-browser" = {
+          name = "Launch ${myconfig.constants.browser}";
           key = "Meta+B";
-          command = "${pkgs.${myconfig.constants.browser}}/bin/${myconfig.constants.browser}";
+          command = myconfig.constants.browser;
         };
         "launch-editor" = {
           key = "Meta+C";
@@ -86,7 +87,7 @@ delib.module {
             then
               "${myconfig.constants.terminal} -e ${myconfig.constants.editor}"
             else
-              "${myconfig.constants.editor}";
+              myconfig.constants.editor;
         };
         "launch-terminal" = {
           key = "Meta+Return";
@@ -106,39 +107,39 @@ delib.module {
             then
               "${myconfig.constants.terminal} -e ${myconfig.constants.fileManager}"
             else
-              "${myconfig.constants.fileManager}";
+              myconfig.constants.fileManager;
+            };
+        }
+        // cfg.extraBinds;
+
+        programs.plasma.shortcuts = lib.mkForce {
+          # --- UNBIND DEFAULTS ---
+          "plasmashell"."manage activities" = "none";
+          "kwin"."Show Activity Switcher" = "none";
+          "kwin"."Switch to Next Keyboard Layout" = "none";
+
+          "org.kde.spectacle.desktop" = {
+            "ActiveWindowScreenShot" = "none";
+            "FullScreenScreenShot" = "none";
+            "RectangularRegionScreenShot" = "none";
+            "_launch" = "none";
+            "RecordRegion" = "Meta+Ctrl+7";
+            "RecordScreen" = "Meta+Ctrl+8";
+            "RecordWindow" = "Meta+Ctrl+9";
+          };
+
+          "ksmserver"."Log Out" = "Meta+Shift+Delete";
+          "ksmserver"."Lock Session" = "Meta+Delete";
+
+          "powerdevil"."Switch to Balanced" = "none";
+          "plasmashell"."show-battery" = "none";
+
+          "org.kde.krunner.desktop"."_launch" = "Meta+Shift+K";
+          "kwin"."Window Close" = "Meta+Shift+C";
+          "kwin"."Overview" = "Meta+W";
         };
-      }
-      // cfg.extraBinds;
 
-      programs.plasma.shortcuts = lib.mkForce {
-        # --- UNBIND DEFAULTS ---
-        "plasmashell"."manage activities" = "none";
-        "kwin"."Show Activity Switcher" = "none";
-        "kwin"."Switch to Next Keyboard Layout" = "none";
-
-        "org.kde.spectacle.desktop" = {
-          "ActiveWindowScreenShot" = "none";
-          "FullScreenScreenShot" = "none";
-          "RectangularRegionScreenShot" = "none";
-          "_launch" = "none";
-          "RecordRegion" = "Meta+Ctrl+7";
-          "RecordScreen" = "Meta+Ctrl+8";
-          "RecordWindow" = "Meta+Ctrl+9";
-        };
-
-        "ksmserver"."Log Out" = "Meta+Shift+Delete";
-        "ksmserver"."Lock Session" = "Meta+Delete";
-
-        "powerdevil"."Switch to Balanced" = "none";
-        "plasmashell"."show-battery" = "none";
-
-        "org.kde.krunner.desktop"."_launch" = "Meta+Shift+K";
-        "kwin"."Window Close" = "Meta+Shift+C";
-        "kwin"."Overview" = "Meta+W";
+        # Ensure desktop entries are cleared
+        xdg.desktopEntries = { };
       };
-
-      # Ensure desktop entries are cleared
-      xdg.desktopEntries = { };
-    };
-}
+    }
