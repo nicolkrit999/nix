@@ -162,7 +162,7 @@ Wallpapers are defined to be hosts specific and they are tied to the monitor lis
     - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
 
     - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
-  
+
 
   - **Hyprland + noctalia with quickshell**
     - Noctalia include many configuration aspect so i choose to let the user manually change the config in the noctalia gui.
@@ -411,6 +411,8 @@ sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-so
 
 > **⚠️ Prerequisite for Dual Booting:** Before starting, boot into Windows, open "Disk Management," right-click your main Windows partition, and select "Shrink Volume." Shrink it to create the desired amount of **Unallocated Space** for NixOS. Leave this space completely unallocated (do not format it in Windows).
 
+** Additionally: change `homeManagerUser` in `flake.nix` to be your chosen username, the same that will be present on the host. This means every of your host is forced to have the same name
+
 ## 📦 Phase 1: Preparation
 
 ### 1. Download & Flash
@@ -618,6 +620,7 @@ reboot
 
 # 🚀 NixOS Installation Guide (with disko)
 
+** ⚠️Prerequisite: change `homeManagerUser` in `flake.nix` to be your chosen username, the same that will be present on the host. This means every of your host is forced to have the same name
 ## 📦 Phase 1: Preparation
 
 ### 1. Download & Flash
