@@ -7,6 +7,7 @@ delib.host {
   name = "nixos-desktop";
 
   nixos = {
+    nixpkgs.config.allowUnfree = true;
     # Isolated school-related sops secrets
     sops.secrets.school_ssh_key = {
       sopsFile = commonSecrets;
@@ -44,10 +45,14 @@ delib.host {
       environment.systemPackages = with pkgs; [
         networkmanager-openconnect # For Cisco AnyConnect / GlobalProtect
         networkmanager-openvpn # For OpenVPN connections
+        owncloud-client # OwnCloud desktop client
       ];
+
 
       # Configure allowed_signers for GPG SSH signing, and force git to use the school key and email
       home-manager.users.${myUserName} = { pkgs, lib, ... }: {
+        nixpkgs.config.allowUnfree = true;
+
         home.file.".ssh/allowed_signers".text = lib.mkForce ''
           kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs+KkQg8GewHnm66
         '';
@@ -103,7 +108,7 @@ delib.host {
         # 🌟 COMBINED HOME PACKAGES
         home.packages = with pkgs; [
           # CS Tools
-          dbeaver-ce
+          dbeaver-bin
           insomnia
           wireshark
           zeal

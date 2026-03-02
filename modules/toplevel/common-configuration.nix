@@ -188,10 +188,12 @@ delib.module {
       programs.zsh.enable = currentShell == "zsh";
       programs.fish.enable = currentShell == "fish";
 
+      /*
       i18n.inputMethod.enabled = lib.mkForce null;
       environment.variables.GTK_IM_MODULE = lib.mkForce "";
       environment.variables.QT_IM_MODULE = lib.mkForce "";
       environment.variables.XMODIFIERS = lib.mkForce "";
+      */
 
       # -----------------------------------------------------
       # 🎨 GLOBAL THEME VARIABLES
