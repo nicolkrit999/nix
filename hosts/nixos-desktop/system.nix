@@ -278,8 +278,10 @@ delib.host {
       home-manager.users.${myUserName} =
         { pkgs, lib, ... }:
         {
+          # Necessary to install certain packages
           nixpkgs.config.allowUnfree = true;
 
+          # Tell ssh to allow signing commits
           home.file.".ssh/allowed_signers".text = lib.mkForce ''
             kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs+KkQg8GewHnm66 kritpio.nicol@student.supsi.ch
           '';
@@ -293,6 +295,7 @@ delib.host {
               gpg.format = lib.mkForce "ssh";
               gpg.ssh.allowedSignersFile = "/home/${myUserName}/.ssh/allowed_signers";
 
+              # Specify the ssh key to use for signing commits, and force signing by default
               user.signingkey = lib.mkForce "/home/${myUserName}/.ssh/id_school";
               commit.gpgSign = lib.mkForce true;
             };
@@ -303,6 +306,7 @@ delib.host {
           };
 
           # 🎓 SSH Setup: Force student identity and block personal keys
+          # This avoid signing with the wrong key, resulting in an "unverified" commit
           programs.ssh = {
             enable = true;
             enableDefaultConfig = lib.mkForce false;
