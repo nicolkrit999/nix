@@ -1,9 +1,8 @@
-{
-  delib,
-  inputs,
-  pkgs,
-  lib,
-  ...
+{ delib
+, inputs
+, pkgs
+, lib
+, ...
 }:
 let
   myUserName = "krit";
@@ -91,7 +90,6 @@ delib.host {
         # 🏠 hosts/nixos-desktop/system.nix (Around line 115)
         home.file.".ssh/allowed_signers".text = ''
           githubgitlabmain.hu5b7@passfwd.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO4fJZtoawnvuR2D/CAk7fBrioEyhyagheH4RtTaf8gD
-          kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs+KkQg8GewHnm66
         '';
       };
     sops.defaultSopsFile = ./nixos-desktop-secrets-sops.yaml;
@@ -108,19 +106,6 @@ delib.host {
       {
         "krit-local-password".neededForUsers = true;
 
-        # 1. School specialization Private Key
-        school_ssh_key = {
-          sopsFile = commonSecrets;
-          owner = myUserName;
-          path = "/home/${myUserName}/.ssh/id_school";
-        };
-
-        # 2. School specialization Public Key
-        school_ssh_pub = {
-          sopsFile = commonSecrets;
-          owner = myUserName;
-          path = "/home/${myUserName}/.ssh/id_school.pub";
-        };
 
         github_fg_pat_token_nix = {
           sopsFile = commonSecrets;
@@ -264,173 +249,5 @@ delib.host {
       zip
       zlib
     ];
-
-    # 🎓 SCHOOL SPECIALISATION
-    specialisation.school.configuration = {
-      system.nixos.tags = [ "school" ];
-
-      # Clear default profile behaviour
-      myconfig.programs.hyprland.execOnce = lib.mkForce [ ]; # Disable startup apps in hyprland
-      myconfig.programs.niri.execOnce = lib.mkForce [ ]; # Disable startup apps in niri
-      myconfig.programs.hyprland.windowRules = lib.mkForce [ ]; # Disable forced workspaces
-
-      # 2. Home Manager Overrides for the School Environment
-      home-manager.users.${myUserName} =
-        { pkgs, lib, ... }:
-        {
-          # Necessary to install certain packages
-          nixpkgs.config.allowUnfree = true;
-
-          # Tell ssh to allow signing commits
-          home.file.".ssh/allowed_signers".text = lib.mkForce ''
-            kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs+KkQg8GewHnm66 kritpio.nicol@student.supsi.ch
-          '';
-
-          # Setup git identity and GPG signing with the school specialization key
-          programs.git = {
-            enable = true;
-            settings = {
-              user.email = lib.mkForce "kritpio.nicol@student.supsi.ch";
-              user.name = lib.mkForce "Krit Pio Nicol-University";
-              gpg.format = lib.mkForce "ssh";
-              gpg.ssh.allowedSignersFile = "/home/${myUserName}/.ssh/allowed_signers";
-
-              # Specify the ssh key to use for signing commits, and force signing by default
-              user.signingkey = lib.mkForce "/home/${myUserName}/.ssh/id_school";
-              commit.gpgSign = lib.mkForce true;
-            };
-            signing = lib.mkForce {
-              key = "/home/${myUserName}/.ssh/id_school";
-              signByDefault = true;
-            };
-          };
-
-          # 🎓 SSH Setup: Force student identity and block personal keys
-          # This avoid signing with the wrong key, resulting in an "unverified" commit
-          programs.ssh = {
-            enable = true;
-            enableDefaultConfig = lib.mkForce false;
-            matchBlocks = {
-              "github.com" = lib.mkForce {
-                hostname = "github.com";
-                identityFile = "/home/${myUserName}/.ssh/id_school";
-                identitiesOnly = true;
-                extraOptions = {
-                  "PubkeyAuthentication" = "yes";
-                };
-              };
-              "gitlab.com" = lib.mkForce {
-                hostname = "gitlab.com";
-                identityFile = "/home/${myUserName}/.ssh/id_school";
-                identitiesOnly = true;
-              };
-              "gitlab-edu.supsi.ch" = lib.mkForce {
-                hostname = "gitlab-edu.supsi.ch";
-                identityFile = "/home/${myUserName}/.ssh/id_school";
-                identitiesOnly = true;
-              };
-            };
-          };
-
-          # 🐚 Workspace Alias
-          programs.fish.shellAliases = {
-            school = "cd ~/.school-workspace";
-          };
-          programs.bash.shellAliases = {
-            school = "cd ~/.school-workspace";
-          };
-          programs.zsh.shellAliases = {
-            school = "cd ~/.school-workspace";
-          };
-
-          # ------------------------------------------------------------
-          # PROGRESSIVE WEB APPS & ISOLATED APPS
-          # ------------------------------------------------------------
-          xdg.desktopEntries =
-            let
-              makeSchoolPwa = name: url: icon: startupClass: {
-                name = "school-pwa-${builtins.replaceStrings [ " " ] [ "-" ] (lib.toLower name)}";
-                value = {
-                  name = name;
-                  genericName = "School Web App";
-                  comment = "Launch ${name}";
-                  exec = "brave-school --app=\"${url}\" --password-store=basic";
-                  icon = icon;
-                  settings = {
-                    StartupWMClass = startupClass;
-                  };
-                  terminal = false;
-                  type = "Application";
-                  categories = [ "Education" ];
-                  mimeType = [
-                    "x-scheme-handler/https"
-                    "x-scheme-handler/http"
-                  ];
-                };
-              };
-            in
-            builtins.listToAttrs [
-              (makeSchoolPwa "SUPSI Portal" "https://portalestudenti.supsi.ch/" "education"
-                "brave-portalestudenti.supsi.ch__-Default"
-              )
-              (makeSchoolPwa "iCorsi" "https://www.icorsi.ch/" "applications-education"
-                "brave-www.icorsi.ch__-Default"
-              )
-              (makeSchoolPwa "School OwnCloud" "https://owncloud.nicolkrit.ch/" "folder-cloud"
-                "brave-owncloud.nicolkrit.ch__-Default"
-              )
-              (makeSchoolPwa "NotebookLM" "https://notebooklm.google.com/" "utilities-terminal"
-                "brave-notebooklm.google.com__-Default"
-              )
-              (makeSchoolPwa "USI Rooms" "https://usirooms.xyz/" "office-calendar" "brave-usirooms.xyz__-Default")
-
-              (makeSchoolPwa "School OneDrive"
-                "https://supsi-my.sharepoint.com/personal/kritpio_nicol_supsi_ch/_layouts/15/onedrive.aspx?sw=bypass&bypassReason=abandoned&startedResponseCatch=true"
-                "folder-remote"
-                "brave-supsi--my.sharepoint.com__-Default"
-              )
-            ];
-
-          home.packages = [
-            (pkgs.writeShellScriptBin "brave-school" ''exec ${pkgs.brave}/bin/brave --user-data-dir=$HOME/.config/BraveSoftware/School "$@"'')
-            (pkgs.makeDesktopItem {
-              name = "brave-school";
-              desktopName = "Brave (School)";
-              exec = "brave-school %U";
-              icon = "brave";
-            })
-
-            (pkgs.writeShellScriptBin "vscode-school" ''exec ${pkgs.vscode}/bin/code --user-data-dir=$HOME/.config/Code-School --extensions-dir=$HOME/.vscode-school/extensions "$@"'')
-            (pkgs.makeDesktopItem {
-              name = "vscode-school";
-              desktopName = "VSCode (School)";
-              exec = "vscode-school %F";
-              icon = "vscode";
-            })
-
-            (pkgs.writeShellScriptBin "idea-school" ''
-              export XDG_CONFIG_HOME=$HOME/.config/school-env
-              export XDG_DATA_HOME=$HOME/.local/share/school-env
-              export XDG_CACHE_HOME=$HOME/.cache/school-env
-              exec ${pkgs.jetbrains.idea}/bin/idea "$@"
-            '')
-            (pkgs.makeDesktopItem {
-              name = "idea-school";
-              desktopName = "IDEA (School)";
-              exec = "idea-school";
-              icon = "idea";
-            })
-
-            (pkgs.writeShellScriptBin "tkgate-school" ''exec distrobox enter ubuntu -- tkgate "$@"'')
-            (pkgs.makeDesktopItem {
-              name = "tkgate-school";
-              desktopName = "tkGate (Ubuntu)";
-              exec = "tkgate-school";
-              icon = "tkgate";
-            })
-          ];
-        };
-    };
-
   };
 }
