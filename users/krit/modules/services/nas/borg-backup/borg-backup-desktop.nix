@@ -113,7 +113,7 @@ delib.module {
             "/home/*/github-repos" # General repositories folder
             "/home/*/dotfiles " # Dotfiles repositories (must be in root of home to be stowed)
             "/home/*/wallpapers-repo" # Wallpaper repo (must be in root of home to be stowed)
-
+            "/home/*/.school-workspace" # Already backed up by other methods
             # -------------------------------------------------------------------
             # 8. OTHER
             # -------------------------------------------------------------------
