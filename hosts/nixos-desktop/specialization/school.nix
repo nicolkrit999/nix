@@ -105,7 +105,6 @@ delib.host {
         programs.bash.shellAliases = { school = "cd ~/.school-workspace"; };
         programs.zsh.shellAliases = { school = "cd ~/.school-workspace"; };
 
-        # 🌟 COMBINED HOME PACKAGES
         home.packages = with pkgs; [
           # CS Tools
           dbeaver-bin

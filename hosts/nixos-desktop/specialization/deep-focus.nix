@@ -1,10 +1,8 @@
-{
-  delib,
-  lib,
-  config,
-  ...
+{ delib
+, lib
+, config
+, ...
 }:
-# FIXME: Doesn´t load infinite splash screen loader
 let
   myUserName = "krit";
 
@@ -40,6 +38,9 @@ delib.host {
           "[workspace 2 silent] ${smartLaunch c.editor}"
           "[workspace 3 silent] ${smartLaunch c.fileManager}"
           "[workspace 4 silent] ${c.terminal}"
+
+          "swaync-client -d -b"
+          "gsettings set org.gnome.desktop.notifications show-banners false"
         ]
       );
 
@@ -55,23 +56,6 @@ delib.host {
         ]
       );
 
-      # ---------------------------------------------------------
-      # 3. 🤫 DO NOT DISTURB (All Desktop Environments)
-      # ---------------------------------------------------------
-      home-manager.users.${myUserName} =
-        { pkgs, lib, ... }:
-        {
-          home.activation.enableDND = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-            # 1. Silence SwayNC (Hyprland/Niri)
-            ${pkgs.swaynotificationcenter}/bin/swaync-client -d -b || true
-
-            # 2. Silence GNOME
-            ${pkgs.glib}/bin/gsettings set org.gnome.desktop.notifications show-banners false || true
-
-            # 3. Silence KDE Plasma
-            ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file plasmanotifyrc --group Notifications --key DoNotDisturb true || true
-          '';
-        };
     };
   };
 }
