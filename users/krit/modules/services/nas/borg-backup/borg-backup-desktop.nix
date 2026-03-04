@@ -123,9 +123,9 @@ delib.module {
             "home/*/momentary"
           ];
 
-          encryption_passcommand = "cat ${cfg.passphraseFile}"; # 🌟 Read from Option
+          encryption_passcommand = "cat ${cfg.passphraseFile}";
           compression = "auto,zstd";
-          ssh_command = "ssh -i ${cfg.sshKeyPath} -o StrictHostKeyChecking=no"; # 🌟 Read from Option
+          ssh_command = "ssh -i ${cfg.sshKeyPath} -o StrictHostKeyChecking=no";
           keep_daily = 14;
           keep_weekly = 8;
           keep_monthly = 24;
