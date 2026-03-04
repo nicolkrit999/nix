@@ -319,8 +319,8 @@ delib.host {
         ];
 
         extraBinds = [
-          "$Mod SHIFT, return, exec, [workspace special:magic] $term --class scratch-term"
-          "$Mod SHIFT, F, exec, [workspace special:magic] $term --class scratch-fs -e yazi"
+          "$Mod SHIFT, return, exec, [workspace special:magic] ${myTerminal} --class scratch-term"
+          "$Mod SHIFT, F, exec, [workspace special:magic] ${myTerminal} --class scratch-fs -e yazi"
           "$Mod SHIFT, B, exec, [workspace special:magic] ${myBrowser} --new-window --class scratch-browser"
           "$Mod,       Y, exec, chromium-browser"
         ];
