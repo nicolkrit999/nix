@@ -12,37 +12,42 @@ window#waybar {
 }
 
 /* ----------------------------------------------------------------------- */
-/* 🗄️ WORKSPACES                                                          */
+/* 🗄️ WORKSPACES (Hyprland & Niri)                                        */
 /* ----------------------------------------------------------------------- */
-/* Group workspaces into their own block */
+
+/* 1. Remove background from the main containers */
 #workspaces,
 #niri-workspaces {
-  background-color: @base01;
-  margin: 4px 6px;
-  border-radius: 8px;
+  background-color: transparent;
+  margin: 0;
+  border-radius: 0;
 }
 
+/* 2. Style individual buttons as separate blocks */
 #workspaces button,
 #niri-workspaces button {
+  background-color: @base01; /* Matches your right-side modules */
+  margin: 4px 4px;           /* Spacing between buttons */
+  padding: 0 10px;           /* Internal spacing for icons/text */
   border-radius: 8px;
-  padding: 0 8px;
-}
-
-#workspaces button label,
-#niri-workspaces button label {
   color: @base05;
+  border-bottom: 2px solid transparent; /* Placeholder for alignment */
+  transition: all 0.2s ease;
 }
 
+/* 3. Active Workspace styling */
 #workspaces button.active,
 #niri-workspaces button.active {
   background-color: @base0D;
+  border-bottom: 2px solid @base0D; /* Optional: adds the accent line look */
 }
 
 #workspaces button.active label,
 #niri-workspaces button.active label {
-  color: @base00; /* Dark text on active background for contrast */
+  color: @base00; /* Dark text on bright background for readability */
 }
 
+/* 4. Hover effect */
 #workspaces button:hover,
 #niri-workspaces button:hover {
   background-color: @base02;
