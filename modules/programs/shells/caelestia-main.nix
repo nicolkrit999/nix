@@ -123,39 +123,41 @@ delib.module {
         fi
       '';
     in
-    lib.mkIf cfg.enableOnHyprland {
+    {
       imports = [ inputs.caelestia-shell.homeManagerModules.default ];
 
-      programs.caelestia = {
-        enable = true;
-        cli.enable = true;
-        systemd.enable = false;
+      config = lib.mkIf cfg.enableOnHyprland {
+        programs.caelestia = {
+          enable = true;
+          cli.enable = true;
+          systemd.enable = false;
+        };
+
+        fonts.fontconfig.enable = true;
+
+        home.packages = [
+          caelestiaPkg
+          caelestiaQS
+          caelestiaLogout
+
+          # Qt Dependencies
+          pkgs.qt6.qt5compat
+          pkgs.qt6.qtsvg
+          pkgs.qt6.qtwayland
+          pkgs.qt6.qtdeclarative
+
+          pkgs.kdePackages.kirigami
+          pkgs.nerd-fonts.caskaydia-cove
+          pkgs.nerd-fonts.jetbrains-mono
+          pkgs.rubik
+          pkgs.material-symbols
+        ];
+
+        wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [
+          "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
+          "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
+          "sh -lc 'XDG_SCREENSHOTS_DIR=${myconfig.constants.screenshots} caelestiaqs'"
+        ];
       };
-
-      fonts.fontconfig.enable = true;
-
-      home.packages = [
-        caelestiaPkg
-        caelestiaQS
-        caelestiaLogout
-
-        # Qt Dependencies
-        pkgs.qt6.qt5compat
-        pkgs.qt6.qtsvg
-        pkgs.qt6.qtwayland
-        pkgs.qt6.qtdeclarative
-
-        pkgs.kdePackages.kirigami
-        pkgs.nerd-fonts.caskaydia-cove
-        pkgs.nerd-fonts.jetbrains-mono
-        pkgs.rubik
-        pkgs.material-symbols
-      ];
-
-      wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [
-        "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
-        "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
-        "sh -lc 'XDG_SCREENSHOTS_DIR=${myconfig.constants.screenshots} caelestiaqs'"
-      ];
     };
 }
