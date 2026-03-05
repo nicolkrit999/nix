@@ -17,7 +17,6 @@ delib.host {
       directories = [
       ];
       files = [
-        "/etc/logid.cfg" # Logitech mouses custom config
       ];
     };
 
