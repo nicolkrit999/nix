@@ -13,6 +13,14 @@ delib.host {
   nixos = {
     system.stateVersion = "25.11";
 
+    environment.persistence."/persist" = {
+      directories = [
+      ];
+      files = [
+        "/etc/logid.cfg" # Logitech mouses custom config
+      ];
+    };
+
     imports = [
       inputs.catppuccin.nixosModules.catppuccin
       inputs.niri.nixosModules.niri
@@ -94,7 +102,7 @@ delib.host {
       };
     sops.defaultSopsFile = ./nixos-desktop-secrets-sops.yaml;
     sops.defaultSopsFormat = "yaml";
-    sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+    sops.age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
 
     # ---------------------------------------------------------
     # 🔐 CENTRALIZED SOPS DEFINITIONS

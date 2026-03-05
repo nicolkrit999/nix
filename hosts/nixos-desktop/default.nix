@@ -435,6 +435,7 @@ delib.host {
       services.audio.enable = true;
       services.hyprlock.enable = true;
       services.sddm.enable = true;
+      services.impermanence.enable = true;
 
       services.snapshots = {
         enable = true;
@@ -494,6 +495,7 @@ delib.host {
         mouses.mx-master.enable = true;
         mouses.superlight.enable = true;
       };
+
 
       krit.services.nas = {
         desktop-borg-backup.enable = true;
