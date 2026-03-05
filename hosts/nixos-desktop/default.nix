@@ -113,8 +113,8 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "catppuccin-mocha";
-          catppuccin = true;
+          base16Theme = "gruvbox-material-dark-soft";
+          catppuccin = false;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "teal";
         };
