@@ -2,6 +2,7 @@
 , pkgs
 , lib
 , inputs
+, moduleSystem
 , ...
 }:
 delib.module {
@@ -15,7 +16,18 @@ delib.module {
   nixos.always =
     { ... }:
     {
-      imports = [ inputs.stylix.nixosModules.stylix ];
+      imports = [
+        inputs.stylix.nixosModules.stylix
+        inputs.catppuccin.nixosModules.catppuccin
+      ];
+    };
+
+  home.always =
+    { ... }:
+    {
+      imports = lib.optionals (moduleSystem == "home") [
+        inputs.catppuccin.homeManagerModules.catppuccin
+      ];
     };
 
   nixos.ifEnabled =
