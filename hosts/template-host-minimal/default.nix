@@ -58,6 +58,7 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home = { ... }: {
+    home.stateVersion = "25.11";
 
     imports = lib.optionals (moduleSystem == "home") [
       inputs.niri.homeModules.niri
