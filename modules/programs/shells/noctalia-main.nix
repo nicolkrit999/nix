@@ -2,8 +2,10 @@
 , inputs
 , pkgs
 , lib
+, moduleSystem
 , ...
 }:
+
 delib.module {
   name = "programs.noctalia";
   options =
@@ -83,28 +85,33 @@ delib.module {
         wait $PID
       '';
     in
-
-    lib.mkIf (cfg.enableOnHyprland || cfg.enableOnNiri) {
-
-      home.packages = [
-        noctaliaPkg
-        startNoctalia
-
-        # Runtime dependencies
-        pkgs.wlsunset
-        pkgs.cava
-        pkgs.evolution-data-server
-      ]
-      ++ extraQmlPackages;
-
-      # Hyprland Autostart
-      wayland.windowManager.hyprland.settings.exec-once = lib.optionals enableHyprland [
-        "start-noctalia"
+    {
+      imports = lib.optionals (moduleSystem == "home") [
+        inputs.niri.homeModules.niri
       ];
 
-      # Niri Autostart
-      programs.niri.settings.spawn-at-startup = lib.optionals enableNiri [
-        { command = [ "start-noctalia" ]; }
-      ];
+      config = lib.mkIf (cfg.enableOnHyprland || cfg.enableOnNiri) {
+
+        home.packages = [
+          noctaliaPkg
+          startNoctalia
+
+          # Runtime dependencies
+          pkgs.wlsunset
+          pkgs.cava
+          pkgs.evolution-data-server
+        ]
+        ++ extraQmlPackages;
+
+        # Hyprland Autostart
+        wayland.windowManager.hyprland.settings.exec-once = lib.optionals enableHyprland [
+          "start-noctalia"
+        ];
+
+        # Niri Autostart
+        programs.niri.settings.spawn-at-startup = lib.optionals enableNiri [
+          { command = [ "start-noctalia" ]; }
+        ];
+      };
     };
 }
