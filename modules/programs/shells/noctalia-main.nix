@@ -86,9 +86,6 @@ delib.module {
       '';
     in
     {
-      imports = lib.optionals (moduleSystem == "home") [
-        inputs.niri.homeModules.niri
-      ];
 
       config = lib.mkIf (cfg.enableOnHyprland || cfg.enableOnNiri) {
 

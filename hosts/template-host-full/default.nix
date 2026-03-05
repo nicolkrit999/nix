@@ -3,6 +3,8 @@
 { delib
 , inputs
 , pkgs
+, lib
+, moduleSystem
 , ...
 }:
 let
@@ -468,21 +470,18 @@ delib.host {
   # ---------------------------------------------------------------
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
-  home =
-    { ...
-    }:
-    {
-      home.stateVersion = "25.11";
-      imports = [
 
-        #inputs.nix-sops.homeModules.sops # Tough an import does not cause the build to fail it's removed for lightness. Enable if used
+  home = { ... }: {
 
-      ];
+    imports = lib.optionals (moduleSystem == "home") [
+      inputs.niri.homeModules.niri
+      inputs.plasma-manager.homeModules.plasma-manager
+    ];
 
-      home.packages = (with pkgs; [ ]) ++ (with pkgs-unstable; [ ]);
+    home.packages = (with pkgs; [ ]) ++ (with pkgs-unstable; [ ]);
 
-      # Kept for reference
-      /*
+    # Kept for reference
+    /*
         xdg.userDirs = {
           publicShare = null;
           music = null;
@@ -496,6 +495,6 @@ delib.host {
           '';
         };
       */
-    };
+  };
 
 }

@@ -1,4 +1,4 @@
-{ delib, inputs, pkgs, ... }:
+{ delib, inputs, pkgs, lib, moduleSystem, ... }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
 in
@@ -7,6 +7,12 @@ delib.host {
 
   home = {
     home.stateVersion = "25.11";
+
+
+    imports = lib.optionals (moduleSystem == "home") [
+      inputs.plasma-manager.homeModules.plasma-manager
+      inputs.niri.homeModules.niri
+    ];
 
     home.packages = (with pkgs; [ winboat ]) ++ (with pkgs-unstable; [ ]);
 
