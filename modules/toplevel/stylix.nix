@@ -22,7 +22,7 @@ delib.module {
       ];
     };
 
-home.always =
+  home.always =
     { ... }:
     {
       imports = lib.optionals (moduleSystem == "home") [
@@ -82,7 +82,7 @@ home.always =
     { cfg, myconfig, ... }:
     let
       isCatppuccin = myconfig.constants.theme.catppuccin or false;
-
+      fallbackWp = lib.findFirst (w: w.targetMonitor == "*") (builtins.head myconfig.constants.wallpapers) myconfig.constants.wallpapers;
       hyprlandEnabled = myconfig.programs.hyprland.enable or false;
       caelestiaEnabled = myconfig.programs.caelestia.enableOnHyprland or false;
       noctaliaEnabled = myconfig.programs.noctalia.enableOnHyprland or false;
@@ -90,6 +90,17 @@ home.always =
       useHyprpaper = hyprlandEnabled && !caelestiaEnabled && !noctaliaEnabled;
     in
     {
+      stylix = {
+        enable = true;
+        image = pkgs.fetchurl {
+          url = fallbackWp.wallpaperURL;
+          sha256 = fallbackWp.wallpaperSHA256;
+        };
+        base16Scheme = "${pkgs.base16-schemes}/share/themes/${
+          myconfig.constants.theme.base16Theme or "catppuccin-mocha"
+        }.yaml";
+      };
+
       stylix.targets = {
         neovim.enable = false;
         wofi.enable = false;
