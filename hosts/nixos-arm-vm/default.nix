@@ -575,7 +575,7 @@ delib.host {
       /*
         sops.defaultSopsFile = ./nixos-arm-vm-secrets-sops.yaml;
         sops.defaultSopsFormat = "yaml";
-        sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+        sops.age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
       */
 
       # ---------------------------------------------------------
