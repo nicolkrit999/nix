@@ -62,18 +62,19 @@ If you are moving from a standard installation to an Impermanent one, you must m
 
 Run these commands to sync the existing data to the persist point
 - Double check with an ls or similar that the data you need is actually there
+- `/var/tmp` is not needed to be synced the first time
 
 ```bash
 # 1. Ensure /persist is mounted (Auto-handled if using the 'impermanence' disko profile)
 # 2. Copy the essentials
 # 1. Create the necessary folder structures
-sudo mkdir -p /persist/etc/NetworkManager/ || true
+sudo mkdir -p /persist/etc/NetworkManager/
 
-sudo mkdir -p /persist/var/lib/systemd/ || true
+sudo mkdir -p /persist/var/lib/systemd/
 
-sudo mkdir -p /persist/var/db/sudo/ || true
+sudo mkdir -p /persist/var/db/sudo/
 
-
+sudo mkdir -p /persist/var/cache/
 
 # 2. Copy the mandatory system files
 sudo rsync -a /etc/machine-id /persist/etc/ || true
@@ -81,6 +82,8 @@ sudo rsync -a /etc/machine-id /persist/etc/ || true
 sudo rsync -a /etc/adjtime /persist/etc/ || true
 
 sudo rsync -a /etc/nixos /persist/etc/ || true
+
+sudo rsync -a /var/cache/fscache/ || true
 
 sudo rsync -a /etc/ssh /persist/etc/ || true
 
@@ -105,6 +108,63 @@ sudo rsync -a /var/lib/docker /persist/var/lib/ || true
 sudo rsync -a /var/lib/containers /persist/var/lib/ || true
 sudo rsync -a /etc/logid.cfg /persist/etc/ || true
 ```
+---
+
+## Current persists
+
+### **Directories**
+
+
+**`/etc/nixos`**: Stores your NixOS configuration files and flakes so you can rebuild your system after a reboot.
+
+ 
+**`/etc/NetworkManager/system-connections`**: Saves your Wi-Fi passwords and wired network profiles.
+ 
+**`/etc/ssh`**: Stores permanent SSH host keys; essential for system identity and decrypting SOPS secrets before login.
+
+ 
+**`/var/cache/fscache`**: Provides a persistent cache for network filesystems like WebDAV/OwnCloud; prevents `cachefilesd.service` from failing.
+
+ 
+**`/var/lib/bluetooth`**: Keeps records of all paired Bluetooth devices so you don't have to re-pair them every boot.
+
+ 
+**`/var/lib/nixos`**: Tracks system state data, such as unique user/group ID mappings.
+
+ 
+**`/var/lib/tailscale`**: Stores your Tailscale node identity and login state to keep your VPN connected.
+
+ 
+**`/var/lib/systemd/timers`**: Remembers when scheduled tasks (like trash cleanup) last ran so they don't repeat or skip unexpectedly.
+
+
+**`/var/db/sudo/lectured`**: Remembers if you have already seen the "first-time" sudo warning message.
+
+ 
+**`/var/tmp`**: Stores temporary files that need to survive a reboot, unlike `/tmp` which is usually cleared.
+
+
+**`/var/lib/sddm`**: Maintains state for the SDDM display manager, such as your last selected user or theme.
+
+
+**`/var/lib/flatpak`**: Keeps your installed Flatpak applications and their respective data.
+ 
+**`/var/lib/docker`**: Stores your Docker images, containers, and local volumes.
+
+
+**`/var/lib/containers`**: Maintains state for Podman containers and images.
+
+
+
+### **Files**
+ 
+**`/etc/machine-id`**: A unique ID for your OS instance; required for system logs (journald) and network DHCP stability.
+
+
+**`/etc/adjtime`**: Keeps your hardware clock (RTC) synchronized and adjusted for time drift.
+
+
+
 
 ---
 

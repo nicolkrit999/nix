@@ -15,6 +15,7 @@ delib.module {
         "/etc/nixos"
         "/etc/NetworkManager/system-connections"
         "/etc/ssh"
+        "/var/cache/fscache"
         "/var/lib/bluetooth"
         "/var/lib/nixos"
         "/var/lib/tailscale"
