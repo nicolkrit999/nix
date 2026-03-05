@@ -11,17 +11,19 @@ delib.module {
     imports = [ inputs.nix-flatpak.nixosModules.nix-flatpak ];
   };
 
-  # Configuration strictly in the nixos hook
   nixos.ifEnabled =
     {
       services.flatpak = {
         enable = true;
         packages = [
-          "com.actualbudget.actual"
-          "me.iepure.devtoolbox"
-          "com.github.unrud.VideoDownloader"
-          "com.github.tchx84.Flatseal"
-          "com.usebottles.bottles"
+          "com.actualbudget.actual" # Actual budget budgeting app
+          "io.github.shonebinu.Brief" # Brief, command lines cheatsheet application
+          "app.curocalc.calculator" # Loan calculator
+          "me.iepure.devtoolbox" # DevToolbox, a collection of tools for developers
+          "com.github.unrud.VideoDownloader" # Video Downloader, a tool for downloading videos from various platforms
+          "com.github.tchx84.Flatseal" # Flatseal, a permissions manager for Flatpak applications
+          "com.rtosta.zapzap" # Whatsapp client for Linux
+          "sh.ppy.osu" # Osu! rhythm game
         ];
         update.onActivation = false;
         remotes = [

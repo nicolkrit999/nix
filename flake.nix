@@ -37,12 +37,10 @@
             ./users/krit/modules/programs/gui-programs/librewolf/profiles
 
             ./hosts/nixos-desktop/hardware-configuration.nix
-            ./hosts/nixos-laptop/hardware-configuration.nix
             ./hosts/nixos-arm-vm/hardware-configuration.nix
             ./hosts/template-host-full/hardware-configuration.nix
             ./hosts/template-host-minimal/hardware-configuration.nix
 
-            ./hosts/nixos-laptop/disko-config-btrfs-luks-impermanence.nix
             ./hosts/nixos-arm-vm/disko-config-btrfs-luks-impermanence.nix
             ./hosts/template-host-full/disko-config-btrfs.nix
             ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
