@@ -28,6 +28,9 @@
     - [🌟 Multiple shells + Starship](#-multiple-shells--starship)
     - [🦺 Optional BTRFS snapshots](#-optional-btrfs-snapshots)
     - [❔ SOPS-nix support](#-sops-nix-support)
+    - [🐏 Impermanence: The Immortal Root](#-impermanence-the-immortal-root)
+      - [How to Persist Data](#how-to-persist-data)
+    - [⚠️ Critical Requirements](#️-critical-requirements)
     - [📦 Cachix support](#-cachix-support)
     - [🧑‍🍳 Denix support](#-denix-support)
     - [🖥️ Multi-architecture support](#️-multi-architecture-support)
@@ -378,6 +381,38 @@ nix-shell -p ssh-to-age --run "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub"
 
 # Then invite the host
 sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-sops.yaml
+```
+
+---
+### 🐏 Impermanence: The Immortal Root
+
+Impermanence is a NixOS setup where your root directory (`/`) is wiped clean on every reboot, typically by mounting a **tmpfs** (RAM disk) to `/`. This ensures that any system "drift" or accidental changes are automatically deleted, leaving you with a fresh, declarative system every time you turn it on.
+
+#### How to Persist Data
+
+While most of the system is wiped, you can "rescue" specific files or folders by pointing them to a physical drive (like `/persist`). To add custom items, add the following block to your host's `nixos` configuration:
+
+```nix
+environment.persistence."/persist" = {
+  directories = [
+    # Add folders to keep across reboots
+  ];
+  files = [
+    "/etc/logid.cfg" # Example: Logitech mouse mappings
+  ];
+};
+```
+
+### ⚠️ Critical Requirements
+- **Before** setting up impermanance have the user password declared. If impermanance is than disabled for any reason the password can both remain declarative than non declarative
+
+1. **Declarative Passwords**: Because `/etc/shadow` is wiped on reboot, you **must** declare your user password in your Nix code.
+2. **SOPS Integration**: If you use `sops-nix` for your password, you must ensure the decryption key is accessible before the symlinks are created. You can see a working example in `~/nixOS/hosts/nixos-desktop/system.nix`.
+3. **Direct Key Path**: You **must** point SOPS directly to the physical `/persist` path for your SSH host key to avoid a boot-time race condition:
+4. **Persist mountpoint**: Of course for this to work /persist must actually exist. Both the manual partitioning that the disko installation already create that mountpoint
+
+```nix
+sops.age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
 ```
 
 ---
@@ -1060,3 +1095,4 @@ This folder contains the following guides on some aspects of the configuration:
 - tmux
 - cachix
 - Denix
+- Impermanence
