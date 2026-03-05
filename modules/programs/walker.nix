@@ -8,6 +8,9 @@ delib.module {
   name = "programs.walker";
   options = delib.singleEnableOption true;
 
+  home.always = { ... }: {
+    imports = [ inputs.walker.homeManagerModules.default ];
+  };
 
   home.ifEnabled =
     { parent
@@ -30,7 +33,6 @@ delib.module {
 
       programs.waybar.systemd.enable = shouldRunWaybar;
 
-      imports = [ inputs.walker.homeManagerModules.default ];
 
       home.packages = with pkgs; [
         xdg-utils
