@@ -58,6 +58,8 @@ delib.host {
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   home = { ... }: {
+    home.username = "krit";
+    home.homeDirectory = "/home/krit";
     home.stateVersion = "25.11";
 
     imports = lib.optionals (moduleSystem == "home") [
