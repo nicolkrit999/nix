@@ -506,7 +506,6 @@ delib.host {
       imports = [
         inputs.disko.nixosModules.disko
 
-        inputs.catppuccin.nixosModules.catppuccin
         #inputs.nix-sops.nixosModules.sops # TODO: Enable when host sops secrets are configured
         inputs.niri.nixosModules.niri
 

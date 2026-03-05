@@ -21,7 +21,6 @@ delib.host {
     };
 
     imports = [
-      inputs.catppuccin.nixosModules.catppuccin
       inputs.niri.nixosModules.niri
       inputs.nix-sops.nixosModules.sops
       ./hardware-configuration.nix

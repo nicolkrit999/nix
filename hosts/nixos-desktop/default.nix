@@ -113,8 +113,8 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "gruvbox-material-dark-soft";
-          catppuccin = false;
+          base16Theme = "catppuccin-mocha";
+          catppuccin = true;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "teal";
         };
@@ -123,7 +123,6 @@ delib.host {
         keyboardLayout = "us,it,de,fr";
         keyboardVariant = "intl,,,";
 
-        # 🌟 RESTORED FROM VARIABLES.NIX.BAK
         weather = "Lugano";
         useFahrenheit = false;
         nixImpure = false;
