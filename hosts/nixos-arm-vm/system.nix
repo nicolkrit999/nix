@@ -8,7 +8,7 @@ let
   myUserName = "krit";
 in
 delib.host {
-  name = "nixos-desktop";
+  name = "nixos-arm-vm";
 
   nixos = {
     system.stateVersion = "25.11";
@@ -23,7 +23,10 @@ delib.host {
     imports = [
       inputs.niri.nixosModules.niri
       inputs.nix-sops.nixosModules.sops
+      inputs.disko.nixosModules.disko
+
       ./hardware-configuration.nix
+      ./disko-config-btrfs-luks-impermanence.nix
 
       ../../templates/krit/specialization/default.nix
       (
@@ -94,12 +97,12 @@ delib.host {
           };
         };
 
-        # 🏠 hosts/nixos-desktop/system.nix (Around line 115)
+        # 🏠 hosts/nixos-arm-vm/system.nix (Around line 115)
         home.file.".ssh/allowed_signers".text = ''
           githubgitlabmain.hu5b7@passfwd.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO4fJZtoawnvuR2D/CAk7fBrioEyhyagheH4RtTaf8gD
         '';
       };
-    sops.defaultSopsFile = ./nixos-desktop-secrets-sops.yaml;
+    sops.defaultSopsFile = ./nixos-arm-vm-secrets-sops.yaml;
     sops.defaultSopsFormat = "yaml";
     sops.age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
 
@@ -160,8 +163,6 @@ delib.host {
       pinentryPackage = pkgs.pinentry-qt;
     };
 
-    boot.binfmt.emulatedSystems = [ "aarch64-linux" ]; # Allow emulation of aarch64-linux. For example allow nix-flake-check for the arm laptop
-    boot.initrd.kernelModules = [ "amdgpu" ];
     hardware.graphics.enable = true;
 
     services.logind.settings.Login = {
