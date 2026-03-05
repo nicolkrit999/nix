@@ -7,7 +7,8 @@ delib.host {
 
   home = {
     home.stateVersion = "25.11";
-
+    home.username = "krit";
+    home.homeDirectory = "/home/krit";
 
     imports = lib.optionals (moduleSystem == "home") [
       inputs.plasma-manager.homeModules.plasma-manager
