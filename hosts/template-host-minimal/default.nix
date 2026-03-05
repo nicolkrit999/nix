@@ -4,10 +4,12 @@
 # Note that some important features for theming and functionality are not enabled here. Meaning the actual configuration would build but be "broken"
 # For a reference on the bare minimum options to setup for a better experience look
 # at ../hosts/template-host-full/default.nix and look for options that are enabled so ".enable = true"
+
 { delib
 , inputs
 , pkgs
 , lib
+, moduleSystem
 , ...
 }:
 delib.host {
@@ -41,6 +43,7 @@ delib.host {
       nixpkgs.hostPlatform = "x86_64-linux";
       system.stateVersion = "25.11";
       imports = [
+        inputs.niri.nixosModules.niri
         ./hardware-configuration.nix
       ];
 
@@ -54,23 +57,23 @@ delib.host {
   # ---------------------------------------------------------------
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
-  home =
-    { ... }:
-    {
-      home.stateVersion = "25.11";
-      imports = [
-        # inputs.nix-sops.homeModules.sops
-      ];
+  home = { ... }: {
 
-      xdg.userDirs = {
-        publicShare = null;
-        music = null;
-      };
+    imports = lib.optionals (moduleSystem == "home") [
+      inputs.niri.homeModules.niri
+      inputs.plasma-manager.homeModules.plasma-manager
+    ];
 
-      home.activation = {
-        createHostDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          mkdir -p "$HOME/Downloads"
-        '';
-      };
+
+    xdg.userDirs = {
+      publicShare = null;
+      music = null;
     };
+
+    home.activation = {
+      createHostDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        mkdir -p "$HOME/Downloads"
+      '';
+    };
+  };
 }

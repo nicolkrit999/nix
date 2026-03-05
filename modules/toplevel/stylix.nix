@@ -22,11 +22,12 @@ delib.module {
       ];
     };
 
-  home.always =
+home.always =
     { ... }:
     {
       imports = lib.optionals (moduleSystem == "home") [
-        inputs.catppuccin.homeManagerModules.catppuccin
+        inputs.stylix.homeModules.stylix
+        inputs.catppuccin.homeModules.catppuccin
       ];
     };
 

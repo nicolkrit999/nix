@@ -1,12 +1,16 @@
-{ delib, inputs, pkgs, ... }:
+{ delib, inputs, pkgs, lib, moduleSystem, ... }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
 in
 delib.host {
   name = "nixos-arm-vm";
-
   home = {
     home.stateVersion = "25.11";
+
+    imports = lib.optionals (moduleSystem == "home") [
+      inputs.plasma-manager.homeModules.plasma-manager
+      inputs.niri.homeModules.niri
+    ];
 
     home.packages = (with pkgs; [ ]) ++ (with pkgs-unstable; [ ]);
 
