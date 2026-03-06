@@ -13,11 +13,23 @@ delib.host {
   nixos = {
     system.stateVersion = "25.11";
 
+    # Configure host specific impermanence persist
     environment.persistence."/persist" = {
       directories = [
       ];
       files = [
       ];
+    };
+
+    # Configure host-specific ssh settings
+    programs.ssh = {
+      startAgent = true;
+      extraConfig = ''
+        Host nicol-nas 192.168.1.98 ssh.nicolkrit.ch
+          IdentityFile /home/${myUserName}/.ssh/id_github
+          IdentitiesOnly yes
+          User krit
+      '';
     };
 
     imports = [
