@@ -1,18 +1,22 @@
-{ delib, pkgs, ... }:
+{ delib, pkgs, lib, ... }:
 delib.module {
   name = "krit.services.logitech";
   options.krit.services.logitech = with delib; {
     enable = boolOption false;
+    logidDeviceBlocks = listOfOption str [ ];
   };
 
   nixos.ifEnabled =
+    { cfg, ... }:
     {
+      hardware.logitech.wireless.enable = true;
+      hardware.logitech.wireless.enableGraphical = true;
 
       environment.systemPackages = with pkgs; [
-        keyd # for Superlight
-        logiops # for MX Master
-        libinput # for debugging
-        evtest # for hardware testing
+        keyd
+        logiops
+        libinput
+        evtest
       ];
 
       services.keyd.enable = true;
@@ -21,7 +25,12 @@ delib.module {
         "hid-logitech-hidpp"
       ];
 
-      # Service Definition
+      environment.etc."logid.cfg".text = ''
+        devices: (
+          ${builtins.concatStringsSep ",\n" cfg.logidDeviceBlocks}
+        );
+      '';
+
       systemd.services.logid = {
         description = "Logitech Configuration Daemon";
         wantedBy = [ "multi-user.target" ];
