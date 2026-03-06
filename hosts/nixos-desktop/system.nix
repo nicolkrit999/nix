@@ -23,7 +23,6 @@ delib.host {
 
     # Configure host-specific ssh settings
     programs.ssh = {
-      startAgent = true;
       extraConfig = ''
         Host nicol-nas 192.168.1.98 ssh.nicolkrit.ch
           IdentityFile /home/${myUserName}/.ssh/id_github
