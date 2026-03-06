@@ -323,11 +323,11 @@ delib.host {
           "$Mod SHIFT, B, exec, [workspace special:magic] ${myBrowser} --new-window --class scratch-browser"
           "$Mod,       Y, exec, chromium-browser"
 
-          # 🖱️ LOGITECH MX MASTER 4
-          ", F13, workspace, m-1" # Swipe Left: Previous workspace on CURRENT monitor
-          ", F14, workspace, m+1" # Swipe Right: Next workspace on CURRENT monitor
-          ", F15, fullscreen, 1" # Swipe Up: Maximize window (keeps gaps/bar)
-          ", F16, movetoworkspacesilent, special:magic" # Swipe Down: "Minimize" to scratchpad
+          # 🖱️ LOGITECH MX MASTER Thumb button gesstures
+          ", XF86Tools, workspace, m-1" # Swipe Left: Previous workspace on CURRENT monitor
+          ", XF86Launch5, workspace, m+1" # Swipe Right: Next workspace on CURRENT monitor
+          ", XF86Launch6, fullscreen, 1" # Swipe Up: Maximize window (keeps gaps/bar)
+          ", XF86Launch7, fullscreen" # Swipe Down: Toggle fullscreen
         ];
       };
 
@@ -405,11 +405,11 @@ delib.host {
             binding = "<Super>y";
           }
 
-          # 🖱️ LOGITECH MX MASTER 4
-          { name = "Gesture Left (Prev Workspace)"; command = "${pkgs.wtype}/bin/wtype -M super -k Page_Up -m super"; binding = "F13"; }
-          { name = "Gesture Right (Next Workspace)"; command = "${pkgs.wtype}/bin/wtype -M super -k Page_Down -m super"; binding = "F14"; }
-          { name = "Gesture Up (Maximize)"; command = "${pkgs.wtype}/bin/wtype -M super -k Up -m super"; binding = "F15"; }
-          { name = "Gesture Down (Minimize)"; command = "${pkgs.wtype}/bin/wtype -M super -k h -m super"; binding = "F16"; }
+          # 🖱️ LOGITECH MX MASTER Thumb button gesstures
+          { name = "Gesture Left (Prev Workspace)"; command = "${pkgs.wtype}/bin/wtype -M super -k Page_Up -m super"; binding = "XF86Tools"; }
+          { name = "Gesture Right (Next Workspace)"; command = "${pkgs.wtype}/bin/wtype -M super -k Page_Down -m super"; binding = "XF86Launch5"; }
+          { name = "Gesture Up (Maximize)"; command = "${pkgs.wtype}/bin/wtype -M super -k Up -m super"; binding = "XF86Launch6"; }
+          { name = "Gesture Down (Minimize)"; command = "${pkgs.wtype}/bin/wtype -M super -k h -m super"; binding = "XF86Launch7"; }
         ];
       };
 
@@ -437,11 +437,11 @@ delib.host {
             command = "chromium";
           };
 
-          # 🖱️ MX MASTER 4 GESTURES (Native KDE DBus Commands)
-          "gesture-left" = { key = "F13"; command = "qdbus org.kde.KWin /KWin org.kde.KWin.previousDesktop"; };
-          "gesture-right" = { key = "F14"; command = "qdbus org.kde.KWin /KWin org.kde.KWin.nextDesktop"; };
-          "gesture-up" = { key = "F15"; command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Maximize\""; };
-          "gesture-down" = { key = "F16"; command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Minimize\""; };
+          # 🖱️ LOGITECH MX MASTER Thumb button gesstures
+          "gesture-left" = { key = "XF86Tools"; command = "qdbus org.kde.KWin /KWin org.kde.KWin.previousDesktop"; };
+          "gesture-right" = { key = "XF86Launch5"; command = "qdbus org.kde.KWin /KWin org.kde.KWin.nextDesktop"; };
+          "gesture-up" = { key = "XF86Launch6"; command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Maximize\""; };
+          "gesture-down" = { key = "XF86Launch7"; command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Minimize\""; };
         };
       };
 
