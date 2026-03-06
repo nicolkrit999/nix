@@ -174,6 +174,10 @@ delib.host {
       programs.bat.enable = true;
       programs.eza.enable = true;
       programs.fzf.enable = true;
+      programs.nix-ld.enable = true;
+      programs.nix-alien.enable = true;
+      programs.comma.enable = true;
+      programs.statix.enable = true;
 
       programs.git = {
         enable = true;
@@ -453,6 +457,7 @@ delib.host {
       services.hyprlock.enable = true;
       services.sddm.enable = true;
       services.impermanence.enable = true;
+      services.nix-topology.enable = true;
 
       services.snapshots = {
         enable = true;

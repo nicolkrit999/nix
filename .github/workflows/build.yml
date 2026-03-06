@@ -65,6 +65,9 @@ jobs:
       - name: Check Flake
         run: nix flake check --show-trace
 
+      - name: Check for Dead Code (deadnix)
+        run: nix run github:astro/deadnix -- --fail .
+
       - name: Build x86_64 Configurations
         env:
           CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -148,6 +151,9 @@ jobs:
 
       - name: Check Flake (AArch64)
         run: nix flake check --show-trace
+
+      - name: Check for Dead Code (deadnix)
+        run: nix run github:astro/deadnix -- --fail .
 
       - name: Build AArch64 Configurations
         env:

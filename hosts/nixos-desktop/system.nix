@@ -73,6 +73,32 @@ delib.host {
 
           users.users.${myUserName}.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
           users.users.root.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
+
+          # ---------------------------------------------------------
+          # 🗺️ NIX-TOPOLOGY DEFINITIONS
+          # ---------------------------------------------------------
+          # TODO: wait to be on teh same network as the nas to implement this
+          /*
+          topology.networks.home = {
+            name = "Krit Home Network";
+            cidrv4 = "192.168.1.0/24";
+          };
+
+          # 2. Tell topology that this desktop is on the home network
+          # (nix-topology auto-detects the interface name, just assign it)
+          topology.self.interfaces."*".network = "home";
+
+          # 3. Manually add the NAS so it appears in the diagram!
+          topology.nodes.nicol-nas = {
+            deviceType = "server";
+            interfaces.lan = {
+              addresses = [ "192.168.1.98" ];
+              network = "home";
+            };
+          };
+          # (Optional) Map a physical connection if the interface name is known:
+          # topology.self.interfaces.eth0.physicalConnections = [{ node = "nicol-nas"; interface = "lan"; }];
+          */
         }
       )
     ];
