@@ -13,6 +13,15 @@ delib.host {
   nixos = {
     system.stateVersion = "25.11";
 
+    # Overlays to solve some pipelines issue and/or other reason to override packages
+    nixpkgs.overlays = [
+      (final: prev: {
+        gtksourceview5 = prev.gtksourceview5.overrideAttrs (old: {
+          doCheck = false; # Skip the check that causes QEMU step to time out
+        });
+      })
+    ];
+
     environment.persistence."/persist" = {
       directories = [
       ];
