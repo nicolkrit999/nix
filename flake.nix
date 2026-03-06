@@ -50,11 +50,22 @@
           specialArgs = { inherit inputs moduleSystem; };
 
         };
+      generatedNixosConfigs = mkConfigurations "nixos";
     in
     {
-      nixosConfigurations = mkConfigurations "nixos";
+      nixosConfigurations = generatedNixosConfigs;
       homeConfigurations = mkConfigurations "home";
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
+
+      topology = forAllSystems (system: import inputs.nix-topology {
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ inputs.nix-topology.overlays.default ];
+        };
+        modules = [
+          { nixosConfigurations = generatedNixosConfigs; }
+        ];
+      });
     };
 
   inputs = {
@@ -62,6 +73,8 @@
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nix-flatpak.url = "github:gmodena/nix-flatpak";
     impermanence.url = "github:nix-community/impermanence";
+    nix-alien.url = "github:thiagokokada/nix-alien";
+    nix-topology.url = "github:oddlama/nix-topology";
 
     denix = {
       url = "github:yunfachi/denix";
