@@ -17,7 +17,11 @@ delib.module {
         enable = true;
 
         settings = {
-          gui.showIcons = true;
+          gui.showIcons = true; # Enables Nerd Font icons to match your terminal style
+          gui.quitOnTopLevelReturn = false;
+          gui.skipNoPasswordPrompt = true;
+          confirmOnQuit = false;
+          git.overrideGpg = true;
         };
       };
     };
