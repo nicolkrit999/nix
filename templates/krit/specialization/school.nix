@@ -87,6 +87,7 @@ delib.host {
                 "PubkeyAuthentication" = "yes";
               };
             };
+
             "gitlab.com" = lib.mkForce {
               hostname = "gitlab.com";
               identityFile = "/home/${myUserName}/.ssh/id_school";
