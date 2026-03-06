@@ -491,7 +491,8 @@ delib.host {
 
       krit.services.logitech = {
         enable = true;
-        mouses.mx-master.enable = true;
+        mouses.mx-master-3s.enable = true;
+        mouses.mx-master-4.enable = true;
         mouses.superlight.enable = true;
       };
 
