@@ -36,6 +36,7 @@ delib.host {
 
       ./hardware-configuration.nix
       ./disko-config-btrfs-luks-impermanence.nix
+
       ../../templates/krit/specialization/default.nix
       (
         { config, ... }:
