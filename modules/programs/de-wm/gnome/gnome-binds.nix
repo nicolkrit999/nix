@@ -142,6 +142,7 @@ delib.module {
 
         "org/gnome/shell/keybindings" = {
           toggle-overview = [ "<Super>w" ];
+          toggle-application-view = [ ];
         };
       }
       // dconfSettings;

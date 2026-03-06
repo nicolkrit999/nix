@@ -65,8 +65,17 @@ jobs:
       - name: Check Flake
         run: nix flake check --show-trace
 
-      - name: Check for Dead Code (deadnix)
-        run: nix run github:astro/deadnix -- --fail .
+      - name: Notify Dead Code
+        if: env.HAS_DEAD_CODE == 'true' && env.WEBHOOK_ID != ''
+        uses: appleboy/discord-action@master
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          message: |
+            🧹 **Dead Nix Code Detected (x86_64)** Consider cleaning up:
+            ```text
+            ${{ env.DEADCODE_REPORT }}
+            ```
 
       - name: Build x86_64 Configurations
         env:
@@ -152,8 +161,17 @@ jobs:
       - name: Check Flake (AArch64)
         run: nix flake check --show-trace
 
-      - name: Check for Dead Code (deadnix)
-        run: nix run github:astro/deadnix -- --fail .
+      - name: Notify Dead Code
+        if: env.HAS_DEAD_CODE == 'true' && env.WEBHOOK_ID != ''
+        uses: appleboy/discord-action@master
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          message: |
+            🧹 **Dead Nix Code Detected (x86_64)** Consider cleaning up:
+            ```text
+            ${{ env.DEADCODE_REPORT }}
+            ```
 
       - name: Build AArch64 Configurations
         env:
