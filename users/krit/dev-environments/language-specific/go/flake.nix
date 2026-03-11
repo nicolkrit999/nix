@@ -4,7 +4,7 @@
   inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1"; # unstable Nixpkgs
 
   outputs =
-    { self, ... }@inputs:
+    { ... }@inputs:
 
     let
       goVersion = 25; # Change this to update the whole stack
@@ -28,7 +28,7 @@
         );
     in
     {
-      overlays.default = final: prev: {
+      overlays.default = final: _prev: {
         go = final."go_1_${toString goVersion}";
       };
 

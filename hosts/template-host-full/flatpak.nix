@@ -12,7 +12,7 @@ delib.module {
   };
 
   nixos.ifEnabled =
-    { cfg, myconfig, ... }:
+    { ... }:
     {
       services.flatpak = {
         enable = true;

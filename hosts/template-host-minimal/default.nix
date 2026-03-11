@@ -7,7 +7,6 @@
 
 { delib
 , inputs
-, pkgs
 , lib
 , moduleSystem
 , ...
@@ -19,7 +18,7 @@ delib.host {
   homeManagerSystem = "x86_64-linux";
 
   myconfig =
-    { name, ... }:
+    { ... }:
     {
       # ---------------------------------------------------------------
       # 📦 CONSTANTS BLOCK (Data Bucket)

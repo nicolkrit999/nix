@@ -4,7 +4,6 @@
 , ...
 }:
 let
-  myUserName = "krit";
 
   termApps = [
     "nvim"

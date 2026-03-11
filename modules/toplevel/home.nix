@@ -10,7 +10,7 @@ delib.module {
     { myconfig, ... }:
     {
       home-manager.users.${myconfig.constants.user} =
-        { config, ... }:
+        { ... }:
         {
           home = {
             username = myconfig.constants.user;

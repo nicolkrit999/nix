@@ -4,7 +4,6 @@
 , ...
 }:
 let
-  pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
   # 🌟 CORE APPS & THEME
   myBrowser = "librewolf";
   myTerminal = "kitty";

@@ -10,7 +10,7 @@
   };
 
   outputs =
-    { self, ... }@inputs:
+    { ... }@inputs:
 
     let
       supportedSystems = [
@@ -34,7 +34,7 @@
         );
     in
     {
-      overlays.default = final: prev: {
+      overlays.default = _final: prev: {
         rustToolchain =
           with inputs.fenix.packages.${prev.stdenv.hostPlatform.system};
           combine (

@@ -108,38 +108,38 @@ delib.module {
               "${myconfig.constants.terminal} -e ${myconfig.constants.fileManager}"
             else
               myconfig.constants.fileManager;
-            };
-        }
-        // cfg.extraBinds;
+        };
+      }
+      // cfg.extraBinds;
 
-        programs.plasma.shortcuts = lib.mkForce {
-          # --- UNBIND DEFAULTS ---
-          "plasmashell"."manage activities" = "none";
-          "kwin"."Show Activity Switcher" = "none";
-          "kwin"."Switch to Next Keyboard Layout" = "none";
+      programs.plasma.shortcuts = lib.mkForce {
+        # --- UNBIND DEFAULTS ---
+        "plasmashell"."manage activities" = "none";
+        "kwin"."Show Activity Switcher" = "none";
+        "kwin"."Switch to Next Keyboard Layout" = "none";
 
-          "org.kde.spectacle.desktop" = {
-            "ActiveWindowScreenShot" = "none";
-            "FullScreenScreenShot" = "none";
-            "RectangularRegionScreenShot" = "none";
-            "_launch" = "none";
-            "RecordRegion" = "Meta+Ctrl+7";
-            "RecordScreen" = "Meta+Ctrl+8";
-            "RecordWindow" = "Meta+Ctrl+9";
-          };
-
-          "ksmserver"."Log Out" = "Meta+Shift+Delete";
-          "ksmserver"."Lock Session" = "Meta+Delete";
-
-          "powerdevil"."Switch to Balanced" = "none";
-          "plasmashell"."show-battery" = "none";
-
-          "org.kde.krunner.desktop"."_launch" = "Meta+Shift+K";
-          "kwin"."Window Close" = "Meta+Shift+C";
-          "kwin"."Overview" = "Meta+W";
+        "org.kde.spectacle.desktop" = {
+          "ActiveWindowScreenShot" = "none";
+          "FullScreenScreenShot" = "none";
+          "RectangularRegionScreenShot" = "none";
+          "_launch" = "none";
+          "RecordRegion" = "Meta+Ctrl+7";
+          "RecordScreen" = "Meta+Ctrl+8";
+          "RecordWindow" = "Meta+Ctrl+9";
         };
 
-        # Ensure desktop entries are cleared
-        xdg.desktopEntries = { };
+        "ksmserver"."Log Out" = "Meta+Shift+Delete";
+        "ksmserver"."Lock Session" = "Meta+Delete";
+
+        "powerdevil"."Switch to Balanced" = "none";
+        "plasmashell"."show-battery" = "none";
+
+        "org.kde.krunner.desktop"."_launch" = "Meta+Shift+K";
+        "kwin"."Window Close" = "Meta+Shift+C";
+        "kwin"."Overview" = "Meta+W";
       };
-    }
+
+      # Ensure desktop entries are cleared
+      xdg.desktopEntries = { };
+    };
+}
