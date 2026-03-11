@@ -4,7 +4,7 @@
   inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
 
   outputs =
-    { self, ... }@inputs:
+    { ... }@inputs:
 
     let
       javaVersion = 25;
@@ -31,7 +31,7 @@
     in
     {
       overlays.default =
-        final: prev:
+        _final: prev:
         let
           jdk = prev."jdk${toString javaVersion}";
         in

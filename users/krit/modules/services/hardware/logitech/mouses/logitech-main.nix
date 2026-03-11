@@ -1,4 +1,4 @@
-{ delib, pkgs, lib, ... }:
+{ delib, pkgs, ... }:
 delib.module {
   name = "krit.services.logitech";
   options.krit.services.logitech = with delib; {

@@ -4,7 +4,7 @@
   inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0"; # stable Nixpkgs
 
   outputs =
-    { self, ... }@inputs:
+    { ... }@inputs:
 
     let
       supportedSystems = [
@@ -40,7 +40,7 @@
                     cmake
                     codespell
 
-                    (conan.overrideAttrs (oldAttrs: {
+                    (conan.overrideAttrs (_oldAttrs: {
                       doCheck = false;
                       checkPhase = "true";
                       pytestCheckPhase = "true";

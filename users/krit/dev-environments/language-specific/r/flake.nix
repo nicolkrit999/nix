@@ -4,7 +4,7 @@
   inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1"; # unstable Nixpkgs
 
   outputs =
-    { self, ... }@inputs:
+    { ... }@inputs:
 
     let
       supportedSystems = [
@@ -26,7 +26,7 @@
         );
     in
     {
-      overlays.default = final: prev: rec {
+      overlays.default = final: _prev: rec {
         rEnv = final.rWrapper.override {
           packages = with final.rPackages; [ knitr ];
         };

@@ -1,5 +1,4 @@
 { delib
-, pkgs
 , lib
 , ...
 }:

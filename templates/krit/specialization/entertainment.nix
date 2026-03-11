@@ -1,9 +1,7 @@
-{
-  delib,
-  lib,
-  pkgs,
-  config,
-  ...
+{ delib
+, lib
+, pkgs
+, ...
 }:
 let
   myUserName = "krit";

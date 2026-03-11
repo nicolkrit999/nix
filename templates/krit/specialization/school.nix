@@ -1,4 +1,4 @@
-{ delib, lib, config, pkgs, ... }:
+{ delib, lib, pkgs, ... }:
 let
   myUserName = "krit";
   commonSecrets = ../../../users/krit/sops/krit-common-secrets-sops.yaml;

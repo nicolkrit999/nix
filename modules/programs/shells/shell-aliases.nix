@@ -66,6 +66,7 @@ delib.module {
         cleanup = "nh clean all";
         cleanup-ask = "nh clean all --ask";
         cg = "nix-collect-garbage -d";
+        deadnixall = "nix run github:astro/deadnix -- -e .";
 
         # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
         # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${myconfig.constants.hostname}"; # Rebuild home-manager config

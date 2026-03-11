@@ -1,7 +1,6 @@
 { delib
 , inputs
 , pkgs
-, lib
 , ...
 }:
 let
@@ -15,8 +14,8 @@ delib.host {
 
     # Overlays to solve some pipelines issue and/or other reason to override packages
     nixpkgs.overlays = [
-      (final: prev: {
-        gtksourceview5 = prev.gtksourceview5.overrideAttrs (old: {
+      (_final: prev: {
+        gtksourceview5 = prev.gtksourceview5.overrideAttrs (_old: {
           doCheck = false; # Skip the check that causes QEMU step to time out
         });
       })

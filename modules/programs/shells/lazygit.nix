@@ -4,7 +4,7 @@ delib.module {
   options = delib.singleEnableOption true;
 
   home.ifEnabled =
-    { cfg, myconfig, ... }:
+    { myconfig, ... }:
     {
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
