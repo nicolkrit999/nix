@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
   schedule:
     # Weekly on Fridays at 05:00 UTC
-    - cron: "0 5 * * 5" # Run the action automatically. This ensure configurations work even if the code is not changed for more than a week
+    - cron: "0 5 * * 5"
 
 # Prevents multiple pushes from building at once, saving runner time
 concurrency:
@@ -17,7 +17,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ===========================================================================
   # JOB 1: Build x86_64 Binaries (Desktop)
+  # ===========================================================================
   build-x86_64:
     runs-on: ubuntu-latest
     permissions:
@@ -29,7 +31,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Resolve SSL certificate issues for asset fetching (fonts/logo)
       - name: Install CA Certificates
         run: sudo apt-get update && sudo apt-get install -y ca-certificates
 
@@ -77,50 +78,20 @@ jobs:
             echo "HAS_DEAD_CODE=false" >> $GITHUB_ENV
           fi
 
-      - name: Notify Dead Code
+      - name: Notify Dead Code (x86_64)
         if: env.HAS_DEAD_CODE == 'true' && env.WEBHOOK_ID != ''
-        uses: appleboy/discord-action@master
-        with:
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          message: |
-            🧹 **Dead Nix Code Detected (x86_64)** Consider cleaning up:
-            ```text
-            ${{ env.DEADCODE_REPORT }}
-            ```
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          export REPORT="$DEADCODE_REPORT"
+          jq -n --env REPORT --arg prefix "🧹 **Dead Nix Code Detected (x86_64)** Consider cleaning up:" '{content: ($prefix + "\n```text\n" + $REPORT + "\n```")}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
 
       - name: Build x86_64 Configurations
         env:
           CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
-          # Build desktop
           nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --no-link --print-out-paths > outpaths.txt
-
-          # Build Laptop
-          #nix build .#nixosConfigurations.nixos-laptop-x86.config.system.build.toplevel --no-link --print-out-paths >> outpaths.txt
-
-          if [ -n "$CACHIX_TOKEN" ]; then
-            cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
-          else
-            echo "Skipping Cachix push: No auth token found (likely a fork)."
-          fi
-
-      - name: Check Disk Usage
-        run: |
-          echo "--- Disk Space Usage ---"
-          df -h /nix
-          echo "--- Nix Store Size ---"
-          du -sh /nix/store
-
-      - name: Build x86_64 Configurations
-        env:
-          CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
-        run: |
-          # Build desktop
-          nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --no-link --print-out-paths > outpaths.txt
-
-          # Build Laptop
-          #nix build .#nixosConfigurations.nixos-laptop-x86.config.system.build.toplevel --no-link --print-out-paths >> outpaths.txt
 
           if [ -n "$CACHIX_TOKEN" ]; then
             cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
@@ -142,13 +113,15 @@ jobs:
 
       - name: Notify on Failure (x86_64)
         if: failure() && env.WEBHOOK_ID != ''
-        uses: appleboy/discord-action@master
-        with:
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          message: "🚨 NixOS build failed on **x86_64**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          jq -n --arg content "🚨 NixOS build failed on **x86_64**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
 
+  # ===========================================================================
   # JOB 2: Build AArch64 Binaries (Laptop)
+  # ===========================================================================
   build-aarch64:
     runs-on: ubuntu-latest
     permissions:
@@ -160,7 +133,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Resolve SSL certificate issues for asset fetching (fonts/logo)
       - name: Install CA Certificates
         run: sudo apt-get update && sudo apt-get install -y ca-certificates
 
@@ -173,7 +145,7 @@ jobs:
       - name: Maximize Nix Space
         uses: wimpysworld/nothing-but-nix@main
         with:
-          hatchet-protocol: "cleave" # Switch to "rampage" if the space used is close to ~100gb for each build split
+          hatchet-protocol: "cleave"
           witness-carnage: true
           nix-permission-edict: false
 
@@ -196,17 +168,26 @@ jobs:
       - name: Check Flake (AArch64)
         run: nix flake check --show-trace
 
-      - name: Notify Dead Code
+      - name: Check for Dead Code (deadnix)
+        run: |
+          NO_COLOR=1 nix run github:astro/deadnix -- . > deadnix_report.txt || true
+          if [ -s deadnix_report.txt ]; then
+            echo "HAS_DEAD_CODE=true" >> $GITHUB_ENV
+            echo "DEADCODE_REPORT<<EOF" >> $GITHUB_ENV
+            head -n 20 deadnix_report.txt >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "HAS_DEAD_CODE=false" >> $GITHUB_ENV
+          fi
+
+      - name: Notify Dead Code (AArch64)
         if: env.HAS_DEAD_CODE == 'true' && env.WEBHOOK_ID != ''
-        uses: appleboy/discord-action@master
-        with:
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          message: |
-            🧹 **Dead Nix Code Detected (x86_64)** Consider cleaning up:
-            ```text
-            ${{ env.DEADCODE_REPORT }}
-            ```
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          export REPORT="$DEADCODE_REPORT"
+          jq -n --env REPORT --arg prefix "🧹 **Dead Nix Code Detected (AArch64)** Consider cleaning up:" '{content: ($prefix + "\n```text\n" + $REPORT + "\n```")}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
 
       - name: Build AArch64 Configurations
         env:
@@ -233,9 +214,9 @@ jobs:
           nix path-info -sh -r $OUT_PATHS
 
       - name: Notify on Failure (AArch64)
-        if: failure() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && env.WEBHOOK_ID != ''
-        uses: appleboy/discord-action@master
-        with:
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          message: "🚨 Weekly NixOS build failed on **AArch64**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        if: failure() && env.WEBHOOK_ID != ''
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          jq -n --arg content "🚨 NixOS build failed on **AArch64**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
