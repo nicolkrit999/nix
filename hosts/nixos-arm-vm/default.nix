@@ -1,6 +1,4 @@
 { delib
-, inputs
-, pkgs
 , ...
 }:
 let
