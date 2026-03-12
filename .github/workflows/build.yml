@@ -65,6 +65,18 @@ jobs:
       - name: Check Flake
         run: nix flake check --show-trace
 
+      - name: Check for Dead Code (deadnix)
+        run: |
+          NO_COLOR=1 nix run github:astro/deadnix -- . > deadnix_report.txt || true
+          if [ -s deadnix_report.txt ]; then
+            echo "HAS_DEAD_CODE=true" >> $GITHUB_ENV
+            echo "DEADCODE_REPORT<<EOF" >> $GITHUB_ENV
+            head -n 20 deadnix_report.txt >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "HAS_DEAD_CODE=false" >> $GITHUB_ENV
+          fi
+
       - name: Notify Dead Code
         if: env.HAS_DEAD_CODE == 'true' && env.WEBHOOK_ID != ''
         uses: appleboy/discord-action@master
@@ -100,18 +112,41 @@ jobs:
           echo "--- Nix Store Size ---"
           du -sh /nix/store
 
+      - name: Build x86_64 Configurations
+        env:
+          CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        run: |
+          # Build desktop
+          nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --no-link --print-out-paths > outpaths.txt
+
+          # Build Laptop
+          #nix build .#nixosConfigurations.nixos-laptop-x86.config.system.build.toplevel --no-link --print-out-paths >> outpaths.txt
+
+          if [ -n "$CACHIX_TOKEN" ]; then
+            cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
+          else
+            echo "Skipping Cachix push: No auth token found (likely a fork)."
+          fi
+
+      - name: Check Disk Usage
+        run: |
+          echo "--- Disk Space Usage ---"
+          df -h /nix
+          echo "--- Nix Store Size ---"
+          du -sh /nix/store
+
       - name: Show Package Tree (x86_64)
         run: |
           OUT_PATHS=$(cat outpaths.txt)
           nix path-info -sh -r $OUT_PATHS
 
       - name: Notify on Failure (x86_64)
-        if: failure() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && env.WEBHOOK_ID != ''
+        if: failure() && env.WEBHOOK_ID != ''
         uses: appleboy/discord-action@master
         with:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
           webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          message: "🚨 Weekly NixOS build failed on **x86_64**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          message: "🚨 NixOS build failed on **x86_64**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   # JOB 2: Build AArch64 Binaries (Laptop)
   build-aarch64:
