@@ -75,6 +75,7 @@
     impermanence.url = "github:nix-community/impermanence";
     nix-alien.url = "github:thiagokokada/nix-alien";
     nix-topology.url = "github:oddlama/nix-topology";
+    claude-code.url = "github:sadjow/claude-code-nix";
 
     denix = {
       url = "github:yunfachi/denix";
