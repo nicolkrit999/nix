@@ -16,11 +16,28 @@ delib.module {
         lfs.enable = true;
 
         ignores = [
+          # Virtual environments and direnv
           ".direnv/"
           ".venv/"
+
+          # Nix build results
           "result"
+
+          # Editor swap files and OS trash
           "*.swp"
           ".DS_Store"
+
+          # Claude code
+          "*.jsonl"
+          ".claude.json"
+          ".claude.json.backup.*"
+          ".credentials.json"
+          "credentials.json"
+          "security_warnings_*.json"
+          "**/.claude/*"
+          "!**/.claude/agents/"
+          "!**/.claude/settings.json"
+          "!**/.claude/statusline-commands.sh"
         ]
         ++ cfg.customGitIgnores;
 

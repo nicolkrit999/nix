@@ -65,6 +65,11 @@ delib.module {
         sha256 = "02wdzksr3viwys3rzz9b10p2fl9vra2izxfnjswpc8b8nzwskyrb";
       };
 
+      claudeAIIcon = pkgs.fetchurl {
+        url = "https://upload.wikimedia.org/wikipedia/commons/b/b0/Claude_AI_symbol.svg";
+        sha256 = "1q6vlkqad07m7pk668q9jcdnx3pcigij87zp1hgwaqilq3lj6rly";
+      };
+
       # Radio fm1-Switzerland
       radioFM1Icon = ../../src/svg-images/entertainment/radiofm1.svg;
     in
@@ -73,49 +78,26 @@ delib.module {
 
       xdg.desktopEntries = builtins.listToAttrs [
         # Manual Apps
-        (makeBravePwa "YouTube" "https://www.youtube.com" "${
-          youtubeIcon
-        }" "brave-www.youtube.com__-Default")
-        (makeBravePwa "YouTube Music" "https://music.youtube.com/" "${
-          youtubeMusicIcon
-        }" "brave-music.youtube.com__-Default")
-        (makeBravePwa "Apple Music" "https://music.apple.com/ch/home?l=en" "${
-          appleMusicIconFile
-        }" "brave-music.apple.com__ch_home-Default")
+        (makeBravePwa "YouTube" "https://www.youtube.com" "${youtubeIcon}" "brave-www.youtube.com__-Default")
+        (makeBravePwa "YouTube Music" "https://music.youtube.com/" "${youtubeMusicIcon}" "brave-music.youtube.com__-Default")
+        (makeBravePwa "Apple Music" "https://music.apple.com/ch/home?l=en" "${appleMusicIconFile}" "brave-music.apple.com__ch_home-Default")
         (makeBravePwa "Notion" "https://www.notion.so/" "${notionIconFile}" "brave-www.notion.so__-Default")
-        (makeBravePwa "Radio fm1-Switzerland" "https://www.radiofm1.ch" "${
-          radioFM1Icon
-        }" "brave-www.radiofm1.ch__-Default")
+        (makeBravePwa "Radio fm1-Switzerland" "https://www.radiofm1.ch" "${radioFM1Icon}" "brave-www.radiofm1.ch__-Default")
+        (makeBravePwa "Claude AI" "https://claude.ai/" "${claudeAIIcon}" "brave-claude.ai__-Default")
 
         # Self-Hosted / Home Lab
-        (makeBravePwa "Dashboard-Glance" "https://glance.nicolkrit.ch/" "utilities-system-monitor"
-          "brave-glance.nicolkrit.ch__-Default"
-        )
+        (makeBravePwa "Dashboard-Glance" "https://glance.nicolkrit.ch/" "utilities-system-monitor" "brave-glance.nicolkrit.ch__-Default")
         (makeBravePwa "NAS" "https://nas.nicolkrit.ch" "network-server" "brave-nas.nicolkrit.ch__-Default")
-
-        (makeBravePwa "Linkwarden" "https://linkwarden.nicolkrit.ch/dashboard" "emblem-favorite"
-          "brave-linkwarden.nicolkrit.ch__dashboard-Default"
-        )
+        (makeBravePwa "Linkwarden" "https://linkwarden.nicolkrit.ch/dashboard" "emblem-favorite" "brave-linkwarden.nicolkrit.ch__dashboard-Default")
 
         # Cloud Services
-        (makeBravePwa "Proton Mail" "https://mail.proton.me/u" "internet-mail"
-          "brave-mail.proton.me__u-Default"
-        )
-        (makeBravePwa "Proton Drive" "https://drive.proton.me/u/0/" "folder-remote"
-          "brave-drive.proton.me__u_0_-Default"
-        )
-        (makeBravePwa "Google Gemini" "https://gemini.google.com/app" "utilities-terminal"
-          "brave-gemini.google.com__app-Default"
-        )
-        (makeBravePwa "Nix Search" "https://search.nixos.org/packages" "system-search"
-          "brave-search.nixos.org__packages-Default"
-        )
+        (makeBravePwa "Proton Mail" "https://mail.proton.me/u" "internet-mail" "brave-mail.proton.me__u-Default")
+        (makeBravePwa "Proton Drive" "https://drive.proton.me/u/0/" "folder-remote" "brave-drive.proton.me__u_0_-Default")
+        (makeBravePwa "Google Gemini" "https://gemini.google.com/app" "utilities-terminal" "brave-gemini.google.com__app-Default")
+        (makeBravePwa "Nix Search" "https://search.nixos.org/packages" "system-search" "brave-search.nixos.org__packages-Default")
         (makeBravePwa "GitHub" "https://github.com/" "vcs-git" "brave-github.com__-Default")
-        (makeBravePwa "Reddit" "https://www.reddit.com/" "internet-news-reader"
-          "brave-www.reddit.com__-Default"
-        )
-        # Entertainments
-
+        (makeBravePwa "Reddit" "https://www.reddit.com/" "internet-news-reader" "brave-www.reddit.com__-Default")
       ];
     };
 }
+
