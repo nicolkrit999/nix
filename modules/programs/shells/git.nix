@@ -37,6 +37,7 @@ delib.module {
           "**/.claude/*"
           "!**/.claude/agents/"
           "!**/.claude/plugins/"
+          "!**/.claude/skills/"
           "!**/.claude/settings.json"
           "!**/.claude/statusline-commands.sh"
         ]
