@@ -36,6 +36,7 @@ delib.module {
           "security_warnings_*.json"
           "**/.claude/*"
           "!**/.claude/agents/"
+          "!**/.claude/plugins/"
           "!**/.claude/settings.json"
           "!**/.claude/statusline-commands.sh"
         ]
