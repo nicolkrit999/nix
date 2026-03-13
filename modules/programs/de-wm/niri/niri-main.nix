@@ -69,6 +69,7 @@ delib.module {
 
           layout = {
             gaps = 12;
+            always-center-single-column = true;
             center-focused-column = "always";
             preset-column-widths = [
               { proportion = 0.33333; }

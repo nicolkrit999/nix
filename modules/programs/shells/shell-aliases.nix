@@ -66,7 +66,8 @@ delib.module {
         cleanup = "nh clean all";
         cleanup-ask = "nh clean all --ask";
         cg = "nix-collect-garbage -d";
-        deadnixall = "nix run github:astro/deadnix -- -e .";
+        deadnixfixall = "nix run github:astro/deadnix -- -e ${flakeDir}"; # Let deadnix remove unused code in all the repo
+        deadnixscanall = "nix run github:astro/deadnix -- ${flakeDir}"; # Scan for dead code without removing it in all the repo
 
         # Home-Manager related (). Currently disabled because "sw" handle also home manager. Kept for reference
         # hms = "cd ${flakeDir} && home-manager switch --flake ${flakeDir}#${myconfig.constants.hostname}"; # Rebuild home-manager config
@@ -105,6 +106,7 @@ delib.module {
         # Various
         reb-uefi = "systemctl reboot --firmware-setup"; # Reboot into UEFI firmware settings
         swboot = "cd ${flakeDir} && ${updateBoot}"; # Rebuilt boot without crash current desktop environment
+        swdryaarch64-linux = "nix build ${flakeDir}#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run --show-trace";
       };
     };
 }
