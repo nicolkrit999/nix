@@ -19,7 +19,8 @@ delib.module {
           # Virtual environments and direnv
           ".direnv/"
           ".venv/"
-
+          # Ccredentials
+          ".env"
           # Nix build results
           "result"
 
