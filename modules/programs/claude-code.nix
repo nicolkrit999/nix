@@ -24,6 +24,7 @@ delib.module {
     ];
 
     environment.shellAliases = {
+      caiw = "claude --worktree";
       caitempplugins = "npx claude-code-templates@latest --plugins";
       caitemphealt = "npx claude-code-templates@latest --health-check";
       caitempchat = "npx claude-code-templates@latest --chats";
