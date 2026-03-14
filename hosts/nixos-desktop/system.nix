@@ -12,6 +12,9 @@ delib.host {
   nixos = {
     system.stateVersion = "25.11";
 
+    environment.variables = {
+    };
+
     # Configure host specific impermanence persist
     environment.persistence."/persist" = {
       directories = [
