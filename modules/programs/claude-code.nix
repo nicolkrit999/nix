@@ -9,6 +9,7 @@ delib.module {
 
   nixos.ifEnabled = {
     services.claude-cowork.enable = true;
+    services.claude-cowork.package = inputs.claude-cowork-service.packages.${pkgs.stdenv.hostPlatform.system}.claude-cowork-service; # Temporary to fix evaluation warning about "'system' has been renamed to/replaced by 'stdenv.hostPlatform.system'"
     nixpkgs.overlays = [ inputs.claude-code.overlays.default ];
 
     environment.systemPackages = [ pkgs.claude-code ];
