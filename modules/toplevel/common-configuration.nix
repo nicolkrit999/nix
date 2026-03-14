@@ -82,6 +82,7 @@ delib.module {
           # --- CLI UTILITIES ---
           dix # Nix diff viewer
           git # Version control
+          git-lfs # Git large file storage (needed by GitHub Desktop and other GUI clients)
           nixfmt # Nix formatter
           nix-prefetch-scripts # Tools to get hashes for nix derivations (used in every shell modules)
           wget # Downloader
