@@ -17,6 +17,8 @@ delib.host {
 
     home.packages = (with pkgs; [ winboat ]) ++ (with pkgs-unstable; [ ]);
 
+    home.sessionPath = [ "$HOME/.distrobox-bin" ];
+
     xdg.userDirs = {
       publicShare = null;
       music = null;
