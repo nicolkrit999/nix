@@ -180,7 +180,7 @@ delib.host {
 
       programs.git = {
         enable = true;
-        customGitIgnores = [];
+        customGitIgnores = [ ];
       };
 
       programs.lazygit.enable = true;
@@ -241,7 +241,7 @@ delib.host {
           "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
           "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
 
-          "sh -c 'sleep 5 && protonvpn-app --start-minimized'"
+          #"sh -c 'sleep 5 && protonvpn-app --start-minimized'"
           "uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
           "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
         ];
@@ -384,7 +384,7 @@ delib.host {
           "${myFileManager}"
           "${myTerminal}"
           "chromium-browser"
-          "sh -c 'sleep 5 && protonvpn-app --start-minimized'"
+          #"sh -c 'sleep 5 && protonvpn-app --start-minimized'"
           "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
         ];
       };
@@ -483,10 +483,12 @@ delib.host {
       services.swaync = {
         enable = true;
         customSettings = {
+          /*
           "mute-protonvpn" = {
             state = "ignored";
             app-name = ".*Proton.*";
           };
+          */
         };
       };
 

@@ -3,7 +3,12 @@ delib.module {
   name = "programs.claude-code";
   options = delib.singleEnableOption false;
 
+  nixos.always = {
+    imports = [ inputs.claude-cowork-service.nixosModules.default ];
+  };
+
   nixos.ifEnabled = {
+    services.claude-cowork.enable = true;
     nixpkgs.overlays = [ inputs.claude-code.overlays.default ];
 
     environment.systemPackages = [ pkgs.claude-code ];
