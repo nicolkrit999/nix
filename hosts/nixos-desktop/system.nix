@@ -12,8 +12,7 @@ delib.host {
   nixos = {
     system.stateVersion = "25.11";
 
-    environment.variables = {
-    };
+    environment.variables = { };
 
     # Configure host specific impermanence persist
     environment.persistence."/persist" = {
@@ -122,6 +121,7 @@ delib.host {
     home-manager.users.${myUserName} =
       { ... }:
       {
+
         programs.git = {
           enable = true;
           settings = {
@@ -187,6 +187,11 @@ delib.host {
         nas_owncloud_url.sopsFile = commonSecrets;
         nas_owncloud_user.sopsFile = commonSecrets;
         nas_owncloud_pass.sopsFile = commonSecrets;
+
+        openrouter_api_claude_code = {
+          sopsFile = commonSecrets;
+          owner = myUserName;
+        };
 
         borg-passphrase = { };
         borg-private-key = { };
@@ -285,6 +290,7 @@ delib.host {
       pinentry-qt
       pinentry-curses
       libvdpau-va-gl
+      litellm
       pay-respects
       pokemon-colorscripts
       stow
