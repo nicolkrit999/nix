@@ -28,18 +28,6 @@ delib.module {
           "*.swp"
           ".DS_Store"
 
-          # Claude code
-          "*.jsonl"
-          ".claude.json"
-          ".claude.json.backup.*"
-          ".credentials.json"
-          "credentials.json"
-          "security_warnings_*.json"
-          "**/.claude/*"
-          "!**/.claude/agents/"
-          "!**/.claude/skills/"
-          "!**/.claude/settings.json"
-          "!**/.claude/statusline-commands.sh"
         ]
         ++ cfg.customGitIgnores;
 
