@@ -28,6 +28,7 @@ delib.host {
         mkdir -p $HOME/Pictures/wallpapers || true
         mkdir -p $HOME/momentary || true
         mkdir -p $HOME/web-clients || true
+       mkdir -p $HOME/.distrobox-bin || true
       '';
     };
   };
