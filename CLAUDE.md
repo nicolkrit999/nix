@@ -57,8 +57,14 @@ delib.module {
     home.packages = [ ... ];
   };
 
-  # Always apply (regardless of enable):
-  myconfig.always = { cfg, ... }: { ... };
+  # Always apply (NixOS system level) (regardless of enable):
+  # When using this any option regarding if the delib module is enabled/disabled must not be set as they do not make sense
+  nixos.always = { cfg, ... }: { ... };
+
+
+  # Always apply (home-manager level) (regardless of enable): 
+  # When using this any option regarding if the delib module is enabled/disabled must not be set as they do not make sense
+  home.always = { cfg, ... }: { ... };
 }
 ```
 
