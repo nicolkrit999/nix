@@ -62,6 +62,7 @@ delib.module {
 }
 ```
 
+- A module can have both system and home-manager blocks enabled in the same file depending on the needs. If an import block is needed it must be inside a  `nixos.always` or a `home.always`, otherwise the rebuild fail
 - `delib.singleEnableOption <default>` — creates a single `enable` boolean option
 - `delib.moduleOptions { ... }` — creates multiple typed options (used in `constants.nix`)
 - Option helpers: `strOption`, `boolOption`, `listOfOption`, `submodule`
@@ -119,8 +120,8 @@ Modules are organized by dot-path prefix matching their filesystem path:
 
 - `programs.*` — programs (bat, fzf, hyprland, niri, git, etc.)
 - `services.*` — services (audio, sddm, impermanence, tailscale, etc.)
-- `krit.programs.*` — user-specific programs (kitty, neovim, yazi, etc.)
-- `krit.services.*` — user-specific services (nas, logitech, flatpak, etc.)
+- `<user>.programs.*` — user-specific programs (kitty, neovim, yazi, etc.)
+- `<user>.services.*` — user-specific services (nas, logitech, flatpak, etc.)
 - `constants` — the constants block
 
 ## Theming
@@ -134,7 +135,7 @@ Uses [stylix](https://github.com/danth/stylix) + [catppuccin-nix](https://github
 ## Secrets
 
 Managed with sops-nix. Secrets files:
-- Per-user: `users/krit/sops/krit-common-secrets-sops.yaml`
+- Per-user: `users/<user>/sops/<user>-common-secrets-sops.yaml`
 - Per-host: `hosts/<hostname>/<hostname>-secrets-sops.yaml`
 - Config: `.sops.yaml` at repo root
 
@@ -150,3 +151,6 @@ Managed with sops-nix. Secrets files:
 | `modules/programs/shells/shell-aliases.nix` | All shell aliases, reads constants at build time |
 | `hosts/template-host-full/` | Template for new full-featured hosts |
 | `hosts/template-host-minimal/` | Template for new minimal hosts |
+
+## `./templates/`
+This folder contains any nix files which is not written the `denix` way, they are not auto-discovered and are used to put common and user-specific .nix files which are not meant to use denix, such as specializations
