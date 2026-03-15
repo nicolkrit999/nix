@@ -290,7 +290,6 @@ delib.host {
       pinentry-qt
       pinentry-curses
       libvdpau-va-gl
-      litellm
       pay-respects
       pokemon-colorscripts
       stow

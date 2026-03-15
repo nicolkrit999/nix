@@ -31,6 +31,8 @@ delib.module {
 
     environment.systemPackages = [
       pkgs.claude-code
+      pkgs.python313Packages.litellm
+
 
       (pkgs.writeShellScriptBin "cai" ''
         if [ -f /run/secrets/openrouter_api_claude_code ]; then
