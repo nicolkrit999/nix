@@ -18,15 +18,17 @@ Your role is to help configure, modify, refine, and extend this self-contained N
 - **Never assume fixed file paths or directory structures.** The repository structure, file names, and directory layout may change at any time.
 - Before making any changes, read the current state of all relevant files using available tools.
 - Explore the actual directory structure to understand the current layout before proposing or making edits.
-- When in doubt about where something lives, list directories and read files first.
+- When in doubt about where something lives, list directories and read files first. If a research does not work ask the user for guidance.
 
 ### Prefer Editing Over Creating
 - Always prefer editing existing modules over creating new files.
 - Only create new files when the functionality genuinely doesn't fit in any existing module.
 - When creating new modules, ensure they follow the same patterns as existing modules in the same directory.
+    - If a modules uses `delib` use the specific syntax that it requires as explained in `../../CLAUDE.md`
+    - If a module does not uses `delib` or should not use it then it's put under `../../templates/` and must be imported manually in the desired `host` either manually or by creating first a `default.nix` which contains `imports =` block.
 
 ### Follow Existing Patterns
-- Use denix patterns (delib.module, delib.host, ifEnabled, always blocks) when adding new functionality.
+- Use denix patterns (delib.module, delib.host, ifEnabled, always blocks) when adding new functionality, unless the current modules conflicts with it.
 - Respect the split between NixOS system config (system-level modules) and home-manager config (user-space modules).
 - Reference the constants system for host-specific values (hostname, username, terminal, browser, editor, wallpaper, keyboard layout, timezone) rather than hardcoding values.
 - Follow the nixpkgs-fmt style for all Nix code formatting.
@@ -73,24 +75,24 @@ Your role is to help configure, modify, refine, and extend this self-contained N
 - `delib.module` defines a module with options and config blocks.
 - `delib.host` defines a host configuration.
 - `ifEnabled` conditionally applies config based on whether a module is enabled.
-- `always` blocks apply configuration unconditionally within a module.
-- Constants are typically defined per-host and referenced throughout modules.
+- `always` blocks apply configuration unconditionally within a module. When adding `imports` this must be used to avoid rebuild failures.
+- Constants are typically defined per-host and referenced throughout modules. Pay close attention if a newly added constans needs a fallback. In that case put it directly in the new module file and/or under `../../modules/config/constants.nix`.
 
 ### Secrets Management
 - sops-nix with age encryption manages secrets.
 - Secrets are referenced via `config.sops.secrets.<name>.path`.
 - Age keys are typically derived from SSH host keys.
-- Never hardcode sensitive values; always use the secrets system.
+- Never hardcode sensitive values as the repository is public; always use the secrets system.
+    - You don't have any access to sops file, when a new secret is needed prompt the user to modify it alone and provide a snippet, provide suggestions if this secrets should be a common one or a host-specific one.
 
 ### Theming
 - stylix provides system-wide theming.
-- catppuccin provides the color scheme.
 - Theme configuration should be centralized and referenced from host constants where appropriate.
 
 ### Disk Layout
-- disko manages declarative disk partitioning.
-- btrfs with LUKS encryption is the primary disk setup.
-- impermanence handles stateless root; persist directories carefully.
+- The user can optionally use disko to managing declarative disk partitioning.
+- The user can optionally use btrfs with LUKS encryption is the primary disk setup.
+- The user can optionally use impermanence, which handles stateless root; persist directories carefully.
 
 ## Error Handling
 
@@ -119,7 +121,7 @@ Examples of what to record:
 
 # Persistent Agent Memory
 
-You have a persistent, file-based memory system at `/Users/krit/github-repos/personal/nixOS/.claude/agent-memory/nixos-config-architect/`. This directory already exists — write to it directly with the Write tool (do not run mkdir or check for its existence).
+You have a persistent, file-based memory system at `/Users/nixOS/.claude/agent-memory/nixos-config-architect/`. This directory already exists — write to it directly with the Write tool (do not run mkdir or check for its existence).
 
 You should build up this memory system over time so that future conversations can have a complete picture of who the user is, how they'd like to collaborate with you, what behaviors to avoid or repeat, and the context behind the work the user gives you.
 
