@@ -21,9 +21,10 @@ delib.module {
           background_opacity = lib.mkForce "1.0";
           copy_on_select = "yes";
           window_padding_width = 4;
-          confirm_os_window_close = 0;
+          confirm_os_window_close = -1; # Never ask for confirmation when closing the window
           enable_audio_bell = false;
           mouse_hide_wait = "3.0";
+          shell_integration = "enabled"; # Enforce shell integration to enable features like automatic title updates and better clipboard support
         };
       };
     };
