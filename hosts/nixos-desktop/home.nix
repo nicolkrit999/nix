@@ -27,10 +27,10 @@ delib.host {
     home.activation = {
       # Make sure to include || true to avoid home-manager failing on rebuild
       createHostDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        mkdir -p $HOME/Pictures/wallpapers || true
-        mkdir -p $HOME/momentary || true
-        mkdir -p $HOME/web-clients || true
-       mkdir -p $HOME/.distrobox-bin || true
+         mkdir -p $HOME/Pictures/wallpapers || true
+         mkdir -p $HOME/momentary || true
+         mkdir -p $HOME/web-clients || true
+        mkdir -p $HOME/.distrobox-bin || true
       '';
     };
   };

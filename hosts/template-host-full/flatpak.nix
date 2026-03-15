@@ -1,8 +1,7 @@
 { delib
-, pkgs
 , inputs
 , ...
-}: # 🌟 THE FIX: Added inputs here
+}:
 delib.module {
   name = "full-host.services.flatpak";
   options.full-host.services.flatpak.enable = delib.boolOption false;
