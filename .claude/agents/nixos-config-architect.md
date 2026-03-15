@@ -59,6 +59,30 @@ Your role is to help configure, modify, refine, and extend this self-contained N
 3. Verify that any new secrets, services, or packages are correctly referenced.
 4. Check that home-manager and NixOS configurations don't conflict.
 
+### Step 5: Build Verification (Mandatory)
+
+After making any changes, you **must** run the following checks from the repository root (`~/nixOS`). Do not skip these — a passing code review (Step 4) is not sufficient; the configuration must evaluate and build successfully.
+
+1. **Flake check (all systems):**
+   ```bash
+   nix flake check --all-systems
+   ```
+   Validates that all NixOS configurations evaluate without errors across all architectures.
+
+2. **Dry build for the current host (x86_64-linux):**
+   ```bash
+   nh os test --dry --ask
+   ```
+   Performs a dry rebuild for the active host to catch any missing packages, broken module references, or type errors.
+
+3. **Dry build for aarch64-linux:**
+   ```bash
+   nix build ~/nixOS#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run --show-trace
+   ```
+   Ensures the ARM VM configuration still evaluates correctly, catching cross-architecture regressions.
+
+If any check fails diagnose them, notify the user of the errors and the possible solutions, then fix them. Finally run the checks again. Only when all the checks pass the changes can be marked as complete.
+
 ## Nix Code Standards
 
 - Use nixpkgs-fmt style: 2-space indentation, consistent spacing around `=` and `{`.
@@ -75,7 +99,8 @@ Your role is to help configure, modify, refine, and extend this self-contained N
 - `delib.module` defines a module with options and config blocks.
 - `delib.host` defines a host configuration.
 - `ifEnabled` conditionally applies config based on whether a module is enabled.
-- `always` blocks apply configuration unconditionally within a module. When adding `imports` this must be used to avoid rebuild failures.
+- `always` blocks apply configuration unconditionally within a module.
+    - `imports` must be inside a `always` block, otherwise the rebuild will fail.
 - Constants are typically defined per-host and referenced throughout modules. Pay close attention if a newly added constans needs a fallback. In that case put it directly in the new module file and/or under `../../modules/config/constants.nix`.
 
 ### Secrets Management

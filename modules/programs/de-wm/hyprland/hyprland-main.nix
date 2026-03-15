@@ -64,7 +64,6 @@ delib.module {
         playerctl # Media player control
         showmethekey # Keypress visualizer
         wl-clipboard # Wayland clipboard utilities
-        xdg-desktop-portal-hyprland # Required for screen sharing
       ];
 
       wayland.windowManager.hyprland = {
@@ -228,9 +227,9 @@ delib.module {
             "center, title:^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"
             "size 50% 50%, title:^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"
 
-            "float, class:^(xdg-desktop-portal-gtk)$"
-            "center, class:^(xdg-desktop-portal-gtk)$"
-            "size 50% 50%, class:^(xdg-desktop-portal-gtk)$"
+            "float, class:^(xdg-desktop-portal-kde)$"
+            "center, class:^(xdg-desktop-portal-kde)$"
+            "size 50% 50%, class:^(xdg-desktop-portal-kde)$"
 
             # Prevent Auto-Maximize & Focus Stealing ---
             "suppressevent maximize, class:.*"

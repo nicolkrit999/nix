@@ -63,7 +63,8 @@ delib.module {
 ```
 
 - A module can have both system and home-manager blocks enabled in the same file depending on the needs. If an import block is needed it must be inside a  `nixos.always` or a `home.always`, otherwise the rebuild fail
-- `delib.singleEnableOption <default>` — creates a single `enable` boolean option
+- Never write as options the names of the module again as it is not needed, instead using `options` or `moduleOptions` is enough
+- `delib.singleEnableOption <default>` — creates a single `enable` boolean option. When a program only require this single option prefer using that
 - `delib.moduleOptions { ... }` — creates multiple typed options (used in `constants.nix`)
 - Option helpers: `strOption`, `boolOption`, `listOfOption`, `submodule`
 
