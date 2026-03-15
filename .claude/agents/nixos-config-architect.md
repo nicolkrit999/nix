@@ -101,6 +101,7 @@ If any check fails diagnose them, notify the user of the errors and the possible
 - `ifEnabled` conditionally applies config based on whether a module is enabled.
 - `always` blocks apply configuration unconditionally within a module.
     - `imports` must be inside a `always` block, otherwise the rebuild will fail.
+    - When a module is always enabled and it does not have any `.ifEnabled` block than the enable/disable options is not needed at all and can be skipped completely.
 - Constants are typically defined per-host and referenced throughout modules. Pay close attention if a newly added constans needs a fallback. In that case put it directly in the new module file and/or under `../../modules/config/constants.nix`.
 
 ### Secrets Management

@@ -3,7 +3,6 @@
 , ...
 }:
 delib.module {
-  options = delib.singleEnableOption true;
   name = "xdg-portal";
 
   nixos.always = {
