@@ -67,6 +67,7 @@ jobs:
         run: nix flake check --show-trace
 
       - name: Check for Dead Code (deadnix)
+        continue-on-error: true
         run: |
           NO_COLOR=1 nix run github:astro/deadnix -- . > deadnix_report.txt || true
           if [ -s deadnix_report.txt ]; then
@@ -80,11 +81,11 @@ jobs:
 
       - name: Notify Dead Code (x86_64)
         if: env.HAS_DEAD_CODE == 'true' && env.WEBHOOK_ID != ''
+        continue-on-error: true
         env:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
         run: |
-          export REPORT="$DEADCODE_REPORT"
-          jq -n --env REPORT --arg prefix "🧹 **Dead Nix Code Detected (x86_64)** Consider cleaning up:" '{content: ($prefix + "\n```text\n" + $REPORT + "\n```")}' > payload.json
+          jq -n --arg prefix "🧹 **Dead Nix Code Detected (x86_64)** Consider cleaning up:" --arg report "$DEADCODE_REPORT" '{content: ($prefix + "\n```text\n" + $report + "\n```")}' > payload.json
           curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
 
       - name: Build x86_64 Configurations
@@ -100,6 +101,8 @@ jobs:
           fi
 
       - name: Check Disk Usage
+        if: always()
+        continue-on-error: true
         run: |
           echo "--- Disk Space Usage ---"
           df -h /nix
@@ -107,12 +110,15 @@ jobs:
           du -sh /nix/store
 
       - name: Show Package Tree (x86_64)
+        if: always()
+        continue-on-error: true
         run: |
           OUT_PATHS=$(cat outpaths.txt)
           nix path-info -sh -r $OUT_PATHS
 
       - name: Notify on Failure (x86_64)
         if: failure() && env.WEBHOOK_ID != ''
+        continue-on-error: true
         env:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
         run: |
@@ -169,6 +175,7 @@ jobs:
         run: nix flake check --show-trace
 
       - name: Check for Dead Code (deadnix)
+        continue-on-error: true
         run: |
           NO_COLOR=1 nix run github:astro/deadnix -- . > deadnix_report.txt || true
           if [ -s deadnix_report.txt ]; then
@@ -182,11 +189,11 @@ jobs:
 
       - name: Notify Dead Code (AArch64)
         if: env.HAS_DEAD_CODE == 'true' && env.WEBHOOK_ID != ''
+        continue-on-error: true
         env:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
         run: |
-          export REPORT="$DEADCODE_REPORT"
-          jq -n --env REPORT --arg prefix "🧹 **Dead Nix Code Detected (AArch64)** Consider cleaning up:" '{content: ($prefix + "\n```text\n" + $REPORT + "\n```")}' > payload.json
+          jq -n --arg prefix "🧹 **Dead Nix Code Detected (AArch64)** Consider cleaning up:" --arg report "$DEADCODE_REPORT" '{content: ($prefix + "\n```text\n" + $report + "\n```")}' > payload.json
           curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
 
       - name: Build AArch64 Configurations
@@ -202,6 +209,8 @@ jobs:
           fi
 
       - name: Check Disk Usage
+        if: always()
+        continue-on-error: true
         run: |
           echo "--- Disk Space Usage ---"
           df -h /nix
@@ -209,12 +218,15 @@ jobs:
           du -sh /nix/store
 
       - name: Show Package Tree (AArch64)
+        if: always()
+        continue-on-error: true
         run: |
           OUT_PATHS=$(cat outpaths.txt)
           nix path-info -sh -r $OUT_PATHS
 
       - name: Notify on Failure (AArch64)
         if: failure() && env.WEBHOOK_ID != ''
+        continue-on-error: true
         env:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
         run: |
