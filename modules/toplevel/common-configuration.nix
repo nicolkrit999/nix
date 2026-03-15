@@ -98,7 +98,6 @@ delib.module {
           sops # Secret management
           shellPkg # The selected shell package (bash, zsh, or fish)
           tpm2-tss # Used for hosts that installed using disko-cnfig with luks
-          xdg-desktop-portal-gtk # GTK portal backend for file pickers
 
           # --- GRAPHICS & GUI SUPPORT ---
           gtk3 # Standard GUI toolkit
