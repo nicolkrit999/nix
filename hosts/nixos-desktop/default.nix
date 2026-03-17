@@ -176,7 +176,23 @@ delib.host {
       programs.nix-alien.enable = true;
       programs.comma.enable = true;
       programs.statix.enable = true;
-      programs.claude-code.enable = true;
+      programs.claude-code = {
+        enable = true;
+        mcpSecrets = [
+          { sopsSecret = "openrouter_api_claude_code"; envVar = "OPENROUTER_API_KEY"; }
+          { sopsSecret = "claude_mcp_actual_password"; envVar = "ACTUAL_PASSWORD"; }
+          { sopsSecret = "claude_mcp_actual_encryption_password"; envVar = "ACTUAL_BUDGET_ENCRYPTION_PASSWORD"; }
+          { sopsSecret = "claude_mcp_context7_api_key"; envVar = "CONTEXT7_API_KEY"; }
+          { sopsSecret = "claude_mcp_openai_api_key"; envVar = "OPENAI_API_KEY"; }
+          { sopsSecret = "claude_mcp_milvus_token"; envVar = "MILVUS_TOKEN"; }
+          { sopsSecret = "claude_mcp_github_token"; envVar = "GITHUB_TOKEN"; }
+          { sopsSecret = "claude_mcp_portainer_token"; envVar = "PORTAINER_TOKEN"; }
+        ];
+        mcpEnv = {
+          ACTUAL_SERVER_URL = "https://budget.nicolkrit.ch";
+          ACTUAL_BUDGET_SYNC_ID = "beb214bb-7250-4f90-87fd-dc2d7a104e53";
+        };
+      };
 
       programs.git = {
         enable = true;

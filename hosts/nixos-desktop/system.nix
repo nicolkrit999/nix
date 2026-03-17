@@ -193,6 +193,35 @@ delib.host {
           owner = myUserName;
         };
 
+        claude_mcp_actual_password = {
+          sopsFile = commonSecrets;
+          owner = myUserName;
+        };
+        claude_mcp_actual_encryption_password = {
+          sopsFile = commonSecrets;
+          owner = myUserName;
+        };
+        claude_mcp_context7_api_key = {
+          sopsFile = commonSecrets;
+          owner = myUserName;
+        };
+        claude_mcp_openai_api_key = {
+          sopsFile = commonSecrets;
+          owner = myUserName;
+        };
+        claude_mcp_milvus_token = {
+          sopsFile = commonSecrets;
+          owner = myUserName;
+        };
+        claude_mcp_github_token = {
+          sopsFile = commonSecrets;
+          owner = myUserName;
+        };
+        claude_mcp_portainer_token = {
+          sopsFile = commonSecrets;
+          owner = myUserName;
+        };
+
         borg-passphrase = { };
         borg-private-key = { };
         cachix-auth-token = { };
