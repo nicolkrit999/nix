@@ -38,6 +38,28 @@ delib.host {
       ./hardware-configuration.nix
 
       ../../templates/krit/specialization/default.nix
+
+      # Dynamically generate sops secrets for claude-code MCP from mcpSecrets list
+      (
+        { config, lib, ... }:
+        let
+          commonSecrets = ../../users/krit/sops/krit-common-secrets-sops.yaml;
+        in
+        {
+          sops.secrets = lib.mkIf config.myconfig.programs.claude-code.enable (
+            lib.listToAttrs (
+              map (s: {
+                name = s.sopsSecret;
+                value = {
+                  sopsFile = commonSecrets;
+                  owner = myUserName;
+                };
+              }) config.myconfig.programs.claude-code.mcpSecrets
+            )
+          );
+        }
+      )
+
       (
         { config, ... }:
         {
@@ -187,40 +209,6 @@ delib.host {
         nas_owncloud_url.sopsFile = commonSecrets;
         nas_owncloud_user.sopsFile = commonSecrets;
         nas_owncloud_pass.sopsFile = commonSecrets;
-
-        openrouter_api_claude_code = {
-          sopsFile = commonSecrets;
-          owner = myUserName;
-        };
-
-        claude_mcp_actual_password = {
-          sopsFile = commonSecrets;
-          owner = myUserName;
-        };
-        claude_mcp_actual_encryption_password = {
-          sopsFile = commonSecrets;
-          owner = myUserName;
-        };
-        claude_mcp_context7_api_key = {
-          sopsFile = commonSecrets;
-          owner = myUserName;
-        };
-        claude_mcp_openai_api_key = {
-          sopsFile = commonSecrets;
-          owner = myUserName;
-        };
-        claude_mcp_milvus_token = {
-          sopsFile = commonSecrets;
-          owner = myUserName;
-        };
-        claude_mcp_github_token = {
-          sopsFile = commonSecrets;
-          owner = myUserName;
-        };
-        claude_mcp_portainer_token = {
-          sopsFile = commonSecrets;
-          owner = myUserName;
-        };
 
         borg-passphrase = { };
         borg-private-key = { };
