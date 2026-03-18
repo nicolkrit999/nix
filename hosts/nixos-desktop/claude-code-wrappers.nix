@@ -53,6 +53,36 @@ delib.module {
             ANTHROPIC_AUTH_TOKEN="$(cat /run/secrets/openrouter_api_claude_code)" \
             ${pkgs.claude-code}/bin/claude "$@"
         '')
+
+        # --- Skill dependencies ---
+        # Python stack for data/science/document skills
+        # (matplotlib, networkx, pdf, xlsx, pptx, citation-management, markitdown, etc.)
+        (pkgs.python313.withPackages (
+          ps: with ps; [
+            litellm # perplexity-search, generate-image, infographics
+            matplotlib # matplotlib skill
+            networkx # networkx skill
+            pandas # xlsx, data analysis
+            openpyxl # xlsx creation/editing
+            pillow # pptx thumbnail grids, image handling
+            pypdf # pdf skill — merge/split/metadata
+            pdfplumber # pdf skill — text/table extraction
+            reportlab # pdf skill — create PDFs
+            requests # citation-management, literature-review
+            bibtexparser # citation-management — BibTeX parsing
+            biopython # citation-management — PubMed access
+            scholarly # citation-management — Google Scholar
+            markitdown # markitdown skill — file-to-markdown
+          ]
+        ))
+
+        # System CLI tools for document/PDF skills
+        pkgs.pandoc # docx/literature-review — text extraction and PDF generation
+        pkgs.poppler-utils # pdf/pptx/docx — pdftoppm, pdftotext, pdfimages
+        pkgs.tesseract # pdf — OCR for scanned documents
+        # libreoffice-still: not available on aarch64-darwin — install via Homebrew Cask if needed
+        pkgs.uv # fast Python package installer (fallback for non-nix envs)
+        pkgs.nodejs # docx (npm install -g docx), pptx (npm install -g pptxgenjs)
       ];
     };
 }
