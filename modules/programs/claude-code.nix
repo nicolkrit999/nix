@@ -52,6 +52,28 @@ delib.module {
     };
   };
 
+  # ===========================================================================
+  # DARWIN CONFIGURATION
+  # ===========================================================================
+  darwin.always =
+    { ... }:
+    {
+      nixpkgs.overlays = [
+        inputs.claude-code.overlays.default
+      ];
+    };
+
+  darwin.ifEnabled =
+    { ... }:
+    {
+      environment.systemPackages = [
+        pkgs.claude-code
+      ];
+    };
+
+  # ===========================================================================
+  # NIXOS CONFIGURATION
+  # ===========================================================================
   nixos.always = {
     imports = [ inputs.claude-cowork-service.nixosModules.default ];
   };

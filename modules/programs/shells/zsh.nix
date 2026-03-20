@@ -1,5 +1,6 @@
 { delib
 , lib
+, moduleSystem
 , ...
 }:
 delib.module {
@@ -10,15 +11,50 @@ delib.module {
     { myconfig, ... }:
     let
       currentShell = myconfig.constants.shell or "bash";
+      isNixOS = moduleSystem == "nixos";
+      isDarwin = moduleSystem == "darwin";
     in
     lib.mkIf (currentShell == "zsh") {
       programs.zsh = {
         enable = true;
-        initExtra = ''
-            # 1. FIX HYPRLAND SOCKET (Dynamic Update)
+        enableCompletion = true;
+        autosuggestion.enable = true;
+        syntaxHighlighting.enable = true;
+
+        initContent =
+          # Common init
+          ''
+            # LOAD USER CONFIG
+            if [ -f "$HOME/.zshrc_custom" ]; then
+              source "$HOME/.zshrc_custom"
+            fi
+          ''
+          # Darwin-specific init
+          + lib.optionalString isDarwin ''
+            # TMUX AUTOSTART (always on Darwin)
+            if [[ -z "$TMUX" ]] && [[ "$-" == *i* ]]; then
+              exec tmux new-session -A -s main
+            fi
+
+            export CASE_SENSITIVE="true"
+            export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+
+            if [ -z "$SSH_AUTH_SOCK" ]; then
+              eval "$(ssh-agent -s)" >/dev/null
+              if [ -f "$HOME/.ssh/id_ed25519" ]; then
+                ssh-add --apple-use-keychain "$HOME/.ssh/id_ed25519" >/dev/null 2>&1 || true
+              fi
+            fi
+
+            if [ -f "$HOME/.iterm2_shell_integration.zsh" ]; then
+              . "$HOME/.iterm2_shell_integration.zsh"
+            fi
+          ''
+          # NixOS-specific init
+          + lib.optionalString isNixOS ''
+            # FIX HYPRLAND SOCKET (Dynamic Update)
             if [ -d "/run/user/$(id -u)/hypr" ];
             then
-              # Search for the actual socket file (Removed 'local' to fix error)
               socket_file=$(find /run/user/$(id -u)/hypr/ -name ".socket.sock" -print -quit)
               if [ -n "$socket_file" ];
               then
@@ -26,20 +62,13 @@ delib.module {
               fi
             fi
 
-            # 2. LOAD USER CONFIG
-            if [ -f "$HOME/.zshrc_custom" ]; then
-              source "$HOME/.zshrc_custom"
-            fi
-
-            # 3. TMUX AUTOSTART (Only in GUI)
+            # TMUX AUTOSTART (Only in GUI)
             if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
               tmux new-session -A -s main
             fi
 
-            # 4. UWSM STARTUP (Universal & Safe)
+            # UWSM STARTUP (Universal & Safe)
             if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
-
-                # Check if uwsm is installed and ready (Safe for KDE/GNOME-only builds)
                 if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
                     exec systemd-cat -t uwsm_start uwsm start default
                 fi
