@@ -83,17 +83,18 @@
         };
       generatedNixosConfigs = mkConfigurations "nixos";
 
-      # Gate Linux-only outputs behind platform check to avoid IFD failures on Darwin.
-      # catppuccin-nix uses importTOML from derivation output (IFD), which requires
-      # building aarch64-linux derivations — impossible on aarch64-darwin without remote builders.
-      isLinux = builtins.elem (builtins.currentSystem or "") [ "x86_64-linux" "aarch64-linux" ];
+      # Hide Linux-only outputs on Darwin to avoid IFD failures.
+      # catppuccin-nix uses importTOML from derivation output (IFD), requiring
+      # aarch64-linux builds — impossible on aarch64-darwin without remote builders.
+      # Default to "not-darwin" so outputs are always exposed unless confirmed on Darwin.
+      isDarwin = builtins.elem (builtins.currentSystem or "not-darwin") [ "aarch64-darwin" "x86_64-darwin" ];
     in
     {
-      nixosConfigurations = nixpkgs.lib.optionalAttrs isLinux generatedNixosConfigs;
-      homeConfigurations = nixpkgs.lib.optionalAttrs isLinux (mkConfigurations "home");
+      nixosConfigurations = if isDarwin then {} else generatedNixosConfigs;
+      homeConfigurations = if isDarwin then {} else mkConfigurations "home";
       darwinConfigurations = mkConfigurations "darwin";
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
-    } // nixpkgs.lib.optionalAttrs isLinux {
+    } // (if isDarwin then {} else {
       topology = forAllSystems (system: import inputs.nix-topology {
         pkgs = import nixpkgs {
           inherit system;
@@ -103,7 +104,7 @@
           { nixosConfigurations = generatedNixosConfigs; }
         ];
       });
-    };
+    });
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
