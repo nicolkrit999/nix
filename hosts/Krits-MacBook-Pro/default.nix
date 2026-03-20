@@ -38,7 +38,7 @@ delib.host {
       };
 
       # ---------------------------------------------------------------
-      # 🌐 SHARED MODULES — explicitly enable ALL
+      # 🌐 SHARED MODULES
       # ---------------------------------------------------------------
       programs.bat.enable = true;
       programs.eza.enable = true;
@@ -67,8 +67,10 @@ delib.host {
 
       home-packages.enable = true;
 
+
+
       # ---------------------------------------------------------------
-      # 👤 KRIT PROGRAMS — explicitly set each
+      # 👤 KRIT PROGRAMS
       # ---------------------------------------------------------------
       krit.programs.cava.enable = false;
       krit.programs.direnv.enable = true;
@@ -90,5 +92,9 @@ delib.host {
       krit.services.nas.Krits-MacBook-Pro-borg-backup.enable = true;
       krit.services.Krits-MacBook-Pro.local-packages.enable = true;
       krit.services.Krits-MacBook-Pro.claude-code-wrappers.enable = true;
+
+      # ---------------------------------------------------------------
+      # 🍎 DARWIN-ONLY MODULES
+      # ---------------------------------------------------------------
     };
 }

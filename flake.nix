@@ -14,25 +14,29 @@
 
       # Common exclusions for all module systems
       baseExclude = [
-        ./users/krit/dev-environments
-        ./users/krit/modules/programs/gui-programs/librewolf/profiles
+        ./users/krit/dev-environments # They should not be delib modules
+        ./users/krit/modules/programs/gui-programs/librewolf/profiles # `librewolf.nix` already imports them
 
+        # Any `hardware-configuration.nix must be excluded`
         ./hosts/nixos-desktop/hardware-configuration.nix
         ./hosts/nixos-arm-vm/hardware-configuration.nix
         ./hosts/template-host-full/hardware-configuration.nix
         ./hosts/template-host-minimal/hardware-configuration.nix
 
+        # Any `disko` must be excluded
         ./hosts/nixos-arm-vm/disko-config-btrfs-luks-impermanence.nix
         ./hosts/template-host-full/disko-config-btrfs.nix
         ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
       ];
 
-      # Darwin hosts (excluded from nixos builds)
+      # Darwin hosts (excluded from nixos builds) 
+      # Add/remove as needed
       darwinHosts = [
         ./hosts/Krits-MacBook-Pro
       ];
 
       # NixOS hosts (excluded from darwin builds)
+      # Add/remove as needed
       nixosHosts = [
         ./hosts/nixos-desktop
         ./hosts/nixos-arm-vm

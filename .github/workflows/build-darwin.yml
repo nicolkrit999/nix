@@ -1,0 +1,71 @@
+name: "Build nix-darwin Configuration"
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Weekly on Fridays at 05:00 UTC
+    - cron: "0 5 * * 5"
+
+# Prevents multiple pushes from building at once, saving runner time
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ===========================================================================
+  # JOB: Build aarch64-darwin (MacBook Pro)
+  # ===========================================================================
+  build-darwin:
+    runs-on: macos-14
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      NIXPKGS_ALLOW_UNFREE: 1
+      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          flakehub: false
+          extra-conf: |
+            auto-optimise-store = true
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Flake
+        run: nix flake check --impure --show-trace
+
+      - name: Build Darwin Configuration
+        run: |
+          nix build .#darwinConfigurations.Krits-MacBook-Pro.system --no-link --print-out-paths > outpaths.txt
+
+      - name: Check Disk Usage
+        if: always()
+        continue-on-error: true
+        run: |
+          echo "--- Disk Space Usage ---"
+          df -h
+          echo "--- Nix Store Size ---"
+          du -sh /nix/store
+
+      - name: Show Package Tree (Darwin)
+        if: always()
+        continue-on-error: true
+        run: |
+          OUT_PATHS=$(cat outpaths.txt)
+          nix path-info -sh -r $OUT_PATHS
+
+      - name: Notify on Failure (Darwin)
+        if: failure() && env.WEBHOOK_ID != ''
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          jq -n --arg content "🚨 nix-darwin build failed on **aarch64-darwin**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
