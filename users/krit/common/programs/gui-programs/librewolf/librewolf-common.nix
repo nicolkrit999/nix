@@ -2,6 +2,7 @@
 , pkgs
 , lib
 , inputs
+, moduleSystem
 , ...
 }:
 delib.module {
@@ -15,6 +16,7 @@ delib.module {
     , ...
     }:
     let
+      isNixOS = moduleSystem == "nixos";
       buildFirefoxXpiAddon = lib.makeOverridable (
         { stdenv ? pkgs.stdenv
         , fetchurl ? pkgs.fetchurl
@@ -246,8 +248,8 @@ delib.module {
     {
       programs.browserpass.enable = false;
 
-      # Desktop entry for the main profile
-      xdg.desktopEntries."librewolf" = {
+      # Desktop entry for the main profile (Linux only)
+      xdg.desktopEntries."librewolf" = lib.mkIf isNixOS {
         name = "LibreWolf";
         genericName = "Web Browser";
         exec = "librewolf %U";
@@ -267,8 +269,8 @@ delib.module {
         comment = "Web Browser";
       };
 
-      # Desktop entry for the privacy profile
-      xdg.desktopEntries."librewolf-privacy" = {
+      # Desktop entry for the privacy profile (Linux only)
+      xdg.desktopEntries."librewolf-privacy" = lib.mkIf isNixOS {
         name = "LibreWolf Privacy";
         genericName = "Web Browser";
         exec = "librewolf -P Privacy --no-remote";

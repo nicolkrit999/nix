@@ -1,6 +1,7 @@
 { delib
 , pkgs
 , lib
+, moduleSystem
 , ...
 }:
 delib.module {
@@ -13,6 +14,9 @@ delib.module {
     { myconfig
     , ...
     }:
+    let
+      isNixOS = moduleSystem == "nixos";
+    in
     {
 
       home.packages = with pkgs; [
@@ -430,7 +434,8 @@ delib.module {
         };
       };
 
-      xdg.desktopEntries.yazi = lib.mkForce {
+      # Desktop entry (Linux only)
+      xdg.desktopEntries.yazi = lib.mkIf isNixOS (lib.mkForce {
         name = "Yazi";
         genericName = "File Manager";
         exec = "${
@@ -449,6 +454,6 @@ delib.module {
           "FileManager"
         ];
         mimeType = [ "inode/directory" ];
-      };
+      });
     };
 }
