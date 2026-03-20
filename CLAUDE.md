@@ -132,16 +132,16 @@ Defined in `modules/common/programs/shells/shell-aliases.nix`. Key aliases:
 
 | Alias | Command |
 |-------|---------|
-| `sw` | `cd ~/nixOS && nh os switch ~/nixOS` — rebuild and switch |
-| `gsw` | `git add -A && nh os switch ~/nixOS` — stage all + switch |
-| `upd` | `nh os switch --update ~/nixOS` — update flake + switch |
-| `swboot` | `nh os boot --update ~/nixOS` — build for next boot only |
+| `sw` | `cd ~/nix && nh os switch ~/nix` — rebuild and switch |
+| `gsw` | `git add -A && nh os switch ~/nix` — stage all + switch |
+| `upd` | `nh os switch --update ~/nix` — update flake + switch |
+| `swboot` | `nh os boot --update ~/nix` — build for next boot only |
 | `swdry` | `nh os test --dry --ask` — dry run |
 | `swoff` | switch offline (no substitutes) |
 | `cleanup` | `nh clean all` |
 | `fmt` | `nix fmt -- **/*.nix` |
 | `nfc` | `nix flake check` |
-| `cdnix` | `cd ~/nixOS` |
+| `cdnix` | `cd ~/nix` |
 | `sops-host` | Edit host-specific sops secrets |
 | `sops-common` | Edit user common sops secrets |
 | `merge_dev-main` | Merge develop → main, push, return to develop |
