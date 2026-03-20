@@ -16,11 +16,57 @@ Nixpkgs channel: `nixos-25.11`. Home-manager user: `krit`.
 
 ## Cross-Platform Architecture
 
-This single repo supports **three architectures**: `x86_64-linux`, `aarch64-linux`, and `aarch64-darwin`. The `flake.nix` uses platform-aware path separation to keep NixOS and nix-darwin configurations isolated:
+This single repo supports **three architectures**: `x86_64-linux`, `aarch64-linux`, and `aarch64-darwin`. The `flake.nix` uses a **3-way module split** to share common code while isolating platform-specific modules:
 
-- **NixOS builds** (`moduleSystem == "nixos"`): scan `./hosts`, `./modules`, `./packages`, `./users` — exclude darwin host dirs.
-- **Darwin builds** (`moduleSystem == "darwin"`): scan **only** `./hosts/Krits-MacBook-Pro` and `./hosts/Krits-MacBook-Pro/modules` — self-contained, does not load shared `./modules/`.
-- **Home builds** (`moduleSystem == "home"`): same as NixOS paths — exclude darwin hosts (darwin uses integrated home-manager via nix-darwin).
+### Directory Structure
+
+```
+modules/
+├── common/          # Shared modules (work on both NixOS and Darwin)
+│   ├── config/      # constants.nix lives here
+│   ├── programs/    # Shared program configs (bat, git, starship, etc.)
+│   ├── services/    # (if any shared services)
+│   └── toplevel/    # cachix, home-manager, home-packages, nh
+├── darwin/          # Darwin-only modules
+│   ├── config/      # Darwin-specific config (currently empty)
+│   ├── programs/    # Darwin-specific programs
+│   ├── services/    # Darwin-specific services
+│   └── toplevel/    # common-configuration-darwin, home-darwin, nix-darwin, stylix-darwin, user-darwin
+└── nixos/           # NixOS-only modules
+    ├── programs/    # DE/WM configs (hyprland, niri, kde, gnome, cosmic), Linux-only programs
+    ├── services/    # Linux services (audio, sddm, hyprlock, swaync, tailscale, etc.)
+    └── toplevel/    # boot, bluetooth, mime, common-configuration-nixos, home-nixos, nix-nixos, stylix-nixos, user-nixos
+
+users/krit/
+├── common/          # Shared user modules (neovim, yazi, firefox, kitty, etc.)
+│   ├── programs/
+│   └── sops/        # User secrets (krit-common-secrets-sops.yaml)
+├── darwin/          # Darwin-only user modules
+│   └── services/    # NAS services for Mac (owncloud, smb, ssh, borg-backup)
+└── nixos/           # NixOS-only user modules
+    ├── programs/    # cava, dolphin, zathura
+    └── services/    # NAS services for Linux, logitech, progressive-web-apps
+```
+
+### Platform Path Selection in flake.nix
+
+- **NixOS builds** (`moduleSystem == "nixos"`): `./hosts`, `./modules/common`, `./modules/nixos`, `./packages`, `./users/krit/common`, `./users/krit/nixos`
+- **Darwin builds** (`moduleSystem == "darwin"`): `./hosts/Krits-MacBook-Pro`, `./modules/common`, `./modules/darwin`, `./users/krit/common`, `./users/krit/darwin`
+- **Home builds** (`moduleSystem == "home"`): same as NixOS paths (darwin uses integrated home-manager via nix-darwin)
+
+### Toplevel Module Split
+
+Critical toplevel modules are duplicated with platform-specific implementations:
+
+| Module | NixOS File | Darwin File |
+|--------|------------|-------------|
+| common-configuration | `modules/nixos/toplevel/common-configuration-nixos.nix` | `modules/darwin/toplevel/common-configuration-darwin.nix` |
+| home | `modules/nixos/toplevel/home-nixos.nix` | `modules/darwin/toplevel/home-darwin.nix` |
+| nix | `modules/nixos/toplevel/nix-nixos.nix` | `modules/darwin/toplevel/nix-darwin.nix` |
+| stylix | `modules/nixos/toplevel/stylix-nixos.nix` | `modules/darwin/toplevel/stylix-darwin.nix` |
+| user | `modules/nixos/toplevel/user-nixos.nix` | `modules/darwin/toplevel/user-darwin.nix` |
+
+These share the same `delib.module { name = "..."; }` so they define the same options, but implementations differ per platform.
 
 ### IFD Guard for `nix flake check`
 
@@ -44,12 +90,29 @@ nixosConfigurations = if isDarwin then {} else generatedNixosConfigs;
 
 ### Darwin Host Structure
 
-The darwin host is self-contained under `hosts/Krits-MacBook-Pro/`:
+The darwin host files live under `hosts/Krits-MacBook-Pro/`:
 - `default.nix` — `delib.host` definition with constants and module enablement
 - `system.nix` — darwin system-level config (Homebrew, macOS defaults, sops secrets)
 - `home.nix` — home-manager config (git signing, packages)
-- `modules/` — darwin-specific modules (nix settings, user config, common config, constants override)
-- Program modules shared with NixOS (bat, fish, git, starship, etc.) live in `modules/programs/` inside the darwin host directory, using `home.ifEnabled` blocks (same as NixOS shared modules)
+
+Darwin-specific modules now live in `modules/darwin/` and `users/krit/darwin/` (not inside the host directory). Shared modules from `modules/common/` and `users/krit/common/` work on both platforms.
+
+### Linux-Only Features Guard
+
+Some home-manager options only work on Linux (e.g., `xdg.desktopEntries`, `xdg.mimeApps`). In shared modules under `common/`, guard these with:
+
+```nix
+{ moduleSystem, lib, ... }:
+let
+  isNixOS = moduleSystem == "nixos";
+in
+{
+  xdg.desktopEntries.myapp = lib.mkIf isNixOS {
+    name = "My App";
+    # ...
+  };
+}
+```
 
 ### Module Block Types by Platform
 
@@ -65,7 +128,7 @@ The darwin host is self-contained under `hosts/Krits-MacBook-Pro/`:
 
 ## Common Shell Aliases
 
-Defined in `modules/programs/shells/shell-aliases.nix`. Key aliases:
+Defined in `modules/common/programs/shells/shell-aliases.nix`. Key aliases:
 
 | Alias | Command |
 |-------|---------|
@@ -156,7 +219,7 @@ The `myconfig` block is where all per-host module configuration lives.
 
 ## Constants System
 
-**File:** `modules/config/constants.nix`
+**File:** `modules/common/config/constants.nix`
 
 Defines shared options via `delib.moduleOptions { ... }`. All constants are accessible anywhere as `myconfig.constants.<name>`.
 
@@ -199,7 +262,7 @@ Uses [stylix](https://github.com/danth/stylix) + [catppuccin-nix](https://github
 ## Secrets
 
 Managed with sops-nix. Secrets files:
-- Per-user: `users/<user>/sops/<user>-common-secrets-sops.yaml`
+- Per-user: `users/<user>/common/sops/<user>-common-secrets-sops.yaml`
 - Per-host: `hosts/<hostname>/<hostname>-secrets-sops.yaml`
 - Config: `.sops.yaml` at repo root
 
@@ -207,15 +270,16 @@ Managed with sops-nix. Secrets files:
 
 | File | Purpose |
 |------|---------|
-| `flake.nix` | Entry point; defines inputs, paths scanned, `mkConfigurations`, `isDarwin` guard |
-| `modules/config/constants.nix` | Shared typed constants, accessible as `myconfig.constants.*` |
+| `flake.nix` | Entry point; defines inputs, paths scanned, `mkConfigurations`, `isDarwin` guard, 3-way split |
+| `modules/common/config/constants.nix` | Shared typed constants, accessible as `myconfig.constants.*` |
+| `modules/common/programs/shells/shell-aliases.nix` | All shell aliases, reads constants at build time |
+| `modules/nixos/toplevel/` | NixOS-only toplevel modules (boot, bluetooth, stylix-nixos, etc.) |
+| `modules/darwin/toplevel/` | Darwin-only toplevel modules (stylix-darwin, nix-darwin, etc.) |
 | `hosts/nixos-desktop/default.nix` | Full real-world NixOS `delib.host` example |
 | `hosts/nixos-arm-vm/default.nix` | ARM NixOS host example |
 | `hosts/Krits-MacBook-Pro/default.nix` | Darwin `delib.host` example with constants + module enablement |
 | `hosts/Krits-MacBook-Pro/system.nix` | Darwin system config (Homebrew, macOS defaults, sops) |
-| `hosts/Krits-MacBook-Pro/modules/` | Darwin-specific modules (nix, user, home, common config) |
-| `modules/toplevel/hyprland.nix` | Minimal `delib.module` with `singleEnableOption` |
-| `modules/programs/shells/shell-aliases.nix` | All shell aliases, reads constants at build time |
+| `modules/nixos/toplevel/hyprland.nix` | Minimal `delib.module` with `singleEnableOption` |
 | `hosts/template-host-full/` | Template for new full-featured hosts |
 | `hosts/template-host-minimal/` | Template for new minimal hosts |
 
