@@ -7,12 +7,61 @@
       allSystems = [
         "x86_64-linux"
         "aarch64-linux"
+        "aarch64-darwin"
       ];
 
       forAllSystems = nixpkgs.lib.genAttrs allSystems;
 
+      # Common exclusions for all module systems
+      baseExclude = [
+        ./users/krit/dev-environments
+        ./users/krit/modules/programs/gui-programs/librewolf/profiles
+
+        ./hosts/nixos-desktop/hardware-configuration.nix
+        ./hosts/nixos-arm-vm/hardware-configuration.nix
+        ./hosts/template-host-full/hardware-configuration.nix
+        ./hosts/template-host-minimal/hardware-configuration.nix
+
+        ./hosts/nixos-arm-vm/disko-config-btrfs-luks-impermanence.nix
+        ./hosts/template-host-full/disko-config-btrfs.nix
+        ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
+      ];
+
+      # Darwin hosts (excluded from nixos builds)
+      darwinHosts = [
+        ./hosts/Krits-MacBook-Pro
+      ];
+
+      # NixOS hosts (excluded from darwin builds)
+      nixosHosts = [
+        ./hosts/nixos-desktop
+        ./hosts/nixos-arm-vm
+        ./hosts/template-host-full
+        ./hosts/template-host-minimal
+      ];
+
       mkConfigurations =
         moduleSystem:
+        let
+          platformExclude =
+            if moduleSystem == "nixos" then darwinHosts
+            else if moduleSystem == "darwin" then nixosHosts
+            else darwinHosts; # home-manager builds exclude darwin hosts (darwin has integrated home-manager)
+
+          # Darwin uses only the darwin host folder (which contains its own modules)
+          # NixOS uses the standard structure
+          platformPaths =
+            if moduleSystem == "darwin" then [
+              ./hosts/Krits-MacBook-Pro
+              ./hosts/Krits-MacBook-Pro/modules
+            ]
+            else [
+              ./hosts
+              ./modules
+              ./packages
+              ./users
+            ];
+        in
         denix.lib.configurations {
           inherit moduleSystem;
           homeManagerUser = "krit";
@@ -25,27 +74,9 @@
             })
           ];
 
-          paths = [
-            ./hosts
-            ./modules
-            ./packages
-            ./users
-          ];
+          paths = platformPaths;
 
-          exclude = [
-            ./users/krit/dev-environments
-            ./users/krit/modules/programs/gui-programs/librewolf/profiles
-
-            ./hosts/nixos-desktop/hardware-configuration.nix
-            ./hosts/nixos-arm-vm/hardware-configuration.nix
-            ./hosts/template-host-full/hardware-configuration.nix
-            ./hosts/template-host-minimal/hardware-configuration.nix
-
-            ./hosts/nixos-arm-vm/disko-config-btrfs-luks-impermanence.nix
-            ./hosts/template-host-full/disko-config-btrfs.nix
-            ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
-
-          ];
+          exclude = baseExclude ++ platformExclude;
 
           specialArgs = { inherit inputs moduleSystem; };
 
@@ -55,6 +86,7 @@
     {
       nixosConfigurations = generatedNixosConfigs;
       homeConfigurations = mkConfigurations "home";
+      darwinConfigurations = mkConfigurations "darwin";
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
 
       topology = forAllSystems (system: import inputs.nix-topology {
@@ -78,10 +110,16 @@
     claude-code.url = "github:sadjow/claude-code-nix";
     claude-cowork-service.url = "github:patrickjaja/claude-cowork-service";
 
+    nix-darwin = {
+      url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     denix = {
       url = "github:yunfachi/denix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
+      inputs.nix-darwin.follows = "nix-darwin";
     };
 
     home-manager = {
@@ -150,6 +188,11 @@
 
     disko = {
       url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
