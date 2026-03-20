@@ -61,7 +61,7 @@ Your role is to help configure, modify, refine, and extend this self-contained N
 
 ### Step 5: Build Verification (Mandatory)
 
-After making any changes, you **must** run the following checks from the repository root (`~/nixOS`). Do not skip these — a passing code review (Step 4) is not sufficient; the configuration must evaluate and build successfully.
+After making any changes, you **must** run the following checks from the repository root (`~/nix`). Do not skip these — a passing code review (Step 4) is not sufficient; the configuration must evaluate and build successfully.
 
 **Detect the current platform** before running checks (check the working directory prefix: `/home/` → Linux, `/Users/` → macOS).
 
@@ -80,7 +80,7 @@ After making any changes, you **must** run the following checks from the reposit
 
 3. **Dry build for aarch64-linux:**
    ```bash
-   nix build ~/nixOS#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run --show-trace
+   nix build ~/nix#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run --show-trace
    ```
 
 #### On macOS (nix-darwin):

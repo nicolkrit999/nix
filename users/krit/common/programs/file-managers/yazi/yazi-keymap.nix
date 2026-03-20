@@ -365,8 +365,8 @@ delib.module {
               "g"
               "n"
             ];
-            run = "cd ~/nixOS";
-            desc = "Go ~/nixOS";
+            run = "cd ~/nix";
+            desc = "Go ~/nix";
           }
 
           {
@@ -382,7 +382,7 @@ delib.module {
               "g"
               "P"
             ];
-            run = "cd ~/nixOS/hosts/nixos-desktop/optional/dev-environments";
+            run = "cd ~/nix/hosts/nixos-desktop/optional/dev-environments";
             desc = "Go nix dev-environments";
           }
 
@@ -431,21 +431,87 @@ delib.module {
 
           # Tabs
           {
-            on = [ "t" "c" ]; # Press 't' then 'c'
+            on = [
+              "t"
+              "c"
+            ]; # Press 't' then 'c'
             run = "tab_create --current";
             desc = "Create a new tab with CWD";
           }
 
           # 1. Absolute Switching
-          { on = [ "t" "1" ]; run = "tab_switch 0"; desc = "Switch to first tab"; }
-          { on = [ "t" "2" ]; run = "tab_switch 1"; desc = "Switch to second tab"; }
-          { on = [ "t" "3" ]; run = "tab_switch 2"; desc = "Switch to third tab"; }
-          { on = [ "t" "4" ]; run = "tab_switch 3"; desc = "Switch to fourth tab"; }
-          { on = [ "t" "5" ]; run = "tab_switch 4"; desc = "Switch to fifth tab"; }
-          { on = [ "t" "6" ]; run = "tab_switch 5"; desc = "Switch to sixth tab"; }
-          { on = [ "t" "7" ]; run = "tab_switch 6"; desc = "Switch to seventh tab"; }
-          { on = [ "t" "8" ]; run = "tab_switch 7"; desc = "Switch to eighth tab"; }
-          { on = [ "t" "9" ]; run = "tab_switch 8"; desc = "Switch to ninth tab"; }
+          {
+            on = [
+              "t"
+              "1"
+            ];
+            run = "tab_switch 0";
+            desc = "Switch to first tab";
+          }
+          {
+            on = [
+              "t"
+              "2"
+            ];
+            run = "tab_switch 1";
+            desc = "Switch to second tab";
+          }
+          {
+            on = [
+              "t"
+              "3"
+            ];
+            run = "tab_switch 2";
+            desc = "Switch to third tab";
+          }
+          {
+            on = [
+              "t"
+              "4"
+            ];
+            run = "tab_switch 3";
+            desc = "Switch to fourth tab";
+          }
+          {
+            on = [
+              "t"
+              "5"
+            ];
+            run = "tab_switch 4";
+            desc = "Switch to fifth tab";
+          }
+          {
+            on = [
+              "t"
+              "6"
+            ];
+            run = "tab_switch 5";
+            desc = "Switch to sixth tab";
+          }
+          {
+            on = [
+              "t"
+              "7"
+            ];
+            run = "tab_switch 6";
+            desc = "Switch to seventh tab";
+          }
+          {
+            on = [
+              "t"
+              "8"
+            ];
+            run = "tab_switch 7";
+            desc = "Switch to eighth tab";
+          }
+          {
+            on = [
+              "t"
+              "9"
+            ];
+            run = "tab_switch 8";
+            desc = "Switch to ninth tab";
+          }
 
           # 2. Relative Switching (Left/Right) - Keeping these fast and single-key
           {

@@ -197,7 +197,7 @@ When changing Desktop Environments, **do not** apply the config immediately. Ins
 2. **Build the bootloader only:**
 
 ```bash
-cd ~/nixOS
+cd ~/nix
 sudo nixos-rebuild boot --flake .
 ```
 
@@ -353,7 +353,7 @@ Starship provide beautiful git status symbols, programming language symbols, the
 
 - Possibility to enable snapshots and define an host-specific retention policy
 - These are only possible if the filesystem is `btrfs`
-- Nor the filesystem nor the snapshots modules are mandatory. If you opt for any filesystem different than `btrfs` you can simply keep the variable to false, or remove it and also remove `~/nixOS/nixos/modules/snapshots.nix`
+- Nor the filesystem nor the snapshots modules are mandatory. If you opt for any filesystem different than `btrfs` you can simply keep the variable to false, or remove it and also remove `~/nix/nixos/modules/snapshots.nix`
 - The `template-host` contains a file named `disko-config` which can be used to configure btrfs automatically.
   - If you prefer to not use `disko` then you should remove that file from the template-host and configure `btrfs` manually using the nix installer
 
@@ -407,7 +407,7 @@ environment.persistence."/persist" = {
 - **Before** setting up impermanance have the user password declared. If impermanance is than disabled for any reason the password can both remain declarative than non declarative
 
 1. **Declarative Passwords**: Because `/etc/shadow` is wiped on reboot, you **must** declare your user password in your Nix code.
-2. **SOPS Integration**: If you use `sops-nix` for your password, you must ensure the decryption key is accessible before the symlinks are created. You can see a working example in `~/nixOS/hosts/nixos-desktop/system.nix`.
+2. **SOPS Integration**: If you use `sops-nix` for your password, you must ensure the decryption key is accessible before the symlinks are created. You can see a working example in `~/nix/hosts/nixos-desktop/system.nix`.
 3. **Direct Key Path**: You **must** point SOPS directly to the physical `/persist` path for your SSH host key to avoid a boot-time race condition:
 4. **Persist mountpoint**: Of course for this to work /persist must actually exist. Both the manual partitioning that the disko installation already create that mountpoint
 
@@ -480,7 +480,7 @@ Fetch the installer template from your repository.
 ```bash
 nix-shell -p git
 git clone https://github.com/nicolkrit999/nixOS.git
-cd ~/nixOS
+cd ~/nix
 ```
 
 ### 2. Identify the Disk and Unallocated Space
@@ -589,7 +589,7 @@ sudo mount /dev/nvme0n1pX /mnt/boot
 Copy the template to a new folder for your machine. Replace `my-computer` with your desired hostname.
 
 ```bash
-cd ~/nixOS/hosts
+cd ~/nix/hosts
 cp -r template-host-full my-computer
 cd my-computer
 ```
@@ -599,7 +599,7 @@ cd my-computer
 1. Open `default.nix` (`nano default.nix`).
 2. **Remove** `inputs.disko.nixosModules.disko` from the `imports` list.
 3. **Remove** any lines referencing `./disko-config...`.
-4. Open `flake.nix` in the root `~/nixOS` directory, and remove any `.disko-config` paths from the `exclude` block.
+4. Open `flake.nix` in the root `~/nix` directory, and remove any `.disko-config` paths from the `exclude` block.
 
 ### 6. Configure Critical Variables
 
@@ -618,10 +618,10 @@ Because the disks are mounted at `/mnt`, NixOS can automatically detect your BTR
 sudo nixos-generate-config --root /mnt
 
 # 2. Copy the generated config to your host folder
-cp /mnt/etc/nixos/hardware-configuration.nix ~/nixOS/hosts/my-computer/
+cp /mnt/etc/nixos/hardware-configuration.nix ~/nix/hosts/my-computer/
 
 # 3. Add the file to git (CRITICAL: Nix Flakes ignore untracked files)
-cd ~/nixOS
+cd ~/nix
 git add hosts/my-computer/hardware-configuration.nix
 
 # 4. Install the system!
@@ -644,7 +644,7 @@ exit
 3. **CRITICAL:** Copy your configuration to the new persistent drive before restarting!
 
 ```bash
-sudo cp -r ~/nixOS /mnt/etc/nixos
+sudo cp -r ~/nix /mnt/etc/nixos
 ```
 
 4. Reboot!
@@ -739,7 +739,7 @@ Edit the host `default.nix` and add in the `nixos` block the import for the chos
 
 Choose **ONE** of the following methods depending on whether you want encryption.
 
-- Both disko-config sample are under ~/nixOS/hosts/template-host-full
+- Both disko-config sample are under ~/nix/hosts/template-host-full
   - Remember to copy them to your chosen host folder
 
 #### Option A: Standard (No Encryption)
@@ -783,7 +783,7 @@ Run the commands corresponding to the configuration you chose in Step 4.
 #### For Option A (Standard):
 
 ```bash
-cd ~/nixOS/hosts/my-computer
+cd ~/nix/hosts/my-computer
 
 # 1. Format the drive (Wipes the drive!)
 sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode format ./disko-config-btrfs.nix
@@ -795,7 +795,7 @@ sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-commu
 nixos-generate-config --no-filesystems --root /mnt --dir .
 
 # 4. Install
-cd ~/nixOS
+cd ~/nix
 sudo nixos-install --flake .#my-computer
 
 ```
@@ -803,7 +803,7 @@ sudo nixos-install --flake .#my-computer
 #### For Option B (LUKS + TPM):
 
 ```bash
-cd ~/nixOS/hosts/my-computer
+cd ~/nix/hosts/my-computer
 
 # 1. Format the drive (Wipes the drive! You will be prompted to create a LUKS password)
 sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-community/disko -- --mode format ./disko-config-btrfs-luks-impermanence.nix
@@ -815,7 +815,7 @@ sudo nix run --extra-experimental-features 'nix-command flakes' github:nix-commu
 nixos-generate-config --no-filesystems --root /mnt --dir .
 
 # 4. Install
-cd ~/nixOS
+cd ~/nix
 sudo nixos-install --flake .#my-computer
 
 ```
@@ -826,7 +826,7 @@ sudo nixos-install --flake .#my-computer
 2. **CRITICAL:** Copy your configuration to the new persistent drive before restarting!
 
 ```bash
-sudo cp -r ~/nixOS /mnt/etc/nixos
+sudo cp -r ~/nix /mnt/etc/nixos
 ```
 
 3. Type `reboot` and remove the USB stick.
@@ -852,19 +852,19 @@ Your configuration is currently owned by `root` in a system folder. Let's move i
 2. Move the config:
 
 ```bash
-sudo mv /etc/nixos ~/nixOS
-sudo chown -R $USER:users ~/nixOS
+sudo mv /etc/nixos ~/nix
+sudo chown -R $USER:users ~/nix
 ```
 
 ### 2. (Optional) Cleanup Unused Hosts
 
 Now that you have your own host (`hostname`), you might want to delete the other hosts, such as `template-host`
 
-Run this command inside `~/nixOS`:
+Run this command inside `~/nix`:
 
 ```bash
 (
-  cd ~/nixOS || return
+  cd ~/nix || return
   printf "Enter hostnames to KEEP (space separated): "
   read -r INPUT
 
@@ -962,7 +962,7 @@ home-manager switch
 
 ```bash
 # This smart command automatically fetch the user so no changes are needed
-sudo chown -R $USER:users ~/nixOS
+sudo chown -R $USER:users ~/nix
 ```
 
 ### Error: `returned non-zero exit status 4` during rebuild
