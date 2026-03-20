@@ -1,7 +1,7 @@
 { delib, lib, pkgs, ... }:
 let
   myUserName = "krit";
-  commonSecrets = ../../../users/krit/sops/krit-common-secrets-sops.yaml;
+  commonSecrets = ../../../users/krit/common/sops/krit-common-secrets-sops.yaml;
 in
 delib.host {
   name = "nixos-desktop";

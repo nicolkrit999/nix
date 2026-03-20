@@ -14,8 +14,8 @@
 
       # Common exclusions for all module systems
       baseExclude = [
-        ./users/krit/dev-environments # They should not be delib modules
-        ./users/krit/modules/programs/gui-programs/librewolf/profiles # `librewolf.nix` already imports them
+        # Note: dev-environments is no longer scanned (outside platformPaths)
+        ./users/krit/common/programs/gui-programs/librewolf/profiles # `librewolf.nix` already imports them
 
         # Any `hardware-configuration.nix must be excluded`
         ./hosts/nixos-desktop/hardware-configuration.nix
@@ -29,14 +29,12 @@
         ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
       ];
 
-      # Darwin hosts (excluded from nixos builds) 
-      # Add/remove as needed
+      # Darwin hosts (excluded from nixos builds)
       darwinHosts = [
         ./hosts/Krits-MacBook-Pro
       ];
 
       # NixOS hosts (excluded from darwin builds)
-      # Add/remove as needed
       nixosHosts = [
         ./hosts/nixos-desktop
         ./hosts/nixos-arm-vm
@@ -44,32 +42,32 @@
         ./hosts/template-host-minimal
       ];
 
-      # Shared NAS modules excluded from darwin (darwin has its own NAS mounting)
-      sharedNasModules = [
-        ./users/krit/modules/services/nas
-      ];
-
       mkConfigurations =
         moduleSystem:
         let
           platformExclude =
             if moduleSystem == "nixos" then darwinHosts
-            else if moduleSystem == "darwin" then nixosHosts ++ sharedNasModules
-            else darwinHosts; # home-manager builds exclude darwin hosts (darwin has integrated home-manager)
+            else if moduleSystem == "darwin" then nixosHosts
+            else darwinHosts; # home-manager builds exclude darwin hosts
 
-          # Darwin uses shared modules + darwin host folder + users
-          # NixOS uses the standard structure
+          # 3-way split: common modules shared, platform-specific separate
+          # Darwin: common + darwin modules/users
+          # NixOS: common + nixos modules/users
           platformPaths =
             if moduleSystem == "darwin" then [
               ./hosts/Krits-MacBook-Pro
-              ./modules
-              ./users
+              ./modules/common
+              ./modules/darwin
+              ./users/krit/common
+              ./users/krit/darwin
             ]
             else [
               ./hosts
-              ./modules
+              ./modules/common
+              ./modules/nixos
               ./packages
-              ./users
+              ./users/krit/common
+              ./users/krit/nixos
             ];
         in
         denix.lib.configurations {

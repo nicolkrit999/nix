@@ -55,7 +55,6 @@ delib.host {
       stylix.enable = true;
       stylix.targets = {
         yazi.enable = false;
-        cava.enable = true;
         kitty.enable = true;
         alacritty.enable = true;
         firefox.profileNames = [ "krit" ];
@@ -72,7 +71,6 @@ delib.host {
       # ---------------------------------------------------------------
       # 👤 KRIT PROGRAMS
       # ---------------------------------------------------------------
-      krit.programs.cava.enable = false;
       krit.programs.direnv.enable = true;
       krit.programs.neovim.enable = true;
       krit.programs.firefox.enable = true;
