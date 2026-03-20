@@ -44,20 +44,26 @@
         ./hosts/template-host-minimal
       ];
 
+      # Shared NAS modules excluded from darwin (darwin has its own NAS mounting)
+      sharedNasModules = [
+        ./users/krit/modules/services/nas
+      ];
+
       mkConfigurations =
         moduleSystem:
         let
           platformExclude =
             if moduleSystem == "nixos" then darwinHosts
-            else if moduleSystem == "darwin" then nixosHosts
+            else if moduleSystem == "darwin" then nixosHosts ++ sharedNasModules
             else darwinHosts; # home-manager builds exclude darwin hosts (darwin has integrated home-manager)
 
-          # Darwin uses only the darwin host folder (which contains its own modules)
+          # Darwin uses shared modules + darwin host folder + users
           # NixOS uses the standard structure
           platformPaths =
             if moduleSystem == "darwin" then [
               ./hosts/Krits-MacBook-Pro
-              ./hosts/Krits-MacBook-Pro/modules
+              ./modules
+              ./users
             ]
             else [
               ./hosts

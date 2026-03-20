@@ -1,25 +1,42 @@
 { delib
 , pkgs
 , inputs
+, moduleSystem
 , ...
 }:
 delib.module {
   name = "home";
 
+  # ===========================================================================
+  # DARWIN HOME CONFIGURATION
+  # ===========================================================================
+  home.always =
+    { myconfig, ... }:
+    let
+      inherit (myconfig.constants) user;
+      # Darwin uses /Users, NixOS uses /home
+      homeDir = if moduleSystem == "darwin" then "/Users/${user}" else "/home/${user}";
+    in
+    {
+      home = {
+        username = user;
+        homeDirectory = homeDir;
+        stateVersion = myconfig.constants.homeStateVersion or "25.11";
+        sessionPath = [ "$HOME/.local/bin" ];
+      };
+
+      programs.home-manager.enable = true;
+    };
+
+  # ===========================================================================
+  # NIXOS HOME CONFIGURATION (additional NixOS-specific settings)
+  # ===========================================================================
   nixos.always =
     { myconfig, ... }:
     {
       home-manager.users.${myconfig.constants.user} =
         { ... }:
         {
-          home = {
-            username = myconfig.constants.user;
-            homeDirectory = "/home/${myconfig.constants.user}";
-            stateVersion = myconfig.constants.homeStateVersion or "25.11";
-            sessionPath = [ "$HOME/.local/bin" ];
-          };
-
-          programs.home-manager.enable = true;
 
           xdg = {
             enable = true;

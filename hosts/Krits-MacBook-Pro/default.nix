@@ -39,18 +39,18 @@ delib.host {
 
       # ---------------------------------------------------------------
       # 🌐 SHARED MODULES
+      # Note: fish/zsh auto-enable based on constants.shell
+      # Note: kitty is configured via krit.programs.kitty below
       # ---------------------------------------------------------------
       programs.bat.enable = true;
       programs.eza.enable = true;
-      programs.fish.enable = true;
       programs.git.enable = true;
-      programs.kitty.enable = true;
       programs.lazygit.enable = true;
       programs.starship.enable = true;
       programs.tmux.enable = true;
-      programs.zsh.enable = true;
       programs.zoxide.enable = true;
       programs.claude-code.enable = true;
+      programs.shell-aliases.enable = true;
 
       stylix.enable = true;
       stylix.targets = {

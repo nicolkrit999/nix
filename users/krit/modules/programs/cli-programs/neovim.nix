@@ -1,6 +1,7 @@
 { delib
 , pkgs
 , lib
+, moduleSystem
 , ...
 }:
 delib.module {
@@ -12,8 +13,12 @@ delib.module {
     { myconfig
     , ...
     }:
+    let
+      isNixOS = moduleSystem == "nixos";
+    in
     {
-      xdg.desktopEntries.custom-nvim = lib.mkForce {
+      # XDG desktop entries only for NixOS (not relevant on macOS)
+      xdg.desktopEntries.custom-nvim = lib.mkIf isNixOS (lib.mkForce {
         name = "Neovim";
         genericName = "Text Editor";
         exec = "${
@@ -29,7 +34,7 @@ delib.module {
           "Utility"
           "TextEditor"
         ];
-      };
+      });
 
       home.packages = with pkgs; [
         nodejs # Ensure it's installed to allow copilot.lua to work
@@ -43,7 +48,10 @@ delib.module {
         extraPackages = with pkgs; [
           ripgrep
           fd
-          xclip
+        ]
+        # xclip is Linux-only
+        ++ lib.optionals isNixOS [ xclip ]
+        ++ [
 
           # --- Language Servers (LSP) ---
           bash-language-server
