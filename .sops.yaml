@@ -9,6 +9,7 @@ keys:
   # 🖥️ Hosts (Machines)
   # ---------------------------------------------------------------
   - &nixos-desktop age1nvr3ges07kcl6h4lmmfl23lc07rl7njq9seyl4hp7uut4k8v53qquhfugp
+  - &Krits-MacBook-Pro age14q0q9ulmz3shshr7vqfh37w0udz74uyv6xf6uywgavgsqfnf2yhqtyzkcj
   # - &nixos-laptop
 
 creation_rules:
@@ -22,6 +23,16 @@ creation_rules:
           - *krit # You can decrypt (user "krit")
           - *nixos-desktop # The machine can decrypt (hostname "nixos-desktop")
 
+
+  # ---------------------------------------------------------------
+  # 🔒 Secrets for "Krits-MacBook-Pro"
+  # ---------------------------------------------------------------
+  - path_regex: hosts/Krits-MacBook-Pro/.*secrets-sops\.yaml$
+    key_groups:
+      - age:
+          - *krit
+          - *Krits-MacBook-Pro
+
   # ---------------------------------------------------------------
   # 🔒 Common rules for user "krit"
   # Matches any "krit-common-secrets-sops.yaml" inside the "common" folder
@@ -31,6 +42,7 @@ creation_rules:
       - age:
           - *krit # You can decrypt (user krit)
           - *nixos-desktop # Desktop (nixos-desktop)
+          - *Krits-MacBook-Pro # Laptop (nix-darwin)
           # - *nixos_laptop # Laptop (nixos-laptop)
 
   # 🔒 (Example) Rules for a future host
