@@ -33,7 +33,7 @@ delib.host {
 
     sops.secrets =
       let
-        commonSecrets = ../../users/krit/sops/krit-common-secrets-sops.yaml;
+        commonSecrets = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
       in
       {
         github_fg_pat_token_nix = {
