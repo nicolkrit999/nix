@@ -123,7 +123,25 @@ If any check fails diagnose them, notify the user of the errors and the possible
 - `nixos.ifEnabled` / `nixos.always` — NixOS system-level only. **Never modify** these when fixing Darwin issues.
 - `darwin.ifEnabled` / `darwin.always` — nix-darwin system-level only (e.g., `system.defaults`, `homebrew`, `users.users`).
 - `home.ifEnabled` / `home.always` — home-manager. Works on **both** NixOS and Darwin.
-- The darwin host (`Krits-MacBook-Pro`) is **self-contained** under `hosts/Krits-MacBook-Pro/` with its own `modules/` subdirectory. It does NOT load the shared `./modules/` directory. When adding darwin-specific modules, place them in the darwin host's `modules/` directory.
+
+### 3-Way Module Split Architecture
+The repository uses a 3-way split for modules:
+- `modules/common/` and `users/krit/common/` — Shared modules loaded by **both** NixOS and Darwin
+- `modules/nixos/` and `users/krit/nixos/` — NixOS-only modules
+- `modules/darwin/` and `users/krit/darwin/` — Darwin-only modules
+
+When adding new modules:
+- **Shared functionality** (works on both platforms): place in `modules/common/` or `users/krit/common/`
+- **NixOS-only** (Linux services, DE/WM configs, xdg.desktopEntries): place in `modules/nixos/` or `users/krit/nixos/`
+- **Darwin-only** (Homebrew, macOS defaults): place in `modules/darwin/` or `users/krit/darwin/`
+
+### Linux-Only Features in Shared Modules
+Some home-manager options only work on Linux (`xdg.desktopEntries`, `xdg.mimeApps`). In shared modules, guard these:
+```nix
+{ moduleSystem, lib, ... }:
+let isNixOS = moduleSystem == "nixos";
+in { xdg.desktopEntries.myapp = lib.mkIf isNixOS { ... }; }
+```
 
 ### IFD Guard in flake.nix
 The flake uses an `isDarwin` guard (`builtins.currentSystem or "not-darwin"`) to hide Linux-only outputs (`nixosConfigurations`, `homeConfigurations`, `topology`) when evaluating on Darwin. This is necessary because `catppuccin-nix` uses Import From Derivation (IFD) that requires building Linux packages. On Linux, the guard defaults to `false` (pure mode fallback), exposing all outputs normally. On Darwin, `nix flake check --impure` is required to activate the guard.

@@ -6,7 +6,7 @@ delib.module {
   home.ifEnabled =
     { myconfig, ... }:
     let
-      flakeDir = "~/nixOS";
+      flakeDir = "~/nix";
       safeEditor = myconfig.constants.editor;
       isImpure = myconfig.constants.nixImpure or false;
       isNixOS = moduleSystem == "nixos";
@@ -70,8 +70,6 @@ delib.module {
         merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop";
         merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop";
         cdnix = "cd ${flakeDir}";
-        nfc = "cd ${flakeDir} && nix flake check";
-        nfcall = "cd ${flakeDir} && nix flake check --all-systems";
 
         # Utilities
         fzf-prev = ''fzf --preview="cat {}"'';
@@ -91,15 +89,19 @@ delib.module {
       # =========================================================================
       nixosAliases = {
         # Switch commands
+        swboot = "cd ${flakeDir} && ${nixosBootWrapped}";
+        swdry = "cd ${flakeDir} && nh os test --dry --ask";
         sw = "cd ${flakeDir} && ${nixosSwitchWrapped}";
-        swsrc = "cd ${flakeDir} && ${nixosSwitchWrapped} --option substitute false";
-        tswsrc = "cd ${flakeDir} && time ${nixosSwitchWrapped} --option substitute false";
-        swoff = "cd ${flakeDir} && ${nixosSwitchCmd} --offline";
         gsw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
         gswoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
+        swsrc = "cd ${flakeDir} && ${nixosSwitchWrapped} --option substitute false";
+        swoff = "cd ${flakeDir} && ${nixosSwitchCmd} --offline";
+        tswsrc = "cd ${flakeDir} && time ${nixosSwitchWrapped} --option substitute false";
+
+        # Flake checks and updates
+        nfc = "cd ${flakeDir} && nix flake check";
+        nfcall = "cd ${flakeDir} && nix flake check --all-systems";
         upd = "cd ${flakeDir} && ${nixosUpdateWrapped}";
-        swdry = "cd ${flakeDir} && nh os test --dry --ask";
-        swboot = "cd ${flakeDir} && ${nixosBootWrapped}";
 
         # Manual commands for reference
         swpure = "cd ${flakeDir} && nh os switch ${flakeDir}";
@@ -130,8 +132,12 @@ delib.module {
         # Switch commands
         sw = "cd ${flakeDir} && ${darwinSwitchCmd}";
         gsw = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd}";
-        upd = "cd ${flakeDir} && ${darwinUpdateCmd}";
         swdry = "cd ${flakeDir} && nh darwin switch --dry ${flakeDir}";
+        gswoff = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd} --offline";
+
+        # Flake checks and updates
+        nfc = "cd ${flakeDir} && nix flake check --impure";
+        upd = "cd ${flakeDir} && ${darwinUpdateCmd}";
 
         # Homebrew
         brew-upd = "brew update && brew upgrade";
@@ -150,7 +156,7 @@ delib.module {
     in
     {
       home.shellAliases = commonAliases
-        // (if isNixOS then nixosAliases else {})
-        // (if isDarwin then darwinAliases else {});
+        // (if isNixOS then nixosAliases else { })
+        // (if isDarwin then darwinAliases else { });
     };
 }
