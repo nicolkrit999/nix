@@ -79,10 +79,11 @@ delib.module {
     let
       isCatppuccin = myconfig.constants.theme.catppuccin or false;
       hasWallpapers = myconfig.constants ? wallpapers && myconfig.constants.wallpapers != [ ];
-      fallbackWp = if hasWallpapers then
-        lib.findFirst (w: w.targetMonitor == "*") (builtins.head myconfig.constants.wallpapers) myconfig.constants.wallpapers
-      else
-        null;
+      fallbackWp =
+        if hasWallpapers then
+          lib.findFirst (w: w.targetMonitor == "*") (builtins.head myconfig.constants.wallpapers) myconfig.constants.wallpapers
+        else
+          null;
 
       hyprlandEnabled = myconfig.programs.hyprland.enable or false;
       caelestiaEnabled = myconfig.programs.caelestia.enableOnHyprland or false;

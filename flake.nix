@@ -98,11 +98,11 @@
       isDarwin = builtins.elem (builtins.currentSystem or "not-darwin") [ "aarch64-darwin" "x86_64-darwin" ];
     in
     {
-      nixosConfigurations = if isDarwin then {} else generatedNixosConfigs;
-      homeConfigurations = if isDarwin then {} else mkConfigurations "home";
+      nixosConfigurations = if isDarwin then { } else generatedNixosConfigs;
+      homeConfigurations = if isDarwin then { } else mkConfigurations "home";
       darwinConfigurations = mkConfigurations "darwin";
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
-    } // (if isDarwin then {} else {
+    } // (if isDarwin then { } else {
       topology = forAllSystems (system: import inputs.nix-topology {
         pkgs = import nixpkgs {
           inherit system;

@@ -1,4 +1,4 @@
-{ delib, lib, moduleSystem, ... }:
+{ delib, moduleSystem, ... }:
 delib.module {
   name = "programs.shell-aliases";
   options = delib.singleEnableOption true;

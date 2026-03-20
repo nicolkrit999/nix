@@ -9,7 +9,8 @@ delib.module {
     let
       isDarwin = moduleSystem == "darwin";
       # Use appropriate paths for each platform
-      devEnvBase = if isDarwin
+      devEnvBase =
+        if isDarwin
         then "/Users/krit/nixOS/users/krit/dev-environments"
         else "/home/krit/nixOS/users/krit/dev-environments";
     in
