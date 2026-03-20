@@ -7,15 +7,10 @@ delib.module {
     moduleOptions {
 
       user = strOption "nixos";
-      uid = intOption 1000;
       hostname = strOption "nixos-host";
       mainLocale = strOption "en_US.UTF-8";
       gitUserName = strOption "";
       gitUserEmail = strOption "";
-
-      # State versions
-      darwinStateVersion = intOption 4;
-      homeStateVersion = strOption "25.11";
 
       terminal = strOption "alacritty";
       shell = strOption "bash";
