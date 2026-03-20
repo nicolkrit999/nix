@@ -1,17 +1,67 @@
-# NixOS Configuration — CLAUDE.md
+# NixOS & nix-darwin Configuration — CLAUDE.md
 
 ## Overview
 
-This repo manages multiple NixOS hosts using the [denix](https://github.com/yunfachi/denix) framework. Denix auto-discovers all `.nix` files under `hosts/`, `modules/`, `packages/`, and `users/` (see `flake.nix` `paths`), then wires them together via `delib.module` and `delib.host`.
+This repo manages multiple NixOS **and** nix-darwin hosts using the [denix](https://github.com/yunfachi/denix) framework. Denix auto-discovers all `.nix` files under the configured `paths` (see `flake.nix`), then wires them together via `delib.module` and `delib.host`.
 
 Nixpkgs channel: `nixos-25.11`. Home-manager user: `krit`.
 
 ## Active Hosts
 
-| Host | Arch | Description |
-|------|------|-------------|
-| `nixos-desktop` | `x86_64-linux` | Primary desktop (Hyprland/Niri/GNOME/KDE/COSMIC) |
-| `nixos-arm-vm` | `aarch64-linux` | ARM VM |
+| Host | Arch | Platform | Description |
+|------|------|----------|-------------|
+| `nixos-desktop` | `x86_64-linux` | NixOS | Primary desktop (Hyprland/Niri/GNOME/KDE/COSMIC) |
+| `nixos-arm-vm` | `aarch64-linux` | NixOS | ARM VM |
+| `Krits-MacBook-Pro` | `aarch64-darwin` | nix-darwin | MacBook Pro (macOS) |
+
+## Cross-Platform Architecture
+
+This single repo supports **three architectures**: `x86_64-linux`, `aarch64-linux`, and `aarch64-darwin`. The `flake.nix` uses platform-aware path separation to keep NixOS and nix-darwin configurations isolated:
+
+- **NixOS builds** (`moduleSystem == "nixos"`): scan `./hosts`, `./modules`, `./packages`, `./users` — exclude darwin host dirs.
+- **Darwin builds** (`moduleSystem == "darwin"`): scan **only** `./hosts/Krits-MacBook-Pro` and `./hosts/Krits-MacBook-Pro/modules` — self-contained, does not load shared `./modules/`.
+- **Home builds** (`moduleSystem == "home"`): same as NixOS paths — exclude darwin hosts (darwin uses integrated home-manager via nix-darwin).
+
+### IFD Guard for `nix flake check`
+
+`nix flake check` evaluates ALL `nixosConfigurations` regardless of the current machine. Some flake inputs (notably `catppuccin-nix`) use Import From Derivation (IFD) — e.g., `lib.importTOML` from a built derivation — which requires building `aarch64-linux` packages. This is impossible on Darwin without remote builders.
+
+**Solution in `flake.nix`:** The `isDarwin` guard uses `builtins.currentSystem` (only available in impure mode) to hide Linux-only outputs (`nixosConfigurations`, `homeConfigurations`, `topology`) when running on Darwin. The fallback `"not-darwin"` ensures outputs are always exposed in pure mode (the default on Linux).
+
+```nix
+isDarwin = builtins.elem (builtins.currentSystem or "not-darwin") [ "aarch64-darwin" "x86_64-darwin" ];
+nixosConfigurations = if isDarwin then {} else generatedNixosConfigs;
+```
+
+**Verification commands by platform:**
+
+| Platform | Flake check | Dry build |
+|----------|-------------|-----------|
+| **Linux** (NixOS) | `nix flake check` | `nh os test --dry --ask` or `nix build .#nixosConfigurations.<host>.config.system.build.toplevel --dry-run` |
+| **Darwin** (macOS) | `nix flake check --impure` | `nix build .#darwinConfigurations.Krits-MacBook-Pro.system --dry-run` |
+
+> **Important:** On Darwin, `--impure` is **required** for `nix flake check` because `builtins.currentSystem` is not available in pure flake evaluation mode.
+
+### Darwin Host Structure
+
+The darwin host is self-contained under `hosts/Krits-MacBook-Pro/`:
+- `default.nix` — `delib.host` definition with constants and module enablement
+- `system.nix` — darwin system-level config (Homebrew, macOS defaults, sops secrets)
+- `home.nix` — home-manager config (git signing, packages)
+- `modules/` — darwin-specific modules (nix settings, user config, common config, constants override)
+- Program modules shared with NixOS (bat, fish, git, starship, etc.) live in `modules/programs/` inside the darwin host directory, using `home.ifEnabled` blocks (same as NixOS shared modules)
+
+### Module Block Types by Platform
+
+| Block | NixOS | Darwin | Home-manager |
+|-------|-------|--------|--------------|
+| `nixos.ifEnabled` / `nixos.always` | System-level NixOS config | Ignored | Ignored |
+| `darwin.ifEnabled` / `darwin.always` | Ignored | System-level darwin config | Ignored |
+| `home.ifEnabled` / `home.always` | Sets `home-manager.users.<user>.*` | Sets `home-manager.users.<user>.*` | Sets config directly |
+
+- `home.*` blocks work on **both** NixOS and Darwin — they target home-manager regardless of the host platform.
+- `nixos.*` blocks are NixOS-only. **Never modify** these when fixing Darwin issues.
+- `darwin.*` blocks are Darwin-only. Use these for `system.defaults`, `homebrew`, `users.users`, etc.
 
 ## Common Shell Aliases
 
@@ -52,7 +102,12 @@ delib.module {
     programs.myapp.enable = true;
   };
 
-  # Apply config when enabled (home-manager level):
+  # Apply config when enabled (nix-darwin system level):
+  darwin.ifEnabled = {
+    # darwin-specific system config here
+  };
+
+  # Apply config when enabled (home-manager level — works on BOTH NixOS and Darwin):
   home.ifEnabled = { myconfig, ... }: {
     home.packages = [ ... ];
   };
@@ -61,8 +116,10 @@ delib.module {
   # When using this any option regarding if the delib module is enabled/disabled must not be set as they do not make sense
   nixos.always = { cfg, ... }: { ... };
 
+  # Always apply (nix-darwin system level) (regardless of enable):
+  darwin.always = { cfg, ... }: { ... };
 
-  # Always apply (home-manager level) (regardless of enable): 
+  # Always apply (home-manager level) (regardless of enable):
   # When using this any option regarding if the delib module is enabled/disabled must not be set as they do not make sense
   home.always = { cfg, ... }: { ... };
 }
@@ -150,10 +207,13 @@ Managed with sops-nix. Secrets files:
 
 | File | Purpose |
 |------|---------|
-| `flake.nix` | Entry point; defines inputs, paths scanned, `mkConfigurations` |
+| `flake.nix` | Entry point; defines inputs, paths scanned, `mkConfigurations`, `isDarwin` guard |
 | `modules/config/constants.nix` | Shared typed constants, accessible as `myconfig.constants.*` |
-| `hosts/nixos-desktop/default.nix` | Full real-world `delib.host` example |
-| `hosts/nixos-arm-vm/default.nix` | ARM host example |
+| `hosts/nixos-desktop/default.nix` | Full real-world NixOS `delib.host` example |
+| `hosts/nixos-arm-vm/default.nix` | ARM NixOS host example |
+| `hosts/Krits-MacBook-Pro/default.nix` | Darwin `delib.host` example with constants + module enablement |
+| `hosts/Krits-MacBook-Pro/system.nix` | Darwin system config (Homebrew, macOS defaults, sops) |
+| `hosts/Krits-MacBook-Pro/modules/` | Darwin-specific modules (nix, user, home, common config) |
 | `modules/toplevel/hyprland.nix` | Minimal `delib.module` with `singleEnableOption` |
 | `modules/programs/shells/shell-aliases.nix` | All shell aliases, reads constants at build time |
 | `hosts/template-host-full/` | Template for new full-featured hosts |
