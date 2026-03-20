@@ -1,4 +1,4 @@
-{ delib, lib,  ... }:
+{ delib, lib, ... }:
 delib.module {
   name = "services.hyprlock";
   options = with delib; moduleOptions {
@@ -18,8 +18,8 @@ delib.module {
         (myconfig.programs.niri.enable or false) && !(myconfig.programs.noctalia.enableOnNiri or false);
 
     in
-    
-    
+
+
     lib.mkIf (hyprlandFallback || niriFallback) {
 
       catppuccin.hyprlock.enable = myconfig.constants.theme.catppuccin or false;

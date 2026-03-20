@@ -6,9 +6,7 @@ delib.module {
   };
 
   home.ifEnabled =
-    {
-      myconfig,
-      ...
+    { ...
     }:
     {
 

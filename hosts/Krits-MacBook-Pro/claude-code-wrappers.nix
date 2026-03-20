@@ -1,7 +1,6 @@
-{
-  delib,
-  pkgs,
-  ...
+{ delib
+, pkgs
+, ...
 }:
 delib.module {
   name = "krit.services.Krits-MacBook-Pro.claude-code-wrappers";
@@ -11,7 +10,7 @@ delib.module {
   };
 
   darwin.ifEnabled =
-    { myconfig, ... }:
+    { ... }:
     {
       environment.systemPackages = [
         # cai — passthrough, launches claude with whatever env is present

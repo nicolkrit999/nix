@@ -1,9 +1,8 @@
-{
-  delib,
-  config,
-  lib,
-  pkgs,
-  ...
+{ delib
+, config
+, lib
+, pkgs
+, ...
 }:
 delib.module {
   name = "krit.services.nas.Krits-MacBook-Pro-borg-backup";
@@ -13,7 +12,7 @@ delib.module {
   };
 
   darwin.ifEnabled =
-    { myconfig, ... }:
+    { ... }:
     let
       nasUser = "krit";
       nasHost = "nicol-nas";

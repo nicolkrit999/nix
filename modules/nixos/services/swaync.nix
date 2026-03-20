@@ -47,8 +47,8 @@ delib.module {
       niriSwayNC =
         (myconfig.programs.niri.enable or false) && !(myconfig.programs.noctalia.enableOnNiri or false);
     in
-    
-    
+
+
     lib.mkIf (hyprlandSwayNC || niriSwayNC) {
 
       catppuccin.swaync.enable = myconfig.constants.theme.catppuccin or false;

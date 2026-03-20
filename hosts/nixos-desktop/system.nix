@@ -48,13 +48,15 @@ delib.host {
         {
           sops.secrets = lib.mkIf config.myconfig.programs.claude-code.enable (
             lib.listToAttrs (
-              map (s: {
-                name = s.sopsSecret;
-                value = {
-                  sopsFile = commonSecrets;
-                  owner = myUserName;
-                };
-              }) config.myconfig.programs.claude-code.mcpSecrets
+              map
+                (s: {
+                  name = s.sopsSecret;
+                  value = {
+                    sopsFile = commonSecrets;
+                    owner = myUserName;
+                  };
+                })
+                config.myconfig.programs.claude-code.mcpSecrets
             )
           );
         }

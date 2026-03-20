@@ -1,9 +1,8 @@
-{
-  delib,
-  config,
-  pkgs,
-  lib,
-  ...
+{ delib
+, config
+, pkgs
+, lib
+, ...
 }:
 delib.module {
   name = "krit.services.nas.smb";

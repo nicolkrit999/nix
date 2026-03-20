@@ -15,7 +15,7 @@ delib.module {
     screenOffTimeout = intOption 360;
   };
 
-  
+
   home.ifEnabled =
     { cfg
     , myconfig
@@ -42,8 +42,8 @@ delib.module {
       isWmEnabled =
         (myconfig.programs.hyprland.enable or false) || (myconfig.programs.niri.enable or false);
     in
-    
-    
+
+
     lib.mkIf isWmEnabled {
       home.packages = [ universalLock ];
 
