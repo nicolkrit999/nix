@@ -10,6 +10,14 @@ delib.module {
     home.packages = with pkgs; [
       television
       nix-search-tv
+      # Cross-shell wrapper: `ns` opens the nix channel, `ns <query>` pre-populates the query
+      (writeShellScriptBin "ns" ''
+        if [ -n "$1" ]; then
+          exec tv nix --input "$*"
+        else
+          exec tv nix
+        fi
+      '')
     ];
 
     # Write the nix cable file directly to avoid fish shell errors
@@ -24,7 +32,5 @@ delib.module {
       [preview]
       command = "nix-search-tv preview {}"
     '';
-
-    home.shellAliases.ns = "tv nix";
   };
 }
