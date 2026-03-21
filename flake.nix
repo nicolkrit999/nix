@@ -17,6 +17,9 @@
         # Note: dev-environments is no longer scanned (outside platformPaths)
         ./users/krit/common/programs/gui-programs/librewolf/profiles # `librewolf.nix` already imports them
 
+        # Comma is platform-specific (requires nix-index-database system module)
+        ./modules/common/programs/comma.nix
+
         # Any `hardware-configuration.nix must be excluded`
         ./hosts/nixos-desktop/hardware-configuration.nix
         ./hosts/nixos-arm-vm/hardware-configuration.nix

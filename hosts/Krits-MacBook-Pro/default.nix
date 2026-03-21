@@ -44,6 +44,8 @@ delib.host {
       # ---------------------------------------------------------------
       programs.bat.enable = true;
       programs.eza.enable = true;
+      programs.statix.enable = true;
+      programs.comma.enable = true;
       programs.git.enable = true;
       programs.lazygit.enable = true;
       programs.starship.enable = true;

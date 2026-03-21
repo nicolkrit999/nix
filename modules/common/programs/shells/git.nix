@@ -1,4 +1,4 @@
-{ delib, inputs, ... }:
+{ delib, inputs, pkgs, ... }:
 delib.module {
   name = "programs.git";
   options =
@@ -13,7 +13,7 @@ delib.module {
     {
       home.activation.setupNixRepoHooks = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         if [ -d "$HOME/nix/.git" ]; then
-          $DRY_RUN_CMD git -C "$HOME/nix" config core.hooksPath .githooks
+          $DRY_RUN_CMD ${pkgs.git}/bin/git -C "$HOME/nix" config core.hooksPath .githooks
         fi
       '';
 

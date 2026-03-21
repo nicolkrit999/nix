@@ -1,8 +1,16 @@
-{ delib, ... }:
+{ delib, inputs, ... }:
 delib.module {
   name = "nix";
 
   nixos.always = {
+    imports = [
+      inputs.nix-index-database.nixosModules.nix-index
+    ];
+
+    nixpkgs.overlays = [
+      inputs.nix-index-database.overlays.nix-index
+    ];
+
     nix.settings = {
       experimental-features = [
         "nix-command"

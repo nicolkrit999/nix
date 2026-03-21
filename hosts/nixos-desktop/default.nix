@@ -176,6 +176,7 @@ delib.host {
       programs.nix-alien.enable = true;
       programs.comma.enable = true;
       programs.statix.enable = true;
+
       programs.claude-code = {
         enable = true;
         mcpSecrets = [
