@@ -56,14 +56,6 @@ delib.module {
       };
     };
 
-  home.always =
-    { ... }:
-    {
-      imports = [
-        inputs.catppuccin.homeModules.catppuccin
-      ];
-    };
-
   home.ifEnabled =
     { cfg, myconfig, ... }:
     let

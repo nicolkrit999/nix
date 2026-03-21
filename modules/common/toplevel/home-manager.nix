@@ -24,7 +24,6 @@ delib.module {
         };
 
         sharedModules = [
-          inputs.catppuccin.homeModules.catppuccin
           inputs.plasma-manager.homeModules.plasma-manager
         ];
       };
