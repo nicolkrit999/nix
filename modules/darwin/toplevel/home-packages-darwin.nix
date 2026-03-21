@@ -1,6 +1,8 @@
 # Install packages based on host constants for Darwin hosts
 { delib
 , pkgs
+, lib
+, config
 , ...
 }:
 delib.module {
@@ -41,11 +43,16 @@ delib.module {
       myEditorPkg = getPkg editorName fallbackEditor;
     in
     {
-      environment.systemPackages = [
-        myTermPkg
-        myBrowserPkg
-        myFileManagerPkg
-        myEditorPkg
-      ];
+      environment.systemPackages =
+        let
+          # ✅ Check if any module (system-level or any home-manager user) already handles this program
+          isProgramEnabled = name:
+            lib.attrByPath [ "programs" name "enable" ] false config
+            || lib.attrByPath [ "home-manager" "users" myconfig.constants.user "programs" name "enable" ] false config;
+        in
+        (lib.optional (!isProgramEnabled termName) myTermPkg)
+        ++ (lib.optional (!isProgramEnabled browserName) myBrowserPkg)
+        ++ (lib.optional (!isProgramEnabled fileManagerName) myFileManagerPkg)
+        ++ (lib.optional (!isProgramEnabled editorName) myEditorPkg);
     };
 }
