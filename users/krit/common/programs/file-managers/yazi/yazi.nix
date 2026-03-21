@@ -114,7 +114,7 @@ delib.module {
             tab_size = 2;
             max_width = 1920; # Maximum width for preview images
             max_height = 1080; # Maximum height for preview images
-            cache_dir = "/home/krit/.cache/yazi";
+            cache_dir = "$HOME/.cache/yazi";
             image_delay = 20;
             image_filter = "lanczos3"; # Image scaling filter
             image_quality = 90;
