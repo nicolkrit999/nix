@@ -303,21 +303,10 @@ delib.host {
     environment.systemPackages = with pkgs; [
       autotrash
       docker
-      distrobox
-      fd
-      gnupg
-      pinentry-qt
-      pinentry-curses
-      libvdpau-va-gl
-      pay-respects
-      pokemon-colorscripts
-      stow
-      tmate
-      tree
-      unzip
-      wget
-      zip
-      zlib
+      gnupg # For GPG key management and signing commits
+      pinentry-qt # For graphical sessions
+      pinentry-curses # Fallback for TTY sessions
+      libvdpau-va-gl # Allow VA-GL to be used as a VDPAU backend for hardware video acceleration on AMD GPUs
     ];
   };
 }

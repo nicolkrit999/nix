@@ -29,6 +29,8 @@ delib.module {
         pass
         pay-respects
         pokemon-colorscripts
+        stow
+        television
         tree
         yt-dlp
         wakeonlan

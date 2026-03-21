@@ -64,8 +64,10 @@ delib.module {
           cloudflared # Cloudflare's command-line tool and daemon
           cloc # Count lines of code
           croc # Securely and easily send files between two computers
+          distrobox # Run any Linux distribution in a container on your current system
           efibootmgr # Manage UEFI boot entries
           fastfetch # Fast system information fetcher
+          fd # Simple, fast and user-friendly alternative to find
           gh # GitHub CLI tool
           glow # Markdown renderer for the terminal
           grex # Command-line tool for generating regular expressions
@@ -76,18 +78,27 @@ delib.module {
           mediainfo # Display technical info about media files
           nix-search-cli # CLI tool to search nixpkgs from terminal
           ntfs3g # NTFS read/write support
+          pay-respects # Check commands syntax error and get suggestions for fixes
+          pokemon-colorscripts
           ripgrep # Fast line-oriented search tool
           screen # Terminal multiplexer
+          stow # Symlink manager for dotfiles
           tealdeer # Fast implementation of tldr (simplified man pages)
+          television # Terminal-based TV streaming application
+          tree # Display directories as trees
           ttyd # Share your terminal over the web
+          tmate # Instant terminal sharing
+          unzip # Extract zip files
           unixtools.netstat # Network statistics
           usbutils # USB device utilities
           wakeonlan # Magic packets
+          wget # Download files from the web
           yt-dlp # Media downloader for YouTube and other sites
-
           age-plugin-yubikey # Age plugin for Yubikeys
           yubikey-agent # Yubikey agent for managing Yubikeys
           yubikey-touch-detector # Detect if a Yubikey is touched
+          zip # Extract zip files
+          zlib # Compression library
 
           # -----------------------------------------------------------------------------------
           # 🧑🏽‍💻 CODING
