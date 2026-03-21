@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+shopt -s globstar
+
+nix run github:astro/deadnix -- -e . 2>/dev/null || true
+nix fmt -- **/*.nix 2>/dev/null || true
+git add -u
