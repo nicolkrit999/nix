@@ -84,7 +84,6 @@ delib.module {
           screen # Terminal multiplexer
           stow # Symlink manager for dotfiles
           tealdeer # Fast implementation of tldr (simplified man pages)
-          television # Terminal-based TV streaming application
           tree # Display directories as trees
           ttyd # Share your terminal over the web
           tmate # Instant terminal sharing

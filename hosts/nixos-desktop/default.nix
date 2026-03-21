@@ -230,6 +230,7 @@ delib.host {
         };
       };
 
+      programs.television.enable = true;
       programs.zoxide.enable = true;
 
       programs.caelestia = {
