@@ -149,7 +149,7 @@ delib.host {
           "/System/Applications/Apps.app"
           "/Applications/Comet.app"
           "/Applications/Firefox.app"
-          "/Applications/Home Manager Apps/kitty.app"
+          "/Users/krit/Applications/Home Manager Apps/kitty.app"
           "/Applications/WhatsApp.app"
           "/System/Applications/Music.app"
           "/Applications/UGREEN NAS.app"
