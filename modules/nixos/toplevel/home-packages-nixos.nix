@@ -53,14 +53,15 @@ delib.module {
 
       environment.systemPackages =
         let
-          # ✅ This checks if a NixOS module is already handling the program
-          # If the host has enabled a module in this way then it's not installed from this file to avoid evaluations errors due to duplicates
-          isModuleEnabled = name: lib.attrByPath [ "programs" name "enable" ] false config;
+          # ✅ Skip install if already handled by a system module or by the host user's home-manager programs
+          isProgramEnabled = name:
+            lib.attrByPath [ "programs" name "enable" ] false config
+            || lib.attrByPath [ "home-manager" "users" myconfig.constants.user "programs" name "enable" ] false config;
         in
-        (lib.optional (!isModuleEnabled termName) myTermPkg)
-        ++ (lib.optional (!isModuleEnabled browserName) myBrowserPkg)
-        ++ (lib.optional (!isModuleEnabled fileManagerName) myFileManagerPkg)
-        ++ (lib.optional (!isModuleEnabled editorName) myEditorPkg)
+        (lib.optional (!isProgramEnabled termName) myTermPkg)
+        ++ (lib.optional (!isProgramEnabled browserName) myBrowserPkg)
+        ++ (lib.optional (!isProgramEnabled fileManagerName) myFileManagerPkg)
+        ++ (lib.optional (!isProgramEnabled editorName) myEditorPkg)
         ++ (with pkgs; [
           cliphist
         ])

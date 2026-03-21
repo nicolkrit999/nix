@@ -84,6 +84,12 @@ nixosConfigurations = if isDarwin then {} else generatedNixosConfigs;
 
 After making any configuration changes, run the appropriate verification checks based on your current platform.
 
+> **Critical — stage new/renamed files first:** Nix flakes only evaluate git-tracked files. Untracked files are invisible to the evaluator and will cause confusing "option does not exist" or missing-module errors. Before running any verification command, always check for and stage untracked files:
+> ```bash
+> git status --short   # look for ?? entries
+> git add <any-untracked-files>
+> ```
+
 #### On Linux (NixOS):
 
 Run ALL of these checks:
