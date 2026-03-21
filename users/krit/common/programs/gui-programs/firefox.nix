@@ -61,7 +61,7 @@ delib.module {
       programs.browserpass.enable = false;
 
       programs.firefox = {
-        enable = false;
+        enable = true;
         profiles.${myconfig.constants.user} = {
           # 🔍 Search Configuration
           # Forces Google as default while keeping privacy options like Kagi and duck duck go available.
