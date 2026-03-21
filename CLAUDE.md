@@ -26,6 +26,7 @@ modules/
 │   ├── config/      # constants.nix lives here
 │   ├── programs/    # Shared program configs (bat, git, starship, etc.)
 │   ├── services/    # (if any shared services)
+│   ├── themes/      # Theme modules (catppuccin.nix - imports catppuccin for all platforms)
 │   └── toplevel/    # cachix, home-manager, home-packages, nh
 ├── darwin/          # Darwin-only modules
 │   ├── config/      # Darwin-specific config (currently empty)
@@ -81,12 +82,41 @@ nixosConfigurations = if isDarwin then {} else generatedNixosConfigs;
 
 **Verification commands by platform:**
 
-| Platform | Flake check | Dry build |
-|----------|-------------|-----------|
-| **Linux** (NixOS) | `nix flake check` | `nh os test --dry --ask` or `nix build .#nixosConfigurations.<host>.config.system.build.toplevel --dry-run` |
-| **Darwin** (macOS) | `nix flake check --impure` | `nix build .#darwinConfigurations.Krits-MacBook-Pro.system --dry-run` |
+After making any configuration changes, run the appropriate verification checks based on your current platform.
 
-> **Important:** On Darwin, `--impure` is **required** for `nix flake check` because `builtins.currentSystem` is not available in pure flake evaluation mode.
+#### On Linux (NixOS):
+
+Run ALL of these checks:
+
+```bash
+# 1. Flake check (validates all configurations)
+nix flake check
+
+# 2. Dry build for nixos-desktop (x86_64-linux)
+nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --dry-run
+# Or use the nh helper:
+nh os test --dry --ask
+
+# 3. Dry build for nixos-arm-vm (aarch64-linux)
+nix build .#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run
+
+# 4. Dry build for Darwin (cross-platform validation)
+nix build .#darwinConfigurations.Krits-MacBook-Pro.system --dry-run
+```
+
+#### On macOS (nix-darwin):
+
+Run ALL of these checks:
+
+```bash
+# 1. Flake check (--impure is REQUIRED on Darwin)
+nix flake check --impure
+
+# 2. Dry build for the Darwin host
+nix build .#darwinConfigurations.Krits-MacBook-Pro.system --dry-run
+```
+
+> **Important:** On Darwin, `--impure` is **required** for `nix flake check` because `builtins.currentSystem` is not available in pure flake evaluation mode. Running `nix flake check` without `--impure` on Darwin will fail.
 
 ### Darwin Host Structure
 
