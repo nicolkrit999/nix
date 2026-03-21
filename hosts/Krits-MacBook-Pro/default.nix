@@ -48,6 +48,7 @@ delib.host {
       programs.lazygit.enable = true;
       programs.starship.enable = true;
       programs.tmux.enable = true;
+      programs.television.enable = true;
       programs.zoxide.enable = true;
       programs.claude-code.enable = true;
       programs.shell-aliases.enable = true;
