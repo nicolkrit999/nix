@@ -118,8 +118,6 @@ delib.host {
     environment.systemPackages = with pkgs; [
       gnupg
       pinentry_mac
-      stow
-      python313Packages.litellm
     ];
 
     # -----------------------------------------------------------------------
