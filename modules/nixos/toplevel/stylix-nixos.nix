@@ -2,6 +2,7 @@
 , pkgs
 , lib
 , inputs
+, moduleSystem
 , ...
 }:
 delib.module {
@@ -18,12 +19,17 @@ delib.module {
       imports = [
         inputs.stylix.nixosModules.stylix
       ];
+      # Note: nixosModules.stylix already handles home-manager integration
     };
 
+  # Import stylix home module for standalone homeConfigurations (moduleSystem == "home")
+  # NixOS/Darwin system modules handle their own home-manager integration
   home.always =
     { ... }:
     {
-      # Empty - NixOS system-level module handles home-manager integration
+      imports = lib.optionals (moduleSystem == "home") [
+        inputs.stylix.homeModules.stylix
+      ];
     };
 
   nixos.ifEnabled =
