@@ -4,15 +4,20 @@
 , ...
 }:
 delib.module {
-  name = "krit-kitty";
+  name = "krit.programs.kitty";
   options.krit.programs.kitty = with delib; {
     enable = boolOption false;
+    fontSize = lib.mkOption {
+      type = lib.types.nullOr lib.types.number;
+      default = null;
+    };
   };
 
   home.ifEnabled =
     { myconfig, ... }:
     let
       isDarwin = moduleSystem == "darwin";
+      cfg = myconfig.krit.programs.kitty;
     in
     {
       catppuccin.kitty.enable = myconfig.constants.theme.catppuccin or false;
@@ -29,6 +34,9 @@ delib.module {
           enable_audio_bell = false;
           mouse_hide_wait = "3.0";
           shell_integration = "enabled";
+        }
+        // lib.optionalAttrs (cfg.fontSize != null) {
+          font_size = cfg.fontSize;
         }
         # macOS-specific settings
         // lib.optionalAttrs isDarwin {

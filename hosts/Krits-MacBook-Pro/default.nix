@@ -82,7 +82,11 @@ delib.host {
       krit.programs.yazi.enable = true;
       krit.programs.ranger.enable = false;
       krit.programs.alacritty.enable = false;
-      krit.programs.kitty.enable = true;
+
+      krit.programs.kitty = {
+        enable = true;
+        fontSize = 14;
+      };
 
       # ---------------------------------------------------------------
       # 👤 KRIT SERVICES
