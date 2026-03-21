@@ -148,7 +148,7 @@ delib.host {
         persistent-apps = [
           "/System/Applications/Apps.app"
           "/Applications/Comet.app"
-          "/Applications/Firefox.app"
+          "/Applications/Nix Apps/Firefox.app"
           "/Users/krit/Applications/Home Manager Apps/kitty.app"
           "/Applications/WhatsApp.app"
           "/System/Applications/Music.app"

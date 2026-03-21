@@ -73,7 +73,6 @@ delib.module {
           "font-jetbrains-mono-nerd-font"
           "obs"
           "utm"
-          "firefox"
           "tailscale-app"
           "telegram"
           "microsoft-teams"
