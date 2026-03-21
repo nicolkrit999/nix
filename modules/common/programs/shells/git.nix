@@ -1,4 +1,4 @@
-{ delib, ... }:
+{ delib, inputs, ... }:
 delib.module {
   name = "programs.git";
   options =
@@ -11,6 +11,12 @@ delib.module {
   home.ifEnabled =
     { cfg, myconfig, ... }:
     {
+      home.activation.setupNixRepoHooks = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        if [ -d "$HOME/nix/.git" ]; then
+          $DRY_RUN_CMD git -C "$HOME/nix" config core.hooksPath .githooks
+        fi
+      '';
+
       programs.git = {
         enable = true;
         lfs.enable = true;

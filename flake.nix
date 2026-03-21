@@ -13,21 +13,25 @@
       forAllSystems = nixpkgs.lib.genAttrs allSystems;
 
       # Common exclusions for all module systems
-      baseExclude = [
-        # Note: dev-environments is no longer scanned (outside platformPaths)
-        ./users/krit/common/programs/gui-programs/librewolf/profiles # `librewolf.nix` already imports them
+      baseExclude =
 
-        # Any `hardware-configuration.nix must be excluded`
-        ./hosts/nixos-desktop/hardware-configuration.nix
-        ./hosts/nixos-arm-vm/hardware-configuration.nix
-        ./hosts/template-host-full/hardware-configuration.nix
-        ./hosts/template-host-minimal/hardware-configuration.nix
 
-        # Any `disko` must be excluded
-        ./hosts/nixos-arm-vm/disko-config-btrfs-luks-impermanence.nix
-        ./hosts/template-host-full/disko-config-btrfs.nix
-        ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
-      ];
+
+        [
+          # Note: dev-environments is no longer scanned (outside platformPaths)
+          ./users/krit/common/programs/gui-programs/librewolf/profiles # `librewolf.nix` already imports them
+
+          # Any `hardware-configuration.nix must be excluded`
+          ./hosts/nixos-desktop/hardware-configuration.nix
+          ./hosts/nixos-arm-vm/hardware-configuration.nix
+          ./hosts/template-host-full/hardware-configuration.nix
+          ./hosts/template-host-minimal/hardware-configuration.nix
+
+          # Any `disko` must be excluded
+          ./hosts/nixos-arm-vm/disko-config-btrfs-luks-impermanence.nix
+          ./hosts/template-host-full/disko-config-btrfs.nix
+          ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
+        ];
 
       # Darwin hosts (excluded from nixos builds)
       darwinHosts = [
