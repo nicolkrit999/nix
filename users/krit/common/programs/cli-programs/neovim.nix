@@ -6,9 +6,8 @@
 }:
 delib.module {
   name = "krit.programs.neovim";
-  options.krit.programs.neovim = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
+
   home.ifEnabled =
     { myconfig
     , ...

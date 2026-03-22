@@ -6,9 +6,7 @@
 }:
 delib.module {
   name = "krit.programs.ranger";
-  options.krit.programs.ranger = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     { myconfig

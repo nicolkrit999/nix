@@ -1,10 +1,7 @@
 { delib, config, ... }:
 delib.module {
-  name = "krit.programs.cava";
-  options.krit.programs.cava = with delib; {
-    enable = boolOption false;
-    extraConfig = strOption "";
-  };
+  name = "programs.cava";
+  options = delib.SigleEnableOption false;
 
   home.ifEnabled =
     {

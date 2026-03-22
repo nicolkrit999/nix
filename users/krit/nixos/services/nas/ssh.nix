@@ -5,7 +5,9 @@
 }:
 delib.module {
   name = "krit.services.nas.sshfs";
-  options.krit.services.nas.sshfs = with delib; {
+
+
+  options = with delib; moduleOptions {
     enable = boolOption false;
     identityFile = strOption "";
   };

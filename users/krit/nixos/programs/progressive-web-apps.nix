@@ -5,9 +5,7 @@
 }:
 delib.module {
   name = "krit.programs.pwas";
-  options.krit.programs.pwas = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     let

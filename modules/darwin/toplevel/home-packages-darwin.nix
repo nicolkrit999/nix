@@ -19,13 +19,11 @@ delib.module {
         in
         if e == "nvim" then "neovim" else e;
 
-      # 🛡️ SAFE FALLBACKS (Darwin-appropriate defaults)
       fallbackTerm = pkgs.alacritty;
       fallbackBrowser = pkgs.firefox;
       fallbackFileManager = pkgs.yazi;
       fallbackEditor = pkgs.vscode;
 
-      # 🔍 PACKAGE LOOKUP (no kdePackages on Darwin)
       getPkg = name: fallback:
         if builtins.hasAttr name pkgs then pkgs.${name}
         else fallback;
@@ -45,7 +43,6 @@ delib.module {
     {
       environment.systemPackages =
         let
-          # ✅ Check if any module (system-level or any home-manager user) already handles this program
           isProgramEnabled = name:
             lib.attrByPath [ "programs" name "enable" ] false config
             || lib.attrByPath [ "home-manager" "users" myconfig.constants.user "programs" name "enable" ] false config;

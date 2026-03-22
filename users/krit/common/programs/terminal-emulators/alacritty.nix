@@ -4,9 +4,7 @@
 }:
 delib.module {
   name = "krit.programs.alacritty";
-  options.krit.programs.alacritty = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     { myconfig, ... }:

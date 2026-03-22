@@ -6,7 +6,8 @@
 }:
 delib.module {
   name = "krit.services.nas.smb";
-  options.krit.services.nas.smb = with delib; {
+
+  options = with delib; moduleOptions {
     enable = boolOption false;
     credentialsFile = strOption "";
   };
