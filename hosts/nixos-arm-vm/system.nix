@@ -1,5 +1,4 @@
 { delib
-, inputs
 , pkgs
 , ...
 }:
@@ -26,10 +25,7 @@ delib.host {
     };
 
     imports = [
-      inputs.disko.nixosModules.disko
-
       ./hardware-configuration.nix
-      ./disko-config-btrfs-luks-impermanence.nix
 
       ../../templates/krit/specialization/default.nix
       (

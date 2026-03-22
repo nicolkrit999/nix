@@ -27,7 +27,6 @@
         ./hosts/template-host-minimal/hardware-configuration.nix
 
         # Any `disko` must be excluded
-        ./hosts/nixos-arm-vm/disko-config-btrfs-luks-impermanence.nix
         ./hosts/template-host-full/disko-config-btrfs.nix
         ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
       ];

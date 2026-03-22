@@ -17,4 +17,9 @@ delib.module {
       winboat # x86_64 only
     ];
   };
+
+  # Distrobox exports binaries to ~/.distrobox-bin
+  home.ifEnabled = { ... }: {
+    home.sessionPath = [ "$HOME/.distrobox-bin" ];
+  };
 }
