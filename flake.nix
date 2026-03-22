@@ -22,12 +22,11 @@
 
         # Any `hardware-configuration.nix must be excluded`
         ./hosts/nixos-desktop/hardware-configuration.nix
-        ./hosts/template-host-full/hardware-configuration.nix
         ./hosts/template-host-minimal/hardware-configuration.nix
 
         # Any `disko` must be excluded
-        ./hosts/template-host-full/disko-config-btrfs.nix
-        ./hosts/template-host-full/disko-config-btrfs-luks-impermanence.nix
+        ./hosts/template-host-minimal/disko-config-btrfs.nix
+        ./hosts/template-host-minimal/disko-config-btrfs-luks-impermanence.nix
       ];
 
       # Darwin hosts (excluded from nixos builds)
@@ -38,7 +37,6 @@
       # NixOS hosts (excluded from darwin builds)
       nixosHosts = [
         ./hosts/nixos-desktop
-        ./hosts/template-host-full
         ./hosts/template-host-minimal
       ];
 
