@@ -1,12 +1,17 @@
-{ delib, lib, pkgs, ... }:
+{ delib
+, lib
+, pkgs
+, ...
+}:
 let
   myUserName = "krit";
-  commonSecrets = ../../../users/krit/common/sops/krit-common-secrets-sops.yaml;
+  commonSecrets = ../../common/sops/krit-common-secrets-sops.yaml;
 in
-delib.host {
-  name = "nixos-desktop";
+delib.module {
+  name = "krit.specializations.school";
+  options = delib.singleEnableOption false;
 
-  nixos = {
+  nixos.ifEnabled = {
     nixpkgs.config.allowUnfree = true;
     # Isolated school-related sops secrets
     sops.secrets.school_ssh_key = {
