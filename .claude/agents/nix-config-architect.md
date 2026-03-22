@@ -15,8 +15,9 @@ Your role is to help configure, modify, refine, and extend this self-contained N
 | Host | Arch | Platform | Description |
 |------|------|----------|-------------|
 | `nixos-desktop` | `x86_64-linux` | NixOS | Primary desktop (Hyprland/Niri/GNOME/KDE/COSMIC) |
-| `nixos-arm-vm` | `aarch64-linux` | NixOS | ARM VM |
 | `Krits-MacBook-Pro` | `aarch64-darwin` | nix-darwin | MacBook Pro (macOS) |
+
+> **Note:** ARM Linux (`aarch64-linux`) compatibility is tracked via CI (`.github/workflows/arm-package-check.yml`) but no ARM host is currently active.
 
 It supports multiple desktop environments (GNOME, KDE Plasma, COSMIC) and window managers (Hyprland, Niri) on Linux, and a self-contained darwin configuration for macOS, all with a per-host constants system that cascades through modules.
 
@@ -92,12 +93,7 @@ Run ALL of the following checks:
    nh os test --dry --ask
    ```
 
-3. **Dry build for nixos-arm-vm (aarch64-linux):**
-   ```bash
-   nix build .#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run
-   ```
-
-4. **Dry build for Darwin (cross-platform validation):**
+3. **Dry build for Darwin (cross-platform validation):**
    ```bash
    nix build .#darwinConfigurations.Krits-MacBook-Pro.system --dry-run
    ```

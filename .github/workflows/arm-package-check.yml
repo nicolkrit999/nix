@@ -1,0 +1,253 @@
+name: "Check ARM Package Availability"
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - 'modules/**'
+      - 'users/**'
+      - 'packages/**'
+  pull_request:
+    paths:
+      - 'modules/**'
+      - 'users/**'
+      - 'packages/**'
+  workflow_dispatch:
+
+jobs:
+  check-arm-packages:
+    runs-on: ubuntu-latest
+    env:
+      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            experimental-features = nix-command flakes
+
+      - name: Extract and Check ARM Package Availability
+        run: |
+          set -euo pipefail
+
+          echo "=== Extracting package references from modules ==="
+
+          # Extract pkgs.* patterns, handling nested attrs like pkgs.python3Packages.foo
+          grep -rhoP 'pkgs\.[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*' \
+            modules/ users/ packages/ 2>/dev/null \
+            | sed 's/^pkgs\.//' \
+            | sort -u > /tmp/all_packages.txt
+
+          echo "Found $(wc -l < /tmp/all_packages.txt) unique package references"
+
+          # Also extract with-location for reporting
+          grep -rnoP 'pkgs\.[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*' \
+            modules/ users/ packages/ 2>/dev/null \
+            | sort -u > /tmp/packages_with_location.txt
+
+          echo ""
+          echo "=== Checking packages against aarch64-linux ==="
+
+          FAILED_PACKAGES=""
+          CHECKED=0
+          SKIPPED=0
+
+          while read -r pkg; do
+            # Skip common false positives (not actual packages)
+            case "$pkg" in
+              lib|lib.*|stdenv|stdenv.*|fetchurl|fetchgit|fetchFromGitHub|writeShellScript|writeText|runCommand|mkShell|callPackage|buildEnv|symlinkJoin)
+                ((SKIPPED++)) || true
+                continue
+                ;;
+            esac
+
+            ((CHECKED++)) || true
+
+            # Check if package exists and is available on aarch64-linux
+            # We use a nix expression that returns "ok", "unavailable", or "missing"
+            RESULT=$(nix eval --raw --impure --expr "
+              let
+                pkgs = import (builtins.getFlake \"nixpkgs\") { system = \"x86_64-linux\"; };
+                pkgsArm = import (builtins.getFlake \"nixpkgs\") { system = \"aarch64-linux\"; };
+                pkg = pkgs.${pkg} or null;
+                pkgArm = pkgsArm.${pkg} or null;
+              in
+                if pkg == null then \"missing\"
+                else if pkgArm == null then \"unavailable\"
+                else if (pkgArm.meta.broken or false) then \"broken\"
+                else if !(pkgs.lib.meta.availableOn { system = \"aarch64-linux\"; } pkg) then \"unavailable\"
+                else \"ok\"
+            " 2>/dev/null || echo "error")
+
+            case "$RESULT" in
+              ok)
+                ;;
+              unavailable|broken)
+                echo "ARM UNAVAILABLE: $pkg"
+                FAILED_PACKAGES="${FAILED_PACKAGES}${pkg}\n"
+                ;;
+              missing)
+                # Package doesn't exist in nixpkgs (might be from a flake input)
+                ;;
+              error)
+                # Evaluation error - might be nested package or special case
+                ;;
+            esac
+
+          done < /tmp/all_packages.txt
+
+          echo ""
+          echo "=== Summary (nixpkgs) ==="
+          echo "Checked: $CHECKED packages"
+          echo "Skipped: $SKIPPED (common helpers)"
+
+          echo ""
+          echo "=========================================="
+          echo "=== Checking FLAKE INPUT packages ==="
+          echo "=========================================="
+
+          # Extract flake input package references: inputs.foo.packages.${...}.bar
+          # Also handle inputs.foo-bar.packages patterns (with hyphens)
+          grep -rhoP 'inputs\.([a-zA-Z0-9_-]+)\.packages\.\$\{[^}]+\}\.([a-zA-Z0-9_-]+)' \
+            modules/ users/ 2>/dev/null \
+            | sort -u > /tmp/flake_inputs.txt || true
+
+          if [ -s /tmp/flake_inputs.txt ]; then
+            echo "Found $(wc -l < /tmp/flake_inputs.txt) flake input package references"
+            cat /tmp/flake_inputs.txt
+
+            echo ""
+            while read -r ref; do
+              # Parse: inputs.foo.packages.${...}.bar -> foo and bar
+              INPUT_NAME=$(echo "$ref" | sed -E 's/inputs\.([^.]+)\.packages.*/\1/')
+              PKG_NAME=$(echo "$ref" | sed -E 's/.*\}\.(.+)/\1/')
+
+              echo -n "Checking inputs.$INPUT_NAME.packages.aarch64-linux.$PKG_NAME ... "
+
+              # Evaluate via flake inputs (correct method)
+              RESULT=$(nix eval --impure --raw --expr "
+                let
+                  flake = builtins.getFlake (toString ./.);
+                  input = flake.inputs.\"$INPUT_NAME\" or null;
+                  pkg = if input == null then null
+                        else input.packages.aarch64-linux.\"$PKG_NAME\" or null;
+                in
+                  if input == null then \"input-missing\"
+                  else if pkg == null then \"unavailable\"
+                  else pkg.name or \"ok\"
+              " 2>/dev/null || echo "error")
+
+              case "$RESULT" in
+                input-missing)
+                  echo "INPUT NOT FOUND"
+                  ;;
+                unavailable)
+                  echo "UNAVAILABLE on ARM"
+                  FAILED_PACKAGES="${FAILED_PACKAGES}flake:$INPUT_NAME/$PKG_NAME\n"
+                  ;;
+                error)
+                  echo "EVAL ERROR"
+                  FAILED_PACKAGES="${FAILED_PACKAGES}flake:$INPUT_NAME/$PKG_NAME (eval error)\n"
+                  ;;
+                *)
+                  echo "OK ($RESULT)"
+                  ;;
+              esac
+            done < /tmp/flake_inputs.txt
+          else
+            echo "No flake input packages found"
+          fi
+
+          if [ -n "$FAILED_PACKAGES" ]; then
+            echo ""
+            echo "=== Categorizing ARM-Unavailable Packages ==="
+
+            FIXED_PACKAGES=""
+            UNFIXED_PACKAGES=""
+
+            while read -r pkg; do
+              [ -z "$pkg" ] && continue
+
+              # Check if package has an overlay/fix in packages/ or modules/ directories
+              # Look for the package name in overlay files
+              pkg_base=$(echo "$pkg" | sed 's/\..*//')  # Get base name for nested packages
+              if grep -rq "$pkg_base" packages/ modules/ 2>/dev/null; then
+                echo "FIXED (has overlay): $pkg"
+                FIXED_PACKAGES="${FIXED_PACKAGES}${pkg}\n"
+              else
+                echo "UNFIXED: $pkg"
+                UNFIXED_PACKAGES="${UNFIXED_PACKAGES}${pkg}\n"
+              fi
+            done <<< "$(echo -e "$FAILED_PACKAGES")"
+
+            echo ""
+            echo "=== Locations of ARM-Unavailable Packages ==="
+            while read -r pkg; do
+              [ -z "$pkg" ] && continue
+              echo "--- $pkg ---"
+              grep -n "pkgs\.${pkg}[^a-zA-Z0-9_-]" /tmp/packages_with_location.txt 2>/dev/null | head -5 || true
+            done <<< "$(echo -e "$FAILED_PACKAGES")"
+
+            # Count issues
+            FIXED_COUNT=$(echo -e "$FIXED_PACKAGES" | grep -c . || echo 0)
+            UNFIXED_COUNT=$(echo -e "$UNFIXED_PACKAGES" | grep -c . || echo 0)
+
+            echo ""
+            echo "=== Final Summary ==="
+            echo "Fixed (have overlay): $FIXED_COUNT"
+            echo "Unfixed: $UNFIXED_COUNT"
+
+            if [ "$UNFIXED_COUNT" -gt 0 ]; then
+              echo ""
+              echo "::warning::$UNFIXED_COUNT packages are not available on aarch64-linux and have no overlay fix."
+            fi
+
+            # Export for notification step - always notify to track ARM status
+            echo "HAS_ARM_ISSUES=true" >> $GITHUB_ENV
+            echo "FIXED_COUNT=$FIXED_COUNT" >> $GITHUB_ENV
+            echo "UNFIXED_COUNT=$UNFIXED_COUNT" >> $GITHUB_ENV
+
+            echo "FIXED_PACKAGES<<EOF" >> $GITHUB_ENV
+            echo -e "$FIXED_PACKAGES" | head -10 >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+
+            echo "UNFIXED_PACKAGES<<EOF" >> $GITHUB_ENV
+            echo -e "$UNFIXED_PACKAGES" | head -10 >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo ""
+            echo "All checked packages are available on aarch64-linux!"
+            echo "HAS_ARM_ISSUES=false" >> $GITHUB_ENV
+          fi
+
+      - name: Notify ARM Status on Discord
+        if: env.HAS_ARM_ISSUES == 'true' && env.WEBHOOK_ID != ''
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          # Build message based on fixed/unfixed counts
+          if [ "$UNFIXED_COUNT" -gt 0 ]; then
+            EMOJI="⚠️"
+            TITLE="ARM Package Compatibility Report"
+          else
+            EMOJI="✅"
+            TITLE="ARM Package Status (all issues have fixes)"
+          fi
+
+          MSG="$EMOJI **$TITLE**\n\n"
+
+          if [ -n "$UNFIXED_PACKAGES" ] && [ "$UNFIXED_PACKAGES" != $'\n' ]; then
+            MSG="${MSG}❌ **Unfixed ($UNFIXED_COUNT):**\n\`\`\`\n${UNFIXED_PACKAGES}\`\`\`\n"
+          fi
+
+          if [ -n "$FIXED_PACKAGES" ] && [ "$FIXED_PACKAGES" != $'\n' ]; then
+            MSG="${MSG}✅ **Fixed via overlay ($FIXED_COUNT):**\n\`\`\`\n${FIXED_PACKAGES}\`\`\`\n"
+          fi
+
+          MSG="${MSG}See: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          jq -n --arg content "$MSG" '{content: $content}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
