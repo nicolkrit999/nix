@@ -192,9 +192,18 @@ jobs:
               grep -n "pkgs\.${pkg}[^a-zA-Z0-9_-]" /tmp/packages_with_location.txt 2>/dev/null | head -5 || true
             done <<< "$(echo -e "$FAILED_PACKAGES")"
 
-            # Count issues
-            FIXED_COUNT=$(echo -e "$FIXED_PACKAGES" | grep -c . || echo 0)
-            UNFIXED_COUNT=$(echo -e "$UNFIXED_PACKAGES" | grep -c . || echo 0)
+            # Count issues (handle empty strings properly)
+            if [ -n "$FIXED_PACKAGES" ]; then
+              FIXED_COUNT=$(printf '%s' "$FIXED_PACKAGES" | grep -c . || true)
+            else
+              FIXED_COUNT=0
+            fi
+
+            if [ -n "$UNFIXED_PACKAGES" ]; then
+              UNFIXED_COUNT=$(printf '%s' "$UNFIXED_PACKAGES" | grep -c . || true)
+            else
+              UNFIXED_COUNT=0
+            fi
 
             echo ""
             echo "=== Final Summary ==="
@@ -211,13 +220,18 @@ jobs:
             echo "FIXED_COUNT=$FIXED_COUNT" >> $GITHUB_ENV
             echo "UNFIXED_COUNT=$UNFIXED_COUNT" >> $GITHUB_ENV
 
-            echo "FIXED_PACKAGES<<EOF" >> $GITHUB_ENV
-            echo -e "$FIXED_PACKAGES" | head -10 >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
+            # Use heredoc format for multiline values
+            {
+              echo "FIXED_PACKAGES<<EOFMARKER"
+              printf '%s' "$FIXED_PACKAGES" | head -10
+              echo "EOFMARKER"
+            } >> $GITHUB_ENV
 
-            echo "UNFIXED_PACKAGES<<EOF" >> $GITHUB_ENV
-            echo -e "$UNFIXED_PACKAGES" | head -10 >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
+            {
+              echo "UNFIXED_PACKAGES<<EOFMARKER"
+              printf '%s' "$UNFIXED_PACKAGES" | head -10
+              echo "EOFMARKER"
+            } >> $GITHUB_ENV
           else
             echo ""
             echo "All checked packages are available on aarch64-linux!"
