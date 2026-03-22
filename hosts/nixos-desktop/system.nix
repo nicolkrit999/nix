@@ -96,6 +96,8 @@ delib.host {
             IdentityFile ${config.sops.secrets.github_general_ssh_key.path}
           '';
 
+          services.tailscale.authKeyFile = config.sops.secrets.tailscale_key.path;
+
           users.users.${myUserName}.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
           users.users.root.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
 
@@ -215,6 +217,8 @@ delib.host {
         borg-passphrase = { };
         borg-private-key = { };
         cachix-auth-token = { };
+
+        tailscale_key.sopsFile = commonSecrets;
       };
 
     programs.gnupg.agent = {

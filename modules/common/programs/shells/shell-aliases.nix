@@ -80,7 +80,7 @@ delib.module {
 
         # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml";
-        sops-common = "cd ${flakeDir}/users/${myconfig.constants.user}/sops && sops ${myconfig.constants.user}-common-secrets-sops.yaml";
+        sops-common = "cd ${flakeDir}/users/${myconfig.constants.user}/common/sops && sops ${myconfig.constants.user}-common-secrets-sops.yaml";
         sops-host = "cd ${flakeDir} && sops hosts/${myconfig.constants.hostname}/${myconfig.constants.hostname}-secrets-sops.yaml";
       };
 

@@ -74,29 +74,40 @@ delib.host {
       # ---------------------------------------------------------------
       # 👤 KRIT PROGRAMS
       # ---------------------------------------------------------------
-      krit.programs.direnv.enable = true;
-      krit.programs.neovim.enable = true;
-      krit.programs.firefox.enable = true;
-      krit.programs.librewolf.enable = false; # disabled: librewolf-148.0 fails to link on nixpkgs-25.11 (LLVM 21 vs 20 mismatch)
-      krit.programs.chromium.enable = false;
-      krit.programs.yazi.enable = true;
-      krit.programs.ranger.enable = false;
-      krit.programs.alacritty.enable = false;
+      krit.programs = {
+        direnv.enable = true;
+        neovim.enable = true;
+        firefox.enable = true;
+        librewolf.enable = false; # disabled: librewolf-148.0 fails
+        chromium.enable = false;
+        yazi.enable = true;
+        ranger.enable = false;
+        alacritty.enable = false;
 
-      krit.programs.kitty = {
-        enable = true;
-        fontSize = 14;
+        kitty = {
+          enable = true;
+          fontSize = 14;
+        };
       };
+
+
 
       # ---------------------------------------------------------------
       # 👤 KRIT SERVICES
       # ---------------------------------------------------------------
-      krit.services.nas.sshfs.enable = true;
-      krit.services.nas.smb.enable = true;
-      krit.services.nas.owncloud.enable = true;
-      krit.services.nas.Krits-MacBook-Pro-borg-backup.enable = true;
-      krit.services.Krits-MacBook-Pro.local-packages.enable = true;
-      krit.services.Krits-MacBook-Pro.claude-code-wrappers.enable = true;
+
+
+      krit.services.nas = {
+        Krits-MacBook-Pro-borg-backup.enable = true;
+        owncloud.enable = false;
+        smb.enable = true;
+        sshfs.enable = false;
+      };
+
+      krit.services.Krits-MacBook-Pro = {
+        local-packages.enable = true;
+        claude-code-wrappers.enable = true;
+      };
 
       # ---------------------------------------------------------------
       # 🍎 DARWIN-ONLY MODULES

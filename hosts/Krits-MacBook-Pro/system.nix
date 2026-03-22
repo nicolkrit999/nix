@@ -109,6 +109,10 @@ delib.host {
           sopsFile = commonSecrets;
           owner = "krit";
         };
+        tailscale_key = {
+          sopsFile = commonSecrets;
+          owner = "krit";
+        };
       };
 
     nix.extraOptions = ''
