@@ -1,9 +1,7 @@
-{ delib, ... }:
+{ delib, pkgs, lib, ... }:
 delib.module {
   name = "krit.system.virtualisation";
-  options.krit.system.virtualisation = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   nixos.ifEnabled = {
     virtualisation.docker.enable = true;
@@ -12,5 +10,11 @@ delib.module {
       enable = true;
       dockerCompat = false;
     };
+
+    environment.systemPackages = with pkgs; [
+      distrobox
+    ] ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux") [
+      winboat # x86_64 only
+    ];
   };
 }

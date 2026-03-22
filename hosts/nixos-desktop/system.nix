@@ -23,7 +23,6 @@ delib.host {
     };
 
     imports = [
-      inputs.niri.nixosModules.niri
       inputs.nix-sops.nixosModules.sops
       ./hardware-configuration.nix
 
@@ -75,16 +74,6 @@ delib.host {
     boot.binfmt.emulatedSystems = [ "aarch64-linux" ]; # Allow emulation of aarch64-linux
     boot.initrd.kernelModules = [ "amdgpu" ];
     hardware.graphics.enable = true;
-
-    services.logind.settings.Login = {
-      HandlePowerKey = "poweroff";
-      HandlePowerKeyLongPress = "poweroff";
-    };
-
-    environment.pathsToLink = [
-      "/share/applications"
-      "/share/xdg-desktop-portal"
-    ];
 
     # Desktop-specific packages
     environment.systemPackages = with pkgs; [

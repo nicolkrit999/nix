@@ -2,6 +2,7 @@
 , pkgs
 , lib
 , config
+, inputs
 , ...
 }:
 delib.module {
@@ -15,6 +16,13 @@ delib.module {
       touchpads = listOfOption attrs [ ];
       pinnedApps = listOfOption str [ ];
     };
+
+  # Import plasma-manager home-manager module (must be in always block)
+  home.always = { ... }: {
+    imports = [
+      inputs.plasma-manager.homeModules.plasma-manager
+    ];
+  };
 
   home.ifEnabled =
     { myconfig

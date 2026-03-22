@@ -507,18 +507,18 @@ delib.host {
       # ---------------------------------------------------------------
 
       krit.programs = {
-        alacritty.enable = true;
+        alacritty.enable = false;
         kitty.enable = true;
-        cava.enable = true;
-        chromium.enable = true;
+        cava.enable = false;
+        chromium.enable = false;
         claude-code-wrappers.enable = true;
         direnv.enable = true;
         dolphin.enable = true;
-        firefox.enable = true;
+        firefox.enable = false;
         librewolf.enable = true;
         neovim.enable = true;
         pwas.enable = true;
-        ranger.enable = true;
+        ranger.enable = false;
         yazi.enable = true;
         zathura.enable = true;
       };
@@ -544,7 +544,7 @@ delib.host {
 
       krit.services.nas = {
         desktop-borg-backup.enable = true;
-        owncloud.enable = true;
+        owncloud.enable = false;
         smb.enable = true;
         sshfs.enable = false;
       };
