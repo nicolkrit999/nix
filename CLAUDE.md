@@ -11,12 +11,11 @@ Nixpkgs channel: `nixos-25.11`. Home-manager user: `krit`.
 | Host | Arch | Platform | Description |
 |------|------|----------|-------------|
 | `nixos-desktop` | `x86_64-linux` | NixOS | Primary desktop (Hyprland/Niri/GNOME/KDE/COSMIC) |
-| `nixos-arm-vm` | `aarch64-linux` | NixOS | ARM VM |
 | `Krits-MacBook-Pro` | `aarch64-darwin` | nix-darwin | MacBook Pro (macOS) |
 
 ## Cross-Platform Architecture
 
-This single repo supports **three architectures**: `x86_64-linux`, `aarch64-linux`, and `aarch64-darwin`. The `flake.nix` uses a **3-way module split** to share common code while isolating platform-specific modules:
+This single repo supports **two active architectures**: `x86_64-linux` and `aarch64-darwin`. ARM Linux (`aarch64-linux`) compatibility is tracked via CI but no ARM host is currently defined. The `flake.nix` uses a **3-way module split** to share common code while isolating platform-specific modules:
 
 ### Directory Structure
 
@@ -103,10 +102,7 @@ nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --dry
 # Or use the nh helper:
 nh os test --dry --ask
 
-# 3. Dry build for nixos-arm-vm (aarch64-linux)
-nix build .#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run
-
-# 4. Dry build for Darwin (cross-platform validation)
+# 3. Dry build for Darwin (cross-platform validation)
 nix build .#darwinConfigurations.Krits-MacBook-Pro.system --dry-run
 ```
 
@@ -312,7 +308,6 @@ Managed with sops-nix. Secrets files:
 | `modules/nixos/toplevel/` | NixOS-only toplevel modules (boot, bluetooth, stylix-nixos, etc.) |
 | `modules/darwin/toplevel/` | Darwin-only toplevel modules (stylix-darwin, nix-darwin, etc.) |
 | `hosts/nixos-desktop/default.nix` | Full real-world NixOS `delib.host` example |
-| `hosts/nixos-arm-vm/default.nix` | ARM NixOS host example |
 | `hosts/Krits-MacBook-Pro/default.nix` | Darwin `delib.host` example with constants + module enablement |
 | `hosts/Krits-MacBook-Pro/system.nix` | Darwin system config (Homebrew, macOS defaults, sops) |
 | `modules/nixos/toplevel/hyprland.nix` | Minimal `delib.module` with `singleEnableOption` |
@@ -321,3 +316,29 @@ Managed with sops-nix. Secrets files:
 
 ## `./templates/`
 This folder contains any nix files which is not written the `denix` way, they are not auto-discovered and are used to put common and user-specific .nix files which are not meant to use denix, such as specializations
+
+## ARM Compatibility Tracking
+
+No ARM Linux host is currently active, but ARM (`aarch64-linux`) package compatibility is tracked via CI.
+
+**Workflow:** `.github/workflows/arm-package-check.yml`
+
+**What it checks:**
+1. **nixpkgs packages** — Extracts `pkgs.*` references from `modules/`, `users/`, `packages/` and validates each against `aarch64-linux` using `lib.meta.availableOn`
+2. **Flake input packages** — Checks `inputs.*.packages` references (e.g., caelestia-shell, noctalia-shell, nix-alien) for ARM availability
+
+**Categorization:**
+- **Fixed** — Package is ARM-unavailable but has an overlay in `modules/` or `packages/` (e.g., `gpu-screen-recorder` has a dummy stub overlay in `common-configuration-nixos.nix`)
+- **Unfixed** — Package is ARM-unavailable with no workaround
+
+**Limitations:**
+- Static text analysis (grep), not full module evaluation
+- Catches direct `pkgs.foo` references but misses packages from variables, conditionals, or `programs.*.enable` options
+- Dependencies are implicitly covered by nixpkgs Hydra CI
+
+**Discord notifications:** Reports ARM status on push/PR to `develop`/`main` when `modules/`, `users/`, or `packages/` change.
+
+**Known x86-only packages:**
+| Package | Status | Notes |
+|---------|--------|-------|
+| `gpu-screen-recorder` | Fixed | Overlay stubs it on ARM (caelestia/noctalia dependency) |
