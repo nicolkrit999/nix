@@ -196,12 +196,10 @@ jobs:
             FIXED_CLEAN=$(echo -e "$FIXED_PACKAGES" | sed '/^$/d')
             UNFIXED_CLEAN=$(echo -e "$UNFIXED_PACKAGES" | sed '/^$/d')
 
-            FIXED_COUNT=$(echo "$FIXED_CLEAN" | grep -c . || echo 0)
-            UNFIXED_COUNT=$(echo "$UNFIXED_CLEAN" | grep -c . || echo 0)
-
-            # Handle case where grep returns empty
-            [ "$FIXED_COUNT" = "" ] && FIXED_COUNT=0
-            [ "$UNFIXED_COUNT" = "" ] && UNFIXED_COUNT=0
+            FIXED_COUNT=$(echo "$FIXED_CLEAN" | grep -c .)
+            UNFIXED_COUNT=$(echo "$UNFIXED_CLEAN" | grep -c .)
+            FIXED_COUNT=${FIXED_COUNT:-0}
+            UNFIXED_COUNT=${UNFIXED_COUNT:-0}
 
             echo ""
             echo "=== Final Summary ==="
