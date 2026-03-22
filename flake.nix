@@ -22,7 +22,6 @@
 
         # Any `hardware-configuration.nix must be excluded`
         ./hosts/nixos-desktop/hardware-configuration.nix
-        ./hosts/nixos-arm-vm/hardware-configuration.nix
         ./hosts/template-host-full/hardware-configuration.nix
         ./hosts/template-host-minimal/hardware-configuration.nix
 
@@ -39,7 +38,6 @@
       # NixOS hosts (excluded from darwin builds)
       nixosHosts = [
         ./hosts/nixos-desktop
-        ./hosts/nixos-arm-vm
         ./hosts/template-host-full
         ./hosts/template-host-minimal
       ];
