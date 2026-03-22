@@ -1,31 +1,12 @@
-{ delib, inputs, pkgs, ... }:
-let
-  pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-in
+{ delib
+, inputs
+, ...
+}:
 delib.host {
   name = "nixos-desktop";
 
   home = {
-    home.stateVersion = "25.11";
-    home.username = "krit";
-    home.homeDirectory = "/home/krit";
-
-    home.packages = (with pkgs; [ ]) ++ (with pkgs-unstable; [ ]);
-
-    xdg.userDirs = {
-      publicShare = null;
-      music = null;
-    };
-
-    home.activation = {
-      # Make sure to include || true to avoid home-manager failing on rebuild
-      createHostDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        mkdir -p $HOME/Pictures/wallpapers || true
-        mkdir -p $HOME/momentary || true
-        mkdir -p $HOME/web-clients || true
-        mkdir -p $HOME/.distrobox-bin || true
-        mkdir -p $HOME/.config/portainer-mcp || true
-      '';
-    };
+    home.activation.createDesktopDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    '';
   };
 }

@@ -11,7 +11,7 @@ let
   myFileManager = "yazi";
   myUserName = "krit";
   myLocale = "en_US.UTF-8";
-  isCatppuccin = true;
+  isCatppuccin = false;
 
   # 🌟 APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
   appWorkspaces = {
@@ -458,7 +458,7 @@ delib.host {
             "gesture-down" = { key = "XF86Launch7"; command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Close\""; };
           };
         };
-      }; # Close programs block
+      };
 
       # ---------------------------------------------------------------
       # ⚙️ SERVICES
@@ -561,6 +561,11 @@ delib.host {
         autotrash.enable = true;
         ssh-config.enable = true;
       };
+
+      # ---------------------------------------------------------------
+      # 🏠 KRIT HOME
+      # ---------------------------------------------------------------
+      krit.home.base.enable = true;
 
     };
 }
