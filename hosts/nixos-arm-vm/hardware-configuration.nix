@@ -20,6 +20,13 @@
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
 
+  # 📁 Minimal filesystem for CI evaluation (not a real VM)
+  # This satisfies NixOS assertions; actual VM would use disko or real disk layout
+  fileSystems."/" = {
+    device = "/dev/disk/by-label/nixos";
+    fsType = "ext4";
+  };
+
   # 🖥️ ARM ARCHITECTURE
   # mkDefault allows this host to coexist with your x86_64 desktop in flake checks
   nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";

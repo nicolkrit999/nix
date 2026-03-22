@@ -3,6 +3,7 @@
 , lib
 , config
 , inputs
+, moduleSystem
 , ...
 }:
 delib.module {
@@ -17,9 +18,16 @@ delib.module {
       pinnedApps = listOfOption str [ ];
     };
 
-  # Import plasma-manager home-manager module (must be in always block)
+  # NixOS: inject plasma-manager via home-manager.sharedModules
+  nixos.always = { ... }: {
+    home-manager.sharedModules = [
+      inputs.plasma-manager.homeModules.plasma-manager
+    ];
+  };
+
+  # Standalone homeConfigurations: import plasma-manager directly
   home.always = { ... }: {
-    imports = [
+    imports = lib.optionals (moduleSystem == "home") [
       inputs.plasma-manager.homeModules.plasma-manager
     ];
   };

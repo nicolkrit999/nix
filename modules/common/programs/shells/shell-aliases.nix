@@ -90,7 +90,7 @@ delib.module {
       nixosAliases = {
         # Switch commands
         swboot = "cd ${flakeDir} && ${nixosBootWrapped}";
-        swdry = "cd ${flakeDir} && nh os test --dry --ask";
+        swdry = "cd ${flakeDir} && nh os test --dry --ask .";
         sw = "cd ${flakeDir} && ${nixosSwitchWrapped}";
         gsw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
         gswoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
@@ -132,7 +132,7 @@ delib.module {
         # Switch commands
         sw = "cd ${flakeDir} && ${darwinSwitchCmd}";
         gsw = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd}";
-        swdry = "cd ${flakeDir} && nh darwin switch --dry ${flakeDir}";
+        swdry = "cd ${flakeDir} && nh darwin switch --dry .";
         gswoff = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd} --offline";
 
         # Flake checks and updates
