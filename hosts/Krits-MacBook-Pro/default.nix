@@ -115,5 +115,8 @@ delib.host {
       # ---------------------------------------------------------------
       # 🍎 DARWIN-ONLY MODULES
       # ---------------------------------------------------------------
+      krit.home.base.enable = true;
+      krit.system.git-ssh-signing.enable = true;
+      krit.system.ssh-config.enable = true;
     };
 }

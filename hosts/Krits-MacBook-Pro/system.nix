@@ -1,6 +1,5 @@
 { delib
 , inputs
-, pkgs
 , config
 , ...
 }:
@@ -118,11 +117,6 @@ delib.host {
     nix.extraOptions = ''
       !include ${config.sops.secrets.github_fg_pat_token_nix.path}
     '';
-
-    environment.systemPackages = with pkgs; [
-      gnupg
-      pinentry_mac
-    ];
 
     # -----------------------------------------------------------------------
     # 🍎 MAC APP STORE APPS
