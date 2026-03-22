@@ -2,6 +2,12 @@
 delib.module {
   name = "nix";
 
+  home.always = {
+    imports = [
+      inputs.nix-index-database.homeModules.nix-index
+    ];
+  };
+
   nixos.always = {
     imports = [
       inputs.nix-index-database.nixosModules.nix-index

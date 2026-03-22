@@ -2,6 +2,12 @@
 delib.module {
   name = "nix";
 
+  home.always = {
+    imports = [
+      inputs.nix-index-database.homeModules.nix-index
+    ];
+  };
+
   darwin.always =
     { ... }:
     {

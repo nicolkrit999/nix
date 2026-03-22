@@ -1,10 +1,10 @@
-{ delib, pkgs, ... }:
+{ delib, ... }:
 delib.module {
   name = "programs.comma";
   options = delib.singleEnableOption false;
 
-  # The nix-index-database overlay (applied in nix-nixos.nix and nix-darwin.nix) provides comma-with-db
+  # homeModules.nix-index is imported in nix-nixos.nix and nix-darwin.nix via home.always
   home.ifEnabled = {
-    home.packages = [ pkgs.comma-with-db ];
+    programs.nix-index-database.comma.enable = true;
   };
 }
