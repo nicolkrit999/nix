@@ -1,7 +1,7 @@
 { delib, config, ... }:
 delib.module {
   name = "programs.cava";
-  options = delib.sigleEnableOption false;
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     {
