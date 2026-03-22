@@ -168,20 +168,22 @@ delib.host {
       # ---------------------------------------------------------------
       # 🚀 PROGRAMS
       # ---------------------------------------------------------------
-      programs.bat.enable = true;
-      programs.eza.enable = true;
-      programs.fzf.enable = true;
+      programs = {
+        bat.enable = true;
+        eza.enable = true;
+        fzf.enable = true;
 
-      programs.git = {
-        enable = true;
-        customGitIgnores = [ ];
+        git = {
+          enable = true;
+          customGitIgnores = [ ];
+        };
+
+        lazygit.enable = true;
+        shell-aliases.enable = true;
+        starship.enable = true;
+        tmux.enable = true;
+        walker.enable = true;
       };
-
-      programs.lazygit.enable = true;
-      programs.shell-aliases.enable = true;
-      programs.starship.enable = true;
-      programs.tmux.enable = true;
-      programs.walker.enable = true;
 
       programs.waybar = {
         enable = true;
@@ -428,37 +430,38 @@ delib.host {
       # ---------------------------------------------------------------
       # ⚙️ SERVICES
       # ---------------------------------------------------------------
-      services.audio.enable = true;
-      services.hyprlock.enable = true;
-      services.sddm.enable = true;
-      services.impermanence.enable = true;
+      services = {
+        audio.enable = true;
+        hyprlock.enable = true;
+        sddm.enable = true;
+        impermanence.enable = true;
+        tailscale.enable = true;
 
-      services.snapshots = {
-        enable = true;
-        retention = {
-          hourly = "24";
-          daily = "7";
-          weekly = "4";
-          monthly = "3";
-          yearly = "2";
+        snapshots = {
+          enable = true;
+          retention = {
+            hourly = "24";
+            daily = "7";
+            weekly = "4";
+            monthly = "3";
+            yearly = "2";
+          };
         };
-      };
 
-      services.tailscale.enable = true;
+        hypridle = {
+          enable = true;
+          dimTimeout = 900;
+          lockTimeout = 1800;
+          screenOffTimeout = 3600;
+        };
 
-      services.hypridle = {
-        enable = true;
-        dimTimeout = 900;
-        lockTimeout = 1800;
-        screenOffTimeout = 3600;
-      };
-
-      services.swaync = {
-        enable = true;
-        customSettings = {
-          "mute-protonvpn" = {
-            state = "ignored";
-            app-name = ".*Proton.*";
+        swaync = {
+          enable = true;
+          customSettings = {
+            "mute-protonvpn" = {
+              state = "ignored";
+              app-name = ".*Proton.*";
+            };
           };
         };
       };
@@ -484,21 +487,29 @@ delib.host {
       # 👤 KRIT SERVICES
       # ---------------------------------------------------------------
       krit.services.arm-vm.flatpak.enable = true;
-      krit.services.arm-vm.local-packages.enable = true;
 
       krit.services.logitech = {
         enable = true;
-        mouses.mx-master-3s.enable = true;
-        mouses.mx-master-4.enable = true;
-        mouses.superlight.enable = true;
+        mouses = {
+          mx-master-3s.enable = true;
+          mx-master-4.enable = true;
+          superlight.enable = true;
+        };
       };
 
+      # NAS services disabled - require sops secrets not available in CI
+      # krit.services.nas = { ... };
 
-      krit.services.nas = {
-        desktop-borg-backup.enable = true;
-        owncloud.enable = true;
-        smb.enable = true;
-        sshfs.enable = true;
+      # ---------------------------------------------------------------
+      # 🔧 KRIT SYSTEM (shared modules from users/krit/nixos/system/)
+      # ---------------------------------------------------------------
+      krit.system = {
+        swiss-locale.enable = true;
+        # git-ssh-signing disabled - requires SSH keys from sops
+        # default-user disabled - using initialPassword for CI
+        virtualisation.enable = true;
+        resolved.enable = true;
+        autotrash.enable = true;
       };
 
     };

@@ -42,29 +42,33 @@ delib.host {
       # Note: fish/zsh auto-enable based on constants.shell
       # Note: kitty is configured via krit.programs.kitty below
       # ---------------------------------------------------------------
-      programs.bat.enable = true;
-      programs.eza.enable = true;
-      programs.statix.enable = true;
-      programs.comma.enable = true;
-      programs.git.enable = true;
-      programs.lazygit.enable = true;
-      programs.starship.enable = true;
-      programs.tmux.enable = true;
-      programs.television.enable = true;
-      programs.zoxide.enable = true;
-      programs.claude-code.enable = true;
-      programs.shell-aliases.enable = true;
+      programs = {
+        bat.enable = true;
+        eza.enable = true;
+        statix.enable = true;
+        comma.enable = true;
+        git.enable = true;
+        lazygit.enable = true;
+        starship.enable = true;
+        tmux.enable = true;
+        television.enable = true;
+        zoxide.enable = true;
+        claude-code.enable = true;
+        shell-aliases.enable = true;
+      };
 
-      stylix.enable = true;
-      stylix.targets = {
-        yazi.enable = false;
-        kitty.enable = true;
-        alacritty.enable = true;
-        firefox.profileNames = [ "krit" ];
-        librewolf.profileNames = [
-          "default"
-          "privacy"
-        ];
+      stylix = {
+        enable = true;
+        targets = {
+          yazi.enable = false;
+          kitty.enable = true;
+          alacritty.enable = true;
+          firefox.profileNames = [ "krit" ];
+          librewolf.profileNames = [
+            "default"
+            "privacy"
+          ];
+        };
       };
 
       home-packages.enable = true;
@@ -104,10 +108,9 @@ delib.host {
         sshfs.enable = false;
       };
 
-      krit.services.Krits-MacBook-Pro = {
-        local-packages.enable = true;
-        claude-code-wrappers.enable = true;
-      };
+      krit.services.Krits-MacBook-Pro.local-packages.enable = true;
+
+      krit.programs.claude-code-wrappers.enable = true;
 
       # ---------------------------------------------------------------
       # 🍎 DARWIN-ONLY MODULES
