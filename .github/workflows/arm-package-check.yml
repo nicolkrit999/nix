@@ -7,11 +7,13 @@ on:
       - 'modules/**'
       - 'users/**'
       - 'packages/**'
+      - '.github/workflows/arm-package-check.yml'
   pull_request:
     paths:
       - 'modules/**'
       - 'users/**'
       - 'packages/**'
+      - '.github/workflows/arm-package-check.yml'
   workflow_dispatch:
 
 jobs:
