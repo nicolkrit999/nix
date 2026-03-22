@@ -38,6 +38,7 @@ delib.module {
       ids.gids.nixbld = 350;
 
       environment.systemPackages = with pkgs; [
+        nh
         nixfmt
         sops
         shellPkg
