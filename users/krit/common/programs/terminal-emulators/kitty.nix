@@ -5,13 +5,15 @@
 }:
 delib.module {
   name = "krit.programs.kitty";
-  options.krit.programs.kitty = with delib; {
-    enable = boolOption false;
-    fontSize = lib.mkOption {
-      type = lib.types.nullOr lib.types.number;
-      default = null;
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      fontSize = lib.mkOption {
+        type = lib.types.nullOr lib.types.number;
+        default = null;
+      };
     };
-  };
 
   home.ifEnabled =
     { myconfig, ... }:

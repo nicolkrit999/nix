@@ -1,9 +1,7 @@
 { delib, ... }:
 delib.module {
   name = "krit.programs.zathura";
-  options.krit.programs.zathura = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     { myconfig

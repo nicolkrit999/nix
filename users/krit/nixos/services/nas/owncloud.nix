@@ -5,7 +5,7 @@
 }:
 delib.module {
   name = "krit.services.nas.owncloud";
-  options.krit.services.nas.owncloud = with delib; {
+  options = with delib; moduleOptions {
     enable = boolOption false;
     secretsFile = strOption "";
   };

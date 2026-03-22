@@ -18,9 +18,9 @@ delib.module {
 
       terminal = strOption "alacritty";
       shell = strOption "bash";
-      browser = strOption "chromium";
+      browser = strOption "firefox";
       editor = strOption "nano";
-      fileManager = strOption "dolphin";
+      fileManager = strOption "nnn";
 
 
 
@@ -35,14 +35,12 @@ delib.module {
 
       nixImpure = boolOption false;
 
-      /*
       cachix = {
         enable = boolOption false;
         push = boolOption false;
         name = strOption "krit-nixos"; # Allow general users to use my custom cachix cache. Change if needed
         publicKey = strOption "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks="; # Public key of the krit cachix cache, change as needd
       };
-      */
     };
 
   myconfig.always =

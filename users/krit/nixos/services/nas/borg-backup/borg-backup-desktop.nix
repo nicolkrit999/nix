@@ -5,7 +5,7 @@
 }:
 delib.module {
   name = "krit.services.nas.desktop-borg-backup";
-  options.krit.services.nas.desktop-borg-backup = with delib; {
+  options = with delib; moduleOptions {
     enable = boolOption false;
     passphraseFile = strOption "";
     sshKeyPath = strOption "";

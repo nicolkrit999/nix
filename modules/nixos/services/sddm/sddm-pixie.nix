@@ -5,28 +5,32 @@
 }:
 delib.module {
   name = "services.sddm-pixie";
-  options = delib.moduleOptions {
-    enable = delib.boolOption false;
-    themeConfig = lib.mkOption {
-      type = lib.types.attrsOf lib.types.str;
-      default = { };
-      example = {
-        HourFormat = "HH:mm";
-        DateFormat = "dddd, MMMM d";
+
+  options =
+    with delib;
+    moduleOptions {
+      enable = false;
+
+      themeConfig = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        default = { };
+        example = {
+          HourFormat = "HH:mm";
+          DateFormat = "dddd, MMMM d";
+        };
+        description = "Attribute set of theme.conf options to override";
       };
-      description = "Attribute set of theme.conf options to override";
+      background = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = "Path to custom background image";
+      };
+      avatar = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = "Path to custom avatar image";
+      };
     };
-    background = lib.mkOption {
-      type = lib.types.nullOr lib.types.path;
-      default = null;
-      description = "Path to custom background image";
-    };
-    avatar = lib.mkOption {
-      type = lib.types.nullOr lib.types.path;
-      default = null;
-      description = "Path to custom avatar image";
-    };
-  };
 
   nixos.ifEnabled =
     { myconfig

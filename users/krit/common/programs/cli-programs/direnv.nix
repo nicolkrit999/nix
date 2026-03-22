@@ -1,9 +1,7 @@
 { delib, moduleSystem, ... }:
 delib.module {
   name = "krit.programs.direnv";
-  options.krit.programs.direnv = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     let

@@ -1,10 +1,7 @@
 { delib, config, lib, pkgs, ... }:
 delib.module {
   name = "krit.services.nas.owncloud";
-
-  options.krit.services.nas.owncloud = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   darwin.ifEnabled =
     { myconfig, ... }:
@@ -12,7 +9,6 @@ delib.module {
       user = myconfig.constants.user or "krit";
       mountPoint = "/Volumes/nicol_nas/webdav/owncloud";
 
-      # Rclone Config Name
       remoteName = "nas_owncloud";
     in
     {
@@ -37,7 +33,6 @@ delib.module {
         };
       };
 
-      # Pre-create mount directory as root (user agents can't mkdir in /Volumes)
       system.activationScripts.owncloud-nas-mountpoints.text = ''
         mkdir -p /Volumes/nicol_nas/webdav/owncloud
         chown -R ${user} /Volumes/nicol_nas

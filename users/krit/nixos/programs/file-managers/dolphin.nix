@@ -5,9 +5,7 @@
 }:
 delib.module {
   name = "krit.programs.dolphin";
-  options.krit.programs.dolphin = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     { myconfig

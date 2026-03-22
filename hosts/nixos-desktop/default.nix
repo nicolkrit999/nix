@@ -171,6 +171,7 @@ delib.host {
       # ---------------------------------------------------------------
       programs = {
         bat.enable = true;
+        cava.enable = true;
         eza.enable = true;
         fzf.enable = true;
         nix-ld.enable = true;
@@ -516,7 +517,6 @@ delib.host {
       krit.programs = {
         alacritty.enable = false;
         kitty.enable = true;
-        cava.enable = false;
         chromium.enable = false;
         claude-code-wrappers.enable = true;
         direnv.enable = true;

@@ -6,17 +6,13 @@
 }:
 delib.module {
   name = "krit.services.nas.smb";
-
-  options.krit.services.nas.smb = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   darwin.ifEnabled =
     { myconfig, ... }:
     let
       user = myconfig.constants.user or "krit";
       nasIP = "100.101.189.91";
-      # NAS credentials
       credentialsFile = config.sops.secrets.nas-krit-credentials.path;
 
       # List of SMB shares
@@ -72,8 +68,6 @@ delib.module {
         owner = user;
       };
 
-      # /Volumes is root:wheel 755 — user launchd agents can't mkdir there.
-      # Pre-create the mount base as root so the agent script succeeds.
       system.activationScripts.smb-nas-mountpoints.text = ''
         mkdir -p /Volumes/nicol_nas/smb
         chown -R ${user} /Volumes/nicol_nas
@@ -86,7 +80,6 @@ delib.module {
           StandardOutPath = "/Users/${user}/Library/Logs/smb-nas.log";
           StandardErrorPath = "/Users/${user}/Library/Logs/smb-nas.err";
 
-          # Re-check mounts every 10 minutes
           StartInterval = 600;
 
           EnvironmentVariables = {

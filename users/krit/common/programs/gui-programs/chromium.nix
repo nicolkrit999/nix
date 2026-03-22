@@ -1,9 +1,7 @@
 { delib, pkgs, ... }:
 delib.module {
   name = "krit.programs.chromium";
-  options.krit.programs.chromium = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     {

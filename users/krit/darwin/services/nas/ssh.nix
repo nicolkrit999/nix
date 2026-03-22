@@ -1,10 +1,7 @@
 { delib, pkgs, lib, config, ... }:
 delib.module {
   name = "krit.services.nas.sshfs";
-
-  options.krit.services.nas.sshfs = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   darwin.ifEnabled =
     { myconfig, ... }:
@@ -31,10 +28,6 @@ delib.module {
         mode = "0600";
       };
 
-      # ---------------------------------------------------------
-      # LAUNCHD AGENT (Replaces systemd mount)
-      # ---------------------------------------------------------
-      # Pre-create mount directory as root (user agents can't mkdir in /Volumes)
       system.activationScripts.sshfs-nas-mountpoints.text = ''
         mkdir -p /Volumes/nicol_nas/ssh/system_root
         chown -R ${user} /Volumes/nicol_nas

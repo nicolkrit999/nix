@@ -6,10 +6,7 @@
 }:
 delib.module {
   name = "krit.services.nas.Krits-MacBook-Pro-borg-backup";
-
-  options.krit.services.nas.Krits-MacBook-Pro-borg-backup = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   darwin.ifEnabled =
     { ... }:

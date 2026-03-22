@@ -17,7 +17,6 @@ delib.module {
       imports = [
         inputs.stylix.darwinModules.stylix
       ];
-      # Note: darwinModules.stylix already handles home-manager integration
 
       stylix = {
         enable = true;
