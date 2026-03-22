@@ -466,7 +466,14 @@ delib.host {
       services = {
         audio.enable = true;
         hyprlock.enable = true;
-        sddm.enable = true;
+        sddm-pixie = {
+          enable = true;
+          themeConfig = {
+            HourFormat = "hh:mm AP";
+          };
+          background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
+          avatar = ../../users/krit/src/profile-picture/face.jpg;
+        };
         impermanence.enable = true;
         nix-topology.enable = false;
         tailscale.enable = true;
