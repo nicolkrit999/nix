@@ -1,4 +1,5 @@
 { delib
+, inputs
 , lib
 , pkgs
 , ...
@@ -10,6 +11,12 @@ in
 delib.module {
   name = "krit.specializations.school";
   options = delib.singleEnableOption false;
+
+  # Import sops-nix to make sops.secrets available
+  # (NixOS deduplicates imports, so this is safe even if imported elsewhere)
+  nixos.always = {
+    imports = [ inputs.nix-sops.nixosModules.sops ];
+  };
 
   nixos.ifEnabled = {
     nixpkgs.config.allowUnfree = true;
