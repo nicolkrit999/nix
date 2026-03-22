@@ -7,8 +7,6 @@
 
 { delib
 , inputs
-, lib
-, moduleSystem
 , ...
 }:
 delib.host {
@@ -42,15 +40,11 @@ delib.host {
       nixpkgs.hostPlatform = "x86_64-linux";
       system.stateVersion = "25.11";
       imports = [
-        inputs.niri.nixosModules.niri
+        # Note: niri and plasma-manager imports are handled automatically by their respective modules
         ./hardware-configuration.nix
       ];
 
-      # Solve Home-manager portal assertion
-      environment.pathsToLink = [
-        "/share/applications"
-        "/share/xdg-desktop-portal"
-      ];
+      # Note: pathsToLink for xdg-desktop-portal is handled by modules/nixos/toplevel/xdg-portal.nix
     };
 
   # ---------------------------------------------------------------
@@ -61,11 +55,7 @@ delib.host {
     home.homeDirectory = "/home/krit";
     home.stateVersion = "25.11";
 
-    imports = lib.optionals (moduleSystem == "home") [
-      inputs.niri.homeModules.niri
-      inputs.plasma-manager.homeModules.plasma-manager
-    ];
-
+    # Note: niri and plasma-manager imports are handled automatically by their respective modules
 
     xdg.userDirs = {
       publicShare = null;

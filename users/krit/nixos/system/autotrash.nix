@@ -1,10 +1,14 @@
 { delib, pkgs, ... }:
 delib.module {
   name = "krit.system.autotrash";
-  options.krit.system.autotrash = with delib; {
-    enable = boolOption false;
-    retentionDays = intOption 30;
-  };
+
+
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      retentionDays = intOption 30;
+    };
 
   nixos.ifEnabled =
     { cfg, myconfig, ... }:

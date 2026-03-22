@@ -1,9 +1,7 @@
 { delib, ... }:
 delib.module {
   name = "krit.system.swiss-locale";
-  options.krit.system.swiss-locale = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   nixos.ifEnabled = {
     # Swiss locale settings for numbers, dates, and measurements

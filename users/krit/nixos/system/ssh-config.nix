@@ -1,9 +1,7 @@
 { delib, ... }:
 delib.module {
   name = "krit.system.ssh-config";
-  options.krit.system.ssh-config = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   nixos.ifEnabled = { myconfig, ... }: {
     programs.ssh.extraConfig = ''

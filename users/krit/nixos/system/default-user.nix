@@ -1,9 +1,7 @@
 { delib, ... }:
 delib.module {
   name = "krit.system.default-user";
-  options.krit.system.default-user = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   nixos.ifEnabled =
     { myconfig, ... }:

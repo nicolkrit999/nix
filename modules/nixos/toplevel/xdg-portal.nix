@@ -6,6 +6,12 @@ delib.module {
   name = "xdg-portal";
 
   nixos.always = {
+    # Make portal configs and desktop entries visible system-wide
+    environment.pathsToLink = [
+      "/share/applications"
+      "/share/xdg-desktop-portal"
+    ];
+
     xdg.portal = {
       enable = true;
 

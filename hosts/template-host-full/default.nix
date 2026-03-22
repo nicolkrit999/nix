@@ -3,8 +3,6 @@
 { delib
 , inputs
 , pkgs
-, lib
-, moduleSystem
 , ...
 }:
 let
@@ -391,8 +389,8 @@ delib.host {
       system.stateVersion = "25.11";
       imports = [
         inputs.catppuccin.nixosModules.catppuccin
-        #inputs.nix-sops.nixosModules.sops # Tough an import does not cause the build to fail it's removed for lightness. Enable if used
-        inputs.niri.nixosModules.niri
+        #inputs.nix-sops.nixosModules.sops # Though an import does not cause the build to fail it's removed for lightness. Enable if used
+        # Note: niri and plasma-manager imports are handled automatically by their respective modules
 
         ./hardware-configuration.nix
 
@@ -455,11 +453,7 @@ delib.host {
         };
       */
 
-      # Solve Home-manager portal assertion
-      environment.pathsToLink = [
-        "/share/applications"
-        "/share/xdg-desktop-portal"
-      ];
+      # Note: pathsToLink for xdg-desktop-portal is handled by modules/nixos/toplevel/xdg-portal.nix
 
       environment.systemPackages = with pkgs; [
         #autotrash # Uncomment if using autotrash
@@ -476,10 +470,7 @@ delib.host {
     home.homeDirectory = "/home/krit";
     home.stateVersion = "25.11";
 
-    imports = lib.optionals (moduleSystem == "home") [
-      inputs.niri.homeModules.niri
-      inputs.plasma-manager.homeModules.plasma-manager
-    ];
+    # Note: niri and plasma-manager imports are handled automatically by their respective modules
 
     home.packages = (with pkgs; [ ]) ++ (with pkgs-unstable; [ ]);
 

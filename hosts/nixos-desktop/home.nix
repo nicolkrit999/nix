@@ -1,4 +1,4 @@
-{ delib, inputs, pkgs, lib, moduleSystem, ... }:
+{ delib, inputs, pkgs, ... }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
 in
@@ -10,12 +10,7 @@ delib.host {
     home.username = "krit";
     home.homeDirectory = "/home/krit";
 
-    imports = lib.optionals (moduleSystem == "home") [
-      inputs.plasma-manager.homeModules.plasma-manager
-      inputs.niri.homeModules.niri
-    ];
-
-    home.packages = (with pkgs; [ winboat ]) ++ (with pkgs-unstable; [ ]);
+    home.packages = (with pkgs; [ ]) ++ (with pkgs-unstable; [ ]);
 
     home.sessionPath = [ "$HOME/.distrobox-bin" ];
 

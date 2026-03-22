@@ -26,7 +26,6 @@ delib.host {
     };
 
     imports = [
-      inputs.niri.nixosModules.niri
       inputs.disko.nixosModules.disko
 
       ./hardware-configuration.nix
@@ -52,11 +51,6 @@ delib.host {
       HandlePowerKey = "poweroff";
       HandlePowerKeyLongPress = "poweroff";
     };
-
-    environment.pathsToLink = [
-      "/share/applications"
-      "/share/xdg-desktop-portal"
-    ];
 
     environment.systemPackages = with pkgs; [
       # Keep packages for ARM compatibility testing
