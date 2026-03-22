@@ -513,25 +513,31 @@ delib.host {
       # ---------------------------------------------------------------
       # 👤 KRIT PROGRAMS
       # ---------------------------------------------------------------
-      krit.programs.alacritty.enable = true;
-      krit.programs.kitty.enable = true;
-      krit.programs.cava.enable = true;
-      krit.programs.chromium.enable = true;
-      krit.programs.direnv.enable = true;
-      krit.programs.dolphin.enable = true;
-      krit.programs.firefox.enable = true;
-      krit.programs.librewolf.enable = true;
-      krit.programs.neovim.enable = true;
-      krit.programs.pwas.enable = true;
-      krit.programs.ranger.enable = true;
-      krit.programs.yazi.enable = true;
-      krit.programs.zathura.enable = true;
+
+      krit.programs = {
+        alacritty.enable = true;
+        kitty.enable = true;
+        cava.enable = true;
+        chromium.enable = true;
+        direnv.enable = true;
+        dolphin.enable = true;
+        firefox.enable = true;
+        librewolf.enable = true;
+        neovim.enable = true;
+        pwas.enable = true;
+        ranger.enable = true;
+        yazi.enable = true;
+        zathura.enable = true;
+      };
+
 
       # ---------------------------------------------------------------
       # 👤 KRIT SERVICES
       # ---------------------------------------------------------------
-      krit.services.desktop.flatpak.enable = true;
-      krit.services.desktop.local-packages.enable = true;
+      krit.services.desktop = {
+        flatpak.enable = true;
+        local-packages.enable = true;
+      };
 
       krit.services.logitech = {
         enable = true;
@@ -545,7 +551,7 @@ delib.host {
         desktop-borg-backup.enable = true;
         owncloud.enable = true;
         smb.enable = true;
-        sshfs.enable = true;
+        sshfs.enable = false;
       };
 
     };
