@@ -6,10 +6,11 @@
 let
   myUserName = "krit";
 in
-delib.host {
-  name = "nixos-desktop";
+delib.module {
+  name = "krit.specializations.safe-mode";
+  options = delib.singleEnableOption false;
 
-  nixos = {
+  nixos.ifEnabled = {
     nixpkgs.config.allowUnfree = true;
 
     specialisation.safemode.configuration = {

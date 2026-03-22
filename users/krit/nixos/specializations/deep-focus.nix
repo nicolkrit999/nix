@@ -4,7 +4,6 @@
 , ...
 }:
 let
-
   termApps = [
     "nvim"
     "neovim"
@@ -18,10 +17,11 @@ let
     "nnn"
   ];
 in
-delib.host {
-  name = "nixos-desktop";
+delib.module {
+  name = "krit.specializations.deep-focus";
+  options = delib.singleEnableOption false;
 
-  nixos = {
+  nixos.ifEnabled = {
     nixpkgs.config.allowUnfree = true;
     specialisation.deep-focus.configuration = {
       system.nixos.tags = [ "deep-focus" ];
@@ -54,7 +54,6 @@ delib.host {
           "workspace 4, class:^(${c.terminal})$"
         ]
       );
-
     };
   };
 }

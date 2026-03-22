@@ -550,6 +550,16 @@ delib.host {
       };
 
       # ---------------------------------------------------------------
+      # 🎭 KRIT SPECIALIZATIONS
+      # ---------------------------------------------------------------
+      krit.specializations = {
+        school.enable = true;
+        entertainment.enable = true;
+        deep-focus.enable = true;
+        safe-mode.enable = true;
+      };
+
+      # ---------------------------------------------------------------
       # 🔧 KRIT SYSTEM
       # ---------------------------------------------------------------
       krit.system = {

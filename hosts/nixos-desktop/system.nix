@@ -26,8 +26,6 @@ delib.host {
       inputs.nix-sops.nixosModules.sops
       ./hardware-configuration.nix
 
-      ../../templates/krit/specialization/default.nix
-
       # Sops secrets definitions
       (
         { config, lib, ... }:

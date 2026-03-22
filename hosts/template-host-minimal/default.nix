@@ -4,7 +4,6 @@
 # Note that some important features for theming and functionality are not enabled here. Meaning the actual configuration would build but be "broken"
 
 { delib
-, inputs
 , ...
 }:
 delib.host {
