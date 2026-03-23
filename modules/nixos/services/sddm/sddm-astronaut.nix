@@ -15,7 +15,7 @@ delib.module {
       sddmTheme = pkgs.sddm-astronaut.override {
         embeddedTheme = "jake_the_dog";
         themeConfig = {
-          HourFormat = "hh:mm AP";
+          HourFormat = "hh:mm AP"; # FIXME: not working
         };
       };
     in
