@@ -33,6 +33,7 @@ delib.module {
           "$Mod,        space, togglefloating" # Toggle floating mode: the window can be freely moved/resized
           "$Mod,       M, fullscreen" # Toggle fullscreen (maximise): the window occupies the entire screen
           "$Mod ALT,   P, pin" # Pin/unpin window. Copy the same windows to all workspaces with same dimensions and position
+          "$Mod,       P, exec, hyprctl dispatch togglefloating && hyprctl dispatch pin" # PiP mode: float + pin so window follows across workspaces on same monitor
 
           # APPLICATION LAUNCHING
           "$Mod,       A, exec, $menu" # Application launcher (walker)

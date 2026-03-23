@@ -52,7 +52,7 @@ delib.module {
 
       effectiveThemeConfig = cfg.themeConfig // (
         if cfg.background != null
-        then { Background = "assets/${bgFilename}"; }
+        then { background = "assets/${bgFilename}"; }  # lowercase - QML reads config.background
         else { }
       );
 
@@ -111,6 +111,7 @@ delib.module {
           qtdeclarative
           qtsvg
           qt5compat
+          qtmultimedia # For QtQuick.Effects blur support
         ];
       };
 
