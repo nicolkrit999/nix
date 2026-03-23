@@ -7,6 +7,7 @@ delib.module {
   name = "programs.television";
   options = delib.singleEnableOption false;
 
+  # FIXME: the nix-search-tv is still not consistent. Some time it work some other it doesn't
   home.ifEnabled = {
     home.packages = with pkgs; [
       television
