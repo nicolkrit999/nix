@@ -1,21 +1,36 @@
 * {
   border: none;
-  font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+  font-family: "JetBrainsMono Nerd Font Propo";
   font-weight: bold;
-  font-size: 16px;
+  font-size: 16px;                /* Text size across all modules */
   min-height: 0;
   color: @base05;
 }
 
+/* SOLID BAR BACKGROUND */
 window#waybar {
   background: @base00;
+  border: none;
+  box-shadow: none;
+}
+
+/* Nuclear reset: kill any GTK-theme-drawn artifacts on all structural elements */
+window#waybar box,
+window#waybar box box,
+window#waybar menubar,
+window#waybar .background {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  background-image: none;
+  -gtk-icon-shadow: none;
 }
 
 /* ----------------------------------------------------------------------- */
-/* 🗄️ WORKSPACES (Hyprland & Niri)                                        */
+/* WORKSPACES (Hyprland & Niri)                                            */
 /* ----------------------------------------------------------------------- */
 
-/* 1. Remove background from the main containers */
 #workspaces,
 #niri-workspaces {
   background-color: transparent;
@@ -23,51 +38,123 @@ window#waybar {
   border-radius: 0;
 }
 
-/* 2. Style individual buttons as separate blocks */
+/* Workspace buttons as floating rounded blocks */
 #workspaces button,
 #niri-workspaces button {
-  background-color: @base01; /* Matches your right-side modules */
-  margin: 4px 4px;           /* Spacing between buttons */
-  padding: 0 10px;           /* Internal spacing for icons/text */
-  border-radius: 8px;
+  background-color: @base01;
+  margin: 4px 2px;                /* top/bottom gap from bar edge | gap between buttons */
+  padding: 0;                     /* GTK buttons eat padding unevenly — use label instead */
+  min-width: 0;                   /* let the label control all sizing */
+  border-radius: 8px;             /* pill corner roundness */
   color: @base05;
-  border-bottom: 2px solid transparent; /* Placeholder for alignment */
+  border-top: 2px solid transparent;   /* balance the bottom border for vertical centering */
+  border-bottom: 2px solid @base0D;    /* accent line (same color for all workspaces) */
   transition: all 0.2s ease;
 }
 
-/* 3. Active Workspace styling */
+/* All sizing and spacing lives on the label for reliable symmetry */
+#workspaces button label,
+#niri-workspaces button label {
+  padding: 0 18px;                /* symmetric — Propo font handles icon centering */
+  min-width: 36px;                /* minimum pill width — keeps single-char names roomy */
+}
+
+/* Active workspace */
 #workspaces button.active,
 #niri-workspaces button.active {
   background-color: @base0D;
-  border-bottom: 2px solid @base0D; /* Optional: adds the accent line look */
+  border-bottom-color: @base0D;          /* keep accent line consistent */
 }
 
 #workspaces button.active label,
 #niri-workspaces button.active label {
-  color: @base00; /* Dark text on bright background for readability */
+  color: @base00;
 }
 
-/* 4. Hover effect */
+/* Hover effect */
 #workspaces button:hover,
 #niri-workspaces button:hover {
   background-color: @base02;
 }
 
 /* ----------------------------------------------------------------------- */
-/* 🧩 RIGHT-SIDE MODULES                                                   */
+/* CENTER MODULE (Window Title)                                            */
 /* ----------------------------------------------------------------------- */
-/* Turn right modules into distinct rounded blocks */
+
+/* Reset widget wrappers so they don't add spacing */
+window#waybar .modules-center > widget {
+  border: none;
+  box-shadow: none;
+  outline: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+/* Kill GTK separator element if present */
+window#waybar separator {
+  background: transparent;
+  background-image: none;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  color: transparent;
+  opacity: 0;
+}
+
+#window {
+  padding: 0;                     /* use label padding instead for reliable spacing */
+  margin: 4px 4px;                /* top/bottom gap from bar edge | gap to neighbors */
+  background-color: @base01;
+  border-radius: 8px;             /* pill corner roundness */
+  border-left-width: 0;           /* physically remove side borders */
+  border-right-width: 0;
+  border-top: 2px solid transparent;    /* balance the bottom border for vertical centering */
+  border-bottom: 2px solid @base0B;     /* green accent line thickness */
+  box-shadow: none;
+  outline: none;
+}
+
+#window label {
+  padding: 0 18px;                /* GTK ignores padding on the widget; apply to inner label */
+}
+
+/* Fallback: if rewrite doesn't catch empty, hide gracefully */
+#window.empty {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  opacity: 0;
+}
+
+#window.empty label {
+  padding: 0;
+  min-width: 0;
+}
+
+
+/* ----------------------------------------------------------------------- */
+/* RIGHT-SIDE MODULES                                                      */
+/* ----------------------------------------------------------------------- */
+
 #clock,
 #battery,
 #pulseaudio,
 #tray,
 #language,
 #custom-weather {
-  padding: 0 12px;
-  margin: 4px 4px;
-  background-color: @base01; /* Subtle contrast from the main bar */
-  border-radius: 8px;
-  border-bottom: 2px solid; /* Thinner, cleaner accent line */
+  padding: 0 18px;                /* inner space: text <-> left/right pill edge */
+  margin: 4px 2px;                /* top/bottom gap from bar edge | gap between pills */
+  background-color: @base01;
+  border-radius: 8px;             /* pill corner roundness */
+  border-top: 2px solid transparent;    /* balance the bottom border for vertical centering */
+  border-bottom: 2px solid;       /* accent line thickness (color set per-module below) */
 }
 
 #language { border-bottom-color: @base09; }
@@ -90,5 +177,5 @@ window#waybar {
 #clock { border-bottom-color: @base0E; }
 #tray {
   border-bottom-color: @base0F;
-  padding: 0 8px;
+  padding: 0 14px;                /* tray icons need less padding than text modules */
 }

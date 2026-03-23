@@ -69,25 +69,24 @@ delib.module {
             position = "top";
             height = 40;
 
-            modules-left = [
-              "hyprland/workspaces"
-              "niri/workspaces"
-            ];
+            modules-left =
+              (lib.optional hyprlandWaybar "hyprland/workspaces")
+              ++ (lib.optional niriWaybar "niri/workspaces");
 
-            modules-center = [
-              "hyprland/window"
-              "niri/window"
-            ];
+            modules-center =
+              (lib.optional hyprlandWaybar "hyprland/window")
+              ++ (lib.optional niriWaybar "niri/window");
 
-            modules-right = [
-              "hyprland/language"
-              "niri/language"
-              "custom/weather"
-              "pulseaudio"
-              "battery"
-              "clock"
-              "tray"
-            ];
+            modules-right =
+              (lib.optional hyprlandWaybar "hyprland/language")
+              ++ (lib.optional niriWaybar "niri/language")
+              ++ [
+                "custom/weather"
+                "pulseaudio"
+                "battery"
+                "clock"
+                "tray"
+              ];
 
             # Workspaces Icon and layout
             # A user may define host-specific icons (optional) in myconfig.constants.waybarWorkspaceIcons
@@ -96,21 +95,34 @@ delib.module {
               show-special = true;
               special-visible-only = true;
               all-outputs = false;
-              format = "{name} {icon}";
-              format-icons = cfg.waybarWorkspaceIcons;
+              format = "{name}{icon}";
+              format-icons = cfg.waybarWorkspaceIcons // { default = ""; };
             };
 
             "niri/workspaces" = {
               format = "{icon}";
               format-icons = {
-                active = "";
-                default = "";
+                active = "";
+                default = "";
+              };
+            };
+
+            "hyprland/window" = {
+              format = "{}";
+              max-length = 50;
+              separate-outputs = true;
+              rewrite = {
+                "^$" = "${myconfig.constants.user or "nix"} 󱄅 ${myconfig.constants.hostname or "nixos"}";
               };
             };
 
             "niri/window" = {
               format = "{}";
+              max-length = 50;
               separate-outputs = true;
+              rewrite = {
+                "^$" = "${myconfig.constants.user or "nix"} 󱄅 ${myconfig.constants.hostname or "nixos"}";
+              };
             };
 
             # Languages flags and/or text
@@ -146,18 +158,18 @@ delib.module {
 
             "pulseaudio" = {
               format = "<span color='${c.base0D}'>{icon}</span> {volume}%";
-              format-bluetooth = "<span color='${c.base0D}'>{icon}</span> {volume}% ";
-              format-muted = "<span color='${c.base08}'></span> Muted";
+              format-bluetooth = "<span color='${c.base0D}'>{icon}</span> {volume}% ";
+              format-muted = "<span color='${c.base08}'></span> Muted";
               format-icons = {
-                "headphones" = "";
-                "handsfree" = "";
-                "headset" = "";
-                "phone" = "";
-                "portable" = "";
-                "car" = "";
+                "headphones" = "";
+                "handsfree" = "";
+                "headset" = "";
+                "phone" = "";
+                "portable" = "";
+                "car" = "";
                 "default" = [
-                  ""
-                  ""
+                  ""
+                  ""
                 ];
               };
               on-click = "pavucontrol";
@@ -169,21 +181,21 @@ delib.module {
                 critical = 5;
               };
               format = "<span color='${c.base0A}'>{icon}</span> {capacity}%";
-              format-charging = "<span color='${c.base0B}'></span> {capacity}%";
+              format-charging = "<span color='${c.base0B}'></span> {capacity}%";
               format-alt = "{time} <span color='${c.base0A}'>{icon}</span>";
               format-icons = [
-                ""
-                ""
-                ""
-                ""
-                ""
+                ""
+                ""
+                ""
+                ""
+                ""
               ];
             };
 
             "clock" = {
               locale = myconfig.constants.mainLocale or "en_US.UTF-8";
-              format = "<span color='${c.base0E}'></span> {:%I:%M %p}";
-              format-alt = "<span color='${c.base0E}'></span> {:%m/%d/%Y - %I:%M %p}";
+              format = "<span color='${c.base0E}'></span> {:%I:%M %p}";
+              format-alt = "<span color='${c.base0E}'></span> {:%m/%d/%Y - %I:%M %p}";
               tooltip-format = "<tt><small>{calendar}</small></tt>";
               calendar = {
                 mode = "year";
