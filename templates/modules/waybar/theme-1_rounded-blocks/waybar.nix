@@ -108,15 +108,8 @@ delib.module {
               };
             };
 
-            "hyprland/window" = {
-              format = "{}";
-              max-length = 50;
-              separate-outputs = true;
-            };
-
             "niri/window" = {
               format = "{}";
-              max-length = 50;
               separate-outputs = true;
             };
 
