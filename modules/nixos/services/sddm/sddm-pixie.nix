@@ -50,11 +50,12 @@ delib.module {
       bgExt = if cfg.background != null then getExtension cfg.background else "jpg";
       bgFilename = "background.${bgExt}";
 
-      effectiveThemeConfig = cfg.themeConfig // (
-        if cfg.background != null
-        then { background = "assets/${bgFilename}"; }  # lowercase - QML reads config.background
-        else { }
-      );
+      # Merge order: default → user themeConfig → custom background file path
+      # This ensures the background key always exists when theme.conf is written
+      effectiveThemeConfig =
+        { background = "assets/background.jpg"; }  # Default fallback (upstream asset)
+        // cfg.themeConfig  # User overrides (can set their own background path)
+        // (lib.optionalAttrs (cfg.background != null) { background = "assets/${bgFilename}"; });
 
       themeConfContent = lib.concatStringsSep "\n" (
         [ "[General]" ] ++
