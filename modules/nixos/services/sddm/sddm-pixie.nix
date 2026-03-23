@@ -9,7 +9,7 @@ delib.module {
   options =
     with delib;
     moduleOptions {
-      enable = false;
+      enable = boolOption false;
 
       themeConfig = lib.mkOption {
         type = lib.types.attrsOf lib.types.str;
