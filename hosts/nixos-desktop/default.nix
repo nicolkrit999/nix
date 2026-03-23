@@ -101,8 +101,8 @@ delib.host {
 
           {
             targetMonitor = "*";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/brands/gruvbox-nix.png";
-            wallpaperSHA256 = "18j302fdjfixi57qx8vgbg784ambfv9ir23mh11rqw46i43cdqjs";
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/minimalistic/gruv.jpg";
+            wallpaperSHA256 = "0zz7x7b2da3c6iyhkd4jvbaidbxv2fzrfrj7v97mknn7gzjp8ny9";
           }
         ];
 
@@ -469,12 +469,9 @@ delib.host {
         hyprlock.enable = true;
         sddm-pixie = {
           enable = true;
-          themeConfig = {
-            HourFormat = "hh:mm"; # 12-hour format without AM/PM (theme doesn't support AP indicator)
-          };
-          # Testing fallback - comment out to verify defaults work
-          # background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
-          # avatar = ../../users/krit/src/profile-picture/face.jpg;
+          #hourFormat = "24h"; # 12-hour format (AM/PM not supported by theme) FIXME: not working
+          background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
+          avatar = ../../users/krit/src/profile-picture/face.jpg;
         };
         impermanence.enable = true;
         nix-topology.enable = false;
