@@ -33,7 +33,7 @@ delib.module {
           localName = builtins.replaceStrings [ " " ] [ "_" ] shareName;
         in
         {
-          name = "/mnt/nicol_nas/smb/krit/${localName}";
+          name = "/mnt/nicol_nas/smb/${myconfig.constants.user}/${localName}";
           value = {
             device = "//${nasIP}/${shareName}";
             fsType = "cifs";

@@ -74,78 +74,6 @@ delib.module {
                   fi
               fi
 
-              # -----------------------------------------------------
-              # 5A SNAPSHOT LOCK & UNLOCK
-              # -----------------------------------------------------
-              # LOCK (Protect from auto-deletion)
-              snap-lock() {
-                echo "Which config? (1=home, 2=root)"
-                read "k?Selection: "
-                if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
-
-                echo "Listing snapshots for $CFG..."
-                sudo snapper -c "$CFG" list
-
-                echo ""
-                read "ID?Enter Snapshot ID to LOCK: "
-
-                if [[ -n "$ID" ]]; then
-                   sudo snapper -c "$CFG" modify -c "" "$ID"
-                   echo "✅ Snapshot #$ID in '$CFG' is now LOCKED (won't be deleted)."
-                fi
-              }
-
-              # UNLOCK (Allow auto-deletion)
-              snap-unlock() {
-                echo "Which config? (1=home, 2=root)"
-                read "k?Selection: "
-                if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
-
-                echo "Listing snapshots for $CFG..."
-                sudo snapper -c "$CFG" list
-
-                echo ""
-                read "ID?Enter Snapshot ID to UNLOCK: "
-
-                if [[ -n "$ID" ]]; then
-                   sudo snapper -c "$CFG" modify -c "timeline" "$ID"
-                   echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED (timeline cleanup enabled)."
-                fi
-              }
-
-
-            # -----------------------------------------------------------------------
-            # 5B SNAPPER CREATE INTERACTIVE FUNCTION
-            # -----------------------------------------------------------------------
-            function _snap_create() {
-              local config_name=$1
-
-              echo -n "📝 Enter snapshot description: "
-              read description
-
-              if [ -z "$description" ]; then
-                echo "❌ Description cannot be empty."
-                return 1
-              fi
-
-              echo -n "🔒 Lock this snapshot (keep forever)? [y/N]: "
-              read lock_ans
-
-              local cleanup_flag="-c timeline"
-              local lock_status="UNLOCKED (will auto-delete)"
-
-              if [[ "$lock_ans" =~ ^[Yy]$ ]]; then
-                cleanup_flag=""
-                lock_status="LOCKED (safe forever)"
-              fi
-
-              echo "🚀 Creating $lock_status snapshot for '$config_name'..."
-              sudo snapper -c "$config_name" create --description "$description" $cleanup_flag
-            }
-
-            alias snap-create-home="_snap_create home"
-            alias snap-create-root="_snap_create root"
-
             # -----------------------------------------------------
             # 6 📦 SMART NIX PREFETCH (npu)
             # -----------------------------------------------------
@@ -198,6 +126,70 @@ delib.module {
               # Execute
               eval nix-prefetch-url $args "$url"
             }
+          '' + lib.optionalString (myconfig.services.snapshots.enable or false) ''
+            # SNAPSHOT LOCK & UNLOCK
+            snap-lock() {
+              echo "Which config? (1=home, 2=root)"
+              read "k?Selection: "
+              if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
+
+              echo "Listing snapshots for $CFG..."
+              sudo snapper -c "$CFG" list
+
+              echo ""
+              read "ID?Enter Snapshot ID to LOCK: "
+
+              if [[ -n "$ID" ]]; then
+                 sudo snapper -c "$CFG" modify -c "" "$ID"
+                 echo "✅ Snapshot #$ID in '$CFG' is now LOCKED (won't be deleted)."
+              fi
+            }
+
+            snap-unlock() {
+              echo "Which config? (1=home, 2=root)"
+              read "k?Selection: "
+              if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
+
+              echo "Listing snapshots for $CFG..."
+              sudo snapper -c "$CFG" list
+
+              echo ""
+              read "ID?Enter Snapshot ID to UNLOCK: "
+
+              if [[ -n "$ID" ]]; then
+                 sudo snapper -c "$CFG" modify -c "timeline" "$ID"
+                 echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED (timeline cleanup enabled)."
+              fi
+            }
+
+            function _snap_create() {
+              local config_name=$1
+
+              echo -n "📝 Enter snapshot description: "
+              read description
+
+              if [ -z "$description" ]; then
+                echo "❌ Description cannot be empty."
+                return 1
+              fi
+
+              echo -n "🔒 Lock this snapshot (keep forever)? [y/N]: "
+              read lock_ans
+
+              local cleanup_flag="-c timeline"
+              local lock_status="UNLOCKED (will auto-delete)"
+
+              if [[ "$lock_ans" =~ ^[Yy]$ ]]; then
+                cleanup_flag=""
+                lock_status="LOCKED (safe forever)"
+              fi
+
+              echo "🚀 Creating $lock_status snapshot for '$config_name'..."
+              sudo snapper -c "$config_name" create --description "$description" $cleanup_flag
+            }
+
+            alias snap-create-home="_snap_create home"
+            alias snap-create-root="_snap_create root"
           '';
       };
     };

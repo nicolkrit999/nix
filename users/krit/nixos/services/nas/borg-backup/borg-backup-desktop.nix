@@ -22,7 +22,7 @@ delib.module {
       services.borgmatic = {
         enable = true;
         configurations."desktop-data" = {
-          source_directories = [ "/home/krit" ];
+          source_directories = [ "/home/${nasUser}" ];
           repositories = [
             {
               path = "ssh://${nasUser}@${nasHost}${nasPath}";
