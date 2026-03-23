@@ -1,6 +1,6 @@
 * {
   border: none;
-  font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+  font-family: "JetBrainsMono Nerd Font Propo";
   font-weight: bold;
   font-size: 16px;                /* Text size across all modules */
   min-height: 0;
@@ -40,7 +40,7 @@ window#waybar {
 /* All sizing and spacing lives on the label for reliable symmetry */
 #workspaces button label,
 #niri-workspaces button label {
-  padding: 0 18px;                /* sole source of left/right pill padding */
+  padding: 0 19px 0 17px;          /* 17L/19R compensates for icon glyph left-bearing */
   min-width: 36px;                /* minimum pill width — keeps single-char names roomy */
 }
 
@@ -93,32 +93,33 @@ window#waybar .modules-center > widget > * > * {
 /* Kill GTK separator element if present */
 window#waybar separator {
   background: transparent;
+  background-image: none;
   min-width: 0;
   min-height: 0;
   padding: 0;
   margin: 0;
   border: none;
   box-shadow: none;
+  outline: none;
+  color: transparent;
   opacity: 0;
 }
 
 /* Kill ghost vertical line between center and right sections */
-window#waybar .modules-center {
-  border: none;
-  box-shadow: none;
-  border-right-width: 0;
-}
-
+window#waybar .modules-center,
+window#waybar .modules-left,
 window#waybar .modules-right {
   border: none;
   box-shadow: none;
-  border-left-width: 0;
+  outline: none;
+  background-image: none;
 }
 
 window#waybar .modules-right > widget:first-child,
 window#waybar .modules-right > widget:first-child > * {
-  border-left-width: 0;
+  border: none;
   box-shadow: none;
+  outline: none;
 }
 
 #window {
@@ -144,11 +145,13 @@ window#waybar .modules-right > widget:first-child > * {
   border: none;
   box-shadow: none;
   outline: none;
+  background-image: none;
   padding: 0;
   margin: 0;
   min-width: 0;
   min-height: 0;
-  font-size: 0;                   /* collapse any residual text space */
+  font-size: 0;
+  opacity: 0;
 }
 
 #window.empty label {
