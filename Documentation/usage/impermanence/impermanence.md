@@ -1,6 +1,7 @@
 # ❄️ Impermanence User Guide: The Immortal Root
 
  By mounting your root directory (`/`) as a **tmpfs** (RAM disk), every single file not explicitly saved is wiped instantly upon reboot. This keeps your OS clean, prevents "configuration drift," and ensures your system remains exactly as defined in your Nix files. 
+ - Anything under the user home folder is safe and it's never removed
 
 ---
 
@@ -176,6 +177,7 @@ Once you reboot, you can verify that your root is indeed running in RAM and your
 
 Run `df -h /`. If the filesystem is `none` or `tmpfs`, your root is currently in RAM. 
 
+The expected output should look something like this
 ```bash
 Filesystem      Size  Used Avail Use% Mounted on
 none            4.0G   16M  4.0G   1% /

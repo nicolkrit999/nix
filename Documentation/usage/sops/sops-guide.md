@@ -11,12 +11,15 @@ We use two types of keys:
 1. **User Key (Age):** A private key on your personal computer (`~/.config/sops/age/keys.txt`). This allows **YOU** to edit/view any secret in the repo.
 2. **Host Keys (SSH):** The standard SSH private key (`/etc/ssh/ssh_host_ed25519_key`) generated when a Linux machine is installed. This allows the **MACHINE** (Desktop, Laptop) to decrypt secrets at boot time.
 
+- If you use `impermanence` make sure to persist the host ssh key and use the persist path inside the host folder. For guidance see [impermanence guide](../impermanence/impermanence.md)
+
 ### The Flow
 
 1. **Encryption:** When you save a file, `sops` looks at the **Public Keys** (`/etc/ssh/ssh_host_ed25519_key.pub`) listed in the file header and encrypts the content for them.
 2. **Matching:** `sops` decides _which_ public keys to use based on the **file path**.
 3. **Decryption:** At boot, NixOS uses the host's private SSH key to decrypt the file into RAM (`/run/secrets/`). The unencrypted secret never touches the disk.
    - The secrets path contains all the secrets that are related to that host
+   - The secrets itself should be owned by `root` but the respective symlink to the user folder should be owned by `user` 
 
 ---
 
@@ -26,9 +29,9 @@ We use two types of keys:
 
 | If file path matches... | Then encrypt for...                    |
 | ----------------------- | -------------------------------------- |
-| `hosts/desktop/.*`      | User (Krit) + Desktop Host Key         |
-| `hosts/laptop/.*`       | User (Krit) + Laptop Host Key          |
-| `common/.*`             | User (Krit) + Desktop Key + Laptop Key |
+| `hosts/desktop/.*`      | User + Desktop Host Key         |
+| `hosts/laptop/.*`       | User + Laptop Host Key          |
+| `common/.*`             | User + Desktop Key + Laptop Key |
 
 _If you put a file in the wrong folder, it gets encrypted with the wrong keys._
 
