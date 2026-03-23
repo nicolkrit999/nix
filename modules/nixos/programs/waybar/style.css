@@ -10,6 +10,21 @@
 /* TRANSPARENT BAR BACKGROUND - wallpaper shows through */
 window#waybar {
   background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* Nuclear reset: kill any GTK-theme-drawn artifacts on all structural elements */
+window#waybar box,
+window#waybar box box,
+window#waybar menubar,
+window#waybar .background {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  background-image: none;
+  -gtk-icon-shadow: none;
 }
 
 /* ----------------------------------------------------------------------- */
@@ -40,7 +55,7 @@ window#waybar {
 /* All sizing and spacing lives on the label for reliable symmetry */
 #workspaces button label,
 #niri-workspaces button label {
-  padding: 0 19px 0 17px;          /* 17L/19R compensates for icon glyph left-bearing */
+  padding: 0 18px;                /* symmetric — Propo font handles icon centering */
   min-width: 36px;                /* minimum pill width — keeps single-char names roomy */
 }
 
@@ -66,13 +81,7 @@ window#waybar {
 /* 🪟 CENTER MODULE (Window Title)                                         */
 /* ----------------------------------------------------------------------- */
 
-/* Reset default widget spacing so empty modules collapse to zero */
-window#waybar .modules-center > widget > * {
-  margin: 0;
-  padding: 0;
-}
-
-/* Nuke ghost lines: target every layer including the widget wrapper */
+/* Reset widget wrappers so they don't add spacing */
 window#waybar .modules-center > widget {
   border: none;
   box-shadow: none;
@@ -80,14 +89,6 @@ window#waybar .modules-center > widget {
   margin: 0;
   padding: 0;
   background: transparent;
-}
-
-window#waybar .modules-center > widget > *,
-window#waybar .modules-center > widget > * > * {
-  box-shadow: none;
-  outline: none;
-  border-left-width: 0;
-  border-right-width: 0;
 }
 
 /* Kill GTK separator element if present */
@@ -103,23 +104,6 @@ window#waybar separator {
   outline: none;
   color: transparent;
   opacity: 0;
-}
-
-/* Kill ghost vertical line between center and right sections */
-window#waybar .modules-center,
-window#waybar .modules-left,
-window#waybar .modules-right {
-  border: none;
-  box-shadow: none;
-  outline: none;
-  background-image: none;
-}
-
-window#waybar .modules-right > widget:first-child,
-window#waybar .modules-right > widget:first-child > * {
-  border: none;
-  box-shadow: none;
-  outline: none;
 }
 
 #window {
@@ -139,27 +123,19 @@ window#waybar .modules-right > widget:first-child > * {
   padding: 0 18px;                /* GTK ignores padding on the widget; apply to inner label */
 }
 
-/* When no window is focused, hide the pill entirely */
+/* Fallback: if rewrite doesn't catch empty, hide gracefully */
 #window.empty {
-  background-color: transparent;
+  background: transparent;
   border: none;
-  box-shadow: none;
-  outline: none;
-  background-image: none;
   padding: 0;
   margin: 0;
   min-width: 0;
-  min-height: 0;
-  font-size: 0;
   opacity: 0;
 }
 
 #window.empty label {
   padding: 0;
-  margin: 0;
   min-width: 0;
-  min-height: 0;
-  font-size: 0;
 }
 
 
