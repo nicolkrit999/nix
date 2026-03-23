@@ -2,6 +2,7 @@
 
 > **Note:** **`Alt`** = the **`Meta`** (`M-`) key. Most bindings work **without a prefix** — just press `Alt + key` directly.
 > The classic tmux prefix is **`Ctrl + b`**, used only for a handful of standard commands listed at the bottom.
+- For macOS (darwin) `Alt` is `Option`.
 
 ---
 
