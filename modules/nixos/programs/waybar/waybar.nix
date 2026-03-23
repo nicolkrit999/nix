@@ -111,12 +111,18 @@ delib.module {
               format = "{}";
               max-length = 50;
               separate-outputs = true;
+              rewrite = {
+                "^$" = "${myconfig.constants.user or "nix"} 󱄅 ${myconfig.constants.hostname or "nixos"}";
+              };
             };
 
             "niri/window" = {
               format = "{}";
               max-length = 50;
               separate-outputs = true;
+              rewrite = {
+                "^$" = "${myconfig.constants.user or "nix"} 󱄅 ${myconfig.constants.hostname or "nixos"}";
+              };
             };
 
             # Languages flags and/or text
