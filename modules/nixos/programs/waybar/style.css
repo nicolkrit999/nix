@@ -28,26 +28,27 @@ window#waybar {
 #niri-workspaces button {
   background-color: @base01;
   margin: 4px 2px;                /* top/bottom gap from bar edge | gap between buttons */
-  padding: 0 18px;                /* inner space: text ←→ left/right pill edge */
-  min-width: 36px;                /* minimum pill width — keeps single-char names centered */
+  padding: 0;                     /* GTK buttons eat padding unevenly — use label instead */
+  min-width: 0;                   /* let the label control all sizing */
   border-radius: 8px;             /* pill corner roundness */
   color: @base05;
-  border-top: 2px solid transparent;     /* balance the bottom border for vertical centering */
-  border-bottom: 2px solid transparent;  /* accent line thickness (colored on active) */
+  border-top: 2px solid transparent;   /* balance the bottom border for vertical centering */
+  border-bottom: 2px solid @base0D;    /* accent line (same color for all workspaces) */
   transition: all 0.2s ease;
 }
 
-/* Force inner text padding (GTK buttons ignore padding on the button itself) */
+/* All sizing and spacing lives on the label for reliable symmetry */
 #workspaces button label,
 #niri-workspaces button label {
-  padding: 0 6px;                 /* balanced breathing room: text ←→ pill edge */
+  padding: 0 18px;                /* sole source of left/right pill padding */
+  min-width: 36px;                /* minimum pill width — keeps single-char names roomy */
 }
 
 /* Active workspace */
 #workspaces button.active,
 #niri-workspaces button.active {
   background-color: @base0D;
-  border-bottom: 2px solid @base0D;      /* accent line thickness (matches above) */
+  border-bottom-color: @base0D;          /* keep accent line consistent */
 }
 
 #workspaces button.active label,
@@ -71,11 +72,22 @@ window#waybar .modules-center > widget > * {
   padding: 0;
 }
 
-/* Remove separator / ghost lines on center widgets */
+/* Nuke ghost lines: target every layer including the widget wrapper */
+window#waybar .modules-center > widget {
+  border: none;
+  box-shadow: none;
+  outline: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
 window#waybar .modules-center > widget > *,
 window#waybar .modules-center > widget > * > * {
-  border-right: none;
-  border-left: none;
+  box-shadow: none;
+  outline: none;
+  border-left-width: 0;
+  border-right-width: 0;
 }
 
 /* Kill GTK separator element if present */
@@ -85,15 +97,41 @@ window#waybar separator {
   min-height: 0;
   padding: 0;
   margin: 0;
+  border: none;
+  box-shadow: none;
+  opacity: 0;
+}
+
+/* Kill ghost vertical line between center and right sections */
+window#waybar .modules-center {
+  border: none;
+  box-shadow: none;
+  border-right-width: 0;
+}
+
+window#waybar .modules-right {
+  border: none;
+  box-shadow: none;
+  border-left-width: 0;
+}
+
+window#waybar .modules-right > widget:first-child,
+window#waybar .modules-right > widget:first-child > * {
+  border-left-width: 0;
+  box-shadow: none;
 }
 
 #window {
-  padding: 0 18px;                /* inner space: title text ←→ left/right pill edge */
+  padding: 0;                     /* use label padding instead for reliable spacing */
   margin: 4px 4px;                /* top/bottom gap from bar edge | gap to neighbors */
   background-color: @base01;
   border-radius: 8px;             /* pill corner roundness */
+  border-left-width: 0;           /* physically remove side borders */
+  border-right-width: 0;
   border-top: 2px solid transparent;    /* balance the bottom border for vertical centering */
-  border-bottom: 2px solid @base0B;  /* green accent line thickness */
+  border-bottom: 2px solid @base0B;     /* green accent line thickness */
+  box-shadow: none;
+  outline: none;
 }
 
 #window label {
@@ -103,15 +141,24 @@ window#waybar separator {
 /* When no window is focused, hide the pill entirely */
 #window.empty {
   background-color: transparent;
-  border-bottom: none;
+  border: none;
+  box-shadow: none;
+  outline: none;
   padding: 0;
   margin: 0;
   min-width: 0;
+  min-height: 0;
+  font-size: 0;                   /* collapse any residual text space */
 }
 
 #window.empty label {
   padding: 0;
+  margin: 0;
+  min-width: 0;
+  min-height: 0;
+  font-size: 0;
 }
+
 
 /* ----------------------------------------------------------------------- */
 /* 🧩 RIGHT-SIDE MODULES                                                   */
