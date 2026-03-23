@@ -470,10 +470,11 @@ delib.host {
         sddm-pixie = {
           enable = true;
           themeConfig = {
-            HourFormat = "hh:mm AP";
+            HourFormat = "hh:mm"; # 12-hour format without AM/PM (theme doesn't support AP indicator)
           };
-          background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
-          avatar = ../../users/krit/src/profile-picture/face.jpg;
+          # Testing fallback - comment out to verify defaults work
+          # background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
+          # avatar = ../../users/krit/src/profile-picture/face.jpg;
         };
         impermanence.enable = true;
         nix-topology.enable = false;
