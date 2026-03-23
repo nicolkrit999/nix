@@ -33,55 +33,12 @@ delib.module {
             tmux new-session -A -s main
           fi
 
-          # 4. SNAPSHOT FUNCTIONS (Bash Syntax)
-          snap-lock() {
-            echo "Which config? (1=home, 2=root)"
-            read -p "Selection: " k
-            if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
-            sudo snapper -c "$CFG" list
-            echo ""
-            read -p "Enter Snapshot ID to LOCK: " ID
-            if [[ -n "$ID" ]]; then
-               sudo snapper -c "$CFG" modify -c "" "$ID"
-               echo "✅ Snapshot #$ID in '$CFG' is now LOCKED."
-            fi
-          }
-
           # 5. UWSM STARTUP (Universal & Safe)
           if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
               if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
                   exec systemd-cat -t uwsm_start uwsm start default
               fi
           fi
-
-          # -----------------------------------------------------
-          # 6 SNAPSHOT LOCK & UNLOCK
-          # -----------------------------------------------------
-          snap-unlock() {
-            echo "Which config? (1=home, 2=root)"
-            read -p "Selection: " k
-            if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
-            sudo snapper -c "$CFG" list
-            echo ""
-            read -p "Enter Snapshot ID to UNLOCK: " ID
-            if [[ -n "$ID" ]]; then
-               sudo snapper -c "$CFG" modify -c "timeline" "$ID"
-               echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED."
-            fi
-          }
-
-          _snap_create() {
-            local config_name=$1
-            read -p "📝 Enter snapshot description: " description
-            if [ -z "$description" ]; then echo "❌ Description cannot be empty."; return 1; fi
-            read -p "🔒 Lock this snapshot (keep forever)? [y/N]: " lock_ans
-            local cleanup_flag="-c timeline"
-            if [[ "$lock_ans" =~ ^[Yy]$ ]]; then
-              cleanup_flag=""
-            fi
-            sudo snapper -c "$config_name" create --description "$description" $cleanup_flag
-          }
-
 
           # -----------------------------------------------------
           # 7 📦 SMART NIX PREFETCH (npu)
@@ -133,6 +90,45 @@ delib.module {
 
             # Execute
             eval nix-prefetch-url $args "$url"
+          }
+        '' + lib.optionalString (myconfig.services.snapshots.enable or false) ''
+          # SNAPSHOT FUNCTIONS (Bash Syntax)
+          snap-lock() {
+            echo "Which config? (1=home, 2=root)"
+            read -p "Selection: " k
+            if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
+            sudo snapper -c "$CFG" list
+            echo ""
+            read -p "Enter Snapshot ID to LOCK: " ID
+            if [[ -n "$ID" ]]; then
+               sudo snapper -c "$CFG" modify -c "" "$ID"
+               echo "✅ Snapshot #$ID in '$CFG' is now LOCKED."
+            fi
+          }
+
+          snap-unlock() {
+            echo "Which config? (1=home, 2=root)"
+            read -p "Selection: " k
+            if [[ "$k" == "2" ]]; then CFG="root"; else CFG="home"; fi
+            sudo snapper -c "$CFG" list
+            echo ""
+            read -p "Enter Snapshot ID to UNLOCK: " ID
+            if [[ -n "$ID" ]]; then
+               sudo snapper -c "$CFG" modify -c "timeline" "$ID"
+               echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED."
+            fi
+          }
+
+          _snap_create() {
+            local config_name=$1
+            read -p "📝 Enter snapshot description: " description
+            if [ -z "$description" ]; then echo "❌ Description cannot be empty."; return 1; fi
+            read -p "🔒 Lock this snapshot (keep forever)? [y/N]: " lock_ans
+            local cleanup_flag="-c timeline"
+            if [[ "$lock_ans" =~ ^[Yy]$ ]]; then
+              cleanup_flag=""
+            fi
+            sudo snapper -c "$config_name" create --description "$description" $cleanup_flag
           }
         '';
       };

@@ -23,7 +23,7 @@ delib.module {
       # SOPS
       # ---------------------------------------------------------
       sops.secrets.nas_ssh_key = {
-        sopsFile = ../../../common/sops/krit-common-secrets-sops.yaml;
+        sopsFile = ../../../common/sops/${user}-common-secrets-sops.yaml;
         owner = user;
         mode = "0600";
       };

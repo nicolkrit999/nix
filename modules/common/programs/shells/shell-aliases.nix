@@ -1,4 +1,4 @@
-{ delib, moduleSystem, ... }:
+{ delib, moduleSystem, lib, ... }:
 delib.module {
   name = "programs.shell-aliases";
   options = delib.singleEnableOption true;
@@ -115,10 +115,6 @@ delib.module {
         pkgs-home = "$EDITOR ${flakeDir}/home-manager/home-packages.nix";
         pkgs-host = "$EDITOR ${flakeDir}/hosts/${myconfig.constants.hostname}/optional/host-packages/local-packages.nix";
 
-        # Snapshots (snapper)
-        snap-list-home = "snapper -c home list";
-        snap-list-root = "sudo snapper -c root list";
-
         # System utilities
         se = "sudoedit";
         reb-uefi = "systemctl reboot --firmware-setup";
@@ -157,6 +153,10 @@ delib.module {
     {
       home.shellAliases = commonAliases
         // (if isNixOS then nixosAliases else { })
-        // (if isDarwin then darwinAliases else { });
+        // (if isDarwin then darwinAliases else { })
+        // lib.optionalAttrs (myconfig.services.snapshots.enable or false) {
+        snap-list-home = "snapper -c home list";
+        snap-list-root = "sudo snapper -c root list";
+      };
     };
 }

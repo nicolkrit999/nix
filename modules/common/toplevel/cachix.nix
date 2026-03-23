@@ -7,7 +7,7 @@ delib.module {
   name = "cachix";
 
   options = with delib; moduleOptions {
-    enable = boolOption false;
+    enable = boolOption true;
     push = boolOption false;
     name = strOption "use-constant";
     publicKey = strOption "use-constant";
@@ -31,6 +31,26 @@ delib.module {
 
       environment.shellAliases = lib.mkIf cfg.push {
         rebuild-push = "export CACHIX_AUTH_TOKEN=$(cat ${cfg.authTokenPath}) && sudo nixos-rebuild switch --flake . && nix path-info -r /run/current-system | cachix push ${finalName}";
+      };
+    };
+
+  darwin.ifEnabled =
+    { cfg, myconfig, ... }:
+    let
+      finalName = if cfg.name == "use-constant" then myconfig.constants.cachix.name else cfg.name;
+      finalKey =
+        if cfg.publicKey == "use-constant" then myconfig.constants.cachix.publicKey else cfg.publicKey;
+    in
+    {
+      nix.settings = {
+        substituters = [ "https://${finalName}.cachix.org" ];
+        trusted-public-keys = [ finalKey ];
+      };
+
+      environment.systemPackages = [ pkgs.cachix ];
+
+      environment.shellAliases = lib.mkIf cfg.push {
+        rebuild-push = "export CACHIX_AUTH_TOKEN=$(cat ${cfg.authTokenPath}) && darwin-rebuild switch --flake . && nix path-info -r /run/current-system | cachix push ${finalName}";
       };
     };
 }

@@ -82,55 +82,6 @@ delib.module {
             bind --erase --all alt-c
           '';
 
-          snap-lock = ''
-            echo "Which config? (1=home, 2=root)"
-            read -P "Selection: " k
-            if test "$k" = "2"
-              set CFG root
-            else
-              set CFG home
-            end
-            sudo snapper -c "$CFG" list
-            echo ""
-            read -P "Enter Snapshot ID to LOCK: " ID
-            if test -n "$ID"
-               sudo snapper -c "$CFG" modify -c "" "$ID"
-               echo "✅ Snapshot #$ID in '$CFG' is now LOCKED."
-            end
-          '';
-
-          snap-unlock = ''
-            echo "Which config? (1=home, 2=root)"
-            read -P "Selection: " k
-            if test "$k" = "2"
-              set CFG root
-            else
-              set CFG home
-            end
-            sudo snapper -c "$CFG" list
-            echo ""
-            read -P "Enter Snapshot ID to UNLOCK: " ID
-            if test -n "$ID"
-               sudo snapper -c "$CFG" modify -c "timeline" "$ID"
-               echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED."
-            end
-          '';
-
-          _snap_create = ''
-            set config_name $argv[1]
-            read -P "📝 Enter snapshot description: " description
-            if test -z "$description"
-              echo "❌ Description cannot be empty."
-              return 1
-            end
-            read -P "🔒 Lock this snapshot (keep forever)? [y/N]: " lock_ans
-            set cleanup_flag "-c" "timeline"
-            if string match -r -i "^[yY]$" "$lock_ans"
-              set cleanup_flag
-            end
-            sudo snapper -c "$config_name" create --description "$description" $cleanup_flag
-          '';
-
           npu = ''
             set url ""
             if test -n "$argv[1]"
@@ -183,6 +134,55 @@ delib.module {
 
             # Execute
             nix-prefetch-url $args "$url"
+          '';
+        } // lib.optionalAttrs (myconfig.services.snapshots.enable or false) {
+          snap-lock = ''
+            echo "Which config? (1=home, 2=root)"
+            read -P "Selection: " k
+            if test "$k" = "2"
+              set CFG root
+            else
+              set CFG home
+            end
+            sudo snapper -c "$CFG" list
+            echo ""
+            read -P "Enter Snapshot ID to LOCK: " ID
+            if test -n "$ID"
+               sudo snapper -c "$CFG" modify -c "" "$ID"
+               echo "✅ Snapshot #$ID in '$CFG' is now LOCKED."
+            end
+          '';
+
+          snap-unlock = ''
+            echo "Which config? (1=home, 2=root)"
+            read -P "Selection: " k
+            if test "$k" = "2"
+              set CFG root
+            else
+              set CFG home
+            end
+            sudo snapper -c "$CFG" list
+            echo ""
+            read -P "Enter Snapshot ID to UNLOCK: " ID
+            if test -n "$ID"
+               sudo snapper -c "$CFG" modify -c "timeline" "$ID"
+               echo "✅ Snapshot #$ID in '$CFG' is now UNLOCKED."
+            end
+          '';
+
+          _snap_create = ''
+            set config_name $argv[1]
+            read -P "📝 Enter snapshot description: " description
+            if test -z "$description"
+              echo "❌ Description cannot be empty."
+              return 1
+            end
+            read -P "🔒 Lock this snapshot (keep forever)? [y/N]: " lock_ans
+            set cleanup_flag "-c" "timeline"
+            if string match -r -i "^[yY]$" "$lock_ans"
+              set cleanup_flag
+            end
+            sudo snapper -c "$config_name" create --description "$description" $cleanup_flag
           '';
         };
       };

@@ -1,7 +1,6 @@
-{ delib, ... }:
+{ delib, pkgs, ... }:
 delib.module {
   name = "nh";
-  # Not enabling this module causes some shell aliases to not work
   options = delib.singleEnableOption true;
 
   nixos.ifEnabled =
@@ -11,7 +10,15 @@ delib.module {
         enable = true;
         clean.enable = true;
         clean.extraArgs = "--keep-since 30d --keep 10";
-        flake = "/home/${myconfig.constants.user}/nixOS";
+        flake = "/home/${myconfig.constants.user}/nix";
       };
+    };
+
+  darwin.ifEnabled =
+    { ... }:
+    {
+      environment.systemPackages = with pkgs; [
+        nh
+      ];
     };
 }
