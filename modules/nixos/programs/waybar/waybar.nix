@@ -69,25 +69,24 @@ delib.module {
             position = "top";
             height = 40;
 
-            modules-left = [
-              "hyprland/workspaces"
-              "niri/workspaces"
-            ];
+            modules-left =
+              (lib.optional hyprlandWaybar "hyprland/workspaces")
+              ++ (lib.optional niriWaybar "niri/workspaces");
 
-            modules-center = [
-              "hyprland/window"
-              "niri/window"
-            ];
+            modules-center =
+              (lib.optional hyprlandWaybar "hyprland/window")
+              ++ (lib.optional niriWaybar "niri/window");
 
-            modules-right = [
-              "hyprland/language"
-              "niri/language"
-              "custom/weather"
-              "pulseaudio"
-              "battery"
-              "clock"
-              "tray"
-            ];
+            modules-right =
+              (lib.optional hyprlandWaybar "hyprland/language")
+              ++ (lib.optional niriWaybar "niri/language")
+              ++ [
+                "custom/weather"
+                "pulseaudio"
+                "battery"
+                "clock"
+                "tray"
+              ];
 
             # Workspaces Icon and layout
             # A user may define host-specific icons (optional) in myconfig.constants.waybarWorkspaceIcons
@@ -96,8 +95,8 @@ delib.module {
               show-special = true;
               special-visible-only = true;
               all-outputs = false;
-              format = "{name} {icon}";
-              format-icons = cfg.waybarWorkspaceIcons;
+              format = "{name}{icon}";
+              format-icons = cfg.waybarWorkspaceIcons // { default = ""; };
             };
 
             "niri/workspaces" = {

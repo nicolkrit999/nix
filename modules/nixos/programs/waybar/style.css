@@ -2,7 +2,7 @@
   border: none;
   font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 16px;                /* Text size across all modules */
   min-height: 0;
   color: @base05;
 }
@@ -23,24 +23,31 @@ window#waybar {
   border-radius: 0;
 }
 
-/* Workspace buttons as floating rounded blocks with smart centering */
+/* Workspace buttons as floating rounded blocks */
 #workspaces button,
 #niri-workspaces button {
   background-color: @base01;
-  margin: 4px 2px;
-  padding: 0 10px;
-  min-width: 36px;           /* Ensures centering for short content */
-  border-radius: 8px;
+  margin: 4px 2px;                /* top/bottom gap from bar edge | gap between buttons */
+  padding: 0 18px;                /* inner space: text ←→ left/right pill edge */
+  min-width: 36px;                /* minimum pill width — keeps single-char names centered */
+  border-radius: 8px;             /* pill corner roundness */
   color: @base05;
-  border-bottom: 2px solid transparent;
+  border-top: 2px solid transparent;     /* balance the bottom border for vertical centering */
+  border-bottom: 2px solid transparent;  /* accent line thickness (colored on active) */
   transition: all 0.2s ease;
+}
+
+/* Force inner text padding (GTK buttons ignore padding on the button itself) */
+#workspaces button label,
+#niri-workspaces button label {
+  padding: 0 6px;                 /* balanced breathing room: text ←→ pill edge */
 }
 
 /* Active workspace */
 #workspaces button.active,
 #niri-workspaces button.active {
   background-color: @base0D;
-  border-bottom: 2px solid @base0D;
+  border-bottom: 2px solid @base0D;      /* accent line thickness (matches above) */
 }
 
 #workspaces button.active label,
@@ -58,12 +65,52 @@ window#waybar {
 /* 🪟 CENTER MODULE (Window Title)                                         */
 /* ----------------------------------------------------------------------- */
 
+/* Reset default widget spacing so empty modules collapse to zero */
+window#waybar .modules-center > widget > * {
+  margin: 0;
+  padding: 0;
+}
+
+/* Remove separator / ghost lines on center widgets */
+window#waybar .modules-center > widget > *,
+window#waybar .modules-center > widget > * > * {
+  border-right: none;
+  border-left: none;
+}
+
+/* Kill GTK separator element if present */
+window#waybar separator {
+  background: transparent;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+}
+
 #window {
-  padding: 0 14px;
-  margin: 4px 4px;
+  padding: 0 18px;                /* inner space: title text ←→ left/right pill edge */
+  margin: 4px 4px;                /* top/bottom gap from bar edge | gap to neighbors */
   background-color: @base01;
-  border-radius: 8px;
-  border-bottom: 2px solid @base0B;  /* Green accent */
+  border-radius: 8px;             /* pill corner roundness */
+  border-top: 2px solid transparent;    /* balance the bottom border for vertical centering */
+  border-bottom: 2px solid @base0B;  /* green accent line thickness */
+}
+
+#window label {
+  padding: 0 18px;                /* GTK ignores padding on the widget; apply to inner label */
+}
+
+/* When no window is focused, hide the pill entirely */
+#window.empty {
+  background-color: transparent;
+  border-bottom: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+#window.empty label {
+  padding: 0;
 }
 
 /* ----------------------------------------------------------------------- */
@@ -76,11 +123,12 @@ window#waybar {
 #tray,
 #language,
 #custom-weather {
-  padding: 0 14px;           /* Symmetric padding */
-  margin: 4px 2px;
+  padding: 0 18px;                /* inner space: text ←→ left/right pill edge */
+  margin: 4px 2px;                /* top/bottom gap from bar edge | gap between pills */
   background-color: @base01;
-  border-radius: 8px;
-  border-bottom: 2px solid;
+  border-radius: 8px;             /* pill corner roundness */
+  border-top: 2px solid transparent;    /* balance the bottom border for vertical centering */
+  border-bottom: 2px solid;       /* accent line thickness (color set per-module below) */
 }
 
 #language { border-bottom-color: @base09; }
@@ -103,5 +151,5 @@ window#waybar {
 #clock { border-bottom-color: @base0E; }
 #tray {
   border-bottom-color: @base0F;
-  padding: 0 10px;
+  padding: 0 14px;                /* tray icons need less padding than text modules */
 }
