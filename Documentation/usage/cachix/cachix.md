@@ -2,6 +2,8 @@
 
 This document explains the "Build Once, Run Everywhere" architecture used in this repository. By leveraging **Cachix** and **GitHub Actions**, we ensure that your laptop almost _never_ has to compile code from scratch, saving battery, heat, and time.
 
+- Currently this benefits are only for `x86_64-linux` pc as doing for other architecture would mean keeping an host with that architecture up to date but especially use a lot more cachix space
+
 ---
 
 ## 1. The Core Concept: "Factory vs. Warehouse"
@@ -26,7 +28,6 @@ We define a strict hierarchy of trust and power to optimize resources.
 - **Trigger:** Automatically runs on every `git push`.
 - **Capabilities:**
 - Builds for **x86_64** (Desktop) natively.
-- Builds for **AArch64** (Laptop) using QEMU emulation.
 
 - **Why it exists:** To do the heavy lifting while you sleep. It creates the cache entries before you even wake up to update your laptop.
 
@@ -60,7 +61,7 @@ To get the most out of this system, follow this lifecycle for system updates:
 2. **Push:** You run `git push`.
 3. **The "Coffee Break" (Wait):**
 
-- GitHub Actions detects the push and starts two parallel jobs: `build-x86_64` and `build-aarch64`.
+- GitHub Actions detects the push and starts the compilation`.
 - It compiles your system and uploads the results to `krit-nixos.cachix.org`.
 - _Duration:_ ~5-15 minutes depending on complexity.
 
@@ -81,7 +82,7 @@ This file is the "Robot" that runs the factory.
 - **The Cache Loop:** It pulls from Cachix before starting (to speed up its own build) and pushes to Cachix immediately after finishing.
 - **Split Architecture:** It runs separate jobs for x86 and ARM to ensure both architectures are cached simultaneously.
 
-### The System Logic (`modules/cachix.nix`)
+### The System Logic (`cachix.nix`)
 
 This file configures your machines to talk to the warehouse.
 

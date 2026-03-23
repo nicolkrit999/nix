@@ -73,7 +73,6 @@
   - [🔄 Daily Usage \& Updates](#-daily-usage--updates)
   - [❓ Troubleshooting](#-troubleshooting)
     - [Error: `path '.../hardware-configuration.nix' does not exist`](#error-path-hardware-configurationnix-does-not-exist)
-    - [Error: `home-manager: command not found`](#error-home-manager-command-not-found)
     - [Error: `permission denied` opening `flake.lock`](#error-permission-denied-opening-flakelock)
     - [Error: `returned non-zero exit status 4` during rebuild](#error-returned-non-zero-exit-status-4-during-rebuild)
     - [Weird keyboard layout during install](#weird-keyboard-layout-during-install)
@@ -93,6 +92,7 @@
     - [In-depth-files-expl](#in-depth-files-expl)
     - [Issues](#issues)
     - [Ideas](#ideas)
+    - [Troubleshooting](#troubleshooting)
     - [Usage guide](#usage-guide)
 
 ## ✨ Features
@@ -107,6 +107,8 @@ Leverage `denix` to create a customized environments where it's possible to choo
 #### Host-specific home-manager modules
 
 Using the `/users` folder it's possible to define modules separated from the system-wide one allowing to have highly opinionated and user/host specific modules separated
+
+Using the `/templates` folder it's possible to define modules which are not auto-discovered. This is necessary for any file that does not have the delib header and/or that must be imported manually
 
 #### Host-specific general home-manager modules tweaks
 
@@ -170,7 +172,7 @@ Wallpapers are defined to be hosts specific and they are tied to the monitor lis
   - **Hyprland + noctalia with quickshell**
     - Noctalia include many configuration aspect so i choose to let the user manually change the config in the noctalia gui.
     - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
-  - Some aspects are defined declarative. See `noctalia-config.nix`
+  
   - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
 
 - **niri + noctalia with quickshell**
@@ -185,7 +187,7 @@ Wallpapers are defined to be hosts specific and they are tied to the monitor lis
 - **XFCE**: A lightweight, stable, and classic desktop experience.
   - For now xfce is enabled only if the `guest` user is enabled.
 
-You can enable or disable desktop environments (Hyprland, GNOME, KDE, etc.) by editing disabling it in the host folder using denix. However, disabling the environment you are currently using requires caution to avoid being locked out of the system.
+You can enable or disable desktop environments (Hyprland, GNOME, KDE, etc.) by disabling it in the host folder using denix. However, disabling the environment you are currently using requires caution to avoid being locked out of the system.
 
 > **⚠️ Warning:** If you set your **current** desktop to `false` and run `nixos-rebuild switch`, the graphical interface will terminate immediately. You will be dropped into a TTY, and in some cases, your user shell may break, forcing you to recover via `root`.
 
@@ -202,11 +204,7 @@ sudo nixos-rebuild boot --flake .
 ```
 
 3. **Reboot** your system.
-4. **Finalize the setup:** Once logged into the new session, run your standard update command to apply Home Manager customizations (themes, keybindings, etc.):
 
-```bash
-sw && hms  # or any equivalent update alias
-```
 
 #### 🚨 Emergency Recovery (Stuck in TTY)
 
@@ -215,7 +213,7 @@ If you accidentally disabled your current desktop and `nixos-rebuild switch` kic
 - If logging in as regular user work then rebuilding is enough
 
 ```bash
-sw && hms  # or any equivalent update alias
+cd ~/nix && sw
 ```
 
 If your normal user shell fails to log in, follow these steps:
@@ -230,7 +228,7 @@ If your normal user shell fails to log in, follow these steps:
 
 ```bash
 # 1. Enter the NixOS directory
-cd /home/<your-user>/nixOS
+cd /home/<your-user>/nix
 
 # 2. Allow root to access the user's git repo
 nix-shell -p git --command "git config --global --add safe.directory '*'"
@@ -240,10 +238,7 @@ nixos-rebuild boot --flake .
 
 # 4. Reboot
 reboot
-
 ```
-
-3. **Finalize:** After rebooting, log in as your normal user and run `sw && hms` to restore your dotfiles.
 
 #### 🛠️ Troubleshooting
 
@@ -253,13 +248,12 @@ When re-enabling a desktop (especially Hyprland) after having it disabled, Home 
 **Fix:** Remove the conflicting file manually and retry the build.
 
 ```bash
-rm ~/.config/hypr/hyprland.conf
-sw && hms
+rm ~/.config/hypr/hyprland.conf && sw
 ```
 
 **Issue: Missing Personalization**
 
-If you boot into a new desktop and it looks "vanilla" (missing keybindings or wallpapers), it usually means Home Manager hasn't run yet. Simply run your switch command (`sw && hms`) again to apply the user-level configurations.
+If you boot into a new desktop and it looks "vanilla" (missing keybindings or wallpapers), it usually means Home Manager hasn't run yet. Simply run your switch command (`sw`) again to apply the user-level configurations.
 
 ---
 
@@ -353,23 +347,15 @@ Starship provide beautiful git status symbols, programming language symbols, the
 
 - Possibility to enable snapshots and define an host-specific retention policy
 - These are only possible if the filesystem is `btrfs`
-- Nor the filesystem nor the snapshots modules are mandatory. If you opt for any filesystem different than `btrfs` you can simply keep the variable to false, or remove it and also remove `~/nix/nixos/modules/snapshots.nix`
-- The `template-host` contains a file named `disko-config` which can be used to configure btrfs automatically.
+- Nor the filesystem nor the snapshots modules are mandatory. If you opt for any filesystem different than `btrfs` you can simply keep the variable to false, or remove it and also remove the snapshots file itself
+- The `template-host-minimal` contains some `disko-config` which can be used to configure btrfs automatically.
   - If you prefer to not use `disko` then you should remove that file from the template-host and configure `btrfs` manually using the nix installer
 
 ### ❔ SOPS-nix support
 
 - Sops is already enabled in `flake.nix` and `.sops.yaml` contains the necessary code to add the host-specific keys
-- For an host to use sops it must be added to the host-specific configuration.nix, otherwise it is ignored. An example is the following:
+- For an host to use sops it must be added to the host-specific configuration.nix
 
-```nix
-# If you want to have the convenience of the aliases then the name must match the format here
-sops.defaultSopsFile = ./optional/host-sops-nix/<hostname>-secrets-sops.yaml;
-sops.defaultSopsFormat = "yaml";
-sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-```
-
-The format for the common secrets (also according to the aliases) should be `<user>-common-secrets-sops.yaml`
 
 If you intend to use the hostname `nixos-desktop` you should remove the entire content of the existing one, as it contains my own personal configurations and change and create the new host public key. Basically after a new rebuild and a `nixos-desktop` which contains the bare minimum from `template-host` you would run:
 
@@ -380,7 +366,7 @@ nix-shell -p ssh-to-age --run "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub"
 # Then update the user with the admin public key and the host public key
 
 # Then invite the host
-sops updatekeys hosts/nixos-desktop/optional/host-sops-nix/<hostname>-secrets-sops.yaml
+sops updatekeys hosts/nix-desktop/optional/host-sops-nix/<hostname>-secrets-sops.yaml
 ```
 
 ---
@@ -407,7 +393,7 @@ environment.persistence."/persist" = {
 - **Before** setting up impermanance have the user password declared. If impermanance is than disabled for any reason the password can both remain declarative than non declarative
 
 1. **Declarative Passwords**: Because `/etc/shadow` is wiped on reboot, you **must** declare your user password in your Nix code.
-2. **SOPS Integration**: If you use `sops-nix` for your password, you must ensure the decryption key is accessible before the symlinks are created. You can see a working example in `~/nix/hosts/nixos-desktop/system.nix`.
+2. **SOPS Integration**: If you use `sops-nix` for your password, you must ensure the decryption key is accessible before the symlinks are created. You can see a working example in `~/nix/hosts/nix-desktop/system.nix`.
 3. **Direct Key Path**: You **must** point SOPS directly to the physical `/persist` path for your SSH host key to avoid a boot-time race condition:
 4. **Persist mountpoint**: Of course for this to work /persist must actually exist. Both the manual partitioning that the disko installation already create that mountpoint
 
@@ -436,10 +422,13 @@ sops.age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
 - It uses smart conditionals to allow support for multiple architectures
   - `aarch64-linux`
   - `x86_64-linux`
+  - `aarch64-darwin` (macOS)
 - Currently the limitation for `aarch64-linux` are the following:
   - `gpu-screen-recorder`:
     - It's used both by `caelestia` and `noctalia`. The shells can be installed and used in both architecture but the screen recording features will not work on `aarch64-linux`
 
+- 🚨 I do not have access to an actual aarch-64-linux nor a macbook pc so 100% compatibility at any moment is not guaranteed
+  - If you find any problem open an `issue` and i will gladly look into it 
 ---
 
 # 🚀 NixOS Installation Guide (dual boot, manual partitioning, btrfs, snapshots and impermenance support)
@@ -452,7 +441,7 @@ sops.age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
 
 ### 1. Download & Flash
 
-1. **Download:** Get the **NixOS Minimal ISO** (64-bit Intel/AMD or 64-bit ARM) from [nixos.org](https://nixos.org/download.html). The graphical installer is not needed.
+1. **Download:** Get the **NixOS Minimal ISO** (64-bit Intel/AMD or 64-bit ARM) from [nixos.org](https://nix.org/download.html). The graphical installer is not needed.
 2. **Flash:** Use **Rufus, Balena Etcher or similar** to write the ISO to a USB stick.
 
 - **Partition Scheme:** GPT
@@ -479,7 +468,7 @@ Fetch the installer template from your repository.
 
 ```bash
 nix-shell -p git
-git clone https://github.com/nicolkrit999/nixOS.git
+git clone https://github.com/nicolkrit999/nix.git
 cd ~/nix
 ```
 
@@ -590,7 +579,7 @@ Copy the template to a new folder for your machine. Replace `my-computer` with y
 
 ```bash
 cd ~/nix/hosts
-cp -r template-host-full my-computer
+cp -r template-host-minimal my-computer
 cd my-computer
 ```
 
@@ -618,7 +607,7 @@ Because the disks are mounted at `/mnt`, NixOS can automatically detect your BTR
 sudo nixos-generate-config --root /mnt
 
 # 2. Copy the generated config to your host folder
-cp /mnt/etc/nixos/hardware-configuration.nix ~/nix/hosts/my-computer/
+cp /mnt/etc/nix/hardware-configuration.nix ~/nix/hosts/my-computer/
 
 # 3. Add the file to git (CRITICAL: Nix Flakes ignore untracked files)
 cd ~/nix
@@ -644,7 +633,7 @@ exit
 3. **CRITICAL:** Copy your configuration to the new persistent drive before restarting!
 
 ```bash
-sudo cp -r ~/nix /mnt/etc/nixos
+sudo cp -r ~/nix /mnt/etc/nix
 ```
 
 4. Reboot!
@@ -660,7 +649,7 @@ reboot
 
 ### 1. Download & Flash
 
-1. **Download:** Get the **NixOS Minimal ISO** (64-bit Intel/AMD) from [nixos.org](https://nixos.org/download.html).
+1. **Download:** Get the **NixOS Minimal ISO** (64-bit Intel/AMD) from [nixos.org](https://nix.org/download.html).
 2. **Flash:** Use **Rufus,balena etcher or similar** to write the ISO to a USB stick.
 
 - **Partition Scheme:** GPT
@@ -687,7 +676,7 @@ We need to fetch the installer template.
 
 ```bash
 nix-shell -p git
-git clone https://github.com/nicolkrit999/nixOS.git
+git clone https://github.com/nicolkrit999/nix.git
 cd nixOS
 ```
 
@@ -710,7 +699,7 @@ You may choose between copying the `minimal` or the `full` template host
 
 ```bash
 cd hosts
-cp -r template-host-full my-computer
+cp -r template-host-minimal my-computer
 cd my-computer
 ```
 
@@ -723,10 +712,7 @@ Edit the host `default.nix` and add in the `nixos` block the import for the chos
       nixpkgs.hostPlatform = "x86_64-linux";
       system.stateVersion = "25.11";
       imports = [
-        inputs.disko.nixosModules.disko
-        inputs.catppuccin.nixosModules.catppuccin
-        #inputs.nix-sops.nixosModules.sops # Tough an import does not cause the build to fail it's removed for lightness. Enable if used
-        inputs.niri.nixosModules.niri
+        inputs.nix-sops.nixosModules.sops
 
         ./hardware-configuration.nix
 
@@ -739,7 +725,7 @@ Edit the host `default.nix` and add in the `nixos` block the import for the chos
 
 Choose **ONE** of the following methods depending on whether you want encryption.
 
-- Both disko-config sample are under ~/nix/hosts/template-host-full
+- Both disko-config sample are under ~/nix/hosts/template-host-minimal
   - Remember to copy them to your chosen host folder
 
 #### Option A: Standard (No Encryption)
@@ -772,7 +758,7 @@ nano default.nix
 
 ### 5b. Enable suggested modules
 
-Check the documentation [denix starting documentation](#-denix-support). To find a descriptions of possible modules that are available and check `template-host-full-default.nix` for suggested modules (one that have a `enable = true;` block)
+Check the documentation [denix starting documentation](#-denix-support). To find a descriptions of possible modules that are available and check `template-host-minimal/default.nix` for suggested modules (one that have a `enable = true;` block)
 
 ---
 
@@ -826,7 +812,7 @@ sudo nixos-install --flake .#my-computer
 2. **CRITICAL:** Copy your configuration to the new persistent drive before restarting!
 
 ```bash
-sudo cp -r ~/nix /mnt/etc/nixos
+sudo cp -r ~/nix /mnt/etc/nix
 ```
 
 3. Type `reboot` and remove the USB stick.
@@ -852,7 +838,7 @@ Your configuration is currently owned by `root` in a system folder. Let's move i
 2. Move the config:
 
 ```bash
-sudo mv /etc/nixos ~/nix
+sudo mv /etc/nix ~/nix
 sudo chown -R $USER:users ~/nix
 ```
 
@@ -929,10 +915,11 @@ _Example input: `my-computer` (This will delete every host except this one)._
 Whenever you edit a file, use these aliases to apply your changes. You don't need to type the long `nixos-rebuild` command.
 
 The normal switch command handle both a system and a home-manager rebuild.
+- These commands assume you have `programs.nh.enable = true;`. It is enabled by default but if you explicitely disabled it then they will not work
 
 | Alias     | Command                 | Description                                                            |
-| --------- | ----------------------- | ---------------------------------------------------------------------- | --- |
-| **`sw`**  | `nh os switch`          | **System Rebuild**. Rebuild everything                                 |     |
+| --------- | ----------------------- | ---------------------------------------------------------------------- |
+| **`sw`**  | `nh os switch`          | **System Rebuild**. Rebuild everything                                 |
 | **`upd`** | `nh os switch --update` | **System Update**. Downloads the latest package versions and rebuilds. |
 
 ## ❓ Troubleshooting
@@ -946,14 +933,6 @@ The normal switch command handle both a system and a home-manager rebuild.
 git add -f hosts/<hostname>/hardware-configuration.nix
 ```
 
-### Error: `home-manager: command not found`
-
-**Cause:** You removed the system-wide package, but the user-level package hasn't installed yet.
-**Fix:** Run the bootstrap command again (step 6 part 2):
-
-```bash
-home-manager switch
-```
 
 ### Error: `permission denied` opening `flake.lock`
 
@@ -1013,7 +992,7 @@ Currently this behaviour happens here:
 
 ## 📝 Project Origin and Customization
 
-This NixOS configuration project began as local copy and adaptation of the excellent work by **Andrey0189** from their repository: [https://github.com/Andrey0189/nixos-config-reborn](https://github.com/Andrey0189/nixos-config-reborn).
+This NixOS configuration project began as local copy and adaptation of the excellent work by **Andrey0189** from their repository: [https://github.com/Andrey0189/nix-config-reborn](https://github.com/Andrey0189/nix-config-reborn).
 
 I would like to extend my thanks to **Andrey0189** for providing a robust starting point.
 
@@ -1027,7 +1006,7 @@ While the original repository laid the foundation, this setup has been **heavily
 - **Flake Configuration**: Enhanced the `flake.nix` file to suit the logic that there are many more variables that differs from hosts to hosts
 - **Common modules**: Allow the user to have general home-manager modules for certain hosts
 - **Cachix support**: Enhanced the `flake.nix` file to suit the logic that there are many more variables that differs from hosts to hosts
-- **Multi-architecture support**: Support for both x86 and aarch pc
+- **Multi-architecture support**: Support for both x86 and aarch pc as well as macOS
 
 This README documents the final, highly customized iteration of that initial framework.
 
@@ -1069,9 +1048,9 @@ The LICENCE.txt file is copied from the original repo and should respect the GPL
 
 ## Other resources
 
-### [Structure](./Documentation/structure/Structure.md)
+### [Structure](./Documentation/usage/denix/)
 
-This folder contains the entire structure of the project, with a general of every single file
+This folder contains the official denix documentation as well as a brief description of every module that can be enabled
 
 ### [In-depth-files-expl](./Documentation/in-depth-files-expl/files-expl.md)
 
@@ -1086,6 +1065,10 @@ This folder contains an explanation of the issues that i noticed and that should
 ### [Ideas](./Documentation/ideas/ideas.md)
 
 This folder contains ideas that i think may benefit the project
+
+### [Troubleshooting](./Documentation/troubleshooting/)
+
+This folder contains some troubleshooting guides
 
 ### [Usage guide](./Documentation/usage/)
 
