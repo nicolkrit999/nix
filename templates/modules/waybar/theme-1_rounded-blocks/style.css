@@ -7,15 +7,15 @@
   color: @base05;
 }
 
-/* TRANSPARENT BAR BACKGROUND - wallpaper shows through */
 window#waybar {
-  background: transparent;
+  background: @base00;
 }
 
 /* ----------------------------------------------------------------------- */
 /* 🗄️ WORKSPACES (Hyprland & Niri)                                        */
 /* ----------------------------------------------------------------------- */
 
+/* 1. Remove background from the main containers */
 #workspaces,
 #niri-workspaces {
   background-color: transparent;
@@ -23,64 +23,51 @@ window#waybar {
   border-radius: 0;
 }
 
-/* Workspace buttons as floating rounded blocks with smart centering */
+/* 2. Style individual buttons as separate blocks */
 #workspaces button,
 #niri-workspaces button {
-  background-color: @base01;
-  margin: 4px 2px;
-  padding: 0 10px;
-  min-width: 36px;           /* Ensures centering for short content */
+  background-color: @base01; /* Matches your right-side modules */
+  margin: 4px 4px;           /* Spacing between buttons */
+  padding: 0 10px;           /* Internal spacing for icons/text */
   border-radius: 8px;
   color: @base05;
-  border-bottom: 2px solid transparent;
+  border-bottom: 2px solid transparent; /* Placeholder for alignment */
   transition: all 0.2s ease;
 }
 
-/* Active workspace */
+/* 3. Active Workspace styling */
 #workspaces button.active,
 #niri-workspaces button.active {
   background-color: @base0D;
-  border-bottom: 2px solid @base0D;
+  border-bottom: 2px solid @base0D; /* Optional: adds the accent line look */
 }
 
 #workspaces button.active label,
 #niri-workspaces button.active label {
-  color: @base00;
+  color: @base00; /* Dark text on bright background for readability */
 }
 
-/* Hover effect */
+/* 4. Hover effect */
 #workspaces button:hover,
 #niri-workspaces button:hover {
   background-color: @base02;
 }
 
 /* ----------------------------------------------------------------------- */
-/* 🪟 CENTER MODULE (Window Title)                                         */
-/* ----------------------------------------------------------------------- */
-
-#window {
-  padding: 0 14px;
-  margin: 4px 4px;
-  background-color: @base01;
-  border-radius: 8px;
-  border-bottom: 2px solid @base0B;  /* Green accent */
-}
-
-/* ----------------------------------------------------------------------- */
 /* 🧩 RIGHT-SIDE MODULES                                                   */
 /* ----------------------------------------------------------------------- */
-
+/* Turn right modules into distinct rounded blocks */
 #clock,
 #battery,
 #pulseaudio,
 #tray,
 #language,
 #custom-weather {
-  padding: 0 14px;           /* Symmetric padding */
-  margin: 4px 2px;
-  background-color: @base01;
+  padding: 0 12px;
+  margin: 4px 4px;
+  background-color: @base01; /* Subtle contrast from the main bar */
   border-radius: 8px;
-  border-bottom: 2px solid;
+  border-bottom: 2px solid; /* Thinner, cleaner accent line */
 }
 
 #language { border-bottom-color: @base09; }
@@ -103,5 +90,5 @@ window#waybar {
 #clock { border-bottom-color: @base0E; }
 #tray {
   border-bottom-color: @base0F;
-  padding: 0 10px;
+  padding: 0 8px;
 }
