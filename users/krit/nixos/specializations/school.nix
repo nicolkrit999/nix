@@ -119,7 +119,10 @@ delib.module {
         programs.zsh.shellAliases = { school = "cd ~/.school-workspace"; };
 
         home.packages = with pkgs; [
-          # CS Tools
+          # Required Tools
+          mars-mips # MIPS simulator (tecnica digitale)
+
+          # CS Tools (usefule)
           dbeaver-bin
           insomnia
           wireshark
