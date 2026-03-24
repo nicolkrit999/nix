@@ -21,6 +21,7 @@
     ublock-origin
     new-tab-override
     privacy-badger
+    youtube-screenshot-button
   ];
 
   settings = commonSettings // {
