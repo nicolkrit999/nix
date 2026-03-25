@@ -3,7 +3,7 @@
 , ...
 }:
 delib.module {
-  name = "krit.services.desktop.flatpak";
+  name = "krit.services.laptop.flatpak";
   options = delib.singleEnableOption false;
 
   nixos.always = {
@@ -16,7 +16,6 @@ delib.module {
         enable = true;
         packages = [
           "com.actualbudget.actual" # Actual budget budgeting app
-          "io.github.shonebinu.Brief" # Brief, command lines cheatsheet application
           "me.iepure.devtoolbox" # DevToolbox, a collection of tools for developers
           "com.github.unrud.VideoDownloader" # Video Downloader, a tool for downloading videos from various platforms
           "com.github.tchx84.Flatseal" # Flatseal, a permissions manager for Flatpak applications

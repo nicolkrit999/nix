@@ -212,7 +212,84 @@ lsblk -o NAME,SIZE,FSTYPE,MOUNTPOINT
 
 ---
 
-## Phase 9: Create Your Host
+## Phase 9: Generate Host SSH Key for Sops
+
+The host's SSH ed25519 key is used by sops-nix to decrypt secrets at activation time.
+Generate it **now** into the persistent partition so it survives reboots and is available
+for the first `nixos-install`.
+
+```bash
+# 1. Create the SSH directory on the persistent partition
+sudo mkdir -p /mnt/persist/etc/ssh
+
+# 2. Generate the host key (empty passphrase)
+sudo ssh-keygen -t ed25519 -f /mnt/persist/etc/ssh/ssh_host_ed25519_key -N ""
+```
+
+### Derive the age public key
+
+sops-nix decrypts secrets using an age key derived from this SSH key. Derive it now:
+
+```bash
+nix-shell -p ssh-to-age --run \
+  "ssh-to-age < /mnt/persist/etc/ssh/ssh_host_ed25519_key.pub"
+```
+
+This prints an age public key like `age1abc...xyz`. **Copy this string** — you need it
+in the next step.
+
+### Add the key to `.sops.yaml`
+
+On another machine (or in the same ISO session), edit `.sops.yaml` at the repo root:
+
+1. Add the new host anchor under the `# Hosts` section:
+   ```yaml
+   - &my-computer age1abc...xyz
+   ```
+
+2. Add a `creation_rules` entry for the new host's secrets file:
+   ```yaml
+   - path_regex: hosts/my-computer/.*secrets-sops\.yaml$
+     key_groups:
+       - age:
+           - *krit
+           - *my-computer
+   ```
+
+3. Add the new host to the `krit-common-secrets-sops.yaml` rule so it can decrypt
+   shared user secrets:
+   ```yaml
+   - path_regex: users/krit/common/sops/krit-common-secrets-sops.yaml$
+     key_groups:
+       - age:
+           - *krit
+           - *nixos-desktop
+           - *Krits-MacBook-Pro
+           - *my-computer          # ← add this
+   ```
+
+### Re-encrypt secrets for the new host
+
+After updating `.sops.yaml`, re-encrypt so the new host key is added as a recipient:
+
+```bash
+# Re-encrypt common user secrets (the new host needs these)
+sops updatekeys users/krit/common/sops/krit-common-secrets-sops.yaml
+```
+
+If you also created a host-specific secrets file (`hosts/my-computer/my-computer-secrets-sops.yaml`),
+re-encrypt that too:
+
+```bash
+sops updatekeys hosts/my-computer/my-computer-secrets-sops.yaml
+```
+
+> **Tip:** If editing `.sops.yaml` on a separate machine, commit and push, then
+> `git pull` on the ISO session before proceeding.
+
+---
+
+## Phase 10: Create Your Host
 
 ```bash
 cd ~/nix/hosts
@@ -221,11 +298,11 @@ cp -r template-host-minimal my-computer
 
 > **Note:** Do **not** copy or use the `disko-config-btrfs-luks-impermanence.nix` file.
 > Disko would reformat the entire disk (including your Windows partition).
-> The filesystems will be detected automatically by `nixos-generate-config` in Phase 11.
+> The filesystems will be detected automatically by `nixos-generate-config` in Phase 12.
 
 ---
 
-## Phase 10: Configure default.nix
+## Phase 11: Configure default.nix
 
 Open `~/nix/hosts/my-computer/default.nix`.
 
@@ -257,7 +334,7 @@ Still in `default.nix`, update:
 
 ---
 
-## Phase 11: Generate Hardware Config and Install
+## Phase 12: Generate Hardware Config and Install
 
 ```bash
 # Generate hardware config — this auto-detects all mounted filesystems and LUKS
@@ -305,7 +382,7 @@ sudo nixos-install --flake .#my-computer
 
 ---
 
-## Phase 12: Finish
+## Phase 13: Finish
 
 1. Set your **user password** when prompted.
    If not prompted:
@@ -327,7 +404,7 @@ sudo nixos-install --flake .#my-computer
 
 ---
 
-## Phase 13: TPM Auto-Unlock (Post-Install)
+## Phase 14: TPM Auto-Unlock (Post-Install)
 
 After booting into your new system, bind the TPM so the drive unlocks automatically
 at boot (no passphrase required).

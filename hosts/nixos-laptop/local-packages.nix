@@ -4,8 +4,9 @@
 , ...
 }:
 delib.module {
-  name = "krit.services.desktop.local-packages";
+  name = "krit.services.laptop.local-packages";
   options = delib.singleEnableOption false;
+
 
   nixos.ifEnabled =
     { myconfig, ... }:
@@ -29,7 +30,7 @@ delib.module {
           #cpu-x # Hardware information visualizer application
           drawio # Diagramming application
           gearlever # Manager appimages
-          gramps # Genealogy software
+          #gramps # Genealogy software
           gsimplecal # Simple calendar application
           gitnuro # Git client
           #handbrake # Video transcoder
@@ -52,7 +53,7 @@ delib.module {
           vlc # Media player
           #whatsapp-electron # Electron wrapper for whatsapp
           xmind # Mind mapping software
-          yubikey-manager # Yubikey manager for configuring Yubikeys
+          #yubikey-manager # Yubikey manager for configuring Yubikeys
 
           # -----------------------------------------------------------------------------------
           # 🖥️ CLI UTILITIES
@@ -127,7 +128,7 @@ delib.module {
           # -----------------------------------------------------------------------
           # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
           # -----------------------------------------------------------------------
-          fresh-editor # Lightweight terminal text editor
+          #fresh-editor # Lightweight terminal text editor
         ]);
     };
 }
