@@ -30,7 +30,7 @@ delib.host {
 
         theme = {
           polarity = "dark";
-          base16Theme = "nord";
+          base16Theme = "gruvbox-material-dark-soft";
           catppuccin = false;
           catppuccinFlavor = "macchiato";
           catppuccinAccent = "mauve";
@@ -79,7 +79,7 @@ delib.host {
       # 👤 KRIT PROGRAMS
       # ---------------------------------------------------------------
       krit.programs = {
-        direnv.enable = true;
+        direnv.enable = false;
         neovim.enable = true;
         firefox.enable = true;
         librewolf.enable = false; # disabled: librewolf-148.0 fails
