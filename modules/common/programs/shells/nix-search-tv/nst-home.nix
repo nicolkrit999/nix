@@ -14,89 +14,53 @@ delib.module {
 
                 # Ensure POSIX-compatible shell for subprocess compat (handles fish/nushell)
                 case "$(basename "$SHELL")" in
-                bash | zsh | sh) ;;
-                *) SHELL="bash" ;;
+                  bash | zsh | sh) ;;
+                  *) SHELL="bash" ;;
                 esac
 
                 if [[ "$(uname)" == 'Darwin' ]]; then
-                    SEARCH_SNIPPET_KEY="alt-w"
-                    OPEN_SOURCE_KEY="alt-s"
-                    OPEN_HOMEPAGE_KEY="alt-o"
-                    PRINT_PREVIEW_KEY="alt-p"
-                    OPENER="open"
+                  SEARCH_SNIPPET_KEY="alt-w"
+                  OPEN_SOURCE_KEY="alt-s"
+                  OPEN_HOMEPAGE_KEY="alt-o"
+                  PRINT_PREVIEW_KEY="alt-p"
+                  OPENER="open"
                 else
-                    SEARCH_SNIPPET_KEY="ctrl-w"
-                    OPEN_SOURCE_KEY="ctrl-s"
-                    OPEN_HOMEPAGE_KEY="ctrl-o"
-                    PRINT_PREVIEW_KEY="ctrl-p"
-                    OPENER="xdg-open"
+                  SEARCH_SNIPPET_KEY="ctrl-w"
+                  OPEN_SOURCE_KEY="ctrl-s"
+                  OPEN_HOMEPAGE_KEY="ctrl-o"
+                  PRINT_PREVIEW_KEY="ctrl-p"
+                  OPENER="xdg-open"
                 fi
 
                 CMD="''${NIX_SEARCH_TV:-nix-search-tv}"
-
-                declare -a INDEXES=( "nixpkgs ctrl-n" "home-manager ctrl-h" "all ctrl-a" )
-
-                bind_index() {
-                    local key="$1" index="$2" prompt="" indexes_flag=""
-                    if [[ -n "$index" && "$index" != "all" ]]; then
-                        indexes_flag="--indexes $index"
-                        prompt=$index
-                    fi
-                    echo "$key:change-prompt($prompt> )+change-preview($CMD preview $indexes_flag {})+reload($CMD print $indexes_flag)"
-                }
-
                 STATE_FILE="/tmp/nix-search-tv-fzf"
+                echo "" > "$STATE_FILE"
 
-                save_state() {
-                    local index="$1" indexes_flag=""
-                    if [[ -n "$index" && "$index" != "all" ]]; then
-                        indexes_flag="--indexes $index"
-                    fi
-                    echo "execute(echo $indexes_flag > $STATE_FILE)"
-                }
-
+                # Header text
                 HEADER="$OPEN_HOMEPAGE_KEY open-homepage | $OPEN_SOURCE_KEY open-source | $SEARCH_SNIPPET_KEY github | $PRINT_PREVIEW_KEY pager
         ctrl-n nixpkgs | ctrl-h home-manager | ctrl-a all"
 
-                FZF_BINDS=""
-                for e in "''${INDEXES[@]}"; do
-                    index=$(echo "$e" | awk '{ print $1 }')
-                    keybind=$(echo "$e" | awk '{ print $2 }')
-                    FZF_BINDS="$FZF_BINDS --bind '$(bind_index "$keybind" "$index")+$(save_state "$index")'"
-                done
+                # Build fzf arguments using arrays (avoids eval quoting issues)
+                FZF_ARGS=(
+                  --preview "$CMD preview \$(cat $STATE_FILE) {}"
+                  --bind "$OPEN_SOURCE_KEY:execute($CMD source \$(cat $STATE_FILE) {} | xargs $OPENER)"
+                  --bind "$OPEN_HOMEPAGE_KEY:execute($CMD homepage \$(cat $STATE_FILE) {} | xargs $OPENER)"
+                  --bind "$SEARCH_SNIPPET_KEY:execute(echo {} | tr -d \"'\" | awk \"{if(\\\$2){print \\\$2}else print \\\$1}\" | xargs printf \"https://github.com/search?type=code&q=lang:nix+%s\" | xargs $OPENER)"
+                  --bind "$PRINT_PREVIEW_KEY:execute($CMD preview \$(cat $STATE_FILE) {} | less)"
+                  --layout reverse
+                  --scheme history
+                  --bind "resize,start:transform:if [[ \''${FZF_COLS:-\$COLUMNS} -lt 130 ]]; then echo +change-preview-window\(wrap,up\); else echo +change-preview-window\(wrap\); fi"
+                  --header "$HEADER"
+                  --header-first
+                  --header-border
+                  --header-label "Help"
+                  # Index switching binds
+                  --bind "ctrl-n:change-prompt(nixpkgs> )+change-preview($CMD preview --indexes nixpkgs {})+reload($CMD print --indexes nixpkgs)+execute-silent(echo --indexes nixpkgs > $STATE_FILE)"
+                  --bind "ctrl-h:change-prompt(home-manager> )+change-preview($CMD preview --indexes home-manager {})+reload($CMD print --indexes home-manager)+execute-silent(echo --indexes home-manager > $STATE_FILE)"
+                  --bind "ctrl-a:change-prompt(> )+change-preview($CMD preview {})+reload($CMD print)+execute-silent(echo > $STATE_FILE)"
+                )
 
-                echo "" > "$STATE_FILE"
-
-                # shellcheck disable=SC2016
-                SEARCH_SNIPPET_CMD=$'echo \"{}\"'
-                SEARCH_SNIPPET_CMD="$SEARCH_SNIPPET_CMD | tr -d \"'\" "
-                SEARCH_SNIPPET_CMD="$SEARCH_SNIPPET_CMD | awk '{ if (\$2) { print \$2 } else print \$1 }' "
-                SEARCH_SNIPPET_CMD="$SEARCH_SNIPPET_CMD | xargs printf \"https://github.com/search?type=code&q=lang:nix+%s\""
-
-                # shellcheck disable=SC2016
-                PREVIEW_WINDOW='
-                    if [[ ''${FZF_COLS:-$COLUMNS} -lt 130 ]]; then
-                        echo "+change-preview-window(wrap,up)"
-                    else
-                        echo "+change-preview-window(wrap)"
-                    fi
-                '
-
-                eval "$CMD print | fzf \
-                    --preview '$CMD preview \$(cat $STATE_FILE) {}' \
-                    --bind '$OPEN_SOURCE_KEY:execute($CMD source \$(cat $STATE_FILE) {} | xargs $OPENER)' \
-                    --bind '$OPEN_HOMEPAGE_KEY:execute($CMD homepage \$(cat $STATE_FILE) {} | xargs $OPENER)' \
-                    --bind \$'$SEARCH_SNIPPET_KEY:execute($SEARCH_SNIPPET_CMD | xargs $OPENER)' \
-                    --bind \$'$PRINT_PREVIEW_KEY:execute($CMD preview \$(cat $STATE_FILE) {} | less)' \
-                    --layout reverse \
-                    --scheme history \
-                    --bind 'resize,start:transform:\$PREVIEW_WINDOW' \
-                    --header '\$HEADER' \
-                    --header-first \
-                    --header-border \
-                    --header-label \"Help\" \
-                    \$FZF_BINDS
-                "
+                $CMD print | fzf "''${FZF_ARGS[@]}"
       '')
     ];
 

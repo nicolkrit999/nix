@@ -17,10 +17,10 @@ let
   appWorkspaces = {
     editor = "2";
     fileManager = "3";
-    vm = "4";
-    browser-Entertainment = "7";
-    terminal = "8";
-    chat = "9";
+    terminal = "4";
+    browser-Entertainment = "5";
+    chat = "6";
+    vm = "7";
     other = "10";
   };
 
@@ -61,8 +61,8 @@ let
 in
 
 delib.host {
-  name = "nixos-desktop";
-  type = "desktop";
+  name = "nixos-laptop";
+  type = "laptop";
 
   homeManagerSystem = "x86_64-linux";
 
@@ -73,7 +73,7 @@ delib.host {
       # 📦 CONSTANTS BLOCK (Data Bucket)
       # ---------------------------------------------------------------
       constants = {
-        hostname = "nixos-desktop";
+        hostname = "nixos-laptop";
         mainLocale = myLocale;
 
         # ---------------------------------------------------------------
@@ -94,7 +94,7 @@ delib.host {
 
         wallpapers = [
           {
-            targetMonitor = "DP-1";
+            targetMonitor = "eDP-1";
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/anime/Kurumi-Ebisuzawa.png";
             wallpaperSHA256 = "1rn290hx0vl70w1dvksqrp8n713zyswc0gm98zsh962nw9jrkmrk";
           }
@@ -118,8 +118,8 @@ delib.host {
         };
 
         screenshots = "$HOME/Pictures/Screenshots";
-        keyboardLayout = "us,it,de,fr";
-        keyboardVariant = "intl,,,";
+        keyboardLayout = "us";
+        keyboardVariant = "intl";
 
         weather = "Lugano";
         useFahrenheit = false;
@@ -136,7 +136,7 @@ delib.host {
 
       cachix = {
         enable = true;
-        push = true; # Only the builder must have this true (for now "nixos-desktop")
+        push = false;
       };
 
       guest.enable = true;
@@ -171,14 +171,14 @@ delib.host {
       # ---------------------------------------------------------------
       programs = {
         bat.enable = true;
-        cava.enable = true;
+        cava.enable = false;
         eza.enable = true;
         fzf.enable = true;
         fzf.nix-search-tv.enable = true;
-        nix-ld.enable = true;
-        nix-alien.enable = true;
+        nix-ld.enable = false;
+        nix-alien.enable = false;
         comma.enable = true;
-        statix.enable = true;
+        statix.enable = false;
         lazygit.enable = true;
         shell-aliases.enable = true;
         starship.enable = true;
@@ -214,25 +214,23 @@ delib.host {
           enable = true;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
-            "format-it" = "🇮🇹-IT";
-            "format-de" = "🇩🇪-DE";
-            "format-fr" = "🇫🇷-FR";
           };
 
           waybarWorkspaceIcons = {
             "1" = "";
             "2" = ":";
             "3" = ":";
-            "4" = "";
-            "5" = "";
-            "6" = "";
-            "7" = ":";
-            "8" = ":";
-            "9" = ":󰭹";
+            "4" = ":";
+            "5" = ":";
+            "6" = ":󰭹";
+            "7" = "";
+            "8" = "";
+            "9" = "";
             "10" = ":";
             "magic" = ":";
           };
         };
+
 
         caelestia = {
           enable = false;
@@ -248,10 +246,9 @@ delib.host {
         hyprland = {
           enable = true;
           monitors = [
+            "eDP-1,3200x2000@120,0x0,1"
             "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
             "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
-            "DP-3, disable"
-            "HDMI-A-1,1920x1080@60, 0x0, 1, mirror, DP-1"
           ];
           execOnce = [
             "${myBrowser}"
@@ -259,9 +256,9 @@ delib.host {
             "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
             "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
             #"sh -c 'sleep 5 && protonvpn-app --start-minimized'"
-            "uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
           ];
+          # Hyprland handle gracefully in case the monitor count is different
           monitorWorkspaces = [
             "1, monitor:DP-1"
             "2, monitor:DP-1"
@@ -351,6 +348,13 @@ delib.host {
         niri = {
           enable = true;
           outputs = {
+            "eDP-1" = {
+              mode = {
+                width = 3200;
+                height = 2000;
+                refresh = 120.0;
+              };
+            };
             "DP-1" = {
               mode = {
                 width = 3840;
@@ -379,24 +383,12 @@ delib.host {
                 flipped = false;
               };
             };
-            "DP-3" = {
-              enable = false;
-            };
-            "HDMI-A-1" = {
-              mode = {
-                width = 1920;
-                height = 1080;
-                refresh = 60.0;
-              };
-              scale = 1.0;
-            };
           };
           execOnce = [
             "${myBrowser}"
             "${myEditor}"
             "${myFileManager}"
             "${myTerminal}"
-            "chromium-browser"
             #"sh -c 'sleep 5 && protonvpn-app --start-minimized'"
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
           ];
@@ -431,7 +423,7 @@ delib.host {
         };
 
         cosmic = {
-          enable = true;
+          enable = false;
         };
 
         kde = {
@@ -481,30 +473,28 @@ delib.host {
         snapshots = {
           enable = true;
           retention = {
-            hourly = "24";
-            daily = "7";
-            weekly = "4";
-            monthly = "3";
-            yearly = "2";
+            hourly = "5";
+            daily = "3";
+            weekly = "2";
+            monthly = "1";
+            yearly = "0";
           };
         };
 
         hypridle = {
           enable = true;
-          dimTimeout = 900;
-          lockTimeout = 1800;
-          screenOffTimeout = 3600;
+          dimTimeout = 180;
+          lockTimeout = 300;
+          screenOffTimeout = 600;
         };
 
         swaync = {
           enable = true;
           customSettings = {
-            /*
             "mute-protonvpn" = {
               state = "ignored";
               app-name = ".*Proton.*";
             };
-            */
           };
         };
       };
@@ -533,7 +523,7 @@ delib.host {
       # ---------------------------------------------------------------
       # 👤 KRIT SERVICES
       # ---------------------------------------------------------------
-      krit.services.desktop = {
+      krit.services.laptop = {
         flatpak.enable = true;
         local-packages.enable = true;
       };
@@ -543,14 +533,14 @@ delib.host {
         mouses = {
           mx-master-3s.enable = true;
           mx-master-4.enable = true;
-          superlight.enable = true;
+          superlight.enable = false;
         };
       };
 
 
       krit.services.nas = {
-        desktop-borg-backup.enable = true;
-        owncloud.enable = false;
+        laptop-borg-backup.enable = true;
+        owncloud.enable = true;
         smb.enable = true;
         sshfs.enable = false;
       };
@@ -560,9 +550,9 @@ delib.host {
       # ---------------------------------------------------------------
       krit.specializations = {
         school.enable = true;
-        entertainment.enable = true;
+        entertainment.enable = false;
         deep-focus.enable = true;
-        safe-mode.enable = true;
+        safe-mode.enable = false;
       };
 
       # ---------------------------------------------------------------

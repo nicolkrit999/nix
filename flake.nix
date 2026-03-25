@@ -20,6 +20,7 @@
         # Any `hardware-configuration.nix must be excluded`
         ./hosts/nixos-desktop/hardware-configuration.nix
         ./hosts/template-host-minimal/hardware-configuration.nix
+        ./hosts/nixos-laptop/hardware-configuration.nix
 
         # Any `disko` must be excluded
         ./hosts/template-host-minimal/disko-config-btrfs.nix
