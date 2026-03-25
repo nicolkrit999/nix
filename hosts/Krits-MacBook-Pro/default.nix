@@ -51,6 +51,8 @@ delib.host {
         lazygit.enable = true;
         starship.enable = true;
         tmux.enable = true;
+        fzf.enable = true;
+        fzf.nix-search-tv.enable = true;
         television.enable = true;
         zoxide.enable = true;
         claude-code.enable = true;
