@@ -42,7 +42,9 @@
     - [1. Download the Config](#1-download-the-config)
     - [2. Identify the Disk and Unallocated Space](#2-identify-the-disk-and-unallocated-space)
     - [3. Partition the Drive (cfdisk)](#3-partition-the-drive-cfdisk)
-    - [4. Format and Mount the BTRFS Filesystem](#4-format-and-mount-the-btrfs-filesystem)
+    - [4. Format and Mount the Filesystem](#4-format-and-mount-the-filesystem)
+      - [Option A: BTRFS (No Encryption)](#option-a-btrfs-no-encryption)
+      - [Option B: BTRFS + LUKS Encryption](#option-b-btrfs--luks-encryption)
     - [5. Create Your Host](#5-create-your-host)
     - [6. Configure Critical Variables](#6-configure-critical-variables)
     - [7. Generate Hardware Config \& Install](#7-generate-hardware-config--install)
@@ -506,11 +508,13 @@ sudo cfdisk /dev/nvme0n1  # Replace with your actual disk name
 
 Run `lsblk -o NAME,SIZE,FSAVAIL` again to see your new partition numbers (e.g., `/dev/nvme0n1p3` for Boot and `/dev/nvme0n1p4` for Linux).
 
-### 4. Format and Mount the BTRFS Filesystem
+### 4. Format and Mount the Filesystem
 
 _Note: In the commands below, carefully replace `/dev/nvme0n1pX` with your new 1GB EFI partition and `/dev/nvme0n1pY` with your new Linux partition._
 
+Choose **ONE** option depending on whether you want LUKS disk encryption.
 
+#### Option A: BTRFS (No Encryption)
 
 ```bash
 # 1. Format the partitions
@@ -573,6 +577,53 @@ sudo swapon /mnt/swap/swapfile
 sudo mount /dev/nvme0n1pX /mnt/boot
 ````
 
+#### Option B: BTRFS + LUKS Encryption
+
+```bash
+# 1. Format the EFI partition
+sudo mkfs.fat -F 32 -n BOOT /dev/nvme0n1pX
+
+# 2. Create the LUKS container (you will be prompted to set a passphrase)
+sudo cryptsetup luksFormat --type luks2 /dev/nvme0n1pY
+
+# 3. Open the LUKS container
+sudo cryptsetup open /dev/nvme0n1pY cryptroot
+
+# 4. Format the LUKS container as BTRFS
+sudo mkfs.btrfs -L nixos -f /dev/mapper/cryptroot
+
+# 5. Mount temporarily to create subvolumes
+sudo mount /dev/mapper/cryptroot /mnt
+
+# 6. Create subvolumes (matching disko-config-btrfs-luks-impermanence.nix)
+sudo btrfs subvolume create /mnt/root
+sudo btrfs subvolume create /mnt/home
+sudo btrfs subvolume create /mnt/nix
+sudo btrfs subvolume create /mnt/persist
+sudo btrfs subvolume create /mnt/log
+sudo btrfs subvolume create /mnt/swap
+
+sudo umount /mnt
+
+# 7. Mount subvolumes
+sudo mount -o compress=zstd,noatime,subvol=root /dev/mapper/cryptroot /mnt
+
+sudo mkdir -p /mnt/{home,nix,persist,var/log,swap,boot}
+
+sudo mount -o compress=zstd,noatime,subvol=home /dev/mapper/cryptroot /mnt/home
+sudo mount -o compress=zstd,noatime,subvol=nix /dev/mapper/cryptroot /mnt/nix
+sudo mount -o compress=zstd,noatime,subvol=persist /dev/mapper/cryptroot /mnt/persist
+sudo mount -o compress=zstd,noatime,subvol=log /dev/mapper/cryptroot /mnt/var/log
+sudo mount -o noatime,subvol=swap /dev/mapper/cryptroot /mnt/swap
+
+# 8. Create and activate the swapfile (adjust size as needed)
+sudo btrfs filesystem mkswapfile --size 64G /mnt/swap/swapfile
+sudo swapon /mnt/swap/swapfile
+
+# 9. Mount the EFI partition
+sudo mount /dev/nvme0n1pX /mnt/boot
+```
+
 ### 5. Create Your Host
 
 Copy the template to a new folder for your machine. Replace `my-computer` with your desired hostname.
@@ -583,12 +634,57 @@ cp -r template-host-minimal my-computer
 cd my-computer
 ```
 
-**Clean up Disko:** Since we partitioned manually, we must remove automated partitioning scripts from the template.
+**Option A (No Encryption) — Clean up Disko:** Since we partitioned manually, remove the automated partitioning scripts from the template.
 
 1. Open `default.nix` (`nano default.nix`).
 2. **Remove** `inputs.disko.nixosModules.disko` from the `imports` list.
 3. **Remove** any lines referencing `./disko-config...`.
 4. Open `flake.nix` in the root `~/nix` directory, and remove any `.disko-config` paths from the `exclude` block.
+
+**Option B (LUKS) — Keep the Disko Config as a Declarative Filesystem Layout:** Disko cannot format a dual-boot disk, but its config file still generates the correct `fileSystems.*` options for NixOS so you don't have to declare them manually.
+
+```bash
+# Copy the LUKS disko config to your host folder
+cp ~/nix/hosts/template-host-minimal/disko-config-btrfs-luks-impermanence.nix ~/nix/hosts/my-computer/
+```
+
+Open the copied config and update it to match your disk:
+
+```bash
+nano ~/nix/hosts/my-computer/disko-config-btrfs-luks-impermanence.nix
+```
+
+- Find `device = "/dev/nvme0n1";` and `nvme0n1 = {` — change **both** to your actual disk name (e.g. `nvme0n1`).
+- Adjust `swap.swapfile.size` if you used a different size in step 4.
+
+**Exclude it from flake.nix auto-discovery.** Open `~/nix/flake.nix` and add to the `baseExclude` list:
+
+```nix
+baseExclude = [
+  # ... existing entries ...
+  ./hosts/my-computer/disko-config-btrfs-luks-impermanence.nix
+];
+```
+
+**Import it in your host's `default.nix`** (keep `inputs.disko.nixosModules.disko`):
+
+```nix
+nixos =
+  { ... }:
+  {
+    nixpkgs.hostPlatform = "x86_64-linux";
+    system.stateVersion = "25.11";
+    imports = [
+      inputs.disko.nixosModules.disko
+      inputs.nix-sops.nixosModules.sops
+
+      ./hardware-configuration.nix
+      ./disko-config-btrfs-luks-impermanence.nix
+    ];
+  };
+```
+
+> The disko module reads the config to generate `fileSystems.*` — it does **not** reformat your disk. Your Windows partitions are safe.
 
 ### 6. Configure Critical Variables
 
@@ -600,20 +696,20 @@ Still in `default.nix`:
 
 ### 7. Generate Hardware Config & Install
 
-Because the disks are mounted at `/mnt`, NixOS can automatically detect your BTRFS setup.
-
 ```bash
-# 1. Generate Hardware Config based on your manual mounts
+# Option A — NixOS auto-detects your BTRFS mounts and generates filesystems config
 sudo nixos-generate-config --root /mnt
-
-# 2. Copy the generated config to your host folder
 cp /mnt/etc/nix/hardware-configuration.nix ~/nix/hosts/my-computer/
 
-# 3. Add the file to git (CRITICAL: Nix Flakes ignore untracked files)
-cd ~/nix
-git add hosts/my-computer/hardware-configuration.nix
+# Option B — disko handles filesystems; skip auto-detection with --no-filesystems
+sudo nixos-generate-config --no-filesystems --root /mnt
+cp /mnt/etc/nix/hardware-configuration.nix ~/nix/hosts/my-computer/
 
-# 4. Install the system!
+# Both options: stage new files (CRITICAL: Nix Flakes ignore untracked files)
+cd ~/nix
+git add hosts/my-computer/
+
+# Install the system!
 sudo nixos-install --flake .#my-computer
 ```
 
@@ -641,6 +737,19 @@ sudo cp -r ~/nix /mnt/etc/nix
 ```bash
 reboot
 ```
+
+5. **(Option B — LUKS only):** Once you have booted into your new system, bind the TPM for password-free auto-unlock:
+
+```bash
+# Enroll the TPM — enter your LUKS passphrase when prompted
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 /dev/nvme0n1pY
+```
+
+> This stores the unlock key in the TPM tied to your firmware state (PCRs 0 and 7). After enrollment the drive auto-unlocks at boot without a passphrase. To re-bind after a firmware update or motherboard replacement:
+> ```bash
+> sudo systemd-cryptenroll --wipe-slot=tpm2 /dev/nvme0n1pY
+> sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 /dev/nvme0n1pY
+> ```
 
 # 🚀 NixOS Installation Guide (with disko)
 

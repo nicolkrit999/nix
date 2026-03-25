@@ -174,6 +174,7 @@ delib.host {
         cava.enable = true;
         eza.enable = true;
         fzf.enable = true;
+        fzf.nix-search-tv.enable = true;
         nix-ld.enable = true;
         nix-alien.enable = true;
         comma.enable = true;
