@@ -472,7 +472,7 @@ delib.host {
           enable = true;
           #hourFormat = "24h"; # 12-hour format (AM/PM not supported by theme) FIXME: not working
           background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
-          avatar = ../../users/krit/src/profile-picture/face.jpg;
+          avatar = ../../users/krit/src/profile-picture/face-256.jpg;
         };
         impermanence.enable = true;
         nix-topology.enable = false;
