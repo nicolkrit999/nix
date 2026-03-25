@@ -458,6 +458,10 @@ delib.host {
       # ⚙️ SERVICES
       # ---------------------------------------------------------------
       services = {
+        # Power management (mutually exclusive - only enable ONE)
+        auto-cpufreq.enable = true; # Recommended: dynamic CPU scaling (uses official flake)
+        tlp.enable = false; # Alternative: static power policies (uses NixOS native)
+
         audio.enable = true;
         hyprlock.enable = true;
         sddm-pixie = {
