@@ -445,7 +445,6 @@ delib.host {
             "proton-pass.desktop"
             "vesktop.desktop"
             "com.actualbudget.actual.desktop"
-            "com.actualbudget.actual.desktop"
             "com.rtosta.zapzap.desktop"
           ];
           extraBinds = {

@@ -128,6 +128,7 @@ These modules are only available on NixOS hosts.
 #### Services (`services.`)
 
 * **`services.audio`**: Configures the PipeWire sound server and related audio management tools.
+* **`services.auto-cpufreq`**: Enables the auto-cpufreq daemon, an automatic CPU speed and power optimizer that dynamically adjusts CPU governors and turbo based on battery state and system load. Mutually exclusive with TLP.
 * **`services.hypridle`**: An idle management daemon for Wayland that automatically dims, locks, and turns off displays after configurable inactivity timeouts.
 * **`services.hyprlock`**: A screen locker built specifically for the Hyprland ecosystem.
 * **`services.impermanence`**: Configures an ephemeral root filesystem with a persistent `/persist` overlay for important directories and files (NetworkManager, SSH, Bluetooth, Tailscale, etc.).
@@ -141,6 +142,7 @@ These modules are only available on NixOS hosts.
 * **`services.snapshots`**: A BTRFS snapshot retention automation system using Snapper to back up the filesystem on a configurable timeline (hourly, daily, weekly, monthly, yearly).
 * **`services.swaync`**: A notification daemon and control center for Wayland compositors, with optional per-app notification muting rules.
 * **`services.tailscale`**: A zero-config mesh VPN service that builds secure networks between your devices.
+* **`services.tlp`**: An advanced power management tool that optimizes battery life by configuring processor energy-performance policies, frequency scaling, and optional charging thresholds based on power source. Mutually exclusive with auto-cpufreq.
 
 #### Host-Specific Extensions (`full-host.services.`)
 

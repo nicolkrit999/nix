@@ -395,7 +395,7 @@ delib.host {
         };
 
         gnome = {
-          enable = true;
+          enable = false; # Gnome pulls lot of elements. Since i almost never use it keep it disabled to save battery and resources
           screenshots = "/home/krit/Pictures/Screenshots";
           pinnedApps = [
             (resolve myBrowser)
@@ -436,7 +436,6 @@ delib.host {
             "LocalSend.desktop"
             "proton-pass.desktop"
             "vesktop.desktop"
-            "com.actualbudget.actual.desktop"
             "com.actualbudget.actual.desktop"
             "com.rtosta.zapzap.desktop"
           ];
