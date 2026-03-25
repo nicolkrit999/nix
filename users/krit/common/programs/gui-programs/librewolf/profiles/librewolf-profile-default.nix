@@ -11,16 +11,19 @@
   search = searchConfig;
 
   extensions.packages = with addons; [
-    kagi-search
-    proton-pass
-    simplelogin
-    sponsorblock
-    multi-account-containers
-    gesturefy
-    firefox-color
-    ublock-origin
-    new-tab-override
-    privacy-badger
+    ublock-origin # Popular ad and tracker blocker
+    proton-pass # Proton Pass password manager integration
+    firefox-color # Custom Firefox themes and color schemes. Needed for catppuccin
+    sponsorblock # Skips sponsored segments in videos on platforms like YouTube
+    gesturefy # Mouse gesture navigation for enhanced browsing
+    privacy-badger # Tracker blocking extension by EFF
+    screenshot-capture-annotate # Screenshot capturing and annotation tool (awesome screenshot)
+    multi-account-containers # Isolates browsing activities into separate containers
+    behind-the-overlay-revival # Bypass popup overlays on websites
+    onetab # Save memory by converting tabs into a list
+    simplelogin # Proton Mail's email alias manager
+    kagi-search # Kagi search engine integration for private browsing
+    new-tab-override # Customize the new tab page
     youtube-screenshot-button
   ];
 
