@@ -9,8 +9,8 @@ delib.module {
       # Use appropriate paths for each platform
       devEnvBase =
         if isDarwin
-        then "/Users/krit/nix/users/krit/dev-environments"
-        else "/home/krit/nix/users/krit/dev-environments";
+        then "/Users/krit/nix/templates/krit/dev-environments"
+        else "/home/krit/nix/templates/krit/dev-environments";
     in
     {
       programs.direnv = {
