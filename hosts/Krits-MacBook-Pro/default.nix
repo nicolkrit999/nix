@@ -81,7 +81,7 @@ delib.host {
       # 👤 KRIT PROGRAMS
       # ---------------------------------------------------------------
       krit.programs = {
-        direnv.enable = false;
+        direnv.enable = false; # Currently not working due to upstream issue, use homebrew
         neovim.enable = true;
         firefox.enable = true;
         librewolf.enable = false; # disabled: librewolf-148.0 fails

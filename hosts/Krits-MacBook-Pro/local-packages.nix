@@ -25,6 +25,7 @@ delib.module {
         grex
         lsof
         mediainfo
+        mars-mips
         ntfs3g
         pass
         pay-respects
@@ -58,6 +59,7 @@ delib.module {
         brews = [
           "node"
           "pipes-sh"
+          "direnv"
         ];
 
         casks = [
