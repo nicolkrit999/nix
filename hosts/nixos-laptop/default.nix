@@ -556,6 +556,7 @@ delib.host {
         entertainment.enable = false;
         deep-focus.enable = true;
         safe-mode.enable = false;
+        secure-travel.enable = true;
       };
 
       # ---------------------------------------------------------------
