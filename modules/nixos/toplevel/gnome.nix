@@ -1,6 +1,5 @@
 { delib
 , pkgs
-, lib
 , ...
 }:
 delib.module {
@@ -39,10 +38,8 @@ delib.module {
 
     ];
 
-    # 4. 🔧 CONFLICT RESOLUTION (SSH Askpass)
-    # Depending on the primary de (gnome vs kde) then use ksshaskpass (kde) or seahorse (gnome).
-    # Hyprland does not provide one. If the main is hyprland then choose either one based on user preference.
-    programs.ssh.askPassword = lib.mkForce "${pkgs.kdePackages.ksshaskpass}/bin/ksshaskpass";
+    # SSH Askpass is set globally in common-configuration-nixos.nix (seahorse)
+    # since GNOME Keyring is enforced system-wide regardless of DE.
 
     services.gnome.rygel.enable = false;
 
