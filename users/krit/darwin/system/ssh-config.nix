@@ -1,4 +1,4 @@
-{ delib, ... }:
+{ delib, pkgs, ... }:
 delib.module {
   name = "krit.system.ssh-config";
   options = delib.singleEnableOption false;
@@ -10,9 +10,15 @@ delib.module {
       sshDir = "/Users/${user}/.ssh";
     in
     {
+      home.packages = [ pkgs.cloudflared ];
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
+        knownHosts = {
+          "gitea-ssh.nicolkrit.ch" = {
+            publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHCA8VQtkhSH0wg2Xvi5FjIofM4XMo/+PrFVFdVnu/wC";
+          };
+        };
         matchBlocks = {
           "github.com" = {
             identityFile = "${sshDir}/id_github";
@@ -21,6 +27,13 @@ delib.module {
             identityFile = "${sshDir}/id_github";
             identitiesOnly = true;
             user = user;
+          };
+          "gitea-ssh.nicolkrit.ch" = {
+            identityFile = "${sshDir}/id_github";
+            identitiesOnly = true;
+            extraOptions = {
+              ProxyCommand = "cloudflared access ssh --hostname %h";
+            };
           };
           "gitlab-edu.supsi.ch" = {
             hostname = "gitlab-edu.supsi.ch";
