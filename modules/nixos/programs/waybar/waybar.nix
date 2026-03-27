@@ -67,8 +67,9 @@ delib.module {
           mainBar = {
             layer = "top"; # Render above windows
             position = "top"; # Bar at top of screen
-            height = 50; # Total bar height including margin (modules + 10px top + 10px bottom)
-            margin-top = 10; # Gap between screen edge and bar
+            height = 36; # Module height
+            margin-top = 12; # Gap from screen edge to modules
+            margin-bottom = 12; # Gap from modules to apps below
             margin-left = 10; # Gap from left edge
             margin-right = 10; # Gap from right edge
 
@@ -85,10 +86,10 @@ delib.module {
               ++ (lib.optional niriWaybar "niri/language")
               ++ [
                 "custom/weather"
+                "custom/connectivity"
                 "pulseaudio"
                 "battery"
                 "clock"
-                "tray"
               ];
 
             # Workspaces Icon and layout
@@ -208,10 +209,30 @@ delib.module {
               };
             };
 
-            "tray" = {
-              icon-size = 20;
-              spacing = 8;
+            # Connectivity module: network (wifi/ethernet + SSID/hostname) : bluetooth status
+            "custom/connectivity" = {
+              format = "{}";
+              exec = let hostname = myconfig.constants.hostname or "nixos"; in ''
+                wifi_info=$(nmcli -t -f active,ssid dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2)
+                if [ -n "$wifi_info" ]; then
+                  net="<span color='${c.base0C}'>󰤨</span> $wifi_info"
+                elif nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -q "ethernet:connected"; then
+                  net="<span color='${c.base0C}'>󰈀</span> ${hostname}"
+                else
+                  net="<span color='${c.base03}'>󰤭</span> offline"
+                fi
+                if bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then
+                  bt="<span color='${c.base0D}'>󰂯</span>"
+                else
+                  bt="<span color='${c.base03}'>󰂲</span>"
+                fi
+                echo "$net : $bt"
+              '';
+              interval = 5;
+              on-click = "nm-connection-editor";
+              on-click-right = "blueman-manager";
             };
+
           };
         };
       };
