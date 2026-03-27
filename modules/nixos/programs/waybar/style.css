@@ -2,9 +2,9 @@
   border: none;
   font-family: "JetBrainsMono Nerd Font Propo";
   font-weight: bold;
-  font-size: 16px;                /* Text size across all modules */
+  font-size: 16px;
   min-height: 0;
-  color: @base05;
+  color: @base05;                 /* Default text color - visible against base01 background */
 }
 
 /* TRANSPARENT BAR BACKGROUND - wallpaper shows through */
@@ -14,14 +14,7 @@ window#waybar {
   box-shadow: none;
 }
 
-/* Force transparent background even when window is focused */
-window#waybar.empty,
-window#waybar.hidden,
-window#waybar * {
-  background-color: transparent;
-}
-
-/* Nuclear reset: kill any GTK-theme-drawn artifacts on all structural elements */
+/* Nuclear reset: kill any GTK-theme-drawn artifacts on structural elements */
 window#waybar box,
 window#waybar box box,
 window#waybar menubar,
@@ -46,32 +39,29 @@ window#waybar .background {
   border-radius: 0;
 }
 
-/* Workspace buttons as floating rounded blocks */
+/* Workspace buttons as pill-shaped modules */
 #workspaces button,
 #niri-workspaces button {
   background-color: @base01;
-  margin: 2px 2px;                /* compact vertical margins */
-  padding: 0;                     /* GTK buttons eat padding unevenly — use label instead */
-  min-width: 0;                   /* let the label control all sizing */
-  border-radius: 6px;             /* pill corner roundness */
+  margin: 2px 2px;
+  padding: 0;
+  min-width: 0;
+  border-radius: 20px;            /* Fully rounded pill shape */
   color: @base05;
-  border-top: 2px solid transparent;   /* balance the bottom border for vertical centering */
-  border-bottom: 2px solid @base0D;    /* accent line (same color for all workspaces) */
+  border: none;                   /* No border/outline */
   transition: all 0.2s ease;
 }
 
-/* All sizing and spacing lives on the label for reliable symmetry */
 #workspaces button label,
 #niri-workspaces button label {
-  padding: 0 14px;                /* symmetric — Propo font handles icon centering */
-  min-width: 28px;                /* minimum pill width — keeps single-char names roomy */
+  padding: 0 14px;
+  min-width: 28px;
 }
 
 /* Active workspace */
 #workspaces button.active,
 #niri-workspaces button.active {
   background-color: @base0D;
-  border-bottom-color: @base0D;          /* keep accent line consistent */
 }
 
 #workspaces button.active label,
@@ -86,10 +76,10 @@ window#waybar .background {
 }
 
 /* ----------------------------------------------------------------------- */
-/* 🪟 CENTER MODULE (Window Title)                                         */
+/* 🪟 CENTER MODULE (Window Title & Clock)                                 */
 /* ----------------------------------------------------------------------- */
 
-/* Reset widget wrappers so they don't add spacing */
+/* Reset widget wrappers */
 window#waybar .modules-left,
 window#waybar .modules-center,
 window#waybar .modules-right,
@@ -102,10 +92,9 @@ window#waybar .modules-right > widget {
   margin: 0;
   padding: 0;
   background: transparent;
-  background-color: transparent;
 }
 
-/* Kill GTK separator element if present */
+/* Kill GTK separator element */
 window#waybar separator {
   background: transparent;
   background-image: none;
@@ -121,23 +110,21 @@ window#waybar separator {
 }
 
 #window {
-  padding: 0;                     /* use label padding instead for reliable spacing */
-  margin: 2px 4px;                /* compact vertical margins */
+  padding: 0;
+  margin: 2px 4px;
   background-color: @base01;
-  border-radius: 6px;             /* pill corner roundness */
-  border-left-width: 0;           /* physically remove side borders */
-  border-right-width: 0;
-  border-top: 2px solid transparent;    /* balance the bottom border for vertical centering */
-  border-bottom: 2px solid @base0B;     /* green accent line thickness */
+  border-radius: 20px;            /* Fully rounded pill shape */
+  border: none;                   /* No border/outline */
   box-shadow: none;
   outline: none;
+  color: @base05;
 }
 
 #window label {
-  padding: 0 14px;                /* GTK ignores padding on the widget; apply to inner label */
+  padding: 0 14px;
 }
 
-/* Fallback: if rewrite doesn't catch empty, hide gracefully */
+/* Hide empty window module gracefully */
 #window.empty {
   background: transparent;
   border: none;
@@ -152,9 +139,8 @@ window#waybar separator {
   min-width: 0;
 }
 
-
 /* ----------------------------------------------------------------------- */
-/* 🧩 RIGHT-SIDE MODULES                                                   */
+/* 🧩 ALL STATUS MODULES (pill-shaped, no outline)                         */
 /* ----------------------------------------------------------------------- */
 
 #clock,
@@ -163,32 +149,23 @@ window#waybar separator {
 #language,
 #custom-weather,
 #custom-connectivity {
-  padding: 0 14px;                /* inner space: text ←→ left/right pill edge */
-  margin: 2px 2px;                /* compact vertical margins */
-  background-color: @base01;
-  border-radius: 6px;             /* pill corner roundness */
-  border-top: 2px solid transparent;    /* balance the bottom border for vertical centering */
-  border-bottom: 2px solid;       /* accent line thickness (color set per-module below) */
+  padding: 0 16px;
+  margin: 2px 2px;
+  background-color: @base01;      /* Same solid background as workspaces */
+  border-radius: 20px;            /* Fully rounded pill shape */
+  border: none;                   /* No border/outline */
+  color: @base05;                 /* Visible text color */
 }
 
-#language { border-bottom-color: @base09; }
-#custom-weather { border-bottom-color: @base0C; }
-#custom-connectivity { border-bottom-color: @base0C; }
-
-#pulseaudio { border-bottom-color: @base0D; }
-#pulseaudio.muted { border-bottom-color: @base08; }
-
-#battery { border-bottom-color: @base0A; }
-#battery.charging { border-bottom-color: @base0B; }
+/* Battery warning/critical states - change text color only */
 #battery.warning {
   color: @base09;
-  border-bottom-color: @base09;
 }
 #battery.critical {
   color: @base08;
-  border-bottom-color: @base08;
 }
 
-#clock { border-bottom-color: @base0E; }
-
-/* Tray hidden - connectivity module provides network/bluetooth status */
+/* Pulseaudio muted state */
+#pulseaudio.muted {
+  color: @base03;
+}
