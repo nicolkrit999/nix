@@ -3,6 +3,15 @@ delib.module {
   name = "krit.system.ssh-config";
   options = delib.singleEnableOption false;
 
+  darwin.ifEnabled = { ... }: {
+    environment.systemPackages = [ pkgs.cloudflared ];
+    programs.ssh.knownHosts = {
+      "gitea-ssh.nicolkrit.ch" = {
+        publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHCA8VQtkhSH0wg2Xvi5FjIofM4XMo/+PrFVFdVnu/wC";
+      };
+    };
+  };
+
   home.ifEnabled =
     { myconfig, ... }:
     let
@@ -10,15 +19,9 @@ delib.module {
       sshDir = "/Users/${user}/.ssh";
     in
     {
-      home.packages = [ pkgs.cloudflared ];
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
-        knownHosts = {
-          "gitea-ssh.nicolkrit.ch" = {
-            publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHCA8VQtkhSH0wg2Xvi5FjIofM4XMo/+PrFVFdVnu/wC";
-          };
-        };
         matchBlocks = {
           "github.com" = {
             identityFile = "${sshDir}/id_github";
