@@ -32,7 +32,6 @@ delib.module {
         pokemon-colorscripts
         stow
         tree
-        yt-dlp
         wakeonlan
         xcodegen
         zeal
@@ -60,6 +59,7 @@ delib.module {
           "node"
           "pipes-sh"
           "direnv"
+          "yt-dlp"
         ];
 
         casks = [
