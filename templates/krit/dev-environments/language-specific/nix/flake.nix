@@ -31,6 +31,7 @@
               nixd
               cachix
               lorri
+              nh
               niv
               nixfmt
               statix
