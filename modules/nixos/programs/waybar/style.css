@@ -50,10 +50,10 @@ window#waybar .background {
 #workspaces button,
 #niri-workspaces button {
   background-color: @base01;
-  margin: 4px 2px;                /* top/bottom gap from bar edge | gap between buttons */
+  margin: 2px 2px;                /* compact vertical margins */
   padding: 0;                     /* GTK buttons eat padding unevenly — use label instead */
   min-width: 0;                   /* let the label control all sizing */
-  border-radius: 8px;             /* pill corner roundness */
+  border-radius: 6px;             /* pill corner roundness */
   color: @base05;
   border-top: 2px solid transparent;   /* balance the bottom border for vertical centering */
   border-bottom: 2px solid @base0D;    /* accent line (same color for all workspaces) */
@@ -63,8 +63,8 @@ window#waybar .background {
 /* All sizing and spacing lives on the label for reliable symmetry */
 #workspaces button label,
 #niri-workspaces button label {
-  padding: 0 18px;                /* symmetric — Propo font handles icon centering */
-  min-width: 36px;                /* minimum pill width — keeps single-char names roomy */
+  padding: 0 14px;                /* symmetric — Propo font handles icon centering */
+  min-width: 28px;                /* minimum pill width — keeps single-char names roomy */
 }
 
 /* Active workspace */
@@ -122,9 +122,9 @@ window#waybar separator {
 
 #window {
   padding: 0;                     /* use label padding instead for reliable spacing */
-  margin: 4px 4px;                /* top/bottom gap from bar edge | gap to neighbors */
+  margin: 2px 4px;                /* compact vertical margins */
   background-color: @base01;
-  border-radius: 8px;             /* pill corner roundness */
+  border-radius: 6px;             /* pill corner roundness */
   border-left-width: 0;           /* physically remove side borders */
   border-right-width: 0;
   border-top: 2px solid transparent;    /* balance the bottom border for vertical centering */
@@ -134,7 +134,7 @@ window#waybar separator {
 }
 
 #window label {
-  padding: 0 18px;                /* GTK ignores padding on the widget; apply to inner label */
+  padding: 0 14px;                /* GTK ignores padding on the widget; apply to inner label */
 }
 
 /* Fallback: if rewrite doesn't catch empty, hide gracefully */
@@ -160,19 +160,20 @@ window#waybar separator {
 #clock,
 #battery,
 #pulseaudio,
-#tray,
 #language,
-#custom-weather {
-  padding: 0 18px;                /* inner space: text ←→ left/right pill edge */
-  margin: 4px 2px;                /* top/bottom gap from bar edge | gap between pills */
+#custom-weather,
+#custom-connectivity {
+  padding: 0 14px;                /* inner space: text ←→ left/right pill edge */
+  margin: 2px 2px;                /* compact vertical margins */
   background-color: @base01;
-  border-radius: 8px;             /* pill corner roundness */
+  border-radius: 6px;             /* pill corner roundness */
   border-top: 2px solid transparent;    /* balance the bottom border for vertical centering */
   border-bottom: 2px solid;       /* accent line thickness (color set per-module below) */
 }
 
 #language { border-bottom-color: @base09; }
 #custom-weather { border-bottom-color: @base0C; }
+#custom-connectivity { border-bottom-color: @base0C; }
 
 #pulseaudio { border-bottom-color: @base0D; }
 #pulseaudio.muted { border-bottom-color: @base08; }
@@ -189,7 +190,5 @@ window#waybar separator {
 }
 
 #clock { border-bottom-color: @base0E; }
-#tray {
-  border-bottom-color: @base0F;
-  padding: 0 14px;                /* tray icons need less padding than text modules */
-}
+
+/* Tray hidden - connectivity module provides network/bluetooth status */
