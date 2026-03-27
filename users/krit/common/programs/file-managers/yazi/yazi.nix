@@ -118,7 +118,7 @@ delib.module {
             image_quality = 90;
             image_preview_method =
               if
-                builtins.elem myconfig.constants.terminal [
+                builtins.elem myconfig.constants.terminal.name [
                   "kitty"
                   "ghostty"
                   "konsole"
@@ -129,7 +129,7 @@ delib.module {
               then
                 "kitty"
               else if
-                builtins.elem myconfig.constants.terminal [
+                builtins.elem myconfig.constants.terminal.name [
                   "foot"
                   "blackbox"
                 ]
@@ -437,8 +437,8 @@ delib.module {
         name = "Yazi";
         genericName = "File Manager";
         exec = "${
-          pkgs.${myconfig.constants.terminal}
-        }/bin/${myconfig.constants.terminal} --class yazi -e yazi";
+          pkgs.${myconfig.constants.terminal.name}
+        }/bin/${myconfig.constants.terminal.name} --class yazi -e yazi";
         icon = "system-file-manager";
         terminal = false;
         startupNotify = false;

@@ -77,7 +77,7 @@ delib.module {
 
       # Force standard Bash to bypass broken Zsh/Fish plugins
       myconfig.constants.shell = lib.mkForce "bash";
-      myconfig.constants.terminal = lib.mkForce "xterm";
+      myconfig.constants.terminal.name = lib.mkForce "xterm";
       myconfig.constants.editor = lib.mkForce "nano";
 
       # ---------------------------------------------------------

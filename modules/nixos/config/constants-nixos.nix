@@ -12,7 +12,6 @@ delib.module {
       gitUserName = strOption "";
       gitUserEmail = strOption "";
 
-      terminal = strOption "alacritty";
       shell = strOption "bash";
       browser = strOption "chromium";
       editor = strOption "nano";
@@ -42,6 +41,20 @@ delib.module {
         catppuccin = boolOption false;
         catppuccinFlavor = strOption "mocha";
         catppuccinAccent = strOption "mauve";
+      };
+
+      hyprland = {
+        rounding = intOption 0;
+        gap = intOption 0;
+        terminalOpacity = floatOption 1.0;
+      };
+
+      terminal = {
+        name = strOption "alacritty"; # Terminal emulator app name
+        cursorStyle = strOption "block"; # block, beam, underline
+        cursorBlink = boolOption false;
+        cursorBeamWidth = floatOption 3.0; # Beam cursor width in pixels or cell fraction
+        animation = boolOption false; # Enable transient prompt animation on command execution
       };
 
       screenshots = strOption "$HOME/Pictures/Screenshots";

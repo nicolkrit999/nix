@@ -1,6 +1,7 @@
 { delib
 , pkgs
 , lib
+, config
 , ...
 }:
 delib.module {
@@ -40,6 +41,8 @@ delib.module {
     , ...
     }:
     let
+      # Base16 accent color from stylix
+      accentColor = config.lib.stylix.colors.withHashtag.base0E;
       getExtension = path:
         let
           filename = builtins.baseNameOf (toString path);
@@ -56,11 +59,12 @@ delib.module {
       # Creates two Date objects but avoids function wrapper complexity
       js12HourExpr = ''String(new Date().getHours()%12||12).padStart(2,"0")+String(new Date().getMinutes()).padStart(2,"0")'';
 
-      # Merge order: default → user themeConfig → custom background file path
+      # Merge order: default → base16 accent → user themeConfig → custom background file path
       # This ensures the background key always exists when theme.conf is written
       effectiveThemeConfig =
         { background = "assets/background.jpg"; }  # Default fallback (upstream asset)
-        // cfg.themeConfig  # User overrides (can set their own background path)
+        // { accentColor = accentColor; }  # Base16 accent from stylix
+        // cfg.themeConfig  # User overrides (can override accentColor if desired)
         // (lib.optionalAttrs (cfg.background != null) { background = "assets/${bgFilename}"; });
 
       themeConfContent = lib.concatStringsSep "\n" (

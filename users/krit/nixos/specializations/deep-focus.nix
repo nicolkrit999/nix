@@ -29,14 +29,15 @@ delib.module {
       myconfig.programs.hyprland.execOnce = lib.mkForce (
         let
           c = config.myconfig.constants;
+          term = c.terminal.name or "alacritty";
           smartLaunch =
-            app: if builtins.elem app termApps then "${c.terminal} --class ${app} -e ${app}" else app;
+            app: if builtins.elem app termApps then "${term} --class ${app} -e ${app}" else app;
         in
         [
           "[workspace 1 silent] ${c.browser}"
           "[workspace 2 silent] ${smartLaunch c.editor}"
           "[workspace 3 silent] ${smartLaunch c.fileManager}"
-          "[workspace 4 silent] ${c.terminal}"
+          "[workspace 4 silent] ${term}"
 
           "swaync-client -d -b"
           "gsettings set org.gnome.desktop.notifications show-banners false"
@@ -46,12 +47,13 @@ delib.module {
       myconfig.programs.hyprland.windowRules = lib.mkAfter (
         let
           c = config.myconfig.constants;
+          term = c.terminal.name or "alacritty";
         in
         [
           "workspace 1, class:^(${c.browser})$"
           "workspace 2, class:^(${c.editor})$"
           "workspace 3, class:^(${c.fileManager})$"
-          "workspace 4, class:^(${c.terminal})$"
+          "workspace 4, class:^(${term})$"
         ]
       );
     };

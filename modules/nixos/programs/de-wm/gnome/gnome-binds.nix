@@ -24,7 +24,7 @@ delib.module {
       customBindings = [
         {
           name = "Launch Terminal";
-          command = myconfig.constants.terminal;
+          command = myconfig.constants.terminal.name;
           binding = "<Super>Return";
         }
         {
@@ -44,7 +44,7 @@ delib.module {
                 "nnn"
               ]
             then
-              "${myconfig.constants.terminal} -e ${myconfig.constants.fileManager}"
+              "${myconfig.constants.terminal.name} -e ${myconfig.constants.fileManager}"
             else
               "${myconfig.constants.fileManager}";
           binding = "<Super>f";
@@ -61,7 +61,7 @@ delib.module {
                 "helix"
               ]
             then
-              "${myconfig.constants.terminal} -e ${myconfig.constants.editor}"
+              "${myconfig.constants.terminal.name} -e ${myconfig.constants.editor}"
             else
               "${myconfig.constants.editor}";
           binding = "<Super>c";

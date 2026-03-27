@@ -86,7 +86,6 @@ delib.host {
         # ---------------------------------------------------------------
         # 🐚 SHELLS & APPS
         # ---------------------------------------------------------------
-        terminal = myTerminal;
         shell = myShell;
         browser = myBrowser;
         editor = myEditor;
@@ -127,6 +126,19 @@ delib.host {
 
 
         timeZone = "Europe/Zurich";
+
+        hyprland = {
+          rounding = 10;
+          gap = 3;
+          terminalOpacity = 0.9;
+        };
+
+        terminal = {
+          name = myTerminal;
+          cursorStyle = "block";
+          cursorBlink = true;
+          animation = true; # Enable transient prompt animation
+        };
       };
 
       # ---------------------------------------------------------------

@@ -22,7 +22,7 @@ delib.module {
     , ...
     }:
     let
-      term = myconfig.constants.terminal or "alacritty";
+      term = myconfig.constants.terminal.name or "alacritty";
       rawFm = myconfig.constants.fileManager or "dolphin";
       rawEd = myconfig.constants.editor or "vscode";
 
@@ -123,8 +123,8 @@ delib.module {
           ++ cfg.execOnce;
 
           general = {
-            gaps_in = 0; # Gaps between windows
-            gaps_out = 0; # Gaps between windows and monitor edge
+            gaps_in = myconfig.constants.hyprland.gap or 0;
+            gaps_out = myconfig.constants.hyprland.gap or 0;
             border_size = 5; # Thickness of window borders
 
             "col.active_border" =
@@ -133,11 +133,8 @@ delib.module {
               else
                 "rgb(${config.lib.stylix.colors.base0D})";
 
-            "col.inactive_border" =
-              if myconfig.constants.theme.catppuccin then
-                "$overlay0"
-              else
-                "rgb(${config.lib.stylix.colors.base03})";
+            # No border on inactive/unfocused windows (fully transparent)
+            "col.inactive_border" = lib.mkForce "rgba(00000000)";
 
             resize_on_border = true;
 
@@ -146,20 +143,43 @@ delib.module {
           };
 
           decoration = {
-            rounding = 0;
-            active_opacity = 1.0;
-            inactive_opacity = 1.0;
+            rounding = myconfig.constants.hyprland.rounding or 0; # Corner radius in pixels for window borders
+            active_opacity = 1.0; # Opacity of focused windows (1.0 = fully opaque)
+            inactive_opacity = 1.0; # Opacity of unfocused windows (1.0 = fully opaque)
             shadow = {
-              enabled = false;
+              enabled = true; # Enable drop shadows on all windows
+              range = 15; # Shadow spread distance in pixels
+              render_power = 3; # Shadow falloff curve (1-4, higher = sharper edge)
+              color = lib.mkForce "rgba(00000080)"; # Shadow color with 50% opacity
+              offset = "0 4"; # Shadow offset: x y (pixels down and right)
             };
 
             blur = {
-              enabled = false;
+              enabled = false; # Disable blur effect behind transparent windows
             };
           };
 
           animations = {
-            enabled = true;
+            enabled = true; # Master toggle for all animations
+
+            # Bezier curves define the acceleration/deceleration pattern
+            # Format: "name, x1, y1, x2, y2" (control points for cubic bezier)
+            bezier = [
+              "easeOutExpo, 0.16, 1, 0.3, 1" # Fast start, slow end (exponential ease-out)
+              "easeInOutQuad, 0.45, 0, 0.55, 1" # Symmetric acceleration (quadratic ease-in-out)
+              "easeOutBack, 0.34, 1.56, 0.64, 1" # Overshoot then settle (bouncy feel)
+            ];
+
+            # Animation format: "type, enabled, speed, curve, [style]"
+            # Speed: lower = faster (e.g., 4 = ~100ms, 10 = ~250ms at 60fps)
+            animation = [
+              "windows, 1, 4, easeOutExpo" # Default window move/resize (speed 4 ≈ 100ms)
+              "windowsIn, 1, 4, easeOutBack, popin 80%" # Window open: pop in from 80% scale
+              "windowsOut, 1, 3, easeOutExpo, popin 80%" # Window close: pop out to 80% scale (faster)
+              "fade, 1, 3, easeOutExpo" # Opacity transitions (speed 3 ≈ 75ms)
+              "border, 1, 5, easeOutExpo" # Border color changes (speed 5 ≈ 125ms)
+              "workspaces, 1, 4, easeInOutQuad, slide" # Workspace switch: slide animation
+            ];
           };
 
           input = {
@@ -192,8 +212,8 @@ delib.module {
           };
 
           windowrulev2 = [
-            # Smart Borders: No border if only 1 window is on screen
-            "bordersize 0, floating:0, onworkspace:w[t1]"
+            # Removed "bordersize 0" rule - we want focused window to always have border
+            # Inactive windows have transparent border via col.inactive_border
 
             #ShowMeTheKey  fixes. ShowMetheKey is a GTK app for displaying keypresses on screen.
             "float,class:(mpv)|(imv)|(showmethekey-gtk)" # Float media viewers and ShowMeTheKey
@@ -243,11 +263,15 @@ delib.module {
             "noblur, class:^(xwaylandvideobridge)$"
             "nofocus, class:^(xwaylandvideobridge)$"
           ]
+          ++ (lib.optional
+            ((myconfig.constants.hyprland.terminalOpacity or 1.0) < 1.0)
+            "opacity ${toString myconfig.constants.hyprland.terminalOpacity} override, class:^(${term})$"
+          )
           ++ cfg.windowRules;
 
           workspace = [
-            "w[tv1], gapsout:0, gapsin:0" # No gaps if only 1 window is visible
-            "f[1], gapsout:0, gapsin:0" # No gaps if window is fullscreen
+            # Removed "w[tv1], gapsout:0, gapsin:0" - we want gaps even with single window
+            "f[1], gapsout:0, gapsin:0" # No gaps only if window is fullscreen
           ]
           ++ (cfg.monitorWorkspaces or [ ]);
         };
