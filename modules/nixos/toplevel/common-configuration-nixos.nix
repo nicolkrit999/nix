@@ -182,6 +182,9 @@ delib.module {
       security.pam.services.kde.enableKwallet = lib.mkForce false;
       security.pam.services.sddm.enableKwallet = lib.mkForce false;
 
+      # SSH Askpass — use seahorse (GNOME) since GNOME Keyring is enforced system-wide
+      programs.ssh.askPassword = lib.mkForce "${pkgs.seahorse}/libexec/seahorse/ssh-askpass";
+
       # ---------------------------------------------------------
       # SHELLS & ENVIRONMENT
       # ---------------------------------------------------------
