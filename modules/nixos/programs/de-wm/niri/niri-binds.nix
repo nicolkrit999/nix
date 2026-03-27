@@ -23,7 +23,7 @@ delib.module {
 
         then
           [
-            "${myconfig.constants.terminal}"
+            "${myconfig.constants.terminal.name}"
             "-e"
             app
           ]
@@ -51,7 +51,7 @@ delib.module {
         # -----------------------------------------------------------------------
         # 🚀 APPLICATIONS
         # -----------------------------------------------------------------------
-        "Mod+Return".action.spawn = [ "${myconfig.constants.terminal}" ];
+        "Mod+Return".action.spawn = [ "${myconfig.constants.terminal.name}" ];
         "Mod+A".action.spawn = walkerCommand;
         "Mod+Shift+A".action.spawn = shellLauncherCommand;
         "Mod+B".action.spawn = [ "${myconfig.constants.browser}" ];

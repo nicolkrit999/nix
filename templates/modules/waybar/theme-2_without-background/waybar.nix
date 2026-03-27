@@ -65,12 +65,9 @@ delib.module {
 
         settings = {
           mainBar = {
-            layer = "top"; # Render above windows
-            position = "top"; # Bar at top of screen
-            height = 50; # Total bar height including margin (modules + 10px top + 10px bottom)
-            margin-top = 10; # Gap between screen edge and bar
-            margin-left = 10; # Gap from left edge
-            margin-right = 10; # Gap from right edge
+            layer = "top";
+            position = "top";
+            height = 40;
 
             modules-left =
               (lib.optional hyprlandWaybar "hyprland/workspaces")

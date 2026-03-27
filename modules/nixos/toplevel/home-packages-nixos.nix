@@ -37,7 +37,7 @@ delib.module {
         else
           fallback;
 
-      termName = myconfig.constants.terminal or "alacritty";
+      termName = myconfig.constants.terminal.name or "alacritty";
       myTermPkg = getPkg termName fallbackTerm;
 
       browserName = myconfig.constants.browser or "brave";

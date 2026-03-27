@@ -15,7 +15,7 @@ delib.module {
       # If variables are missing, these defaults will be used.
       safeEditor = myconfig.constants.editor or "vscode";
       safeBrowser = myconfig.constants.browser or "firefox";
-      safeTerm = myconfig.constants.terminal or "alacritty";
+      safeTerm = myconfig.constants.terminal.name or "alacritty";
       safeFileManager = myconfig.constants.fileManager or "dolphin";
 
       termEditors = {

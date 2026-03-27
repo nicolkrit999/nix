@@ -6,7 +6,7 @@ delib.module {
     { myconfig, ... }:
     let
       safeBrowser = myconfig.constants.browser or "firefox";
-      safeTerm = myconfig.constants.terminal or "alacritty";
+      safeTerm = myconfig.constants.terminal.name or "alacritty";
       safeEditor = myconfig.constants.editor or "vscode";
 
       # Add more if needed

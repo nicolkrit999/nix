@@ -86,7 +86,7 @@ delib.host {
         # ---------------------------------------------------------------
         # 🐚 SHELLS & APPS
         # ---------------------------------------------------------------
-        terminal = myTerminal;
+        terminal.name = myTerminal;
         shell = myShell;
         browser = myBrowser;
         editor = myEditor;
@@ -115,6 +115,15 @@ delib.host {
           catppuccin = false;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "teal";
+        };
+
+        # ---------------------------------------------------------------
+        # 🪟 HYPRLAND CONSTANTS
+        # ---------------------------------------------------------------
+        hyprland = {
+          rounding = 10;
+          gap = 3; # Gap between windows AND between windows and screen edges
+          terminalOpacity = 0.9;
         };
 
         screenshots = "$HOME/Pictures/Screenshots";

@@ -21,8 +21,8 @@ delib.module {
         name = "Neovim";
         genericName = "Text Editor";
         exec = "${
-          pkgs.${myconfig.constants.terminal}
-        }/bin/${myconfig.constants.terminal} --class nvim -e nvim %F";
+          pkgs.${myconfig.constants.terminal.name}
+        }/bin/${myconfig.constants.terminal.name} --class nvim -e nvim %F";
         terminal = false;
         icon = "nvim";
         startupNotify = true;

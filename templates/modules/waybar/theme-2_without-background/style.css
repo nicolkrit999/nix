@@ -14,13 +14,6 @@ window#waybar {
   box-shadow: none;
 }
 
-/* Force transparent background even when window is focused */
-window#waybar.empty,
-window#waybar.hidden,
-window#waybar * {
-  background-color: transparent;
-}
-
 /* Nuclear reset: kill any GTK-theme-drawn artifacts on all structural elements */
 window#waybar box,
 window#waybar box box,
@@ -42,7 +35,6 @@ window#waybar .background {
 #niri-workspaces {
   background-color: transparent;
   margin: 0;
-  padding: 0;
   border-radius: 0;
 }
 
@@ -90,19 +82,13 @@ window#waybar .background {
 /* ----------------------------------------------------------------------- */
 
 /* Reset widget wrappers so they don't add spacing */
-window#waybar .modules-left,
-window#waybar .modules-center,
-window#waybar .modules-right,
-window#waybar .modules-center > widget,
-window#waybar .modules-left > widget,
-window#waybar .modules-right > widget {
+window#waybar .modules-center > widget {
   border: none;
   box-shadow: none;
   outline: none;
   margin: 0;
   padding: 0;
   background: transparent;
-  background-color: transparent;
 }
 
 /* Kill GTK separator element if present */

@@ -33,6 +33,7 @@ delib.module {
         enableZshIntegration = currentShell == "zsh";
         enableFishIntegration = currentShell == "fish";
         enableBashIntegration = currentShell == "bash";
+        enableTransience = myconfig.constants.terminal.animation or false;
 
         settings = {
           add_newline = true;

@@ -16,7 +16,12 @@ delib.module {
       darwinStateVersion = intOption 4;
       homeStateVersion = strOption "25.11";
 
-      terminal = strOption "alacritty";
+      terminal = {
+        name = strOption "alacritty"; # Terminal emulator app name
+        cursorStyle = strOption "block"; # block, beam, underline
+        cursorBlink = boolOption false;
+        animation = boolOption false; # Enable transient prompt animation on command execution
+      };
       shell = strOption "bash";
       browser = strOption "firefox";
       editor = strOption "nano";
