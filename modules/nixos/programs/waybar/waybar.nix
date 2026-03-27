@@ -79,7 +79,7 @@ delib.module {
 
             modules-center =
               [ "clock" ]
-              ++ (lib.optional hyprlandWaybar "hyprland/window")
+              ++ (lib.optional hyprlandWaybar "hyprland/window") # Fixme: to the right there is a ghost module. Possibly a css error or special scratchpad, tough the show special is disabled
               ++ (lib.optional niriWaybar "niri/window");
 
             modules-right =
@@ -90,14 +90,14 @@ delib.module {
                 "custom/connectivity"
                 "pulseaudio"
                 "battery"
-              ];
+              ]
+              ++ (lib.optional (myconfig.services.swaync.enable or false) "custom/notification");
 
             # Workspaces Icon and layout
             # A user may define host-specific icons (optional) in myconfig.constants.waybarWorkspaceIcons
             "hyprland/workspaces" = {
               disable-scroll = true;
-              show-special = true;
-              special-visible-only = true;
+              show-special = false; # Hide special/scratchpad workspaces
               all-outputs = false;
               format = "{name}{icon}";
               format-icons = cfg.waybarWorkspaceIcons // { default = ""; };
@@ -207,6 +207,23 @@ delib.module {
                 weeks-pos = "right";
                 on-scroll = 1;
               };
+            };
+
+            # Notification module: opens swaync notification center
+            "custom/notification" = {
+              format = "{}";
+              exec = ''
+                count=$(swaync-client -c 2>/dev/null || echo "0")
+                if [ "$count" -gt 0 ]; then
+                  echo "<span color='${c.base09}'>󰂚</span> $count"
+                else
+                  echo "󰂜"
+                fi
+              '';
+              interval = 1;
+              on-click = "swaync-client -t -sw";
+              on-click-right = "swaync-client -C";
+              tooltip = false;
             };
 
             # Connectivity module: network (wifi/ethernet + SSID/hostname) : bluetooth status

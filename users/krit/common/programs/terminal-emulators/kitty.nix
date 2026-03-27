@@ -44,6 +44,11 @@ delib.module {
           cursor = "#${config.lib.stylix.colors.base05}"; # Foreground color (base05)
           cursor_text_color = "#${config.lib.stylix.colors.base00}"; # Background color (base00)
           cursor_beam_thickness = toString (myconfig.constants.terminal.cursorBeamWidth or 3.0); # Wide beam cursor (default is 1.5)
+
+          # Cursor trail animation - shows movement path when cursor jumps
+          cursor_trail = 3; # Trail duration in number of cells (higher = longer trail)
+          cursor_trail_decay = "0.1 0.4"; # Fade timing: start slow, end faster
+          cursor_trail_start_threshold = 2; # Minimum distance to trigger trail
         }
         // lib.optionalAttrs (cfg.fontSize != null) {
           font_size = cfg.fontSize;

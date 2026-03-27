@@ -43,18 +43,18 @@ window#waybar .background {
 #workspaces button,
 #niri-workspaces button {
   background-color: @base01;
-  margin: 2px 2px;
-  padding: 0;
+  margin: 2px 5px;                /* 5px horizontal spacing between modules */
+  padding: 0 16px;                /* Same horizontal padding as all modules */
   min-width: 0;
   border-radius: 20px;            /* Fully rounded pill shape */
   color: @base05;
-  border: none;                   /* No border/outline */
+  border: none;
   transition: all 0.2s ease;
 }
 
 #workspaces button label,
 #niri-workspaces button label {
-  padding: 0 14px;
+  padding: 0;
   min-width: 28px;
 }
 
@@ -109,19 +109,20 @@ window#waybar separator {
   opacity: 0;
 }
 
-#window {
-  padding: 0;
-  margin: 2px 4px;
+window#waybar #window {
+  padding: 0 16px;                /* Same horizontal padding as all modules */
+  margin: 2px 5px;                /* 5px horizontal spacing between modules */
   background-color: @base01;
   border-radius: 20px;            /* Fully rounded pill shape */
-  border: none;                   /* No border/outline */
+  border: none;
   box-shadow: none;
   outline: none;
   color: @base05;
 }
 
 #window label {
-  padding: 0 14px;
+  padding: 0;
+  background-color: transparent;
 }
 
 /* Hide empty window module gracefully */
@@ -148,13 +149,14 @@ window#waybar separator {
 #pulseaudio,
 #language,
 #custom-weather,
-#custom-connectivity {
-  padding: 0 16px;
-  margin: 2px 2px;
-  background-color: @base01;      /* Same solid background as workspaces */
+#custom-connectivity,
+#custom-notification {
+  padding: 0 16px;                /* Same horizontal padding as all modules */
+  margin: 2px 5px;                /* 5px horizontal spacing between modules */
+  background-color: @base01;
   border-radius: 20px;            /* Fully rounded pill shape */
-  border: none;                   /* No border/outline */
-  color: @base05;                 /* Visible text color */
+  border: none;
+  color: @base05;
 }
 
 /* Battery warning/critical states - change text color only */
