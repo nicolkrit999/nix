@@ -78,7 +78,8 @@ delib.module {
               ++ (lib.optional niriWaybar "niri/workspaces");
 
             modules-center =
-              (lib.optional hyprlandWaybar "hyprland/window")
+              [ "clock" ]
+              ++ (lib.optional hyprlandWaybar "hyprland/window")
               ++ (lib.optional niriWaybar "niri/window");
 
             modules-right =
@@ -89,7 +90,6 @@ delib.module {
                 "custom/connectivity"
                 "pulseaudio"
                 "battery"
-                "clock"
               ];
 
             # Workspaces Icon and layout
@@ -113,7 +113,7 @@ delib.module {
 
             "hyprland/window" = {
               format = "{}";
-              max-length = 50;
+              max-length = 25;
               separate-outputs = true;
               rewrite = {
                 "^$" = "${myconfig.constants.user or "nix"} 󱄅 ${myconfig.constants.hostname or "nixos"}";
@@ -122,7 +122,7 @@ delib.module {
 
             "niri/window" = {
               format = "{}";
-              max-length = 50;
+              max-length = 25;
               separate-outputs = true;
               rewrite = {
                 "^$" = "${myconfig.constants.user or "nix"} 󱄅 ${myconfig.constants.hostname or "nixos"}";
@@ -146,7 +146,7 @@ delib.module {
             // cfg.waybarLayout;
 
             "custom/weather" = {
-              format = "<span color='${c.base0C}'>${myconfig.constants.weather or "London"}:</span> {} ";
+              format = "{}";
 
               exec =
                 let
