@@ -134,6 +134,11 @@ delib.host {
           terminalOpacity = 0.9;
         };
 
+        niri = {
+          gap      = 8;  # 8px single gap (one grid unit; between Hyprland gaps_in=5 and gaps_out=10)
+          rounding = 10; # Matches hyprland.rounding for visual coherence across compositors
+        };
+
         terminal = {
           name = myTerminal;
           cursorStyle = "block";
