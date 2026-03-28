@@ -50,6 +50,11 @@ delib.module {
         terminalOpacity = floatOption 0.9; # Terminal background opacity (0.9 = subtle transparency)
       };
 
+      niri = {
+        gap      = intOption 8;  # Gap between windows and screen edges (single value; 8px = one grid unit, between Hyprland's gaps_in=5 and gaps_out=10)
+        rounding = intOption 10; # Window corner radius in pixels — matches hyprland.rounding for visual coherence
+      };
+
       terminal = {
         name = strOption "alacritty"; # Terminal emulator app name
         cursorStyle = strOption "block"; # block, beam, underline

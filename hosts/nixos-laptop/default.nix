@@ -122,8 +122,17 @@ delib.host {
         # ---------------------------------------------------------------
         hyprland = {
           rounding = 10;
-          gap = 3; # Gap between windows AND between windows and screen edges
+          gap = 5;              # Updated: 5px inner gap (2:1 ratio with outer gap via hyprland-main derivation)
+          borderSize = 2;       # 2px border: visible but not distracting
           terminalOpacity = 0.9;
+        };
+
+        # ---------------------------------------------------------------
+        # 🌀 NIRI CONSTANTS
+        # ---------------------------------------------------------------
+        niri = {
+          gap      = 8;  # 8px single gap — one grid unit, coherent with Hyprland values
+          rounding = 10; # Matches hyprland.rounding for visual coherence
         };
 
         screenshots = "$HOME/Pictures/Screenshots";

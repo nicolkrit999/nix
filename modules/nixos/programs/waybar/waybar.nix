@@ -103,12 +103,11 @@ delib.module {
               format-icons = cfg.waybarWorkspaceIcons // { default = ""; };
             };
 
+            # niri-autoname-workspaces renames workspaces to Nerd Font app icons;
+            # without it running, this falls back to the workspace index number.
             "niri/workspaces" = {
-              format = "{icon}";
-              format-icons = {
-                active = "";
-                default = "";
-              };
+              format   = "{name}";
+              on-click = "activate";
             };
 
             "hyprland/window" = {
