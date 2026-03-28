@@ -133,8 +133,8 @@ delib.module {
               else
                 "rgb(${config.lib.stylix.colors.base0D})"; # Accent blue — clearly signals focus without being loud
 
-            # Inactive: subtle surface-level border so window edges stay readable
-            "col.inactive_border" = lib.mkForce "rgba(${config.lib.stylix.colors.base02}66)"; # base02 @ 40% opacity
+            # Inactive: subtle semi-transparent border (base02 @ 40% opacity) so window edges stay readable; not fully transparent
+            "col.inactive_border" = lib.mkForce "rgba(${config.lib.stylix.colors.base02}66)";
 
             resize_on_border = true;
 
