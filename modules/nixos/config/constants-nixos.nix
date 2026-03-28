@@ -44,17 +44,18 @@ delib.module {
       };
 
       hyprland = {
-        rounding = intOption 0;
-        gap = intOption 0;
-        terminalOpacity = floatOption 1.0;
+        rounding = intOption 10;          # Corner radius in pixels (0 = sharp, 10 = refined rounded)
+        gap = intOption 5;                # Inner gap between windows; outer gap is derived as 2× in hyprland-main
+        borderSize = intOption 2;         # Border thickness in pixels (2 = visible but not distracting)
+        terminalOpacity = floatOption 0.9; # Terminal background opacity (0.9 = subtle transparency)
       };
 
       terminal = {
         name = strOption "alacritty"; # Terminal emulator app name
         cursorStyle = strOption "block"; # block, beam, underline
-        cursorBlink = boolOption false;
+        cursorBlink = boolOption true;     # Blinking cursor (true = better UX for locating cursor)
         cursorBeamWidth = floatOption 3.0; # Beam cursor width in pixels or cell fraction
-        animation = boolOption false; # Enable transient prompt animation on command execution
+        animation = boolOption true;  # Enable transient prompt animation on command execution
       };
 
       screenshots = strOption "$HOME/Pictures/Screenshots";

@@ -123,18 +123,18 @@ delib.module {
           ++ cfg.execOnce;
 
           general = {
-            gaps_in = myconfig.constants.hyprland.gap or 0;
-            gaps_out = myconfig.constants.hyprland.gap or 0;
-            border_size = 5; # Thickness of window borders
+            gaps_in = myconfig.constants.hyprland.gap or 5;
+            gaps_out = (myconfig.constants.hyprland.gap or 5) * 2; # Outer gap = 2× inner (design principle: breathing room from screen edges)
+            border_size = myconfig.constants.hyprland.borderSize or 2; # Thin, clean border
 
             "col.active_border" =
               if myconfig.constants.theme.catppuccin then
                 "$accent"
               else
-                "rgb(${config.lib.stylix.colors.base0D})";
+                "rgb(${config.lib.stylix.colors.base0D})"; # Accent blue — clearly signals focus without being loud
 
-            # No border on inactive/unfocused windows (fully transparent)
-            "col.inactive_border" = lib.mkForce "rgba(00000000)";
+            # Inactive: subtle surface-level border so window edges stay readable
+            "col.inactive_border" = lib.mkForce "rgba(${config.lib.stylix.colors.base02}66)"; # base02 @ 40% opacity
 
             resize_on_border = true;
 
@@ -147,15 +147,17 @@ delib.module {
             active_opacity = 1.0; # Opacity of focused windows (1.0 = fully opaque)
             inactive_opacity = 1.0; # Opacity of unfocused windows (1.0 = fully opaque)
             shadow = {
-              enabled = true; # Enable drop shadows on all windows
-              range = 15; # Shadow spread distance in pixels
-              render_power = 3; # Shadow falloff curve (1-4, higher = sharper edge)
-              color = lib.mkForce "rgba(00000080)"; # Shadow color with 50% opacity
-              offset = "0 4"; # Shadow offset: x y (pixels down and right)
+              enabled = true;
+              range = 8;                              # Tighter spread (was 15) — softer, less heavy
+              render_power = 3;                       # Natural falloff curve
+              color = lib.mkForce "rgba(00000066)";  # 40% opacity (was 50%) — subtle depth without crushing darks
+              offset = "0 3";                         # Slight downward offset for physical grounding
             };
 
             blur = {
-              enabled = false; # Disable blur effect behind transparent windows
+              enabled = true;   # Frosted-glass effect behind transparent windows/waybar
+              size = 8;         # Moderate radius — quality without GPU strain
+              passes = 2;       # 2 passes needed at size 8 for clean result
             };
           };
 
@@ -171,14 +173,15 @@ delib.module {
             ];
 
             # Animation format: "type, enabled, speed, curve, [style]"
-            # Speed: lower = faster (e.g., 4 = ~100ms, 10 = ~250ms at 60fps)
+            # Speed unit = 1 ds = 100ms. So speed 3 = 300ms, speed 4 = 400ms.
+            # Material Design recommends 150-300ms for desktop micro-interactions.
             animation = [
-              "windows, 1, 4, easeOutExpo" # Default window move/resize (speed 4 ≈ 100ms)
-              "windowsIn, 1, 4, easeOutBack, popin 80%" # Window open: pop in from 80% scale
-              "windowsOut, 1, 3, easeOutExpo, popin 80%" # Window close: pop out to 80% scale (faster)
-              "fade, 1, 3, easeOutExpo" # Opacity transitions (speed 3 ≈ 75ms)
-              "border, 1, 5, easeOutExpo" # Border color changes (speed 5 ≈ 125ms)
-              "workspaces, 1, 4, easeInOutQuad, slide" # Workspace switch: slide animation
+              "windows, 1, 3, easeOutExpo"               # Window move/resize: 300ms — snappy
+              "windowsIn, 1, 3, easeOutBack, popin 80%"  # Window open: 300ms, slight overshoot = lively feel
+              "windowsOut, 1, 2, easeOutExpo, popin 80%" # Window close: 200ms — should feel quicker than open
+              "fade, 1, 2, easeOutExpo"                   # Opacity: 200ms — barely perceptible, keeps it clean
+              "border, 1, 3, easeOutExpo"                 # Border color: 300ms (was 500ms, too slow)
+              "workspaces, 1, 4, easeInOutQuad, slide"   # Workspace: 400ms — slightly longer feels intentional
             ];
           };
 
