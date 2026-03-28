@@ -67,9 +67,9 @@ delib.module {
           mainBar = {
             layer = "top"; # Render above windows
             position = "top"; # Bar at top of screen
-            height = 32; # Module height
+            height = 36; # Module height (sized for 14px font + 4px vertical padding)
             margin-top = 8; # Gap from screen edge to modules
-            margin-bottom = 8; # Gap from modules to apps below
+            margin-bottom = 0; # 0 here + gaps_out (10px) = 10px below ≈ margin-top 8px above
             margin-left = 16; # Gap from left edge
             margin-right = 16; # Gap from right edge
 
