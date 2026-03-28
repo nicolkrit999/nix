@@ -40,15 +40,16 @@ delib.module {
 
           # Cursor styling from constants with base16 colors for contrast
           cursor_shape = myconfig.constants.terminal.cursorStyle or "block";
-          cursor_blink_interval = if (myconfig.constants.terminal.cursorBlink or false) then "0.5" else "0";
-          cursor = "#${config.lib.stylix.colors.base05}"; # Foreground color (base05)
-          cursor_text_color = "#${config.lib.stylix.colors.base00}"; # Background color (base00)
-          cursor_beam_thickness = toString (myconfig.constants.terminal.cursorBeamWidth or 3.0); # Wide beam cursor (default is 1.5)
+          cursor_blink_interval = if (myconfig.constants.terminal.cursorBlink or true) then "0.5 ease-in-out" else "0";
+          cursor = "#${config.lib.stylix.colors.base0D}"; # Accent blue (base0D) — distinct from text (base05) and background (base00)
+          cursor_text_color = "#${config.lib.stylix.colors.base00}"; # Background color under cursor for contrast
+          cursor_beam_thickness = toString (myconfig.constants.terminal.cursorBeamWidth or 3.0);
 
-          # Cursor trail animation - shows movement path when cursor jumps
-          cursor_trail = 3; # Trail duration in number of cells (higher = longer trail)
-          cursor_trail_decay = "0.1 0.4"; # Fade timing: start slow, end faster
-          cursor_trail_start_threshold = 2; # Minimum distance to trigger trail
+          # Cursor trail animation — triggers after cursor was stationary ≥200ms, then jumps
+          # This means trails appear only on deliberate large jumps, not rapid typing navigation
+          cursor_trail = 200;                  # Min stationary time in ms before trail triggers
+          cursor_trail_decay = "0.1 0.3";     # Decay speeds: slow start, faster end for natural fade
+          cursor_trail_start_threshold = 2;   # Min cell-distance to trigger trail (filters micro-moves)
         }
         // lib.optionalAttrs (cfg.fontSize != null) {
           font_size = cfg.fontSize;

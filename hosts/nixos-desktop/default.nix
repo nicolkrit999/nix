@@ -128,8 +128,9 @@ delib.host {
         timeZone = "Europe/Zurich";
 
         hyprland = {
-          rounding = 10;
-          gap = 3;
+          rounding = 10;        # Refined rounded corners (matches constant default)
+          gap = 5;              # Inner gap 5px → outer gap 10px (2:1 ratio, 8px-grid aligned)
+          borderSize = 2;       # 2px border: visible but not distracting
           terminalOpacity = 0.9;
         };
 

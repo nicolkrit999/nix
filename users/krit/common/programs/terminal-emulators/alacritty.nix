@@ -39,8 +39,8 @@ delib.module {
             };
           };
           colors.cursor = {
-            cursor = "#${config.lib.stylix.colors.base05}"; # Cursor color (base05 - foreground)
-            text = "#${config.lib.stylix.colors.base00}"; # Text under cursor (base00 - background)
+            cursor = "#${config.lib.stylix.colors.base0D}"; # Accent blue (base0D) — distinct from text (base05) and background (base00)
+            text = "#${config.lib.stylix.colors.base00}";   # Background color under cursor for contrast
           };
         };
       };
