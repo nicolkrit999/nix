@@ -79,7 +79,7 @@ delib.module {
 
             modules-center =
               [ "clock" ]
-              ++ (lib.optional hyprlandWaybar "hyprland/window") # Fixme: to the right there is a ghost module. Possibly a css error or special scratchpad, tough the show special is disabled
+              ++ (lib.optional hyprlandWaybar "hyprland/window")
               ++ (lib.optional niriWaybar "niri/window");
 
             modules-right =
@@ -99,19 +99,18 @@ delib.module {
               disable-scroll = true;
               show-special = false; # Hide special/scratchpad workspaces
               all-outputs = false;
-              format = "{name}{icon}";
+              format = "{id}{icon}"; # Use {id} not {name} — Hyprland workspaces are numbered
               format-icons = cfg.waybarWorkspaceIcons // { default = ""; };
             };
 
-            # niri-autoname-workspaces renames workspaces to Nerd Font app icons;
-            # without it running, this falls back to the workspace index number.
             "niri/workspaces" = {
-              format = "{name}";
+              format = "{index}"; # Shows workspace number; use {name} if niri-autoname-workspaces is running
               on-click = "activate";
             };
 
             "hyprland/window" = {
               format = "{}";
+              icon = false;
               max-length = 25;
               separate-outputs = true;
               rewrite = {
@@ -121,6 +120,7 @@ delib.module {
 
             "niri/window" = {
               format = "{}";
+              icon = false;
               max-length = 25;
               separate-outputs = true;
               rewrite = {

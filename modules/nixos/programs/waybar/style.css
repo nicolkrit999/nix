@@ -58,6 +58,19 @@ window#waybar .modules-right > widget {
   background: transparent;
 }
 
+/* Nuclear reset: prevent ghost pills from GTK child elements */
+window#waybar .modules-center > widget > box,
+window#waybar .modules-center > widget > menubar,
+window#waybar .modules-left > widget > box,
+window#waybar .modules-right > widget > box {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+
 /* ----------------------------------------------------------------------- */
 /* WORKSPACES (Hyprland & Niri)                                             */
 /* ----------------------------------------------------------------------- */
@@ -134,6 +147,16 @@ window#waybar #window {
   background-color: transparent;
 }
 
+/* Reset any child box/container inside window to prevent ghosts */
+#window box {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
 /* Hide empty window module gracefully */
 #window.empty {
   background: transparent;
@@ -142,6 +165,7 @@ window#waybar #window {
   padding: 0;
   margin: 0;
   min-width: 0;
+  min-height: 0;
   opacity: 0;
 }
 
