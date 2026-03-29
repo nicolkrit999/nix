@@ -72,10 +72,9 @@ window#waybar .modules-right > widget > box {
 
 
 /* ----------------------------------------------------------------------- */
-/* WORKSPACES (Hyprland & Niri)                                             */
+/* WORKSPACES (Niri)                                                        */
 /* ----------------------------------------------------------------------- */
 
-#workspaces,
 #niri-workspaces {
   background-color: transparent;
   margin: 0;
@@ -83,7 +82,6 @@ window#waybar .modules-right > widget > box {
 }
 
 /* Workspace buttons as pill-shaped modules */
-#workspaces button,
 #niri-workspaces button {
   background-color: @base01;
   margin: 0 4px;
@@ -92,38 +90,27 @@ window#waybar .modules-right > widget > box {
   border-radius: 100px;
   color: @base05;
   border: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35),
-              0 1px 2px rgba(0, 0, 0, 0.20);
   transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow      0.18s cubic-bezier(0.4, 0, 0.2, 1),
               color           0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#workspaces button label,
 #niri-workspaces button label {
   padding: 0;
   min-width: 28px;
 }
 
-/* Active workspace — accent fill + elevated glow */
-#workspaces button.active,
+/* Active workspace — accent fill */
 #niri-workspaces button.active {
   background-color: @base0D;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45),
-              0 0   12px rgba(0, 0, 0, 0.25);
 }
 
-#workspaces button.active label,
 #niri-workspaces button.active label {
   color: @base00;
 }
 
 /* Hover — lift one step */
-#workspaces button:hover,
 #niri-workspaces button:hover {
   background-color: @base02;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.40),
-              0 1px 3px rgba(0, 0, 0, 0.22);
 }
 
 /* ----------------------------------------------------------------------- */
@@ -136,8 +123,6 @@ window#waybar #window {
   background-color: @base01;
   border-radius: 100px;
   border: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35),
-              0 1px 2px rgba(0, 0, 0, 0.20);
   outline: none;
   color: @base05;
 }
@@ -191,10 +176,7 @@ window#waybar #window {
   border-radius: 100px;
   border: none;
   color: @base05;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35),
-              0 1px 2px rgba(0, 0, 0, 0.20);
-  transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow      0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Clock — slightly elevated prominence */
@@ -202,8 +184,6 @@ window#waybar #window {
   font-weight: 600;
   letter-spacing: 0.5px;
   color: @base06;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.40),
-              0 1px 3px rgba(0, 0, 0, 0.22);
 }
 
 /* Battery warning/critical states */
