@@ -13,8 +13,7 @@ delib.module {
   };
 
   home.ifEnabled =
-    { parent
-    , ...
+    { ...
     }:
     {
       home.packages = with pkgs; [
