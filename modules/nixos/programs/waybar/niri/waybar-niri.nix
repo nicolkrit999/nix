@@ -163,7 +163,7 @@ delib.module {
             else
               bt="<span color='${c.base03}'>󰂲</span>"
             fi
-            echo "$net : $bt"
+            echo "$net | $bt"
           '';
           interval = 5;
           on-click = "nm-connection-editor";

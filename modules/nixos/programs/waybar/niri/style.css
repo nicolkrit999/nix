@@ -75,41 +75,44 @@ window#waybar .modules-right > widget > box {
 /* WORKSPACES (Niri)                                                        */
 /* ----------------------------------------------------------------------- */
 
-#niri-workspaces {
+#workspaces {
   background-color: transparent;
   margin: 0;
   padding: 0;
 }
 
 /* Workspace buttons as pill-shaped modules */
-#niri-workspaces button {
+#workspaces button {
   background-color: @base01;
-  margin: 0 4px;
-  padding: 4px 16px;
+  background-image: none;
+  margin: 4px 4px;
+  padding: 0;                     /* GTK buttons eat padding unevenly — use label instead */
   min-width: 0;
   border-radius: 100px;
   color: @base05;
   border: none;
+  box-shadow: none;
+  outline: none;
   transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1),
               color           0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#niri-workspaces button label {
-  padding: 0;
+#workspaces button label {
+  padding: 4px 16px;              /* all sizing on label for reliable pill shape */
   min-width: 28px;
 }
 
 /* Active workspace — accent fill */
-#niri-workspaces button.active {
+#workspaces button.active {
   background-color: @base0D;
 }
 
-#niri-workspaces button.active label {
+#workspaces button.active label {
   color: @base00;
 }
 
 /* Hover — lift one step */
-#niri-workspaces button:hover {
+#workspaces button:hover {
   background-color: @base02;
 }
 
