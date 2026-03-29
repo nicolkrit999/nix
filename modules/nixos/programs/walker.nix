@@ -16,24 +16,7 @@ delib.module {
     { parent
     , ...
     }:
-    let
-      hyprlandWantsWaybar =
-        (parent.hyprland.enable or false)
-        && !(parent.caelestia.enableOnHyprland or false)
-        && !(parent.noctalia.enableOnHyprland or false);
-
-      niriWantsWaybar = (parent.niri.enable or false) && !(parent.noctalia.enableOnNiri or false);
-
-      # If neither WM wants it (because they use custom shells), turn Waybar off
-      shouldRunWaybar = hyprlandWantsWaybar || niriWantsWaybar;
-
-    in
     {
-      programs.waybar.enable = shouldRunWaybar;
-
-      programs.waybar.systemd.enable = shouldRunWaybar;
-
-
       home.packages = with pkgs; [
         xdg-utils
       ];

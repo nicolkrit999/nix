@@ -228,7 +228,7 @@ delib.host {
           customGitIgnores = [ ];
         };
 
-        waybar = {
+        waybar-hyprland = {
           enable = true;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
@@ -249,6 +249,16 @@ delib.host {
             "9" = ":󰭹";
             "10" = ":";
             "magic" = ":";
+          };
+        };
+
+        waybar-niri = {
+          enable = true;
+          waybarLayout = {
+            "format-en" = "🇺🇸-EN";
+            "format-it" = "🇮🇹-IT";
+            "format-de" = "🇩🇪-DE";
+            "format-fr" = "🇫🇷-FR";
           };
         };
 
