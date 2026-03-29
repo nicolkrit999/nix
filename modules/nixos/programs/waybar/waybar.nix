@@ -106,7 +106,7 @@ delib.module {
             # niri-autoname-workspaces renames workspaces to Nerd Font app icons;
             # without it running, this falls back to the workspace index number.
             "niri/workspaces" = {
-              format   = "{name}";
+              format = "{name}";
               on-click = "activate";
             };
 

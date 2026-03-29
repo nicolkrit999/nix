@@ -47,9 +47,9 @@ delib.module {
 
           # Cursor trail animation — triggers after cursor was stationary ≥200ms, then jumps
           # This means trails appear only on deliberate large jumps, not rapid typing navigation
-          cursor_trail = 200;                  # Min stationary time in ms before trail triggers
-          cursor_trail_decay = "0.05 0.15";   # Slower decay — trail lingers ~2× longer for visibility
-          cursor_trail_start_threshold = 2;   # Min cell-distance to trigger trail (filters micro-moves)
+          cursor_trail = 200; # Min stationary time in ms before trail triggers
+          cursor_trail_decay = "0.15 0.4"; # Slow decay — trail lingers 150-400ms for visible effect
+          cursor_trail_start_threshold = 2; # Min cell-distance to trigger trail (filters micro-moves)
         }
         // lib.optionalAttrs (cfg.fontSize != null) {
           font_size = cfg.fontSize;

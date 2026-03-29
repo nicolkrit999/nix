@@ -26,30 +26,30 @@ delib.module {
       # Styling helper functions
       c = config.lib.stylix.colors.withHashtag;
       colors = {
-        active   = c.base0D; # Accent blue — same as Hyprland active border
+        active = c.base0D; # Accent blue — same as Hyprland active border
         inactive = c.base03; # Muted mid-tone — clearly distinguishable from active
-        urgent   = c.base08; # Red — universally signals urgency
-        shadow   = c.base00; # Darkest shade — neutral shadow base
+        urgent = c.base08; # Red — universally signals urgency
+        shadow = c.base00; # Darkest shade — neutral shadow base
       };
 
       # Design constants (fall back to good defaults if host doesn't set them)
-      gap      = myconfig.constants.niri.gap or 8;
+      gap = myconfig.constants.niri.gap or 8;
       rounding = myconfig.constants.niri.rounding or 10;
     in
     {
       home.packages = with pkgs; [
         xwayland-satellite # X11 Support
-        swww               # Wallpaper
-        grimblast          # Screenshot tool
-        slurp              # Region selector for screenshots
-        libnotify          # Notifications
-        hyprpicker         # Color Picker
-        wl-clipboard       # Clipboard
-        pavucontrol        # GUI Volume Control
-        brightnessctl      # Laptop Brightness Keys (Fn+F keys)
-        playerctl          # Media Keys (Play/Pause)
-        imv                # Image Viewer
-        mpv                # Video Player
+        swww # Wallpaper
+        grimblast # Screenshot tool
+        slurp # Region selector for screenshots
+        libnotify # Notifications
+        hyprpicker # Color Picker
+        wl-clipboard # Clipboard
+        pavucontrol # GUI Volume Control
+        brightnessctl # Laptop Brightness Keys (Fn+F keys)
+        playerctl # Media Keys (Play/Pause)
+        imv # Image Viewer
+        mpv # Video Player
       ];
 
       programs.niri = {
@@ -62,12 +62,12 @@ delib.module {
 
           input = {
             keyboard.xkb = {
-              layout  = myconfig.constants.keyboardLayout;
+              layout = myconfig.constants.keyboardLayout;
               variant = myconfig.constants.keyboardVariant;
               options = "grp:ctrl_alt_toggle";
             };
             touchpad = {
-              tap            = true;
+              tap = true;
               natural-scroll = true;
             };
             mouse.accel-profile = "flat";
@@ -79,7 +79,7 @@ delib.module {
             gaps = gap; # From constant (default 8px = one 8px-grid unit)
 
             always-center-single-column = true;
-            center-focused-column       = "always";
+            center-focused-column = "always";
 
             preset-column-widths = [
               { proportion = 0.33333; }
@@ -92,10 +92,10 @@ delib.module {
             # Width=2 matches Hyprland border_size=2 for visual coherence
             focus-ring = {
               enable = true;
-              width  = 2;
-              active.color   = colors.active;   # base0D: accent blue, clearly signals focus
+              width = 2;
+              active.color = colors.active; # base0D: accent blue, clearly signals focus
               inactive.color = colors.inactive; # base03: muted — readable but non-distracting
-              urgent.color   = colors.urgent;   # base08: red — universally signals urgency
+              urgent.color = colors.urgent; # base08: red — universally signals urgency
             };
 
             # Border (drawn around ALL windows, active and inactive)
@@ -105,11 +105,11 @@ delib.module {
             # Shadow: depth cues beneath windows
             # Values calibrated to match Hyprland's shadow (range=8, offset=0 3, opacity=40%)
             shadow = {
-              enable   = true;
-              softness = 20;   # Blur radius in logical px (~CSS box-shadow blur)
-              spread   = 5;    # Expands shadow outward from window edge
-              offset   = { x = 0; y = 4; }; # Slight downward offset for physical grounding
-              color    = "${colors.shadow}66"; # base00 @ 40% opacity (was "aa" = 67%)
+              enable = true;
+              softness = 20; # Blur radius in logical px (~CSS box-shadow blur)
+              spread = 5; # Expands shadow outward from window edge
+              offset = { x = 0; y = 4; }; # Slight downward offset for physical grounding
+              color = "${colors.shadow}66"; # base00 @ 40% opacity (was "aa" = 67%)
             };
           };
 
@@ -127,36 +127,46 @@ delib.module {
           #   - No bounce on most springs (damping-ratio=1.0 = critically damped)
           animations = {
             # Workspace scrolling — spring for touchpad velocity awareness
-            workspace-switch = {
-              spring = { damping-ratio = 1.0; stiffness = 800; epsilon = 0.0001; };
+            workspace-switch.kind.spring = {
+              damping-ratio = 1.0;
+              stiffness = 800;
+              epsilon = 0.0001;
             };
 
             # Window open: ease-out-expo — fast start, smooth landing (same curve as Hyprland windowsIn)
-            window-open = {
+            window-open.kind.easing = {
               duration-ms = 200;
-              curve       = "ease-out-expo";
+              curve = "ease-out-expo";
             };
 
             # Window close: faster than open (same principle as Hyprland windowsOut < windowsIn)
-            window-close = {
+            window-close.kind.easing = {
               duration-ms = 150;
-              curve       = "ease-out-quad";
+              curve = "ease-out-quad";
             };
 
             # All movement springs — critically damped, snappy
-            horizontal-view-movement = {
-              spring = { damping-ratio = 1.0; stiffness = 800; epsilon = 0.0001; };
+            horizontal-view-movement.kind.spring = {
+              damping-ratio = 1.0;
+              stiffness = 800;
+              epsilon = 0.0001;
             };
-            window-movement = {
-              spring = { damping-ratio = 1.0; stiffness = 800; epsilon = 0.0001; };
+            window-movement.kind.spring = {
+              damping-ratio = 1.0;
+              stiffness = 800;
+              epsilon = 0.0001;
             };
-            window-resize = {
-              spring = { damping-ratio = 1.0; stiffness = 800; epsilon = 0.0001; };
+            window-resize.kind.spring = {
+              damping-ratio = 1.0;
+              stiffness = 800;
+              epsilon = 0.0001;
             };
 
             # Config reload notification — slight bounce (underdamped) is intentional and delightful
-            config-notification-open-close = {
-              spring = { damping-ratio = 0.6; stiffness = 1000; epsilon = 0.001; };
+            config-notification-open-close.kind.spring = {
+              damping-ratio = 0.6;
+              stiffness = 1000;
+              epsilon = 0.001;
             };
           };
 
@@ -169,10 +179,10 @@ delib.module {
           window-rules = [
             {
               geometry-corner-radius = {
-                top-left     = builtins.toFloat rounding;
-                top-right    = builtins.toFloat rounding;
-                bottom-left  = builtins.toFloat rounding;
-                bottom-right = builtins.toFloat rounding;
+                top-left = rounding * 1.0;
+                top-right = rounding * 1.0;
+                bottom-left = rounding * 1.0;
+                bottom-right = rounding * 1.0;
               };
               clip-to-geometry = true;
             }
@@ -185,19 +195,19 @@ delib.module {
           # geometry-corner-radius=100 matches the waybar pill shape (border-radius: 100px in CSS)
           layer-rules = [
             {
-              matches = [ { namespace = "waybar"; } ];
+              matches = [{ namespace = "waybar"; }];
               shadow = {
-                on                 = true;
-                softness           = 20;
-                spread             = 5;
-                offset             = { x = 0; y = 4; };
+                enable = true;
+                softness = 20;
+                spread = 5;
+                offset = { x = 0; y = 4; };
                 draw-behind-window = true; # Prevents artifacts at pill ends
-                color              = "${colors.shadow}66";
+                color = "${colors.shadow}66";
               };
               geometry-corner-radius = {
-                top-left     = 100.0;
-                top-right    = 100.0;
-                bottom-left  = 100.0;
+                top-left = 100.0;
+                top-right = 100.0;
+                bottom-left = 100.0;
                 bottom-right = 100.0;
               };
             }
@@ -209,7 +219,7 @@ delib.module {
 
           environment = {
             "NIXOS_OZONE_WL" = "1";
-            "DISPLAY"        = ":0";
+            "DISPLAY" = ":0";
           };
 
           spawn-at-startup = [
@@ -230,7 +240,7 @@ delib.module {
           ++ (map
             (w:
               let
-                imgPath    = pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
+                imgPath = pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
                 targetArgs = if w.targetMonitor == "*" then [ ] else [ "-o" w.targetMonitor ];
               in
               { command = [ "swww" "img" ] ++ targetArgs ++ [ "${imgPath}" ]; }
