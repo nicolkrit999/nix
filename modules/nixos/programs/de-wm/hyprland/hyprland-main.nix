@@ -148,16 +148,16 @@ delib.module {
             inactive_opacity = 1.0; # Opacity of unfocused windows (1.0 = fully opaque)
             shadow = {
               enabled = true;
-              range = 8;                              # Tighter spread (was 15) — softer, less heavy
-              render_power = 3;                       # Natural falloff curve
-              color = lib.mkForce "rgba(00000066)";  # 40% opacity (was 50%) — subtle depth without crushing darks
-              offset = "0 3";                         # Slight downward offset for physical grounding
+              range = 8; # Tighter spread (was 15) — softer, less heavy
+              render_power = 3; # Natural falloff curve
+              color = lib.mkForce "rgba(00000066)"; # 40% opacity (was 50%) — subtle depth without crushing darks
+              offset = "0 3"; # Slight downward offset for physical grounding
             };
 
             blur = {
-              enabled = true;   # Frosted-glass effect behind transparent windows/waybar
-              size = 8;         # Moderate radius — quality without GPU strain
-              passes = 2;       # 2 passes needed at size 8 for clean result
+              enabled = true; # Frosted-glass effect behind transparent windows/waybar
+              size = 8; # Moderate radius — quality without GPU strain
+              passes = 2; # 2 passes needed at size 8 for clean result
             };
           };
 
@@ -176,12 +176,12 @@ delib.module {
             # Speed unit = 1 ds = 100ms. So speed 3 = 300ms, speed 4 = 400ms.
             # Material Design recommends 150-300ms for desktop micro-interactions.
             animation = [
-              "windows, 1, 3, easeOutExpo"               # Window move/resize: 300ms — snappy
-              "windowsIn, 1, 3, easeOutBack, popin 80%"  # Window open: 300ms, slight overshoot = lively feel
+              "windows, 1, 3, easeOutExpo" # Window move/resize: 300ms — snappy
+              "windowsIn, 1, 3, easeOutBack, popin 80%" # Window open: 300ms, slight overshoot = lively feel
               "windowsOut, 1, 2, easeOutExpo, popin 80%" # Window close: 200ms — should feel quicker than open
-              "fade, 1, 2, easeOutExpo"                   # Opacity: 200ms — barely perceptible, keeps it clean
-              "border, 1, 3, easeOutExpo"                 # Border color: 300ms (was 500ms, too slow)
-              "workspaces, 1, 4, easeInOutQuad, slide"   # Workspace: 400ms — slightly longer feels intentional
+              "fade, 1, 2, easeOutExpo" # Opacity: 200ms — barely perceptible, keeps it clean
+              "border, 1, 3, easeOutExpo" # Border color: 300ms (was 500ms, too slow)
+              "workspaces, 1, 4, easeInOutQuad, slide" # Workspace: 400ms — slightly longer feels intentional
             ];
           };
 

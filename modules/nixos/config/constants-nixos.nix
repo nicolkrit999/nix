@@ -44,23 +44,23 @@ delib.module {
       };
 
       hyprland = {
-        rounding = intOption 10;          # Corner radius in pixels (0 = sharp, 10 = refined rounded)
-        gap = intOption 5;                # Inner gap between windows; outer gap is derived as 2× in hyprland-main
-        borderSize = intOption 2;         # Border thickness in pixels (2 = visible but not distracting)
+        rounding = intOption 10; # Corner radius in pixels (0 = sharp, 10 = refined rounded)
+        gap = intOption 5; # Inner gap between windows; outer gap is derived as 2× in hyprland-main
+        borderSize = intOption 2; # Border thickness in pixels (2 = visible but not distracting)
         terminalOpacity = floatOption 0.9; # Terminal background opacity (0.9 = subtle transparency)
       };
 
       niri = {
-        gap      = intOption 8;  # Gap between windows and screen edges (single value; 8px = one grid unit, between Hyprland's gaps_in=5 and gaps_out=10)
+        gap = intOption 8; # Gap between windows and screen edges (single value; 8px = one grid unit, between Hyprland's gaps_in=5 and gaps_out=10)
         rounding = intOption 10; # Window corner radius in pixels — matches hyprland.rounding for visual coherence
       };
 
       terminal = {
         name = strOption "alacritty"; # Terminal emulator app name
         cursorStyle = strOption "block"; # block, beam, underline
-        cursorBlink = boolOption true;     # Blinking cursor (true = better UX for locating cursor)
+        cursorBlink = boolOption true; # Blinking cursor (true = better UX for locating cursor)
         cursorBeamWidth = floatOption 3.0; # Beam cursor width in pixels or cell fraction
-        animation = boolOption true;  # Enable transient prompt animation on command execution
+        animation = boolOption true; # Enable transient prompt animation on command execution
       };
 
       screenshots = strOption "$HOME/Pictures/Screenshots";

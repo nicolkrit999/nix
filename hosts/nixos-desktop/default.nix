@@ -128,14 +128,14 @@ delib.host {
         timeZone = "Europe/Zurich";
 
         hyprland = {
-          rounding = 10;        # Refined rounded corners (matches constant default)
-          gap = 5;              # Inner gap 5px → outer gap 10px (2:1 ratio, 8px-grid aligned)
-          borderSize = 2;       # 2px border: visible but not distracting
+          rounding = 10; # Refined rounded corners (matches constant default)
+          gap = 5; # Inner gap 5px → outer gap 10px (2:1 ratio, 8px-grid aligned)
+          borderSize = 2; # 2px border: visible but not distracting
           terminalOpacity = 0.9;
         };
 
         niri = {
-          gap      = 8;  # 8px single gap (one grid unit; between Hyprland gaps_in=5 and gaps_out=10)
+          gap = 8; # 8px single gap (one grid unit; between Hyprland gaps_in=5 and gaps_out=10)
           rounding = 10; # Matches hyprland.rounding for visual coherence across compositors
         };
 
