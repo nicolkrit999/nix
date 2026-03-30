@@ -13,7 +13,6 @@ let
   myLocale = "en_US.UTF-8";
   isCatppuccin = false;
 
-  # 🌟 APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
   appWorkspaces = {
     editor = "2";
     fileManager = "3";
