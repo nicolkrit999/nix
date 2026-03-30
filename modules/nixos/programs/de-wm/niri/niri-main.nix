@@ -15,6 +15,17 @@ delib.module {
         description = "Native Niri outputs configuration. If empty, Niri auto-configures connected monitors.";
       };
       execOnce = listOfOption str [ ];
+      extraBinds = lib.mkOption {
+        type = lib.types.attrsOf lib.types.attrs;
+        default = { };
+        description = "Extra keybindings as attrset. Keys are bind strings (e.g. 'Mod+Y'), values are action attrsets.";
+        example = ''
+          {
+            "Mod+Y".action.spawn = [ "chromium" ];
+            "XF86Tools".action.focus-workspace-previous = [];
+          }
+        '';
+      };
     };
 
   home.ifEnabled =

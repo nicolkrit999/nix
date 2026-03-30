@@ -101,15 +101,15 @@ delib.module {
         "pulseaudio" = {
           format = "<span color='${c.base0D}'>{icon}</span> {volume}%";
           format-bluetooth = "<span color='${c.base0D}'>{icon}</span> {volume}% ";
-          format-muted = "<span color='${c.base08}'></span> Muted";
+          format-muted = "<span color='${c.base08}'>󰖁</span> Muted";
           format-icons = {
-            headphones = "";
-            handsfree = "";
-            headset = "";
-            phone = "";
-            portable = "";
-            car = "";
-            default = [ "" "" ];
+            headphones = "󰋋";
+            handsfree = "󰋎";
+            headset = "󰋎";
+            phone = "󰏲";
+            portable = "󰏲";
+            car = "󰄋";
+            default = [ "󰕿" "󰖀" "󰕾" ];
           };
           on-click = "pavucontrol";
         };

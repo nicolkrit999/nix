@@ -7,7 +7,8 @@ delib.module {
   name = "programs.niri";
 
   home.ifEnabled =
-    { parent
+    { cfg
+    , parent
     , myconfig
     , ...
     }:
@@ -44,10 +45,9 @@ delib.module {
           ]
         else
           [ "walker" ];
-    in
-    {
 
-      programs.niri.settings.binds = {
+      # Base keybindings (shared across all hosts)
+      baseBinds = {
         # -----------------------------------------------------------------------
         # 🚀 APPLICATIONS
         # -----------------------------------------------------------------------
@@ -209,5 +209,11 @@ delib.module {
           "reload-config"
         ];
       };
+    in
+    {
+      # Merge base bindings with host-specific extraBinds
+      # Note: Touchpad gestures in niri are handled automatically via input.touchpad settings
+      # (natural-scroll, tap, etc.) - no explicit gesture bindings needed
+      programs.niri.settings.binds = baseBinds // (cfg.extraBinds or { });
     };
 }

@@ -85,8 +85,8 @@ window#waybar .modules-right > widget > box {
 #workspaces button {
   background-color: @base01;
   background-image: none;
-  margin: 4px 4px;
-  padding: 0;                     /* GTK buttons eat padding unevenly — use label instead */
+  margin: 0 4px;
+  padding: 4px 16px;
   min-width: 0;
   border-radius: 100px;
   color: @base05;
@@ -98,7 +98,7 @@ window#waybar .modules-right > widget > box {
 }
 
 #workspaces button label {
-  padding: 4px 16px;              /* all sizing on label for reliable pill shape */
+  padding: 0;
   min-width: 28px;
 }
 
@@ -145,16 +145,15 @@ window#waybar #window {
   min-width: 0;
 }
 
-/* Hide empty window module gracefully */
+/* Style "empty" window module (shows user/hostname via rewrite rule) */
 #window.empty {
-  background: transparent;
+  background-color: @base01;
   border: none;
   box-shadow: none;
-  padding: 0;
-  margin: 0;
-  min-width: 0;
-  min-height: 0;
-  opacity: 0;
+  padding: 4px 16px;
+  margin: 0 4px;
+  border-radius: 100px;
+  color: @base05;
 }
 
 #window.empty label {
