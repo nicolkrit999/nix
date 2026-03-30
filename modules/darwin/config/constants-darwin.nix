@@ -19,8 +19,9 @@ delib.module {
       terminal = {
         name = strOption "alacritty"; # Terminal emulator app name
         cursorStyle = strOption "block"; # block, beam, underline
-        cursorBlink = boolOption false;
-        animation = boolOption false; # Enable transient prompt animation on command execution
+        cursorBlink = boolOption true; # Blinking cursor (true = better UX for locating cursor)
+        cursorBeamWidth = floatOption 3.0; # Beam cursor width in pixels or cell fraction
+        animation = boolOption true; # Enable transient prompt animation on command execution
       };
       shell = strOption "bash";
       browser = strOption "firefox";

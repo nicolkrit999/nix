@@ -44,15 +44,15 @@ delib.module {
       };
 
       hyprland = {
-        rounding = intOption 10; # Corner radius in pixels (0 = sharp, 10 = refined rounded)
-        gap = intOption 5; # Inner gap between windows; outer gap is derived as 2× in hyprland-main
-        borderSize = intOption 2; # Border thickness in pixels (2 = visible but not distracting)
-        terminalOpacity = floatOption 0.9; # Terminal background opacity (0.9 = subtle transparency)
+        rounding = intOption 10;
+        gap = intOption 5;
+        borderSize = intOption 2;
+        terminalOpacity = floatOption 1.0;
       };
 
       niri = {
-        gap = intOption 8; # Gap between windows and screen edges (single value; 8px = one grid unit, between Hyprland's gaps_in=5 and gaps_out=10)
-        rounding = intOption 10; # Window corner radius in pixels — matches hyprland.rounding for visual coherence
+        gap = intOption 8;
+        rounding = intOption 10;
       };
 
       terminal = {
