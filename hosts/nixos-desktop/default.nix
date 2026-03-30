@@ -143,6 +143,7 @@ delib.host {
           name = myTerminal;
           cursorStyle = "block";
           cursorBlink = true;
+          cursorBeamWidth = 3.0;
           animation = true; # Enable transient prompt animation
         };
       };

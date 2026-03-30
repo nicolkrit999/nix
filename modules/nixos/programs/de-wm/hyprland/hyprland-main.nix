@@ -123,17 +123,17 @@ delib.module {
           ++ cfg.execOnce;
 
           general = {
-            gaps_in = myconfig.constants.hyprland.gap or 5;
-            gaps_out = (myconfig.constants.hyprland.gap or 5) * 2; # Outer gap = 2× inner (design principle: breathing room from screen edges)
-            border_size = myconfig.constants.hyprland.borderSize or 2; # Thin, clean border
+            # Gaps and borders
+            gaps_in = myconfig.constants.hyprland.gap or 5; # Inner gap:
+            gaps_out = (myconfig.constants.hyprland.gap or 10) * 2; # Outer gap: 2× inner
+            border_size = myconfig.constants.hyprland.borderSize or 2;
 
             "col.active_border" =
               if myconfig.constants.theme.catppuccin then
                 "$accent"
               else
-                "rgb(${config.lib.stylix.colors.base0D})"; # Accent blue — clearly signals focus without being loud
+                "rgb(${config.lib.stylix.colors.base0D})";
 
-            # Inactive: subtle semi-transparent border (base02 @ 40% opacity) so window edges stay readable; not fully transparent
             "col.inactive_border" = lib.mkForce "rgba(${config.lib.stylix.colors.base02}66)";
 
             resize_on_border = true;
@@ -148,40 +148,35 @@ delib.module {
             inactive_opacity = 1.0; # Opacity of unfocused windows (1.0 = fully opaque)
             shadow = {
               enabled = true;
-              range = 8; # Tighter spread (was 15) — softer, less heavy
-              render_power = 3; # Natural falloff curve
-              color = lib.mkForce "rgba(00000066)"; # 40% opacity (was 50%) — subtle depth without crushing darks
-              offset = "0 3"; # Slight downward offset for physical grounding
+              range = 8; # Shadow spread
+              render_power = 3;
+              color = lib.mkForce "rgba(00000066)";
+              offset = "0 3";
             };
 
             blur = {
-              enabled = true; # Frosted-glass effect behind transparent windows/waybar
-              size = 8; # Moderate radius — quality without GPU strain
-              passes = 2; # 2 passes needed at size 8 for clean result
+              enabled = true;
+              size = 8;
+              passes = 2;
             };
           };
 
           animations = {
-            enabled = true; # Master toggle for all animations
+            enabled = true;
 
-            # Bezier curves define the acceleration/deceleration pattern
-            # Format: "name, x1, y1, x2, y2" (control points for cubic bezier)
             bezier = [
               "easeOutExpo, 0.16, 1, 0.3, 1" # Fast start, slow end (exponential ease-out)
               "easeInOutQuad, 0.45, 0, 0.55, 1" # Symmetric acceleration (quadratic ease-in-out)
               "easeOutBack, 0.34, 1.56, 0.64, 1" # Overshoot then settle (bouncy feel)
             ];
 
-            # Animation format: "type, enabled, speed, curve, [style]"
-            # Speed unit = 1 ds = 100ms. So speed 3 = 300ms, speed 4 = 400ms.
-            # Material Design recommends 150-300ms for desktop micro-interactions.
             animation = [
               "windows, 1, 3, easeOutExpo" # Window move/resize: 300ms — snappy
               "windowsIn, 1, 3, easeOutBack, popin 80%" # Window open: 300ms, slight overshoot = lively feel
               "windowsOut, 1, 2, easeOutExpo, popin 80%" # Window close: 200ms — should feel quicker than open
               "fade, 1, 2, easeOutExpo" # Opacity: 200ms — barely perceptible, keeps it clean
-              "border, 1, 3, easeOutExpo" # Border color: 300ms (was 500ms, too slow)
-              "workspaces, 1, 4, easeInOutQuad, slide" # Workspace: 400ms — slightly longer feels intentional
+              "border, 1, 3, easeOutExpo" # Border color: 300ms
+              "workspaces, 1, 4, easeInOutQuad, slide" # Workspace: 400ms — slightly longer for spatial awareness
             ];
           };
 
@@ -215,9 +210,6 @@ delib.module {
           };
 
           windowrulev2 = [
-            # Removed "bordersize 0" rule - we want focused window to always have border
-            # Inactive windows have transparent border via col.inactive_border
-
             #ShowMeTheKey  fixes. ShowMetheKey is a GTK app for displaying keypresses on screen.
             "float,class:(mpv)|(imv)|(showmethekey-gtk)" # Float media viewers and ShowMeTheKey
             "move 990 60,size 900 170,pin,noinitialfocus,class:(showmethekey-gtk)" # Position ShowMeTheKey
@@ -273,7 +265,6 @@ delib.module {
           ++ cfg.windowRules;
 
           workspace = [
-            # Removed "w[tv1], gapsout:0, gapsin:0" - we want gaps even with single window
             "f[1], gapsout:0, gapsin:0" # No gaps only if window is fullscreen
           ]
           ++ (cfg.monitorWorkspaces or [ ]);

@@ -86,7 +86,13 @@ delib.host {
         # ---------------------------------------------------------------
         # 🐚 SHELLS & APPS
         # ---------------------------------------------------------------
-        terminal.name = myTerminal;
+        terminal = {
+          name = myTerminal;
+          cursorStyle = "block";
+          cursorBlink = true;
+          cursorBeamWidth = 3.0;
+          animation = true;
+        };
         shell = myShell;
         browser = myBrowser;
         editor = myEditor;

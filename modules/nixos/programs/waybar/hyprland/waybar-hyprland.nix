@@ -68,7 +68,7 @@ delib.module {
 
         "hyprland/workspaces" = {
           disable-scroll = true;
-          show-special = false;
+          show-special = true;
           all-outputs = false;
           format = "{id}{icon}";
           format-icons = cfg.waybarWorkspaceIcons // { default = ""; };
