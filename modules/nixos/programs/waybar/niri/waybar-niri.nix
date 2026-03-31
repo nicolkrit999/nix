@@ -61,7 +61,7 @@ delib.module {
         margin-right = 16;
 
         modules-left = [ "niri/workspaces" ];
-        modules-center = [ "clock" "niri/window" ];
+        modules-center = [ "clock" "custom/window" ];
         modules-right =
           [ "niri/language" "custom/weather" "custom/connectivity" "pulseaudio" "battery" ]
           ++ (lib.optional (myconfig.services.swaync.enable or false) "custom/notification");
@@ -71,14 +71,17 @@ delib.module {
           on-click = "activate";
         };
 
-        "niri/window" = {
-          format = "{}";
-          icon = false;
-          max-length = 25;
-          separate-outputs = true;
-          rewrite = {
-            "^$" = "${myconfig.constants.user or "nix"} 󱄅 ${myconfig.constants.hostname or "nixos"}";
-          };
+        "custom/window" = {
+          exec = ''
+            title=$(niri msg focused-window 2>/dev/null | ${pkgs.jq}/bin/jq -r '.title // empty' 2>/dev/null)
+            if [ -z "$title" ]; then
+              echo "${myconfig.constants.user or "nix"} 󱄅 ${myconfig.constants.hostname or "nixos"}"
+            else
+              echo "$title" | cut -c1-25
+            fi
+          '';
+          interval = 1;
+          tooltip = false;
         };
 
         "niri/language" = {
