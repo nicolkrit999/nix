@@ -503,8 +503,11 @@ delib.host {
       services = {
         audio.enable = true;
         hyprlock.enable = true;
-        sddm-pixie = {
+        sddm-astronaut = {
           enable = true;
+        };
+        sddm-pixie = {
+          enable = false;
           #hourFormat = "24h"; # 12-hour format (AM/PM not supported by theme) FIXME: not working
           background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
           avatar = ../../users/krit/src/profile-picture/face-512.jpg;
