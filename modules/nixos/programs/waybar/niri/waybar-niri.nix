@@ -73,11 +73,11 @@ delib.module {
 
         "custom/window" = {
           exec = ''
-            title=$(niri msg focused-window 2>/dev/null | ${pkgs.jq}/bin/jq -r '.title // empty' 2>/dev/null)
-            if [ -z "$title" ]; then
+            title=$(niri msg -j focused-window 2>/dev/null | ${pkgs.jq}/bin/jq -r '.title // empty' 2>/dev/null)
+            if [ -z "$title" ] || [ "$title" = "null" ]; then
               echo "${myconfig.constants.user or "nix"} 󱄅 ${myconfig.constants.hostname or "nixos"}"
             else
-              echo "$title" | cut -c1-25
+              printf "%.25s" "$title"
             fi
           '';
           interval = 1;
