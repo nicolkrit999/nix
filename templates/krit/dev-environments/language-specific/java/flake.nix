@@ -63,7 +63,7 @@
 
               # LSP & IDE Support
               jdt-language-server
-              #jetbrains.idea-community
+              jetbrains.idea
 
               # DAP / Debugging / Testing (VSCode Extensions for Neovim)
               vscode-extensions.vscjava.vscode-java-debug
