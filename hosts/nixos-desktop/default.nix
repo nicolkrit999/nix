@@ -431,8 +431,8 @@ delib.host {
           ];
           extraBinds = {
             # 🖱️ LOGITECH MX MASTER Thumb button gestures
-            "XF86Tools".action.focus-workspace-up = [ ]; # Swipe Left: Previous workspace
-            "XF86Launch5".action.focus-workspace-down = [ ]; # Swipe Right: Next workspace
+            "XF86Tools".action.focus-column-left = [ ]; # Swipe Left: Focus previous column
+            "XF86Launch5".action.focus-column-right = [ ]; # Swipe Right: Focus next column
             "XF86Launch6".action.maximize-column = [ ]; # Swipe Up: Maximize column
             "XF86Launch7".action.close-window = [ ]; # Swipe Down: Close window
           };
