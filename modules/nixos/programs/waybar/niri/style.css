@@ -117,10 +117,10 @@ window#waybar .modules-right > widget > box {
 }
 
 /* ----------------------------------------------------------------------- */
-/* CENTER MODULE (Window Title)                                             */
+/* CENTER MODULE (Window Title - custom module)                             */
 /* ----------------------------------------------------------------------- */
 
-window#waybar #window {
+#custom-window {
   padding: 4px 16px;
   margin: 0 4px;
   background-color: @base01;
@@ -128,37 +128,6 @@ window#waybar #window {
   border: none;
   outline: none;
   color: @base05;
-}
-
-#window label {
-  padding: 0;
-  background-color: transparent;
-}
-
-/* Reset any child box/container inside window to prevent ghosts */
-#window box {
-  background: transparent;
-  box-shadow: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  min-width: 0;
-}
-
-/* Style "empty" window module (shows user/hostname via rewrite rule) */
-#window.empty {
-  background-color: @base01;
-  border: none;
-  box-shadow: none;
-  padding: 4px 16px;
-  margin: 0 4px;
-  border-radius: 100px;
-  color: @base05;
-}
-
-#window.empty label {
-  padding: 0;
-  min-width: 0;
 }
 
 /* ----------------------------------------------------------------------- */
