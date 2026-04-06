@@ -59,7 +59,7 @@
               ncurses
               patchelf
               zlib
-              nodejs
+              nodejs_latest
 
               # LSP & IDE Support
               jdt-language-server

@@ -43,6 +43,7 @@ delib.module {
         shellPkg
         age
         nix-prefetch-scripts
+        nodenv # Support for multiple node versions
       ];
 
       environment.systemPath = [

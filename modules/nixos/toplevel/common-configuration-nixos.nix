@@ -87,6 +87,7 @@ delib.module {
           nix-prefetch-scripts # Tools to get hashes for nix derivations (used in every shell modules)
           wget # Downloader
           curl # Downloader
+          nodenv # Support for multiple node versions
 
           # --- SYSTEM TOOLS ---
           foot # Tiny, zero-config terminal (Rescue tool)
