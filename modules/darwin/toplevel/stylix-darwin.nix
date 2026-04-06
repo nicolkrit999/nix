@@ -67,6 +67,7 @@ delib.module {
         bat.enable = !isCatppuccin;
         lazygit.enable = !isCatppuccin;
         starship.enable = !isCatppuccin;
+        gtksourceview.enable = false; # Could cause slow-downs during rebuilds. See "https://github.com/nix-community/stylix/discussions/2232#discussion-9598872"
       } // cfg.targets;
     };
 }

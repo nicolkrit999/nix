@@ -61,6 +61,7 @@ delib.module {
         # Nix maintenance
         dedup = "nix store optimise";
         cg = "nix-collect-garbage -d";
+        nix-gc-roots = "nix-store --gc --print-roots";
         deadnixfixall = "nix run github:astro/deadnix -- -e ${flakeDir}";
         deadnixscanall = "nix run github:astro/deadnix -- ${flakeDir}";
 

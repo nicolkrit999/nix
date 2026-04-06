@@ -125,6 +125,7 @@ delib.module {
             gtk.enable = !isCatppuccin;
             swaync.enable = !isCatppuccin;
             tmux.enable = !isCatppuccin;
+            gtksourceview.enable = false; # Could cause slow-downs during rebuilds. See "https://github.com/nix-community/stylix/discussions/2232#discussion-9598872"
           } // cfg.targets;
         }
       ];

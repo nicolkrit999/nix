@@ -201,7 +201,7 @@ delib.module {
       # SYSTEM TWEAKS
       # -----------------------------------------------------
 
-      boot.initrd.systemd.enable = true; # Used for hosts that installed using disko-cnfig with luks
+      boot.initrd.systemd.enable = true; # Allow systemd services such as hybernation/sleep, unlock luks at boot, tpm integration, etc
       # Reduce shutdown wait time for stuck services
       systemd.settings.Manager = {
         DefaultTimeoutStopSec = "10s";
