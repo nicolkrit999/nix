@@ -68,6 +68,8 @@ delib.module {
     {
       environment.systemPackages = [
         pkgs.claude-code
+        pkgs.nodejs_24
+        pkgs.bun
       ];
     };
 
@@ -79,10 +81,15 @@ delib.module {
   };
 
   nixos.ifEnabled = { ... }: {
-    environment.systemPackages = [ pkgs.claude-code ];
+    environment.systemPackages = [
+      pkgs.claude-code
+      pkgs.nodejs_24
+      pkgs.bun
+    ];
   };
 
   home.ifEnabled = { myconfig, ... }: {
+    home.sessionVariables.CLAUDE_BINARY = "${pkgs.claude-code}/bin/.claude-unwrapped";
     programs.git.ignores = [
       # Claude code
       "*.jsonl"
