@@ -76,8 +76,11 @@ delib.module {
   # ===========================================================================
   # NIXOS CONFIGURATION
   # ===========================================================================
-  nixos.always = {
+  nixos.always = { ... }: {
     imports = [ inputs.claude-cowork-service.nixosModules.default ];
+    nixpkgs.overlays = [
+      inputs.claude-code.overlays.default
+    ];
   };
 
   nixos.ifEnabled = { ... }: {
@@ -89,10 +92,7 @@ delib.module {
   };
 
   home.ifEnabled = { myconfig, ... }: {
-    home.sessionVariables.CLAUDE_BINARY =
-      if pkgs.stdenv.isDarwin
-      then "${pkgs.claude-code}/bin/.claude-unwrapped"
-      else "${pkgs.claude-code}/bin/claude";
+    home.sessionVariables.CLAUDE_BINARY = "${pkgs.claude-code}/bin/.claude-unwrapped";
     programs.git.ignores = [
       # Claude code
       "*.jsonl"
