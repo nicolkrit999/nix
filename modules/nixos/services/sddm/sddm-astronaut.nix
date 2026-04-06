@@ -13,7 +13,7 @@ delib.module {
     }:
     let
       sddmTheme = pkgs.sddm-astronaut.override {
-        embeddedTheme = "jake_the_dog";
+        embeddedTheme = "hyprland_kath";
         themeConfig = {
           HourFormat = "hh:mm AP"; # FIXME: not working
         };

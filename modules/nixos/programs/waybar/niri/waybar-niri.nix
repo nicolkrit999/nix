@@ -63,7 +63,7 @@ delib.module {
         modules-left = [ "niri/workspaces" ];
         modules-center = [ "clock" "custom/window" ];
         modules-right =
-          [ "niri/language" "custom/weather" "custom/connectivity" "pulseaudio" "battery" ]
+          [ "niri/language" "custom/weather" "custom/wifi" "custom/bluetooth" "pulseaudio" "battery" ]
           ++ (lib.optional (myconfig.services.swaync.enable or false) "custom/notification");
 
         "niri/workspaces" = {
@@ -75,7 +75,7 @@ delib.module {
           exec = ''
             title=$(niri msg -j focused-window 2>/dev/null | ${pkgs.jq}/bin/jq -r '.title // empty' 2>/dev/null)
             if [ -z "$title" ] || [ "$title" = "null" ]; then
-              echo "${myconfig.constants.user or "nix"} 󱄅 ${myconfig.constants.hostname or "nixos"}"
+              echo "${myconfig.constants.user or "nix"}<span font_family='JetBrainsMono Nerd Font Propo'>󱄅</span>${myconfig.constants.hostname or "nixos"}"
             else
               printf "%.25s" "$title"
             fi
@@ -150,27 +150,35 @@ delib.module {
           tooltip = false;
         };
 
-        "custom/connectivity" = {
+        "custom/wifi" = {
           format = "{}";
           exec = ''
             wifi_info=$(nmcli -t -f active,ssid dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2)
             if [ -n "$wifi_info" ]; then
-              net="<span color='${c.base0C}'>󰤨</span> $wifi_info"
+              echo "<span color='${c.base0C}'>󰤨</span> $wifi_info"
             elif nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -q "ethernet:connected"; then
-              net="<span color='${c.base0C}'>󰈀</span> ${myconfig.constants.hostname or "nixos"}"
+              echo "<span color='${c.base0C}'>󰈀</span> ${myconfig.constants.hostname or "nixos"}"
             else
-              net="<span color='${c.base03}'>󰤭</span> offline"
+              echo "<span color='${c.base03}'>󰤭</span> offline"
             fi
-            if bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then
-              bt="<span color='${c.base0D}'>󰂯</span>"
-            else
-              bt="<span color='${c.base03}'>󰂲</span>"
-            fi
-            echo "$net | $bt"
           '';
           interval = 5;
           on-click = "nm-connection-editor";
-          on-click-right = "blueman-manager";
+          tooltip = false;
+        };
+
+        "custom/bluetooth" = {
+          format = "{}";
+          exec = ''
+            if bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then
+              echo "<span color='${c.base0D}'>󰂯</span>"
+            else
+              echo "<span color='${c.base03}'>󰂲</span>"
+            fi
+          '';
+          interval = 5;
+          on-click = "blueman-manager";
+          tooltip = false;
         };
       };
 
