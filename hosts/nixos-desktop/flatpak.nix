@@ -33,6 +33,13 @@ delib.module {
           enable = true;
           onCalendar = "weekly";
         };
+
+        overrides = {
+          "com.rtosta.zapzap".Context.filesystems = [ "home" ]; # Download/save WhatsApp files
+          "com.github.unrud.VideoDownloader".Context.filesystems = [ "xdg-download" ]; # Save downloaded videos
+          "com.actualbudget.actual".Context.filesystems = [ "home" ]; # Import/export budget files
+          "me.iepure.devtoolbox".Context.filesystems = [ "home" ]; # Open/save files for conversion tools
+        };
       };
     };
 }
