@@ -12,6 +12,40 @@ delib.module {
     let
       guestUid = 2000;
 
+      # Pre-seeded XFCE config to suppress all first-run setup dialogs.
+      guestXfceConfigSkel = pkgs.runCommand "guest-xfce-config-skel" { } ''
+        mkdir -p $out/xfce4/xfconf/xfce-perchannel-xml
+
+        # Suppress panel first-run / layout dialog
+        cat > $out/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml <<'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <channel name="xfce4-panel" version="1.0">
+          <property name="configver" type="int" value="2"/>
+        </channel>
+        EOF
+
+        # Suppress display setup helper (xfce4-display-settings --minimal)
+        cat > $out/xfce4/xfconf/xfce-perchannel-xml/displays.xml <<'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <channel name="displays" version="1.0">
+        </channel>
+        EOF
+
+        # Suppress session save/restore dialog, disable crash recovery prompt
+        cat > $out/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml <<'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <channel name="xfce4-session" version="1.0">
+          <property name="general" type="empty">
+            <property name="SaveOnExit" type="bool" value="false"/>
+            <property name="PromptOnLogout" type="bool" value="false"/>
+          </property>
+          <property name="startup" type="empty">
+            <property name="screensaver-manager" type="string" value=""/>
+          </property>
+        </channel>
+        EOF
+      '';
+
       # 🛡️ THE MONITOR SCRIPT (reboot if on non-XFCE session)
       guestMonitorScript = pkgs.writeShellScriptBin "guest-monitor" ''
         # Safety check: Only run for guest
@@ -81,11 +115,14 @@ delib.module {
         ];
       };
 
-      # 🎯 FORCE XFCE PREFERENCE
+      # 🎯 FORCE XFCE PREFERENCE + PRE-SEED CONFIG
       systemd.tmpfiles.rules = [
         "d /var/lib/AccountsService/users 0755 root root -"
         "f /var/lib/AccountsService/users/guest 0644 root root - [User]\\nSession=xfce\\n"
         "f /home/.hidden 0644 root root - guest" # Hide the guest folder from file managers if the user is not guest
+        # Seed XFCE xfconf so first-run/setup dialogs are suppressed on every boot.
+        # 'C' copies from source only if destination does not exist — perfect for tmpfs homes.
+        "C /home/guest/.config 0700 ${toString guestUid} ${toString guestUid} - ${guestXfceConfigSkel}"
       ];
 
       # 🖥️ DESKTOP ENVIRONMENT
