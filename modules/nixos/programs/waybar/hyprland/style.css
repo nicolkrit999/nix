@@ -168,7 +168,8 @@ window#waybar #window {
 #pulseaudio,
 #language,
 #custom-weather,
-#custom-connectivity,
+#custom-wifi,
+#custom-bluetooth,
 #custom-notification {
   padding: 4px 16px;
   margin: 0 4px;
