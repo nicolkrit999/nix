@@ -36,7 +36,7 @@ delib.module {
       });
 
       home.packages = with pkgs; [
-        nodejs # Ensure it's installed to allow copilot.lua to work
+        nodejs_latest # Ensure it's installed to allow copilot.lua to work
       ];
 
       programs.neovim = {

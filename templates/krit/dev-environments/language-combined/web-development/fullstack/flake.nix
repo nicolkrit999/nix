@@ -35,7 +35,7 @@
 
             packages = with pkgs; [
 
-              nodejs_22 # Includes 'node' and 'npm'
+              nodejs_latest # Includes 'node' and 'npm'
               corepack # Includes 'pnpm' and 'yarn'
               typescript
               vscode-langservers-extracted # Language servers for HTML/CSS/JSON

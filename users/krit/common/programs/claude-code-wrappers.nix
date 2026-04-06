@@ -71,7 +71,6 @@ let
     pkgs.poppler-utils # pdf/pptx/docx — pdftoppm, pdftotext, pdfimages
     pkgs.tesseract # pdf — OCR for scanned documents
     pkgs.uv # fast Python package installer (fallback for non-nix envs)
-    pkgs.nodejs # docx (npm install -g docx), pptx (npm install -g pptxgenjs)
   ];
 
   # All shared packages

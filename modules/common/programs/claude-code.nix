@@ -68,7 +68,7 @@ delib.module {
     {
       environment.systemPackages = [
         pkgs.claude-code
-        pkgs.nodejs_24
+        pkgs.nodejs_latest
         pkgs.bun
       ];
     };
@@ -83,7 +83,7 @@ delib.module {
   nixos.ifEnabled = { ... }: {
     environment.systemPackages = [
       pkgs.claude-code
-      pkgs.nodejs_24
+      pkgs.nodejs_latest
       pkgs.bun
     ];
   };
