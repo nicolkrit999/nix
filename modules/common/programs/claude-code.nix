@@ -89,7 +89,10 @@ delib.module {
   };
 
   home.ifEnabled = { myconfig, ... }: {
-    home.sessionVariables.CLAUDE_BINARY = "${pkgs.claude-code}/bin/.claude-unwrapped";
+    home.sessionVariables.CLAUDE_BINARY =
+      if pkgs.stdenv.isDarwin
+      then "${pkgs.claude-code}/bin/.claude-unwrapped"
+      else "${pkgs.claude-code}/bin/claude";
     programs.git.ignores = [
       # Claude code
       "*.jsonl"
