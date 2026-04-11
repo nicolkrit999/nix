@@ -55,7 +55,7 @@ delib.host {
         fzf.nix-search-tv.enable = true;
         television.enable = true;
         zoxide.enable = true;
-        claude-code.enable = true;
+        claude-code.enable = false;
         shell-aliases.enable = true;
       };
 
@@ -75,13 +75,11 @@ delib.host {
 
       home-packages.enable = true;
 
-
-
       # ---------------------------------------------------------------
       # 👤 KRIT PROGRAMS
       # ---------------------------------------------------------------
       krit.programs = {
-        direnv.enable = false; # Currently not working due to upstream issue, use homebrew
+        direnv.enable = true; # Currently not working due to upstream issue, use homebrew
         neovim.enable = true;
         firefox.enable = true;
         librewolf.enable = false; # disabled: librewolf-148.0 fails
@@ -96,12 +94,9 @@ delib.host {
         };
       };
 
-
-
       # ---------------------------------------------------------------
       # 👤 KRIT SERVICES
       # ---------------------------------------------------------------
-
 
       krit.services.nas = {
         Krits-MacBook-Pro-borg-backup.enable = true;

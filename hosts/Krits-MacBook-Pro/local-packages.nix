@@ -58,7 +58,7 @@ delib.module {
         brews = [
           "node"
           "pipes-sh"
-          "direnv"
+          #"direnv"
           "yt-dlp"
         ];
 
