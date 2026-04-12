@@ -100,14 +100,14 @@ delib.host {
         wallpapers = [
           {
             targetMonitor = "eDP-1";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/anime/Kurumi-Ebisuzawa.png";
-            wallpaperSHA256 = "1rn290hx0vl70w1dvksqrp8n713zyswc0gm98zsh962nw9jrkmrk";
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/ChrisTitusTech/ChrisTitusTech/nord-background/at_the_coffeshop.png";
+            wallpaperSHA256 = "14jnknqia3p2szg9qzyi3h2kb0pz0wj7ypvzx0fi449pq54vr931";
           }
 
           {
             targetMonitor = "*";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/minimalistic/gruv.jpg";
-            wallpaperSHA256 = "0zz7x7b2da3c6iyhkd4jvbaidbxv2fzrfrj7v97mknn7gzjp8ny9";
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/linuxdotexe/nordic-wallpapers/ign_Carvan-2.png";
+            wallpaperSHA256 = "03n3kh7mz26cnyah1pnnrs2msxmdd6s9qwcnj9pxzif1q2xpdv4r";
           }
         ];
 
@@ -116,7 +116,7 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "gruvbox-material-dark-soft";
+          base16Theme = "nord";
           catppuccin = false;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "teal";
@@ -255,7 +255,7 @@ delib.host {
         };
 
         waybar-niri = {
-          enable = true;
+          enable = false;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
           };
@@ -269,7 +269,7 @@ delib.host {
         noctalia = {
           enable = false;
           enableOnHyprland = false;
-          enableOnNiri = false;
+          enableOnNiri = true;
         };
 
         hyprland = {
@@ -284,7 +284,7 @@ delib.host {
             "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
             "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
             "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
-            #"sh -c 'sleep 5 && protonvpn-app --start-minimized'"
+            "sh -c 'sleep 5 && protonvpn-app --start-minimized'"
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
           ];
           # Hyprland handle gracefully in case the monitor count is different
@@ -418,7 +418,7 @@ delib.host {
             "${myEditor}"
             "${myFileManager}"
             "${myTerminal}"
-            #"sh -c 'sleep 5 && protonvpn-app --start-minimized'"
+            "sh -c 'sleep 5 && protonvpn-app --start-minimized'"
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
           ];
           extraBinds = {
@@ -499,8 +499,11 @@ delib.host {
 
         audio.enable = true;
         hyprlock.enable = true;
-        sddm-pixie = {
+        sddm-astronaut = {
           enable = true;
+        };
+        sddm-pixie = {
+          enable = false;
           #hourFormat = "24h"; # 12-hour format (AM/PM not supported by theme) FIXME: not working
           background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
           avatar = ../../users/krit/src/profile-picture/face-512.jpg;
@@ -589,9 +592,9 @@ delib.host {
       # ---------------------------------------------------------------
       krit.specializations = {
         school.enable = true;
-        entertainment.enable = false;
+        entertainment.enable = true;
         deep-focus.enable = true;
-        safe-mode.enable = false;
+        safe-mode.enable = true;
         secure-travel.enable = true;
       };
 
