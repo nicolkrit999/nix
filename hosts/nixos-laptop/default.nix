@@ -375,7 +375,7 @@ delib.host {
         };
 
         niri = {
-          enable = true;
+          enable = false;
           outputs = {
             "eDP-1" = {
               mode = {
