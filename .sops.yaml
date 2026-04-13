@@ -10,7 +10,7 @@ keys:
   # ---------------------------------------------------------------
   - &nixos-desktop age1nvr3ges07kcl6h4lmmfl23lc07rl7njq9seyl4hp7uut4k8v53qquhfugp
   - &Krits-MacBook-Pro age14q0q9ulmz3shshr7vqfh37w0udz74uyv6xf6uywgavgsqfnf2yhqtyzkcj
-  # - &nixos-laptop
+  - &nixos-laptop age1lpf8kampchc63sgxsf6j7mscc22tpp93er3peztkyhyjth33ygrslzkz7l
 
 creation_rules:
   # ---------------------------------------------------------------
@@ -23,6 +23,15 @@ creation_rules:
           - *krit # You can decrypt (user "krit")
           - *nixos-desktop # The machine can decrypt (hostname "nixos-desktop")
 
+  # ---------------------------------------------------------------
+  # 🔒 Secrets for "nixos-laptop"
+  # Any file inside hosts/nixos-laptop/ ending in secrets-sops.yaml will use these keys
+  # ---------------------------------------------------------------
+  - path_regex: hosts/nixos-laptop/.*secrets-sops\.yaml$
+    key_groups:
+      - age:
+          - *krit # You can decrypt (user "krit")
+          - *nixos-laptop # The machine can decrypt (hostname "nixos-desktop")
 
   # ---------------------------------------------------------------
   # 🔒 Secrets for "Krits-MacBook-Pro"
@@ -42,8 +51,8 @@ creation_rules:
       - age:
           - *krit # You can decrypt (user krit)
           - *nixos-desktop # Desktop (nixos-desktop)
+          - *nixos-laptop # Laptop (nixos-laptop)
           - *Krits-MacBook-Pro # Laptop (nix-darwin)
-          # - *nixos_laptop # Laptop (nixos-laptop)
 
   # 🔒 (Example) Rules for a future host
   # ---------------------------------------------------------------
