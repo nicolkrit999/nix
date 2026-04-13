@@ -28,7 +28,6 @@ delib.module {
   nixos.ifEnabled = {
     programs.niri = {
       enable = true;
-      package = pkgs.niri;
     };
   };
 }

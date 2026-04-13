@@ -267,7 +267,7 @@ delib.host {
         };
 
         noctalia = {
-          enable = false;
+          enable = true;
           enableOnHyprland = false;
           enableOnNiri = true;
         };
@@ -275,7 +275,7 @@ delib.host {
         hyprland = {
           enable = true;
           monitors = [
-            "eDP-1,3200x2000@120,0x0,1"
+            "eDP-1,3200x2000@120,0x0,1.6"
             "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
             "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
           ];
@@ -375,7 +375,7 @@ delib.host {
         };
 
         niri = {
-          enable = false;
+          enable = true;
           outputs = {
             "eDP-1" = {
               mode = {
