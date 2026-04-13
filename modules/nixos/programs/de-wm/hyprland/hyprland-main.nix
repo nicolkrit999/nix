@@ -14,6 +14,7 @@ delib.module {
       monitorWorkspaces = listOfOption str [ ];
       windowRules = listOfOption str [ ];
       extraBinds = listOfOption str [ ];
+      extraBindl = listOfOption str [ ];
     };
 
   home.ifEnabled =
