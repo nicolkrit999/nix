@@ -153,7 +153,8 @@ delib.module {
           ", XF86AudioPause, exec, playerctl play-pause" # Pause playback
           ", XF86AudioPlay,  exec, playerctl play-pause" # Play playback
           ", XF86AudioPrev,  exec, playerctl previous" # Previous track
-        ];
+        ]
+        ++ (cfg.extraBindl or [ ]);
 
       };
     };
