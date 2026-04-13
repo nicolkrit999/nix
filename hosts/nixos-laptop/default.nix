@@ -267,7 +267,7 @@ delib.host {
         };
 
         noctalia = {
-          enable = true;
+          enable = false;
           enableOnHyprland = false;
           enableOnNiri = true;
         };
