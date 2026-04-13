@@ -71,6 +71,10 @@ delib.host {
 
     # Laptop-specific hardware — Intel Arc (Panther Lake iGPU, xe driver)
     hardware.enableRedistributableFirmware = true; # Enables Intel CPU microcode updates (important for new Panther Lake platform)
+    # Intel SOF (Sound Open Firmware) — required for Panther Lake audio.
+    # The snd_sof_pci_intel_ptl kernel driver loads but immediately fails without
+    # these firmware blobs; hardware.enableRedistributableFirmware does not include them.
+    hardware.firmware = with pkgs; [ sof-firmware ];
     hardware.graphics = {
       enable = true;
       extraPackages = with pkgs; [
