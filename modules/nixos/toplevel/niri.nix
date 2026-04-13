@@ -14,6 +14,7 @@ delib.module {
     imports = [
       inputs.niri.nixosModules.niri
     ];
+    programs.niri.package = pkgs.niri;
   };
 
   # Standalone homeConfigurations: import niri home module directly
