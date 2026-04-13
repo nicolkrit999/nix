@@ -1,5 +1,6 @@
 { delib
 , inputs
+, lib
 , pkgs
 , ...
 }:
@@ -68,8 +69,19 @@ delib.host {
       !include /run/secrets/github_fg_pat_token_nix
     '';
 
-    # Laptop-specific hardware
-    hardware.graphics.enable = true;
+    # Laptop-specific hardware — Intel Arc (Panther Lake iGPU, xe driver)
+    hardware.enableRedistributableFirmware = true; # Enables Intel CPU microcode updates (important for new Panther Lake platform)
+    hardware.graphics = {
+      enable = true;
+      extraPackages = with pkgs; [
+        intel-media-driver # iHD VA-API backend for Arc/Xe hardware video acceleration
+        intel-compute-runtime # OpenCL support
+      ];
+    };
+
+    # Panther Lake is too new for thermald's thermal profile database — without a matching
+    # profile it applies conservative fallback limits that throttle CPU+GPU unnecessarily.
+    services.thermald.enable = lib.mkForce false;
 
     # Laptop-specific packages
     environment.systemPackages = with pkgs; [
