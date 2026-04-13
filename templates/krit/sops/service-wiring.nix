@@ -17,6 +17,8 @@
   myconfig.krit.services.nas.smb.credentialsFile = config.sops.secrets.nas-krit-credentials.path;
   myconfig.krit.services.nas.desktop-borg-backup.passphraseFile = config.sops.secrets.borg-passphrase.path;
   myconfig.krit.services.nas.desktop-borg-backup.sshKeyPath = config.sops.secrets.borg-private-key.path;
+  myconfig.krit.services.nas.laptop-borg-backup.passphraseFile = config.sops.secrets.borg-passphrase.path;
+  myconfig.krit.services.nas.laptop-borg-backup.sshKeyPath = config.sops.secrets.borg-private-key.path;
   myconfig.krit.services.nas.owncloud.secretsFile = config.sops.templates."davfs-secrets".path;
 
   # Wire tailscale auth key
