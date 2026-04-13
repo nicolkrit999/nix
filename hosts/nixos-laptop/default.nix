@@ -571,7 +571,7 @@ delib.host {
       };
 
       krit.services.logitech = {
-        enable = true;
+        enable = false;
         mouses = {
           mx-master-3s.enable = true;
           mx-master-4.enable = true;

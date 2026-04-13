@@ -4,6 +4,12 @@ delib.module {
   options = delib.singleEnableOption false;
 
   nixos.ifEnabled = { myconfig, ... }: {
+    # Ensure .ssh dir is owned by the user before sops-nix runs (sops creates
+    # secrets with custom paths into .ssh/, which would make root own the dir)
+    systemd.tmpfiles.rules = [
+      "d /home/${myconfig.constants.user}/.ssh 0700 ${myconfig.constants.user} users -"
+    ];
+
     environment.systemPackages = [ pkgs.cloudflared ];
     programs.ssh.knownHosts = {
       "gitea-ssh.nicolkrit.ch" = {
