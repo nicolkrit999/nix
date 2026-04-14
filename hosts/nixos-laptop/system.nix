@@ -74,7 +74,20 @@ delib.host {
     # Intel SOF (Sound Open Firmware) — required for Panther Lake audio.
     # The snd_sof_pci_intel_ptl kernel driver loads but immediately fails without
     # these firmware blobs; hardware.enableRedistributableFirmware does not include them.
-    hardware.firmware = with pkgs; [ sof-firmware ];
+    # Pinned to v2025.12.2 (latest): nixpkgs ships v2025.05.1 whose topology ABI 3.29
+    # is ahead of kernel 6.19's ABI 3.23, causing sof_sdw jack registration to fail
+    # (-ENOTSUPP) and killing all audio.  v2025.12.2 has additional SDCA topology
+    # fixes.  Revisit when nixpkgs updates or when the kernel catches up to ABI 3.29+.
+    hardware.firmware = with pkgs; [
+      (sof-firmware.overrideAttrs (_old: rec {
+        version = "2025.12.2";
+        src = pkgs.fetchurl {
+          url = "https://github.com/thesofproject/sof-bin/releases/download/v${version}/sof-bin-${version}.tar.gz";
+          hash = "sha256-Uz9j46bZTAnOBaeCZXtnX6aD/yB4fAl5Imz1Y+x59Rc=";
+        };
+      }))
+      alsa-firmware
+    ];
     hardware.graphics = {
       enable = true;
       extraPackages = with pkgs; [
@@ -91,7 +104,10 @@ delib.host {
     # Without this, the kernel defaults to S3 deep sleep which this hardware does not
     # support — causing a freeze on resume. s2idle keeps the CPU in a shallow idle loop
     # so the Intel Xe driver can properly save/restore display state.
-    boot.kernelParams = [ "mem_sleep_default=s2idle" ];
+    boot.kernelParams = [
+      "mem_sleep_default=s2idle"
+      "rtc_cmos.use_acpi_alarm=1" # Panther Lake: use ACPI alarm for RTC wakeup (prevents s2idle freeze)
+    ];
 
     # acpid handles all lid events at the system level — works regardless of compositor
     # (Hyprland, Niri, KDE, GNOME, etc.). Logind is told to ignore lid events so
@@ -141,7 +157,21 @@ delib.host {
                   fi
                 '
             else
-              # No external monitors: suspend normally (s2idle handles resume correctly)
+              # No external monitors: turn off display first, then suspend.
+              # Turning DPMS off before suspend prevents the lock-screen GPU shader
+              # from racing with the s2idle entry on Panther Lake's Intel Xe driver.
+              runuser -u "$USER_NAME" -- env \
+                XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
+                WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
+                PATH="$PATH" \
+                sh -c '
+                  if hyprctl dispatch dpms off >/dev/null 2>&1; then
+                    :
+                  elif niri msg output eDP-1 off >/dev/null 2>&1; then
+                    :
+                  fi
+                '
+              sleep 1
               systemctl suspend
             fi
           else

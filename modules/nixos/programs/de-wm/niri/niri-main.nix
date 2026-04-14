@@ -76,7 +76,7 @@ delib.module {
             };
             touchpad = {
               tap = true;
-              natural-scroll = true;
+              natural-scroll = false;
             };
             mouse.accel-profile = "flat";
           };

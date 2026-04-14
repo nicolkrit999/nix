@@ -276,8 +276,7 @@ delib.host {
           enable = true;
           monitors = [
             "eDP-1,3200x2000@120,0x0,1.6"
-            "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
-            "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
+            ",preferred,auto,1"
           ];
           execOnce = [
             # If the lid is already closed at boot (clamshell mode), disable the internal display
@@ -291,18 +290,7 @@ delib.host {
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
           ];
           # Hyprland handle gracefully in case the monitor count is different
-          monitorWorkspaces = [
-            "1, monitor:DP-1"
-            "2, monitor:DP-1"
-            "3, monitor:DP-1"
-            "4, monitor:DP-1"
-            "5, monitor:DP-1"
-            "6, monitor:DP-2"
-            "7, monitor:DP-2"
-            "8, monitor:DP-2"
-            "9, monitor:DP-2"
-            "10, monitor:DP-2"
-          ];
+          monitorWorkspaces = [ ];
 
           windowRules = [
             # 1. Smart Launcher Rules
@@ -385,34 +373,6 @@ delib.host {
                 width = 3200;
                 height = 2000;
                 refresh = 120.0;
-              };
-            };
-            "DP-1" = {
-              mode = {
-                width = 3840;
-                height = 2160;
-                refresh = 240.0;
-              };
-              scale = 1.5;
-              position = {
-                x = 1440;
-                y = 560;
-              };
-            };
-            "DP-2" = {
-              mode = {
-                width = 3840;
-                height = 2160;
-                refresh = 144.0;
-              };
-              scale = 1.5;
-              position = {
-                x = 0;
-                y = 0;
-              };
-              transform = {
-                rotation = 90;
-                flipped = false;
               };
             };
           };
@@ -596,6 +556,7 @@ delib.host {
       # 🎭 KRIT SPECIALIZATIONS
       # ---------------------------------------------------------------
       krit.specializations = {
+        home.enable = true;
         school.enable = true;
         entertainment.enable = true;
         deep-focus.enable = true;
