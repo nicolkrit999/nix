@@ -116,9 +116,9 @@ delib.module {
         "battery" = {
           states = { warning = 20; critical = 5; };
           format = "<span color='${c.base0A}'>{icon}</span> {capacity}%";
-          format-charging = "<span color='${c.base0B}'></span> {capacity}%";
+          format-charging = "<span color='${c.base0B}'>󰂄</span> {capacity}%";
           format-alt = "{time} <span color='${c.base0A}'>{icon}</span>";
-          format-icons = [ "" "" "" "" "" ];
+          format-icons = [ "󰂎" "󰁻" "󰁾" "󰂀" "󰁹" ];
         };
 
         "clock" = {
