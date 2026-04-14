@@ -69,15 +69,13 @@ delib.host {
       !include /run/secrets/github_fg_pat_token_nix
     '';
 
-    # Laptop-specific hardware — Intel Arc (Panther Lake iGPU, xe driver)
-    hardware.enableRedistributableFirmware = true; # Enables Intel CPU microcode updates (important for new Panther Lake platform)
-    # Intel SOF (Sound Open Firmware) — required for Panther Lake audio.
-    # The snd_sof_pci_intel_ptl kernel driver loads but immediately fails without
-    # these firmware blobs; hardware.enableRedistributableFirmware does not include them.
-    # Pinned to v2025.12.2 (latest): nixpkgs ships v2025.05.1 whose topology ABI 3.29
-    # is ahead of kernel 6.19's ABI 3.23, causing sof_sdw jack registration to fail
-    # (-ENOTSUPP) and killing all audio.  v2025.12.2 has additional SDCA topology
-    # fixes.  Revisit when nixpkgs updates or when the kernel catches up to ABI 3.29+.
+    # Laptop-specific hardware — Intel Arc B390 (12 Xe3 cores, integrated in Panther Lake X7 358H SoC, xe driver)
+    hardware.enableRedistributableFirmware = true; # Intel CPU microcode + GPU firmware for Panther Lake
+    # Intel SOF (Sound Open Firmware) — required for Panther Lake audio (CS42L43+CS35L56 via SoundWire).
+    # Pinned to v2025.12.2: nixpkgs ships v2025.05.1 which lacks SDCA topology fixes
+    # needed for Dell PTL. Audio will remain broken (dummy output) until kernel 7.0+
+    # which has ABI 3.29+ and Dell PTL audio quirks. Keep this override for the firmware
+    # blobs; revisit when nixpkgs bumps sof-firmware to >= v2025.12.2.
     hardware.firmware = with pkgs; [
       (sof-firmware.overrideAttrs (_old: rec {
         version = "2025.12.2";
@@ -98,95 +96,44 @@ delib.host {
 
     # Panther Lake is too new for thermald's thermal profile database — without a matching
     # profile it applies conservative fallback limits that throttle CPU+GPU unnecessarily.
+    # mkForce overrides auto-cpufreq.nix which enables thermald by default.
     services.thermald.enable = lib.mkForce false;
 
+    # KERNEL OVERRIDE — blocked until nixpkgs fixes modules-shrunk for kernel 7.0 (aes_generic
+    # is built-in in 7.0 but the initrd builder expects it as a loadable .ko, breaking LUKS).
+    # Uncomment once linuxPackages_latest ships 7.0+ with the fix:
+    # boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
+
     # Panther Lake (2025/2026) uses Intel Modern Standby (S0ix / s2idle).
-    # Without this, the kernel defaults to S3 deep sleep which this hardware does not
-    # support — causing a freeze on resume. s2idle keeps the CPU in a shallow idle loop
-    # so the Intel Xe driver can properly save/restore display state.
     boot.kernelParams = [
       "mem_sleep_default=s2idle"
-      "rtc_cmos.use_acpi_alarm=1" # Panther Lake: use ACPI alarm for RTC wakeup (prevents s2idle freeze)
+      "rtc_cmos.use_acpi_alarm=1" # Use ACPI alarm for RTC wakeup (prevents s2idle freeze)
     ];
 
-    # acpid handles all lid events at the system level — works regardless of compositor
-    # (Hyprland, Niri, KDE, GNOME, etc.). Logind is told to ignore lid events so
-    # it doesn't race with acpid.
-    # KDE and GNOME listen to ACPI events directly via upower/powerdevil/gsd-power,
-    # so setting logind to "ignore" does NOT affect their built-in clamshell handling.
+    # TEMPORARY WORKAROUND — Panther Lake Xe3 lid-close freeze (kernel 6.19.x)
+    # The Intel Xe driver freezes during suspend/resume triggered by lid close.
+    # Previous attempts that FAILED: xe.enable_display_rps=0, acpid DPMS-off-before-suspend.
+    # Nuclear option: ignore lid for suspend so closing it never triggers sleep.
+    # Instead, acpid locks the session on lid close (via loginctl → hypridle → hyprlock).
+    # The laptop stays running with lid closed — wasteful but avoids the freeze and stays locked.
+    # Manual suspend from the DE power menu still works (but may still freeze).
+    # REMOVE THIS (logind ignore + acpid lock handler) when kernel 7.0+ lands with Xe3 suspend/resume fixes.
     services.logind.settings.Login.HandleLidSwitch = "ignore";
     services.logind.settings.Login.HandleLidSwitchExternalPower = "ignore";
+    services.logind.settings.Login.HandleLidSwitchDocked = "ignore";
 
     services.acpid = {
       enable = true;
-      handlers.lid-switch = {
+      handlers.lid-lock = {
         event = "button/lid.*";
         action = ''
-          USER_NAME="${myUserName}"
-          USER_ID=$(id -u "$USER_NAME" 2>/dev/null) || exit 1
-          XDG_RUNTIME_DIR="/run/user/$USER_ID"
-          PATH="/run/current-system/sw/bin:$PATH"
-
-          # Detect active Wayland socket from the running compositor process
-          COMPOSITOR_PID=$(pgrep -u "$USER_NAME" -x "Hyprland" 2>/dev/null || pgrep -u "$USER_NAME" -x "niri" 2>/dev/null | head -1)
-          if [ -n "$COMPOSITOR_PID" ]; then
-            WAYLAND_DISPLAY=$(tr '\0' '\n' < /proc/$COMPOSITOR_PID/environ 2>/dev/null | grep "^WAYLAND_DISPLAY=" | cut -d= -f2-)
-          fi
-          WAYLAND_DISPLAY=''${WAYLAND_DISPLAY:-wayland-1}
-
-          # Check if lid is closing or opening
+          # Lock session on lid close so the laptop is protected even though we skip suspend.
           LID_STATE=$(cat /proc/acpi/button/lid/*/state 2>/dev/null | head -1)
-
           if echo "$LID_STATE" | grep -q "closed"; then
-            # Check for connected external displays (anything that is not eDP or LVDS)
-            EXTERNAL=$(find /sys/class/drm -name "status" 2>/dev/null | \
-              grep -Eiv "eDP|LVDS" | \
-              xargs grep -l "^connected" 2>/dev/null | head -1)
-
-            if [ -n "$EXTERNAL" ]; then
-              # External monitor(s) active: clamshell — disable internal display, keep running
-              runuser -u "$USER_NAME" -- env \
-                XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
-                WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
-                PATH="$PATH" \
-                sh -c '
-                  if hyprctl monitors -j >/dev/null 2>&1; then
-                    hyprctl keyword monitor eDP-1,disable
-                  elif niri msg outputs >/dev/null 2>&1; then
-                    niri msg output eDP-1 off
-                  fi
-                '
-            else
-              # No external monitors: turn off display first, then suspend.
-              # Turning DPMS off before suspend prevents the lock-screen GPU shader
-              # from racing with the s2idle entry on Panther Lake's Intel Xe driver.
-              runuser -u "$USER_NAME" -- env \
-                XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
-                WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
-                PATH="$PATH" \
-                sh -c '
-                  if hyprctl dispatch dpms off >/dev/null 2>&1; then
-                    :
-                  elif niri msg output eDP-1 off >/dev/null 2>&1; then
-                    :
-                  fi
-                '
-              sleep 1
-              systemctl suspend
-            fi
-          else
-            # Lid opened: re-enable the internal display
-            runuser -u "$USER_NAME" -- env \
-              XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
-              WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
-              PATH="$PATH" \
-              sh -c '
-                if hyprctl monitors -j >/dev/null 2>&1; then
-                  hyprctl keyword monitor eDP-1,3200x2000@120,0x0,1.6
-                elif niri msg outputs >/dev/null 2>&1; then
-                  niri msg output eDP-1 on
-                fi
-              '
+            USER_ID=$(id -u "${myUserName}" 2>/dev/null) || exit 1
+            XDG_RUNTIME_DIR="/run/user/$USER_ID"
+            # loginctl lock-session triggers hypridle's lock_cmd (universal-lock → hyprlock)
+            runuser -u "${myUserName}" -- env XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" loginctl lock-session
           fi
         '';
       };
