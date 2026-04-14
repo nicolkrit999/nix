@@ -122,21 +122,9 @@ delib.host {
     services.logind.settings.Login.HandleLidSwitchExternalPower = "ignore";
     services.logind.settings.Login.HandleLidSwitchDocked = "ignore";
 
+
     services.acpid = {
       enable = true;
-      handlers.lid-lock = {
-        event = "button/lid.*";
-        action = ''
-          # Lock session on lid close so the laptop is protected even though we skip suspend.
-          LID_STATE=$(cat /proc/acpi/button/lid/*/state 2>/dev/null | head -1)
-          if echo "$LID_STATE" | grep -q "closed"; then
-            USER_ID=$(id -u "${myUserName}" 2>/dev/null) || exit 1
-            XDG_RUNTIME_DIR="/run/user/$USER_ID"
-            # loginctl lock-session triggers hypridle's lock_cmd (universal-lock → hyprlock)
-            runuser -u "${myUserName}" -- env XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" loginctl lock-session
-          fi
-        '';
-      };
     };
 
     # Laptop-specific packages
