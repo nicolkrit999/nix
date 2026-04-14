@@ -17,8 +17,8 @@ let
     editor = "2";
     fileManager = "3";
     terminal = "4";
-    browser-Entertainment = "5";
-    chat = "6";
+    chat = "5";
+    browser-Entertainment = "6";
     vm = "7";
     other = "10";
   };
@@ -244,8 +244,8 @@ delib.host {
             "2" = ":";
             "3" = ":";
             "4" = ":";
-            "5" = ":";
-            "6" = ":󰭹";
+            "5" = ":󰭹";
+            "6" = ":";
             "7" = "";
             "8" = "";
             "9" = "";
@@ -289,8 +289,14 @@ delib.host {
             "sh -c 'sleep 5 && protonvpn-app --start-minimized'"
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
           ];
-          # Hyprland handle gracefully in case the monitor count is different
-          monitorWorkspaces = [ ];
+
+          monitorWorkspaces = [
+            "1, monitor:eDP-1"
+            "2, monitor:eDP-1"
+            "3, monitor:eDP-1"
+            "4, monitor:eDP-1"
+            "5, monitor:eDP-1"
+          ];
 
           windowRules = [
             # 1. Smart Launcher Rules
