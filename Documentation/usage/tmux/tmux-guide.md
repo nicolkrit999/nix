@@ -1,12 +1,14 @@
 # Tmux Reference Guide
 
 > **Note:** **`Alt`** = the **`Meta`** (`M-`) key. Most bindings work **without a prefix** — just press `Alt + key` directly.
-> The classic tmux prefix is **`Ctrl + b`**, used only for a handful of standard commands listed at the bottom.
+> The classic tmux prefix is **`Ctrl + b`**, used only for built-in commands listed throughout this guide.
 - For macOS (darwin) `Alt` is `Option`.
 
 ---
 
 ## Quick Reference Card
+
+### Custom Binds (no prefix needed)
 
 | Category | Key | Action |
 | :------- | :-- | :----- |
@@ -16,13 +18,31 @@
 | **Resize** | `Alt + Shift + Arrow` | Resize current pane |
 | **Windows** | `Alt + Enter` | New window (tab) |
 | **Windows** | `Alt + 1–9` | Jump to window by number |
-| **Windows** | `Ctrl + p / n` | Previous / next window |
 | **Pane** | `Alt + c` | Close current pane |
 | **Window** | `Alt + q` | Close current window + all its panes |
 | **Session** | `Alt + d` | Detach (keep everything running) |
 | **Session** | `Alt + Shift + s` | Create a new named session |
 | **Session** | `Alt + Shift + q` | Kill entire session (stop everything) |
 | **Config** | `Alt + r` | Reload tmux config |
+
+### Built-in Commands (prefix: `Ctrl + b`)
+
+| Category | Key | Action |
+| :------- | :-- | :----- |
+| **Pane** | `Ctrl + b`, `z` | Zoom/unzoom pane (temporary fullscreen) |
+| **Pane** | `Ctrl + b`, `!` | Break pane into its own window |
+| **Pane** | `Ctrl + b`, `o` | Cycle focus through panes |
+| **Pane** | `Ctrl + b`, `{` / `}` | Swap pane with previous / next |
+| **Pane** | `Ctrl + b`, `space` | Cycle through pane layouts |
+| **Windows** | `Ctrl + b`, `Ctrl + p` | Previous window |
+| **Windows** | `Ctrl + b`, `Ctrl + n` | Next window |
+| **Windows** | `Ctrl + b`, `,` | Rename current window |
+| **Windows** | `Ctrl + b`, `.` | Move/renumber window |
+| **Windows** | `Ctrl + b`, `w` | Interactive window/session tree picker |
+| **Session** | `Ctrl + b`, `s` | Interactive session switcher |
+| **Session** | `Ctrl + b`, `$` | Rename current session |
+| **Copy** | `Ctrl + b`, `[` | Enter copy/scroll mode |
+| **Command** | `Ctrl + b`, `:` | Open tmux command prompt |
 
 ---
 
@@ -105,10 +125,32 @@ Start with `Alt + v`, then in the right pane press `Alt + h`:
 | Move focus right | `Alt + →` | |
 | Move focus up | `Alt + ↑` | |
 | Move focus down | `Alt + ↓` | |
+| Cycle focus through panes | `Ctrl + b`, then `o` | Alternative to arrow keys |
 | Make pane wider | `Alt + Shift + →` | +5 columns per press |
 | Make pane narrower | `Alt + Shift + ←` | -5 columns per press |
 | Make pane taller | `Alt + Shift + ↑` | +3 rows per press |
 | Make pane shorter | `Alt + Shift + ↓` | -3 rows per press |
+
+### Pane Zoom
+
+Press **`Ctrl + b`, then `z`** to temporarily fullscreen a pane. The pane expands to fill the entire window. Press the same combo again to restore the original layout. Very useful when you need to see more of one pane without closing the split.
+
+```
+Before zoom:                          After Ctrl+b, z:
+┌──────────┬──────────┐              ┌─────────────────────┐
+│  editor  │  output  │     →       │                     │
+│          │          │              │       output        │
+└──────────┴──────────┘              │     (zoomed)        │
+                                     └─────────────────────┘
+```
+
+### Rearranging Panes
+
+| I want to... | Key | Notes |
+| :----------- | :-- | :---- |
+| Swap pane with previous | `Ctrl + b`, then `{` | Swaps position, not focus |
+| Swap pane with next | `Ctrl + b`, then `}` | |
+| Cycle pane layout | `Ctrl + b`, then `space` | Rotates: even-horizontal → even-vertical → main-horizontal → main-vertical → tiled |
 
 ---
 
@@ -132,8 +174,45 @@ Windows are like browser tabs — each can have its own set of panes.
 | Switch to window 3 | `Alt + 3` | |
 | Go to previous window | `Ctrl + b`, then `Ctrl + p` | Cycles left |
 | Go to next window | `Ctrl + b`, then `Ctrl + n` | Cycles right |
+| Browse all windows | `Ctrl + b`, then `w` | Interactive tree picker |
+| Rename current window | `Ctrl + b`, then `,` | Type new name, press Enter |
+| Move/renumber window | `Ctrl + b`, then `.` | Type target number |
 | Close just this pane | `Alt + c` | Other panes in the window stay |
 | Close the whole window | `Alt + q` | All panes inside are destroyed |
+
+### Breaking and Rejoining Panes
+
+You can move panes between windows — useful when a split outgrows its space or you want to recombine things.
+
+| I want to... | Key | Notes |
+| :----------- | :-- | :---- |
+| Break pane into new window | `Ctrl + b`, then `!` | Current pane becomes its own tab |
+| Send pane to window N | `Ctrl + b`, `:` → `join-pane -t N` | Pane moves to window N as a split |
+| Pull pane from window N | `Ctrl + b`, `:` → `join-pane -s N` | Pulls window N back in as a split |
+| Swap window positions | `Ctrl + b`, `:` → `swap-window -t N` | Swaps current window with window N |
+
+**Full break/rejoin workflow:**
+
+```
+1. You have a split in window 1:
+   ┌──────────┬──────────┐
+   │  editor  │  output  │  [1] main
+   └──────────┴──────────┘
+
+2. Focus the "output" pane (Alt + →), then break it out:
+   Ctrl + b, !
+   ┌─────────────────────┐    ┌─────────────────────┐
+   │       editor        │    │       output         │
+   │                     │    │                      │
+   └─────────────────────┘    └─────────────────────┘
+   [1] main                   [2] output
+
+3. Later, rejoin it. Go to window 1, then:
+   Ctrl + b, :  →  join-pane -s 2
+   ┌──────────┬──────────┐
+   │  editor  │  output  │  [1] main  (back together)
+   └──────────┴──────────┘
+```
 
 **Example workflow:**
 
@@ -165,9 +244,11 @@ Sessions:
 | :----------- | :------------ | :---- |
 | Create a new session | `Alt + Shift + s` → type name → Enter | Switches to the new session |
 | List & switch sessions | `Ctrl + b`, then `s` | Arrow keys to select |
+| Browse everything | `Ctrl + b`, then `w` | Shows sessions + windows tree |
 | Rename current session | `Ctrl + b`, then `$` | |
 | Detach (leave running) | `Alt + d` | Terminal closes, session stays alive |
 | Reattach from terminal | `tmux attach` | Picks up exactly where you left off |
+| Attach to specific session | `tmux attach -t work` | By session name |
 | Kill current session | `Alt + Shift + q` | Destroys all windows in the session |
 
 **Example workflow:**
@@ -210,12 +291,22 @@ Just use the **mouse wheel** — tmux enters copy mode automatically. Scroll up 
 | Step | Key | Action |
 | :--- | :-- | :----- |
 | Enter copy mode | `Ctrl + b`, then `[` | Cursor appears |
+| **Movement** | | |
 | Move around | `h j k l` or Arrow keys | vi-style movement |
+| Word forward / backward | `w` / `b` | Jump by word |
+| Start / end of line | `0` / `$` | |
+| Top / bottom of buffer | `g` / `G` | |
 | Jump half page up | `Ctrl + u` | |
 | Jump half page down | `Ctrl + d` | |
-| Search upward | `/` then type | Press `n` for next match |
-| Start selection | `v` | Visual mode |
-| Copy selection | `y` | Yanks to clipboard |
+| **Searching** | | |
+| Search forward | `/` then type | Press `n` for next, `N` for previous |
+| Search backward | `?` then type | Press `n` for next, `N` for previous |
+| **Selecting & Copying** | | |
+| Start selection | `v` | Visual mode (character) |
+| Line selection | `V` | Visual line mode |
+| Rectangle selection | `Ctrl + v` | Block/column selection |
+| Copy selection | `y` | Yanks to Wayland clipboard |
+| **Exit** | | |
 | Exit copy mode | `q` or `Escape` | Returns to normal mode |
 
 ---
@@ -234,17 +325,32 @@ Just use the **mouse wheel** — tmux enters copy mode automatically. Scroll up 
 
 ---
 
-## System & Config
+## Tmux Command Prompt
 
-| Key | Action |
-| :-- | :----- |
-| `Alt + r` | Reloads `~/.config/tmux/tmux.conf` — apply config changes without restarting |
-| `Ctrl + b`, then `Ctrl + p` | Go to previous window |
-| `Ctrl + b`, then `Ctrl + n` | Go to next window |
-| `Ctrl + b`, then `s` | Interactive session switcher |
-| `Ctrl + b`, then `$` | Rename current session |
-| `Ctrl + b`, then `[` | Enter copy/scroll mode |
-| Mouse wheel | Scroll up (enters copy mode automatically) |
+Press **`Ctrl + b`, then `:`** to open the command prompt. Useful commands:
+
+| Command | Action |
+| :------ | :----- |
+| `join-pane -t N` | Send current pane to window N |
+| `join-pane -s N` | Pull pane from window N into current window |
+| `swap-window -t N` | Swap current window with window N |
+| `move-window -t N` | Renumber current window to N |
+| `list-keys` | Show all active keybindings |
+| `display-panes` | Flash pane numbers (useful for identifying panes) |
+
+---
+
+## Config Notes
+
+These features are configured in `modules/common/programs/shells/tmux.nix`:
+
+- **Image passthrough** is enabled (`allow-passthrough on`) — terminal file managers like yazi can display image previews inside tmux
+- **RGB color support** is active for kitty, alacritty, and xterm-256color terminals
+- **Mouse drag** in copy mode automatically copies to the Wayland clipboard via `wl-copy`
+- **Windows start at 1** (not 0) — matches keyboard number row
+- **Vi key mode** is active — affects copy mode navigation (h/j/k/l, v for select, y for yank)
+- **Zero escape time** — no delay after pressing Escape (important for vi/neovim users)
+- **Catppuccin theme** applied automatically when enabled in host constants
 
 ---
 
