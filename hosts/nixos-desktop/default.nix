@@ -161,7 +161,12 @@ delib.host {
       guest.enable = true;
       home-packages.enable = true;
       mime.enable = true;
-      nh.enable = true;
+
+      nh = {
+        enable = true;
+        gcd = "30d";
+        gcn = "3";
+      };
       qt.enable = true;
 
       zram = {
