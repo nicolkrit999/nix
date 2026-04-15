@@ -382,11 +382,12 @@ delib.host {
           };
           execOnce = [
             "${myBrowser}"
-            "${smartLaunch myEditor}"
-            "${smartLaunch myFileManager}"
-            "${myTerminal}"
+            "sh -c 'sleep 2 && ${smartLaunch myEditor}'"
+            "sh -c 'sleep 3 && ${smartLaunch myFileManager}'"
+            "sh -c 'sleep 4 && ${myTerminal}'"
             "sh -c 'sleep 5 && protonvpn-app --start-minimized'"
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
+            "sh -c 'sleep 10 && niri msg action focus-column-first'" # Refocus browser after all windows are up
           ];
           extraBinds = {
             # 🖱️ LOGITECH MX MASTER Thumb button gestures
