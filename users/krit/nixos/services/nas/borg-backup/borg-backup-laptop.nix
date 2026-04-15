@@ -139,9 +139,9 @@ delib.module {
       };
       systemd.timers.borgmatic = {
         timerConfig = {
-          OnCalendar = "18:00";
+          OnCalendar = "10:00";
           Persistent = true;
-          RandomizedDelaySec = "5m";
+          RandomizedDelaySec = "10m";
         };
       };
       services.tailscale.enable = lib.mkForce true;
