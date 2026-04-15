@@ -26,7 +26,6 @@ delib.module {
       # HOST IDENTITY
       # ---------------------------------------------------------
       networking.hostName = myconfig.constants.hostname;
-      networking.networkmanager.enable = true;
       system.stateVersion = myconfig.constants.stateVersion or "25.11";
 
       # ---------------------------------------------------------
