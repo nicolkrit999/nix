@@ -426,14 +426,14 @@ delib.host {
             };
           };
           execOnce = [
-            "${myBrowser}"
-            "sh -c 'sleep 2 && ${smartLaunch myEditor}'"
-            "sh -c 'sleep 3 && ${smartLaunch myFileManager}'"
-            "sh -c 'sleep 4 && ${myTerminal}'"
-            "sh -c 'sleep 5 && chromium-browser'"
-            #"sh -c 'sleep 5 && protonvpn-app --start-minimized'"
-            "sh -c 'sleep 5 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
-            "sh -c 'sleep 12 && niri msg action focus-column-first'" # Refocus browser after all windows are up
+            "sh -c 'sleep 1 && ${myBrowser}'"
+            "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
+            "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
+            "sh -c 'sleep 11 && ${myTerminal}'"
+            "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
+            "sh -c 'sleep 17 && chromium-browser'"
+            #"sh -c 'sleep 19 && protonvpn-app --start-minimized'"
+            "sh -c 'sleep 30 && niri msg action focus-column-first'" # Refocus browser after all windows are up
           ];
           extraBinds = {
             # 🖱️ LOGITECH MX MASTER Thumb button gestures
