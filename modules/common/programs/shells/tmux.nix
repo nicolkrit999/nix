@@ -72,8 +72,8 @@ delib.module {
           bind -n M-S-Down resize-pane -D 3
 
           # Splitting
-          bind -n M-w split-window -v -c "#{pane_current_path}"
-          bind -n M-e split-window -h -c "#{pane_current_path}"
+          bind -n M-v split-window -v -c "#{pane_current_path}"
+          bind -n M-h split-window -h -c "#{pane_current_path}"
 
           # Sessions management
           bind -n M-d detach-client
