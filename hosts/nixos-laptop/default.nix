@@ -382,8 +382,8 @@ delib.host {
           };
           execOnce = [
             "${myBrowser}"
-            "${myEditor}"
-            "${myFileManager}"
+            "${smartLaunch myEditor}"
+            "${smartLaunch myFileManager}"
             "${myTerminal}"
             "sh -c 'sleep 5 && protonvpn-app --start-minimized'"
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity

@@ -422,8 +422,8 @@ delib.host {
           };
           execOnce = [
             "${myBrowser}"
-            "${myEditor}"
-            "${myFileManager}"
+            "${smartLaunch myEditor}"
+            "${smartLaunch myFileManager}"
             "${myTerminal}"
             "chromium-browser"
             #"sh -c 'sleep 5 && protonvpn-app --start-minimized'"
