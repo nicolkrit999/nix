@@ -10,20 +10,16 @@ delib.module {
     {
       wayland.windowManager.hyprland.settings = {
         gesture = [
-          # 4-FINGER SWIPES (Workspaces)
-          # Hands move right -> next workspace. Hands move left -> previous.
-          "4, right, dispatcher, workspace, m+1"
-          "4, left,  dispatcher, workspace, m-1"
+          # 3-FINGER SWIPES (Primary navigation — matches niri defaults & macOS/GNOME)
+          "3, right, dispatcher, workspace, m+1" # Next workspace
+          "3, left,  dispatcher, workspace, m-1" # Previous workspace
+          "3, up,    fullscreen" # Fullscreen/maximize
+          "3, down,  close" # Close window
 
-          # 4-FINGER PINCHES (Apps & Windows)
-          # Pinch in (outer to small) opens Walker. Pinch out (inner to large) fullscreens.
-          "4, pinchin,  dispatcher, exec, $menu"
-          "4, pinchout, fullscreen"
-
-          # 3-FINGER SWIPES (Window Management)
-          "3, down, close" # 3-finger swipe down kills the active window
-          "3, up,   special, magic" # 3-finger swipe up toggles your hidden scratchpad
-          "3, pinchin, float" # 3-finger pinch in toggles the window to floating mode
+          # 4-FINGER (Secondary actions)
+          "4, up,       dispatcher, exec, $menu" # App launcher (Walker)
+          "4, down,     special, magic" # Toggle scratchpad
+          "4, pinchin,  float" # Toggle floating
         ];
 
         bind = [

@@ -1,6 +1,22 @@
-{ delib, ... }:
+{ delib, pkgs, ... }:
 delib.module {
   name = "krit.services.logitech.mouses.superlight";
   options = delib.singleEnableOption false;
-  # Config is handled by logitech-main.nix which reads this enable flag
+
+  nixos.ifEnabled = {
+    environment.systemPackages = [ pkgs.keyd ];
+
+    boot.kernelModules = [ "uinput" ];
+
+    services.keyd.enable = true;
+    services.keyd.keyboards.superlight = {
+      ids = [ "046d:c54d" ];
+      settings = {
+        main = {
+          mouse1 = "C-c";
+          mouse2 = "C-v";
+        };
+      };
+    };
+  };
 }

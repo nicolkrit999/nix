@@ -127,8 +127,16 @@ delib.host {
       enable = true;
     };
 
+    # Force ACPI platform profile to "balanced" at boot — Dell firmware then applies its
+    # quieter fan curve designed for the XPS chassis. Without this, auto-cpufreq sets
+    # "custom" which bypasses Dell's thermal management and can cause louder fan behavior.
+    systemd.tmpfiles.rules = [
+      "w /sys/firmware/acpi/platform_profile - - - - balanced"
+    ];
+
     # Laptop-specific packages
     environment.systemPackages = with pkgs; [
+      lm_sensors # `sensors` command for monitoring temps/fans
     ];
   };
 }

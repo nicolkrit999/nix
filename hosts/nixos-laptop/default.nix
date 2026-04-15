@@ -279,8 +279,6 @@ delib.host {
             ",preferred,auto,1"
           ];
           execOnce = [
-            # If the lid is already closed at boot (clamshell mode), disable the internal display
-            "sh -c 'grep -q closed /proc/acpi/button/lid/*/state 2>/dev/null && hyprctl keyword monitor eDP-1,disable'"
             "hyprctl dispatch workspace 1"
             "[workspace 1 silent] ${myBrowser}"
             "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
@@ -383,8 +381,6 @@ delib.host {
             };
           };
           execOnce = [
-            # If the lid is already closed at boot (clamshell mode), disable the internal display
-            "sh -c 'grep -q closed /proc/acpi/button/lid/*/state 2>/dev/null && niri msg output eDP-1 off'"
             "${myBrowser}"
             "${myEditor}"
             "${myFileManager}"
