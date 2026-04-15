@@ -73,6 +73,12 @@ delib.host {
         };
       };
 
+      nh = {
+        enable = true;
+        gcd = "30d";
+        gcn = "10";
+      };
+
       home-packages.enable = true;
 
       # ---------------------------------------------------------------

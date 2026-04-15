@@ -1,15 +1,21 @@
 { delib, pkgs, ... }:
 delib.module {
   name = "nh";
-  options = delib.singleEnableOption true;
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption true;
+      gcd = strOption "30d";
+      gcn = strOption "3";
+    };
 
   nixos.ifEnabled =
-    { myconfig, ... }:
+    { cfg, myconfig, ... }:
     {
       programs.nh = {
         enable = true;
         clean.enable = true;
-        clean.extraArgs = "--keep-since 30d --keep 10";
+        clean.extraArgs = "--keep-since ${cfg.gcd} --keep ${cfg.gcn}";
         flake = "/home/${myconfig.constants.user}/nix";
       };
     };
