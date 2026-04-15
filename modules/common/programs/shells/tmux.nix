@@ -61,19 +61,27 @@ delib.module {
 
           # Pane Navigation
           bind -n M-Left select-pane -L
+          bind -n M-h select-pane -L
           bind -n M-Right select-pane -R
+          bind -n M-l select-pane -R
           bind -n M-Up select-pane -U
+          bind -n M-k select-pane -U
           bind -n M-Down select-pane -D
+          bind -n M-j select-pane -D
 
           # Resizing Panes
+          bind -n M-H resize-pane -L 5
           bind -n M-S-Left resize-pane -L 5
+          bind -n M-L resize-pane -R 5
           bind -n M-S-Right resize-pane -R 5
+          bind -n M-K resize-pane -U 3
           bind -n M-S-Up resize-pane -U 3
+          bind -n M-J resize-pane -D 3
           bind -n M-S-Down resize-pane -D 3
 
           # Splitting
-          bind -n M-v split-window -h -c "#{pane_current_path}"
-          bind -n M-h split-window -v -c "#{pane_current_path}"
+          bind -n M-w split-window -v -c "#{pane_current_path}"
+          bind -n M-e split-window -h -c "#{pane_current_path}"
 
           # Sessions management
           bind -n M-d detach-client
