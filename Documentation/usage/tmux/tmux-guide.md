@@ -12,10 +12,10 @@
 
 | Category | Key | Action |
 | :------- | :-- | :----- |
-| **Splits** | `Alt + v` | Split vertically (left \| right) |
-| **Splits** | `Alt + h` | Split horizontally (top / bottom) |
-| **Navigate** | `Alt + Arrow` | Move focus between panes |
-| **Resize** | `Alt + Shift + Arrow` | Resize current pane |
+| **Splits** | `Alt + w` | Split horizontally (top / bottom) |
+| **Splits** | `Alt + e` | Split vertically (left \| right) |
+| **Navigate** | `Alt + Arrow` or `Alt + h/j/k/l` | Move focus between panes |
+| **Resize** | `Alt + Shift + Arrow` or `Alt + Shift + H/J/K/L` | Resize current pane |
 | **Windows** | `Alt + Enter` | New window (tab) |
 | **Windows** | `Alt + 1–9` | Jump to window by number |
 | **Pane** | `Alt + c` | Close current pane |
@@ -66,7 +66,7 @@ You open a terminal — tmux starts automatically (configured via `programs.bash
 | :----------- | :-- | :----- |
 | Open a second terminal tab | `Alt + Enter` | Creates Window 2 |
 | Name the session | `Ctrl + b`, then `$` | Rename "0" → "work" |
-| Split my screen for code + output | `Alt + v` | Left pane + right pane |
+| Split my screen for code + output | `Alt + e` | Left pane + right pane |
 | Reload config after a change | `Alt + r` | Applies new settings live |
 
 ---
@@ -75,7 +75,7 @@ You open a terminal — tmux starts automatically (configured via `programs.bash
 
 ### Vertical split (side by side)
 
-Press **`Alt + v`** to split vertically. Your screen becomes:
+Press **`Alt + e`** to split vertically (**e**xpand). Your screen becomes:
 
 ```
 ┌───────────────────┬───────────────────┐
@@ -89,7 +89,7 @@ Press **`Alt + v`** to split vertically. Your screen becomes:
 
 ### Horizontal split (stacked)
 
-Press **`Alt + h`** to split horizontally. Your screen becomes:
+Press **`Alt + w`** to split horizontally (**w**ide). Your screen becomes:
 
 ```
 ┌───────────────────────────────────────┐
@@ -104,7 +104,7 @@ Press **`Alt + h`** to split horizontally. Your screen becomes:
 
 ### Combining both
 
-Start with `Alt + v`, then in the right pane press `Alt + h`:
+Start with `Alt + e`, then in the right pane press `Alt + w`:
 
 ```
 ┌───────────────────┬───────────────────┐
@@ -121,15 +121,15 @@ Start with `Alt + v`, then in the right pane press `Alt + h`:
 
 | I want to... | Key | Notes |
 | :----------- | :-- | :---- |
-| Move focus left | `Alt + ←` | |
-| Move focus right | `Alt + →` | |
-| Move focus up | `Alt + ↑` | |
-| Move focus down | `Alt + ↓` | |
+| Move focus left | `Alt + ←` or `Alt + h` | |
+| Move focus right | `Alt + →` or `Alt + l` | |
+| Move focus up | `Alt + ↑` or `Alt + k` | |
+| Move focus down | `Alt + ↓` or `Alt + j` | |
 | Cycle focus through panes | `Ctrl + b`, then `o` | Alternative to arrow keys |
-| Make pane wider | `Alt + Shift + →` | +5 columns per press |
-| Make pane narrower | `Alt + Shift + ←` | -5 columns per press |
-| Make pane taller | `Alt + Shift + ↑` | +3 rows per press |
-| Make pane shorter | `Alt + Shift + ↓` | -3 rows per press |
+| Make pane wider | `Alt + Shift + →` or `Alt + Shift + L` | +5 columns per press |
+| Make pane narrower | `Alt + Shift + ←` or `Alt + Shift + H` | -5 columns per press |
+| Make pane taller | `Alt + Shift + ↑` or `Alt + Shift + K` | +3 rows per press |
+| Make pane shorter | `Alt + Shift + ↓` or `Alt + Shift + J` | -3 rows per press |
 
 ### Pane Zoom
 
