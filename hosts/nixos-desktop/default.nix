@@ -428,7 +428,7 @@ delib.host {
             "sh -c 'sleep 5 && chromium-browser'"
             #"sh -c 'sleep 5 && protonvpn-app --start-minimized'"
             "sh -c 'sleep 5 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
-            "sh -c 'sleep 10 && niri msg action focus-column-first'" # Refocus browser after all windows are up
+            "sh -c 'sleep 12 && niri msg action focus-column-first'" # Refocus browser after all windows are up
           ];
           extraBinds = {
             # 🖱️ LOGITECH MX MASTER Thumb button gestures
