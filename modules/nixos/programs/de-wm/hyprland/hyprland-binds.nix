@@ -56,6 +56,7 @@ delib.module {
           "$Mod SHIFT, W, exec, pkill -x -SIGUSR1 waybar" # Toggle show/hide
 
           # SCREENSHOTS (Updated to Meta+Ctrl)
+          ", Print, exec, grimblast --notify --freeze copysave output" # Print Screen: Fullscreen
           "SUPER CTRL, 3, exec, grimblast --notify --freeze copysave output" # Fullscreen
           "SUPER CTRL, 4, exec, grimblast --notify --freeze copysave area" # Region
 
