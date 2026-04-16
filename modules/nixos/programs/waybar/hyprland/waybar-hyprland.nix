@@ -99,9 +99,11 @@ delib.module {
         };
 
         "pulseaudio" = {
-          format = "<span color='${c.base0D}'>{icon}</span> {volume}%";
-          format-bluetooth = "<span color='${c.base0D}'>{icon}</span> {volume}% ";
-          format-muted = "<span color='${c.base08}'>󰖁</span> Muted";
+          format = "<span color='${c.base0D}'>{icon}</span> {volume}%{format_source}";
+          format-bluetooth = "<span color='${c.base0D}'>{icon}</span> {volume}% {format_source}";
+          format-muted = "<span color='${c.base08}'>󰖁</span> Muted{format_source}";
+          format-source = " │ <span color='${c.base0B}'>󰍬</span>";
+          format-source-muted = " │ <span color='${c.base08}'>󰍭</span>";
           format-icons = {
             headphones = "󰋋";
             handsfree = "󰋎";
