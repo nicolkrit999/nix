@@ -63,7 +63,7 @@ delib.module {
         modules-left = [ "hyprland/workspaces" ];
         modules-center = [ "clock" "hyprland/window" ];
         modules-right =
-          [ "hyprland/language" "custom/weather" "custom/wifi" "custom/bluetooth" "pulseaudio" "battery" ]
+          [ "hyprland/language" "custom/weather" "custom/wifi" "custom/bluetooth" "pulseaudio" "custom/mic" "battery" ]
           ++ (lib.optional (myconfig.services.swaync.enable or false) "custom/notification");
 
         "hyprland/workspaces" = {
@@ -99,11 +99,9 @@ delib.module {
         };
 
         "pulseaudio" = {
-          format = "<span color='${c.base0D}'>{icon}</span> {volume}%{format_source}";
-          format-bluetooth = "<span color='${c.base0D}'>{icon}</span> {volume}% {format_source}";
-          format-muted = "<span color='${c.base08}'>󰖁</span> Muted{format_source}";
-          format-source = " │ <span color='${c.base0B}'>󰍬</span>";
-          format-source-muted = " │ <span color='${c.base08}'>󰍭</span>";
+          format = "<span color='${c.base0D}'>{icon}</span> {volume}%";
+          format-bluetooth = "<span color='${c.base0D}'>{icon}</span> {volume}%";
+          format-muted = "<span color='${c.base08}'>󰖁</span> Muted";
           format-icons = {
             headphones = "󰋋";
             handsfree = "󰋎";
@@ -114,6 +112,22 @@ delib.module {
             default = [ "󰕿" "󰖀" "󰕾" ];
           };
           on-click = "pavucontrol";
+        };
+
+        "custom/mic" = {
+          format = "{}";
+          exec = ''
+            if ! wpctl inspect @DEFAULT_AUDIO_SOURCE@ >/dev/null 2>&1; then
+              echo "<span color='${c.base08}'>󰍭</span>"
+            elif wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null | grep -q MUTED; then
+              echo "<span color='${c.base08}'>󰍭</span>"
+            else
+              echo "<span color='${c.base0B}'>󰍬</span>"
+            fi
+          '';
+          interval = 1;
+          on-click = "wpctl inspect @DEFAULT_AUDIO_SOURCE@ >/dev/null 2>&1 && wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
+          tooltip = false;
         };
 
         "battery" = {
