@@ -18,6 +18,11 @@ delib.module {
     {
       programs.plasma.hotkeys.commands = {
         # --- SPECTACLE (Meta + Ctrl) ---
+        "spectacle-print" = {
+          name = "Spectacle: Print Screen (Fullscreen)";
+          key = "Print";
+          command = "${spectacleCmd} -f";
+        };
         "spectacle-open" = {
           name = "Spectacle: Open";
           key = "Meta+Ctrl+0";

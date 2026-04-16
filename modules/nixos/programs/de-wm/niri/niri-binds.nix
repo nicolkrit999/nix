@@ -177,6 +177,17 @@ delib.module {
         # -----------------------------------------------------------------------
         # 📸 SCREENSHOTS
         # -----------------------------------------------------------------------
+        "Print".action.spawn = [
+          "bash"
+          "-c"
+          ''
+            file="$HOME/Pictures/Screenshots/Screenshot from $(date +'%Y-%m-%d %H-%M-%S').png"
+            mkdir -p "$(dirname "$file")"
+            grim "$file"
+            wl-copy < "$file"
+            notify-send "Screenshot" "Saved to $file and copied to clipboard"
+          ''
+        ];
         "Mod+Ctrl+3".action.spawn = [
           "bash"
           "-c"
