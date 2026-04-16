@@ -148,6 +148,16 @@ delib.module {
           "s"
           "10%-"
         ];
+        "XF86MonBrightnessUp".action.spawn = [
+          "brightnessctl"
+          "s"
+          "10%+"
+        ];
+        "XF86MonBrightnessDown".action.spawn = [
+          "brightnessctl"
+          "s"
+          "10%-"
+        ];
 
         # -----------------------------------------------------------------------
         # 🔔 NOTIFICATIONS

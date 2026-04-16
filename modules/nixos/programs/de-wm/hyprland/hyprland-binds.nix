@@ -139,6 +139,8 @@ delib.module {
           ",XF86AudioLowerVolume,  exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-" # Decrease volume by 5%
           ",XF86AudioMute,         exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle" # Toggle mute
           ",XF86AudioMicMute,      exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle" # Toggle mic mute
+          ",XF86MonBrightnessUp,   exec, brightnessctl s 10%+" # Brightness up (hardware key)
+          ",XF86MonBrightnessDown, exec, brightnessctl s 10%-" # Brightness down (hardware key)
           "$Mod, bracketright, exec, brightnessctl s 10%+" # Increase screen brightness by 10%
           "$Mod, bracketleft,  exec, brightnessctl s 10%-" # Decrease screen brightness by 10%
         ];

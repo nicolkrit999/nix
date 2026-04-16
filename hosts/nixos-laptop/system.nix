@@ -71,12 +71,13 @@ delib.host {
 
     # Laptop-specific hardware — Intel Arc B390 (12 Xe3 cores, integrated in Panther Lake X7 358H SoC, xe driver)
     hardware.enableRedistributableFirmware = true; # Intel CPU microcode + GPU firmware for Panther Lake
-    # COMMENTED OUT for kernel 7.0 testing — PTL audio may now work with upstream SOF.
-    # Intel SOF (Sound Open Firmware) — required for Panther Lake audio (CS42L43+CS35L56 via SoundWire).
-    # Pinned to v2025.12.2: nixpkgs ships v2025.05.1 which lacks SDCA topology fixes
-    # needed for Dell PTL. Audio will remain broken (dummy output) until kernel 7.0+
-    # which has ABI 3.29+ and Dell PTL audio quirks. Keep this override for the firmware
-    # blobs; revisit when nixpkgs bumps sof-firmware to >= v2025.12.2.
+    # Intel SOF (Sound Open Firmware) — Panther Lake audio (CS42L43+CS35L56 via SoundWire).
+    # AUDIO DOES NOT WORK with or without this override. Tested both:
+    #   - WITH pinned sof-firmware v2025.12.2: device detected as "sof-soundwire Stereo",
+    #     ABI 3.29 matches kernel, but NO sound output. Speakers, 3.5mm mic, external
+    #     monitor audio, and Bluetooth audio all broken/missing.
+    #   - WITHOUT (nixpkgs default v2025.05.1): ABI mismatch, dummy output only.
+    # Waiting for future kernel/firmware update to fix Dell PTL topology/routing.
     # hardware.firmware = with pkgs; [
     #   (sof-firmware.overrideAttrs (_old: rec {
     #     version = "2025.12.2";
