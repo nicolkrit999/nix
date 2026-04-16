@@ -65,6 +65,13 @@ delib.module {
       home-manager.users.${myUserName} = { pkgs, lib, ... }: {
         nixpkgs.config.allowUnfree = true;
 
+        home.activation.createSchoolDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          mkdir -p $HOME/.school-workspace/oneDrive || true
+          mkdir -p $HOME/.school-workspace/owncloud || true
+          mkdir -p $HOME/.school-workspace/github-repos || true
+          mkdir -p $HOME/.school-workspace/momentary || true
+        '';
+
         home.file.".ssh/allowed_signers".text = lib.mkForce ''
           kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs+KkQg8GewHnm66
         '';
@@ -180,8 +187,6 @@ delib.module {
             WantedBy = [ "default.target" ];
           };
           Service = {
-            # Ensure the directory exists before mounting
-            ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %h/.school-workspace/oneDrive";
             # Mount the remote named "school-onedrive" to the local folder with VFS caching
             ExecStart = "${pkgs.rclone}/bin/rclone mount school-onedrive: %h/.school-workspace/oneDrive --vfs-cache-mode full --vfs-cache-max-size 10G --dir-cache-time 48h";
             ExecStop = "/run/wrappers/bin/fusermount -u %h/.school-workspace/oneDrive";
