@@ -24,6 +24,10 @@ delib.module {
     }:
     let
       user = myconfig.constants.user;
+      hasImpermanence = myconfig.services.impermanence.enable or false;
+      rootSubvolume = if hasImpermanence then "/persist" else "/";
+      rootSnapshotsDir = if hasImpermanence then "/persist/.snapshots" else "/.snapshots";
+      rootConfigName = if hasImpermanence then "persist" else "root";
     in
     {
       services.snapper = {
@@ -45,8 +49,8 @@ delib.module {
             TIMELINE_LIMIT_MONTHLY = cfg.retention.monthly;
             TIMELINE_LIMIT_YEARLY = cfg.retention.yearly;
           };
-          root = {
-            SUBVOLUME = "/";
+          ${rootConfigName} = {
+            SUBVOLUME = rootSubvolume;
             FSTYPE = "btrfs";
             ALLOW_USERS = [ "${user}" ];
             TIMELINE_CREATE = true;
@@ -74,10 +78,10 @@ delib.module {
             ${pkgs.btrfs-progs}/bin/btrfs subvolume create /home/.snapshots
           fi
 
-          # Setup for root (/)
-          if [ ! -e /.snapshots ]; then
-            echo "Creating /.snapshots subvolume..."
-            ${pkgs.btrfs-progs}/bin/btrfs subvolume create /.snapshots
+          # Setup for ${rootSubvolume}
+          if [ ! -e ${rootSnapshotsDir} ]; then
+            echo "Creating ${rootSnapshotsDir} subvolume..."
+            ${pkgs.btrfs-progs}/bin/btrfs subvolume create ${rootSnapshotsDir}
           fi
         '';
       };
