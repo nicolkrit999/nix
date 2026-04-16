@@ -138,6 +138,12 @@ delib.module {
           "@DEFAULT_AUDIO_SINK@"
           "toggle"
         ];
+        "XF86AudioMicMute".action.spawn = [
+          "wpctl"
+          "set-mute"
+          "@DEFAULT_AUDIO_SOURCE@"
+          "toggle"
+        ];
         "Mod+BracketRight".action.spawn = [
           "brightnessctl"
           "s"

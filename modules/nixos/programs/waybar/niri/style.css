@@ -137,6 +137,7 @@ window#waybar .modules-right > widget > box {
 #clock,
 #battery,
 #pulseaudio,
+#custom-mic,
 #language,
 #custom-weather,
 #custom-wifi,
