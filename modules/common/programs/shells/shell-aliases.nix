@@ -155,9 +155,15 @@ delib.module {
       home.shellAliases = commonAliases
         // (if isNixOS then nixosAliases else { })
         // (if isDarwin then darwinAliases else { })
-        // lib.optionalAttrs (myconfig.services.snapshots.enable or false) {
-        snap-list-home = "snapper -c home list";
-        snap-list-root = "sudo snapper -c root list";
-      };
+        // lib.optionalAttrs (myconfig.services.snapshots.enable or false) (
+        let
+          hasImpermanence = myconfig.services.impermanence.enable or false;
+          rootConfigName = if hasImpermanence then "persist" else "root";
+        in
+        {
+          snap-list-home = "snapper -c home list";
+          snap-list-root = "sudo snapper -c ${rootConfigName} list";
+        }
+      );
     };
 }

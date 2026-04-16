@@ -26,6 +26,7 @@ delib.module {
         "/var/lib/flatpak"
         "/var/lib/docker"
         "/var/lib/containers"
+        "/var/lib/snapper"
       ];
 
       files = [
