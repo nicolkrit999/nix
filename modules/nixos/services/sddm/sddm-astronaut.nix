@@ -25,7 +25,7 @@ delib.module {
 
       services.displayManager.sddm = {
         enable = true;
-        wayland.enable = false;
+        wayland.enable = true;
         package = lib.mkForce pkgs.kdePackages.sddm;
         theme = "sddm-astronaut-theme";
 
