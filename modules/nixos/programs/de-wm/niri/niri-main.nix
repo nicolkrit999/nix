@@ -206,12 +206,12 @@ delib.module {
 
           environment = {
             "NIXOS_OZONE_WL" = "1";
-            "DISPLAY" = ":0";
+            "DISPLAY" = ":1";
           };
 
           spawn-at-startup = [
             # CORE SERVICES
-            { command = [ "xwayland-satellite" ]; }
+            { command = [ "xwayland-satellite" ":1" ]; }
             { command = [ "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" ]; }
             # DBUS UPDATE
             {

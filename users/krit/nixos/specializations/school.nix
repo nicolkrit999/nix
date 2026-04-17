@@ -132,9 +132,9 @@ delib.module {
         };
 
         # 🐚 Workspace Alias
-        programs.fish.shellAliases = { school = "cd ~/.school-workspace"; };
-        programs.bash.shellAliases = { school = "cd ~/.school-workspace"; };
-        programs.zsh.shellAliases = { school = "cd ~/.school-workspace"; };
+        programs.fish.shellAliases = { school = "cd ~/.school-workspace"; school-reset-distrobox = "rm -f ~/.school-workspace/.distrobox-setup-done && echo 'Stamp removed. Restart or run school-distrobox-setup to re-provision.'"; };
+        programs.bash.shellAliases = { school = "cd ~/.school-workspace"; school-reset-distrobox = "rm -f ~/.school-workspace/.distrobox-setup-done && echo 'Stamp removed. Restart or run school-distrobox-setup to re-provision.'"; };
+        programs.zsh.shellAliases = { school = "cd ~/.school-workspace"; school-reset-distrobox = "rm -f ~/.school-workspace/.distrobox-setup-done && echo 'Stamp removed. Restart or run school-distrobox-setup to re-provision.'"; };
 
         home.packages = with pkgs; [
           # Required Tools
@@ -177,7 +177,10 @@ delib.module {
             icon = "idea";
           })
 
-          (pkgs.writeShellScriptBin "tkgate-school" ''exec ${pkgs.distrobox}/bin/distrobox enter school-ubuntu -- tkgate "$@"'')
+          (pkgs.writeShellScriptBin "tkgate-school" ''
+            ${pkgs.xorg.xhost}/bin/xhost +local: >/dev/null 2>&1
+            exec ${pkgs.distrobox}/bin/distrobox enter school-ubuntu -- tkgate "$@"
+          '')
           (pkgs.makeDesktopItem {
             name = "tkgate-school";
             desktopName = "tkGate (Ubuntu)";
@@ -185,7 +188,10 @@ delib.module {
             icon = "tkgate";
           })
 
-          (pkgs.writeShellScriptBin "sqldeveloper-school" ''exec ${pkgs.distrobox}/bin/distrobox enter school-arch -- /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper "$@"'')
+          (pkgs.writeShellScriptBin "sqldeveloper-school" ''
+            ${pkgs.xorg.xhost}/bin/xhost +local: >/dev/null 2>&1
+            exec ${pkgs.distrobox}/bin/distrobox enter school-arch -- bash -c 'export JAVA_HOME=$(readlink -f /usr/lib/jvm/default); export GDK_BACKEND=x11; sudo chmod +x /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper 2>/dev/null; exec /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper "$@"' _ "$@"
+          '')
           (pkgs.makeDesktopItem {
             name = "sqldeveloper-school";
             desktopName = "SQL Developer (School)";
@@ -224,8 +230,8 @@ delib.module {
 
             # --- Arch container (AUR packages via makepkg) ---
             ensure_container "school-arch" "archlinux:latest"
-            echo "==> Ensuring base-devel and git in school-arch..."
-            distrobox enter school-arch -- sudo pacman -Syu --noconfirm --needed base-devel git
+            echo "==> Ensuring base-devel, git, and X11 libs in school-arch..."
+            distrobox enter school-arch -- sudo pacman -Syu --noconfirm --needed base-devel git libxrender libxtst libxi fontconfig ttf-dejavu java-openjfx gtk3
 
             echo "==> Ensuring oracle-sqldeveloper is installed in school-arch..."
             distrobox enter school-arch -- bash -c '
@@ -240,6 +246,8 @@ delib.module {
                 rm -rf "$BUILDDIR"
               fi
             '
+            # Ensure the launcher script is executable (AUR package may not set +x)
+            distrobox enter school-arch -- sudo chmod +x /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper
 
             # --- Export binaries to school-isolated path ---
             echo "==> Exporting binaries to $EXPORT_PATH..."
@@ -335,7 +343,7 @@ delib.module {
 
               # --- Arch container (AUR packages via makepkg) ---
               ensure_container "school-arch" "archlinux:latest"
-              distrobox enter school-arch -- sudo pacman -Syu --noconfirm --needed base-devel git
+              distrobox enter school-arch -- sudo pacman -Syu --noconfirm --needed base-devel git libxrender libxtst libxi fontconfig ttf-dejavu java-openjfx gtk3
 
               distrobox enter school-arch -- bash -c '
                 if pacman -Qi oracle-sqldeveloper &>/dev/null; then
@@ -349,6 +357,8 @@ delib.module {
                   rm -rf "$BUILDDIR"
                 fi
               '
+              # Ensure the launcher script is executable (AUR package may not set +x)
+              distrobox enter school-arch -- sudo chmod +x /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper
 
               distrobox enter school-arch -- distrobox-export --bin /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper --export-path "$EXPORT_PATH" 2>/dev/null || true
 
