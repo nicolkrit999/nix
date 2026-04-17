@@ -6,10 +6,95 @@
 , ...
 }:
 let
-  myUserName = "krit";
+  myUserName = config.myconfig.constants.user;
   commonSecrets = ../../common/sops/krit-common-secrets-sops.yaml;
   c = config.myconfig.constants;
   term = c.terminal.name;
+
+  # Distrobox apps to provision — each entry defines a container and how to check/install.
+  # The check script and setup script both derive from this list.
+  distroboxApps = [
+    {
+      name = "tkgate";
+      container = "school-ubuntu";
+      image = "ubuntu:latest";
+      check = "command -v tkgate";
+      install = "sudo apt-get update && sudo apt-get install -y tkgate";
+    }
+    {
+      name = "oracle-sqldeveloper";
+      container = "school-arch";
+      image = "archlinux:latest";
+      check = "test -x /opt/sqldeveloper/sqldeveloper.sh";
+      preInstall = "sudo pacman -Syu --noconfirm --needed jdk17-openjdk fzf libxrender libxtst libxi fontconfig ttf-dejavu gtk3 alsa-lib";
+      install = builtins.concatStringsSep "\n" [
+        ''RPM=$(ls $HOME/nix/users/krit/src/vendor-bins/oracle-sqldeveloper/sqldeveloper-*.noarch.rpm 2>/dev/null | head -1)''
+        ''if [ -z "$RPM" ]; then''
+        ''  echo "ERROR: Download sqldeveloper-*.noarch.rpm from:"''
+        ''  echo "  https://www.oracle.com/database/sqldeveloper/technologies/download/"''
+        ''  echo "Place it in: ~/nix/users/krit/src/vendor-bins/oracle-sqldeveloper/"''
+        ''  exit 1''
+        ''fi''
+        ''sudo bsdtar -xf "$RPM" -C /''
+      ];
+      postInstall = builtins.concatStringsSep "\n" [
+        "sudo chmod +x /opt/sqldeveloper/sqldeveloper.sh"
+        # Pre-configure JDK path so sqldeveloper.sh doesn't prompt interactively on first run
+        "sudo sed -i 's|^#\\?SetJavaHome.*|SetJavaHome /usr/lib/jvm/java-17-openjdk|' /opt/sqldeveloper/sqldeveloper/bin/sqldeveloper.conf 2>/dev/null || true"
+        "grep -q 'SetJavaHome' /opt/sqldeveloper/sqldeveloper/bin/sqldeveloper.conf 2>/dev/null || echo 'SetJavaHome /usr/lib/jvm/java-17-openjdk' | sudo tee -a /opt/sqldeveloper/sqldeveloper/bin/sqldeveloper.conf >/dev/null"
+      ];
+    }
+  ];
+
+  # Fast startup check: only verifies container existence via podman (instant, no container start).
+  # User files live in $HOME (bind-mounted into containers), safe from any cleanup.
+  # Containers live in /var/lib/containers (persisted via impermanence), NOT in /nix/store —
+  # nix-collect-garbage does not touch them. They only disappear via manual podman/distrobox rm.
+  distroboxStartupCheck = pkgs.writeShellScript "school-distrobox-startup-check" ''
+    MISSING=""
+    ${lib.concatMapStringsSep "\n" (app: ''
+      if ! ${pkgs.podman}/bin/podman container exists "${app.container}" 2>/dev/null; then
+        MISSING="$MISSING ${app.name}"
+      fi
+    '') distroboxApps}
+
+    if [ -n "$MISSING" ]; then
+      echo "Missing distrobox containers:$MISSING"
+      echo "Run: school-distrobox-setup"
+    else
+      echo "Distrobox containers found. Run school-distrobox-check to verify tools are installed."
+    fi
+  '';
+
+  # Deep check: enters each container and verifies the actual package is installed.
+  distroboxDeepCheck = pkgs.writeShellScript "school-distrobox-deep-check" ''
+    # Check that the SQL Developer RPM exists before anything else
+    RPM=$(ls $HOME/nix/users/krit/src/vendor-bins/oracle-sqldeveloper/sqldeveloper-*.noarch.rpm 2>/dev/null | head -1)
+    if [ -z "$RPM" ]; then
+      echo "Missing: sqldeveloper RPM file"
+      echo "  Download from: https://www.oracle.com/database/sqldeveloper/technologies/download/"
+      echo "  Place the .rpm in: ~/nix/users/krit/src/vendor-bins/oracle-sqldeveloper/"
+      exit 1
+    fi
+
+    MISSING=""
+    ${lib.concatMapStringsSep "\n" (app: ''
+      if ! ${pkgs.podman}/bin/podman container exists "${app.container}" 2>/dev/null; then
+        MISSING="$MISSING ${app.name}(no container)"
+      elif ! ${pkgs.distrobox}/bin/distrobox enter ${app.container} -- bash -c '${app.check}' &>/dev/null; then
+        MISSING="$MISSING ${app.name}(not installed)"
+      fi
+    '') distroboxApps}
+
+    if [ -n "$MISSING" ]; then
+      echo "Missing distrobox tools:$MISSING"
+      echo "Run: school-distrobox-setup"
+      exit 1
+    else
+      echo "All distrobox tools are present and verified."
+    fi
+  '';
+
 in
 delib.module {
   name = "krit.specializations.school";
@@ -131,10 +216,19 @@ delib.module {
           };
         };
 
-        # 🐚 Workspace Alias
-        programs.fish.shellAliases = { school = "cd ~/.school-workspace"; };
-        programs.bash.shellAliases = { school = "cd ~/.school-workspace"; };
-        programs.zsh.shellAliases = { school = "cd ~/.school-workspace"; };
+        # 🐚 Workspace Alias (shell-agnostic via home.shellAliases)
+        home.shellAliases = { school = "cd ~/.school-workspace"; };
+
+        # On interactive shell start, check if distrobox tools are present
+        programs.fish.interactiveShellInit = lib.mkIf (c.shell == "fish") ''
+          ${distroboxStartupCheck} 2>/dev/null
+        '';
+        programs.bash.initExtra = lib.mkIf (c.shell == "bash") ''
+          ${distroboxStartupCheck} 2>/dev/null
+        '';
+        programs.zsh.initContent = lib.mkIf (c.shell == "zsh") ''
+          ${distroboxStartupCheck} 2>/dev/null
+        '';
 
         home.packages = with pkgs; [
           # Required Tools
@@ -194,31 +288,15 @@ delib.module {
           (pkgs.writeShellScriptBin "sqldeveloper-school" ''
             ${pkgs.xorg.xhost}/bin/xhost +local: >/dev/null 2>&1
             exec ${pkgs.distrobox}/bin/distrobox enter school-arch -- bash -c '
-              # Derive JAVA_HOME from sqldeveloper own dependency (no hardcoded JDK version)
-              JAVA_VER=$(pacman -Qi oracle-sqldeveloper 2>/dev/null | grep -oP "java-environment=\K\d+")
-              if [ -z "$JAVA_VER" ]; then
-                echo "oracle-sqldeveloper not ready yet. The setup service provisions it automatically on login."
-                echo "Check progress: systemctl --user status school-distrobox-setup"
+              if [ ! -x /opt/sqldeveloper/sqldeveloper.sh ]; then
+                echo "oracle-sqldeveloper is not installed. Run: school-distrobox-setup"
                 exit 1
               fi
-              export JAVA_HOME="/usr/lib/jvm/java-''${JAVA_VER}-openjdk"
-
-              # _JAVA_AWT_WM_NONREPARENTING=1: Hyprland/Niri (Wayland WMs via XWayland) do not
-              # reparent X11 windows. Java AWT expects reparenting and never paints the window
-              # content without this flag — the window appears but is completely blank.
+              export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
               export _JAVA_AWT_WM_NONREPARENTING=1
-
-              # Disable XRender: XWayland XRender implementation has known issues that cause
-              # blank or corrupted rendering in Java2D. Software fallback works reliably.
               export JAVA_TOOL_OPTIONS="-Dsun.java2d.xrender=false"
-
-              # Force GDK to use X11 backend: distrobox leaks WAYLAND_DISPLAY from the host,
-              # but the container only has an X11 socket via XWayland. JavaFX GtkApplication
-              # crashes with "Internal Error" if GTK tries the Wayland backend.
               export GDK_BACKEND=x11
-
-              sudo chmod +x /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper 2>/dev/null
-              exec /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper "$@"
+              exec /opt/sqldeveloper/sqldeveloper.sh "$@"
             ' _ "$@"
           '')
           (pkgs.makeDesktopItem {
@@ -228,64 +306,59 @@ delib.module {
             icon = "oracle-sqldeveloper";
           })
 
-          # Manual trigger for the same self-healing logic as the systemd service.
-          # Validates state, provisions anything missing, skips what's already good.
+          # Idempotent setup: creates containers and installs only what's missing.
           (pkgs.writeShellScriptBin "school-distrobox-setup" ''
-            set -euo pipefail
+            set -uo pipefail
             EXPORT_PATH="$HOME/.school-workspace/distrobox-bin"
             mkdir -p "$EXPORT_PATH"
+            FAILURES=0
 
-            container_exists() { distrobox list 2>/dev/null | grep -qw "$1"; }
+            container_exists() { ${pkgs.podman}/bin/podman container exists "$1" 2>/dev/null; }
 
-            # --- Ubuntu container (tkgate) ---
-            if ! container_exists "school-ubuntu"; then
-              echo "==> Creating school-ubuntu..."
-              distrobox create --name "school-ubuntu" --image "ubuntu:latest" --yes
-            else
-              echo "==> school-ubuntu exists."
-            fi
-            echo "==> Ensuring tkgate in school-ubuntu..."
-            distrobox enter school-ubuntu -- bash -c '
-              if command -v tkgate &>/dev/null; then
-                echo "tkgate already installed"
-              else
-                sudo apt-get update && sudo apt-get install -y tkgate
+            ${lib.concatMapStringsSep "\n\n" (app: ''
+              # --- ${app.name} in ${app.container} ---
+              echo "==> Checking ${app.name}..."
+              if ! container_exists "${app.container}"; then
+                echo "    Creating ${app.container}..."
+                if ! distrobox create --name "${app.container}" --image "${app.image}" --yes; then
+                  echo "    FAILED to create ${app.container}"
+                  FAILURES=$((FAILURES + 1))
+                fi
               fi
-            '
-
-            # --- Arch container (AUR packages via makepkg) ---
-            if ! container_exists "school-arch"; then
-              echo "==> Creating school-arch..."
-              distrobox create --name "school-arch" --image "archlinux:latest" --yes
-            else
-              echo "==> school-arch exists."
-            fi
-            echo "==> Ensuring runtime libs in school-arch..."
-            distrobox enter school-arch -- sudo pacman -Syu --noconfirm --needed base-devel git libxrender libxtst libxi fontconfig ttf-dejavu gtk3 alsa-lib
-
-            echo "==> Ensuring oracle-sqldeveloper in school-arch..."
-            distrobox enter school-arch -- bash -c '
-              if pacman -Qi oracle-sqldeveloper &>/dev/null; then
-                echo "oracle-sqldeveloper already installed"
-              else
-                echo "Installing oracle-sqldeveloper from AUR via makepkg..."
-                # Build on real disk — container /tmp is a 4GB tmpfs, too small for the 560MB+ sqldeveloper zip
-                BUILDDIR="$HOME/.cache/aur-build"
-                mkdir -p "$BUILDDIR"
-                rm -rf "$BUILDDIR/oracle-sqldeveloper"
-                git clone https://aur.archlinux.org/oracle-sqldeveloper.git "$BUILDDIR/oracle-sqldeveloper"
-                cd "$BUILDDIR/oracle-sqldeveloper"
-                TMPDIR="$BUILDDIR" makepkg -si --noconfirm
-                rm -rf "$BUILDDIR/oracle-sqldeveloper"
+              if container_exists "${app.container}"; then
+                ${lib.optionalString (app ? preInstall) ''
+                echo "    Installing dependencies in ${app.container}..."
+                distrobox enter ${app.container} -- bash -c '${app.preInstall}' || true
+                ''}
+                if distrobox enter ${app.container} -- bash -c '${app.check}' &>/dev/null; then
+                  echo "    ${app.name} already installed, skipping."
+                else
+                  echo "    Installing ${app.name}..."
+                  if ! distrobox enter ${app.container} -- bash -c '${app.install}'; then
+                    echo "    FAILED to install ${app.name}"
+                    FAILURES=$((FAILURES + 1))
+                  else
+                    ${lib.optionalString (app ? postInstall) ''
+                    distrobox enter ${app.container} -- bash -c '${app.postInstall}' || true
+                    ''}
+                    echo "    ${app.name} installed."
+                  fi
+                fi
               fi
-            '
-            distrobox enter school-arch -- sudo chmod +x /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper
+            '') distroboxApps}
 
-            echo "==> Exporting binaries to $EXPORT_PATH..."
-            distrobox enter school-arch -- distrobox-export --bin /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper --export-path "$EXPORT_PATH" 2>/dev/null || true
-
+            if [ "$FAILURES" -gt 0 ]; then
+              echo ""
+              echo "==> $FAILURES tool(s) failed to provision."
+              exit 1
+            fi
             echo ""
-            echo "==> All school containers verified/provisioned."
+            echo "==> All school distrobox tools are ready."
+          '')
+
+          # Deep check: verifies packages are actually installed inside containers
+          (pkgs.writeShellScriptBin "school-distrobox-check" ''
+            exec ${distroboxDeepCheck}
           '')
         ];
 
@@ -308,104 +381,6 @@ delib.module {
             Restart = "on-failure";
             RestartSec = "10s";
             Environment = [ "PATH=/run/wrappers/bin/:$PATH" ];
-          };
-        };
-
-        # ------------------------------------------------------------
-        # 📦 DISTROBOX CONTAINER AUTO-SETUP (self-healing)
-        # Validates actual container/package state on every login.
-        # Fast skip when everything is present; full provision when
-        # anything is missing (fresh boot, gc, specialization re-enable).
-        # ------------------------------------------------------------
-        systemd.user.services.school-distrobox-setup = {
-          Unit = {
-            Description = "Self-healing school distrobox provisioner";
-          };
-          Install = {
-            WantedBy = [ "default.target" ];
-          };
-          Service = {
-            Type = "oneshot";
-            RemainAfterExit = true;
-            Restart = "on-failure";
-            RestartSec = "30s";
-            StartLimitIntervalSec = "600";
-            StartLimitBurst = "5";
-            ExecStart = "${pkgs.writeShellScript "school-distrobox-setup-exec" ''
-              set -euo pipefail
-              export PATH="${lib.makeBinPath [ pkgs.distrobox pkgs.podman pkgs.git pkgs.coreutils pkgs.bash ]}:$PATH"
-
-              EXPORT_PATH="$HOME/.school-workspace/distrobox-bin"
-              NEEDS_WORK=0
-
-              # --- Validate current state ---
-              container_exists() { distrobox list 2>/dev/null | grep -qw "$1"; }
-
-              if ! container_exists "school-ubuntu"; then
-                echo "school-ubuntu container missing."
-                NEEDS_WORK=1
-              elif ! distrobox enter school-ubuntu -- command -v tkgate &>/dev/null; then
-                echo "tkgate not installed in school-ubuntu."
-                NEEDS_WORK=1
-              fi
-
-              if ! container_exists "school-arch"; then
-                echo "school-arch container missing."
-                NEEDS_WORK=1
-              elif ! distrobox enter school-arch -- pacman -Qi oracle-sqldeveloper &>/dev/null; then
-                echo "oracle-sqldeveloper not installed in school-arch."
-                NEEDS_WORK=1
-              fi
-
-              if [ "$NEEDS_WORK" -eq 0 ]; then
-                echo "All school containers and packages verified. Nothing to do."
-                exit 0
-              fi
-
-              echo "Provisioning missing school distrobox components..."
-              mkdir -p "$EXPORT_PATH"
-
-              # --- Ubuntu container (tkgate) ---
-              if ! container_exists "school-ubuntu"; then
-                echo "Creating school-ubuntu..."
-                distrobox create --name "school-ubuntu" --image "ubuntu:latest" --yes
-              fi
-              distrobox enter school-ubuntu -- bash -c '
-                if command -v tkgate &>/dev/null; then
-                  echo "tkgate already installed"
-                else
-                  sudo apt-get update && sudo apt-get install -y tkgate
-                fi
-              '
-
-              # --- Arch container (AUR packages via makepkg) ---
-              if ! container_exists "school-arch"; then
-                echo "Creating school-arch..."
-                distrobox create --name "school-arch" --image "archlinux:latest" --yes
-              fi
-              # Runtime libs: X11 (Java AWT/Swing), GTK3 (JavaFX), fonts (X11FontManager), alsa (JavaFX media)
-              distrobox enter school-arch -- sudo pacman -Syu --noconfirm --needed base-devel git libxrender libxtst libxi fontconfig ttf-dejavu gtk3 alsa-lib
-
-              distrobox enter school-arch -- bash -c '
-                if pacman -Qi oracle-sqldeveloper &>/dev/null; then
-                  echo "oracle-sqldeveloper already installed"
-                else
-                  echo "Installing oracle-sqldeveloper from AUR via makepkg..."
-                  # Build on real disk — container /tmp is a 4GB tmpfs, too small for the 560MB+ sqldeveloper zip
-                  BUILDDIR="$HOME/.cache/aur-build"
-                  mkdir -p "$BUILDDIR"
-                  rm -rf "$BUILDDIR/oracle-sqldeveloper"
-                  git clone https://aur.archlinux.org/oracle-sqldeveloper.git "$BUILDDIR/oracle-sqldeveloper"
-                  cd "$BUILDDIR/oracle-sqldeveloper"
-                  TMPDIR="$BUILDDIR" makepkg -si --noconfirm
-                  rm -rf "$BUILDDIR/oracle-sqldeveloper"
-                fi
-              '
-              distrobox enter school-arch -- sudo chmod +x /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper
-              distrobox enter school-arch -- distrobox-export --bin /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper --export-path "$EXPORT_PATH" 2>/dev/null || true
-
-              echo "School distrobox provisioning complete."
-            ''}";
           };
         };
 
