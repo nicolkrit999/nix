@@ -188,9 +188,34 @@ delib.module {
             icon = "tkgate";
           })
 
+          # sqldeveloper-school wrapper: launches Oracle SQL Developer inside the school-arch
+          # distrobox container with all env fixes needed for Java GUI on Wayland WMs.
+          # All env var changes are scoped to this process only — no system-wide side effects.
           (pkgs.writeShellScriptBin "sqldeveloper-school" ''
             ${pkgs.xorg.xhost}/bin/xhost +local: >/dev/null 2>&1
-            exec ${pkgs.distrobox}/bin/distrobox enter school-arch -- bash -c 'export JAVA_HOME=$(readlink -f /usr/lib/jvm/default); export GDK_BACKEND=x11; sudo chmod +x /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper 2>/dev/null; exec /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper "$@"' _ "$@"
+            exec ${pkgs.distrobox}/bin/distrobox enter school-arch -- bash -c '
+              # Derive JAVA_HOME from sqldeveloper own dependency (no hardcoded JDK version)
+              JAVA_VER=$(pacman -Qi oracle-sqldeveloper 2>/dev/null | grep -oP "java-environment=\K\d+")
+              if [ -z "$JAVA_VER" ]; then echo "ERROR: oracle-sqldeveloper not installed. Run school-distrobox-setup first."; exit 1; fi
+              export JAVA_HOME="/usr/lib/jvm/java-''${JAVA_VER}-openjdk"
+
+              # _JAVA_AWT_WM_NONREPARENTING=1: Hyprland/Niri (Wayland WMs via XWayland) do not
+              # reparent X11 windows. Java AWT expects reparenting and never paints the window
+              # content without this flag — the window appears but is completely blank.
+              export _JAVA_AWT_WM_NONREPARENTING=1
+
+              # Disable XRender: XWayland XRender implementation has known issues that cause
+              # blank or corrupted rendering in Java2D. Software fallback works reliably.
+              export JAVA_TOOL_OPTIONS="-Dsun.java2d.xrender=false"
+
+              # Force GDK to use X11 backend: distrobox leaks WAYLAND_DISPLAY from the host,
+              # but the container only has an X11 socket via XWayland. JavaFX GtkApplication
+              # crashes with "Internal Error" if GTK tries the Wayland backend.
+              export GDK_BACKEND=x11
+
+              sudo chmod +x /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper 2>/dev/null
+              exec /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper "$@"
+            ' _ "$@"
           '')
           (pkgs.makeDesktopItem {
             name = "sqldeveloper-school";
@@ -230,8 +255,11 @@ delib.module {
 
             # --- Arch container (AUR packages via makepkg) ---
             ensure_container "school-arch" "archlinux:latest"
-            echo "==> Ensuring base-devel, git, and X11 libs in school-arch..."
-            distrobox enter school-arch -- sudo pacman -Syu --noconfirm --needed base-devel git libxrender libxtst libxi fontconfig ttf-dejavu java-openjfx gtk3
+            # Install base build tools, X11 libs (Java AWT/Swing), GTK3 (JavaFX GtkApplication),
+            # fonts (Java X11FontManager), and alsa-lib (JavaFX media needs libasound.so.2).
+            # NOTE: No need to install JavaFX — SQL Developer bundles its own at modules/javafx/linux-x64/lib/.
+            echo "==> Ensuring base-devel, git, and runtime libs in school-arch..."
+            distrobox enter school-arch -- sudo pacman -Syu --noconfirm --needed base-devel git libxrender libxtst libxi fontconfig ttf-dejavu gtk3 alsa-lib
 
             echo "==> Ensuring oracle-sqldeveloper is installed in school-arch..."
             distrobox enter school-arch -- bash -c '
@@ -246,7 +274,7 @@ delib.module {
                 rm -rf "$BUILDDIR"
               fi
             '
-            # Ensure the launcher script is executable (AUR package may not set +x)
+            # AUR package installs the launcher as 644 (no execute), fix it
             distrobox enter school-arch -- sudo chmod +x /opt/oracle-sqldeveloper/sqldeveloper/bin/sqldeveloper
 
             # --- Export binaries to school-isolated path ---
@@ -343,7 +371,10 @@ delib.module {
 
               # --- Arch container (AUR packages via makepkg) ---
               ensure_container "school-arch" "archlinux:latest"
-              distrobox enter school-arch -- sudo pacman -Syu --noconfirm --needed base-devel git libxrender libxtst libxi fontconfig ttf-dejavu java-openjfx gtk3
+              # Install base build tools, X11 libs (Java AWT/Swing), GTK3 (JavaFX GtkApplication),
+              # fonts (Java X11FontManager), and alsa-lib (JavaFX media needs libasound.so.2).
+              # NOTE: No need to install JavaFX — SQL Developer bundles its own at modules/javafx/linux-x64/lib/.
+              distrobox enter school-arch -- sudo pacman -Syu --noconfirm --needed base-devel git libxrender libxtst libxi fontconfig ttf-dejavu gtk3 alsa-lib
 
               distrobox enter school-arch -- bash -c '
                 if pacman -Qi oracle-sqldeveloper &>/dev/null; then
