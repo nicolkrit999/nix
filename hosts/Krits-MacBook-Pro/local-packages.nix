@@ -4,11 +4,7 @@
 }:
 delib.module {
   name = "krit.services.Krits-MacBook-Pro.local-packages";
-
-  options.krit.services.Krits-MacBook-Pro.local-packages = with delib; {
-    enable = boolOption false;
-  };
-
+  options = delib.singleEnableOption false;
   darwin.ifEnabled =
     { ... }:
     {

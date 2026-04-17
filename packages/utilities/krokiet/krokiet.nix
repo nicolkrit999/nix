@@ -8,7 +8,7 @@
 delib.module {
   name = "krit-krokiet";
 
-  options.krit.programs.krokiet.enable = delib.boolOption true;
+  options = delib.singleEnableOption false;
 
   home.ifEnabled =
     { ... }:
