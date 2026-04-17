@@ -1,10 +1,11 @@
 { delib
 , lib
+, config
 , pkgs
 , ...
 }:
 let
-  myUserName = "krit";
+  myUserName = config.myconfig.constants.user;
 in
 delib.module {
   name = "krit.specializations.safe-mode";
@@ -17,7 +18,7 @@ delib.module {
       system.nixos.tags = [ "safemode-tty" ];
 
       # ---------------------------------------------------------
-      # 1. 🛑 KILL ALL COMPLEXITY & GUI AUTOSTART
+      # 1. KILL ALL COMPLEXITY & GUI AUTOSTART
       # ---------------------------------------------------------
       services.displayManager.sddm.enable = lib.mkForce false;
       services.xserver.displayManager.lightdm.enable = lib.mkForce false;
@@ -30,14 +31,14 @@ delib.module {
       services.xserver.desktopManager.xfce.enable = lib.mkForce false;
 
       # ---------------------------------------------------------
-      # 2. 🛡️ SAFE MODE GUI (IceWM)
+      # 2. SAFE MODE GUI (IceWM)
       # ---------------------------------------------------------
 
       services.xserver.windowManager.icewm.enable = lib.mkForce true;
       services.xserver.displayManager.startx.enable = lib.mkForce true;
 
       # ---------------------------------------------------------
-      # 3. 🧹 DISABLE THEMES & CUSTOM SHELLS
+      # 3. DISABLE THEMES & CUSTOM SHELLS
       # ---------------------------------------------------------
       myconfig.stylix.enable = lib.mkForce false;
       myconfig.constants.theme.catppuccin = lib.mkForce false;
@@ -61,13 +62,10 @@ delib.module {
 
             home.file.".xinitrc".text = ''
               #!/bin/sh
-              # 1. Brutally force DP-1 and kill the rest before the GUI even draws
-              ${pkgs.xorg.xrandr}/bin/xrandr --output DP-1 --mode 3840x2160 --rate 240 --primary \
-                --output DP-2 --off \
-                --output DP-3 --off \
-                --output HDMI-A-1 --off || true
+              # Auto-detect and enable all connected monitors at preferred resolution
+              ${pkgs.xorg.xrandr}/bin/xrandr --auto || true
 
-              # 2. Launch IceWM
+              # Launch IceWM
               exec ${pkgs.icewm}/bin/icewm-session
             '';
 
@@ -81,7 +79,7 @@ delib.module {
       myconfig.constants.editor = lib.mkForce "nano";
 
       # ---------------------------------------------------------
-      # 4. 🧰 SURVIVAL TOOLKIT
+      # 4. SURVIVAL TOOLKIT
       # ---------------------------------------------------------
       environment.systemPackages = with pkgs; [
         mc # Visual CLI file manager

@@ -1,10 +1,11 @@
 { delib
 , lib
+, config
 , pkgs
 , ...
 }:
 let
-  myUserName = "krit";
+  myUserName = config.myconfig.constants.user;
 in
 delib.module {
   name = "krit.specializations.entertainment";
@@ -34,10 +35,10 @@ delib.module {
           ${pkgs.brave}/bin/brave &
 
           # Launch YouTube PWA
-          ${pkgs.brave}/bin/brave --app="https://www.youtube.com" --password-store=gnome &
+          ${pkgs.brave}/bin/brave --app="https://www.youtube.com" --password-store=basic &
 
           # Launch Apple Music PWA
-          ${pkgs.brave}/bin/brave --app="https://music.apple.com/ch/home?l=en" --password-store=gnome &
+          ${pkgs.brave}/bin/brave --app="https://music.apple.com/ch/home?l=en" --password-store=basic &
 
           # Launch Jellyfin
           ${pkgs.jellyfin-desktop}/bin/jellyfin-desktop &

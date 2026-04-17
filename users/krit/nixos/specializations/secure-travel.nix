@@ -1,10 +1,11 @@
 { delib
 , lib
+, config
 , pkgs
 , ...
 }:
 let
-  myUserName = "krit";
+  myUserName = config.myconfig.constants.user;
 in
 delib.module {
   name = "krit.specializations.secure-travel";

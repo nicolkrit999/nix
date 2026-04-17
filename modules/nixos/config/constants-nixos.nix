@@ -1,4 +1,4 @@
-{ delib, ... }:
+{ delib, lib, ... }:
 delib.module {
   name = "constants";
 
@@ -16,6 +16,20 @@ delib.module {
       browser = strOption "chromium";
       editor = strOption "nano";
       fileManager = strOption "dolphin";
+
+      # Apps that need to be launched inside a terminal (used by smartLaunch helpers)
+      terminalApps = listOfOption lib.types.str [
+        "nvim"
+        "neovim"
+        "vim"
+        "nano"
+        "hx"
+        "helix"
+        "yazi"
+        "ranger"
+        "lf"
+        "nnn"
+      ];
 
 
       wallpapers =
