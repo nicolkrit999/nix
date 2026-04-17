@@ -84,9 +84,7 @@ in
 delib.module {
   name = "krit.programs.claude-code-wrappers";
 
-  options.krit.programs.claude-code-wrappers = with delib; {
-    enable = boolOption false;
-  };
+  options = delib.singleEnableOption false;
 
   nixos.ifEnabled = { ... }: {
     environment.systemPackages = sharedPackages ++ [
