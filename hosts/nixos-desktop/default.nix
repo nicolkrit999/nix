@@ -510,7 +510,7 @@ delib.host {
         audio.enable = true;
         hyprlock.enable = true;
         sddm-astronaut = {
-          enable = false;
+          enable = true;
         };
         sddm-pixie = {
           enable = false;
