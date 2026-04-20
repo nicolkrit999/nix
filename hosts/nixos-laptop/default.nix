@@ -263,7 +263,7 @@ delib.host {
         };
 
         waybar-niri = {
-          enable = false;
+          enable = true;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
           };
@@ -277,7 +277,7 @@ delib.host {
         noctalia = {
           enable = false;
           enableOnHyprland = false;
-          enableOnNiri = true;
+          enableOnNiri = false;
         };
 
         hyprland = {
