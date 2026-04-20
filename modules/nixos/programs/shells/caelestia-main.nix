@@ -14,13 +14,19 @@ delib.module {
       enableOnHyprland = boolOption false;
     };
 
-  # Keep always to let the rest of the logic handling the activation
+  # Keep always so activation can depend on parent WM state.
   home.always =
     { cfg
+    , parent
     , myconfig
     , ...
     }:
     let
+      activeOnHyprland =
+        cfg.enable
+        && cfg.enableOnHyprland
+        && (parent.hyprland.enable or false);
+
       caelestiaPkg = inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli;
 
       caelestiaLogout = pkgs.writeShellScriptBin "caelestia-logout" ''
@@ -125,7 +131,7 @@ delib.module {
     {
       imports = [ inputs.caelestia-shell.homeManagerModules.default ];
 
-      config = lib.mkIf cfg.enableOnHyprland {
+      config = lib.mkIf activeOnHyprland {
         programs.caelestia = {
           enable = true;
           cli.enable = true;

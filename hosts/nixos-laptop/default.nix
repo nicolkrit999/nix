@@ -271,13 +271,13 @@ delib.host {
 
         caelestia = {
           enable = false;
-          enableOnHyprland = false;
+          enableOnHyprland = true;
         };
 
         noctalia = {
           enable = false;
           enableOnHyprland = false;
-          enableOnNiri = false;
+          enableOnNiri = true;
         };
 
         hyprland = {
