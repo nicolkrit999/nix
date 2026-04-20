@@ -88,7 +88,7 @@ window#waybar .modules-right > widget > box {
   padding: 4px 16px;
   min-width: 0;
   border-radius: 100px;
-  color: @base05;
+  color: @base07;                 /* brighter foreground for contrast against @base02 pill */
   border: none;
   transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1),
               color           0.18s cubic-bezier(0.4, 0, 0.2, 1);
@@ -124,7 +124,7 @@ window#waybar #window {
   border-radius: 100px;
   border: none;
   outline: none;
-  color: @base05;
+  color: @base07;                 /* brighter foreground for contrast against @base02 pill */
 }
 
 #window label {
@@ -177,7 +177,7 @@ window#waybar #window {
   background-color: @base02;
   border-radius: 100px;
   border: none;
-  color: @base05;
+  color: @base07;                 /* brighter foreground for contrast against @base02 pill */
   transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -197,7 +197,7 @@ window#waybar #window {
   color: @base08;
 }
 
-/* Pulseaudio muted state */
+/* Pulseaudio muted state — use accent red for semantic cue + contrast against @base02 */
 #pulseaudio.muted {
-  color: @base03;
+  color: @base08;
 }

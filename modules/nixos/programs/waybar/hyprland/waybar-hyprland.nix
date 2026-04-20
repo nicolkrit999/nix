@@ -44,11 +44,14 @@ delib.module {
 
       cssContent = builtins.readFile ./style.css;
 
-      # Guard: Hyprland must be enabled AND no custom shell (caelestia or noctalia) on Hyprland
       isHyprlandEnabled = parent.hyprland.enable or false;
-      hasCustomShell = (parent.caelestia.enableOnHyprland or false)
-        || (parent.noctalia.enableOnHyprland or false);
-      isWaybarNeeded = isHyprlandEnabled && !hasCustomShell;
+      caelestiaActiveOnHyprland =
+        (parent.caelestia.enable or false)
+        && (parent.caelestia.enableOnHyprland or false);
+      noctaliaActiveOnHyprland =
+        (parent.noctalia.enable or false)
+        && (parent.noctalia.enableOnHyprland or false);
+      hasShellOnHyprland = caelestiaActiveOnHyprland || noctaliaActiveOnHyprland;
 
       # Waybar config as Nix attrset
       waybarConfig = {
@@ -201,33 +204,43 @@ delib.module {
 
       configDir = "waybar-hyprland";
     in
-    lib.mkIf isWaybarNeeded {
-      # Write config and style to separate directory
-      xdg.configFile."${configDir}/config".text = builtins.toJSON waybarConfig;
-      xdg.configFile."${configDir}/style.css".text = ''
-        ${cssVariables}
-        ${cssContent}
-      '';
+    lib.mkMerge [
+      {
+        assertions = [
+          {
+            assertion = !(isHyprlandEnabled && hasShellOnHyprland);
+            message = "waybar-hyprland is enabled together with an active shell (caelestia or noctalia) on Hyprland — disable one.";
+          }
+        ];
+      }
+      (lib.mkIf isHyprlandEnabled {
+        # Write config and style to separate directory
+        xdg.configFile."${configDir}/config".text = builtins.toJSON waybarConfig;
+        xdg.configFile."${configDir}/style.css".text = ''
+          ${cssVariables}
+          ${cssContent}
+        '';
 
-      # Custom systemd service for Hyprland waybar
-      systemd.user.services.waybar-hyprland = {
-        Unit = {
-          Description = "Waybar for Hyprland";
-          Documentation = "https://github.com/Alexays/Waybar/wiki";
-          PartOf = [ "hyprland-session.target" ];
-          After = [ "hyprland-session.target" ];
-          ConditionEnvironment = "WAYLAND_DISPLAY";
+        # Custom systemd service for Hyprland waybar
+        systemd.user.services.waybar-hyprland = {
+          Unit = {
+            Description = "Waybar for Hyprland";
+            Documentation = "https://github.com/Alexays/Waybar/wiki";
+            PartOf = [ "hyprland-session.target" ];
+            After = [ "hyprland-session.target" ];
+            ConditionEnvironment = "WAYLAND_DISPLAY";
+          };
+          Service = {
+            ExecStart = "${pkgs.waybar}/bin/waybar -c %h/.config/${configDir}/config -s %h/.config/${configDir}/style.css";
+            ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
+            Restart = "on-failure";
+            RestartSec = 1;
+            KillMode = "mixed";
+          };
+          Install = {
+            WantedBy = [ "hyprland-session.target" ];
+          };
         };
-        Service = {
-          ExecStart = "${pkgs.waybar}/bin/waybar -c %h/.config/${configDir}/config -s %h/.config/${configDir}/style.css";
-          ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
-          Restart = "on-failure";
-          RestartSec = 1;
-          KillMode = "mixed";
-        };
-        Install = {
-          WantedBy = [ "hyprland-session.target" ];
-        };
-      };
-    };
+      })
+    ];
 }
