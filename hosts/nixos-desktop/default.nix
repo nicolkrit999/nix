@@ -478,7 +478,7 @@ delib.host {
         };
 
         kde = {
-          enable = true;
+          enable = false;
           pinnedApps = [
             (resolve myBrowser)
             (resolve myEditor)
