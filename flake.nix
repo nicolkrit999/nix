@@ -211,6 +211,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    helium = {
+      url = "github:schembriaiden/helium-browser-nix-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Pinned nixpkgs for winboat — Electron 41.2.0 in newer nixpkgs breaks node-abi detection.
     # REMOVE THIS when nixpkgs winboat builds again (test by removing overlay in virtualisation.nix).
     nixpkgs-winboat.url = "github:nixos/nixpkgs/bcd464ccd2a1a7cd09aa2f8d4ffba83b761b1d0e";

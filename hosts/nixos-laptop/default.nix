@@ -98,16 +98,18 @@ delib.host {
         fileManager = myFileManager;
 
         wallpapers = [
+          /*
           {
             targetMonitor = "eDP-1";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/ChrisTitusTech/ChrisTitusTech/nord-background/at_the_coffeshop.png";
-            wallpaperSHA256 = "14jnknqia3p2szg9qzyi3h2kb0pz0wj7ypvzx0fi449pq54vr931";
+            wallpaperURL = "https://github.com/nicolkrit999/wallpapers-repo/blob/main/wallpapers/Pictures/wallpapers/various/various-websites/wallpaperflare/wallpaperflare_nasa.jpg";
+            wallpaperSHA256 = "1r8wdcgk5hg0rc1cs2g6dkvv5r9pshl1lsvw80nzqnk1iqc202gn";
           }
+          */
 
           {
             targetMonitor = "*";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/linuxdotexe/nordic-wallpapers/ign_Carvan-2.png";
-            wallpaperSHA256 = "03n3kh7mz26cnyah1pnnrs2msxmdd6s9qwcnj9pxzif1q2xpdv4r";
+            wallpaperURL = "https://github.com/nicolkrit999/wallpapers-repo/blob/main/wallpapers/Pictures/wallpapers/various/various-websites/wallpaperflare/wallpaperflare_nasa.jpg";
+            wallpaperSHA256 = "1r8wdcgk5hg0rc1cs2g6dkvv5r9pshl1lsvw80nzqnk1iqc202gn";
           }
         ];
 
@@ -116,7 +118,7 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "nord";
+          base16Theme = "tokyo-night";
           catppuccin = false;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "teal";
@@ -207,6 +209,7 @@ delib.host {
         nix-alien.enable = false;
         comma.enable = true;
         statix.enable = false;
+        helium.enable = true;
         lazygit.enable = true;
         shell-aliases.enable = true;
         starship.enable = true;
