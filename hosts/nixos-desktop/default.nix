@@ -617,7 +617,7 @@ delib.host {
         swiss-locale.enable = true;
         git-ssh-signing.enable = true;
         default-user.enable = true;
-        virtualisation.enable = true;
+        virtualisation.enable = false;
         resolved.enable = true;
         autotrash.enable = true;
         ssh-config.enable = true;
