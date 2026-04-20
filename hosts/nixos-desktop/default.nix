@@ -477,7 +477,7 @@ delib.host {
         };
 
         kde = {
-          enable = true;
+          enable = false;
           pinnedApps = [
             (resolve myBrowser)
             (resolve myEditor)
@@ -510,7 +510,7 @@ delib.host {
         audio.enable = true;
         hyprlock.enable = true;
         sddm-astronaut = {
-          enable = true;
+          enable = false;
         };
         sddm-pixie = {
           enable = false;
