@@ -83,7 +83,7 @@ window#waybar .modules-right > widget > box {
 
 /* Workspace buttons as pill-shaped modules */
 #workspaces button {
-  background-color: @base01;
+  background-color: @base02;
   background-image: none;
   margin: 0 4px;
   padding: 4px 16px;
@@ -113,7 +113,7 @@ window#waybar .modules-right > widget > box {
 
 /* Hover — lift one step */
 #workspaces button:hover {
-  background-color: @base02;
+  background-color: @base03;
 }
 
 /* ----------------------------------------------------------------------- */
@@ -123,7 +123,7 @@ window#waybar .modules-right > widget > box {
 #custom-window {
   padding: 4px 16px;
   margin: 0 4px;
-  background-color: @base01;
+  background-color: @base02;
   border-radius: 100px;
   border: none;
   outline: none;
@@ -145,7 +145,7 @@ window#waybar .modules-right > widget > box {
 #custom-notification {
   padding: 4px 16px;
   margin: 0 4px;
-  background-color: @base01;
+  background-color: @base02;
   border-radius: 100px;
   border: none;
   color: @base05;

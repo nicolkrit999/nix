@@ -203,6 +203,7 @@ delib.host {
         nix-alien.enable = true;
         comma.enable = true;
         statix.enable = true;
+        helium.enable = true;
         lazygit.enable = true;
         shell-aliases.enable = true;
         starship.enable = true;
