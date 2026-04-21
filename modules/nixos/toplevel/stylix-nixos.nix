@@ -90,10 +90,19 @@ delib.module {
         else
           null;
 
+      # Three-way active check: the stylix hyprpaper target should only be
+      # enabled when hyprpaper actually runs — i.e. Hyprland is on AND no
+      # shell is active on it (master + per-WM + wm.enable).
       hyprlandEnabled = myconfig.programs.hyprland.enable or false;
-      caelestiaEnabled = myconfig.programs.caelestia.enableOnHyprland or false;
-      noctaliaEnabled = myconfig.programs.noctalia.enableOnHyprland or false;
-      useHyprpaper = hyprlandEnabled && !caelestiaEnabled && !noctaliaEnabled;
+      caelestiaActiveOnHyprland =
+        (myconfig.programs.caelestia.enable or false)
+        && (myconfig.programs.caelestia.enableOnHyprland or false)
+        && hyprlandEnabled;
+      noctaliaActiveOnHyprland =
+        (myconfig.programs.noctalia.enable or false)
+        && (myconfig.programs.noctalia.enableOnHyprland or false)
+        && hyprlandEnabled;
+      useHyprpaper = hyprlandEnabled && !caelestiaActiveOnHyprland && !noctaliaActiveOnHyprland;
     in
     {
       stylix = lib.mkMerge [

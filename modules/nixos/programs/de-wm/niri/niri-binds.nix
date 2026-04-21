@@ -35,9 +35,15 @@ delib.module {
 
       walkerCommand = [ "walker" ];
 
-      shellLauncherCommand =
-        if (parent.noctalia.enableOnNiri or false) then
+      # Three-way active check: only dispatch to noctalia's IPC if noctalia
+      # is actually running on Niri (master + per-WM + wm.enable).
+      noctaliaActiveOnNiri =
+        (parent.noctalia.enable or false)
+        && (parent.noctalia.enableOnNiri or false)
+        && (parent.niri.enable or false);
 
+      shellLauncherCommand =
+        if noctaliaActiveOnNiri then
           [
             "sh"
             "-c"

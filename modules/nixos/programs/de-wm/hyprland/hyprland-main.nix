@@ -43,6 +43,16 @@ delib.module {
 
       smartFm = if builtins.elem rawFm termApps then "${term} --class ${rawFm} -e ${rawFm}" else rawFm;
       smartEd = if builtins.elem rawEd termApps then "${term} --class ${rawEd} -e ${rawEd}" else rawEd;
+
+      # Three-way active check: the shell menu binding should only dispatch
+      # to a shell's IPC if that shell is actually running on Hyprland
+      # (master + per-WM + wm.enable), not just when the dormant flag is set.
+      caelestiaActiveOnHyprland =
+        (myconfig.programs.caelestia.enable or false)
+        && (myconfig.programs.caelestia.enableOnHyprland or false);
+      noctaliaActiveOnHyprland =
+        (myconfig.programs.noctalia.enable or false)
+        && (myconfig.programs.noctalia.enableOnHyprland or false);
     in
 
     {
@@ -109,9 +119,9 @@ delib.module {
           "$editor" = smartEd;
           "$menu" = "walker";
           "$shellMenu" =
-            if myconfig.programs.caelestia.enableOnHyprland or false then
+            if caelestiaActiveOnHyprland then
               "caelestiaQS"
-            else if myconfig.programs.noctalia.enableOnHyprland or false then
+            else if noctaliaActiveOnHyprland then
               "noctalia-shell ipc call toggleAppLauncher"
             else
               "walker";
