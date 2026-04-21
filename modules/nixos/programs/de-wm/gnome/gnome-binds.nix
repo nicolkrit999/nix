@@ -12,8 +12,8 @@ delib.module {
     }:
     let
       screenshotScript = pkgs.writeShellScript "launch-screenshot" ''
-        FILENAME="${cfg.screenshots}/Screenshot_$(date +%F_%H-%M-%S).png"
-        mkdir -p "${cfg.screenshots}"
+        FILENAME="${myconfig.constants.screenshots}/Screenshot_$(date +%F_%H-%M-%S).png"
+        mkdir -p "${myconfig.constants.screenshots}"
         ${pkgs.gnome-screenshot}/bin/gnome-screenshot --file="$FILENAME"
         ${pkgs.libnotify}/bin/notify-send "Screenshot Saved" "Saved to $FILENAME" -i camera-photo
       '';
