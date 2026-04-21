@@ -37,15 +37,30 @@ delib.module {
         .notification-row { outline: none; }
       '';
 
+      # Three-way active check: a shell only suppresses swaync when it is
+      # actually running on that WM (master enable + per-WM flag + wm.enable),
+      # not just when the dormant per-WM preference is set.
+      caelestiaActiveOnHyprland =
+        (myconfig.programs.caelestia.enable or false)
+        && (myconfig.programs.caelestia.enableOnHyprland or false)
+        && (myconfig.programs.hyprland.enable or false);
+
+      noctaliaActiveOnHyprland =
+        (myconfig.programs.noctalia.enable or false)
+        && (myconfig.programs.noctalia.enableOnHyprland or false)
+        && (myconfig.programs.hyprland.enable or false);
+
+      noctaliaActiveOnNiri =
+        (myconfig.programs.noctalia.enable or false)
+        && (myconfig.programs.noctalia.enableOnNiri or false)
+        && (myconfig.programs.niri.enable or false);
+
       hyprlandSwayNC =
         (myconfig.programs.hyprland.enable or false)
-        && !(
-          (myconfig.programs.caelestia.enableOnHyprland or false)
-          || (myconfig.programs.noctalia.enableOnHyprland or false)
-        );
+        && !(caelestiaActiveOnHyprland || noctaliaActiveOnHyprland);
 
       niriSwayNC =
-        (myconfig.programs.niri.enable or false) && !(myconfig.programs.noctalia.enableOnNiri or false);
+        (myconfig.programs.niri.enable or false) && !noctaliaActiveOnNiri;
     in
 
 

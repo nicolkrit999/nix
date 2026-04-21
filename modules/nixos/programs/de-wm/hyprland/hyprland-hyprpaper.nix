@@ -17,10 +17,23 @@ delib.module {
 
       wallpaperSettings = map (w: "${w.monitor},${w.path}") wallpapersWithPaths;
 
+      # Three-way active check: hyprpaper is the fallback only when no shell
+      # is actually running on Hyprland (master + per-WM + wm.enable), not
+      # just when the dormant per-WM preference is set.
+      hyprlandEnabled = parent.hyprland.enable or false;
+      caelestiaActiveOnHyprland =
+        (parent.caelestia.enable or false)
+        && (parent.caelestia.enableOnHyprland or false)
+        && hyprlandEnabled;
+      noctaliaActiveOnHyprland =
+        (parent.noctalia.enable or false)
+        && (parent.noctalia.enableOnHyprland or false)
+        && hyprlandEnabled;
+
       hyprlandFallback =
         (cfg.enable or false)
-        && !(parent.caelestia.enableOnHyprland or false)
-        && !(parent.noctalia.enableOnHyprland or false);
+        && !caelestiaActiveOnHyprland
+        && !noctaliaActiveOnHyprland;
 
     in
     lib.mkIf hyprlandFallback {

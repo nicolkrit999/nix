@@ -10,12 +10,24 @@ delib.module {
   home.always =
     { myconfig, ... }:
     let
-      hyprlandFallback =
-        (myconfig.programs.hyprland.enable or false)
-        && !(myconfig.programs.caelestia.enableOnHyprland or false)
-        && !(myconfig.programs.noctalia.enableOnHyprland or false);
-      niriFallback =
-        (myconfig.programs.niri.enable or false) && !(myconfig.programs.noctalia.enableOnNiri or false);
+      hyprlandEnabled = myconfig.programs.hyprland.enable or false;
+      niriEnabled = myconfig.programs.niri.enable or false;
+
+      caelestiaActiveOnHyprland =
+        (myconfig.programs.caelestia.enable or false)
+        && (myconfig.programs.caelestia.enableOnHyprland or false)
+        && hyprlandEnabled;
+      noctaliaActiveOnHyprland =
+        (myconfig.programs.noctalia.enable or false)
+        && (myconfig.programs.noctalia.enableOnHyprland or false)
+        && hyprlandEnabled;
+      noctaliaActiveOnNiri =
+        (myconfig.programs.noctalia.enable or false)
+        && (myconfig.programs.noctalia.enableOnNiri or false)
+        && niriEnabled;
+
+      hyprlandFallback = hyprlandEnabled && !caelestiaActiveOnHyprland && !noctaliaActiveOnHyprland;
+      niriFallback = niriEnabled && !noctaliaActiveOnNiri;
 
       # Base16 colors (without hashtag for rgba interpolation)
       c = config.lib.stylix.colors;

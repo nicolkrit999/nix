@@ -15,7 +15,7 @@ delib.module {
       enableOnNiri = boolOption false;
     };
 
-  # Keep always to let the rest of the logic handling the activation
+  # Keep always so the cross-shell assertion fires regardless of enable state.
   home.always =
     { cfg
     , parent
@@ -23,12 +23,22 @@ delib.module {
     , ...
     }:
     let
-      enableHyprland =
-        (parent.hyprland.enable or false)
+      activeOnHyprland =
+        cfg.enable
         && cfg.enableOnHyprland
-        && !(parent.caelestia.enableOnHyprland or false);
+        && (parent.hyprland.enable or false);
 
-      enableNiri = (parent.niri.enable or false) && cfg.enableOnNiri;
+      activeOnNiri =
+        cfg.enable
+        && cfg.enableOnNiri
+        && (parent.niri.enable or false);
+
+      active = activeOnHyprland || activeOnNiri;
+
+      caelestiaActiveOnHyprland =
+        (parent.caelestia.enable or false)
+        && (parent.caelestia.enableOnHyprland or false)
+        && (parent.hyprland.enable or false);
 
       noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
@@ -84,9 +94,15 @@ delib.module {
         wait $PID
       '';
     in
-    lib.mkIf (cfg.enableOnHyprland || cfg.enableOnNiri) {
+    {
+      assertions = [
+        {
+          assertion = !(activeOnHyprland && caelestiaActiveOnHyprland);
+          message = "Both caelestia and noctalia are active on Hyprland — only one shell may be active per WM.";
+        }
+      ];
 
-      home.packages = [
+      home.packages = lib.mkIf active ([
         noctaliaPkg
         startNoctalia
 
@@ -95,15 +111,15 @@ delib.module {
         pkgs.cava
         pkgs.evolution-data-server
       ]
-      ++ extraQmlPackages;
+      ++ extraQmlPackages);
 
       # Hyprland Autostart
-      wayland.windowManager.hyprland.settings.exec-once = lib.optionals enableHyprland [
+      wayland.windowManager.hyprland.settings.exec-once = lib.mkIf activeOnHyprland [
         "start-noctalia"
       ];
 
       # Niri Autostart
-      programs.niri.settings.spawn-at-startup = lib.optionals enableNiri [
+      programs.niri.settings.spawn-at-startup = lib.mkIf activeOnNiri [
         { command = [ "start-noctalia" ]; }
       ];
     };
