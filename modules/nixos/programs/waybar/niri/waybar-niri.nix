@@ -200,43 +200,43 @@ delib.module {
 
       configDir = "waybar-niri";
     in
-    lib.mkMerge [
-      {
-        assertions = [
-          {
-            assertion = !(isNiriEnabled && noctaliaActiveOnNiri);
-            message = "waybar-niri is enabled together with an active noctalia shell on Niri — disable one.";
-          }
-        ];
-      }
-      (lib.mkIf isNiriEnabled {
-        # Write config and style to separate directory
-        xdg.configFile."${configDir}/config".text = builtins.toJSON waybarConfig;
-        xdg.configFile."${configDir}/style.css".text = ''
+    {
+      assertions = [
+        {
+          assertion = !(isNiriEnabled && noctaliaActiveOnNiri);
+          message = "waybar-niri is enabled together with an active noctalia shell on Niri — disable one.";
+        }
+      ];
+
+      xdg.configFile."${configDir}/config" = lib.mkIf isNiriEnabled {
+        text = builtins.toJSON waybarConfig;
+      };
+      xdg.configFile."${configDir}/style.css" = lib.mkIf isNiriEnabled {
+        text = ''
           ${cssVariables}
           ${cssContent}
         '';
+      };
 
-        # Custom systemd service for Niri waybar
-        systemd.user.services.waybar-niri = {
-          Unit = {
-            Description = "Waybar for Niri";
-            Documentation = "https://github.com/Alexays/Waybar/wiki";
-            PartOf = [ "niri.service" ];
-            After = [ "niri.service" ];
-            ConditionEnvironment = "WAYLAND_DISPLAY";
-          };
-          Service = {
-            ExecStart = "${pkgs.waybar}/bin/waybar -c %h/.config/${configDir}/config -s %h/.config/${configDir}/style.css";
-            ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
-            Restart = "on-failure";
-            RestartSec = 1;
-            KillMode = "mixed";
-          };
-          Install = {
-            WantedBy = [ "niri.service" ];
-          };
+      # Custom systemd service for Niri waybar
+      systemd.user.services.waybar-niri = lib.mkIf isNiriEnabled {
+        Unit = {
+          Description = "Waybar for Niri";
+          Documentation = "https://github.com/Alexays/Waybar/wiki";
+          PartOf = [ "niri.service" ];
+          After = [ "niri.service" ];
+          ConditionEnvironment = "WAYLAND_DISPLAY";
         };
-      })
-    ];
+        Service = {
+          ExecStart = "${pkgs.waybar}/bin/waybar -c %h/.config/${configDir}/config -s %h/.config/${configDir}/style.css";
+          ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
+          Restart = "on-failure";
+          RestartSec = 1;
+          KillMode = "mixed";
+        };
+        Install = {
+          WantedBy = [ "niri.service" ];
+        };
+      };
+    };
 }
