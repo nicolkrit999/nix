@@ -408,7 +408,6 @@ delib.host {
 
         gnome = {
           enable = false; # Gnome pulls lot of elements. Since i almost never use it keep it disabled to save battery and resources
-          screenshots = "/home/krit/Pictures/Screenshots";
           pinnedApps = [
             (resolve myBrowser)
             (resolve myEditor)

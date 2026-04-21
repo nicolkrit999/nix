@@ -447,7 +447,6 @@ delib.host {
 
         gnome = {
           enable = true;
-          screenshots = "/home/krit/Pictures/Screenshots";
           pinnedApps = [
             (resolve myBrowser)
             (resolve myEditor)
