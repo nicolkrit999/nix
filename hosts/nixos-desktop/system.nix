@@ -74,6 +74,7 @@ delib.host {
     boot.initrd.kernelModules = [ "amdgpu" ];
     hardware.graphics.enable = true;
 
+
     # Desktop-specific packages
     environment.systemPackages = with pkgs; [
       libvdpau-va-gl # Allow VA-GL to be used as a VDPAU backend for hardware video acceleration on AMD GPUs
