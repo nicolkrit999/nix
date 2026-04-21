@@ -27,7 +27,10 @@ delib.module {
     in
     {
       # Enable data control for clipboard tools
-      home.sessionVariables.COSMIC_DATA_CONTROL_ENABLED = 1;
+      home.sessionVariables = {
+        COSMIC_DATA_CONTROL_ENABLED = 1;
+        XDG_SCREENSHOTS_DIR = myconfig.constants.screenshots;
+      };
 
       xdg.configFile."cosmic/com.system76.CosmicBackground/v1/all".text = ''
         ${monitorConfig}
