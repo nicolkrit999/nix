@@ -476,8 +476,8 @@ delib.host {
         hyprlock.enable = true;
         sddm-astronaut = {
           enable = true;
-          embeddedTheme = "japanese_aesthetic";
-          background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
+          embeddedTheme = "pixel_sakura_static";
+          background = ../../users/krit/src/wallpapers/blue-anime-girl-pokemon.jpg;
         };
         sddm-pixie = {
           enable = false;
