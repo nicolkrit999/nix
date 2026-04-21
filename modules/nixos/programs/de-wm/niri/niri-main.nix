@@ -50,8 +50,6 @@ delib.module {
       home.packages = with pkgs; [
         xwayland-satellite # X11 Support
         swww # Wallpaper
-        grimblast # Screenshot tool
-        slurp # Region selector for screenshots
         libnotify # Notifications
         hyprpicker # Color Picker
         wl-clipboard # Clipboard
@@ -207,6 +205,7 @@ delib.module {
           environment = {
             "NIXOS_OZONE_WL" = "1";
             "DISPLAY" = ":1";
+            "XDG_SCREENSHOTS_DIR" = myconfig.constants.screenshots;
           };
 
           spawn-at-startup = [

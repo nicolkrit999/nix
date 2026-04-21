@@ -44,11 +44,14 @@ delib.module {
 
       cssContent = builtins.readFile ./style.css;
 
-      # Guard: Hyprland must be enabled AND no custom shell (caelestia or noctalia) on Hyprland
       isHyprlandEnabled = parent.hyprland.enable or false;
-      hasCustomShell = (parent.caelestia.enableOnHyprland or false)
-        || (parent.noctalia.enableOnHyprland or false);
-      isWaybarNeeded = isHyprlandEnabled && !hasCustomShell;
+      caelestiaActiveOnHyprland =
+        (parent.caelestia.enable or false)
+        && (parent.caelestia.enableOnHyprland or false);
+      noctaliaActiveOnHyprland =
+        (parent.noctalia.enable or false)
+        && (parent.noctalia.enableOnHyprland or false);
+      hasShellOnHyprland = caelestiaActiveOnHyprland || noctaliaActiveOnHyprland;
 
       # Waybar config as Nix attrset
       waybarConfig = {
@@ -201,16 +204,26 @@ delib.module {
 
       configDir = "waybar-hyprland";
     in
-    lib.mkIf isWaybarNeeded {
-      # Write config and style to separate directory
-      xdg.configFile."${configDir}/config".text = builtins.toJSON waybarConfig;
-      xdg.configFile."${configDir}/style.css".text = ''
-        ${cssVariables}
-        ${cssContent}
-      '';
+    {
+      assertions = [
+        {
+          assertion = !(isHyprlandEnabled && hasShellOnHyprland);
+          message = "waybar-hyprland is enabled together with an active shell (caelestia or noctalia) on Hyprland — disable one.";
+        }
+      ];
+
+      xdg.configFile."${configDir}/config" = lib.mkIf isHyprlandEnabled {
+        text = builtins.toJSON waybarConfig;
+      };
+      xdg.configFile."${configDir}/style.css" = lib.mkIf isHyprlandEnabled {
+        text = ''
+          ${cssVariables}
+          ${cssContent}
+        '';
+      };
 
       # Custom systemd service for Hyprland waybar
-      systemd.user.services.waybar-hyprland = {
+      systemd.user.services.waybar-hyprland = lib.mkIf isHyprlandEnabled {
         Unit = {
           Description = "Waybar for Hyprland";
           Documentation = "https://github.com/Alexays/Waybar/wiki";

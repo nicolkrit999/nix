@@ -8,7 +8,6 @@ delib.module {
   options =
     with delib;
     moduleOptions {
-      screenshots = strOption "$HOME/Pictures/Screenshots";
       pinnedApps = listOfOption str [ ];
       extraBinds = listOfOption attrs [ ];
     };

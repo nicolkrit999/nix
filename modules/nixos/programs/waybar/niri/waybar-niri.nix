@@ -44,11 +44,11 @@ delib.module {
 
       cssContent = builtins.readFile ./style.css;
 
-      # Guard: Niri must be enabled AND noctalia not enabled on Niri
-      # Note: No caelestia check — caelestia is hyprland-only
+      # Note: caelestia is hyprland-only, so not checked here.
       isNiriEnabled = parent.niri.enable or false;
-      hasCustomShell = parent.noctalia.enableOnNiri or false;
-      isWaybarNeeded = isNiriEnabled && !hasCustomShell;
+      noctaliaActiveOnNiri =
+        (parent.noctalia.enable or false)
+        && (parent.noctalia.enableOnNiri or false);
 
       # Waybar config as Nix attrset
       waybarConfig = {
@@ -200,16 +200,26 @@ delib.module {
 
       configDir = "waybar-niri";
     in
-    lib.mkIf isWaybarNeeded {
-      # Write config and style to separate directory
-      xdg.configFile."${configDir}/config".text = builtins.toJSON waybarConfig;
-      xdg.configFile."${configDir}/style.css".text = ''
-        ${cssVariables}
-        ${cssContent}
-      '';
+    {
+      assertions = [
+        {
+          assertion = !(isNiriEnabled && noctaliaActiveOnNiri);
+          message = "waybar-niri is enabled together with an active noctalia shell on Niri — disable one.";
+        }
+      ];
+
+      xdg.configFile."${configDir}/config" = lib.mkIf isNiriEnabled {
+        text = builtins.toJSON waybarConfig;
+      };
+      xdg.configFile."${configDir}/style.css" = lib.mkIf isNiriEnabled {
+        text = ''
+          ${cssVariables}
+          ${cssContent}
+        '';
+      };
 
       # Custom systemd service for Niri waybar
-      systemd.user.services.waybar-niri = {
+      systemd.user.services.waybar-niri = lib.mkIf isNiriEnabled {
         Unit = {
           Description = "Waybar for Niri";
           Documentation = "https://github.com/Alexays/Waybar/wiki";
