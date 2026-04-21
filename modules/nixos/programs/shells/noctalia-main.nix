@@ -94,36 +94,33 @@ delib.module {
         wait $PID
       '';
     in
-    lib.mkMerge [
-      {
-        assertions = [
-          {
-            assertion = !(activeOnHyprland && caelestiaActiveOnHyprland);
-            message = "Both caelestia and noctalia are active on Hyprland — only one shell may be active per WM.";
-          }
-        ];
-      }
-      (lib.mkIf active {
-        home.packages = [
-          noctaliaPkg
-          startNoctalia
+    {
+      assertions = [
+        {
+          assertion = !(activeOnHyprland && caelestiaActiveOnHyprland);
+          message = "Both caelestia and noctalia are active on Hyprland — only one shell may be active per WM.";
+        }
+      ];
 
-          # Runtime dependencies
-          pkgs.wlsunset
-          pkgs.cava
-          pkgs.evolution-data-server
-        ]
-        ++ extraQmlPackages;
+      home.packages = lib.mkIf active ([
+        noctaliaPkg
+        startNoctalia
 
-        # Hyprland Autostart
-        wayland.windowManager.hyprland.settings.exec-once = lib.optionals activeOnHyprland [
-          "start-noctalia"
-        ];
+        # Runtime dependencies
+        pkgs.wlsunset
+        pkgs.cava
+        pkgs.evolution-data-server
+      ]
+      ++ extraQmlPackages);
 
-        # Niri Autostart
-        programs.niri.settings.spawn-at-startup = lib.optionals activeOnNiri [
-          { command = [ "start-noctalia" ]; }
-        ];
-      })
-    ];
+      # Hyprland Autostart
+      wayland.windowManager.hyprland.settings.exec-once = lib.mkIf activeOnHyprland [
+        "start-noctalia"
+      ];
+
+      # Niri Autostart
+      programs.niri.settings.spawn-at-startup = lib.mkIf activeOnNiri [
+        { command = [ "start-noctalia" ]; }
+      ];
+    };
 }
