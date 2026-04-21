@@ -10,7 +10,11 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__query-docs",
       "Bash(nix flake:*)",
-      "Bash(nix eval *)"
+      "Bash(nix eval *)",
+      "Bash(sudo nix-env *)",
+      "Bash(journalctl --list-boots)",
+      "Bash(journalctl -b -1 -u display-manager --no-pager)",
+      "Bash(journalctl -b -1 _UID=1000 --no-pager)"
     ]
   }
 }
