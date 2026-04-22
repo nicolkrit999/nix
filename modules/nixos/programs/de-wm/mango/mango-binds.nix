@@ -1,4 +1,5 @@
 { delib
+, lib
 , ...
 }:
 delib.module {
@@ -52,6 +53,11 @@ delib.module {
         "SUPER+SHIFT,I,restore_minimized"
         "SUPER+SHIFT,R,reload_config"
         "SUPER+ALT,N,switch_layout"
+        "SUPER,T,setlayout,tile"
+        "SUPER,S,setlayout,scroller"
+
+        "SUPER+ALT,W,spawn,pkill -SIGUSR2 waybar"
+        "SUPER+SHIFT,W,spawn,pkill -x -SIGUSR1 waybar"
 
         "ALT,Tab,toggleoverview,"
         "ALT,backslash,togglefloating,"
@@ -152,16 +158,25 @@ delib.module {
         "SUPER,DOWN,viewtoright_have_client"
       ];
 
-      tagRules = [
-        "id:1,layout_name:scroller"
-        "id:2,layout_name:scroller"
-        "id:3,layout_name:scroller"
-        "id:4,layout_name:scroller"
-        "id:5,layout_name:scroller"
-        "id:6,layout_name:scroller"
-        "id:7,layout_name:scroller"
-        "id:8,layout_name:scroller"
-        "id:9,layout_name:scroller"
+      tagIds = [ 1 2 3 4 5 6 7 8 9 ];
+      tagRules =
+        let
+          perMonitor = lib.concatMap
+            (name: map (i: "id:${toString i},monitor_name:${name},layout_name:${cfg.monitorLayouts.${name}}") tagIds)
+            (builtins.attrNames cfg.monitorLayouts);
+          fallback = map (i: "id:${toString i},layout_name:${cfg.defaultLayout}") tagIds;
+        in
+        perMonitor ++ fallback;
+
+      baseGestureBinds = [
+        "none,left,3,focusdir,left"
+        "none,right,3,focusdir,right"
+        "none,up,3,focusdir,up"
+        "none,down,3,focusdir,down"
+        "none,left,4,viewtoleft_have_client"
+        "none,right,4,viewtoright_have_client"
+        "none,up,4,toggleoverview"
+        "none,down,4,toggleoverview"
       ];
 
       baseLayerRules = [
@@ -176,6 +191,7 @@ delib.module {
         bind = baseBinds ++ cfg.extraBinds;
         mousebind = baseMouseBinds ++ cfg.extraMouseBinds;
         axisbind = baseAxisBinds ++ cfg.extraAxisBinds;
+        gesturebind = baseGestureBinds;
         tagrule = tagRules;
         layerrule = baseLayerRules ++ cfg.extraLayerRules;
       };
