@@ -108,8 +108,8 @@ delib.host {
 
           {
             targetMonitor = "*";
-            wallpaperURL = "https://github.com/nicolkrit999/wallpapers-repo/blob/main/wallpapers/Pictures/wallpapers/various/various-websites/wallpaperflare/wallpaperflare_nasa.jpg";
-            wallpaperSHA256 = "1r8wdcgk5hg0rc1cs2g6dkvv5r9pshl1lsvw80nzqnk1iqc202gn";
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/anime/tanjiro-kamado-gruv.jpg";
+            wallpaperSHA256 = "13lcg8wl8wlavqvh8mmm0xfjh6ysdwhn9w6rr2f32sfv8g5l7s33";
           }
         ];
 
@@ -118,7 +118,7 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "tokyo-night-moon";
+          base16Theme = "gruvbox-material-dark-hard";
           catppuccin = false;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "teal";
@@ -504,13 +504,13 @@ delib.host {
         hyprlock.enable = true;
         sddm-astronaut = {
           enable = true;
-          embeddedTheme = "pixel_sakura_static";
-          background = ../../users/krit/src/wallpapers/blue-anime-girl-pokemon.jpg;
+          embeddedTheme = "japanese_aesthetic";
+          background = ../../users/krit/src/wallpapers/girl-outline.png;
         };
         sddm-pixie = {
           enable = false;
           #hourFormat = "24h"; # 12-hour format (AM/PM not supported by theme) FIXME: not working
-          background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
+          #background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
           avatar = ../../users/krit/src/profile-picture/face-512.jpg;
         };
         impermanence.enable = true;
