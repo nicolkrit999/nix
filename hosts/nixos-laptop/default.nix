@@ -269,6 +269,13 @@ delib.host {
           };
         };
 
+        waybar-mango = {
+          enable = true;
+          waybarLayout = {
+            "format-en" = "🇺🇸-EN";
+          };
+        };
+
         caelestia = {
           enable = false;
           enableOnHyprland = true;
@@ -278,6 +285,27 @@ delib.host {
           enable = false;
           enableOnHyprland = false;
           enableOnNiri = true;
+        };
+
+        mango = {
+          enable = true;
+          monitors = [
+            "name:^eDP-1$,width:3200,height:2000,refresh:120,x:0,y:0,scale:1.6"
+          ];
+          execOnce = [
+            "sh -c 'sleep 1 && ${myBrowser}'"
+            "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
+            "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
+            "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
+          ];
+          extraBinds = [
+            "SUPER,Y,spawn,chromium-browser"
+
+            "NONE,XF86Tools,viewtoleft_have_client,0"
+            "NONE,XF86Launch5,viewtoright_have_client,0"
+            "NONE,XF86Launch6,togglemaximizescreen,"
+            "NONE,XF86Launch7,killclient,"
+          ];
         };
 
         hyprland = {
@@ -532,6 +560,7 @@ delib.host {
         firefox.enable = false;
         librewolf.enable = true;
         neovim.enable = true;
+        npm.enable = true;
         pwas.enable = true;
         ranger.enable = false;
         yazi.enable = true;
