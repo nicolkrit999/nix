@@ -269,6 +269,16 @@ delib.host {
           };
         };
 
+        waybar-mango = {
+          enable = true;
+          waybarLayout = {
+            "format-en" = "🇺🇸-EN";
+            "format-it" = "🇮🇹-IT";
+            "format-de" = "🇩🇪-DE";
+            "format-fr" = "🇫🇷-FR";
+          };
+        };
+
         caelestia = {
           enable = false;
           enableOnHyprland = false;
@@ -278,6 +288,34 @@ delib.host {
           enable = false;
           enableOnHyprland = false;
           enableOnNiri = false;
+        };
+
+        mango = {
+          enable = true;
+          monitors = [
+            "name:^DP-1$,width:3840,height:2160,refresh:240,x:1440,y:560,scale:1.5"
+            "name:^DP-2$,width:3840,height:2160,refresh:144,x:0,y:0,scale:1.5,rr:1"
+          ];
+          monitorLayouts = {
+            "DP-1" = "scroller";
+            "DP-2" = "vertical_scroller";
+          };
+          execOnce = [
+            "sh -c 'sleep 1 && ${myBrowser}'"
+            "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
+            "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
+            "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
+            "sh -c 'sleep 2 && mmsg -d disable_monitor,DP-3'"
+            "sh -c 'sleep 2 && mmsg -d disable_monitor,HDMI-A-1'"
+          ];
+          extraBinds = [
+            "SUPER,Y,spawn,chromium-browser"
+
+            "NONE,XF86Tools,viewtoleft_have_client,0"
+            "NONE,XF86Launch5,viewtoright_have_client,0"
+            "NONE,XF86Launch6,togglemaximizescreen,"
+            "NONE,XF86Launch7,killclient,"
+          ];
         };
 
         hyprland = {
@@ -567,6 +605,7 @@ delib.host {
         firefox.enable = false;
         librewolf.enable = true;
         neovim.enable = true;
+        npm.enable = true;
         pwas.enable = true;
         ranger.enable = false;
         yazi.enable = true;

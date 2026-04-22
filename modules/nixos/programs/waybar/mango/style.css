@@ -1,0 +1,134 @@
+* {
+  border: none;
+  font-family: "JetBrainsMono Nerd Font Propo";
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  min-height: 0;
+  color: @base05;
+}
+
+window#waybar {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+window#waybar box,
+window#waybar box box,
+window#waybar menubar,
+window#waybar .background {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  background-image: none;
+  -gtk-icon-shadow: none;
+}
+
+/* Kill GTK separator element */
+window#waybar separator {
+  background: transparent;
+  background-image: none;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  color: transparent;
+  opacity: 0;
+}
+
+/* Reset module-section wrappers */
+window#waybar .modules-left,
+window#waybar .modules-center,
+window#waybar .modules-right,
+window#waybar .modules-center > widget,
+window#waybar .modules-left > widget,
+window#waybar .modules-right > widget {
+  border: none;
+  box-shadow: none;
+  outline: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+/* Nuclear reset: prevent ghost pills from GTK child elements */
+window#waybar .modules-center > widget > box,
+window#waybar .modules-center > widget > menubar,
+window#waybar .modules-left > widget > box,
+window#waybar .modules-right > widget > box {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+
+/* ----------------------------------------------------------------------- */
+/* TAGS (Mango — dwl-style tags rendered via pango in custom/tags)          */
+/* Active/inactive pills are drawn inline via <span background=...>         */
+/* so the module itself stays as a bare container.                          */
+/* ----------------------------------------------------------------------- */
+
+#custom-tags {
+  padding: 4px 16px;
+  margin: 0 4px;
+  background-color: @base02;
+  border-radius: 100px;
+  border: none;
+  box-shadow: none;
+  color: @base07;
+}
+
+
+#custom-window {
+  padding: 4px 16px;
+  margin: 0 4px;
+  background-color: @base02;
+  border-radius: 100px;
+  border: none;
+  outline: none;
+  color: @base07;
+}
+
+#clock,
+#battery,
+#pulseaudio,
+#custom-mic,
+#custom-language,
+#custom-layout,
+#custom-weather,
+#custom-wifi,
+#custom-bluetooth,
+#custom-notification {
+  padding: 4px 16px;
+  margin: 0 4px;
+  background-color: @base02;
+  border-radius: 100px;
+  border: none;
+  color: @base07;
+  transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#clock {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: @base06;
+}
+
+#battery.warning {
+  color: @base09;
+}
+
+#battery.critical {
+  color: @base08;
+}
+
+#pulseaudio.muted {
+  color: @base08;
+}
