@@ -280,6 +280,18 @@ delib.host {
           enableOnNiri = false;
         };
 
+        mango = {
+          enable = true;
+          extraBinds = [
+            "SUPER,Y,spawn,chromium-browser"
+
+            "NONE,XF86Tools,viewtoleft_have_client,0"
+            "NONE,XF86Launch5,viewtoright_have_client,0"
+            "NONE,XF86Launch6,togglemaximizescreen,"
+            "NONE,XF86Launch7,killclient,"
+          ];
+        };
+
         hyprland = {
           enable = true;
           monitors = [
