@@ -14,7 +14,15 @@
       "Bash(sudo nix-env *)",
       "Bash(journalctl --list-boots)",
       "Bash(journalctl -b -1 -u display-manager --no-pager)",
-      "Bash(journalctl -b -1 _UID=1000 --no-pager)"
+      "Bash(journalctl -b -1 _UID=1000 --no-pager)",
+      "Bash(git add *)",
+      "Bash(journalctl --user -b -1 --no-pager)",
+      "Bash(journalctl --user -b 0 --no-pager)",
+      "Bash(journalctl -b 0 --no-pager)",
+      "Bash(journalctl -b 0 --no-pager --since \"01:32:00\")",
+      "Bash(journalctl --list-boots --no-pager)",
+      "Bash(journalctl -b -1 --no-pager)",
+      "Bash(journalctl -b -1 --no-pager --since \"01:30:42\" --until \"01:31:20\")"
     ]
   }
 }

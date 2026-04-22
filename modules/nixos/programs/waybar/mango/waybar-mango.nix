@@ -1,0 +1,289 @@
+{ delib
+, lib
+, config
+, pkgs
+, ...
+}:
+delib.module {
+  name = "programs.waybar-mango";
+
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption true;
+      waybarLayout = attrsOption { };
+    };
+
+  home.ifEnabled =
+    { cfg
+    , parent
+    , myconfig
+    , ...
+    }:
+    let
+      c = config.lib.stylix.colors.withHashtag;
+      cssVariables = ''
+        @define-color base00 ${c.base00};
+        @define-color base01 ${c.base01};
+        @define-color base02 ${c.base02};
+        @define-color base03 ${c.base03};
+        @define-color base04 ${c.base04};
+        @define-color base05 ${c.base05};
+        @define-color base06 ${c.base06};
+        @define-color base07 ${c.base07};
+        @define-color base08 ${c.base08};
+        @define-color base09 ${c.base09};
+        @define-color base0A ${c.base0A};
+        @define-color base0B ${c.base0B};
+        @define-color base0C ${c.base0C};
+        @define-color base0D ${c.base0D};
+        @define-color base0E ${c.base0E};
+        @define-color base0F ${c.base0F};
+      '';
+
+      cssContent = builtins.readFile ./style.css;
+
+      isMangoEnabled = parent.mango.enable or false;
+
+      waybarConfig = {
+        layer = "top";
+        position = "top";
+        height = 36;
+        margin-top = 8;
+        margin-bottom = 0;
+        margin-left = 16;
+        margin-right = 16;
+
+        modules-left = [ "custom/tags" "custom/layout" ];
+        modules-center = [ "clock" "custom/window" ];
+        modules-right =
+          [ "custom/language" "custom/weather" "custom/wifi" "custom/bluetooth" "pulseaudio" "custom/mic" "battery" ]
+          ++ (lib.optional (myconfig.services.swaync.enable or false) "custom/notification");
+
+        # Mango uses tags (1-9, dwl-style), not workspaces. mmsg -g -t returns
+        # the active tag bitmask; we render a pill for each tag and highlight
+        # the active one. Click cycles to that tag via mmsg -s -t <N>.
+        "custom/tags" = {
+          exec = ''
+            mmsg -g -t 2>/dev/null \
+              | awk -v active='${c.base0D}' -v occupied='${c.base07}' -v empty='${c.base04}' '
+                  /^[^ ]+ tag [0-9]+ / {
+                    id = $3 + 0
+                    has_client = $4 + 0
+                    selected = $6 + 0
+                    if (has_client > 0) occ[id] = 1
+                    if (selected > 0) act[id] = 1
+                  }
+                  END {
+                    out = ""
+                    for (i = 1; i <= 9; i++) {
+                      if (act[i])      out = out "<span color=\"" active   "\" weight=\"bold\">  " i "  </span>"
+                      else if (occ[i]) out = out "<span color=\"" occupied "\">  " i "  </span>"
+                    }
+                    if (out == "") out = "<span color=\"" empty "\">  -  </span>"
+                    print out
+                  }'
+          '';
+          format = "{}";
+          interval = 1;
+          tooltip = false;
+        };
+
+        "custom/layout" = {
+          format = "{}";
+          exec = ''
+            layout=$(mmsg -g -l 2>/dev/null | head -1 | awk '{print $NF}')
+            case "$layout" in
+              S)   echo "<span color='${c.base0C}'>󰕕</span> Scroller" ;;
+              T)   echo "<span color='${c.base0D}'>󰕴</span> Tile" ;;
+              M)   echo "<span color='${c.base0E}'>󰊓</span> Mono" ;;
+              G)   echo "<span color='${c.base0A}'>󰕰</span> Grid" ;;
+              K)   echo "<span color='${c.base0B}'>󰓹</span> Deck" ;;
+              CT)  echo "<span color='${c.base0D}'>󰃻</span> Center" ;;
+              VT)  echo "<span color='${c.base0D}'>󰬔</span> VTile" ;;
+              VS)  echo "<span color='${c.base0C}'>󰬔</span> VScroll" ;;
+              VG)  echo "<span color='${c.base0A}'>󰬔</span> VGrid" ;;
+              VK)  echo "<span color='${c.base0B}'>󰬔</span> VDeck" ;;
+              RT)  echo "<span color='${c.base0D}'>󰕴</span> RTile" ;;
+              TG)  echo "<span color='${c.base0F}'>󱁻</span> TGMix" ;;
+              *)   echo "$layout" ;;
+            esac
+          '';
+          interval = 1;
+          on-click = "mmsg -s -l scroller";
+          on-click-right = "mmsg -s -l tile";
+          tooltip = false;
+        };
+
+        "custom/window" = {
+          exec = ''
+            title=$(mmsg -g -c 2>/dev/null | sed -n 's/^[[:space:]]*title[[:space:]]*[:=][[:space:]]*//Ip' | head -1)
+            if [ -z "$title" ] || [ "$title" = "null" ]; then
+              echo "${myconfig.constants.user or "nix"}<span font_family='JetBrainsMono Nerd Font Propo'>󱄅</span>${myconfig.constants.hostname or "nixos"}"
+            else
+              printf "%.25s" "$title"
+            fi
+          '';
+          interval = 1;
+          tooltip = false;
+        };
+
+        "custom/language" = {
+          format = "{}";
+          exec = ''
+            layout=$(mmsg -g -k 2>/dev/null | head -1 | awk '{print $NF}')
+            case "$layout" in
+              us*|en*|eng*) echo "${cfg.waybarLayout."format-en" or "EN"}" ;;
+              it*|ita*)     echo "${cfg.waybarLayout."format-it" or "IT"}" ;;
+              de*|deu*)     echo "${cfg.waybarLayout."format-de" or "DE"}" ;;
+              fr*|fra*)     echo "${cfg.waybarLayout."format-fr" or "FR"}" ;;
+              *)            echo "$layout" ;;
+            esac
+          '';
+          interval = 2;
+          tooltip = false;
+        };
+
+        "custom/weather" = {
+          format = "{}";
+          exec = "curl -s 'wttr.in/${myconfig.constants.weather or "London"}?format=%c%t' | sed 's/ //'";
+          interval = 300;
+          class = "weather";
+          on-click = "xdg-open \"https://wttr.in/${myconfig.constants.weather or "London"}\"";
+        };
+
+        "pulseaudio" = {
+          format = "<span color='${c.base0D}'>{icon}</span> {volume}%";
+          format-bluetooth = "<span color='${c.base0D}'>{icon}</span> {volume}%";
+          format-muted = "<span color='${c.base08}'>󰖁</span> Muted";
+          format-icons = {
+            headphones = "󰋋";
+            handsfree = "󰋎";
+            headset = "󰋎";
+            phone = "󰏲";
+            portable = "󰏲";
+            car = "󰄋";
+            default = [ "󰕿" "󰖀" "󰕾" ];
+          };
+          on-click = "pavucontrol";
+        };
+
+        "custom/mic" = {
+          format = "{}";
+          exec = ''
+            if ! wpctl inspect @DEFAULT_AUDIO_SOURCE@ >/dev/null 2>&1; then
+              echo "<span color='${c.base08}'>󰍭</span>"
+            elif wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null | grep -q MUTED; then
+              echo "<span color='${c.base08}'>󰍭</span>"
+            else
+              echo "<span color='${c.base0B}'>󰍬</span>"
+            fi
+          '';
+          interval = 1;
+          on-click = "wpctl inspect @DEFAULT_AUDIO_SOURCE@ >/dev/null 2>&1 && wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
+          tooltip = false;
+        };
+
+        "battery" = {
+          states = { warning = 20; critical = 5; };
+          format = "<span color='${c.base0A}'>{icon}</span> {capacity}%";
+          format-charging = "<span color='${c.base0B}'>󰂄</span> {capacity}%";
+          format-alt = "{time} <span color='${c.base0A}'>{icon}</span>";
+          format-icons = [ "󰂎" "󰁻" "󰁾" "󰂀" "󰁹" ];
+        };
+
+        "clock" = {
+          locale = myconfig.constants.mainLocale or "en_US.UTF-8";
+          format = "<span color='${c.base0E}'></span> {:%I:%M %p}";
+          format-alt = "<span color='${c.base0E}'></span> {:%m/%d/%Y - %I:%M %p}";
+          tooltip-format = "<tt><small>{calendar}</small></tt>";
+          calendar = {
+            mode = "year";
+            mode-mon-col = 3;
+            weeks-pos = "right";
+            on-scroll = 1;
+          };
+        };
+
+        "custom/notification" = {
+          format = "{}";
+          exec = ''
+            count=$(swaync-client -c 2>/dev/null || echo "0")
+            if [ "$count" -gt 0 ]; then
+              echo "<span color='${c.base09}'>󰂚</span> $count"
+            else
+              echo "󰂜"
+            fi
+          '';
+          interval = 1;
+          on-click = "swaync-client -t -sw";
+          on-click-right = "swaync-client -C";
+          tooltip = false;
+        };
+
+        "custom/wifi" = {
+          format = "{}";
+          exec = ''
+            wifi_info=$(nmcli -t -f active,ssid dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2)
+            if [ -n "$wifi_info" ]; then
+              echo "<span color='${c.base0C}'>󰤨</span> $wifi_info"
+            elif nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -q "ethernet:connected"; then
+              echo "<span color='${c.base0C}'>󰈀</span> ${myconfig.constants.hostname or "nixos"}"
+            else
+              echo "<span color='${c.base03}'>󰤭</span> offline"
+            fi
+          '';
+          interval = 5;
+          on-click = "nm-connection-editor";
+          tooltip = false;
+        };
+
+        "custom/bluetooth" = {
+          format = "{}";
+          exec = ''
+            if bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then
+              echo "<span color='${c.base0D}'>󰂯</span>"
+            else
+              echo "<span color='${c.base03}'>󰂲</span>"
+            fi
+          '';
+          interval = 5;
+          on-click = "blueman-manager";
+          tooltip = false;
+        };
+      };
+
+      configDir = "waybar-mango";
+    in
+    {
+      xdg.configFile."${configDir}/config" = lib.mkIf isMangoEnabled {
+        text = builtins.toJSON waybarConfig;
+      };
+      xdg.configFile."${configDir}/style.css" = lib.mkIf isMangoEnabled {
+        text = ''
+          ${cssVariables}
+          ${cssContent}
+        '';
+      };
+
+      systemd.user.services.waybar-mango = lib.mkIf isMangoEnabled {
+        Unit = {
+          Description = "Waybar for Mango";
+          Documentation = "https://github.com/Alexays/Waybar/wiki";
+          PartOf = [ "mango-session.target" ];
+          After = [ "mango-session.target" ];
+          ConditionEnvironment = "WAYLAND_DISPLAY";
+        };
+        Service = {
+          ExecStart = "${pkgs.waybar}/bin/waybar -c %h/.config/${configDir}/config -s %h/.config/${configDir}/style.css";
+          ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
+          Restart = "on-failure";
+          RestartSec = 1;
+          KillMode = "mixed";
+        };
+        Install = {
+          WantedBy = [ "mango-session.target" ];
+        };
+      };
+    };
+}
