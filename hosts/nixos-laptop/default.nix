@@ -532,6 +532,7 @@ delib.host {
         firefox.enable = false;
         librewolf.enable = true;
         neovim.enable = true;
+        npm.enable = true;
         pwas.enable = true;
         ranger.enable = false;
         yazi.enable = true;
