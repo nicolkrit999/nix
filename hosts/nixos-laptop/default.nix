@@ -289,9 +289,18 @@ delib.host {
 
         mango = {
           enable = true;
+          # Only the internal panel is declared here. Any externally connected
+          # monitor (DP/HDMI/whatever) falls through to wlroots defaults:
+          # preferred mode, scale 1.0, placed to the right of existing outputs.
+          # Monitor-specific setups (home dock, etc.) live in specializations.
           monitors = [
             "name:^eDP-1$,width:3200,height:2000,refresh:120,x:0,y:0,scale:1.6"
           ];
+          # Hotplugged monitors with no entry here get `defaultLayout` via the
+          # fallback branch in mango-binds.nix (tagRules).
+          monitorLayouts = {
+            "eDP-1" = "scroller";
+          };
           execOnce = [
             "sh -c 'sleep 1 && ${myBrowser}'"
             "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
