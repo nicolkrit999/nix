@@ -297,13 +297,14 @@ delib.host {
             "name:^DP-2$,width:3840,height:2160,refresh:144,x:0,y:0,scale:1.5,rr:1"
           ];
           monitorLayouts = {
-            "DP-1" = "scroller";
-            "DP-2" = "vertical_scroller";
+            "DP-1" = "center_tile";
+            "DP-2" = "vertical_tile";
           };
           execOnce = [
             "sh -c 'sleep 1 && ${myBrowser}'"
             "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
             "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
+            "sh -c 'sleep 11 && ${myTerminal}'"
             "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
             "sh -c 'sleep 2 && mmsg -d disable_monitor,DP-3'"
             "sh -c 'sleep 2 && mmsg -d disable_monitor,HDMI-A-1'"
