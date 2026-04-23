@@ -31,6 +31,18 @@ delib.module {
         "10, monitor:DP-2"
       ];
 
+      myconfig.programs.mango.monitors = lib.mkForce [
+        "name:^eDP-1$,width:3200,height:2000,refresh:120,x:0,y:0,scale:1.6"
+        "name:^DP-1$,width:3840,height:2160,refresh:240,x:1440,y:560,scale:1.5"
+        "name:^DP-2$,width:3840,height:2160,refresh:144,x:0,y:0,scale:1.5,rr:1"
+      ];
+
+      myconfig.programs.mango.monitorLayouts = lib.mkForce {
+        "eDP-1" = "scroller";
+        "DP-1" = "scroller";
+        "DP-2" = "vertical_scroller";
+      };
+
       myconfig.programs.niri.outputs = lib.mkForce {
         "eDP-1" = {
           mode = {
