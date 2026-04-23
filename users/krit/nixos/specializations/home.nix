@@ -39,8 +39,8 @@ delib.module {
 
       myconfig.programs.mango.monitorLayouts = lib.mkForce {
         "eDP-1" = "scroller";
-        "DP-1" = "scroller";
-        "DP-2" = "vertical_scroller";
+        "DP-1" = "center_tile";
+        "DP-2" = "vertical_tile";
       };
 
       myconfig.programs.niri.outputs = lib.mkForce {

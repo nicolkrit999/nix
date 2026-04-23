@@ -297,8 +297,8 @@ delib.host {
             "name:^DP-2$,width:3840,height:2160,refresh:144,x:0,y:0,scale:1.5,rr:1"
           ];
           monitorLayouts = {
-            "DP-1" = "scroller";
-            "DP-2" = "vertical_scroller";
+            "DP-1" = "center_tile";
+            "DP-2" = "vertical_tile";
           };
           execOnce = [
             "sh -c 'sleep 1 && ${myBrowser}'"
