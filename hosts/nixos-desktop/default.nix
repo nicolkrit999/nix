@@ -304,6 +304,7 @@ delib.host {
             "sh -c 'sleep 1 && ${myBrowser}'"
             "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
             "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
+            "sh -c 'sleep 11 && ${myTerminal}'"
             "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
             "sh -c 'sleep 2 && mmsg -d disable_monitor,DP-3'"
             "sh -c 'sleep 2 && mmsg -d disable_monitor,HDMI-A-1'"
