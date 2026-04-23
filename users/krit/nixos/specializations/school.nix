@@ -139,6 +139,13 @@ delib.module {
         "sleep 6 && ${term} -d $HOME/.school-workspace"
       ];
 
+      myconfig.programs.mango.execOnce = lib.mkForce [
+        "sh -c 'sleep 1 && brave-school --app=https://www.icorsi.ch/'"
+        "sh -c 'sleep 2 && vscode-school'"
+        "sh -c 'sleep 4 && ${term} --class yazi -d $HOME/.school-workspace -e yazi'"
+        "sh -c 'sleep 6 && ${term} -d $HOME/.school-workspace'"
+      ];
+
       # Override host-default constants for school specialization
       myconfig.constants.browser = lib.mkForce "brave-school";
       myconfig.constants.editor = lib.mkForce "vscode-school";
