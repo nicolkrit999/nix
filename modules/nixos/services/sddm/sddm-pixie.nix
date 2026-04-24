@@ -7,7 +7,6 @@
 delib.module {
   name = "services.sddm-pixie";
 
-  # FIXME: any logic for the clock is still not working
   options =
     with delib;
     moduleOptions {
