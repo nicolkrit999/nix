@@ -43,7 +43,11 @@ delib.module {
             email = myconfig.constants.gitUserEmail;
           };
           init.defaultBranch = "main";
-          pull.rebase = true;
+          # ff-only: avoids "cannot rebase onto multiple branches" caused by VS Code
+          # injecting vscode-merge-base into .git/config. Keeps history linear (no
+          # merge commits). Downside: diverged branches require a manual rebase/merge
+          # before pulling.
+          pull.ff = "only";
         };
       };
 
