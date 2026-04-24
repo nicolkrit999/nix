@@ -1,6 +1,7 @@
 { delib
 , pkgs
 , lib
+, config
 , ...
 }:
 delib.module {
@@ -23,16 +24,36 @@ delib.module {
         '';
       };
 
+      stylixIntegration = lib.mkOption {
+        type = lib.types.nullOr lib.types.bool;
+        default = null;
+        description = ''
+          Override the embedded theme's hardcoded UI colors with values
+          derived from the active stylix base16 scheme, and enable
+          PartialBlur so the wallpaper flows edge-to-edge with a blurred
+          + tinted region behind the form. Polarity-agnostic by base16
+          convention (base00=bg, base05=fg auto-invert per scheme).
+
+          null (default) = auto: enabled iff `background` is set, since
+          that's the case where the shipped theme's curated color/art
+          pairing is broken. Set to true/false to force either way.
+          User `themeConfig` overrides win over stylix defaults.
+          Ignored when stylix is not enabled on the host.
+        '';
+      };
+
       themeConfig = lib.mkOption {
         type = lib.types.attrsOf lib.types.str;
         default = { };
         example = {
-          HourFormat = "hh:mm AP";
+          HaveFormBackground = "false";
+          PartialBlur = "true";
         };
         description = ''
-          Attribute set of [General] options to override via the upstream
-          `<theme>.conf.user` mechanism. Not all keys take effect — upstream
-          bug (see HourFormat FIXME). Background is handled separately.
+          Attribute set of [General] options. Applied via direct sed on
+          the active theme .conf (not the upstream .conf.user path, which
+          has upstream bugs — see HourFormat FIXME). Wins over
+          stylixIntegration defaults.
         '';
       };
 
@@ -42,7 +63,7 @@ delib.module {
         description = ''
           Path to custom background image. Replaces the embedded theme's
           default wallpaper by overwriting the Background key in the active
-          theme .conf (direct edit, does not rely on the .conf.user path).
+          theme .conf.
         '';
       };
     };
@@ -65,22 +86,106 @@ delib.module {
       bgExt = if cfg.background != null then getExtension cfg.background else "jpg";
       bgFilename = "custom_background.${bgExt}";
 
+      stylixAuto = cfg.background != null;
+      stylixRequested =
+        if cfg.stylixIntegration == null then stylixAuto else cfg.stylixIntegration;
+      stylixEnabled = (config.stylix.enable or false) && stylixRequested;
+
+      # Base16 → SDDM theme keys. Polarity-agnostic: base00 is always the
+      # default background and base05 the default foreground, regardless
+      # of light/dark scheme. base0D is the standard "blue/accent" slot.
+      stylixThemeConfig =
+        if !stylixEnabled then { }
+        else
+          let c = config.lib.stylix.colors.withHashtag; in {
+            # Wallpaper edge-to-edge; behind the form it's blurred and
+            # tinted with FormBackgroundColor at 30% opacity (Main.qml:81).
+            # This auto-follows FormPosition (left/center/right) without
+            # needing any layout detection — the blur anchors to the form.
+            HaveFormBackground = "true";
+            PartialBlur = "true";
+
+            # Background surfaces (30% tint over blurred wallpaper)
+            FormBackgroundColor = c.base00;
+            BackgroundColor = c.base00;
+            DimBackgroundColor = c.base00;
+
+            # Input fields: lifted one step from the base bg so they're
+            # distinguishable in both light and dark schemes.
+            LoginFieldBackgroundColor = c.base01;
+            PasswordFieldBackgroundColor = c.base01;
+            LoginFieldTextColor = c.base05;
+            PasswordFieldTextColor = c.base05;
+
+            # Text / icons
+            HeaderTextColor = c.base05;
+            DateTextColor = c.base05;
+            TimeTextColor = c.base05;
+            UserIconColor = c.base05;
+            PasswordIconColor = c.base05;
+            PlaceholderTextColor = c.base03;
+            WarningColor = c.base08;
+
+            # Login button — accent bg, base00 text for contrast at any polarity
+            LoginButtonBackgroundColor = c.base0D;
+            LoginButtonTextColor = c.base00;
+
+            # System / session / keyboard buttons
+            SystemButtonsIconsColor = c.base05;
+            SessionButtonTextColor = c.base05;
+            VirtualKeyboardButtonTextColor = c.base05;
+
+            # Dropdowns
+            DropdownBackgroundColor = c.base01;
+            DropdownSelectedBackgroundColor = c.base02;
+            DropdownTextColor = c.base05;
+
+            # Highlight (selected dropdown entry, etc.)
+            HighlightBackgroundColor = c.base0D;
+            HighlightTextColor = c.base00;
+            HighlightBorderColor = "transparent";
+
+            # Hover states — accent so they stand out in both polarities
+            HoverUserIconColor = c.base0D;
+            HoverPasswordIconColor = c.base0D;
+            HoverSystemButtonsIconsColor = c.base0D;
+            HoverSessionButtonTextColor = c.base0D;
+            HoverVirtualKeyboardButtonTextColor = c.base0D;
+          };
+
+      effectiveThemeConfig = stylixThemeConfig // cfg.themeConfig;
+
       baseTheme = pkgs.sddm-astronaut.override {
         embeddedTheme = cfg.embeddedTheme;
-        themeConfig = if cfg.themeConfig == { } then null else cfg.themeConfig;
       };
 
+      needsPatch = cfg.background != null || effectiveThemeConfig != { };
+
+      themePath = "$out/share/sddm/themes/sddm-astronaut-theme";
+      confPath = "${themePath}/Themes/${cfg.embeddedTheme}.conf";
+
+      # Replace existing `Key="..."` lines. Values go through a light
+      # escape for the sed replacement (| delimiter, so pipes are the risk).
+      escapeSedRepl = s: lib.replaceStrings [ "|" "&" "\\" ] [ "\\|" "\\&" "\\\\" ] s;
+      patchLine = k: v: ''sed -i 's|^${k}="[^"]*"|${k}="${escapeSedRepl v}"|' ${confPath}'';
+
       sddmTheme =
-        if cfg.background == null then
-          baseTheme
+        if !needsPatch then baseTheme
         else
-          pkgs.runCommandLocal "sddm-astronaut-with-bg" { } ''
+          pkgs.runCommandLocal "sddm-astronaut-patched" { } ''
             mkdir -p $out
             cp -r ${baseTheme}/. $out/
             chmod -R u+w $out
-            cp ${cfg.background} $out/share/sddm/themes/sddm-astronaut-theme/Backgrounds/${bgFilename}
-            sed -i 's|^Background=".*"|Background="Backgrounds/${bgFilename}"|' \
-              $out/share/sddm/themes/sddm-astronaut-theme/Themes/${cfg.embeddedTheme}.conf
+
+            # Drop any upstream .conf.user so our direct .conf edits are authoritative.
+            rm -f ${themePath}/Themes/*.conf.user
+
+            ${lib.optionalString (cfg.background != null) ''
+              cp ${cfg.background} ${themePath}/Backgrounds/${bgFilename}
+              sed -i 's|^Background="[^"]*"|Background="Backgrounds/${bgFilename}"|' ${confPath}
+            ''}
+
+            ${lib.concatStringsSep "\n" (lib.mapAttrsToList patchLine effectiveThemeConfig)}
           '';
     in
     {
