@@ -68,9 +68,10 @@ delib.module {
             mmsg -g -t 2>/dev/null \
               | awk -v active='${c.base0D}' -v occupied='${c.base07}' -v empty='${c.base04}' '
                   /^[^ ]+ tag [0-9]+ / {
+                    # mmsg -g -t format: <monitor> tag <idx> <selected> <clients_count> <urgent>
                     id = $3 + 0
-                    has_client = $4 + 0
-                    selected = $6 + 0
+                    selected = $4 + 0
+                    has_client = $5 + 0
                     if (has_client > 0) occ[id] = 1
                     if (selected > 0) act[id] = 1
                   }
@@ -110,14 +111,16 @@ delib.module {
             esac
           '';
           interval = 1;
-          on-click = "mmsg -s -l scroller";
-          on-click-right = "mmsg -s -l tile";
+          # Cycle scroller -> tile -> scroller on left-click. Right-click jumps straight to scroller.
+          on-click = "sh -c 'cur=$(mmsg -g -l 2>/dev/null | awk \"{print \\$NF}\"); if [ \"$cur\" = \"S\" ]; then mmsg -s -l tile; else mmsg -s -l scroller; fi'";
+          on-click-right = "mmsg -s -l scroller";
           tooltip = false;
         };
 
         "custom/window" = {
           exec = ''
-            title=$(mmsg -g -c 2>/dev/null | sed -n 's/^[[:space:]]*title[[:space:]]*[:=][[:space:]]*//Ip' | head -1)
+            # mmsg -g -c output: "<monitor> title <title...>" / "<monitor> appid <appid>"
+            title=$(mmsg -g -c 2>/dev/null | awk '$2 == "title" { $1=""; $2=""; sub(/^ +/, ""); print; exit }')
             if [ -z "$title" ] || [ "$title" = "null" ]; then
               echo "${myconfig.constants.user or "nix"}<span font_family='JetBrainsMono Nerd Font Propo'>󱄅</span>${myconfig.constants.hostname or "nixos"}"
             else
