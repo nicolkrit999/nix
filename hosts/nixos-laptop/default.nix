@@ -4,7 +4,7 @@
 }:
 let
   # 🌟 CORE APPS & THEME
-  myBrowser = "librewolf";
+  myBrowser = "helium";
   myTerminal = "kitty";
   myShell = "fish";
   myEditor = "nvim";
@@ -209,7 +209,6 @@ delib.host {
         nix-alien.enable = false;
         comma.enable = true;
         statix.enable = false;
-        helium.enable = true;
         lazygit.enable = true;
         shell-aliases.enable = true;
         starship.enable = true;
@@ -562,6 +561,7 @@ delib.host {
         alacritty.enable = false;
         kitty.enable = true;
         chromium.enable = false;
+        helium.enable = true;
         claude-code-wrappers.enable = true;
         direnv.enable = true;
         dolphin.enable = true;
