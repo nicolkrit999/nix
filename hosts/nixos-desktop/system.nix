@@ -74,6 +74,13 @@ delib.host {
     boot.initrd.kernelModules = [ "amdgpu" ];
     hardware.graphics.enable = true;
 
+    # DP-3 is the in-case JetKVM sensor panel (Windows-only use). On Linux its
+    # EDID is garbage (status=connected, 0-byte EDID) which trips atomic modeset
+    # in kwin_wayland and causes hyprlock's per-output screencopy to hang under
+    # mango. Disable the connector at DRM probe time so no compositor ever sees
+    # it.
+    boot.kernelParams = [ "video=DP-3:d" ];
+
 
     # Desktop-specific packages
     environment.systemPackages = with pkgs; [

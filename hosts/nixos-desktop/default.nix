@@ -292,13 +292,17 @@ delib.host {
 
         mango = {
           enable = true;
+          # DP-1 x range: 1440 .. 1440 + 3840/1.5 = 4000. Park HDMI-A-1 at x:4000
+          # so it sits flush to DP-1's right edge without overlapping.
           monitors = [
             "name:^DP-1$,width:3840,height:2160,refresh:240,x:1440,y:560,scale:1.5"
             "name:^DP-2$,width:3840,height:2160,refresh:144,x:0,y:0,scale:1.5,rr:1"
+            "name:^HDMI-A-1$,width:1920,height:1080,refresh:60,x:4000,y:560,scale:1"
           ];
           monitorLayouts = {
             "DP-1" = "center_tile";
             "DP-2" = "vertical_tile";
+            "HDMI-A-1" = "scroller";
           };
           execOnce = [
             "sh -c 'sleep 1 && ${myBrowser}'"
@@ -306,8 +310,6 @@ delib.host {
             "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
             "sh -c 'sleep 11 && ${myTerminal}'"
             "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
-            "sh -c 'sleep 2 && mmsg -d disable_monitor,DP-3'"
-            "sh -c 'sleep 2 && mmsg -d disable_monitor,HDMI-A-1'"
           ];
           extraBinds = [
             "SUPER,Y,spawn,chromium-browser"
@@ -324,7 +326,6 @@ delib.host {
           monitors = [
             "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
             "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
-            "DP-3, disable"
             "HDMI-A-1,1920x1080@60, 0x0, 1, mirror, DP-1"
           ];
           execOnce = [
@@ -452,9 +453,6 @@ delib.host {
                 rotation = 90;
                 flipped = false;
               };
-            };
-            "DP-3" = {
-              enable = false;
             };
             "HDMI-A-1" = {
               mode = {
