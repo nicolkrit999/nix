@@ -128,10 +128,11 @@ delib.module {
         "CTRL+ALT,Left,resizewin,-50,+0"
         "CTRL+ALT,Right,resizewin,+50,+0"
 
-        # grimblast ignores XDG_SCREENSHOTS_DIR — force the path so screenshots land in myconfig.constants.screenshots
-        "NONE,Print,spawn,sh -c 'mkdir -p ${screenshotsDir} && cd ${screenshotsDir} && grimblast --notify --freeze copysave output'"
-        "SUPER+CTRL,3,spawn,sh -c 'mkdir -p ${screenshotsDir} && cd ${screenshotsDir} && grimblast --notify --freeze copysave output'"
-        "SUPER+CTRL,4,spawn,sh -c 'mkdir -p ${screenshotsDir} && cd ${screenshotsDir} && grimblast --notify --freeze copysave area'"
+        # grimblast hardcodes a HYPRLAND_INSTANCE_SIGNATURE check and refuses to run under mango,
+        # so we call grim/slurp directly. Saves to screenshotsDir and also copies to clipboard.
+        "NONE,Print,spawn,sh -c 'mkdir -p ${screenshotsDir} && f=${screenshotsDir}/screenshot-$(date +%Y%m%d-%H%M%S).png && grim \"$f\" && wl-copy < \"$f\" && notify-send \"Screenshot\" \"Saved $f\"'"
+        "SUPER+CTRL,3,spawn,sh -c 'mkdir -p ${screenshotsDir} && f=${screenshotsDir}/screenshot-$(date +%Y%m%d-%H%M%S).png && grim \"$f\" && wl-copy < \"$f\" && notify-send \"Screenshot\" \"Saved $f\"'"
+        "SUPER+CTRL,4,spawn,sh -c 'mkdir -p ${screenshotsDir} && f=${screenshotsDir}/area-$(date +%Y%m%d-%H%M%S).png && grim -g \"$(slurp)\" \"$f\" && wl-copy < \"$f\" && notify-send \"Screenshot\" \"Saved $f\"'"
         "SUPER,BracketRight,spawn,brightnessctl s 10%+"
         "SUPER,BracketLeft,spawn,brightnessctl s 10%-"
 
