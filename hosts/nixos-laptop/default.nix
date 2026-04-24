@@ -515,12 +515,10 @@ delib.host {
         sddm-astronaut = {
           enable = true;
           embeddedTheme = "japanese_aesthetic";
-          background = ../../users/krit/src/wallpapers/girl-outline.png;
+          # background = ../../users/krit/src/wallpapers/girl-outline.png;
         };
         sddm-pixie = {
           enable = false;
-          #hourFormat = "24h"; # 12-hour format (AM/PM not supported by theme) FIXME: not working
-          #background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
           avatar = ../../users/krit/src/profile-picture/face-512.jpg;
         };
         impermanence.enable = true;
