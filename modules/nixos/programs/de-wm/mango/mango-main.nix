@@ -43,9 +43,9 @@ delib.module {
         playerctl
         imv
         mpv
-        grimblast
-        swappy
+        grim
         slurp
+        swappy
       ];
 
       home.sessionVariables = {
