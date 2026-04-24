@@ -112,8 +112,9 @@ delib.module {
           '';
           interval = 1;
           # Cycle scroller -> tile -> scroller on left-click. Right-click jumps straight to scroller.
-          on-click = "sh -c 'cur=$(mmsg -g -l 2>/dev/null | awk \"{print \\$NF}\"); if [ \"$cur\" = \"S\" ]; then mmsg -s -l tile; else mmsg -s -l scroller; fi'";
-          on-click-right = "mmsg -s -l scroller";
+          # NOTE: mmsg -s -l accepts the layout *symbol* (S/T/...), not the name. `scroller` is a silent no-op.
+          on-click = "sh -c 'cur=$(mmsg -g -l 2>/dev/null | awk \"{print \\$NF}\"); if [ \"$cur\" = \"S\" ]; then mmsg -s -l T; else mmsg -s -l S; fi'";
+          on-click-right = "mmsg -s -l S";
           tooltip = false;
         };
 
