@@ -10,7 +10,28 @@ let
     { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-I3IsZqbm/AlZwVd376/N1tZumBZQ6nh5q16EJnIlBV0="; } # Proton Pass
     { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-KxcUkvIkkuh3s4hPy7asTucfP9znwtd8hF2WFQjCutk="; } # Awesome Screen Recorder & Screenshot
     { id = "chphlpgkkbolifaimnlloiipkdnihall"; hash = "sha256-LkQLIahNewg6u+1AM85s0Ln0XsPNdfyVgGS0YqTkPBc="; } # OneTab
-    { id = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp"; hash = "sha256-SKl2vE7oRj1+6aJXZc7IaaK557/5YZUGG+CJVCv+iXY="; } # Privacy Badger
+    {
+      id = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp"; # Privacy Badger
+      hash = "sha256-SKl2vE7oRj1+6aJXZc7IaaK557/5YZUGG+CJVCv+iXY=";
+      # Helium's DNR parser rejects Privacy Badger's dnt_policy_ruleset
+      # (urlFilter "|https://*/.well-known/dnt-policy.txt|" — wildcard right
+      # after a scheme anchor), which prevents the whole extension from
+      # loading. Drop that one ruleset; other DNR rules and Privacy Badger's
+      # core functionality (tracker learning, widget replacement, gen204
+      # blocking) remain intact. Side effect: no auto-detection of sites
+      # publishing /.well-known/dnt-policy.txt.
+      postPatch = ''
+        python3 -c '
+        import json, sys
+        p = sys.argv[1]
+        m = json.load(open(p))
+        dnr = m.get("declarative_net_request", {})
+        dnr["rule_resources"] = [r for r in dnr.get("rule_resources", [])
+                                 if r.get("id") != "dnt_policy_ruleset"]
+        json.dump(m, open(p, "w"), indent=2)
+        ' "$out/manifest.json"
+      '';
+    }
     { id = "dphilobhebphkdjbpfohgikllaljmgbn"; hash = "sha256-IgmQYXUjBM0iONHXqTgcvIXihN2ZrXWCZsQZZg1xPxk="; } # SimpleLogin
     { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; hash = "sha256-nE5FE3Eo1jG8sT1KYjVl8JRbmAiyhN8IZObHsAIb0wY="; } # SponsorBlock
     { id = "lnaahdmijnjnmgaalacdgakieangpjgp"; hash = "sha256-xxdOTvjv9gaB1rS0bMsmrudydOGdTDtt73Ri+zRCpNQ="; } # Screenshot YouTube Video
@@ -99,10 +120,11 @@ let
   unpackCrxWithKey = spec: pkgs.runCommand "helium-ext-keyed-${spec.id}"
     {
       nativeBuildInputs = [ pkgs.python3 ];
-      src = fetchCrx spec;
+      src = fetchCrx { inherit (spec) id hash; };
     } ''
     mkdir -p $out
     python3 ${injectKeyScript} "$src" "$out"
+    ${spec.postPatch or ""}
   '';
 
   keyedExtensions = map unpackCrxWithKey extensionSpecs;
