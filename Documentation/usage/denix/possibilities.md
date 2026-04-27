@@ -46,7 +46,7 @@ These modules work on both NixOS and Darwin hosts.
 
 #### Themes
 
-* **`themes.catppuccin`**: Imports the catppuccin-nix theming modules for both NixOS/Darwin system-level and home-manager, enabling Catppuccin palette integration across all supported applications. 
+* **`themes.catppuccin`**: Imports the catppuccin-nix theming modules for both NixOS/Darwin system-level and home-manager, enabling Catppuccin palette integration across all supported applications.
 
 #### Command-Line Programs (`programs.`)
 
@@ -142,7 +142,7 @@ These modules are only available on NixOS hosts.
 * **`services.snapshots`**: A BTRFS snapshot retention automation system using Snapper to back up the filesystem on a configurable timeline (hourly, daily, weekly, monthly, yearly).
 * **`services.swaync`**: A notification daemon and control center for Wayland compositors, with optional per-app notification muting rules.
 * **`services.tailscale`**: A zero-config mesh VPN service that builds secure networks between your devices.
-* **`services.tlp`**: An advanced power management tool that optimizes battery life by configuring processor energy-performance policies, frequency scaling, and optional charging thresholds based on power source. Mutually exclusive with auto-cpufreq.
+* **`services.tlp`**: An advanced power management tool that optimizes battery life by configuring processor energy-performance policies, frequency scaling, and optional charging thresholds based on power source. Mutually exclusive with auto-cpufreq. ⚠️ Contains and enable `thermald` which is an intel-only setup. Set it as false if using an amd host
 
 #### Host-Specific Extensions (`full-host.services.`)
 

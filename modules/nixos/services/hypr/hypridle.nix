@@ -40,14 +40,16 @@ delib.module {
       '';
 
       isWmEnabled =
-        (myconfig.programs.hyprland.enable or false) || (myconfig.programs.niri.enable or false);
+        (myconfig.programs.hyprland.enable or false)
+        || (myconfig.programs.niri.enable or false)
+        || (myconfig.programs.mango.enable or false);
 
       # Skip idle actions while Nix is rebuilding
       busyGuard = "pgrep -f 'nix.build|nix.flake.check|nh.os|nixos-rebuild' > /dev/null && exit 0";
 
-      # Compositor-aware DPMS commands (works on both Hyprland and niri)
-      dpmsOff = "if pgrep -x Hyprland > /dev/null; then hyprctl dispatch dpms off; elif pgrep -x niri > /dev/null; then niri msg action power-off-monitors; fi";
-      dpmsOn = "if pgrep -x Hyprland > /dev/null; then hyprctl dispatch dpms on; elif pgrep -x niri > /dev/null; then niri msg action power-on-monitors; fi";
+      # Compositor-aware DPMS commands (works on Hyprland, niri, and mango)
+      dpmsOff = "if pgrep -x Hyprland > /dev/null; then hyprctl dispatch dpms off; elif pgrep -x niri > /dev/null; then niri msg action power-off-monitors; elif pgrep -x mango > /dev/null; then ${pkgs.wlopm}/bin/wlopm --off '*'; fi";
+      dpmsOn = "if pgrep -x Hyprland > /dev/null; then hyprctl dispatch dpms on; elif pgrep -x niri > /dev/null; then niri msg action power-on-monitors; elif pgrep -x mango > /dev/null; then ${pkgs.wlopm}/bin/wlopm --on '*'; fi";
     in
 
 

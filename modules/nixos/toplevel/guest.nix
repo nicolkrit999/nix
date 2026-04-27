@@ -119,9 +119,7 @@ delib.module {
       systemd.tmpfiles.rules = [
         "d /var/lib/AccountsService/users 0755 root root -"
         "f /var/lib/AccountsService/users/guest 0644 root root - [User]\\nSession=xfce\\n"
-        "f /home/.hidden 0644 root root - guest" # Hide the guest folder from file managers if the user is not guest
-        # Seed XFCE xfconf so first-run/setup dialogs are suppressed on every boot.
-        # 'C' copies from source only if destination does not exist — perfect for tmpfs homes.
+        "f /home/.hidden 0644 root root - guest"
         "C /home/guest/.config 0700 ${toString guestUid} ${toString guestUid} - ${guestXfceConfigSkel}"
       ];
 

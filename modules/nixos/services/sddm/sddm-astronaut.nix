@@ -91,33 +91,22 @@ delib.module {
         if cfg.stylixIntegration == null then stylixAuto else cfg.stylixIntegration;
       stylixEnabled = (config.stylix.enable or false) && stylixRequested;
 
-      # Base16 → SDDM theme keys. Polarity-agnostic: base00 is always the
-      # default background and base05 the default foreground, regardless
-      # of light/dark scheme. base0D is the standard "blue/accent" slot.
       stylixThemeConfig =
         if !stylixEnabled then { }
         else
           let c = config.lib.stylix.colors.withHashtag; in {
-            # Wallpaper edge-to-edge; behind the form it's blurred and
-            # tinted with FormBackgroundColor at 30% opacity (Main.qml:81).
-            # This auto-follows FormPosition (left/center/right) without
-            # needing any layout detection — the blur anchors to the form.
             HaveFormBackground = "true";
             PartialBlur = "true";
 
-            # Background surfaces (30% tint over blurred wallpaper)
             FormBackgroundColor = c.base00;
             BackgroundColor = c.base00;
             DimBackgroundColor = c.base00;
 
-            # Input fields: lifted one step from the base bg so they're
-            # distinguishable in both light and dark schemes.
             LoginFieldBackgroundColor = c.base01;
             PasswordFieldBackgroundColor = c.base01;
             LoginFieldTextColor = c.base05;
             PasswordFieldTextColor = c.base05;
 
-            # Text / icons
             HeaderTextColor = c.base05;
             DateTextColor = c.base05;
             TimeTextColor = c.base05;
@@ -126,26 +115,21 @@ delib.module {
             PlaceholderTextColor = c.base03;
             WarningColor = c.base08;
 
-            # Login button — accent bg, base00 text for contrast at any polarity
             LoginButtonBackgroundColor = c.base0D;
             LoginButtonTextColor = c.base00;
 
-            # System / session / keyboard buttons
             SystemButtonsIconsColor = c.base05;
             SessionButtonTextColor = c.base05;
             VirtualKeyboardButtonTextColor = c.base05;
 
-            # Dropdowns
             DropdownBackgroundColor = c.base01;
             DropdownSelectedBackgroundColor = c.base02;
             DropdownTextColor = c.base05;
 
-            # Highlight (selected dropdown entry, etc.)
             HighlightBackgroundColor = c.base0D;
             HighlightTextColor = c.base00;
             HighlightBorderColor = "transparent";
 
-            # Hover states — accent so they stand out in both polarities
             HoverUserIconColor = c.base0D;
             HoverPasswordIconColor = c.base0D;
             HoverSystemButtonsIconsColor = c.base0D;
@@ -164,8 +148,6 @@ delib.module {
       themePath = "$out/share/sddm/themes/sddm-astronaut-theme";
       confPath = "${themePath}/Themes/${cfg.embeddedTheme}.conf";
 
-      # Replace existing `Key="..."` lines. Values go through a light
-      # escape for the sed replacement (| delimiter, so pipes are the risk).
       escapeSedRepl = s: lib.replaceStrings [ "|" "&" "\\" ] [ "\\|" "\\&" "\\\\" ] s;
       patchLine = k: v: ''sed -i 's|^${k}="[^"]*"|${k}="${escapeSedRepl v}"|' ${confPath}'';
 
