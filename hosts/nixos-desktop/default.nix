@@ -189,6 +189,7 @@ delib.host {
         nix-ld.enable = true;
         nix-alien.enable = true;
         comma.enable = true;
+        npm.enable = true;
         statix.enable = true;
         lazygit.enable = true;
         shell-aliases.enable = true;
@@ -607,7 +608,6 @@ delib.host {
         krokiet.enable = true;
         librewolf.enable = true;
         neovim.enable = true;
-        npm.enable = true;
         pwas.enable = true;
         ranger.enable = false;
         yazi.enable = true;

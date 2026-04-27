@@ -3,7 +3,7 @@
 , ...
 }:
 delib.module {
-  name = "krit.programs.npm";
+  name = "programs.npm";
   options = delib.singleEnableOption false;
 
   home.ifEnabled = { ... }: {

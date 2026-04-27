@@ -6,7 +6,6 @@ delib.module {
   home.ifEnabled =
     let
       isDarwin = moduleSystem == "darwin";
-      # Use appropriate paths for each platform
       devEnvBase =
         if isDarwin
         then "/Users/krit/nix/templates/krit/dev-environments"
