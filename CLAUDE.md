@@ -92,7 +92,7 @@ Denix scans the `paths` listed in `flake.nix` and loads every `.nix` file not in
 ### Key API
 
 - `delib.singleEnableOption <default>` — creates a single `enable` boolean option. Prefer this when a module only needs an on/off toggle.
-- `delib.moduleOptions { ... }` — creates multiple typed options (used in `constants.nix`)
+- `delib.moduleOptions { ... }` — creates multiple typed options (used in `constants.nix`). Declare related options as **flat siblings** — never group them under `submodule`. Use `submodule` only for list elements (e.g. `listOfOption (submodule { ... })`).
 - Option helpers: `strOption`, `boolOption`, `listOfOption`, `submodule`
 - `imports` blocks must be inside a `nixos.always` or `home.always` block, otherwise the rebuild will fail.
 - Never redeclare the module name as an option — `options` or `moduleOptions` is sufficient.
