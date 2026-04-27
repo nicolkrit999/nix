@@ -322,7 +322,13 @@ delib.host {
             "monitor:DP-1,appid:^mango-startup-fileManager$"
             "monitor:DP-1,appid:^mango-startup-editor$"
             "monitor:DP-1,appid:^mango-startup-browser$"
-            "monitor:DP-2,appid:^mango-startup-youtube$"
+            # Chromium's --class= is X11-only — on Wayland brave PWAs get an
+            # auto-derived app_id like `brave-www.youtube.com__-Default`. Title
+            # match was unreliable (rule fires at window-create when title is
+            # still "Brave" / "Loading"). Match the PWA-style appid: anything
+            # starting with "brave-" and containing a dot (regular brave is
+            # "brave-browser" — no dot — so manual brave doesn't match).
+            "monitor:DP-2,appid:^brave-.*\\..*$"
             "monitor:DP-2,appid:^mango-startup-terminal$"
             # zapzap can't be launched with a custom class via flatpak, so we
             # match its real appid. Singleton app — fine to globally pin.
