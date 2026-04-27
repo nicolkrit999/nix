@@ -22,7 +22,9 @@
       "Bash(journalctl -b 0 --no-pager --since \"01:32:00\")",
       "Bash(journalctl --list-boots --no-pager)",
       "Bash(journalctl -b -1 --no-pager)",
-      "Bash(journalctl -b -1 --no-pager --since \"01:30:42\" --until \"01:31:20\")"
+      "Bash(journalctl -b -1 --no-pager --since \"01:30:42\" --until \"01:31:20\")",
+      "Bash(git fetch *)",
+      "Bash(nix-prefetch-url *)"
     ]
   }
 }
