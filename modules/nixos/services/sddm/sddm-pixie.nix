@@ -11,9 +11,6 @@ delib.module {
     with delib;
     moduleOptions {
       enable = boolOption false;
-
-      # hourFormat option removed temporarily - hardcoding 12h for debugging
-
       themeConfig = lib.mkOption {
         type = lib.types.attrsOf lib.types.str;
         default = { };
