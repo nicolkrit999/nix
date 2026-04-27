@@ -46,6 +46,12 @@ delib.module {
           "org.freedesktop.impl.portal.FileChooser" = [ "kde" "gtk" ];
         };
 
+        # Mango: no native portal; prefer KDE file picker if available (Qt theme), GTK fallback
+        mango = {
+          default = [ "gtk" ];
+          "org.freedesktop.impl.portal.FileChooser" = [ "kde" "gtk" ];
+        };
+
         # Fallback for any unrecognized desktop or server with no DE
         common = {
           default = [ "gtk" ];

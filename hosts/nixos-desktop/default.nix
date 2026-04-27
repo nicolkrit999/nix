@@ -604,6 +604,7 @@ delib.host {
         direnv.enable = true;
         dolphin.enable = true;
         firefox.enable = false;
+        krokiet.enable = true;
         librewolf.enable = true;
         neovim.enable = true;
         npm.enable = true;

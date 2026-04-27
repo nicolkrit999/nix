@@ -41,17 +41,12 @@ delib.module {
 
         mappings = {
           e = "edit";
-
           ec = "compress"; # Archive selected files using ranger-archives
           ex = "extract"; # Extract selected archive using ranger-archives
-
           b = "fzm"; # Fast directory jumping using fzf-marks
           "." = "set show_hidden!"; # Toggle hidden files on/off by pressing "."
         };
 
-        # -----------------------------------------------------
-        # ⚙️ PROGRAM SETTINGS
-        # -----------------------------------------------------
         settings = {
           preview_images = true; # Enable image previews in terminal
           preview_images_method =

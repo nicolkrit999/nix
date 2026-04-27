@@ -1,0 +1,20 @@
+# Ignore build outputs from performing a nix-build or `nix build` command
+result
+result-*
+
+# Ignore automatically generated direnv output
+.direnv
+
+
+# Ignore swap files
+*.swp
+*~
+
+# Ignore macOS files (recursively everywhere)
+**/.DS_Store
+
+
+# Ignore Nix flake lock file
+# Uncommented because cachix.nix need it in the repo
+#flake.lock
+

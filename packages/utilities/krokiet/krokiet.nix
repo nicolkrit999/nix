@@ -6,8 +6,7 @@
 , ...
 }:
 delib.module {
-  name = "krit-krokiet";
-
+  name = "krit.programs.krokiet";
   options = delib.singleEnableOption false;
 
   home.ifEnabled =

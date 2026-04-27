@@ -51,10 +51,6 @@ delib.module {
       bgExt = if cfg.background != null then getExtension cfg.background else "jpg";
       bgFilename = "background.${bgExt}";
 
-      # Simple inline JS for 12h conversion - no IIFE (QML may not handle it)
-      # Creates two Date objects but avoids function wrapper complexity
-      js12HourExpr = ''String(new Date().getHours()%12||12).padStart(2,"0")+String(new Date().getMinutes()).padStart(2,"0")'';
-
       # Merge order: default → base16 accent → user themeConfig → custom background file path
       # This ensures the background key always exists when theme.conf is written
       effectiveThemeConfig =
@@ -81,18 +77,10 @@ delib.module {
 
         dontBuild = true;
 
-        nativeBuildInputs = [ pkgs.gnused ];
-
         installPhase = ''
           runHook preInstall
           mkdir -p $out/share/sddm/themes/pixie
           cp -r * $out/share/sddm/themes/pixie/
-
-          # Patch Clock.qml for 12h format (upstream hardcodes "HHmm" in TWO places)
-          # Uses JavaScript IIFE to convert 24h→12h (Qt format strings unreliable)
-          # HARDCODED 12h for debugging - remove conditional later
-          sed -i 's@Qt\.formatTime(new Date(), "HHmm")@${js12HourExpr}@g' \
-            $out/share/sddm/themes/pixie/components/Clock.qml
 
           ${lib.optionalString (cfg.themeConfig != { } || cfg.background != null) ''
             cat > $out/share/sddm/themes/pixie/theme.conf << 'EOF'
