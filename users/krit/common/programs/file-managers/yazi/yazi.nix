@@ -71,12 +71,12 @@ delib.module {
             sha256 = "1kk8my0apb4ahp60krqalccp63crggh8jkvi0zdhsf26bkyv2bpn";
           };
 
-          # nix-prefetch-url --unpack "https://github.com/AnirudhG07/rich-preview.yazi/archive/573b275fc0065eea3e8aa2afd07ad59e56ceff57.tar.gz"
+          # nix-prefetch-url --unpack "https://github.com/AnirudhG07/rich-preview.yazi/archive/7d616ad88498747b46124f32a35847324862cd83.tar.gz"
           rich-preview = pkgs.fetchFromGitHub {
             owner = "AnirudhG07";
             repo = "rich-preview.yazi";
-            rev = "573b275fc0065eea3e8aa2afd07ad59e56ceff57";
-            sha256 = "15yyy8ky0djv3b46gfsw5q7d5j47xcaar8xpnsw9axp684lvlmin";
+            rev = "7d616ad88498747b46124f32a35847324862cd83";
+            sha256 = "1nbmczlzl7wa564gk7wr4jb84ja3as3z1b537vj5477dzrys6y98";
           };
         };
 

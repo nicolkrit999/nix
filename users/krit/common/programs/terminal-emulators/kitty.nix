@@ -33,20 +33,17 @@ delib.module {
           background_opacity = lib.mkForce "1.0";
           copy_on_select = "yes";
           window_padding_width = 4;
-          confirm_os_window_close = if isDarwin then 0 else -1; # 0 = don't ask on macOS, -1 = never ask on NixOS
+          confirm_os_window_close = -1;
           enable_audio_bell = false;
           mouse_hide_wait = "3.0";
           shell_integration = "enabled";
 
-          # Cursor styling from constants with base16 colors for contrast
           cursor_shape = myconfig.constants.terminal.cursorStyle or "block";
           cursor_blink_interval = if (myconfig.constants.terminal.cursorBlink or true) then "0.75 ease-in-out" else "0";
           cursor = "#${config.lib.stylix.colors.base0D}"; # Accent blue (base0D) — distinct from text (base05) and background (base00)
           cursor_text_color = "#${config.lib.stylix.colors.base00}"; # Background color under cursor for contrast
           cursor_beam_thickness = toString (myconfig.constants.terminal.cursorBeamWidth or 3.0);
 
-          # Cursor trail animation — triggers after cursor was stationary ≥200ms, then jumps
-          # This means trails appear only on deliberate large jumps, not rapid typing navigation
           cursor_trail = 200; # Min stationary time in ms before trail triggers
           cursor_trail_decay = "0.15 0.4"; # Slow decay — trail lingers 150-400ms for visible effect
           cursor_trail_start_threshold = 2; # Min cell-distance to trigger trail (filters micro-moves)

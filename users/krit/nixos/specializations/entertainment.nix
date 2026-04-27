@@ -22,6 +22,7 @@ delib.module {
       myconfig.programs.niri.enable = lib.mkForce false;
       myconfig.programs.gnome.enable = lib.mkForce false;
       myconfig.programs.cosmic.enable = lib.mkForce false;
+      myconfig.programs.mango.enable = lib.mkForce false;
       services.xserver.desktopManager.xfce.enable = lib.mkForce false;
 
       # 2. Autostart script to launch entertainment-focused apps at login

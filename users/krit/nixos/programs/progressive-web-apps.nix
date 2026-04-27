@@ -38,7 +38,6 @@ delib.module {
       };
 
       # Custom icons
-
       # Notion
       notionIconFile = pkgs.fetchurl {
         url = "https://upload.wikimedia.org/wikipedia/commons/e/e9/Notion-logo.svg";

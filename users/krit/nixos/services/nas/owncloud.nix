@@ -22,7 +22,6 @@ delib.module {
         gui_optimize = "1";
       };
 
-      # 🌟 Read template path from Option
       environment.etc."davfs2/secrets".source = cfg.secretsFile;
 
       fileSystems."${mountPoint}" = {
