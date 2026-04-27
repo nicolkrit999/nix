@@ -45,30 +45,24 @@ delib.module {
 
       isMangoEnabled = parent.mango.enable or false;
 
-      waybarConfig = {
-        layer = "top";
-        position = "top";
-        height = 36;
-        margin-top = 8;
-        margin-bottom = 0;
-        margin-left = 16;
-        margin-right = 16;
+      # Extract monitor names from parent.mango.monitors entries like
+      # "name:^DP-1$,width:..." → "DP-1". Used to spawn one waybar bar per
+      # monitor so per-monitor modules (tags/layout/window) reflect THIS
+      # monitor's state rather than always showing the first output's data.
+      extractMonitorName = monStr:
+        let m = builtins.match ".*name:\\^?([^$,]+)\\$?,.*" monStr;
+        in if m != null then builtins.head m else null;
+      monitorNames = lib.filter (n: n != null)
+        (map extractMonitorName (parent.mango.monitors or [ ]));
 
-        modules-left = [ "custom/tags" "custom/layout" ];
-        modules-center = [ "clock" "custom/window" ];
-        modules-right =
-          [ "custom/language" "custom/weather" "custom/wifi" "custom/bluetooth" "pulseaudio" "custom/mic" "battery" ]
-          ++ (lib.optional (myconfig.services.swaync.enable or false) "custom/notification");
-
-        # Mango uses tags (1-9, dwl-style), not workspaces. mmsg -g -t returns
-        # the active tag bitmask; we render a pill for each tag and highlight
-        # the active one. Click cycles to that tag via mmsg -s -t <N>.
+      mkPerMonitorModules = mon: {
+        # Mango uses tags (1-9, dwl-style), not workspaces. `mmsg -o ${mon} -g -t`
+        # scopes the query to this monitor so each bar shows its own tag state.
         "custom/tags" = {
           exec = ''
-            mmsg -g -t 2>/dev/null \
+            mmsg -o ${mon} -g -t 2>/dev/null \
               | awk -v active='${c.base0D}' -v occupied='${c.base07}' -v empty='${c.base04}' '
                   /^[^ ]+ tag [0-9]+ / {
-                    # mmsg -g -t format: <monitor> tag <idx> <selected> <clients_count> <urgent>
                     id = $3 + 0
                     selected = $4 + 0
                     has_client = $5 + 0
@@ -93,7 +87,7 @@ delib.module {
         "custom/layout" = {
           format = "{}";
           exec = ''
-            layout=$(mmsg -g -l 2>/dev/null | head -1 | awk '{print $NF}')
+            layout=$(mmsg -o ${mon} -g -l 2>/dev/null | awk '{print $NF; exit}')
             case "$layout" in
               S)   echo "<span color='${c.base0C}'>󰕕</span> Scroller" ;;
               T)   echo "<span color='${c.base0D}'>󰕴</span> Tile" ;;
@@ -111,17 +105,17 @@ delib.module {
             esac
           '';
           interval = 1;
-          # Cycle scroller -> tile -> scroller on left-click. Right-click jumps straight to scroller.
-          # NOTE: mmsg -s -l accepts the layout *symbol* (S/T/...), not the name. `scroller` is a silent no-op.
-          on-click = "sh -c 'cur=$(mmsg -g -l 2>/dev/null | awk \"{print \\$NF}\"); if [ \"$cur\" = \"S\" ]; then mmsg -s -l T; else mmsg -s -l S; fi'";
+          # mmsg -s applies to the focused monitor — there's no -o for set-layout.
+          # Click toggles the focused monitor's layout (no longer monitor-pinned).
+          # NOTE: mmsg -s -l accepts the layout symbol (S/T/...), not the name.
+          on-click = "sh -c 'sel=$(mmsg -g -o 2>/dev/null | awk \"\\$2 == \\\"selmon\\\" && \\$3 == \\\"1\\\" { print \\$1; exit }\"); cur=$(mmsg -o \"$sel\" -g -l 2>/dev/null | awk \"{print \\$NF; exit}\"); if [ \"$cur\" = \"S\" ]; then mmsg -s -l T; else mmsg -s -l S; fi'";
           on-click-right = "mmsg -s -l S";
           tooltip = false;
         };
 
         "custom/window" = {
           exec = ''
-            # mmsg -g -c output: "<monitor> title <title...>" / "<monitor> appid <appid>"
-            title=$(mmsg -g -c 2>/dev/null | awk '$2 == "title" { $1=""; $2=""; sub(/^ +/, ""); print; exit }')
+            title=$(mmsg -o ${mon} -g -c 2>/dev/null | awk '$2 == "title" { $1=""; $2=""; sub(/^ +/, ""); print; exit }')
             if [ -z "$title" ] || [ "$title" = "null" ]; then
               echo "${myconfig.constants.user or "nix"}<span font_family='JetBrainsMono Nerd Font Propo'>󱄅</span>${myconfig.constants.hostname or "nixos"}"
             else
@@ -131,6 +125,22 @@ delib.module {
           interval = 1;
           tooltip = false;
         };
+      };
+
+      waybarConfig = {
+        layer = "top";
+        position = "top";
+        height = 36;
+        margin-top = 8;
+        margin-bottom = 0;
+        margin-left = 16;
+        margin-right = 16;
+
+        modules-left = [ "custom/tags" "custom/layout" ];
+        modules-center = [ "clock" "custom/window" ];
+        modules-right =
+          [ "custom/language" "custom/weather" "custom/wifi" "custom/bluetooth" "pulseaudio" "custom/mic" "battery" ]
+          ++ (lib.optional (myconfig.services.swaync.enable or false) "custom/notification");
 
         "custom/language" = {
           format = "{}";
@@ -257,11 +267,24 @@ delib.module {
         };
       };
 
+      # One bar per detected monitor, each with its monitor name baked into the
+      # per-monitor exec scripts. Waybar's `output` field pins each bar to its
+      # output, and JSON config can be a list of bar objects.
+      mkBar = mon: waybarConfig // (mkPerMonitorModules mon) // { output = mon; };
+      # Fallback when monitor names aren't parseable from parent.mango.monitors:
+      # one bar (replicated on every output) that always shows the focused
+      # monitor's data via runtime selmon lookup.
+      focusedSel = "$(mmsg -g -o 2>/dev/null | awk '$2 == \"selmon\" && $3 == \"1\" { print $1; exit }')";
+      bars =
+        if monitorNames != [ ]
+        then map mkBar monitorNames
+        else [ (waybarConfig // (mkPerMonitorModules focusedSel)) ];
+
       configDir = "waybar-mango";
     in
     {
       xdg.configFile."${configDir}/config" = lib.mkIf isMangoEnabled {
-        text = builtins.toJSON waybarConfig;
+        text = builtins.toJSON bars;
       };
       xdg.configFile."${configDir}/style.css" = lib.mkIf isMangoEnabled {
         text = ''

@@ -160,14 +160,18 @@ delib.module {
       ];
 
       tagIds = [ 1 2 3 4 5 6 7 8 9 ];
+      # Mango's parse_tagrule iterates all rules and the last match wins (no break).
+      # Fallback (no monitor_name) matches every monitor, so it must come FIRST,
+      # then per-monitor rules override. monitor_name is a PCRE2 regex (unanchored),
+      # so we anchor with ^...$ to avoid partial matches like "DP-1" hitting "DP-10".
       tagRules =
         let
-          perMonitor = lib.concatMap
-            (name: map (i: "id:${toString i},monitor_name:${name},layout_name:${cfg.monitorLayouts.${name}}") tagIds)
-            (builtins.attrNames cfg.monitorLayouts);
           fallback = map (i: "id:${toString i},layout_name:${cfg.defaultLayout}") tagIds;
+          perMonitor = lib.concatMap
+            (name: map (i: "id:${toString i},monitor_name:^${name}$,layout_name:${cfg.monitorLayouts.${name}}") tagIds)
+            (builtins.attrNames cfg.monitorLayouts);
         in
-        perMonitor ++ fallback;
+        fallback ++ perMonitor;
 
       baseGestureBinds = [
         "none,left,3,focusdir,left"
