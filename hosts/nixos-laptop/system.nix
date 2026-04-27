@@ -79,31 +79,6 @@ delib.host {
       ];
     };
 
-    # TEST (commented out to check upstream fix): kernel 7.0 compiles aes_generic
-    # as built-in (not a .ko module), but NixOS's luksroot.nix added it to
-    # boot.initrd.luks.cryptoModules by default — modules-shrunk builder failed
-    # because it couldn't find aes_generic.ko. We overrode cryptoModules to exclude it.
-    #
-    # IF BUILD FAILS with "aes_generic.ko not found" or similar: nixpkgs hasn't fixed
-    # luksroot.nix yet — uncomment this block to restore the workaround.
-    # IF BUILD SUCCEEDS: the upstream fix landed, this override can be deleted permanently.
-    #
-    # boot.initrd.luks.cryptoModules = [
-    #   "aes"
-    #   # "aes_generic"  # built-in in kernel 7.0+, no .ko exists
-    #   "blowfish"
-    #   "twofish"
-    #   "serpent"
-    #   "cbc"
-    #   "xts"
-    #   "lrw"
-    #   "sha1"
-    #   "sha256"
-    #   "sha512"
-    #   "af_alg"
-    #   "algif_skcipher"
-    # ];
-
     # Laptop-specific packages
     environment.systemPackages = with pkgs; [
       lm_sensors # `sensors` command for monitoring temps/fans
