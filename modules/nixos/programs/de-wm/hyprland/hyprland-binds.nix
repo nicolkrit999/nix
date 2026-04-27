@@ -10,13 +10,11 @@ delib.module {
     {
       wayland.windowManager.hyprland.settings = {
         gesture = [
-          # 3-FINGER SWIPES (Primary navigation — matches niri defaults & macOS/GNOME)
           "3, right, dispatcher, workspace, m+1" # Next workspace
           "3, left,  dispatcher, workspace, m-1" # Previous workspace
           "3, up,    fullscreen" # Fullscreen/maximize
           "3, down,  close" # Close window
 
-          # 4-FINGER (Secondary actions)
           "4, up,       dispatcher, exec, $menu" # App launcher (Walker)
           "4, down,     special, magic" # Toggle scratchpad
           "4, pinchin,  float" # Toggle floating

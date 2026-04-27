@@ -19,11 +19,8 @@ delib.module {
       imports = [
         inputs.stylix.nixosModules.stylix
       ];
-      # Note: nixosModules.stylix already handles home-manager integration
     };
 
-  # Import stylix home module for standalone homeConfigurations (moduleSystem == "home")
-  # NixOS/Darwin system modules handle their own home-manager integration
   home.always =
     { ... }:
     {

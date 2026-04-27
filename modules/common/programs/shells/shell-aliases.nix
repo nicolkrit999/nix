@@ -66,8 +66,8 @@ delib.module {
         deadnixscanall = "nix run github:astro/deadnix -- ${flakeDir}";
 
         # Nix repo management
-        fmt-dry = "cd ${flakeDir} && nix fmt -- --check";
-        fmt = "cd ${flakeDir} && nix fmt -- **/*.nix";
+        fmt-dry = "cd ${flakeDir} && git add -A && nix fmt -- --check";
+        fmt = "cd ${flakeDir} && git add -A && nix fmt -- **/*.nix";
         merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop";
         merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop";
         cdnix = "cd ${flakeDir}";
@@ -90,23 +90,23 @@ delib.module {
       # =========================================================================
       nixosAliases = {
         # Switch commands
-        swboot = "cd ${flakeDir} && ${nixosBootWrapped}";
-        swdry = "cd ${flakeDir} && nh os test --dry --ask .";
-        sw = "cd ${flakeDir} && ${nixosSwitchWrapped}";
+        swboot = "cd ${flakeDir} && git add -A && ${nixosBootWrapped}";
+        swdry = "cd ${flakeDir} && git add -A && nh os test --dry --ask .";
+        sw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
         gsw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
         gswoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
-        swsrc = "cd ${flakeDir} && ${nixosSwitchWrapped} --option substitute false";
-        swoff = "cd ${flakeDir} && ${nixosSwitchCmd} --offline";
-        tswsrc = "cd ${flakeDir} && time ${nixosSwitchWrapped} --option substitute false";
+        swsrc = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped} --option substitute false";
+        swoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
+        tswsrc = "cd ${flakeDir} && git add -A && time ${nixosSwitchWrapped} --option substitute false";
 
         # Flake checks and updates
-        nfc = "cd ${flakeDir} && nix flake check";
-        nfcall = "cd ${flakeDir} && nix flake check --all-systems";
-        upd = "cd ${flakeDir} && ${nixosUpdateWrapped}";
+        nfc = "cd ${flakeDir} && git add -A && nix flake check";
+        nfcall = "cd ${flakeDir} && git add -A && nix flake check --all-systems";
+        upd = "cd ${flakeDir} && git add -A && ${nixosUpdateWrapped}";
 
         # Manual commands for reference
-        swpure = "cd ${flakeDir} && nh os switch ${flakeDir}";
-        swimpure = "cd ${flakeDir} && sudo nixos-rebuild switch --flake . --impure";
+        swpure = "cd ${flakeDir} && git add -A && nh os switch ${flakeDir}";
+        swimpure = "cd ${flakeDir} && git add -A && sudo nixos-rebuild switch --flake . --impure";
 
         # System maintenance (NixOS-specific)
         cleanup = "nh clean all";
@@ -119,7 +119,7 @@ delib.module {
         # System utilities
         se = "sudoedit";
         reb-uefi = "systemctl reboot --firmware-setup";
-        swdryaarch64-linux = "nix build ${flakeDir}#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run --show-trace";
+        swdryaarch64-linux = "cd ${flakeDir} && git add -A && nix build ${flakeDir}#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run --show-trace";
       };
 
       # =========================================================================
@@ -127,14 +127,14 @@ delib.module {
       # =========================================================================
       darwinAliases = {
         # Switch commands
-        sw = "cd ${flakeDir} && ${darwinSwitchCmd}";
+        sw = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd}";
         gsw = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd}";
-        swdry = "cd ${flakeDir} && nh darwin switch --dry .";
+        swdry = "cd ${flakeDir} && git add -A && nh darwin switch --dry .";
         gswoff = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd} --offline";
 
         # Flake checks and updates
-        nfc = "cd ${flakeDir} && nix flake check --impure";
-        upd = "cd ${flakeDir} && ${darwinUpdateCmd}";
+        nfc = "cd ${flakeDir} && git add -A && nix flake check --impure";
+        upd = "cd ${flakeDir} && git add -A && ${darwinUpdateCmd}";
 
         # Homebrew
         brew-upd = "brew update && brew upgrade";

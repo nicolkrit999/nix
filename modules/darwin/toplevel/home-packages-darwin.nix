@@ -1,4 +1,3 @@
-# Install packages based on host constants for Darwin hosts
 { delib
 , pkgs
 , lib

@@ -11,7 +11,7 @@ delib.host {
 
   nixos = {
     system.stateVersion = "25.11";
-    time.hardwareClockInLocalTime = true; # Fix windows dual boot time error
+    time.hardwareClockInLocalTime = true;
 
     environment.variables = { };
 
@@ -70,15 +70,11 @@ delib.host {
     '';
 
     # Desktop-specific hardware
-    boot.binfmt.emulatedSystems = [ "aarch64-linux" ]; # Allow emulation of aarch64-linux
+    boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
     boot.initrd.kernelModules = [ "amdgpu" ];
     hardware.graphics.enable = true;
 
-    # DP-3 is the in-case JetKVM sensor panel (Windows-only use). On Linux its
-    # EDID is garbage (status=connected, 0-byte EDID) which trips atomic modeset
-    # in kwin_wayland and causes hyprlock's per-output screencopy to hang under
-    # mango. Disable the connector at DRM probe time so no compositor ever sees
-    # it.
+    # DP-3 is the in-case sensor panel (Windows-only use). So disabled here as it's not used
     boot.kernelParams = [ "video=DP-3:d" ];
 
 

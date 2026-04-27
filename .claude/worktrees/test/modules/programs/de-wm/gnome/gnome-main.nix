@@ -1,0 +1,80 @@
+{ delib
+, pkgs
+, lib
+, ...
+}:
+delib.module {
+  name = "programs.gnome";
+  options =
+    with delib;
+    moduleOptions {
+      screenshots = strOption "$HOME/Pictures/Screenshots";
+      pinnedApps = listOfOption str [ ];
+      extraBinds = listOfOption attrs [ ];
+    };
+
+  home.ifEnabled =
+    { cfg
+    , myconfig
+    , ...
+    }:
+    let
+      fallbackWp = lib.findFirst
+        (
+          w: w.targetMonitor == "*"
+        )
+        (builtins.head myconfig.constants.wallpapers)
+        myconfig.constants.wallpapers;
+      wallpaperPath = pkgs.fetchurl {
+        url = fallbackWp.wallpaperURL;
+        sha256 = fallbackWp.wallpaperSHA256;
+      };
+      colorScheme = if myconfig.constants.theme.polarity == "dark" then "prefer-dark" else "prefer-light";
+      iconThemeName =
+        if myconfig.constants.theme.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
+
+      rawPinnedApps = cfg.pinnedApps;
+      hasPins = builtins.length rawPinnedApps > 0;
+    in
+    {
+      home.packages =
+        (lib.optionals myconfig.constants.theme.catppuccin [
+          (pkgs.catppuccin-gtk.override {
+            accents = [ myconfig.constants.theme.catppuccinAccent ];
+            size = "standard";
+            tweaks = [
+              "rimless"
+              "black"
+            ];
+            variant = myconfig.constants.theme.catppuccinFlavor or "mocha";
+          })
+        ])
+        ++ [
+          pkgs.papirus-icon-theme
+          pkgs.hydrapaper
+        ];
+
+      dconf.settings = {
+        "org/gnome/desktop/interface" = {
+          color-scheme = lib.mkForce colorScheme;
+          icon-theme = iconThemeName;
+        };
+
+        "org/gnome/desktop/background" = {
+          picture-uri = "file://${wallpaperPath}";
+          picture-uri-dark = "file://${wallpaperPath}";
+          picture-options = lib.mkForce "zoom";
+        };
+
+        "org/gnome/desktop/screensaver" = {
+          picture-uri = "file://${wallpaperPath}";
+        };
+
+        "org/gnome/desktop/wm/preferences" = {
+          button-layout = "appmenu:minimize,maximize,close";
+        };
+
+        "org/gnome/shell" = lib.mkIf hasPins { favorite-apps = rawPinnedApps; };
+      };
+    };
+}

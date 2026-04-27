@@ -52,7 +52,6 @@ delib.module {
         else
           [ "walker" ];
 
-      # Base keybindings (shared across all hosts)
       baseBinds = {
         # -----------------------------------------------------------------------
         # 🚀 APPLICATIONS
@@ -181,7 +180,7 @@ delib.module {
         ];
 
         # -----------------------------------------------------------------------
-        # 📸 SCREENSHOTS (native niri actions — save to XDG_SCREENSHOTS_DIR + clipboard)
+        # 📸 SCREENSHOTS
         # -----------------------------------------------------------------------
         "Print".action.screenshot-screen = [ ];
         "Mod+Ctrl+3".action.screenshot-screen = [ ];
@@ -214,9 +213,6 @@ delib.module {
       };
     in
     {
-      # Merge base bindings with host-specific extraBinds
-      # Note: Touchpad gestures in niri are handled automatically via input.touchpad settings
-      # (natural-scroll, tap, etc.) - no explicit gesture bindings needed
       programs.niri.settings.binds = baseBinds // (cfg.extraBinds or { });
     };
 }

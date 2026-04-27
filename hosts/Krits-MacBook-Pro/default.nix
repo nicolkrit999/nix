@@ -8,9 +8,6 @@ delib.host {
   myconfig =
     { ... }:
     {
-      # ---------------------------------------------------------------
-      # 📦 CONSTANTS BLOCK
-      # ---------------------------------------------------------------
       constants = {
         hostname = "Krits-MacBook-Pro";
         user = "krit";
@@ -37,11 +34,6 @@ delib.host {
         };
       };
 
-      # ---------------------------------------------------------------
-      # 🌐 SHARED MODULES
-      # Note: fish/zsh auto-enable based on constants.shell
-      # Note: kitty is configured via krit.programs.kitty below
-      # ---------------------------------------------------------------
       programs = {
         bat.enable = true;
         eza.enable = true;
@@ -81,17 +73,15 @@ delib.host {
 
       home-packages.enable = true;
 
-      # ---------------------------------------------------------------
-      # 👤 KRIT PROGRAMS
-      # ---------------------------------------------------------------
       krit.programs = {
-        direnv.enable = true; # Currently not working due to upstream issue, use homebrew
+        direnv.enable = true;
         neovim.enable = true;
         firefox.enable = true;
-        librewolf.enable = false; # disabled: librewolf-148.0 fails
+        librewolf.enable = false;
         chromium.enable = false;
         yazi.enable = true;
         ranger.enable = false;
+        claude-code-wrappers.enable = true;
         alacritty.enable = false;
 
         kitty = {
@@ -100,10 +90,6 @@ delib.host {
         };
       };
 
-      # ---------------------------------------------------------------
-      # 👤 KRIT SERVICES
-      # ---------------------------------------------------------------
-
       krit.services.nas = {
         Krits-MacBook-Pro-borg-backup.enable = true;
         owncloud.enable = false;
@@ -111,15 +97,19 @@ delib.host {
         sshfs.enable = false;
       };
 
-      krit.services.Krits-MacBook-Pro.local-packages.enable = true;
+      krit.services.Krits-MacBook-Pro = {
+        local-packages.enable = true;
+      };
 
-      krit.programs.claude-code-wrappers.enable = true;
 
       # ---------------------------------------------------------------
       # 🍎 DARWIN-ONLY MODULES
       # ---------------------------------------------------------------
       krit.home.base.enable = true;
-      krit.system.git-ssh-signing.enable = true;
-      krit.system.ssh-config.enable = true;
+
+      krit.system = {
+        git-ssh-signing.enable = true;
+        ssh-config.enable = true;
+      };
     };
 }

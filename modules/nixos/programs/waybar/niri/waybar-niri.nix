@@ -12,7 +12,6 @@ delib.module {
     moduleOptions {
       enable = boolOption true;
       waybarLayout = attrsOption { };
-      # Note: waybarWorkspaceIcons not used for niri (uses index format)
     };
 
   home.ifEnabled =

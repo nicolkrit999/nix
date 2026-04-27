@@ -53,7 +53,6 @@ delib.module {
 
       environment.systemPackages =
         let
-          # ✅ Skip install if already handled by a system module or by the host user's home-manager programs
           isProgramEnabled = name:
             lib.attrByPath [ "programs" name "enable" ] false config
             || lib.attrByPath [ "home-manager" "users" myconfig.constants.user "programs" name "enable" ] false config;

@@ -16,7 +16,6 @@ delib.module {
       isNixOS = moduleSystem == "nixos";
     in
     {
-      # XDG desktop entries only for NixOS (not relevant on macOS)
       xdg.desktopEntries.custom-nvim = lib.mkIf isNixOS (lib.mkForce {
         name = "Neovim";
         genericName = "Text Editor";

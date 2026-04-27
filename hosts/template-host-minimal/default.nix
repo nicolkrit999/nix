@@ -1,6 +1,6 @@
 # TEMPLATE-HOST MINIMAL CONFIGURATION
 # THIS IS A TEMPLATE THAT SHOW A MINIMAL CONFIGURATION OF THE CURRENT SETUP ALLOW
-# It is as barebon as possible, allow the user to customize it for it's liking
+# It is as barebone as possible, allowing the user to customize it for it's liking
 # Note that some important features for theming and functionality are not enabled here. Meaning the actual configuration would build but be "broken"
 
 { delib
@@ -45,7 +45,5 @@ delib.host {
     home.username = "krit";
     home.homeDirectory = "/home/krit";
     home.stateVersion = "25.11";
-
-    # Note: niri and plasma-manager imports are handled automatically by their respective modules
   };
 }

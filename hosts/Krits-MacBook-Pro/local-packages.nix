@@ -62,7 +62,6 @@ delib.module {
           "macfuse"
           "claude"
           "pycharm-ce"
-          # "intellij-idea"
           "alacritty"
           "discord"
           "iterm2"
