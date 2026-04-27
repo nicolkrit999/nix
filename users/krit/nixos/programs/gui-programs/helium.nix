@@ -1,11 +1,11 @@
 { delib, inputs, pkgs, ... }:
 let
-  # Each entry is fetched from the Chrome Web Store, unpacked, and has its
-  # public key injected into manifest.json so Chromium derives the canonical
-  # CWS extension ID (instead of a path-based ID). Without this, our
-  # ExtensionInstallAllowlist / ExtensionSettings rules — which are keyed by
-  # CWS IDs — wouldn't match the actually-loaded extensions, breaking pinning
-  # and producing a policy warning on startup.
+  # Each extension is fetched from CWS as a CRX, then served locally via a
+  # self-hosted update manifest (file://). ExtensionInstallForcelist reads
+  # the developer key out of the CRX header, so canonical CWS IDs apply
+  # without unpacking. This persists install state in the profile, so
+  # chrome.runtime.onInstalled fires once on real install — not on every
+  # launch the way --load-extension did.
   extensionSpecs = [
     { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-I3IsZqbm/AlZwVd376/N1tZumBZQ6nh5q16EJnIlBV0="; } # Proton Pass
     { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-KxcUkvIkkuh3s4hPy7asTucfP9znwtd8hF2WFQjCutk="; } # Awesome Screen Recorder & Screenshot
@@ -24,87 +24,38 @@ let
     inherit hash;
   };
 
-  injectKeyScript = pkgs.writeText "helium-crx-inject-key.py" ''
-    import base64, hashlib, io, json, os, shutil, struct, sys, zipfile
-
-    crx_path, out_dir = sys.argv[1], sys.argv[2]
-    data = open(crx_path, "rb").read()
-    assert data[:4] == b"Cr24", "not a CRX file"
-    version, header_size = struct.unpack("<II", data[4:12])
-    assert version == 3, f"expected CRX3, got v{version}"
-    header = data[12:12 + header_size]
-    zip_data = data[12 + header_size:]
-
-    def read_varint(buf, pos):
-        result, shift = 0, 0
-        while True:
-            b = buf[pos]; pos += 1
-            result |= (b & 0x7F) << shift
-            if not (b & 0x80): return result, pos
-            shift += 7
-
-    def parse(buf, start, end):
-        fields = {}
-        pos = start
-        while pos < end:
-            tag, pos = read_varint(buf, pos)
-            field_no, wire_type = tag >> 3, tag & 7
-            if wire_type == 0:
-                val, pos = read_varint(buf, pos)
-            elif wire_type == 2:
-                length, pos = read_varint(buf, pos)
-                val, pos = buf[pos:pos + length], pos + length
-            else:
-                raise Exception(f"unsupported wire type {wire_type}")
-            fields.setdefault(field_no, []).append(val)
-        return fields
-
-    # CrxFileHeader: field 2 = sha256_with_rsa proofs, field 3 = sha256_with_ecdsa
-    # proofs, field 10000 = signed_header_data (SignedData.crx_id is field 1).
-    # CWS CRXs include both a CWS signing key and the developer's key; we pick
-    # the one whose SHA256 matches crx_id — that's the developer key, which
-    # derives the canonical extension ID.
-    header_fields = parse(header, 0, len(header))
-    signed = parse(header_fields[10000][0], 0, len(header_fields[10000][0]))
-    crx_id = signed[1][0]
-
-    public_key = None
-    for field_no in (2, 3):
-        for proof_bytes in header_fields.get(field_no, []):
-            pk = parse(proof_bytes, 0, len(proof_bytes))[1][0]
-            if hashlib.sha256(pk).digest()[:16] == crx_id:
-                public_key = pk
-                break
-        if public_key is not None:
-            break
-    assert public_key is not None, "no proof matches crx_id"
-    public_key_b64 = base64.b64encode(public_key).decode()
-
-    os.makedirs(out_dir, exist_ok=True)
-    with zipfile.ZipFile(io.BytesIO(zip_data)) as zf:
-        zf.extractall(out_dir)
-
-    metadata = os.path.join(out_dir, "_metadata")
-    if os.path.isdir(metadata):
-        shutil.rmtree(metadata)
-
-    manifest_path = os.path.join(out_dir, "manifest.json")
-    manifest = json.loads(open(manifest_path, encoding="utf-8-sig").read())
-    manifest["key"] = public_key_b64
-    with open(manifest_path, "w") as f:
-        json.dump(manifest, f, indent=2)
+  readVersionScript = pkgs.writeText "helium-crx-read-version.py" ''
+    import struct, sys, zipfile, io, json
+    data = open(sys.argv[1], "rb").read()
+    assert data[:4] == b"Cr24", "not a CRX"
+    header_size = struct.unpack("<II", data[4:12])[1]
+    zf = zipfile.ZipFile(io.BytesIO(data[12 + header_size:]))
+    print(json.loads(zf.read("manifest.json").decode("utf-8-sig"))["version"])
   '';
 
-  unpackCrxWithKey = spec: pkgs.runCommand "helium-ext-keyed-${spec.id}"
+  # Per-extension store path containing the CRX and a Chromium-format
+  # update manifest (gupdate XML). ExtensionInstallForcelist points at
+  # ${out}/updates.xml; codebase inside that XML is a file:// URL to the
+  # CRX in the same store path.
+  buildExtension = spec: pkgs.runCommand "helium-ext-${spec.id}"
     {
       nativeBuildInputs = [ pkgs.python3 ];
       src = fetchCrx { inherit (spec) id hash; };
     } ''
     mkdir -p $out
-    python3 ${injectKeyScript} "$src" "$out"
+    cp $src $out/ext.crx
+    version=$(python3 ${readVersionScript} "$src")
+    cat > $out/updates.xml <<EOF
+    <?xml version="1.0" encoding="UTF-8"?>
+    <gupdate xmlns="http://www.google.com/update2/response" protocol="2.0">
+      <app appid="${spec.id}">
+        <updatecheck codebase="file://$out/ext.crx" version="$version" />
+      </app>
+    </gupdate>
+    EOF
   '';
 
-  keyedExtensions = map unpackCrxWithKey extensionSpecs;
+  builtExtensions = map (spec: { inherit (spec) id; drv = buildExtension spec; }) extensionSpecs;
 in
 delib.module {
   name = "krit.programs.helium";
@@ -122,27 +73,21 @@ delib.module {
     programs.helium = {
       enable = true;
       defaultBrowser = false;
-
-      # We bypass the flake's `extensions` option (which uses --load-extension
-      # without injecting the CWS public key, so Chromium picks path-derived
-      # IDs). Instead we build keyed extensions ourselves above and pass them
-      # via extraFlags, plus allowlist them by their true CWS IDs below.
       extensions = [ ];
-
-      extraFlags = [
-        "--load-extension=${pkgs.lib.concatMapStringsSep "," toString keyedExtensions}"
-      ];
 
       extraPolicies = {
         BookmarkBarEnabled = false;
 
-        # Homepage + new-tab — replaces the "New Tab Override" extension
         HomepageLocation = "https://kagi.com";
         HomepageIsNewTabPage = false;
         ShowHomeButton = true;
         NewTabPageLocation = "https://kagi.com";
 
-        ExtensionInstallAllowlist = map (e: e.id) extensionSpecs;
+        ExtensionInstallForcelist =
+          map (e: "${e.id};file://${e.drv}/updates.xml") builtExtensions;
+
+        # Whitelist file:// as an install source for the self-hosted CRXs.
+        ExtensionInstallSources = [ "file:///*" ];
 
         # Pin the requested extensions. Left-to-right order is NOT
         # enforceable by policy (Chromium stores toolbar order in profile
@@ -161,7 +106,6 @@ delib.module {
       preferences = {
         browser.show_home_button = true;
         bookmark_bar.show_on_all_tabs = false;
-        # helium.browser.layout = ?; # TODO: see memory — int enum for classic/compact/vertical, mapping unresolved
       };
     };
   };
