@@ -18,14 +18,12 @@ delib.module {
       pinnedApps = listOfOption str [ ];
     };
 
-  # NixOS: inject plasma-manager via home-manager.sharedModules
   nixos.always = { ... }: {
     home-manager.sharedModules = [
       inputs.plasma-manager.homeModules.plasma-manager
     ];
   };
 
-  # Standalone homeConfigurations: import plasma-manager directly
   home.always = { ... }: {
     imports = lib.optionals (moduleSystem == "home") [
       inputs.plasma-manager.homeModules.plasma-manager
@@ -81,7 +79,7 @@ delib.module {
         overrideConfig = lib.mkForce true;
 
         workspace = {
-          clickItemTo = "select"; # Require double-click to open files (Windows-style)
+          clickItemTo = "select";
 
           colorScheme = theme;
           lookAndFeel = lookAndFeel;

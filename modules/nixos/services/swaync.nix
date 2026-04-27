@@ -11,7 +11,6 @@ delib.module {
     customSettings = attrsOption { };
   };
 
-  # Skip entirely on Darwin - swaync is a Wayland notification daemon (Linux-only)
   home.ifEnabled =
     { cfg
     , myconfig

@@ -13,6 +13,7 @@ let
   myLocale = "en_US.UTF-8";
   isCatppuccin = false;
 
+  # 🌟 HYPRLAND APP WORKSPACES
   appWorkspaces = {
     editor = "2";
     fileManager = "3";
@@ -129,8 +130,8 @@ delib.host {
         # ---------------------------------------------------------------
         hyprland = {
           rounding = 10;
-          gap = 5; # Updated: 5px inner gap (2:1 ratio with outer gap via hyprland-main derivation)
-          borderSize = 2; # 2px border: visible but not distracting
+          gap = 5;
+          borderSize = 2;
           terminalOpacity = 0.9;
         };
 
@@ -138,8 +139,8 @@ delib.host {
         # 🌀 NIRI CONSTANTS
         # ---------------------------------------------------------------
         niri = {
-          gap = 8; # 8px single gap — one grid unit, coherent with Hyprland values
-          rounding = 10; # Matches hyprland.rounding for visual coherence
+          gap = 8;
+          rounding = 10;
         };
 
         screenshots = "$HOME/Pictures/Screenshots";
@@ -288,15 +289,9 @@ delib.host {
 
         mango = {
           enable = true;
-          # Only the internal panel is declared here. Any externally connected
-          # monitor (DP/HDMI/whatever) falls through to wlroots defaults:
-          # preferred mode, scale 1.0, placed to the right of existing outputs.
-          # Monitor-specific setups (home dock, etc.) live in specializations.
           monitors = [
             "name:^eDP-1$,width:3200,height:2000,refresh:120,x:0,y:0,scale:1.6"
           ];
-          # Hotplugged monitors with no entry here get `defaultLayout` via the
-          # fallback branch in mango-binds.nix (tagRules).
           monitorLayouts = {
             "eDP-1" = "scroller";
           };
@@ -376,7 +371,8 @@ delib.host {
             "workspace ${appWorkspaces.chat} silent, class:^(org.telegram.desktop)$"
             "workspace ${appWorkspaces.chat} silent, class:^(whatsapp-electron)$"
             "workspace ${appWorkspaces.chat} silent, class:^(com.rtosta.zapzap)$"
-            # Scratchpad rules
+
+            # 2. Scratchpad rules
             "float, class:^(scratch-term)$"
             "center, class:^(scratch-term)$"
             "size 80% 80%, class:^(scratch-term)$"
@@ -389,7 +385,8 @@ delib.host {
             "center, class:^(scratch-browser)$"
             "size 80% 80%, class:^(scratch-browser)$"
             "workspace special:magic, class:^(scratch-browser)$"
-            # Winboat rules
+
+            # 3. Winboat rules
             "workspace ${appWorkspaces.vm}, class:^winboat-.*$"
             "suppressevent fullscreen maximize activate activatefocus, class:^winboat-.*$"
             "noinitialfocus, class:^winboat-.*$"
@@ -556,7 +553,6 @@ delib.host {
       # ---------------------------------------------------------------
       # 👤 KRIT PROGRAMS
       # ---------------------------------------------------------------
-
       krit.programs = {
         alacritty.enable = false;
         kitty.enable = true;
@@ -630,7 +626,6 @@ delib.host {
       # 🏠 KRIT HOME
       # ---------------------------------------------------------------
       krit.home.base.enable = true;
-
     };
 }
 

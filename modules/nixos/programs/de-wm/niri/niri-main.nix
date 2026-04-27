@@ -94,7 +94,6 @@ delib.module {
             ];
             default-column-width = { proportion = 0.5; };
 
-            # Focus ring: shown only around the FOCUSED window
             focus-ring = {
               enable = true;
               width = 2;
@@ -102,11 +101,8 @@ delib.module {
               inactive.color = colors.inactive; # base03: muted — readable but non-distracting
               urgent.color = colors.urgent; # base08: red — universally signals urgency
             };
-
-            # Kept disabled — focus-ring alone is enough; border + ring would be redundant
             border.enable = false;
 
-            # Values calibrated to match Hyprland's shadow (range=8, offset=0 3, opacity=40%)
             shadow = {
               enable = true;
               softness = 20; # Blur radius in logical px
@@ -116,12 +112,6 @@ delib.module {
             };
           };
 
-          # -------------------------------------------------------------------
-          # ANIMATIONS
-          # -------------------------------------------------------------------
-          # Niri supports two types:
-          #   spring: physical spring model — feels natural with touchpad gestures
-          #   easing: fixed-duration curve — precise control for open/close
           animations = {
             workspace-switch.kind.spring = {
               damping-ratio = 1.0;
@@ -174,30 +164,6 @@ delib.module {
             }
           ];
 
-          # -------------------------------------------------------------------
-          # LAYER RULES — shadows for waybar (pill-shaped)
-          # Disabled: shadow bleeds into the gap between waybar and windows below it.
-          # -------------------------------------------------------------------
-          # layer-rules = [
-          #   {
-          #     matches = [{ namespace = "waybar"; }];
-          #     shadow = {
-          #       enable = true;
-          #       softness = 20;
-          #       spread = 5;
-          #       offset = { x = 0; y = 4; };
-          #       draw-behind-window = true; # Prevents artifacts at pill ends
-          #       color = "${colors.shadow}66";
-          #     };
-          #     geometry-corner-radius = {
-          #       top-left = 100.0;
-          #       top-right = 100.0;
-          #       bottom-left = 100.0;
-          #       bottom-right = 100.0;
-          #     };
-          #   }
-          # ];
-
           overview = {
             zoom = 0.5;
           };
@@ -209,10 +175,8 @@ delib.module {
           };
 
           spawn-at-startup = [
-            # CORE SERVICES
             { command = [ "xwayland-satellite" ":1" ]; }
             { command = [ "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" ]; }
-            # DBUS UPDATE
             {
               command = [
                 "dbus-update-activation-environment"

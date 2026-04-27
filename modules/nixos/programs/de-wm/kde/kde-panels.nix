@@ -22,7 +22,7 @@ delib.module {
         {
           screen = 0;
           location = "bottom";
-          height = 44; # Default, change as needed
+          height = 44;
           floating = false;
           hiding = "autohide";
 
