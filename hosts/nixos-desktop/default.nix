@@ -300,7 +300,7 @@ delib.host {
           ];
           monitorLayouts = {
             "DP-1" = "center_tile";
-            "DP-2" = "vertical_tile";
+            "DP-2" = "vertical_scroller";
             "HDMI-A-1" = "scroller";
           };
           execOnce = [
