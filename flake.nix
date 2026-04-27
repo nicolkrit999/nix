@@ -222,7 +222,8 @@
     };
 
     # Pinned nixpkgs for winboat — Electron 41.2.0 in newer nixpkgs breaks node-abi detection.
-    # REMOVE THIS when nixpkgs winboat builds again (test by removing overlay in virtualisation.nix).
+    # Re-test periodically: comment this input + the let-block in virtualisation.nix and rebuild.
+    # Last re-test: 2026-04-27 — still broken (node-abi can't detect Electron 41.2.0).
     nixpkgs-winboat.url = "github:nixos/nixpkgs/bcd464ccd2a1a7cd09aa2f8d4ffba83b761b1d0e";
   };
 
