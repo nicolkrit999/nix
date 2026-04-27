@@ -108,8 +108,8 @@ delib.host {
 
           {
             targetMonitor = "*";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/anime/tanjiro-kamado-gruv.jpg";
-            wallpaperSHA256 = "13lcg8wl8wlavqvh8mmm0xfjh6ysdwhn9w6rr2f32sfv8g5l7s33";
+            wallpaperURL = "https://raw.githubusercontent.com/prasanthrangan/hyde-themes/Catppuccin-Mocha/Configs/.config/hyde/themes/Catppuccin%20Mocha/wallpapers/aesthetic_deer.png";
+            wallpaperSHA256 = "1vb9a4xlr649ysv0xi27fcqbf1c2cj2rwy4zn46l79f3i3n081iw";
           }
         ];
 
@@ -118,7 +118,7 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "gruvbox-material-dark-hard";
+          base16Theme = "catppuccin-mocha";
           catppuccin = false;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "teal";
@@ -514,7 +514,7 @@ delib.host {
         sddm-astronaut = {
           enable = true;
           embeddedTheme = "japanese_aesthetic";
-          # background = ../../users/krit/src/wallpapers/girl-outline.png;
+          background = ../../users/krit/src/wallpapers/rain_world.png;
         };
         sddm-pixie = {
           enable = false;
