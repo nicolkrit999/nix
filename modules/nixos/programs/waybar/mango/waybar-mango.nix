@@ -62,10 +62,12 @@ delib.module {
           exec = ''
             mmsg -o ${mon} -g -t 2>/dev/null \
               | awk -v active='${c.base0D}' -v occupied='${c.base07}' -v empty='${c.base04}' '
-                  /^[^ ]+ tag [0-9]+ / {
-                    id = $3 + 0
-                    selected = $4 + 0
-                    has_client = $5 + 0
+                  # mmsg -o <mon> strips the monitor prefix, so lines look like
+                  # "tag <id> <selected> <clients> <urgent>" (5 fields, no monitor).
+                  /^tag [0-9]+ / {
+                    id = $2 + 0
+                    selected = $3 + 0
+                    has_client = $4 + 0
                     if (has_client > 0) occ[id] = 1
                     if (selected > 0) act[id] = 1
                   }
@@ -115,7 +117,8 @@ delib.module {
 
         "custom/window" = {
           exec = ''
-            title=$(mmsg -o ${mon} -g -c 2>/dev/null | awk '$2 == "title" { $1=""; $2=""; sub(/^ +/, ""); print; exit }')
+            # With -o <mon>, output is "title <text>" / "appid <text>" — no monitor prefix.
+            title=$(mmsg -o ${mon} -g -c 2>/dev/null | awk '$1 == "title" { $1=""; sub(/^ +/, ""); print; exit }')
             if [ -z "$title" ] || [ "$title" = "null" ]; then
               echo "${myconfig.constants.user or "nix"}<span font_family='JetBrainsMono Nerd Font Propo'>󱄅</span>${myconfig.constants.hostname or "nixos"}"
             else

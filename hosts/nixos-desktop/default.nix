@@ -303,12 +303,30 @@ delib.host {
             "DP-2" = "vertical_scroller";
             "HDMI-A-1" = "scroller";
           };
+          # Each startup app spawned with a unique --class so windowRules below
+          # pin it to a specific monitor at startup only. Manual launches use
+          # the default class and remain free to land on any monitor/tag.
+          # Spawn order matters: with center_tile/vertical_scroller the first
+          # spawn becomes master/leftmost, so the order below dictates layout.
           execOnce = [
-            "sh -c 'sleep 1 && ${myBrowser}'"
-            "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
-            "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
-            "sh -c 'sleep 11 && ${myTerminal}'"
-            "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
+            # DP-1: file manager → code editor → browser
+            "sh -c 'sleep 3 && ${myTerminal} --class mango-startup-fileManager -e ${myFileManager}'"
+            "sh -c 'sleep 6 && ${myTerminal} --class mango-startup-editor -e ${myEditor}'"
+            "sh -c 'sleep 9 && ${myBrowser} --class=mango-startup-browser'"
+            # DP-2: youtube pwa → terminal → zap zap
+            "sh -c 'sleep 12 && brave --app=https://www.youtube.com --password-store=gnome --class=mango-startup-youtube'"
+            "sh -c 'sleep 15 && ${myTerminal} --class mango-startup-terminal'"
+            "sh -c 'sleep 18 && flatpak run com.rtosta.zapzap'"
+          ];
+          windowRules = [
+            "monitor:DP-1,appid:^mango-startup-fileManager$"
+            "monitor:DP-1,appid:^mango-startup-editor$"
+            "monitor:DP-1,appid:^mango-startup-browser$"
+            "monitor:DP-2,appid:^mango-startup-youtube$"
+            "monitor:DP-2,appid:^mango-startup-terminal$"
+            # zapzap can't be launched with a custom class via flatpak, so we
+            # match its real appid. Singleton app — fine to globally pin.
+            "monitor:DP-2,appid:^com.rtosta.zapzap$"
           ];
           extraBinds = [
             "SUPER,Y,spawn,chromium-browser"
