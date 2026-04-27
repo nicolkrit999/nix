@@ -19,6 +19,14 @@ let
       container = "school-ubuntu";
       image = "ubuntu:latest";
       check = "command -v tkgate";
+      # Non-interactive `distrobox enter -- bash -c ...` never triggers the container's
+      # first-run init, so /etc/sudoers stays as .dpkg-new and dpkg is left interrupted.
+      # rootInit runs as root via `podman exec` to repair both before any sudo/apt is used.
+      rootInit = builtins.concatStringsSep " && " [
+        "[ -f /etc/sudoers ] || cp /etc/sudoers.dpkg-new /etc/sudoers"
+        "chmod 440 /etc/sudoers"
+        "DEBIAN_FRONTEND=noninteractive dpkg --configure -a"
+      ];
       install = "sudo apt-get update && sudo apt-get install -y tkgate";
     }
     {
@@ -280,7 +288,13 @@ delib.module {
 
           (pkgs.writeShellScriptBin "tkgate-school" ''
             ${pkgs.xorg.xhost}/bin/xhost +local: >/dev/null 2>&1
-            exec ${pkgs.distrobox}/bin/distrobox enter school-ubuntu -- tkgate "$@"
+            exec ${pkgs.distrobox}/bin/distrobox enter school-ubuntu -- bash -c '
+              if ! command -v tkgate >/dev/null 2>&1; then
+                echo "tkgate is not installed. Run: school-distrobox-setup"
+                exit 1
+              fi
+              exec tkgate "$@"
+            ' _ "$@"
           '')
           (pkgs.makeDesktopItem {
             name = "tkgate-school";
@@ -333,13 +347,17 @@ delib.module {
                 fi
               fi
               if container_exists "${app.container}"; then
-                ${lib.optionalString (app ? preInstall) ''
-                echo "    Installing dependencies in ${app.container}..."
-                distrobox enter ${app.container} -- bash -c '${app.preInstall}' || true
-                ''}
                 if distrobox enter ${app.container} -- bash -c '${app.check}' &>/dev/null; then
                   echo "    ${app.name} already installed, skipping."
                 else
+                  ${lib.optionalString (app ? rootInit) ''
+                  echo "    Running rootInit in ${app.container}..."
+                  ${pkgs.podman}/bin/podman exec --user root ${app.container} bash -c '${app.rootInit}' || true
+                  ''}
+                  ${lib.optionalString (app ? preInstall) ''
+                  echo "    Installing dependencies in ${app.container}..."
+                  distrobox enter ${app.container} -- bash -c '${app.preInstall}' || true
+                  ''}
                   echo "    Installing ${app.name}..."
                   if ! distrobox enter ${app.container} -- bash -c '${app.install}'; then
                     echo "    FAILED to install ${app.name}"
@@ -366,6 +384,34 @@ delib.module {
           # Deep check: verifies packages are actually installed inside containers
           (pkgs.writeShellScriptBin "school-distrobox-check" ''
             exec ${distroboxDeepCheck}
+          '')
+
+          # Nuclear cleanup: removes all school containers and the exported binaries.
+          # Only reports what was actually removed — silent for things that didn't exist.
+          (pkgs.writeShellScriptBin "school-distrobox-clear" ''
+            set -uo pipefail
+            REMOVED=""
+
+            ${lib.concatMapStringsSep "\n" (app: ''
+              if ${pkgs.podman}/bin/podman container exists "${app.container}" 2>/dev/null; then
+                if ${pkgs.distrobox}/bin/distrobox rm "${app.container}" --force >/dev/null 2>&1; then
+                  REMOVED="$REMOVED\n  - container: ${app.container}"
+                fi
+              fi
+            '') distroboxApps}
+
+            EXPORT_PATH="$HOME/.school-workspace/distrobox-bin"
+            if [ -d "$EXPORT_PATH" ] && [ -n "$(ls -A "$EXPORT_PATH" 2>/dev/null)" ]; then
+              FILES=$(ls -A "$EXPORT_PATH" | tr '\n' ' ')
+              rm -rf "$EXPORT_PATH"/* "$EXPORT_PATH"/.[!.]* 2>/dev/null || true
+              REMOVED="$REMOVED\n  - exported binaries in $EXPORT_PATH: $FILES"
+            fi
+
+            if [ -z "$REMOVED" ]; then
+              echo "Nothing to clear — no school containers or exported binaries found."
+            else
+              echo -e "Removed:$REMOVED"
+            fi
           '')
         ];
 
