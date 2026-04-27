@@ -132,27 +132,8 @@ delib.module {
         tor-browser
       ];
 
-      networking.networkmanager.dispatcherScripts = [
-        {
-          source = pkgs.writeShellScript "vpn-killswitch" ''
-            #!/bin/sh
-            INTERFACE=$1
-            STATUS=$2
-
-            if [ "$INTERFACE" = "proton0" ] || [ "$INTERFACE" = "tun0" ]; then
-              if [ "$STATUS" = "down" ]; then
-                ${pkgs.libnotify}/bin/notify-send -u critical "VPN Disconnected" "ProtonVPN connection lost. Traffic is NOT protected."
-              elif [ "$STATUS" = "up" ]; then
-                ${pkgs.libnotify}/bin/notify-send -u normal "VPN Connected" "ProtonVPN is active. Traffic is protected."
-              fi
-            fi
-          '';
-          type = "basic";
-        }
-      ];
-
       # ---------------------------------------------------------
-      # 6. 🌐 DNS & NETWORK
+      # 6. 🌐 DNS & NETWORK (kill-switch dispatcher + MAC randomization + firewall)
       # ---------------------------------------------------------
       networking = {
         nameservers = [ "9.9.9.9" "149.112.112.112" "2620:fe::fe" "2620:fe::9" ]; # Quad9
@@ -160,6 +141,25 @@ delib.module {
         networkmanager = {
           wifi.macAddress = "random"; # Randomize MAC on each connection
           ethernet.macAddress = "random";
+
+          dispatcherScripts = [
+            {
+              source = pkgs.writeShellScript "vpn-killswitch" ''
+                #!/bin/sh
+                INTERFACE=$1
+                STATUS=$2
+
+                if [ "$INTERFACE" = "proton0" ] || [ "$INTERFACE" = "tun0" ]; then
+                  if [ "$STATUS" = "down" ]; then
+                    ${pkgs.libnotify}/bin/notify-send -u critical "VPN Disconnected" "ProtonVPN connection lost. Traffic is NOT protected."
+                  elif [ "$STATUS" = "up" ]; then
+                    ${pkgs.libnotify}/bin/notify-send -u normal "VPN Connected" "ProtonVPN is active. Traffic is protected."
+                  fi
+                fi
+              '';
+              type = "basic";
+            }
+          ];
         };
 
         firewall = {

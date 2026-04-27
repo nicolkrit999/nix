@@ -16,7 +16,6 @@ delib.module {
       tick_rate = 50
     '';
 
-    # Auto-update channels on activation so users don't need to run it manually
     home.activation.updateTelevisionChannels = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       $DRY_RUN_CMD ${pkgs.television}/bin/tv update-channels 2>/dev/null || true
     '';

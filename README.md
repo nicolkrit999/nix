@@ -1165,15 +1165,7 @@ This folder contains the official denix documentation as well as a brief descrip
 
 This folder contains an in-depth explanation of files that could be difficult to understand
 
-### [Issues](./Documentation/issues/issues.md)
 
-This folder contains an explanation of the issues that i noticed and that should eventually be resolved
-
-- Issues include both warnings than critical one
-
-### [Ideas](./Documentation/ideas/ideas.md)
-
-This folder contains ideas that i think may benefit the project
 
 ### [Troubleshooting](./Documentation/troubleshooting/)
 

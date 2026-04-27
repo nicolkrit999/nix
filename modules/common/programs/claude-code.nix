@@ -7,10 +7,10 @@ let
     caitempanalytics = "npx claude-code-templates@latest --analytics";
     cai-openrouter-geminipro = "cai-openrouter --model google/gemini-3.1-pro-preview[1m]";
     cai-openrouter-geminiflash = "cai-openrouter --model google/gemini-3.1-flash-lite-preview[1m]";
-    cai-openrouter-gptpro = "cai-openrouter --model openai/gpt-5.4-pro[1m]";
-    cai-openrouter-gptmini = "cai-openrouter --model openai/gpt-5.4-mini[1m]"; # In reality support 400k but it does not recognize "k" nor "m" with decimals
-    cai-openrouter-opus = "cai-openrouter --model anthropic/claude-opus-4.6[1m]";
-    cai-openrouter-sonnet = "cai-openrouter --model anthropic/claude-sonnet-4.6[1m]";
+    cai-openrouter-gptpro = "cai-openrouter --model openai/gpt-5.5-pro[1m]";
+    cai-openrouter-gptmini = "cai-openrouter --model openai/gpt-5.5-mini[1m]"; # In reality support 400k but it does not recognize "k" nor "m" with decimals
+    cai-openrouter-opus = "cai-openrouter --model anthropic/claude-opus-4.7[1m]";
+    cai-openrouter-sonnet = "cai-openrouter --model anthropic/claude-sonnet-4.7[1m]";
     cai-openrouter-maverick = "cai-openrouter --model meta-llama/llama-4-maverick[1m]";
     cai-openrouter-scout = "cai-openrouter --model meta-llama/llama-4-scout[1m]";
     cai-openrouter-glmturbo = "cai-openrouter --model z-ai/glm-5-turbo";
@@ -95,18 +95,8 @@ delib.module {
     home.sessionVariables.CLAUDE_BINARY = "${pkgs.claude-code}/bin/.claude-unwrapped";
     programs.git.ignores = [
       # Claude code
-      "*.jsonl"
-      ".claude.json"
-      ".claude.json.backup.*"
-      ".credentials.json"
       "credentials.json"
       "security_warnings_*.json"
-      "**/.claude/*"
-      "!**/.claude/agents/"
-      "!**/.claude/keybindings.json"
-      "!**/.claude/skills/"
-      "!**/.claude/settings.json"
-      "!**/.claude/statusline-commands.sh"
     ];
 
     programs.fish.shellAbbrs = lib.mkIf (myconfig.constants.shell == "fish") shellAliases;

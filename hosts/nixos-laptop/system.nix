@@ -11,7 +11,7 @@ delib.host {
 
   nixos = {
     system.stateVersion = "25.11";
-    time.hardwareClockInLocalTime = true; # Fix windows dual boot time error
+    time.hardwareClockInLocalTime = true;
 
     environment.variables = { };
 

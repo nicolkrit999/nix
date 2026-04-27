@@ -13,7 +13,7 @@ let
   myLocale = "en_US.UTF-8";
   isCatppuccin = false;
 
-  # 🌟 APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
+  # 🌟 HYPRLAND APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
   appWorkspaces = {
     editor = "2";
     fileManager = "3";
@@ -69,23 +69,14 @@ delib.host {
   myconfig =
     { ... }:
     {
-      # ---------------------------------------------------------------
-      # 📦 CONSTANTS BLOCK (Data Bucket)
-      # ---------------------------------------------------------------
       constants = {
         hostname = "nixos-desktop";
         mainLocale = myLocale;
 
-        # ---------------------------------------------------------------
-        # 👤 USER IDENTITY
-        # ---------------------------------------------------------------
         user = "krit";
         gitUserName = "Krit Pio Nicol";
         gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
 
-        # ---------------------------------------------------------------
-        # 🐚 SHELLS & APPS
-        # ---------------------------------------------------------------
         shell = myShell;
         browser = myBrowser;
         editor = myEditor;
@@ -97,7 +88,6 @@ delib.host {
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/ChrisTitusTech/ChrisTitusTech/nord-background/at_the_coffeshop.png";
             wallpaperSHA256 = "14jnknqia3p2szg9qzyi3h2kb0pz0wj7ypvzx0fi449pq54vr931";
           }
-
           {
             targetMonitor = "*";
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/linuxdotexe/nordic-wallpapers/ign_Carvan-2.png";
@@ -105,9 +95,6 @@ delib.host {
           }
         ];
 
-        # ---------------------------------------------------------------
-        # 🎨 THEMING
-        # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
           base16Theme = "nord";
@@ -128,15 +115,15 @@ delib.host {
         timeZone = "Europe/Zurich";
 
         hyprland = {
-          rounding = 10; # Refined rounded corners (matches constant default)
-          gap = 5; # Inner gap 5px → outer gap 10px (2:1 ratio, 8px-grid aligned)
-          borderSize = 2; # 2px border: visible but not distracting
+          rounding = 10;
+          gap = 5;
+          borderSize = 2;
           terminalOpacity = 0.9;
         };
 
         niri = {
-          gap = 8; # 8px single gap (one grid unit; between Hyprland gaps_in=5 and gaps_out=10)
-          rounding = 10; # Matches hyprland.rounding for visual coherence across compositors
+          gap = 8;
+          rounding = 10;
         };
 
         terminal = {
@@ -144,7 +131,7 @@ delib.host {
           cursorStyle = "block";
           cursorBlink = true;
           cursorBeamWidth = 3.0;
-          animation = true; # Enable transient prompt animation
+          animation = true;
         };
       };
 
@@ -202,6 +189,7 @@ delib.host {
         nix-ld.enable = true;
         nix-alien.enable = true;
         comma.enable = true;
+        npm.enable = true;
         statix.enable = true;
         lazygit.enable = true;
         shell-aliases.enable = true;
@@ -291,8 +279,6 @@ delib.host {
 
         mango = {
           enable = true;
-          # DP-1 x range: 1440 .. 1440 + 3840/1.5 = 4000. Park HDMI-A-1 at x:4000
-          # so it sits flush to DP-1's right edge without overlapping.
           monitors = [
             "name:^DP-1$,width:3840,height:2160,refresh:240,x:1440,y:560,scale:1.5"
             "name:^DP-2$,width:3840,height:2160,refresh:144,x:0,y:0,scale:1.5,rr:1"
@@ -309,11 +295,12 @@ delib.host {
           # Spawn order matters: with center_tile/vertical_scroller the first
           # spawn becomes master/leftmost, so the order below dictates layout.
           execOnce = [
-            # DP-1: file manager → code editor → browser
+            # DP-1
             "sh -c 'sleep 3 && ${myTerminal} --class mango-startup-fileManager -e ${myFileManager}'"
             "sh -c 'sleep 6 && ${myTerminal} --class mango-startup-editor -e ${myEditor}'"
             "sh -c 'sleep 9 && ${myBrowser} --class=mango-startup-browser'"
-            # DP-2: youtube pwa → terminal → zap zap
+
+            # DP-2
             "sh -c 'sleep 12 && brave --app=https://www.youtube.com --password-store=gnome --class=mango-startup-youtube'"
             "sh -c 'sleep 15 && ${myTerminal} --class mango-startup-terminal'"
             "sh -c 'sleep 18 && flatpak run com.rtosta.zapzap'"
@@ -322,21 +309,12 @@ delib.host {
             "monitor:DP-1,appid:^mango-startup-fileManager$"
             "monitor:DP-1,appid:^mango-startup-editor$"
             "monitor:DP-1,appid:^mango-startup-browser$"
-            # Chromium's --class= is X11-only — on Wayland brave PWAs get an
-            # auto-derived app_id like `brave-www.youtube.com__-Default`. Title
-            # match was unreliable (rule fires at window-create when title is
-            # still "Brave" / "Loading"). Match the PWA-style appid: anything
-            # starting with "brave-" and containing a dot (regular brave is
-            # "brave-browser" — no dot — so manual brave doesn't match).
             "monitor:DP-2,appid:^brave-.*\\..*$"
             "monitor:DP-2,appid:^mango-startup-terminal$"
-            # zapzap can't be launched with a custom class via flatpak, so we
-            # match its real appid. Singleton app — fine to globally pin.
             "monitor:DP-2,appid:^com.rtosta.zapzap$"
           ];
           extraBinds = [
             "SUPER,Y,spawn,chromium-browser"
-
             "NONE,XF86Tools,viewtoleft_have_client,0"
             "NONE,XF86Launch5,viewtoright_have_client,0"
             "NONE,XF86Launch6,togglemaximizescreen,"
@@ -356,7 +334,7 @@ delib.host {
             "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
             "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
             "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
-            #"sh -c 'sleep 5 && protonvpn-app --start-minimized'"
+            "sh -c 'sleep 5 && protonvpn-app --start-minimized'"
             "uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
           ];
@@ -408,7 +386,8 @@ delib.host {
             "workspace ${appWorkspaces.chat} silent, class:^(org.telegram.desktop)$"
             "workspace ${appWorkspaces.chat} silent, class:^(whatsapp-electron)$"
             "workspace ${appWorkspaces.chat} silent, class:^(com.rtosta.zapzap)$"
-            # Scratchpad rules
+
+            # 2. Scratchpad rules
             "float, class:^(scratch-term)$"
             "center, class:^(scratch-term)$"
             "size 80% 80%, class:^(scratch-term)$"
@@ -421,7 +400,8 @@ delib.host {
             "center, class:^(scratch-browser)$"
             "size 80% 80%, class:^(scratch-browser)$"
             "workspace special:magic, class:^(scratch-browser)$"
-            # Winboat rules
+
+            # 3. Winboat rules
             "workspace ${appWorkspaces.vm}, class:^winboat-.*$"
             "suppressevent fullscreen maximize activate activatefocus, class:^winboat-.*$"
             "noinitialfocus, class:^winboat-.*$"
@@ -493,7 +473,7 @@ delib.host {
             "sh -c 'sleep 11 && ${myTerminal}'"
             "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
             "sh -c 'sleep 17 && chromium-browser'"
-            #"sh -c 'sleep 19 && protonvpn-app --start-minimized'"
+            "sh -c 'sleep 19 && protonvpn-app --start-minimized'"
             "sh -c 'sleep 30 && niri msg action focus-column-first'" # Refocus browser after all windows are up
           ];
           extraBinds = {
@@ -604,12 +584,10 @@ delib.host {
         swaync = {
           enable = true;
           customSettings = {
-            /*
             "mute-protonvpn" = {
               state = "ignored";
               app-name = ".*Proton.*";
             };
-            */
           };
         };
       };
@@ -627,9 +605,9 @@ delib.host {
         direnv.enable = true;
         dolphin.enable = true;
         firefox.enable = false;
+        krokiet.enable = true;
         librewolf.enable = true;
         neovim.enable = true;
-        npm.enable = true;
         pwas.enable = true;
         ranger.enable = false;
         yazi.enable = true;

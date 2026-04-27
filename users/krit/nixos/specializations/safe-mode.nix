@@ -33,7 +33,6 @@ delib.module {
       # ---------------------------------------------------------
       # 2. SAFE MODE GUI (IceWM)
       # ---------------------------------------------------------
-
       services.xserver.windowManager.icewm.enable = lib.mkForce true;
       services.xserver.displayManager.startx.enable = lib.mkForce true;
 

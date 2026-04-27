@@ -6,7 +6,6 @@ delib.module {
     settings = attrsOption { };
   };
 
-  # Skip entirely on Darwin - hyprlock is a Wayland screen locker (Linux-only)
   home.always =
     { myconfig, ... }:
     let

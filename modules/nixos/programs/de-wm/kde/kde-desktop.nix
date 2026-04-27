@@ -19,7 +19,7 @@ delib.module {
         icons = {
           arrangement = "topToBottom";
           alignment = "left";
-          lockInPlace = false; # Allow manual moving if needed
+          lockInPlace = false;
 
           sorting = {
             mode = "name";

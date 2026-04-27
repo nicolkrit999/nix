@@ -16,17 +16,12 @@ delib.module {
     {
       users.users.${myconfig.constants.user}.packages =
         (with pkgs; [
-          # This allow guest user to not have this packages installed
-          # Packages in each category are sorted alphabetically
-
           # -----------------------------------------------------------------------
           # 🖥️ DESKTOP APPLICATIONS
           # -----------------------------------------------------------------------
           #anydesk # Remote management desktop application
-          #bottles # Windows compatibility layer and game launcher
-          #cartridges # Simple and elegant game launcher for Linux
           cryptomator # Client side encryptions for cloud drives
-          #cpu-x # Hardware information visualizer application
+          cpu-x # Hardware information visualizer application
           drawio # Diagramming application
           gearlever # Manager appimages
           gramps # Genealogy software
@@ -68,11 +63,9 @@ delib.module {
           gh # GitHub CLI tool
           #glow # Markdown renderer for the terminal
           grex # Command-line tool for generating regular expressions
-          #grim # Used to make screenshots with cli
           htop # Process viewer and killer
           killall # Command to kill processes by name
           #lsof # List open files
-          #nix-search-cli # CLI tool to search nixpkgs from terminal
           #ntfs3g # NTFS read/write support
           pay-respects # Check commands syntax error and get suggestions for fixes
           pokemon-colorscripts

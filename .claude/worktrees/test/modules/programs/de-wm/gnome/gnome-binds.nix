@@ -1,0 +1,150 @@
+{ delib
+, pkgs
+, lib
+, ...
+}:
+delib.module {
+  name = "programs.gnome";
+  home.ifEnabled =
+    { cfg
+    , myconfig
+    , ...
+    }:
+    let
+      screenshotScript = pkgs.writeShellScript "launch-screenshot" ''
+        FILENAME="${cfg.screenshots}/Screenshot_$(date +%F_%H-%M-%S).png"
+        mkdir -p "${cfg.screenshots}"
+        ${pkgs.gnome-screenshot}/bin/gnome-screenshot --file="$FILENAME"
+        ${pkgs.libnotify}/bin/notify-send "Screenshot Saved" "Saved to $FILENAME" -i camera-photo
+      '';
+
+      customKeyPath =
+        i: "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${toString i}";
+
+      customBindings = [
+        {
+          name = "Launch Terminal";
+          command = myconfig.constants.terminal;
+          binding = "<Super>Return";
+        }
+        {
+          name = "Launch ${myconfig.constants.browser}";
+          command = myconfig.constants.browser;
+          binding = "<Super>b";
+        }
+        {
+          name = "Launch File Manager";
+          command =
+            if
+            # Add more if needed
+              builtins.elem myconfig.constants.fileManager [
+                "yazi"
+                "ranger"
+                "lf"
+                "nnn"
+              ]
+            then
+              "${myconfig.constants.terminal} -e ${myconfig.constants.fileManager}"
+            else
+              "${myconfig.constants.fileManager}";
+          binding = "<Super>f";
+        }
+        {
+          name = "Launch editor";
+          command =
+            if
+              builtins.elem myconfig.constants.editor [
+                "neovim"
+                "nvim"
+                "nano"
+                "vim"
+                "helix"
+              ]
+            then
+              "${myconfig.constants.terminal} -e ${myconfig.constants.editor}"
+            else
+              "${myconfig.constants.editor}";
+          binding = "<Super>c";
+        }
+        {
+          name = "Emoji Picker";
+          command = "walker -m symbols";
+          binding = "<Super>Period";
+        }
+
+        {
+          name = "Application Launcher";
+          command = "walker";
+          binding = "<Super>a";
+        }
+
+        {
+          name = "Clipboard History";
+          command = "walker -m clipboard";
+          binding = "<Super>v";
+        }
+
+        {
+          name = "Take Screenshot (Native)";
+          command = "${screenshotScript}";
+          binding = "Print";
+        }
+
+      ]
+      ++ (cfg.extraBinds or [ ]);
+
+      dconfList = lib.genList
+        (
+          i: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${toString i}/"
+        )
+        (builtins.length customBindings);
+
+      dconfSettings =
+        lib.foldl'
+          (
+            acc: item:
+              let
+                index = item.index;
+                binding = item.value;
+              in
+              acc
+              // {
+                "${customKeyPath index}" = {
+                  name = binding.name;
+                  command = binding.command;
+                  binding = binding.binding;
+                };
+              }
+          )
+          { }
+          (
+            lib.imap0
+              (i: v: {
+                index = i;
+                value = v;
+              })
+              customBindings
+          );
+
+    in
+    {
+      dconf.settings = {
+        "org/gnome/settings-daemon/plugins/media-keys" = {
+          custom-keybindings = dconfList;
+          screensaver = [ "<Super>Delete" ];
+          logout = [ "<Super><Shift>Delete" ];
+          screenshot = [ ];
+        };
+
+        "org/gnome/desktop/wm/keybindings" = {
+          close = [ "<Super><Shift>c" ];
+        };
+
+        "org/gnome/shell/keybindings" = {
+          toggle-overview = [ "<Super>w" ];
+          toggle-application-view = [ ];
+        };
+      }
+      // dconfSettings;
+    };
+}

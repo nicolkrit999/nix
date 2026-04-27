@@ -15,7 +15,6 @@ delib.module {
       programs.plasma.configFile = {
         "spectaclerc" = {
           "General" = {
-            # 🌟 FIXED VARS
             "screenshotLocation" = "file://${myconfig.constants.screenshots}/";
             "filenameString" = "Screenshot_%Y%M%D_%H%m%S";
             "rememberLastScreenshotPath" = false;
