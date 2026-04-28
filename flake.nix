@@ -225,6 +225,19 @@
     # Re-test periodically: comment this input + the let-block in virtualisation.nix and rebuild.
     # Re-tests: 2026-04-27 (Electron 41.2.0 broken), 2026-04-27 round 2 (Electron 41.3.0 still broken).
     nixpkgs-winboat.url = "github:nixos/nixpkgs/bcd464ccd2a1a7cd09aa2f8d4ffba83b761b1d0e";
+
+    nix-yazi-plugins = {
+      url = "github:lordkekz/nix-yazi-plugins";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+      };
+    };
   };
 
 }
