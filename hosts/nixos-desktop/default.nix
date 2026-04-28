@@ -199,6 +199,8 @@ delib.host {
         television.enable = true;
         zoxide.enable = true;
 
+        zen.browser.enable = true;
+
         claude-code = {
           enable = true;
           mcpSecrets = [
