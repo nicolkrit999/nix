@@ -63,15 +63,6 @@ delib.host {
           path = "/Users/krit/.ssh/id_school.pub";
           mode = "0644";
         };
-        Krit_Wifi_pass = {
-          sopsFile = commonSecrets;
-        };
-        Nicol_5Ghz_pass = {
-          sopsFile = commonSecrets;
-        };
-        Nicol_2Ghz_pass = {
-          sopsFile = commonSecrets;
-        };
         openrouter_api_claude_code = {
           sopsFile = commonSecrets;
           owner = "krit";
