@@ -84,6 +84,8 @@ delib.module {
           git-lfs # Git large file storage (needed by GitHub Desktop and other GUI clients)
           nixfmt # Nix formatter
           nix-prefetch-scripts # Tools to get hashes for nix derivations (used in every shell modules)
+          nix-init # Generate nix packages from URLs
+          nix-tree # INteractively browse dependency graphs of nix derivations
           wget # Downloader
           curl # Downloader
           nodenv # Support for multiple node versions

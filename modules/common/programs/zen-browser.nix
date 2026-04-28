@@ -1,5 +1,7 @@
 { delib
 , inputs
+, moduleSystem
+, lib
 , ...
 }:
 delib.module {
@@ -15,10 +17,8 @@ delib.module {
     programs.zen-browser = {
       enable = true;
       setAsDefaultBrowser = true;
+    } // lib.optionalAttrs (moduleSystem == "darwin") {
+      darwinDefaultsId = "app.zen-browser.zen";
     };
-  };
-
-  darwin.ifEnabled = { ... }: {
-    programs.zen-browser.darwinDefaultsId = "app.zen-browser.zen";
   };
 }
