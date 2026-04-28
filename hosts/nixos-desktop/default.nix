@@ -198,7 +198,6 @@ delib.host {
         walker.enable = true;
         television.enable = true;
         zoxide.enable = true;
-
         zen.browser.enable = true;
 
         claude-code = {

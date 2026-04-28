@@ -1,6 +1,7 @@
 { delib
 , inputs
-, pkgs
+, moduleSystem
+, lib
 , ...
 }:
 delib.module {
@@ -9,8 +10,8 @@ delib.module {
   options = delib.singleEnableOption false;
 
   home.always = { ... }: {
-    imports = [
-      inputs.nix-yazi-plugins.legacyPackages.${pkgs.stdenv.hostPlatform.system}.homeManagerModules.default
+    imports = lib.optionals (moduleSystem != "darwin") [
+      inputs.nix-yazi-plugins.legacyPackages.x86_64-linux.homeManagerModules.default
     ];
   };
 
