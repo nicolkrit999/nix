@@ -16,7 +16,7 @@ delib.module {
   home.ifEnabled = { ... }: {
     programs.zen-browser = {
       enable = true;
-      setAsDefaultBrowser = true;
+      setAsDefaultBrowser = false;
     } // lib.optionalAttrs (moduleSystem == "darwin") {
       darwinDefaultsId = "app.zen-browser.zen";
     };
