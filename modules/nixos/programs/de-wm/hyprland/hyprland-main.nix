@@ -127,7 +127,6 @@ delib.module {
               "walker";
 
           exec-once = [
-            "${pkgs.bash}/bin/bash $HOME/.local/bin/init-gnome-keyring.sh"
             "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
             "pkill ibus-daemon"
           ]
