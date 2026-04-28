@@ -33,7 +33,7 @@ delib.module {
           background_opacity = lib.mkForce "1.0";
           copy_on_select = "yes";
           window_padding_width = 4;
-          confirm_os_window_close = -1;
+          confirm_os_window_close = 0;
           enable_audio_bell = false;
           mouse_hide_wait = "3.0";
           shell_integration = "enabled";

@@ -141,19 +141,6 @@ delib.host {
           owner = myUserName;
           path = "/home/${myUserName}/.ssh/id_github";
         };
-        Krit_Wifi_pass = {
-          sopsFile = commonSecrets;
-          restartUnits = [ "NetworkManager.service" ];
-        };
-        Nicol_5Ghz_pass = {
-          sopsFile = commonSecrets;
-          restartUnits = [ "NetworkManager.service" ];
-        };
-        Nicol_2Ghz_pass = {
-          sopsFile = commonSecrets;
-          restartUnits = [ "NetworkManager.service" ];
-        };
-
         nas_ssh_key.sopsFile = commonSecrets;
         nas-krit-credentials.sopsFile = commonSecrets;
         nas_owncloud_url.sopsFile = commonSecrets;
