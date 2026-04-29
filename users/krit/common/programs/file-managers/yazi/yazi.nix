@@ -8,6 +8,10 @@ delib.module {
   name = "krit.programs.yazi";
   options = delib.singleEnableOption false;
 
+  nixos.ifEnabled = { ... }: {
+    myconfig.stylix.targets.yazi.enable = false;
+  };
+
   home.ifEnabled =
     { myconfig
     , ...
@@ -452,7 +456,5 @@ delib.module {
         ];
         mimeType = [ "inode/directory" ];
       });
-    } // lib.optionalAttrs (myconfig.stylix.enable or false) {
-      stylix.targets.yazi.enable = false;
     };
 }

@@ -13,14 +13,16 @@ delib.module {
     imports = [ inputs.zen-browser.homeModules.beta ];
   };
 
-  home.ifEnabled = { myconfig, ... }: {
+  nixos.ifEnabled = { myconfig, ... }: {
+    myconfig.stylix.targets."zen-browser".profileNames = [ myconfig.constants.user ];
+  };
+
+  home.ifEnabled = { ... }: {
     programs.zen-browser = {
       enable = true;
       setAsDefaultBrowser = false;
     } // lib.optionalAttrs (moduleSystem == "darwin") {
       darwinDefaultsId = "app.zen-browser.zen";
     };
-  } // lib.optionalAttrs (myconfig.stylix.enable or false) {
-    stylix.targets.zen-browser.profileNames = [ myconfig.constants.user ];
   };
 }

@@ -16,6 +16,10 @@ delib.module {
       };
     };
 
+  nixos.ifEnabled = { myconfig, ... }: {
+    myconfig.stylix.targets.kitty.enable = !(myconfig.constants.theme.catppuccin or false);
+  };
+
   home.ifEnabled =
     { myconfig, ... }:
     let
@@ -56,7 +60,5 @@ delib.module {
           macos_option_as_alt = "yes";
         };
       };
-    } // lib.optionalAttrs (myconfig.stylix.enable or false) {
-      stylix.targets.kitty.enable = !(myconfig.constants.theme.catppuccin or false);
     };
 }
