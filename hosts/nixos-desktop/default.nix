@@ -9,9 +9,7 @@ let
   myShell = "fish";
   myEditor = "nvim";
   myFileManager = "yazi";
-  myUserName = "krit";
   myLocale = "en_US.UTF-8";
-  isCatppuccin = false;
 
   # 🌟 HYPRLAND APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
   appWorkspaces = {
@@ -163,18 +161,7 @@ delib.host {
 
       stylix = {
         enable = true;
-        targets = {
-          yazi.enable = false;
-          cava.enable = true;
-          kitty.enable = !isCatppuccin;
-          alacritty.enable = !isCatppuccin;
-          zathura.enable = !isCatppuccin;
-          firefox.profileNames = [ myUserName ];
-          librewolf.profileNames = [
-            "default"
-            "privacy"
-          ];
-        };
+        targets = { };
       };
 
       # ---------------------------------------------------------------
@@ -548,6 +535,8 @@ delib.host {
       # ⚙️ SERVICES
       # ---------------------------------------------------------------
       services = {
+        external.dotfiles.enable = true; # Symlinks ~/dotfiles/* into $HOME (out-of-store)
+
         audio.enable = true;
         hyprlock.enable = true;
         sddm-astronaut = {

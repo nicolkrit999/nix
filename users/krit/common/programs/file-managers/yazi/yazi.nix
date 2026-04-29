@@ -8,6 +8,10 @@ delib.module {
   name = "krit.programs.yazi";
   options = delib.singleEnableOption false;
 
+  nixos.ifEnabled = { ... }: {
+    myconfig.stylix.targets.yazi.enable = false;
+  };
+
   home.ifEnabled =
     { myconfig
     , ...
@@ -16,7 +20,6 @@ delib.module {
       isNixOS = moduleSystem == "nixos";
     in
     {
-
       home.packages = with pkgs; [
 
         fzf

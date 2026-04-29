@@ -16,6 +16,10 @@ delib.module {
       };
     };
 
+  nixos.ifEnabled = { myconfig, ... }: {
+    myconfig.stylix.targets.kitty.enable = !(myconfig.constants.theme.catppuccin or false);
+  };
+
   home.ifEnabled =
     { myconfig, ... }:
     let

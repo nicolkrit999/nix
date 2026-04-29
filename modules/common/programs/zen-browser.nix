@@ -13,6 +13,10 @@ delib.module {
     imports = [ inputs.zen-browser.homeModules.beta ];
   };
 
+  nixos.ifEnabled = { myconfig, ... }: {
+    myconfig.stylix.targets."zen-browser".profileNames = [ myconfig.constants.user ];
+  };
+
   home.ifEnabled = { ... }: {
     programs.zen-browser = {
       enable = true;

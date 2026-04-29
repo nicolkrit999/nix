@@ -3,7 +3,11 @@ delib.module {
   name = "programs.cava";
   options = delib.singleEnableOption false;
 
-  home.ifEnabled =
+  nixos.ifEnabled = { ... }: {
+    myconfig.stylix.targets.cava.enable = true;
+  };
+
+  home.ifEnabled = { ... }:
     {
       programs.cava = {
         enable = true;
