@@ -57,8 +57,10 @@
                 flake8 # Style guide enforcement
                 isort # Sort imports alphabetically
                 pip # Package installer for Python
+                matplotlib # Plotting library
                 pylint # Source code analyzer
                 setuptools # Library for packaging Python projects
+                numpy # Fundamental package for scientific computing
                 venvShellHook # Hook to create and manage virtual-environments
 
                 # 2. TOP-LEVEL TOOLS (static)
