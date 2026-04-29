@@ -44,6 +44,10 @@ delib.module {
       };
     in
     {
+      imports = lib.optional (myconfig.stylix.enable or false) {
+        stylix.targets.firefox.profileNames = [ myconfig.constants.user ];
+      };
+
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME (official module)
       # -----------------------------------------------------------------------

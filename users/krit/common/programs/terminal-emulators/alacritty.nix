@@ -10,6 +10,10 @@ delib.module {
   home.ifEnabled =
     { myconfig, ... }:
     {
+      imports = lib.optional (myconfig.stylix.enable or false) {
+        stylix.targets.alacritty.enable = !(myconfig.constants.theme.catppuccin or false);
+      };
+
       catppuccin.alacritty.enable = myconfig.constants.theme.catppuccin or false;
       catppuccin.alacritty.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
 

@@ -23,6 +23,10 @@ delib.module {
       cfg = myconfig.krit.programs.kitty;
     in
     {
+      imports = lib.optional (myconfig.stylix.enable or false) {
+        stylix.targets.kitty.enable = !(myconfig.constants.theme.catppuccin or false);
+      };
+
       catppuccin.kitty.enable = myconfig.constants.theme.catppuccin or false;
       catppuccin.kitty.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
 

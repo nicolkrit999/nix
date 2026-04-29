@@ -1,4 +1,4 @@
-{ delib, ... }:
+{ delib, lib, ... }:
 delib.module {
   name = "krit.programs.zathura";
   options = delib.singleEnableOption false;
@@ -8,6 +8,10 @@ delib.module {
     , ...
     }:
     {
+      imports = lib.optional (myconfig.stylix.enable or false) {
+        stylix.targets.zathura.enable = !(myconfig.constants.theme.catppuccin or false);
+      };
+
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME
       # -----------------------------------------------------------------------
