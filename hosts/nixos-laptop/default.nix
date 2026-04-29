@@ -9,9 +9,7 @@ let
   myShell = "fish";
   myEditor = "nvim";
   myFileManager = "yazi";
-  myUserName = "krit";
   myLocale = "en_US.UTF-8";
-  isCatppuccin = false;
 
   # 🌟 HYPRLAND APP WORKSPACES
   appWorkspaces = {
@@ -183,18 +181,7 @@ delib.host {
 
       stylix = {
         enable = true;
-        targets = {
-          yazi.enable = false;
-          cava.enable = true;
-          kitty.enable = !isCatppuccin;
-          alacritty.enable = !isCatppuccin;
-          zathura.enable = !isCatppuccin;
-          firefox.profileNames = [ myUserName ];
-          librewolf.profileNames = [
-            "default"
-            "privacy"
-          ];
-        };
+        targets = { };
       };
 
       # ---------------------------------------------------------------
@@ -505,6 +492,8 @@ delib.host {
       # ⚙️ SERVICES
       # ---------------------------------------------------------------
       services = {
+        external.dotfiles.enable = true; # Symlinks ~/dotfiles/* into $HOME (out-of-store)
+
         # Power management (mutually exclusive - only enable ONE)
         auto-cpufreq.enable = true; # Recommended: dynamic CPU scaling (uses official flake)
         tlp.enable = false; # Alternative: static power policies (uses NixOS native)

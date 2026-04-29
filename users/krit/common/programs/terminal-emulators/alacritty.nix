@@ -7,6 +7,10 @@ delib.module {
   name = "krit.programs.alacritty";
   options = delib.singleEnableOption false;
 
+  nixos.ifEnabled = { myconfig, ... }: {
+    myconfig.stylix.targets.alacritty.enable = !(myconfig.constants.theme.catppuccin or false);
+  };
+
   home.ifEnabled =
     { myconfig, ... }:
     {

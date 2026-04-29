@@ -3,6 +3,10 @@ delib.module {
   name = "krit.programs.zathura";
   options = delib.singleEnableOption false;
 
+  nixos.ifEnabled = { myconfig, ... }: {
+    myconfig.stylix.targets.zathura.enable = !(myconfig.constants.theme.catppuccin or false);
+  };
+
   home.ifEnabled =
     { myconfig
     , ...
