@@ -123,7 +123,15 @@ delib.module {
             wofi.enable = false;
             waybar.enable = false;
             hyprpaper.enable = lib.mkForce (!isCatppuccin && useHyprpaper);
-            kde.enable = false;
+            # Drive kdeglobals palette + colorscheme file from base16. Works on
+            # any DE/WM combo — fixes Dolphin / KDE FileChooser portal zebra.
+            # Writes to xdg.systemDirs.config so plasma-manager's overrideConfig
+            # cannot wipe it.
+            kde.enable = !isCatppuccin;
+            # Intentionally false: stylix.targets.qt forces
+            # qt.platformTheme.name = "qtct", which strips plasma-integration
+            # from Plasma's own widgets and crashes Plasma sessions. Qt theming
+            # outside KDE is handled manually in modules/nixos/toplevel/qt.nix.
             qt.enable = false;
             gnome.enable = myconfig.programs.gnome.enable or false;
             hyprland.enable = !isCatppuccin;
