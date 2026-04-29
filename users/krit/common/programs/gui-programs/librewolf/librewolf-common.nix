@@ -9,6 +9,10 @@ delib.module {
   name = "krit.programs.librewolf";
   options = delib.singleEnableOption false;
 
+  nixos.ifEnabled = { ... }: {
+    myconfig.stylix.targets.librewolf.profileNames = [ "default" "privacy" ];
+  };
+
   home.ifEnabled =
     { myconfig
     , ...
@@ -328,7 +332,5 @@ delib.module {
         };
 
       };
-    } // lib.optionalAttrs (myconfig.stylix.enable or false) {
-      stylix.targets.librewolf.profileNames = [ "default" "privacy" ];
     };
 }

@@ -8,6 +8,10 @@ delib.module {
   name = "krit.programs.firefox";
   options = delib.singleEnableOption false;
 
+  nixos.ifEnabled = { myconfig, ... }: {
+    myconfig.stylix.targets.firefox.profileNames = [ myconfig.constants.user ];
+  };
+
   home.ifEnabled =
     { myconfig
     , ...
@@ -286,7 +290,5 @@ delib.module {
           };
         };
       };
-    } // lib.optionalAttrs (myconfig.stylix.enable or false) {
-      stylix.targets.firefox.profileNames = [ myconfig.constants.user ];
     };
 }

@@ -1,9 +1,13 @@
-{ delib, lib, config, ... }:
+{ delib, config, ... }:
 delib.module {
   name = "programs.cava";
   options = delib.singleEnableOption false;
 
-  home.ifEnabled = { myconfig, ... }:
+  nixos.ifEnabled = { ... }: {
+    myconfig.stylix.targets.cava.enable = true;
+  };
+
+  home.ifEnabled = { ... }:
     {
       programs.cava = {
         enable = true;
@@ -23,7 +27,5 @@ delib.module {
           };
         };
       };
-    } // lib.optionalAttrs (myconfig.stylix.enable or false) {
-      stylix.targets.cava.enable = true;
     };
 }
