@@ -8,10 +8,6 @@ delib.module {
     , ...
     }:
     {
-      imports = lib.optional (myconfig.stylix.enable or false) {
-        stylix.targets.zathura.enable = !(myconfig.constants.theme.catppuccin or false);
-      };
-
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME
       # -----------------------------------------------------------------------
@@ -57,5 +53,7 @@ delib.module {
           scroll-step = 100;
         };
       };
+    } // lib.optionalAttrs (myconfig.stylix.enable or false) {
+      stylix.targets.zathura.enable = !(myconfig.constants.theme.catppuccin or false);
     };
 }

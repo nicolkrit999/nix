@@ -1,4 +1,6 @@
 { delib
+, pkgs
+, lib
 , ...
 }:
 
@@ -46,16 +48,16 @@ delib.module {
 
   options = delib.singleEnableOption false;
 
-  home.ifEnabled = { ... }: {
-    imports = [
-      ({ config, ... }: {
-        home.file = builtins.mapAttrs
-          (_: relPath: {
-            source = config.lib.file.mkOutOfStoreSymlink
-              "${config.home.homeDirectory}/dotfiles/${relPath}";
-          })
-          mappings;
-      })
-    ];
-  };
+  home.ifEnabled = { myconfig, ... }:
+    let
+      homeDir = "/home/${myconfig.constants.user}";
+      mkLink = relPath:
+        pkgs.runCommandLocal
+          ("dotfiles-" + lib.strings.sanitizeDerivationName relPath)
+          { }
+          "ln -s ${lib.escapeShellArg "${homeDir}/dotfiles/${relPath}"} $out";
+    in
+    {
+      home.file = builtins.mapAttrs (_: relPath: { source = mkLink relPath; }) mappings;
+    };
 }

@@ -244,10 +244,6 @@ delib.module {
       };
     in
     {
-      imports = lib.optional (myconfig.stylix.enable or false) {
-        stylix.targets.librewolf.profileNames = [ "default" "privacy" ];
-      };
-
       programs.browserpass.enable = false;
 
       # Desktop entry for the main profile (Linux only)
@@ -332,5 +328,7 @@ delib.module {
         };
 
       };
+    } // lib.optionalAttrs (myconfig.stylix.enable or false) {
+      stylix.targets.librewolf.profileNames = [ "default" "privacy" ];
     };
 }

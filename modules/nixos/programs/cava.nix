@@ -5,10 +5,6 @@ delib.module {
 
   home.ifEnabled = { myconfig, ... }:
     {
-      imports = lib.optional (myconfig.stylix.enable or false) {
-        stylix.targets.cava.enable = true;
-      };
-
       programs.cava = {
         enable = true;
         settings = {
@@ -27,5 +23,7 @@ delib.module {
           };
         };
       };
+    } // lib.optionalAttrs (myconfig.stylix.enable or false) {
+      stylix.targets.cava.enable = true;
     };
 }
