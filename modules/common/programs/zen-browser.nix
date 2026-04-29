@@ -14,15 +14,13 @@ delib.module {
   };
 
   home.ifEnabled = { myconfig, ... }: {
-    imports = lib.optional (myconfig.stylix.enable or false) {
-      stylix.targets.zen-browser.profileNames = [ myconfig.constants.user ];
-    };
-
     programs.zen-browser = {
       enable = true;
       setAsDefaultBrowser = false;
     } // lib.optionalAttrs (moduleSystem == "darwin") {
       darwinDefaultsId = "app.zen-browser.zen";
     };
+  } // lib.optionalAttrs (myconfig.stylix.enable or false) {
+    stylix.targets.zen-browser.profileNames = [ myconfig.constants.user ];
   };
 }

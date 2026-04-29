@@ -16,10 +16,6 @@ delib.module {
       isNixOS = moduleSystem == "nixos";
     in
     {
-      imports = lib.optional (myconfig.stylix.enable or false) {
-        stylix.targets.yazi.enable = false;
-      };
-
       home.packages = with pkgs; [
 
         fzf
@@ -456,5 +452,7 @@ delib.module {
         ];
         mimeType = [ "inode/directory" ];
       });
+    } // lib.optionalAttrs (myconfig.stylix.enable or false) {
+      stylix.targets.yazi.enable = false;
     };
 }
