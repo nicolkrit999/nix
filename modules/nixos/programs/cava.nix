@@ -1,10 +1,14 @@
-{ delib, config, ... }:
+{ delib, lib, config, ... }:
 delib.module {
   name = "programs.cava";
   options = delib.singleEnableOption false;
 
-  home.ifEnabled =
+  home.ifEnabled = { myconfig, ... }:
     {
+      imports = lib.optional (myconfig.stylix.enable or false) {
+        stylix.targets.cava.enable = true;
+      };
+
       programs.cava = {
         enable = true;
         settings = {

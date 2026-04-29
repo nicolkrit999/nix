@@ -13,7 +13,11 @@ delib.module {
     imports = [ inputs.zen-browser.homeModules.beta ];
   };
 
-  home.ifEnabled = { ... }: {
+  home.ifEnabled = { myconfig, ... }: {
+    imports = lib.optional (myconfig.stylix.enable or false) {
+      stylix.targets.zen-browser.profileNames = [ myconfig.constants.user ];
+    };
+
     programs.zen-browser = {
       enable = true;
       setAsDefaultBrowser = false;
