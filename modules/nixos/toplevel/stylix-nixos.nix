@@ -80,6 +80,7 @@ delib.module {
     { cfg, myconfig, ... }:
     let
       isCatppuccin = myconfig.constants.theme.catppuccin or false;
+      polarity = myconfig.constants.theme.polarity or "dark";
       hasWallpapers = myconfig.constants ? wallpapers && myconfig.constants.wallpapers != [ ];
       fallbackWp =
         if hasWallpapers then
@@ -146,7 +147,7 @@ delib.module {
 
       dconf.settings = {
         "org/gnome/desktop/interface".color-scheme =
-          if (myconfig.constants.theme.polarity or "dark") == "dark" then "prefer-dark" else "prefer-light";
+          if polarity == "dark" then "prefer-dark" else "prefer-light";
       };
 
       home.sessionVariables = lib.mkIf isCatppuccin {
@@ -156,26 +157,32 @@ delib.module {
         XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS";
       };
 
-      gtk = lib.mkIf isCatppuccin {
-        enable = true;
-        theme = {
-          package = pkgs.catppuccin-gtk.override {
-            accents = [ (myconfig.constants.theme.catppuccinAccent or "mauve") ];
-            size = "standard";
-            tweaks = [
-              "rimless"
-              "black"
-            ];
-            variant = myconfig.constants.theme.catppuccinFlavor or "mocha";
+      gtk = lib.mkMerge [
+        (lib.mkIf isCatppuccin {
+          enable = true;
+          theme = {
+            package = pkgs.catppuccin-gtk.override {
+              accents = [ (myconfig.constants.theme.catppuccinAccent or "mauve") ];
+              size = "standard";
+              tweaks = [
+                "rimless"
+                "black"
+              ];
+              variant = myconfig.constants.theme.catppuccinFlavor or "mocha";
+            };
+            name = "catppuccin-${myconfig.constants.theme.catppuccinFlavor or "mocha"}-${
+              myconfig.constants.theme.catppuccinAccent or "mauve"
+            }-standard+rimless,black";
           };
-          name = "catppuccin-${myconfig.constants.theme.catppuccinFlavor or "mocha"}-${
-            myconfig.constants.theme.catppuccinAccent or "mauve"
-          }-standard+rimless,black";
-        };
-        gtk3.extraConfig.gtk-application-prefer-dark-theme =
-          if (myconfig.constants.theme.polarity or "dark") == "dark" then 1 else 0;
-        gtk4.extraConfig.gtk-application-prefer-dark-theme =
-          if (myconfig.constants.theme.polarity or "dark") == "dark" then 1 else 0;
-      };
+        })
+        # GTK3 dark preference needed by all apps including the GTK portal file picker
+        # (xdg-desktop-portal-gtk = GTK3; cannot rely on color-scheme like GTK4/libadwaita).
+        # GNOME 49 removed the gtk-application-prefer-dark-theme GSettings key, so we
+        # write it directly into settings.ini via extraConfig.
+        {
+          gtk3.extraConfig.gtk-application-prefer-dark-theme = if polarity == "dark" then 1 else 0;
+          gtk4.extraConfig.gtk-application-prefer-dark-theme = if polarity == "dark" then 1 else 0;
+        }
+      ];
     };
 }
