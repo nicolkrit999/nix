@@ -74,8 +74,7 @@ delib.module {
           shape = lib.mkForce [
             {
               monitor = "";
-              size = "320, 55";
-              # base05 at 20% — adapts to polarity: light tint on dark themes, dark tint on light themes
+              size = "360, 70";
               color = "rgba(${c.base05}33)";
               rounding = -1;
               border_size = 0;
@@ -88,47 +87,43 @@ delib.module {
           ];
 
           label = lib.mkForce [
-            # Greeting
             {
               monitor = "";
               text = "Hello ${myconfig.constants.user}";
               color = "rgba(${c.base05}bf)";
-              font_size = 40;
-              font_family = "JetBrainsMono Nerd Font";
-              position = "165, 330";
+              font_size = 80;
+              font_family = "JetBrainsMono Nerd Font Propo";
+              position = "165, 450";
               halign = "left";
               valign = "center";
             }
-            # Time (12h, updates every second)
             {
               monitor = "";
               text = ''cmd[update:1000] echo "<span>$(date +"%I:%M")</span>"'';
               color = "rgba(${c.base05}bf)";
-              font_size = 40;
-              font_family = "JetBrainsMono Nerd Font";
-              position = "255, 210";
+              font_size = 80;
+              font_family = "JetBrainsMono Nerd Font Propo";
+              position = "255, 310";
               halign = "left";
               valign = "center";
             }
-            # Date (updates every minute)
             {
               monitor = "";
               text = ''cmd[update:60000] echo "$(date +'%A, %B %d')"'';
               color = "rgba(${c.base05}bf)";
-              font_size = 20;
-              font_family = "JetBrainsMono Nerd Font";
-              position = "180, 155";
+              font_size = 40;
+              font_family = "JetBrainsMono Nerd Font Propo";
+              position = "180, 195";
               halign = "left";
               valign = "center";
             }
-            # Username inside pill
             {
               monitor = "";
-              text = " $USER";
+              text = "$USER";
               color = "rgba(${c.base05}e6)";
-              font_size = 16;
-              font_family = "JetBrainsMono Nerd Font";
-              position = "281, -140";
+              font_size = 24;
+              font_family = "JetBrainsMono Nerd Font Propo";
+              position = "300, -140";
               halign = "left";
               valign = "center";
             }
@@ -137,17 +132,16 @@ delib.module {
           input-field = lib.mkForce [
             {
               monitor = "";
-              size = "320, 55";
+              size = "360, 65";
               outline_thickness = 1;
-              dots_size = 0.2;
+              dots_size = 0.35;
+              font_size = 24;
               dots_spacing = 0.2;
               dots_center = true;
-              # base03 border + base00 fill: adapts to polarity — dark bg on dark themes, light bg on light themes
               outer_color = "rgba(${c.base03}99)";
-              inner_color = "rgba(${c.base00}d9)";
-              # base05 is the main foreground — dark on light themes, light on dark themes
-              font_color = "rgba(${c.base05}e6)";
-              font_family = "JetBrainsMono Nerd Font";
+              inner_color = "rgba(${c.base00}99)";
+              font_color = "rgba(${c.base06}ff)";
+              font_family = "JetBrainsMono Nerd Font Propo";
               fade_on_empty = false;
               placeholder_text =
                 if (myconfig.constants.theme.polarity or "dark") == "dark"
