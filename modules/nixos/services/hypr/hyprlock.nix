@@ -30,13 +30,9 @@ delib.module {
 
       catppuccinEnabled = myconfig.constants.theme.catppuccin or false;
 
-      # Base16 colors (without hashtag for rgba interpolation)
       c = config.lib.stylix.colors;
       ch = config.lib.stylix.colors.withHashtag;
 
-      # Wallpaper: use the host's actual wallpaper if one is configured,
-      # otherwise fall back to the bundled nix-black-4k. No blur/screenshot —
-      # layout 11 is designed to be used on a clean background image.
       hasWallpapers = (myconfig.constants ? wallpapers) && (myconfig.constants.wallpapers != [ ]);
       fallbackWallpaper = ../../../templates/src/wallpapers/nix-black-4k.png;
       lockWallpaper =
@@ -95,22 +91,22 @@ delib.module {
             # Welcome greeting
             {
               monitor = "";
-              text = "Welcome Back";
+              text = "Welcome back";
               color = "rgba(${c.base05}, 0.65)";
-              font_size = 30;
+              font_size = 40;
               font_family = "JetBrainsMono Nerd Font";
               position = "165, 340";
               halign = "left";
               valign = "center";
             }
-            # Username (build-time constant, larger)
+            # Username
             {
               monitor = "";
               text = myconfig.constants.user;
-              color = "rgba(${c.base05}, 0.9)";
-              font_size = 55;
-              font_family = "JetBrainsMono Nerd Font Bold";
-              position = "165, 290";
+              color = "rgba(${c.base05}, 0.65)";
+              font_size = 40;
+              font_family = "JetBrainsMono Nerd Font";
+              position = "165, 275";
               halign = "left";
               valign = "center";
             }
@@ -121,7 +117,7 @@ delib.module {
               color = "rgba(${c.base05}, 0.75)";
               font_size = 40;
               font_family = "JetBrainsMono Nerd Font";
-              position = "255, 240";
+              position = "255, 210";
               halign = "left";
               valign = "center";
             }
@@ -132,7 +128,7 @@ delib.module {
               color = "rgba(${c.base05}, 0.75)";
               font_size = 20;
               font_family = "JetBrainsMono Nerd Font";
-              position = "180, 175";
+              position = "180, 155";
               halign = "left";
               valign = "center";
             }
@@ -140,7 +136,7 @@ delib.module {
             {
               monitor = "";
               text = " $USER";
-              color = "rgba(${c.base05}, 0.8)";
+              color = "rgba(${c.base07}, 0.9)";
               font_size = 16;
               font_family = "JetBrainsMono Nerd Font";
               position = "281, -140";
@@ -158,7 +154,7 @@ delib.module {
               dots_spacing = 0.2;
               dots_center = true;
               outer_color = "rgba(${c.base03}, 0.6)";
-              inner_color = "rgba(${c.base00}, 0.8)";
+              inner_color = "rgba(${c.base01}, 0.95)";
               font_color = ch.base05;
               font_family = "JetBrainsMono Nerd Font";
               fade_on_empty = false;
