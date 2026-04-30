@@ -22,6 +22,10 @@ delib.module {
       mkdir -p $HOME/web-clients || true
       mkdir -p $HOME/.distrobox-bin || true
       mkdir -p $HOME/.config/portainer-mcp || true
+      mkdir -p $HOME/github-repos/personal || true
+      mkdir -p $HOME/github-repos/others/clone || true
+      mkdir -p $HOME/github-repos/others/forks || true
+      mkdir -p $HOME/github-repos/momentary || true
     '';
   };
 }
