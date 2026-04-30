@@ -45,7 +45,7 @@ delib.module {
 
       programs.hyprlock = {
         enable = true;
-
+      } // lib.optionalAttrs (!(myconfig.constants.theme.catppuccin or false)) {
         settings = {
           general = {
             hide_cursor = true;
@@ -62,7 +62,6 @@ delib.module {
             }
           ];
 
-          # Username box shape
           shape = lib.mkForce [
             {
               size = "300, 50";
@@ -77,7 +76,6 @@ delib.module {
           ];
 
           label = lib.mkForce [
-            # Time display (large, centered top)
             {
               text = ''cmd[update:1000] echo "$(date +'%k:%M')"'';
               font_size = 115;
@@ -88,7 +86,6 @@ delib.module {
               halign = "center";
               valign = "top";
             }
-            # Date display (below time)
             {
               text = ''cmd[update:1000] echo "- $(date +'%A, %B %d') -"'';
               font_size = 18;
@@ -99,7 +96,6 @@ delib.module {
               halign = "center";
               valign = "top";
             }
-            # Username label
             {
               text = "  $USER";
               font_size = 15;
