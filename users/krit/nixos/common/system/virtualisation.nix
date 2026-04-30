@@ -19,7 +19,8 @@ delib.module {
       };
 
       environment.systemPackages = with pkgs; [
-        distrobox
+        distrobox # Allow to use other os package manager
+        distroshelf # Gui manager for distrobox
       ] ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux") [
         pkgs-winboat.winboat # Pinned to older nixpkgs until Electron 41 abi is supported
       ];
