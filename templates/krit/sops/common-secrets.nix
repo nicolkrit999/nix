@@ -40,6 +40,12 @@ let
     nas_owncloud_pass.sopsFile = commonSecrets;
 
     tailscale_key.sopsFile = commonSecrets;
+
+    hevy_api_key = {
+      sopsFile = commonSecrets;
+      owner = user;
+    };
+
   };
 
   # Claude-code MCP secrets (dynamically generated from mcpSecrets list)
