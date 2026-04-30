@@ -24,10 +24,10 @@ delib.module {
           cryptomator # Client side encryptions for cloud drives
           cpu-x # Hardware information visualizer application
           drawio # Diagramming application
-          gearlever # Manager appimages
+          #gearlever # Manager appimages
           #gramps # Genealogy software
-          gsimplecal # Simple calendar application
-          gitnuro # Git client
+          #gsimplecal # Simple calendar application
+          #gitnuro # Git client
           #handbrake # Video transcoder
           jellyfin-desktop # Media server
           libreoffice-qt # Open source microsoft office alternative
@@ -55,7 +55,7 @@ delib.module {
           #carbon-now-cli # Create beautiful images of your code (carbon.now.sh CLI)
           #cloudflared # Cloudflare's command-line tool and daemon
           #cloc # Count lines of code
-          croc # Securely and easily send files between two computers
+          #croc # Securely and easily send files between two computers
           efibootmgr # Manage UEFI boot entries
           fastfetch # Fast system information fetcher
           fd # Simple, fast and user-friendly alternative to find
@@ -80,9 +80,9 @@ delib.module {
           #wakeonlan # Magic packets
           wget # Download files from the web
           yt-dlp # Media downloader for YouTube and other sites
-          age-plugin-yubikey # Age plugin for Yubikeys
-          yubikey-agent # Yubikey agent for managing Yubikeys
-          yubikey-touch-detector # Detect if a Yubikey is touched
+          #age-plugin-yubikey # Age plugin for Yubikeys
+          #yubikey-agent # Yubikey agent for managing Yubikeys
+          #yubikey-touch-detector # Detect if a Yubikey is touched
           zip # Extract zip files
           zlib # Compression library
 

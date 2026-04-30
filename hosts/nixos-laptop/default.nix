@@ -86,10 +86,14 @@ delib.host {
         # ---------------------------------------------------------------
         terminal = {
           name = myTerminal;
+
+          /*
+          # Commented out as it matches the fallbacks
           cursorStyle = "block";
           cursorBlink = true;
           cursorBeamWidth = 3.0;
           animation = true;
+          */
         };
         shell = myShell;
         browser = myBrowser;
@@ -118,7 +122,7 @@ delib.host {
         theme = {
           polarity = "dark";
           base16Theme = "catppuccin-mocha";
-          catppuccin = false;
+          catppuccin = true;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "teal";
         };
@@ -126,29 +130,41 @@ delib.host {
         # ---------------------------------------------------------------
         # 🪟 HYPRLAND CONSTANTS
         # ---------------------------------------------------------------
+        /*
+          # Commented out as it matches the fallbacks
         hyprland = {
           rounding = 10;
           gap = 5;
           borderSize = 2;
           terminalOpacity = 0.9;
         };
+        */
 
         # ---------------------------------------------------------------
         # 🌀 NIRI CONSTANTS
         # ---------------------------------------------------------------
+        /*
+        # Commented out as it matches the fallbacks
         niri = {
           gap = 8;
           rounding = 10;
         };
+        */
 
+        /*
+        # Commented out as it matches the fallbacks
         screenshots = "$HOME/Pictures/Screenshots";
         keyboardLayout = "us";
+        */
         keyboardVariant = "intl";
 
         weather = "Lugano";
+
+        /*
+        # Commented out as it matches the fallbacks
         useFahrenheit = false;
         nixImpure = false;
-
+        */
 
         timeZone = "Europe/Zurich";
       };
@@ -169,9 +185,10 @@ delib.host {
 
       nh = {
         enable = true;
-        gcd = "30d";
-        gcn = "10";
+        gcd = "15d";
+        gcn = "5";
       };
+
       qt.enable = true;
 
       zram = {
@@ -206,7 +223,7 @@ delib.host {
         television.enable = true;
         zoxide.enable = true;
 
-        zen.browser.enable = true;
+        zen.browser.enable = false;
 
         claude-code = {
           enable = true;
@@ -596,8 +613,8 @@ delib.host {
       krit.specializations = {
         home.enable = true;
         school.enable = true;
-        entertainment.enable = true;
-        deep-focus.enable = true;
+        entertainment.enable = false;
+        deep-focus.enable = false;
         safe-mode.enable = true;
         secure-travel.enable = true;
       };
