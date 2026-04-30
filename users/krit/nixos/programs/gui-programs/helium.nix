@@ -75,11 +75,6 @@ delib.module {
       defaultBrowser = false;
       extensions = [ ];
 
-      extraFlags = [
-        "--ozone-platform=auto"
-        "--enable-features=PortalFileChooser"
-      ];
-
       extraPolicies = {
         BookmarkBarEnabled = false;
 
