@@ -226,6 +226,8 @@ delib.host {
           };
         };
 
+        claude-desktop.enable = true;
+
         git = {
           enable = true;
           customGitIgnores = [ ];
