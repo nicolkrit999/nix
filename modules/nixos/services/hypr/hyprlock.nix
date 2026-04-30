@@ -71,16 +71,33 @@ delib.module {
             }
           ];
 
+          image = lib.mkForce [
+            {
+              monitor = "";
+              path = "~/.face";
+              border_size = 1;
+              border_color = "rgba(${c.base0D}bf)";
+              size = 220;
+              rounding = -1;
+              rotate = 0;
+              reload_time = -1;
+              reload_cmd = "";
+              position = "249, 25";
+              halign = "left";
+              valign = "center";
+            }
+          ];
+
           shape = lib.mkForce [
             {
               monitor = "";
-              size = "360, 70";
-              color = "rgba(${c.base05}33)";
+              size = "400, 70";
+              color = "rgba(ffffff33)";
               rounding = -1;
               border_size = 0;
               rotate = 0;
               xray = false;
-              position = "170, -140";
+              position = "170, -205";
               halign = "left";
               valign = "center";
             }
@@ -89,9 +106,9 @@ delib.module {
           label = lib.mkForce [
             {
               monitor = "";
-              text = "Hello ${myconfig.constants.user}";
+              text = "Welcome!";
               color = "rgba(${c.base05}bf)";
-              font_size = 80;
+              font_size = 75;
               font_family = "JetBrainsMono Nerd Font Propo";
               position = "165, 450";
               halign = "left";
@@ -101,9 +118,9 @@ delib.module {
               monitor = "";
               text = ''cmd[update:1000] echo "<span>$(date +"%I:%M")</span>"'';
               color = "rgba(${c.base05}bf)";
-              font_size = 80;
+              font_size = 55;
               font_family = "JetBrainsMono Nerd Font Propo";
-              position = "255, 310";
+              position = "255, 335";
               halign = "left";
               valign = "center";
             }
@@ -111,19 +128,19 @@ delib.module {
               monitor = "";
               text = ''cmd[update:60000] echo "$(date +'%A, %B %d')"'';
               color = "rgba(${c.base05}bf)";
-              font_size = 40;
+              font_size = 28;
               font_family = "JetBrainsMono Nerd Font Propo";
-              position = "180, 195";
+              position = "180, 240";
               halign = "left";
               valign = "center";
             }
             {
               monitor = "";
-              text = "$USER";
-              color = "rgba(${c.base05}e6)";
-              font_size = 24;
+              text = " $USER";
+              color = "rgba(${c.base05}cc)";
+              font_size = 20;
               font_family = "JetBrainsMono Nerd Font Propo";
-              position = "300, -140";
+              position = "310, -205";
               halign = "left";
               valign = "center";
             }
@@ -132,26 +149,25 @@ delib.module {
           input-field = lib.mkForce [
             {
               monitor = "";
-              size = "360, 65";
-              outline_thickness = 1;
-              dots_size = 0.35;
-              font_size = 24;
+              size = "400, 70";
+              outline_thickness = 0;
+              dots_size = 0.2;
               dots_spacing = 0.2;
               dots_center = true;
-              outer_color = "rgba(${c.base03}99)";
-              inner_color = "rgba(${c.base00}99)";
+              outer_color = "rgba(${c.base00}00)";
+              inner_color = "rgba(ffffff1a)";
               font_color = "rgba(${c.base06}ff)";
               font_family = "JetBrainsMono Nerd Font Propo";
               fade_on_empty = false;
               placeholder_text =
                 if (myconfig.constants.theme.polarity or "dark") == "dark"
-                then ''<i><span foreground="##${c.base04}99">🔒 Enter Pass</span></i>''
+                then ''<i><span foreground="##ffffff99">🔒 Enter Pass</span></i>''
                 else ''<i><span foreground="##${c.base03}99">🔒 Enter Pass</span></i>'';
               hide_input = false;
               check_color = "rgba(${c.base0B}f2)";
               fail_color = "rgba(${c.base08}f2)";
               capslock_color = "rgba(${c.base0A}f2)";
-              position = "170, -220";
+              position = "170, -315";
               halign = "left";
               valign = "center";
             }
