@@ -93,7 +93,9 @@ delib.module {
         swboot = "cd ${flakeDir} && git add -A && ${nixosBootWrapped}";
         swdry = "cd ${flakeDir} && git add -A && nh os test --dry --ask .";
         sw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
+        swfall = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped} --fallback";
         gsw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
+        gswfall = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped} --fallback";
         gswoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
         swsrc = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped} --option substitute false";
         swoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
@@ -128,7 +130,9 @@ delib.module {
       darwinAliases = {
         # Switch commands
         sw = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd}";
+        swfall = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd} --fallback";
         gsw = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd}";
+        gswfall = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd} --fallback";
         swdry = "cd ${flakeDir} && git add -A && nh darwin switch --dry .";
         gswoff = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd} --offline";
 
