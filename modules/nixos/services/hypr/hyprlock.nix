@@ -95,11 +95,22 @@ delib.module {
             # Welcome greeting
             {
               monitor = "";
-              text = "Welcome!";
-              color = "rgba(${c.base05}, 0.75)";
-              font_size = 55;
+              text = "Welcome Back";
+              color = "rgba(${c.base05}, 0.65)";
+              font_size = 30;
               font_family = "JetBrainsMono Nerd Font";
-              position = "165, 320";
+              position = "165, 340";
+              halign = "left";
+              valign = "center";
+            }
+            # Username (build-time constant, larger)
+            {
+              monitor = "";
+              text = myconfig.constants.user;
+              color = "rgba(${c.base05}, 0.9)";
+              font_size = 55;
+              font_family = "JetBrainsMono Nerd Font Bold";
+              position = "165, 290";
               halign = "left";
               valign = "center";
             }
