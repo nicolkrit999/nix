@@ -1,4 +1,4 @@
-{ delib, lib, config, ... }:
+{ delib, lib, config, pkgs, ... }:
 delib.module {
   name = "services.hyprlock";
   options = with delib; moduleOptions {
@@ -28,109 +28,137 @@ delib.module {
       hyprlandFallback = hyprlandEnabled && !caelestiaActiveOnHyprland && !noctaliaActiveOnHyprland;
       niriFallback = niriEnabled && !noctaliaActiveOnNiri;
 
+      catppuccinEnabled = myconfig.constants.theme.catppuccin or false;
+
       # Base16 colors (without hashtag for rgba interpolation)
       c = config.lib.stylix.colors;
       ch = config.lib.stylix.colors.withHashtag;
 
-      # Wallpaper: use screenshot+blur if host has wallpapers, otherwise use fallback
+      # Wallpaper: use the host's actual wallpaper if one is configured,
+      # otherwise fall back to the bundled nix-black-4k. No blur/screenshot —
+      # layout 11 is designed to be used on a clean background image.
       hasWallpapers = (myconfig.constants ? wallpapers) && (myconfig.constants.wallpapers != [ ]);
       fallbackWallpaper = ../../../templates/src/wallpapers/nix-black-4k.png;
-      lockWallpaper = if hasWallpapers then "screenshot" else "${fallbackWallpaper}";
+      lockWallpaper =
+        if hasWallpapers then
+          let
+            wp = lib.findFirst
+              (w: w.targetMonitor == "*")
+              (builtins.head myconfig.constants.wallpapers)
+              myconfig.constants.wallpapers;
+          in
+          "${pkgs.fetchurl { url = wp.wallpaperURL; sha256 = wp.wallpaperSHA256; }}"
+        else
+          "${fallbackWallpaper}";
     in
     lib.mkIf (hyprlandFallback || niriFallback) {
 
-      catppuccin.hyprlock.enable = myconfig.constants.theme.catppuccin or false;
+      catppuccin.hyprlock.enable = catppuccinEnabled;
       catppuccin.hyprlock.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
       catppuccin.hyprlock.accent = myconfig.constants.theme.catppuccinAccent or "mauve";
 
       programs.hyprlock = {
         enable = true;
-      } // lib.optionalAttrs (!(myconfig.constants.theme.catppuccin or false)) {
+      } // lib.optionalAttrs (!catppuccinEnabled) {
         settings = {
           general = {
+            no_fade_in = false;
+            grace = 0;
+            disable_loading_bar = false;
             hide_cursor = true;
-            ignore_empty_input = true;
-            grace = 10;
           };
 
           background = lib.mkForce [
             {
+              monitor = "";
               path = lockWallpaper;
-              color = ch.base00;
-              blur_passes = 2;
-              blur_size = 8;
+              blur_passes = 0;
             }
           ];
 
           shape = lib.mkForce [
             {
-              size = "300, 50";
-              rounding = 0;
-              border_size = 2;
-              color = "rgba(${c.base01}, 0.33)";
-              border_color = "rgba(${c.base03}, 0.95)";
-              position = "0, 270";
-              halign = "center";
-              valign = "bottom";
+              monitor = "";
+              size = "320, 55";
+              color = "rgba(ffffff, 0.15)";
+              rounding = -1;
+              border_size = 0;
+              rotate = 0;
+              xray = false;
+              position = "170, -140";
+              halign = "left";
+              valign = "center";
             }
           ];
 
           label = lib.mkForce [
+            # Welcome greeting
             {
-              text = ''cmd[update:1000] echo "$(date +'%k:%M')"'';
-              font_size = 115;
-              font_family = "JetBrainsMono Nerd Font Bold";
-              shadow_passes = 3;
-              color = "rgba(${c.base05}, 0.9)";
-              position = "0, -150";
-              halign = "center";
-              valign = "top";
-            }
-            {
-              text = ''cmd[update:1000] echo "- $(date +'%A, %B %d') -"'';
-              font_size = 18;
+              monitor = "";
+              text = "Welcome!";
+              color = "rgba(${c.base05}, 0.75)";
+              font_size = 55;
               font_family = "JetBrainsMono Nerd Font";
-              shadow_passes = 3;
-              color = "rgba(${c.base05}, 0.9)";
-              position = "0, -350";
-              halign = "center";
-              valign = "top";
+              position = "165, 320";
+              halign = "left";
+              valign = "center";
             }
+            # Time (12h, updates every second)
             {
-              text = "  $USER";
-              font_size = 15;
-              font_family = "JetBrainsMono Nerd Font Bold";
-              color = ch.base05;
-              position = "0, 284";
-              halign = "center";
-              valign = "bottom";
+              monitor = "";
+              text = ''cmd[update:1000] echo "<span>$(date +"%I:%M")</span>"'';
+              color = "rgba(${c.base05}, 0.75)";
+              font_size = 40;
+              font_family = "JetBrainsMono Nerd Font";
+              position = "255, 240";
+              halign = "left";
+              valign = "center";
+            }
+            # Date (updates every minute)
+            {
+              monitor = "";
+              text = ''cmd[update:60000] echo "$(date +'%A, %B %d')"'';
+              color = "rgba(${c.base05}, 0.75)";
+              font_size = 20;
+              font_family = "JetBrainsMono Nerd Font";
+              position = "180, 175";
+              halign = "left";
+              valign = "center";
+            }
+            # Username
+            {
+              monitor = "";
+              text = " $USER";
+              color = "rgba(${c.base05}, 0.8)";
+              font_size = 16;
+              font_family = "JetBrainsMono Nerd Font";
+              position = "281, -140";
+              halign = "left";
+              valign = "center";
             }
           ];
 
           input-field = lib.mkForce [
             {
-              size = "300, 50";
-              rounding = 0;
-              outline_thickness = 2;
-              dots_spacing = 0.4;
-
-              font_family = "JetBrainsMono Nerd Font Bold";
-              font_color = "rgba(${c.base05}, 0.9)";
-
-              outer_color = "rgba(${c.base03}, 0.95)";
-              inner_color = "rgba(${c.base01}, 0.33)";
+              monitor = "";
+              size = "320, 55";
+              outline_thickness = 1;
+              dots_size = 0.2;
+              dots_spacing = 0.2;
+              dots_center = true;
+              outer_color = "rgba(${c.base03}, 0.6)";
+              inner_color = "rgba(${c.base00}, 0.8)";
+              font_color = ch.base05;
+              font_family = "JetBrainsMono Nerd Font";
+              fade_on_empty = false;
+              placeholder_text = ''<i><span foreground="##ffffff99">🔒 Enter Pass</span></i>'';
+              hide_input = false;
               check_color = "rgba(${c.base0B}, 0.95)";
               fail_color = "rgba(${c.base08}, 0.95)";
               capslock_color = "rgba(${c.base0A}, 0.95)";
-              bothlock_color = "rgba(${c.base0A}, 0.95)";
-
-              hide_input = false;
-              fade_on_empty = false;
-              placeholder_text = "Enter Password";
-
-              position = "0, 200";
-              halign = "center";
-              valign = "bottom";
+              position = "170, -220";
+              halign = "left";
+              valign = "center";
             }
           ];
         };

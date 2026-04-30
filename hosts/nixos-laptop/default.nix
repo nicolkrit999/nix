@@ -122,7 +122,7 @@ delib.host {
         theme = {
           polarity = "dark";
           base16Theme = "catppuccin-mocha";
-          catppuccin = true;
+          catppuccin = false;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "teal";
         };
