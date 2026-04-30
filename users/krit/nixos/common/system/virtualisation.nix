@@ -7,7 +7,7 @@ delib.module {
     let
       # Pinned nixpkgs for winboat — Electron 41.x in newer nixpkgs breaks node-abi.
       # REMOVE THIS (and the flake input) when winboat builds on current nixpkgs again.
-      # Re-tests: 2026-04-27 (41.2.0 broken), 2026-04-27 round 2 (41.3.0 still broken).
+      # Re-tests: 2026-04-27 (41.2.0 broken), 2026-04-27 round 2 (41.3.0 still broken), 2026-04-30 (41.3.0 still broken).
       pkgs-winboat = import inputs.nixpkgs-winboat { system = pkgs.stdenv.hostPlatform.system; };
     in
     {
