@@ -179,7 +179,6 @@ delib.host {
         push = false;
       };
 
-      guest.enable = true;
       home-packages.enable = true;
       mime.enable = true;
 
@@ -605,6 +604,13 @@ delib.host {
         owncloud.enable = true;
         smb.enable = true;
         sshfs.enable = false;
+      };
+
+      # ---------------------------------------------------------------
+      # 🎭 SHARED SPECIALIZATIONS
+      # ---------------------------------------------------------------
+      specializations = {
+        guest.enable = true;
       };
 
       # ---------------------------------------------------------------

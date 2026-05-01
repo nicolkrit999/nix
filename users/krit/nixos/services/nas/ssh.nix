@@ -13,7 +13,7 @@ delib.module {
   };
 
   nixos.ifEnabled =
-    { cfg, ... }:
+    { cfg, myconfig, ... }:
     let
       nasUser = "root";
       nasHost = "100.101.189.91";
@@ -22,7 +22,10 @@ delib.module {
     {
       environment.systemPackages = [ pkgs.sshfs ];
       services.tailscale.enable = lib.mkForce true;
-      systemd.tmpfiles.rules = [ "d ${mountPoint} 0755 krit users -" ];
+      systemd.tmpfiles.rules = [
+        "d /mnt/nicol_nas 0700 ${myconfig.constants.user} users -"
+        "d ${mountPoint} 0755 ${myconfig.constants.user} users -"
+      ];
 
       fileSystems."${mountPoint}" = {
         device = "${nasUser}@${nasHost}:/";

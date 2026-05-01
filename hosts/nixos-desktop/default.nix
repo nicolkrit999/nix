@@ -143,7 +143,6 @@ delib.host {
         push = true; # Only the builder must have this true (for now "nixos-desktop")
       };
 
-      guest.enable = true;
       home-packages.enable = true;
       mime.enable = true;
 
@@ -630,6 +629,13 @@ delib.host {
         owncloud.enable = false;
         smb.enable = true;
         sshfs.enable = false;
+      };
+
+      # ---------------------------------------------------------------
+      # 🎭 SHARED SPECIALIZATIONS
+      # -----------
+      specializations = {
+        guest.enable = true;
       };
 
       # ---------------------------------------------------------------
