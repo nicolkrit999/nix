@@ -4,7 +4,7 @@
 , ...
 }:
 delib.module {
-  name = "krit.specializations.deep-focus";
+  name = "specializations.deep-focus";
   options = delib.singleEnableOption false;
 
   nixos.ifEnabled = {

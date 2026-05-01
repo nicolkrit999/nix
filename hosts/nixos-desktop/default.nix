@@ -636,6 +636,9 @@ delib.host {
       # -----------
       specializations = {
         guest.enable = true;
+        deep-focus.enable = true;
+        safe-mode.enable = true;
+        secure-travel.enable = true;
       };
 
       # ---------------------------------------------------------------
@@ -644,9 +647,6 @@ delib.host {
       krit.specializations = {
         school.enable = true;
         entertainment.enable = true;
-        deep-focus.enable = true;
-        safe-mode.enable = true;
-        secure-travel.enable = true;
       };
 
       # ---------------------------------------------------------------
