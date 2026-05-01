@@ -25,7 +25,8 @@
       "Bash(journalctl -b -1 --no-pager --since \"01:30:42\" --until \"01:31:20\")",
       "Bash(git fetch *)",
       "Bash(nix-prefetch-url *)",
-      "mcp__plugin_context-mode_context-mode__ctx_search"
+      "mcp__plugin_context-mode_context-mode__ctx_search",
+      "Bash(git ls-tree *)"
     ]
   }
 }

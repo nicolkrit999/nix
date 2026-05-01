@@ -41,6 +41,15 @@ let
   #   </channel>
   #   EOF
   # '';
+
+  guestWelcomeScript = pkgs.writeShellScriptBin "guest-welcome" ''
+    # Wait for panel/notifications stack so the dialog isn't drawn under it.
+    sleep 3
+    ${pkgs.zenity}/bin/zenity --warning \
+      --title="Sessione Ospite" \
+      --width=420 \
+      --text="<span size='large' weight='bold'>Sessione temporanea</span>\n\nTutti i dati verranno cancellati al riavvio.\nSalvare i file importanti su una chiavetta USB o servizio cloud."
+  '';
 in
 delib.module {
   name = "specializations.guest";
@@ -163,7 +172,19 @@ delib.module {
         xfce.mousepad
         xfce.xfce4-screenshooter
         file-roller
+        zenity
       ];
+
+      environment.etc."xdg/autostart/guest-welcome.desktop".text = ''
+        [Desktop Entry]
+        Type=Application
+        Name=Guest Welcome
+        Exec=${guestWelcomeScript}/bin/guest-welcome
+        OnlyShowIn=XFCE;
+        X-GNOME-Autostart-enabled=true
+        NoDisplay=false
+        Terminal=false
+      '';
     };
   };
 }
