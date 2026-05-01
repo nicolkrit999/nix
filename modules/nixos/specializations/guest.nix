@@ -6,38 +6,41 @@
 }:
 let
   myUserName = config.myconfig.constants.user;
-  guestConfigSkel = pkgs.runCommand "guest-xfce-config-skel" { } ''
-    d=$out/xfce4/xfconf/xfce-perchannel-xml
-    mkdir -p $d
-
-    cat > $d/xfce4-panel.xml <<'EOF'
-    <?xml version="1.0" encoding="UTF-8"?>
-    <channel name="xfce4-panel" version="1.0">
-      <property name="configver" type="int" value="2"/>
-    </channel>
-    EOF
-
-    cat > $d/displays.xml <<'EOF'
-    <?xml version="1.0" encoding="UTF-8"?>
-    <channel name="displays" version="1.0">
-      <property name="Notify" type="bool" value="false"/>
-      <property name="ActiveProfile" type="string" value="Default"/>
-    </channel>
-    EOF
-
-    cat > $d/xfce4-session.xml <<'EOF'
-    <?xml version="1.0" encoding="UTF-8"?>
-    <channel name="xfce4-session" version="1.0">
-      <property name="general" type="empty">
-        <property name="SaveOnExit" type="bool" value="false"/>
-        <property name="PromptOnLogout" type="bool" value="false"/>
-      </property>
-      <property name="splash" type="empty">
-        <property name="Engine" type="string" value=""/>
-      </property>
-    </channel>
-    EOF
-  '';
+  # Commented out for debugging black-screen-on-autologin issue.
+  # Hypothesis: this skel injection races with xfce session startup or
+  # picks up wrong default profile. Re-enable once boot path confirmed.
+  # guestConfigSkel = pkgs.runCommand "guest-xfce-config-skel" { } ''
+  #   d=$out/xfce4/xfconf/xfce-perchannel-xml
+  #   mkdir -p $d
+  #
+  #   cat > $d/xfce4-panel.xml <<'EOF'
+  #   <?xml version="1.0" encoding="UTF-8"?>
+  #   <channel name="xfce4-panel" version="1.0">
+  #     <property name="configver" type="int" value="2"/>
+  #   </channel>
+  #   EOF
+  #
+  #   cat > $d/displays.xml <<'EOF'
+  #   <?xml version="1.0" encoding="UTF-8"?>
+  #   <channel name="displays" version="1.0">
+  #     <property name="Notify" type="bool" value="false"/>
+  #     <property name="ActiveProfile" type="string" value="Default"/>
+  #   </channel>
+  #   EOF
+  #
+  #   cat > $d/xfce4-session.xml <<'EOF'
+  #   <?xml version="1.0" encoding="UTF-8"?>
+  #   <channel name="xfce4-session" version="1.0">
+  #     <property name="general" type="empty">
+  #       <property name="SaveOnExit" type="bool" value="false"/>
+  #       <property name="PromptOnLogout" type="bool" value="false"/>
+  #     </property>
+  #     <property name="splash" type="empty">
+  #       <property name="Engine" type="string" value=""/>
+  #     </property>
+  #   </channel>
+  #   EOF
+  # '';
 in
 delib.module {
   name = "specializations.guest";
@@ -131,7 +134,11 @@ delib.module {
         "d /var/lib/AccountsService/users 0755 root root -"
         "f /var/lib/AccountsService/users/guest 0644 root root - [User]\\nSession=xfce\\n"
         "f /home/.hidden 0644 root root - guest"
-        "C /home/guest/.config 0700 2000 2000 - ${guestConfigSkel}"
+        # Commented out: skel copy may be the cause of black screen on
+        # autologin (races with xfce session, or seeds bad displays.xml
+        # for the laptop's HiDPI panel). Removing it makes xfce fall
+        # back to the first-run dialog, which is the diagnostic we want.
+        # "C /home/guest/.config 0700 2000 2000 - ${guestConfigSkel}"
       ];
 
       networking.firewall.extraCommands = ''
