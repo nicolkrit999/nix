@@ -6,41 +6,6 @@
 }:
 let
   myUserName = config.myconfig.constants.user;
-  # Commented out for debugging black-screen-on-autologin issue.
-  # Hypothesis: this skel injection races with xfce session startup or
-  # picks up wrong default profile. Re-enable once boot path confirmed.
-  # guestConfigSkel = pkgs.runCommand "guest-xfce-config-skel" { } ''
-  #   d=$out/xfce4/xfconf/xfce-perchannel-xml
-  #   mkdir -p $d
-  #
-  #   cat > $d/xfce4-panel.xml <<'EOF'
-  #   <?xml version="1.0" encoding="UTF-8"?>
-  #   <channel name="xfce4-panel" version="1.0">
-  #     <property name="configver" type="int" value="2"/>
-  #   </channel>
-  #   EOF
-  #
-  #   cat > $d/displays.xml <<'EOF'
-  #   <?xml version="1.0" encoding="UTF-8"?>
-  #   <channel name="displays" version="1.0">
-  #     <property name="Notify" type="bool" value="false"/>
-  #     <property name="ActiveProfile" type="string" value="Default"/>
-  #   </channel>
-  #   EOF
-  #
-  #   cat > $d/xfce4-session.xml <<'EOF'
-  #   <?xml version="1.0" encoding="UTF-8"?>
-  #   <channel name="xfce4-session" version="1.0">
-  #     <property name="general" type="empty">
-  #       <property name="SaveOnExit" type="bool" value="false"/>
-  #       <property name="PromptOnLogout" type="bool" value="false"/>
-  #     </property>
-  #     <property name="splash" type="empty">
-  #       <property name="Engine" type="string" value=""/>
-  #     </property>
-  #   </channel>
-  #   EOF
-  # '';
 
   guestWelcomeScript = pkgs.writeShellScriptBin "guest-welcome" ''
     # Wait for panel/notifications stack so the dialog isn't drawn under it.
