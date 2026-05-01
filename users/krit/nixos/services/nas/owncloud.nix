@@ -41,5 +41,8 @@ delib.module {
 
       services.tailscale.enable = lib.mkForce true;
       users.users.${myconfig.constants.user}.extraGroups = [ "davfs2" ];
+      systemd.tmpfiles.rules = [
+        "d /mnt/nicol_nas 0700 ${myconfig.constants.user} users -"
+      ];
     };
 }

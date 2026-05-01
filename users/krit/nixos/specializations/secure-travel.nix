@@ -96,7 +96,6 @@ delib.module {
 
       # Disable other toplevel modules
       myconfig.bluetooth.enable = lib.mkForce false; # Attack vector on public WiFi
-      myconfig.guest.enable = lib.mkForce false; # Guest accounts are risky
 
       # ---------------------------------------------------------
       # 4. 👤 KRIT USER MODULES
