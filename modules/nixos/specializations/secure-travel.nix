@@ -8,7 +8,7 @@ let
   myUserName = config.myconfig.constants.user;
 in
 delib.module {
-  name = "krit.specializations.secure-travel";
+  name = "specializations.secure-travel";
   options = delib.singleEnableOption false;
 
   nixos.ifEnabled = {
@@ -98,33 +98,7 @@ delib.module {
       myconfig.bluetooth.enable = lib.mkForce false; # Attack vector on public WiFi
 
       # ---------------------------------------------------------
-      # 4. 👤 KRIT USER MODULES
-      # ---------------------------------------------------------
-      myconfig.krit.programs = {
-        pwas.enable = lib.mkForce false; # Less sandboxed than browser tabs
-      };
-
-      myconfig.krit.services = {
-        logitech.enable = lib.mkForce false; # USB driver attack surface
-
-        nas = {
-          owncloud.enable = lib.mkForce false;
-          smb.enable = lib.mkForce false;
-          sshfs.enable = lib.mkForce false;
-          laptop-borg-backup.enable = lib.mkForce false;
-          desktop-borg-backup.enable = lib.mkForce false;
-        };
-
-        desktop.flatpak.enable = lib.mkForce false;
-        laptop.flatpak.enable = lib.mkForce false;
-      };
-
-      myconfig.krit.system = {
-        virtualisation.enable = lib.mkForce false; # Reduces attack surface
-      };
-
-      # ---------------------------------------------------------
-      # 5. 🔒 VPN: ProtonVPN + Soft Kill Switch
+      # 4. 🔒 VPN: ProtonVPN + Soft Kill Switch
       # ---------------------------------------------------------
       environment.systemPackages = with pkgs; [
         protonvpn-gui
@@ -132,7 +106,7 @@ delib.module {
       ];
 
       # ---------------------------------------------------------
-      # 6. 🌐 DNS & NETWORK (kill-switch dispatcher + MAC randomization + firewall)
+      # 5. 🌐 DNS & NETWORK (kill-switch dispatcher + MAC randomization + firewall)
       # ---------------------------------------------------------
       networking = {
         nameservers = [ "9.9.9.9" "149.112.112.112" "2620:fe::fe" "2620:fe::9" ]; # Quad9
@@ -179,7 +153,7 @@ delib.module {
       };
 
       # ---------------------------------------------------------
-      # 7. 👤 HOME-MANAGER
+      # 6. 👤 HOME-MANAGER
       # ---------------------------------------------------------
       home-manager.users.${myUserName} = { pkgs, ... }: {
         home.packages = with pkgs; [ tor-browser ];

@@ -611,6 +611,9 @@ delib.host {
       # ---------------------------------------------------------------
       specializations = {
         guest.enable = true;
+        deep-focus.enable = false;
+        safe-mode.enable = true;
+        secure-travel.enable = true;
       };
 
       # ---------------------------------------------------------------
@@ -620,9 +623,6 @@ delib.host {
         home.enable = true;
         school.enable = true;
         entertainment.enable = false;
-        deep-focus.enable = false;
-        safe-mode.enable = true;
-        secure-travel.enable = true;
       };
 
       # ---------------------------------------------------------------

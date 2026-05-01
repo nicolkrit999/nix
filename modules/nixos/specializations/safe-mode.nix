@@ -8,7 +8,7 @@ let
   myUserName = config.myconfig.constants.user;
 in
 delib.module {
-  name = "krit.specializations.safe-mode";
+  name = "specializations.safe-mode";
   options = delib.singleEnableOption false;
 
   nixos.ifEnabled = {
