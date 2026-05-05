@@ -93,13 +93,13 @@ delib.module {
         swboot = "cd ${flakeDir} && git add -A && ${nixosBootWrapped}";
         swdry = "cd ${flakeDir} && git add -A && nh os test --dry --ask .";
         sw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
-        swfall = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped} --fallback";
+        swfall = "cd ${flakeDir} && git add -A && ${wrapCachix "${nixosSwitchCmd} --fallback"}";
         gsw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
-        gswfall = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped} --fallback";
+        gswfall = "cd ${flakeDir} && git add -A && ${wrapCachix "${nixosSwitchCmd} --fallback"}";
         gswoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
-        swsrc = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped} --option substitute false";
+        swsrc = "cd ${flakeDir} && git add -A && ${wrapCachix "${nixosSwitchCmd} --option substitute false"}";
         swoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
-        tswsrc = "cd ${flakeDir} && git add -A && time ${nixosSwitchWrapped} --option substitute false";
+        tswsrc = "cd ${flakeDir} && git add -A && time ${wrapCachix "${nixosSwitchCmd} --option substitute false"}";
 
         # Flake checks and updates
         nfc = "cd ${flakeDir} && git add -A && nix flake check";
