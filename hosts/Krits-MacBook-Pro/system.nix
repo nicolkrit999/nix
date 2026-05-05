@@ -113,7 +113,7 @@ delib.host {
     # 🍎 MAC APP STORE APPS
     # -----------------------------------------------------------------------
     homebrew.masApps = {
-      "HP Print" = 1474276998;
+      #"HP Print" = 1474276998;
       "DaVinci Resolve" = 571213070;
       "Keynote" = 409183694;
       "Numbers" = 409203825;
