@@ -74,7 +74,7 @@ delib.host {
       home-packages.enable = true;
 
       krit.programs = {
-        direnv.enable = true;
+        direnv.enable = false;
         neovim.enable = true;
         firefox.enable = true;
         librewolf.enable = false;
