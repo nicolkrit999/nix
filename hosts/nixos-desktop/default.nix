@@ -323,7 +323,7 @@ delib.host {
             "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
             "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
             "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
-            "sh -c 'sleep 5 && protonvpn-app --start-minimized'"
+            #"sh -c 'sleep 5 && protonvpn-app --start-minimized'"
             "uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
           ];
@@ -462,7 +462,7 @@ delib.host {
             "sh -c 'sleep 11 && ${myTerminal}'"
             "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
             "sh -c 'sleep 17 && chromium-browser'"
-            "sh -c 'sleep 19 && protonvpn-app --start-minimized'"
+            #"sh -c 'sleep 19 && protonvpn-app --start-minimized'"
             "sh -c 'sleep 30 && niri msg action focus-column-first'" # Refocus browser after all windows are up
           ];
           extraBinds = {
