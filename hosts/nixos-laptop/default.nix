@@ -111,8 +111,8 @@ delib.host {
 
           {
             targetMonitor = "*";
-            wallpaperURL = "https://raw.githubusercontent.com/prasanthrangan/hyde-themes/Catppuccin-Mocha/Configs/.config/hyde/themes/Catppuccin%20Mocha/wallpapers/aesthetic_deer.png";
-            wallpaperSHA256 = "1vb9a4xlr649ysv0xi27fcqbf1c2cj2rwy4zn46l79f3i3n081iw";
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/atraxsrc-tokyonight/tokyonight-wallpapers-main/heroes_upscayl_realesrgan-x4plus_x2.png";
+            wallpaperSHA256 = "0h7gw3wj5jc306qdim43jhbps32w1g81rwhdr2kw0y98ig9l0zjm";
           }
         ];
 
@@ -121,7 +121,7 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "catppuccin-mocha";
+          base16Theme = "tokyo-night-dark";
           catppuccin = false;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "teal";
@@ -521,7 +521,7 @@ delib.host {
         sddm-astronaut = {
           enable = true;
           embeddedTheme = "japanese_aesthetic";
-          background = ../../users/krit/src/wallpapers/rain_world.png;
+          background = ../../users/krit/src/wallpapers/tron.png;
         };
         sddm-pixie = {
           enable = false;
