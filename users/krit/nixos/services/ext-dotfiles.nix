@@ -17,26 +17,26 @@ let
   # ---------------------------------------------------------------
   mappings = {
     # caelestia-shell
-    ".config/caelestia" = "caelestia-shell/.config/caelestia";
+    ".config/caelestia" = "quickshell/.config/caelestia";
 
     # fastfetch (NixOS flavor)
     ".config/fastfetch" = "catppuccin-mocha-fastfetch-nixOS/.config/fastfetch";
 
     # general-bash
-    ".bashrc_custom" = "general-bash/.bashrc_custom";
+    ".bashrc_custom" = "shells/.bashrc_custom";
 
     # general-fish
-    ".config/conf.d" = "general-fish/.config/conf.d";
-    ".custom.fish" = "general-fish/.custom.fish";
+    ".config/conf.d" = "shells/.config/conf.d";
+    ".custom.fish" = "shells/.custom.fish";
 
     # general-nvim
     ".config/nvim" = "general-nvim/.config/nvim";
 
     # general-zshrc
-    ".zshrc_custom" = "general-zshrc/.zshrc_custom";
+    ".zshrc_custom" = "shells/.zshrc_custom";
 
     # noctalia-shell
-    ".config/noctalia" = "noctalia-shell/.config/noctalia";
+    ".config/noctalia" = "quickshell/.config/noctalia";
 
     # profile-picture
     ".face" = "profile-picture/.face";
