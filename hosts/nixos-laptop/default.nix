@@ -223,6 +223,7 @@ delib.host {
         zoxide.enable = true;
 
         zen.browser.enable = true;
+        swayosd.enable = true;
 
         claude-code = {
           enable = true;
