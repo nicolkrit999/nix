@@ -105,6 +105,22 @@ delib.module {
           position = 100;
           isEssential = true;
         };
+        "Proton Mail" = {
+          id = "20000000-0000-4000-8000-000000000005";
+          url = "https://mail.proton.me/u/0/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          position = 101;
+          isEssential = true;
+        };
+        "Proton Pass" = {
+          id = "20000000-0000-4000-8000-000000000006";
+          url = "https://pass.proton.me/u/0/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          position = 102;
+          isEssential = true;
+        };
 
         # ── Social & Entertainment ───────────────────────────────────────────
 
