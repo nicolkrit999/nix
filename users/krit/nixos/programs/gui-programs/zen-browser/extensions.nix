@@ -49,12 +49,10 @@ delib.module {
         gesturefy # Mouse gestures
         privacy-badger # EFF tracker blocker
         screenshot-capture-annotate # Awesome Screenshot
-        multi-account-containers # NOTE: Zen has built-in containers; redundant but kept for parity
         behind-the-overlay-revival # Bypass popup overlays
         onetab # Convert tabs to a list (unfree license; allowed via system pkgs)
         simplelogin # Email aliases
         kagi-search # Kagi search integration
-        new-tab-override # Custom new tab page
         youtube-screenshot-button # Screenshot YouTube videos
       ];
 
