@@ -13,14 +13,36 @@ delib.module {
     imports = [ inputs.zen-browser.homeModules.beta ];
   };
 
-  nixos.ifEnabled = { myconfig, ... }: {
-    myconfig.stylix.targets."zen-browser".profileNames = [ myconfig.constants.user ];
+  nixos.ifEnabled = { ... }: {
+    myconfig.stylix.targets."zen-browser".profileNames = [ "default" ];
   };
 
   home.ifEnabled = { ... }: {
     programs.zen-browser = {
       enable = true;
       setAsDefaultBrowser = false;
+
+      policies = {
+        DisableTelemetry = true;
+        DontCheckDefaultBrowser = true;
+      };
+
+      profiles.default = {
+        # ⚠ CLOSE ZEN BEFORE REBUILD when modifying keyboardShortcuts*.
+        # Writes to zen-keyboard-shortcuts.json; Zen won't pick up changes
+        # until restart, and the version-check may fail if Zen rewrote the file.
+        keyboardShortcutsVersion = lib.mkDefault 17;
+        keyboardShortcuts = [
+          {
+            id = "zen-compact-mode-toggle";
+            key = "c";
+            modifiers = {
+              control = true;
+              alt = true;
+            };
+          }
+        ];
+      };
     } // lib.optionalAttrs (moduleSystem == "darwin") {
       darwinDefaultsId = "app.zen-browser.zen";
     };
