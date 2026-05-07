@@ -12,6 +12,7 @@ delib.host {
   nixos = {
     system.stateVersion = "25.11";
     time.hardwareClockInLocalTime = true;
+    services.logind.settings.Login.HandlePowerKey = "poweroff";
 
     environment.variables = { };
 
