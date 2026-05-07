@@ -4,7 +4,7 @@
 }:
 let
   # 🌟 CORE APPS & THEME
-  myBrowser = "helium";
+  myBrowser = "zen-beta";
   myTerminal = "kitty";
   myShell = "fish";
   myEditor = "nvim";
