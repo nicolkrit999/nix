@@ -33,6 +33,10 @@ delib.module {
         "signon.generation.enabled" = false;
         "signon.management.page.breach-alerts.enabled" = false;
 
+        # Reset to auto-detect — lets the Wayland compositor (via MOZ_ENABLE_WAYLAND)
+        # supply the correct fractional scale. Clears any stale hardcoded value in prefs.js.
+        "layout.css.devPixelsPerPx" = "-1";
+
         "browser.uiCustomization.state" = builtins.toJSON {
           placements = {
             widget-overflow-fixed-list = [ ];
