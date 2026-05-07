@@ -18,6 +18,12 @@ delib.module {
   };
 
   home.ifEnabled = { ... }: {
+    # Force native Wayland rendering so extension popups render at the correct
+    # fractional scale. Without this, Zen falls back to XWayland on all compositors,
+    # which either upscales or downscales popups → blurry / wrong size.
+    # Safe on X11 (gracefully falls back if WAYLAND_DISPLAY is unset).
+    home.sessionVariables.MOZ_ENABLE_WAYLAND = "1";
+
     programs.zen-browser = {
       enable = true;
       setAsDefaultBrowser = false;
