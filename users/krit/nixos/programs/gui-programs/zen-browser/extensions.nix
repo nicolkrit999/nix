@@ -4,7 +4,6 @@ delib.module {
 
   home.ifEnabled = { ... }:
     let
-      # XPI builder. Identical to the one in librewolf-common.nix.
       # Using pkgs.callPackage (system pkgs, allowUnfree=true) instead of
       # inputs.firefox-addons.packages.${system} (rycee's own pkgs, no allowUnfree)
       # so unfree addons like onetab can be evaluated.
@@ -40,11 +39,10 @@ delib.module {
     in
     {
       # ── Rycee (NUR) extensions ──────────────────────────────────────────────
-      # Extensions matching the librewolf setup (default + privacy profiles).
       programs.zen-browser.profiles.default.extensions.packages = with addons; [
         ublock-origin # Ad/tracker blocker
         proton-pass # Proton Pass password manager
-        firefox-color # Theme support (used by catppuccin)
+        #firefox-color # Theme support (used by catppuccin)
         sponsorblock # Skip sponsored YouTube segments
         gesturefy # Mouse gestures
         privacy-badger # EFF tracker blocker
@@ -52,12 +50,11 @@ delib.module {
         behind-the-overlay-revival # Bypass popup overlays
         onetab # Convert tabs to a list (unfree license; allowed via system pkgs)
         simplelogin # Email aliases
-        kagi-search # Kagi search integration
+        kagi-search # Allow kagi search in private window using same account
         youtube-screenshot-button # Screenshot YouTube videos
       ];
 
       # ── Normal (policy-based) extensions ────────────────────────────────────
-      # No policy-based extensions yet. To add: uncomment the block below.
       # programs.zen-browser.policies.ExtensionSettings = {
       #   "extension-id@example.com" = {
       #     install_url = "https://addons.mozilla.org/firefox/downloads/latest/slug/latest.xpi";

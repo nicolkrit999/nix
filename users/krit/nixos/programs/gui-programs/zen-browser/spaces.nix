@@ -9,9 +9,6 @@ delib.module {
     programs.zen-browser.profiles.default = {
       # ── Containers (cookie isolation, like separate browser profiles) ───────
       # Icons must be predefined Firefox strings, not emoji.
-      # Valid icons: fingerprint briefcase dollar cart circle gift vacation
-      #              food fruit pet tree chill fence
-      # Valid colors: blue turquoise green yellow orange red pink purple
       containersForce = true;
       containers = {
         "General" = {

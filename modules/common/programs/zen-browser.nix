@@ -24,6 +24,7 @@ delib.module {
 
       policies = {
         DisableTelemetry = true;
+        DisableAppUpdate = true;
         DontCheckDefaultBrowser = true;
       };
 
@@ -35,10 +36,13 @@ delib.module {
         keyboardShortcuts = [
           {
             id = "zen-compact-mode-toggle";
-            key = "c";
+            # Ctrl+Alt+C: swallowed by US-International keymap (Ctrl+Alt = AltGr).
+            # Ctrl+Shift+M: collides with Firefox Responsive Design Mode.
+            # Alt+Shift+M: clean — no AltGr, no Firefox built-in.
+            key = "m";
             modifiers = {
-              control = true;
               alt = true;
+              shift = true;
             };
           }
         ];

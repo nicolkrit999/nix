@@ -17,6 +17,71 @@ delib.module {
     programs.zen-browser.profiles.default = {
       pinsForce = true;
       pins = {
+        # ── Folders (isGroup) ───────────────────────────────────────────────
+        # Persist even when empty. Scoped to General space; remove `workspace`
+        # to make a folder visible in every space.
+        "Social & Entertainment" = {
+          id = "30000000-0000-4000-8000-000000000001";
+          isGroup = true;
+          folderIcon = "📺️";
+          workspace = "10000000-0000-4000-8000-000000000001"; # General space
+          position = 200;
+        };
+        "Personal finance" = {
+          id = "30000000-0000-4000-8000-000000000002";
+          isGroup = true;
+          folderIcon = "🏦";
+          workspace = "10000000-0000-4000-8000-000000000001"; # General space
+          position = 300;
+        };
+        "Self hosting" = {
+          id = "30000000-0000-4000-8000-000000000003";
+          isGroup = true;
+          folderIcon = "💿️";
+          workspace = "10000000-0000-4000-8000-000000000001"; # General space
+          position = 400;
+        };
+        "Utilities" = {
+          id = "30000000-0000-4000-8000-000000000004";
+          isGroup = true;
+          folderIcon = "🔧";
+          workspace = "10000000-0000-4000-8000-000000000001"; # General space
+          position = 500;
+        };
+
+        # Work space folders
+        "Pc building" = {
+          id = "30000000-0000-4000-8000-000000000031";
+          isGroup = true;
+          folderIcon = "🖥️";
+          workspace = "10000000-0000-4000-8000-000000000003"; # Work space
+          position = 200;
+        };
+        "IT services" = {
+          id = "30000000-0000-4000-8000-000000000032";
+          isGroup = true;
+          folderIcon = "🛠️";
+          workspace = "10000000-0000-4000-8000-000000000003"; # Work space
+          position = 300;
+        };
+
+        # University space folders
+        "University resources" = {
+          id = "30000000-0000-4000-8000-000000000041";
+          isGroup = true;
+          folderIcon = "🎓";
+          workspace = "10000000-0000-4000-8000-000000000004"; # University space
+          position = 200;
+        };
+        "Personal resources" = {
+          id = "30000000-0000-4000-8000-000000000042";
+          isGroup = true;
+          folderIcon = "📔";
+          workspace = "10000000-0000-4000-8000-000000000004"; # University space
+          position = 300;
+        };
+
+        # ── Essential pins ──────────────────────────────────────────────────
         "Reddit" = {
           id = "20000000-0000-4000-8000-000000000001";
           url = "https://www.reddit.com/";
