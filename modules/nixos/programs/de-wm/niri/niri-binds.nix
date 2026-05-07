@@ -121,54 +121,36 @@ delib.module {
         "Mod+Shift+9".action.move-window-to-workspace = 9;
 
         # -----------------------------------------------------------------------
-        # 🔈 MEDIA & BRIGHTNESS
+        # 🔈 VOLUME
         # -----------------------------------------------------------------------
-        "XF86AudioRaiseVolume".action.spawn = [
-          "wpctl"
-          "set-volume"
-          "-l"
-          "1"
-          "@DEFAULT_AUDIO_SINK@"
-          "5%+"
-        ];
-        "XF86AudioLowerVolume".action.spawn = [
-          "wpctl"
-          "set-volume"
-          "@DEFAULT_AUDIO_SINK@"
-          "5%-"
-        ];
-        "XF86AudioMute".action.spawn = [
-          "wpctl"
-          "set-mute"
-          "@DEFAULT_AUDIO_SINK@"
-          "toggle"
-        ];
-        "XF86AudioMicMute".action.spawn = [
-          "wpctl"
-          "set-mute"
-          "@DEFAULT_AUDIO_SOURCE@"
-          "toggle"
-        ];
-        "Mod+BracketRight".action.spawn = [
-          "brightnessctl"
-          "s"
-          "10%+"
-        ];
-        "Mod+BracketLeft".action.spawn = [
-          "brightnessctl"
-          "s"
-          "10%-"
-        ];
-        "XF86MonBrightnessUp".action.spawn = [
-          "brightnessctl"
-          "s"
-          "10%+"
-        ];
-        "XF86MonBrightnessDown".action.spawn = [
-          "brightnessctl"
-          "s"
-          "10%-"
-        ];
+        "XF86AudioRaiseVolume".action.spawn = [ "swayosd-client" "--output-volume" "raise" ];
+        "XF86AudioLowerVolume".action.spawn = [ "swayosd-client" "--output-volume" "lower" ];
+        "XF86AudioMute".action.spawn = [ "swayosd-client" "--output-volume" "mute-toggle" ];
+        "XF86AudioMicMute".action.spawn = [ "swayosd-client" "--input-volume" "mute-toggle" ];
+
+        # -----------------------------------------------------------------------
+        # 🔆 BRIGHTNESS
+        # -----------------------------------------------------------------------
+        "Mod+BracketRight".action.spawn = [ "swayosd-client" "--brightness" "raise" ];
+        "Mod+BracketLeft".action.spawn = [ "swayosd-client" "--brightness" "lower" ];
+        "XF86MonBrightnessUp".action.spawn = [ "swayosd-client" "--brightness" "raise" ];
+        "XF86MonBrightnessDown".action.spawn = [ "swayosd-client" "--brightness" "lower" ];
+        "XF86KbdBrightnessUp".action.spawn = [ "swayosd-client" "--keyboard-brightness" "raise" ];
+        "XF86KbdBrightnessDown".action.spawn = [ "swayosd-client" "--keyboard-brightness" "lower" ];
+
+        # -----------------------------------------------------------------------
+        # 🎵 MEDIA PLAYBACK
+        # -----------------------------------------------------------------------
+        "XF86AudioPlay".action.spawn = [ "swayosd-client" "--playerctl" "play-pause" ];
+        "XF86AudioPause".action.spawn = [ "swayosd-client" "--playerctl" "play-pause" ];
+        "XF86AudioNext".action.spawn = [ "swayosd-client" "--playerctl" "next" ];
+        "XF86AudioPrev".action.spawn = [ "swayosd-client" "--playerctl" "previous" ];
+        "XF86AudioStop".action.spawn = [ "swayosd-client" "--playerctl" "stop" ];
+
+        # -----------------------------------------------------------------------
+        # 🔒 LOCK INDICATORS
+        # -----------------------------------------------------------------------
+        "Caps_Lock".action.spawn = [ "swayosd-client" "--caps-lock" ];
 
         # -----------------------------------------------------------------------
         # 🔔 NOTIFICATIONS

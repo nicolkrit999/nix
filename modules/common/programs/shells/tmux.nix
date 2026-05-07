@@ -45,8 +45,8 @@ delib.module {
 
           # --- CUSTOM BINDINGS (Alt/Meta based) ---
           bind -n M-r source-file ~/.config/tmux/tmux.conf \; display "Reloaded!"
-          bind C-p previous-window
-          bind C-n next-window
+          bind p previous-window
+          bind n next-window
 
           # Window Navigation
           bind -n M-1 select-window -t 1

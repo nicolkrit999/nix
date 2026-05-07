@@ -12,8 +12,8 @@
 
 | Category | Key | Action |
 | :------- | :-- | :----- |
-| **Splits** | `Alt + w` | Split horizontally (top / bottom) |
-| **Splits** | `Alt + e` | Split vertically (left \| right) |
+| **Splits** | `Alt + v` | Split: top / bottom (new pane below) |
+| **Splits** | `Alt + h` | Split: left \| right (new pane beside) |
 | **Navigate** | `Alt + Arrow` | Move focus between panes |
 | **Resize** | `Alt + Shift + Arrow` | Resize current pane |
 | **Windows** | `Alt + Enter` | New window (tab) |
@@ -34,8 +34,8 @@
 | **Pane** | `Ctrl + b`, `o` | Cycle focus through panes |
 | **Pane** | `Ctrl + b`, `{` / `}` | Swap pane with previous / next |
 | **Pane** | `Ctrl + b`, `space` | Cycle through pane layouts |
-| **Windows** | `Ctrl + b`, `Ctrl + p` | Previous window |
-| **Windows** | `Ctrl + b`, `Ctrl + n` | Next window |
+| **Windows** | `Ctrl + b`, `p` | Previous window |
+| **Windows** | `Ctrl + b`, `n` | Next window |
 | **Windows** | `Ctrl + b`, `,` | Rename current window |
 | **Windows** | `Ctrl + b`, `.` | Move/renumber window |
 | **Windows** | `Ctrl + b`, `w` | Interactive window/session tree picker |
@@ -66,7 +66,7 @@ You open a terminal — tmux starts automatically (configured via `programs.bash
 | :----------- | :-- | :----- |
 | Open a second terminal tab | `Alt + Enter` | Creates Window 2 |
 | Name the session | `Ctrl + b`, then `$` | Rename "0" → "work" |
-| Split my screen for code + output | `Alt + e` | Left pane + right pane |
+| Split my screen for code + output | `Alt + h` | Left pane + right pane |
 | Reload config after a change | `Alt + r` | Applies new settings live |
 
 ---
@@ -75,7 +75,7 @@ You open a terminal — tmux starts automatically (configured via `programs.bash
 
 ### Vertical split (side by side)
 
-Press **`Alt + e`** to split vertically (**e**xpand). Your screen becomes:
+Press **`Alt + h`** to split horizontally (left | right). Your screen becomes:
 
 ```
 ┌───────────────────┬───────────────────┐
@@ -89,7 +89,7 @@ Press **`Alt + e`** to split vertically (**e**xpand). Your screen becomes:
 
 ### Horizontal split (stacked)
 
-Press **`Alt + w`** to split horizontally (**w**ide). Your screen becomes:
+Press **`Alt + v`** to split vertically (top / bottom). Your screen becomes:
 
 ```
 ┌───────────────────────────────────────┐
@@ -104,7 +104,7 @@ Press **`Alt + w`** to split horizontally (**w**ide). Your screen becomes:
 
 ### Combining both
 
-Start with `Alt + e`, then in the right pane press `Alt + w`:
+Start with `Alt + h`, then in the right pane press `Alt + v`:
 
 ```
 ┌───────────────────┬───────────────────┐
@@ -172,8 +172,8 @@ Windows are like browser tabs — each can have its own set of panes.
 | Open a new window | `Alt + Enter` | Appears as next number in bar |
 | Switch to window 1 | `Alt + 1` | Works for 1–9 |
 | Switch to window 3 | `Alt + 3` | |
-| Go to previous window | `Ctrl + b`, then `Ctrl + p` | Cycles left |
-| Go to next window | `Ctrl + b`, then `Ctrl + n` | Cycles right |
+| Go to previous window | `Ctrl + b`, then `p` | Cycles left |
+| Go to next window | `Ctrl + b`, then `n` | Cycles right |
 | Browse all windows | `Ctrl + b`, then `w` | Interactive tree picker |
 | Rename current window | `Ctrl + b`, then `,` | Type new name, press Enter |
 | Move/renumber window | `Ctrl + b`, then `.` | Type target number |

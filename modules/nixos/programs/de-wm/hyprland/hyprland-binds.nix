@@ -71,11 +71,6 @@ delib.module {
           "$Mod,      down, movefocus, d" # Move focus down
           "$Mod,      J, movefocus, d" # Move focus down (alternative key)
 
-          "CONTROL, Right, workspace, m+1" # Move to next workspace number
-          "CONTROL, L,     workspace, m+1" # Move to next workspace number
-          "CONTROL, Left, workspace, m-1" # Move to previous workspace number
-          "CONTROL, H,    workspace, m-1" # Move to previous workspace number
-
           # MOVING WINDOWS
           "$Mod SHIFT, left,  swapwindow, l" # Move window left
           "$Mod SHIFT, H,     swapwindow, l" # Move window left (alternative key)
@@ -134,22 +129,26 @@ delib.module {
 
         # LAPTOP MULTIMEDIA KEYS FOR VOLUME AND LCD BRIGHTNESS
         bindel = [
-          ",XF86AudioRaiseVolume,  exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+" # Increase volume by 5%
-          ",XF86AudioLowerVolume,  exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-" # Decrease volume by 5%
-          ",XF86AudioMute,         exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle" # Toggle mute
-          ",XF86AudioMicMute,      exec, wpctl inspect @DEFAULT_AUDIO_SOURCE@ >/dev/null 2>&1 && wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle" # Toggle mic mute (guarded: no-op if no audio source exists)
-          ",XF86MonBrightnessUp,   exec, brightnessctl s 10%+" # Brightness up (hardware key)
-          ",XF86MonBrightnessDown, exec, brightnessctl s 10%-" # Brightness down (hardware key)
-          "$Mod, bracketright, exec, brightnessctl s 10%+" # Increase screen brightness by 10%
-          "$Mod, bracketleft,  exec, brightnessctl s 10%-" # Decrease screen brightness by 10%
+          ",XF86AudioRaiseVolume,    exec, swayosd-client --output-volume raise"
+          ",XF86AudioLowerVolume,    exec, swayosd-client --output-volume lower"
+          ",XF86AudioMute,           exec, swayosd-client --output-volume mute-toggle"
+          ",XF86AudioMicMute,        exec, swayosd-client --input-volume mute-toggle"
+          ",XF86MonBrightnessUp,     exec, swayosd-client --brightness raise"
+          ",XF86MonBrightnessDown,   exec, swayosd-client --brightness lower"
+          "$Mod, bracketright,       exec, swayosd-client --brightness raise"
+          "$Mod, bracketleft,        exec, swayosd-client --brightness lower"
+          ",XF86KbdBrightnessUp,     exec, swayosd-client --keyboard-brightness raise"
+          ",XF86KbdBrightnessDown,   exec, swayosd-client --keyboard-brightness lower"
         ];
 
         # AUDIO PLAYBACK
         bindl = [
-          ", XF86AudioNext,  exec, playerctl next" # Next track
-          ", XF86AudioPause, exec, playerctl play-pause" # Pause playback
-          ", XF86AudioPlay,  exec, playerctl play-pause" # Play playback
-          ", XF86AudioPrev,  exec, playerctl previous" # Previous track
+          ", XF86AudioNext,  exec, swayosd-client --playerctl next"
+          ", XF86AudioPause, exec, swayosd-client --playerctl play-pause"
+          ", XF86AudioPlay,  exec, swayosd-client --playerctl play-pause"
+          ", XF86AudioPrev,  exec, swayosd-client --playerctl previous"
+          ", XF86AudioStop,  exec, swayosd-client --playerctl stop"
+          ", Caps_Lock,      exec, swayosd-client --caps-lock"
         ]
         ++ (cfg.extraBindl or [ ]);
 
