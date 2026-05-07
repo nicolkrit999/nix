@@ -12,8 +12,8 @@ delib.module {
       };
 
       profiles.default.settings = {
-        "zen.workspaces.continue-where-left-off" = false;
         "zen.view.compact.hide-tabbar" = true;
+        "zen.view.compact.enable-at-startup" = false;
         "zen.urlbar.behavior" = "float";
 
         # Required for isEssential pins (in pins.nix) to display correctly.
@@ -22,10 +22,8 @@ delib.module {
 
         "extensions.autoDisableScopes" = 0;
 
-        # Startup: open kagi.com instead of Zen's new-tab rectangle.
-        # page=1 → load homepage; page=0 blank, page=3 restore session.
-        "browser.startup.page" = 1;
-        "browser.startup.homepage" = "https://kagi.com";
+        # Don't restore session after pkill/crash — that overrides startup page.
+        "browser.sessionstore.resume_from_crash" = false;
 
         # Disable built-in password manager — Proton Pass handles credentials.
         # rememberSignons=false suppresses the save-password prompt entirely.
