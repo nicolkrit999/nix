@@ -36,29 +36,36 @@ delib.module {
         };
       };
 
-      # ── Spaces (visual tab workspaces within Zen, independent of containers)
-      # Emoji icons ARE supported here.
+      # ── Spaces (visual tab workspaces) — one per container ──────────────────
+      # Each space sets its container as default. Pins bound to a space (via
+      # `workspace = <id>`) only appear when that space is active. Result:
+      # 4 isolated environments — switching the bottom-bar space switcher
+      # changes both the visible pinned tabs AND the cookie context for new tabs.
       spacesForce = true;
       spaces = {
-        "Entertainment & Social" = {
+        "General" = {
           id = "10000000-0000-4000-8000-000000000001";
           position = 1000;
-          icon = "📺️";
+          icon = "🏠️";
+          container = 1;
         };
-        "Personal finance" = {
+        "Secondary" = {
           id = "10000000-0000-4000-8000-000000000002";
           position = 2000;
-          icon = "🏦";
+          icon = "❔";
+          container = 2;
         };
-        "Self-hosting" = {
+        "Work" = {
           id = "10000000-0000-4000-8000-000000000003";
           position = 3000;
-          icon = "💿️";
+          icon = "💼";
+          container = 3;
         };
-        "Various" = {
+        "University" = {
           id = "10000000-0000-4000-8000-000000000004";
           position = 4000;
-          icon = "❓️";
+          icon = "📚️";
+          container = 4;
         };
       };
     };
