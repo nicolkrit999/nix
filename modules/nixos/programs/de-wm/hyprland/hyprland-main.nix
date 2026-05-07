@@ -94,6 +94,7 @@ delib.module {
             in
             [
               "NIXOS_OZONE_WL,1" # Enables Wayland support in NixOS-built Electron apps
+              "MOZ_ENABLE_WAYLAND,1" # Forces Firefox/Zen native Wayland (home.sessionVariables not sourced from Hyprland)
               "QT_QPA_PLATFORM,wayland;xcb" # Tells Qt apps: "Try Wayland first. If that fails, use X11 (xcb)".
               "GDK_BACKEND,wayland,x11,*" # Tells GTK apps: "Try Wayland first. If that fails, use X11".
               "SDL_VIDEODRIVER,wayland" # Forces SDL games to run on Wayland (improves performance/scaling).
