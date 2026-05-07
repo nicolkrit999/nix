@@ -7,6 +7,9 @@
 # UUID). The workspace binding hides the pin in other spaces; the container
 # binding sets cookie context when the pin opens.
 # Workspace UUIDs must match the IDs in spaces.nix.
+#
+# isEssential = true → pin appears as a small favicon-only button that can't
+# be closed via the X button. Requires zen.window-sync.enabled (set in settings.nix).
 delib.module {
   name = "programs.zen.browser";
 
@@ -20,6 +23,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001"; # General space
           position = 100;
+          isEssential = true;
         };
         "Swisscom" = {
           id = "20000000-0000-4000-8000-000000000002";
@@ -27,6 +31,7 @@ delib.module {
           container = 2; # Secondary
           workspace = "10000000-0000-4000-8000-000000000002"; # Secondary space
           position = 100;
+          isEssential = true;
         };
         "PCPartPicker" = {
           id = "20000000-0000-4000-8000-000000000003";
@@ -34,6 +39,7 @@ delib.module {
           container = 3; # Work
           workspace = "10000000-0000-4000-8000-000000000003"; # Work space
           position = 100;
+          isEssential = true;
         };
         "iCorsi" = {
           id = "20000000-0000-4000-8000-000000000004";
@@ -41,6 +47,7 @@ delib.module {
           container = 4; # University
           workspace = "10000000-0000-4000-8000-000000000004"; # University space
           position = 100;
+          isEssential = true;
         };
       };
     };
