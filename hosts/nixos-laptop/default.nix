@@ -272,7 +272,7 @@ delib.host {
         };
 
         waybar-niri = {
-          enable = true;
+          enable = false;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
           };
@@ -291,7 +291,7 @@ delib.host {
         };
 
         noctalia = {
-          enable = false;
+          enable = true;
           enableOnHyprland = false;
           enableOnNiri = true;
         };
@@ -568,12 +568,12 @@ delib.host {
         alacritty.enable = false;
         kitty.enable = true;
         chromium.enable = false;
-        helium.enable = true;
+        helium.enable = false;
         claude-code-wrappers.enable = true;
         direnv.enable = true;
         dolphin.enable = true;
         firefox.enable = false;
-        librewolf.enable = true;
+        librewolf.enable = false;
         neovim.enable = true;
         pwas.enable = true;
         ranger.enable = false;
