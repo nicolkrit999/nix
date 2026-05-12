@@ -69,6 +69,33 @@ delib.host {
       !include /run/secrets/github_fg_pat_token_nix
     '';
 
+    # sof-firmware 2025.05.1 (nixpkgs 25.11) only has sof-sdca-2amp-id2.tplg; Dell XPS 16 2026 has
+    # 4x CS35L57 amps, needs sof-sdca-4amp-id2.tplg added in 2025.12.2. Override to get it.
+    nixpkgs.overlays = [
+      (_final: prev: {
+        sof-firmware = inputs.nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.sof-firmware;
+      })
+    ];
+
+    # TEMPORARY WORKAROUND: No UCM2 profile for sof-soundwire on Dell XPS 16 2026 (Panther Lake).
+    # PipeWire defaults to "stereo-fallback" → routes audio to headphone jack PCM (device 0), not speakers.
+    # Fix: force "pro-audio" profile (exposes all PCMs) + boost speaker node priority so it's the default.
+    # Remove this entire block when UCM2 or kernel machine driver support lands for this hardware.
+    services.pipewire.wireplumber.extraConfig."50-dell-xps16-speakers" = {
+      "monitor.alsa.rules" = [
+        {
+          "matches" = [{ "device.name" = "alsa_card.pci-0000_00_1f.3-platform-sof_sdw"; }];
+          "actions"."update-props"."device.profile" = "pro-audio";
+        }
+      ];
+      "node.rules" = [
+        {
+          "matches" = [{ "node.name" = "alsa_output.pci-0000_00_1f.3-platform-sof_sdw.pro-output-2"; }];
+          "actions"."update-props"."priority.session" = 2000;
+        }
+      ];
+    };
+
     # Laptop-specific hardware — Intel Arc B390 (12 Xe3 cores, integrated in Panther Lake X7 358H SoC, xe driver)
     hardware.enableRedistributableFirmware = true; # Intel CPU microcode + GPU firmware for Panther Lake
     hardware.graphics = {
