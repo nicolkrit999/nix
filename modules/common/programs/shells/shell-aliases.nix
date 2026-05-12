@@ -28,7 +28,7 @@ delib.module {
         if isImpure then
           "sudo nixos-rebuild boot --flake . --impure"
         else
-          "nh os boot --update ${flakeDir}";
+          "nh os boot ${flakeDir}";
 
       wrapCachix =
         cmd:
