@@ -52,6 +52,19 @@ delib.module {
         else
           [ "walker" ];
 
+      # Direct dispatch — bypasses the universalLock chain (loginctl → hypridle
+      # → universalLock → pgrep noctalia → hyprlock fallback) which silently
+      # falls through to hyprlock when noctalia isn't pgrep-matched.
+      shellLockCommand =
+        if noctaliaActiveOnNiri then
+          [
+            "sh"
+            "-c"
+            "${noctaliaPkg}/bin/noctalia-shell ipc call lockScreen lock"
+          ]
+        else
+          [ "loginctl" "lock-session" ];
+
       baseBinds = {
         # -----------------------------------------------------------------------
         # 🚀 APPLICATIONS
@@ -69,10 +82,7 @@ delib.module {
         "Mod+Shift+C".action.close-window = [ ];
         "Mod+M".action.fullscreen-window = [ ];
         "Mod+Space".action.toggle-window-floating = [ ];
-        "Mod+Delete".action.spawn = [
-          "loginctl"
-          "lock-session"
-        ];
+        "Mod+Delete".action.spawn = shellLockCommand;
         "Mod+Shift+Delete".action.quit = {
           skip-confirmation = true;
         };

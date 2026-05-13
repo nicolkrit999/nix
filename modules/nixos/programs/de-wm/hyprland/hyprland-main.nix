@@ -124,6 +124,15 @@ delib.module {
               "noctalia-shell ipc call toggleAppLauncher"
             else
               "walker";
+          # Direct lock dispatch — bypasses universalLock chain which silently
+          # falls through to hyprlock when the shell isn't pgrep-matched.
+          "$shellLock" =
+            if caelestiaActiveOnHyprland then
+              "caelestiaLogout lock"
+            else if noctaliaActiveOnHyprland then
+              "noctalia-shell ipc call lockScreen lock"
+            else
+              "loginctl lock-session";
 
           exec-once = [
             "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"

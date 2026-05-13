@@ -48,6 +48,16 @@ delib.module {
         else
           "SUPER+SHIFT,A,spawn,walker";
 
+      # Direct dispatch — `loginctl lock-session` relies on hypridle catching
+      # logind's Lock signal and routing through universalLock. That chain
+      # silently falls back to hyprlock if noctalia isn't pgrep-matched or the
+      # signal isn't received. Skip the chain when noctalia is active here.
+      shellLockBind =
+        if noctaliaActiveOnMango then
+          "SUPER,Delete,spawn,sh -c '${noctaliaPkg}/bin/noctalia-shell ipc call lockScreen lock'"
+        else
+          "SUPER,Delete,spawn,loginctl lock-session";
+
       baseBinds = [
         "SUPER,Return,spawn,${term}"
         "SUPER,A,spawn,walker"
@@ -60,7 +70,7 @@ delib.module {
         "SUPER+SHIFT,P,spawn,hyprpicker -an"
         "SUPER,N,spawn,swaync-client -t -sw"
 
-        "SUPER,Delete,spawn,loginctl lock-session"
+        shellLockBind
         "SUPER+SHIFT,Delete,quit,"
         "SUPER+SHIFT,C,killclient,"
         "SUPER,M,togglefullscreen,"
