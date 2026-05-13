@@ -294,6 +294,7 @@ delib.host {
           enable = true;
           enableOnHyprland = false;
           enableOnNiri = true;
+          enableOnMango = false;
         };
 
         mango = {

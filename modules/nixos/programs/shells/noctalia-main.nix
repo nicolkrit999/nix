@@ -13,6 +13,7 @@ delib.module {
       enable = boolOption false;
       enableOnHyprland = boolOption false;
       enableOnNiri = boolOption false;
+      enableOnMango = boolOption false;
     };
 
   # Keep always so the cross-shell assertion fires regardless of enable state.
@@ -33,7 +34,12 @@ delib.module {
         && cfg.enableOnNiri
         && (parent.niri.enable or false);
 
-      active = activeOnHyprland || activeOnNiri;
+      activeOnMango =
+        cfg.enable
+        && cfg.enableOnMango
+        && (parent.mango.enable or false);
+
+      active = activeOnHyprland || activeOnNiri || activeOnMango;
 
       caelestiaActiveOnHyprland =
         (parent.caelestia.enable or false)
@@ -122,5 +128,11 @@ delib.module {
       programs.niri.settings.spawn-at-startup = lib.mkIf activeOnNiri [
         { command = [ "start-noctalia" ]; }
       ];
+
+      # Mango Autostart — extends mango's settings.exec list. mkAfter ensures
+      # noctalia starts after mango-main's xwayland/polkit/dbus/swww-daemon.
+      wayland.windowManager.mango.settings.exec = lib.mkIf activeOnMango (lib.mkAfter [
+        "start-noctalia"
+      ]);
     };
 }

@@ -1,4 +1,6 @@
 { delib
+, inputs
+, pkgs
 , lib
 , ...
 }:
@@ -15,6 +17,7 @@ delib.module {
 
   home.ifEnabled =
     { cfg
+    , parent
     , myconfig
     , ...
     }:
@@ -30,10 +33,25 @@ delib.module {
 
       screenshotsDir = myconfig.constants.screenshots;
 
+      noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
+      # Three-way active check — pick the shell built-in launcher when noctalia
+      # is actually running on mango. SUPER+A stays walker unconditionally.
+      noctaliaActiveOnMango =
+        (parent.noctalia.enable or false)
+        && (parent.noctalia.enableOnMango or false)
+        && (parent.mango.enable or false);
+
+      shellLauncherBind =
+        if noctaliaActiveOnMango then
+          "SUPER+SHIFT,A,spawn,sh -c '${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle'"
+        else
+          "SUPER+SHIFT,A,spawn,walker";
+
       baseBinds = [
         "SUPER,Return,spawn,${term}"
         "SUPER,A,spawn,walker"
-        "SUPER+SHIFT,A,spawn,walker"
+        shellLauncherBind
         "SUPER,B,spawn,${browser}"
         "SUPER,F,spawn,${smartLaunch fileManager}"
         "SUPER,C,spawn,${smartLaunch editor}"
