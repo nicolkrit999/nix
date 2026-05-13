@@ -42,11 +42,13 @@ delib.module {
         && (parent.noctalia.enableOnMango or false)
         && (parent.mango.enable or false);
 
+      # No fallback by design: super+shift+a is the *shell* launcher. If noctalia
+      # isn't active on Mango, the bind is a no-op (use super+a → vicinae instead).
       shellLauncherBind =
         if noctaliaActiveOnMango then
           "SUPER+SHIFT,A,spawn,sh -c '${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle'"
         else
-          "SUPER+SHIFT,A,spawn,walker";
+          "SUPER+SHIFT,A,spawn,true";
 
       # Direct dispatch — `loginctl lock-session` relies on hypridle catching
       # logind's Lock signal and routing through universalLock. That chain
@@ -58,15 +60,57 @@ delib.module {
         else
           "SUPER,Delete,spawn,loginctl lock-session";
 
+      # Media / brightness keys: when noctalia is active it shows its own OSD
+      # by listening to PipeWire / brightness DBus signals, so we must NOT
+      # route through swayosd-client (that would pop the swayosd OSD instead
+      # and noctalia would never see the event). Use wpctl/brightnessctl
+      # directly — noctalia picks up the signal and renders its OSD.
+      mediaBinds =
+        if noctaliaActiveOnMango then [
+          "SUPER,BracketRight,spawn,brightnessctl set 5%+"
+          "SUPER,BracketLeft,spawn,brightnessctl set 5%-"
+          "NONE,XF86AudioRaiseVolume,spawn,wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
+          "NONE,XF86AudioLowerVolume,spawn,wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+          "NONE,XF86AudioMute,spawn,wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+          "NONE,XF86AudioMicMute,spawn,wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+          "NONE,XF86MonBrightnessUp,spawn,brightnessctl set 5%+"
+          "NONE,XF86MonBrightnessDown,spawn,brightnessctl set 5%-"
+          "NONE,XF86KbdBrightnessUp,spawn,brightnessctl --device='*::kbd_backlight' set +10%"
+          "NONE,XF86KbdBrightnessDown,spawn,brightnessctl --device='*::kbd_backlight' set 10%-"
+          "NONE,XF86AudioNext,spawn,playerctl next"
+          "NONE,XF86AudioPause,spawn,playerctl play-pause"
+          "NONE,XF86AudioPlay,spawn,playerctl play-pause"
+          "NONE,XF86AudioPrev,spawn,playerctl previous"
+          "NONE,XF86AudioStop,spawn,playerctl stop"
+        ] else [
+          "SUPER,BracketRight,spawn,swayosd-client --brightness raise"
+          "SUPER,BracketLeft,spawn,swayosd-client --brightness lower"
+          "NONE,XF86AudioRaiseVolume,spawn,swayosd-client --output-volume raise"
+          "NONE,XF86AudioLowerVolume,spawn,swayosd-client --output-volume lower"
+          "NONE,XF86AudioMute,spawn,swayosd-client --output-volume mute-toggle"
+          "NONE,XF86AudioMicMute,spawn,swayosd-client --input-volume mute-toggle"
+          "NONE,XF86MonBrightnessUp,spawn,swayosd-client --brightness raise"
+          "NONE,XF86MonBrightnessDown,spawn,swayosd-client --brightness lower"
+          "NONE,XF86KbdBrightnessUp,spawn,swayosd-client --keyboard-brightness raise"
+          "NONE,XF86KbdBrightnessDown,spawn,swayosd-client --keyboard-brightness lower"
+          "NONE,XF86AudioNext,spawn,swayosd-client --playerctl next"
+          "NONE,XF86AudioPause,spawn,swayosd-client --playerctl play-pause"
+          "NONE,XF86AudioPlay,spawn,swayosd-client --playerctl play-pause"
+          "NONE,XF86AudioPrev,spawn,swayosd-client --playerctl previous"
+          "NONE,XF86AudioStop,spawn,swayosd-client --playerctl stop"
+          "NONE,Caps_Lock,spawn,swayosd-client --caps-lock"
+        ];
+
       baseBinds = [
         "SUPER,Return,spawn,${term}"
-        "SUPER,A,spawn,walker"
+        "SUPER,A,spawn,vicinae toggle"
         shellLauncherBind
         "SUPER,B,spawn,${browser}"
         "SUPER,F,spawn,${smartLaunch fileManager}"
         "SUPER,C,spawn,${smartLaunch editor}"
-        "SUPER,period,spawn,walker -m symbols"
-        "SUPER,V,spawn,walker -m clipboard"
+        # TODO: re-enable emoji bind once we figure out the correct Vicinae deeplink / extension.
+        # "SUPER,period,spawn,walker -m symbols" # Emoji picker (walker — kept commented for reference)
+        "SUPER,V,spawn,vicinae vicinae://launch/clipboard/history"
         "SUPER+SHIFT,P,spawn,hyprpicker -an"
         "SUPER,N,spawn,swaync-client -t -sw"
 
@@ -159,24 +203,7 @@ delib.module {
         "NONE,Print,spawn,sh -c 'mkdir -p ${screenshotsDir} && f=${screenshotsDir}/screenshot-$(date +%Y%m%d-%H%M%S).png && grim \"$f\" && wl-copy < \"$f\" && notify-send \"Screenshot\" \"Saved $f\"'"
         "SUPER+CTRL,3,spawn,sh -c 'mkdir -p ${screenshotsDir} && f=${screenshotsDir}/screenshot-$(date +%Y%m%d-%H%M%S).png && grim \"$f\" && wl-copy < \"$f\" && notify-send \"Screenshot\" \"Saved $f\"'"
         "SUPER+CTRL,4,spawn,sh -c 'mkdir -p ${screenshotsDir} && f=${screenshotsDir}/area-$(date +%Y%m%d-%H%M%S).png && grim -g \"$(slurp)\" \"$f\" && wl-copy < \"$f\" && notify-send \"Screenshot\" \"Saved $f\"'"
-        "SUPER,BracketRight,spawn,swayosd-client --brightness raise"
-        "SUPER,BracketLeft,spawn,swayosd-client --brightness lower"
-
-        "NONE,XF86AudioRaiseVolume,spawn,swayosd-client --output-volume raise"
-        "NONE,XF86AudioLowerVolume,spawn,swayosd-client --output-volume lower"
-        "NONE,XF86AudioMute,spawn,swayosd-client --output-volume mute-toggle"
-        "NONE,XF86AudioMicMute,spawn,swayosd-client --input-volume mute-toggle"
-        "NONE,XF86MonBrightnessUp,spawn,swayosd-client --brightness raise"
-        "NONE,XF86MonBrightnessDown,spawn,swayosd-client --brightness lower"
-        "NONE,XF86KbdBrightnessUp,spawn,swayosd-client --keyboard-brightness raise"
-        "NONE,XF86KbdBrightnessDown,spawn,swayosd-client --keyboard-brightness lower"
-        "NONE,XF86AudioNext,spawn,swayosd-client --playerctl next"
-        "NONE,XF86AudioPause,spawn,swayosd-client --playerctl play-pause"
-        "NONE,XF86AudioPlay,spawn,swayosd-client --playerctl play-pause"
-        "NONE,XF86AudioPrev,spawn,swayosd-client --playerctl previous"
-        "NONE,XF86AudioStop,spawn,swayosd-client --playerctl stop"
-        "NONE,Caps_Lock,spawn,swayosd-client --caps-lock"
-      ];
+      ] ++ mediaBinds;
 
       baseMouseBinds = [
         "SUPER,btn_left,moveresize,curmove"
@@ -217,8 +244,8 @@ delib.module {
       baseLayerRules = [
         "animation_type_open:zoom,layer_name:rofi"
         "animation_type_close:zoom,layer_name:rofi"
-        "animation_type_open:zoom,layer_name:walker"
-        "animation_type_close:zoom,layer_name:walker"
+        "animation_type_open:zoom,layer_name:vicinae"
+        "animation_type_close:zoom,layer_name:vicinae"
       ];
     in
     {

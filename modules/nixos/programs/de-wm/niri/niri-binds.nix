@@ -33,7 +33,7 @@ delib.module {
 
       noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-      walkerCommand = [ "walker" ];
+      vicinaeCommand = [ "vicinae" "toggle" ];
 
       # Three-way active check: only dispatch to noctalia's IPC if noctalia
       # is actually running on Niri (master + per-WM + wm.enable).
@@ -42,6 +42,8 @@ delib.module {
         && (parent.noctalia.enableOnNiri or false)
         && (parent.niri.enable or false);
 
+      # No fallback by design: super+shift+a is the *shell* launcher. If noctalia
+      # isn't active on Niri, the bind is a no-op (use super+a → vicinae instead).
       shellLauncherCommand =
         if noctaliaActiveOnNiri then
           [
@@ -50,7 +52,7 @@ delib.module {
             "${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle"
           ]
         else
-          [ "walker" ];
+          [ "true" ];
 
       # Direct dispatch — bypasses the universalLock chain (loginctl → hypridle
       # → universalLock → pgrep noctalia → hyprlock fallback) which silently
@@ -65,12 +67,51 @@ delib.module {
         else
           [ "loginctl" "lock-session" ];
 
+      # Media / brightness keys: when noctalia is active it shows its own OSD
+      # via PipeWire / brightness DBus signals. Routing through swayosd-client
+      # would pop swayosd's OSD instead and noctalia would never see the event.
+      mediaBinds =
+        if noctaliaActiveOnNiri then {
+          "XF86AudioRaiseVolume".action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%+" ];
+          "XF86AudioLowerVolume".action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-" ];
+          "XF86AudioMute".action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle" ];
+          "XF86AudioMicMute".action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle" ];
+          "Mod+BracketRight".action.spawn = [ "brightnessctl" "set" "5%+" ];
+          "Mod+BracketLeft".action.spawn = [ "brightnessctl" "set" "5%-" ];
+          "XF86MonBrightnessUp".action.spawn = [ "brightnessctl" "set" "5%+" ];
+          "XF86MonBrightnessDown".action.spawn = [ "brightnessctl" "set" "5%-" ];
+          "XF86KbdBrightnessUp".action.spawn = [ "brightnessctl" "--device=*::kbd_backlight" "set" "+10%" ];
+          "XF86KbdBrightnessDown".action.spawn = [ "brightnessctl" "--device=*::kbd_backlight" "set" "10%-" ];
+          "XF86AudioPlay".action.spawn = [ "playerctl" "play-pause" ];
+          "XF86AudioPause".action.spawn = [ "playerctl" "play-pause" ];
+          "XF86AudioNext".action.spawn = [ "playerctl" "next" ];
+          "XF86AudioPrev".action.spawn = [ "playerctl" "previous" ];
+          "XF86AudioStop".action.spawn = [ "playerctl" "stop" ];
+        } else {
+          "XF86AudioRaiseVolume".action.spawn = [ "swayosd-client" "--output-volume" "raise" ];
+          "XF86AudioLowerVolume".action.spawn = [ "swayosd-client" "--output-volume" "lower" ];
+          "XF86AudioMute".action.spawn = [ "swayosd-client" "--output-volume" "mute-toggle" ];
+          "XF86AudioMicMute".action.spawn = [ "swayosd-client" "--input-volume" "mute-toggle" ];
+          "Mod+BracketRight".action.spawn = [ "swayosd-client" "--brightness" "raise" ];
+          "Mod+BracketLeft".action.spawn = [ "swayosd-client" "--brightness" "lower" ];
+          "XF86MonBrightnessUp".action.spawn = [ "swayosd-client" "--brightness" "raise" ];
+          "XF86MonBrightnessDown".action.spawn = [ "swayosd-client" "--brightness" "lower" ];
+          "XF86KbdBrightnessUp".action.spawn = [ "swayosd-client" "--keyboard-brightness" "raise" ];
+          "XF86KbdBrightnessDown".action.spawn = [ "swayosd-client" "--keyboard-brightness" "lower" ];
+          "XF86AudioPlay".action.spawn = [ "swayosd-client" "--playerctl" "play-pause" ];
+          "XF86AudioPause".action.spawn = [ "swayosd-client" "--playerctl" "play-pause" ];
+          "XF86AudioNext".action.spawn = [ "swayosd-client" "--playerctl" "next" ];
+          "XF86AudioPrev".action.spawn = [ "swayosd-client" "--playerctl" "previous" ];
+          "XF86AudioStop".action.spawn = [ "swayosd-client" "--playerctl" "stop" ];
+          "Caps_Lock".action.spawn = [ "swayosd-client" "--caps-lock" ];
+        };
+
       baseBinds = {
         # -----------------------------------------------------------------------
         # 🚀 APPLICATIONS
         # -----------------------------------------------------------------------
         "Mod+Return".action.spawn = [ "${myconfig.constants.terminal.name}" ];
-        "Mod+A".action.spawn = walkerCommand;
+        "Mod+A".action.spawn = vicinaeCommand;
         "Mod+Shift+A".action.spawn = shellLauncherCommand;
         "Mod+B".action.spawn = [ "${myconfig.constants.browser}" ];
         "Mod+F".action.spawn = spawnApp myconfig.constants.fileManager;
@@ -131,38 +172,6 @@ delib.module {
         "Mod+Shift+9".action.move-window-to-workspace = 9;
 
         # -----------------------------------------------------------------------
-        # 🔈 VOLUME
-        # -----------------------------------------------------------------------
-        "XF86AudioRaiseVolume".action.spawn = [ "swayosd-client" "--output-volume" "raise" ];
-        "XF86AudioLowerVolume".action.spawn = [ "swayosd-client" "--output-volume" "lower" ];
-        "XF86AudioMute".action.spawn = [ "swayosd-client" "--output-volume" "mute-toggle" ];
-        "XF86AudioMicMute".action.spawn = [ "swayosd-client" "--input-volume" "mute-toggle" ];
-
-        # -----------------------------------------------------------------------
-        # 🔆 BRIGHTNESS
-        # -----------------------------------------------------------------------
-        "Mod+BracketRight".action.spawn = [ "swayosd-client" "--brightness" "raise" ];
-        "Mod+BracketLeft".action.spawn = [ "swayosd-client" "--brightness" "lower" ];
-        "XF86MonBrightnessUp".action.spawn = [ "swayosd-client" "--brightness" "raise" ];
-        "XF86MonBrightnessDown".action.spawn = [ "swayosd-client" "--brightness" "lower" ];
-        "XF86KbdBrightnessUp".action.spawn = [ "swayosd-client" "--keyboard-brightness" "raise" ];
-        "XF86KbdBrightnessDown".action.spawn = [ "swayosd-client" "--keyboard-brightness" "lower" ];
-
-        # -----------------------------------------------------------------------
-        # 🎵 MEDIA PLAYBACK
-        # -----------------------------------------------------------------------
-        "XF86AudioPlay".action.spawn = [ "swayosd-client" "--playerctl" "play-pause" ];
-        "XF86AudioPause".action.spawn = [ "swayosd-client" "--playerctl" "play-pause" ];
-        "XF86AudioNext".action.spawn = [ "swayosd-client" "--playerctl" "next" ];
-        "XF86AudioPrev".action.spawn = [ "swayosd-client" "--playerctl" "previous" ];
-        "XF86AudioStop".action.spawn = [ "swayosd-client" "--playerctl" "stop" ];
-
-        # -----------------------------------------------------------------------
-        # 🔒 LOCK INDICATORS
-        # -----------------------------------------------------------------------
-        "Caps_Lock".action.spawn = [ "swayosd-client" "--caps-lock" ];
-
-        # -----------------------------------------------------------------------
         # 🔔 NOTIFICATIONS
         # -----------------------------------------------------------------------
         "Mod+N".action.spawn = [
@@ -181,19 +190,15 @@ delib.module {
         # -----------------------------------------------------------------------
         # 🛠️ UTILITIES
         # -----------------------------------------------------------------------
-        "Mod+Period".action.spawn = [
-          "walker"
-          "-m"
-          "symbols"
-        ];
+        # TODO: re-enable emoji bind once we figure out the correct Vicinae deeplink / extension.
+        # "Mod+Period".action.spawn = [ "walker" "-m" "symbols" ]; # Emoji picker (walker — kept commented for reference)
         "Mod+Shift+P".action.spawn = [
           "hyprpicker"
           "-an"
         ];
         "Mod+V".action.spawn = [
-          "walker"
-          "-m"
-          "clipboard"
+          "vicinae"
+          "vicinae://launch/clipboard/history"
         ];
         "Mod+O".action.toggle-overview = [ ];
         "Mod+Shift+R".action.spawn = [
@@ -205,6 +210,6 @@ delib.module {
       };
     in
     {
-      programs.niri.settings.binds = baseBinds // (cfg.extraBinds or { });
+      programs.niri.settings.binds = baseBinds // mediaBinds // (cfg.extraBinds or { });
     };
 }

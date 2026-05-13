@@ -58,19 +58,6 @@ delib.module {
           command = "${spectacleCmd} -u";
         };
 
-        "launch-walker" = {
-          key = "Meta+A";
-          command = "walker";
-        };
-
-        "launch-emoji" = {
-          key = "Meta+.";
-          command = "walker -m symbols";
-        };
-        "launch-clipboard" = {
-          key = "Meta+V";
-          command = "walker -m clipboard";
-        };
         "launch-browser" = {
           name = "Launch ${myconfig.constants.browser}";
           key = "Meta+B";

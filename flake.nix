@@ -205,6 +205,13 @@
       inputs.elephant.follows = "elephant";
     };
 
+    # Vicinae launcher — do NOT set inputs.nixpkgs.follows = "nixpkgs" or
+    # the vicinae.cachix.org cache will miss and you'll be compiling Qt locally.
+    vicinae.url = "github:vicinaehq/vicinae";
+
+    # Vicinae extensions — same cache reason: avoid nixpkgs.follows.
+    vicinae-extensions.url = "github:vicinaehq/extensions";
+
     auto-cpufreq = {
       url = "github:AdnanHodzic/auto-cpufreq";
       inputs.nixpkgs.follows = "nixpkgs";
