@@ -108,8 +108,7 @@ delib.module {
         "SUPER,B,spawn,${browser}"
         "SUPER,F,spawn,${smartLaunch fileManager}"
         "SUPER,C,spawn,${smartLaunch editor}"
-        # TODO: re-enable emoji bind once we figure out the correct Vicinae deeplink / extension.
-        # "SUPER,period,spawn,walker -m symbols" # Emoji picker (walker — kept commented for reference)
+        "SUPER,period,spawn,vicinae vicinae://launch/core/search-emojis"
         "SUPER,V,spawn,vicinae vicinae://launch/clipboard/history"
         "SUPER+SHIFT,P,spawn,hyprpicker -an"
         "SUPER,N,spawn,swaync-client -t -sw"

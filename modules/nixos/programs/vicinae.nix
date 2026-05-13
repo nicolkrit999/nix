@@ -12,8 +12,12 @@ delib.module {
   };
 
   home.ifEnabled =
-    { ...
+    { myconfig
+    , ...
     }:
+    let
+      stylixEnabled = myconfig.stylix.enable;
+    in
     {
       services.vicinae = {
         enable = true;
@@ -43,11 +47,11 @@ delib.module {
 
           theme = {
             light = {
-              name = "stylix";
+              name = if stylixEnabled then "stylix" else "vicinae-light";
               icon_theme = "default";
             };
             dark = {
-              name = "stylix";
+              name = if stylixEnabled then "stylix" else "vicinae-dark";
               icon_theme = "default";
             };
           };
