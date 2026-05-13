@@ -68,6 +68,7 @@ delib.module {
           #ntfs3g # NTFS read/write support
           pay-respects # Check commands syntax error and get suggestions for fixes
           pokemon-colorscripts
+          reddix # Reddit CLI client
           ripgrep # Fast line-oriented search tool
           stow # Symlink manager for dotfiles
           tealdeer # Fast implementation of tldr (simplified man pages)
