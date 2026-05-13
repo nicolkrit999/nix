@@ -247,7 +247,9 @@ delib.host {
         };
 
         waybar-mango = {
-          enable = true;
+          # Disabled: noctalia is active on mango here and provides its own
+          # bar — waybar-mango + active shell on the same WM is a hard conflict.
+          enable = false;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
             "format-it" = "🇮🇹-IT";
@@ -262,9 +264,10 @@ delib.host {
         };
 
         noctalia = {
-          enable = false;
+          enable = true;
           enableOnHyprland = false;
           enableOnNiri = false;
+          enableOnMango = true;
         };
 
         mango = {

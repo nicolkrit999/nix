@@ -44,6 +44,9 @@ delib.module {
       cssContent = builtins.readFile ./style.css;
 
       isMangoEnabled = parent.mango.enable or false;
+      noctaliaActiveOnMango =
+        (parent.noctalia.enable or false)
+        && (parent.noctalia.enableOnMango or false);
 
       # Extract monitor names from parent.mango.monitors entries like
       # "name:^DP-1$,width:..." → "DP-1". Used to spawn one waybar bar per
@@ -286,6 +289,13 @@ delib.module {
       configDir = "waybar-mango";
     in
     {
+      assertions = [
+        {
+          assertion = !(isMangoEnabled && noctaliaActiveOnMango);
+          message = "waybar-mango is enabled together with an active noctalia shell on Mango — disable one.";
+        }
+      ];
+
       xdg.configFile."${configDir}/config" = lib.mkIf isMangoEnabled {
         text = builtins.toJSON bars;
       };
