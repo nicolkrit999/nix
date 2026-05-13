@@ -43,11 +43,11 @@ delib.module {
 
           theme = {
             light = {
-              name = "vicinae-light";
+              name = "stylix";
               icon_theme = "default";
             };
             dark = {
-              name = "vicinae-dark";
+              name = "stylix";
               icon_theme = "default";
             };
           };
@@ -62,7 +62,31 @@ delib.module {
         extensions = with inputs.vicinae-extensions.packages.${pkgs.stdenv.hostPlatform.system}; [
           bluetooth
           nix
+          gnome-settings
+          case-converter
+          number-converter
+          nerdfont-search
+          github
+          ssh
+          pulseaudio
+          kde-system-settings
           power-profile
+          port-killer
+          zoxide-recent-directories
+          niri
+          aria2-manager
+          it-tools
+          player-pilot
+          #systemd
+          fuzzy-files
+          wifi-commander
+          agent-skills-sh
+          wikipedia
+          podman
+          agenda
+          color-converter
+          supergenpass
+          process-manager
         ];
 
         themes = { };
