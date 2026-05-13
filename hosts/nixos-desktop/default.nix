@@ -1,5 +1,6 @@
 { delib
 , pkgs
+, inputs
 , ...
 }:
 let
@@ -182,7 +183,37 @@ delib.host {
         starship.enable = true;
         tmux.enable = true;
         walker.enable = false;
-        vicinae.enable = true;
+        vicinae = {
+          enable = true;
+          extraExtensions = with inputs.vicinae-extensions.packages.${pkgs.stdenv.hostPlatform.system}; [
+            agenda
+            agent-skills-sh
+            aria2-manager
+            bluetooth
+            case-converter
+            color-converter
+            fuzzy-files
+            github
+            gnome-settings
+            it-tools
+            kde-system-settings
+            nerdfont-search
+            niri
+            number-converter
+            player-pilot
+            podman
+            port-killer
+            power-profile
+            process-manager
+            pulseaudio
+            ssh
+            supergenpass
+            # systemd
+            wifi-commander
+            wikipedia
+            zoxide-recent-directories
+          ];
+        };
         television.enable = true;
         zoxide.enable = true;
         zen.browser.enable = true;
