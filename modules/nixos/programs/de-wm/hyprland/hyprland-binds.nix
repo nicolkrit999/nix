@@ -118,8 +118,7 @@ delib.module {
           "$Mod,       Delete, exec, ${shellLock}" # Lock (dispatches to active shell's lock IPC, else loginctl)
 
           # EXTRA UTILITIES
-          # TODO: re-enable emoji bind once we figure out the correct Vicinae deeplink / extension.
-          # "$Mod, period, exec, walker -m symbols" # Emoji picker (walker — kept commented for reference)
+          "$Mod, period, exec, vicinae vicinae://launch/core/search-emojis" # Emoji picker
           "$Mod SHIFT, P, exec, hyprpicker -an" # Color picker
           "$Mod,       V, exec, vicinae vicinae://launch/clipboard/history" # Clipboard manager
           "$Mod SHIFT, R, exec, hyprctl reload" # Reload Hyprland config

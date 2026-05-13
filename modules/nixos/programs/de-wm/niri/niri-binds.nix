@@ -190,8 +190,10 @@ delib.module {
         # -----------------------------------------------------------------------
         # 🛠️ UTILITIES
         # -----------------------------------------------------------------------
-        # TODO: re-enable emoji bind once we figure out the correct Vicinae deeplink / extension.
-        # "Mod+Period".action.spawn = [ "walker" "-m" "symbols" ]; # Emoji picker (walker — kept commented for reference)
+        "Mod+Period".action.spawn = [
+          "vicinae"
+          "vicinae://launch/core/search-emojis"
+        ];
         "Mod+Shift+P".action.spawn = [
           "hyprpicker"
           "-an"
