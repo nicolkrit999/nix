@@ -213,6 +213,17 @@ delib.host {
             wikipedia
             zoxide-recent-directories
           ];
+          extraRayCastExtensions = [
+            { name = "downloads-manager"; hash = "sha256-GNEWSFWOsS7Ks0nPgqZrFqIYwdw1CYgswIhgAumvTOc="; }
+            { name = "gif-search"; hash = "sha256-aWIYh6tQbdZxT04TRVEc/HmgJUXFl0eMFpIZpCaIQ4U="; }
+            { name = "google-search"; hash = "sha256-nGTMIrSEgZX+gPpNc0tLme0MprVzA3Ap4gvEnq3n6IU="; }
+            { name = "lorem-ipsum"; hash = "sha256-zMhwb4imj79XByXbbVHqhQxso9Jj87bBuJNbqwEjMxs="; }
+            { name = "notion"; hash = "sha256-4ot/xa7PcwXB0ImsSyXBo3SXwfJgBlA0OLEv9HMYiO0="; }
+            { name = "remove-paywall"; hash = "sha256-i0jPsCbkl9X/Ka2fRYFHxk3COPxP8V+2C3dTdg6118c="; }
+            { name = "google-translate"; installName = "translate"; hash = "sha256-VhJ9wRnToUPccVIQwp4nxQ2ExkgukZIqqET5tS4RpfI="; }
+            { name = "video-downloader"; hash = "sha256-/Q9VW59t4xgQROuumw/6DWENAWqada+GHszvMyVrT0w="; }
+            { name = "visual-studio-code-recent-projects"; installName = "visual-studio-code"; hash = "sha256-fhTmPfLoFpU2wuPHlL0WlLqtHBCLJ7/VMKjt3wLewQc="; }
+          ];
         };
         television.enable = true;
         zoxide.enable = true;
