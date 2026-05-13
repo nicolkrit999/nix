@@ -9,24 +9,10 @@ delib.module {
   home.always =
     { myconfig, ... }:
     let
-      hyprlandEnabled = myconfig.programs.hyprland.enable or false;
-      niriEnabled = myconfig.programs.niri.enable or false;
-
-      caelestiaActiveOnHyprland =
-        (myconfig.programs.caelestia.enable or false)
-        && (myconfig.programs.caelestia.enableOnHyprland or false)
-        && hyprlandEnabled;
-      noctaliaActiveOnHyprland =
-        (myconfig.programs.noctalia.enable or false)
-        && (myconfig.programs.noctalia.enableOnHyprland or false)
-        && hyprlandEnabled;
-      noctaliaActiveOnNiri =
-        (myconfig.programs.noctalia.enable or false)
-        && (myconfig.programs.noctalia.enableOnNiri or false)
-        && niriEnabled;
-
-      hyprlandFallback = hyprlandEnabled && !caelestiaActiveOnHyprland && !noctaliaActiveOnHyprland;
-      niriFallback = niriEnabled && !noctaliaActiveOnNiri;
+      anyWmEnabled =
+        (myconfig.programs.hyprland.enable or false)
+        || (myconfig.programs.niri.enable or false)
+        || (myconfig.programs.mango.enable or false);
 
       catppuccinEnabled = myconfig.constants.theme.catppuccin or false;
 
@@ -46,7 +32,7 @@ delib.module {
         else
           "${fallbackWallpaper}";
     in
-    lib.mkIf (hyprlandFallback || niriFallback) {
+    lib.mkIf anyWmEnabled {
 
       catppuccin.hyprlock.enable = catppuccinEnabled;
       catppuccin.hyprlock.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";

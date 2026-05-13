@@ -39,7 +39,7 @@ delib.module {
 
           # SESSION MANAGEMENT
           "$Mod SHIFT, Delete, exit" # Log out
-          "$Mod,       Delete, exec, loginctl lock-session" # Lock
+          "$Mod,       Delete, exec, $shellLock" # Lock (dispatches to active shell's lock IPC, else loginctl)
 
           # EXTRA UTILITIES
           "$Mod, period, exec, walker -m symbols" # Emoji picker
