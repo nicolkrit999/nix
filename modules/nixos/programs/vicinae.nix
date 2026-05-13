@@ -1,18 +1,23 @@
 { delib
 , inputs
 , pkgs
+, lib
 , ...
 }:
 delib.module {
   name = "programs.vicinae";
-  options = delib.singleEnableOption true;
+  options = with delib; moduleOptions {
+    enable = boolOption true;
+    extraExtensions = listOfOption lib.types.package [ ];
+  };
 
   home.always = { ... }: {
     imports = [ inputs.vicinae.homeManagerModules.default ];
   };
 
   home.ifEnabled =
-    { myconfig
+    { cfg
+    , myconfig
     , ...
     }:
     let
@@ -63,35 +68,9 @@ delib.module {
           providers = { };
         };
 
-        extensions = with inputs.vicinae-extensions.packages.${pkgs.stdenv.hostPlatform.system}; [
-          bluetooth
+        extensions = (with inputs.vicinae-extensions.packages.${pkgs.stdenv.hostPlatform.system}; [
           nix
-          gnome-settings
-          case-converter
-          number-converter
-          nerdfont-search
-          github
-          ssh
-          pulseaudio
-          kde-system-settings
-          power-profile
-          port-killer
-          zoxide-recent-directories
-          niri
-          aria2-manager
-          it-tools
-          player-pilot
-          #systemd
-          fuzzy-files
-          wifi-commander
-          agent-skills-sh
-          wikipedia
-          podman
-          agenda
-          color-converter
-          supergenpass
-          process-manager
-        ];
+        ]) ++ cfg.extraExtensions;
 
         themes = { };
       };
