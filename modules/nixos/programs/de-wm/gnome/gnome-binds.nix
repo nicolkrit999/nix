@@ -67,24 +67,6 @@ delib.module {
           binding = "<Super>c";
         }
         {
-          name = "Emoji Picker";
-          command = "walker -m symbols";
-          binding = "<Super>Period";
-        }
-
-        {
-          name = "Application Launcher";
-          command = "walker";
-          binding = "<Super>a";
-        }
-
-        {
-          name = "Clipboard History";
-          command = "walker -m clipboard";
-          binding = "<Super>v";
-        }
-
-        {
           name = "Take Screenshot (Native)";
           command = "${screenshotScript}";
           binding = "Print";

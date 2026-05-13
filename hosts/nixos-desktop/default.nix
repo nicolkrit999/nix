@@ -181,7 +181,8 @@ delib.host {
         shell-aliases.enable = true;
         starship.enable = true;
         tmux.enable = true;
-        walker.enable = true;
+        walker.enable = false;
+        vicinae.enable = true;
         television.enable = true;
         zoxide.enable = true;
         zen.browser.enable = true;

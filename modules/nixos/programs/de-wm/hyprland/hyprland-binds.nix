@@ -5,8 +5,84 @@ delib.module {
   name = "programs.hyprland";
   home.ifEnabled =
     { cfg
+    , myconfig
     , ...
     }:
+    let
+      # Three-way active check (master + per-WM + wm.enable) — only dispatch
+      # to a shell's IPC if it is actually running on Hyprland. Inlined here
+      # because main.nix no longer carries the $shellMenu / $shellLock vars.
+      caelestiaActiveOnHyprland =
+        (myconfig.programs.caelestia.enable or false)
+        && (myconfig.programs.caelestia.enableOnHyprland or false);
+      noctaliaActiveOnHyprland =
+        (myconfig.programs.noctalia.enable or false)
+        && (myconfig.programs.noctalia.enableOnHyprland or false);
+
+      # No fallback by design: super+shift+a is the *shell* launcher. If no shell
+      # is active, the bind is a no-op (the user is expected to use super+a → vicinae instead).
+      shellMenu =
+        if caelestiaActiveOnHyprland then
+          "caelestiaQS"
+        else if noctaliaActiveOnHyprland then
+          "noctalia-shell ipc call toggleAppLauncher"
+        else
+          "true";
+
+      # Direct dispatch — bypasses universalLock chain which silently falls
+      # through to hyprlock when the shell isn't pgrep-matched.
+      shellLock =
+        if caelestiaActiveOnHyprland then
+          "caelestiaLogout lock"
+        else if noctaliaActiveOnHyprland then
+          "noctalia-shell ipc call lockScreen lock"
+        else
+          "loginctl lock-session";
+
+      # Media / brightness keys: when a shell is active it shows its own OSD
+      # via PipeWire / brightness DBus signals. Routing through swayosd-client
+      # would pop swayosd's OSD instead and the shell would never see the event.
+      shellActiveOnHyprland = caelestiaActiveOnHyprland || noctaliaActiveOnHyprland;
+      bindelList =
+        if shellActiveOnHyprland then [
+          ",XF86AudioRaiseVolume,    exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
+          ",XF86AudioLowerVolume,    exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+          ",XF86AudioMute,           exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+          ",XF86AudioMicMute,        exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+          ",XF86MonBrightnessUp,     exec, brightnessctl set 5%+"
+          ",XF86MonBrightnessDown,   exec, brightnessctl set 5%-"
+          "$Mod, bracketright,       exec, brightnessctl set 5%+"
+          "$Mod, bracketleft,        exec, brightnessctl set 5%-"
+          ",XF86KbdBrightnessUp,     exec, brightnessctl --device='*::kbd_backlight' set +10%"
+          ",XF86KbdBrightnessDown,   exec, brightnessctl --device='*::kbd_backlight' set 10%-"
+        ] else [
+          ",XF86AudioRaiseVolume,    exec, swayosd-client --output-volume raise"
+          ",XF86AudioLowerVolume,    exec, swayosd-client --output-volume lower"
+          ",XF86AudioMute,           exec, swayosd-client --output-volume mute-toggle"
+          ",XF86AudioMicMute,        exec, swayosd-client --input-volume mute-toggle"
+          ",XF86MonBrightnessUp,     exec, swayosd-client --brightness raise"
+          ",XF86MonBrightnessDown,   exec, swayosd-client --brightness lower"
+          "$Mod, bracketright,       exec, swayosd-client --brightness raise"
+          "$Mod, bracketleft,        exec, swayosd-client --brightness lower"
+          ",XF86KbdBrightnessUp,     exec, swayosd-client --keyboard-brightness raise"
+          ",XF86KbdBrightnessDown,   exec, swayosd-client --keyboard-brightness lower"
+        ];
+      bindlList =
+        if shellActiveOnHyprland then [
+          ", XF86AudioNext,  exec, playerctl next"
+          ", XF86AudioPause, exec, playerctl play-pause"
+          ", XF86AudioPlay,  exec, playerctl play-pause"
+          ", XF86AudioPrev,  exec, playerctl previous"
+          ", XF86AudioStop,  exec, playerctl stop"
+        ] else [
+          ", XF86AudioNext,  exec, swayosd-client --playerctl next"
+          ", XF86AudioPause, exec, swayosd-client --playerctl play-pause"
+          ", XF86AudioPlay,  exec, swayosd-client --playerctl play-pause"
+          ", XF86AudioPrev,  exec, swayosd-client --playerctl previous"
+          ", XF86AudioStop,  exec, swayosd-client --playerctl stop"
+          ", Caps_Lock,      exec, swayosd-client --caps-lock"
+        ];
+    in
     {
       wayland.windowManager.hyprland.settings = {
         gesture = [
@@ -15,7 +91,7 @@ delib.module {
           "3, up,    fullscreen" # Fullscreen/maximize
           "3, down,  close" # Close window
 
-          "4, up,       dispatcher, exec, $menu" # App launcher (Walker)
+          "4, up,       dispatcher, exec, vicinae toggle" # App launcher (Vicinae)
           "4, down,     special, magic" # Toggle scratchpad
           "4, pinchin,  float" # Toggle floating
         ];
@@ -30,8 +106,8 @@ delib.module {
           "$Mod,       P, exec, hyprctl dispatch togglefloating && hyprctl dispatch pin" # PiP mode: float + pin so window follows across workspaces on same monitor
 
           # APPLICATION LAUNCHING
-          "$Mod,       A, exec, $menu" # Application launcher (walker)
-          "$Mod SHIFT, A, exec, $shellMenu" # Shell Specific launcher (Noctalia / Caelestia)
+          "$Mod,       A, exec, vicinae toggle" # Application launcher (Vicinae)
+          "$Mod SHIFT, A, exec, ${shellMenu}" # Shell-specific launcher (Caelestia / Noctalia), fallback Vicinae
           "$Mod, return, exec, $terminal" # Default terminal chosen in ./main.nix
           "$Mod,       F, exec, $fileManager"
           "$Mod,       B, exec, $browser" # Web browser
@@ -39,12 +115,13 @@ delib.module {
 
           # SESSION MANAGEMENT
           "$Mod SHIFT, Delete, exit" # Log out
-          "$Mod,       Delete, exec, $shellLock" # Lock (dispatches to active shell's lock IPC, else loginctl)
+          "$Mod,       Delete, exec, ${shellLock}" # Lock (dispatches to active shell's lock IPC, else loginctl)
 
           # EXTRA UTILITIES
-          "$Mod, period, exec, walker -m symbols" # Emoji picker
+          # TODO: re-enable emoji bind once we figure out the correct Vicinae deeplink / extension.
+          # "$Mod, period, exec, walker -m symbols" # Emoji picker (walker — kept commented for reference)
           "$Mod SHIFT, P, exec, hyprpicker -an" # Color picker
-          "$Mod,       V, exec, walker -m clipboard" # Clipboard manager
+          "$Mod,       V, exec, vicinae vicinae://launch/clipboard/history" # Clipboard manager
           "$Mod SHIFT, R, exec, hyprctl reload" # Reload Hyprland config
           "$Mod,       N, exec, swaync-client -t" # Open notification center
 
@@ -128,29 +205,10 @@ delib.module {
         ];
 
         # LAPTOP MULTIMEDIA KEYS FOR VOLUME AND LCD BRIGHTNESS
-        bindel = [
-          ",XF86AudioRaiseVolume,    exec, swayosd-client --output-volume raise"
-          ",XF86AudioLowerVolume,    exec, swayosd-client --output-volume lower"
-          ",XF86AudioMute,           exec, swayosd-client --output-volume mute-toggle"
-          ",XF86AudioMicMute,        exec, swayosd-client --input-volume mute-toggle"
-          ",XF86MonBrightnessUp,     exec, swayosd-client --brightness raise"
-          ",XF86MonBrightnessDown,   exec, swayosd-client --brightness lower"
-          "$Mod, bracketright,       exec, swayosd-client --brightness raise"
-          "$Mod, bracketleft,        exec, swayosd-client --brightness lower"
-          ",XF86KbdBrightnessUp,     exec, swayosd-client --keyboard-brightness raise"
-          ",XF86KbdBrightnessDown,   exec, swayosd-client --keyboard-brightness lower"
-        ];
+        bindel = bindelList;
 
         # AUDIO PLAYBACK
-        bindl = [
-          ", XF86AudioNext,  exec, swayosd-client --playerctl next"
-          ", XF86AudioPause, exec, swayosd-client --playerctl play-pause"
-          ", XF86AudioPlay,  exec, swayosd-client --playerctl play-pause"
-          ", XF86AudioPrev,  exec, swayosd-client --playerctl previous"
-          ", XF86AudioStop,  exec, swayosd-client --playerctl stop"
-          ", Caps_Lock,      exec, swayosd-client --caps-lock"
-        ]
-        ++ (cfg.extraBindl or [ ]);
+        bindl = bindlList ++ (cfg.extraBindl or [ ]);
 
       };
     };

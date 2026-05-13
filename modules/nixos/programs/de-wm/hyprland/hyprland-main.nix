@@ -43,16 +43,6 @@ delib.module {
 
       smartFm = if builtins.elem rawFm termApps then "${term} --class ${rawFm} -e ${rawFm}" else rawFm;
       smartEd = if builtins.elem rawEd termApps then "${term} --class ${rawEd} -e ${rawEd}" else rawEd;
-
-      # Three-way active check: the shell menu binding should only dispatch
-      # to a shell's IPC if that shell is actually running on Hyprland
-      # (master + per-WM + wm.enable), not just when the dormant flag is set.
-      caelestiaActiveOnHyprland =
-        (myconfig.programs.caelestia.enable or false)
-        && (myconfig.programs.caelestia.enableOnHyprland or false);
-      noctaliaActiveOnHyprland =
-        (myconfig.programs.noctalia.enable or false)
-        && (myconfig.programs.noctalia.enableOnHyprland or false);
     in
 
     {
@@ -116,23 +106,6 @@ delib.module {
           "$browser" = myconfig.constants.browser or "firefox";
           "$fileManager" = smartFm;
           "$editor" = smartEd;
-          "$menu" = "walker";
-          "$shellMenu" =
-            if caelestiaActiveOnHyprland then
-              "caelestiaQS"
-            else if noctaliaActiveOnHyprland then
-              "noctalia-shell ipc call toggleAppLauncher"
-            else
-              "walker";
-          # Direct lock dispatch — bypasses universalLock chain which silently
-          # falls through to hyprlock when the shell isn't pgrep-matched.
-          "$shellLock" =
-            if caelestiaActiveOnHyprland then
-              "caelestiaLogout lock"
-            else if noctaliaActiveOnHyprland then
-              "noctalia-shell ipc call lockScreen lock"
-            else
-              "loginctl lock-session";
 
           exec-once = [
             "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"

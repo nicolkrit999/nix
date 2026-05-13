@@ -6,7 +6,7 @@
 }:
 delib.module {
   name = "programs.walker";
-  options = delib.singleEnableOption true;
+  options = delib.singleEnableOption false;
 
   home.always = { ... }: {
     imports = [ inputs.walker.homeManagerModules.default ];
