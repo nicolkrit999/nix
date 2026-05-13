@@ -166,13 +166,22 @@ delib.module {
           position = 105;
           isEssential = true;
         };
+        "Jellyfin Essential" = {
+          id = "20000000-0000-4000-8000-000000000016";
+          title = "Jellyfin";
+          url = "https://jellyfin.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          position = 106;
+          isEssential = true;
+        };
         "Portainer Essential" = {
           id = "20000000-0000-4000-8000-00000000000a";
           title = "Portainer";
           url = "https://portainer.nicolkrit.ch/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
-          position = 106;
+          position = 107;
           isEssential = true;
         };
         "Claude" = {
@@ -180,7 +189,7 @@ delib.module {
           url = "https://claude.ai/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
-          position = 107;
+          position = 108;
           isEssential = true;
         };
         "Reddit Essential" = {
@@ -189,7 +198,7 @@ delib.module {
           url = "https://www.reddit.com/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
-          position = 108;
+          position = 109;
           isEssential = true;
         };
         "YouTube Essential" = {
@@ -198,7 +207,7 @@ delib.module {
           url = "https://www.youtube.com/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
-          position = 109;
+          position = 110;
           isEssential = true;
         };
         "YouTube Music Essential" = {
@@ -207,7 +216,7 @@ delib.module {
           url = "https://music.youtube.com/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
-          position = 110;
+          position = 111;
           isEssential = true;
         };
         "GitHub Essential" = {
@@ -216,7 +225,7 @@ delib.module {
           url = "https://www.github.com/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
-          position = 111;
+          position = 112;
           isEssential = true;
         };
         "Actual Budget Essential" = {
@@ -225,7 +234,7 @@ delib.module {
           url = "https://budget.nicolkrit.ch/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
-          position = 112;
+          position = 113;
           isEssential = true;
         };
         "UBS Essential" = {
@@ -234,7 +243,7 @@ delib.module {
           url = "https://ebanking-ch1.ubs.com/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
-          position = 113;
+          position = 114;
           isEssential = true;
         };
         "Raiffeisen Essential" = {
@@ -243,7 +252,7 @@ delib.module {
           url = "https://login.raiffeisen.ch/en/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
-          position = 114;
+          position = 115;
           isEssential = true;
         };
         "SBB Essential" = {
@@ -252,7 +261,7 @@ delib.module {
           url = "https://www.sbb.ch/en/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
-          position = 115;
+          position = 116;
           isEssential = true;
         };
 
