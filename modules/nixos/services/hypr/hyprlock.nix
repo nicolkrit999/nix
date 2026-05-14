@@ -47,6 +47,7 @@ delib.module {
             grace = 0;
             disable_loading_bar = false;
             hide_cursor = true;
+            fail_timeout = 5000;
           };
 
           background = lib.mkForce [
@@ -150,7 +151,7 @@ delib.module {
                 then ''<i><span foreground="##ffffff99">🔒 Enter Pass</span></i>''
                 else ''<i><span foreground="##${c.base03}99">🔒 Enter Pass</span></i>'';
               hide_input = false;
-              check_color = "rgba(${c.base0B}f2)";
+              check_color = "rgba(${c.base09}f2)";
               fail_color = "rgba(${c.base08}f2)";
               capslock_color = "rgba(${c.base0A}f2)";
               position = "170, -315";
