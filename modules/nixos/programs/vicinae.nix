@@ -12,6 +12,10 @@ delib.module {
     extraRayCastExtensions = listOfOption lib.types.attrs [ ];
   };
 
+  nixos.always = { ... }: {
+    imports = [ inputs.vicinae.nixosModules.default ];
+  };
+
   home.always = { ... }: {
     imports = [ inputs.vicinae.homeManagerModules.default ];
   };
