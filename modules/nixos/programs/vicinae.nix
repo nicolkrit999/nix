@@ -10,6 +10,7 @@ delib.module {
     enable = boolOption true;
     extraExtensions = listOfOption lib.types.package [ ];
     extraRayCastExtensions = listOfOption lib.types.attrs [ ];
+    extraPackages = listOfOption lib.types.package [ ];
   };
 
   nixos.always = { ... }: {
@@ -100,5 +101,7 @@ delib.module {
 
         themes = { };
       };
+
+      home.packages = cfg.extraPackages;
     };
 }

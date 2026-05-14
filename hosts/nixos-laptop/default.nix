@@ -261,6 +261,9 @@ delib.host {
             { name = "video-downloader"; hash = "sha256-/Q9VW59t4xgQROuumw/6DWENAWqada+GHszvMyVrT0w="; }
             { name = "visual-studio-code-recent-projects"; installName = "visual-studio-code"; hash = "sha256-fhTmPfLoFpU2wuPHlL0WlLqtHBCLJ7/VMKjt3wLewQc="; }
           ];
+          extraPackages = with pkgs; [
+            aria2 # Required by aria2-manager extension
+          ];
         };
         television.enable = true;
         zoxide.enable = true;
