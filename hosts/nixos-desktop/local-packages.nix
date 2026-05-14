@@ -57,6 +57,7 @@ delib.module {
           #carbon-now-cli # Create beautiful images of your code (carbon.now.sh CLI)
           #cloudflared # Cloudflare's command-line tool and daemon
           #cloc # Count lines of code
+          aria2 # Download utility with support for multiple protocols (used by yt-dlp)
           croc # Securely and easily send files between two computers
           efibootmgr # Manage UEFI boot entries
           fastfetch # Fast system information fetcher

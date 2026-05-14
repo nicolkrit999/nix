@@ -56,6 +56,7 @@ delib.module {
           #cloudflared # Cloudflare's command-line tool and daemon
           #cloc # Count lines of code
           #croc # Securely and easily send files between two computers
+          aria2 # Download utility with support for multiple protocols (used by yt-dlp)
           efibootmgr # Manage UEFI boot entries
           fastfetch # Fast system information fetcher
           fd # Simple, fast and user-friendly alternative to find
