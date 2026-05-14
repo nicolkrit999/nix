@@ -23,6 +23,21 @@ delib.module {
 
       customBindings = [
         {
+          name = "Vicinae: Application Launcher";
+          command = "vicinae toggle";
+          binding = "<Super>a";
+        }
+        {
+          name = "Vicinae: Clipboard";
+          command = "vicinae vicinae://launch/clipboard/history";
+          binding = "<Super>v";
+        }
+        {
+          name = "Vicinae: Emoji Picker";
+          command = "vicinae vicinae://launch/core/search-emojis";
+          binding = "<Super>period";
+        }
+        {
           name = "Launch Terminal";
           command = myconfig.constants.terminal.name;
           binding = "<Super>Return";

@@ -58,6 +58,22 @@ delib.module {
           command = "${spectacleCmd} -u";
         };
 
+        "vicinae-toggle" = {
+          name = "Vicinae: Application Launcher";
+          key = "Meta+A";
+          command = "vicinae toggle";
+        };
+        "vicinae-clipboard" = {
+          name = "Vicinae: Clipboard";
+          key = "Meta+V";
+          command = "vicinae vicinae://launch/clipboard/history";
+        };
+        "vicinae-emoji" = {
+          name = "Vicinae: Emoji Picker";
+          key = "Meta+.";
+          command = "vicinae vicinae://launch/core/search-emojis";
+        };
+
         "launch-browser" = {
           name = "Launch ${myconfig.constants.browser}";
           key = "Meta+B";
