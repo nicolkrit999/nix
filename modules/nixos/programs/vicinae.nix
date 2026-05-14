@@ -55,11 +55,11 @@ delib.module {
 
           theme = {
             light = {
-              name = if stylixEnabled then "stylix" else "vicinae-light";
+              name = if stylixEnabled then "stylix" else "vicinae-sandstone";
               icon_theme = "default";
             };
             dark = {
-              name = if stylixEnabled then "stylix" else "vicinae-dark";
+              name = if stylixEnabled then "stylix" else "vicinae-inkwell";
               icon_theme = "default";
             };
           };
