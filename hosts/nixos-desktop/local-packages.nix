@@ -64,7 +64,6 @@ delib.module {
           gh # GitHub CLI tool
           #glow # Markdown renderer for the terminal
           grex # Command-line tool for generating regular expressions
-          nurl # Generate nix-fetcher curls from URLs
           htop # Process viewer and killer
           killall # Command to kill processes by name
           #lsof # List open files
