@@ -20,6 +20,49 @@ A `nixos` MCP server may be available (tools: `nix`, `nix_versions`). If present
 - Finding historical package versions with the nixpkgs commit hash (`nix_versions`)
 - Exploring local flake inputs from the Nix store (`action="flake-inputs"`)
 
+## Generating Nix Fetcher Calls with `nurl`
+
+Whenever you need to write a Nix fetcher expression, **strongly prefer `nurl`** over manually finding the rev, hash, owner, and repo. It infers the right fetcher from the URL and resolves the hash automatically.
+
+```bash
+nurl https://github.com/nix-community/patsh v0.2.0 2>/dev/null
+```
+
+Produces:
+
+```nix
+fetchFromGitHub {
+  owner = "nix-community";
+  repo = "patsh";
+  tag = "v0.2.0";
+  hash = "sha256-7HXJspebluQeejKYmVA7sy/F3dtU1gc4eAbKiPexMMA=";
+}
+```
+
+Note: nurl automatically uses the correct rev-like attribute (`tag`, `rev`, or `version`) depending on the fetcher — do not assume it will always be `rev`.
+
+**Supported fetchers** (auto-inferred from URL): `fetchFromGitHub`, `fetchFromGitLab`, `fetchFromGitea`, `fetchFromGitiles`, `fetchFromBitbucket`, `fetchFromSourcehut`, `fetchFromRepoOrCz`, `fetchCrate`, `fetchPypi`, `fetchHex`, `fetchgit`, `fetchhg`, `fetchsvn`, `fetchurl`, `fetchzip`, `fetchpatch`, `fetchpatch2`, `builtins.fetchGit`.
+
+**Useful flags:**
+
+| Flag | Purpose |
+|------|---------|
+| `-f <FETCHER>` | Force a specific fetcher instead of inferring |
+| `-H` | Output only the hash (useful for `hash = ...` fields) |
+| `-j` | Output as JSON |
+| `--overwrite-rev-str <STRING>` | Replace rev with a variable, e.g. `'v${version}'` |
+| `-i <N>` | Add N spaces of extra indentation |
+
+If `nurl` is not installed on the current host, run it via:
+
+```bash
+nix run nixpkgs#nurl -- <url> [ref]
+# or
+nix-shell -p nurl --run "nurl <url> [ref]"
+```
+
+Only fall back to manually writing fetcher attributes in rare cases where `nurl` does not support the source or fails.
+
 ## Core Responsibility
 
 Your role is to help configure, modify, refine, and extend this self-contained Nix configuration. It supports multiple desktop environments (GNOME, KDE Plasma, COSMIC) and window managers (Hyprland, Niri) on Linux, and a self-contained darwin configuration for macOS, all with a per-host constants system that cascades through modules.
