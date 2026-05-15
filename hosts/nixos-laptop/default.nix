@@ -207,19 +207,26 @@ delib.host {
       programs = {
         bat.enable = true;
         cava.enable = false;
+        claude-desktop.enable = true;
+        comma.enable = true;
         eza.enable = true;
         fzf.enable = true;
         fzf.nix-search-tv.enable = true;
-        nix-ld.enable = false;
-        nix-alien.enable = false;
-        comma.enable = true;
-        npm.enable = true;
-        statix.enable = false;
+        google-antigravity.enable = true;
         lazygit.enable = true;
+        nix-alien.enable = false;
+        nix-ld.enable = false;
+        npm.enable = true;
         shell-aliases.enable = true;
         starship.enable = true;
+        statix.enable = false;
+        swayosd.enable = true;
         tmux.enable = true;
+        television.enable = true;
         walker.enable = false;
+        zoxide.enable = true;
+        zen.browser.enable = true;
+
         vicinae = {
           enable = true;
           extraExtensions = with inputs.vicinae-extensions.packages.${pkgs.stdenv.hostPlatform.system}; [
@@ -265,11 +272,6 @@ delib.host {
             aria2 # Required by aria2-manager extension
           ];
         };
-        television.enable = true;
-        zoxide.enable = true;
-
-        zen.browser.enable = true;
-        swayosd.enable = true;
 
         claude-code = {
           enable = true;
@@ -289,87 +291,31 @@ delib.host {
           };
         };
 
-        claude-desktop.enable = true;
-
-        google-antigravity.enable = true;
 
         git = {
           enable = true;
           customGitIgnores = [ ];
         };
 
-        waybar-hyprland = {
-          enable = true;
-          waybarLayout = {
-            "format-en" = "🇺🇸-EN";
-          };
 
-          waybarWorkspaceIcons = {
-            "1" = "";
-            "2" = ":";
-            "3" = ":";
-            "4" = ":";
-            "5" = ":󰭹";
-            "6" = ":";
-            "7" = "";
-            "8" = "";
-            "9" = "";
-            "10" = ":";
-            "magic" = ":";
-          };
-        };
-
-        waybar-niri = {
-          enable = false;
-          waybarLayout = {
-            "format-en" = "🇺🇸-EN";
-          };
-        };
-
-        waybar-mango = {
-          enable = true;
-          waybarLayout = {
-            "format-en" = "🇺🇸-EN";
-          };
-        };
-
+        # ---------------------------------------------------------------
+        # 🐚 SHELLS
+        # ---------------------------------------------------------------
         caelestia = {
           enable = false;
           enableOnHyprland = true;
         };
 
         noctalia = {
-          enable = true;
+          enable = false;
           enableOnHyprland = false;
           enableOnNiri = true;
           enableOnMango = false;
         };
 
-        mango = {
-          enable = true;
-          monitors = [
-            "name:^eDP-1$,width:3200,height:2000,refresh:120,x:0,y:0,scale:1.6"
-          ];
-          monitorLayouts = {
-            "eDP-1" = "scroller";
-          };
-          execOnce = [
-            "sh -c 'sleep 1 && ${myBrowser}'"
-            "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
-            "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
-            "sh -c 'sleep 11 && ${myTerminal}'"
-            "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
-          ];
-          extraBinds = [
-            "SUPER,Y,spawn,chromium-browser"
-
-            "NONE,XF86Tools,viewtoleft_have_client,0"
-            "NONE,XF86Launch5,viewtoright_have_client,0"
-            "NONE,XF86Launch6,togglemaximizescreen,"
-            "NONE,XF86Launch7,killclient,"
-          ];
-        };
-
+        # ---------------------------------------------------------------
+        # 🪟 WINDOW MANAGERS
+        # ---------------------------------------------------------------
         hyprland = {
           enable = true;
           monitors = [
@@ -469,6 +415,31 @@ delib.host {
           ];
         };
 
+        mango = {
+          enable = true;
+          monitors = [
+            "name:^eDP-1$,width:3200,height:2000,refresh:120,x:0,y:0,scale:1.6"
+          ];
+          monitorLayouts = {
+            "eDP-1" = "scroller";
+          };
+          execOnce = [
+            "sh -c 'sleep 1 && ${myBrowser}'"
+            "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
+            "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
+            "sh -c 'sleep 11 && ${myTerminal}'"
+            "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
+          ];
+          extraBinds = [
+            "SUPER,Y,spawn,chromium-browser"
+
+            "NONE,XF86Tools,viewtoleft_have_client,0"
+            "NONE,XF86Launch5,viewtoright_have_client,0"
+            "NONE,XF86Launch6,togglemaximizescreen,"
+            "NONE,XF86Launch7,killclient,"
+          ];
+        };
+
         niri = {
           enable = true;
           outputs = {
@@ -498,6 +469,53 @@ delib.host {
           };
         };
 
+        # ---------------------------------------------------------------
+        # 📊 WAYBARS
+        # ---------------------------------------------------------------
+        waybar-hyprland = {
+          enable = true;
+          waybarLayout = {
+            "format-en" = "🇺🇸-EN";
+          };
+          waybarWorkspaceIcons = {
+            "1" = "";
+            "2" = ":";
+            "3" = ":";
+            "4" = ":";
+            "5" = ":󰭹";
+            "6" = ":";
+            "7" = "";
+            "8" = "";
+            "9" = "";
+            "10" = ":";
+            "magic" = ":";
+          };
+        };
+
+        waybar-mango = {
+          enable = true;
+          waybarLayout = {
+            "format-en" = "🇺🇸-EN";
+            "format-it" = "🇮🇹-IT";
+            "format-de" = "🇩🇪-DE";
+            "format-fr" = "🇫🇷-FR";
+          };
+        };
+
+        waybar-niri = {
+          enable = true;
+          waybarLayout = {
+            "format-en" = "🇺🇸-EN";
+          };
+        };
+
+        # ---------------------------------------------------------------
+        # 🖥️ DESKTOP ENVIRONMENTS
+        # ---------------------------------------------------------------
+        cosmic = {
+          enable = false;
+        };
+
         gnome = {
           enable = false; # Gnome pulls lot of elements. Since i almost never use it keep it disabled to save battery and resources
           pinnedApps = [
@@ -523,10 +541,6 @@ delib.host {
             { name = "Gesture Up (Maximize)"; command = "${pkgs.wtype}/bin/wtype -M super -k Up -m super"; binding = "XF86Launch6"; }
             { name = "Gesture Down (Close)"; command = "${pkgs.wtype}/bin/wtype -M super -M shift -k c -m shift -m super"; binding = "XF86Launch7"; }
           ];
-        };
-
-        cosmic = {
-          enable = false;
         };
 
         kde = {
@@ -560,14 +574,24 @@ delib.host {
       # ⚙️ SERVICES
       # ---------------------------------------------------------------
       services = {
+        audio.enable = true;
         external.dotfiles.enable = true; # Symlinks ~/dotfiles/* into $HOME (out-of-store)
+        hyprlock.enable = true;
+        impermanence.enable = true;
+        nix-topology.enable = false;
+        tailscale.enable = true;
 
         # Power management (mutually exclusive - only enable ONE)
         auto-cpufreq.enable = true; # Recommended: dynamic CPU scaling (uses official flake)
         tlp.enable = false; # Alternative: static power policies (uses NixOS native)
 
-        audio.enable = true;
-        hyprlock.enable = true;
+        hypridle = {
+          enable = true;
+          dimTimeout = 180;
+          lockTimeout = 300;
+          screenOffTimeout = 600;
+        };
+
         sddm-astronaut = {
           enable = true;
           embeddedTheme = "japanese_aesthetic";
@@ -577,9 +601,6 @@ delib.host {
           enable = false;
           avatar = ../../users/krit/src/profile-picture/face-512.jpg;
         };
-        impermanence.enable = true;
-        nix-topology.enable = false;
-        tailscale.enable = true;
 
         snapshots = {
           enable = true;
@@ -592,12 +613,6 @@ delib.host {
           };
         };
 
-        hypridle = {
-          enable = true;
-          dimTimeout = 180;
-          lockTimeout = 300;
-          screenOffTimeout = 600;
-        };
 
         swaync = {
           enable = true;
@@ -615,13 +630,14 @@ delib.host {
       # ---------------------------------------------------------------
       krit.programs = {
         alacritty.enable = false;
-        kitty.enable = true;
         chromium.enable = false;
-        helium.enable = false;
         claude-code-wrappers.enable = true;
         direnv.enable = true;
         dolphin.enable = true;
         firefox.enable = false;
+        helium.enable = false;
+        kitty.enable = true;
+        krokiet.enable = true;
         librewolf.enable = false;
         neovim.enable = true;
         pwas.enable = true;
@@ -660,8 +676,8 @@ delib.host {
       # 🎭 SHARED SPECIALIZATIONS
       # ---------------------------------------------------------------
       specializations = {
-        guest.enable = true;
         deep-focus.enable = false;
+        guest.enable = true;
         safe-mode.enable = true;
         secure-travel.enable = true;
       };
@@ -670,22 +686,22 @@ delib.host {
       # 🎭 KRIT SPECIALIZATIONS
       # ---------------------------------------------------------------
       krit.specializations = {
+        entertainment.enable = false;
         home.enable = true;
         school.enable = true;
-        entertainment.enable = false;
       };
 
       # ---------------------------------------------------------------
       # 🔧 KRIT SYSTEM
       # ---------------------------------------------------------------
       krit.system = {
-        swiss-locale.enable = true;
-        git-ssh-signing.enable = true;
-        default-user.enable = true;
-        virtualisation.enable = true;
-        resolved.enable = true;
         autotrash.enable = true;
+        default-user.enable = true;
+        git-ssh-signing.enable = true;
+        resolved.enable = true;
+        swiss-locale.enable = true;
         ssh-config.enable = true;
+        virtualisation.enable = true;
       };
 
       # ---------------------------------------------------------------
@@ -694,4 +710,3 @@ delib.host {
       krit.home.base.enable = true;
     };
 }
-

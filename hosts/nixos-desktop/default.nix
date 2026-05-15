@@ -170,19 +170,26 @@ delib.host {
       programs = {
         bat.enable = true;
         cava.enable = true;
+        claude-desktop.enable = true;
+        comma.enable = true;
         eza.enable = true;
         fzf.enable = true;
         fzf.nix-search-tv.enable = true;
-        nix-ld.enable = true;
-        nix-alien.enable = true;
-        comma.enable = true;
-        npm.enable = true;
-        statix.enable = true;
+        google-antigravity.enable = true;
         lazygit.enable = true;
+        nix-alien.enable = true;
+        nix-ld.enable = true;
+        npm.enable = true;
         shell-aliases.enable = true;
         starship.enable = true;
+        statix.enable = true;
+        swayosd.enable = true;
         tmux.enable = true;
+        television.enable = true;
         walker.enable = false;
+        zoxide.enable = true;
+        zen.browser.enable = true;
+
         vicinae = {
           enable = true;
           extraExtensions = with inputs.vicinae-extensions.packages.${pkgs.stdenv.hostPlatform.system}; [
@@ -228,10 +235,6 @@ delib.host {
             aria2 # Required by aria2-manager extension
           ];
         };
-        television.enable = true;
-        zoxide.enable = true;
-        zen.browser.enable = true;
-        swayosd.enable = true;
 
         claude-code = {
           enable = true;
@@ -251,118 +254,31 @@ delib.host {
           };
         };
 
-        claude-desktop.enable = true;
-
-        google-antigravity.enable = true;
 
         git = {
           enable = true;
           customGitIgnores = [ ];
         };
 
-        waybar-hyprland = {
-          enable = true;
-          waybarLayout = {
-            "format-en" = "🇺🇸-EN";
-            "format-it" = "🇮🇹-IT";
-            "format-de" = "🇩🇪-DE";
-            "format-fr" = "🇫🇷-FR";
-          };
 
-          waybarWorkspaceIcons = {
-            "1" = "";
-            "2" = ":";
-            "3" = ":";
-            "4" = "";
-            "5" = "";
-            "6" = "";
-            "7" = ":";
-            "8" = ":";
-            "9" = ":󰭹";
-            "10" = ":";
-            "magic" = ":";
-          };
-        };
-
-        waybar-niri = {
-          enable = true;
-          waybarLayout = {
-            "format-en" = "🇺🇸-EN";
-            "format-it" = "🇮🇹-IT";
-            "format-de" = "🇩🇪-DE";
-            "format-fr" = "🇫🇷-FR";
-          };
-        };
-
-        waybar-mango = {
-          # Disabled: noctalia is active on mango here and provides its own
-          # bar — waybar-mango + active shell on the same WM is a hard conflict.
-          enable = false;
-          waybarLayout = {
-            "format-en" = "🇺🇸-EN";
-            "format-it" = "🇮🇹-IT";
-            "format-de" = "🇩🇪-DE";
-            "format-fr" = "🇫🇷-FR";
-          };
-        };
-
+        # ---------------------------------------------------------------
+        # 🐚 SHELLS
+        # ---------------------------------------------------------------
         caelestia = {
           enable = false;
           enableOnHyprland = false;
         };
 
         noctalia = {
-          enable = true;
+          enable = false;
           enableOnHyprland = false;
           enableOnNiri = false;
           enableOnMango = true;
         };
 
-        mango = {
-          enable = true;
-          monitors = [
-            "name:^DP-1$,width:3840,height:2160,refresh:240,x:1440,y:560,scale:1.5"
-            "name:^DP-2$,width:3840,height:2160,refresh:144,x:0,y:0,scale:1.5,rr:1"
-            "name:^HDMI-A-1$,width:1920,height:1080,refresh:60,x:4000,y:560,scale:1"
-          ];
-          monitorLayouts = {
-            "DP-1" = "center_tile";
-            "DP-2" = "vertical_scroller";
-            "HDMI-A-1" = "scroller";
-          };
-          # Each startup app spawned with a unique --class so windowRules below
-          # pin it to a specific monitor at startup only. Manual launches use
-          # the default class and remain free to land on any monitor/tag.
-          # Spawn order matters: with center_tile/vertical_scroller the first
-          # spawn becomes master/leftmost, so the order below dictates layout.
-          execOnce = [
-            # DP-1
-            "sh -c 'sleep 3 && ${myTerminal} --class mango-startup-fileManager -e ${myFileManager}'"
-            "sh -c 'sleep 6 && ${myTerminal} --class mango-startup-editor -e ${myEditor}'"
-            "sh -c 'sleep 9 && ${myBrowser} --class=mango-startup-browser'"
-
-            # DP-2
-            "sh -c 'sleep 12 && brave --app=https://www.youtube.com --password-store=gnome --class=mango-startup-youtube'"
-            "sh -c 'sleep 15 && ${myTerminal} --class mango-startup-terminal'"
-            "sh -c 'sleep 18 && flatpak run com.rtosta.zapzap'"
-          ];
-          windowRules = [
-            "monitor:DP-1,appid:^mango-startup-fileManager$"
-            "monitor:DP-1,appid:^mango-startup-editor$"
-            "monitor:DP-1,appid:^mango-startup-browser$"
-            "monitor:DP-2,appid:^brave-.*\\..*$"
-            "monitor:DP-2,appid:^mango-startup-terminal$"
-            "monitor:DP-2,appid:^com.rtosta.zapzap$"
-          ];
-          extraBinds = [
-            "SUPER,Y,spawn,chromium-browser"
-            "NONE,XF86Tools,viewtoleft_have_client,0"
-            "NONE,XF86Launch5,viewtoright_have_client,0"
-            "NONE,XF86Launch6,togglemaximizescreen,"
-            "NONE,XF86Launch7,killclient,"
-          ];
-        };
-
+        # ---------------------------------------------------------------
+        # 🪟 WINDOW MANAGERS
+        # ---------------------------------------------------------------
         hyprland = {
           enable = true;
           monitors = [
@@ -467,6 +383,46 @@ delib.host {
           ];
         };
 
+        mango = {
+          enable = true;
+          monitors = [
+            "name:^DP-1$,width:3840,height:2160,refresh:240,x:1440,y:560,scale:1.5"
+            "name:^DP-2$,width:3840,height:2160,refresh:144,x:0,y:0,scale:1.5,rr:1"
+            "name:^HDMI-A-1$,width:1920,height:1080,refresh:60,x:4000,y:560,scale:1"
+          ];
+          monitorLayouts = {
+            "DP-1" = "center_tile";
+            "DP-2" = "vertical_scroller";
+            "HDMI-A-1" = "scroller";
+          };
+          execOnce = [
+            # DP-1
+            "sh -c 'sleep 3 && ${myTerminal} --class mango-startup-fileManager -e ${myFileManager}'"
+            "sh -c 'sleep 6 && ${myTerminal} --class mango-startup-editor -e ${myEditor}'"
+            "sh -c 'sleep 9 && ${myBrowser} --class=mango-startup-browser'"
+
+            # DP-2
+            "sh -c 'sleep 12 && brave --app=https://www.youtube.com --password-store=gnome --class=mango-startup-youtube'"
+            "sh -c 'sleep 15 && ${myTerminal} --class mango-startup-terminal'"
+            "sh -c 'sleep 18 && flatpak run com.rtosta.zapzap'"
+          ];
+          windowRules = [
+            "monitor:DP-1,appid:^mango-startup-fileManager$"
+            "monitor:DP-1,appid:^mango-startup-editor$"
+            "monitor:DP-1,appid:^mango-startup-browser$"
+            "monitor:DP-2,appid:^brave-.*\\..*$"
+            "monitor:DP-2,appid:^mango-startup-terminal$"
+            "monitor:DP-2,appid:^com.rtosta.zapzap$"
+          ];
+          extraBinds = [
+            "SUPER,Y,spawn,chromium-browser"
+            "NONE,XF86Tools,viewtoleft_have_client,0"
+            "NONE,XF86Launch5,viewtoright_have_client,0"
+            "NONE,XF86Launch6,togglemaximizescreen,"
+            "NONE,XF86Launch7,killclient,"
+          ];
+        };
+
         niri = {
           enable = true;
           outputs = {
@@ -526,6 +482,61 @@ delib.host {
           };
         };
 
+        # ---------------------------------------------------------------
+        # 📊 WAYBARS
+        # ---------------------------------------------------------------
+        waybar-hyprland = {
+          enable = true;
+          waybarLayout = {
+            "format-en" = "🇺🇸-EN";
+            "format-it" = "🇮🇹-IT";
+            "format-de" = "🇩🇪-DE";
+            "format-fr" = "🇫🇷-FR";
+          };
+          waybarWorkspaceIcons = {
+            "1" = "";
+            "2" = ":";
+            "3" = ":";
+            "4" = "";
+            "5" = "";
+            "6" = "";
+            "7" = ":";
+            "8" = ":";
+            "9" = ":󰭹";
+            "10" = ":";
+            "magic" = ":";
+          };
+        };
+
+        waybar-mango = {
+          # Disabled: noctalia is active on mango here and provides its own
+          # bar — waybar-mango + active shell on the same WM is a hard conflict.
+          enable = false;
+          waybarLayout = {
+            "format-en" = "🇺🇸-EN";
+            "format-it" = "🇮🇹-IT";
+            "format-de" = "🇩🇪-DE";
+            "format-fr" = "🇫🇷-FR";
+          };
+        };
+
+        waybar-niri = {
+          enable = true;
+          waybarLayout = {
+            "format-en" = "🇺🇸-EN";
+            "format-it" = "🇮🇹-IT";
+            "format-de" = "🇩🇪-DE";
+            "format-fr" = "🇫🇷-FR";
+          };
+        };
+
+        # ---------------------------------------------------------------
+        # 🖥️ DESKTOP ENVIRONMENTS
+        # ---------------------------------------------------------------
+        cosmic = {
+          enable = true;
+        };
+
         gnome = {
           enable = true;
           pinnedApps = [
@@ -551,10 +562,6 @@ delib.host {
             { name = "Gesture Up (Maximize)"; command = "${pkgs.wtype}/bin/wtype -M super -k Up -m super"; binding = "XF86Launch6"; }
             { name = "Gesture Down (Close)"; command = "${pkgs.wtype}/bin/wtype -M super -M shift -k c -m shift -m super"; binding = "XF86Launch7"; }
           ];
-        };
-
-        cosmic = {
-          enable = true;
         };
 
         kde = {
@@ -588,10 +595,20 @@ delib.host {
       # ⚙️ SERVICES
       # ---------------------------------------------------------------
       services = {
-        external.dotfiles.enable = true; # Symlinks ~/dotfiles/* into $HOME (out-of-store)
-
         audio.enable = true;
+        external.dotfiles.enable = true; # Symlinks ~/dotfiles/* into $HOME (out-of-store)
         hyprlock.enable = true;
+        impermanence.enable = true;
+        nix-topology.enable = false;
+        tailscale.enable = true;
+
+        hypridle = {
+          enable = true;
+          dimTimeout = 900;
+          lockTimeout = 1800;
+          screenOffTimeout = 3600;
+        };
+
         sddm-astronaut = {
           enable = true;
           # embeddedTheme = "japanese_aesthetic";
@@ -602,9 +619,6 @@ delib.host {
           background = ../../users/krit/src/wallpapers/Cat_at_Play.png;
           avatar = ../../users/krit/src/profile-picture/face-512.jpg;
         };
-        impermanence.enable = true;
-        nix-topology.enable = false;
-        tailscale.enable = true;
 
         snapshots = {
           enable = true;
@@ -617,12 +631,6 @@ delib.host {
           };
         };
 
-        hypridle = {
-          enable = true;
-          dimTimeout = 900;
-          lockTimeout = 1800;
-          screenOffTimeout = 3600;
-        };
 
         swaync = {
           enable = true;
@@ -641,13 +649,13 @@ delib.host {
 
       krit.programs = {
         alacritty.enable = false;
-        kitty.enable = true;
         chromium.enable = false;
-        helium.enable = true;
         claude-code-wrappers.enable = true;
         direnv.enable = true;
         dolphin.enable = true;
         firefox.enable = false;
+        helium.enable = true;
+        kitty.enable = true;
         krokiet.enable = true;
         librewolf.enable = true;
         neovim.enable = true;
@@ -687,8 +695,8 @@ delib.host {
       # 🎭 SHARED SPECIALIZATIONS
       # -----------
       specializations = {
-        guest.enable = true;
         deep-focus.enable = true;
+        guest.enable = true;
         safe-mode.enable = true;
         secure-travel.enable = true;
       };
@@ -697,21 +705,21 @@ delib.host {
       # 🎭 KRIT SPECIALIZATIONS
       # ---------------------------------------------------------------
       krit.specializations = {
-        school.enable = true;
         entertainment.enable = true;
+        school.enable = true;
       };
 
       # ---------------------------------------------------------------
       # 🔧 KRIT SYSTEM
       # ---------------------------------------------------------------
       krit.system = {
-        swiss-locale.enable = true;
-        git-ssh-signing.enable = true;
-        default-user.enable = true;
-        virtualisation.enable = false;
-        resolved.enable = true;
         autotrash.enable = true;
+        default-user.enable = true;
+        git-ssh-signing.enable = true;
+        resolved.enable = true;
+        swiss-locale.enable = true;
         ssh-config.enable = true;
+        virtualisation.enable = false;
       };
 
       # ---------------------------------------------------------------
@@ -721,4 +729,3 @@ delib.host {
 
     };
 }
-
