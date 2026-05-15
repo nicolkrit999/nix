@@ -166,10 +166,10 @@ delib.module {
           position = 105;
           isEssential = true;
         };
-        "Jellyfin Essential" = {
+        "Hevy" = {
           id = "20000000-0000-4000-8000-000000000016";
-          title = "Jellyfin";
-          url = "https://jellyfin.nicolkrit.ch/";
+          title = "Hevy";
+          url = "https://hevy.com/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           position = 106;
