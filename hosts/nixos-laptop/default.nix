@@ -291,6 +291,8 @@ delib.host {
 
         claude-desktop.enable = true;
 
+        google-antigravity.enable = true;
+
         git = {
           enable = true;
           customGitIgnores = [ ];
