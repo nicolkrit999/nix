@@ -172,6 +172,7 @@ delib.host {
         cava.enable = true;
         claude-desktop.enable = true;
         comma.enable = true;
+        concord.enable = true;
         eza.enable = true;
         fzf.enable = true;
         fzf.nix-search-tv.enable = true;

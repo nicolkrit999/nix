@@ -20,6 +20,10 @@ A `nixos` MCP server may be available (tools: `nix`, `nix_versions`). If present
 - Finding historical package versions with the nixpkgs commit hash (`nix_versions`)
 - Exploring local flake inputs from the Nix store (`action="flake-inputs"`)
 
+**Token-cost discipline:** the MCP responses can be large and burn context fast. Use it when it clearly saves work — e.g. confirming an attribute path before adding a package, checking a renamed/removed attribute after a build error, verifying an option exists in the current channel, or replacing a long back-and-forth of `nix search` / `nix repl` / `gh api` calls with a single query. Do **not** call it for things you already know, for trivial lookups answerable from the repo itself (grep CLAUDE.md, read a sibling module), or speculatively "just in case." One targeted query beats three exploratory ones.
+
+`nix-search-tv` is also available locally as a lightweight TUI alternative when the user is at the terminal — mention it when the user could benefit from browsing interactively rather than asking you to query.
+
 ## Generating Nix Fetcher Calls with `nurl`
 
 Whenever you need to write a Nix fetcher expression, **strongly prefer `nurl`** over manually finding the rev, hash, owner, and repo. It infers the right fetcher from the URL and resolves the hash automatically.

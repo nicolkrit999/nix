@@ -254,6 +254,8 @@
       url = "github:jacopone/antigravity-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    concord.url = "github:chojs23/concord";
   };
 
 }
