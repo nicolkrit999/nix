@@ -722,7 +722,7 @@ delib.host {
         resolved.enable = true;
         swiss-locale.enable = true;
         ssh-config.enable = true;
-        virtualisation.enable = false;
+        virtualisation.enable = true;
       };
 
       # ---------------------------------------------------------------
