@@ -84,11 +84,6 @@ delib.module {
               "SDL_VIDEODRIVER,wayland" # Forces SDL games to run on Wayland (improves performance/scaling).
               "CLUTTER_BACKEND,wayland" # Forces Clutter apps to use Wayland.
               "_JAVA_AWT_WM_NONREPARENTING,1" # Fixes Java GUI apps (IntelliJ, Minecraft Launcher) on Wayland.
-              # TESTING (2026-05-07): commented out — Zen Browser extension popup blur on Hyprland.
-              # GDK_SCALE=2 conflicts with native Wayland fractional scale (wp_fractional_scale_v1).
-              # Niri (no GDK_SCALE) works fine; mango (GDK_SCALE=2) also works — so partial fix at best.
-              # Uncomment to revert if any GTK3 apps look wrong at 1.5x scale.
-              # "GDK_SCALE,${gdkScale}" # Sets GTK scaling based on first monitor's scale factor.
 
               # DESKTOP SESSION IDENTITY
               "XDG_CURRENT_DESKTOP,Hyprland" # Tells portals (screen sharing) that you are using Hyprland.
@@ -195,16 +190,6 @@ delib.module {
             force_default_wallpaper = 0;
             disable_hyprland_logo = true;
           };
-
-          # TESTING (2026-05-07): commented out — Zen Browser extension popup blur on Hyprland.
-          # GDK_SCALE removal didn't fix the issue (popup still breaks after maximize/workspace move).
-          # force_zero_scaling=true is the next Hyprland-unique setting to suspect (niri/mango don't
-          # have an equivalent). Only affects XWayland clients (legacy X11 apps); native Wayland apps
-          # like Zen, Firefox, GTK4, Qt6 are unaffected.
-          # Uncomment to revert if XWayland apps (legacy GTK2, old Java GUI, some games) look wrong.
-          # xwayland = {
-          #   force_zero_scaling = true;
-          # };
 
           windowrulev2 = [
             #ShowMeTheKey  fixes. ShowMetheKey is a GTK app for displaying keypresses on screen.
