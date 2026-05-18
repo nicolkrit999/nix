@@ -1,4 +1,4 @@
-{ delib, pkgs, ... }:
+{ delib, pkgs, pkgs-unstable, ... }:
 delib.module {
   name = "user";
 
@@ -31,5 +31,25 @@ delib.module {
           ];
         };
       };
+
+      security.sudo.extraRules = [
+        {
+          users = [ myconfig.constants.user ];
+          commands = [
+            {
+              command = "/run/current-system/sw/bin/nixos-rebuild";
+              options = [ "NOPASSWD" ];
+            }
+            {
+              command = "${pkgs.nixos-rebuild}/bin/nixos-rebuild";
+              options = [ "NOPASSWD" ];
+            }
+            {
+              command = "${pkgs-unstable.nixos-rebuild}/bin/nixos-rebuild";
+              options = [ "NOPASSWD" ];
+            }
+          ];
+        }
+      ];
     };
 }
