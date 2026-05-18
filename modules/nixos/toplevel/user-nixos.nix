@@ -1,10 +1,11 @@
-{ delib, pkgs, pkgs-unstable, ... }:
+{ delib, inputs, pkgs, ... }:
 delib.module {
   name = "user";
 
   nixos.always =
     { myconfig, ... }:
     let
+      pkgs-unstable = import inputs.nixpkgs-unstable { inherit (pkgs.stdenv.hostPlatform) system; };
       currentShell = myconfig.constants.shell or "zsh";
 
       shellPkg =
