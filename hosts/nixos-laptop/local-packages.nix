@@ -59,7 +59,10 @@ delib.module {
           efibootmgr # Manage UEFI boot entries
           fastfetch # Fast system information fetcher
           fd # Simple, fast and user-friendly alternative to find
+          hwinfo # Hardware detection tool from openSUSE
+          cointop # Fastest and most interactive terminal based UI application for tracking cryptocurrencies
           gh # GitHub CLI tool
+          jellyfin-tui # Jellyfin music streaming client for the terminal
           #glow # Markdown renderer for the terminal
           grex # Command-line tool for generating regular expressions
           htop # Process viewer and killer
@@ -70,6 +73,7 @@ delib.module {
           pokemon-colorscripts
           reddix # Reddit CLI client
           ripgrep # Fast line-oriented search tool
+          nchat # terminal-based chat client with support for telegram and whatsapp
           stow # Symlink manager for dotfiles
           tealdeer # Fast implementation of tldr (simplified man pages)
           tree # Display directories as trees
@@ -117,6 +121,7 @@ delib.module {
           # -----------------------------------------------------------------------
           # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
           # -----------------------------------------------------------------------
+          distrobox-tui # TUI for DistroBox
           #fresh-editor # Lightweight terminal text editor
         ]);
     };

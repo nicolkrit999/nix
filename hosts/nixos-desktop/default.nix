@@ -185,6 +185,7 @@ delib.host {
         starship.enable = true;
         statix.enable = true;
         swayosd.enable = true;
+        tgt.enable = true;
         tmux.enable = true;
         television.enable = true;
         walker.enable = false;

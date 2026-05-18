@@ -222,6 +222,7 @@ delib.host {
         starship.enable = true;
         statix.enable = false;
         swayosd.enable = true;
+        tgt.enable = true;
         tmux.enable = true;
         television.enable = true;
         walker.enable = false;

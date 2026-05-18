@@ -255,7 +255,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # No nixpkgs.follows: our 25.11 renamed `opus` → `libopus`, upstream still uses `pkgs.opus`. Re-add follows when fixed upstream.
     concord.url = "github:chojs23/concord";
+
+    # No nixpkgs.follows: tdlib in our 25.11 fails CMake <3.5 compat removal. Re-add follows when fixed upstream.
+    tgt.url = "github:FedericoBruzzone/tgt";
   };
 
 }
