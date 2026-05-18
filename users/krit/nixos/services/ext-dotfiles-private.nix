@@ -30,6 +30,7 @@ let
       ".claude/keybindings.json"
       ".claude/settings.json"
       ".claude/context-mode"
+      ".claude/plugins"
       ".claude/plans"
     ];
 

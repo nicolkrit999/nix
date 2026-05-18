@@ -39,15 +39,39 @@ delib.module {
           commands = [
             {
               command = "/run/current-system/sw/bin/nixos-rebuild";
-              options = [ "NOPASSWD" ];
+              options = [ "SETENV" "NOPASSWD" ];
             }
             {
               command = "${pkgs.nixos-rebuild}/bin/nixos-rebuild";
-              options = [ "NOPASSWD" ];
+              options = [ "SETENV" "NOPASSWD" ];
             }
             {
               command = "${pkgs-unstable.nixos-rebuild}/bin/nixos-rebuild";
-              options = [ "NOPASSWD" ];
+              options = [ "SETENV" "NOPASSWD" ];
+            }
+            {
+              command = "/nix/store/*-nixos-rebuild*/bin/nixos-rebuild";
+              options = [ "SETENV" "NOPASSWD" ];
+            }
+            {
+              command = "/nix/store/*/bin/switch-to-configuration";
+              options = [ "SETENV" "NOPASSWD" ];
+            }
+            {
+              command = "/run/current-system/sw/bin/switch-to-configuration";
+              options = [ "SETENV" "NOPASSWD" ];
+            }
+            {
+              command = "${pkgs.nh}/bin/nh";
+              options = [ "SETENV" "NOPASSWD" ];
+            }
+            {
+              command = "/run/current-system/sw/bin/nh";
+              options = [ "SETENV" "NOPASSWD" ];
+            }
+            {
+              command = "/nix/store/*-nh-*/bin/nh";
+              options = [ "SETENV" "NOPASSWD" ];
             }
           ];
         }
