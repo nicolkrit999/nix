@@ -5,16 +5,6 @@
 }:
 
 let
-  # ---------------------------------------------------------------
-  # 🔗 DOTFILES SYMLINK MAP
-  # ---------------------------------------------------------------
-  # Maps "<path under $HOME>" => "<path relative to ~/dotfiles>"
-  # Add new entries here when extending the dotfiles repo.
-  # Each entry becomes an out-of-store symlink:
-  #   ~/<key>  ->  ~/dotfiles/<value>
-  # The dotfiles repo must be cloned at ~/dotfiles or the symlinks
-  # will be dangling. This module does NOT clone the repo.
-  # ---------------------------------------------------------------
   mappings = {
     # caelestia-shell
     ".config/caelestia" = "quickshell/.config/caelestia";
