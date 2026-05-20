@@ -439,6 +439,15 @@ delib.module {
             desc = "Create a new tab with CWD";
           }
 
+          {
+            on = [
+              "t"
+              "d"
+            ];
+            run = "tab_close";
+            desc = "Close the current tab";
+          }
+
           # 1. Absolute Switching
           {
             on = [
