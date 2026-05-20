@@ -160,7 +160,7 @@ delib.module {
         "NAS Essential" = {
           id = "20000000-0000-4000-8000-000000000009";
           title = "NAS";
-          url = "https://nas.nicolkrit.ch/";
+          url = "https://ug.link/nicolnas";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           position = 105;
@@ -395,7 +395,7 @@ delib.module {
         };
         "NAS" = {
           id = "40000000-0000-4000-8000-000000000021";
-          url = "https://nas.nicolkrit.ch/";
+          url = "https://ug.link/nicolnas";
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
