@@ -17,29 +17,30 @@ let
   # ---------------------------------------------------------------
   mappings = {
     # caelestia-shell
-    ".config/caelestia" = "quickshell/.config/caelestia";
-
-    # fastfetch (NixOS flavor)
-    ".config/fastfetch" = "catppuccin-mocha-fastfetch-nixOS/.config/fastfetch";
-
-    # general-bash
-    ".bashrc_custom" = "shells/.bashrc_custom";
-
-    # general-fish
-    ".config/conf.d" = "shells/.config/conf.d";
-    ".custom.fish" = "shells/.custom.fish";
-
-    # general-nvim
-    ".config/nvim" = "general-nvim/.config/nvim";
-
-    # general-zshrc
-    ".zshrc_custom" = "shells/.zshrc_custom";
+    ".config/caelestia" = "linux/linux-general/shells/quickshell/.config/caelestia";
 
     # noctalia-shell
-    ".config/noctalia" = "quickshell/.config/noctalia";
+    ".config/noctalia" = "linux/linux-general/shells/quickshell/.config/noctalia";
+
+    # fastfetch (NixOS flavor)
+    ".config/fastfetch" = "linux/linux-distro-specific/nixOS/catppuccin-mocha-fastfetch-nixOS/.config/fastfetch";
+
+    # general-bash
+    ".bashrc_custom" = "general/shells/.bashrc_custom";
+
+    # general-fish
+    ".config/conf.d" = "general/shells/.config/conf.d";
+    ".custom.fish" = "general/shells/.custom.fish";
+
+    # general-nvim
+    ".config/nvim" = "general/general-nvim/.config/nvim";
+
+    # general-zshrc
+    ".zshrc_custom" = "general/shells/.zshrc_custom";
+
 
     # profile-picture
-    ".face" = "profile-picture/.face";
+    ".face" = "linux/linux-general/profile-picture/.face";
   };
 in
 

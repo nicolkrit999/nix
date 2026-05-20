@@ -11,8 +11,9 @@ let
       ".claude/memory"
       ".claude/notebooklm"
       ".claude/skills"
-      ".claude/projects/-home-krit-nix"
-      ".claude/projects/-home-krit-momentary-gym-claude-skill"
+      ".claude/projects/-home-krit-nix/memory"
+      ".claude/projects/-home-krit-momentary-gym-claude-skill/memory"
+      ".claude/projects/-home-krit-github-repos-personal-portainer-templates/memory"
       ".config/ccstatusline"
     ];
 
@@ -20,7 +21,6 @@ let
       ".claude.json"
       ".claude/keybindings.json"
       ".claude/settings.json"
-      ".claude/context-mode"
       ".claude/plugins"
       ".claude/plans"
     ];
@@ -29,7 +29,6 @@ let
       ".claude.json"
       ".claude/keybindings.json"
       ".claude/settings.json"
-      ".claude/context-mode"
       ".claude/plugins"
       ".claude/plans"
     ];
