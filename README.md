@@ -1,4 +1,5 @@
 # ❄️ Personal NixOS Config
+⚠️ the documentation, including this readme (screenshots included) are not up to date. Especially for styling and available features there are lot of changes. The documentation will be updated as soon as possible
 
 ## Hyprland + waybar + lazygit + ranger + firefox
 
