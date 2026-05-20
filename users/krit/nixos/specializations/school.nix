@@ -175,7 +175,13 @@ delib.module {
         home.activation.createSchoolDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           mkdir -p $HOME/.school-workspace/oneDrive || true
           mkdir -p $HOME/.school-workspace/owncloud || true
-          mkdir -p $HOME/.school-workspace/github-repos || true
+          mkdir -p $HOME/.school-workspace/projects || true
+          mkdir -p $HOME/.school-workspace/1-semester || true
+          mkdir -p $HOME/.school-workspace/2-semester || true
+          mkdir -p $HOME/.school-workspace/3-semester || true
+          mkdir -p $HOME/.school-workspace/4-semester || true
+          mkdir -p $HOME/.school-workspace/5-semester || true
+          mkdir -p $HOME/.school-workspace/6-semester || true
           mkdir -p $HOME/.school-workspace/momentary || true
           mkdir -p $HOME/.school-workspace/distrobox-bin || true
         '';
