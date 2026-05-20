@@ -28,7 +28,7 @@ let
 
     doCheck = false;
 
-    cargoHash = "sha256-lCPS7f/yGU0Fn0nAFA7kW8fNa9kiEGzcvSsn9ak0+d8=";
+    cargoHash = "sha256-CSKeVVx2J51NIvA71FMLYgcvLSrkG8OpmZSZ0WK4f8w=";
     buildNoDefaultFeatures = true;
     buildFeatures = [ "pkg-config" ];
 
