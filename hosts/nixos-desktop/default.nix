@@ -84,22 +84,22 @@ delib.host {
         wallpapers = [
           {
             targetMonitor = "DP-1";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/ChrisTitusTech/ChrisTitusTech/nord-background/at_the_coffeshop.png";
-            wallpaperSHA256 = "14jnknqia3p2szg9qzyi3h2kb0pz0wj7ypvzx0fi449pq54vr931";
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/b56bc78bf5861f9d39afd2592ad572013dff6146/wallpapers/Pictures/wallpapers/various/various-websites/alphacoders/alphacoder-anime-girl-1.jpg";
+            wallpaperSHA256 = "00wvcb8f6lbdkxlvda81c9ipm2vi5vaf9v9kk81zbg8pr5ykbvx5";
           }
           {
             targetMonitor = "*";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/linuxdotexe/nordic-wallpapers/ign_Carvan-2.png";
-            wallpaperSHA256 = "03n3kh7mz26cnyah1pnnrs2msxmdd6s9qwcnj9pxzif1q2xpdv4r";
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/b56bc78bf5861f9d39afd2592ad572013dff6146/wallpapers/Pictures/wallpapers/various/other-user-github-repos/adarsh-67r-catppuccin-mocha-walls-main/space.png";
+            wallpaperSHA256 = "1bnyvwgic8j830034rn1lwdky9fmz0y9k01iv5jnkpskfi0w7vci";
           }
         ];
 
         theme = {
           polarity = "dark";
-          base16Theme = "nord";
-          catppuccin = false;
-          catppuccinFlavor = "mocha";
-          catppuccinAccent = "teal";
+          base16Theme = "catppuccin";
+          catppuccin = true;
+          catppuccinFlavor = "frappe";
+          catppuccinAccent = "sapphire";
         };
 
         screenshots = "$HOME/Pictures/Screenshots";
