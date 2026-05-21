@@ -112,8 +112,8 @@ delib.host {
 
           {
             targetMonitor = "*";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/atraxsrc-tokyonight/tokyonight-wallpapers-main/heroes_upscayl_realesrgan-x4plus_x2.png";
-            wallpaperSHA256 = "0h7gw3wj5jc306qdim43jhbps32w1g81rwhdr2kw0y98ig9l0zjm";
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/b56bc78bf5861f9d39afd2592ad572013dff6146/wallpapers/Pictures/wallpapers/various/various-websites/alphacoders/alphacoder-anime-girl-1.jpg";
+            wallpaperSHA256 = "00wvcb8f6lbdkxlvda81c9ipm2vi5vaf9v9kk81zbg8pr5ykbvx5";
           }
         ];
 
@@ -122,10 +122,10 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "tokyo-night-dark";
-          catppuccin = false;
-          catppuccinFlavor = "mocha";
-          catppuccinAccent = "teal";
+          base16Theme = "catppuccin-frappe";
+          catppuccin = true;
+          catppuccinFlavor = "frappe";
+          catppuccinAccent = "sapphire";
         };
 
         # ---------------------------------------------------------------
