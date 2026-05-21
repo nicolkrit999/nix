@@ -102,7 +102,7 @@ delib.host {
         theme = {
           polarity = "dark";
           base16Theme = "catppuccin-macchiato";
-          catppuccin = true;
+          catppuccin = false;
           catppuccinFlavor = "macchiato";
           catppuccinAccent = "sapphire";
         };
@@ -619,8 +619,8 @@ delib.host {
 
         sddm-astronaut = {
           enable = true;
-          embeddedTheme = "pixel_sakura_static";
-          background = ../../users/krit/src/wallpapers/neko.jpg;
+          embeddedTheme = "hyprland_kath";
+          #background = ../../users/krit/src/wallpapers/neko.jpg;
         };
         sddm-pixie = {
           enable = false;

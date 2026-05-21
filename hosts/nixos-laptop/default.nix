@@ -102,18 +102,16 @@ delib.host {
         fileManager = myFileManager;
 
         wallpapers = [
-          /*
-          {
-            targetMonitor = "eDP-1";
-            wallpaperURL = "https://github.com/nicolkrit999/wallpapers-repo/blob/main/wallpapers/Pictures/wallpapers/various/various-websites/wallpaperflare/wallpaperflare_nasa.jpg";
-            wallpaperSHA256 = "1r8wdcgk5hg0rc1cs2g6dkvv5r9pshl1lsvw80nzqnk1iqc202gn";
-          }
-          */
 
           {
-            targetMonitor = "*";
+            targetMonitor = "eDP-1";
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/b56bc78bf5861f9d39afd2592ad572013dff6146/wallpapers/Pictures/wallpapers/various/various-websites/alphacoders/alphacoder-anime-girl-1.jpg";
             wallpaperSHA256 = "00wvcb8f6lbdkxlvda81c9ipm2vi5vaf9v9kk81zbg8pr5ykbvx5";
+          }
+          {
+            targetMonitor = "*";
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/b56bc78bf5861f9d39afd2592ad572013dff6146/wallpapers/Pictures/wallpapers/various/other-user-github-repos/adarsh-67r-catppuccin-mocha-walls-main/space.png";
+            wallpaperSHA256 = "1bnyvwgic8j830034rn1lwdky9fmz0y9k01iv5jnkpskfi0w7vci";
           }
         ];
 
@@ -123,7 +121,7 @@ delib.host {
         theme = {
           polarity = "dark";
           base16Theme = "catppuccin-macchiato";
-          catppuccin = true;
+          catppuccin = false;
           catppuccinFlavor = "macchiato";
           catppuccinAccent = "sapphire";
         };
@@ -597,8 +595,8 @@ delib.host {
 
         sddm-astronaut = {
           enable = true;
-          embeddedTheme = "japanese_aesthetic";
-          background = ../../users/krit/src/wallpapers/tron.png;
+          embeddedTheme = "hyprland_kath";
+          #background = ../../users/krit/src/wallpapers/tron.png;
         };
         sddm-pixie = {
           enable = false;
