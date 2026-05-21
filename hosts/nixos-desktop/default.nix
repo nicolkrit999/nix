@@ -88,6 +88,11 @@ delib.host {
             wallpaperSHA256 = "00wvcb8f6lbdkxlvda81c9ipm2vi5vaf9v9kk81zbg8pr5ykbvx5";
           }
           {
+            targetMonitor = "DP-2";
+            wallpaperURL = "https://github.com/nicolkrit999/wallpapers-repo/blob/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/axaxx-loll/macchiato-wallpapers-main/genshin2.png";
+            wallpaperSHA256 = "0afzafiqw9anykhymhc8z3wsn84yxhai95dmja1bgcmbr82fsq7x";
+          }
+          {
             targetMonitor = "*";
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/b56bc78bf5861f9d39afd2592ad572013dff6146/wallpapers/Pictures/wallpapers/various/other-user-github-repos/adarsh-67r-catppuccin-mocha-walls-main/space.png";
             wallpaperSHA256 = "1bnyvwgic8j830034rn1lwdky9fmz0y9k01iv5jnkpskfi0w7vci";
@@ -614,8 +619,8 @@ delib.host {
 
         sddm-astronaut = {
           enable = true;
-          # embeddedTheme = "japanese_aesthetic";
-          background = ../../users/krit/src/wallpapers/ign_unicorn.png;
+          embeddedTheme = "pixel_sakura_static";
+          background = ../../users/krit/src/wallpapers/neko.jpg;
         };
         sddm-pixie = {
           enable = false;
