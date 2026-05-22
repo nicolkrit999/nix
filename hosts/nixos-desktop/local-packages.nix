@@ -20,6 +20,7 @@ delib.module {
           # 🖥️ DESKTOP APPLICATIONS
           # -----------------------------------------------------------------------
           #anydesk # Remote management desktop application
+          concessio # File permission viewer/calculator
           cryptomator # Client side encryptions for cloud drives
           cpu-x # Hardware information visualizer application
           drawio # Diagramming application

@@ -15,6 +15,9 @@ delib.module {
       services.flatpak = {
         enable = true;
         packages = [
+          "io.github.philippkosarev.bmi" # Bmi calculator
+          "io.github.lluciocc.Vish" # Gui bash script editor
+          "io.github.iionel.Visu" # Algorithm visualizer
           "com.actualbudget.actual" # Actual budget budgeting app
           "me.iepure.devtoolbox" # DevToolbox, a collection of tools for developers
           "com.github.unrud.VideoDownloader" # Video Downloader, a tool for downloading videos from various platforms

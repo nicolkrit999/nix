@@ -60,6 +60,7 @@
               patchelf
               zlib
               nodejs_latest
+              visualvm
 
               # LSP & IDE Support
               jdt-language-server
