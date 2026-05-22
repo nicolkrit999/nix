@@ -35,7 +35,7 @@ delib.module {
           #meld # Visual diff and merge tool
           obs-studio # Streaming/Recording
           proton-pass # Password manager by Proton
-          protonvpn-gui # VPN client by Proton
+          #protonvpn-gui # VPN client by Proton
           #remmina # Remote management desktop client
           signal-desktop # Encrypted messaging application
           telegram-desktop # Messaging

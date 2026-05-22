@@ -603,11 +603,13 @@ delib.host {
       # ---------------------------------------------------------------
       services = {
         audio.enable = true;
+        autotrash.enable = true;
         external.dotfiles.enable = true;
         external.dotfiles-private.enable = true;
         hyprlock.enable = true;
         impermanence.enable = true;
         nix-topology.enable = false;
+        resolved.enable = true;
         tailscale.enable = true;
 
         hypridle = {
@@ -643,10 +645,12 @@ delib.host {
         swaync = {
           enable = true;
           customSettings = {
+            /*
             "mute-protonvpn" = {
               state = "ignored";
               app-name = ".*Proton.*";
             };
+            */
           };
         };
       };
@@ -721,10 +725,8 @@ delib.host {
       # 🔧 KRIT SYSTEM
       # ---------------------------------------------------------------
       krit.system = {
-        autotrash.enable = true;
         default-user.enable = true;
         git-ssh-signing.enable = true;
-        resolved.enable = true;
         swiss-locale.enable = true;
         ssh-config.enable = true;
         virtualisation.enable = true;

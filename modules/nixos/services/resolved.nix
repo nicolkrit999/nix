@@ -1,6 +1,6 @@
 { delib, ... }:
 delib.module {
-  name = "krit.system.resolved";
+  name = "services.resolved";
   options = delib.singleEnableOption false;
 
   nixos.ifEnabled = {

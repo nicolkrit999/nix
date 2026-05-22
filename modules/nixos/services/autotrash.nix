@@ -1,6 +1,6 @@
 { delib, pkgs, ... }:
 delib.module {
-  name = "krit.system.autotrash";
+  name = "services.autotrash";
 
 
   options =
