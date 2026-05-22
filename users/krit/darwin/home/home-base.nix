@@ -15,15 +15,23 @@ delib.module {
       home.homeDirectory = "/Users/${myconfig.constants.user}";
 
       home.packages = with pkgs; [
-        vscode
-        ranger
-        killall
+        fastfetch
+        fd
+        gh
+        htop
+        inetutils
         nix-search-cli
+        pay-respects
+        pokemon-colorscripts
         ripgrep
+        stow
+        tmate
+        tree
         unzip
+        vscode
+        yt-dlp
         zip
         zlib
-        wget
       ];
 
       home.sessionVariables = {
