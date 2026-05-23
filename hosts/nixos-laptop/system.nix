@@ -69,36 +69,29 @@ delib.host {
       !include /run/secrets/github_fg_pat_token_nix
     '';
 
-    # TEMPORARY WORKAROUND: Override sof-firmware to nixpkgs-unstable (2025.12.2+) for newer DSP firmware
-    # (2.13.0.1 → 2.14.1.1) and per-unit CS35L57 calibration files on Dell XPS 16 2026 (Panther Lake).
-    # Note: 4-amp topology hypothesis was WRONG — 4 physical CS35L57s = 2 stereo SDCA function instances,
-    # so 2amp IS correct. Override kept for DSP firmware improvements only.
-    # Remove when nixpkgs 25.11 ships sof-firmware ≥ 2025.12.2, or when UCM2 support lands (audio fix
-    # will come from kernel/firmware, not this overlay).
-    nixpkgs.overlays = [
-      (_final: prev: {
-        sof-firmware = inputs.nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.sof-firmware;
-      })
-    ];
+    # TESTING: Both audio workarounds commented out to verify upstream behavior.
+    # Re-enable both blocks below if audio is silent (no UCM2 = no auto-routing to speakers).
 
-    # TEMPORARY WORKAROUND: No UCM2 profile for sof-soundwire on Dell XPS 16 2026 (Panther Lake).
-    # PipeWire defaults to "stereo-fallback" → routes audio to headphone jack PCM (device 0), not speakers.
-    # Fix: force "pro-audio" profile (exposes all PCMs) + boost speaker node priority so it's the default.
-    # Remove this entire block when UCM2 or kernel machine driver support lands for this hardware.
-    services.pipewire.wireplumber.extraConfig."50-dell-xps16-speakers" = {
-      "monitor.alsa.rules" = [
-        {
-          "matches" = [{ "device.name" = "alsa_card.pci-0000_00_1f.3-platform-sof_sdw"; }];
-          "actions"."update-props"."device.profile" = "pro-audio";
-        }
-      ];
-      "node.rules" = [
-        {
-          "matches" = [{ "node.name" = "alsa_output.pci-0000_00_1f.3-platform-sof_sdw.pro-output-2"; }];
-          "actions"."update-props"."priority.session" = 2000;
-        }
-      ];
-    };
+    # nixpkgs.overlays = [
+    #   (_final: prev: {
+    #     sof-firmware = inputs.nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.sof-firmware;
+    #   })
+    # ];
+
+    # services.pipewire.wireplumber.extraConfig."50-dell-xps16-speakers" = {
+    #   "monitor.alsa.rules" = [
+    #     {
+    #       "matches" = [{ "device.name" = "alsa_card.pci-0000_00_1f.3-platform-sof_sdw"; }];
+    #       "actions"."update-props"."device.profile" = "pro-audio";
+    #     }
+    #   ];
+    #   "node.rules" = [
+    #     {
+    #       "matches" = [{ "node.name" = "alsa_output.pci-0000_00_1f.3-platform-sof_sdw.pro-output-2"; }];
+    #       "actions"."update-props"."priority.session" = 2000;
+    #     }
+    #   ];
+    # };
 
     # Laptop-specific hardware — Intel Arc B390 (12 Xe3 cores, integrated in Panther Lake X7 358H SoC, xe driver)
     hardware.enableRedistributableFirmware = true; # Intel CPU microcode + GPU firmware for Panther Lake
