@@ -69,8 +69,12 @@ delib.host {
       !include /run/secrets/github_fg_pat_token_nix
     '';
 
-    # sof-firmware 2025.05.1 (nixpkgs 25.11) only has sof-sdca-2amp-id2.tplg; Dell XPS 16 2026 has
-    # 4x CS35L57 amps, needs sof-sdca-4amp-id2.tplg added in 2025.12.2. Override to get it.
+    # TEMPORARY WORKAROUND: Override sof-firmware to nixpkgs-unstable (2025.12.2+) for newer DSP firmware
+    # (2.13.0.1 → 2.14.1.1) and per-unit CS35L57 calibration files on Dell XPS 16 2026 (Panther Lake).
+    # Note: 4-amp topology hypothesis was WRONG — 4 physical CS35L57s = 2 stereo SDCA function instances,
+    # so 2amp IS correct. Override kept for DSP firmware improvements only.
+    # Remove when nixpkgs 25.11 ships sof-firmware ≥ 2025.12.2, or when UCM2 support lands (audio fix
+    # will come from kernel/firmware, not this overlay).
     nixpkgs.overlays = [
       (_final: prev: {
         sof-firmware = inputs.nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.sof-firmware;
