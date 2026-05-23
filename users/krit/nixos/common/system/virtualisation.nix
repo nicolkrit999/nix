@@ -16,11 +16,7 @@ delib.module {
       distroshelf # Gui manager for distrobox
     ] ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux") (
       let pkgs-unstable = import inputs.nixpkgs-unstable { system = pkgs.stdenv.hostPlatform.system; };
-      in [
-        # winboat: devs recommend unstable — Electron 41 breaks node-abi on 25.11.
-        # Re-test on stable when Electron 42+ lands or node-abi gains Electron 41 support.
-        pkgs-unstable.winboat
-      ]
+      in [ pkgs-unstable.winboat ]
     );
   };
 
