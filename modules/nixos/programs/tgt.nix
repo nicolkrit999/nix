@@ -1,9 +1,7 @@
 { delib, inputs, pkgs, ... }:
 # nixpkgs-unstable is used here because 25.11 ships tdlib 1.8.55 but tdlib-rs requires >= 1.8.61.
 # The tgt flake's own bundled tdlib is 1.8.29 (fails CMake <3.5 compat error too).
-# (25.11 already has Rust 1.91, so edition2024 is fine — tdlib is the only blocker.)
-# TODO: drop tgtPkgs + re-add `inputs.nixpkgs.follows = "nixpkgs"` on `tgt` in flake.nix
-# once 25.11 backports tdlib >= 1.8.61.
+# TODO: drop tgtPkgs once 25.11 backports tdlib >= 1.8.61 or tgt upstream fixes their bundled tdlib.
 #
 # Issue 3 (unwritable HOME in sandbox) is still present upstream — preBuild stays.
 # cargoHash: update the `got:` value here after each `nix flake update`.
