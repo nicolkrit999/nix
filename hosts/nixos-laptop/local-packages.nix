@@ -41,6 +41,7 @@ delib.module {
           # -----------------------------------------------------------------------------------
           # 🖥️ CLI UTILITIES
           # -----------------------------------------------------------------------------------
+          distrobox-tui # TUI for DistroBox
           hwinfo # Hardware detection tool from openSUSE
           cointop # Fastest and most interactive terminal based UI application for tracking cryptocurrencies
           jellyfin-tui # Jellyfin music streaming client for the terminal
@@ -78,8 +79,7 @@ delib.module {
           # -----------------------------------------------------------------------
           # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
           # -----------------------------------------------------------------------
-          distrobox-tui # TUI for DistroBox
-          fresh-editor # Lightweight terminal text editor
+          fresh-editor # Lightweight terminal text editor — not in 25.11
         ]);
     };
 }
