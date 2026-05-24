@@ -30,40 +30,34 @@ delib.module {
         else
           "nh os boot ${flakeDir}";
 
-      # Push system closure to attic (primary, unconstrained) and/or cachix
-      # (bootstrap fallback, 5 GB quota). Each push is independently fail-soft
-      # via fish `begin; ...; or true; end` so attic-down (off-tailnet) doesn't
-      # skip the cachix push and vice versa. Build failures still abort.
+      # =========================================================================
+      # CACHE PUSH BUILDERS (shared by wrapCaches + manual attic-push/cachix-push)
+      # =========================================================================
+      atticEnabled =
+        (myconfig.krit.attic.enable or false) && (myconfig.krit.attic.push or false);
+      cachixEnabled =
+        (myconfig.cachix.enable or false) && (myconfig.cachix.push or false);
+
+      atticServer = myconfig.krit.attic.serverUrl;
+      atticCache = myconfig.krit.attic.cacheName;
+      atticToken = myconfig.krit.attic.authTokenPath;
+      atticPush =
+        "attic login nas-push ${atticServer} \"$(cat ${atticToken})\""
+        + "; and nix path-info -r /run/current-system | attic push nas-push:${atticCache} --stdin";
+
+      cName =
+        if myconfig.cachix.name == "use-constant" then
+          myconfig.constants.cachix.name
+        else
+          myconfig.cachix.name;
+      cachixPush =
+        "nix path-info -r /run/current-system"
+        + " | xargs -P 16 -I {} sh -c 'h=$(basename {} | cut -d- -f1); curl -sf -o /dev/null \"https://cache.nixos.org/$h.narinfo\" || echo {}'"
+        + " | cachix push ${cName}";
+
       wrapCaches =
         cmd:
         let
-          atticEnabled =
-            (myconfig.krit.attic.enable or false) && (myconfig.krit.attic.push or false);
-          cachixEnabled =
-            (myconfig.cachix.enable or false) && (myconfig.cachix.push or false);
-
-          atticServer = myconfig.krit.attic.serverUrl;
-          atticCache = myconfig.krit.attic.cacheName;
-          atticToken = myconfig.krit.attic.authTokenPath;
-          # Login under a separate server name ('nas-push') to avoid clobbering
-          # an interactive 'attic login nas <admin-token>' on the user's side.
-          atticPush =
-            "attic login nas-push ${atticServer} \"$(cat ${atticToken})\""
-            + "; and nix path-info -r /run/current-system | attic push nas-push:${atticCache} --stdin";
-
-          cName =
-            if myconfig.cachix.name == "use-constant" then
-              myconfig.constants.cachix.name
-            else
-              myconfig.cachix.name;
-          # Pre-filter against cache.nixos.org so cachix's 5 GB quota is reserved
-          # for paths the public cache doesn't already have. Parallel narinfo HEAD
-          # checks via xargs -P keep this under a few seconds for typical closures.
-          cachixPush =
-            "nix path-info -r /run/current-system"
-            + " | xargs -P 16 -I {} sh -c 'h=$(basename {} | cut -d- -f1); curl -sf -o /dev/null \"https://cache.nixos.org/$h.narinfo\" || echo {}'"
-            + " | cachix push ${cName}";
-
           pushLines =
             (lib.optional atticEnabled "${atticPush}; or true")
             ++ (lib.optional cachixEnabled "${cachixPush}; or true");
@@ -149,7 +143,9 @@ delib.module {
         se = "sudoedit";
         reb-uefi = "systemctl reboot --firmware-setup";
         swdryaarch64-linux = "cd ${flakeDir} && git add -A && nix build ${flakeDir}#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run --show-trace";
-      };
+      }
+      // (lib.optionalAttrs atticEnabled { attic-push = atticPush; })
+      // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPush; });
 
       # =========================================================================
       # DARWIN-SPECIFIC ALIASES
