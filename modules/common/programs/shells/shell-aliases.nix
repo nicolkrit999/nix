@@ -43,7 +43,7 @@ delib.module {
       atticToken = myconfig.krit.attic.authTokenPath;
       atticPush =
         "attic login nas-push ${atticServer} \"$(cat ${atticToken})\""
-        + "; and nix path-info -r /run/current-system | attic push nas-push:${atticCache} --stdin";
+        + "; and nix path-info -r /run/current-system | attic push -j 32 nas-push:${atticCache} --stdin";
 
       cName =
         if myconfig.cachix.name == "use-constant" then
