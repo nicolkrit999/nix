@@ -1,9 +1,11 @@
-{ delib, ... }:
+{ delib, lib, ... }:
 delib.module {
   name = "krit.system.swiss-locale";
   options = delib.singleEnableOption false;
 
   nixos.ifEnabled = {
+    systemd.services.display-manager.environment.LC_TIME = lib.mkDefault "it_CH.UTF-8";
+
     # Swiss locale settings for numbers, dates, and measurements
     i18n.extraLocaleSettings = {
       LC_ADDRESS = "it_CH.UTF-8"; # Address formatting

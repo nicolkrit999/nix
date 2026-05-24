@@ -202,6 +202,8 @@ delib.module {
       systemd.services.display-manager.environment = {
         QT_IM_MODULE = "qtvirtualkeyboard";
         QT_VIRTUALKEYBOARD_DESKTOP_DISABLE = "1";
+      } // lib.optionalAttrs (myconfig.constants.lcTime != "") {
+        LC_TIME = myconfig.constants.lcTime;
       };
 
       environment.systemPackages = [

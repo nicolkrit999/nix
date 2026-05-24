@@ -178,6 +178,11 @@ delib.host {
         push = false;
       };
 
+      krit.attic = {
+        enable = true;
+        push = false;
+      };
+
       home-packages.enable = true;
       mime.enable = true;
 

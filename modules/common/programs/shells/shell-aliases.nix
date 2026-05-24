@@ -30,23 +30,43 @@ delib.module {
         else
           "nh os boot ${flakeDir}";
 
-      wrapCachix =
+      # Push system closure to attic (primary, unconstrained) and/or cachix
+      # (bootstrap fallback, 5 GB quota). Order matters: attic first so a cachix
+      # quota error doesn't skip the attic push.
+      wrapCaches =
         cmd:
-        if (myconfig.cachix.enable or false) && (myconfig.cachix.push or false) then
-          let
-            cName =
-              if myconfig.cachix.name == "use-constant" then
-                myconfig.constants.cachix.name
-              else
-                myconfig.cachix.name;
-          in
-          "${cmd}; and nix path-info -r /run/current-system | cachix push ${cName}"
-        else
-          cmd;
+        let
+          atticEnabled =
+            (myconfig.krit.attic.enable or false) && (myconfig.krit.attic.push or false);
+          cachixEnabled =
+            (myconfig.cachix.enable or false) && (myconfig.cachix.push or false);
 
-      nixosSwitchWrapped = wrapCachix nixosSwitchCmd;
-      nixosUpdateWrapped = wrapCachix nixosUpdateCmd;
-      nixosBootWrapped = wrapCachix nixosBootCmd;
+          atticServer = myconfig.krit.attic.serverUrl;
+          atticCache = myconfig.krit.attic.cacheName;
+          atticToken = myconfig.krit.attic.authTokenPath;
+          # Login under a separate server name ('nas-push') to avoid clobbering
+          # an interactive 'attic login nas <admin-token>' on the user's side.
+          atticPush =
+            "attic login nas-push ${atticServer} \"$(cat ${atticToken})\" >/dev/null"
+            + "; and nix path-info -r /run/current-system | attic push nas-push:${atticCache} --stdin";
+
+          cName =
+            if myconfig.cachix.name == "use-constant" then
+              myconfig.constants.cachix.name
+            else
+              myconfig.cachix.name;
+          cachixPush = "nix path-info -r /run/current-system | cachix push ${cName}";
+
+          pushes =
+            (lib.optional atticEnabled atticPush)
+            ++ (lib.optional cachixEnabled cachixPush);
+        in
+        if pushes == [ ] then cmd
+        else "${cmd}; and " + (lib.concatStringsSep "; and " pushes);
+
+      nixosSwitchWrapped = wrapCaches nixosSwitchCmd;
+      nixosUpdateWrapped = wrapCaches nixosUpdateCmd;
+      nixosBootWrapped = wrapCaches nixosBootCmd;
 
       # =========================================================================
       # DARWIN-SPECIFIC COMMAND BUILDERS
@@ -93,13 +113,13 @@ delib.module {
         swboot = "cd ${flakeDir} && git add -A && ${nixosBootWrapped}";
         swdry = "cd ${flakeDir} && git add -A && nh os test --dry --ask .";
         sw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
-        swfall = "cd ${flakeDir} && git add -A && ${wrapCachix "${nixosSwitchCmd} --fallback"}";
+        swfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${nixosSwitchCmd} --fallback"}";
         gsw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
-        gswfall = "cd ${flakeDir} && git add -A && ${wrapCachix "${nixosSwitchCmd} --fallback"}";
+        gswfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${nixosSwitchCmd} --fallback"}";
         gswoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
-        swsrc = "cd ${flakeDir} && git add -A && ${wrapCachix "${nixosSwitchCmd} --option substitute false"}";
+        swsrc = "cd ${flakeDir} && git add -A && ${wrapCaches "${nixosSwitchCmd} --option substitute false"}";
         swoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
-        tswsrc = "cd ${flakeDir} && git add -A && time ${wrapCachix "${nixosSwitchCmd} --option substitute false"}";
+        tswsrc = "cd ${flakeDir} && git add -A && time ${wrapCaches "${nixosSwitchCmd} --option substitute false"}";
 
         # Flake checks and updates
         nfc = "cd ${flakeDir} && git add -A && nix flake check";

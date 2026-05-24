@@ -122,6 +122,11 @@ delib.module {
         sddm-pixie
       ];
 
+      systemd.services.display-manager.environment =
+        lib.optionalAttrs (myconfig.constants.lcTime != "") {
+          LC_TIME = myconfig.constants.lcTime;
+        };
+
       services.displayManager.autoLogin = {
         enable = false;
         user = myconfig.constants.user;

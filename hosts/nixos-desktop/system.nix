@@ -35,6 +35,7 @@ delib.host {
           sops.secrets = {
             # Host-specific secrets (from host sops file)
             "krit-local-password".neededForUsers = true;
+            "attic-push-token".owner = myUserName;
             borg-passphrase = { };
             borg-private-key = { };
           } // (import ../../templates/krit/sops/common-secrets.nix {

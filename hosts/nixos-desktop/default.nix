@@ -149,6 +149,12 @@ delib.host {
         push = true; # Only the builder must have this true (for now "nixos-desktop")
       };
 
+      krit.attic = {
+        enable = true;
+        push = true;
+        authTokenPath = "/run/secrets/attic-push-token";
+      };
+
       home-packages.enable = true;
       mime.enable = true;
 
