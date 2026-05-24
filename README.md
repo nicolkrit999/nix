@@ -175,7 +175,7 @@ Wallpapers are defined to be hosts specific and they are tied to the monitor lis
   - **Hyprland + noctalia with quickshell**
     - Noctalia include many configuration aspect so i choose to let the user manually change the config in the noctalia gui.
     - Be careful with the choice of font. If a chosen font is not installed then there are conflicts
-  
+
   - For the theming the shell only support the themes inside it's store. If the chosen base16 one is different then the shell will look different than the rest of the system.
 
 - **niri + noctalia with quickshell**
@@ -431,7 +431,7 @@ sops.age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
     - It's used both by `caelestia` and `noctalia`. The shells can be installed and used in both architecture but the screen recording features will not work on `aarch64-linux`
 
 - 🚨 I do not have access to an actual aarch-64-linux nor a macbook pc so 100% compatibility at any moment is not guaranteed
-  - If you find any problem open an `issue` and i will gladly look into it 
+  - If you find any problem open an `issue` and i will gladly look into it
 ---
 
 # 🚀 NixOS Installation Guide (dual boot, manual partitioning, btrfs, snapshots and impermenance support)
@@ -1161,11 +1161,6 @@ The LICENCE.txt file is copied from the original repo and should respect the GPL
 ### [Structure](./Documentation/usage/denix/)
 
 This folder contains the official denix documentation as well as a brief description of every module that can be enabled
-
-### [In-depth-files-expl](./Documentation/in-depth-files-expl/files-expl.md)
-
-This folder contains an in-depth explanation of files that could be difficult to understand
-
 
 
 ### [Troubleshooting](./Documentation/troubleshooting/)
