@@ -1,6 +1,5 @@
 { delib
 , pkgs
-, lib
 , ...
 }:
 delib.module {
@@ -23,15 +22,11 @@ delib.module {
     in
     {
       nix.settings = {
-        substituters = [ "https://${finalName}.cachix.org" ];
+        substituters = [ "https://${finalName}.cachix.org?priority=20" ];
         trusted-public-keys = [ finalKey ];
       };
 
       environment.systemPackages = [ pkgs.cachix ];
-
-      environment.shellAliases = lib.mkIf cfg.push {
-        rebuild-push = "export CACHIX_AUTH_TOKEN=$(cat ${cfg.authTokenPath}) && sudo nixos-rebuild switch --flake . && nix path-info -r /run/current-system | cachix push ${finalName}";
-      };
     };
 
   darwin.ifEnabled =
@@ -43,14 +38,10 @@ delib.module {
     in
     {
       nix.settings = {
-        substituters = [ "https://${finalName}.cachix.org" ];
+        substituters = [ "https://${finalName}.cachix.org?priority=20" ];
         trusted-public-keys = [ finalKey ];
       };
 
       environment.systemPackages = [ pkgs.cachix ];
-
-      environment.shellAliases = lib.mkIf cfg.push {
-        rebuild-push = "export CACHIX_AUTH_TOKEN=$(cat ${cfg.authTokenPath}) && darwin-rebuild switch --flake . && nix path-info -r /run/current-system | cachix push ${finalName}";
-      };
     };
 }

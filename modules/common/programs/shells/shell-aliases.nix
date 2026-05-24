@@ -51,9 +51,7 @@ delib.module {
         else
           myconfig.cachix.name;
       cachixPush =
-        "nix path-info -r /run/current-system"
-        + " | xargs -P 16 -I {} sh -c 'h=$(basename {} | cut -d- -f1); curl -sf -o /dev/null \"https://cache.nixos.org/$h.narinfo\" || echo {}'"
-        + " | cachix push ${cName}";
+        "nix path-info -r /run/current-system | cachix push ${cName}";
 
       wrapCaches =
         cmd:

@@ -18,7 +18,7 @@ delib.module {
     { cfg, ... }:
     {
       nix.settings = {
-        extra-substituters = [ "${cfg.serverUrl}/${cfg.cacheName}" ];
+        extra-substituters = [ "${cfg.serverUrl}/${cfg.cacheName}?priority=10&connect-timeout=5" ];
         extra-trusted-public-keys = [ cfg.publicKey ];
       };
 
@@ -29,7 +29,7 @@ delib.module {
     { cfg, ... }:
     {
       nix.settings = {
-        extra-substituters = [ "${cfg.serverUrl}/${cfg.cacheName}" ];
+        extra-substituters = [ "${cfg.serverUrl}/${cfg.cacheName}?priority=10&connect-timeout=5" ];
         extra-trusted-public-keys = [ cfg.publicKey ];
       };
 
