@@ -39,7 +39,7 @@ delib.host {
               sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
               owner = myUserName;
             };
-            "cachix-auth-token" = {
+            "cachix-push-token" = {
               sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
               owner = myUserName;
             };

@@ -37,7 +37,7 @@ delib.host {
       cachix = {
         enable = true;
         push = true;
-        authTokenPath = "/run/secrets/cachix-auth-token";
+        authTokenPath = "/run/secrets/cachix-push-token";
       };
 
       krit.attic = {

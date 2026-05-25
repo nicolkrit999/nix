@@ -107,7 +107,7 @@ delib.host {
           sopsFile = commonSecrets;
           owner = "krit";
         };
-        cachix-auth-token = {
+        cachix-push-token = {
           sopsFile = commonSecrets;
           owner = "krit";
         };

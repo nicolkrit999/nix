@@ -147,7 +147,7 @@ delib.host {
       cachix = {
         enable = true;
         push = true; # Only the builder must have this true (for now "nixos-desktop")
-        authTokenPath = "/run/secrets/cachix-auth-token";
+        authTokenPath = "/run/secrets/cachix-push-token";
       };
 
       krit.attic = {
