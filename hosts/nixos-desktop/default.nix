@@ -57,6 +57,7 @@ let
     "nemo" = "nemo.desktop";
   };
   resolve = name: desktopMap.${name} or "${name}.desktop";
+  nurPkgs = import inputs.nur { inherit pkgs; nurpkgs = pkgs; };
 in
 
 delib.host {
@@ -191,6 +192,14 @@ delib.host {
         google-antigravity.enable = true;
         lazygit.enable = true;
         nix-alien.enable = true;
+        nltchNur = {
+          enable = true;
+          packages = [
+            nurPkgs.repos.nltch.spotify-adblock
+          ];
+          permittedInsecurePackages = [
+          ];
+        };
         nix-ld.enable = true;
         npm.enable = true;
         shell-aliases.enable = true;

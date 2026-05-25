@@ -14,8 +14,6 @@
 
       # Common exclusions for all module systems
       baseExclude = [
-        # Note: dev-environments is no longer scanned (outside platformPaths)
-        ./users/krit/common/programs/gui-programs/librewolf/profiles # `librewolf.nix` already imports them
 
         # Any `hardware-configuration.nix must be excluded`
         ./hosts/nixos-desktop/hardware-configuration.nix
@@ -25,6 +23,9 @@
         # Any `disko` must be excluded
         ./hosts/template-host-minimal/disko-config-btrfs.nix
         ./hosts/template-host-minimal/disko-config-btrfs-luks-impermanence.nix
+
+        # Opinionated modules exclusion
+        ./users/krit/common/programs/gui-programs/librewolf/profiles # `librewolf.nix` already imports them
       ];
 
       # Darwin hosts (excluded from nixos builds)
@@ -87,10 +88,6 @@
         };
       generatedNixosConfigs = mkConfigurations "nixos";
 
-      # Hide Linux-only outputs on Darwin to avoid IFD failures.
-      # catppuccin-nix uses importTOML from derivation output (IFD), requiring
-      # aarch64-linux builds — impossible on aarch64-darwin without remote builders.
-      # Default to "not-darwin" so outputs are always exposed unless confirmed on Darwin.
       isDarwin = builtins.elem (builtins.currentSystem or "not-darwin") [ "aarch64-darwin" "x86_64-darwin" ];
     in
     {
@@ -148,13 +145,17 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Needed to get firefox addons from nur
     firefox-addons = {
       url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Official catppuccin-nix flake
+    # Full NUR for nltch repo packages
+    nur = {
+      url = "github:nix-community/NUR";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     catppuccin = {
       url = "github:catppuccin/nix/release-25.11"; # Changed from "github:catppuccin/nix" to pin to it and avoid the "services.displayManager.generic" does not exist evalution warning after a "nix flake update" done on february, 13, 2026
       inputs.nixpkgs.follows = "nixpkgs";
@@ -167,25 +168,21 @@
       inputs.home-manager.follows = "home-manager";
     };
 
-    # Official quickshell flake
     quickshell = {
       url = "git+https://git.outfoxxed.me/quickshell/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Official caelestia flake
     caelestia-shell = {
       url = "github:caelestia-dots/shell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Official noctalia flake
     noctalia-shell = {
       url = "github:noctalia-dev/noctalia-shell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Official sops-nix flake
     nix-sops = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -207,11 +204,7 @@
       inputs.elephant.follows = "elephant";
     };
 
-    # Vicinae launcher — do NOT set inputs.nixpkgs.follows = "nixpkgs" or
-    # the vicinae.cachix.org cache will miss and you'll be compiling Qt locally.
     vicinae.url = "github:vicinaehq/vicinae";
-
-    # Vicinae extensions — same cache reason: avoid nixpkgs.follows.
     vicinae-extensions.url = "github:vicinaehq/extensions";
 
     auto-cpufreq = {
