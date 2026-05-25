@@ -7,8 +7,14 @@
 let
   packageLeaves = {
     claude-ai-common = [
-      ".claude"
-      ".config"
+      ".claude/agents"
+      ".claude/memory"
+      ".claude/notebooklm"
+      ".claude/skills"
+      ".claude/projects/-home-krit-nix/memory"
+      ".claude/projects/-home-krit-momentary-gym-claude-skill/memory"
+      ".claude/projects/-home-krit-github-repos-personal-portainer-templates/memory"
+      ".config/ccstatusline"
     ];
 
     claude-ai-private-macOS = [
