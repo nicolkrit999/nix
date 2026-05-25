@@ -13,7 +13,7 @@ delib.host {
         user = "krit";
         uid = 501;
 
-        terminal.name = "kitty";
+        terminal.name = "alacritty";
         shell = "fish";
         browser = "firefox";
         editor = "nvim";
