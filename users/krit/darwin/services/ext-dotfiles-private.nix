@@ -41,7 +41,7 @@ let
 in
 
 delib.module {
-  name = "services.external.dotfiles-private";
+  name = "darwin.services.external.dotfiles-private";
 
   options = delib.singleEnableOption false;
 
