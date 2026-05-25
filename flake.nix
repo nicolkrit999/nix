@@ -97,7 +97,9 @@
       nixosConfigurations = if isDarwin then { } else generatedNixosConfigs;
       homeConfigurations = if isDarwin then { } else mkConfigurations "home";
       darwinConfigurations = mkConfigurations "darwin";
-      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
+      formatter = nixpkgs.lib.genAttrs
+        (if isDarwin then [ "aarch64-darwin" ] else [ "x86_64-linux" "aarch64-linux" ])
+        (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
     } // (if isDarwin then { } else {
       topology = forAllSystems (system: import inputs.nix-topology {
         pkgs = import nixpkgs {
