@@ -245,11 +245,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # No nixpkgs.follows: our 25.11 renamed `opus` → `libopus`, upstream still uses `pkgs.opus`. Re-add follows when fixed upstream.
+    # No nixpkgs.follows: 25.11 renamed `opus` → `libopus`, concord upstream still uses `pkgs.opus`. Re-add follows when fixed upstream.
     concord.url = "github:chojs23/concord";
 
-    # No nixpkgs.follows: tgt's bundled tdlib is 1.8.29 (fails CMake <3.5 compat) and
-    # 25.11 ships tdlib 1.8.55 (too old for tdlib-rs >= 1.8.61). Using nixpkgs-unstable in tgt.nix.
     tgt.url = "github:FedericoBruzzone/tgt";
   };
 
