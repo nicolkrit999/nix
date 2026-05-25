@@ -113,6 +113,11 @@ delib.host {
         local-packages.enable = true;
       };
 
+      krit.services.external = {
+        dotfiles.enable = true;
+        dotfiles-private.enable = true;
+      };
+
 
       # ---------------------------------------------------------------
       # 🍎 DARWIN-ONLY MODULES
