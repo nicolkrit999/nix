@@ -175,12 +175,14 @@ delib.host {
 
       cachix = {
         enable = true;
-        push = false;
+        push = true;
+        authTokenPath = "/run/secrets/cachix-push-token";
       };
 
       krit.attic = {
         enable = true;
-        push = false;
+        push = true;
+        authTokenPath = "/run/secrets/attic-push-token";
       };
 
       home-packages.enable = true;
