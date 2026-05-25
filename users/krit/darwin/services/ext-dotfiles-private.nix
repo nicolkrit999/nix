@@ -7,15 +7,8 @@
 let
   packageLeaves = {
     claude-ai-common = [
-      ".claude/agents"
-      ".claude/memory"
-      ".claude/notebooklm"
-      ".claude/skills"
-      ".claude/projects/-home-krit-nix/memory"
-      ".claude/projects/-home-krit-momentary-gym-claude-skill/memory"
-      ".claude/projects/-home-krit-github-repos-personal-portainer-templates/memory"
-      ".config/ccstatusline"
-      ".local/bin/start-actual-mcp"
+      ".claude"
+      ".config"
     ];
 
     claude-ai-private-macOS = [
@@ -24,6 +17,7 @@ let
       ".claude/plugins/installed_plugins.json"
       ".claude/plugins/known_marketplaces.json"
       ".claude/plans"
+      "bin/start-actual-mcp"
     ];
 
     gsd = [
