@@ -103,6 +103,14 @@ delib.host {
           sopsFile = commonSecrets;
           owner = "krit";
         };
+        attic-push-token = {
+          sopsFile = commonSecrets;
+          owner = "krit";
+        };
+        cachix-auth-token = {
+          sopsFile = commonSecrets;
+          owner = "krit";
+        };
       };
 
     nix.extraOptions = ''

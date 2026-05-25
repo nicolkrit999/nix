@@ -34,6 +34,18 @@ delib.host {
         };
       };
 
+      cachix = {
+        enable = true;
+        push = true;
+        authTokenPath = "/run/secrets/cachix-auth-token";
+      };
+
+      krit.attic = {
+        enable = true;
+        push = true;
+        authTokenPath = "/run/secrets/attic-push-token";
+      };
+
       programs = {
         bat.enable = true;
         eza.enable = true;

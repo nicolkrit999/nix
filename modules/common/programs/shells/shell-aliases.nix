@@ -50,8 +50,12 @@ delib.module {
           myconfig.constants.cachix.name
         else
           myconfig.cachix.name;
+      cachixTokenPath = myconfig.cachix.authTokenPath or "";
       cachixPush =
-        "nix path-info -r /run/current-system | cachix push ${cName}";
+        if cachixTokenPath != "" then
+          "set -lx CACHIX_AUTH_TOKEN (cat ${cachixTokenPath}); and nix path-info -r /run/current-system | cachix push ${cName}"
+        else
+          "nix path-info -r /run/current-system | cachix push ${cName}";
 
       wrapCaches =
         cmd:
@@ -72,6 +76,9 @@ delib.module {
       # =========================================================================
       darwinSwitchCmd = "nh darwin switch ${flakeDir}";
       darwinUpdateCmd = "nix flake update && nh darwin switch ${flakeDir}";
+
+      darwinSwitchWrapped = wrapCaches darwinSwitchCmd;
+      darwinUpdateWrapped = wrapCaches darwinUpdateCmd;
 
       # =========================================================================
       # COMMON ALIASES (both NixOS and Darwin)
@@ -150,16 +157,16 @@ delib.module {
       # =========================================================================
       darwinAliases = {
         # Switch commands
-        sw = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd}";
-        swfall = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd} --fallback";
-        gsw = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd}";
-        gswfall = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd} --fallback";
+        sw = "cd ${flakeDir} && git add -A && ${darwinSwitchWrapped}";
+        swfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${darwinSwitchCmd} --fallback"}";
+        gsw = "cd ${flakeDir} && git add -A && ${darwinSwitchWrapped}";
+        gswfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${darwinSwitchCmd} --fallback"}";
         swdry = "cd ${flakeDir} && git add -A && nh darwin switch --dry .";
         gswoff = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd} --offline";
 
         # Flake checks and updates
         nfc = "cd ${flakeDir} && git add -A && nix flake check --impure";
-        upd = "cd ${flakeDir} && git add -A && ${darwinUpdateCmd}";
+        upd = "cd ${flakeDir} && git add -A && ${darwinUpdateWrapped}";
 
         # Homebrew
         brew-upd = "brew update && brew upgrade";
@@ -174,7 +181,9 @@ delib.module {
         xcodeaccept = "sudo xcodebuild -license accept";
         changehosts = "sudo nvim /etc/hosts";
         cleardns = "sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder";
-      };
+      }
+      // (lib.optionalAttrs atticEnabled { attic-push = atticPush; })
+      // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPush; });
     in
     {
       home.shellAliases = commonAliases
