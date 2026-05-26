@@ -24,29 +24,39 @@ delib.module {
     , ...
     }:
     let
+      isX86 = pkgs.stdenv.hostPlatform.isx86_64;
+
       activeOnHyprland =
-        cfg.enable
+        isX86
+        && cfg.enable
         && cfg.enableOnHyprland
         && (parent.hyprland.enable or false);
 
       activeOnNiri =
-        cfg.enable
+        isX86
+        && cfg.enable
         && cfg.enableOnNiri
         && (parent.niri.enable or false);
 
       activeOnMango =
-        cfg.enable
+        isX86
+        && cfg.enable
         && cfg.enableOnMango
         && (parent.mango.enable or false);
 
       active = activeOnHyprland || activeOnNiri || activeOnMango;
 
       caelestiaActiveOnHyprland =
-        (parent.caelestia.enable or false)
+        isX86
+        && (parent.caelestia.enable or false)
         && (parent.caelestia.enableOnHyprland or false)
         && (parent.hyprland.enable or false);
 
-      noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      # noctalia-shell only ships x86_64-linux outputs; guard the attr access to avoid eval failure on aarch64.
+      noctaliaPkg =
+        if isX86
+        then inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default
+        else pkgs.emptyDirectory;
 
       extraQmlPackages = [
         pkgs.kdePackages.kirigami

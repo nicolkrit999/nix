@@ -1,6 +1,6 @@
 { delib, inputs, ... }:
 delib.module {
-  name = "services.nix-topology";
+  name = "programs.nix-topology";
   options = delib.singleEnableOption false;
 
   nixos.always = {

@@ -102,6 +102,7 @@ delib.module {
       # ---------------------------------------------------------
       environment.systemPackages = with pkgs; [
         protonvpn-gui
+      ] ++ lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [
         tor-browser
       ];
 
@@ -155,8 +156,8 @@ delib.module {
       # ---------------------------------------------------------
       # 6. 👤 HOME-MANAGER
       # ---------------------------------------------------------
-      home-manager.users.${myUserName} = { pkgs, ... }: {
-        home.packages = with pkgs; [ tor-browser ];
+      home-manager.users.${myUserName} = { pkgs, lib, ... }: {
+        home.packages = lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [ pkgs.tor-browser ];
 
         # GNOME auto-start ProtonVPN
         xdg.configFile."autostart/protonvpn.desktop".text = ''

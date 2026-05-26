@@ -171,6 +171,15 @@ delib.module {
           '';
     in
     {
+      # Mutual exclusivity: sddm-astronaut and sddm-pixie cannot coexist — they fight
+      # over services.displayManager.sddm.theme and other top-level sddm settings.
+      # Assert at eval time so the host build fails with a clear message instead of
+      # the cryptic "conflicting definition values" the module system emits otherwise.
+      assertions = [{
+        assertion = !(myconfig.services.sddm-pixie.enable or false);
+        message = "services.sddm-astronaut and services.sddm-pixie are mutually exclusive — enable only one in your host config.";
+      }];
+
       services.xserver.enable = true;
       services.xserver.excludePackages = [ pkgs.xterm ];
 

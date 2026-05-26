@@ -228,6 +228,7 @@ delib.host {
         google-antigravity.enable = true;
         lazygit.enable = true;
         nix-alien.enable = false;
+        nix-topology.enable = true;
         nltchNur = {
           enable = true;
           packages = [
@@ -602,7 +603,6 @@ delib.host {
         external.dotfiles-private.enable = true;
         hyprlock.enable = true;
         impermanence.enable = true;
-        nix-topology.enable = false;
         resolved.enable = true;
         tailscale.enable = true;
 

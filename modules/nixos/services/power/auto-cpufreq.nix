@@ -8,9 +8,15 @@ delib.module {
     imports = [ inputs.auto-cpufreq.nixosModules.default ];
   };
 
-  nixos.ifEnabled = { ... }: {
-    # Mutual exclusivity: disable TLP when auto-cpufreq is enabled
-    services.tlp.enable = lib.mkForce false;
+  nixos.ifEnabled = { myconfig, ... }: {
+    # Mutual exclusivity: auto-cpufreq and tlp cannot coexist — they fight over the
+    # same CPU governor / EPP knobs. Assert at eval time instead of silently letting
+    # both lib.mkForce each other off (which previously disabled both).
+    assertions = [{
+      assertion = !(myconfig.services.tlp.enable or false);
+      message = "services.auto-cpufreq and services.tlp are mutually exclusive — enable only one in your host config.";
+    }];
+
     # Disable GNOME Power Profiles daemon (conflicts with auto-cpufreq per official README)
     # Trade-off: GNOME Settings > Power won't show profile switcher, but auto-cpufreq
     # handles power management dynamically which is smarter. GNOME otherwise works fine.

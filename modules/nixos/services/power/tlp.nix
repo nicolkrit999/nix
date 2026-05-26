@@ -1,12 +1,11 @@
-{ delib, lib, ... }:
+{ delib, ... }:
 delib.module {
   name = "services.tlp";
   options = delib.singleEnableOption false;
 
+  # Mutual exclusivity with services.auto-cpufreq is enforced via an assertion in
+  # auto-cpufreq.nix (fires when both are enabled, regardless of which module owns it).
   nixos.ifEnabled = { ... }: {
-    # Mutual exclusivity: disable auto-cpufreq when TLP is enabled
-    programs.auto-cpufreq.enable = lib.mkForce false;
-
     services.thermald.enable = true; # Intel thermal daemon - prevents overheating ⚠️: Remove if using AMD CPU
     services.tlp = {
       enable = true;

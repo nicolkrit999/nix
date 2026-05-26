@@ -65,6 +65,10 @@ delib.module {
       # stylix targets (e.g. stylix-niri, stylix-hyprland) short-circuit
       # before reading options that no longer exist. Same pattern as
       # safe-mode.nix.
+      # Re-declare stylix.enable inside home-manager so disabled per-WM
+      # stylix targets (e.g. stylix-niri, stylix-hyprland) short-circuit
+      # before reading options that no longer exist. Same pattern as
+      # safe-mode.nix.
       home-manager.users.${myUserName} =
         { lib, ... }:
         {

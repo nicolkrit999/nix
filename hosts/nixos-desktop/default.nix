@@ -103,7 +103,7 @@ delib.host {
         theme = {
           polarity = "dark";
           base16Theme = "catppuccin-macchiato";
-          catppuccin = false;
+          catppuccin = true;
           catppuccinFlavor = "macchiato";
           catppuccinAccent = "sapphire";
         };
@@ -197,6 +197,7 @@ delib.host {
         google-antigravity.enable = true;
         lazygit.enable = true;
         nix-alien.enable = true;
+        nix-topology.enable = true;
         nltchNur = {
           enable = true;
           packages = [
@@ -293,15 +294,15 @@ delib.host {
         # 🐚 SHELLS
         # ---------------------------------------------------------------
         caelestia = {
-          enable = false;
-          enableOnHyprland = false;
+          enable = true;
+          enableOnHyprland = true;
         };
 
         noctalia = {
-          enable = false;
+          enable = true;
           enableOnHyprland = false;
-          enableOnNiri = false;
-          enableOnMango = true;
+          enableOnNiri = true;
+          enableOnMango = false;
         };
 
         # ---------------------------------------------------------------
@@ -514,7 +515,7 @@ delib.host {
         # 📊 WAYBARS
         # ---------------------------------------------------------------
         waybar-hyprland = {
-          enable = true;
+          enable = false;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
             "format-it" = "🇮🇹-IT";
@@ -539,7 +540,7 @@ delib.host {
         waybar-mango = {
           # Disabled: noctalia is active on mango here and provides its own
           # bar — waybar-mango + active shell on the same WM is a hard conflict.
-          enable = false;
+          enable = true;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
             "format-it" = "🇮🇹-IT";
@@ -549,7 +550,7 @@ delib.host {
         };
 
         waybar-niri = {
-          enable = true;
+          enable = false;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
             "format-it" = "🇮🇹-IT";
@@ -629,7 +630,6 @@ delib.host {
         external.dotfiles-private.enable = true;
         hyprlock.enable = true;
         impermanence.enable = true;
-        nix-topology.enable = false;
         resolved.enable = true;
         tailscale.enable = true;
 

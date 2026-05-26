@@ -51,24 +51,6 @@ delib.module {
         extra-platforms = [ "aarch64-linux" ]; # Accept aarch64-linux derivations
       };
 
-      # Gpu screen recorder overlay due to missing ARM support in the main package
-      nixpkgs.overlays = [
-        (_final: prev: {
-          gpu-screen-recorder =
-            if prev.stdenv.hostPlatform.system == "aarch64-linux" then
-              prev.symlinkJoin
-                {
-                  name = "gpu-screen-recorder-dummy";
-                  paths = [
-                    (prev.writeShellScriptBin "gpu-screen-recorder" "echo 'GPU Screen Recorder is not supported on ARM'")
-                    (prev.writeShellScriptBin "gsr-kms-server" "echo 'Not supported'")
-                  ];
-                }
-            else
-              prev.gpu-screen-recorder;
-        })
-      ];
-
       # Allow unfree packages globally (needed for drivers, code, etc.)
       nixpkgs.config.allowUnfree = true;
 

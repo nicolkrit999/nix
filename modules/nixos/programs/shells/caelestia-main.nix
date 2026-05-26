@@ -22,12 +22,19 @@ delib.module {
     , ...
     }:
     let
+      isX86 = pkgs.stdenv.hostPlatform.isx86_64;
+
       activeOnHyprland =
-        cfg.enable
+        isX86
+        && cfg.enable
         && cfg.enableOnHyprland
         && (parent.hyprland.enable or false);
 
-      caelestiaPkg = inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli;
+      # caelestia-shell only ships x86_64-linux outputs; guard the attr access to avoid eval failure on aarch64.
+      caelestiaPkg =
+        if isX86
+        then inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli
+        else pkgs.emptyDirectory;
 
       caelestiaLogout = pkgs.writeShellScriptBin "caelestia-logout" ''
         # 1. If UWSM is running, use it (Most graceful)
@@ -128,7 +135,10 @@ delib.module {
         fi
       '';
     in
-    {
+    # caelestia-shell has no aarch64-linux outputs — skip the whole module on non-x86.
+      # lib.optionalAttrs false returns {} without evaluating the body (unlike lib.mkIf which
+      # the module system still validates even when the condition is false).
+    lib.optionalAttrs isX86 {
       imports = [ inputs.caelestia-shell.homeManagerModules.default ];
 
       config = lib.mkIf activeOnHyprland {

@@ -114,11 +114,12 @@ delib.module {
             gaps_out = (myconfig.constants.hyprland.gap or 10) * 2; # Outer gap: 2× inner
             border_size = myconfig.constants.hyprland.borderSize or 2;
 
-            "col.active_border" =
+            "col.active_border" = lib.mkDefault (
               if myconfig.constants.theme.catppuccin then
                 "$accent"
               else
-                "rgb(${config.lib.stylix.colors.base0D})";
+                "rgb(${config.lib.stylix.colors.base0D})"
+            );
 
             "col.inactive_border" = lib.mkForce "rgba(${config.lib.stylix.colors.base02}66)";
 
