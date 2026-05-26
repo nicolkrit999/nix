@@ -5,8 +5,8 @@
 # lacks aarch64 support throws at eval time and is reported here.
 #
 # Usage:
-#   bash run.sh          # run all batches
-#   bash run.sh --fast   # skip specialisation batches
+#   bash check-nixos-aarch64-compat.sh          # run all batches
+#   bash check-nixos-aarch64-compat.sh --fast   # skip specialisation batches
 
 set -euo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)"

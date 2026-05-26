@@ -10,19 +10,19 @@ eval time and is reported.
 ## Run all tests
 
 ```bash
-bash templates/tests/nixos/test-arch-compat/run.sh
+bash templates/tests/nixos/test-arch-compat/check-nixos-aarch64-compat.sh
 ```
 
 Or from inside the directory:
 
 ```bash
-bash run.sh
+bash check-nixos-aarch64-compat.sh
 ```
 
 Add `--fast` to skip the 8 specialisation batches and only run the 2 base ones:
 
 ```bash
-bash run.sh --fast
+bash check-nixos-aarch64-compat.sh --fast
 ```
 
 ## Run a single batch manually

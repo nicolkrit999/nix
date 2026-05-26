@@ -69,6 +69,10 @@ delib.module {
             '';
 
             home.file.".xinitrc".executable = true;
+
+            home.shellAliases = {
+              start-icewm = "startx";
+            };
           };
         };
 
