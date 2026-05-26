@@ -361,6 +361,7 @@ delib.host {
             "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$"
             "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-browser)$"
             "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-.*\..*)$"
+            "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(spotify)$"
             "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
             "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
             "workspace ${appWorkspaces.terminal} silent, class:^(foot)$"
