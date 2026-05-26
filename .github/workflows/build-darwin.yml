@@ -11,6 +11,7 @@ on:
 
 # Prevents multiple pushes from building at once, saving runner time
 env:
+  CACHIX_NAME: krit-nixos
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
@@ -41,12 +42,25 @@ jobs:
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
+      - uses: cachix/cachix-action@v15
+        with:
+          name: ${{ env.CACHIX_NAME }}
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
       - name: Check Flake
         run: nix flake check --impure --show-trace
 
       - name: Build Darwin Configuration
+        env:
+          CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
           nix build .#darwinConfigurations.Krits-MacBook-Pro.system --no-link --print-out-paths > outpaths.txt
+
+          if [ -n "$CACHIX_TOKEN" ]; then
+            cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
+          else
+            echo "Skipping Cachix push: No auth token found (likely a fork)."
+          fi
 
       - name: Check Disk Usage
         if: always()
