@@ -109,27 +109,12 @@ jobs:
         run: |
 
           FAILED=()
-          LINES=()
 
-          [[ "$MINIMAL_OUTCOME" == "success" ]] \
-            && LINES+=("✓  minimal-defaults") \
-            || { LINES+=("✗  minimal-defaults"); FAILED+=("minimal-defaults"); }
-
-          [[ "$SPEC_OUTCOME" == "success" ]] \
-            && LINES+=("✓  spec-contract") \
-            || { LINES+=("✗  spec-contract"); FAILED+=("spec-contract"); }
-
-          [[ "$CONFLICT_OUTCOME" == "success" ]] \
-            && LINES+=("✓  conflicting-modules") \
-            || { LINES+=("✗  conflicting-modules"); FAILED+=("conflicting-modules"); }
-
-          [[ "$SHELLS_OUTCOME" == "success" ]] \
-            && LINES+=("✓  custom-shells") \
-            || { LINES+=("✗  custom-shells"); FAILED+=("custom-shells"); }
-
-          [[ "$ARCH_OUTCOME" == "success" ]] \
-            && LINES+=("✓  arch-compat (aarch64)") \
-            || { LINES+=("✗  arch-compat (aarch64)"); FAILED+=("arch-compat"); }
+          [[ "$MINIMAL_OUTCOME" != "success" ]] && FAILED+=("✗  minimal-defaults")
+          [[ "$SPEC_OUTCOME"    != "success" ]] && FAILED+=("✗  spec-contract")
+          [[ "$CONFLICT_OUTCOME" != "success" ]] && FAILED+=("✗  conflicting-modules")
+          [[ "$SHELLS_OUTCOME"  != "success" ]] && FAILED+=("✗  custom-shells")
+          [[ "$ARCH_OUTCOME"    != "success" ]] && FAILED+=("✗  arch-compat (aarch64)")
 
           if [[ ${#FAILED[@]} -eq 0 ]]; then
             echo "All NixOS tests passed."
@@ -139,7 +124,7 @@ jobs:
           echo "Failed tests: ${FAILED[*]}"
 
           if [[ -n "$WEBHOOK_ID" ]]; then
-            REPORT=$(printf '%s\n' "${LINES[@]}")
+            REPORT=$(printf '%s\n' "${FAILED[@]}")
             jq -n \
               --arg report "$REPORT" \
               --arg ref "$REF_NAME" \

@@ -51,11 +51,8 @@ jobs:
           MINIMAL_OUTCOME: ${{ steps.minimal-defaults.outcome }}
         run: |
           FAILED=()
-          LINES=()
 
-          [[ "$MINIMAL_OUTCOME" == "success" ]] \
-            && LINES+=("✓  minimal-defaults (Darwin)") \
-            || { LINES+=("✗  minimal-defaults (Darwin)"); FAILED+=("minimal-defaults"); }
+          [[ "$MINIMAL_OUTCOME" != "success" ]] && FAILED+=("✗  minimal-defaults (Darwin)")
 
           if [[ ${#FAILED[@]} -eq 0 ]]; then
             echo "All Darwin tests passed."
@@ -65,7 +62,7 @@ jobs:
           echo "Failed tests: ${FAILED[*]}"
 
           if [[ -n "$WEBHOOK_ID" ]]; then
-            REPORT=$(printf '%s\n' "${LINES[@]}")
+            REPORT=$(printf '%s\n' "${FAILED[@]}")
             jq -n \
               --arg report "$REPORT" \
               --arg ref "$REF_NAME" \

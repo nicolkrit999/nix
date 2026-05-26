@@ -22,8 +22,9 @@ declare -a FAILURES=()
 run_check() {
   local attr="$1" label="$2"
   printf "  %-60s " "$label"
-  local result
-  if result=$(nix eval --raw --impure --file "$DIR/01-scenario-minimal-darwin.nix" "$attr" 2>&1); then
+  local result stderr_file
+  stderr_file=$(mktemp)
+  if result=$(nix eval --raw --impure --file "$DIR/01-scenario-minimal-darwin.nix" "$attr" 2>"$stderr_file"); then
     if [[ "$result" == "ok" ]]; then
       printf "${GREEN}✓ ok${NC}\n"
       ((PASS++)) || true
@@ -36,9 +37,10 @@ run_check() {
     printf "${RED}✗ eval error${NC}\n"
     ((FAIL++)) || true
     local excerpt
-    excerpt=$(echo "$result" | grep -E "error:|missing|not available|undefined variable" | head -3 | tr '\n' '~')
+    excerpt=$(cat "$stderr_file" | grep -E "error:|missing|not available|undefined variable" | head -3 | tr '\n' '~')
     FAILURES+=("$label|EVAL ERROR|$excerpt")
   fi
+  rm -f "$stderr_file"
 }
 
 echo ""
