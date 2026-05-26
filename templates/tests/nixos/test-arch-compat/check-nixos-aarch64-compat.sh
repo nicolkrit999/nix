@@ -16,10 +16,11 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
 
 # ── expected aarch64 incompatibilities ───────────────────────────────────────
-# Modules that intentionally assert on aarch64 (gpu-screen-recorder x86-only dep).
-# A DIRECT MODULE failure for any of these names is treated as a confirmed expected
-# failure — shown as ⚠ expected rather than ✗ fail, and does NOT cause exit 1.
-EXPECTED_DIRECT_MODULES=("caelestia-shell" "noctalia-shell")
+# Modules whose aarch64 failure is a known, accepted limitation rather than a
+# regression. These are shown as ⚠ expected and do NOT cause exit 1.
+# caelestia and noctalia are no longer here: their active* booleans are now
+# gated on isx86_64, so they silently do nothing on aarch64 instead of failing.
+EXPECTED_DIRECT_MODULES=()
 
 FAST=0
 [[ "${1:-}" == "--fast" ]] && FAST=1

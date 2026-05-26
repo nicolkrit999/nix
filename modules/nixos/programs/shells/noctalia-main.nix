@@ -25,17 +25,20 @@ delib.module {
     }:
     let
       activeOnHyprland =
-        cfg.enable
+        pkgs.stdenv.hostPlatform.isx86_64
+        && cfg.enable
         && cfg.enableOnHyprland
         && (parent.hyprland.enable or false);
 
       activeOnNiri =
-        cfg.enable
+        pkgs.stdenv.hostPlatform.isx86_64
+        && cfg.enable
         && cfg.enableOnNiri
         && (parent.niri.enable or false);
 
       activeOnMango =
-        cfg.enable
+        pkgs.stdenv.hostPlatform.isx86_64
+        && cfg.enable
         && cfg.enableOnMango
         && (parent.mango.enable or false);
 
@@ -106,10 +109,6 @@ delib.module {
     in
     {
       assertions = [
-        {
-          assertion = !cfg.enable || pkgs.stdenv.hostPlatform.isx86_64;
-          message = "programs.noctalia cannot be enabled on aarch64-linux: noctalia-shell has no aarch64-linux flake output (gpu-screen-recorder is an x86-only transitive dependency).";
-        }
         {
           assertion = !(activeOnHyprland && caelestiaActiveOnHyprland);
           message = "Both caelestia and noctalia are active on Hyprland — only one shell may be active per WM.";

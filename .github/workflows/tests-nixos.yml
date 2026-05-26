@@ -1,0 +1,163 @@
+name: "NixOS Tests"
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # Every Monday at 06:00 UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-nixos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      NIXPKGS_ALLOW_UNFREE: 1
+      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+      CURL_HTTP_VERSION: 1.1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CA Certificates
+        run: sudo apt-get update && sudo apt-get install -y ca-certificates
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Open permissions on /mnt
+        run: sudo chmod 1777 /mnt
+
+      - name: Maximize Nix Space
+        uses: wimpysworld/nothing-but-nix@main
+        with:
+          hatchet-protocol: "cleave"
+          witness-carnage: true
+          nix-permission-edict: false
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          flakehub: false
+          extra-conf: |
+            build-dir = /nix/build
+            extra-platforms = aarch64-linux
+            auto-optimise-store = true
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            download-attempts = 15
+            http-connections = 25
+            connect-timeout = 30
+
+      - uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 7000000000
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-
+          purge-created: 0
+          purge-last-accessed: 0
+          purge-primary-key: never
+
+      - name: "Test: minimal-defaults"
+        id: minimal-defaults
+        continue-on-error: true
+        run: bash templates/tests/nixos/test-minimal-defaults/check-nixos-minimal-defaults.sh
+
+      - name: "Test: spec-contract"
+        id: spec-contract
+        continue-on-error: true
+        run: bash templates/tests/nixos/test-spec-contract/check-nixos-spec-contract.sh
+
+      - name: "Test: conflicting-modules"
+        id: conflicting-modules
+        continue-on-error: true
+        run: nix run github:danielefongo/nix-tests -- templates/tests/nixos/conflicting-modules
+
+      - name: "Test: custom-shells"
+        id: custom-shells
+        continue-on-error: true
+        run: nix run github:danielefongo/nix-tests -- templates/tests/nixos/test-custom-shells
+
+      - name: "Test: arch-compat (aarch64)"
+        id: arch-compat
+        continue-on-error: true
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [[ "$EVENT_NAME" == "schedule" || "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            bash templates/tests/nixos/test-arch-compat/check-nixos-aarch64-compat.sh
+          else
+            bash templates/tests/nixos/test-arch-compat/check-nixos-aarch64-compat.sh --fast
+          fi
+
+      - name: Summary and notify on failure
+        if: always()
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          MINIMAL_OUTCOME: ${{ steps.minimal-defaults.outcome }}
+          SPEC_OUTCOME: ${{ steps.spec-contract.outcome }}
+          CONFLICT_OUTCOME: ${{ steps.conflicting-modules.outcome }}
+          SHELLS_OUTCOME: ${{ steps.custom-shells.outcome }}
+          ARCH_OUTCOME: ${{ steps.arch-compat.outcome }}
+        run: |
+          ARCH_MODE="--fast"
+          if [[ "$EVENT_NAME" == "schedule" || "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            ARCH_MODE="full"
+          fi
+
+          FAILED=()
+          LINES=()
+
+          [[ "$MINIMAL_OUTCOME" == "success" ]] \
+            && LINES+=("✓  minimal-defaults") \
+            || { LINES+=("✗  minimal-defaults"); FAILED+=("minimal-defaults"); }
+
+          [[ "$SPEC_OUTCOME" == "success" ]] \
+            && LINES+=("✓  spec-contract") \
+            || { LINES+=("✗  spec-contract"); FAILED+=("spec-contract"); }
+
+          [[ "$CONFLICT_OUTCOME" == "success" ]] \
+            && LINES+=("✓  conflicting-modules") \
+            || { LINES+=("✗  conflicting-modules"); FAILED+=("conflicting-modules"); }
+
+          [[ "$SHELLS_OUTCOME" == "success" ]] \
+            && LINES+=("✓  custom-shells") \
+            || { LINES+=("✗  custom-shells"); FAILED+=("custom-shells"); }
+
+          [[ "$ARCH_OUTCOME" == "success" ]] \
+            && LINES+=("✓  arch-compat (aarch64, ${ARCH_MODE})") \
+            || { LINES+=("✗  arch-compat (aarch64, ${ARCH_MODE})"); FAILED+=("arch-compat"); }
+
+          if [[ ${#FAILED[@]} -eq 0 ]]; then
+            echo "All NixOS tests passed."
+            exit 0
+          fi
+
+          echo "Failed tests: ${FAILED[*]}"
+
+          if [[ -n "$WEBHOOK_ID" ]]; then
+            REPORT=$(printf '%s\n' "${LINES[@]}")
+            jq -n \
+              --arg report "$REPORT" \
+              --arg ref "$REF_NAME" \
+              --arg event "$EVENT_NAME" \
+              --arg url "$RUN_URL" \
+              '{content: "🧪 **NixOS Tests Failed** | `\($ref)` (\($event))\n```\n\($report)\n```\n🔗 \($url)"}' \
+              > payload.json
+            curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+          fi
+
+          exit 1

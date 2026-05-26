@@ -1,0 +1,78 @@
+name: "Darwin Tests"
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # Every Monday at 06:00 UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-darwin:
+    runs-on: macos-14
+    permissions:
+      contents: read
+    env:
+      NIXPKGS_ALLOW_UNFREE: 1
+      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          flakehub: false
+          extra-conf: |
+            auto-optimise-store = true
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Test: minimal-defaults (Darwin)"
+        id: minimal-defaults
+        continue-on-error: true
+        run: bash templates/tests/darwin/test-minimal-defaults/check-darwin-minimal-defaults.sh
+
+      - name: Summary and notify on failure
+        if: always()
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          MINIMAL_OUTCOME: ${{ steps.minimal-defaults.outcome }}
+        run: |
+          FAILED=()
+          LINES=()
+
+          [[ "$MINIMAL_OUTCOME" == "success" ]] \
+            && LINES+=("✓  minimal-defaults (Darwin)") \
+            || { LINES+=("✗  minimal-defaults (Darwin)"); FAILED+=("minimal-defaults"); }
+
+          if [[ ${#FAILED[@]} -eq 0 ]]; then
+            echo "All Darwin tests passed."
+            exit 0
+          fi
+
+          echo "Failed tests: ${FAILED[*]}"
+
+          if [[ -n "$WEBHOOK_ID" ]]; then
+            REPORT=$(printf '%s\n' "${LINES[@]}")
+            jq -n \
+              --arg report "$REPORT" \
+              --arg ref "$REF_NAME" \
+              --arg event "$EVENT_NAME" \
+              --arg url "$RUN_URL" \
+              '{content: "🧪 **Darwin Tests Failed** | `\($ref)` (\($event))\n```\n\($report)\n```\n🔗 \($url)"}' \
+              > payload.json
+            curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+          fi
+
+          exit 1

@@ -23,7 +23,8 @@ delib.module {
     }:
     let
       activeOnHyprland =
-        cfg.enable
+        pkgs.stdenv.hostPlatform.isx86_64
+        && cfg.enable
         && cfg.enableOnHyprland
         && (parent.hyprland.enable or false);
 
@@ -133,11 +134,6 @@ delib.module {
       '';
     in
     {
-      assertions = [{
-        assertion = !cfg.enable || pkgs.stdenv.hostPlatform.isx86_64;
-        message = "programs.caelestia cannot be enabled on aarch64-linux: caelestia-shell has no aarch64-linux flake output (gpu-screen-recorder is an x86-only transitive dependency).";
-      }];
-
       imports = [ inputs.caelestia-shell.homeManagerModules.default ];
 
       programs.caelestia = lib.mkIf activeOnHyprland {
