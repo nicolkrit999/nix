@@ -1,5 +1,6 @@
 { delib
 , config
+, lib
 , ...
 }:
 delib.module {
@@ -11,7 +12,7 @@ delib.module {
       colors = config.lib.stylix.colors;
     in
     {
-      programs.yazi.theme = {
+      programs.yazi.theme = lib.mkForce {
 
         mng = {
           cwd = {
