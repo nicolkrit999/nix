@@ -15,6 +15,12 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
 
+# ── expected aarch64 incompatibilities ───────────────────────────────────────
+# Modules that intentionally assert on aarch64 (gpu-screen-recorder x86-only dep).
+# A DIRECT MODULE failure for any of these names is treated as a confirmed expected
+# failure — shown as ⚠ expected rather than ✗ fail, and does NOT cause exit 1.
+EXPECTED_DIRECT_MODULES=("caelestia-shell" "noctalia-shell")
+
 FAST=0
 [[ "${1:-}" == "--fast" ]] && FAST=1
 
@@ -40,8 +46,10 @@ fi
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 PASS=0
+EXPECTED=0
 FAIL=0
 declare -a FAILURES=()
+declare -a EXPECTEDS=()
 
 classify_error() {
   local err="$1"
@@ -69,6 +77,16 @@ classify_error() {
   echo "UNKNOWN"
 }
 
+is_expected_direct_module() {
+  local kind="$1"
+  for m in "${EXPECTED_DIRECT_MODULES[@]}"; do
+    if [[ "$kind" == "DIRECT MODULE ($m)" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 run_check() {
   local file="$1" attr="$2" label="$3"
   printf "  %-55s " "$label"
@@ -78,8 +96,6 @@ run_check() {
     printf "${GREEN}✓ ok${NC}\n"
     ((PASS++)) || true
   else
-    printf "${RED}✗ fail${NC}\n"
-    ((FAIL++)) || true
     local kind
     kind=$(classify_error "$err")
     # Pre-filter to 4 key lines; encode newlines as ~ to survive array storage.
@@ -91,7 +107,15 @@ run_check() {
       | grep -v "^$" \
       | head -4 \
       | tr '\n' '~')
-    FAILURES+=("$label|$kind|$excerpt")
+    if is_expected_direct_module "$kind"; then
+      printf "${YELLOW}⚠ expected${NC}\n"
+      ((EXPECTED++)) || true
+      EXPECTEDS+=("$label|$kind|$excerpt")
+    else
+      printf "${RED}✗ fail${NC}\n"
+      ((FAIL++)) || true
+      FAILURES+=("$label|$kind|$excerpt")
+    fi
   fi
 }
 
@@ -110,12 +134,24 @@ done
 echo ""
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"
 
+if [[ $EXPECTED -gt 0 ]]; then
+  echo -e "${YELLOW}${BOLD}Expected aarch64 incompatibilities ($EXPECTED) — assertions confirmed:${NC}"
+  echo ""
+  for entry in "${EXPECTEDS[@]}"; do
+    IFS="|" read -r label kind err <<< "$entry"
+    echo -e "  ${YELLOW}⚠${NC} ${BOLD}$label${NC}"
+    echo -e "    ${DIM}→ $kind (expected — module has explicit aarch64 assertion)${NC}"
+  done
+  echo ""
+fi
+
 if [[ $FAIL -eq 0 ]]; then
-  echo -e "${GREEN}${BOLD}All $PASS batches passed — no aarch64 incompatibilities found.${NC}"
+  total=$((PASS + EXPECTED))
+  echo -e "${GREEN}${BOLD}All $total batches passed ($PASS ok, $EXPECTED expected-incompatible).${NC}"
   exit 0
 fi
 
-echo -e "${RED}${BOLD}FAILURES ($FAIL of $((PASS + FAIL))):${NC}"
+echo -e "${RED}${BOLD}UNEXPECTED FAILURES ($FAIL of $((PASS + EXPECTED + FAIL))):${NC}"
 echo ""
 
 for entry in "${FAILURES[@]}"; do
@@ -129,6 +165,7 @@ for entry in "${FAILURES[@]}"; do
 done
 
 echo -e "${DIM}Tip: DIRECT MODULE = flake input has no aarch64-linux output or the module fires an aarch64 assertion."
-echo -e "     TRANSITIVE DEP = a dependency of a module is x86-only.${NC}"
+echo -e "     TRANSITIVE DEP = a dependency of a module is x86-only."
+echo -e "     Add expected modules to EXPECTED_DIRECT_MODULES at the top of this script.${NC}"
 echo ""
 exit 1

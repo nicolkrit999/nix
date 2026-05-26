@@ -43,8 +43,8 @@ delib.module {
             };
           };
           colors.cursor = {
-            cursor = "#${config.lib.stylix.colors.base0D}"; # Accent blue (base0D) — distinct from text (base05) and background (base00)
-            text = "#${config.lib.stylix.colors.base00}"; # Background color under cursor for contrast
+            cursor = lib.mkForce "#${config.lib.stylix.colors.base0D}"; # Accent blue (base0D) — distinct from text (base05) and background (base00)
+            text = lib.mkForce "#${config.lib.stylix.colors.base00}"; # Background color under cursor for contrast
           };
         };
       };

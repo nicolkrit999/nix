@@ -172,7 +172,10 @@ let
       inputs = flake.inputs;
       moduleSystem = "nixos";
     };
-    paths = [ /home/krit/nix/templates/tests/nixos/test-arch-compat/shared/host-tlp-sddm-pixie.nix ] ++ nixosPaths;
+    paths = [
+      /home/krit/nix/templates/tests/nixos/test-arch-compat/shared/host-tlp-sddm-pixie.nix
+      /home/krit/nix/templates/tests/nixos/test-arch-compat/shared/local-packages.nix
+    ] ++ nixosPaths;
     exclude = [ ];
   }).arch-compat-b.config;
 

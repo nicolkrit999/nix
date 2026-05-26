@@ -187,7 +187,10 @@ let
       inputs = flake.inputs;
       moduleSystem = "nixos";
     };
-    paths = [ /home/krit/nix/templates/tests/nixos/test-arch-compat/shared/host-auto-cpufreq-sddm-astronaut.nix ] ++ nixosPaths;
+    paths = [
+      /home/krit/nix/templates/tests/nixos/test-arch-compat/shared/host-auto-cpufreq-sddm-astronaut.nix
+      /home/krit/nix/templates/tests/nixos/test-arch-compat/shared/local-packages.nix
+    ] ++ nixosPaths;
     exclude = [ ];
   }).arch-compat-a.config;
 
