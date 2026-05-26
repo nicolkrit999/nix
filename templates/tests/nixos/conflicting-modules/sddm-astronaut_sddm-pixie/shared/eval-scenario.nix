@@ -4,17 +4,18 @@
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
   flake = builtins.getFlake "path:${flakeRoot}";
+  src = /. + builtins.unsafeDiscardStringContext flake.outPath;
   lib = flake.inputs.nixpkgs.lib;
   denix = flake.inputs.denix;
 
   nixosPaths = [
-    /home/krit/nix/templates/tests/nixos/conflicting-modules/sddm-astronaut_sddm-pixie/shared/nixos-extra
+    (src + "/templates/tests/nixos/conflicting-modules/sddm-astronaut_sddm-pixie/shared/nixos-extra")
 
-    /home/krit/nix/modules/common/toplevel/home-manager.nix
-    /home/krit/nix/modules/nixos/config/constants-nixos.nix
+    (src + "/modules/common/toplevel/home-manager.nix")
+    (src + "/modules/nixos/config/constants-nixos.nix")
 
-    /home/krit/nix/modules/nixos/services/sddm/sddm-astronaut.nix
-    /home/krit/nix/modules/nixos/services/sddm/sddm-pixie.nix
+    (src + "/modules/nixos/services/sddm/sddm-astronaut.nix")
+    (src + "/modules/nixos/services/sddm/sddm-pixie.nix")
   ];
 
   evalScenario = scenarioDir:

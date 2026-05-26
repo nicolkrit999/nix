@@ -92,14 +92,7 @@ jobs:
       - name: "Test: arch-compat (aarch64)"
         id: arch-compat
         continue-on-error: true
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          if [[ "$EVENT_NAME" == "schedule" || "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            bash templates/tests/nixos/test-arch-compat/check-nixos-aarch64-compat.sh
-          else
-            bash templates/tests/nixos/test-arch-compat/check-nixos-aarch64-compat.sh --fast
-          fi
+        run: bash templates/tests/nixos/test-arch-compat/check-nixos-aarch64-compat.sh
 
       - name: Summary and notify on failure
         if: always()
@@ -114,10 +107,6 @@ jobs:
           SHELLS_OUTCOME: ${{ steps.custom-shells.outcome }}
           ARCH_OUTCOME: ${{ steps.arch-compat.outcome }}
         run: |
-          ARCH_MODE="--fast"
-          if [[ "$EVENT_NAME" == "schedule" || "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            ARCH_MODE="full"
-          fi
 
           FAILED=()
           LINES=()
@@ -139,8 +128,8 @@ jobs:
             || { LINES+=("✗  custom-shells"); FAILED+=("custom-shells"); }
 
           [[ "$ARCH_OUTCOME" == "success" ]] \
-            && LINES+=("✓  arch-compat (aarch64, ${ARCH_MODE})") \
-            || { LINES+=("✗  arch-compat (aarch64, ${ARCH_MODE})"); FAILED+=("arch-compat"); }
+            && LINES+=("✓  arch-compat (aarch64)") \
+            || { LINES+=("✗  arch-compat (aarch64)"); FAILED+=("arch-compat"); }
 
           if [[ ${#FAILED[@]} -eq 0 ]]; then
             echo "All NixOS tests passed."

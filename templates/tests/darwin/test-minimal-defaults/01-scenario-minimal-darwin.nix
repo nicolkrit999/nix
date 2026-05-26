@@ -9,25 +9,26 @@
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
   flake = builtins.getFlake "path:${flakeRoot}";
+  src = /. + builtins.unsafeDiscardStringContext flake.outPath;
   denix = flake.inputs.denix;
 
   darwinPaths = [
     # Stylix stub with dummy image (replaces modules/darwin/toplevel/stylix-darwin.nix)
-    /home/krit/nix/templates/tests/darwin/test-minimal-defaults/shared/darwin-extra
+    (src + "/templates/tests/darwin/test-minimal-defaults/shared/darwin-extra")
 
     # Constants schema and HM wiring
-    /home/krit/nix/modules/darwin/config/constants-darwin.nix
-    /home/krit/nix/modules/common/toplevel/home-manager.nix
-    /home/krit/nix/modules/common/themes/catppuccin.nix
+    (src + "/modules/darwin/config/constants-darwin.nix")
+    (src + "/modules/common/toplevel/home-manager.nix")
+    (src + "/modules/common/themes/catppuccin.nix")
 
     # Darwin always-on infrastructure
-    /home/krit/nix/modules/darwin/toplevel/common-configuration-darwin.nix
-    /home/krit/nix/modules/darwin/toplevel/home-darwin.nix
-    /home/krit/nix/modules/darwin/toplevel/user-darwin.nix
-    /home/krit/nix/modules/darwin/toplevel/nix-darwin.nix
+    (src + "/modules/darwin/toplevel/common-configuration-darwin.nix")
+    (src + "/modules/darwin/toplevel/home-darwin.nix")
+    (src + "/modules/darwin/toplevel/user-darwin.nix")
+    (src + "/modules/darwin/toplevel/nix-darwin.nix")
 
     # Auto-enabled module under test
-    /home/krit/nix/modules/darwin/toplevel/home-packages-darwin.nix
+    (src + "/modules/darwin/toplevel/home-packages-darwin.nix")
   ];
 
   config = (denix.lib.configurations {
@@ -45,7 +46,7 @@ let
       moduleSystem = "darwin";
     };
     paths = [
-      /home/krit/nix/templates/tests/darwin/test-minimal-defaults/shared/host-minimal-darwin.nix
+      (src + "/templates/tests/darwin/test-minimal-defaults/shared/host-minimal-darwin.nix")
     ] ++ darwinPaths;
     exclude = [ ];
   }).minimal-darwin.config;

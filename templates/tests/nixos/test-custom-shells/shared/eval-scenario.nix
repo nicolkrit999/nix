@@ -19,6 +19,7 @@
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
   flake = builtins.getFlake "path:${flakeRoot}";
+  src = /. + builtins.unsafeDiscardStringContext flake.outPath;
   lib = flake.inputs.nixpkgs.lib;
   denix = flake.inputs.denix;
 
@@ -31,47 +32,47 @@ let
   # scenarios don't silently pass because the option is simply absent.
   nixosPaths = [
     # nixos-extra: sets nixpkgs.hostPlatform (required by the NixOS module system)
-    /home/krit/nix/templates/tests/nixos/test-custom-shells/shared/nixos-extra
+    (src + "/templates/tests/nixos/test-custom-shells/shared/nixos-extra")
 
     # home-manager integration (needed so config.home-manager.users.krit.* exists)
-    /home/krit/nix/modules/common/toplevel/home-manager.nix
+    (src + "/modules/common/toplevel/home-manager.nix")
 
     # Constants schema (declares myconfig.constants.* options)
-    /home/krit/nix/modules/nixos/config/constants-nixos.nix
+    (src + "/modules/nixos/config/constants-nixos.nix")
 
     # Catppuccin: adds catppuccin.* home-manager options (needed by hyprland-main)
-    /home/krit/nix/modules/common/themes/catppuccin.nix
+    (src + "/modules/common/themes/catppuccin.nix")
 
     # NOTE: stylix-nixos.nix is intentionally NOT included — it would fetch
     # wallpapers. Instead, nixos-extra/stylix-hm.nix sets stylix directly
     # with only a base16 scheme so that lib.stylix.colors.* is available.
 
     # WM enable options (singleEnableOption — separate from the main modules)
-    /home/krit/nix/modules/nixos/toplevel/hyprland.nix
-    /home/krit/nix/modules/nixos/toplevel/niri.nix
-    /home/krit/nix/modules/nixos/toplevel/mango.nix
+    (src + "/modules/nixos/toplevel/hyprland.nix")
+    (src + "/modules/nixos/toplevel/niri.nix")
+    (src + "/modules/nixos/toplevel/mango.nix")
 
     # Window manager main modules + binds + extras
-    /home/krit/nix/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/hyprland/hyprland-binds.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/hyprland/hyprland-hyprpaper.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/niri/niri-main.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/niri/niri-binds.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/mango/mango-main.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/mango/mango-binds.nix
+    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix")
+    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-binds.nix")
+    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-hyprpaper.nix")
+    (src + "/modules/nixos/programs/de-wm/niri/niri-main.nix")
+    (src + "/modules/nixos/programs/de-wm/niri/niri-binds.nix")
+    (src + "/modules/nixos/programs/de-wm/mango/mango-main.nix")
+    (src + "/modules/nixos/programs/de-wm/mango/mango-binds.nix")
 
     # Custom shells
-    /home/krit/nix/modules/nixos/programs/shells/caelestia-main.nix
-    /home/krit/nix/modules/nixos/programs/shells/noctalia-main.nix
+    (src + "/modules/nixos/programs/shells/caelestia-main.nix")
+    (src + "/modules/nixos/programs/shells/noctalia-main.nix")
 
     # Waybars (one per WM)
-    /home/krit/nix/modules/nixos/programs/waybar/hyprland/waybar-hyprland.nix
-    /home/krit/nix/modules/nixos/programs/waybar/niri/waybar-niri.nix
-    /home/krit/nix/modules/nixos/programs/waybar/mango/waybar-mango.nix
+    (src + "/modules/nixos/programs/waybar/hyprland/waybar-hyprland.nix")
+    (src + "/modules/nixos/programs/waybar/niri/waybar-niri.nix")
+    (src + "/modules/nixos/programs/waybar/mango/waybar-mango.nix")
 
     # Services that the activation contract controls
-    /home/krit/nix/modules/nixos/services/swaync.nix
-    /home/krit/nix/modules/nixos/services/hypr/hyprlock.nix
+    (src + "/modules/nixos/services/swaync.nix")
+    (src + "/modules/nixos/services/hypr/hyprlock.nix")
   ];
 
   # No broad excludes needed — we list exact files above.

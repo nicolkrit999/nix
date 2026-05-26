@@ -8,37 +8,38 @@
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
   flake = builtins.getFlake "path:${flakeRoot}";
+  src = /. + builtins.unsafeDiscardStringContext flake.outPath;
   denix = flake.inputs.denix;
 
   nixosPaths = [
     # x86_64 platform override + HM base + stylix stub
-    /home/krit/nix/templates/tests/nixos/test-minimal-defaults/shared/nixos-extra-x86_64
+    (src + "/templates/tests/nixos/test-minimal-defaults/shared/nixos-extra-x86_64")
 
     # Constants schema and HM wiring
-    /home/krit/nix/modules/common/toplevel/home-manager.nix
-    /home/krit/nix/modules/nixos/config/constants-nixos.nix
-    /home/krit/nix/modules/common/themes/catppuccin.nix
+    (src + "/modules/common/toplevel/home-manager.nix")
+    (src + "/modules/nixos/config/constants-nixos.nix")
+    (src + "/modules/common/themes/catppuccin.nix")
 
     # WM enable options — include all three so cross-WM guards evaluate cleanly
-    /home/krit/nix/modules/nixos/toplevel/hyprland.nix
-    /home/krit/nix/modules/nixos/toplevel/niri.nix
-    /home/krit/nix/modules/nixos/toplevel/mango.nix
+    (src + "/modules/nixos/toplevel/hyprland.nix")
+    (src + "/modules/nixos/toplevel/niri.nix")
+    (src + "/modules/nixos/toplevel/mango.nix")
 
     # Hyprland DE modules (needed for HM wayland.windowManager.hyprland.* options)
-    /home/krit/nix/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/hyprland/hyprland-binds.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/hyprland/hyprland-hyprpaper.nix
+    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix")
+    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-binds.nix")
+    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-hyprpaper.nix")
 
     # Hyprland ecosystem: all auto-enabled (boolOption true) once hyprland is on
-    /home/krit/nix/modules/nixos/services/hypr/hypridle.nix
-    /home/krit/nix/modules/nixos/services/hypr/hyprlock.nix
-    /home/krit/nix/modules/nixos/services/swaync.nix
-    /home/krit/nix/modules/nixos/programs/waybar/hyprland/waybar-hyprland.nix
+    (src + "/modules/nixos/services/hypr/hypridle.nix")
+    (src + "/modules/nixos/services/hypr/hyprlock.nix")
+    (src + "/modules/nixos/services/swaync.nix")
+    (src + "/modules/nixos/programs/waybar/hyprland/waybar-hyprland.nix")
 
     # Shell modules — required so hyprland-main's *Integration toggles evaluate
-    /home/krit/nix/modules/common/programs/shells/bash.nix
-    /home/krit/nix/modules/common/programs/shells/fish.nix
-    /home/krit/nix/modules/common/programs/shells/zsh.nix
+    (src + "/modules/common/programs/shells/bash.nix")
+    (src + "/modules/common/programs/shells/fish.nix")
+    (src + "/modules/common/programs/shells/zsh.nix")
   ];
 
   config = (denix.lib.configurations {
@@ -56,7 +57,7 @@ let
       moduleSystem = "nixos";
     };
     paths = [
-      /home/krit/nix/templates/tests/nixos/test-minimal-defaults/shared/host-minimal-nixos.nix
+      (src + "/templates/tests/nixos/test-minimal-defaults/shared/host-minimal-nixos.nix")
     ] ++ nixosPaths;
     exclude = [ ];
   }).minimal-nixos.config;

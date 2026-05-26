@@ -9,91 +9,92 @@
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
   flake = builtins.getFlake "path:${flakeRoot}";
+  src = /. + builtins.unsafeDiscardStringContext flake.outPath;
   denix = flake.inputs.denix;
   lib = flake.inputs.nixpkgs.lib;
 
   nixosPaths = [
     # x86_64 platform override + home-manager base + stylix stub
-    /home/krit/nix/templates/tests/nixos/test-spec-contract/shared/nixos-extra-x86_64
+    (src + "/templates/tests/nixos/test-spec-contract/shared/nixos-extra-x86_64")
 
     # Core infrastructure
-    /home/krit/nix/modules/common/toplevel/home-manager.nix
-    /home/krit/nix/modules/nixos/config/constants-nixos.nix
-    /home/krit/nix/modules/nixos/toplevel/nix-nixos.nix
-    /home/krit/nix/modules/common/themes/catppuccin.nix
-    /home/krit/nix/modules/nixos/toplevel/common-configuration-nixos.nix
+    (src + "/modules/common/toplevel/home-manager.nix")
+    (src + "/modules/nixos/config/constants-nixos.nix")
+    (src + "/modules/nixos/toplevel/nix-nixos.nix")
+    (src + "/modules/common/themes/catppuccin.nix")
+    (src + "/modules/nixos/toplevel/common-configuration-nixos.nix")
 
     # WM enable options — specs reference myconfig.programs.*.enable on all of these
-    /home/krit/nix/modules/nixos/toplevel/hyprland.nix
-    /home/krit/nix/modules/nixos/toplevel/niri.nix
-    /home/krit/nix/modules/nixos/toplevel/mango.nix
-    /home/krit/nix/modules/nixos/toplevel/gnome.nix
-    /home/krit/nix/modules/nixos/toplevel/kde.nix
-    /home/krit/nix/modules/nixos/toplevel/cosmic.nix
+    (src + "/modules/nixos/toplevel/hyprland.nix")
+    (src + "/modules/nixos/toplevel/niri.nix")
+    (src + "/modules/nixos/toplevel/mango.nix")
+    (src + "/modules/nixos/toplevel/gnome.nix")
+    (src + "/modules/nixos/toplevel/kde.nix")
+    (src + "/modules/nixos/toplevel/cosmic.nix")
 
     # Hyprland DE modules (needed for monitors/execOnce/windowRules options)
-    /home/krit/nix/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/hyprland/hyprland-binds.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/hyprland/hyprland-hyprpaper.nix
+    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix")
+    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-binds.nix")
+    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-hyprpaper.nix")
 
     # Niri DE modules (school/home specs reference niri.execOnce, niri.outputs)
-    /home/krit/nix/modules/nixos/programs/de-wm/niri/niri-main.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/niri/niri-binds.nix
+    (src + "/modules/nixos/programs/de-wm/niri/niri-main.nix")
+    (src + "/modules/nixos/programs/de-wm/niri/niri-binds.nix")
 
     # Mango DE modules (school/home specs reference mango.execOnce, mango.monitors)
-    /home/krit/nix/modules/nixos/programs/de-wm/mango/mango-main.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/mango/mango-binds.nix
+    (src + "/modules/nixos/programs/de-wm/mango/mango-main.nix")
+    (src + "/modules/nixos/programs/de-wm/mango/mango-binds.nix")
 
     # Gnome DE modules (secure-travel forces gnome.enable = true)
-    /home/krit/nix/modules/nixos/programs/de-wm/gnome/gnome-main.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/gnome/gnome-binds.nix
+    (src + "/modules/nixos/programs/de-wm/gnome/gnome-main.nix")
+    (src + "/modules/nixos/programs/de-wm/gnome/gnome-binds.nix")
 
     # KDE DE modules (entertainment forces kde.enable = true; plasma-manager HM options)
-    /home/krit/nix/modules/nixos/programs/de-wm/kde/kde-main.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/kde/kde-desktop.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/kde/kde-files.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/kde/kde-inputs.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/kde/kde-krunner.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/kde/kde-kscreenlocker.nix
-    /home/krit/nix/modules/nixos/programs/de-wm/kde/kde-panels.nix
+    (src + "/modules/nixos/programs/de-wm/kde/kde-main.nix")
+    (src + "/modules/nixos/programs/de-wm/kde/kde-desktop.nix")
+    (src + "/modules/nixos/programs/de-wm/kde/kde-files.nix")
+    (src + "/modules/nixos/programs/de-wm/kde/kde-inputs.nix")
+    (src + "/modules/nixos/programs/de-wm/kde/kde-krunner.nix")
+    (src + "/modules/nixos/programs/de-wm/kde/kde-kscreenlocker.nix")
+    (src + "/modules/nixos/programs/de-wm/kde/kde-panels.nix")
 
     # Custom shells (enabled in host so guest/safe-mode/secure-travel overrides are real)
-    /home/krit/nix/modules/nixos/programs/shells/caelestia-main.nix
-    /home/krit/nix/modules/nixos/programs/shells/noctalia-main.nix
+    (src + "/modules/nixos/programs/shells/caelestia-main.nix")
+    (src + "/modules/nixos/programs/shells/noctalia-main.nix")
 
     # Programs whose enable options specs override
-    /home/krit/nix/modules/common/programs/claude-code.nix
-    /home/krit/nix/modules/nixos/programs/claude-desktop.nix
-    /home/krit/nix/modules/nixos/programs/nix-alien.nix
-    /home/krit/nix/modules/nixos/programs/nix-ld.nix
+    (src + "/modules/common/programs/claude-code.nix")
+    (src + "/modules/nixos/programs/claude-desktop.nix")
+    (src + "/modules/nixos/programs/nix-alien.nix")
+    (src + "/modules/nixos/programs/nix-ld.nix")
 
     # Services whose enable options specs override
-    /home/krit/nix/modules/nixos/services/hypr/hypridle.nix
-    /home/krit/nix/modules/nixos/services/hypr/hyprlock.nix
-    /home/krit/nix/modules/nixos/services/swaync.nix
-    /home/krit/nix/modules/common/services/tailscale.nix
-    /home/krit/nix/modules/nixos/toplevel/bluetooth.nix
+    (src + "/modules/nixos/services/hypr/hypridle.nix")
+    (src + "/modules/nixos/services/hypr/hyprlock.nix")
+    (src + "/modules/nixos/services/swaync.nix")
+    (src + "/modules/common/services/tailscale.nix")
+    (src + "/modules/nixos/toplevel/bluetooth.nix")
 
     # Shell modules (used by safe-mode to force bash and by school initExtra)
-    /home/krit/nix/modules/common/programs/shells/bash.nix
-    /home/krit/nix/modules/common/programs/shells/fish.nix
-    /home/krit/nix/modules/common/programs/shells/zsh.nix
+    (src + "/modules/common/programs/shells/bash.nix")
+    (src + "/modules/common/programs/shells/fish.nix")
+    (src + "/modules/common/programs/shells/zsh.nix")
 
     # Global specializations
-    /home/krit/nix/modules/nixos/specializations/deep-focus.nix
-    /home/krit/nix/modules/nixos/specializations/guest.nix
-    /home/krit/nix/modules/nixos/specializations/safe-mode.nix
-    /home/krit/nix/modules/nixos/specializations/secure-travel.nix
+    (src + "/modules/nixos/specializations/deep-focus.nix")
+    (src + "/modules/nixos/specializations/guest.nix")
+    (src + "/modules/nixos/specializations/safe-mode.nix")
+    (src + "/modules/nixos/specializations/secure-travel.nix")
 
     # Minimal user infrastructure
-    /home/krit/nix/users/krit/nixos/common/home/home-base.nix
-    /home/krit/nix/users/krit/nixos/common/system/default-user.nix
-    /home/krit/nix/users/krit/nixos/common/system/virtualisation.nix
+    (src + "/users/krit/nixos/common/home/home-base.nix")
+    (src + "/users/krit/nixos/common/system/default-user.nix")
+    (src + "/users/krit/nixos/common/system/virtualisation.nix")
 
     # krit specializations
-    /home/krit/nix/users/krit/nixos/specializations/entertainment.nix
-    /home/krit/nix/users/krit/nixos/specializations/home.nix
-    /home/krit/nix/users/krit/nixos/specializations/school.nix
+    (src + "/users/krit/nixos/specializations/entertainment.nix")
+    (src + "/users/krit/nixos/specializations/home.nix")
+    (src + "/users/krit/nixos/specializations/school.nix")
   ];
 
   config = (denix.lib.configurations {
@@ -111,7 +112,7 @@ let
       moduleSystem = "nixos";
     };
     paths = [
-      /home/krit/nix/templates/tests/nixos/test-spec-contract/shared/host-spec-contract.nix
+      (src + "/templates/tests/nixos/test-spec-contract/shared/host-spec-contract.nix")
     ] ++ nixosPaths;
     exclude = [ ];
   }).spec-contract.config;
