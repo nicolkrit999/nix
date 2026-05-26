@@ -194,6 +194,11 @@ delib.host {
         gcd = "15d";
         gcn = "5";
       };
+      nix-sweeps = {
+        enable = true;
+        gcd = "15d";
+        gcn = "5";
+      };
 
       qt.enable = true;
 
@@ -216,6 +221,7 @@ delib.host {
         claude-desktop.enable = true;
         comma.enable = true;
         concord.enable = true;
+        doom.enable = true;
         eza.enable = true;
         fzf.enable = true;
         fzf.nix-search-tv.enable = true;

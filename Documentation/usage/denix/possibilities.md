@@ -6,6 +6,7 @@
       - [Top-Level](#top-level)
       - [Themes](#themes)
       - [Command-Line Programs (`programs.`)](#command-line-programs-programs)
+      - [Services (`services.`)](#services-services-1)
     - [NixOS-Only Modules](#nixos-only-modules)
       - [Always-On Infrastructure](#always-on-infrastructure)
       - [System](#system)
@@ -52,6 +53,9 @@ These modules work on both NixOS and Darwin hosts.
 * **`programs.bat`**: A `cat` command alternative featuring syntax highlighting, line numbers, and Git integration.
 * **`programs.claude-code`**: Sets up the Claude Code CLI tool with optional MCP secrets provisioning via sops-nix and required environment configuration.
 * **`programs.comma`**: Enables the `comma` (`,`) tool from nix-index-database, allowing any Nix package to be run ad-hoc without installing it (` , command`).
+* **`programs.doom`**: Installs Doom Emacs via `nix-doom-emacs-unstraightened` with a bundled stock `doomdir` (upstream `init.example.el` / `config.example.el` / `packages.example.el` verbatim, so the install matches what a fresh `doom install` would produce). Uses `emacs-pgtk` on Linux (native Wayland, falls back to X11) and `pkgs.emacs` (NS/Cocoa) on Darwin. Sets `provideEmacs = true` so the `emacs` binary IS Doom, ships all tree-sitter grammars (`treesit-grammars.with-all-grammars`), and enables `experimentalFetchTree` to avoid "Cannot find Git revision" errors on Nix 2.19+. Doom state lives in `~/.local/share/nix-doom`.
+  * **Warning:** Because `provideEmacs = true`, this module's `emacs` binary IS Doom Emacs. Installing vanilla Emacs in parallel (via `environment.systemPackages`, `home.packages`, or another module) will collide on the `emacs` / `emacsclient` binaries — one install will shadow the other depending on PATH order.
+
 * **`programs.eza`**: A modern, colorful replacement for the standard `ls` command, featuring icons and Git status awareness.
 * **`programs.fish`**: Configures the Fish shell with alias/abbreviation setup and environment initialization.
 * **`programs.fzf`**: A highly efficient command-line fuzzy finder used extensively in shell aliases.
@@ -62,6 +66,7 @@ These modules work on both NixOS and Darwin hosts.
   * **Warning:** Note that `git` as a package is installed anyway (in `common-configuration.nix`); disabling this only means disabling the custom configuration such as setting the user identity and global GitIgnores.
 
 * **`programs.lazygit`**: A terminal-based GUI application to simplify complex Git commands.
+* **`programs.nltchNur`**: Installs a configurable list of NUR (Nix User Repository) packages as system packages, with support for permitting specific insecure packages via `permittedInsecurePackages`.
 * **`programs.npm`**: Installs `nodejs_latest` and configures npm with a global prefix under `~/.npm-global`, adding it to `PATH` so globally installed packages are available in all shells.
 * **`programs.shell-aliases`**: A centralized repository of command-line shortcuts deployed across bash, zsh, and fish.
 * **`programs.starship`**: A fast, deeply customizable prompt for any shell, themed dynamically.
@@ -74,6 +79,10 @@ These modules work on both NixOS and Darwin hosts.
   * **Warning:** Disabling this would cause some aliases to not work.
 
 * **`programs.zsh`**: Configures the Zsh shell with shell aliases and common initialization settings.
+
+#### Services (`services.`)
+
+* **`services.tailscale`**: A zero-config mesh VPN service that builds secure networks between your devices. On NixOS also configures the firewall (UDP port 41641, trusted tailscale0 interface, loose reverse-path filtering).
 
 ---
 
@@ -163,7 +172,6 @@ These modules are always active on NixOS hosts and handle platform integration. 
 
 * **`services.snapshots`**: A BTRFS snapshot retention automation system using Snapper to back up the filesystem on a configurable timeline (hourly, daily, weekly, monthly, yearly).
 * **`services.swaync`**: A notification daemon and control center for Wayland compositors, with optional per-app notification muting rules.
-* **`services.tailscale`**: A zero-config mesh VPN service that builds secure networks between your devices.
 * **`services.tlp`**: An advanced power management tool that optimizes battery life by configuring processor energy-performance policies, frequency scaling, and optional charging thresholds based on power source. Mutually exclusive with auto-cpufreq. ⚠️ Contains and enable `thermald` which is an intel-only setup. Set it as false if using an amd host
 
 #### Specializations (`specializations.`)

@@ -21,4 +21,12 @@ delib.module {
       permittedInsecurePackages = config.myconfig.programs.nltchNur.permittedInsecurePackages;
     };
   };
+
+  darwin.ifEnabled = {
+    environment.systemPackages = config.myconfig.programs.nltchNur.packages;
+    nixpkgs.config = {
+      allowUnfree = true;
+      permittedInsecurePackages = config.myconfig.programs.nltchNur.permittedInsecurePackages;
+    };
+  };
 }

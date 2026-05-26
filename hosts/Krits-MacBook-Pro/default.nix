@@ -47,6 +47,12 @@ delib.host {
       };
 
       programs = {
+        nltchNur = {
+          enable = true;
+          packages = [ ];
+          permittedInsecurePackages = [ ];
+        };
+
         bat.enable = true;
         eza.enable = true;
         statix.enable = true;
@@ -78,6 +84,11 @@ delib.host {
       };
 
       nh = {
+        enable = true;
+        gcd = "30d";
+        gcn = "10";
+      };
+      nix-sweeps = {
         enable = true;
         gcd = "30d";
         gcn = "10";

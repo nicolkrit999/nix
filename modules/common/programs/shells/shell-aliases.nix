@@ -85,6 +85,8 @@ delib.module {
       # =========================================================================
       commonAliases = {
         # Nix maintenance
+        cleanup = "nix-sweep -p default system";
+        cleanup-ask = "nix-sweep -p ask system";
         dedup = "nix store optimise";
         cg = "nix-collect-garbage -d";
         nix-gc-roots = "nix-store --gc --print-roots";
@@ -136,9 +138,6 @@ delib.module {
         swpure = "cd ${flakeDir} && git add -A && nh os switch ${flakeDir}";
         swimpure = "cd ${flakeDir} && git add -A && sudo nixos-rebuild switch --flake . --impure";
 
-        # System maintenance (NixOS-specific)
-        cleanup = "nh clean all";
-        cleanup-ask = "nh clean all --ask";
 
         # Pkgs editing
         pkgs-home = "$EDITOR ${flakeDir}/home-manager/home-packages.nix";

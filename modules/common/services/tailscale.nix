@@ -12,4 +12,8 @@ delib.module {
       checkReversePath = "loose"; # Strict reverse path filtering breaks VPNs
     };
   };
+
+  darwin.ifEnabled = {
+    services.tailscale.enable = true;
+  };
 }

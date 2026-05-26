@@ -249,6 +249,13 @@
     concord.url = "github:chojs23/concord";
 
     tgt.url = "github:FedericoBruzzone/tgt";
+
+    # README explicitly states: "Neither the module nor the overlay uses this
+    # input. To download less, set nix-doom-emacs-unstraightened.inputs.nixpkgs.follows = '';"
+    nix-doom-emacs-unstraightened = {
+      url = "github:marienz/nix-doom-emacs-unstraightened";
+      inputs.nixpkgs.follows = "";
+    };
   };
 
 }

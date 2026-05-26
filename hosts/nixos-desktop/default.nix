@@ -165,6 +165,11 @@ delib.host {
         gcd = "30d";
         gcn = "3";
       };
+      nix-sweeps = {
+        enable = true;
+        gcd = "30d";
+        gcn = "3";
+      };
       qt.enable = true;
 
       zram = {
