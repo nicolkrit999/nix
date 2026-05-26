@@ -4,7 +4,8 @@
 # Evaluating the full activationPackage closure forces every transitive
 # derivation to be resolved for aarch64-linux — any missing package throws.
 let
-  flake = builtins.getFlake "path:/home/krit/nix";
+  flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
+  flake = builtins.getFlake "path:${flakeRoot}";
   denix = flake.inputs.denix;
 
   nixosPaths = [

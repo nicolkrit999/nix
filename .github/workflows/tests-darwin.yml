@@ -22,6 +22,7 @@ jobs:
       contents: read
     env:
       NIXPKGS_ALLOW_UNFREE: 1
+      FLAKE_ROOT: ${{ github.workspace }}
       WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
     steps:
       - uses: actions/checkout@v4

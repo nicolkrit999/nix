@@ -7,7 +7,8 @@
 # Usage:
 #   nix eval --raw --impure --file this.nix check-<name>
 let
-  flake = builtins.getFlake "path:/home/krit/nix";
+  flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
+  flake = builtins.getFlake "path:${flakeRoot}";
   denix = flake.inputs.denix;
 
   darwinPaths = [

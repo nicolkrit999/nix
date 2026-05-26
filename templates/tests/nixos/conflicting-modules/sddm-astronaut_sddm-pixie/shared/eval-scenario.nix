@@ -2,7 +2,8 @@
 # Loads just the two sddm modules + stylix (needed because sddm-pixie's let
 # block touches config.lib.stylix.colors unconditionally).
 let
-  flake = builtins.getFlake "path:/home/krit/nix";
+  flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
+  flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
   denix = flake.inputs.denix;
 

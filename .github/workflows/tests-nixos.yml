@@ -24,6 +24,7 @@ jobs:
       NIXPKGS_ALLOW_UNFREE: 1
       WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
       CURL_HTTP_VERSION: 1.1
+      FLAKE_ROOT: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
 

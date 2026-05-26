@@ -17,7 +17,8 @@
 # Uses builtins.getFlake "path:/home/krit/nix" which works without --impure
 # because the path: scheme is a proper flake URI.
 let
-  flake = builtins.getFlake "path:/home/krit/nix";
+  flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
+  flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
   denix = flake.inputs.denix;
 
