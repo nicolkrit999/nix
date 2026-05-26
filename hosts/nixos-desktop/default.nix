@@ -103,7 +103,7 @@ delib.host {
         theme = {
           polarity = "dark";
           base16Theme = "catppuccin-macchiato";
-          catppuccin = true;
+          catppuccin = false;
           catppuccinFlavor = "macchiato";
           catppuccinAccent = "sapphire";
         };
@@ -191,6 +191,7 @@ delib.host {
         claude-desktop.enable = true;
         comma.enable = true;
         concord.enable = true;
+        doom.enable = true;
         eza.enable = true;
         fzf.enable = true;
         fzf.nix-search-tv.enable = true;
@@ -294,12 +295,12 @@ delib.host {
         # 🐚 SHELLS
         # ---------------------------------------------------------------
         caelestia = {
-          enable = true;
+          enable = false;
           enableOnHyprland = true;
         };
 
         noctalia = {
-          enable = true;
+          enable = false;
           enableOnHyprland = false;
           enableOnNiri = true;
           enableOnMango = false;
@@ -515,7 +516,7 @@ delib.host {
         # 📊 WAYBARS
         # ---------------------------------------------------------------
         waybar-hyprland = {
-          enable = false;
+          enable = true;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
             "format-it" = "🇮🇹-IT";
@@ -550,7 +551,7 @@ delib.host {
         };
 
         waybar-niri = {
-          enable = false;
+          enable = true;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
             "format-it" = "🇮🇹-IT";
@@ -719,7 +720,7 @@ delib.host {
 
       krit.services.nas = {
         desktop-borg-backup.enable = true;
-        owncloud.enable = false;
+        owncloud.enable = true;
         smb.enable = true;
         sshfs.enable = false;
       };

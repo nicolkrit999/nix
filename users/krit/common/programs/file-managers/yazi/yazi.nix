@@ -66,6 +66,14 @@ delib.module {
             sha256 = "00yh6w3f088dvhcb2464l86wxq7202bzgxjdnwi0i9cc1apgc54z";
           };
 
+          # nix-prefetch-url --unpack "https://github.com/dedukun/relative-motions.yazi/archive/a603d9ea924dfc0610bcf9d3129e7cba605d4501.tar.gz"
+          relative-motions = lib.mkForce (pkgs.fetchFromGitHub {
+            owner = "dedukun";
+            repo = "relative-motions.yazi";
+            rev = "a603d9ea924dfc0610bcf9d3129e7cba605d4501";
+            sha256 = "1kk8my0apb4ahp60krqalccp63crggh8jkvi0zdhsf26bkyv2bpn";
+          });
+
           # nix-prefetch-url --unpack "https://github.com/AnirudhG07/rich-preview.yazi/archive/7d616ad88498747b46124f32a35847324862cd83.tar.gz"
           rich-preview = pkgs.fetchFromGitHub {
             owner = "AnirudhG07";

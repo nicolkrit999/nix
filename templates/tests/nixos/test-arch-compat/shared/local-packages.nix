@@ -7,7 +7,7 @@ delib.module {
 
   home.always = { ... }: {
     home.packages = with pkgs; [
-      proton-pass
+      proton-pass # intentionally x86-only — verifies the test catches TRANSITIVE DEP failures without stopping
     ];
   };
 }
