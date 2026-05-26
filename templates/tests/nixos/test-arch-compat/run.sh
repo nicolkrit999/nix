@@ -82,13 +82,14 @@ run_check() {
     ((FAIL++)) || true
     local kind
     kind=$(classify_error "$err")
-    # Pre-filter to 3 key lines; encode newlines as ~ to survive array storage.
+    # Pre-filter to 4 key lines; encode newlines as ~ to survive array storage.
+    # Also catches NixOS/HM assertion bullets (lines starting with "- ").
     local excerpt
     excerpt=$(echo "$err" \
       | grep -v "^[[:space:]]*…" \
-      | grep -E "error:|missing|not available|not supported|Package" \
+      | grep -E "error:|missing|not available|not supported|Package|Failed assertions|^[[:space:]]+-[[:space:]]" \
       | grep -v "^$" \
-      | head -3 \
+      | head -4 \
       | tr '\n' '~')
     FAILURES+=("$label|$kind|$excerpt")
   fi
@@ -127,7 +128,7 @@ for entry in "${FAILURES[@]}"; do
   echo ""
 done
 
-echo -e "${DIM}Tip: a DIRECT MODULE failure means the flake input has no aarch64-linux output."
-echo -e "     A TRANSITIVE DEP failure means a dependency of a module is x86-only.${NC}"
+echo -e "${DIM}Tip: DIRECT MODULE = flake input has no aarch64-linux output or the module fires an aarch64 assertion."
+echo -e "     TRANSITIVE DEP = a dependency of a module is x86-only.${NC}"
 echo ""
 exit 1

@@ -24,37 +24,31 @@ delib.module {
     , ...
     }:
     let
-      isX86 = pkgs.stdenv.hostPlatform.isx86_64;
-
       activeOnHyprland =
-        isX86
-        && cfg.enable
+        cfg.enable
         && cfg.enableOnHyprland
         && (parent.hyprland.enable or false);
 
       activeOnNiri =
-        isX86
-        && cfg.enable
+        cfg.enable
         && cfg.enableOnNiri
         && (parent.niri.enable or false);
 
       activeOnMango =
-        isX86
-        && cfg.enable
+        cfg.enable
         && cfg.enableOnMango
         && (parent.mango.enable or false);
 
       active = activeOnHyprland || activeOnNiri || activeOnMango;
 
       caelestiaActiveOnHyprland =
-        isX86
-        && (parent.caelestia.enable or false)
+        (parent.caelestia.enable or false)
         && (parent.caelestia.enableOnHyprland or false)
         && (parent.hyprland.enable or false);
 
-      # noctalia-shell only ships x86_64-linux outputs; guard the attr access to avoid eval failure on aarch64.
+      # noctalia-shell has no aarch64-linux outputs; guard the attr access to avoid eval failure.
       noctaliaPkg =
-        if isX86
+        if pkgs.stdenv.hostPlatform.isx86_64
         then inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default
         else pkgs.emptyDirectory;
 
@@ -112,6 +106,10 @@ delib.module {
     in
     {
       assertions = [
+        {
+          assertion = !cfg.enable || pkgs.stdenv.hostPlatform.isx86_64;
+          message = "programs.noctalia cannot be enabled on aarch64-linux: noctalia-shell has no aarch64-linux flake output (gpu-screen-recorder is an x86-only transitive dependency).";
+        }
         {
           assertion = !(activeOnHyprland && caelestiaActiveOnHyprland);
           message = "Both caelestia and noctalia are active on Hyprland — only one shell may be active per WM.";

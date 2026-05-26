@@ -15,7 +15,7 @@ delib.host {
     programs.kde.enable = true;
     programs.cosmic.enable = true;
 
-    # Custom shells (conflict assertion fires but doesn't block eval)
+    # Custom shells: aarch64 assertion fires — expected, tests that the assertion path works.
     programs.caelestia = {
       enable = true;
       enableOnHyprland = true;
@@ -84,5 +84,33 @@ delib.host {
     specializations.guest.enable = true;
     specializations.safe-mode.enable = true;
     specializations.secure-travel.enable = true;
+
+    # users/krit/common programs
+    krit.programs.alacritty.enable = true;
+    krit.programs.kitty.enable = true;
+    krit.programs.direnv.enable = true;
+    krit.programs.neovim.enable = true;
+    krit.programs.ranger.enable = true;
+    krit.programs.yazi.enable = true;
+    krit.programs.chromium.enable = true;
+    krit.programs.firefox.enable = true;
+    krit.programs.librewolf.enable = true;
+    krit.programs.zathura.enable = true;
+    krit.programs.claude-code-wrappers.enable = true;
+    krit.attic.enable = true;
+
+    # users/krit/nixos programs & services
+    krit.programs.dolphin.enable = true;
+    krit.programs.helium.enable = true;
+    krit.programs.pwas.enable = true;
+    krit.services.logitech.enable = true;
+    krit.services.nas.desktop-borg-backup.enable = true;
+    krit.services.nas.laptop-borg-backup.enable = true;
+    krit.services.nas.owncloud.enable = true;
+    krit.services.nas.smb.enable = true;
+    krit.services.nas.sshfs.enable = true;
+    krit.specializations.entertainment.enable = true;
+    krit.specializations.home.enable = true;
+    krit.specializations.school.enable = true;
   };
 }

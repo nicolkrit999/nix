@@ -125,6 +125,52 @@ let
     /home/krit/nix/modules/nixos/specializations/guest.nix
     /home/krit/nix/modules/nixos/specializations/safe-mode.nix
     /home/krit/nix/modules/nixos/specializations/secure-travel.nix
+
+    # users/krit/common — cross-platform user modules
+    /home/krit/nix/users/krit/common/programs/claude-code-wrappers.nix
+    /home/krit/nix/users/krit/common/programs/cli-programs/direnv.nix
+    /home/krit/nix/users/krit/common/programs/cli-programs/neovim.nix
+    /home/krit/nix/users/krit/common/programs/file-managers/ranger.nix
+    /home/krit/nix/users/krit/common/programs/file-managers/yazi/init-lua.nix
+    /home/krit/nix/users/krit/common/programs/file-managers/yazi/yazi-keymap.nix
+    /home/krit/nix/users/krit/common/programs/file-managers/yazi/yazi.nix
+    /home/krit/nix/users/krit/common/programs/file-managers/yazi/yazi-theme.nix
+    /home/krit/nix/users/krit/common/programs/gui-programs/chromium.nix
+    /home/krit/nix/users/krit/common/programs/gui-programs/firefox.nix
+    /home/krit/nix/users/krit/common/programs/gui-programs/librewolf/librewolf-common.nix
+    # profiles/librewolf-profile-{default,privacy}.nix excluded: they are { addons, ... } helper
+    # functions called by librewolf-common.nix, not standalone denix modules.
+    /home/krit/nix/users/krit/common/programs/gui-programs/zathura.nix
+    /home/krit/nix/users/krit/common/programs/gui-programs/zen-browser/extensions.nix
+    /home/krit/nix/users/krit/common/programs/gui-programs/zen-browser/keyboard.nix
+    /home/krit/nix/users/krit/common/programs/gui-programs/zen-browser/mods.nix
+    /home/krit/nix/users/krit/common/programs/gui-programs/zen-browser/pins.nix
+    /home/krit/nix/users/krit/common/programs/gui-programs/zen-browser/search.nix
+    /home/krit/nix/users/krit/common/programs/gui-programs/zen-browser/settings.nix
+    /home/krit/nix/users/krit/common/programs/terminal-emulators/alacritty.nix
+    /home/krit/nix/users/krit/common/programs/terminal-emulators/kitty.nix
+    /home/krit/nix/users/krit/common/toplevel/attic.nix
+
+    # users/krit/nixos — NixOS-specific user modules (ext-dotfiles excluded: pure symlinks, no arch risk)
+    /home/krit/nix/users/krit/nixos/common/home/home-base.nix
+    /home/krit/nix/users/krit/nixos/common/system/default-user.nix
+    /home/krit/nix/users/krit/nixos/common/system/git-ssh-signing.nix
+    /home/krit/nix/users/krit/nixos/common/system/ssh-config.nix
+    /home/krit/nix/users/krit/nixos/common/system/swiss-locale.nix
+    /home/krit/nix/users/krit/nixos/common/system/virtualisation.nix
+    /home/krit/nix/users/krit/nixos/programs/file-managers/dolphin.nix
+    /home/krit/nix/users/krit/nixos/programs/gui-programs/helium.nix
+    /home/krit/nix/users/krit/nixos/programs/gui-programs/zen-browser/spaces.nix
+    /home/krit/nix/users/krit/nixos/programs/progressive-web-apps.nix
+    /home/krit/nix/users/krit/nixos/services/hardware/logitech/mouses/logitech-main.nix
+    /home/krit/nix/users/krit/nixos/services/nas/borg-backup/borg-backup-desktop.nix
+    /home/krit/nix/users/krit/nixos/services/nas/borg-backup/borg-backup-laptop.nix
+    /home/krit/nix/users/krit/nixos/services/nas/owncloud.nix
+    /home/krit/nix/users/krit/nixos/services/nas/smb.nix
+    /home/krit/nix/users/krit/nixos/services/nas/ssh.nix
+    /home/krit/nix/users/krit/nixos/specializations/entertainment.nix
+    /home/krit/nix/users/krit/nixos/specializations/home.nix
+    /home/krit/nix/users/krit/nixos/specializations/school.nix
   ];
 
   config = (denix.lib.configurations {

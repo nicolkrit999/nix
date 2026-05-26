@@ -22,17 +22,14 @@ delib.module {
     , ...
     }:
     let
-      isX86 = pkgs.stdenv.hostPlatform.isx86_64;
-
       activeOnHyprland =
-        isX86
-        && cfg.enable
+        cfg.enable
         && cfg.enableOnHyprland
         && (parent.hyprland.enable or false);
 
-      # caelestia-shell only ships x86_64-linux outputs; guard the attr access to avoid eval failure on aarch64.
+      # caelestia-shell has no aarch64-linux outputs; guard the attr access to avoid eval failure.
       caelestiaPkg =
-        if isX86
+        if pkgs.stdenv.hostPlatform.isx86_64
         then inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli
         else pkgs.emptyDirectory;
 
@@ -135,44 +132,44 @@ delib.module {
         fi
       '';
     in
-    # caelestia-shell has no aarch64-linux outputs — skip the whole module on non-x86.
-      # lib.optionalAttrs false returns {} without evaluating the body (unlike lib.mkIf which
-      # the module system still validates even when the condition is false).
-    lib.optionalAttrs isX86 {
+    {
+      assertions = [{
+        assertion = !cfg.enable || pkgs.stdenv.hostPlatform.isx86_64;
+        message = "programs.caelestia cannot be enabled on aarch64-linux: caelestia-shell has no aarch64-linux flake output (gpu-screen-recorder is an x86-only transitive dependency).";
+      }];
+
       imports = [ inputs.caelestia-shell.homeManagerModules.default ];
 
-      config = lib.mkIf activeOnHyprland {
-        programs.caelestia = {
-          enable = true;
-          cli.enable = true;
-          systemd.enable = false;
-        };
-
-        fonts.fontconfig.enable = true;
-
-        home.packages = [
-          caelestiaPkg
-          caelestiaQS
-          caelestiaLogout
-
-          # Qt Dependencies
-          pkgs.qt6.qt5compat
-          pkgs.qt6.qtsvg
-          pkgs.qt6.qtwayland
-          pkgs.qt6.qtdeclarative
-
-          pkgs.kdePackages.kirigami
-          pkgs.nerd-fonts.caskaydia-cove
-          pkgs.nerd-fonts.jetbrains-mono
-          pkgs.rubik
-          pkgs.material-symbols
-        ];
-
-        wayland.windowManager.hyprland.settings.exec-once = lib.mkAfter [
-          "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
-          "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
-          "sh -lc 'XDG_SCREENSHOTS_DIR=${myconfig.constants.screenshots} caelestiaqs'"
-        ];
+      programs.caelestia = lib.mkIf activeOnHyprland {
+        enable = true;
+        cli.enable = true;
+        systemd.enable = false;
       };
+
+      fonts.fontconfig.enable = lib.mkIf activeOnHyprland true;
+
+      home.packages = lib.mkIf activeOnHyprland [
+        caelestiaPkg
+        caelestiaQS
+        caelestiaLogout
+
+        # Qt Dependencies
+        pkgs.qt6.qt5compat
+        pkgs.qt6.qtsvg
+        pkgs.qt6.qtwayland
+        pkgs.qt6.qtdeclarative
+
+        pkgs.kdePackages.kirigami
+        pkgs.nerd-fonts.caskaydia-cove
+        pkgs.nerd-fonts.jetbrains-mono
+        pkgs.rubik
+        pkgs.material-symbols
+      ];
+
+      wayland.windowManager.hyprland.settings.exec-once = lib.mkIf activeOnHyprland (lib.mkAfter [
+        "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
+        "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
+        "sh -lc 'XDG_SCREENSHOTS_DIR=${myconfig.constants.screenshots} caelestiaqs'"
+      ]);
     };
 }
