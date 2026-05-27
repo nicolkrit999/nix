@@ -69,7 +69,7 @@ delib.module {
     in
     {
       home.file = builtins.mapAttrs
-        (_: relPath: { source = mkLink relPath; })
+        (_: relPath: { source = mkLink relPath; force = true; })
         mappings;
     };
 }

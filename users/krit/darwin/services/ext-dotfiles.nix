@@ -39,6 +39,6 @@ delib.module {
           "ln -s ${lib.escapeShellArg "${homeDir}/dotfiles/${relPath}"} $out";
     in
     {
-      home.file = builtins.mapAttrs (_: relPath: { source = mkLink relPath; }) mappings;
+      home.file = builtins.mapAttrs (_: relPath: { source = mkLink relPath; force = true; }) mappings;
     };
 }
