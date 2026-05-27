@@ -19,7 +19,6 @@ let
 
     claude-ai-private-macOS = [
       ".claude.json"
-      ".claude/plugins/marketplaces"
       ".claude/plugins/installed_plugins.json"
       ".claude/plugins/known_marketplaces.json"
       ".claude/plans"
