@@ -34,6 +34,8 @@ delib.host {
       system.stateVersion = "25.11";
       imports = [
         ./hardware-configuration.nix
+        #./disko-config-btrfs.nix
+        #./disko-config-btrfs-luks-impermanence.nix
       ];
 
     };

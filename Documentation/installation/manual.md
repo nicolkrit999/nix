@@ -1,6 +1,6 @@
 # NixOS Installation Guide (Manual Partitioning)
 
-> **Dual boot prerequisite:** Boot into Windows, open "Disk Management," right-click your main Windows partition, select "Shrink Volume," and create the desired **Unallocated Space** for NixOS. Leave it completely unallocated.
+> **Dual boot prerequisite (if applicable):** Boot into Windows, open "Disk Management," right-click your main Windows partition, select "Shrink Volume," and create the desired **Unallocated Space** for NixOS. Leave it completely unallocated.
 >
 > **Also:** Change `homeManagerUser` in `flake.nix` to your chosen username before starting.
 
@@ -50,7 +50,7 @@ Look for your main disk (e.g. `nvme0n1`). Note the existing partitions and the f
 sudo cfdisk /dev/nvme0n1  # Replace with your actual disk name
 ```
 
-1. Select the **Free space** (the unallocated space you created in Windows).
+1. Select the **Free space** (the unallocated space you created in Windows if applicable).
 2. Select **New** → set size to `1G` (or 1–4 GB — NixOS needs a large boot partition for multiple generations). Change **Type** to **EFI System**.
 3. Select the remaining **Free space** again → **New** → press Enter to use the rest. Keep **Type** as **Linux filesystem**.
 4. Select **Write**, type `yes`, then **Quit**.
@@ -117,6 +117,10 @@ Remove `inputs.disko.nixosModules.disko` and any disko-config references from th
 Also open `~/nix/flake.nix` and remove any `.disko-config` paths from the `exclude` block.
 
 ### Configure Critical Variables
+
+```bash
+nano default.nix
+```
 
 - **`user`**: Change `"template-user"` to your real username.
 - **`homeManagerSystem`**: `x86_64-linux` for Intel/AMD, `aarch64-linux` for ARM.

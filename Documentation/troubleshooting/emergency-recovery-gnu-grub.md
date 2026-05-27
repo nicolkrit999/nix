@@ -65,4 +65,3 @@ boot.loader.grub.configurationLimit = 20; # Always keep 20 versions available
 - **Safe Logout**: If the screen hangs at a blinking `_`, do not force-reboot. Press `Ctrl+Alt+F3`, login, and type `sudo reboot` to safely unmount Btrfs.
 - **Testing**: Always use `sudo nixos-rebuild test --flake .#nixos-desktop` for experimental changes. If it fails, a simple reboot returns you to safety because `test` does not update the GRUB menu.
 
-Would you like me to explain how to "pin" your current working recovery state so it never gets deleted by garbage collection?

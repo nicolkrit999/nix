@@ -2,6 +2,7 @@
 
 > **Prerequisite:** Change `homeManagerUser` in `flake.nix` to your chosen username before starting. Every host is forced to share the same username.
 
+- ⚠️ Disko does `not` support dual-boot (different os on the same disk), it wipes the entire disk 
 ---
 
 ## Phase 1: Preparation
@@ -70,6 +71,28 @@ nixos =
   };
 ```
 
+
+Edit `flake.nix` to exclude the disko files and the hardware configuration
+- replace/remove existing hosts name with your chosen one
+
+```nix
+baseExclude = [
+
+# Any `hardware-configuration.nix must be excluded`
+./hosts/nixos-desktop/hardware-configuration.nix
+./hosts/template-host-minimal/hardware-configuration.nix
+./hosts/nixos-laptop/hardware-configuration.nix
+
+# Any `disko` must be excluded
+./hosts/template-host-minimal/disko-config-btrfs.nix
+./hosts/template-host-minimal/disko-config-btrfs-luks-impermanence.nix
+
+# Opinionated modules exclusion (if you remove the librewolf folder you can remove this exclusion)
+./users/krit/common/programs/gui-programs/librewolf/profiles # `librewolf.nix` already imports them
+];
+
+```
+
 ---
 
 ## Option A: Standard (No Encryption)
@@ -94,9 +117,9 @@ nano default.nix
 - **`homeManagerSystem`**: `x86_64-linux` for Intel/AMD, `aarch64-linux` for ARM.
 - **Keyboard**: Set `keyboardLayout` and `keyboardVariant` to avoid layout issues at login.
 
-### Enable Suggested Modules
+### Enable your favorite Modules
 
-Check `template-host-minimal/default.nix` for modules with `enable = true` blocks and enable what you need. See the [denix possibilities guide](../usage/denix/possibilities.md) for descriptions.
+See the [denix possibilities guide](../usage/denix/possibilities.md) for descriptions.
 
 ### Install
 
@@ -135,6 +158,11 @@ sudo nixos-install --flake .#my-computer
 ### Configure Critical Variables
 
 Same as Option A above (`user`, `homeManagerSystem`, keyboard).
+
+### Enable your favorite Modules
+
+See the [denix possibilities guide](../usage/denix/possibilities.md) for descriptions.
+
 
 ### Install
 

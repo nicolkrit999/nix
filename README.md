@@ -2,13 +2,7 @@
 
 > ⚠️ Screenshots may be outdated. Documentation is updated incrementally.
 
-## Hyprland + waybar
-
 ![hyprland-showcase](./Documentation/showcase-screenshots/hyprland-showcase.png)
-
-## Hyprland + caelestia/quickshell
-
-![hyprland-caelestia](./Documentation/showcase-screenshots/hyprland-caelestia.png)
 
 ---
 
@@ -17,15 +11,14 @@
 → [Full feature descriptions](./Documentation/features.md)
 
 - Adaptive host support via denix (per-host modules and constants)
-- Host-specific home-manager modules (`/users`) and manual-import templates (`/templates`)
+- Host-specific home-manager modules (`/users` + `/modules`) and manual-import templates (`/templates`)
 - Hybrid declarative + non-declarative modules (shells, caelestia, noctalia)
 - Theming: base16 + optional Catppuccin via stylix
 - Host-specific wallpapers tied to monitor list
 - Multiple desktop environments: Hyprland with waybar, Hyprland with caelestia, Hyprland with noctalia, niri with noctalia, MangoWM with mangowc, KDE, GNOME, Cosmic
 - NixOS specializations: guest (ephemeral RAM home), safe-mode (IceWM recovery shell), deep-focus (distraction-free workspaces), secure-travel (hardened, kill-switch VPN)
-- Home Manager integration
-- Tmux
-- Multiple shells (bash, zsh, fish) + Starship
+- flakes & Home Manager integration
+- Multiple shells (bash, zsh, fish)
 - Optional BTRFS snapshots with per-host retention policy
 - SOPS-nix secret management
 - Impermanence (root wiped on reboot, `/persist` for state)
@@ -47,7 +40,7 @@
    cd ~/nix
    ```
 4. Change `homeManagerUser` in `flake.nix` to your chosen username.
-5. Copy a host template, configure `user`, `homeManagerSystem`, and keyboard variables, then proceed with your chosen method below.
+5. Copy a host template, configure the minimal variables, such as `user`, `homeManagerSystem`, then proceed with your chosen method below.
 
 ### Choose Your Installation Method
 

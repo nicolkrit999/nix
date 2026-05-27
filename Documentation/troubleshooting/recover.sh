@@ -47,10 +47,10 @@ nixos-enter -c "
   echo '-> Forcing public DNS (1.1.1.1)...'
   rm -f /etc/resolv.conf
   echo 'nameserver 1.1.1.1' > /etc/resolv.conf
-  
+
   echo '-> Creating binfmt directory to prevent QEMU errors...'
   mkdir -p /run/binfmt
-  
+
   echo '-> Stashing changes and checking out main branch...'
   cd $FLAKE_DIR
   git stash -u

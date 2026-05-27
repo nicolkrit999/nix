@@ -125,7 +125,7 @@ delib.module {
       '';
 
       systemd.slices."user-2000".sliceConfig = {
-        MemoryMax = "4G";
+        MemoryMax = "75%";
         CPUWeight = 90;
       };
 
