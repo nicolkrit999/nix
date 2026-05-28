@@ -295,12 +295,12 @@ delib.host {
         # 🐚 SHELLS
         # ---------------------------------------------------------------
         caelestia = {
-          enable = false;
+          enable = true;
           enableOnHyprland = true;
         };
 
         noctalia = {
-          enable = false;
+          enable = true;
           enableOnHyprland = false;
           enableOnNiri = true;
           enableOnMango = false;
@@ -517,7 +517,7 @@ delib.host {
         # 📊 WAYBARS
         # ---------------------------------------------------------------
         waybar-hyprland = {
-          enable = true;
+          enable = false;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
             "format-it" = "🇮🇹-IT";
@@ -552,7 +552,7 @@ delib.host {
         };
 
         waybar-niri = {
-          enable = true;
+          enable = false;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
             "format-it" = "🇮🇹-IT";

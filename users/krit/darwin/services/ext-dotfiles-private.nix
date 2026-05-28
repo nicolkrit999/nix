@@ -6,7 +6,7 @@
 
 let
   packageLeaves = {
-    claude-ai-common = [
+    "claude/common" = [
       ".claude/agents"
       ".claude/memory"
       ".claude/notebooklm"
@@ -17,12 +17,11 @@ let
       ".config/ccstatusline"
     ];
 
-    claude-ai-private-macOS = [
+    "claude/mac" = [
       ".claude.json"
       ".claude/plugins/installed_plugins.json"
       ".claude/plugins/known_marketplaces.json"
       ".claude/plans"
-      "bin/start-actual-mcp"
     ];
 
     gsd = [
@@ -32,10 +31,18 @@ let
 
   packagesPerHost = {
     Krits-MacBook-Pro = [
-      "claude-ai-common"
-      "claude-ai-private-macOS"
+      "claude/common"
+      "claude/mac"
       "gsd"
     ];
+  };
+
+  # Maps home-dir path → repo-relative path, for cases where the two differ
+  # (e.g. macOS uses ~/bin/ but the file lives under .local/bin/ in the common package)
+  extraMappingsPerHost = {
+    Krits-MacBook-Pro = {
+      "bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
+    };
   };
 in
 
@@ -49,6 +56,7 @@ delib.module {
       homeDir = "/Users/${myconfig.constants.user}";
       hostname = myconfig.constants.hostname;
       enabledPackages = packagesPerHost.${hostname} or [ ];
+      extraMappings = extraMappingsPerHost.${hostname} or { };
 
       mkLink = relPath:
         pkgs.runCommandLocal
@@ -56,7 +64,7 @@ delib.module {
           { }
           "ln -s ${lib.escapeShellArg "${homeDir}/dotfiles-private/${relPath}"} $out";
 
-      mappings = lib.foldl'
+      packageMappings = lib.foldl'
         (acc: pkg:
           acc // lib.listToAttrs (map
             (leaf: {
@@ -66,6 +74,8 @@ delib.module {
             packageLeaves.${pkg}))
         { }
         enabledPackages;
+
+      mappings = packageMappings // extraMappings;
     in
     {
       home.file = builtins.mapAttrs

@@ -6,7 +6,7 @@
 
 let
   packageLeaves = {
-    claude-ai-common = [
+    "claude/common" = [
       ".claude/agents"
       ".claude/memory"
       ".claude/notebooklm"
@@ -15,10 +15,9 @@ let
       ".claude/projects/-home-krit-momentary-gym-claude-skill/memory"
       ".claude/projects/-home-krit-github-repos-personal-portainer-templates/memory"
       ".config/ccstatusline"
-      ".local/bin/start-actual-mcp"
     ];
 
-    claude-ai-private-nixOS-desktop = [
+    "claude/nixos-desktop" = [
       ".claude.json"
       ".claude/keybindings.json"
       ".claude/settings.json"
@@ -27,7 +26,7 @@ let
       ".claude/plans"
     ];
 
-    claude-ai-private-nixOS-laptop = [
+    "claude/nixos-laptop" = [
       ".claude.json"
       ".claude/keybindings.json"
       ".claude/settings.json"
@@ -40,35 +39,46 @@ let
       ".gsd"
     ];
 
-    vicinae-common = [
+    "vicinae/common" = [
       ".local/share/vicinae/shortcuts/shortcuts.json"
       ".local/share/vicinae/snippets/snippets.json"
     ];
 
-    vicinae-nixos-desktop = [
+    "vicinae/nixos-desktop" = [
       ".config/vicinae/settings.json"
     ];
 
-    vicinae-nixos-laptop = [
+    "vicinae/nixos-laptop" = [
       ".config/vicinae/settings.json"
     ];
   };
 
   packagesPerHost = {
     nixos-desktop = [
-      "claude-ai-common"
-      "claude-ai-private-nixOS-desktop"
+      "claude/common"
+      "claude/nixos-desktop"
       "gsd"
-      "vicinae-common"
-      "vicinae-nixos-desktop"
+      "vicinae/common"
+      "vicinae/nixos-desktop"
     ];
     nixos-laptop = [
-      "claude-ai-common"
-      "claude-ai-private-nixOS-laptop"
+      "claude/common"
+      "claude/nixos-laptop"
       "gsd"
-      "vicinae-common"
-      "vicinae-nixos-laptop"
+      "vicinae/common"
+      "vicinae/nixos-laptop"
     ];
+  };
+
+  # Maps home-dir path → repo-relative path, for cases where the two differ
+  # (binaries/ is the platform-neutral store; each OS maps it to its own convention)
+  extraMappingsPerHost = {
+    nixos-desktop = {
+      ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
+    };
+    nixos-laptop = {
+      ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
+    };
   };
 in
 
@@ -82,6 +92,7 @@ delib.module {
       homeDir = "/home/${myconfig.constants.user}";
       hostname = myconfig.constants.hostname;
       enabledPackages = packagesPerHost.${hostname} or [ ];
+      extraMappings = extraMappingsPerHost.${hostname} or { };
 
       mkLink = relPath:
         pkgs.runCommandLocal
@@ -89,7 +100,7 @@ delib.module {
           { }
           "ln -s ${lib.escapeShellArg "${homeDir}/dotfiles-private/${relPath}"} $out";
 
-      mappings = lib.foldl'
+      packageMappings = lib.foldl'
         (acc: pkg:
           acc // lib.listToAttrs (map
             (leaf: {
@@ -99,6 +110,8 @@ delib.module {
             packageLeaves.${pkg}))
         { }
         enabledPackages;
+
+      mappings = packageMappings // extraMappings;
     in
     {
       home.file = builtins.mapAttrs
