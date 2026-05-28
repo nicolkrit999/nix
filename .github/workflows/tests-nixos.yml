@@ -57,6 +57,8 @@ jobs:
             download-attempts = 15
             http-connections = 25
             connect-timeout = 30
+            extra-substituters = https://catppuccin.cachix.org https://krit-nixos.cachix.org
+            extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI= krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=
 
       - uses: nix-community/cache-nix-action@v6
         with:
