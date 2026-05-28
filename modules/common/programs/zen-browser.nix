@@ -38,7 +38,7 @@ delib.module {
         # ⚠ CLOSE ZEN BEFORE REBUILD when modifying keyboardShortcuts*.
         # Writes to zen-keyboard-shortcuts.json; Zen won't pick up changes
         # until restart, and the version-check may fail if Zen rewrote the file.
-        keyboardShortcutsVersion = lib.mkDefault 18;
+        keyboardShortcutsVersion = lib.mkDefault 19;
         keyboardShortcuts = [
           {
             id = "zen-compact-mode-toggle";
