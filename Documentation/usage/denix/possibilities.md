@@ -172,7 +172,8 @@ These modules are always active on NixOS hosts and handle platform integration. 
 
 * **`services.snapshots`**: A BTRFS snapshot retention automation system using Snapper to back up the filesystem on a configurable timeline (hourly, daily, weekly, monthly, yearly).
 * **`services.swaync`**: A notification daemon and control center for Wayland compositors, with optional per-app notification muting rules.
-* **`services.tlp`**: An advanced power management tool that optimizes battery life by configuring processor energy-performance policies, frequency scaling, and optional charging thresholds based on power source. Mutually exclusive with auto-cpufreq. ⚠️ Contains and enable `thermald` which is an intel-only setup. Set it as false if using an amd host
+* **`services.thermald`**: The Intel thermal daemon. Prevents CPU overheating by dynamically adjusting power limits before the kernel's thermal shutdown triggers. Independent of auto-cpufreq and tlp — can be enabled alongside either. ⚠️ Intel CPUs only; keep disabled on AMD hosts.
+* **`services.tlp`**: An advanced power management tool that optimizes battery life by configuring processor energy-performance policies, frequency scaling, and optional charging thresholds based on power source. Mutually exclusive with auto-cpufreq.
 
 #### Specializations (`specializations.`)
 

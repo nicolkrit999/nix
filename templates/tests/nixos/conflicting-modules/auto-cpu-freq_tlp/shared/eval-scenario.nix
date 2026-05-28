@@ -15,6 +15,7 @@ let
     (src + "/modules/nixos/config/constants-nixos.nix")
 
     (src + "/modules/nixos/services/power/auto-cpufreq.nix")
+    (src + "/modules/nixos/services/power/thermald.nix")
     (src + "/modules/nixos/services/power/tlp.nix")
   ];
 

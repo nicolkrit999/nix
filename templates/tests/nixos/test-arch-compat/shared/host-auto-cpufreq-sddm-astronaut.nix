@@ -75,6 +75,7 @@ delib.host {
 
     # Power: variant A uses auto-cpufreq (tlp disabled)
     services.auto-cpufreq.enable = true;
+    services.thermald.enable = true;
 
     # Display manager: variant A uses sddm-astronaut (sddm-pixie disabled)
     services.sddm-astronaut.enable = true;

@@ -22,7 +22,6 @@ delib.module {
     # handles power management dynamically which is smarter. GNOME otherwise works fine.
     services.power-profiles-daemon.enable = lib.mkForce false;
 
-    services.thermald.enable = true; # Intel thermal daemon - prevents overheating ⚠️: Remove if using AMD CPU
     programs.auto-cpufreq = {
       enable = true;
       settings = {

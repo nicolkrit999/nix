@@ -95,6 +95,7 @@ let
     (src + "/modules/nixos/services/hypr/hyprlock.nix")
     (src + "/modules/nixos/services/impermanence.nix")
     (src + "/modules/nixos/services/power/auto-cpufreq.nix")
+    (src + "/modules/nixos/services/power/thermald.nix")
     (src + "/modules/nixos/services/power/tlp.nix")
     (src + "/modules/nixos/services/resolved.nix")
     (src + "/modules/nixos/services/sddm/sddm-astronaut.nix")

@@ -6,7 +6,6 @@ delib.module {
   # Mutual exclusivity with services.auto-cpufreq is enforced via an assertion in
   # auto-cpufreq.nix (fires when both are enabled, regardless of which module owns it).
   nixos.ifEnabled = { ... }: {
-    services.thermald.enable = true; # Intel thermal daemon - prevents overheating ⚠️: Remove if using AMD CPU
     services.tlp = {
       enable = true;
       settings = {

@@ -608,8 +608,9 @@ delib.host {
         tailscale.enable = true;
 
         # Power management (mutually exclusive - only enable ONE)
-        auto-cpufreq.enable = true; # Recommended: dynamic CPU scaling (uses official flake)
+        auto-cpufreq.enable = false; # Recommended: dynamic CPU scaling (uses official flake)
         tlp.enable = false; # Alternative: static power policies (uses NixOS native)
+        thermald.enable = true;
 
         hypridle = {
           enable = true;

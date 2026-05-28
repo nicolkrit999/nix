@@ -110,6 +110,10 @@ delib.host {
       ];
     };
 
+    boot.extraModprobeConfig = ''
+      options iwlwifi disable_11be=1
+    '';
+
     # Laptop-specific hardware — Intel Arc B390 (12 Xe3 cores, integrated in Panther Lake X7 358H SoC, xe driver)
     hardware.enableRedistributableFirmware = true; # Intel CPU microcode + GPU firmware for Panther Lake
     hardware.graphics = {
