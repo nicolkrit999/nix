@@ -35,10 +35,11 @@ delib.module {
       };
 
       profiles.default = {
-        # ⚠ CLOSE ZEN BEFORE REBUILD when modifying keyboardShortcuts*.
-        # Writes to zen-keyboard-shortcuts.json; Zen won't pick up changes
-        # until restart, and the version-check may fail if Zen rewrote the file.
-        keyboardShortcutsVersion = lib.mkDefault 19;
+        # ⚠ CLOSE ZEN BEFORE REBUILD when modifying keyboardShortcuts.
+        # Writes to zen-keyboard-shortcuts.json; Zen won't pick up changes until restart.
+        # keyboardShortcutsVersion intentionally NOT set — upstream emits a hard-failing
+        # version check only when it's non-null. Overrides are identified by `id`, so a
+        # Zen update that doesn't remove the shortcut ID keeps working silently.
         keyboardShortcuts = [
           {
             id = "zen-compact-mode-toggle";
