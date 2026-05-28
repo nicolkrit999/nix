@@ -15,6 +15,7 @@ delib.module {
       windowRules = listOfOption str [ ];
       extraBinds = listOfOption str [ ];
       extraBindl = listOfOption str [ ];
+      noHardwareCursors = boolOption false;
     };
 
   home.ifEnabled =
@@ -174,6 +175,10 @@ delib.module {
             touchpad = {
               natural_scroll = false;
             };
+          };
+
+          cursor = {
+            no_hardware_cursors = cfg.noHardwareCursors;
           };
 
           dwindle = {

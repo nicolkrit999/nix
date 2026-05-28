@@ -341,6 +341,7 @@ delib.host {
         # ---------------------------------------------------------------
         hyprland = {
           enable = true;
+          noHardwareCursors = true;
           monitors = [
             "eDP-1,3200x2000@120,0x0,1.6"
             ",preferred,auto,1"
