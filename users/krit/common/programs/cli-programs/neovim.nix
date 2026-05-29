@@ -34,6 +34,10 @@ delib.module {
         ];
       });
 
+      home.sessionVariables = {
+        NVIM_BASE16_THEME = myconfig.constants.theme.base16Theme;
+      };
+
       home.packages = with pkgs; [
         nodejs_latest # Ensure it's installed to allow copilot.lua to work
       ];
