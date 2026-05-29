@@ -611,7 +611,7 @@ delib.host {
         # Power management (mutually exclusive - only enable ONE)
         auto-cpufreq.enable = false; # Recommended: dynamic CPU scaling (uses official flake)
         tlp.enable = false; # Alternative: static power policies (uses NixOS native)
-        thermald.enable = true;
+        thermald.enable = false;
 
         hypridle = {
           enable = true;

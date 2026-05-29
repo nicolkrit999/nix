@@ -111,7 +111,7 @@ delib.host {
     };
 
     boot.extraModprobeConfig = ''
-      options iwlwifi disable_11be=1
+      options iwlwifi disable_11be=1 power_save=0 uapsd_disable=1
     '';
 
     # Laptop-specific hardware — Intel Arc B390 (12 Xe3 cores, integrated in Panther Lake X7 358H SoC, xe driver)
