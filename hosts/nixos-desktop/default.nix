@@ -85,13 +85,13 @@ delib.host {
         wallpapers = [
           {
             targetMonitor = "DP-1";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/b56bc78bf5861f9d39afd2592ad572013dff6146/wallpapers/Pictures/wallpapers/various/various-websites/alphacoders/alphacoder-anime-girl-1.jpg";
-            wallpaperSHA256 = "00wvcb8f6lbdkxlvda81c9ipm2vi5vaf9v9kk81zbg8pr5ykbvx5";
+            wallpaperURL = "https://github.com/nicolkrit999/wallpapers-repo/blob/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/axaxx-loll/macchiato-wallpapers-main/genshin2.png";
+            wallpaperSHA256 = "0afzafiqw9anykhymhc8z3wsn84yxhai95dmja1bgcmbr82fsq7x";
           }
           {
             targetMonitor = "DP-2";
-            wallpaperURL = "https://github.com/nicolkrit999/wallpapers-repo/blob/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/axaxx-loll/macchiato-wallpapers-main/genshin2.png";
-            wallpaperSHA256 = "0afzafiqw9anykhymhc8z3wsn84yxhai95dmja1bgcmbr82fsq7x";
+            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Ros%C3%A9%20Pine/chainsaw_makima.png";
+            wallpaperSHA256 = "14syikj4d8j8vaqshp1ya58sia18gmpi278lmhfnhgid8fxa0y4f";
           }
           {
             targetMonitor = "*";
@@ -102,7 +102,7 @@ delib.host {
 
         theme = {
           polarity = "dark";
-          base16Theme = "catppuccin-macchiato";
+          base16Theme = "rose-pine";
           catppuccin = false;
           catppuccinFlavor = "macchiato";
           catppuccinAccent = "sapphire";
@@ -295,12 +295,12 @@ delib.host {
         # 🐚 SHELLS
         # ---------------------------------------------------------------
         caelestia = {
-          enable = true;
+          enable = false;
           enableOnHyprland = true;
         };
 
         noctalia = {
-          enable = true;
+          enable = false;
           enableOnHyprland = false;
           enableOnNiri = true;
           enableOnMango = false;
@@ -517,7 +517,7 @@ delib.host {
         # 📊 WAYBARS
         # ---------------------------------------------------------------
         waybar-hyprland = {
-          enable = false;
+          enable = true;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
             "format-it" = "🇮🇹-IT";
@@ -552,7 +552,7 @@ delib.host {
         };
 
         waybar-niri = {
-          enable = false;
+          enable = true;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
             "format-it" = "🇮🇹-IT";
@@ -644,8 +644,8 @@ delib.host {
 
         sddm-astronaut = {
           enable = true;
-          embeddedTheme = "hyprland_kath";
-          #background = ../../users/krit/src/wallpapers/neko.jpg;
+          embeddedTheme = "pixel_sakura_static";
+          background = ../../users/krit/src/wallpapers/mountain_dragon_pink.jpg;
         };
         sddm-pixie = {
           enable = false;
