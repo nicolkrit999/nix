@@ -20,4 +20,14 @@ delib.module {
 
       programs.home-manager.enable = true;
     };
+
+  darwin.always =
+    { ... }:
+    {
+      home-manager.sharedModules = [
+        ({ config, ... }: {
+          gtk.gtk4.theme = config.gtk.theme;
+        })
+      ];
+    };
 }

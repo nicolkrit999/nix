@@ -92,6 +92,21 @@ Your role is to help configure, modify, refine, and extend this self-contained N
 - Reference the constants system for host-specific values (hostname, username, terminal, browser, editor, wallpaper, keyboard layout, timezone) rather than hardcoding values.
 - Follow the nixpkgs-fmt style for all Nix code formatting.
 
+### ⛔ NEVER Bump `stateVersion`
+
+`system.stateVersion`, `home.stateVersion`, and the `homeStateVersion` / `stateVersion` defaults in `constants.nix` are **frozen at install time and must never be changed** — not when bumping the nixpkgs channel, not when "modernizing" a host, not even if the user asks for a "full upgrade" without specifically calling out stateVersion. If you are doing a search-and-replace of release strings during a channel bump, **stateVersion lines are excluded from the replacement.** No exceptions.
+
+Why this rule is non-negotiable (explain to the user if they ask):
+
+- `stateVersion` is **not** a "current release" marker. That's `config.system.nixos.release` (read-only). `stateVersion` is a backward-compatibility contract that pins the **defaults of stateful modules** to the release at install time.
+- **PostgreSQL major version** is gated on stateVersion. Bumping it swaps Postgres majors at the next rebuild; the on-disk cluster in `/var/lib/postgresql/<old>/` won't open with the new binary. The service refuses to start until a manual `pg_upgrade`. Same hazard historically for MySQL/MariaDB defaults.
+- **Home-manager program defaults** for many modules (e.g. `gtk.gtk4.theme`, `programs.yazi.shellWrapperName`, `wayland.windowManager.hyprland.configType`, `programs.neovim.withRuby`/`withPython3`, `xdg.userDirs.setSessionVariables`) are gated on `home.stateVersion < "<release>"`. Bumping flips **all of them at once, with no warning**, mid-session, with no easy mass revert.
+- Various modules migrate state, ownership, or filesystem layouts only when stateVersion crosses a cutoff. Those migrations are **one-way** — reverting the value does not undo the migration that already ran.
+- It is **per-host**. A repo-wide replacement is always wrong because hosts were installed under different releases.
+- The NixOS and home-manager manuals are explicit: most users should never change this value after the initial install.
+
+If the user genuinely wants to adopt the new default for a specific option, do it **explicitly in code, one option at a time** (e.g. `programs.yazi.shellWrapperName = "y"`) — never by bumping stateVersion. Always prefer the silencing pattern shown in `modules/nixos/toplevel/home-nixos.nix` (sharedModules with explicit legacy values) over a stateVersion change.
+
 ## Workflow Methodology
 
 ### Step 1: Understand the Current State

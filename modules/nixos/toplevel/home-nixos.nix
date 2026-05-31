@@ -26,6 +26,13 @@ delib.module {
   nixos.always =
     { myconfig, ... }:
     {
+      home-manager.sharedModules = [
+        ({ config, ... }: {
+          gtk.gtk4.theme = config.gtk.theme;
+          xdg.userDirs.setSessionVariables = true;
+        })
+      ];
+
       home-manager.users.${myconfig.constants.user} =
         { ... }:
         {

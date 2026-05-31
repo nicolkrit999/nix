@@ -82,7 +82,7 @@ delib.host {
     # (2.13.0.1 → 2.14.1.1) and per-unit CS35L57 calibration files on Dell XPS 16 2026 (Panther Lake).
     # Note: 4-amp topology hypothesis was WRONG — 4 physical CS35L57s = 2 stereo SDCA function instances,
     # so 2amp IS correct. Override kept for DSP firmware improvements only.
-    # Remove when nixpkgs 25.11 ships sof-firmware ≥ 2025.12.2, or when UCM2 support lands.
+    # Remove when nixpkgs 26.05 ships sof-firmware ≥ 2025.12.2, or when UCM2 support lands.
     nixpkgs.overlays = [
       (_final: prev: {
         sof-firmware = inputs.nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.sof-firmware;

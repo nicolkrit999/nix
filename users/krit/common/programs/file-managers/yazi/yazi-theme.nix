@@ -143,19 +143,19 @@ delib.module {
               fg = "#${colors.base09}";
             }
             {
-              name = "*.nix";
+              url = "*.nix";
               fg = "#${colors.base0D}";
             }
             {
-              name = "*.md";
+              url = "*.md";
               fg = "#${colors.base0A}";
             }
             {
-              name = "*";
+              url = "*";
               fg = "#${colors.base05}";
             }
             {
-              name = "*/";
+              url = "*/";
               fg = "#${colors.base0D}";
               bold = true;
             }

@@ -38,6 +38,8 @@ delib.module {
         NVIM_BASE16_THEME = myconfig.constants.theme.base16Theme;
       };
 
+      xdg.configFile."nvim/init.lua".enable = lib.mkForce false;
+
       home.packages = with pkgs; [
         nodejs_latest # Ensure it's installed to allow copilot.lua to work
       ];
@@ -46,6 +48,8 @@ delib.module {
         enable = true;
         viAlias = true;
         vimAlias = true;
+        withRuby = true;
+        withPython3 = true;
 
         extraPackages = with pkgs; [
           ripgrep

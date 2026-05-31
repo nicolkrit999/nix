@@ -162,7 +162,28 @@ delib.module {
         pkgs.material-symbols
       ];
 
-      wayland.windowManager.hyprland.settings.exec-once = lib.mkIf activeOnHyprland (lib.mkAfter [
+    };
+
+  # Hyprland exec-once is set at the NixOS layer because the parent option
+  # `myconfig.programs.hyprland.execOnce` lives in NixOS scope. main.nix's
+  # home.ifEnabled reads it and renders the commands via extraConfig
+  # (HM 26.05's lua renderer can't emit hyphenated keys). mkAfter preserves
+  # end-of-list ordering across all contributors.
+  nixos.always =
+    { cfg
+    , parent
+    , myconfig
+    , ...
+    }:
+    let
+      activeOnHyprland =
+        pkgs.stdenv.hostPlatform.isx86_64
+        && cfg.enable
+        && cfg.enableOnHyprland
+        && (parent.hyprland.enable or false);
+    in
+    {
+      myconfig.programs.hyprland.execOnce = lib.mkIf activeOnHyprland (lib.mkAfter [
         "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
         "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
         "sh -lc 'XDG_SCREENSHOTS_DIR=${myconfig.constants.screenshots} caelestiaqs'"

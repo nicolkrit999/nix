@@ -9,9 +9,15 @@ delib.module {
     , ...
     }:
     let
-      # Three-way active check (master + per-WM + wm.enable) — only dispatch
-      # to a shell's IPC if it is actually running on Hyprland. Inlined here
-      # because main.nix no longer carries the $shellMenu / $shellLock vars.
+      mod = "SUPER";
+      term = myconfig.constants.terminal.name or "alacritty";
+      browser = myconfig.constants.browser or "firefox";
+      rawFm = myconfig.constants.fileManager or "dolphin";
+      rawEd = myconfig.constants.editor or "vscode";
+      termApps = [ "nvim" "neovim" "vim" "nano" "hx" "helix" "yazi" "ranger" "lf" "nnn" ];
+      smartFm = if builtins.elem rawFm termApps then "${term} --class ${rawFm} -e ${rawFm}" else rawFm;
+      smartEd = if builtins.elem rawEd termApps then "${term} --class ${rawEd} -e ${rawEd}" else rawEd;
+
       caelestiaActiveOnHyprland =
         (myconfig.programs.caelestia.enable or false)
         && (myconfig.programs.caelestia.enableOnHyprland or false);
@@ -19,196 +25,172 @@ delib.module {
         (myconfig.programs.noctalia.enable or false)
         && (myconfig.programs.noctalia.enableOnHyprland or false);
 
-      # No fallback by design: super+shift+a is the *shell* launcher. If no shell
-      # is active, the bind is a no-op (the user is expected to use super+a → vicinae instead).
       shellMenu =
-        if caelestiaActiveOnHyprland then
-          "caelestiaQS"
-        else if noctaliaActiveOnHyprland then
-          "noctalia-shell ipc call toggleAppLauncher"
-        else
-          "true";
+        if caelestiaActiveOnHyprland then "caelestiaQS"
+        else if noctaliaActiveOnHyprland then "noctalia-shell ipc call toggleAppLauncher"
+        else "true";
 
-      # Direct dispatch — bypasses universalLock chain which silently falls
-      # through to hyprlock when the shell isn't pgrep-matched.
       shellLock =
-        if caelestiaActiveOnHyprland then
-          "caelestiaLogout lock"
-        else if noctaliaActiveOnHyprland then
-          "noctalia-shell ipc call lockScreen lock"
-        else
-          "loginctl lock-session";
+        if caelestiaActiveOnHyprland then "caelestiaLogout lock"
+        else if noctaliaActiveOnHyprland then "noctalia-shell ipc call lockScreen lock"
+        else "loginctl lock-session";
 
-      # Media / brightness keys: when a shell is active it shows its own OSD
-      # via PipeWire / brightness DBus signals. Routing through swayosd-client
-      # would pop swayosd's OSD instead and the shell would never see the event.
       shellActiveOnHyprland = caelestiaActiveOnHyprland || noctaliaActiveOnHyprland;
+
       bindelList =
         if shellActiveOnHyprland then [
-          ",XF86AudioRaiseVolume,    exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
-          ",XF86AudioLowerVolume,    exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-          ",XF86AudioMute,           exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-          ",XF86AudioMicMute,        exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
-          ",XF86MonBrightnessUp,     exec, brightnessctl set 5%+"
-          ",XF86MonBrightnessDown,   exec, brightnessctl set 5%-"
-          "$Mod, bracketright,       exec, brightnessctl set 5%+"
-          "$Mod, bracketleft,        exec, brightnessctl set 5%-"
-          ",XF86KbdBrightnessUp,     exec, brightnessctl --device='*::kbd_backlight' set +10%"
-          ",XF86KbdBrightnessDown,   exec, brightnessctl --device='*::kbd_backlight' set 10%-"
+          { _args = [ "" "XF86AudioRaiseVolume" "exec" "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+" ]; }
+          { _args = [ "" "XF86AudioLowerVolume" "exec" "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-" ]; }
+          { _args = [ "" "XF86AudioMute" "exec" "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle" ]; }
+          { _args = [ "" "XF86AudioMicMute" "exec" "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle" ]; }
+          { _args = [ "" "XF86MonBrightnessUp" "exec" "brightnessctl set 5%+" ]; }
+          { _args = [ "" "XF86MonBrightnessDown" "exec" "brightnessctl set 5%-" ]; }
+          { _args = [ mod "bracketright" "exec" "brightnessctl set 5%+" ]; }
+          { _args = [ mod "bracketleft" "exec" "brightnessctl set 5%-" ]; }
+          { _args = [ "" "XF86KbdBrightnessUp" "exec" "brightnessctl --device='*::kbd_backlight' set +10%" ]; }
+          { _args = [ "" "XF86KbdBrightnessDown" "exec" "brightnessctl --device='*::kbd_backlight' set 10%-" ]; }
         ] else [
-          ",XF86AudioRaiseVolume,    exec, swayosd-client --output-volume raise"
-          ",XF86AudioLowerVolume,    exec, swayosd-client --output-volume lower"
-          ",XF86AudioMute,           exec, swayosd-client --output-volume mute-toggle"
-          ",XF86AudioMicMute,        exec, swayosd-client --input-volume mute-toggle"
-          ",XF86MonBrightnessUp,     exec, swayosd-client --brightness raise"
-          ",XF86MonBrightnessDown,   exec, swayosd-client --brightness lower"
-          "$Mod, bracketright,       exec, swayosd-client --brightness raise"
-          "$Mod, bracketleft,        exec, swayosd-client --brightness lower"
-          ",XF86KbdBrightnessUp,     exec, swayosd-client --keyboard-brightness raise"
-          ",XF86KbdBrightnessDown,   exec, swayosd-client --keyboard-brightness lower"
+          { _args = [ "" "XF86AudioRaiseVolume" "exec" "swayosd-client --output-volume raise" ]; }
+          { _args = [ "" "XF86AudioLowerVolume" "exec" "swayosd-client --output-volume lower" ]; }
+          { _args = [ "" "XF86AudioMute" "exec" "swayosd-client --output-volume mute-toggle" ]; }
+          { _args = [ "" "XF86AudioMicMute" "exec" "swayosd-client --input-volume mute-toggle" ]; }
+          { _args = [ "" "XF86MonBrightnessUp" "exec" "swayosd-client --brightness raise" ]; }
+          { _args = [ "" "XF86MonBrightnessDown" "exec" "swayosd-client --brightness lower" ]; }
+          { _args = [ mod "bracketright" "exec" "swayosd-client --brightness raise" ]; }
+          { _args = [ mod "bracketleft" "exec" "swayosd-client --brightness lower" ]; }
+          { _args = [ "" "XF86KbdBrightnessUp" "exec" "swayosd-client --keyboard-brightness raise" ]; }
+          { _args = [ "" "XF86KbdBrightnessDown" "exec" "swayosd-client --keyboard-brightness lower" ]; }
         ];
+
       bindlList =
         if shellActiveOnHyprland then [
-          ", XF86AudioNext,  exec, playerctl next"
-          ", XF86AudioPause, exec, playerctl play-pause"
-          ", XF86AudioPlay,  exec, playerctl play-pause"
-          ", XF86AudioPrev,  exec, playerctl previous"
-          ", XF86AudioStop,  exec, playerctl stop"
+          { _args = [ "" "XF86AudioNext" "exec" "playerctl next" ]; }
+          { _args = [ "" "XF86AudioPause" "exec" "playerctl play-pause" ]; }
+          { _args = [ "" "XF86AudioPlay" "exec" "playerctl play-pause" ]; }
+          { _args = [ "" "XF86AudioPrev" "exec" "playerctl previous" ]; }
+          { _args = [ "" "XF86AudioStop" "exec" "playerctl stop" ]; }
         ] else [
-          ", XF86AudioNext,  exec, swayosd-client --playerctl next"
-          ", XF86AudioPause, exec, swayosd-client --playerctl play-pause"
-          ", XF86AudioPlay,  exec, swayosd-client --playerctl play-pause"
-          ", XF86AudioPrev,  exec, swayosd-client --playerctl previous"
-          ", XF86AudioStop,  exec, swayosd-client --playerctl stop"
-          ", Caps_Lock,      exec, swayosd-client --caps-lock"
+          { _args = [ "" "XF86AudioNext" "exec" "swayosd-client --playerctl next" ]; }
+          { _args = [ "" "XF86AudioPause" "exec" "swayosd-client --playerctl play-pause" ]; }
+          { _args = [ "" "XF86AudioPlay" "exec" "swayosd-client --playerctl play-pause" ]; }
+          { _args = [ "" "XF86AudioPrev" "exec" "swayosd-client --playerctl previous" ]; }
+          { _args = [ "" "XF86AudioStop" "exec" "swayosd-client --playerctl stop" ]; }
+          { _args = [ "" "Caps_Lock" "exec" "swayosd-client --caps-lock" ]; }
         ];
     in
     {
       wayland.windowManager.hyprland.settings = {
         gesture = [
-          "3, right, dispatcher, workspace, m+1" # Next workspace
-          "3, left,  dispatcher, workspace, m-1" # Previous workspace
-          "3, up,    fullscreen" # Fullscreen/maximize
-          "3, down,  close" # Close window
-
-          "4, up,       dispatcher, exec, vicinae toggle" # App launcher (Vicinae)
-          "4, down,     special, magic" # Toggle scratchpad
-          "4, pinchin,  float" # Toggle floating
+          { _args = [ "3" "right" "dispatcher" "workspace, m+1" ]; }
+          { _args = [ "3" "left" "dispatcher" "workspace, m-1" ]; }
+          { _args = [ "3" "up" "fullscreen" ]; }
+          { _args = [ "3" "down" "close" ]; }
+          { _args = [ "4" "up" "dispatcher" "exec, vicinae toggle" ]; }
+          { _args = [ "4" "down" "special" "magic" ]; }
+          { _args = [ "4" "pinchin" "float" ]; }
         ];
 
         bind = [
-          # BASIC WINDOW MANAGEMENT
-          "$Mod SHIFT, C, killactive" # Close active window
-          "$Mod,       T, togglesplit" # Toggle split/stacked layout
-          "$Mod,        space, togglefloating" # Toggle floating mode: the window can be freely moved/resized
-          "$Mod,       M, fullscreen" # Toggle fullscreen (maximise): the window occupies the entire screen
-          "$Mod ALT,   P, pin" # Pin/unpin window. Copy the same windows to all workspaces with same dimensions and position
-          "$Mod,       P, exec, hyprctl dispatch togglefloating && hyprctl dispatch pin" # PiP mode: float + pin so window follows across workspaces on same monitor
+          # Window management
+          { _args = [ "${mod}+SHIFT" "C" "killactive" ]; }
+          { _args = [ mod "T" "togglesplit" ]; }
+          { _args = [ mod "space" "togglefloating" ]; }
+          { _args = [ mod "M" "fullscreen" ]; }
+          { _args = [ "${mod}+ALT" "P" "pin" ]; }
+          # PiP mode: float + pin so window follows across workspaces on same monitor
+          { _args = [ mod "P" "exec" "hyprctl dispatch togglefloating && hyprctl dispatch pin" ]; }
 
-          # APPLICATION LAUNCHING
-          "$Mod,       A, exec, vicinae toggle" # Application launcher (Vicinae)
-          "$Mod SHIFT, A, exec, ${shellMenu}" # Shell-specific launcher (Caelestia / Noctalia), fallback Vicinae
-          "$Mod, return, exec, $terminal" # Default terminal chosen in ./main.nix
-          "$Mod,       F, exec, $fileManager"
-          "$Mod,       B, exec, $browser" # Web browser
-          "$Mod, C, exec, $editor" # Code editor
+          # Application launching
+          { _args = [ mod "A" "exec" "vicinae toggle" ]; }
+          { _args = [ "${mod}+SHIFT" "A" "exec" shellMenu ]; }
+          { _args = [ mod "return" "exec" term ]; }
+          { _args = [ mod "F" "exec" smartFm ]; }
+          { _args = [ mod "B" "exec" browser ]; }
+          { _args = [ mod "C" "exec" smartEd ]; }
 
-          # SESSION MANAGEMENT
-          "$Mod SHIFT, Delete, exit" # Log out
-          "$Mod,       Delete, exec, ${shellLock}" # Lock (dispatches to active shell's lock IPC, else loginctl)
+          # Session
+          { _args = [ "${mod}+SHIFT" "Delete" "exit" ]; }
+          { _args = [ mod "Delete" "exec" shellLock ]; }
 
-          # EXTRA UTILITIES
-          "$Mod, period, exec, vicinae vicinae://launch/core/search-emojis" # Emoji picker
-          "$Mod SHIFT, P, exec, hyprpicker -an" # Color picker
-          "$Mod,       V, exec, vicinae vicinae://launch/clipboard/history" # Clipboard manager
-          "$Mod SHIFT, R, exec, hyprctl reload" # Reload Hyprland config
-          "$Mod,       N, exec, swaync-client -t" # Open notification center
+          # Utilities
+          { _args = [ mod "period" "exec" "vicinae vicinae://launch/core/search-emojis" ]; }
+          { _args = [ "${mod}+SHIFT" "P" "exec" "hyprpicker -an" ]; }
+          { _args = [ mod "V" "exec" "vicinae vicinae://launch/clipboard/history" ]; }
+          { _args = [ "${mod}+SHIFT" "R" "exec" "hyprctl reload" ]; }
+          { _args = [ mod "N" "exec" "swaync-client -t" ]; }
 
-          # WAYBAR CONTROLS
-          "$Mod ALT,   W, exec, pkill -SIGUSR2 waybar" # Reload config + CSS
+          # Waybar
+          { _args = [ "${mod}+ALT" "W" "exec" "pkill -SIGUSR2 waybar" ]; }
+          { _args = [ "${mod}+SHIFT" "W" "exec" "pkill -x -SIGUSR1 waybar" ]; }
 
-          "$Mod SHIFT, W, exec, pkill -x -SIGUSR1 waybar" # Toggle show/hide
+          # Screenshots
+          { _args = [ "" "Print" "exec" "grimblast --notify --freeze copysave output" ]; }
+          { _args = [ "SUPER+CTRL" "3" "exec" "grimblast --notify --freeze copysave output" ]; }
+          { _args = [ "SUPER+CTRL" "4" "exec" "grimblast --notify --freeze copysave area" ]; }
 
-          # SCREENSHOTS (Updated to Meta+Ctrl)
-          ", Print, exec, grimblast --notify --freeze copysave output" # Print Screen: Fullscreen
-          "SUPER CTRL, 3, exec, grimblast --notify --freeze copysave output" # Fullscreen
-          "SUPER CTRL, 4, exec, grimblast --notify --freeze copysave area" # Region
+          # Focus
+          { _args = [ mod "left" "movefocus" "l" ]; }
+          { _args = [ mod "H" "movefocus" "l" ]; }
+          { _args = [ mod "right" "movefocus" "r" ]; }
+          { _args = [ mod "L" "movefocus" "r" ]; }
+          { _args = [ mod "up" "movefocus" "u" ]; }
+          { _args = [ mod "K" "movefocus" "u" ]; }
+          { _args = [ mod "down" "movefocus" "d" ]; }
+          { _args = [ mod "J" "movefocus" "d" ]; }
 
-          # MOVING FOCUS
-          "$Mod,      left, movefocus, l" # Move focus left
-          "$Mod,      H, movefocus, l" # Move focus left (alternative key)
+          # Move windows
+          { _args = [ "${mod}+SHIFT" "left" "swapwindow" "l" ]; }
+          { _args = [ "${mod}+SHIFT" "H" "swapwindow" "l" ]; }
+          { _args = [ "${mod}+SHIFT" "right" "swapwindow" "r" ]; }
+          { _args = [ "${mod}+SHIFT" "L" "swapwindow" "r" ]; }
+          { _args = [ "${mod}+SHIFT" "up" "swapwindow" "u" ]; }
+          { _args = [ "${mod}+SHIFT" "K" "swapwindow" "u" ]; }
+          { _args = [ "${mod}+SHIFT" "down" "swapwindow" "d" ]; }
+          { _args = [ "${mod}+SHIFT" "J" "swapwindow" "d" ]; }
 
-          "$Mod,      right, movefocus, r" # Move focus right
-          "$Mod,      L, movefocus, r" # Move focus right (alternative key)
+          # Resize
+          { _args = [ "${mod}+CTRL" "left" "resizeactive" "-60 0" ]; }
+          { _args = [ "${mod}+CTRL" "right" "resizeactive" "60 0" ]; }
+          { _args = [ "${mod}+CTRL" "up" "resizeactive" "0 -60" ]; }
+          { _args = [ "${mod}+CTRL" "down" "resizeactive" "0 60" ]; }
 
-          "$Mod,      up, movefocus, u" # Move focus up
-          "$Mod,      K, movefocus, u" # Move focus up (alternative key)
+          # Workspaces
+          { _args = [ mod "1" "workspace" "1" ]; }
+          { _args = [ mod "2" "workspace" "2" ]; }
+          { _args = [ mod "3" "workspace" "3" ]; }
+          { _args = [ mod "4" "workspace" "4" ]; }
+          { _args = [ mod "5" "workspace" "5" ]; }
+          { _args = [ mod "6" "workspace" "6" ]; }
+          { _args = [ mod "7" "workspace" "7" ]; }
+          { _args = [ mod "8" "workspace" "8" ]; }
+          { _args = [ mod "9" "workspace" "9" ]; }
+          { _args = [ mod "0" "workspace" "10" ]; }
 
-          "$Mod,      down, movefocus, d" # Move focus down
-          "$Mod,      J, movefocus, d" # Move focus down (alternative key)
+          { _args = [ "${mod}+SHIFT" "1" "movetoworkspacesilent" "1" ]; }
+          { _args = [ "${mod}+SHIFT" "2" "movetoworkspacesilent" "2" ]; }
+          { _args = [ "${mod}+SHIFT" "3" "movetoworkspacesilent" "3" ]; }
+          { _args = [ "${mod}+SHIFT" "4" "movetoworkspacesilent" "4" ]; }
+          { _args = [ "${mod}+SHIFT" "5" "movetoworkspacesilent" "5" ]; }
+          { _args = [ "${mod}+SHIFT" "6" "movetoworkspacesilent" "6" ]; }
+          { _args = [ "${mod}+SHIFT" "7" "movetoworkspacesilent" "7" ]; }
+          { _args = [ "${mod}+SHIFT" "8" "movetoworkspacesilent" "8" ]; }
+          { _args = [ "${mod}+SHIFT" "9" "movetoworkspacesilent" "9" ]; }
+          { _args = [ "${mod}+SHIFT" "0" "movetoworkspacesilent" "10" ]; }
 
-          # MOVING WINDOWS
-          "$Mod SHIFT, left,  swapwindow, l" # Move window left
-          "$Mod SHIFT, H,     swapwindow, l" # Move window left (alternative key)
-
-          "$Mod SHIFT, right, swapwindow, r" # Move window right
-          "$Mod SHIFT, L,     swapwindow, r" # Move window right (alternative key)
-
-          "$Mod SHIFT, up,    swapwindow, u" # Move window up
-          "$Mod SHIFT, K,     swapwindow, u" # Move window up (alternative key)
-
-          "$Mod SHIFT, down,  swapwindow, d" # Move window down
-          "$Mod SHIFT, J,     swapwindow, d" # Move window down (alternative key)
-
-          # RESIZEING WINDOWS                   X  Y
-          "$Mod CTRL, left,  resizeactive, -60 0" # Resize window left, -60 represent pixels
-          "$Mod CTRL, right, resizeactive,  60 0" # Resize window right +60 represent pixels
-          "$Mod CTRL, up,    resizeactive,  0 -60" # Resize window up, -60 represent pixels
-          "$Mod CTRL, down,  resizeactive,  0  60" # Resize window down +60 represent pixels
-
-          # SWITCHING WORKSPACES
-          "$Mod, 1, workspace, 1"
-          "$Mod, 2, workspace, 2"
-          "$Mod, 3, workspace, 3"
-          "$Mod, 4, workspace, 4"
-          "$Mod, 5, workspace, 5"
-          "$Mod, 6, workspace, 6"
-          "$Mod, 7, workspace, 7"
-          "$Mod, 8, workspace, 8"
-          "$Mod, 9, workspace, 9"
-          "$Mod, 0, workspace, 10"
-
-          # MOVING WINDOWS TO WORKSPACES
-          "$Mod SHIFT, 1, movetoworkspacesilent, 1"
-          "$Mod SHIFT, 2, movetoworkspacesilent, 2"
-          "$Mod SHIFT, 3, movetoworkspacesilent, 3"
-          "$Mod SHIFT, 4, movetoworkspacesilent, 4"
-          "$Mod SHIFT, 5, movetoworkspacesilent, 5"
-          "$Mod SHIFT, 6, movetoworkspacesilent, 6"
-          "$Mod SHIFT, 7, movetoworkspacesilent, 7"
-          "$Mod SHIFT, 8, movetoworkspacesilent, 8"
-          "$Mod SHIFT, 9, movetoworkspacesilent, 9"
-          "$Mod SHIFT, 0, movetoworkspacesilent, 10"
-
-          # SCRATCHPAD IS A SPECIAL HIDDEN WORKSPACE FOR TEMPORARY WINDOWS
-          # They overlay other windows and can be toggled visible/invisible
-          "$Mod,       S, togglespecialworkspace,  magic" # Toggle scratchpad visibility
-          "$Mod SHIFT, S, movetoworkspace, special:magic" # Move window to scratchpad
+          # Scratchpad
+          { _args = [ mod "S" "togglespecialworkspace" "magic" ]; }
+          { _args = [ "${mod}+SHIFT" "S" "movetoworkspace" "special:magic" ]; }
         ]
         ++ (cfg.extraBinds or [ ]);
 
-        # MOVE/RESIZE WINDOWS WITH MAINMOD + LMB/RMB AND DRAGGING
         bindm = [
-          "$Mod, mouse:272, movewindow" # 272 is left mouse button
-          "$Mod, mouse:273, resizewindow" # 273 is right mouse button
+          { _args = [ mod "mouse:272" "movewindow" ]; }
+          { _args = [ mod "mouse:273" "resizewindow" ]; }
         ];
 
-        # LAPTOP MULTIMEDIA KEYS FOR VOLUME AND LCD BRIGHTNESS
         bindel = bindelList;
 
-        # AUDIO PLAYBACK
         bindl = bindlList ++ (cfg.extraBindl or [ ]);
-
       };
     };
 }

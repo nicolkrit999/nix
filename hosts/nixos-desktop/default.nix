@@ -198,7 +198,7 @@ delib.host {
         google-antigravity.enable = true;
         lazygit.enable = true;
         nix-alien.enable = true;
-        nix-topology.enable = true;
+        nix-topology.enable = false;
         nltchNur = {
           enable = true;
           packages = [
@@ -401,16 +401,16 @@ delib.host {
           ];
 
           extraBinds = [
-            "$Mod SHIFT, return, exec, [workspace special:magic] ${myTerminal} --class scratch-term"
-            "$Mod SHIFT, F, exec, [workspace special:magic] ${myTerminal} --class scratch-fs -e yazi"
-            "$Mod SHIFT, B, exec, [workspace special:magic] ${myBrowser} --new-window --class scratch-browser"
-            "$Mod,       Y, exec, chromium-browser"
+            { _args = [ "SUPER+SHIFT" "return" "exec" "[workspace special:magic] ${myTerminal} --class scratch-term" ]; }
+            { _args = [ "SUPER+SHIFT" "F" "exec" "[workspace special:magic] ${myTerminal} --class scratch-fs -e yazi" ]; }
+            { _args = [ "SUPER+SHIFT" "B" "exec" "[workspace special:magic] ${myBrowser} --new-window --class scratch-browser" ]; }
+            { _args = [ "SUPER" "Y" "exec" "chromium-browser" ]; }
 
-            # 🖱️ LOGITECH MX MASTER Thumb button gesstures
-            ", XF86Tools, workspace, m-1" # Swipe Left: Previous workspace on CURRENT monitor
-            ", XF86Launch5, workspace, m+1" # Swipe Right: Next workspace on CURRENT monitor
-            ", XF86Launch6, fullscreen" # Swipe Up: Maximize window (keeps gaps/bar)
-            ", XF86Launch7, killactive" # Swipe Down: Close window
+            # 🖱️ LOGITECH MX MASTER Thumb button gestures
+            { _args = [ "" "XF86Tools" "workspace" "m-1" ]; } # Swipe Left
+            { _args = [ "" "XF86Launch5" "workspace" "m+1" ]; } # Swipe Right
+            { _args = [ "" "XF86Launch6" "fullscreen" ]; } # Swipe Up
+            { _args = [ "" "XF86Launch7" "killactive" ]; } # Swipe Down
           ];
         };
 

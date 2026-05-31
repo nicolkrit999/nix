@@ -4,7 +4,23 @@
 
 This repo manages multiple NixOS **and** nix-darwin hosts using the [denix](https://github.com/yunfachi/denix) framework. Denix auto-discovers all `.nix` files under the configured `paths` (see `flake.nix`), then wires them together via `delib.module` and `delib.host`.
 
-Nixpkgs channel: `nixos-25.11`. Home-manager user: `krit`.
+Nixpkgs channel: `nixos-26.05`. Home-manager user: `krit`.
+
+## ⛔ `stateVersion` is NEVER bumped
+
+`system.stateVersion`, `home.stateVersion`, and the `myconfig.constants.homeStateVersion` / `stateVersion` defaults are **frozen at the release each host was first installed under**. Most hosts in this repo are pinned at `"25.11"`. **Do not change these values when bumping nixpkgs channels.** No exceptions, no "I'll just bump it on this one host", no search-and-replace.
+
+`stateVersion` is *not* a "current channel" marker (that's `config.system.nixos.release`, read-only). It is a backward-compatibility contract that pins the **defaults of stateful modules** to the release at install time. Bumping it silently changes runtime behavior. Concrete hazards:
+
+- **PostgreSQL major version**: `services.postgresql.package` is defaulted from stateVersion. A bump swaps Postgres majors at the next rebuild; the on-disk cluster in `/var/lib/postgresql/<old>/` is incompatible with the new binary and the service refuses to start until you manually run `pg_upgrade`. Same trap historically for MySQL/MariaDB defaults.
+- **Home-manager program defaults**: most of the warnings we silenced during the 25.11 → 26.05 migration (`gtk.gtk4.theme`, `programs.yazi.shellWrapperName`, `wayland.windowManager.hyprland.configType`, `programs.neovim.withRuby`/`withPython3`, `xdg.userDirs.setSessionVariables`) are gated on `home.stateVersion < "26.05"`. Bumping `home.stateVersion` would flip **all of them simultaneously with no warning**, mid-session, with no straightforward way to flip them back.
+- **systemd-tmpfiles, /etc, /var layouts, ZFS/Btrfs pool feature flags**: various modules migrate state or change file ownership only when stateVersion crosses a cutoff. Those migrations are one-way.
+- **It is one-way.** Reverting the value back to `"25.11"` does NOT undo any migration that already ran.
+- **It is per-host.** Each host has its own stateVersion because each was installed under a different release. A repo-wide search-and-replace is always wrong.
+
+The NixOS manual is explicit on this — `options.system.stateVersion` description: "Most users should never change this value after the initial install." Same warning lives in the home-manager manual for `home.stateVersion`.
+
+If you genuinely need to "modernize" a host (adopt the new defaults), do it **one option at a time, explicitly**, in the per-host or per-module Nix code. Never by touching stateVersion.
 
 ## Active Hosts
 

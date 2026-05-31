@@ -101,7 +101,7 @@ delib.module {
       # 4. 🔒 VPN: ProtonVPN + Soft Kill Switch
       # ---------------------------------------------------------
       environment.systemPackages = with pkgs; [
-        protonvpn-gui
+        proton-vpn
       ] ++ lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [
         tor-browser
       ];
@@ -147,10 +147,12 @@ delib.module {
 
       services.resolved = {
         enable = true;
-        dnssec = lib.mkForce "allow-downgrade"; # DNSSEC with captive portal fallback
-        domains = lib.mkForce [ "~." ]; # Route all DNS through resolved
-        fallbackDns = lib.mkForce [ "1.1.1.1" "8.8.8.8" ]; # Fallback for captive portals
-        dnsovertls = lib.mkForce "opportunistic"; # DoT when available, plain for portals
+        settings.Resolve = {
+          DNSSEC = lib.mkForce "allow-downgrade"; # DNSSEC with captive portal fallback
+          Domains = lib.mkForce "~."; # Route all DNS through resolved
+          FallbackDNS = lib.mkForce "1.1.1.1 8.8.8.8"; # Fallback for captive portals
+          DNSOverTLS = lib.mkForce "opportunistic"; # DoT when available, plain for portals
+        };
       };
 
       # ---------------------------------------------------------

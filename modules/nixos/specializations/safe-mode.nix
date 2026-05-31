@@ -62,7 +62,7 @@ delib.module {
             home.file.".xinitrc".text = ''
               #!/bin/sh
               # Auto-detect and enable all connected monitors at preferred resolution
-              ${pkgs.xorg.xrandr}/bin/xrandr --auto || true
+              ${pkgs.xrandr}/bin/xrandr --auto || true
 
               # Launch IceWM
               exec ${pkgs.icewm}/bin/icewm-session
@@ -97,7 +97,7 @@ delib.module {
         curl
         wget
         git
-        xfce.xfce4-terminal
+        xfce4-terminal
       ];
     };
   };

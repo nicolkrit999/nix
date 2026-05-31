@@ -126,20 +126,37 @@ delib.module {
       ]
       ++ extraQmlPackages);
 
-      # Hyprland Autostart
-      wayland.windowManager.hyprland.settings.exec-once = lib.mkIf activeOnHyprland [
-        "start-noctalia"
-      ];
-
       # Niri Autostart
       programs.niri.settings.spawn-at-startup = lib.mkIf activeOnNiri [
         { command = [ "start-noctalia" ]; }
       ];
 
       # Mango Autostart — extends mango's settings.exec list. mkAfter ensures
-      # noctalia starts after mango-main's xwayland/polkit/dbus/swww-daemon.
+      # noctalia starts after mango-main's xwayland/polkit/dbus/awww-daemon.
       wayland.windowManager.mango.settings.exec = lib.mkIf activeOnMango (lib.mkAfter [
         "start-noctalia"
       ]);
+    };
+
+  # Hyprland exec-once is set at the NixOS layer (not HM) because the
+  # parent option `myconfig.programs.hyprland.execOnce` lives in NixOS
+  # scope. main.nix's home.ifEnabled reads it and renders the commands
+  # via extraConfig (HM 26.05's lua renderer can't emit hyphenated keys).
+  nixos.always =
+    { cfg
+    , parent
+    , ...
+    }:
+    let
+      activeOnHyprland =
+        pkgs.stdenv.hostPlatform.isx86_64
+        && cfg.enable
+        && cfg.enableOnHyprland
+        && (parent.hyprland.enable or false);
+    in
+    {
+      myconfig.programs.hyprland.execOnce = lib.mkIf activeOnHyprland [
+        "start-noctalia"
+      ];
     };
 }

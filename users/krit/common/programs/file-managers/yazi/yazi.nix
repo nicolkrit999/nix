@@ -45,6 +45,7 @@ delib.module {
 
       programs.yazi = {
         enable = true;
+        shellWrapperName = "yy";
         enableZshIntegration = myconfig.constants.shell == "zsh";
         enableFishIntegration = myconfig.constants.shell == "fish";
         enableBashIntegration = myconfig.constants.shell == "bash";
@@ -270,7 +271,7 @@ delib.module {
           open = {
             rules = [
               {
-                name = "*/"; # Directories
+                url = "*/"; # Directories
                 use = [
                   "open"
                   "reveal"
@@ -330,7 +331,7 @@ delib.module {
                 use = "download";
               }
               {
-                name = "*.html"; # HTML files
+                url = "*.html"; # HTML files
                 use = [
                   "edit"
                   "reveal"
@@ -338,7 +339,7 @@ delib.module {
               }
 
               {
-                name = "*"; # Fallback for all other files
+                url = "*"; # Fallback for all other files
                 use = [
                   "open"
                   "reveal"
@@ -369,14 +370,14 @@ delib.module {
             fetchers = [
               {
                 id = "mime";
-                name = "*/";
+                url = "*/";
                 run = "mime";
                 "if" = "!mime";
                 prio = "high";
               }
               {
                 id = "mime";
-                name = "*";
+                url = "*";
                 run = "mime";
                 "if" = "!mime";
                 prio = "high";
@@ -387,47 +388,47 @@ delib.module {
             prepend_previewers = [
               # -- Rich Preview --
               {
-                name = "*.csv";
+                url = "*.csv";
                 run = "rich-preview";
               }
               {
-                name = "*.md";
+                url = "*.md";
                 run = "rich-preview";
               }
               {
-                name = "*.rst";
+                url = "*.rst";
                 run = "rich-preview";
               }
               {
-                name = "*.ipynb";
+                url = "*.ipynb";
                 run = "rich-preview";
               }
               {
-                name = "*.json";
+                url = "*.json";
                 run = "rich-preview";
               }
               {
-                name = "*.py";
+                url = "*.py";
                 run = "rich-preview";
               }
               {
-                name = "*.java";
+                url = "*.java";
                 run = "rich-preview";
               }
               {
-                name = "*.lua";
+                url = "*.lua";
                 run = "rich-preview";
               }
               {
-                name = "*.rs";
+                url = "*.rs";
                 run = "rich-preview";
               }
               {
-                name = "*.html";
+                url = "*.html";
                 run = "rich-preview";
               }
               {
-                name = "*.css";
+                url = "*.css";
                 run = "rich-preview";
               }
             ];

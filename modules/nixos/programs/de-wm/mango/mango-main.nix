@@ -34,7 +34,7 @@ delib.module {
     {
       home.packages = with pkgs; [
         xwayland-satellite
-        swww
+        awww
         libnotify
         hyprpicker
         wl-clipboard
@@ -208,7 +208,7 @@ delib.module {
             "xwayland-satellite :1"
             "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
             "dbus-update-activation-environment --systemd --all"
-            "swww-daemon"
+            "awww-daemon"
           ]
           ++ (map
             (w:
@@ -216,7 +216,7 @@ delib.module {
                 imgPath = pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
                 targetArgs = if w.targetMonitor == "*" then "" else "-o ${w.targetMonitor} ";
               in
-              "sh -c 'sleep 1 && swww img ${targetArgs}${imgPath}'")
+              "sh -c 'sleep 1 && awww img ${targetArgs}${imgPath}'")
             myconfig.constants.wallpapers)
           ++ cfg.execOnce;
         };

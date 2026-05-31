@@ -21,19 +21,14 @@ delib.module {
 
       nix.enable = true;
 
-      nix.settings.experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
-
-      nix.gc = {
-        automatic = true;
-        interval = {
-          Weekday = 0;
-          Hour = 2;
-          Minute = 0;
-        };
-        options = "--delete-older-than 7d";
+      nix.settings = {
+        experimental-features = [
+          "nix-command"
+          "flakes"
+        ];
+        auto-optimise-store = true;
       };
+
+      nix.gc.automatic = false;
     };
 }

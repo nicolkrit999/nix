@@ -22,11 +22,11 @@ delib.module {
         libGL
         vulkan-loader
         wayland
-        xorg.libX11
-        xorg.libxcb
-        xorg.libXcursor
-        xorg.libXrandr
-        xorg.libXi
+        libx11
+        libxcb
+        libxcursor
+        libxrandr
+        libxi
       ];
     in
     {

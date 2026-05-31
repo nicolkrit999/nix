@@ -214,25 +214,23 @@ delib.module {
         programs.ssh = {
           enable = true;
           enableDefaultConfig = lib.mkForce false;
-          matchBlocks = {
+          settings = {
             "github.com" = lib.mkForce {
-              hostname = "github.com";
-              identityFile = "/home/${myUserName}/.ssh/id_school";
-              identitiesOnly = true;
-              extraOptions = {
-                "PubkeyAuthentication" = "yes";
-              };
+              Hostname = "github.com";
+              IdentityFile = "/home/${myUserName}/.ssh/id_school";
+              IdentitiesOnly = "yes";
+              PubkeyAuthentication = "yes";
             };
 
             "gitlab.com" = lib.mkForce {
-              hostname = "gitlab.com";
-              identityFile = "/home/${myUserName}/.ssh/id_school";
-              identitiesOnly = true;
+              Hostname = "gitlab.com";
+              IdentityFile = "/home/${myUserName}/.ssh/id_school";
+              IdentitiesOnly = "yes";
             };
             "gitlab-edu.supsi.ch" = lib.mkForce {
-              hostname = "gitlab-edu.supsi.ch";
-              identityFile = "/home/${myUserName}/.ssh/id_school";
-              identitiesOnly = true;
+              Hostname = "gitlab-edu.supsi.ch";
+              IdentityFile = "/home/${myUserName}/.ssh/id_school";
+              IdentitiesOnly = "yes";
             };
           };
         };
@@ -293,7 +291,7 @@ delib.module {
           })
 
           (pkgs.writeShellScriptBin "tkgate-school" ''
-            ${pkgs.xorg.xhost}/bin/xhost +local: >/dev/null 2>&1
+            ${pkgs.xhost}/bin/xhost +local: >/dev/null 2>&1
             exec ${pkgs.distrobox}/bin/distrobox enter school-ubuntu -- bash -c '
               if ! command -v tkgate >/dev/null 2>&1; then
                 echo "tkgate is not installed. Run: school-distrobox-setup"
@@ -313,7 +311,7 @@ delib.module {
           # distrobox container with all env fixes needed for Java GUI on Wayland WMs.
           # All env var changes are scoped to this process only — no system-wide side effects.
           (pkgs.writeShellScriptBin "sqldeveloper-school" ''
-            ${pkgs.xorg.xhost}/bin/xhost +local: >/dev/null 2>&1
+            ${pkgs.xhost}/bin/xhost +local: >/dev/null 2>&1
             exec ${pkgs.distrobox}/bin/distrobox enter school-arch -- bash -c '
               if [ ! -x /opt/sqldeveloper/sqldeveloper.sh ]; then
                 echo "oracle-sqldeveloper is not installed. Run: school-distrobox-setup"

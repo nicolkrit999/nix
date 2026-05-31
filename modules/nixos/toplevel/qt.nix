@@ -56,7 +56,6 @@ delib.module {
           [
             kdePackages.plasma-integration
             kdePackages.kconfig
-            libsForQt5.kconfig
           ]
         );
 

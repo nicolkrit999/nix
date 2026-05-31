@@ -1,4 +1,4 @@
-{ delib, pkgs, ... }:
+{ delib, ... }:
 delib.module {
   name = "nh";
   options =
@@ -21,10 +21,13 @@ delib.module {
     };
 
   darwin.ifEnabled =
-    { ... }:
+    { cfg, myconfig, ... }:
     {
-      environment.systemPackages = with pkgs; [
-        nh
-      ];
+      home-manager.users.${myconfig.constants.user}.programs.nh = {
+        enable = true;
+        clean.enable = true;
+        clean.extraArgs = "--keep-since ${cfg.gcd} --keep ${cfg.gcn}";
+        flake = "/Users/${myconfig.constants.user}/nix";
+      };
     };
 }

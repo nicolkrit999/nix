@@ -138,8 +138,8 @@ delib.module {
             DisablePocket = true;
           };
         })
-        xfce.mousepad
-        xfce.xfce4-screenshooter
+        mousepad
+        xfce4-screenshooter
         file-roller
         zenity
       ];

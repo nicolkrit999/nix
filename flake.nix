@@ -110,8 +110,11 @@
     });
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    # Pinned 25.11 nixpkgs for inputs that haven't migrated past `nodePackages` removal yet
+    # (e.g. k3d3/claude-desktop-linux-flake uses `nodePackages.asar`). Drop once upstream updates.
+    nixpkgs-2511.url = "github:nixos/nixpkgs/nixos-25.11";
     nix-flatpak.url = "github:gmodena/nix-flatpak";
     impermanence.url = "github:nix-community/impermanence";
     nix-alien.url = "github:thiagokokada/nix-alien";
@@ -119,12 +122,14 @@
     claude-code.url = "github:sadjow/claude-code-nix";
     claude-desktop = {
       url = "github:k3d3/claude-desktop-linux-flake";
-      inputs.nixpkgs.follows = "nixpkgs";
+      # Pinned to nixpkgs-2511: upstream uses `nodePackages.asar` which was removed in 26.05 (2026-03-03).
+      # Revisit once upstream switches to top-level `asar`.
+      inputs.nixpkgs.follows = "nixpkgs-2511";
     };
     claude-cowork-service.url = "github:patrickjaja/claude-cowork-service";
 
     nix-darwin = {
-      url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+      url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -136,11 +141,13 @@
     };
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     stylix = {
+      # Pinned to release-25.11: stylix has not yet published a release-26.05 branch (checked 2026-05-30).
+      # Revisit and bump to release-26.05 once danth/stylix tags it.
       url = "github:danth/stylix/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -157,7 +164,7 @@
     };
 
     catppuccin = {
-      url = "github:catppuccin/nix/release-25.11"; # Changed from "github:catppuccin/nix" to pin to it and avoid the "services.displayManager.generic" does not exist evalution warning after a "nix flake update" done on february, 13, 2026
+      url = "github:catppuccin/nix/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

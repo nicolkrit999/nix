@@ -49,7 +49,7 @@ delib.module {
     {
       home.packages = with pkgs; [
         xwayland-satellite # X11 Support
-        swww # Wallpaper
+        awww # Wallpaper
         libnotify # Notifications
         hyprpicker # Color Picker
         wl-clipboard # Clipboard
@@ -185,7 +185,7 @@ delib.module {
               ];
             }
             # WALLPAPER
-            { command = [ "swww-daemon" ]; }
+            { command = [ "awww-daemon" ]; }
           ]
           ++ (map
             (w:
@@ -193,7 +193,7 @@ delib.module {
                 imgPath = pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
                 targetArgs = if w.targetMonitor == "*" then [ ] else [ "-o" w.targetMonitor ];
               in
-              { command = [ "swww" "img" ] ++ targetArgs ++ [ "${imgPath}" ]; }
+              { command = [ "awww" "img" ] ++ targetArgs ++ [ "${imgPath}" ]; }
             )
             myconfig.constants.wallpapers)
           ++ (map

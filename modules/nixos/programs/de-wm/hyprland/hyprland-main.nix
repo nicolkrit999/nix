@@ -13,10 +13,23 @@ delib.module {
       execOnce = listOfOption str [ ];
       monitorWorkspaces = listOfOption str [ ];
       windowRules = listOfOption str [ ];
-      extraBinds = listOfOption str [ ];
-      extraBindl = listOfOption str [ ];
+      # bind entries use HM's `{ _args = [ MODS KEY DISPATCHER ARG? ]; }`
+      # form (multi-arg `hl.bind(...)` call). MODS uses `+` between names.
+      extraBinds = listOfOption attrs [ ];
+      extraBindl = listOfOption attrs [ ];
       noHardwareCursors = boolOption false;
     };
+
+  # Stylix's hyprland target writes to top-level settings.{general,
+  # decoration, group, misc} which, in lua mode, would render as broken
+  # `hl.general(...)` / `hl.decoration(...)` / `hl.group(...)` / `hl.misc(...)`
+  # calls — Hyprland's lua API only exposes `hl.config({...})` for nested
+  # sections. We disable the stylix target and inline equivalent base16
+  # colors inside our own settings.config block (below) so the same theme
+  # still applies.
+  nixos.ifEnabled = {
+    myconfig.stylix.targets.hyprland.enable = false;
+  };
 
   home.ifEnabled =
     { cfg
@@ -25,25 +38,18 @@ delib.module {
     }:
     let
       term = myconfig.constants.terminal.name or "alacritty";
-      rawFm = myconfig.constants.fileManager or "dolphin";
-      rawEd = myconfig.constants.editor or "vscode";
 
       # List of known terminal-based apps. Add more as needed
-      termApps = [
-        "nvim"
-        "neovim"
-        "vim"
-        "nano"
-        "hx"
-        "helix"
-        "yazi"
-        "ranger"
-        "lf"
-        "nnn"
-      ];
 
-      smartFm = if builtins.elem rawFm termApps then "${term} --class ${rawFm} -e ${rawFm}" else rawFm;
-      smartEd = if builtins.elem rawEd termApps then "${term} --class ${rawEd} -e ${rawEd}" else rawEd;
+      # exec-once goes through extraConfig because HM 26.05's lua renderer
+      # can't emit hyphenated top-level setting keys (`hl.exec-once(...)`
+      # is invalid lua).
+      hyprlandExtraLua = lib.concatMapStrings
+        (cmd: ''hl.keyword("exec-once", ${lib.generators.toLua { } cmd})${"\n"}'')
+        ([
+          "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
+          "pkill ibus-daemon"
+        ] ++ cfg.execOnce);
     in
 
     {
@@ -70,10 +76,20 @@ delib.module {
 
       wayland.windowManager.hyprland = {
         enable = true;
+        # Hyprland's lua API: top-level helpers (`hl.bind`/`bindl`/`bindel`/
+        # `bindm`, `hl.env`, `hl.monitor`, `hl.workspace`, `hl.windowrulev2`,
+        # `hl.gesture`, `hl.keyword`) plus `hl.config({ general = {...}, ... })`
+        # for nested sections. HM emits `hl.<name>(...)` per settings key —
+        # nested sections must therefore live under `config = { ... }`, and
+        # `exec-once` (hyphenated, unrepresentable as a lua identifier) goes
+        # through extraConfig.
+        configType = "lua";
         systemd = {
           enable = true;
           variables = [ "--all" ];
         };
+
+        extraConfig = hyprlandExtraLua;
 
         settings = {
           env =
@@ -97,104 +113,110 @@ delib.module {
 
           monitor = cfg.monitors;
 
-          "$Mod" = "SUPER";
-          "$terminal" = term;
-          "$browser" = myconfig.constants.browser or "firefox";
-          "$fileManager" = smartFm;
-          "$editor" = smartEd;
+          config = {
+            general = {
+              # Gaps and borders
+              gaps_in = myconfig.constants.hyprland.gap or 5; # Inner gap:
+              gaps_out = (myconfig.constants.hyprland.gap or 10) * 2; # Outer gap: 2× inner
+              border_size = myconfig.constants.hyprland.borderSize or 2;
 
-          exec-once = [
-            "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
-            "pkill ibus-daemon"
-          ]
-          ++ cfg.execOnce;
+              "col.active_border" = lib.mkDefault (
+                if myconfig.constants.theme.catppuccin then
+                  "$accent"
+                else
+                  "rgb(${config.lib.stylix.colors.base0D})"
+              );
 
-          general = {
-            # Gaps and borders
-            gaps_in = myconfig.constants.hyprland.gap or 5; # Inner gap:
-            gaps_out = (myconfig.constants.hyprland.gap or 10) * 2; # Outer gap: 2× inner
-            border_size = myconfig.constants.hyprland.borderSize or 2;
+              "col.inactive_border" = lib.mkForce "rgba(${config.lib.stylix.colors.base02}66)";
 
-            "col.active_border" = lib.mkDefault (
-              if myconfig.constants.theme.catppuccin then
-                "$accent"
-              else
-                "rgb(${config.lib.stylix.colors.base0D})"
-            );
+              resize_on_border = true;
 
-            "col.inactive_border" = lib.mkForce "rgba(${config.lib.stylix.colors.base02}66)";
+              allow_tearing = false;
+              layout = "dwindle";
+            };
 
-            resize_on_border = true;
+            decoration = {
+              rounding = myconfig.constants.hyprland.rounding or 0; # Corner radius in pixels for window borders
+              active_opacity = 1.0; # Opacity of focused windows (1.0 = fully opaque)
+              inactive_opacity = 1.0; # Opacity of unfocused windows (1.0 = fully opaque)
+              shadow = {
+                enabled = true;
+                range = 8; # Shadow spread
+                render_power = 3;
+                color = lib.mkForce "rgba(00000066)";
+                offset = "0 3";
+              };
 
-            allow_tearing = false;
-            layout = "dwindle";
-          };
+              blur = {
+                enabled = true;
+                size = 8;
+                passes = 2;
+              };
+            };
 
-          decoration = {
-            rounding = myconfig.constants.hyprland.rounding or 0; # Corner radius in pixels for window borders
-            active_opacity = 1.0; # Opacity of focused windows (1.0 = fully opaque)
-            inactive_opacity = 1.0; # Opacity of unfocused windows (1.0 = fully opaque)
-            shadow = {
+            animations = {
               enabled = true;
-              range = 8; # Shadow spread
-              render_power = 3;
-              color = lib.mkForce "rgba(00000066)";
-              offset = "0 3";
+
+              bezier = [
+                "easeOutExpo, 0.16, 1, 0.3, 1" # Fast start, slow end (exponential ease-out)
+                "easeInOutQuad, 0.45, 0, 0.55, 1" # Symmetric acceleration (quadratic ease-in-out)
+                "easeOutBack, 0.34, 1.56, 0.64, 1" # Overshoot then settle (bouncy feel)
+              ];
+
+              animation = [
+                "windows, 1, 3, easeOutExpo" # Window move/resize: 300ms — snappy
+                "windowsIn, 1, 3, easeOutBack, popin 80%" # Window open: 300ms, slight overshoot = lively feel
+                "windowsOut, 1, 2, easeOutExpo, popin 80%" # Window close: 200ms — should feel quicker than open
+                "fade, 1, 2, easeOutExpo" # Opacity: 200ms — barely perceptible, keeps it clean
+                "border, 1, 3, easeOutExpo" # Border color: 300ms
+                "workspaces, 1, 4, easeInOutQuad, slide" # Workspace: 400ms — slightly longer for spatial awareness
+              ];
             };
 
-            blur = {
-              enabled = true;
-              size = 8;
-              passes = 2;
+            input = {
+              kb_layout = myconfig.constants.keyboardLayout or "us";
+              kb_variant = myconfig.constants.keyboardVariant or "";
+              kb_options = "grp:ctrl_alt_toggle"; # Ctrl+Alt to switch layout
+              touchpad = {
+                natural_scroll = false;
+              };
             };
-          };
 
-          animations = {
-            enabled = true;
-
-            bezier = [
-              "easeOutExpo, 0.16, 1, 0.3, 1" # Fast start, slow end (exponential ease-out)
-              "easeInOutQuad, 0.45, 0, 0.55, 1" # Symmetric acceleration (quadratic ease-in-out)
-              "easeOutBack, 0.34, 1.56, 0.64, 1" # Overshoot then settle (bouncy feel)
-            ];
-
-            animation = [
-              "windows, 1, 3, easeOutExpo" # Window move/resize: 300ms — snappy
-              "windowsIn, 1, 3, easeOutBack, popin 80%" # Window open: 300ms, slight overshoot = lively feel
-              "windowsOut, 1, 2, easeOutExpo, popin 80%" # Window close: 200ms — should feel quicker than open
-              "fade, 1, 2, easeOutExpo" # Opacity: 200ms — barely perceptible, keeps it clean
-              "border, 1, 3, easeOutExpo" # Border color: 300ms
-              "workspaces, 1, 4, easeInOutQuad, slide" # Workspace: 400ms — slightly longer for spatial awareness
-            ];
-          };
-
-          input = {
-            kb_layout = myconfig.constants.keyboardLayout or "us";
-            kb_variant = myconfig.constants.keyboardVariant or "";
-            kb_options = "grp:ctrl_alt_toggle"; # Ctrl+Alt to switch layout
-            touchpad = {
-              natural_scroll = false;
+            cursor = {
+              no_hardware_cursors = cfg.noHardwareCursors;
             };
-          };
 
-          cursor = {
-            no_hardware_cursors = cfg.noHardwareCursors;
-          };
+            dwindle = {
+              pseudotile = true;
+              preserve_split = true;
+            };
 
-          dwindle = {
-            pseudotile = true;
-            preserve_split = true;
-          };
+            master = {
+              new_status = "slave";
+              new_on_top = true;
+              mfact = 0.5;
+            };
 
-          master = {
-            new_status = "slave";
-            new_on_top = true;
-            mfact = 0.5;
-          };
+            misc = {
+              force_default_wallpaper = 0;
+              disable_hyprland_logo = true;
+              # Absorbed from stylix's hyprland target (which we disabled
+              # because it writes to top-level settings keys that don't work
+              # under lua mode).
+              background_color = "rgb(${config.lib.stylix.colors.base00})";
+            };
 
-          misc = {
-            force_default_wallpaper = 0;
-            disable_hyprland_logo = true;
+            # Group/groupbar colors — absorbed from stylix's hyprland target.
+            group = {
+              "col.border_active" = "rgb(${config.lib.stylix.colors.base0D})";
+              "col.border_inactive" = "rgb(${config.lib.stylix.colors.base03})";
+              "col.border_locked_active" = "rgb(${config.lib.stylix.colors.base0C})";
+              groupbar = {
+                text_color = "rgb(${config.lib.stylix.colors.base05})";
+                "col.active" = "rgb(${config.lib.stylix.colors.base0D})";
+                "col.inactive" = "rgb(${config.lib.stylix.colors.base03})";
+              };
+            };
           };
 
           windowrulev2 = [

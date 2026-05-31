@@ -79,7 +79,7 @@ delib.module {
           # -----------------------------------------------------------------------
           # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
           # -----------------------------------------------------------------------
-          fresh-editor # Lightweight terminal text editor — not in 25.11
+          fresh-editor # Lightweight terminal text editor — not in 26.05
         ]);
     };
 }

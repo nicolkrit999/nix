@@ -7,8 +7,8 @@ let
   # chrome.runtime.onInstalled fires once on real install — not on every
   # launch the way --load-extension did.
   extensionSpecs = [
-    { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-I3IsZqbm/AlZwVd376/N1tZumBZQ6nh5q16EJnIlBV0="; } # Proton Pass
-    { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-KxcUkvIkkuh3s4hPy7asTucfP9znwtd8hF2WFQjCutk="; } # Awesome Screen Recorder & Screenshot
+    { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-Xfm9bbdufzfHWhmtYThWL+n2RfVavr3IjxxOTY0P4Ug="; } # Proton Pass
+    { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-OH7yeYjbbwdhfMWzMQh4NNRqbUPSayigcuE0YVzAyz8="; } # Awesome Screen Recorder & Screenshot
     { id = "chphlpgkkbolifaimnlloiipkdnihall"; hash = "sha256-LkQLIahNewg6u+1AM85s0Ln0XsPNdfyVgGS0YqTkPBc="; } # OneTab
     { id = "dphilobhebphkdjbpfohgikllaljmgbn"; hash = "sha256-IgmQYXUjBM0iONHXqTgcvIXihN2ZrXWCZsQZZg1xPxk="; } # SimpleLogin
     { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; hash = "sha256-nE5FE3Eo1jG8sT1KYjVl8JRbmAiyhN8IZObHsAIb0wY="; } # SponsorBlock

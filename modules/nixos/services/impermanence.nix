@@ -31,7 +31,6 @@ delib.module {
 
       files = [
         "/etc/machine-id"
-        "/etc/adjtime"
       ];
     };
   };
