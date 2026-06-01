@@ -31,10 +31,10 @@ delib.module {
         ];
 
         myconfig.programs.hyprland.windowRules = lib.mkAfter [
-          "workspace 1, class:^(${c.browser})$"
-          "workspace 2, class:^(${c.editor})$"
-          "workspace 3, class:^(${c.fileManager})$"
-          "workspace 4, class:^(${term})$"
+          { match.class = "^(${c.browser})$"; workspace = "1"; }
+          { match.class = "^(${c.editor})$"; workspace = "2"; }
+          { match.class = "^(${c.fileManager})$"; workspace = "3"; }
+          { match.class = "^(${term})$"; workspace = "4"; }
         ];
 
         myconfig.programs.niri.execOnce = lib.mkForce [

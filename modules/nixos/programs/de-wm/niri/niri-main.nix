@@ -195,7 +195,7 @@ delib.module {
               in
               { command = [ "awww" "img" ] ++ targetArgs ++ [ "${imgPath}" ]; }
             )
-            myconfig.constants.wallpapers)
+            (lib.sort (a: b: a.targetMonitor == "*" && b.targetMonitor != "*") myconfig.constants.wallpapers))
           ++ (map
             (cmd: { command = [ "bash" "-c" cmd ]; })
             cfg.execOnce);

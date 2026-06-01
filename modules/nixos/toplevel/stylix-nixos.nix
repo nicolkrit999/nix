@@ -116,19 +116,6 @@ delib.module {
         else
           null;
 
-      # Three-way active check: the stylix hyprpaper target should only be
-      # enabled when hyprpaper actually runs — i.e. Hyprland is on AND no
-      # shell is active on it (master + per-WM + wm.enable).
-      hyprlandEnabled = myconfig.programs.hyprland.enable or false;
-      caelestiaActiveOnHyprland =
-        (myconfig.programs.caelestia.enable or false)
-        && (myconfig.programs.caelestia.enableOnHyprland or false)
-        && hyprlandEnabled;
-      noctaliaActiveOnHyprland =
-        (myconfig.programs.noctalia.enable or false)
-        && (myconfig.programs.noctalia.enableOnHyprland or false)
-        && hyprlandEnabled;
-      useHyprpaper = hyprlandEnabled && !caelestiaActiveOnHyprland && !noctaliaActiveOnHyprland;
     in
     {
       stylix = lib.mkMerge [
@@ -151,7 +138,7 @@ delib.module {
             starship.enable = !isCatppuccin;
             wofi.enable = false;
             waybar.enable = false;
-            hyprpaper.enable = lib.mkForce (!isCatppuccin && useHyprpaper);
+            hyprpaper.enable = false;
             # Drive kdeglobals palette + colorscheme file from base16. Works on
             # any DE/WM combo — fixes Dolphin / KDE FileChooser portal zebra.
             # Writes to xdg.systemDirs.config so plasma-manager's overrideConfig

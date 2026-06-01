@@ -214,9 +214,11 @@ delib.module {
             (w:
               let
                 imgPath = pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
-                targetArgs = if w.targetMonitor == "*" then "" else "-o ${w.targetMonitor} ";
+                isWildcard = w.targetMonitor == "*";
+                targetArgs = if isWildcard then "" else "-o ${w.targetMonitor} ";
+                sleepSecs = if isWildcard then "1" else "2";
               in
-              "sh -c 'sleep 1 && awww img ${targetArgs}${imgPath}'")
+              "sh -c 'sleep ${sleepSecs} && awww img ${targetArgs}${imgPath}'")
             myconfig.constants.wallpapers)
           ++ cfg.execOnce;
         };

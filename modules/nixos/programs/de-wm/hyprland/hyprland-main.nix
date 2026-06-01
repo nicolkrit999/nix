@@ -26,6 +26,7 @@ delib.module {
 
   home.ifEnabled =
     { cfg
+    , parent
     , myconfig
     , ...
     }:
@@ -33,10 +34,32 @@ delib.module {
       inherit (lib.generators) mkLuaInline;
       term = myconfig.constants.terminal.name or "alacritty";
 
+      caelestiaActiveOnHyprland =
+        (parent.caelestia.enable or false)
+        && (parent.caelestia.enableOnHyprland or false);
+      noctaliaActiveOnHyprland =
+        (parent.noctalia.enable or false)
+        && (parent.noctalia.enableOnHyprland or false);
+      wallpaperOwnedByShell = caelestiaActiveOnHyprland || noctaliaActiveOnHyprland;
+
+      wallpaperCmds = lib.optionals (!wallpaperOwnedByShell) (
+        [ "awww-daemon" ]
+        ++ map
+          (w:
+            let
+              imgPath = pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
+              isWildcard = w.targetMonitor == "*";
+              targetArgs = if isWildcard then "" else "-o ${w.targetMonitor} ";
+              sleepSecs = if isWildcard then "1" else "2";
+            in
+            "sh -c 'sleep ${sleepSecs} && awww img ${targetArgs}${imgPath}'")
+          myconfig.constants.wallpapers
+      );
+
       execOnceItems = [
         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
         "pkill ibus-daemon"
-      ] ++ cfg.execOnce;
+      ] ++ wallpaperCmds ++ cfg.execOnce;
 
       execOnceFn = mkLuaInline (
         "function()\n"
@@ -162,7 +185,7 @@ delib.module {
       home.packages = with pkgs; [
         kdePackages.gwenview
         grimblast
-        hyprpaper
+        awww
         hyprpicker
         imv
         mpv
