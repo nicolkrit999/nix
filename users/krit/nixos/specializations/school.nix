@@ -176,12 +176,12 @@ delib.module {
           mkdir -p $HOME/.school-workspace/oneDrive || true
           mkdir -p $HOME/.school-workspace/owncloud || true
           mkdir -p $HOME/.school-workspace/projects || true
-          mkdir -p $HOME/.school-workspace/1-semester || true
-          mkdir -p $HOME/.school-workspace/2-semester || true
-          mkdir -p $HOME/.school-workspace/3-semester || true
-          mkdir -p $HOME/.school-workspace/4-semester || true
-          mkdir -p $HOME/.school-workspace/5-semester || true
-          mkdir -p $HOME/.school-workspace/6-semester || true
+          mkdir -p $HOME/.school-workspace/year/1st/1-semester || true
+          mkdir -p $HOME/.school-workspace/year/1st/2-semester || true
+          mkdir -p $HOME/.school-workspace/year/2st/3-semester || true
+          mkdir -p $HOME/.school-workspace/year/2st/4-semester || true
+          mkdir -p $HOME/.school-workspace/year/3st/5-semester || true
+          mkdir -p $HOME/.school-workspace/year/3st/6-semester || true
           mkdir -p $HOME/.school-workspace/momentary || true
           mkdir -p $HOME/.school-workspace/distrobox-bin || true
         '';

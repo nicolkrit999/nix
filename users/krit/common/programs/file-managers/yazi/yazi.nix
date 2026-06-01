@@ -370,14 +370,14 @@ delib.module {
                 url = "*/";
                 run = "mime";
                 "if" = "!mime";
-                prio = "high";
+                prio = "low";
               }
               {
                 group = "mime";
                 url = "*";
                 run = "mime";
                 "if" = "!mime";
-                prio = "high";
+                prio = "low";
               }
             ];
 
