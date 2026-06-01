@@ -313,105 +313,100 @@ delib.host {
         hyprland = {
           enable = true;
           monitors = [
-            "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
-            "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
-            "HDMI-A-1,1920x1080@60, 0x0, 1, mirror, DP-1"
+            { output = "DP-1"; mode = "3840x2160@240"; position = "1440x560"; scale = 1.5; bitdepth = 10; }
+            { output = "DP-2"; mode = "3840x2160@144"; position = "0x0"; scale = 1.5; transform = 1; bitdepth = 10; }
+            { output = "HDMI-A-1"; mode = "1920x1080@60"; position = "0x0"; scale = 1; mirror = "DP-1"; }
           ];
           execOnce = [
             "${myBrowser}"
             "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
             "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
             "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
-            #"sh -c 'sleep 5 && protonvpn-app --start-minimized'"
             "uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
           ];
           monitorWorkspaces = [
-            "1, monitor:DP-1"
-            "2, monitor:DP-1"
-            "3, monitor:DP-1"
-            "4, monitor:DP-1"
-            "5, monitor:DP-1"
-            "6, monitor:DP-2"
-            "7, monitor:DP-2"
-            "8, monitor:DP-2"
-            "9, monitor:DP-2"
-            "10, monitor:DP-2"
+            { workspace = "1"; monitor = "DP-1"; }
+            { workspace = "2"; monitor = "DP-1"; }
+            { workspace = "3"; monitor = "DP-1"; }
+            { workspace = "4"; monitor = "DP-1"; }
+            { workspace = "5"; monitor = "DP-1"; }
+            { workspace = "6"; monitor = "DP-2"; }
+            { workspace = "7"; monitor = "DP-2"; }
+            { workspace = "8"; monitor = "DP-2"; }
+            { workspace = "9"; monitor = "DP-2"; }
+            { workspace = "10"; monitor = "DP-2"; }
           ];
 
           windowRules = [
-            # 1. Smart Launcher Rules
-            "workspace ${appWorkspaces.editor}, class:^(${myEditor})$"
-            "workspace ${appWorkspaces.fileManager}, class:^(${myFileManager})$"
-            "workspace ${appWorkspaces.terminal}, class:^(${myTerminal})$"
-            "workspace ${appWorkspaces.editor} silent, class:^(code)$"
-            "workspace ${appWorkspaces.editor} silent, class:^(nvim-editor)$"
-            "workspace ${appWorkspaces.editor} silent, class:^(org.kde.kate)$"
-            "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-pycharm-ce)$"
-            "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-Clion)$"
-            "workspace ${appWorkspaces.editor} silent, class:^(jetbrains-idea-ce)$"
-            "workspace ${appWorkspaces.fileManager} silent, class:^(org.kde.dolphin)$"
-            "workspace ${appWorkspaces.fileManager} silent, class:^(thunar)$"
-            "workspace ${appWorkspaces.fileManager} silent, class:^(yazi)$"
-            "workspace ${appWorkspaces.fileManager} silent, class:^(ranger)$"
-            "workspace ${appWorkspaces.fileManager} silent, class:^(org.gnome.Nautilus)$"
-            "workspace ${appWorkspaces.fileManager} silent, class:^(nemo)$"
-            "workspace ${appWorkspaces.vm} silent, class:^(winboat)$"
-            "workspace ${appWorkspaces.other} silent, class:^(Actual)$"
-            "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(org.jellyfin.JellyfinDesktop)$"
-            "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(chromium-browser)$"
-            "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-browser)$"
-            "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(brave-.*\..*)$"
-            "workspace ${appWorkspaces.browser-Entertainment} silent, class:^(spotify)$"
-            "workspace ${appWorkspaces.terminal} silent, class:^(kitty)$"
-            "workspace ${appWorkspaces.terminal} silent, class:^(alacritty)$"
-            "workspace ${appWorkspaces.terminal} silent, class:^(foot)$"
-            "workspace ${appWorkspaces.terminal} silent, class:^(xfce4-terminal)$"
-            "workspace ${appWorkspaces.terminal} silent, class:^(com.system76.CosmicTerm)$"
-            "workspace ${appWorkspaces.terminal} silent, class:^(org.kde.konsole)$"
-            "workspace ${appWorkspaces.terminal} silent, class:^(gnome-terminal)$"
-            "workspace ${appWorkspaces.terminal} silent, class:^(XTerm)$"
-            "workspace ${appWorkspaces.chat} silent, class:^(vesktop)$"
-            "workspace ${appWorkspaces.chat} silent, class:^(org.telegram.desktop)$"
-            "workspace ${appWorkspaces.chat} silent, class:^(whatsapp-electron)$"
-            "workspace ${appWorkspaces.chat} silent, class:^(com.rtosta.zapzap)$"
+            { match.class = "^(${myEditor})$"; workspace = appWorkspaces.editor; }
+            { match.class = "^(${myFileManager})$"; workspace = appWorkspaces.fileManager; }
+            { match.class = "^(${myTerminal})$"; workspace = appWorkspaces.terminal; }
+            { match.class = "^(code)$"; workspace = "${appWorkspaces.editor} silent"; }
+            { match.class = "^(nvim-editor)$"; workspace = "${appWorkspaces.editor} silent"; }
+            { match.class = "^(org.kde.kate)$"; workspace = "${appWorkspaces.editor} silent"; }
+            { match.class = "^(jetbrains-pycharm-ce)$"; workspace = "${appWorkspaces.editor} silent"; }
+            { match.class = "^(jetbrains-Clion)$"; workspace = "${appWorkspaces.editor} silent"; }
+            { match.class = "^(jetbrains-idea-ce)$"; workspace = "${appWorkspaces.editor} silent"; }
+            { match.class = "^(org.kde.dolphin)$"; workspace = "${appWorkspaces.fileManager} silent"; }
+            { match.class = "^(thunar)$"; workspace = "${appWorkspaces.fileManager} silent"; }
+            { match.class = "^(yazi)$"; workspace = "${appWorkspaces.fileManager} silent"; }
+            { match.class = "^(ranger)$"; workspace = "${appWorkspaces.fileManager} silent"; }
+            { match.class = "^(org.gnome.Nautilus)$"; workspace = "${appWorkspaces.fileManager} silent"; }
+            { match.class = "^(nemo)$"; workspace = "${appWorkspaces.fileManager} silent"; }
+            { match.class = "^(winboat)$"; workspace = "${appWorkspaces.vm} silent"; }
+            { match.class = "^(Actual)$"; workspace = "${appWorkspaces.other} silent"; }
+            { match.class = "^(org.jellyfin.JellyfinDesktop)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
+            { match.class = "^(chromium-browser)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
+            { match.class = "^(brave-browser)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
+            { match.class = "^(brave-.*\\..*)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
+            { match.class = "^(spotify)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
+            { match.class = "^(kitty)$"; workspace = "${appWorkspaces.terminal} silent"; }
+            { match.class = "^(alacritty)$"; workspace = "${appWorkspaces.terminal} silent"; }
+            { match.class = "^(foot)$"; workspace = "${appWorkspaces.terminal} silent"; }
+            { match.class = "^(xfce4-terminal)$"; workspace = "${appWorkspaces.terminal} silent"; }
+            { match.class = "^(com.system76.CosmicTerm)$"; workspace = "${appWorkspaces.terminal} silent"; }
+            { match.class = "^(org.kde.konsole)$"; workspace = "${appWorkspaces.terminal} silent"; }
+            { match.class = "^(gnome-terminal)$"; workspace = "${appWorkspaces.terminal} silent"; }
+            { match.class = "^(XTerm)$"; workspace = "${appWorkspaces.terminal} silent"; }
+            { match.class = "^(vesktop)$"; workspace = "${appWorkspaces.chat} silent"; }
+            { match.class = "^(org.telegram.desktop)$"; workspace = "${appWorkspaces.chat} silent"; }
+            { match.class = "^(whatsapp-electron)$"; workspace = "${appWorkspaces.chat} silent"; }
+            { match.class = "^(com.rtosta.zapzap)$"; workspace = "${appWorkspaces.chat} silent"; }
 
-            # 2. Scratchpad rules
-            "float, class:^(scratch-term)$"
-            "center, class:^(scratch-term)$"
-            "size 80% 80%, class:^(scratch-term)$"
-            "workspace special:magic, class:^(scratch-term)$"
-            "float, class:^(scratch-fs)$"
-            "center, class:^(scratch-fs)$"
-            "size 80% 80%, class:^(scratch-fs)$"
-            "workspace special:magic, class:^(scratch-fs)$"
-            "float, class:^(scratch-browser)$"
-            "center, class:^(scratch-browser)$"
-            "size 80% 80%, class:^(scratch-browser)$"
-            "workspace special:magic, class:^(scratch-browser)$"
+            { match.class = "^(scratch-term)$"; float = true; }
+            { match.class = "^(scratch-term)$"; center = true; }
+            { match.class = "^(scratch-term)$"; size = "80% 80%"; }
+            { match.class = "^(scratch-term)$"; workspace = "special:magic"; }
+            { match.class = "^(scratch-fs)$"; float = true; }
+            { match.class = "^(scratch-fs)$"; center = true; }
+            { match.class = "^(scratch-fs)$"; size = "80% 80%"; }
+            { match.class = "^(scratch-fs)$"; workspace = "special:magic"; }
+            { match.class = "^(scratch-browser)$"; float = true; }
+            { match.class = "^(scratch-browser)$"; center = true; }
+            { match.class = "^(scratch-browser)$"; size = "80% 80%"; }
+            { match.class = "^(scratch-browser)$"; workspace = "special:magic"; }
 
-            # 3. Winboat rules
-            "workspace ${appWorkspaces.vm}, class:^winboat-.*$"
-            "suppressevent fullscreen maximize activate activatefocus, class:^winboat-.*$"
-            "noinitialfocus, class:^winboat-.*$"
-            "noanim, class:^winboat-.*$"
-            "norounding, class:^winboat-.*$"
-            "noshadow, class:^winboat-.*$"
-            "noblur, class:^winboat-.*$"
-            "opaque, class:^winboat-.*$"
+            { match.class = "^winboat-.*$"; workspace = appWorkspaces.vm; }
+            { match.class = "^winboat-.*$"; suppress_event = "fullscreen maximize activate activatefocus"; }
+            { match.class = "^winboat-.*$"; no_initial_focus = true; }
+            { match.class = "^winboat-.*$"; no_anim = true; }
+            { match.class = "^winboat-.*$"; rounding = 0; }
+            { match.class = "^winboat-.*$"; no_shadow = true; }
+            { match.class = "^winboat-.*$"; no_blur = true; }
+            { match.class = "^winboat-.*$"; opaque = true; }
           ];
 
           extraBinds = [
-            { _args = [ "SUPER + SHIFT + return" (lib.generators.mkLuaInline "hl.dsp.exec_cmd(\"[workspace special:magic] ${myTerminal} --class scratch-term\")") ]; }
-            { _args = [ "SUPER + SHIFT + F" (lib.generators.mkLuaInline "hl.dsp.exec_cmd(\"[workspace special:magic] ${myTerminal} --class scratch-fs -e yazi\")") ]; }
-            { _args = [ "SUPER + SHIFT + B" (lib.generators.mkLuaInline "hl.dsp.exec_cmd(\"[workspace special:magic] ${myBrowser} --new-window --class scratch-browser\")") ]; }
-            { _args = [ "SUPER + Y" (lib.generators.mkLuaInline "hl.dsp.exec_cmd(\"chromium-browser\")") ]; }
+            { _args = [ "SUPER + SHIFT + return" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-term")'') ]; }
+            { _args = [ "SUPER + SHIFT + F" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-fs -e yazi")'') ]; }
+            { _args = [ "SUPER + SHIFT + B" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myBrowser} --new-window --class scratch-browser")'') ]; }
+            { _args = [ "SUPER + Y" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("chromium-browser")'') ]; }
 
-            # 🖱️ LOGITECH MX MASTER Thumb button gestures
-            { _args = [ "XF86Tools" (lib.generators.mkLuaInline "hl.dsp.focus({ workspace = \"m-1\" })") ]; } # Swipe Left
-            { _args = [ "XF86Launch5" (lib.generators.mkLuaInline "hl.dsp.focus({ workspace = \"m+1\" })") ]; } # Swipe Right
-            { _args = [ "XF86Launch6" (lib.generators.mkLuaInline "hl.dsp.window.fullscreen()") ]; } # Swipe Up
-            { _args = [ "XF86Launch7" (lib.generators.mkLuaInline "hl.dsp.window.close()") ]; } # Swipe Down
+            { _args = [ "XF86Tools" (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m-1" })'') ]; }
+            { _args = [ "XF86Launch5" (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m+1" })'') ]; }
+            { _args = [ "XF86Launch6" (lib.generators.mkLuaInline "hl.dsp.window.fullscreen()") ]; }
+            { _args = [ "XF86Launch7" (lib.generators.mkLuaInline "hl.dsp.window.close()") ]; }
           ];
         };
 

@@ -10,25 +10,23 @@ delib.module {
     specialisation.home.configuration = {
       system.nixos.tags = [ "home" ];
 
-      # Full home monitor setup: internal display + two external monitors.
-      # Use this specialization when docked at home with DP-1 and DP-2 connected.
       myconfig.programs.hyprland.monitors = lib.mkForce [
-        "eDP-1,3200x2000@120,0x0,1.6"
-        "DP-1,3840x2160@240,1440x560,1.5,bitdepth,10"
-        "DP-2,3840x2160@144,0x0,1.5,transform,1,bitdepth,10"
+        { output = "eDP-1"; mode = "3200x2000@120"; position = "0x0"; scale = 1.6; }
+        { output = "DP-1"; mode = "3840x2160@240"; position = "1440x560"; scale = 1.5; bitdepth = 10; }
+        { output = "DP-2"; mode = "3840x2160@144"; position = "0x0"; scale = 1.5; transform = 1; bitdepth = 10; }
       ];
 
       myconfig.programs.hyprland.monitorWorkspaces = lib.mkForce [
-        "1, monitor:DP-1"
-        "2, monitor:DP-1"
-        "3, monitor:DP-1"
-        "4, monitor:DP-1"
-        "5, monitor:DP-1"
-        "6, monitor:DP-2"
-        "7, monitor:DP-2"
-        "8, monitor:DP-2"
-        "9, monitor:DP-2"
-        "10, monitor:DP-2"
+        { workspace = "1"; monitor = "DP-1"; }
+        { workspace = "2"; monitor = "DP-1"; }
+        { workspace = "3"; monitor = "DP-1"; }
+        { workspace = "4"; monitor = "DP-1"; }
+        { workspace = "5"; monitor = "DP-1"; }
+        { workspace = "6"; monitor = "DP-2"; }
+        { workspace = "7"; monitor = "DP-2"; }
+        { workspace = "8"; monitor = "DP-2"; }
+        { workspace = "9"; monitor = "DP-2"; }
+        { workspace = "10"; monitor = "DP-2"; }
       ];
 
       myconfig.programs.mango.monitors = lib.mkForce [

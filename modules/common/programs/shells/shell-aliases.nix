@@ -12,9 +12,6 @@ delib.module {
       isNixOS = moduleSystem == "nixos";
       isDarwin = moduleSystem == "darwin";
 
-      # =========================================================================
-      # NIXOS-SPECIFIC COMMAND BUILDERS
-      # =========================================================================
       nixosSwitchCmd =
         if isImpure then "sudo nixos-rebuild switch --flake . --impure" else "nh os switch ${flakeDir}";
 
@@ -36,9 +33,6 @@ delib.module {
         else
           "nh os test ${flakeDir}";
 
-      # =========================================================================
-      # CACHE PUSH BUILDERS (shared by wrapCaches + manual attic-push/cachix-push)
-      # =========================================================================
       atticEnabled =
         (myconfig.krit.attic.enable or false) && (myconfig.krit.attic.push or false);
       cachixEnabled =
@@ -77,20 +71,13 @@ delib.module {
       nixosUpdateWrapped = wrapCaches nixosUpdateCmd;
       nixosBootWrapped = wrapCaches nixosBootCmd;
 
-      # =========================================================================
-      # DARWIN-SPECIFIC COMMAND BUILDERS
-      # =========================================================================
       darwinSwitchCmd = "nh darwin switch ${flakeDir}";
       darwinUpdateCmd = "nix flake update && nh darwin switch ${flakeDir}";
 
       darwinSwitchWrapped = wrapCaches darwinSwitchCmd;
       darwinUpdateWrapped = wrapCaches darwinUpdateCmd;
 
-      # =========================================================================
-      # COMMON ALIASES (both NixOS and Darwin)
-      # =========================================================================
       commonAliases = {
-        # Nix maintenance
         cleanup = "nix-sweep -p default system";
         cleanup-ask = "nix-sweep -p ask system";
         dedup = "nix store optimise";
@@ -99,31 +86,24 @@ delib.module {
         deadnixfixall = "nix run github:astro/deadnix -- -e ${flakeDir}";
         deadnixscanall = "nix run github:astro/deadnix -- ${flakeDir}";
 
-        # Nix repo management
         fmt-dry = "cd ${flakeDir} && git add -A && nix fmt -- --check";
         fmt = "cd ${flakeDir} && git add -A && nix fmt -- **/*.nix";
         merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop";
         merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop";
         cdnix = "cd ${flakeDir}";
 
-        # Utilities
         fzf-prev = ''fzf --preview="cat {}"'';
         fzf-editor = "${safeEditor} $(fzf -m --preview='cat {}')";
         zlist = "zoxide query -l -s";
         tksession = "tmux kill-session -t";
         tks = "tmux kill-server";
 
-        # Sops secrets editing
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml";
         sops-common = "cd ${flakeDir}/users/${myconfig.constants.user}/common/sops && sops ${myconfig.constants.user}-common-secrets-sops.yaml";
         sops-host = "cd ${flakeDir} && sops hosts/${myconfig.constants.hostname}/${myconfig.constants.hostname}-secrets-sops.yaml";
       };
 
-      # =========================================================================
-      # NIXOS-SPECIFIC ALIASES
-      # =========================================================================
       nixosAliases = {
-        # Switch commands
         swboot = "cd ${flakeDir} && git add -A && ${nixosBootWrapped}";
         swtest = "cd ${flakeDir} && git add -A && ${nixosTestCmd}";
         swdry = "cd ${flakeDir} && git add -A && nh os build --ask ${flakeDir}";
@@ -136,21 +116,16 @@ delib.module {
         swoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
         tswsrc = "cd ${flakeDir} && git add -A && time ${wrapCaches "${nixosSwitchCmd} --option substitute false"}";
 
-        # Flake checks and updates
         nfc = "cd ${flakeDir} && git add -A && nix flake check";
         nfcall = "cd ${flakeDir} && git add -A && nix flake check --all-systems";
         upd = "cd ${flakeDir} && git add -A && ${nixosUpdateWrapped}";
 
-        # Manual commands for reference
         swpure = "cd ${flakeDir} && git add -A && nh os switch ${flakeDir}";
         swimpure = "cd ${flakeDir} && git add -A && sudo nixos-rebuild switch --flake . --impure";
 
-
-        # Pkgs editing
         pkgs-home = "$EDITOR ${flakeDir}/home-manager/home-packages.nix";
         pkgs-host = "$EDITOR ${flakeDir}/hosts/${myconfig.constants.hostname}/optional/host-packages/local-packages.nix";
 
-        # System utilities
         se = "sudoedit";
         reb-uefi = "systemctl reboot --firmware-setup";
         swdryaarch64-linux = "cd ${flakeDir} && git add -A && nix build ${flakeDir}#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run --show-trace";
@@ -158,11 +133,7 @@ delib.module {
       // (lib.optionalAttrs atticEnabled { attic-push = atticPush; })
       // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPush; });
 
-      # =========================================================================
-      # DARWIN-SPECIFIC ALIASES
-      # =========================================================================
       darwinAliases = {
-        # Switch commands
         sw = "cd ${flakeDir} && git add -A && ${darwinSwitchWrapped}";
         swfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${darwinSwitchCmd} --fallback"}";
         gsw = "cd ${flakeDir} && git add -A && ${darwinSwitchWrapped}";
@@ -170,11 +141,9 @@ delib.module {
         swdry = "cd ${flakeDir} && git add -A && nh darwin build ${flakeDir}";
         gswoff = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd} --offline";
 
-        # Flake checks and updates
         nfc = "cd ${flakeDir} && git add -A && nix flake check --impure";
         upd = "cd ${flakeDir} && git add -A && ${darwinUpdateWrapped}";
 
-        # Homebrew
         brew-upd = "brew update && brew upgrade";
         brew-upd-res = "brew update-reset";
         brew-inst = "brew install";
@@ -182,7 +151,6 @@ delib.module {
         brew-search = "brew search";
         brew-clean = "brew cleanup";
 
-        # macOS utilities
         caff = "caffeinate";
         xcodeaccept = "sudo xcodebuild -license accept";
         changehosts = "sudo nvim /etc/hosts";

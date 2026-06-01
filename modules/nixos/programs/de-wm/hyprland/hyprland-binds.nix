@@ -40,17 +40,12 @@ delib.module {
 
       shellActiveOnHyprland = caelestiaActiveOnHyprland || noctaliaActiveOnHyprland;
 
-      # Lua string literal quoting: backslash + double-quote escaping.
       luaQ = s:
         let
           esc = builtins.replaceStrings [ "\\" "\"" ] [ "\\\\" "\\\"" ] s;
         in
         "\"${esc}\"";
 
-      # ── bind helpers ──────────────────────────────────────────────────────
-      # mkBind { mods ? ""; key; dispatcher; flags ? null; }
-      #   dispatcher is a raw lua expression string, e.g. "hl.dsp.window.close()"
-      #   flags (optional attrset) gets emitted as the third arg, e.g. { mouse = true; }
       mkBind = { mods ? "", key, dispatcher, flags ? null }:
         let
           keyStr = if mods == "" then key else "${mods} + ${key}";
@@ -107,28 +102,20 @@ delib.module {
           (mkBind { key = "Caps_Lock"; dispatcher = exec "swayosd-client --caps-lock"; flags = { locked = true; }; })
         ];
 
-      # Workspace number → string ("0" key maps to ws "10")
       wsKey = n: if n == 0 then "10" else toString n;
       wsBind = n: mkBind { mods = mod; key = toString n; dispatcher = focusWs (wsKey n); };
       wsMoveBind = n: mkBind { mods = "${mod}+SHIFT"; key = toString n; dispatcher = moveToWsSilent (wsKey n); };
     in
     {
-      # Gestures are routed through extraConfig in hyprland-main.nix (via
-      # `hl.keyword("gesture", "...")`) so they keep the legacy hyprlang
-      # comma-format Hyprland still accepts. Only binds live here, in the
-      # proper lua-native form.
       wayland.windowManager.hyprland.settings = {
         bind = [
-          # Window management
           (mkBind { mods = "${mod}+SHIFT"; key = "C"; dispatcher = "hl.dsp.window.close()"; })
-          (mkBind { mods = mod; key = "T"; dispatcher = "hl.dsp.layout(\"togglesplit\")"; })
-          (mkBind { mods = mod; key = "space"; dispatcher = "hl.dsp.window.float({ action = \"toggle\" })"; })
+          (mkBind { mods = mod; key = "T"; dispatcher = ''hl.dsp.layout("togglesplit")''; })
+          (mkBind { mods = mod; key = "space"; dispatcher = ''hl.dsp.window.float({ action = "toggle" })''; })
           (mkBind { mods = mod; key = "M"; dispatcher = "hl.dsp.window.fullscreen()"; })
           (mkBind { mods = "${mod}+ALT"; key = "P"; dispatcher = "hl.dsp.window.pin()"; })
-          # PiP mode: float + pin via shell
           (mkBind { mods = mod; key = "P"; dispatcher = exec "hyprctl dispatch togglefloating && hyprctl dispatch pin"; })
 
-          # Application launching
           (mkBind { mods = mod; key = "A"; dispatcher = exec "vicinae toggle"; })
           (mkBind { mods = "${mod}+SHIFT"; key = "A"; dispatcher = exec shellMenu; })
           (mkBind { mods = mod; key = "return"; dispatcher = exec term; })
@@ -136,27 +123,22 @@ delib.module {
           (mkBind { mods = mod; key = "B"; dispatcher = exec browser; })
           (mkBind { mods = mod; key = "C"; dispatcher = exec smartEd; })
 
-          # Session
           (mkBind { mods = "${mod}+SHIFT"; key = "Delete"; dispatcher = "hl.dsp.exit()"; })
           (mkBind { mods = mod; key = "Delete"; dispatcher = exec shellLock; })
 
-          # Utilities
           (mkBind { mods = mod; key = "period"; dispatcher = exec "vicinae vicinae://launch/core/search-emojis"; })
           (mkBind { mods = "${mod}+SHIFT"; key = "P"; dispatcher = exec "hyprpicker -an"; })
           (mkBind { mods = mod; key = "V"; dispatcher = exec "vicinae vicinae://launch/clipboard/history"; })
           (mkBind { mods = "${mod}+SHIFT"; key = "R"; dispatcher = exec "hyprctl reload"; })
           (mkBind { mods = mod; key = "N"; dispatcher = exec "swaync-client -t"; })
 
-          # Waybar
           (mkBind { mods = "${mod}+ALT"; key = "W"; dispatcher = exec "pkill -SIGUSR2 waybar"; })
           (mkBind { mods = "${mod}+SHIFT"; key = "W"; dispatcher = exec "pkill -x -SIGUSR1 waybar"; })
 
-          # Screenshots
           (mkBind { key = "Print"; dispatcher = exec "grimblast --notify --freeze copysave output"; })
           (mkBind { mods = "SUPER+CTRL"; key = "3"; dispatcher = exec "grimblast --notify --freeze copysave output"; })
           (mkBind { mods = "SUPER+CTRL"; key = "4"; dispatcher = exec "grimblast --notify --freeze copysave area"; })
 
-          # Focus
           (mkBind { mods = mod; key = "left"; dispatcher = focusDir "left"; })
           (mkBind { mods = mod; key = "H"; dispatcher = focusDir "left"; })
           (mkBind { mods = mod; key = "right"; dispatcher = focusDir "right"; })
@@ -166,7 +148,6 @@ delib.module {
           (mkBind { mods = mod; key = "down"; dispatcher = focusDir "down"; })
           (mkBind { mods = mod; key = "J"; dispatcher = focusDir "down"; })
 
-          # Move windows
           (mkBind { mods = "${mod}+SHIFT"; key = "left"; dispatcher = swapDir "left"; })
           (mkBind { mods = "${mod}+SHIFT"; key = "H"; dispatcher = swapDir "left"; })
           (mkBind { mods = "${mod}+SHIFT"; key = "right"; dispatcher = swapDir "right"; })
@@ -176,19 +157,16 @@ delib.module {
           (mkBind { mods = "${mod}+SHIFT"; key = "down"; dispatcher = swapDir "down"; })
           (mkBind { mods = "${mod}+SHIFT"; key = "J"; dispatcher = swapDir "down"; })
 
-          # Resize
           (mkBind { mods = "${mod}+CTRL"; key = "left"; dispatcher = resizeBy (-60) 0; })
           (mkBind { mods = "${mod}+CTRL"; key = "right"; dispatcher = resizeBy 60 0; })
           (mkBind { mods = "${mod}+CTRL"; key = "up"; dispatcher = resizeBy 0 (-60); })
           (mkBind { mods = "${mod}+CTRL"; key = "down"; dispatcher = resizeBy 0 60; })
 
-          # Scratchpad
-          (mkBind { mods = mod; key = "S"; dispatcher = "hl.dsp.workspace.toggle_special(\"magic\")"; })
+          (mkBind { mods = mod; key = "S"; dispatcher = ''hl.dsp.workspace.toggle_special("magic")''; })
           (mkBind { mods = "${mod}+SHIFT"; key = "S"; dispatcher = moveToWs "special:magic"; })
         ]
         ++ (map wsBind [ 1 2 3 4 5 6 7 8 9 0 ])
         ++ (map wsMoveBind [ 1 2 3 4 5 6 7 8 9 0 ])
-        # Mouse drag/resize — were bindm; now bind with { mouse = true; }.
         ++ [
           (mkBind { mods = mod; key = "mouse:272"; dispatcher = "hl.dsp.window.drag()"; flags = { mouse = true; }; })
           (mkBind { mods = mod; key = "mouse:273"; dispatcher = "hl.dsp.window.resize()"; flags = { mouse = true; }; })
