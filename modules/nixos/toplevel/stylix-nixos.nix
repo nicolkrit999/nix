@@ -138,7 +138,6 @@ delib.module {
             starship.enable = !isCatppuccin;
             wofi.enable = false;
             waybar.enable = false;
-            hyprpaper.enable = false;
             # Drive kdeglobals palette + colorscheme file from base16. Works on
             # any DE/WM combo — fixes Dolphin / KDE FileChooser portal zebra.
             # Writes to xdg.systemDirs.config so plasma-manager's overrideConfig

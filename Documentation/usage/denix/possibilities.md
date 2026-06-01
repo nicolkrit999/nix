@@ -125,7 +125,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 
 * **`programs.cosmic`**: The Rust-based COSMIC desktop environment built by System76.
 * **`programs.gnome`**: The GNOME desktop environment, with optional extra app pinning and keyboard shortcut configurations.
-* **`programs.hyprland`**: A highly customizable, dynamic tiling Wayland compositor. Includes monitor config, exec-on-start rules, workspace-to-monitor assignments, window rules, hyprpaper wallpaper management, and optional extra keybinds.
+* **`programs.hyprland`**: A highly customizable, dynamic tiling Wayland compositor. Includes monitor config, exec-on-start rules, workspace-to-monitor assignments, window rules, wallpaper management, and optional extra keybinds.
   * **Warning:** Enabled to have at least one WM.
 
 * **`programs.kde`**: The KDE Plasma desktop environment. Includes optional app pinning, keyboard shortcuts, panel layout, krunner config, screen locker, and input settings.
