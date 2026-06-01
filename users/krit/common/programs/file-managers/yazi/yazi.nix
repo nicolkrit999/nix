@@ -363,20 +363,17 @@ delib.module {
             suppress_preload = false; # "Preloading" reads the next file in the list before you even select it, making navigation feel instant.
           };
 
-          # Plugin-specific settings
           plugin = {
-
-            # small plugins that run in the background to gather info about files
             fetchers = [
               {
-                id = "mime";
+                group = "mime";
                 url = "*/";
                 run = "mime";
                 "if" = "!mime";
                 prio = "high";
               }
               {
-                id = "mime";
+                group = "mime";
                 url = "*";
                 run = "mime";
                 "if" = "!mime";
