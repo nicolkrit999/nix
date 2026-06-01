@@ -1,5 +1,6 @@
 { delib
 , pkgs
+, lib
 , inputs
 , ...
 }:
@@ -427,16 +428,16 @@ delib.host {
           ];
 
           extraBinds = [
-            { _args = [ "SUPER+SHIFT" "return" "exec" "[workspace special:magic] ${myTerminal} --class scratch-term" ]; }
-            { _args = [ "SUPER+SHIFT" "F" "exec" "[workspace special:magic] ${myTerminal} --class scratch-fs -e yazi" ]; }
-            { _args = [ "SUPER+SHIFT" "B" "exec" "[workspace special:magic] ${myBrowser} --new-window --class scratch-browser" ]; }
-            { _args = [ "SUPER" "Y" "exec" "chromium-browser" ]; }
+            { _args = [ "SUPER + SHIFT + return" (lib.generators.mkLuaInline "hl.dsp.exec_cmd(\"[workspace special:magic] ${myTerminal} --class scratch-term\")") ]; }
+            { _args = [ "SUPER + SHIFT + F" (lib.generators.mkLuaInline "hl.dsp.exec_cmd(\"[workspace special:magic] ${myTerminal} --class scratch-fs -e yazi\")") ]; }
+            { _args = [ "SUPER + SHIFT + B" (lib.generators.mkLuaInline "hl.dsp.exec_cmd(\"[workspace special:magic] ${myBrowser} --new-window --class scratch-browser\")") ]; }
+            { _args = [ "SUPER + Y" (lib.generators.mkLuaInline "hl.dsp.exec_cmd(\"chromium-browser\")") ]; }
 
             # 🖱️ LOGITECH MX MASTER Thumb button gestures
-            { _args = [ "" "XF86Tools" "workspace" "m-1" ]; } # Swipe Left
-            { _args = [ "" "XF86Launch5" "workspace" "m+1" ]; } # Swipe Right
-            { _args = [ "" "XF86Launch6" "fullscreen" ]; } # Swipe Up
-            { _args = [ "" "XF86Launch7" "killactive" ]; } # Swipe Down
+            { _args = [ "XF86Tools" (lib.generators.mkLuaInline "hl.dsp.focus({ workspace = \"m-1\" })") ]; } # Swipe Left
+            { _args = [ "XF86Launch5" (lib.generators.mkLuaInline "hl.dsp.focus({ workspace = \"m+1\" })") ]; } # Swipe Right
+            { _args = [ "XF86Launch6" (lib.generators.mkLuaInline "hl.dsp.window.fullscreen()") ]; } # Swipe Up
+            { _args = [ "XF86Launch7" (lib.generators.mkLuaInline "hl.dsp.window.close()") ]; } # Swipe Down
           ];
         };
 

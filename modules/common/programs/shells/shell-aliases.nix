@@ -30,6 +30,12 @@ delib.module {
         else
           "nh os boot ${flakeDir}";
 
+      nixosTestCmd =
+        if isImpure then
+          "sudo nixos-rebuild test --flake . --impure"
+        else
+          "nh os test ${flakeDir}";
+
       # =========================================================================
       # CACHE PUSH BUILDERS (shared by wrapCaches + manual attic-push/cachix-push)
       # =========================================================================
@@ -119,7 +125,8 @@ delib.module {
       nixosAliases = {
         # Switch commands
         swboot = "cd ${flakeDir} && git add -A && ${nixosBootWrapped}";
-        swdry = "cd ${flakeDir} && git add -A && nh os test --dry --ask .";
+        swtest = "cd ${flakeDir} && git add -A && ${nixosTestCmd}";
+        swdry = "cd ${flakeDir} && git add -A && nh os build --ask ${flakeDir}";
         sw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
         swfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${nixosSwitchCmd} --fallback"}";
         gsw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
@@ -160,7 +167,7 @@ delib.module {
         swfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${darwinSwitchCmd} --fallback"}";
         gsw = "cd ${flakeDir} && git add -A && ${darwinSwitchWrapped}";
         gswfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${darwinSwitchCmd} --fallback"}";
-        swdry = "cd ${flakeDir} && git add -A && nh darwin switch --dry .";
+        swdry = "cd ${flakeDir} && git add -A && nh darwin build ${flakeDir}";
         gswoff = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd} --offline";
 
         # Flake checks and updates
