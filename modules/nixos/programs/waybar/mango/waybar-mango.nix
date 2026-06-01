@@ -58,28 +58,25 @@ delib.module {
       monitorNames = lib.filter (n: n != null)
         (map extractMonitorName (parent.mango.monitors or [ ]));
 
+      # mmsg IPC was reshaped in the 26.05 mango bump:
+      #   old: `mmsg -o <mon> -g -t/-l/-c`, `mmsg -g -o/-k`, `mmsg -s -l <sym>`
+      #   new: `mmsg get all-monitors|tags|focusing-client|keyboardlayout`, `mmsg dispatch <func>[,arg]`
+      # All read-side modules now go through a single `mmsg get all-monitors` +
+      # jq filter on `.name==$mon`, which gives us tags / layout_symbol /
+      # active_client in one JSON shot per tick.
       mkPerMonitorModules = mon: {
-        # Mango uses tags (1-9, dwl-style), not workspaces. `mmsg -o ${mon} -g -t`
-        # scopes the query to this monitor so each bar shows its own tag state.
         "custom/tags" = {
           exec = ''
-            mmsg -o ${mon} -g -t 2>/dev/null \
+            mmsg get all-monitors 2>/dev/null \
+              | jq -r --arg mon "${mon}" '
+                  .monitors[] | select(.name == $mon) | .tags[] |
+                    if .is_active then "A \(.index)"
+                    elif (.client_count // 0) > 0 then "O \(.index)"
+                    else empty end' \
               | awk -v active='${c.base0D}' -v occupied='${c.base07}' -v empty='${c.base04}' '
-                  # mmsg -o <mon> strips the monitor prefix, so lines look like
-                  # "tag <id> <selected> <clients> <urgent>" (5 fields, no monitor).
-                  /^tag [0-9]+ / {
-                    id = $2 + 0
-                    selected = $3 + 0
-                    has_client = $4 + 0
-                    if (has_client > 0) occ[id] = 1
-                    if (selected > 0) act[id] = 1
-                  }
+                  $1 == "A" { out = out "<span color=\"" active "\" weight=\"bold\">  " $2 "  </span>" }
+                  $1 == "O" { out = out "<span color=\"" occupied "\">  " $2 "  </span>" }
                   END {
-                    out = ""
-                    for (i = 1; i <= 9; i++) {
-                      if (act[i])      out = out "<span color=\"" active   "\" weight=\"bold\">  " i "  </span>"
-                      else if (occ[i]) out = out "<span color=\"" occupied "\">  " i "  </span>"
-                    }
                     if (out == "") out = "<span color=\"" empty "\">  -  </span>"
                     print out
                   }'
@@ -92,7 +89,8 @@ delib.module {
         "custom/layout" = {
           format = "{}";
           exec = ''
-            layout=$(mmsg -o ${mon} -g -l 2>/dev/null | awk '{print $NF; exit}')
+            layout=$(mmsg get all-monitors 2>/dev/null \
+              | jq -r --arg mon "${mon}" '.monitors[] | select(.name == $mon) | .layout_symbol // ""')
             case "$layout" in
               S)   echo "<span color='${c.base0C}'>󰕕</span> Scroller" ;;
               T)   echo "<span color='${c.base0D}'>󰕴</span> Tile" ;;
@@ -110,18 +108,16 @@ delib.module {
             esac
           '';
           interval = 1;
-          # mmsg -s applies to the focused monitor — there's no -o for set-layout.
-          # Click toggles the focused monitor's layout (no longer monitor-pinned).
-          # NOTE: mmsg -s -l accepts the layout symbol (S/T/...), not the name.
-          on-click = "sh -c 'sel=$(mmsg -g -o 2>/dev/null | awk \"\\$2 == \\\"selmon\\\" && \\$3 == \\\"1\\\" { print \\$1; exit }\"); cur=$(mmsg -o \"$sel\" -g -l 2>/dev/null | awk \"{print \\$NF; exit}\"); if [ \"$cur\" = \"S\" ]; then mmsg -s -l T; else mmsg -s -l S; fi'";
-          on-click-right = "mmsg -s -l S";
+          # `dispatch` targets the focused monitor; toggle S<->T based on its current symbol.
+          on-click = "sh -c 'cur=$(mmsg get all-monitors 2>/dev/null | jq -r \".monitors[] | select(.active == true) | .layout_symbol\"); if [ \"$cur\" = \"S\" ]; then mmsg dispatch setlayout,T; else mmsg dispatch setlayout,S; fi'";
+          on-click-right = "mmsg dispatch setlayout,S";
           tooltip = false;
         };
 
         "custom/window" = {
           exec = ''
-            # With -o <mon>, output is "title <text>" / "appid <text>" — no monitor prefix.
-            title=$(mmsg -o ${mon} -g -c 2>/dev/null | awk '$1 == "title" { $1=""; sub(/^ +/, ""); print; exit }')
+            title=$(mmsg get all-monitors 2>/dev/null \
+              | jq -r --arg mon "${mon}" '.monitors[] | select(.name == $mon) | .active_client.title // ""')
             if [ -z "$title" ] || [ "$title" = "null" ]; then
               echo "${myconfig.constants.user or "nix"}<span font_family='JetBrainsMono Nerd Font Propo'>󱄅</span>${myconfig.constants.hostname or "nixos"}"
             else
@@ -151,13 +147,13 @@ delib.module {
         "custom/language" = {
           format = "{}";
           exec = ''
-            layout=$(mmsg -g -k 2>/dev/null | head -1 | awk '{print $NF}')
+            layout=$(mmsg get keyboardlayout 2>/dev/null | jq -r '.layout // ""')
             case "$layout" in
-              us*|en*|eng*) echo "${cfg.waybarLayout."format-en" or "EN"}" ;;
-              it*|ita*)     echo "${cfg.waybarLayout."format-it" or "IT"}" ;;
-              de*|deu*)     echo "${cfg.waybarLayout."format-de" or "DE"}" ;;
-              fr*|fra*)     echo "${cfg.waybarLayout."format-fr" or "FR"}" ;;
-              *)            echo "$layout" ;;
+              English*|US*|us*|en*) echo "${cfg.waybarLayout."format-en" or "EN"}" ;;
+              Italian*|it*|ita*)    echo "${cfg.waybarLayout."format-it" or "IT"}" ;;
+              German*|de*|deu*)     echo "${cfg.waybarLayout."format-de" or "DE"}" ;;
+              French*|fr*|fra*)     echo "${cfg.waybarLayout."format-fr" or "FR"}" ;;
+              *)                    echo "$layout" ;;
             esac
           '';
           interval = 2;
@@ -280,7 +276,7 @@ delib.module {
       # Fallback when monitor names aren't parseable from parent.mango.monitors:
       # one bar (replicated on every output) that always shows the focused
       # monitor's data via runtime selmon lookup.
-      focusedSel = "$(mmsg -g -o 2>/dev/null | awk '$2 == \"selmon\" && $3 == \"1\" { print $1; exit }')";
+      focusedSel = "$(mmsg get all-monitors 2>/dev/null | jq -r '.monitors[] | select(.active == true) | .name' | head -1)";
       bars =
         if monitorNames != [ ]
         then map mkBar monitorNames

@@ -364,23 +364,6 @@ delib.module {
           };
 
           plugin = {
-            fetchers = [
-              {
-                group = "mime";
-                url = "*/";
-                run = "mime";
-                "if" = "!mime";
-                prio = "low";
-              }
-              {
-                group = "mime";
-                url = "*";
-                run = "mime";
-                "if" = "!mime";
-                prio = "low";
-              }
-            ];
-
             # Previewers (Mediainfo + Rich-Preview)
             prepend_previewers = [
               # -- Rich Preview --
