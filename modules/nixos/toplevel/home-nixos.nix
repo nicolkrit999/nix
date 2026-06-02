@@ -27,10 +27,10 @@ delib.module {
     { myconfig, ... }:
     {
       home-manager.sharedModules = [
-        ({ config, ... }: {
-          gtk.gtk4.theme = config.gtk.theme;
-          xdg.userDirs.setSessionVariables = true;
-        })
+        {
+          gtk.gtk4.theme = null;
+          xdg.userDirs.setSessionVariables = false;
+        }
       ];
 
       home-manager.users.${myconfig.constants.user} =

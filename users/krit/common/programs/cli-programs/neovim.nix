@@ -38,8 +38,6 @@ delib.module {
         NVIM_BASE16_THEME = myconfig.constants.theme.base16Theme;
       };
 
-      xdg.configFile."nvim/init.lua".enable = lib.mkForce false;
-
       home.packages = with pkgs; [
         nodejs_latest # Ensure it's installed to allow copilot.lua to work
       ];
@@ -48,8 +46,17 @@ delib.module {
         enable = true;
         viAlias = true;
         vimAlias = true;
-        withRuby = true;
-        withPython3 = true;
+        withRuby = false;
+        withPython3 = true; # builds python env + pynvim; wired via sideloadInitLua
+
+        # We manage our own ~/.config/nvim. sideloadInitLua makes home-manager
+        # NOT write its generated init.lua to disk (so no mkForce conflict), and
+        # instead load it via the neovim wrapper's `--cmd 'lua dofile(...)'`,
+        # which runs *before* our own init.lua. That generated init is the only
+        # place HM sets `g:python3_host_prog`, so this is what makes the python3
+        # provider (needed by UltiSnips) actually work. Keeps our dotfiles fully
+        # portable — no nix-specific lines leak into ~/.config/nvim.
+        sideloadInitLua = true;
 
         extraPackages = with pkgs; [
           ripgrep

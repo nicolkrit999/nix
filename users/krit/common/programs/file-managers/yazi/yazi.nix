@@ -45,7 +45,7 @@ delib.module {
 
       programs.yazi = {
         enable = true;
-        shellWrapperName = "yy";
+        shellWrapperName = "y";
         enableZshIntegration = myconfig.constants.shell == "zsh";
         enableFishIntegration = myconfig.constants.shell == "fish";
         enableBashIntegration = myconfig.constants.shell == "bash";
