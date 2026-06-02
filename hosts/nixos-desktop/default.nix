@@ -622,7 +622,10 @@ delib.host {
       # ⚙️ SERVICES
       # ---------------------------------------------------------------
       services = {
-        audio.enable = true;
+        audio = {
+          enable = true;
+          clockRate = 192000;
+        };
         autotrash.enable = true;
         external.dotfiles.enable = true;
         external.dotfiles-private.enable = true;

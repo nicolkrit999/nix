@@ -1,9 +1,13 @@
 { delib, pkgs, ... }:
 delib.module {
   name = "services.audio";
-  options = delib.singleEnableOption true;
 
-  nixos.ifEnabled = {
+  options = with delib; moduleOptions {
+    enable = boolOption true;
+    clockRate = intOption 48000;
+  };
+
+  nixos.ifEnabled = { cfg, ... }: {
     security.rtkit.enable = true;
     services.pipewire = {
       enable = true;
@@ -14,7 +18,7 @@ delib.module {
       # Low Latency Config
       extraConfig.pipewire."92-low-latency" = {
         "context.properties" = {
-          "default.clock.rate" = 48000;
+          "default.clock.rate" = cfg.clockRate;
           "default.clock.quantum" = 1024;
         };
       };
