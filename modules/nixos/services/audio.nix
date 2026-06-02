@@ -26,7 +26,7 @@ delib.module {
       # Pulse Audio Compatibility
       extraConfig.pipewire-pulse."99-no-flat-volume" = {
         "pulse.properties" = {
-          "pulse.min.quantum" = "1024/48000";
+          "pulse.min.quantum" = "1024/${toString cfg.clockRate}";
           "pulse.flat-volume" = false;
         };
       };
