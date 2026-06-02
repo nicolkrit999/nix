@@ -252,8 +252,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # No nixpkgs.follows: 25.11 renamed `opus` → `libopus`, concord upstream still uses `pkgs.opus`. Re-add follows when fixed upstream.
-    concord.url = "github:chojs23/concord";
+    concord = {
+      url = "github:chojs23/concord";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     tgt.url = "github:FedericoBruzzone/tgt";
 
