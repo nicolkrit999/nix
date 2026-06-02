@@ -624,7 +624,7 @@ delib.host {
       services = {
         audio = {
           enable = true;
-          clockRate = 192000;
+          #clockRate = 192000;
         };
         autotrash.enable = true;
         external.dotfiles.enable = true;

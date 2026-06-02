@@ -12,12 +12,14 @@ clicks and scroll navigation.
 Add IPC::dispatch() that probes the running Hyprland on first call and
 routes commands through the new hl.dsp Lua API when the Lua protocol is
 detected, falling back to the old text format otherwise.
+
+workspaces.cpp scroll hunk dropped: handleScroll was removed upstream in
+waybar 0.15.0 and no longer exists in the source tree.
 ---
  include/modules/hyprland/backend.hpp | 14 ++++++
  src/modules/hyprland/backend.cpp     | 67 ++++++++++++++++++++++++++++
  src/modules/hyprland/workspace.cpp   | 12 ++---
- src/modules/hyprland/workspaces.cpp  |  8 ++--
- 4 files changed, 91 insertions(+), 10 deletions(-)
+ 3 files changed, 85 insertions(+), 6 deletions(-)
 
 diff --git a/include/modules/hyprland/backend.hpp b/include/modules/hyprland/backend.hpp
 index a6ebd19178..4e16299b1c 100644
@@ -34,18 +36,18 @@ index a6ebd19178..4e16299b1c 100644
 @@ -35,6 +36,10 @@ class IPC {
    Json::Value getSocket1JsonReply(const std::string& rq);
    static std::filesystem::path getSocketFolder(const char* instanceSig);
- 
+
 +  /// Dispatch a Hyprland command. Automatically uses the correct protocol
 +  /// (legacy text or Lua-based) depending on the running Hyprland version.
 +  static std::string dispatch(const std::string& dispatcher, const std::string& arg);
 +
   protected:
    static std::filesystem::path socketFolder_;
- 
+
 @@ -42,6 +47,15 @@ class IPC {
    void socketListener();
    void parseIPC(const std::string&);
- 
+
 +  /// Detect whether the running Hyprland uses the Lua-based IPC protocol.
 +  /// Returns true for Hyprland >= 0.54 (Lua config), false for older versions.
 +  static bool isLuaProtocol();
@@ -57,31 +59,26 @@ index a6ebd19178..4e16299b1c 100644
 +
    std::thread ipcThread_;
    std::mutex callbackMutex_;
-   std::mutex socketMutex_;
+   util::JsonParser parser_;
 diff --git a/src/modules/hyprland/backend.cpp b/src/modules/hyprland/backend.cpp
 index d03712024f..08cf97c118 100644
 --- a/src/modules/hyprland/backend.cpp
 +++ b/src/modules/hyprland/backend.cpp
-@@ -13,6 +13,7 @@
- #include <cerrno>
- #include <cstring>
+@@ -12,8 +12,10 @@
  #include <filesystem>
 +#include <optional>
  #include <string>
- 
- #include "util/scoped_fd.hpp"
-@@ -20,6 +21,7 @@
+
  namespace waybar::modules::hyprland {
- 
+
  std::filesystem::path IPC::socketFolder_;
 +std::optional<bool> IPC::s_luaProtocolDetected_;
- 
+
  std::filesystem::path IPC::getSocketFolder(const char* instanceSig) {
-   static std::mutex folderMutex;
-@@ -290,4 +292,69 @@ Json::Value IPC::getSocket1JsonReply(const std::string& rq) {
+@@ -244,4 +247,69 @@ Json::Value IPC::getSocket1JsonReply(const std::string& rq) {
    return parser_.parse(reply);
  }
- 
+
 +bool IPC::isLuaProtocol() {
 +  if (s_luaProtocolDetected_.has_value()) {
 +    return *s_luaProtocolDetected_;
@@ -179,27 +176,3 @@ index 21e7ef9b95..753893f256 100644
        }
        return true;
      } catch (const std::exception& e) {
-diff --git a/src/modules/hyprland/workspaces.cpp b/src/modules/hyprland/workspaces.cpp
-index f794249bcf..2496117fc8 100644
---- a/src/modules/hyprland/workspaces.cpp
-+++ b/src/modules/hyprland/workspaces.cpp
-@@ -1195,15 +1195,15 @@ bool Workspaces::handleScroll(GdkEventScroll* e) {
- 
-   if (dir == SCROLL_DIR::DOWN || dir == SCROLL_DIR::RIGHT) {
-     if (allOutputs()) {
--      m_ipc.getSocket1Reply("dispatch workspace e+1");
-+      IPC::dispatch("workspace", "e+1");
-     } else {
--      m_ipc.getSocket1Reply("dispatch workspace m+1");
-+      IPC::dispatch("workspace", "m+1");
-     }
-   } else if (dir == SCROLL_DIR::UP || dir == SCROLL_DIR::LEFT) {
-     if (allOutputs()) {
--      m_ipc.getSocket1Reply("dispatch workspace e-1");
-+      IPC::dispatch("workspace", "e-1");
-     } else {
--      m_ipc.getSocket1Reply("dispatch workspace m-1");
-+      IPC::dispatch("workspace", "m-1");
-     }
-   }
- 
