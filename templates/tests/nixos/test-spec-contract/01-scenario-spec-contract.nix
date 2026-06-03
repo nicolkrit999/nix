@@ -35,7 +35,6 @@ let
     # Hyprland DE modules (needed for monitors/execOnce/windowRules options)
     (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix")
     (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-binds.nix")
-    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-hyprpaper.nix")
 
     # Niri DE modules (school/home specs reference niri.execOnce, niri.outputs)
     (src + "/modules/nixos/programs/de-wm/niri/niri-main.nix")

@@ -28,7 +28,6 @@ let
     # Hyprland DE modules (needed for HM wayland.windowManager.hyprland.* options)
     (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix")
     (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-binds.nix")
-    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-hyprpaper.nix")
 
     # Hyprland ecosystem: all auto-enabled (boolOption true) once hyprland is on
     (src + "/modules/nixos/services/hypr/hypridle.nix")

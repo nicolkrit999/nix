@@ -55,7 +55,6 @@ let
     # Window manager main modules + binds + extras
     (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix")
     (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-binds.nix")
-    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-hyprpaper.nix")
     (src + "/modules/nixos/programs/de-wm/niri/niri-main.nix")
     (src + "/modules/nixos/programs/de-wm/niri/niri-binds.nix")
     (src + "/modules/nixos/programs/de-wm/mango/mango-main.nix")
@@ -105,6 +104,21 @@ let
     in
     configs.${builtins.head names}.config;
 
+  # Render a Hyprland lua-mode bind entry into a searchable string.
+  # In 26.05 lua mode each bind is a table `{ _args = [ keyStr luaInline flags? ]; }`
+  # rather than a plain "MODS, KEY, dispatch, arg" string, so substring assertions
+  # must flatten it first. String args pass through; lua-inline dispatchers
+  # contribute their `.expr`; flag attrsets are dropped.
+  bindStr = b:
+    if builtins.isString b then b
+    else
+      lib.concatStringsSep " " (map
+        (a:
+          if builtins.isString a then a
+          else if builtins.isAttrs a && (a._type or "") == "lua-inline" then a.expr
+          else "")
+        (b._args or [ ]));
+
   # Home-manager sub-config for user krit.
   getHm = config: config.home-manager.users.krit;
 
@@ -137,6 +151,6 @@ let
 
 in
 {
-  inherit evalScenario getConfig getHm getAllAssertions allAssertionsPass hasFailingAssertion;
+  inherit evalScenario getConfig getHm getAllAssertions allAssertionsPass hasFailingAssertion bindStr;
   inherit lib flake;
 }

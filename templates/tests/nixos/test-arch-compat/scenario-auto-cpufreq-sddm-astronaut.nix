@@ -33,7 +33,6 @@ let
     # Window manager modules
     (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix")
     (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-binds.nix")
-    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-hyprpaper.nix")
     (src + "/modules/nixos/programs/de-wm/niri/niri-main.nix")
     (src + "/modules/nixos/programs/de-wm/niri/niri-binds.nix")
     (src + "/modules/nixos/programs/de-wm/mango/mango-main.nix")
