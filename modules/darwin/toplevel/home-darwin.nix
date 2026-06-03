@@ -21,11 +21,4 @@ delib.module {
       programs.home-manager.enable = true;
     };
 
-  darwin.always =
-    { ... }:
-    {
-      home-manager.sharedModules = [
-        { gtk.gtk4.theme = null; }
-      ];
-    };
 }

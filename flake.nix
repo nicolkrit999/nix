@@ -146,9 +146,7 @@
     };
 
     stylix = {
-      # Pinned to release-25.11: stylix has not yet published a release-26.05 branch (checked 2026-05-30).
-      # Revisit and bump to release-26.05 once danth/stylix tags it.
-      url = "github:danth/stylix/release-25.11";
+      url = "github:danth/stylix/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

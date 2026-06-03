@@ -106,14 +106,14 @@ delib.module {
       nixosAliases = {
         swboot = "cd ${flakeDir} && git add -A && ${nixosBootWrapped}";
         swtest = "cd ${flakeDir} && git add -A && ${nixosTestCmd}";
-        swdry = "cd ${flakeDir} && git add -A && nh os build --ask ${flakeDir}";
+        swdry = "cd ${flakeDir} && git add -A && nix build ${flakeDir}#nixosConfigurations.${myconfig.constants.hostname}.config.system.build.toplevel --dry-run";
         sw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
         swfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${nixosSwitchCmd} --fallback"}";
         gsw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
         gswfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${nixosSwitchCmd} --fallback"}";
-        gswoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
+        gswoff = "cd ${flakeDir} && git add -A && nh os switch ${flakeDir} -- --offline";
         swsrc = "cd ${flakeDir} && git add -A && ${wrapCaches "${nixosSwitchCmd} --option substitute false"}";
-        swoff = "cd ${flakeDir} && git add -A && ${nixosSwitchCmd} --offline";
+        swoff = "cd ${flakeDir} && git add -A && nh os switch ${flakeDir} -- --offline";
         tswsrc = "cd ${flakeDir} && git add -A && time ${wrapCaches "${nixosSwitchCmd} --option substitute false"}";
 
         nfc = "cd ${flakeDir} && git add -A && nix flake check";
@@ -138,8 +138,8 @@ delib.module {
         swfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${darwinSwitchCmd} --fallback"}";
         gsw = "cd ${flakeDir} && git add -A && ${darwinSwitchWrapped}";
         gswfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${darwinSwitchCmd} --fallback"}";
-        swdry = "cd ${flakeDir} && git add -A && nh darwin build ${flakeDir}";
-        gswoff = "cd ${flakeDir} && git add -A && ${darwinSwitchCmd} --offline";
+        swdry = "cd ${flakeDir} && git add -A && nix build ${flakeDir}#darwinConfigurations.${myconfig.constants.hostname}.system --dry-run";
+        gswoff = "cd ${flakeDir} && git add -A && nh darwin switch ${flakeDir} -- --offline";
 
         nfc = "cd ${flakeDir} && git add -A && nix flake check --impure";
         upd = "cd ${flakeDir} && git add -A && ${darwinUpdateWrapped}";

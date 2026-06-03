@@ -20,8 +20,7 @@ delib.module {
 
       stylix = {
         enable = true;
-        # Suppress release-mismatch warning: stylix pinned to release-25.11 on a 26.05 system.
-        enableReleaseChecks = false;
+        enableReleaseChecks = true;
         autoEnable = true;
         polarity = myconfig.constants.theme.polarity or "dark";
         base16Scheme = "${pkgs.base16-schemes}/share/themes/${

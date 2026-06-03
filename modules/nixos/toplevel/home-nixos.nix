@@ -28,7 +28,6 @@ delib.module {
     {
       home-manager.sharedModules = [
         {
-          gtk.gtk4.theme = null;
           xdg.userDirs.setSessionVariables = false;
         }
       ];

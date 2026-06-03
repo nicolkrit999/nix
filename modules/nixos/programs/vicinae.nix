@@ -70,7 +70,7 @@ delib.module {
           };
 
           launcher_window = {
-            opacity = 0.98;
+            opacity = lib.mkForce 0.98;
             layer_shell.layer = "overlay";
           };
 
