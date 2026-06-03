@@ -159,7 +159,7 @@ delib.module {
         { _args = [ "XDG_CURRENT_DESKTOP" "Hyprland" ]; }
         { _args = [ "XDG_SESSION_TYPE" "wayland" ]; }
         { _args = [ "XDG_SESSION_DESKTOP" "Hyprland" ]; }
-        { _args = [ "XDG_SCREENSHOTS_DIR" myconfig.constants.screenshots ]; }
+        { _args = [ "XDG_SCREENSHOTS_DIR" (builtins.replaceStrings [ "$HOME" ] [ "/home/${myconfig.constants.user}" ] myconfig.constants.screenshots) ]; }
       ];
 
       staticGestures = [

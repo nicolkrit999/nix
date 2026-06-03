@@ -47,8 +47,16 @@ delib.module {
           ("dotfiles-" + lib.strings.sanitizeDerivationName relPath)
           { }
           "ln -s ${lib.escapeShellArg "${homeDir}/dotfiles/${relPath}"} $out";
+      mkAbsLink = absPath:
+        pkgs.runCommandLocal
+          ("link-" + lib.strings.sanitizeDerivationName absPath)
+          { }
+          "ln -s ${lib.escapeShellArg absPath} $out";
     in
     {
-      home.file = builtins.mapAttrs (_: relPath: { source = mkLink relPath; force = true; }) mappings;
+      home.file = builtins.mapAttrs (_: relPath: { source = mkLink relPath; force = true; }) mappings // {
+        # wallpapers repo (landscape / portrait / various directly inside)
+        "Pictures/wallpapers" = { source = mkAbsLink "${homeDir}/github-repos/personal/wallpapers-repo"; force = true; };
+      };
     };
 }

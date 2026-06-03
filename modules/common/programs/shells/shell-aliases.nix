@@ -43,7 +43,7 @@ delib.module {
       atticToken = myconfig.krit.attic.authTokenPath;
       atticPush =
         "attic login nas-push ${atticServer} \"$(cat ${atticToken})\""
-        + "; and nix path-info -r /run/current-system | attic push -j 32 nas-push:${atticCache} --stdin";
+        + " && nix path-info -r /run/current-system | attic push -j 8 nas-push:${atticCache} --stdin";
 
       cName =
         if myconfig.cachix.name == "use-constant" then
@@ -51,21 +51,39 @@ delib.module {
         else
           myconfig.cachix.name;
       cachixTokenPath = myconfig.cachix.authTokenPath or "";
+      # `env VAR=val cachix` (not the `VAR=val cmd` prefix) — fish has no inline
+      # env-assignment syntax, and `env` wraps the last pipe stage so the token
+      # reaches cachix.
       cachixPush =
         if cachixTokenPath != "" then
-          "set -lx CACHIX_AUTH_TOKEN (cat ${cachixTokenPath}); and nix path-info -r /run/current-system | cachix push ${cName}"
+          "nix path-info -r /run/current-system | env CACHIX_AUTH_TOKEN=$(cat ${cachixTokenPath}) cachix push ${cName}"
         else
           "nix path-info -r /run/current-system | cachix push ${cName}";
 
+      # Run a command string under POSIX `sh -c` so its operators (&&, |, $(),
+      # env VAR=val, ;) are parsed by /bin/sh, never the user's interactive
+      # shell. This makes every cache command behave identically under bash, zsh
+      # and fish, which otherwise disagree on `&&` vs `; and`, `{ }` vs
+      # `begin..end`, and the `VAR=val cmd` prefix.
+      shc = script: "sh -c ${lib.escapeShellArg script}";
+
+      # Standalone aliases: push one cache, no rebuild, errors surface to the user.
+      atticPushAlias = shc atticPush;
+      cachixPushAlias = shc cachixPush;
+
+      # sw-style wrapper: rebuild first, then — only if it succeeded — push to
+      # every enabled cache. Each push is isolated with `|| true` so one cache
+      # failing never aborts the other, while the rebuild's exit status still
+      # gates whether any push runs (the whole block lives behind one `&&`).
       wrapCaches =
         cmd:
         let
           pushLines =
-            (lib.optional atticEnabled "${atticPush}; or true")
-            ++ (lib.optional cachixEnabled "${cachixPush}; or true");
+            (lib.optional atticEnabled "${atticPush} || true")
+            ++ (lib.optional cachixEnabled "${cachixPush} || true");
         in
         if pushLines == [ ] then cmd
-        else "${cmd}; and begin; " + (lib.concatStringsSep "; " pushLines) + "; end; #";
+        else "${cmd} && ${shc (lib.concatStringsSep "; " pushLines)}";
 
       nixosSwitchWrapped = wrapCaches nixosSwitchCmd;
       nixosUpdateWrapped = wrapCaches nixosUpdateCmd;
@@ -130,8 +148,8 @@ delib.module {
         reb-uefi = "systemctl reboot --firmware-setup";
         swdryaarch64-linux = "cd ${flakeDir} && git add -A && nix build ${flakeDir}#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run --show-trace";
       }
-      // (lib.optionalAttrs atticEnabled { attic-push = atticPush; })
-      // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPush; });
+      // (lib.optionalAttrs atticEnabled { attic-push = atticPushAlias; })
+      // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPushAlias; });
 
       darwinAliases = {
         sw = "cd ${flakeDir} && git add -A && ${darwinSwitchWrapped}";
@@ -156,8 +174,8 @@ delib.module {
         changehosts = "sudo nvim /etc/hosts";
         cleardns = "sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder";
       }
-      // (lib.optionalAttrs atticEnabled { attic-push = atticPush; })
-      // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPush; });
+      // (lib.optionalAttrs atticEnabled { attic-push = atticPushAlias; })
+      // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPushAlias; });
     in
     {
       home.shellAliases = commonAliases
