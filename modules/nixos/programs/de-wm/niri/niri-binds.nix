@@ -91,7 +91,7 @@ delib.module {
           "XF86AudioRaiseVolume".action.spawn = [ "swayosd-client" "--output-volume" "raise" ];
           "XF86AudioLowerVolume".action.spawn = [ "swayosd-client" "--output-volume" "lower" ];
           "XF86AudioMute".action.spawn = [ "swayosd-client" "--output-volume" "mute-toggle" ];
-          "XF86AudioMicMute".action.spawn = [ "swayosd-client" "--input-volume" "mute-toggle" ];
+          "XF86AudioMicMute".action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle" ];
           "Mod+BracketRight".action.spawn = [ "swayosd-client" "--brightness" "raise" ];
           "Mod+BracketLeft".action.spawn = [ "swayosd-client" "--brightness" "lower" ];
           "XF86MonBrightnessUp".action.spawn = [ "swayosd-client" "--brightness" "raise" ];

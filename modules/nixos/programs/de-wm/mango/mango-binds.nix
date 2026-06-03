@@ -88,7 +88,7 @@ delib.module {
           "NONE,XF86AudioRaiseVolume,spawn,swayosd-client --output-volume raise"
           "NONE,XF86AudioLowerVolume,spawn,swayosd-client --output-volume lower"
           "NONE,XF86AudioMute,spawn,swayosd-client --output-volume mute-toggle"
-          "NONE,XF86AudioMicMute,spawn,swayosd-client --input-volume mute-toggle"
+          "NONE,XF86AudioMicMute,spawn,wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
           "NONE,XF86MonBrightnessUp,spawn,swayosd-client --brightness raise"
           "NONE,XF86MonBrightnessDown,spawn,swayosd-client --brightness lower"
           "NONE,XF86KbdBrightnessUp,spawn,swayosd-client --keyboard-brightness raise"

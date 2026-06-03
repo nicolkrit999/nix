@@ -77,7 +77,7 @@ delib.module {
           (mkBind { key = "XF86AudioRaiseVolume"; dispatcher = exec "swayosd-client --output-volume raise"; flags = { locked = true; repeating = true; }; })
           (mkBind { key = "XF86AudioLowerVolume"; dispatcher = exec "swayosd-client --output-volume lower"; flags = { locked = true; repeating = true; }; })
           (mkBind { key = "XF86AudioMute"; dispatcher = exec "swayosd-client --output-volume mute-toggle"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86AudioMicMute"; dispatcher = exec "swayosd-client --input-volume mute-toggle"; flags = { locked = true; repeating = true; }; })
+          (mkBind { key = "XF86AudioMicMute"; dispatcher = exec "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; flags = { locked = true; repeating = true; }; })
           (mkBind { key = "XF86MonBrightnessUp"; dispatcher = exec "swayosd-client --brightness raise"; flags = { locked = true; repeating = true; }; })
           (mkBind { key = "XF86MonBrightnessDown"; dispatcher = exec "swayosd-client --brightness lower"; flags = { locked = true; repeating = true; }; })
           (mkBind { mods = mod; key = "bracketright"; dispatcher = exec "swayosd-client --brightness raise"; flags = { locked = true; repeating = true; }; })
