@@ -187,6 +187,8 @@ delib.host {
         authTokenPath = "/run/secrets/attic-push-token";
       };
 
+      krit.commonSopsSecrets.enable = true;
+
       home-packages.enable = true;
       mime.enable = true;
 

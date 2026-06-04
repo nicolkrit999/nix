@@ -46,6 +46,8 @@ delib.host {
         authTokenPath = "/run/secrets/attic-push-token";
       };
 
+      krit.commonSopsSecrets.enable = true;
+
       programs = {
         nltchNur = {
           enable = true;

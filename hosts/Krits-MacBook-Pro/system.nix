@@ -30,88 +30,9 @@ delib.host {
     sops.age.sshKeyPaths = [ ];
     sops.gnupg.sshKeyPaths = [ ];
 
-    sops.secrets =
-      let
-        commonSecrets = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
-      in
-      {
-        github_fg_pat_token_nix = {
-          sopsFile = commonSecrets;
-          mode = "0444";
-        };
-        github_general_ssh_key = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-          path = "/Users/krit/.ssh/id_github";
-          mode = "0600";
-        };
-        github_general_ssh_pub = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-          path = "/Users/krit/.ssh/id_github.pub";
-          mode = "0644";
-        };
-        school_ssh_key = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-          path = "/Users/krit/.ssh/id_school";
-          mode = "0600";
-        };
-        school_ssh_pub = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-          path = "/Users/krit/.ssh/id_school.pub";
-          mode = "0644";
-        };
-        openrouter_api_claude_code = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-        };
-        claude_mcp_actual_password = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-        };
-        claude_mcp_actual_sync_id = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-        };
-        claude_mcp_actual_encryption_password = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-        };
-        claude_mcp_context7_api_key = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-        };
-        claude_mcp_openai_api_key = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-        };
-        claude_mcp_milvus_token = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-        };
-        claude_mcp_github_token = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-        };
-        claude_mcp_portainer_token = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-        };
-        tailscale_key = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-        };
-        attic-push-token = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-        };
-        cachix-push-token = {
-          sopsFile = commonSecrets;
-          owner = "krit";
-        };
-      };
+    # Common sops secrets live in users/krit/common/toplevel/sops-secrets.nix
+    # (enabled via this host's default.nix). Host-specific secrets, if any,
+    # would go here.
 
     nix.extraOptions = ''
       !include ${config.sops.secrets.github_fg_pat_token_nix.path}

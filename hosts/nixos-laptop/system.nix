@@ -27,29 +27,12 @@ delib.host {
       inputs.nix-sops.nixosModules.sops
       ./hardware-configuration.nix
 
-      # Sops secrets definitions
+      # Host-specific sops secrets (common ones live in
+      # users/krit/common/toplevel/sops-secrets.nix, enabled via default.nix)
       (
-        { config, lib, ... }:
+        { config, ... }:
         {
-          sops.secrets = {
-            # Host-specific secrets (from host sops file)
-            "krit-local-password".neededForUsers = true;
-
-            "attic-push-token" = {
-              sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
-              owner = myUserName;
-            };
-            "cachix-push-token" = {
-              sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
-              owner = myUserName;
-            };
-            borg-passphrase = { };
-            borg-private-key = { };
-          } // (import ../../templates/krit/sops/common-secrets.nix {
-            inherit lib;
-            user = myUserName;
-            claudeCodeMcpSecrets = config.myconfig.programs.claude-code.mcpSecrets;
-          });
+          sops.secrets."krit-local-password".neededForUsers = true;
 
           users.users.${myUserName}.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
           users.users.root.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
