@@ -13,6 +13,12 @@ delib.module {
   nixos.ifEnabled =
     {
       security.unprivilegedUsernsClone = true;
+      security.wrappers.bwrap = {
+        source = "${pkgs.bubblewrap}/bin/bwrap";
+        owner = "root";
+        group = "root";
+        setuid = true;
+      };
 
       services.flatpak = {
         enable = true;
