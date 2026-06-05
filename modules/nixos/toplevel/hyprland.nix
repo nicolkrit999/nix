@@ -1,4 +1,5 @@
 { delib
+, lib
 , ...
 }:
 delib.module {
@@ -10,5 +11,7 @@ delib.module {
       enable = true;
       withUWSM = true;
     };
+
+    security.wrappers.Hyprland.capabilities = lib.mkForce "";
   };
 }

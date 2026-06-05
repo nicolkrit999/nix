@@ -1,5 +1,6 @@
 { delib
 , pkgs
+, lib
 , ...
 }:
 delib.module {
@@ -8,6 +9,8 @@ delib.module {
 
   nixos.ifEnabled = {
     services.desktopManager.plasma6.enable = true;
+
+    security.wrappers.kwin_wayland.capabilities = lib.mkForce "";
 
     environment.plasma6.excludePackages = with pkgs.kdePackages; [
       oxygen
