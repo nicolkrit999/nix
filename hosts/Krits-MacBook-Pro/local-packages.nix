@@ -30,7 +30,6 @@ delib.module {
         tree
         wakeonlan
         xcodegen
-        zeal
         (pkgs.python313.withPackages (
           ps: with ps; [
             faker
@@ -76,6 +75,7 @@ delib.module {
           "signal"
           "vlc"
           "github"
+          "zeal"
         ];
       };
     };
