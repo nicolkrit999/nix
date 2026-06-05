@@ -12,6 +12,8 @@ delib.module {
 
   nixos.ifEnabled =
     {
+      security.unprivilegedUsernsClone = true;
+
       services.flatpak = {
         enable = true;
         packages = [
