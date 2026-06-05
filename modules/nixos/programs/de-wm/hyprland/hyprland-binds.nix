@@ -114,7 +114,7 @@ delib.module {
           (mkBind { mods = mod; key = "space"; dispatcher = ''hl.dsp.window.float({ action = "toggle" })''; })
           (mkBind { mods = mod; key = "M"; dispatcher = "hl.dsp.window.fullscreen()"; })
           (mkBind { mods = "${mod}+ALT"; key = "P"; dispatcher = "hl.dsp.window.pin()"; })
-          (mkBind { mods = mod; key = "P"; dispatcher = ''function() hl.dsp.window.float({ action = "toggle" }); hl.dsp.window.pin() end''; })
+          (mkBind { mods = mod; key = "P"; dispatcher = exec "hyprctl dispatch 'hl.dsp.window.float({ action = \"toggle\" })' && hyprctl dispatch 'hl.dsp.window.pin()'"; })
 
           (mkBind { mods = mod; key = "A"; dispatcher = exec "vicinae toggle"; })
           (mkBind { mods = "${mod}+SHIFT"; key = "A"; dispatcher = exec shellMenu; })
