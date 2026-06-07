@@ -42,6 +42,9 @@ let
   extraMappingsPerHost = {
     Krits-MacBook-Pro = {
       "bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
+      # Finance (+ later gym) skills and the Actual Budget MCP load only inside ~/momentary
+      "momentary/.claude/skills" = "claude/momentary/.claude/skills";
+      "momentary/.mcp.json" = "claude/momentary/.mcp.json";
     };
   };
 in

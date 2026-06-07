@@ -31,5 +31,9 @@
       "Read(//tmp/**)",
       "mcp__nixos__nix"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "nixos"
+  ],
+  "enableAllProjectMcpServers": true
 }

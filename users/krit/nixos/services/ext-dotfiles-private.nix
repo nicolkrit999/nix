@@ -72,9 +72,14 @@ let
   extraMappingsPerHost = {
     nixos-desktop = {
       ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
+      # Finance (+ later gym) skills and the Actual Budget MCP load only inside ~/momentary
+      "momentary/.claude/skills" = "claude/momentary/.claude/skills";
+      "momentary/.mcp.json" = "claude/momentary/.mcp.json";
     };
     nixos-laptop = {
       ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
+      "momentary/.claude/skills" = "claude/momentary/.claude/skills";
+      "momentary/.mcp.json" = "claude/momentary/.mcp.json";
     };
   };
 in
