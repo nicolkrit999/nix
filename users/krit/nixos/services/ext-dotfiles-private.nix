@@ -20,6 +20,7 @@ let
       ".claude/keybindings.json"
       ".claude/settings.json"
       ".claude/plans"
+      ".claude-mem"
     ];
 
     "claude/nixos-laptop" = [
@@ -27,6 +28,7 @@ let
       ".claude/keybindings.json"
       ".claude/settings.json"
       ".claude/plans"
+      ".claude-mem"
     ];
 
     gsd = [
@@ -73,6 +75,7 @@ let
       "momentary/.claude/skills" = "claude/momentary/.claude/skills";
       "momentary/.mcp.json" = "claude/momentary/.mcp.json";
       ".school-workspace/.claude/skills" = "claude/school/.claude/skills";
+      ".school-workspace/.claude/agents/cs-study-portfolio.md" = "claude/school/.claude/agents/cs-study-portfolio.md";
       ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
       ".claude/projects/-mnt-nicol-nas-webdav-owncloud-University/memory" = "claude/common/.claude/projects/nicol-nas-webdav-owncloud-University/memory";
       ".claude/projects/-home-krit-nix/memory" = "claude/common/.claude/projects/nix/memory";
@@ -84,6 +87,7 @@ let
       "momentary/.claude/skills" = "claude/momentary/.claude/skills";
       "momentary/.mcp.json" = "claude/momentary/.mcp.json";
       ".school-workspace/.claude/skills" = "claude/school/.claude/skills";
+      ".school-workspace/.claude/agents/cs-study-portfolio.md" = "claude/school/.claude/agents/cs-study-portfolio.md";
       ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
       ".claude/projects/-mnt-nicol-nas-webdav-owncloud-University/memory" = "claude/common/.claude/projects/nicol-nas-webdav-owncloud-University/memory";
       ".claude/projects/-home-krit-nix/memory" = "claude/common/.claude/projects/nix/memory";
