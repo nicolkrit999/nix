@@ -72,14 +72,18 @@ let
   extraMappingsPerHost = {
     nixos-desktop = {
       ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
-      # Finance (+ later gym) skills and the Actual Budget MCP load only inside ~/momentary
+      # Scoped skills/MCPs load only inside their context dir (symlinks resolve to claude/parked/*)
       "momentary/.claude/skills" = "claude/momentary/.claude/skills";
       "momentary/.mcp.json" = "claude/momentary/.mcp.json";
+      ".school-workspace/.claude/skills" = "claude/school/.claude/skills";
+      ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
     };
     nixos-laptop = {
       ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
       "momentary/.claude/skills" = "claude/momentary/.claude/skills";
       "momentary/.mcp.json" = "claude/momentary/.mcp.json";
+      ".school-workspace/.claude/skills" = "claude/school/.claude/skills";
+      ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
     };
   };
 in

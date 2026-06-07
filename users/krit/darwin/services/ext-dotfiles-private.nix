@@ -42,9 +42,12 @@ let
   extraMappingsPerHost = {
     Krits-MacBook-Pro = {
       "bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
-      # Finance (+ later gym) skills and the Actual Budget MCP load only inside ~/momentary
+      # Scoped skills/MCPs load only inside their context dir (symlinks resolve to claude/parked/*).
+      # macOS school workspace has NO leading dot (unlike NixOS .school-workspace).
       "momentary/.claude/skills" = "claude/momentary/.claude/skills";
       "momentary/.mcp.json" = "claude/momentary/.mcp.json";
+      "school-workspace/.claude/skills" = "claude/school/.claude/skills";
+      "school-workspace/.mcp.json" = "claude/school/.mcp.json";
     };
   };
 in
