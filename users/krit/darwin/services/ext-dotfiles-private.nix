@@ -11,9 +11,6 @@ let
       ".claude/memory"
       ".claude/notebooklm"
       ".claude/skills"
-      ".claude/projects/-home-krit-nix/memory"
-      ".claude/projects/-home-krit-momentary-gym-claude-skill/memory"
-      ".claude/projects/-home-krit-github-repos-personal-portainer-templates/memory"
       ".config/ccstatusline"
       ".claude/RTK.md"
     ];
@@ -48,6 +45,10 @@ let
       "momentary/.mcp.json" = "claude/momentary/.mcp.json";
       "school-workspace/.claude/skills" = "claude/school/.claude/skills";
       "school-workspace/.mcp.json" = "claude/school/.mcp.json";
+      ".claude/projects/-Volumes-nicol-nas-webdav-owncloud-University/memory" = "claude/common/.claude/projects/nicol-nas-webdav-owncloud-University/memory";
+      ".claude/projects/-Users-krit-nix/memory" = "claude/common/.claude/projects/nix/memory";
+      ".claude/projects/-Users-krit-momentary-gym-claude-skill/memory" = "claude/common/.claude/projects/momentary-gym-claude-skill/memory";
+      ".claude/projects/-Users-krit-github-repos-personal-portainer-templates/memory" = "claude/common/.claude/projects/github-repos-personal-portainer-templates/memory";
     };
   };
 in
