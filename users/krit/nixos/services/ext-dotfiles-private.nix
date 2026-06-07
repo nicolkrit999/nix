@@ -22,6 +22,9 @@ let
       ".claude/plans"
       ".claude-mem"
       ".claude/context-mode"
+      # Whole projects dir → host. Auto-captures every (future) project; common
+      # projects keep a committed memory symlink → claude/common/ inside the repo.
+      ".claude/projects"
     ];
 
     "claude/nixos-laptop" = [
@@ -31,6 +34,7 @@ let
       ".claude/plans"
       ".claude-mem"
       ".claude/context-mode"
+      ".claude/projects"
     ];
 
     gsd = [
@@ -79,10 +83,6 @@ let
       ".school-workspace/.claude/skills" = "claude/school/.claude/skills";
       ".school-workspace/.claude/agents/cs-study-portfolio.md" = "claude/school/.claude/agents/cs-study-portfolio.md";
       ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
-      ".claude/projects/-mnt-nicol-nas-webdav-owncloud-University/memory" = "claude/common/.claude/projects/nicol-nas-webdav-owncloud-University/memory";
-      ".claude/projects/-home-krit-nix/memory" = "claude/common/.claude/projects/nix/memory";
-      ".claude/projects/-home-krit-momentary-gym-claude-skill/memory" = "claude/common/.claude/projects/momentary-gym-claude-skill/memory";
-      ".claude/projects/-home-krit-github-repos-personal-portainer-templates/memory" = "claude/common/.claude/projects/github-repos-personal-portainer-templates/memory";
     };
     nixos-laptop = {
       ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
@@ -91,10 +91,6 @@ let
       ".school-workspace/.claude/skills" = "claude/school/.claude/skills";
       ".school-workspace/.claude/agents/cs-study-portfolio.md" = "claude/school/.claude/agents/cs-study-portfolio.md";
       ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
-      ".claude/projects/-mnt-nicol-nas-webdav-owncloud-University/memory" = "claude/common/.claude/projects/nicol-nas-webdav-owncloud-University/memory";
-      ".claude/projects/-home-krit-nix/memory" = "claude/common/.claude/projects/nix/memory";
-      ".claude/projects/-home-krit-momentary-gym-claude-skill/memory" = "claude/common/.claude/projects/momentary-gym-claude-skill/memory";
-      ".claude/projects/-home-krit-github-repos-personal-portainer-templates/memory" = "claude/common/.claude/projects/github-repos-personal-portainer-templates/memory";
     };
   };
 in
