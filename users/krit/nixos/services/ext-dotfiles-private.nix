@@ -74,7 +74,6 @@ let
   };
 
   # Maps home-dir path → repo-relative path, for cases where the two differ
-  # (binaries/ is the platform-neutral store; each OS maps it to its own convention)
   extraMappingsPerHost = {
     nixos-desktop = {
       ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";

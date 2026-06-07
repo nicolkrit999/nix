@@ -23,7 +23,6 @@ let
       ".claude-mem"
       ".claude/context-mode"
       # Whole projects dir → host. Auto-captures every (future) project; common
-      # projects keep a committed memory symlink → claude/common/ inside the repo.
       ".claude/projects"
     ];
 
@@ -41,11 +40,9 @@ let
   };
 
   # Maps home-dir path → repo-relative path, for cases where the two differ
-  # (e.g. macOS uses ~/bin/ but the file lives under .local/bin/ in the common package)
   extraMappingsPerHost = {
     Krits-MacBook-Pro = {
       "bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
-      # Scoped skills/MCPs load only inside their context dir (symlinks resolve to claude/parked/*).
       # macOS school workspace has NO leading dot (unlike NixOS .school-workspace).
       "momentary/.claude/skills" = "claude/momentary/.claude/skills";
       "momentary/.mcp.json" = "claude/momentary/.mcp.json";
