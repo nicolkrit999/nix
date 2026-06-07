@@ -22,8 +22,6 @@ let
       ".claude.json"
       ".claude/keybindings.json"
       ".claude/settings.json"
-      ".claude/plugins/installed_plugins.json"
-      ".claude/plugins/known_marketplaces.json"
       ".claude/plans"
     ];
 
@@ -31,8 +29,6 @@ let
       ".claude.json"
       ".claude/keybindings.json"
       ".claude/settings.json"
-      ".claude/plugins/installed_plugins.json"
-      ".claude/plugins/known_marketplaces.json"
       ".claude/plans"
     ];
 

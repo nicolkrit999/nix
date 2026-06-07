@@ -20,8 +20,7 @@ let
 
     "claude/mac" = [
       ".claude.json"
-      ".claude/plugins/installed_plugins.json"
-      ".claude/plugins/known_marketplaces.json"
+      ".claude/settings.json"
       ".claude/plans"
     ];
 
