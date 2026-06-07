@@ -13,6 +13,7 @@ let
       ".claude/skills"
       ".config/ccstatusline"
       ".claude/RTK.md"
+      ".claude/CLAUDE.md"
     ];
 
     "claude/mac" = [
