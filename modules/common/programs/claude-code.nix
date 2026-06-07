@@ -70,6 +70,7 @@ delib.module {
         pkgs.claude-code
         pkgs.nodejs_latest
         pkgs.bun
+        pkgs.rtk
       ];
     };
 

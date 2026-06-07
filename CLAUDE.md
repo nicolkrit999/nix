@@ -1,5 +1,10 @@
 # NixOS & nix-darwin Configuration — CLAUDE.md
 
+## RTK (token optimization)
+
+RTK is active via a `PreToolUse` hook — Bash commands are auto-rewritten (e.g. `git status` → `rtk git status`).
+The hook does **not** cover built-in `Read`/`Grep`/`Glob` tools. Prefer shell equivalents (`cat`, `grep`, `find`) over built-in tools when the output would benefit from filtering, so RTK can intercept it.
+
 ## Overview
 
 This repo manages multiple NixOS **and** nix-darwin hosts using the [denix](https://github.com/yunfachi/denix) framework. Denix auto-discovers all `.nix` files under the configured `paths` (see `flake.nix`), then wires them together via `delib.module` and `delib.host`.

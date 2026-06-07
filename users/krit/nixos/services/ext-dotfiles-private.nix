@@ -15,6 +15,7 @@ let
       ".claude/projects/-home-krit-momentary-gym-claude-skill/memory"
       ".claude/projects/-home-krit-github-repos-personal-portainer-templates/memory"
       ".config/ccstatusline"
+      ".claude/RTK.md"
     ];
 
     "claude/nixos-desktop" = [
