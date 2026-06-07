@@ -20,6 +20,7 @@ let
       ".claude/settings.json"
       ".claude/plans"
       ".claude-mem"
+      ".claude/context-mode"
     ];
 
     gsd = [
