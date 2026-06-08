@@ -164,7 +164,23 @@ delib.module {
         distrobox
         networkmanager-openconnect # For Cisco AnyConnect / GlobalProtect
         networkmanager-openvpn # For OpenVPN connections
-        owncloud-client # OwnCloud desktop client
+        (pkgs.owncloud-client.overrideAttrs (old: {
+          # owncloud-client (Qt6) uses wrapQtAppsHook which compiles a C wrapper
+          # that sets NIXPKGS_QT6_QML_IMPORT_PATH (not QML_IMPORT_PATH).
+          # The QML modules for org.kde.kirigami and org.kde.desktop live in the
+          # *unwrapped* kirigami derivation and qqc2-desktop-style respectively —
+          # neither is pulled in transitively by owncloud-client's closure.
+          qtWrapperArgs = (old.qtWrapperArgs or [ ]) ++ [
+            "--prefix"
+            "NIXPKGS_QT6_QML_IMPORT_PATH"
+            ":"
+            "${pkgs.kdePackages.kirigami.unwrapped}/lib/qt-6/qml"
+            "--prefix"
+            "NIXPKGS_QT6_QML_IMPORT_PATH"
+            ":"
+            "${pkgs.kdePackages.qqc2-desktop-style}/lib/qt-6/qml"
+          ];
+        }))
       ];
 
 
