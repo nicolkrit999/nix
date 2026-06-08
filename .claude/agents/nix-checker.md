@@ -2,7 +2,7 @@
 name: nix-checker
 description: "Read-only verification of this Nix config — run it after any change or when asked to 'verify', 'check the build', 'does it evaluate', 'run flake check', 'dry build', or 'run the tests'. Runs `nix flake check`, per-host dry-builds, and the templates/tests suite, then reports pass/fail with exact errors. Platform-aware (Darwin needs --impure). Does NOT modify config — hands failures to nix-debugger or nix-config-architect."
 model: haiku
-color: blue
+color: red
 tools: Bash, Read
 memory: project
 ---

@@ -2,7 +2,7 @@
 name: nix-compat-checker
 description: "Check or fix cross-platform / cross-architecture compatibility in this config. Use for 'will this build on the mac/aarch64', 'is this Linux-only option safe in a shared module', 'where should this module live (common vs nixos vs darwin)', IFD-guard correctness, specialisations, or x86_64 vs aarch64 differences. Knows the 3-way split rules; runs per-arch dry-builds and the arch-compat test."
 model: sonnet
-color: green
+color: orange
 tools: Bash, Read, Grep, Glob, mcp__nixos__nix
 memory: project
 ---

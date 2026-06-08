@@ -2,7 +2,7 @@
 name: nix-syntax-linter
 description: "Fast, read-only syntax & convention checks on Nix files — no evaluation. Use for 'lint this', 'check syntax', 'format check', 'is this nixpkgs-fmt clean', or a repo-wide convention sweep. Catches parse errors, formatting drift, and denix/repo anti-patterns (imports outside always blocks, hardcoded values that should be constants, stray stateVersion literals). Flags issues; hands fixes to nix-config-architect."
 model: haiku
-color: blue
+color: yellow
 tools: Bash, Read, Grep, Glob
 memory: project
 ---
