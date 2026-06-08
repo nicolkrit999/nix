@@ -79,17 +79,19 @@ let
       ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
       # Scoped skills/MCPs load only inside their context dir (symlinks resolve to claude/parked/*)
       "momentary/.claude/skills" = "claude/momentary/.claude/skills";
+      "momentary/.claude/agents" = "claude/momentary/.claude/agents";
       "momentary/.mcp.json" = "claude/momentary/.mcp.json";
       ".school-workspace/.claude/skills" = "claude/school/.claude/skills";
-      ".school-workspace/.claude/agents/cs-study-portfolio.md" = "claude/school/.claude/agents/cs-study-portfolio.md";
+      ".school-workspace/.claude/agents" = "claude/school/.claude/agents";
       ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
     };
     nixos-laptop = {
       ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
       "momentary/.claude/skills" = "claude/momentary/.claude/skills";
+      "momentary/.claude/agents" = "claude/momentary/.claude/agents";
       "momentary/.mcp.json" = "claude/momentary/.mcp.json";
       ".school-workspace/.claude/skills" = "claude/school/.claude/skills";
-      ".school-workspace/.claude/agents/cs-study-portfolio.md" = "claude/school/.claude/agents/cs-study-portfolio.md";
+      ".school-workspace/.claude/agents" = "claude/school/.claude/agents";
       ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
     };
   };

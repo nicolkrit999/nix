@@ -45,9 +45,10 @@ let
       "bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
       # macOS school workspace has NO leading dot (unlike NixOS .school-workspace).
       "momentary/.claude/skills" = "claude/momentary/.claude/skills";
+      "momentary/.claude/agents" = "claude/momentary/.claude/agents";
       "momentary/.mcp.json" = "claude/momentary/.mcp.json";
       "school-workspace/.claude/skills" = "claude/school/.claude/skills";
-      "school-workspace/.claude/agents/cs-study-portfolio.md" = "claude/school/.claude/agents/cs-study-portfolio.md";
+      "school-workspace/.claude/agents" = "claude/school/.claude/agents";
       "school-workspace/.mcp.json" = "claude/school/.mcp.json";
     };
   };
