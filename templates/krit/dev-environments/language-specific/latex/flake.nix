@@ -33,6 +33,7 @@
               texlive.combined.scheme-full
               texlab
               tectonic
+              zathura
             ];
           };
         }

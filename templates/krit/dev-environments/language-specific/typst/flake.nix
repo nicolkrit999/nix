@@ -35,7 +35,10 @@
                 typst
                 typstyle
                 typstwriter
-
+                tinymist
+                prettypst
+                utpm
+                zathura
               ]
               ++ (with typstPackages; [
                 # Typst packages
