@@ -211,7 +211,7 @@ in
   check-school-browser-constant =
     checkStr "school.constants.browser" (spec "school").myconfig.constants.browser "brave-school";
   check-school-editor-constant =
-    checkStr "school.constants.editor" (spec "school").myconfig.constants.editor "vscode-school";
+    checkStr "school.constants.editor" (spec "school").myconfig.constants.editor "nvim";
   check-school-setup-script =
     checkPkgInList "school home.packages" (specHm "school").home.packages "school-distrobox-setup";
   check-school-check-script =

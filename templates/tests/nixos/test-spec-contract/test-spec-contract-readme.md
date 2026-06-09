@@ -72,7 +72,7 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | Check | Expected |
 |-------|----------|
 | `constants.browser` | `"brave-school"` |
-| `constants.editor` | `"vscode-school"` |
+| `constants.editor` | `"nvim"` |
 | `school-distrobox-setup` | in `home.packages` |
 | `school-distrobox-check` | in `home.packages` |
 | `school-distrobox-clear` | in `home.packages` |
