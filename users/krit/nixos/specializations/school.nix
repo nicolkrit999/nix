@@ -132,12 +132,19 @@ delib.module {
       system.nixos.tags = [ "school" ];
 
       # Clear default profile behaviour
-      myconfig.programs.hyprland.execOnce = lib.mkForce [
-        "[workspace 1 silent] brave-school --app=https://www.icorsi.ch/"
-        "[workspace 2 silent] vscode-school"
-        "[workspace 3 silent] ${term} --class yazi -d $HOME/.school-workspace -e yazi"
-        "[workspace 4 silent] ${term} -d $HOME/.school-workspace"
-      ];
+      myconfig.programs.hyprland.execOnce = lib.mkForce (
+        if c.hostname == "nixos-desktop" then [
+          "[workspace 2 silent] ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
+          "[workspace 3 silent] ${term} --class yazi -d $HOME/.school-workspace -e yazi"
+          "[workspace 7 silent] brave-school --app=https://www.icorsi.ch/"
+          "[workspace 8 silent] ${term} -d $HOME/.school-workspace"
+        ] else if c.hostname == "nixos-laptop" then [
+          "[workspace 2 silent] ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
+          "[workspace 3 silent] ${term} --class yazi -d $HOME/.school-workspace -e yazi"
+          "[workspace 4 silent] ${term} -d $HOME/.school-workspace"
+          "[workspace 5 silent] brave-school --app=https://www.icorsi.ch/"
+        ] else [ ]
+      );
       myconfig.programs.hyprland.windowRules = lib.mkForce [ ];
 
       myconfig.programs.niri.execOnce = lib.mkForce [
@@ -156,7 +163,7 @@ delib.module {
 
       # Override host-default constants for school specialization
       myconfig.constants.browser = lib.mkForce "brave-school";
-      myconfig.constants.editor = lib.mkForce "vscode-school";
+      myconfig.constants.editor = lib.mkForce "nvim";
 
       # Self-contained virtualisation: school doesn't depend on the host's virtualisation.nix
       virtualisation.podman.enable = true;
@@ -285,7 +292,7 @@ delib.module {
             icon = "brave";
           })
 
-          (pkgs.writeShellScriptBin "vscode-school" ''exec ${pkgs.vscode}/bin/code --user-data-dir=$HOME/.config/Code-School --extensions-dir=$HOME/.vscode-school/extensions "$@"'')
+          (pkgs.writeShellScriptBin "vscode-school" ''exec ${pkgs.vscode}/bin/code --ozone-platform=wayland --enable-features=WaylandWindowDecorations --user-data-dir=$HOME/.config/Code-School --extensions-dir=$HOME/.vscode-school/extensions "$@"'')
           (pkgs.makeDesktopItem {
             name = "vscode-school";
             desktopName = "VSCode (School)";
