@@ -31,6 +31,7 @@ delib.module {
   home.ifEnabled =
     { cfg
     , myconfig
+    , parent
     , ...
     }:
     let
@@ -45,6 +46,7 @@ delib.module {
 
       gap = myconfig.constants.niri.gap or 8;
       rounding = myconfig.constants.niri.rounding or 10;
+      waypaperActive = parent.waypaper.enable or false;
     in
     {
       home.packages = with pkgs; [
@@ -184,18 +186,25 @@ delib.module {
                 "--all"
               ];
             }
-            # WALLPAPER
-            { command = [ "awww-daemon" ]; }
           ]
-          ++ (map
-            (w:
-              let
-                imgPath = pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
-                targetArgs = if w.targetMonitor == "*" then [ ] else [ "-o" w.targetMonitor ];
-              in
-              { command = [ "awww" "img" ] ++ targetArgs ++ [ "${imgPath}" ]; }
-            )
-            (lib.sort (a: b: a.targetMonitor == "*" && b.targetMonitor != "*") myconfig.constants.wallpapers))
+          # WALLPAPER
+          ++ (if !waypaperActive then
+            [{ command = [ "awww-daemon" ]; }]
+              ++ (map
+              (w:
+                let
+                  imgPath =
+                    if w.gifURL != "" then
+                      pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
+                    else
+                      pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
+                  targetArgs = if w.targetMonitor == "*" then [ ] else [ "-o" w.targetMonitor ];
+                in
+                { command = [ "awww" "img" ] ++ targetArgs ++ [ "${imgPath}" ]; }
+              )
+              (lib.sort (a: b: a.targetMonitor == "*" && b.targetMonitor != "*") myconfig.constants.wallpapers))
+          else
+            [{ command = [ "waypaper" "--restore" ]; }])
           ++ (map
             (cmd: { command = [ "bash" "-c" cmd ]; })
             cfg.execOnce);

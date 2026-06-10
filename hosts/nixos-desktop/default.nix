@@ -83,11 +83,23 @@ delib.host {
         editor = myEditor;
         fileManager = myFileManager;
 
+        # GIF wallpapers (WM only): add gifURL/gifSHA256 to any entry — same raw URL +
+        # sha256 pattern as wallpaperURL. WMs play the GIF via awww; wallpaperURL stays
+        # required as the static fallback for DEs, stylix, and lock screens.
+        # Get sha256 with: nix-prefetch-url --type sha256 <url>
+        # Example:
+        #   { targetMonitor = "DP-1";
+        #     wallpaperURL    = "https://raw.githubusercontent.com/.../fallback.png";
+        #     wallpaperSHA256 = "0000...";
+        #     gifURL          = "https://raw.githubusercontent.com/.../anim.gif";
+        #     gifSHA256       = "0000..."; }
         wallpapers = [
           {
             targetMonitor = "DP-1";
             wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Ros%C3%A9%20Pine/chainsaw_makima.png";
             wallpaperSHA256 = "14syikj4d8j8vaqshp1ya58sia18gmpi278lmhfnhgid8fxa0y4f";
+            gifURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Pixel%20Dream/may_chill.gif";
+            gifSHA256 = "1v3h995fifxcdvrizr5n99h0bmja7khzi89bh33d869psrjc4ssp";
           }
           {
             targetMonitor = "DP-2";
@@ -220,6 +232,7 @@ delib.host {
         tmux.enable = true;
         television.enable = true;
         walker.enable = false;
+        waypaper.enable = false;
         zoxide.enable = true;
         zen.browser.enable = true;
 

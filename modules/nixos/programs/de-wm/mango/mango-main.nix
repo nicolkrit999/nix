@@ -18,6 +18,7 @@ delib.module {
   home.ifEnabled =
     { cfg
     , myconfig
+    , parent
     , ...
     }:
     let
@@ -29,6 +30,7 @@ delib.module {
         "isfloating:1,width:900,height:600,appid:^(xdg-desktop-portal-kde|xdg-desktop-portal-gtk)$"
         "isfloating:1,focused_opacity:0,unfocused_opacity:0,isnoanimation:1,noblur:1,width:1,height:1,isopensilent:1,appid:^(xwaylandvideobridge)$"
       ];
+      waypaperActive = parent.waypaper.enable or false;
     in
     with config.lib.stylix.colors;
     {
@@ -208,18 +210,25 @@ delib.module {
             "xwayland-satellite :1"
             "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
             "dbus-update-activation-environment --systemd --all"
-            "awww-daemon"
           ]
-          ++ (map
-            (w:
-              let
-                imgPath = pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
-                isWildcard = w.targetMonitor == "*";
-                targetArgs = if isWildcard then "" else "-o ${w.targetMonitor} ";
-                sleepSecs = if isWildcard then "1" else "2";
-              in
-              "sh -c 'sleep ${sleepSecs} && awww img ${targetArgs}${imgPath}'")
-            myconfig.constants.wallpapers)
+          ++ (if !waypaperActive then
+            [ "awww-daemon" ]
+              ++ (map
+              (w:
+                let
+                  imgPath =
+                    if w.gifURL != "" then
+                      pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
+                    else
+                      pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
+                  isWildcard = w.targetMonitor == "*";
+                  targetArgs = if isWildcard then "" else "-o ${w.targetMonitor} ";
+                  sleepSecs = if isWildcard then "1" else "2";
+                in
+                "sh -c 'sleep ${sleepSecs} && awww img ${targetArgs}${imgPath}'")
+              myconfig.constants.wallpapers)
+          else
+            [ "waypaper --restore" ])
           ++ cfg.execOnce;
         };
 

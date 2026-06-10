@@ -38,8 +38,12 @@ delib.module {
           (submodule {
             options = {
               targetMonitor = strOption "*"; # Match any unassigned monitors
+              # wallpaperURL must always be a valid static image path — it is consumed by
+              # DEs, stylix, hyprlock, and kscreenlocker even when gifURL is set.
               wallpaperURL = strOption "";
               wallpaperSHA256 = strOption "";
+              gifURL = strOption ""; # if non-empty, WMs use this GIF via awww; must be empty-string when unused
+              gifSHA256 = strOption ""; # sha256 for gifURL; ignored when gifURL = ""
             };
           })
           [

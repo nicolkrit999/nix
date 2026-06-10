@@ -41,20 +41,28 @@ delib.module {
         (parent.noctalia.enable or false)
         && (parent.noctalia.enableOnHyprland or false);
       wallpaperOwnedByShell = caelestiaActiveOnHyprland || noctaliaActiveOnHyprland;
+      waypaperActive = parent.waypaper.enable or false;
 
-      wallpaperCmds = lib.optionals (!wallpaperOwnedByShell) (
-        [ "awww-daemon" ]
-        ++ map
-          (w:
-            let
-              imgPath = pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
-              isWildcard = w.targetMonitor == "*";
-              targetArgs = if isWildcard then "" else "-o ${w.targetMonitor} ";
-              sleepSecs = if isWildcard then "1" else "2";
-            in
-            "sh -c 'sleep ${sleepSecs} && awww img ${targetArgs}${imgPath}'")
-          myconfig.constants.wallpapers
-      );
+      wallpaperCmds = lib.optionals (!wallpaperOwnedByShell && !waypaperActive)
+        (
+          [ "awww-daemon" ]
+            ++ map
+            (w:
+              let
+                imgPath =
+                  if w.gifURL != "" then
+                    pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
+                  else
+                    pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
+                isWildcard = w.targetMonitor == "*";
+                targetArgs = if isWildcard then "" else "-o ${w.targetMonitor} ";
+                sleepSecs = if isWildcard then "1" else "2";
+              in
+              "sh -c 'sleep ${sleepSecs} && awww img ${targetArgs}${imgPath}'")
+            myconfig.constants.wallpapers
+        ) ++ lib.optionals (!wallpaperOwnedByShell && waypaperActive) [
+        "waypaper --restore"
+      ];
 
       execOnceItems = [
         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
