@@ -191,7 +191,6 @@ delib.module {
               ];
             }
           ]
-          # WALLPAPER
           ++ (if wallpaperOwnedByShell then [ ]
           else if !waypaperActive then
             [{ command = [ "awww-daemon" ]; }]

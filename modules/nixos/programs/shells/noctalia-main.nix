@@ -16,7 +16,6 @@ delib.module {
       enableOnMango = boolOption false;
     };
 
-  # Keep always so the cross-shell assertion fires regardless of enable state.
   home.always =
     { cfg
     , parent
