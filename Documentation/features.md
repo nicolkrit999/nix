@@ -40,12 +40,14 @@ A base16 colorscheme is chosen per host. The user can also enable Catppuccin (wh
 
 ---
 
-## Wallpapers
+## Wallpapers (gif included in window managers)
 
-Wallpapers are host-specific and tied to the monitor list. They apply automatically in all desktop environments and windows managers.
+Wallpapers are host-specific and tied to the monitor list. They apply automatically in all desktop environments and windows managers (except cosmic, currently not working).
 
-- First monitor → first wallpaper, second monitor → second wallpaper, etc.
+- First monitor → first wallpaper, second monitor → second wallpaper, etc
 - In KDE Plasma the "primary" monitor takes the first wallpaper — if you change the primary monitor in System Settings, it will get the first wallpaper.
+- Using the optional `waypaper` module it is possible to setup using a gui any wallpaper, including videos and wallpaper engines dynamic wallpapers. If waypaper is disabled then the declarative wallpaper set up is completely disabled for window manager, and the chosen wallpaper in the ui is applied inconditionally to any future and present wm
+- **waypaper limitation:** waypaper 2.7 cannot set different wallpapers per monitor simultaneously, and does not support wallpaper rotation (portrait monitors receive the same image as landscape ones). For per-monitor wallpapers, use the declarative awww path with `waypaper` disabled.
 
 ---
 

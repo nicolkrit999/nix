@@ -83,28 +83,18 @@ delib.host {
         editor = myEditor;
         fileManager = myFileManager;
 
-        # GIF wallpapers (WM only): add gifURL/gifSHA256 to any entry — same raw URL +
-        # sha256 pattern as wallpaperURL. WMs play the GIF via awww; wallpaperURL stays
-        # required as the static fallback for DEs, stylix, and lock screens.
-        # Get sha256 with: nix-prefetch-url --type sha256 <url>
-        # Example:
-        #   { targetMonitor = "DP-1";
-        #     wallpaperURL    = "https://raw.githubusercontent.com/.../fallback.png";
-        #     wallpaperSHA256 = "0000...";
-        #     gifURL          = "https://raw.githubusercontent.com/.../anim.gif";
-        #     gifSHA256       = "0000..."; }
         wallpapers = [
           {
             targetMonitor = "DP-1";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Ros%C3%A9%20Pine/chainsaw_makima.png";
-            wallpaperSHA256 = "14syikj4d8j8vaqshp1ya58sia18gmpi278lmhfnhgid8fxa0y4f";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/anime/Kurumi-Ebisuzawa.png";
+            wallpaperSHA256 = "1rn290hx0vl70w1dvksqrp8n713zyswc0gm98zsh962nw9jrkmrk";
             gifURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Pixel%20Dream/may_chill.gif";
             gifSHA256 = "1v3h995fifxcdvrizr5n99h0bmja7khzi89bh33d869psrjc4ssp";
           }
           {
             targetMonitor = "DP-2";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Ros%C3%A9%20Pine/mountain_sunset.jpg";
-            wallpaperSHA256 = "16hv2crgxv2d2mab5cv4g9z9jxq91dayahsz3xs7zcfq0fhfc8y9";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/brands/gruvbox-nix.png";
+            wallpaperSHA256 = "18j302fdjfixi57qx8vgbg784ambfv9ir23mh11rqw46i43cdqjs";
           }
           {
             targetMonitor = "*";
@@ -115,7 +105,7 @@ delib.host {
 
         theme = {
           polarity = "dark";
-          base16Theme = "rose-pine";
+          base16Theme = "gruvbox-material-dark-hard";
           catppuccin = false;
           catppuccinFlavor = "macchiato";
           catppuccinAccent = "sapphire";
@@ -659,8 +649,8 @@ delib.host {
 
         sddm-astronaut = {
           enable = true;
-          embeddedTheme = "pixel_sakura_static";
-          background = ../../users/krit/src/wallpapers/mountain_dragon_pink.jpg;
+          embeddedTheme = "japanese_aesthetic";
+          background = ../../users/krit/src/wallpapers/gruvbox_spac.jpg;
         };
         sddm-pixie = {
           enable = false;

@@ -101,6 +101,12 @@ delib.module {
                 echo "🔄 Converted Github Blob to Raw"
             end
 
+            # 1b. Handle Gitea Blobs (Convert to Raw)
+            if string match -q "*/src/branch/*" -- "$url"
+                set url (string replace "/src/branch/" "/raw/branch/" "$url")
+                echo "🔄 Converted Gitea Blob to Raw"
+            end
+
             set args
 
             # 2. Handle GitHub Archives (Commits, Releases, Branches)
@@ -133,7 +139,9 @@ delib.module {
             end
 
             # Execute
-            nix-prefetch-url $args "$url"
+            echo "🔗 Raw URL: $url"
+            set sha (nix-prefetch-url $args "$url" 2>/dev/null)
+            echo "🔑 SHA256: $sha"
           '';
         } // lib.optionalAttrs (myconfig.services.snapshots.enable or false) {
           snap-lock = ''

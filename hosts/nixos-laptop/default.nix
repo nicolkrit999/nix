@@ -107,8 +107,10 @@ delib.host {
 
           {
             targetMonitor = "eDP-1";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/b56bc78bf5861f9d39afd2592ad572013dff6146/wallpapers/Pictures/wallpapers/various/various-websites/alphacoders/alphacoder-anime-girl-1.jpg";
-            wallpaperSHA256 = "00wvcb8f6lbdkxlvda81c9ipm2vi5vaf9v9kk81zbg8pr5ykbvx5";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/anime/Kurumi-Ebisuzawa.png";
+            wallpaperSHA256 = "1rn290hx0vl70w1dvksqrp8n713zyswc0gm98zsh962nw9jrkmrk";
+            gifURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Pixel%20Dream/may_chill.gif";
+            gifSHA256 = "1v3h995fifxcdvrizr5n99h0bmja7khzi89bh33d869psrjc4ssp";
           }
           {
             targetMonitor = "*";
@@ -122,7 +124,7 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "catppuccin-macchiato";
+          base16Theme = "gruvbox-material-dark-hard";
           catppuccin = false;
           catppuccinFlavor = "macchiato";
           catppuccinAccent = "sapphire";
@@ -250,6 +252,7 @@ delib.host {
         tmux.enable = true;
         television.enable = true;
         walker.enable = false;
+        waypaper.enable = false;
         zoxide.enable = true;
         zen.browser.enable = true;
 
@@ -620,8 +623,8 @@ delib.host {
 
         sddm-astronaut = {
           enable = true;
-          embeddedTheme = "hyprland_kath";
-          #background = ../../users/krit/src/wallpapers/tron.png;
+          embeddedTheme = "japanese_aesthetic";
+          background = ../../users/krit/src/wallpapers/gruvbox_spac.jpg;
         };
         sddm-pixie = {
           enable = false;

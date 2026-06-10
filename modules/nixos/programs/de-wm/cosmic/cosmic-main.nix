@@ -1,6 +1,4 @@
 { delib
-, pkgs
-, lib
 , ...
 }:
 delib.module {
@@ -8,7 +6,10 @@ delib.module {
 
   home.ifEnabled =
     { myconfig, ... }:
-    let
+
+    #FIXME: wallpaper logic not working
+    /*
+      let
       monitorConfig = lib.concatStringsSep "\n" (
         builtins.map
           (w: ''
@@ -24,7 +25,8 @@ delib.module {
           '')
           myconfig.constants.wallpapers
       );
-    in
+      in
+    */
     {
       # Enable data control for clipboard tools
       home.sessionVariables = {
@@ -32,11 +34,13 @@ delib.module {
         XDG_SCREENSHOTS_DIR = myconfig.constants.screenshots;
       };
 
+      /*
       xdg.configFile."cosmic/com.system76.CosmicBackground/v1/all".text = ''
         ${monitorConfig}
 
         [workspace]
         source = "Output"
       '';
+      */
     };
 }

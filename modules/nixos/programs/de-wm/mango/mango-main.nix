@@ -31,6 +31,10 @@ delib.module {
         "isfloating:1,focused_opacity:0,unfocused_opacity:0,isnoanimation:1,noblur:1,width:1,height:1,isopensilent:1,appid:^(xwaylandvideobridge)$"
       ];
       waypaperActive = parent.waypaper.enable or false;
+      noctaliaActiveOnMango =
+        (parent.noctalia.enable or false)
+        && (parent.noctalia.enableOnMango or false);
+      wallpaperOwnedByShell = noctaliaActiveOnMango;
     in
     with config.lib.stylix.colors;
     {
@@ -211,7 +215,8 @@ delib.module {
             "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
             "dbus-update-activation-environment --systemd --all"
           ]
-          ++ (if !waypaperActive then
+          ++ (if wallpaperOwnedByShell then [ ]
+          else if !waypaperActive then
             [ "awww-daemon" ]
               ++ (map
               (w:

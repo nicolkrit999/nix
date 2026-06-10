@@ -47,6 +47,10 @@ delib.module {
       gap = myconfig.constants.niri.gap or 8;
       rounding = myconfig.constants.niri.rounding or 10;
       waypaperActive = parent.waypaper.enable or false;
+      noctaliaActiveOnNiri =
+        (parent.noctalia.enable or false)
+        && (parent.noctalia.enableOnNiri or false);
+      wallpaperOwnedByShell = noctaliaActiveOnNiri;
     in
     {
       home.packages = with pkgs; [
@@ -188,7 +192,8 @@ delib.module {
             }
           ]
           # WALLPAPER
-          ++ (if !waypaperActive then
+          ++ (if wallpaperOwnedByShell then [ ]
+          else if !waypaperActive then
             [{ command = [ "awww-daemon" ]; }]
               ++ (map
               (w:
