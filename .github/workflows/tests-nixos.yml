@@ -96,6 +96,11 @@ jobs:
         continue-on-error: true
         run: bash templates/tests/nixos/test-arch-compat/check-nixos-aarch64-compat.sh
 
+      - name: "Test: wallpapers"
+        id: wallpapers
+        continue-on-error: true
+        run: nix run github:danielefongo/nix-tests -- templates/tests/nixos/test-nixos-wallpapers
+
       - name: Summary and notify on failure
         if: always()
         env:
@@ -108,15 +113,17 @@ jobs:
           CONFLICT_OUTCOME: ${{ steps.conflicting-modules.outcome }}
           SHELLS_OUTCOME: ${{ steps.custom-shells.outcome }}
           ARCH_OUTCOME: ${{ steps.arch-compat.outcome }}
+          WALLPAPERS_OUTCOME: ${{ steps.wallpapers.outcome }}
         run: |
 
           FAILED=()
 
-          [[ "$MINIMAL_OUTCOME" != "success" ]] && FAILED+=("✗  minimal-defaults")
-          [[ "$SPEC_OUTCOME"    != "success" ]] && FAILED+=("✗  spec-contract")
-          [[ "$CONFLICT_OUTCOME" != "success" ]] && FAILED+=("✗  conflicting-modules")
-          [[ "$SHELLS_OUTCOME"  != "success" ]] && FAILED+=("✗  custom-shells")
-          [[ "$ARCH_OUTCOME"    != "success" ]] && FAILED+=("✗  arch-compat (aarch64)")
+          [[ "$MINIMAL_OUTCOME"    != "success" ]] && FAILED+=("✗  minimal-defaults")
+          [[ "$SPEC_OUTCOME"       != "success" ]] && FAILED+=("✗  spec-contract")
+          [[ "$CONFLICT_OUTCOME"   != "success" ]] && FAILED+=("✗  conflicting-modules")
+          [[ "$SHELLS_OUTCOME"     != "success" ]] && FAILED+=("✗  custom-shells")
+          [[ "$ARCH_OUTCOME"       != "success" ]] && FAILED+=("✗  arch-compat (aarch64)")
+          [[ "$WALLPAPERS_OUTCOME" != "success" ]] && FAILED+=("✗  wallpapers")
 
           if [[ ${#FAILED[@]} -eq 0 ]]; then
             echo "All NixOS tests passed."

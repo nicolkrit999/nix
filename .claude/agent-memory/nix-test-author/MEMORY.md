@@ -1,0 +1,1 @@
+- [Wallpaper test eval-scenario pattern](feedback_wallpaper_test_eval_scenario.md) — gnome/kde home.ifEnabled calls pkgs.fetchurl at eval time; safe in pure eval (FOD path computed without fetching); include gnome-main, kde-main, waypaper module in nixosPaths for wallpaper tests

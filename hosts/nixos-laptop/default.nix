@@ -623,8 +623,8 @@ delib.host {
 
         sddm-astronaut = {
           enable = true;
-          embeddedTheme = "japanese_aesthetic";
-          background = ../../users/krit/src/wallpapers/gruvbox_spac.jpg;
+          embeddedTheme = "jake_the_dog";
+          background = ../../users/krit/src/wallpapers/may_chill.gif;
         };
         sddm-pixie = {
           enable = false;

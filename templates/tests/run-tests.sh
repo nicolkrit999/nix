@@ -34,6 +34,7 @@ TESTS=(
   "NixOS  · conflicting-modules   | nix run github:danielefongo/nix-tests -- templates/tests/nixos/conflicting-modules"
   "NixOS  · custom-shells         | nix run github:danielefongo/nix-tests -- templates/tests/nixos/test-custom-shells"
   "NixOS  · arch-compat (aarch64) | bash templates/tests/nixos/test-arch-compat/check-nixos-aarch64-compat.sh${FAST:+ $FAST}"
+  "NixOS  · wallpapers            | nix run github:danielefongo/nix-tests -- templates/tests/nixos/test-nixos-wallpapers"
   "Darwin · minimal-defaults      | bash templates/tests/darwin/test-minimal-defaults/check-darwin-minimal-defaults.sh"
 )
 # ══════════════════════════════════════════════════════════════════════════════
