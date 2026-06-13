@@ -670,6 +670,7 @@ delib.host {
         librewolf.enable = false;
         neovim.enable = true;
         pwas.enable = true;
+        proton-cli.enable = true;
         ranger.enable = false;
         yazi.enable = true;
         zathura.enable = true;

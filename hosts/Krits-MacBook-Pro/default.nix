@@ -105,6 +105,7 @@ delib.host {
         librewolf.enable = false;
         chromium.enable = false;
         yazi.enable = true;
+        proton-cli.enable = true;
         ranger.enable = false;
         claude-code-wrappers.enable = true;
         alacritty.enable = false;
