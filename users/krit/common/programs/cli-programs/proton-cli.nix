@@ -40,10 +40,8 @@ delib.module {
 
           nativeBuildInputs =
             if pkgs.stdenv.isLinux
-            then [ pkgs.autoPatchelfHook pkgs.makeWrapper ]
+            then [ pkgs.patchelf pkgs.makeWrapper ]
             else [ pkgs.makeWrapper ];
-
-          buildInputs = lib.optionals pkgs.stdenv.isLinux runtimeLibs;
 
           installPhase = ''
             runHook preInstall
@@ -51,6 +49,10 @@ delib.module {
             install -m755 -D $src $out/bin/proton-drive
 
             ${lib.optionalString pkgs.stdenv.isLinux ''
+              patchelf \
+                --set-interpreter "${pkgs.stdenv.cc.bintools.dynamicLinker}" \
+                $out/bin/proton-drive
+
               wrapProgram $out/bin/proton-drive \
                 --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath runtimeLibs}"
             ''}
