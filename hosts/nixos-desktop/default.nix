@@ -543,7 +543,7 @@ delib.host {
 
         waybar-mango = {
           # Disabled: noctalia is active on mango here and provides its own
-          # bar — waybar-mango + active shell on the same WM is a hard conflict.
+          # bar - waybar-mango + active shell on the same WM is a hard conflict.
           enable = true;
           waybarLayout = {
             "format-en" = "🇺🇸-EN";
@@ -700,6 +700,7 @@ delib.host {
         librewolf.enable = true;
         neovim.enable = true;
         pwas.enable = true;
+        proton-cli.enable = true;
         ranger.enable = false;
         yazi.enable = true;
         zathura.enable = true;
