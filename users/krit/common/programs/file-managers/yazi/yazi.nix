@@ -68,12 +68,25 @@ delib.module {
           };
 
           # nix-prefetch-url --unpack "https://github.com/dedukun/relative-motions.yazi/archive/a603d9ea924dfc0610bcf9d3129e7cba605d4501.tar.gz"
-          relative-motions = lib.mkForce (pkgs.fetchFromGitHub {
-            owner = "dedukun";
-            repo = "relative-motions.yazi";
-            rev = "a603d9ea924dfc0610bcf9d3129e7cba605d4501";
-            sha256 = "1kk8my0apb4ahp60krqalccp63crggh8jkvi0zdhsf26bkyv2bpn";
-          });
+          # Upstream is unmaintained (HEAD == this pinned rev) and still calls the
+          # deprecated `ya.mgr_emit()` (removed-soon since yazi v25.5.28, see yazi PR #2653).
+          # `ya.emit()` is a drop-in rename with the same signature, so we patch it in
+          # place - a global rename reproduces the fixed community forks byte-for-byte.
+          relative-motions = lib.mkForce (
+            let
+              src = pkgs.fetchFromGitHub {
+                owner = "dedukun";
+                repo = "relative-motions.yazi";
+                rev = "a603d9ea924dfc0610bcf9d3129e7cba605d4501";
+                sha256 = "1kk8my0apb4ahp60krqalccp63crggh8jkvi0zdhsf26bkyv2bpn";
+              };
+            in
+            pkgs.runCommandLocal "relative-motions.yazi-patched" { } ''
+              cp -r ${src} $out
+              chmod -R u+w $out
+              substituteInPlace $out/main.lua --replace-quiet 'ya.mgr_emit' 'ya.emit'
+            ''
+          );
 
           # nix-prefetch-url --unpack "https://github.com/AnirudhG07/rich-preview.yazi/archive/7d616ad88498747b46124f32a35847324862cd83.tar.gz"
           rich-preview = pkgs.fetchFromGitHub {
