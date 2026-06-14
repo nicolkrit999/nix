@@ -35,7 +35,7 @@ delib.module {
 
       noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-      # Three-way active check — pick the shell built-in launcher when noctalia
+      # Three-way active check - pick the shell built-in launcher when noctalia
       # is actually running on mango. SUPER+A stays walker unconditionally.
       noctaliaActiveOnMango =
         (parent.noctalia.enable or false)
@@ -50,7 +50,7 @@ delib.module {
         else
           "SUPER+SHIFT,A,spawn,true";
 
-      # Direct dispatch — `loginctl lock-session` relies on hypridle catching
+      # Direct dispatch - `loginctl lock-session` relies on hypridle catching
       # logind's Lock signal and routing through universalLock. That chain
       # silently falls back to hyprlock if noctalia isn't pgrep-matched or the
       # signal isn't received. Skip the chain when noctalia is active here.
@@ -64,7 +64,7 @@ delib.module {
       # by listening to PipeWire / brightness DBus signals, so we must NOT
       # route through swayosd-client (that would pop the swayosd OSD instead
       # and noctalia would never see the event). Use wpctl/brightnessctl
-      # directly — noctalia picks up the signal and renders its OSD.
+      # directly - noctalia picks up the signal and renders its OSD.
       mediaBinds =
         if noctaliaActiveOnMango then [
           "SUPER,BracketRight,spawn,brightnessctl set 5%+"
@@ -183,7 +183,9 @@ delib.module {
         "SUPER+CTRL,H,focusmon,left"
         "SUPER+CTRL,L,focusmon,right"
         "SUPER+ALT,Left,tagmon,left"
+        "SUPER+ALT,H,tagmon,left"
         "SUPER+ALT,Right,tagmon,right"
+        "SUPER+ALT,L,tagmon,right"
 
         "SUPER,equal,incgaps,1"
         "SUPER,minus,incgaps,-1"

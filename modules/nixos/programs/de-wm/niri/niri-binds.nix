@@ -54,7 +54,7 @@ delib.module {
         else
           [ "true" ];
 
-      # Direct dispatch — bypasses the universalLock chain (loginctl → hypridle
+      # Direct dispatch - bypasses the universalLock chain (loginctl → hypridle
       # → universalLock → pgrep noctalia → hyprlock fallback) which silently
       # falls through to hyprlock when noctalia isn't pgrep-matched.
       shellLockCommand =
@@ -170,6 +170,18 @@ delib.module {
         "Mod+Shift+7".action.move-window-to-workspace = 7;
         "Mod+Shift+8".action.move-window-to-workspace = 8;
         "Mod+Shift+9".action.move-window-to-workspace = 9;
+
+        # -----------------------------------------------------------------------
+        # 🖥️ MONITORS
+        # -----------------------------------------------------------------------
+        "Mod+Ctrl+Right".action.focus-monitor-right = [ ];
+        "Mod+Ctrl+L".action.focus-monitor-right = [ ];
+        "Mod+Ctrl+Left".action.focus-monitor-left = [ ];
+        "Mod+Ctrl+H".action.focus-monitor-left = [ ];
+        "Mod+Alt+Right".action.move-window-to-monitor-right = [ ];
+        "Mod+Alt+L".action.move-window-to-monitor-right = [ ];
+        "Mod+Alt+Left".action.move-window-to-monitor-left = [ ];
+        "Mod+Alt+H".action.move-window-to-monitor-left = [ ];
 
         # -----------------------------------------------------------------------
         # 🔔 NOTIFICATIONS

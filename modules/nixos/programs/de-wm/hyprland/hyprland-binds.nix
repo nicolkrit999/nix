@@ -60,6 +60,8 @@ delib.module {
       moveToWs = ws: "hl.dsp.window.move({ workspace = \"${ws}\" })";
       moveToWsSilent = ws: "hl.dsp.window.move({ workspace = \"${ws}\", follow = false })";
       resizeBy = x: y: "hl.dsp.window.resize({ x = ${toString x}, y = ${toString y}, relative = true })";
+      focusMonitor = m: "hl.dsp.focus({ monitor = ${luaQ m} })";
+      moveToMonitor = m: exec "hyprctl dispatch movewindow mon:${m}";
 
       bindelList =
         if shellActiveOnHyprland then [
@@ -105,6 +107,7 @@ delib.module {
       wsKey = n: if n == 0 then "10" else toString n;
       wsBind = n: mkBind { mods = mod; key = toString n; dispatcher = focusWs (wsKey n); };
       wsMoveBind = n: mkBind { mods = "${mod}+SHIFT"; key = toString n; dispatcher = moveToWsSilent (wsKey n); };
+      wsFollowBind = n: mkBind { mods = "${mod}+ALT"; key = toString n; dispatcher = moveToWs (wsKey n); };
     in
     {
       wayland.windowManager.hyprland.settings = {
@@ -164,9 +167,15 @@ delib.module {
 
           (mkBind { mods = mod; key = "S"; dispatcher = ''hl.dsp.workspace.toggle_special("magic")''; })
           (mkBind { mods = "${mod}+SHIFT"; key = "S"; dispatcher = moveToWs "special:magic"; })
+
+          (mkBind { mods = "${mod}+CTRL"; key = "H"; dispatcher = focusMonitor "-1"; })
+          (mkBind { mods = "${mod}+CTRL"; key = "L"; dispatcher = focusMonitor "+1"; })
+          (mkBind { mods = "${mod}+ALT"; key = "H"; dispatcher = moveToMonitor "-1"; })
+          (mkBind { mods = "${mod}+ALT"; key = "L"; dispatcher = moveToMonitor "+1"; })
         ]
         ++ (map wsBind [ 1 2 3 4 5 6 7 8 9 0 ])
         ++ (map wsMoveBind [ 1 2 3 4 5 6 7 8 9 0 ])
+        ++ (map wsFollowBind [ 1 2 3 4 5 6 7 8 9 0 ])
         ++ [
           (mkBind { mods = mod; key = "mouse:272"; dispatcher = "hl.dsp.window.drag()"; flags = { mouse = true; }; })
           (mkBind { mods = mod; key = "mouse:273"; dispatcher = "hl.dsp.window.resize()"; flags = { mouse = true; }; })
