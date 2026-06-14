@@ -200,6 +200,7 @@ delib.host {
         eza.enable = true;
         fzf.enable = true;
         fzf.nix-search-tv.enable = true;
+        gnome-keyring.enable = true;
         google-antigravity.enable = true;
         lazygit.enable = true;
         nix-alien.enable = true;

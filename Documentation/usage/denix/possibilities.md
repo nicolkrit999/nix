@@ -54,7 +54,7 @@ These modules work on both NixOS and Darwin hosts.
 * **`programs.claude-code`**: Sets up the Claude Code CLI tool with optional MCP secrets provisioning via sops-nix and required environment configuration.
 * **`programs.comma`**: Enables the `comma` (`,`) tool from nix-index-database, allowing any Nix package to be run ad-hoc without installing it (` , command`).
 * **`programs.doom`**: Installs Doom Emacs via `nix-doom-emacs-unstraightened` with a bundled stock `doomdir` (upstream `init.example.el` / `config.example.el` / `packages.example.el` verbatim, so the install matches what a fresh `doom install` would produce). Uses `emacs-pgtk` on Linux (native Wayland, falls back to X11) and `pkgs.emacs` (NS/Cocoa) on Darwin. Sets `provideEmacs = true` so the `emacs` binary IS Doom, ships all tree-sitter grammars (`treesit-grammars.with-all-grammars`), and enables `experimentalFetchTree` to avoid "Cannot find Git revision" errors on Nix 2.19+. Doom state lives in `~/.local/share/nix-doom`.
-  * **Warning:** Because `provideEmacs = true`, this module's `emacs` binary IS Doom Emacs. Installing vanilla Emacs in parallel (via `environment.systemPackages`, `home.packages`, or another module) will collide on the `emacs` / `emacsclient` binaries — one install will shadow the other depending on PATH order.
+  * **Warning:** Because `provideEmacs = true`, this module's `emacs` binary IS Doom Emacs. Installing vanilla Emacs in parallel (via `environment.systemPackages`, `home.packages`, or another module) will collide on the `emacs` / `emacsclient` binaries - one install will shadow the other depending on PATH order.
 
 * **`programs.eza`**: A modern, colorful replacement for the standard `ls` command, featuring icons and Git status awareness.
 * **`programs.fish`**: Configures the Fish shell with alias/abbreviation setup and environment initialization.
@@ -94,7 +94,7 @@ These modules are only available on NixOS hosts.
 
 These modules are always active on NixOS hosts and handle platform integration. They are not toggled by the user.
 
-* **`common-configuration`**: Core NixOS system baseline — sets hostname, locale/keyboard, fonts, essential system packages (git, curl, sops, polkit-gnome, etc.), security wrappers for GPU screen recorder, GNOME Keyring/PAM integration, and boot tweaks. Always enabled.
+* **`common-configuration`**: Core NixOS system baseline - sets hostname, locale/keyboard, fonts, essential system packages (git, curl, sops, polkit-gnome, etc.), security wrappers for GPU screen recorder, GNOME Keyring/PAM integration, and boot tweaks. Always enabled.
 * **`home-manager`** (common): Configures home-manager's extra special args (`myconfig`, shared inputs) and shared modules (plasma-manager) so all home-manager modules in the repo receive them automatically. Always enabled on NixOS.
 * **`home-packages`**: Installs the host's chosen browser, terminal, editor, and file manager as system packages based on `constants`, plus shared GUI utilities (cliphist, gwenview). Falls back gracefully if a program module already provides the package.
   * **Warning:** Disabling this means the system does not automatically install the chosen browser, editor, file manager, and terminal based on the host preferences.
@@ -129,7 +129,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
   * **Warning:** Enabled to have at least one WM.
 
 * **`programs.kde`**: The KDE Plasma desktop environment. Includes optional app pinning, keyboard shortcuts, panel layout, krunner config, screen locker, and input settings.
-* **`programs.mango`**: MangoWM — a dwm-inspired practical Wayland compositor. Configured with scrollable-tiling and master-stack layouts, full stylix color integration, per-monitor rules, xwayland-satellite for X11 app support, and swww wallpaper management. Includes optional keybinds and exec-once entries.
+* **`programs.mango`**: MangoWM - a dwm-inspired practical Wayland compositor. Configured with scrollable-tiling and master-stack layouts, full stylix color integration, per-monitor rules, xwayland-satellite for X11 app support, and swww wallpaper management. Includes optional keybinds and exec-once entries.
 * **`programs.niri`**: A scrollable-tiling Wayland compositor with optional exec-on-start and keybind configurations.
 
 #### Custom Shells
@@ -142,6 +142,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`programs.cava`**: Configures cava, a terminal audio spectrum visualizer, with stylix color integration.
 * **`programs.claude-desktop`**: Installs the Claude Desktop GUI application via the claude-desktop flake input (FHS-wrapped for NixOS compatibility).
 * **`programs.concord`**: Installs the Concord Discord TUI client, built from source with the `voice-playback` feature enabled.
+* **`programs.gnome-keyring`**: Starts the GNOME Keyring secret-service component (`org.freedesktop.secrets`) at graphical-session start via a home-manager systemd user service, so Electron/`safeStorage` apps (e.g. Claude Desktop) can store credentials under Wayland/UWSM. Complements the always-on PAM keyring unlock in `common-configuration`.
 * **`programs.google-antigravity`**: Installs Google Antigravity, Google's agentic development platform/IDE designed for AI-assisted software development. Installed via the `antigravity-nix` flake (no-FHS NixOS-compatible variant) with the system Chrome profile, alongside `google-chrome`.
 * **`programs.nix-alien`**: Enables nix-alien for running unpatched Linux binaries in Nix via automatic FHS environment generation.
 * **`programs.nix-ld`**: Enables Nix's dynamic linker (`nix-ld`) so pre-compiled binaries can run without manual patching.
@@ -149,9 +150,9 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`programs.swayosd`**: An on-screen display server for volume, brightness, and other indicators on Wayland. Auto-activates only when the active WM (Hyprland, Niri, or Mango) has no shell (caelestia/noctalia) providing its own OSD. Installs the udev rules system-wide.
 * **`programs.tgt`**: Installs tgt, a Telegram TUI client, built from source against nixpkgs-unstable's tdlib to satisfy the required minimum version.
 * **`programs.vicinae`**: A Wayland application launcher with Raycast-style extensions, stylix theming, browser/file-search providers, and configurable extra extensions and packages. Runs as a systemd user service with layer-shell overlay mode.
-* **`programs.waypaper`**: A GUI wallpaper picker for Wayland window managers. When enabled, it completely replaces the declarative awww-based wallpaper commands in all WMs (Hyprland, Mango, Niri) — WMs run `waypaper --restore` at startup instead. Supports multiple backends: swaybg (static images), mpvpaper (video/GIF), and linux-wallpaperengine (Steam Workshop wallpapers — **x86_64 only**). The wallpaper selection is stored in `~/.config/waypaper/config.ini` as mutable user state; DEs, stylix, and lock screens continue to use the declarative static wallpapers from `constants.wallpapers` regardless of this setting.
-  * **Limitation — no per-monitor wallpapers:** waypaper 2.7 applies one wallpaper to either all monitors or a single selected monitor; it cannot set different wallpapers on different monitors simultaneously. Use the declarative awww path (`waypaper` disabled) if you need per-monitor wallpapers.
-  * **Limitation — no wallpaper rotation:** waypaper does not support rotating the wallpaper orientation (e.g. portrait vs landscape) to match monitor orientation. Portrait monitors will receive the same image as landscape ones without any automatic rotation.
+* **`programs.waypaper`**: A GUI wallpaper picker for Wayland window managers. When enabled, it completely replaces the declarative awww-based wallpaper commands in all WMs (Hyprland, Mango, Niri) - WMs run `waypaper --restore` at startup instead. Supports multiple backends: swaybg (static images), mpvpaper (video/GIF), and linux-wallpaperengine (Steam Workshop wallpapers - **x86_64 only**). The wallpaper selection is stored in `~/.config/waypaper/config.ini` as mutable user state; DEs, stylix, and lock screens continue to use the declarative static wallpapers from `constants.wallpapers` regardless of this setting.
+  * **Limitation - no per-monitor wallpapers:** waypaper 2.7 applies one wallpaper to either all monitors or a single selected monitor; it cannot set different wallpapers on different monitors simultaneously. Use the declarative awww path (`waypaper` disabled) if you need per-monitor wallpapers.
+  * **Limitation - no wallpaper rotation:** waypaper does not support rotating the wallpaper orientation (e.g. portrait vs landscape) to match monitor orientation. Portrait monitors will receive the same image as landscape ones without any automatic rotation.
 * **`programs.walker`**: Installs the Walker application launcher with optional Hyprland and Waybar integration.
   * **Warning:** Disabling this means missing an app launcher in Hyprland/niri.
 
@@ -175,7 +176,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 
 * **`services.snapshots`**: A BTRFS snapshot retention automation system using Snapper to back up the filesystem on a configurable timeline (hourly, daily, weekly, monthly, yearly).
 * **`services.swaync`**: A notification daemon and control center for Wayland compositors, with optional per-app notification muting rules.
-* **`services.thermald`**: The Intel thermal daemon. Prevents CPU overheating by dynamically adjusting power limits before the kernel's thermal shutdown triggers. Independent of auto-cpufreq and tlp — can be enabled alongside either. ⚠️ Intel CPUs only; keep disabled on AMD hosts.
+* **`services.thermald`**: The Intel thermal daemon. Prevents CPU overheating by dynamically adjusting power limits before the kernel's thermal shutdown triggers. Independent of auto-cpufreq and tlp - can be enabled alongside either. ⚠️ Intel CPUs only; keep disabled on AMD hosts.
 * **`services.tlp`**: An advanced power management tool that optimizes battery life by configuring processor energy-performance policies, frequency scaling, and optional charging thresholds based on power source. Mutually exclusive with auto-cpufreq.
 
 #### Specializations (`specializations.`)
@@ -193,8 +194,8 @@ Specializations are bootloader entries that apply an alternative NixOS configura
 
 These modules are active on Darwin (macOS/nix-darwin) hosts. Most are always-on infrastructure modules that handle platform integration and are not toggled by the user.
 
-* **`common-configuration` (darwin)**: Core Darwin system defaults — sets hostname, enables Touch ID for sudo, configures macOS system preferences, and links system packages.
+* **`common-configuration` (darwin)**: Core Darwin system defaults - sets hostname, enables Touch ID for sudo, configures macOS system preferences, and links system packages.
 * **`home-packages` (darwin)**: Installs the host's chosen browser, terminal, editor, and file manager via home-manager packages on macOS, with a translation layer to map Nix-native names to Homebrew/macOS equivalents.
 * **`nix` (darwin)**: Configures the Nix daemon settings (garbage collection, flakes, trusted users, substituters) for nix-darwin.
-* **`stylix` (darwin)**: Darwin-specific Stylix theming engine — applies the base16 palette and fonts across supported macOS/home-manager applications.
+* **`stylix` (darwin)**: Darwin-specific Stylix theming engine - applies the base16 palette and fonts across supported macOS/home-manager applications.
 * **`user` (darwin)**: Declares the primary user account for nix-darwin (uid, home directory, shell).

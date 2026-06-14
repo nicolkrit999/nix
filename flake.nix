@@ -112,19 +112,16 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    # Pinned 25.11 nixpkgs for inputs that haven't migrated past `nodePackages` removal yet
-    # (e.g. k3d3/claude-desktop-linux-flake uses `nodePackages.asar`). Drop once upstream updates.
-    nixpkgs-2511.url = "github:nixos/nixpkgs/nixos-25.11";
     nix-flatpak.url = "github:gmodena/nix-flatpak";
     impermanence.url = "github:nix-community/impermanence";
     nix-alien.url = "github:thiagokokada/nix-alien";
     nix-topology.url = "github:oddlama/nix-topology";
     claude-code.url = "github:sadjow/claude-code-nix";
     claude-desktop = {
-      url = "github:k3d3/claude-desktop-linux-flake";
-      # Pinned to nixpkgs-2511: upstream uses `nodePackages.asar` which was removed in 26.05 (2026-03-03).
-      # Revisit once upstream switches to top-level `asar`.
-      inputs.nixpkgs.follows = "nixpkgs-2511";
+      # Pinned to last commit before 1.12603.1 (issue #718: --add-dir patch matches 2x in that version).
+      # Drop pin once upstream fixes the regex for 1.12603.1+.
+      url = "github:aaddrick/claude-desktop-debian/4a6a540bf180f756c81f442d3226ef17f8670581";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     claude-cowork-service.url = "github:patrickjaja/claude-cowork-service";
 
