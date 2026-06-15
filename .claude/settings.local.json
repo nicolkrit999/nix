@@ -32,8 +32,8 @@
       "mcp__nixos__nix"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "nixos"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }
