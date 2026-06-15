@@ -51,6 +51,7 @@ delib.module {
           jellyfin-tui # Jellyfin music streaming client for the terminal
           grex # Command-line tool for generating regular expressions
           nchat # terminal-based chat client with support for telegram and whatsapp
+          ratty # GPU-rendered terminal emulator with inline 3D graphics
           tealdeer # Fast implementation of tldr (simplified man pages)
 
           # -----------------------------------------------------------------------------------
