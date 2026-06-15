@@ -67,8 +67,19 @@ delib.host {
     boot.initrd.kernelModules = [ "amdgpu" ];
     hardware.graphics.enable = true;
 
-    # DP-3 is the in-case sensor panel (Windows-only use). So disabled here as it's not used
-    boot.kernelParams = [ "video=DP-3:d" ];
+    # DP-3 is connected to a JetKVM device. At boot the KVM presents no EDID, which
+    # causes amdgpu to log "No EDID found on connector: DP-3" and cascade into DCN
+    # failures that kill all display output. Injecting a firmware EDID prevents this.
+    #
+    # amdgpu is loaded inside the initrd (boot.initrd.kernelModules above), so the
+    # firmware blob must also be present inside the initrd image - hardware.firmware
+    # only populates /run/current-system on the root FS, which is mounted too late.
+    # boot.initrd.extraFiles plants the file at lib/firmware/edid/1920x1080.bin
+    # inside the initramfs so the kernel firmware loader can find it during initrd.
+    boot.kernelParams = [ "drm.edid_firmware=DP-3:edid/1920x1080.bin" ];
+    hardware.firmware = [ pkgs.edid-generator ];
+    boot.initrd.extraFiles."lib/firmware/edid/1920x1080.bin".source =
+      "${pkgs.edid-generator}/lib/firmware/edid/1920x1080.bin";
 
 
     # Desktop-specific packages

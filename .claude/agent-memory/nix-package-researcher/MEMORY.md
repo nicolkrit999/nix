@@ -1,0 +1,1 @@
+- [JetKVM EDID firmware solution](project_jetkvm_edid_firmware_solution.md) - CONFIG_DRM_LOAD_EDID_FIRMWARE enabled; use edid-generator + boot.kernelParams

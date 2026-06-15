@@ -38,10 +38,10 @@ delib.module {
       # Styling helper functions
       c = config.lib.stylix.colors.withHashtag;
       colors = {
-        active = c.base0D; # Accent blue — same as Hyprland active border
-        inactive = c.base03; # Muted mid-tone — clearly distinguishable from active
-        urgent = c.base08; # Red — universally signals urgency
-        shadow = c.base00; # Darkest shade — neutral shadow base
+        active = c.base0D; # Accent blue - same as Hyprland active border
+        inactive = c.base03; # Muted mid-tone - clearly distinguishable from active
+        urgent = c.base08; # Red - universally signals urgency
+        shadow = c.base00; # Darkest shade - neutral shadow base
       };
 
       gap = myconfig.constants.niri.gap or 8;
@@ -104,8 +104,8 @@ delib.module {
               enable = true;
               width = 2;
               active.color = colors.active; # base0D: accent blue, clearly signals focus
-              inactive.color = colors.inactive; # base03: muted — readable but non-distracting
-              urgent.color = colors.urgent; # base08: red — universally signals urgency
+              inactive.color = colors.inactive; # base03: muted - readable but non-distracting
+              urgent.color = colors.urgent; # base08: red - universally signals urgency
             };
             border.enable = false;
 
@@ -202,9 +202,11 @@ delib.module {
                       pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
                     else
                       pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
-                  targetArgs = if w.targetMonitor == "*" then [ ] else [ "-o" w.targetMonitor ];
+                  isWildcard = w.targetMonitor == "*";
+                  targetStr = if isWildcard then "" else "-o ${w.targetMonitor} ";
+                  sleepSecs = if isWildcard then "1" else "2";
                 in
-                { command = [ "awww" "img" ] ++ targetArgs ++ [ "${imgPath}" ]; }
+                { command = [ "sh" "-c" "sleep ${sleepSecs} && awww img ${targetStr}${imgPath}" ]; }
               )
               (lib.sort (a: b: a.targetMonitor == "*" && b.targetMonitor != "*") myconfig.constants.wallpapers))
           else
