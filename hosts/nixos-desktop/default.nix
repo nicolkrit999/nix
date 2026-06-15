@@ -214,7 +214,16 @@ delib.host {
           ];
         };
         nix-ld.enable = true;
-        npm.enable = true;
+        npm = {
+          enable = true;
+          packages = [
+            "claudefm" # terminal music player
+          ];
+          hostPackages = with pkgs; [
+            yt-dlp # claudefm: stream source
+            mpv # claudefm: playback
+          ];
+        };
         shell-aliases.enable = true;
         starship.enable = true;
         statix.enable = true;
