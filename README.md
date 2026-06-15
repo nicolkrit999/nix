@@ -1,8 +1,6 @@
 # ❄️ Personal NixOS Config
 
-> ⚠️ Screenshots may be outdated. Documentation is updated incrementally.
-
-![hyprland-showcase](./Documentation/showcase-screenshots/hyprland-showcase.png)
+![hyprland-showcase](./Documentation/showcase-screenshots/hyprland-screenrecord.gif)
 
 ---
 
@@ -23,7 +21,7 @@
 - SOPS-nix secret management
 - Impermanence (root wiped on reboot, `/persist` for state)
 - Cachix binary cache support
-- Multi-architecture: `x86_64-linux`, `aarch64-linux`, `aarch64-darwin` ⚠️ best-effort — no physical aarch64-linux or aarch64-darwin hardware available for testing
+- Multi-architecture: `x86_64-linux`, `aarch64-linux`, `aarch64-darwin` ⚠️ best-effort - no physical aarch64-linux or aarch64-darwin hardware available for testing
 
 ---
 
@@ -46,12 +44,12 @@
 
 | Method | Guide |
 |--------|-------|
-| **Disko** (automated partitioning — recommended for fresh installs) | [Installation with disko](./Documentation/installation/disko.md) |
-| &nbsp;&nbsp;↳ Option A: No encryption | [disko.md — Option A](./Documentation/installation/disko.md#option-a-standard-no-encryption) |
-| &nbsp;&nbsp;↳ Option B: LUKS + TPM 2.0 | [disko.md — Option B](./Documentation/installation/disko.md#option-b-secure-luks--tpm-20) |
+| **Disko** (automated partitioning - recommended for fresh installs) | [Installation with disko](./Documentation/installation/disko.md) |
+| &nbsp;&nbsp;↳ Option A: No encryption | [disko.md - Option A](./Documentation/installation/disko.md#option-a-standard-no-encryption) |
+| &nbsp;&nbsp;↳ Option B: LUKS + TPM 2.0 | [disko.md - Option B](./Documentation/installation/disko.md#option-b-secure-luks--tpm-20) |
 | **Manual** (dual boot or custom partitioning) | [Manual installation](./Documentation/installation/manual.md) |
-| &nbsp;&nbsp;↳ Option A: No encryption | [manual.md — Option A](./Documentation/installation/manual.md#option-a-btrfs-no-encryption) |
-| &nbsp;&nbsp;↳ Option B: LUKS + encryption | [manual.md — Option B](./Documentation/installation/manual.md#option-b-btrfs--luks-encryption) |
+| &nbsp;&nbsp;↳ Option A: No encryption | [manual.md - Option A](./Documentation/installation/manual.md#option-a-btrfs-no-encryption) |
+| &nbsp;&nbsp;↳ Option B: LUKS + encryption | [manual.md - Option B](./Documentation/installation/manual.md#option-b-btrfs--luks-encryption) |
 
 ---
 
