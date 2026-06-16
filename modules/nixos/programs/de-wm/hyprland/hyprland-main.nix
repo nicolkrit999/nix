@@ -202,6 +202,7 @@ delib.module {
         playerctl
         showmethekey
         wl-clipboard
+        wev
       ];
 
       wayland.windowManager.hyprland = {

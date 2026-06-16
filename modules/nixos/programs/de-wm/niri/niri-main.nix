@@ -64,6 +64,7 @@ delib.module {
         playerctl # Media Keys (Play/Pause)
         imv # Image Viewer
         mpv # Video Player
+        wev # Wayland event viewer
       ];
 
       programs.niri = {

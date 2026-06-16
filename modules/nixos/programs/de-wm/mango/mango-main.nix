@@ -52,6 +52,7 @@ delib.module {
         grim
         slurp
         swappy
+        wev
       ];
 
       home.sessionVariables = {
