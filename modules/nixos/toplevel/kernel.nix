@@ -3,11 +3,11 @@ delib.module {
   name = "kernel";
   nixos.always = { myconfig, ... }: {
     boot.kernelPackages =
-      if myconfig.constants.hostname == "nixos-laptop" then
-        pkgs.linuxPackages_testing
-      else if pkgs.stdenv.hostPlatform.system == "x86_64-linux" then
+      if myconfig.constants.hostname == "nixos-desktop" then
         pkgs.linuxPackages_zen
+      else if myconfig.constants.hostname == "nixos-laptop" || myconfig.constants.hostname == "Krits-MacBook-Pro" then
+        pkgs.linuxPackages_latest
       else
-        pkgs.linuxPackages_latest;
+        pkgs.linuxPackages;
   };
 }
