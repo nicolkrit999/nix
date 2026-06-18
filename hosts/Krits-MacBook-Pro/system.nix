@@ -41,13 +41,16 @@ delib.host {
     # -----------------------------------------------------------------------
     # 🍎 MAC APP STORE APPS
     # -----------------------------------------------------------------------
-    homebrew.masApps = {
-      #"HP Print" = 1474276998;
-      "DaVinci Resolve" = 571213070;
-      "Keynote" = 409183694;
-      "Numbers" = 409203825;
-      "Pages" = 409201541;
-    };
+    # Disabled: mas 7.0.0 broke `brew bundle`'s App Store support, which aborts
+    # activation. These apps are already installed and the App Store updates them.
+    # Re-enable once homebrew-bundle is compatible with mas 7.x again.
+    # homebrew.masApps = {
+    #   #"HP Print" = 1474276998;
+    #   "DaVinci Resolve" = 571213070;
+    #   "Keynote" = 409183694;
+    #   "Numbers" = 409203825;
+    #   "Pages" = 409201541;
+    # };
 
     # -----------------------------------------------------------------------
     # ⚙️ SYSTEM DEFAULTS
