@@ -28,5 +28,31 @@ delib.module {
         IdentitiesOnly yes
         ProxyCommand cloudflared access ssh --hostname %h
     '';
+
+    # Manage ~/.ssh/config via home-manager so switching away from the school
+    # specialization (which also sets programs.ssh) properly rewrites the file.
+    # Without this, the school spec's ~/.ssh/config symlink persists in the
+    # default profile because home-manager only cleans up files it previously
+    # owned in the same activation chain.
+    home-manager.users.${myconfig.constants.user} = { ... }: {
+      programs.ssh = {
+        enable = true;
+        settings = {
+          "nicol-nas 192.168.1.98 ssh.nicolkrit.ch" = {
+            IdentityFile = "/home/${myconfig.constants.user}/.ssh/id_github";
+            IdentitiesOnly = "yes";
+            User = "krit";
+          };
+          "github.com" = {
+            IdentityFile = "/home/${myconfig.constants.user}/.ssh/id_github";
+          };
+          "gitea-ssh.nicolkrit.ch" = {
+            IdentityFile = "/home/${myconfig.constants.user}/.ssh/id_github";
+            IdentitiesOnly = "yes";
+            ProxyCommand = "cloudflared access ssh --hostname %h";
+          };
+        };
+      };
+    };
   };
 }
