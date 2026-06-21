@@ -1,4 +1,4 @@
-{ delib, ... }:
+{ delib, pkgs, ... }:
 delib.host {
   name = "Krits-MacBook-Pro";
   type = "desktop";
@@ -68,6 +68,17 @@ delib.host {
         television.enable = true;
         zoxide.enable = true;
         claude-code.enable = false;
+        npm = {
+          enable = true;
+          packages = [
+            "claudefm"
+            "claude-token-counter"
+          ];
+          hostPackages = with pkgs; [
+            yt-dlp
+            mpv
+          ];
+        };
         shell-aliases.enable = true;
       };
 

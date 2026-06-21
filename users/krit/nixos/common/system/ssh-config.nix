@@ -37,6 +37,7 @@ delib.module {
     home-manager.users.${myconfig.constants.user} = { ... }: {
       programs.ssh = {
         enable = true;
+        enableDefaultConfig = false;
         settings = {
           "nicol-nas 192.168.1.98 ssh.nicolkrit.ch" = {
             IdentityFile = "/home/${myconfig.constants.user}/.ssh/id_github";

@@ -218,6 +218,7 @@ delib.host {
           enable = true;
           packages = [
             "claudefm" # terminal music player
+            "claude-token-counter" # Token usage counter for claude code
           ];
           hostPackages = with pkgs; [
             yt-dlp # claudefm: stream source
