@@ -14,6 +14,7 @@ delib.module {
     environment.systemPackages = with pkgs; [
       distrobox # Allow to use other os package manager
       distroshelf # Gui manager for distrobox
+      boxbuddy # Unofficial GUI for managing your Distroboxes
       openssl_oqs # Used to generate post-quantum certificates
     ] ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux") (
       let pkgs-unstable = import inputs.nixpkgs-unstable { system = pkgs.stdenv.hostPlatform.system; };
