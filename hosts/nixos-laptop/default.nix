@@ -313,6 +313,8 @@ delib.host {
           ];
         };
 
+        headroom.enable = true;
+
         claude-code = {
           enable = true;
           mcpSecrets = [
