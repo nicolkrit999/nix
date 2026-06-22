@@ -67,7 +67,7 @@ delib.host {
         fzf.nix-search-tv.enable = true;
         television.enable = true;
         zoxide.enable = true;
-        claude-code.enable = false;
+        claude-code.enable = true;
         npm = {
           enable = true;
           packages = [
