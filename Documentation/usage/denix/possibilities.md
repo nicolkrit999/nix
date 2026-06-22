@@ -65,6 +65,7 @@ These modules work on both NixOS and Darwin hosts.
 * **`programs.git`**: The core version control integration and global user settings.
   * **Warning:** Note that `git` as a package is installed anyway (in `common-configuration.nix`); disabling this only means disabling the custom configuration such as setting the user identity and global GitIgnores.
 
+* **`programs.headroom`**: Installs the `headroom-ai` context-compression toolkit (cross-platform PyPI wheels for x86_64-linux, aarch64-linux, aarch64-darwin) plus `ast-grep` for code-aware compression. Provides the `headroom-wrap` alias (ephemeral inline proxy that dies with the session) and `headroom-claude` alias (connects Claude Code to the persistent proxy via `ANTHROPIC_BASE_URL=http://localhost:8787` with `ENABLE_TOOL_SEARCH=true`). Auto-starts a background proxy on port 8787 - a systemd user service on NixOS, a launchd agent on Darwin - exposing a web dashboard at `http://localhost:8787/dashboard`.
 * **`programs.lazygit`**: A terminal-based GUI application to simplify complex Git commands.
 * **`programs.nltchNur`**: Installs a configurable list of NUR (Nix User Repository) packages as system packages, with support for permitting specific insecure packages via `permittedInsecurePackages`.
 * **`programs.npm`**: Installs `nodejs_latest` and configures npm with a global prefix under `~/.npm-global`, adding it to `PATH` so globally installed packages are available in all shells.
