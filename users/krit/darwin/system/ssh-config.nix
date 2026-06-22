@@ -22,31 +22,29 @@ delib.module {
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
-        matchBlocks = {
+        settings = {
           "github.com" = {
-            identityFile = "${sshDir}/id_github";
+            IdentityFile = "${sshDir}/id_github";
           };
           "nicol-nas 192.168.1.98 ssh.nicolkrit.ch" = {
-            identityFile = "${sshDir}/id_github";
-            identitiesOnly = true;
-            user = user;
+            IdentityFile = "${sshDir}/id_github";
+            IdentitiesOnly = true;
+            User = user;
           };
           "gitea-ssh.nicolkrit.ch" = {
-            identityFile = "${sshDir}/id_github";
-            identitiesOnly = true;
-            extraOptions = {
-              ProxyCommand = "cloudflared access ssh --hostname %h";
-            };
+            IdentityFile = "${sshDir}/id_github";
+            IdentitiesOnly = true;
+            ProxyCommand = "cloudflared access ssh --hostname %h";
           };
           "gitlab-edu.supsi.ch" = {
-            hostname = "gitlab-edu.supsi.ch";
-            identityFile = "${sshDir}/id_school";
-            identitiesOnly = true;
+            Hostname = "gitlab-edu.supsi.ch";
+            IdentityFile = "${sshDir}/id_school";
+            IdentitiesOnly = true;
           };
           "github-school" = {
-            hostname = "github.com";
-            identityFile = "${sshDir}/id_school";
-            identitiesOnly = true;
+            Hostname = "github.com";
+            IdentityFile = "${sshDir}/id_school";
+            IdentitiesOnly = true;
           };
         };
       };
