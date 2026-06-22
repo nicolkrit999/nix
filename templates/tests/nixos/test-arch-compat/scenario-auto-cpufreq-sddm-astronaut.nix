@@ -2,7 +2,7 @@
 # Returns an attrset of home.activationPackage derivations (one per batch),
 # suitable for `nix build --dry-run --file this.nix --attr <name>`.
 # Evaluating the full activationPackage closure forces every transitive
-# derivation to be resolved for aarch64-linux — any missing package throws.
+# derivation to be resolved for aarch64-linux - any missing package throws.
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
   flake = builtins.getFlake "path:${flakeRoot}";
@@ -75,6 +75,7 @@ let
     (src + "/modules/common/programs/shells/zoxide.nix")
     (src + "/modules/common/programs/shells/nix-search-tv/nst-home.nix")
     (src + "/modules/common/programs/claude-code.nix")
+    (src + "/modules/common/programs/headroom.nix")
     (src + "/modules/common/programs/comma.nix")
     (src + "/modules/common/programs/doom/doom-main.nix")
     (src + "/modules/common/programs/doom/doom-tree-sitter.nix")
@@ -128,7 +129,7 @@ let
     (src + "/modules/nixos/specializations/safe-mode.nix")
     (src + "/modules/nixos/specializations/secure-travel.nix")
 
-    # users/krit/common — cross-platform user modules
+    # users/krit/common - cross-platform user modules
     (src + "/users/krit/common/programs/claude-code-wrappers.nix")
     (src + "/users/krit/common/programs/cli-programs/direnv.nix")
     (src + "/users/krit/common/programs/cli-programs/neovim.nix")
@@ -153,7 +154,7 @@ let
     (src + "/users/krit/common/programs/terminal-emulators/kitty.nix")
     (src + "/users/krit/common/toplevel/attic.nix")
 
-    # users/krit/nixos — NixOS-specific user modules (ext-dotfiles excluded: pure symlinks, no arch risk)
+    # users/krit/nixos - NixOS-specific user modules (ext-dotfiles excluded: pure symlinks, no arch risk)
     (src + "/users/krit/nixos/common/home/home-base.nix")
     (src + "/users/krit/nixos/common/system/default-user.nix")
     (src + "/users/krit/nixos/common/system/git-ssh-signing.nix")

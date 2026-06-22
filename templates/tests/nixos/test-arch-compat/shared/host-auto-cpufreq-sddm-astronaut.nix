@@ -15,7 +15,7 @@ delib.host {
     programs.kde.enable = true;
     programs.cosmic.enable = true;
 
-    # Custom shells: aarch64 assertion fires — expected, tests that the assertion path works.
+    # Custom shells: aarch64 assertion fires - expected, tests that the assertion path works.
     programs.caelestia = {
       enable = true;
       enableOnHyprland = true;
@@ -42,9 +42,10 @@ delib.host {
     programs.comma.enable = true;
     # doom disabled: home.always still imports nix-doom-emacs-unstraightened homeModule
     # (aarch64-compat tested), but home.ifEnabled (doomDir = ./doomdir) requires the
-    # source to be in the Nix store — only works in the full flake context, not here.
+    # source to be in the Nix store - only works in the full flake context, not here.
     programs.doom.enable = false;
     programs.nltchNur.enable = true;
+    programs.headroom.enable = true;
     programs.statix.enable = true;
     programs.television.enable = true;
     programs.zen.browser.enable = true;
