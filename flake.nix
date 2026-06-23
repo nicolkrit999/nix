@@ -158,6 +158,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Pinned upstream for spotify-adblock; flake.lock tracks the commit automatically
+    spotify-adblock-src = {
+      url = "github:abba23/spotify-adblock";
+      flake = false;
+    };
+
     catppuccin = {
       url = "github:catppuccin/nix/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -1,0 +1,1 @@
+- [Audio pipewire overlay scoping](project_audio_overlay.md) - system-wide nixpkgs.overlays for pipewire lives in nixos.ifEnabled; why it's Darwin-safe

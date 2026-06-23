@@ -32,7 +32,7 @@ delib.module {
       raycastRev = "83771ef261a0ef922c2a5353546430a29eceae17"; # Default commit of github:raycast/extensions. Override per-extension with rev = "..." in the host.
     in
     {
-      services.vicinae = {
+      programs.vicinae = {
         enable = true;
         package = inputs.vicinae.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
