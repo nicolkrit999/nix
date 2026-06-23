@@ -39,7 +39,13 @@ jobs:
 
       - name: Add Swap
         run: |
-          sudo fallocate -l 8G /swapfile
+          # GitHub-hosted runners ship with an active swap file, so fallocate
+          # on /swapfile fails with "Text file busy" (ETXTBSY). Disable and
+          # remove any existing swap first, then build a fresh swap file with
+          # dd (the kernel-recommended method that avoids holes/ETXTBSY).
+          sudo swapoff -a || true
+          sudo rm -f /swapfile
+          sudo dd if=/dev/zero of=/swapfile bs=1M count=8192 status=progress
           sudo chmod 600 /swapfile
           sudo mkswap /swapfile
           sudo swapon /swapfile
