@@ -61,6 +61,8 @@ delib.host {
       !include /run/secrets/github_fg_pat_token_nix
     '';
 
+    nix.settings.max-jobs = 6;
+
     boot.extraModprobeConfig = ''
       options iwlwifi disable_11be=1 power_save=0 uapsd_disable=1
     '';
