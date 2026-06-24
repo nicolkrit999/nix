@@ -1,0 +1,6 @@
+{
+  "enabledMcpjsonServers": [
+    "nixos"
+  ],
+  "enableAllProjectMcpServers": true
+}

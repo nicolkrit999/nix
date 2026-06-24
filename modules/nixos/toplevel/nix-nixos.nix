@@ -15,6 +15,13 @@ delib.module {
 
     nixpkgs.overlays = [
       inputs.nix-index-database.overlays.nix-index
+      # sdl3 testrwlock times out in the Nix sandbox; skip tests to prevent
+      # cascading failures across sdl2-compat, ffmpeg, vlc, plasma, etc.
+      (_final: prev: {
+        sdl3 = prev.sdl3.overrideAttrs (_old: {
+          doCheck = false;
+        });
+      })
     ];
 
     nix.settings = {
