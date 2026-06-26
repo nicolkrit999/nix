@@ -15,6 +15,12 @@ delib.module {
 
     nixpkgs.overlays = [
       inputs.nix-index-database.overlays.nix-index
+      (final: prev: {
+        openblas =
+          if final.stdenv.hostPlatform.system == "i686-linux"
+          then prev.openblas.overrideAttrs (_: { doCheck = false; })
+          else prev.openblas;
+      })
     ];
 
     nix.settings = {
