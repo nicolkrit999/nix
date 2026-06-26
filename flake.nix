@@ -118,9 +118,7 @@
     nix-topology.url = "github:oddlama/nix-topology";
     claude-code.url = "github:sadjow/claude-code-nix";
     claude-desktop = {
-      # Pinned to last commit before 1.12603.1 (issue #718: --add-dir patch matches 2x in that version).
-      # Drop pin once upstream fixes the regex for 1.12603.1+.
-      url = "github:aaddrick/claude-desktop-debian/4a6a540bf180f756c81f442d3226ef17f8670581";
+      url = "github:aaddrick/claude-desktop-debian";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     claude-cowork-service.url = "github:patrickjaja/claude-cowork-service";
