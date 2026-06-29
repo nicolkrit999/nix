@@ -17,6 +17,8 @@ delib.module {
 
       nixpkgs.overlays = [
         inputs.nix-index-database.overlays.nix-index
+        # nodejs 26.x segfaults during configure on aarch64-darwin (nixpkgs 26.05 regression)
+        (_final: prev: { nodejs_latest = prev.nodejs_22; })
       ];
 
       nix.enable = true;
