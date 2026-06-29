@@ -55,7 +55,7 @@ delib.module {
         # which runs *before* our own init.lua. That generated init is the only
         # place HM sets `g:python3_host_prog`, so this is what makes the python3
         # provider (needed by UltiSnips) actually work. Keeps our dotfiles fully
-        # portable — no nix-specific lines leak into ~/.config/nvim.
+        # portable - no nix-specific lines leak into ~/.config/nvim.
         sideloadInitLua = true;
 
         extraPackages = with pkgs; [
@@ -95,4 +95,8 @@ delib.module {
         ];
       };
     };
+
+  nixos.ifEnabled = {
+    nixpkgs.config.allowInsecurePredicate = pkg: lib.getName pkg == "pnpm";
+  };
 }

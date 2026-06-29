@@ -16,6 +16,9 @@ delib.module {
 
   nixos.ifEnabled = {
     environment.systemPackages = config.myconfig.programs.nltchNur.packages;
+  };
+
+  nixos.always = {
     nixpkgs.config = {
       allowUnfree = true;
       permittedInsecurePackages = config.myconfig.programs.nltchNur.permittedInsecurePackages;
@@ -24,6 +27,9 @@ delib.module {
 
   darwin.ifEnabled = {
     environment.systemPackages = config.myconfig.programs.nltchNur.packages;
+  };
+
+  darwin.always = {
     nixpkgs.config = {
       allowUnfree = true;
       permittedInsecurePackages = config.myconfig.programs.nltchNur.permittedInsecurePackages;
