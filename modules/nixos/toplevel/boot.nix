@@ -11,7 +11,7 @@ delib.module {
 
     boot.loader = {
       timeout = 30;
-      efi.canTouchEfiVariables = true;
+      efi.canTouchEfiVariables = false;
 
       systemd-boot.enable = lib.mkForce false;
 
@@ -19,6 +19,7 @@ delib.module {
         enable = lib.mkForce true;
         device = "nodev";
         efiSupport = true;
+        efiInstallAsRemovable = true;
         useOSProber = true;
         gfxmodeEfi = "3840x2160,2560x1440,1920x1080,1024x768,auto";
         gfxpayloadEfi = "text";
