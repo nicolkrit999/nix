@@ -11,7 +11,7 @@ let
   c = config.myconfig.constants;
   term = c.terminal.name;
 
-  # Distrobox apps to provision — each entry defines a container and how to check/install.
+  # Distrobox apps to provision - each entry defines a container and how to check/install.
   # The check script and setup script both derive from this list.
   distroboxApps = [
     {
@@ -19,9 +19,6 @@ let
       container = "school-ubuntu";
       image = "ubuntu:latest";
       check = "command -v tkgate";
-      # Non-interactive `distrobox enter -- bash -c ...` never triggers the container's
-      # first-run init, so /etc/sudoers stays as .dpkg-new and dpkg is left interrupted.
-      # rootInit runs as root via `podman exec` to repair both before any sudo/apt is used.
       rootInit = builtins.concatStringsSep " && " [
         "[ -f /etc/sudoers ] || cp /etc/sudoers.dpkg-new /etc/sudoers"
         "chmod 440 /etc/sudoers"
@@ -54,10 +51,6 @@ let
     }
   ];
 
-  # Fast startup check: only verifies container existence via podman (instant, no container start).
-  # User files live in $HOME (bind-mounted into containers), safe from any cleanup.
-  # Containers live in /var/lib/containers (persisted via impermanence), NOT in /nix/store —
-  # nix-collect-garbage does not touch them. They only disappear via manual podman/distrobox rm.
   distroboxStartupCheck = pkgs.writeShellScript "school-distrobox-startup-check" ''
     MISSING=""
     ${lib.concatMapStringsSep "\n" (app: ''
@@ -172,11 +165,6 @@ delib.module {
         networkmanager-openconnect # For Cisco AnyConnect / GlobalProtect
         networkmanager-openvpn # For OpenVPN connections
         (pkgs.owncloud-client.overrideAttrs (old: {
-          # owncloud-client (Qt6) uses wrapQtAppsHook which compiles a C wrapper
-          # that sets NIXPKGS_QT6_QML_IMPORT_PATH (not QML_IMPORT_PATH).
-          # The QML modules for org.kde.kirigami and org.kde.desktop live in the
-          # *unwrapped* kirigami derivation and qqc2-desktop-style respectively —
-          # neither is pulled in transitively by owncloud-client's closure.
           qtWrapperArgs = (old.qtWrapperArgs or [ ]) ++ [
             "--prefix"
             "NIXPKGS_QT6_QML_IMPORT_PATH"
@@ -186,6 +174,10 @@ delib.module {
             "NIXPKGS_QT6_QML_IMPORT_PATH"
             ":"
             "${pkgs.kdePackages.qqc2-desktop-style}/lib/qt-6/qml"
+            "--prefix"
+            "NIXPKGS_QT6_QML_IMPORT_PATH"
+            ":"
+            "${pkgs.kdePackages.qqc2-breeze-style}/lib/qt-6/qml"
           ];
         }))
       ];
@@ -332,7 +324,7 @@ delib.module {
 
           # sqldeveloper-school wrapper: launches Oracle SQL Developer inside the school-arch
           # distrobox container with all env fixes needed for Java GUI on Wayland WMs.
-          # All env var changes are scoped to this process only — no system-wide side effects.
+          # All env var changes are scoped to this process only - no system-wide side effects.
           (pkgs.writeShellScriptBin "sqldeveloper-school" ''
             ${pkgs.xhost}/bin/xhost +local: >/dev/null 2>&1
             exec ${pkgs.distrobox}/bin/distrobox enter school-arch -- bash -c '
@@ -414,7 +406,7 @@ delib.module {
           '')
 
           # Nuclear cleanup: removes all school containers and the exported binaries.
-          # Only reports what was actually removed — silent for things that didn't exist.
+          # Only reports what was actually removed - silent for things that didn't exist.
           (pkgs.writeShellScriptBin "school-distrobox-clear" ''
             set -uo pipefail
             REMOVED=""
@@ -435,7 +427,7 @@ delib.module {
             fi
 
             if [ -z "$REMOVED" ]; then
-              echo "Nothing to clear — no school containers or exported binaries found."
+              echo "Nothing to clear - no school containers or exported binaries found."
             else
               echo -e "Removed:$REMOVED"
             fi
