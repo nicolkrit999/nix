@@ -2,6 +2,26 @@
 let
   # Shared shell script wrappers
   caiScript = pkgs.writeShellScriptBin "cai" ''
+    CLAUDE_JSON="$HOME/.claude.json"
+    TARGET="$(readlink -f "$CLAUDE_JSON" 2>/dev/null || echo "$CLAUDE_JSON")"
+    if [ -f "$TARGET" ]; then
+      # Write through the resolved path so the dotfiles symlink is preserved.
+      TMP="$TARGET.cai-policy.tmp"
+      if ${pkgs.jq}/bin/jq --arg cwd "$PWD" '
+        (.claudeAiMcpEverConnected // []) as $conns
+        | .disabledMcpServers = $conns
+        | .projects //= {}
+        | .projects[$cwd] //= {}
+        | .projects |= with_entries(
+            .value.disabledMcpServers =
+              (((.value.disabledMcpServers // []) + $conns) | unique)
+          )
+      ' "$TARGET" > "$TMP" 2>/dev/null; then
+        mv "$TMP" "$TARGET"
+      else
+        rm -f "$TMP"
+      fi
+    fi
     exec ${pkgs.claude-code}/bin/claude "$@"
   '';
 
@@ -49,27 +69,27 @@ let
       matplotlib # matplotlib skill
       networkx # networkx skill
       pandas # xlsx, data analysis
-      python-docx # docx skill — creation/editing
+      python-docx # docx skill - creation/editing
       openpyxl # xlsx creation/editing
       pillow # pptx thumbnail grids, image handling
-      pypdf # pdf skill — merge/split/metadata
-      pdfplumber # pdf skill — text/table extraction
-      python-pptx # pptx skill — presentation creation
-      reportlab # pdf skill — create PDFs
+      pypdf # pdf skill - merge/split/metadata
+      pdfplumber # pdf skill - text/table extraction
+      python-pptx # pptx skill - presentation creation
+      reportlab # pdf skill - create PDFs
       requests # citation-management, literature-review
-      bibtexparser # citation-management — BibTeX parsing
-      biopython # citation-management — PubMed access
-      scholarly # citation-management — Google Scholar
-      markitdown # markitdown skill — file-to-markdown
+      bibtexparser # citation-management - BibTeX parsing
+      biopython # citation-management - PubMed access
+      scholarly # citation-management - Google Scholar
+      markitdown # markitdown skill - file-to-markdown
     ]
   );
 
   # Shared CLI tools
   commonCliTools = [
-    pkgs.pandoc # docx/literature-review — text extraction and PDF generation
+    pkgs.pandoc # docx/literature-review - text extraction and PDF generation
     pkgs.octave # Matlab skill - numerical computing, plotting, data analysis
-    pkgs.poppler-utils # pdf/pptx/docx — pdftoppm, pdftotext, pdfimages
-    pkgs.tesseract # pdf — OCR for scanned documents
+    pkgs.poppler-utils # pdf/pptx/docx - pdftoppm, pdftotext, pdfimages
+    pkgs.tesseract # pdf - OCR for scanned documents
     pkgs.uv # fast Python package installer (fallback for non-nix envs)
   ];
 
@@ -95,6 +115,6 @@ delib.module {
 
   darwin.ifEnabled = { ... }: {
     environment.systemPackages = sharedPackages;
-    # Note: libreoffice-still not available on aarch64-darwin — install via Homebrew Cask if needed
+    # Note: libreoffice-still not available on aarch64-darwin - install via Homebrew Cask if needed
   };
 }
