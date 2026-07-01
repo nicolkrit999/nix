@@ -22,6 +22,12 @@ delib.module {
     , ...
     }:
     let
+      # Patch waybar to fix workspace-click regression introduced by Hyprland 0.54+
+      # lua-based IPC dispatch. Built-in click handler used old-style "dispatch workspace N"
+      # which Hyprland now rejects. PR #5013 (merged, unreleased as of 2026-06-02).
+      waybarPatched = pkgs.waybar.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [ ./waybar-hyprland-lua-dispatch.patch ];
+      });
       c = config.lib.stylix.colors.withHashtag;
       cssVariables = ''
         @define-color base00 ${c.base00};
@@ -232,7 +238,7 @@ delib.module {
           ConditionEnvironment = "WAYLAND_DISPLAY";
         };
         Service = {
-          ExecStart = "${pkgs.waybar}/bin/waybar -c %h/.config/${configDir}/config -s %h/.config/${configDir}/style.css";
+          ExecStart = "${waybarPatched}/bin/waybar -c %h/.config/${configDir}/config -s %h/.config/${configDir}/style.css";
           ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
           Restart = "on-failure";
           RestartSec = 1;
