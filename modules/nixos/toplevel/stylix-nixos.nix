@@ -128,7 +128,7 @@ delib.module {
             wofi.enable = false;
             waybar.enable = false;
             # Drive kdeglobals palette + colorscheme file from base16. Works on
-            # any DE/WM combo — fixes Dolphin / KDE FileChooser portal zebra.
+            # any DE/WM combo - fixes Dolphin / KDE FileChooser portal zebra.
             # Writes to xdg.systemDirs.config so plasma-manager's overrideConfig
             # cannot wipe it.
             kde.enable = !isCatppuccin;
@@ -172,6 +172,7 @@ delib.module {
         {
           gtk3.extraConfig.gtk-application-prefer-dark-theme = if polarity == "dark" then 1 else 0;
           gtk4.extraConfig.gtk-application-prefer-dark-theme = if polarity == "dark" then 1 else 0;
+          gtk4.theme = lib.mkIf isCatppuccin catppuccinGtkTheme;
         }
       ];
     };

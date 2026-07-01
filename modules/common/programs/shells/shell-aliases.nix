@@ -1,4 +1,4 @@
-{ delib, moduleSystem, lib, ... }:
+{ delib, moduleSystem, lib, pkgs, ... }:
 delib.module {
   name = "programs.shell-aliases";
   options = delib.singleEnableOption true;
@@ -6,6 +6,12 @@ delib.module {
   home.ifEnabled =
     { myconfig, ... }:
     let
+      pythonEnv = pkgs.python3.withPackages (ps: [ ps.requests ]);
+      npu = pkgs.writeShellScriptBin "npu" ''
+        export NIX_PREFETCH_URL="${pkgs.nix}/bin/nix-prefetch-url"
+        exec ${pythonEnv}/bin/python3 ${./npu.py} "$@"
+      '';
+
       flakeDir = "~/nix";
       safeEditor = myconfig.constants.editor;
       isImpure = myconfig.constants.nixImpure or false;
@@ -51,7 +57,7 @@ delib.module {
         else
           myconfig.cachix.name;
       cachixTokenPath = myconfig.cachix.authTokenPath or "";
-      # `env VAR=val cachix` (not the `VAR=val cmd` prefix) — fish has no inline
+      # `env VAR=val cachix` (not the `VAR=val cmd` prefix) - fish has no inline
       # env-assignment syntax, and `env` wraps the last pipe stage so the token
       # reaches cachix.
       cachixPush =
@@ -71,7 +77,7 @@ delib.module {
       atticPushAlias = shc atticPush;
       cachixPushAlias = shc cachixPush;
 
-      # sw-style wrapper: rebuild first, then — only if it succeeded — push to
+      # sw-style wrapper: rebuild first, then - only if it succeeded - push to
       # every enabled cache. Each push is isolated with `|| true` so one cache
       # failing never aborts the other, while the rebuild's exit status still
       # gates whether any push runs (the whole block lives behind one `&&`).
@@ -178,6 +184,8 @@ delib.module {
       // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPushAlias; });
     in
     {
+      home.packages = [ npu ];
+
       home.shellAliases = commonAliases
         // (if isNixOS then nixosAliases else { })
         // (if isDarwin then darwinAliases else { })

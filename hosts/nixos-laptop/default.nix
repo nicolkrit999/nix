@@ -108,8 +108,8 @@ delib.host {
             targetMonitor = "eDP-1";
             wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/anime/Kurumi-Ebisuzawa.png";
             wallpaperSHA256 = "1rn290hx0vl70w1dvksqrp8n713zyswc0gm98zsh962nw9jrkmrk";
-            gifURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Pixel%20Dream/may_chill.gif";
-            gifSHA256 = "1v3h995fifxcdvrizr5n99h0bmja7khzi89bh33d869psrjc4ssp";
+            gifURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/fr0st-xyz/wallz/wallz-main/Animated/06.%20Animated.gif";
+            gifSHA256 = "1pl466cmnsp5hhxlz8z7kd3r7zdr365wwx94l9g1sf48fy0bv0qb";
           }
           {
             targetMonitor = "*";
@@ -123,10 +123,10 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "gruvbox-material-dark-hard";
-          catppuccin = false;
-          catppuccinFlavor = "macchiato";
-          catppuccinAccent = "sapphire";
+          base16Theme = "catppuccin-mocha";
+          catppuccin = true;
+          catppuccinFlavor = "mocha";
+          catppuccinAccent = "mauve";
         };
 
         # ---------------------------------------------------------------
@@ -634,7 +634,7 @@ delib.host {
         sddm-astronaut = {
           enable = true;
           embeddedTheme = "jake_the_dog";
-          background = ../../users/krit/src/wallpapers/may_chill.gif;
+          background = ../../users/krit/src/wallpapers/car.gif;
         };
         sddm-pixie = {
           enable = false;

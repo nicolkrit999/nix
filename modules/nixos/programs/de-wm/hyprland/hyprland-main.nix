@@ -234,7 +234,7 @@ delib.module {
 
               "col.active_border" = lib.mkDefault (
                 if myconfig.constants.theme.catppuccin then
-                  "$accent"
+                  mkLuaInline "colors.accent"
                 else
                   "rgb(${config.lib.stylix.colors.base0D})"
               );
