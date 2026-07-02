@@ -95,6 +95,31 @@ delib.module {
             rev = "7d616ad88498747b46124f32a35847324862cd83";
             sha256 = "1nbmczlzl7wa564gk7wr4jb84ja3as3z1b537vj5477dzrys6y98";
           };
+
+          # Local plugin (not fetched from GitHub): routes deletes under the NAS
+          # SMB mount (/mnt/nicol_nas) through a real/permanent delete so the
+          # NAS's own server-side #recycle interception catches it - yazi's
+          # normal client-side XDG trash rename never triggers a real unlink,
+          # so the NAS never sees it. Everywhere else (including $HOME and the
+          # rclone cloud mounts) falls through to the regular client-side trash.
+          smart-remove = pkgs.writeTextDir "main.lua" ''
+            local M = {}
+
+            local get_cwd = ya.sync(function()
+              return tostring(cx.active.current.cwd)
+            end)
+
+            function M:entry()
+              local cwd = get_cwd()
+              if cwd:find("^/mnt/nicol_nas") or cwd:find("^/home/${myconfig.constants.user}/Documents/nicol%-nas") then
+                ya.emit("remove", { permanently = true })
+              else
+                ya.emit("remove", {})
+              end
+            end
+
+            return M
+          '';
         };
 
         # -----------------------------------------------------------------------

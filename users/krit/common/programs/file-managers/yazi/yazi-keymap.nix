@@ -280,8 +280,8 @@ delib.module {
           }
           {
             on = [ "d" ];
-            run = "remove";
-            desc = "Trash selected files";
+            run = "plugin smart-remove";
+            desc = "Trash selected files (NAS-aware)";
           }
           {
             on = [ "D" ];
