@@ -74,6 +74,7 @@ delib.host {
           packages = [
             "claudefm"
             "claude-token-counter"
+            "@actual-app/cli" # Actual Budget CLI
           ];
           hostPackages = with pkgs; [
             yt-dlp

@@ -29,7 +29,7 @@ delib.module {
 
     home.activation = lib.optionalAttrs (myconfig.programs.npm.packages != [ ]) {
       npmGlobalPackages = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        $DRY_RUN_CMD ${pkgs.nodejs_latest}/bin/npm install -g ${lib.concatStringsSep " " myconfig.programs.npm.packages}
+        $DRY_RUN_CMD env PATH="${pkgs.nodejs_latest}/bin:$PATH" ${pkgs.nodejs_latest}/bin/npm install -g ${lib.concatStringsSep " " myconfig.programs.npm.packages}
       '';
     };
   };
