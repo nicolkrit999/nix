@@ -145,7 +145,10 @@ delib.host {
       # ---------------------------------------------------------------
       # 🌐 TOP-LEVEL MODULES
       # ---------------------------------------------------------------
-      bluetooth.enable = true;
+      bluetooth = {
+        enable = true;
+        autoEnableOnBoot = true;
+      };
 
       cachix = {
         enable = true;

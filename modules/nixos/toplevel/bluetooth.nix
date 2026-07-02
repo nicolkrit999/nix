@@ -1,20 +1,27 @@
 { delib, ... }:
 delib.module {
   name = "bluetooth";
-  options = delib.singleEnableOption false;
-
-  nixos.ifEnabled = {
-    hardware.bluetooth = {
-      enable = true;
-      powerOnBoot = true;
-
-      settings = {
-        Policy = {
-          AutoEnable = "true"; # Enable on boot
-        };
-      };
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      autoEnableOnBoot = boolOption true;
     };
 
-    services.blueman.enable = true;
-  };
+  nixos.ifEnabled =
+    { cfg, ... }:
+    {
+      hardware.bluetooth = {
+        enable = true;
+        powerOnBoot = cfg.autoEnableOnBoot;
+
+        settings = {
+          Policy = {
+            AutoEnable = if cfg.autoEnableOnBoot then "true" else "false";
+          };
+        };
+      };
+
+      services.blueman.enable = true;
+    };
 }
