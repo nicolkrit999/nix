@@ -13,6 +13,7 @@ let
 
     (src + "/modules/common/toplevel/home-manager.nix")
     (src + "/modules/nixos/config/constants-nixos.nix")
+    (src + "/modules/common/config/constants.nix")
 
     (src + "/modules/nixos/services/sddm/sddm-astronaut.nix")
     (src + "/modules/nixos/services/sddm/sddm-pixie.nix")

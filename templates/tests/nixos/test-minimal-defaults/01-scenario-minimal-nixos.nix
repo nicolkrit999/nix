@@ -18,6 +18,7 @@ let
     # Constants schema and HM wiring
     (src + "/modules/common/toplevel/home-manager.nix")
     (src + "/modules/nixos/config/constants-nixos.nix")
+    (src + "/modules/common/config/constants.nix")
     (src + "/modules/common/themes/catppuccin.nix")
 
     # WM enable options — include all three so cross-WM guards evaluate cleanly

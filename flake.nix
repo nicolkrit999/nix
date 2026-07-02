@@ -33,18 +33,12 @@
         ./hosts/Krits-MacBook-Pro
       ];
 
-      # NixOS hosts (excluded from darwin builds)
-      nixosHosts = [
-        ./hosts/nixos-desktop
-        ./hosts/template-host-minimal
-      ];
-
       mkConfigurations =
         moduleSystem:
         let
           platformExclude =
             if moduleSystem == "nixos" then darwinHosts
-            else if moduleSystem == "darwin" then nixosHosts
+            else if moduleSystem == "darwin" then [ ]
             else darwinHosts; # home-manager builds exclude darwin hosts
 
           # 3-way split: common modules shared, platform-specific separate

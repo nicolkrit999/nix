@@ -28,12 +28,13 @@ delib.module {
 
             # TMUX AUTOSTART (GUI only on NixOS, always on Darwin)
             ${if isDarwin then ''
-              if status is-interactive
+              if command -v tmux > /dev/null
+                and status is-interactive
                 and not set -q TMUX
                 exec tmux new-session -A -s main
               end
             '' else ''
-              if not set -q TMUX; and set -q DISPLAY
+              if command -v tmux > /dev/null; and not set -q TMUX; and set -q DISPLAY
                 tmux new-session -A -s main
               end
             ''}

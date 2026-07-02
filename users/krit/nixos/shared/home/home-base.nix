@@ -1,6 +1,5 @@
 { delib
 , inputs
-, pkgs
 , ...
 }:
 delib.module {
@@ -11,28 +10,6 @@ delib.module {
     home.stateVersion = "25.11";
     home.username = myconfig.constants.user;
     home.homeDirectory = "/home/${myconfig.constants.user}";
-
-    home.packages = with pkgs; [
-      efibootmgr
-      fastfetch
-      fd
-      gh
-      htop
-      inetutils
-      killall
-      nix-search-cli
-      pay-respects
-      pokemon-colorscripts
-      ripgrep
-      stow
-      tmate
-      tree
-      unzip
-      vscode
-      yt-dlp
-      zip
-      zlib
-    ];
 
     xdg.userDirs = {
       publicShare = null;

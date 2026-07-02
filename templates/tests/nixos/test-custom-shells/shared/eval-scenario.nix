@@ -39,6 +39,7 @@ let
 
     # Constants schema (declares myconfig.constants.* options)
     (src + "/modules/nixos/config/constants-nixos.nix")
+    (src + "/modules/common/config/constants.nix")
 
     # Catppuccin: adds catppuccin.* home-manager options (needed by hyprland-main)
     (src + "/modules/common/themes/catppuccin.nix")

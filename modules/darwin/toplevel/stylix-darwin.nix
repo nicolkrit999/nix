@@ -12,12 +12,15 @@ delib.module {
   };
 
   darwin.always =
-    { myconfig, ... }:
     {
       imports = [
         inputs.stylix.darwinModules.stylix
       ];
+    };
 
+  darwin.ifEnabled =
+    { myconfig, ... }:
+    {
       stylix = {
         enable = true;
         enableReleaseChecks = true;

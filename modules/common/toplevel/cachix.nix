@@ -2,6 +2,23 @@
 , pkgs
 , ...
 }:
+let
+  sharedIfEnabled =
+    { cfg, myconfig, ... }:
+    let
+      finalName = if cfg.name == "use-constant" then myconfig.constants.cachix.name else cfg.name;
+      finalKey =
+        if cfg.publicKey == "use-constant" then myconfig.constants.cachix.publicKey else cfg.publicKey;
+    in
+    {
+      nix.settings = {
+        substituters = [ "https://${finalName}.cachix.org?priority=20" ];
+        trusted-public-keys = [ finalKey ];
+      };
+
+      environment.systemPackages = [ pkgs.cachix ];
+    };
+in
 delib.module {
   name = "cachix";
 
@@ -13,35 +30,7 @@ delib.module {
     authTokenPath = strOption "";
   };
 
-  nixos.ifEnabled =
-    { cfg, myconfig, ... }:
-    let
-      finalName = if cfg.name == "use-constant" then myconfig.constants.cachix.name else cfg.name;
-      finalKey =
-        if cfg.publicKey == "use-constant" then myconfig.constants.cachix.publicKey else cfg.publicKey;
-    in
-    {
-      nix.settings = {
-        substituters = [ "https://${finalName}.cachix.org?priority=20" ];
-        trusted-public-keys = [ finalKey ];
-      };
+  nixos.ifEnabled = sharedIfEnabled;
 
-      environment.systemPackages = [ pkgs.cachix ];
-    };
-
-  darwin.ifEnabled =
-    { cfg, myconfig, ... }:
-    let
-      finalName = if cfg.name == "use-constant" then myconfig.constants.cachix.name else cfg.name;
-      finalKey =
-        if cfg.publicKey == "use-constant" then myconfig.constants.cachix.publicKey else cfg.publicKey;
-    in
-    {
-      nix.settings = {
-        substituters = [ "https://${finalName}.cachix.org?priority=20" ];
-        trusted-public-keys = [ finalKey ];
-      };
-
-      environment.systemPackages = [ pkgs.cachix ];
-    };
+  darwin.ifEnabled = sharedIfEnabled;
 }

@@ -2,6 +2,18 @@
 , pkgs
 , ...
 }:
+let
+  sharedIfEnabled =
+    { cfg, ... }:
+    {
+      nix.settings = {
+        extra-substituters = [ "${cfg.serverUrl}/${cfg.cacheName}?priority=10&connect-timeout=5" ];
+        extra-trusted-public-keys = [ cfg.publicKey ];
+      };
+
+      environment.systemPackages = [ pkgs.attic-client ];
+    };
+in
 delib.module {
   name = "krit.attic";
 
@@ -14,25 +26,7 @@ delib.module {
     authTokenPath = strOption "";
   };
 
-  nixos.ifEnabled =
-    { cfg, ... }:
-    {
-      nix.settings = {
-        extra-substituters = [ "${cfg.serverUrl}/${cfg.cacheName}?priority=10&connect-timeout=5" ];
-        extra-trusted-public-keys = [ cfg.publicKey ];
-      };
+  nixos.ifEnabled = sharedIfEnabled;
 
-      environment.systemPackages = [ pkgs.attic-client ];
-    };
-
-  darwin.ifEnabled =
-    { cfg, ... }:
-    {
-      nix.settings = {
-        extra-substituters = [ "${cfg.serverUrl}/${cfg.cacheName}?priority=10&connect-timeout=5" ];
-        extra-trusted-public-keys = [ cfg.publicKey ];
-      };
-
-      environment.systemPackages = [ pkgs.attic-client ];
-    };
+  darwin.ifEnabled = sharedIfEnabled;
 }

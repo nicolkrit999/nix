@@ -14,7 +14,7 @@ delib.module {
     {
       programs.yazi.theme = lib.mkForce {
 
-        mng = {
+        mgr = {
           cwd = {
             fg = "#${colors.base0C}";
           };

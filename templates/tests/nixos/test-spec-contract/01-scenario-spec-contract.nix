@@ -20,6 +20,7 @@ let
     # Core infrastructure
     (src + "/modules/common/toplevel/home-manager.nix")
     (src + "/modules/nixos/config/constants-nixos.nix")
+    (src + "/modules/common/config/constants.nix")
     (src + "/modules/nixos/toplevel/nix-nixos.nix")
     (src + "/modules/common/themes/catppuccin.nix")
     (src + "/modules/nixos/toplevel/common-configuration-nixos.nix")
@@ -86,9 +87,9 @@ let
     (src + "/modules/nixos/specializations/secure-travel.nix")
 
     # Minimal user infrastructure
-    (src + "/users/krit/nixos/common/home/home-base.nix")
-    (src + "/users/krit/nixos/common/system/default-user.nix")
-    (src + "/users/krit/nixos/common/system/virtualisation.nix")
+    (src + "/users/krit/nixos/shared/home/home-base.nix")
+    (src + "/users/krit/nixos/shared/system/default-user.nix")
+    (src + "/users/krit/nixos/shared/system/virtualisation.nix")
 
     # krit specializations
     (src + "/users/krit/nixos/specializations/entertainment.nix")

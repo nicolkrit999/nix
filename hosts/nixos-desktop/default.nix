@@ -58,6 +58,25 @@ let
     "nemo" = "nemo.desktop";
   };
   resolve = name: desktopMap.${name} or "${name}.desktop";
+
+  langLayout = {
+    "format-en" = "🇺🇸-EN";
+    "format-it" = "🇮🇹-IT";
+    "format-de" = "🇩🇪-DE";
+    "format-fr" = "🇫🇷-FR";
+  };
+
+  pinnedApps = [
+    (resolve myBrowser)
+    (resolve myEditor)
+    (resolve myFileManager)
+    "github-desktop.desktop"
+    "LocalSend.desktop"
+    "proton-pass.desktop"
+    "vesktop.desktop"
+    "com.actualbudget.actual.desktop"
+    "com.rtosta.zapzap.desktop"
+  ];
 in
 
 delib.host {
@@ -421,7 +440,6 @@ delib.host {
             { _args = [ "SUPER + SHIFT + return" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-term")'') ]; }
             { _args = [ "SUPER + SHIFT + F" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-fs -e yazi")'') ]; }
             { _args = [ "SUPER + SHIFT + B" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myBrowser} --new-window --class scratch-browser")'') ]; }
-            { _args = [ "SUPER + Y" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("chromium-browser")'') ]; }
 
             { _args = [ "XF86Tools" (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m-1" })'') ]; }
             { _args = [ "XF86Launch5" (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m+1" })'') ]; }
@@ -462,7 +480,6 @@ delib.host {
             "monitor:DP-2,appid:^com.rtosta.zapzap$"
           ];
           extraBinds = [
-            "SUPER,Y,spawn,chromium-browser"
             "NONE,XF86Tools,viewtoleft_have_client,0"
             "NONE,XF86Launch5,viewtoright_have_client,0"
             "NONE,XF86Launch6,togglemaximizescreen,"
@@ -534,12 +551,7 @@ delib.host {
         # ---------------------------------------------------------------
         waybar-hyprland = {
           enable = true;
-          waybarLayout = {
-            "format-en" = "🇺🇸-EN";
-            "format-it" = "🇮🇹-IT";
-            "format-de" = "🇩🇪-DE";
-            "format-fr" = "🇫🇷-FR";
-          };
+          waybarLayout = langLayout;
           waybarWorkspaceIcons = {
             "1" = "";
             "2" = ":";
@@ -556,25 +568,13 @@ delib.host {
         };
 
         waybar-mango = {
-          # Disabled: noctalia is active on mango here and provides its own
-          # bar - waybar-mango + active shell on the same WM is a hard conflict.
           enable = true;
-          waybarLayout = {
-            "format-en" = "🇺🇸-EN";
-            "format-it" = "🇮🇹-IT";
-            "format-de" = "🇩🇪-DE";
-            "format-fr" = "🇫🇷-FR";
-          };
+          waybarLayout = langLayout;
         };
 
         waybar-niri = {
           enable = true;
-          waybarLayout = {
-            "format-en" = "🇺🇸-EN";
-            "format-it" = "🇮🇹-IT";
-            "format-de" = "🇩🇪-DE";
-            "format-fr" = "🇫🇷-FR";
-          };
+          waybarLayout = langLayout;
         };
 
         # ---------------------------------------------------------------
@@ -586,23 +586,8 @@ delib.host {
 
         gnome = {
           enable = true;
-          pinnedApps = [
-            (resolve myBrowser)
-            (resolve myEditor)
-            (resolve myFileManager)
-            "github-desktop.desktop"
-            "LocalSend.desktop"
-            "proton-pass.desktop"
-            "vesktop.desktop"
-            "com.actualbudget.actual.desktop"
-            "com.rtosta.zapzap.desktop"
-          ];
+          pinnedApps = pinnedApps;
           extraBinds = [
-            {
-              name = "Launch Chromium";
-              command = "chromium";
-              binding = "<Super>y";
-            }
             # 🖱️ LOGITECH MX MASTER Thumb button gesstures
             { name = "Gesture Left (Prev Workspace)"; command = "${pkgs.wtype}/bin/wtype -M super -k Page_Up -m super"; binding = "XF86Tools"; }
             { name = "Gesture Right (Next Workspace)"; command = "${pkgs.wtype}/bin/wtype -M super -k Page_Down -m super"; binding = "XF86Launch5"; }
@@ -613,22 +598,8 @@ delib.host {
 
         kde = {
           enable = true;
-          pinnedApps = [
-            (resolve myBrowser)
-            (resolve myEditor)
-            (resolve myFileManager)
-            "github-desktop.desktop"
-            "LocalSend.desktop"
-            "proton-pass.desktop"
-            "vesktop.desktop"
-            "com.actualbudget.actual.desktop"
-            "com.rtosta.zapzap.desktop"
-          ];
+          pinnedApps = pinnedApps;
           extraBinds = {
-            "launch-chromium" = {
-              key = "Meta+Y";
-              command = "chromium";
-            };
             # 🖱️ LOGITECH MX MASTER Thumb button gesstures
             "gesture-left" = { key = "XF86Tools"; command = "qdbus org.kde.KWin /KWin org.kde.KWin.previousDesktop"; };
             "gesture-right" = { key = "XF86Launch5"; command = "qdbus org.kde.KWin /KWin org.kde.KWin.nextDesktop"; };

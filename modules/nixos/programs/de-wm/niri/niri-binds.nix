@@ -16,11 +16,7 @@ delib.module {
       spawnApp =
         app:
         if
-          builtins.elem app [
-            "nvim"
-            "yazi"
-            "ranger"
-          ]
+          builtins.elem app myconfig.constants.terminalApps
 
         then
           [

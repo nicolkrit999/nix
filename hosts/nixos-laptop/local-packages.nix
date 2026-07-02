@@ -71,6 +71,28 @@ delib.module {
           neo-cowsay # Cowsay reborn (ASCII art with text)
           pipes # Terminal pipes animation
 
+          # -----------------------------------------------------------------------------------
+          # 🏠 GENERAL (moved from home-base)
+          # -----------------------------------------------------------------------------------
+          efibootmgr
+          fastfetch
+          fd
+          gh
+          htop
+          inetutils
+          killall
+          nix-search-cli
+          pay-respects
+          pokemon-colorscripts
+          ripgrep
+          stow
+          tmate
+          tree
+          unzip
+          yt-dlp
+          zip
+          zlib
+
           # -----------------------------------------------------------------------
           # ❓ OTHER
           # -----------------------------------------------------------------------
@@ -80,7 +102,7 @@ delib.module {
           # -----------------------------------------------------------------------
           # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
           # -----------------------------------------------------------------------
-          fresh-editor # Lightweight terminal text editor — not in 26.05
+          fresh-editor # Lightweight terminal text editor - not in 26.05
         ]);
     };
 }

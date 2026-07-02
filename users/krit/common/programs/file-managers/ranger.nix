@@ -18,7 +18,6 @@ delib.module {
     {
       home.packages =
         with pkgs;
-        with pkgs;
         [
           ffmpegthumbnailer
           fzf

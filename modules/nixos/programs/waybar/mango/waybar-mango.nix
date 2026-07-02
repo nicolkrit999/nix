@@ -68,7 +68,7 @@ delib.module {
         "custom/tags" = {
           exec = ''
             mmsg get all-monitors 2>/dev/null \
-              | jq -r --arg mon "${mon}" '
+              | ${pkgs.jq}/bin/jq -r --arg mon "${mon}" '
                   .monitors[] | select(.name == $mon) | .tags[] |
                     if .is_active then "A \(.index)"
                     elif (.client_count // 0) > 0 then "O \(.index)"
@@ -90,7 +90,7 @@ delib.module {
           format = "{}";
           exec = ''
             layout=$(mmsg get all-monitors 2>/dev/null \
-              | jq -r --arg mon "${mon}" '.monitors[] | select(.name == $mon) | .layout_symbol // ""')
+              | ${pkgs.jq}/bin/jq -r --arg mon "${mon}" '.monitors[] | select(.name == $mon) | .layout_symbol // ""')
             case "$layout" in
               S)   echo "<span color='${c.base0C}'>󰕕</span> Scroller" ;;
               T)   echo "<span color='${c.base0D}'>󰕴</span> Tile" ;;
@@ -109,7 +109,7 @@ delib.module {
           '';
           interval = 1;
           # `dispatch` targets the focused monitor; toggle S<->T based on its current symbol.
-          on-click = "sh -c 'cur=$(mmsg get all-monitors 2>/dev/null | jq -r \".monitors[] | select(.active == true) | .layout_symbol\"); if [ \"$cur\" = \"S\" ]; then mmsg dispatch setlayout,T; else mmsg dispatch setlayout,S; fi'";
+          on-click = "sh -c 'cur=$(mmsg get all-monitors 2>/dev/null | ${pkgs.jq}/bin/jq -r \".monitors[] | select(.active == true) | .layout_symbol\"); if [ \"$cur\" = \"S\" ]; then mmsg dispatch setlayout,T; else mmsg dispatch setlayout,S; fi'";
           on-click-right = "mmsg dispatch setlayout,S";
           tooltip = false;
         };
@@ -117,7 +117,7 @@ delib.module {
         "custom/window" = {
           exec = ''
             title=$(mmsg get all-monitors 2>/dev/null \
-              | jq -r --arg mon "${mon}" '.monitors[] | select(.name == $mon) | .active_client.title // ""')
+              | ${pkgs.jq}/bin/jq -r --arg mon "${mon}" '.monitors[] | select(.name == $mon) | .active_client.title // ""')
             if [ -z "$title" ] || [ "$title" = "null" ]; then
               echo "${myconfig.constants.user or "nix"}<span font_family='JetBrainsMono Nerd Font Propo'>󱄅</span>${myconfig.constants.hostname or "nixos"}"
             else
@@ -147,7 +147,7 @@ delib.module {
         "custom/language" = {
           format = "{}";
           exec = ''
-            layout=$(mmsg get keyboardlayout 2>/dev/null | jq -r '.layout // ""')
+            layout=$(mmsg get keyboardlayout 2>/dev/null | ${pkgs.jq}/bin/jq -r '.layout // ""')
             case "$layout" in
               English*|US*|us*|en*) echo "${cfg.waybarLayout."format-en" or "EN"}" ;;
               Italian*|it*|ita*)    echo "${cfg.waybarLayout."format-it" or "IT"}" ;;
@@ -276,7 +276,7 @@ delib.module {
       # Fallback when monitor names aren't parseable from parent.mango.monitors:
       # one bar (replicated on every output) that always shows the focused
       # monitor's data via runtime selmon lookup.
-      focusedSel = "$(mmsg get all-monitors 2>/dev/null | jq -r '.monitors[] | select(.active == true) | .name' | head -1)";
+      focusedSel = "$(mmsg get all-monitors 2>/dev/null | ${pkgs.jq}/bin/jq -r '.monitors[] | select(.active == true) | .name' | head -1)";
       bars =
         if monitorNames != [ ]
         then map mkBar monitorNames
@@ -288,7 +288,7 @@ delib.module {
       assertions = [
         {
           assertion = !(isMangoEnabled && noctaliaActiveOnMango);
-          message = "waybar-mango is enabled together with an active noctalia shell on Mango — disable one.";
+          message = "waybar-mango is enabled together with an active noctalia shell on Mango - disable one.";
         }
       ];
 

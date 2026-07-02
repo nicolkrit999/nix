@@ -17,16 +17,26 @@ delib.module {
         ffmpeg
         gh
         grex
+        htop
+        inetutils
         lsof
         mediainfo
         mars-mips
+        nix-search-cli
         ntfs3g
         pay-respects
         pokemon-colorscripts
+        ripgrep
         stow
+        tmate
         tree
+        unzip
+        vscode
         wakeonlan
         xcodegen
+        yt-dlp
+        zip
+        zlib
         (pkgs.python313.withPackages (
           ps: with ps; [
             faker

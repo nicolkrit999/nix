@@ -29,7 +29,7 @@ delib.module {
           fi
 
           # 3. TMUX AUTOSTART
-          if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
+          if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
             tmux new-session -A -s main
           fi
 

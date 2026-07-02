@@ -1,6 +1,9 @@
 { delib, pkgs, inputs, ... }:
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+  sharedIfEnabledBody = {
+    environment.systemPackages = [ pkgs-unstable.nix-sweep ];
+  };
 in
 delib.module {
   name = "nix-sweeps";
@@ -12,13 +15,9 @@ delib.module {
       gcn = strOption "3";
     };
 
-  nixos.ifEnabled = { ... }: {
-    environment.systemPackages = [ pkgs-unstable.nix-sweep ];
-  };
+  nixos.ifEnabled = { ... }: sharedIfEnabledBody;
 
-  darwin.ifEnabled = { ... }: {
-    environment.systemPackages = [ pkgs-unstable.nix-sweep ];
-  };
+  darwin.ifEnabled = { ... }: sharedIfEnabledBody;
 
   home.ifEnabled =
     { cfg, ... }:

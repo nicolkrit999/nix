@@ -1,4 +1,14 @@
 { delib, lib, config, ... }:
+let
+  sharedIfEnabled = {
+    environment.systemPackages = config.myconfig.programs.nltchNur.packages;
+  };
+  sharedAlways = {
+    nixpkgs.config = {
+      permittedInsecurePackages = config.myconfig.programs.nltchNur.permittedInsecurePackages;
+    };
+  };
+in
 delib.module {
   name = "programs.nltchNur";
 
@@ -14,25 +24,9 @@ delib.module {
     };
   };
 
-  nixos.ifEnabled = {
-    environment.systemPackages = config.myconfig.programs.nltchNur.packages;
-  };
+  nixos.ifEnabled = sharedIfEnabled;
+  nixos.always = sharedAlways;
 
-  nixos.always = {
-    nixpkgs.config = {
-      allowUnfree = true;
-      permittedInsecurePackages = config.myconfig.programs.nltchNur.permittedInsecurePackages;
-    };
-  };
-
-  darwin.ifEnabled = {
-    environment.systemPackages = config.myconfig.programs.nltchNur.packages;
-  };
-
-  darwin.always = {
-    nixpkgs.config = {
-      allowUnfree = true;
-      permittedInsecurePackages = config.myconfig.programs.nltchNur.permittedInsecurePackages;
-    };
-  };
+  darwin.ifEnabled = sharedIfEnabled;
+  darwin.always = sharedAlways;
 }

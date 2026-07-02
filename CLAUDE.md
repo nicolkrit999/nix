@@ -50,6 +50,7 @@ If you genuinely need to "modernize" a host (adopt the new defaults), do it **on
 | Host | Arch | Platform |
 |------|------|----------|
 | `nixos-desktop` | `x86_64-linux` | NixOS |
+| `nixos-laptop` | `x86_64-linux` | NixOS |
 | `Krits-MacBook-Pro` | `aarch64-darwin` | nix-darwin |
 
 ## Cross-Platform Architecture

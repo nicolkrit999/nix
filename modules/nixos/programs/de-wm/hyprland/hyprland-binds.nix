@@ -17,7 +17,7 @@ delib.module {
       browser = myconfig.constants.browser or "firefox";
       rawFm = myconfig.constants.fileManager or "dolphin";
       rawEd = myconfig.constants.editor or "vscode";
-      termApps = [ "nvim" "neovim" "vim" "nano" "hx" "helix" "yazi" "ranger" "lf" "nnn" ];
+      termApps = myconfig.constants.terminalApps;
       smartFm = if builtins.elem rawFm termApps then "${term} --class ${rawFm} -e ${rawFm}" else rawFm;
       smartEd = if builtins.elem rawEd termApps then "${term} --class ${rawEd} -e ${rawEd}" else rawEd;
 

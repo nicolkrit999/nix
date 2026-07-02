@@ -75,9 +75,9 @@ delib.module {
         nas_owncloud_user.sopsFile = commonSecrets;
         nas_owncloud_pass.sopsFile = commonSecrets;
 
-        rclone_google_drive_conf.sopsFile = commonSecrets;
-        rclone_onedrive_personal_conf.sopsFile = commonSecrets;
-        rclone_pcloud_conf.sopsFile = commonSecrets;
+        # rclone_google_drive_conf / rclone_onedrive_personal_conf / rclone_pcloud_conf
+        # are declared solely by their consuming service modules under
+        # users/krit/nixos/services/cloud/ - not duplicated here.
 
         tailscale_key.sopsFile = commonSecrets;
 

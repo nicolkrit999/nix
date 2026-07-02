@@ -27,7 +27,7 @@ delib.module {
       editor = myconfig.constants.editor;
       fileManager = myconfig.constants.fileManager;
 
-      termApps = [ "nvim" "neovim" "vim" "nano" "hx" "helix" "yazi" "ranger" "lf" "nnn" ];
+      termApps = myconfig.constants.terminalApps;
       smartLaunch =
         app: if builtins.elem app termApps then "${term} --class ${app} -e ${app}" else app;
 

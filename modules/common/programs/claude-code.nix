@@ -23,6 +23,12 @@ let
     cai-openrouter-qwen = "cai-openrouter --model qwen/qwen3.5-397b-a17b";
     cai-openrouter-minimax = "cai-openrouter --model minimax/minimax-m2.5";
   };
+  claudeCodePackages = [
+    pkgs.claude-code
+    pkgs.nodejs_latest
+    pkgs.bun
+    pkgs.rtk
+  ];
 in
 delib.module {
   name = "programs.claude-code";
@@ -66,12 +72,7 @@ delib.module {
   darwin.ifEnabled =
     { ... }:
     {
-      environment.systemPackages = [
-        pkgs.claude-code
-        pkgs.nodejs_latest
-        pkgs.bun
-        pkgs.rtk
-      ];
+      environment.systemPackages = claudeCodePackages;
     };
 
   # ===========================================================================
@@ -85,12 +86,7 @@ delib.module {
   };
 
   nixos.ifEnabled = { ... }: {
-    environment.systemPackages = [
-      pkgs.claude-code
-      pkgs.nodejs_latest
-      pkgs.bun
-      pkgs.rtk
-    ];
+    environment.systemPackages = claudeCodePackages;
   };
 
   home.ifEnabled = { myconfig, ... }: {

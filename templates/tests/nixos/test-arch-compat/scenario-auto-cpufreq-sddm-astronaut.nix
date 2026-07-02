@@ -16,6 +16,7 @@ let
     # Core setup
     (src + "/modules/common/toplevel/home-manager.nix")
     (src + "/modules/nixos/config/constants-nixos.nix")
+    (src + "/modules/common/config/constants.nix")
     (src + "/modules/nixos/toplevel/nix-nixos.nix")
     (src + "/modules/common/themes/catppuccin.nix")
 
@@ -155,12 +156,12 @@ let
     (src + "/users/krit/common/toplevel/attic.nix")
 
     # users/krit/nixos - NixOS-specific user modules (ext-dotfiles excluded: pure symlinks, no arch risk)
-    (src + "/users/krit/nixos/common/home/home-base.nix")
-    (src + "/users/krit/nixos/common/system/default-user.nix")
-    (src + "/users/krit/nixos/common/system/git-ssh-signing.nix")
-    (src + "/users/krit/nixos/common/system/ssh-config.nix")
-    (src + "/users/krit/nixos/common/system/swiss-locale.nix")
-    (src + "/users/krit/nixos/common/system/virtualisation.nix")
+    (src + "/users/krit/nixos/shared/home/home-base.nix")
+    (src + "/users/krit/nixos/shared/system/default-user.nix")
+    (src + "/users/krit/nixos/shared/system/git-ssh-signing.nix")
+    (src + "/users/krit/nixos/shared/system/ssh-config.nix")
+    (src + "/users/krit/nixos/shared/system/swiss-locale.nix")
+    (src + "/users/krit/nixos/shared/system/virtualisation.nix")
     (src + "/users/krit/nixos/programs/file-managers/dolphin.nix")
     (src + "/users/krit/nixos/programs/gui-programs/helium.nix")
     (src + "/users/krit/nixos/programs/gui-programs/zen-browser/spaces.nix")

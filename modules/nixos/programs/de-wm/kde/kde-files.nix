@@ -10,8 +10,6 @@ delib.module {
     , ...
     }:
     {
-      programs.plasma.overrideConfig = false;
-
       programs.plasma.configFile = {
         "spectaclerc" = {
           "General" = {

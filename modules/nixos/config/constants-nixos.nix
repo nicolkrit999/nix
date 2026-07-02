@@ -10,12 +10,8 @@ delib.module {
       hostname = strOption "nixos-host";
       mainLocale = strOption "en_US.UTF-8";
       lcTime = strOption "";
-      gitUserName = strOption "";
-      gitUserEmail = strOption "";
 
-      shell = strOption "bash";
       browser = strOption "chromium";
-      editor = strOption "nano";
       fileManager = strOption "dolphin";
 
       # Apps that need to be launched inside a terminal (used by smartLaunch helpers)
@@ -38,7 +34,7 @@ delib.module {
           (submodule {
             options = {
               targetMonitor = strOption "*"; # Match any unassigned monitors
-              # wallpaperURL must always be a valid static image path — it is consumed by
+              # wallpaperURL must always be a valid static image path - it is consumed by
               # DEs, stylix, hyprlock, and kscreenlocker even when gifURL is set.
               wallpaperURL = strOption "";
               wallpaperSHA256 = strOption "";
@@ -54,14 +50,6 @@ delib.module {
             }
           ];
 
-      theme = {
-        polarity = strOption "dark";
-        base16Theme = strOption "catppuccin-mocha";
-        catppuccin = boolOption false;
-        catppuccinFlavor = strOption "mocha";
-        catppuccinAccent = strOption "mauve";
-      };
-
       hyprland = {
         rounding = intOption 10;
         gap = intOption 5;
@@ -74,34 +62,12 @@ delib.module {
         rounding = intOption 10;
       };
 
-      terminal = {
-        name = strOption "alacritty"; # Terminal emulator app name
-        cursorStyle = strOption "block"; # block, beam, underline
-        cursorBlink = boolOption true; # Blinking cursor (true = better UX for locating cursor)
-        cursorBeamWidth = floatOption 3.0; # Beam cursor width in pixels or cell fraction
-        animation = boolOption true; # Enable transient prompt animation on command execution
-      };
-
       screenshots = strOption "$HOME/Pictures/Screenshots";
       keyboardLayout = strOption "us";
       keyboardVariant = strOption "";
 
       weather = strOption "London";
       useFahrenheit = boolOption false;
-      nixImpure = boolOption false;
       timeZone = strOption "Etc/UTC";
-
-      cachix = {
-        enable = boolOption false;
-        push = boolOption false;
-        name = strOption "krit-nixos"; # Allow general users to use my custom cachix cache. Change if needed
-        publicKey = strOption "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks="; # Public key of the krit cachix cache, change as needd
-      };
-    };
-
-  myconfig.always =
-    { cfg, ... }:
-    {
-      args.shared.constants = cfg;
     };
 }

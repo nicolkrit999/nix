@@ -147,12 +147,13 @@ delib.module {
         swpure = "cd ${flakeDir} && git add -A && nh os switch ${flakeDir}";
         swimpure = "cd ${flakeDir} && git add -A && sudo nixos-rebuild switch --flake . --impure";
 
-        pkgs-home = "$EDITOR ${flakeDir}/home-manager/home-packages.nix";
-        pkgs-host = "$EDITOR ${flakeDir}/hosts/${myconfig.constants.hostname}/optional/host-packages/local-packages.nix";
+        pkgs-home = "$EDITOR ${flakeDir}/modules/${
+          if isDarwin then "darwin/toplevel/home-packages-darwin.nix" else "nixos/toplevel/home-packages-nixos.nix"
+        }";
+        pkgs-host = "$EDITOR ${flakeDir}/hosts/${myconfig.constants.hostname}/local-packages.nix";
 
         se = "sudoedit";
         reb-uefi = "systemctl reboot --firmware-setup";
-        swdryaarch64-linux = "cd ${flakeDir} && git add -A && nix build ${flakeDir}#nixosConfigurations.nixos-arm-vm.config.system.build.toplevel --dry-run --show-trace";
       }
       // (lib.optionalAttrs atticEnabled { attic-push = atticPushAlias; })
       // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPushAlias; });

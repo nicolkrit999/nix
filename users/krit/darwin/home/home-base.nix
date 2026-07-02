@@ -1,6 +1,5 @@
 { delib
 , inputs
-, pkgs
 , ...
 }:
 delib.module {
@@ -14,29 +13,9 @@ delib.module {
       home.username = myconfig.constants.user;
       home.homeDirectory = "/Users/${myconfig.constants.user}";
 
-      home.packages = with pkgs; [
-        fastfetch
-        fd
-        gh
-        htop
-        inetutils
-        nix-search-cli
-        pay-respects
-        pokemon-colorscripts
-        ripgrep
-        stow
-        tmate
-        tree
-        unzip
-        vscode
-        yt-dlp
-        zip
-        zlib
-      ];
-
       home.sessionVariables = {
-        EDITOR = "nvim";
-        VISUAL = "nvim";
+        EDITOR = myconfig.constants.editor;
+        VISUAL = myconfig.constants.editor;
       };
 
       home.activation = {

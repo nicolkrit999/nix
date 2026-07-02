@@ -7,7 +7,7 @@ delib.module {
   name = "qt";
 
   # Qt/KDE color theming (kdeglobals palette + colorscheme files) is delegated
-  # to stylix.targets.kde — it follows polarity + base16Theme, writes into
+  # to stylix.targets.kde - it follows polarity + base16Theme, writes into
   # xdg.systemDirs.config (immune to plasma-manager overrideConfig), and
   # supplies the colorscheme via XDG_DATA_DIRS for any DE/WM.
   #
@@ -16,12 +16,10 @@ delib.module {
   #   - qt5ct/qt6ct config (used outside KDE)
   #   - icon theme
   #
-  # NOTE: stylix.targets.qt is intentionally NOT enabled — it forces
+  # NOTE: stylix.targets.qt is intentionally NOT enabled - it forces
   # qt.platformTheme.name = "qtct", which strips plasma-integration from
   # Plasma's own Qt widgets and crashes Plasma sessions. kde target alone is
   # safe; qt target is not.
-  #
-  # Pre-stylix-delegation implementation preserved in `qt-old.nix.bak`.
 
   options = delib.singleEnableOption true;
 
@@ -60,7 +58,7 @@ delib.module {
         );
 
       # qt5ct/qt6ct configuration for non-KDE Qt apps. Color palette comes from
-      # the BreezeDark/Light .colors file referenced below — stylix doesn't
+      # the BreezeDark/Light .colors file referenced below - stylix doesn't
       # write qt5ct configs because stylix.targets.qt is disabled.
       xdg.configFile."qt6ct/qt6ct.conf".text = ''
         [Appearance]

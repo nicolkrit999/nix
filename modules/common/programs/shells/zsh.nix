@@ -32,7 +32,7 @@ delib.module {
           # Darwin-specific init
           + lib.optionalString isDarwin ''
             # TMUX AUTOSTART (always on Darwin)
-            if [[ -z "$TMUX" ]] && [[ "$-" == *i* ]]; then
+            if command -v tmux > /dev/null && [[ -z "$TMUX" ]] && [[ "$-" == *i* ]]; then
               exec tmux new-session -A -s main
             fi
 
@@ -63,7 +63,7 @@ delib.module {
             fi
 
             # TMUX AUTOSTART (Only in GUI)
-            if [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
+            if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
               tmux new-session -A -s main
             fi
 

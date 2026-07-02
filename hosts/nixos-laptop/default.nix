@@ -58,6 +58,25 @@ let
     "nemo" = "nemo.desktop";
   };
   resolve = name: desktopMap.${name} or "${name}.desktop";
+
+  langLayout = {
+    "format-en" = "🇺🇸-EN";
+    "format-it" = "🇮🇹-IT";
+    "format-de" = "🇩🇪-DE";
+    "format-fr" = "🇫🇷-FR";
+  };
+
+  pinnedApps = [
+    (resolve myBrowser)
+    (resolve myEditor)
+    (resolve myFileManager)
+    "github-desktop.desktop"
+    "LocalSend.desktop"
+    "proton-pass.desktop"
+    "vesktop.desktop"
+    "com.actualbudget.actual.desktop"
+    "com.rtosta.zapzap.desktop"
+  ];
 in
 
 delib.host {
@@ -446,7 +465,6 @@ delib.host {
             { _args = [ "SUPER + SHIFT + return" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-term")'') ]; }
             { _args = [ "SUPER + SHIFT + F" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-fs -e yazi")'') ]; }
             { _args = [ "SUPER + SHIFT + B" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myBrowser} --new-window --class scratch-browser")'') ]; }
-            { _args = [ "SUPER + Y" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("chromium-browser")'') ]; }
 
             { _args = [ "XF86Tools" (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m-1" })'') ]; }
             { _args = [ "XF86Launch5" (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m+1" })'') ]; }
@@ -471,8 +489,6 @@ delib.host {
             "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
           ];
           extraBinds = [
-            "SUPER,Y,spawn,chromium-browser"
-
             "NONE,XF86Tools,viewtoleft_have_client,0"
             "NONE,XF86Launch5,viewtoright_have_client,0"
             "NONE,XF86Launch6,togglemaximizescreen,"
@@ -534,12 +550,7 @@ delib.host {
 
         waybar-mango = {
           enable = true;
-          waybarLayout = {
-            "format-en" = "🇺🇸-EN";
-            "format-it" = "🇮🇹-IT";
-            "format-de" = "🇩🇪-DE";
-            "format-fr" = "🇫🇷-FR";
-          };
+          waybarLayout = langLayout;
         };
 
         waybar-niri = {
@@ -558,23 +569,8 @@ delib.host {
 
         gnome = {
           enable = false; # Gnome pulls lot of elements. Since i almost never use it keep it disabled to save battery and resources
-          pinnedApps = [
-            (resolve myBrowser)
-            (resolve myEditor)
-            (resolve myFileManager)
-            "github-desktop.desktop"
-            "LocalSend.desktop"
-            "proton-pass.desktop"
-            "vesktop.desktop"
-            "com.actualbudget.actual.desktop"
-            "com.rtosta.zapzap.desktop"
-          ];
+          pinnedApps = pinnedApps;
           extraBinds = [
-            {
-              name = "Launch Chromium";
-              command = "chromium";
-              binding = "<Super>y";
-            }
             # 🖱️ LOGITECH MX MASTER Thumb button gesstures
             { name = "Gesture Left (Prev Workspace)"; command = "${pkgs.wtype}/bin/wtype -M super -k Page_Up -m super"; binding = "XF86Tools"; }
             { name = "Gesture Right (Next Workspace)"; command = "${pkgs.wtype}/bin/wtype -M super -k Page_Down -m super"; binding = "XF86Launch5"; }
@@ -585,22 +581,8 @@ delib.host {
 
         kde = {
           enable = true;
-          pinnedApps = [
-            (resolve myBrowser)
-            (resolve myEditor)
-            (resolve myFileManager)
-            "github-desktop.desktop"
-            "LocalSend.desktop"
-            "proton-pass.desktop"
-            "vesktop.desktop"
-            "com.actualbudget.actual.desktop"
-            "com.rtosta.zapzap.desktop"
-          ];
+          pinnedApps = pinnedApps;
           extraBinds = {
-            "launch-chromium" = {
-              key = "Meta+Y";
-              command = "chromium";
-            };
             # 🖱️ LOGITECH MX MASTER Thumb button gesstures
             "gesture-left" = { key = "XF86Tools"; command = "qdbus org.kde.KWin /KWin org.kde.KWin.previousDesktop"; };
             "gesture-right" = { key = "XF86Launch5"; command = "qdbus org.kde.KWin /KWin org.kde.KWin.nextDesktop"; };
