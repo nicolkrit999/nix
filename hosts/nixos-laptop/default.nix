@@ -619,6 +619,7 @@ delib.host {
         external.dotfiles-private.enable = true;
         hyprlock.enable = true;
         impermanence.enable = true;
+        rcloneMount.enable = true;
         resolved.enable = true;
         tailscale.enable = true;
 
@@ -713,6 +714,12 @@ delib.host {
         owncloud.enable = true;
         smb.enable = true;
         sshfs.enable = false;
+      };
+
+      krit.services.cloud = {
+        googleDrive.enable = true;
+        onedrivePersonal.enable = true;
+        pcloud.enable = true;
       };
 
       # ---------------------------------------------------------------

@@ -64,10 +64,13 @@ delib.module {
       services.cachefilesd.enable = true;
       fileSystems = builtins.listToAttrs (map mountShare shares);
       services.tailscale.enable = lib.mkForce true;
-      # Lock the parent — share contents stay 0777 (NAS quirk) but only
+      # Lock the parent - share contents stay 0777 (NAS quirk) but only
       # the configured user can traverse to them.
       systemd.tmpfiles.rules = [
         "d /mnt/nicol_nas 0700 ${myconfig.constants.user} users -"
       ];
+
+      home-manager.users.${myconfig.constants.user}.home.file."Documents/nicol-nas".source =
+        config.home-manager.users.${myconfig.constants.user}.lib.file.mkOutOfStoreSymlink "/mnt/nicol_nas/smb/${myconfig.constants.user}";
     };
 }

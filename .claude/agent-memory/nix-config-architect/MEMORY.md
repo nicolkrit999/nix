@@ -1,0 +1,1 @@
+- [ifEnabled arg-scope gotcha](feedback_ifenabled_arg_scope.md) - denix ifEnabled only passes cfg/myconfig; pkgs/lib/config need top-level closure; mkOutOfStoreSymlink needs home-manager.users.<user>.lib.file path

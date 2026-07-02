@@ -10,7 +10,7 @@
 # in its own system.nix, plus its sops defaultSopsFile / age config.
 #
 # The sops module is imported here in the `always` blocks so the `sops` option
-# is guaranteed to exist wherever this module is loaded — a host's own
+# is guaranteed to exist wherever this module is loaded - a host's own
 # `imports` of the sops module does not reliably propagate to sibling denix
 # modules during evaluation.
 { delib
@@ -43,7 +43,7 @@ delib.module {
   darwin.always.imports = [ inputs.nix-sops.darwinModules.sops ];
 
   # ===========================================================================
-  # NixOS — secrets shared across NixOS hosts (/home paths)
+  # NixOS - secrets shared across NixOS hosts (/home paths)
   # ===========================================================================
   nixos.ifEnabled =
     { myconfig, ... }:
@@ -75,6 +75,10 @@ delib.module {
         nas_owncloud_user.sopsFile = commonSecrets;
         nas_owncloud_pass.sopsFile = commonSecrets;
 
+        rclone_google_drive_conf.sopsFile = commonSecrets;
+        rclone_onedrive_personal_conf.sopsFile = commonSecrets;
+        rclone_pcloud_conf.sopsFile = commonSecrets;
+
         tailscale_key.sopsFile = commonSecrets;
 
         hevy_api_key = {
@@ -82,7 +86,7 @@ delib.module {
           owner = user;
         };
 
-        # Push tokens — live in the shared common sops file
+        # Push tokens - live in the shared common sops file
         attic-push-token = {
           sopsFile = commonSecrets;
           owner = user;
@@ -92,7 +96,7 @@ delib.module {
           owner = user;
         };
 
-        # Borg backup — identical on both NixOS hosts, but stored in each host's
+        # Borg backup - identical on both NixOS hosts, but stored in each host's
         # OWN default sops file, so no sopsFile override (resolves per host).
         borg-passphrase = { };
         borg-private-key = { };
@@ -100,7 +104,7 @@ delib.module {
     };
 
   # ===========================================================================
-  # Darwin — secrets for the MacBook (/Users paths, static MCP list)
+  # Darwin - secrets for the MacBook (/Users paths, static MCP list)
   # ===========================================================================
   darwin.ifEnabled =
     { myconfig, ... }:
