@@ -414,10 +414,9 @@ delib.module {
             on = [
               "g"
               "m"
-              "n"
             ];
-            run = "cd /mnt/nicol_nas";
-            desc = "Go to the NAS";
+            run = "cd /mnt";
+            desc = "Go to the mountpoints";
           }
 
           {
