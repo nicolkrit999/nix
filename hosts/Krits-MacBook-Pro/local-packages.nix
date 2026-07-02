@@ -10,20 +10,17 @@ delib.module {
     {
       environment.systemPackages = with pkgs; [
         notion-app
-        bc
         carbon-now-cli
         cloudflared
         fastfetch
         fd
         ffmpeg
         gh
-        glow
         grex
         lsof
         mediainfo
         mars-mips
         ntfs3g
-        pass
         pay-respects
         pokemon-colorscripts
         stow
