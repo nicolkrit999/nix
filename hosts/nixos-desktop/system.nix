@@ -67,7 +67,18 @@ delib.host {
     boot.initrd.kernelModules = [ "amdgpu" ];
     hardware.graphics.enable = true;
 
-    # DP-3 is the in-case sensor panel (Windows-only use). So disabled here as it's not used
+    # DP-3 = the in-case sensor panel (1024x600, powered off, Windows-only use).
+    # NOT the JetKVM - that is on HDMI-A-1 (it presents an ASUS PA248QV EDID, see
+    # the HDMI-A-1 mirror block in default.nix). The panel's HDMI-to-DP cable keeps
+    # hotplug asserted while the dead panel serves no EDID ("connected", 0-byte EDID),
+    # so amdgpu logs "No EDID found on connector: DP-3" on every boot, clean ones
+    # included - this is harmless probe noise, not a fault. It is unused under
+    # Linux, so the connector is disabled at DRM probe time to quiet that noise;
+    # this is NOT the fix for the historical boot/reboot hangs. That wedge is
+    # caused by the JetKVM on HDMI-A-1 (amdgpu Display Core can't blank its CRTC
+    # on shutdown - "REG_WAIT timeout ... optc3_lock" - jetkvm/kvm#1140, no
+    # kernel fix as of 2026-07); the mitigation for that lives in the
+    # hyprland-jetkvm-teardown systemd user unit in home.nix.
     boot.kernelParams = [ "video=DP-3:d" ];
 
 
