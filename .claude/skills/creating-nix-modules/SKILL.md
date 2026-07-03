@@ -40,10 +40,25 @@ fully green.
 **Safeguard:** after ~4 rounds without convergence, stop and report the
 remaining issues to the user instead of continuing indefinitely.
 
+**6. DOCUMENT - dispatch `nix-config-architect`** to add an entry for each
+new module to `Documentation/usage/denix/possibilities.md`, under the
+matching section (Common Modules, NixOS-Only Modules, or Darwin-Only
+Modules - and the correct subsection, e.g. Programs/Services/System) based on
+where the module was placed. Follow the file's existing bullet format:
+module path in backticks, a one/two-sentence description, and a
+`**Warning:**` line only when disabling or misusing the module has real
+consequences (mirroring the style already used throughout that file). Skip
+this step for changes to an already-documented existing module - it only
+applies to genuinely new modules. `nix-config-architect` is used here (not
+another agent) because it authored the module and already holds its purpose
+and placement in context; no other agent in this pipeline touches
+documentation.
+
 ## Exit condition
 
-Linter clean + `nix-checker` green. Report to the user exactly what was
-created or modified and on which host(s).
+Linter clean + `nix-checker` green + `possibilities.md` updated for any new
+modules. Report to the user exactly what was created or modified, on which
+host(s), and confirm the documentation entry was added.
 
 ## Out of scope
 
