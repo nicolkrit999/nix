@@ -263,7 +263,7 @@ delib.host {
             agenda
             agent-skills-sh
             aria2-manager
-            bluetooth
+            # bluetooth  # excluded upstream (vicinaehq/extensions flake.nix): node-gyp build fails in nix sandbox (dbus-next -> usocket), see vicinaehq/extensions#314
             case-converter
             color-converter
             fuzzy-files
