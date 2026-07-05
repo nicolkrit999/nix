@@ -33,6 +33,7 @@
               # ============================================================
               typst # Typst compiler (lightweight; default for math/CS notes)
               typstyle # Typst formatter
+              tinymist # Typst linter
 
               # Tectonic ships full LaTeX but fetches ONLY the packages each
               # document uses (cached), so there is no multi-GB texlive scheme.
@@ -45,7 +46,7 @@
               # ============================================================
               # Diagrams & plots (discrete math, automata, trees, CS arch)
               # ============================================================
-              graphviz # `dot` — graphs, trees, automata
+              graphviz # `dot` - graphs, trees, automata
               d2 # modern diagram scripting (no browser needed)
               plantuml # UML diagrams (pulls a JRE)
               mermaid-cli # render mermaid -> svg/png/pdf (pulls Chromium)
@@ -54,11 +55,11 @@
               # ============================================================
               # PDF / image / vector processing
               # ============================================================
-              poppler-utils # pdftotext / pdfinfo / pdfimages — read source PDFs
+              poppler-utils # pdftotext / pdfinfo / pdfimages - read source PDFs
               ghostscript # PDF/PS manipulation & compression
               imagemagick # raster figure conversion / resizing
               qpdf # lightweight PDF manipulation
-              librsvg # `rsvg-convert` — SVG -> PDF/PNG
+              librsvg # `rsvg-convert` - SVG -> PDF/PNG
               inkscape # high-fidelity SVG -> PDF for figures
 
               # ============================================================
@@ -70,7 +71,7 @@
               hunspellDicts.it_IT # ... Italian (notes are often written in Italian)
 
               # ============================================================
-              # Python scientific / stats stack — verify math & generate
+              # Python scientific / stats stack - verify math & generate
               # figures. Covers linear algebra, calculus, discrete/graph
               # theory, probability & statistics. `pygments` drives LaTeX
               # `minted` syntax-highlighted code listings.
@@ -87,6 +88,7 @@
                 ps.networkx # graph theory / discrete math
                 ps.ipython # interactive exploration
                 ps.pygments # syntax highlighting for minted
+                ps.genanki # build Anki decks (.apkg) - exporting-anki-decks skill
               ]))
             ];
 
