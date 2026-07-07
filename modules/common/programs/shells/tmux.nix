@@ -1,5 +1,6 @@
 { delib
 , lib
+, moduleSystem
 , ...
 }:
 delib.module {
@@ -10,6 +11,21 @@ delib.module {
     { myconfig
     , ...
     }:
+    let
+      # Standalone home-manager builds (e.g. Nicol-NAS on Debian/UGOS) run on a
+      # foreign distro whose /etc/profile resets PATH. hm-session-vars.sh would
+      # normally re-add ~/.nix-profile/bin etc., but tmux spawns LOGIN shells by
+      # default, and the outer SSH login shell already sourced hm-session-vars.sh
+      # and exported the __HM_SESS_VARS_SOURCED=1 guard - so the nested login
+      # shell inside each tmux pane skips sourcing it again, and the pane loses
+      # every nix path (even the tmux binary itself becomes unresolvable).
+      # Fix: make tmux spawn non-login interactive shells so panes inherit the
+      # server's environment (already correctly nix-PATH'd) instead of re-running
+      # /etc/profile. Only needed for standalone home-manager - NixOS has a
+      # system-wide PATH so panes never lose it, and Darwin *needs* login shells
+      # for /usr/libexec/path_helper to run.
+      isStandaloneHome = moduleSystem == "home";
+    in
     {
       # -----------------------------------------------------------------------
       catppuccin.tmux.enable = myconfig.constants.theme.catppuccin or false;
@@ -31,6 +47,11 @@ delib.module {
         terminal = "screen-256color";
 
         extraConfig = ''
+          ${lib.optionalString isStandaloneHome ''
+            # Spawn non-login shells in panes so they inherit this server's PATH
+            # instead of re-running /etc/profile (see comment above on why).
+            set -g default-command "$SHELL"
+          ''}
           # TERMINAL FILE MANAGERS IMAGE PREVIEW SUPPORT
           set -g allow-passthrough on
           set -ga update-environment TERM
