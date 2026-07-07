@@ -160,9 +160,16 @@ delib.module {
       // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPushAlias; });
 
       homeAliases = {
-        sw = "cd ${flakeDir} && git add -A && home-manager switch --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
+        # -b hm-backup: standalone home-manager has no equivalent of the
+        # NixOS/darwin-integration `home-manager.backupFileExtension` option
+        # (that option only exists in the nixos/nix-darwin integration
+        # layer), so activation backups have to be requested per-invocation
+        # via the CLI flag instead. "hm-backup" matches the extension string
+        # used by the darwin integration (see darwinAliases below) for
+        # consistency across the repo.
+        sw = "cd ${flakeDir} && git add -A && home-manager switch -b hm-backup --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
         swdry = "cd ${flakeDir} && git add -A && home-manager build --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
-        upd = "cd ${flakeDir} && git add -A && nix flake update && home-manager switch --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
+        upd = "cd ${flakeDir} && git add -A && nix flake update && home-manager switch -b hm-backup --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
         hm-gens = "home-manager generations";
         nfc = "cd ${flakeDir} && git add -A && nix flake check";
       };

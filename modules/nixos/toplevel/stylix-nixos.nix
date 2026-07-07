@@ -108,15 +108,28 @@ delib.module {
     in
     {
       stylix = lib.mkMerge [
-        (lib.mkIf hasWallpapers {
+        # Unconditional: on integrated NixOS/Darwin builds this just restates
+        # what's already inherited from the system-level stylix config; on a
+        # standalone home-manager build (moduleSystem == "home", e.g.
+        # Nicol-NAS) there is no nixos.ifEnabled/darwin.ifEnabled to inherit
+        # from, so this is the only place base16Scheme gets set. Stylix
+        # accepts base16Scheme alone (image is optional) - matches how
+        # `stylix-darwin.nix`'s `darwin.ifEnabled` already sets base16Scheme
+        # with no image/wallpaper dependency.
+        {
           enable = true;
+          base16Scheme = "${pkgs.base16-schemes}/share/themes/${
+            myconfig.constants.theme.base16Theme or "catppuccin-mocha"
+          }.yaml";
+        }
+
+        # Wallpaper is a separate, optional concern - only wire it up when a
+        # host actually declares one.
+        (lib.mkIf hasWallpapers {
           image = pkgs.fetchurl {
             url = fallbackWp.wallpaperURL;
             sha256 = fallbackWp.wallpaperSHA256;
           };
-          base16Scheme = "${pkgs.base16-schemes}/share/themes/${
-            myconfig.constants.theme.base16Theme or "catppuccin-mocha"
-          }.yaml";
         })
 
         {
