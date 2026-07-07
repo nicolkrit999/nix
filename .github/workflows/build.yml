@@ -32,7 +32,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install CA Certificates
-        run: sudo apt-get update && sudo apt-get install -y ca-certificates
+        run: |
+          # packages.microsoft.com intermittently serves corrupt InRelease
+          # files ("Clearsigned file isn't valid, got 'NOSPLIT'"), which fails
+          # the whole apt-get update. ca-certificates lives in the Ubuntu
+          # archive, so drop every third-party source that points at
+          # Microsoft before updating.
+          sudo rm -f $(grep -lr packages.microsoft.com /etc/apt/sources.list.d/ 2>/dev/null) || true
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -131,7 +139,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install CA Certificates
-        run: sudo apt-get update && sudo apt-get install -y ca-certificates
+        run: |
+          # packages.microsoft.com intermittently serves corrupt InRelease
+          # files ("Clearsigned file isn't valid, got 'NOSPLIT'"), which fails
+          # the whole apt-get update. ca-certificates lives in the Ubuntu
+          # archive, so drop every third-party source that points at
+          # Microsoft before updating.
+          sudo rm -f $(grep -lr packages.microsoft.com /etc/apt/sources.list.d/ 2>/dev/null) || true
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
