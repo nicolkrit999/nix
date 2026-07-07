@@ -110,6 +110,7 @@ delib.module {
         nix-gc-roots = "nix-store --gc --print-roots";
         deadnixfixall = "nix run github:astro/deadnix -- -e ${flakeDir}";
         deadnixscanall = "nix run github:astro/deadnix -- ${flakeDir}";
+        enabledevalcheck = ''nix eval .#homeConfigurations."${myconfig.constants.user}@${myconfig.constants.hostname}".config.home.packages --apply 'ps: builtins.sort (a: b: a < b) (map (p: p.name or p.pname) ps)' | tr '[]' '\n' | tr '"' '\n' | grep -v '^\s*$' | sort -u'';
 
         fmt-dry = "cd ${flakeDir} && git add -A && nix fmt -- --check";
         fmt = "cd ${flakeDir} && git add -A && nix fmt -- **/*.nix";

@@ -1,4 +1,4 @@
-{ delib, inputs, pkgs, lib, ... }:
+{ delib, inputs, pkgs, lib, moduleSystem, ... }:
 let
   shellAliases = {
     caitempplugins = "npx claude-code-templates@latest --plugins";
@@ -100,5 +100,15 @@ delib.module {
     programs.fish.shellAbbrs = lib.mkIf (myconfig.constants.shell == "fish") shellAliases;
     programs.zsh.shellAliases = lib.mkIf (myconfig.constants.shell == "zsh") shellAliases;
     programs.bash.shellAliases = lib.mkIf (myconfig.constants.shell == "bash") shellAliases;
+
+    # On integrated NixOS/Darwin builds, claudeCodePackages are installed via
+    # environment.systemPackages in nixos.ifEnabled/darwin.ifEnabled above -
+    # installing them again here would double-install. On a standalone
+    # home-manager build (moduleSystem == "home", e.g. Nicol-NAS) there is no
+    # system-level package set to fall back on, so home.packages is the only
+    # place these get installed. Plain if/else (not lib.mkIf) per the
+    # standing pattern for moduleSystem guards - see ssh-config.nix /
+    # git-ssh-signing.nix.
+    home.packages = if moduleSystem == "home" then claudeCodePackages else [ ];
   };
 }

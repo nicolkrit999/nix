@@ -68,7 +68,16 @@ delib.host {
       # theme = {...} constants above and modules/nixos/toplevel/stylix-nixos.nix.
       stylix = {
         enable = true;
-        targets = { };
+        # kde/gtk targets default-enable (stylix-nixos.nix's home.ifEnabled
+        # sets them `!isCatppuccin`) and pull in stylix-kde-theme/adw-gtk3 -
+        # neither GTK nor KDE exist on this headless NAS, so switch them
+        # off explicitly. qt stays untouched here (already off via the
+        # separate qt.enable = false module below - not a stylix target).
+        # Fonts are left alone: harmless on a headless host.
+        targets = {
+          kde.enable = false;
+          gtk.enable = false;
+        };
       };
 
       # ---------------------------------------------------------------
