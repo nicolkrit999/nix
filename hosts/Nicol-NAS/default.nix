@@ -130,6 +130,16 @@ delib.host {
       krit.programs.yazi.enable = true;
 
       # ---------------------------------------------------------------
+      # 🧰 SERVICES
+      # ---------------------------------------------------------------
+      # Same style/key as hosts/nixos-desktop/default.nix's services.external
+      # block. home.ifEnabled works unchanged on a standalone home-manager
+      # build; packagesPerHost.Nicol-NAS in ext-dotfiles-private.nix scopes
+      # this host to "claude/common" + "claude/Nicol-NAS" only (no gsd, no
+      # vicinae - both interactive/GUI tooling not applicable headless).
+      services.external.dotfiles-private.enable = true;
+
+      # ---------------------------------------------------------------
       # 👤 KRIT SERVICES
       # ---------------------------------------------------------------
       krit.services.nicol-nas.local-packages.enable = true;
