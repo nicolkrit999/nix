@@ -54,6 +54,8 @@ delib.module {
       })
     ];
 
+    nix.nixPath = [ "nixpkgs=flake:nixpkgs" ];
+
     nix.settings = {
       experimental-features = [
         "nix-command"

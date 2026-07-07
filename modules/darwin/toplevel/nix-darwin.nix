@@ -23,6 +23,8 @@ delib.module {
 
       nix.enable = true;
 
+      nix.nixPath = [ "nixpkgs=flake:nixpkgs" ];
+
       nix.settings = {
         experimental-features = [
           "nix-command"
