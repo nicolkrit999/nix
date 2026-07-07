@@ -1,4 +1,4 @@
-{ delib, inputs, pkgs, lib, moduleSystem, ... }:
+{ delib, inputs, pkgs, lib, moduleSystem, config, ... }:
 let
   shellAliases = {
     caitempplugins = "npx claude-code-templates@latest --plugins";
@@ -89,26 +89,81 @@ delib.module {
     environment.systemPackages = claudeCodePackages;
   };
 
-  home.ifEnabled = { myconfig, ... }: {
-    home.sessionVariables.CLAUDE_BINARY = "${pkgs.claude-code}/bin/.claude-unwrapped";
-    programs.git.ignores = [
-      # Claude code
-      "credentials.json"
-      "security_warnings_*.json"
-    ];
+  home.ifEnabled = { myconfig, ... }:
+    let
+      mcpSecrets = myconfig.programs.claude-code.mcpSecrets;
+      mcpEnv = myconfig.programs.claude-code.mcpEnv;
 
-    programs.fish.shellAbbrs = lib.mkIf (myconfig.constants.shell == "fish") shellAliases;
-    programs.zsh.shellAliases = lib.mkIf (myconfig.constants.shell == "zsh") shellAliases;
-    programs.bash.shellAliases = lib.mkIf (myconfig.constants.shell == "bash") shellAliases;
+      # ---------------------------------------------------------------------
+      # Home-standalone (moduleSystem == "home", e.g. Nicol-NAS) MCP secret/env
+      # consumer.
+      #
+      # On NixOS/Darwin the actual consumer of an MCP secret's *value* is
+      # users/krit/common/programs/claude-code-wrappers.nix's cai-openrouter
+      # script, which hardcodes `cat /run/secrets/openrouter_api_claude_code`
+      # and exports ANTHROPIC_AUTH_TOKEN from it - a root-owned system-sops
+      # path. That mechanism is single-purpose (only ever wired the one
+      # OPENROUTER secret) and structurally can't extend to the rest of
+      # mcpSecrets/mcpEnv: /run/secrets doesn't exist on an unprivileged
+      # home-manager-only build, and claude-code-wrappers.nix's `cai` family
+      # also pulls in the claude.ai-connector policy-rewrite machinery, which
+      # has no reason to run on a headless NAS.
+      #
+      # So for home builds we wrap the `claude` binary itself: a
+      # writeShellScriptBin "claude" that, at RUNTIME (never at build time -
+      # no secret value is ever embedded in the nix store, only the sops-nix
+      # runtime *path*), exports each mcpSecrets entry by `cat`-ing
+      # config.sops.secrets.<name>.path (sops-nix's home-manager module
+      # resolves this to the stable ~/.config/sops-nix/secrets/<name> symlink
+      # - see users/krit/common/toplevel/sops-secrets.nix's
+      # mkClaudeMcpSecretsHome, which declares the very same mcpSecrets list
+      # as sops.secrets so these paths exist), plus each static mcpEnv var,
+      # then execs the real claude-code binary. This wrapper *replaces*
+      # pkgs.claude-code in home.packages for home builds only (rather than
+      # sitting alongside it) so there is no bin/claude collision in the
+      # home-manager profile.
+      mcpSecretExports = map
+        (s: ''export ${s.envVar}="$(cat ${lib.escapeShellArg config.sops.secrets.${s.sopsSecret}.path})"'')
+        mcpSecrets;
+      mcpStaticExports = lib.mapAttrsToList
+        (name: value: "export ${name}=${lib.escapeShellArg value}")
+        mcpEnv;
 
-    # On integrated NixOS/Darwin builds, claudeCodePackages are installed via
-    # environment.systemPackages in nixos.ifEnabled/darwin.ifEnabled above -
-    # installing them again here would double-install. On a standalone
-    # home-manager build (moduleSystem == "home", e.g. Nicol-NAS) there is no
-    # system-level package set to fall back on, so home.packages is the only
-    # place these get installed. Plain if/else (not lib.mkIf) per the
-    # standing pattern for moduleSystem guards - see ssh-config.nix /
-    # git-ssh-signing.nix.
-    home.packages = if moduleSystem == "home" then claudeCodePackages else [ ];
-  };
+      claudeHomeWrapper = pkgs.writeShellScriptBin "claude" ''
+        ${lib.concatStringsSep "\n" (mcpSecretExports ++ mcpStaticExports)}
+        exec ${pkgs.claude-code}/bin/claude "$@"
+      '';
+
+      homeClaudeCodePackages = [
+        claudeHomeWrapper
+        pkgs.nodejs_latest
+        pkgs.bun
+        pkgs.rtk
+      ];
+    in
+    {
+      home.sessionVariables.CLAUDE_BINARY = "${pkgs.claude-code}/bin/.claude-unwrapped";
+      programs.git.ignores = [
+        # Claude code
+        "credentials.json"
+        "security_warnings_*.json"
+      ];
+
+      programs.fish.shellAbbrs = lib.mkIf (myconfig.constants.shell == "fish") shellAliases;
+      programs.zsh.shellAliases = lib.mkIf (myconfig.constants.shell == "zsh") shellAliases;
+      programs.bash.shellAliases = lib.mkIf (myconfig.constants.shell == "bash") shellAliases;
+
+      # On integrated NixOS/Darwin builds, claudeCodePackages are installed via
+      # environment.systemPackages in nixos.ifEnabled/darwin.ifEnabled above -
+      # installing them again here would double-install, and their MCP-secret
+      # consumption path is unchanged (claude-code-wrappers.nix, /run/secrets).
+      # On a standalone home-manager build (moduleSystem == "home", e.g.
+      # Nicol-NAS) there is no system-level package set to fall back on, so
+      # home.packages is the only place these get installed - and the wrapped
+      # `claude` above is what actually wires mcpSecrets/mcpEnv into the
+      # process environment there. Plain if/else (not lib.mkIf) per the
+      # standing pattern for moduleSystem guards - see ssh-config.nix /
+      # git-ssh-signing.nix.
+      home.packages = if moduleSystem == "home" then homeClaudeCodePackages else [ ];
+    };
 }

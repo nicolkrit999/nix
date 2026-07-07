@@ -98,17 +98,29 @@ delib.host {
           customGitIgnores = [ ];
         };
 
-        # See project memory / final report: mcpSecrets/mcpEnv are declared
-        # options on programs.claude-code but are not consumed anywhere in its
-        # own home.ifEnabled block - the real consumers (claude-code-wrappers.nix)
-        # hardcode NixOS-style /run/secrets/<name> paths, which don't exist on a
-        # home-manager-standalone host. Left empty deliberately - not a hack
-        # around a missing feature, just not wiring secrets that have nowhere
-        # home-manager-side to resolve to yet.
+        # Same MCP secrets list as hosts/nixos-desktop/default.nix - all of
+        # these already live in the shared common sops file, which this host
+        # decrypts via krit.commonSopsSecrets.enable above. Consumed here by
+        # claude-code.nix's home.ifEnabled wrapped-`claude` binary (moduleSystem
+        # == "home" path), not by claude-code-wrappers.nix's /run/secrets-based
+        # scripts (not enabled on this host - see comment there).
         claude-code = {
           enable = true;
-          mcpSecrets = [ ];
-          mcpEnv = { };
+          mcpSecrets = [
+            { sopsSecret = "openrouter_api_claude_code"; envVar = "OPENROUTER_API_KEY"; }
+            { sopsSecret = "claude_mcp_actual_password"; envVar = "ACTUAL_PASSWORD"; }
+            { sopsSecret = "claude_mcp_actual_sync_id"; envVar = "ACTUAL_SYNC_ID"; }
+            { sopsSecret = "claude_mcp_actual_encryption_password"; envVar = "ACTUAL_BUDGET_ENCRYPTION_PASSWORD"; }
+            { sopsSecret = "claude_mcp_context7_api_key"; envVar = "CONTEXT7_API_KEY"; }
+            { sopsSecret = "claude_mcp_openai_api_key"; envVar = "OPENAI_API_KEY"; }
+            { sopsSecret = "claude_mcp_milvus_token"; envVar = "MILVUS_TOKEN"; }
+            { sopsSecret = "claude_mcp_github_token"; envVar = "GITHUB_TOKEN"; }
+            { sopsSecret = "claude_mcp_portainer_token"; envVar = "PORTAINER_TOKEN"; }
+            #{ sopsSecret = "claude_mcp_kagi_api_key"; envVar = "KAGI_API_KEY"; }
+          ];
+          mcpEnv = {
+            ACTUAL_SERVER_URL = "https://budget.nicolkrit.ch";
+          };
         };
       };
 
