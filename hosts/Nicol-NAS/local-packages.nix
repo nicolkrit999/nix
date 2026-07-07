@@ -29,6 +29,8 @@ delib.module {
         fastfetch # System info fetch tool
         tealdeer # tldr client (concise man pages)
         neovim # Text editor
+        sops # edit/decrypt repo secrets on the NAS - makes the sops-host alias work
+        age # key tooling for sops
       ];
     };
 }
