@@ -33,14 +33,14 @@ jobs:
 
       - name: Install CA Certificates
         run: |
-          # packages.microsoft.com intermittently serves corrupt InRelease
-          # files ("Clearsigned file isn't valid, got 'NOSPLIT'"), which fails
-          # the whole apt-get update. ca-certificates lives in the Ubuntu
-          # archive, so drop every third-party source that points at
-          # Microsoft before updating.
+          # Best-effort freshness refresh: ca-certificates is preinstalled on
+          # the runner image and Nix uses its own CA bundle (NIX_SSL_CERT_FILE),
+          # so a broken third-party apt repo (packages.microsoft.com,
+          # dl.google.com, ...) must never fail the job. Worst case we keep
+          # the image's cert bundle - exactly what we'd have without this step.
           sudo rm -f $(grep -lr packages.microsoft.com /etc/apt/sources.list.d/ 2>/dev/null) || true
-          sudo apt-get update
-          sudo apt-get install -y ca-certificates
+          sudo apt-get update || true
+          sudo apt-get install -y ca-certificates || true
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -140,14 +140,14 @@ jobs:
 
       - name: Install CA Certificates
         run: |
-          # packages.microsoft.com intermittently serves corrupt InRelease
-          # files ("Clearsigned file isn't valid, got 'NOSPLIT'"), which fails
-          # the whole apt-get update. ca-certificates lives in the Ubuntu
-          # archive, so drop every third-party source that points at
-          # Microsoft before updating.
+          # Best-effort freshness refresh: ca-certificates is preinstalled on
+          # the runner image and Nix uses its own CA bundle (NIX_SSL_CERT_FILE),
+          # so a broken third-party apt repo (packages.microsoft.com,
+          # dl.google.com, ...) must never fail the job. Worst case we keep
+          # the image's cert bundle - exactly what we'd have without this step.
           sudo rm -f $(grep -lr packages.microsoft.com /etc/apt/sources.list.d/ 2>/dev/null) || true
-          sudo apt-get update
-          sudo apt-get install -y ca-certificates
+          sudo apt-get update || true
+          sudo apt-get install -y ca-certificates || true
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
