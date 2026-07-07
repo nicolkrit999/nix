@@ -1,27 +1,13 @@
-# Opinionated: common SOPS secrets shared across krit's hosts.
-#
-# Replaces the old manually-imported templates/krit/sops/common-secrets.nix.
-# Because the NixOS and Darwin hosts use different home roots (/home vs /Users)
-# and a different MCP-secret strategy (dynamic vs static), the secret set is
-# expressed once per platform via nixos.ifEnabled / darwin.ifEnabled.
-#
-# Enable per host with `krit.commonSopsSecrets.enable = true;` in its default.nix.
-# Each host still owns its host-specific secrets (e.g. krit-local-password)
-# in its own system.nix, plus its sops defaultSopsFile / age config.
-#
-# The sops module is imported here in the `always` blocks so the `sops` option
-# is guaranteed to exist wherever this module is loaded - a host's own
-# `imports` of the sops module does not reliably propagate to sibling denix
-# modules during evaluation.
 { delib
 , lib
 , inputs
+, moduleSystem
 , ...
 }:
 let
   commonSecrets = ../sops/krit-common-secrets-sops.yaml;
 
-  # sops.secrets attrs generated from programs.claude-code.mcpSecrets (NixOS)
+  # sops.secrets attrs generated from programs.claude-code.mcpSecrets (NixOS/Darwin system-level)
   mkClaudeMcpSecrets = user: mcpSecrets:
     lib.listToAttrs (map
       (s: {
@@ -29,6 +15,19 @@ let
         value = {
           sopsFile = commonSecrets;
           owner = user;
+        };
+      })
+      mcpSecrets);
+
+  # Same, but for sops-nix's home-manager module: its secretType has no
+  # `owner` option (single-user context, nothing to chown to) - passing one
+  # would be a hard eval error ("no option named `owner`"), not a no-op.
+  mkClaudeMcpSecretsHome = mcpSecrets:
+    lib.listToAttrs (map
+      (s: {
+        name = s.sopsSecret;
+        value = {
+          sopsFile = commonSecrets;
         };
       })
       mcpSecrets);
@@ -41,6 +40,12 @@ delib.module {
   # Ensure the sops option set exists wherever this module is loaded.
   nixos.always.imports = [ inputs.nix-sops.nixosModules.sops ];
   darwin.always.imports = [ inputs.nix-sops.darwinModules.sops ];
+
+  # Standalone home-manager builds (e.g. nicol-nas) have no system-level sops -
+  # import sops-nix's own home-manager module instead. Guarded to
+  # moduleSystem == "home" only, so NixOS/Darwin hosts (which already get
+  # secrets from the system-level sops above) are never double-managed.
+  home.always.imports = lib.optionals (moduleSystem == "home") [ inputs.nix-sops.homeManagerModules.sops ];
 
   # ===========================================================================
   # NixOS - secrets shared across NixOS hosts (/home paths)
@@ -197,4 +202,51 @@ delib.module {
         };
       };
     };
+
+  # ===========================================================================
+  # Home-manager-standalone hosts (moduleSystem == "home", e.g. nicol-nas) -
+  # secrets via sops-nix's home-manager module. Secret `path` here resolves to
+  # sops-nix's XDG-runtime default symlink dir, NOT /run/secrets - anything
+  # that hardcodes /run/secrets/<name> (e.g. claude-code-wrappers.nix) will
+  # NOT find these; that's the known gap, not something patched around here.
+  # ===========================================================================
+  # NOTE on the guard shape: `moduleSystem` is a plain flake-level arg (not a
+  # config/myconfig attribute), so testing it is safe from the infinite-
+  # recursion trap that `lib.optionalAttrs (myconfig.foo.enable) {...}` falls
+  # into. But it must be a plain `if/then/else`, NOT `lib.mkIf`: denix nests
+  # this same `home.ifEnabled` body inside `home-manager.users.<user>` for
+  # NixOS/Darwin builds too (see apply.home in denix's lib/configurations),
+  # and on those builds the sops-nix home-manager module is never imported
+  # (home.always.imports above is itself gated the same way). `lib.mkIf`
+  # keeps the `sops.*` attribute paths structurally present in the merged
+  # config even when its condition is false, which the module system checks
+  # against declared options regardless of laziness -> "option does not
+  # exist" on NixOS/Darwin. A plain `if` makes the branch not taken evaluate
+  # to `{ }`, so `sops.*` is structurally absent there instead of just falsy.
+  # See feedback_delib_home_ifenable_patterns memory for the same failure
+  # mode with stylix.targets.*.
+  home.ifEnabled =
+    { myconfig, ... }:
+    if moduleSystem == "home" then
+      let
+        user = myconfig.constants.user;
+        homeDir = "/home/${user}";
+      in
+      {
+        sops.defaultSopsFile = commonSecrets;
+        sops.age.keyFile = "${homeDir}/.config/sops/age/keys.txt";
+
+        sops.secrets = {
+          github_fg_pat_token_nix = { };
+          github_general_ssh_pub = {
+            path = "${homeDir}/.ssh/id_github.pub";
+          };
+          github_general_ssh_key = {
+            path = "${homeDir}/.ssh/id_github";
+          };
+          tailscale_key = { };
+        } // mkClaudeMcpSecretsHome myconfig.programs.claude-code.mcpSecrets;
+      }
+    else
+      { };
 }

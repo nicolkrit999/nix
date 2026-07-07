@@ -1,6 +1,8 @@
 { delib
 , pkgs
+, lib
 , inputs
+, moduleSystem
 , ...
 }:
 delib.module {
@@ -16,11 +18,14 @@ delib.module {
       home = {
         username = user;
         homeDirectory = homeDir;
-        stateVersion = myconfig.constants.homeStateVersion or "25.11";
+        stateVersion = myconfig.constants.homeStateVersion;
         sessionPath = [ "$HOME/.local/bin" ];
       };
 
       programs.home-manager.enable = true;
+
+    } // lib.optionalAttrs (moduleSystem == "home") {
+      nixpkgs.config.allowUnfree = true;
     };
 
   nixos.always =

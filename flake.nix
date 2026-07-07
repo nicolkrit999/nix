@@ -33,13 +33,20 @@
         ./hosts/Krits-MacBook-Pro
       ];
 
+      # Home-manager-only hosts (no NixOS system config - excluded from nixos
+      # builds only, since they have no filesystems/bootloader/hardware-configuration
+      # and would break `nixosConfigurations.<name>` / `nix flake check`).
+      homeOnlyHosts = [
+        ./hosts/Nicol-NAS
+      ];
+
       mkConfigurations =
         moduleSystem:
         let
           platformExclude =
-            if moduleSystem == "nixos" then darwinHosts
+            if moduleSystem == "nixos" then darwinHosts ++ homeOnlyHosts
             else if moduleSystem == "darwin" then [ ]
-            else darwinHosts; # home-manager builds exclude darwin hosts
+            else darwinHosts; # home-manager builds exclude darwin hosts (keep homeOnlyHosts)
 
           # 3-way split: common modules shared, platform-specific separate
           # Darwin: common + darwin modules/users

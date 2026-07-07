@@ -95,6 +95,8 @@ delib.host {
         hostname = "nixos-laptop";
         mainLocale = myLocale;
 
+        homeStateVersion = "25.11";
+
         # ---------------------------------------------------------------
         # 👤 USER IDENTITY
         # ---------------------------------------------------------------

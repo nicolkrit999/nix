@@ -1,4 +1,24 @@
-{ delib, pkgs, ... }:
+{ delib, pkgs, moduleSystem, ... }:
+let
+  # Shared home-manager `programs.ssh.settings` matchBlocks - used by both the
+  # NixOS path (nested under home-manager.users.<user>) and the standalone
+  # home-manager path below, so they can't drift apart.
+  mkSshSettings = user: {
+    "nicol-nas 192.168.1.98 ssh.nicolkrit.ch" = {
+      IdentityFile = "/home/${user}/.ssh/id_github";
+      IdentitiesOnly = "yes";
+      User = "krit";
+    };
+    "github.com" = {
+      IdentityFile = "/home/${user}/.ssh/id_github";
+    };
+    "gitea-ssh.nicolkrit.ch" = {
+      IdentityFile = "/home/${user}/.ssh/id_github";
+      IdentitiesOnly = "yes";
+      ProxyCommand = "cloudflared access ssh --hostname %h";
+    };
+  };
+in
 delib.module {
   name = "krit.system.ssh-config";
   options = delib.singleEnableOption false;
@@ -38,22 +58,45 @@ delib.module {
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
-        settings = {
-          "nicol-nas 192.168.1.98 ssh.nicolkrit.ch" = {
-            IdentityFile = "/home/${myconfig.constants.user}/.ssh/id_github";
-            IdentitiesOnly = "yes";
-            User = "krit";
-          };
-          "github.com" = {
-            IdentityFile = "/home/${myconfig.constants.user}/.ssh/id_github";
-          };
-          "gitea-ssh.nicolkrit.ch" = {
-            IdentityFile = "/home/${myconfig.constants.user}/.ssh/id_github";
-            IdentitiesOnly = "yes";
-            ProxyCommand = "cloudflared access ssh --hostname %h";
-          };
-        };
+        settings = mkSshSettings myconfig.constants.user;
       };
     };
   };
+
+  # Standalone home-manager builds (e.g. Nicol-NAS) have no NixOS system layer
+  # to hold `programs.ssh.knownHosts` / the system-wide `programs.ssh.extraConfig`
+  # / `environment.systemPackages` / tmpfiles rule - those are all NixOS-only
+  # options. Only the pieces with a home-manager equivalent are ported:
+  #   - cloudflared via home.packages (needed for the gitea ProxyCommand)
+  #   - the pinned gitea host key via ~/.ssh/known_hosts (home-manager's own
+  #     programs.ssh has no `knownHosts` option, unlike the NixOS module)
+  #   - the same ~/.ssh/config matchBlocks as the NixOS path
+  # The tmpfiles rule that pre-creates ~/.ssh 0700 is skipped: home-manager's
+  # own activation creates parent dirs for the files it manages.
+  #
+  # Guarded via a plain `if moduleSystem == "home"`, NOT `lib.mkIf` - see the
+  # matching comment in git-ssh-signing.nix / feedback_delib_home_ifenable_patterns
+  # memory for why `lib.mkIf` is unsafe here (structurally-present option
+  # paths on NixOS/Darwin builds where they'd never be declared).
+  home.ifEnabled =
+    { myconfig, ... }:
+    if moduleSystem == "home" then
+      let
+        user = myconfig.constants.user;
+      in
+      {
+        home.packages = [ pkgs.cloudflared ];
+
+        home.file.".ssh/known_hosts".text = ''
+          gitea-ssh.nicolkrit.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHCA8VQtkhSH0wg2Xvi5FjIofM4XMo/+PrFVFdVnu/wC
+        '';
+
+        programs.ssh = {
+          enable = true;
+          enableDefaultConfig = false;
+          settings = mkSshSettings user;
+        };
+      }
+    else
+      { };
 }

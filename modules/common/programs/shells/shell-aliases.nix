@@ -17,6 +17,7 @@ delib.module {
       isImpure = myconfig.constants.nixImpure or false;
       isNixOS = moduleSystem == "nixos";
       isDarwin = moduleSystem == "darwin";
+      isHome = moduleSystem == "home";
 
       nixosSwitchCmd =
         if isImpure then "sudo nixos-rebuild switch --flake . --impure" else "nh os switch ${flakeDir}";
@@ -158,6 +159,14 @@ delib.module {
       // (lib.optionalAttrs atticEnabled { attic-push = atticPushAlias; })
       // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPushAlias; });
 
+      homeAliases = {
+        sw = "cd ${flakeDir} && git add -A && home-manager switch --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
+        swdry = "cd ${flakeDir} && git add -A && home-manager build --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
+        upd = "cd ${flakeDir} && git add -A && nix flake update && home-manager switch --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
+        hm-gens = "home-manager generations";
+        nfc = "cd ${flakeDir} && git add -A && nix flake check";
+      };
+
       darwinAliases = {
         sw = "cd ${flakeDir} && git add -A && ${darwinSwitchWrapped}";
         swfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${darwinSwitchCmd} --fallback"}";
@@ -190,6 +199,7 @@ delib.module {
       home.shellAliases = commonAliases
         // (if isNixOS then nixosAliases else { })
         // (if isDarwin then darwinAliases else { })
+        // (if isHome then homeAliases else { })
         // lib.optionalAttrs (myconfig.services.snapshots.enable or false) (
         let
           hasImpermanence = myconfig.services.impermanence.enable or false;

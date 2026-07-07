@@ -3,6 +3,10 @@
   mainLocale = "en_US.UTF-8";
   lcTime = "";
   user = "krit";
+  # Required since constants-nixos.nix removed the default: home-nixos.nix
+  # reads this with no `or` fallback, so any host config (including this
+  # test fixture) must set it explicitly. Matches nixos-desktop/nixos-laptop.
+  homeStateVersion = "25.11";
   gitUserName = "Test User";
   gitUserEmail = "test@example.com";
   shell = "fish";

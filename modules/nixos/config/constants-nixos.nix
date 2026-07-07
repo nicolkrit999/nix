@@ -11,6 +11,8 @@ delib.module {
       mainLocale = strOption "en_US.UTF-8";
       lcTime = strOption "";
 
+      homeStateVersion = noDefault (strOption null);
+
       browser = strOption "chromium";
       fileManager = strOption "dolphin";
 

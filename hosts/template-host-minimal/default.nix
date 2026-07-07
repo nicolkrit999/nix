@@ -21,6 +21,7 @@ delib.host {
       constants = {
         user = "krit"; # ⚠️ This is put because flake.nix hardcode the name and it can't be a variable since it's the first thing it's evaluated. Change as needed
 
+        homeStateVersion = "26.05";
       };
     };
 
@@ -43,9 +44,11 @@ delib.host {
   # ---------------------------------------------------------------
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
+  # home.stateVersion is now supplied by constants.homeStateVersion above via
+  # modules/nixos/toplevel/home-nixos.nix - not repeated here to avoid a
+  # double-definition of the same option.
   home = { ... }: {
     home.username = "krit";
     home.homeDirectory = "/home/krit";
-    home.stateVersion = "25.11";
   };
 }

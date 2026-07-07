@@ -92,6 +92,8 @@ delib.host {
         hostname = "nixos-desktop";
         mainLocale = myLocale;
 
+        homeStateVersion = "25.11";
+
         user = "krit";
         gitUserName = "Krit Pio Nicol";
         gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";

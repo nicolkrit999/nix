@@ -12,7 +12,7 @@ delib.module {
 
       # State versions
       darwinStateVersion = intOption 4;
-      homeStateVersion = strOption "25.11";
+      homeStateVersion = noDefault (strOption null);
 
       browser = strOption "firefox";
       fileManager = strOption "nnn";
