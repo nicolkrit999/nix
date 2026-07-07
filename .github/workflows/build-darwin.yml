@@ -24,6 +24,9 @@ jobs:
   # ===========================================================================
   build-darwin:
     runs-on: macos-15
+    # Stay below GitHub's hard 360-minute job kill so the cachix daemon's
+    # final flush still runs on a slow build.
+    timeout-minutes: 350
     permissions:
       contents: read
       id-token: write
@@ -51,10 +54,13 @@ jobs:
         run: nix flake check --impure --show-trace
 
       - name: Build Darwin Configuration
+        # Fail early enough that the cachix flush below still fits inside the
+        # job budget; --keep-going maximizes what lands in cachix per attempt.
+        timeout-minutes: 300
         env:
           CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
-          nix build .#darwinConfigurations.Krits-MacBook-Pro.system --no-link --print-out-paths --max-jobs 2 --cores 4 > outpaths.txt
+          nix build .#darwinConfigurations.Krits-MacBook-Pro.system --no-link --print-out-paths --keep-going --max-jobs 2 --cores 4 > outpaths.txt
 
           if [ -n "$CACHIX_TOKEN" ]; then
             cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)

@@ -18,6 +18,7 @@ concurrency:
 jobs:
   test-darwin:
     runs-on: macos-14
+    timeout-minutes: 90
     permissions:
       contents: read
     env:
@@ -35,6 +36,8 @@ jobs:
             auto-optimise-store = true
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            extra-substituters = https://catppuccin.cachix.org https://krit-nixos.cachix.org
+            extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI= krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=
 
       - name: "Test: minimal-defaults (Darwin)"
         id: minimal-defaults

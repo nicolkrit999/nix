@@ -36,9 +36,9 @@ delib.module {
           onCalendar = "weekly";
         };
         overrides = {
-          "com.rtosta.zapzap".Context.filesystems = [ "home" ]; # Download/save WhatsApp files
+          "com.rtosta.zapzap".Context.filesystems = [ "home" "/etc/localtime:ro" ]; # Download/save WhatsApp files; expose /etc/localtime so Electron reads local time instead of falling back to UTC
           "com.github.unrud.VideoDownloader".Context.filesystems = [ "xdg-download" ]; # Save downloaded videos
-          "com.actualbudget.actual".Context.filesystems = [ "home" ]; # Import/export budget files
+          "com.actualbudget.actual".Context.filesystems = [ "home" "/etc/localtime:ro" ]; # Import/export budget files; expose /etc/localtime so Electron reads local time instead of falling back to UTC
           "me.iepure.devtoolbox".Context.filesystems = [ "home" ]; # Open/save files for conversion tools
         };
       };

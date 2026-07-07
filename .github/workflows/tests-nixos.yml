@@ -18,6 +18,7 @@ concurrency:
 jobs:
   test-nixos:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     permissions:
       contents: read
     env:
@@ -60,16 +61,15 @@ jobs:
             extra-substituters = https://catppuccin.cachix.org https://krit-nixos.cachix.org
             extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI= krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=
 
-      - uses: nix-community/cache-nix-action@v6
+      # Restore only - build.yml owns saving and purging the nix store caches;
+      # saving here too would purge build.yml's run-suffixed caches (and vice
+      # versa) since both match the nix-Linux- prefix.
+      - uses: nix-community/cache-nix-action/restore@v7
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
-          restore-prefixes-first-match: nix-${{ runner.os }}-
-          gc-max-store-size-linux: 7000000000
-          purge: true
-          purge-prefixes: nix-${{ runner.os }}-
-          purge-created: 0
-          purge-last-accessed: 0
-          purge-primary-key: never
+          restore-prefixes-first-match: |
+            nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+            nix-${{ runner.os }}-
 
       - name: "Test: minimal-defaults"
         id: minimal-defaults

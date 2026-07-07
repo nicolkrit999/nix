@@ -16,8 +16,110 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Evaluation-only (this flake exposes no `checks` output), so it needs far
+  # less time and disk than the build job and runs in parallel with it.
+  flake-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      NIXPKGS_ALLOW_UNFREE: 1
+      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+      CURL_HTTP_VERSION: 1.1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CA Certificates
+        run: sudo apt-get update && sudo apt-get install -y ca-certificates
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Add Swap
+        run: |
+          # GitHub-hosted runners ship with an active swap file, so fallocate
+          # on /swapfile fails with "Text file busy" (ETXTBSY). Disable and
+          # remove any existing swap first, then build a fresh swap file with
+          # dd (the kernel-recommended method that avoids holes/ETXTBSY).
+          sudo swapoff -a || true
+          sudo rm -f /swapfile
+          sudo dd if=/dev/zero of=/swapfile bs=1M count=8192 status=progress
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          flakehub: false
+          extra-conf: |
+            build-dir = /nix/build
+            extra-platforms = aarch64-linux
+            auto-optimise-store = true
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            download-attempts = 15
+            http-connections = 25
+            connect-timeout = 30
+
+      # Restore only - the build job owns saving, so the two jobs never race
+      # on cache writes.
+      - uses: nix-community/cache-nix-action/restore@v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-prefixes-first-match: |
+            nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+            nix-${{ runner.os }}-
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: ${{ env.CACHIX_NAME }}
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          skipPush: true
+
+      - name: Check Flake
+        run: nix flake check --all-systems --show-trace
+
+      - name: Check for Dead Code (deadnix)
+        continue-on-error: true
+        run: |
+          NO_COLOR=1 nix run --inputs-from . nixpkgs#deadnix -- . > deadnix_report.txt || true
+          if [ -s deadnix_report.txt ]; then
+            echo "HAS_DEAD_CODE=true" >> $GITHUB_ENV
+            echo "DEADCODE_REPORT<<EOF" >> $GITHUB_ENV
+            head -n 20 deadnix_report.txt >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "HAS_DEAD_CODE=false" >> $GITHUB_ENV
+          fi
+
+      - name: Notify Dead Code (x86_64)
+        if: env.HAS_DEAD_CODE == 'true' && env.WEBHOOK_ID != ''
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          jq -n --arg prefix "🧹 **Dead Nix Code Detected (x86_64)** Consider cleaning up:" --arg report "$DEADCODE_REPORT" '{content: ($prefix + "\n```text\n" + $report + "\n```")}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+
+      - name: Notify on Failure (flake check)
+        if: failure() && env.WEBHOOK_ID != ''
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          jq -n --arg content "🚨 Flake check failed! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+
   build-x86_64:
     runs-on: ubuntu-latest
+    # Stay below GitHub's hard 360-minute job kill: a hard-killed job loses
+    # its cache-save and cachix-flush steps, which is why retries used to
+    # restart from zero.
+    timeout-minutes: 350
     permissions:
       contents: read
       id-token: write
@@ -72,52 +174,31 @@ jobs:
             http-connections = 25
             connect-timeout = 30
 
-      - uses: nix-community/cache-nix-action@v6
+      # The run_id/run_attempt suffix makes every attempt save a fresh cache:
+      # a key that is only the flake.lock hash can never be updated once it
+      # exists, so a first failed attempt would freeze its partial store
+      # forever. Restoration walks the prefixes newest-first instead.
+      - uses: nix-community/cache-nix-action/restore@v7
         with:
-          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
-          restore-prefixes-first-match: nix-${{ runner.os }}-
-          gc-max-store-size-linux: 7000000000
-          purge: true
-          purge-prefixes: nix-${{ runner.os }}-
-          purge-created: 0
-          purge-last-accessed: 0
-          purge-primary-key: never
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-prefixes-first-match: |
+            nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+            nix-${{ runner.os }}-
 
       - uses: cachix/cachix-action@v15
         with:
           name: ${{ env.CACHIX_NAME }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
-      - name: Check Flake
-        run: nix flake check --all-systems --show-trace
-
-      - name: Check for Dead Code (deadnix)
-        continue-on-error: true
-        run: |
-          NO_COLOR=1 nix run github:astro/deadnix -- . > deadnix_report.txt || true
-          if [ -s deadnix_report.txt ]; then
-            echo "HAS_DEAD_CODE=true" >> $GITHUB_ENV
-            echo "DEADCODE_REPORT<<EOF" >> $GITHUB_ENV
-            head -n 20 deadnix_report.txt >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
-          else
-            echo "HAS_DEAD_CODE=false" >> $GITHUB_ENV
-          fi
-
-      - name: Notify Dead Code (x86_64)
-        if: env.HAS_DEAD_CODE == 'true' && env.WEBHOOK_ID != ''
-        continue-on-error: true
-        env:
-          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-        run: |
-          jq -n --arg prefix "🧹 **Dead Nix Code Detected (x86_64)** Consider cleaning up:" --arg report "$DEADCODE_REPORT" '{content: ($prefix + "\n```text\n" + $report + "\n```")}' > payload.json
-          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
-
       - name: Build x86_64 Configurations
+        # Fail this step early enough that cachix flush + store-cache save
+        # below still fit inside the job budget; --keep-going maximizes how
+        # much of the closure lands in the caches per attempt.
+        timeout-minutes: 270
         env:
           CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
-          nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --no-link --print-out-paths --max-jobs 2 --cores 4 > outpaths.txt
+          nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --no-link --print-out-paths --keep-going --max-jobs 2 --cores 4 > outpaths.txt
 
           if [ -n "$CACHIX_TOKEN" ]; then
             cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
@@ -133,13 +214,29 @@ jobs:
           df -h /nix
           echo "--- Nix Store Size ---"
           du -sh /nix/store
+          echo "--- Swap ---"
+          free -h
 
       - name: Show Package Tree (x86_64)
-        if: always()
         continue-on-error: true
         run: |
           OUT_PATHS=$(cat outpaths.txt)
           nix path-info -sh -r $OUT_PATHS
+
+      # Runs even when the build step failed or timed out, so partially built
+      # derivations survive into the next attempt instead of rebuilding from
+      # scratch every retry.
+      - name: Save Nix Store Cache
+        if: always()
+        uses: nix-community/cache-nix-action/save@v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          gc-max-store-size-linux: 7000000000
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-
+          purge-created: 0
+          purge-last-accessed: 0
+          purge-primary-key: never
 
       - name: Notify on Failure (x86_64)
         if: failure() && env.WEBHOOK_ID != ''
