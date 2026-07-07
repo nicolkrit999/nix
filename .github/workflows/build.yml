@@ -67,6 +67,12 @@ jobs:
             build-dir = /nix/build
             extra-platforms = aarch64-linux
             auto-optimise-store = true
+            # Keep .drv files and build-time deps out of GC so a saved store
+            # cache never has db entries pointing at pruned files (the
+            # cache-nix-action-recommended guard against exactly the
+            # "user-environment.drv does not exist" failure on restore).
+            keep-outputs = true
+            keep-derivations = true
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             download-attempts = 15
@@ -81,6 +87,16 @@ jobs:
           restore-prefixes-first-match: |
             nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
             nix-${{ runner.os }}-
+
+      - name: Verify Restored Store
+        run: |
+          # A restored cache can carry db registrations whose files never
+          # made it into the archive (snapshot of a killed build - bit us on
+          # 2026-07-07 as "user-environment.drv does not exist" in cachix's
+          # nix-env install). nix-store --verify drops such phantom entries
+          # so later nix commands rebuild them instead of crashing.
+          # Best-effort: verify being unavailable must not fail the job.
+          sudo -i nix-store --verify || sudo /nix/var/nix/profiles/default/bin/nix-store --verify || true
 
       - uses: cachix/cachix-action@v15
         with:
@@ -184,6 +200,12 @@ jobs:
             build-dir = /nix/build
             extra-platforms = aarch64-linux
             auto-optimise-store = true
+            # Keep .drv files and build-time deps out of GC so a saved store
+            # cache never has db entries pointing at pruned files (the
+            # cache-nix-action-recommended guard against exactly the
+            # "user-environment.drv does not exist" failure on restore).
+            keep-outputs = true
+            keep-derivations = true
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             download-attempts = 15
@@ -201,12 +223,25 @@ jobs:
             nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
             nix-${{ runner.os }}-
 
+      - name: Verify Restored Store
+        run: |
+          # A restored cache can carry db registrations whose files never
+          # made it into the archive (snapshot of a killed build - bit us on
+          # 2026-07-07 as "user-environment.drv does not exist" in cachix's
+          # nix-env install). This job's timeout-killed builds still save
+          # caches on purpose (retry-resume), so heal at restore time:
+          # nix-store --verify drops phantom db entries so later nix
+          # commands rebuild them instead of crashing.
+          # Best-effort: verify being unavailable must not fail the job.
+          sudo -i nix-store --verify || sudo /nix/var/nix/profiles/default/bin/nix-store --verify || true
+
       - uses: cachix/cachix-action@v15
         with:
           name: ${{ env.CACHIX_NAME }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build x86_64 Configurations
+        id: build
         # Fail this step early enough that cachix flush + store-cache save
         # below still fit inside the job budget; --keep-going maximizes how
         # much of the closure lands in the caches per attempt.
@@ -241,18 +276,25 @@ jobs:
 
       # Runs even when the build step failed or timed out, so partially built
       # derivations survive into the next attempt instead of rebuilding from
-      # scratch every retry.
+      # scratch every retry. NOT always(): a cancelled run (concurrency,
+      # manual) snapshots a store whose db references paths the tar never
+      # captures - restoring such a cache broke cachix's nix-env install
+      # ("user-environment.drv does not exist", 2026-07-07). Skipping when
+      # the build step never ran also stops early-failure runs from saving
+      # a near-empty store that would shadow the good caches on restore
+      # (restore picks the newest prefix match).
       - name: Save Nix Store Cache
-        if: always()
+        if: (success() || failure()) && steps.build.outcome != 'skipped'
         uses: nix-community/cache-nix-action/save@v7
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
           gc-max-store-size-linux: 7000000000
-          purge: true
-          purge-prefixes: nix-${{ runner.os }}-
-          purge-created: 0
-          purge-last-accessed: 0
-          purge-primary-key: never
+          # Deliberately NO purge-* options. Purging needs an `actions: write`
+          # permission this job doesn't grant, so they were always a silent
+          # no-op - and actually granting it with purge-created: 0 would have
+          # deleted every good cache on each save, leaving only this run's
+          # (possibly broken) one. GitHub's 10 GB per-repo LRU eviction
+          # handles cleanup on its own.
 
       - name: Notify on Failure (x86_64)
         if: failure() && env.WEBHOOK_ID != ''
