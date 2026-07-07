@@ -7,6 +7,14 @@
 let
   commonSecrets = ../sops/krit-common-secrets-sops.yaml;
 
+  # Per-host secrets file for the home-manager-standalone NAS host. Not used as
+  # `sops.defaultSopsFile` below (that stays `commonSecrets` - deliberately
+  # unchanged, see comment in the home.ifEnabled block), but available for any
+  # future NAS-only secret: add it under `sops.secrets` there with an explicit
+  # `sopsFile = nicolNasSecrets;` override, the same way the nixos.ifEnabled
+  # block above overrides individual secrets with `sopsFile = commonSecrets;`
+  # (just the inverse - host file is the exception here, not the default).
+
   # sops.secrets attrs generated from programs.claude-code.mcpSecrets (NixOS/Darwin system-level)
   mkClaudeMcpSecrets = user: mcpSecrets:
     lib.listToAttrs (map
@@ -233,6 +241,12 @@ delib.module {
         homeDir = "/home/${user}";
       in
       {
+        # Deliberately left as commonSecrets, not nicolNasSecrets - this is
+        # already working on the NAS and must not be disturbed. To add a
+        # NAS-only secret later, add an entry below with an explicit
+        # `sopsFile = nicolNasSecrets;` override (see hosts/Nicol-NAS/
+        # Nicol-NAS-secrets-sops.yaml, created empty via the matching
+        # .sops.yaml creation_rule) - no other module surgery needed.
         sops.defaultSopsFile = commonSecrets;
         sops.age.keyFile = "${homeDir}/.config/sops/age/keys.txt";
 

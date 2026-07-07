@@ -43,6 +43,17 @@ creation_rules:
           - *Krits-MacBook-Pro
 
   # ---------------------------------------------------------------
+  # 🔒 Secrets "Nicol-NAS"
+  # Home-manager-only host (no NixOS host key exists - it's not a NixOS
+  # machine). Decryption happens via the user's own age key at
+  # ~/.config/sops/age/keys.txt, so only *krit is needed here.
+  # ---------------------------------------------------------------
+  - path_regex: hosts/Nicol-NAS/.*secrets-sops\.yaml$
+    key_groups:
+      - age:
+          - *krit # You can decrypt (user "krit")
+
+  # ---------------------------------------------------------------
   # 🔒 Common rules for user "krit"
   # Matches any "krit-common-secrets-sops.yaml" inside the "common" folder
   # ---------------------------------------------------------------
