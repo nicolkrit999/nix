@@ -45,7 +45,13 @@ jobs:
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
-      - uses: cachix/cachix-action@v15
+      # Non-critical: only used to speed up this job and to push the build
+      # output below. A failed install must not fail the whole job - the
+      # push step is separately gated on this step's outcome.
+      - name: Set up Cachix
+        id: cachix_setup
+        continue-on-error: true
+        uses: cachix/cachix-action@v15
         with:
           name: ${{ env.CACHIX_NAME }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
@@ -54,14 +60,26 @@ jobs:
         run: nix flake check --impure --show-trace
 
       - name: Build Darwin Configuration
-        # Fail early enough that the cachix flush below still fits inside the
-        # job budget; --keep-going maximizes what lands in cachix per attempt.
+        id: build
+        # Fail early enough that the store-cache save/push below still fits
+        # inside the job budget; --keep-going maximizes what lands in the
+        # cache per attempt. Only a real build failure (a genuine Nix config
+        # issue) should fail this step/job - the Cachix push is a separate,
+        # non-critical step below.
         timeout-minutes: 300
-        env:
-          CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
           nix build .#darwinConfigurations.Krits-MacBook-Pro.system --no-link --print-out-paths --keep-going --max-jobs 2 --cores 4 > outpaths.txt
 
+      # Non-critical secondary goal: pushing to the binary cache must never
+      # fail the job on its own (e.g. the 2026-07-08 "Error: not found:
+      # cachix" incident) - only the actual build above is a hard failure.
+      - name: Push to Cachix (Darwin)
+        id: cachix_push
+        if: steps.build.outcome == 'success' && steps.cachix_setup.outcome == 'success'
+        continue-on-error: true
+        env:
+          CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        run: |
           if [ -n "$CACHIX_TOKEN" ]; then
             cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
           else
@@ -91,4 +109,24 @@ jobs:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
         run: |
           jq -n --arg content "🚨 nix-darwin build failed on **aarch64-darwin**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+
+      # Non-critical infra (cachix setup/push) failing must not fail the
+      # job, but should still be surfaced - reported separately from the
+      # hard-failure notice above, which only fires when the actual build
+      # step failed.
+      - name: Notify Non-Critical Issues (Darwin)
+        if: success() && env.WEBHOOK_ID != '' && (steps.cachix_setup.outcome == 'failure' || steps.cachix_push.outcome == 'failure')
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          ISSUES=""
+          if [ "${{ steps.cachix_setup.outcome }}" == "failure" ]; then
+            ISSUES="${ISSUES}- Cachix CLI setup failed (binary cache push skipped this run)"$'\n'
+          fi
+          if [ "${{ steps.cachix_push.outcome }}" == "failure" ]; then
+            ISSUES="${ISSUES}- Cachix push failed (build succeeded, but its outputs weren't cached)"$'\n'
+          fi
+          jq -n --arg content "⚠️ build-darwin: non-critical CI infra issue(s), job still succeeded:"$'\n'"${ISSUES}Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
           curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"

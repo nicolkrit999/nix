@@ -80,8 +80,12 @@ jobs:
             connect-timeout = 30
 
       # Restore only - the build job owns saving, so the two jobs never race
-      # on cache writes.
-      - uses: nix-community/cache-nix-action/restore@v7
+      # on cache writes. Non-critical: a broken/corrupted cache archive must
+      # not fail this job, just slow it down to a cold build.
+      - name: Restore Nix Store Cache
+        id: cache_restore
+        continue-on-error: true
+        uses: nix-community/cache-nix-action/restore@v7
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-prefixes-first-match: |
@@ -98,7 +102,12 @@ jobs:
           # Best-effort: verify being unavailable must not fail the job.
           sudo -i nix-store --verify || sudo /nix/var/nix/profiles/default/bin/nix-store --verify || true
 
-      - uses: cachix/cachix-action@v15
+      # Non-critical: only used to speed up this job via the binary cache
+      # substituter. A failed install must not fail the flake check.
+      - name: Set up Cachix
+        id: cachix_setup
+        continue-on-error: true
+        uses: cachix/cachix-action@v15
         with:
           name: ${{ env.CACHIX_NAME }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
@@ -136,6 +145,26 @@ jobs:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
         run: |
           jq -n --arg content "🚨 Flake check failed! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+
+      # Non-critical infra (store cache / cachix) failing must not fail the
+      # job, but should still be surfaced - this reports it separately from
+      # the hard-failure notice above, which only fires for real flake-check
+      # breakage.
+      - name: Notify Non-Critical Issues (flake-check)
+        if: success() && env.WEBHOOK_ID != '' && (steps.cache_restore.outcome == 'failure' || steps.cachix_setup.outcome == 'failure')
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          ISSUES=""
+          if [ "${{ steps.cache_restore.outcome }}" == "failure" ]; then
+            ISSUES="${ISSUES}- Nix store cache restore failed (this run built cold, no functional impact)"$'\n'
+          fi
+          if [ "${{ steps.cachix_setup.outcome }}" == "failure" ]; then
+            ISSUES="${ISSUES}- Cachix CLI setup failed (no binary-cache substituter this run, no functional impact)"$'\n'
+          fi
+          jq -n --arg content "⚠️ flake-check: non-critical CI infra issue(s), job still succeeded:"$'\n'"${ISSUES}Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
           curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
 
   build-x86_64:
@@ -216,7 +245,10 @@ jobs:
       # a key that is only the flake.lock hash can never be updated once it
       # exists, so a first failed attempt would freeze its partial store
       # forever. Restoration walks the prefixes newest-first instead.
-      - uses: nix-community/cache-nix-action/restore@v7
+      - name: Restore Nix Store Cache
+        id: cache_restore
+        continue-on-error: true
+        uses: nix-community/cache-nix-action/restore@v7
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-prefixes-first-match: |
@@ -235,22 +267,38 @@ jobs:
           # Best-effort: verify being unavailable must not fail the job.
           sudo -i nix-store --verify || sudo /nix/var/nix/profiles/default/bin/nix-store --verify || true
 
-      - uses: cachix/cachix-action@v15
+      # Non-critical: only used to speed up this job and to push the build
+      # output below. A failed install must not fail the whole job - the
+      # push step is separately gated on this step's outcome.
+      - name: Set up Cachix
+        id: cachix_setup
+        continue-on-error: true
+        uses: cachix/cachix-action@v15
         with:
           name: ${{ env.CACHIX_NAME }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build x86_64 Configurations
         id: build
-        # Fail this step early enough that cachix flush + store-cache save
-        # below still fit inside the job budget; --keep-going maximizes how
-        # much of the closure lands in the caches per attempt.
+        # Fail this step early enough that the store-cache save below still
+        # fits inside the job budget; --keep-going maximizes how much of the
+        # closure lands in the cache per attempt. Only a real build failure
+        # (a genuine Nix config issue) should fail this step/job - the
+        # Cachix push is a separate, non-critical step below.
         timeout-minutes: 270
-        env:
-          CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
           nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --no-link --print-out-paths --keep-going --max-jobs 2 --cores 4 > outpaths.txt
 
+      # Non-critical secondary goal: pushing to the binary cache must never
+      # fail the job on its own (e.g. the 2026-07-08 "Error: not found:
+      # cachix" incident) - only the actual build above is a hard failure.
+      - name: Push to Cachix (x86_64)
+        id: cachix_push
+        if: steps.build.outcome == 'success' && steps.cachix_setup.outcome == 'success'
+        continue-on-error: true
+        env:
+          CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        run: |
           if [ -n "$CACHIX_TOKEN" ]; then
             cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
           else
@@ -284,7 +332,9 @@ jobs:
       # a near-empty store that would shadow the good caches on restore
       # (restore picks the newest prefix match).
       - name: Save Nix Store Cache
+        id: cache_save
         if: (success() || failure()) && steps.build.outcome != 'skipped'
+        continue-on-error: true
         uses: nix-community/cache-nix-action/save@v7
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -303,4 +353,30 @@ jobs:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
         run: |
           jq -n --arg content "🚨 NixOS build failed on **x86_64**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+
+      # Non-critical infra (store cache restore/save, cachix setup/push)
+      # failing must not fail the job, but should still be surfaced -
+      # reported separately from the hard-failure notice above, which only
+      # fires when the actual build step failed.
+      - name: Notify Non-Critical Issues (x86_64)
+        if: success() && env.WEBHOOK_ID != '' && (steps.cache_restore.outcome == 'failure' || steps.cachix_setup.outcome == 'failure' || steps.cachix_push.outcome == 'failure' || steps.cache_save.outcome == 'failure')
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          ISSUES=""
+          if [ "${{ steps.cache_restore.outcome }}" == "failure" ]; then
+            ISSUES="${ISSUES}- Nix store cache restore failed (this run built cold, no functional impact)"$'\n'
+          fi
+          if [ "${{ steps.cachix_setup.outcome }}" == "failure" ]; then
+            ISSUES="${ISSUES}- Cachix CLI setup failed (binary cache push skipped this run)"$'\n'
+          fi
+          if [ "${{ steps.cachix_push.outcome }}" == "failure" ]; then
+            ISSUES="${ISSUES}- Cachix push failed (build succeeded, but its outputs weren't cached)"$'\n'
+          fi
+          if [ "${{ steps.cache_save.outcome }}" == "failure" ]; then
+            ISSUES="${ISSUES}- Nix store cache save failed (no retry-resume cache for next run)"$'\n'
+          fi
+          jq -n --arg content "⚠️ build-x86_64: non-critical CI infra issue(s), job still succeeded:"$'\n'"${ISSUES}Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
           curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
