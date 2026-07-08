@@ -51,10 +51,11 @@ jobs:
       - name: Set up Cachix
         id: cachix_setup
         continue-on-error: true
-        uses: cachix/cachix-action@v15
-        with:
-          name: ${{ env.CACHIX_NAME }}
-          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+        env:
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        run: |
+          nix profile install --accept-flake-config nixpkgs#cachix
+          cachix use ${{ env.CACHIX_NAME }}
 
       - name: Check Flake
         run: nix flake check --impure --show-trace
