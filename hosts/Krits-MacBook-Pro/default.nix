@@ -69,6 +69,7 @@ delib.host {
         zoxide.enable = true;
         headroom.enable = true;
         claude-code.enable = true;
+        codex.enable = true;
         npm = {
           enable = true;
           packages = [

@@ -123,6 +123,7 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     claude-cowork-service.url = "github:patrickjaja/claude-cowork-service";
+    codex-cli-nix.url = "github:sadjow/codex-cli-nix";
 
     nix-darwin = {
       url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";

@@ -217,6 +217,7 @@ delib.host {
         bat.enable = true;
         cava.enable = true;
         claude-desktop.enable = true;
+        codex.enable = true;
         comma.enable = true;
         concord.enable = true;
         doom.enable = true;
