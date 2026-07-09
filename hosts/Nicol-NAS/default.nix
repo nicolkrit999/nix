@@ -92,6 +92,7 @@ delib.host {
         starship.enable = true;
         tmux.enable = true;
         zoxide.enable = true;
+        headroom.enable = true;
 
         git = {
           enable = true;
