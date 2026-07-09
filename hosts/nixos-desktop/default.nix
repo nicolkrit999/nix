@@ -320,6 +320,7 @@ delib.host {
             { sopsSecret = "claude_mcp_milvus_token"; envVar = "MILVUS_TOKEN"; }
             { sopsSecret = "claude_mcp_github_token"; envVar = "GITHUB_TOKEN"; }
             { sopsSecret = "claude_mcp_portainer_token"; envVar = "PORTAINER_TOKEN"; }
+            { sopsSecret = "claude_mcp_sparkyfitness_api_key"; envVar = "SPARKYFITNESS_API_KEY"; }
             #{ sopsSecret = "claude_mcp_kagi_api_key"; envVar = "KAGI_API_KEY"; }
           ];
           mcpEnv = {
