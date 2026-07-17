@@ -64,7 +64,8 @@ delib.host {
     nix.settings.max-jobs = 6;
 
     boot.extraModprobeConfig = ''
-      options iwlwifi disable_11be=1 power_save=0 uapsd_disable=1
+      # 2026-07-17: trial re-enabling 802.11be after 7+ days stable w/ disable_11be=1 (zero iwlwifi errors); pending multi-day verification, revert by uncommenting below
+      options iwlwifi power_save=0 uapsd_disable=1 # disable_11be=1
     '';
 
 
