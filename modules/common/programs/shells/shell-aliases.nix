@@ -12,6 +12,27 @@ delib.module {
         exec ${pythonEnv}/bin/python3 ${./npu.py} "$@"
       '';
 
+      tpmReenroll = pkgs.writeShellScriptBin "tpm-reenroll" ''
+        set -euo pipefail
+        pcrs="0+2+7"
+        mappers=$(${pkgs.util-linux}/bin/lsblk -rno NAME,TYPE \
+          | ${pkgs.gawk}/bin/awk '$2=="crypt"{print $1}')
+        if [ -z "$mappers" ]; then
+          echo "No active LUKS/crypt devices found - nothing to do."
+          exit 0
+        fi
+        sudo -v
+        for name in $mappers; do
+          dev=$(sudo ${pkgs.cryptsetup}/bin/cryptsetup status "$name" \
+            | ${pkgs.gawk}/bin/awk '/device:/{print $2}')
+          [ -z "$dev" ] && { echo "Could not resolve backing device for '$name', skipping."; continue; }
+          echo "Re-enrolling TPM2 (PCRs $pcrs) for $name -> $dev"
+          sudo ${pkgs.systemd}/bin/systemd-cryptenroll --wipe-slot=tpm2 "$dev" || true
+          sudo ${pkgs.systemd}/bin/systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs="$pcrs" "$dev"
+        done
+        echo "Done. Reboot to confirm auto-unlock."
+      '';
+
       flakeDir = "~/nix";
       safeEditor = myconfig.constants.editor;
       isImpure = myconfig.constants.nixImpure or false;
@@ -202,7 +223,7 @@ delib.module {
       // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPushAlias; });
     in
     {
-      home.packages = [ npu ];
+      home.packages = [ npu ] ++ lib.optionals isNixOS [ tpmReenroll ];
 
       home.shellAliases = commonAliases
         // (if isNixOS then nixosAliases else { })

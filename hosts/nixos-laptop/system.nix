@@ -67,12 +67,6 @@ delib.host {
       options iwlwifi disable_11be=1 power_save=0 uapsd_disable=1
     '';
 
-    # Temporary workaround for xe driver immaturity on PTL (kernel 7.0.11, 2026-06-19).
-    # Remove when linuxPackages_latest ships a kernel with proper PTL xe support.
-    boot.kernelParams = [
-      "xe.force_probe=b080" # force xe to probe Arc B390 PCI ID until b080 is promoted in xe's device table
-      "drm.fbdev_emulation=0" # prevent xe from setting up xedrmfb fbcon (causes # artifacts on PTL); compositor opens xe DRM directly
-    ];
 
     # Laptop-specific hardware - Intel Arc B390 (12 Xe3 cores, integrated in Panther Lake X7 358H SoC, xe driver)
     hardware.enableRedistributableFirmware = true; # Intel CPU microcode + GPU firmware for Panther Lake

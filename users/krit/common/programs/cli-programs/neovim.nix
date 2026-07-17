@@ -96,7 +96,4 @@ delib.module {
       };
     };
 
-  nixos.ifEnabled = {
-    nixpkgs.config.allowInsecurePredicate = pkg: lib.getName pkg == "pnpm";
-  };
 }
