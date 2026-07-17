@@ -71,5 +71,10 @@ delib.module {
       weather = strOption "London";
       useFahrenheit = boolOption false;
       timeZone = strOption "Etc/UTC";
+
+      # Allow the initrd-stage (pre-switch-root) systemd emergency/rescue shell
+      # without authentication. Safe default is false (upstream default);
+      # per-host override where sops secrets aren't yet available at that stage.
+      emergencyAccess = boolOption false;
     };
 }

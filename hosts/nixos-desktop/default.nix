@@ -94,6 +94,9 @@ delib.host {
 
         homeStateVersion = "25.11";
 
+        # No LUKS on this host, so there's no encryption boundary to protect either way.
+        emergencyAccess = true;
+
         user = "krit";
         gitUserName = "Krit Pio Nicol";
         gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";

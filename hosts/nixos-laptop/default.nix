@@ -97,6 +97,10 @@ delib.host {
 
         homeStateVersion = "25.11";
 
+        # LUKS remains the real access gate on this host; enabling initrd rescue
+        # access restores boot-time recovery without undercutting encryption.
+        emergencyAccess = true;
+
         # ---------------------------------------------------------------
         # 👤 USER IDENTITY
         # ---------------------------------------------------------------

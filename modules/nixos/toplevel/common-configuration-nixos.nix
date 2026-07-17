@@ -167,7 +167,7 @@ delib.module {
       security.pam.services.kde.enableKwallet = lib.mkForce false;
       security.pam.services.sddm.enableKwallet = lib.mkForce false;
 
-      # SSH Askpass — use seahorse (GNOME) since GNOME Keyring is enforced system-wide
+      # SSH Askpass - use seahorse (GNOME) since GNOME Keyring is enforced system-wide
       programs.ssh.askPassword = lib.mkForce "${pkgs.seahorse}/libexec/seahorse/ssh-askpass";
 
       # ---------------------------------------------------------
@@ -187,6 +187,9 @@ delib.module {
       # -----------------------------------------------------
 
       boot.initrd.systemd.enable = true; # Allow systemd services such as hybernation/sleep, unlock luks at boot, tpm integration, etc
+      # Governs the initrd-stage (pre-switch-root) emergency/rescue shell, before sops secrets are
+      # decrypted - distinct from systemd.enableEmergencyMode which covers the main-system stage.
+      boot.initrd.systemd.emergencyAccess = myconfig.constants.emergencyAccess or false;
       # Reduce shutdown wait time for stuck services
       systemd.settings.Manager = {
         DefaultTimeoutStopSec = "10s";
