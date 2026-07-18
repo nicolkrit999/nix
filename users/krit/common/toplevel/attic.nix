@@ -20,9 +20,9 @@ delib.module {
   options = with delib; moduleOptions {
     enable = boolOption false;
     push = boolOption false;
-    serverUrl = strOption "http://nicol-nas:8081";
+    serverUrl = strOption "http://nicol-nas.tail9b9ae8.ts.net:8081";
     cacheName = strOption "krit-nix";
-    publicKey = strOption "krit-nix:w2PBueADeXiJo5Arr0l8Sys7lVyneH+cArzufUU9tSY=";
+    publicKey = strOption "krit-nix:whY2oqegMU3c1dowH39O7Z7I3aAfwMpB/WZNy0/wykk=";
     authTokenPath = strOption "";
   };
 
