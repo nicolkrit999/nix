@@ -1,10 +1,13 @@
 { delib, pkgs, moduleSystem, ... }:
 let
-  # Shared home-manager `programs.ssh.settings` matchBlocks - used by both the
-  # NixOS path (nested under home-manager.users.<user>) and the standalone
-  # home-manager path below, so they can't drift apart.
   mkSshSettings = user: {
-    "nicol-nas 192.168.1.98 ssh.nicolkrit.ch" = {
+    "nicol-nas" = {
+      HostName = "nicol-nas.tail9b9ae8.ts.net";
+      IdentityFile = "/home/${user}/.ssh/id_github";
+      IdentitiesOnly = "yes";
+      User = "krit";
+    };
+    "192.168.1.98 ssh.nicolkrit.ch" = {
       IdentityFile = "/home/${user}/.ssh/id_github";
       IdentitiesOnly = "yes";
       User = "krit";
@@ -35,7 +38,13 @@ delib.module {
       };
     };
     programs.ssh.extraConfig = ''
-      Host nicol-nas 192.168.1.98 ssh.nicolkrit.ch
+      Host nicol-nas
+        HostName nicol-nas.tail9b9ae8.ts.net
+        IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
+        IdentitiesOnly yes
+        User krit
+
+      Host 192.168.1.98 ssh.nicolkrit.ch
         IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
         IdentitiesOnly yes
         User krit

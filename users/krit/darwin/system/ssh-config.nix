@@ -26,7 +26,13 @@ delib.module {
           "github.com" = {
             IdentityFile = "${sshDir}/id_github";
           };
-          "nicol-nas 192.168.1.98 ssh.nicolkrit.ch" = {
+          "nicol-nas" = {
+            HostName = "nicol-nas.tail9b9ae8.ts.net";
+            IdentityFile = "${sshDir}/id_github";
+            IdentitiesOnly = true;
+            User = user;
+          };
+          "192.168.1.98 ssh.nicolkrit.ch" = {
             IdentityFile = "${sshDir}/id_github";
             IdentitiesOnly = true;
             User = user;
