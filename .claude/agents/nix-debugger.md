@@ -1,7 +1,7 @@
 ---
 name: nix-debugger
 description: "Root-cause a failing nix build / flake check / nixos-rebuild / darwin-rebuild and propose or apply the fix. Use AFTER a failure when you need to know WHY - eval errors, type errors, 'option does not exist', broken imports, IFD failures, sops decryption errors, module conflicts, renamed/removed attrs. Diagnoses and fixes; re-verifies via nix-checker."
-model: sonnet
+model: opus
 color: red
 tools: Bash, Read, Edit, Grep, Glob, mcp__nixos__nix, mcp__nixos__nix_versions
 memory: project
