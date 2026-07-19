@@ -138,7 +138,7 @@ let
     (src + "/users/krit/common/programs/gui-programs/zen-browser/settings.nix")
     (src + "/users/krit/common/programs/terminal-emulators/alacritty.nix")
     (src + "/users/krit/common/programs/terminal-emulators/kitty.nix")
-    (src + "/users/krit/common/toplevel/attic.nix")
+    (src + "/modules/common/toplevel/attic.nix")
 
     # users/krit/nixos - NixOS-specific user modules (ext-dotfiles excluded: pure symlinks, no arch risk)
     (src + "/users/krit/nixos/shared/home/home-base.nix")

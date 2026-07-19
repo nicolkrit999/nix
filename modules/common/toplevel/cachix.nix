@@ -4,16 +4,11 @@
 }:
 let
   sharedIfEnabled =
-    { cfg, myconfig, ... }:
-    let
-      finalName = if cfg.name == "use-constant" then myconfig.constants.cachix.name else cfg.name;
-      finalKey =
-        if cfg.publicKey == "use-constant" then myconfig.constants.cachix.publicKey else cfg.publicKey;
-    in
+    { cfg, ... }:
     {
       nix.settings = {
-        substituters = [ "https://${finalName}.cachix.org?priority=20" ];
-        trusted-public-keys = [ finalKey ];
+        substituters = [ "https://${cfg.name}.cachix.org?priority=20" ];
+        trusted-public-keys = [ cfg.publicKey ];
       };
 
       environment.systemPackages = [ pkgs.cachix ];
@@ -25,8 +20,8 @@ delib.module {
   options = with delib; moduleOptions {
     enable = boolOption true;
     push = boolOption false;
-    name = strOption "use-constant";
-    publicKey = strOption "use-constant";
+    name = strOption "krit-nixos";
+    publicKey = strOption "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
     authTokenPath = strOption "";
   };
 

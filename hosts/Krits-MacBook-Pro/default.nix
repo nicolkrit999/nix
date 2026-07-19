@@ -40,9 +40,12 @@ delib.host {
         authTokenPath = "/run/secrets/cachix-push-token";
       };
 
-      krit.attic = {
+      attic = {
         enable = true;
         push = true;
+        serverUrl = "http://nicol-nas.tail9b9ae8.ts.net:8081";
+        cacheName = "krit-nix";
+        publicKey = "krit-nix:whY2oqegMU3c1dowH39O7Z7I3aAfwMpB/WZNy0/wykk=";
         authTokenPath = "/run/secrets/attic-push-token";
       };
 

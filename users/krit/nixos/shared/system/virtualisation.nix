@@ -17,8 +17,13 @@ delib.module {
       boxbuddy # Unofficial GUI for managing your Distroboxes
       openssl_oqs # Used to generate post-quantum certificates
     ] ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux") (
-      let pkgs-unstable = import inputs.nixpkgs-unstable { system = pkgs.stdenv.hostPlatform.system; };
-      in [ pkgs-unstable.winboat ]
+      let
+        pkgs-unstable = import inputs.nixpkgs-unstable {
+          system = pkgs.stdenv.hostPlatform.system;
+          inherit (pkgs) config;
+        };
+      in
+      [ pkgs-unstable.winboat ]
     );
   };
 

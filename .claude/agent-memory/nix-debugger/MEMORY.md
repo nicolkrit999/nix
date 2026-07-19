@@ -1,0 +1,1 @@
+- [pkgs-unstable separate config trap](project_pkgs_unstable_separate_config.md) - `import inputs.nixpkgs-unstable {}` doesn't inherit host nixpkgs.config; forward with `inherit (pkgs) config;` (winboat/electron-40.10.5 3-round misdiagnosis)

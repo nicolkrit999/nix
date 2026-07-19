@@ -4,8 +4,9 @@ delib.module {
   options = delib.singleEnableOption false;
 
   nixos.ifEnabled = {
+    nixpkgs.overlays = [ inputs.antigravity-nix.overlays.default ];
     environment.systemPackages = [
-      (inputs.antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system}.google-antigravity-no-fhs.override {
+      (pkgs.google-antigravity-no-fhs.override {
         useSystemChromeProfile = true;
       })
       pkgs.google-chrome

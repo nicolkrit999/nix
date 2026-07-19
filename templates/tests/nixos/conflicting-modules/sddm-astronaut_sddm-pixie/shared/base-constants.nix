@@ -32,10 +32,4 @@
     catppuccinFlavor = "mocha";
     catppuccinAccent = "mauve";
   };
-  cachix = {
-    enable = false;
-    push = false;
-    name = "krit-nixos";
-    publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
-  };
 }

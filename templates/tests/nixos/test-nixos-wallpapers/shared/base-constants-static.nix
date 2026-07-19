@@ -1,5 +1,5 @@
 # Base constants for wallpaper tests that use only a static wallpaper.
-# No gifURL set — tests the static-only path.
+# No gifURL set - tests the static-only path.
 {
   hostname = "test-wallpaper-host";
   mainLocale = "en_US.UTF-8";
@@ -50,11 +50,5 @@
   niri = {
     gap = 8;
     rounding = 10;
-  };
-  cachix = {
-    enable = false;
-    push = false;
-    name = "krit-nixos";
-    publicKey = "krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=";
   };
 }

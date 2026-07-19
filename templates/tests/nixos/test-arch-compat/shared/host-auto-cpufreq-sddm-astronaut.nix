@@ -99,7 +99,7 @@ delib.host {
     krit.programs.librewolf.enable = true;
     krit.programs.zathura.enable = true;
     krit.programs.claude-code-wrappers.enable = true;
-    krit.attic.enable = true;
+    attic.enable = true;
 
     # users/krit/nixos programs & services
     krit.programs.dolphin.enable = true;

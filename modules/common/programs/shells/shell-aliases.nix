@@ -62,22 +62,18 @@ delib.module {
           "nh os test ${flakeDir}";
 
       atticEnabled =
-        (myconfig.krit.attic.enable or false) && (myconfig.krit.attic.push or false);
+        (myconfig.attic.enable or false) && (myconfig.attic.push or false);
       cachixEnabled =
         (myconfig.cachix.enable or false) && (myconfig.cachix.push or false);
 
-      atticServer = myconfig.krit.attic.serverUrl;
-      atticCache = myconfig.krit.attic.cacheName;
-      atticToken = myconfig.krit.attic.authTokenPath;
+      atticServer = myconfig.attic.serverUrl;
+      atticCache = myconfig.attic.cacheName;
+      atticToken = myconfig.attic.authTokenPath;
       atticPush =
         "attic login nas-push ${atticServer} \"$(cat ${atticToken})\""
         + " && nix path-info -r /run/current-system | attic push -j 8 nas-push:${atticCache} --stdin";
 
-      cName =
-        if myconfig.cachix.name == "use-constant" then
-          myconfig.constants.cachix.name
-        else
-          myconfig.cachix.name;
+      cName = myconfig.cachix.name;
       cachixTokenPath = myconfig.cachix.authTokenPath or "";
       # `env VAR=val cachix` (not the `VAR=val cmd` prefix) - fish has no inline
       # env-assignment syntax, and `env` wraps the last pipe stage so the token
