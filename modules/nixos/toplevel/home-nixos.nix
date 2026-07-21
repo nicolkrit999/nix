@@ -44,6 +44,14 @@ delib.module {
           xdg = {
             enable = true;
             mimeApps.enable = true;
+            # Apps (e.g. claude-code via xdg-mime, KDE, browsers) rewrite
+            # ~/.config/mimeapps.list at runtime, replacing the HM symlink with a
+            # plain file. On the next activation HM tries to back that file up to
+            # mimeapps.list.hm-backup; if a stale backup already exists it refuses
+            # to clobber it and activation aborts. force = true makes HM overwrite
+            # the file in place without ever creating a backup, so the collision
+            # cannot recur.
+            configFile."mimeapps.list".force = true;
             userDirs = {
               enable = true;
               createDirectories = true;
@@ -86,6 +94,7 @@ delib.module {
               rm -f "$HOME/.config/dolphinrc"
               rm -f "$HOME/.config/kdeglobals"
               rm -f "$HOME/.local/share/applications/mimeapps.list"
+              rm -f "$HOME/.config/mimeapps.list.hm-backup"
             '';
             createEssentialDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
               mkdir -p "${myconfig.constants.screenshots}"
