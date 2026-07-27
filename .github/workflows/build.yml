@@ -66,7 +66,15 @@ jobs:
           extra-conf: |
             build-dir = /nix/build
             extra-platforms = aarch64-linux
-            auto-optimise-store = true
+            # auto-optimise-store is deliberately OFF in CI. It hardlink-dedupes
+            # every store file into /nix/store/.links, and that hardlink farm
+            # does not round-trip cleanly through the cache-nix-action archive:
+            # small, widely-shared files (stdenv's strip.sh, bash patch .drvs)
+            # are exactly the ones that get deduped, and they come back missing
+            # while db.sqlite still lists them as valid. Nix then trusts the db,
+            # never re-substitutes, and the first step that actually *builds*
+            # dies with "path ... does not exist". Disk is not the constraint
+            # here (nothing-but-nix frees ~60 GB), so dedup buys us nothing.
             # Keep .drv files and build-time deps out of GC so a saved store
             # cache never has db entries pointing at pruned files (the
             # cache-nix-action-recommended guard against exactly the
@@ -88,19 +96,31 @@ jobs:
         uses: nix-community/cache-nix-action/restore@v7
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          # Only ever restore a store snapshot taken under the SAME flake.lock.
+          # The old catch-all `nix-${{ runner.os }}-` fallback pulled in stores
+          # from arbitrary older runs (and from timeout-killed jobs, which save
+          # on purpose for retry-resume); cache-nix-action *merges* the restored
+          # db.sqlite into the live one, so those stale rows became phantom
+          # "valid" entries for paths the archive never carried.
           restore-prefixes-first-match: |
             nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
-            nix-${{ runner.os }}-
 
       - name: Verify Restored Store
         run: |
           # A restored cache can carry db registrations whose files never
           # made it into the archive (snapshot of a killed build - bit us on
           # 2026-07-07 as "user-environment.drv does not exist" in cachix's
-          # nix-env install). nix-store --verify drops such phantom entries
-          # so later nix commands rebuild them instead of crashing.
+          # nix-env install). --repair is load-bearing: plain `--verify` only
+          # invalidates a missing path when NOTHING valid still refers to it.
+          # A missing-but-referenced path (stdenv's strip.sh) is merely
+          # reported as "disappeared, but it still has valid referrers!" and
+          # left registered, so Nix keeps believing it exists and never
+          # substitutes it - which is why the failure only surfaced later, at
+          # the first step that actually builds something (the doom-emacs IFD).
+          # --repair re-downloads those paths instead. No --check-contents: it
+          # re-hashes the entire store and is far too slow here.
           # Best-effort: verify being unavailable must not fail the job.
-          sudo -i nix-store --verify || sudo /nix/var/nix/profiles/default/bin/nix-store --verify || true
+          sudo -i nix-store --verify --repair || sudo /nix/var/nix/profiles/default/bin/nix-store --verify --repair || true
 
       # Non-critical: only used to speed up this job via the binary cache
       # substituter. A failed install must not fail the flake check.
@@ -228,7 +248,11 @@ jobs:
           extra-conf: |
             build-dir = /nix/build
             extra-platforms = aarch64-linux
-            auto-optimise-store = true
+            # auto-optimise-store is deliberately OFF in CI - see the same
+            # comment in the flake-check job above. The hardlink farm it builds
+            # under /nix/store/.links does not survive the cache-nix-action
+            # archive round-trip, and this job is the one that *saves* the
+            # cache that every other workflow restores.
             # Keep .drv files and build-time deps out of GC so a saved store
             # cache never has db entries pointing at pruned files (the
             # cache-nix-action-recommended guard against exactly the
@@ -251,9 +275,9 @@ jobs:
         uses: nix-community/cache-nix-action/restore@v7
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          # Same-lock only - see the flake-check job for the rationale.
           restore-prefixes-first-match: |
             nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
-            nix-${{ runner.os }}-
 
       - name: Verify Restored Store
         run: |
@@ -261,11 +285,13 @@ jobs:
           # made it into the archive (snapshot of a killed build - bit us on
           # 2026-07-07 as "user-environment.drv does not exist" in cachix's
           # nix-env install). This job's timeout-killed builds still save
-          # caches on purpose (retry-resume), so heal at restore time:
-          # nix-store --verify drops phantom db entries so later nix
-          # commands rebuild them instead of crashing.
+          # caches on purpose (retry-resume), so heal at restore time.
+          # --repair is load-bearing: plain `--verify` leaves a missing path
+          # registered whenever something valid still refers to it, so Nix
+          # keeps trusting the db and never re-substitutes. See the longer
+          # note in the flake-check job.
           # Best-effort: verify being unavailable must not fail the job.
-          sudo -i nix-store --verify || sudo /nix/var/nix/profiles/default/bin/nix-store --verify || true
+          sudo -i nix-store --verify --repair || sudo /nix/var/nix/profiles/default/bin/nix-store --verify --repair || true
 
       # Non-critical: only used to speed up this job and to push the build
       # output below. A failed install must not fail the whole job - the

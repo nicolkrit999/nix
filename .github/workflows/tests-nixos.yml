@@ -52,7 +52,14 @@ jobs:
           extra-conf: |
             build-dir = /nix/build
             extra-platforms = aarch64-linux
-            auto-optimise-store = true
+            # auto-optimise-store is deliberately OFF in CI. It hardlink-dedupes
+            # every store file into /nix/store/.links, and that hardlink farm
+            # does not round-trip cleanly through the cache-nix-action archive:
+            # small, widely-shared files (bash patch .drvs, stdenv's strip.sh)
+            # are exactly the ones that get deduped, and they come back missing
+            # while db.sqlite still lists them as valid. Nix then trusts the db,
+            # never re-substitutes, and a test step dies with
+            # "store path '...-bash53-003.drv' does not exist".
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             download-attempts = 15
@@ -65,11 +72,32 @@ jobs:
       # saving here too would purge build.yml's run-suffixed caches (and vice
       # versa) since both match the nix-Linux- prefix.
       - uses: nix-community/cache-nix-action/restore@v7
+        id: cache_restore
+        continue-on-error: true
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+          # Only ever restore a store snapshot taken under the SAME flake.lock.
+          # The old catch-all `nix-${{ runner.os }}-` fallback pulled in stores
+          # from arbitrary older runs (including build.yml's timeout-killed
+          # ones, which save on purpose for retry-resume); cache-nix-action
+          # *merges* the restored db.sqlite into the live one, so those stale
+          # rows became phantom "valid" entries for paths the archive never
+          # carried - surfacing here as "store path ... does not exist".
           restore-prefixes-first-match: |
             nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
-            nix-${{ runner.os }}-
+
+      - name: Verify Restored Store
+        run: |
+          # Heal a restored store whose db.sqlite claims paths that aren't on
+          # disk. --repair is load-bearing: plain `--verify` only invalidates a
+          # missing path when NOTHING valid still refers to it; a
+          # missing-but-referenced path is merely reported as "disappeared, but
+          # it still has valid referrers!" and left registered, so Nix keeps
+          # believing it exists and never substitutes it. The failure then
+          # surfaces later, in whichever test first has to realise a
+          # derivation. No --check-contents: it re-hashes the whole store.
+          # Best-effort: verify being unavailable must not fail the job.
+          sudo -i nix-store --verify --repair || sudo /nix/var/nix/profiles/default/bin/nix-store --verify --repair || true
 
       - name: "Test: minimal-defaults"
         id: minimal-defaults
