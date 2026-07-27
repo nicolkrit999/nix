@@ -1,1 +1,2 @@
 - [pkgs-unstable separate config trap](project_pkgs_unstable_separate_config.md) - `import inputs.nixpkgs-unstable {}` doesn't inherit host nixpkgs.config; forward with `inherit (pkgs) config;` (winboat/electron-40.10.5 3-round misdiagnosis)
+- [x86_64-darwin dropped from unstable](project_x86_64_darwin_dropped_unstable.md) - unstable/26.11 throws for x86_64-darwin (even `hello`); breaks `--all-systems` on template flakes, not a package bug
