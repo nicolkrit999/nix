@@ -4,14 +4,14 @@ let
   # self-hosted update manifest (file://). ExtensionInstallForcelist reads
   # the developer key out of the CRX header, so canonical CWS IDs apply
   # without unpacking. This persists install state in the profile, so
-  # chrome.runtime.onInstalled fires once on real install — not on every
+  # chrome.runtime.onInstalled fires once on real install - not on every
   # launch the way --load-extension did.
   extensionSpecs = [
-    { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-Xfm9bbdufzfHWhmtYThWL+n2RfVavr3IjxxOTY0P4Ug="; } # Proton Pass
-    { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-OH7yeYjbbwdhfMWzMQh4NNRqbUPSayigcuE0YVzAyz8="; } # Awesome Screen Recorder & Screenshot
-    { id = "chphlpgkkbolifaimnlloiipkdnihall"; hash = "sha256-LkQLIahNewg6u+1AM85s0Ln0XsPNdfyVgGS0YqTkPBc="; } # OneTab
+    { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-LMVNciGP4JCB6OOCYa4PFqylHGJyKCj0ajMQn4jHxnk="; } # Proton Pass
+    { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-7EkligADleNXWLDU3bpnOLOrxtnBhNWqnTmxcpcYjg8="; } # Awesome Screen Recorder & Screenshot
+    { id = "chphlpgkkbolifaimnlloiipkdnihall"; hash = "sha256-BWg/RRnN6/lVmf1Pc07vzA3noGaNX3J64IrCKuAV5Qk="; } # OneTab
     { id = "dphilobhebphkdjbpfohgikllaljmgbn"; hash = "sha256-IgmQYXUjBM0iONHXqTgcvIXihN2ZrXWCZsQZZg1xPxk="; } # SimpleLogin
-    { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; hash = "sha256-nE5FE3Eo1jG8sT1KYjVl8JRbmAiyhN8IZObHsAIb0wY="; } # SponsorBlock
+    { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; hash = "sha256-VYf+K2qZRhAcoN3nxu/nanVcXuW21uY9/EjH9zbNtP8="; } # SponsorBlock
     { id = "lnaahdmijnjnmgaalacdgakieangpjgp"; hash = "sha256-xxdOTvjv9gaB1rS0bMsmrudydOGdTDtt73Ri+zRCpNQ="; } # Screenshot YouTube Video
     { id = "cdglnehniifkbagbbombnjghhcihifij"; hash = "sha256-weiUUUiZeeIlz/k/d9VDSKNwcQtmAahwSIHt7Frwh7E="; } # Kagi Search
     { id = "dpaefegpjhgeplnkomgbcmmlffkijbgp"; hash = "sha256-BnnCPisSxlhTSoQQeZg06Re8MhgwztRKmET9D93ghiw="; } # Kagi Summarizer
