@@ -28,22 +28,26 @@
     {
       devShells = forEachSupportedSystem (
         { pkgs }:
+        let
+          # `nix develop`'s $PATH is a plain concatenation of each `packages` entry's
+          # bin/ dir in list order - NOT a priority-resolved buildEnv merge - so
+          # `lib.hiPrio` has no effect and list order alone decides which `python3`
+          # wins. litecli/pgcli/sqlite-web/sqlite-utils each drag in nixpkgs' bare
+          # python3, so this env MUST stay first in `packages` or plain `python3`
+          # silently resolves to an interpreter without pandas & friends.
+          pythonEnv = pkgs.python313.withPackages (ps: [
+            ps.pip
+            ps.pandas
+            ps.openpyxl
+            ps.requests
+            ps.sqlparse # SQL parsing/formatting library
+            ps.ipython
+            ps.black
+          ]);
+        in
         {
           default = pkgs.mkShellNoCC {
-            venvDir = ".venv";
-
-            postShellHook = ''
-              venvVersionWarn() {
-                local venvVersion
-                venvVersion="$("$venvDir/bin/python" -c 'import platform; print(platform.python_version())')"
-                [[ "$venvVersion" == "${pkgs.python313.version}"* ]] && return
-                cat <<EOF
-                Warning: Python version mismatch: [$venvVersion (venv)] != [${pkgs.python313.version}]
-                Delete '$venvDir' and reload to rebuild for version ${pkgs.python313.version}
-                EOF
-              }
-              venvVersionWarn
-
+            shellHook = ''
               echo ""
               echo "------------------------------------------------------------------"
               echo "🗄️  SQL Dev Environment Loaded"
@@ -60,6 +64,16 @@
             '';
 
             packages = with pkgs; [
+              # ============================================================
+              # Python (data analysis / scripting against DBs, e.g. the
+              # beer-inventory skill's beer_cli.py - stdlib sqlite3 + pandas/
+              # openpyxl/requests for backfills, exports, reconciliation)
+              #
+              # MUST be first: several tools below propagate nixpkgs' bare
+              # python3, and the first bin/ on $PATH wins.
+              # ============================================================
+              pythonEnv
+
               # ============================================================
               # GUI clients
               # ============================================================
@@ -88,22 +102,6 @@
               sqlfluff # SQL linter & auto-formatter (many dialects)
               csvkit # CSV <-> SQL helpers (csvsql, sql2csv, csvlook, ...)
               jq # JSON wrangling (e.g. output of --json queries)
-
-              # ============================================================
-              # Python (data analysis / scripting against DBs, e.g. the
-              # beer-inventory skill's beer_cli.py - stdlib sqlite3 + pandas/
-              # openpyxl/requests for backfills, exports, reconciliation)
-              # ============================================================
-              (python313.withPackages (ps: [
-                ps.pip
-                ps.venvShellHook
-                ps.pandas
-                ps.openpyxl
-                ps.requests
-                ps.sqlparse # SQL parsing/formatting library
-                ps.ipython
-                ps.black
-              ]))
             ];
           };
         }
