@@ -21,9 +21,15 @@ structural change with no new packages/options).
 researcher's findings. It follows repo patterns: denix `delib.module`/`host`
 conventions, the 3-way common/nixos/darwin split, the constants system, and
 must never bump `stateVersion`.
-- If there's doubt about cross-platform/cross-arch placement (does this
-  belong in common, or does it need per-OS handling?), dispatch
-  `nix-compat-checker` first and feed its judgment into the architect's task.
+- **Default placement rule:** before authoring, dispatch `nix-compat-checker`
+  to determine whether what's being implemented is compatible with
+  nix-darwin - do not decide this yourself or leave it to the architect to
+  guess. If it is NOT darwin-compatible, it goes in `modules/nixos/`
+  (NixOS-only) - never `modules/common/`. If it IS darwin-compatible, it
+  goes in `modules/common/` so both platforms get it. Feed
+  `nix-compat-checker`'s judgment into the architect's task. This default
+  only applies when the user hasn't specified otherwise in their prompt -
+  an explicit user instruction on placement always wins.
 
 **3. LINT - dispatch `nix-syntax-linter`** to parse/format-check the new code
 and check for denix anti-patterns. It is read-only - findings go back to
