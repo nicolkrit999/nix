@@ -255,6 +255,7 @@ delib.host {
         cava.enable = false;
         claude-desktop.enable = true;
         codex.enable = true;
+        herdr.enable = true;
         comma.enable = true;
         concord.enable = true;
         doom.enable = true;

@@ -124,6 +124,10 @@
     };
     claude-cowork-service.url = "github:patrickjaja/claude-cowork-service";
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
+    herdr = {
+      url = "github:ogulcancelik/herdr/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     nix-darwin = {
       url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";

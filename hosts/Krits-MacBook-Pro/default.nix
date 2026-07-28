@@ -73,6 +73,7 @@ delib.host {
         headroom.enable = true;
         claude-code.enable = true;
         codex.enable = true;
+        herdr.enable = true;
         npm = {
           enable = true;
           packages = [
