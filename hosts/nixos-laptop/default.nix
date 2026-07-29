@@ -715,6 +715,7 @@ delib.host {
         googleDrive.enable = true;
         onedrivePersonal.enable = true;
         pcloud.enable = true;
+        protonDrive.enable = true;
       };
 
       # ---------------------------------------------------------------
