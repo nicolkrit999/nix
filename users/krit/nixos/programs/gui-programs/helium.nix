@@ -8,7 +8,7 @@ let
   # launch the way --load-extension did.
   extensionSpecs = [
     { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-LMVNciGP4JCB6OOCYa4PFqylHGJyKCj0ajMQn4jHxnk="; } # Proton Pass
-    { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-7EkligADleNXWLDU3bpnOLOrxtnBhNWqnTmxcpcYjg8="; } # Awesome Screen Recorder & Screenshot
+    { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-L8aMcJEgAc60NkHNDsm8op8B/0O0/Nsqzt8Xmd3aN+E="; } # Awesome Screen Recorder & Screenshot
     { id = "chphlpgkkbolifaimnlloiipkdnihall"; hash = "sha256-BWg/RRnN6/lVmf1Pc07vzA3noGaNX3J64IrCKuAV5Qk="; } # OneTab
     { id = "dphilobhebphkdjbpfohgikllaljmgbn"; hash = "sha256-IgmQYXUjBM0iONHXqTgcvIXihN2ZrXWCZsQZZg1xPxk="; } # SimpleLogin
     { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; hash = "sha256-VYf+K2qZRhAcoN3nxu/nanVcXuW21uY9/EjH9zbNtP8="; } # SponsorBlock
