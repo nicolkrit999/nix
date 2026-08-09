@@ -1,12 +1,5 @@
 { delib, ... }:
 # ⚠ CLOSE ZEN BEFORE REBUILD when modifying this file.
-# Pins/folders write to zen-sessions.jsonlz4; Zen locks the file while running.
-# After pkill zen-beta, wait until ALL zen processes fully exit, then rebuild.
-#
-# Folders need ≥1 child pin - Zen drops empty folders on session save.
-# Essential pins (isEssential=true): favicon-only uncloseable icons at sidebar top.
-# Folder child pins (folderParentId=<folder-id>): appear inside the folder.
-# Both can coexist for the same URL using different UUIDs.
 delib.module {
   name = "programs.zen.browser";
 

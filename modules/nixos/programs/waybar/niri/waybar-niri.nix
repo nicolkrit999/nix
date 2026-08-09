@@ -49,7 +49,6 @@ delib.module {
         (parent.noctalia.enable or false)
         && (parent.noctalia.enableOnNiri or false);
 
-      # Waybar config as Nix attrset
       waybarConfig = {
         layer = "top";
         position = "top";
@@ -217,7 +216,6 @@ delib.module {
         '';
       };
 
-      # Custom systemd service for Niri waybar
       systemd.user.services.waybar-niri = lib.mkIf isNiriEnabled {
         Unit = {
           Description = "Waybar for Niri";

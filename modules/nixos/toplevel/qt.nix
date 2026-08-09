@@ -6,20 +6,8 @@
 delib.module {
   name = "qt";
 
-  # Qt/KDE color theming (kdeglobals palette + colorscheme files) is delegated
-  # to stylix.targets.kde - it follows polarity + base16Theme, writes into
-  # xdg.systemDirs.config (immune to plasma-manager overrideConfig), and
-  # supplies the colorscheme via XDG_DATA_DIRS for any DE/WM.
-  #
-  # This module owns the *non-color* Qt plumbing only:
-  #   - QPA platform theme env var
-  #   - qt5ct/qt6ct config (used outside KDE)
-  #   - icon theme
-  #
-  # NOTE: stylix.targets.qt is intentionally NOT enabled - it forces
-  # qt.platformTheme.name = "qtct", which strips plasma-integration from
-  # Plasma's own Qt widgets and crashes Plasma sessions. kde target alone is
-  # safe; qt target is not.
+  # Stylix.targets.qt is intentionally NOT enabled - it forces
+  # qt.platformTheme.name = "qtct" crashing plasma sessions
 
   options = delib.singleEnableOption true;
 
@@ -36,8 +24,6 @@ delib.module {
       iconThemeName = if isDark then "Papirus-Dark" else "Papirus-Light";
     in
     {
-      # Outside a Plasma session, "kde" platform theme still works as long as
-      # plasma-integration is installed; falls back to qt5ct elsewhere.
       home.sessionVariables = {
         QT_QPA_PLATFORMTHEME = if useKdePlatformTheme then "kde" else "qt5ct";
       };
@@ -57,9 +43,6 @@ delib.module {
           ]
         );
 
-      # qt5ct/qt6ct configuration for non-KDE Qt apps. Color palette comes from
-      # the BreezeDark/Light .colors file referenced below - stylix doesn't
-      # write qt5ct configs because stylix.targets.qt is disabled.
       xdg.configFile."qt6ct/qt6ct.conf".text = ''
         [Appearance]
         icon_theme=${iconThemeName}

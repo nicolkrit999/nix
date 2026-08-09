@@ -36,12 +36,10 @@ delib.module {
           (submodule {
             options = {
               targetMonitor = strOption "*"; # Match any unassigned monitors
-              # wallpaperURL must always be a valid static image path - it is consumed by
-              # DEs, stylix, hyprlock, and kscreenlocker even when gifURL is set.
               wallpaperURL = strOption "";
               wallpaperSHA256 = strOption "";
-              gifURL = strOption ""; # if non-empty, WMs use this GIF via awww; must be empty-string when unused
-              gifSHA256 = strOption ""; # sha256 for gifURL; ignored when gifURL = ""
+              gifURL = strOption "";
+              gifSHA256 = strOption "";
             };
           })
           [
@@ -72,9 +70,6 @@ delib.module {
       useFahrenheit = boolOption false;
       timeZone = strOption "Etc/UTC";
 
-      # Allow the initrd-stage (pre-switch-root) systemd emergency/rescue shell
-      # without authentication. Safe default is false (upstream default);
-      # per-host override where sops secrets aren't yet available at that stage.
       emergencyAccess = boolOption false;
     };
 }

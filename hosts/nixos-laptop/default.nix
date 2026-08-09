@@ -96,9 +96,6 @@ delib.host {
         mainLocale = myLocale;
 
         homeStateVersion = "25.11";
-
-        # LUKS remains the real access gate on this host; enabling initrd rescue
-        # access restores boot-time recovery without undercutting encryption.
         emergencyAccess = true;
 
         # ---------------------------------------------------------------
@@ -113,14 +110,6 @@ delib.host {
         # ---------------------------------------------------------------
         terminal = {
           name = myTerminal;
-
-          /*
-          # Commented out as it matches the fallbacks
-          cursorStyle = "block";
-          cursorBlink = true;
-          cursorBeamWidth = 3.0;
-          animation = true;
-          */
         };
         shell = myShell;
         browser = myBrowser;
@@ -323,7 +312,6 @@ delib.host {
             pulseaudio
             ssh
             supergenpass
-            # systemd
             wifi-commander
             wikipedia
             zoxide-recent-directories
@@ -524,7 +512,7 @@ delib.host {
             "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
             "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
             "sh -c 'sleep 11 && ${myTerminal}'"
-            "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
+            "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
             #"sh -c 'sleep 17 && protonvpn-app --start-minimized'"
             "sh -c 'sleep 27 && niri msg action focus-column-first'" # Refocus browser after all windows are up
           ];

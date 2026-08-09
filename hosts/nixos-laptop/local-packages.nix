@@ -24,6 +24,7 @@ delib.module {
           cryptomator # Client side encryptions for cloud drives
           cpu-x # Hardware information visualizer application
           drawio # Diagramming application
+          fresh-editor # Lightweight terminal text editor - not in 26.05
           jellyfin-desktop # Media server
           libreoffice-qt # Open source microsoft office alternative
           localsend # Simple file sharing over local network
@@ -102,7 +103,6 @@ delib.module {
           # -----------------------------------------------------------------------
           # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
           # -----------------------------------------------------------------------
-          fresh-editor # Lightweight terminal text editor - not in 26.05
         ]);
     };
 }

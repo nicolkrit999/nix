@@ -37,7 +37,6 @@ delib.module {
     , ...
     }:
     let
-      # Base16 accent color from stylix
       accentColor = config.lib.stylix.colors.withHashtag.base0E;
       getExtension = path:
         let
@@ -51,8 +50,6 @@ delib.module {
       bgExt = if cfg.background != null then getExtension cfg.background else "jpg";
       bgFilename = "background.${bgExt}";
 
-      # Merge order: default → base16 accent → user themeConfig → custom background file path
-      # This ensures the background key always exists when theme.conf is written
       effectiveThemeConfig =
         { background = "assets/background.jpg"; }  # Default fallback (upstream asset)
         // { accentColor = accentColor; }  # Base16 accent from stylix

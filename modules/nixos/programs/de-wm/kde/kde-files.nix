@@ -1,4 +1,3 @@
-# configure Low-level access to changing Plasma settings using the community "plasma-manager" flake
 { delib
 , ...
 }:

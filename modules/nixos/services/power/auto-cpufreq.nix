@@ -3,23 +3,16 @@ delib.module {
   name = "services.auto-cpufreq";
   options = delib.singleEnableOption false;
 
-  # Import the flake module (always, so option exists)
   nixos.always = {
     imports = [ inputs.auto-cpufreq.nixosModules.default ];
   };
 
   nixos.ifEnabled = { myconfig, ... }: {
-    # Mutual exclusivity: auto-cpufreq and tlp cannot coexist — they fight over the
-    # same CPU governor / EPP knobs. Assert at eval time instead of silently letting
-    # both lib.mkForce each other off (which previously disabled both).
     assertions = [{
       assertion = !(myconfig.services.tlp.enable or false);
       message = "services.auto-cpufreq and services.tlp are mutually exclusive — enable only one in your host config.";
     }];
 
-    # Disable GNOME Power Profiles daemon (conflicts with auto-cpufreq per official README)
-    # Trade-off: GNOME Settings > Power won't show profile switcher, but auto-cpufreq
-    # handles power management dynamically which is smarter. GNOME otherwise works fine.
     services.power-profiles-daemon.enable = lib.mkForce false;
 
     programs.auto-cpufreq = {

@@ -1,4 +1,3 @@
-# Configure krunner using the community "plasma-manager" flake
 { delib
 , ...
 }:

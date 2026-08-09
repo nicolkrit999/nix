@@ -10,7 +10,6 @@ delib.module {
   home.ifEnabled = {
     home.packages = [ pkgs.television ];
 
-    # Manage config.toml to prevent tv update-channels from creating one with interfering defaults
     xdg.configFile."television/config.toml".text = ''
       # Managed by home-manager - do not edit manually
       tick_rate = 50

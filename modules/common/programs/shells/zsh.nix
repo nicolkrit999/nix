@@ -6,7 +6,6 @@
 delib.module {
   name = "programs.zsh";
 
-  # Always enabled to ensure the fixes functions works
   home.always =
     { myconfig, ... }:
     let

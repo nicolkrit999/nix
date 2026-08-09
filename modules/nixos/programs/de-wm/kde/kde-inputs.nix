@@ -1,4 +1,3 @@
-# This module configures KDE input devices, such as keyboards, mice, and touchpads using the community "plasma-manager" flake
 { delib
 , lib
 , ...

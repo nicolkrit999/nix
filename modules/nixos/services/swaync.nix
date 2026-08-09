@@ -36,9 +36,6 @@ delib.module {
         .notification-row { outline: none; }
       '';
 
-      # Three-way active check: a shell only suppresses swaync when it is
-      # actually running on that WM (master enable + per-WM flag + wm.enable),
-      # not just when the dormant per-WM preference is set.
       caelestiaActiveOnHyprland =
         (myconfig.programs.caelestia.enable or false)
         && (myconfig.programs.caelestia.enableOnHyprland or false)
@@ -90,7 +87,6 @@ delib.module {
           timeout-low = 5;
           timeout-critical = 0;
 
-          # Host optional rules to exclude/mute notifications
           notification-visibility = { } // cfg.customSettings;
         };
 

@@ -26,7 +26,6 @@ delib.module {
             normal.style = lib.mkForce "Bold";
           };
 
-          # Cursor styling from constants with base16 colors
           cursor = {
             style = {
               shape =

@@ -14,8 +14,6 @@ delib.module {
   home.ifEnabled =
     { myconfig, ... }:
     let
-      # Three-way active checks — dormant per-WM flags alone must NOT suppress
-      # swayosd; all three conditions (master + per-WM + wm.enable) are required.
       caelestiaActiveOnHyprland =
         (myconfig.programs.caelestia.enable or false)
         && (myconfig.programs.caelestia.enableOnHyprland or false)
@@ -36,8 +34,6 @@ delib.module {
         && (myconfig.programs.noctalia.enableOnMango or false)
         && (myconfig.programs.mango.enable or false);
 
-      # swayosd is needed when at least one active WM has no shell providing
-      # its own OSD. Shells suppress it only on the specific WM they run on.
       hyprlandNeedsSwayosd =
         (myconfig.programs.hyprland.enable or false)
         && !caelestiaActiveOnHyprland

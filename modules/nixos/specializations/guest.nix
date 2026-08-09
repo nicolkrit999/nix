@@ -61,14 +61,6 @@ delib.module {
       stylix.base16Scheme = lib.mkForce "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
       stylix.image = lib.mkForce (pkgs.writeText "dummy-image.png" "");
 
-      # Re-declare stylix.enable inside home-manager so disabled per-WM
-      # stylix targets (e.g. stylix-niri, stylix-hyprland) short-circuit
-      # before reading options that no longer exist. Same pattern as
-      # safe-mode.nix.
-      # Re-declare stylix.enable inside home-manager so disabled per-WM
-      # stylix targets (e.g. stylix-niri, stylix-hyprland) short-circuit
-      # before reading options that no longer exist. Same pattern as
-      # safe-mode.nix.
       home-manager.users.${myUserName} =
         { lib, ... }:
         {
@@ -85,8 +77,6 @@ delib.module {
         uid = 2000;
         group = "guest";
         extraGroups = [ "networkmanager" "audio" "video" ];
-        # Vestigial — autologin makes this irrelevant. Public ("guest")
-        # password kept so PAM/polkit don't see a locked account.
         hashedPassword = "$6$Cqklpmh3CX0Cix4Y$OCx6/ud5bn72K.qQ3aSjlYWX6Yqh9XwrQHSR1GnaPRud6W4KcyU9c3eh6Oqn7bjW3O60oEYti894sqVUE1e1O0";
         createHome = true;
       };
@@ -106,17 +96,10 @@ delib.module {
         ];
       };
 
-      # `\n` is interpreted as a literal newline by systemd-tmpfiles;
-      # the doubled backslash survives nix string parsing.
       systemd.tmpfiles.rules = [
         "d /var/lib/AccountsService/users 0755 root root -"
         "f /var/lib/AccountsService/users/guest 0644 root root - [User]\\nSession=xfce\\n"
         "f /home/.hidden 0644 root root - guest"
-        # Commented out: skel copy may be the cause of black screen on
-        # autologin (races with xfce session, or seeds bad displays.xml
-        # for the laptop's HiDPI panel). Removing it makes xfce fall
-        # back to the first-run dialog, which is the diagnostic we want.
-        # "C /home/guest/.config 0700 2000 2000 - ${guestConfigSkel}"
       ];
 
       networking.firewall.extraCommands = ''

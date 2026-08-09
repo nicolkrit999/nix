@@ -22,15 +22,11 @@ delib.module {
         lfs.enable = true;
 
         ignores = [
-          # Virtual environments and direnv
           ".direnv/"
           ".venv/"
-          # Ccredentials
           ".env"
-          # Nix build results
+          ".envrc"
           "result"
-
-          # Editor swap files and OS trash
           "*.swp"
           ".DS_Store"
 
@@ -43,10 +39,6 @@ delib.module {
             email = myconfig.constants.gitUserEmail;
           };
           init.defaultBranch = "main";
-          # ff-only: avoids "cannot rebase onto multiple branches" caused by VS Code
-          # injecting vscode-merge-base into .git/config. Keeps history linear (no
-          # merge commits). Downside: diverged branches require a manual rebase/merge
-          # before pulling.
           pull.ff = "only";
         };
       };

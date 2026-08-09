@@ -49,11 +49,6 @@ delib.module {
 
       homebrew = {
         enable = true;
-        # Keep Homebrew deterministic: only ensure the listed packages exist.
-        # autoUpdate/upgrade pulled bleeding-edge Homebrew + mas that outran
-        # nix-darwin (broke `brew bundle` MAS support and deprecated the
-        # `--cleanup` flag that "uninstall"/"zap" rely on). Run `brew update`,
-        # `brew upgrade`, and `brew bundle cleanup --force` manually when wanted.
         onActivation = {
           autoUpdate = false;
           upgrade = false;

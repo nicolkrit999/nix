@@ -55,7 +55,6 @@ delib.module {
         // lib.optionalAttrs (cfg.fontSize != null) {
           font_size = cfg.fontSize;
         }
-        # macOS-specific settings
         // lib.optionalAttrs isDarwin {
           macos_option_as_alt = "yes";
         };

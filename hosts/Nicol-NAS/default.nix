@@ -27,17 +27,10 @@ delib.host {
         gitUserName = "Krit Pio Nicol";
         gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
 
-        shell = "bash"; # Fixed login shell on this foreign-distro appliance
+        shell = "bash";
         editor = "nvim";
         fileManager = "yazi";
 
-        # Same theme as hosts/nixos-desktop/default.nix. On this headless,
-        # standalone home-manager build stylix only themes CLI targets
-        # (starship, tmux, bat, lazygit, ...) via base16Scheme - there's no
-        # wallpaper/image and none is added (see stylix = {...} below and
-        # modules/nixos/toplevel/stylix-nixos.nix, whose home.ifEnabled now
-        # sets base16Scheme unconditionally rather than gating it on a
-        # wallpapers constant).
         theme = {
           polarity = "dark";
           base16Theme = "gruvbox-material-dark-hard";
@@ -46,8 +39,6 @@ delib.host {
           catppuccinAccent = "sapphire";
         };
 
-        # New host, installed under 26.05 - frozen forever from this point on.
-        # ⛔ Never bump this, and never let a repo-wide stateVersion sweep touch it.
         homeStateVersion = "26.05";
       };
 
@@ -62,18 +53,8 @@ delib.host {
         gcn = "3";
       };
 
-      # Same style/position as hosts/nixos-desktop/default.nix. Headless here
-      # means no wallpaper/image target, but stylix still themes CLI tools
-      # (starship, tmux, bat, lazygit, ...) via base16Scheme alone - see the
-      # theme = {...} constants above and modules/nixos/toplevel/stylix-nixos.nix.
       stylix = {
         enable = true;
-        # kde/gtk targets default-enable (stylix-nixos.nix's home.ifEnabled
-        # sets them `!isCatppuccin`) and pull in stylix-kde-theme/adw-gtk3 -
-        # neither GTK nor KDE exist on this headless NAS, so switch them
-        # off explicitly. qt stays untouched here (already off via the
-        # separate qt.enable = false module below - not a stylix target).
-        # Fonts are left alone: harmless on a headless host.
         targets = {
           kde.enable = false;
           gtk.enable = false;
@@ -99,12 +80,6 @@ delib.host {
           customGitIgnores = [ ];
         };
 
-        # Same MCP secrets list as hosts/nixos-desktop/default.nix - all of
-        # these already live in the shared common sops file, which this host
-        # decrypts via krit.commonSopsSecrets.enable above. Consumed here by
-        # claude-code.nix's home.ifEnabled wrapped-`claude` binary (moduleSystem
-        # == "home" path), not by claude-code-wrappers.nix's /run/secrets-based
-        # scripts (not enabled on this host - see comment there).
         claude-code = {
           enable = true;
           mcpSecrets = [
@@ -134,11 +109,6 @@ delib.host {
       # ---------------------------------------------------------------
       # 🧰 SERVICES
       # ---------------------------------------------------------------
-      # Same style/key as hosts/nixos-desktop/default.nix's services.external
-      # block. home.ifEnabled works unchanged on a standalone home-manager
-      # build; packagesPerHost.Nicol-NAS in ext-dotfiles-private.nix scopes
-      # this host to "claude/common" + "claude/Nicol-NAS" only (no gsd, no
-      # vicinae - both interactive/GUI tooling not applicable headless).
       services.external.dotfiles-private.enable = true;
 
       # ---------------------------------------------------------------

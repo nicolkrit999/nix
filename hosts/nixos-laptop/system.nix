@@ -68,7 +68,6 @@ delib.host {
     '';
 
 
-    # Laptop-specific hardware - Intel Arc B390 (12 Xe3 cores, integrated in Panther Lake X7 358H SoC, xe driver)
     hardware.enableRedistributableFirmware = true; # Intel CPU microcode + GPU firmware for Panther Lake
     hardware.graphics = {
       enable = true;
@@ -80,7 +79,7 @@ delib.host {
 
     # Laptop-specific packages
     environment.systemPackages = with pkgs; [
-      lm_sensors # `sensors` command for monitoring temps/fans
+      lm_sensors # Tools for reading hardware sensors - maintained fork
     ];
   };
 }

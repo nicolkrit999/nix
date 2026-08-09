@@ -55,7 +55,7 @@ delib.module {
           ouch = pkgs.fetchFromGitHub {
             owner = "ndtoan96";
             repo = "ouch.yazi";
-            rev = "v0.7.0"; # If a new version is released change it here
+            rev = "v0.7.0"; # NOTE: If a new version is released change it here
             sha256 = "03fjnga97bvrblvf53w7lp0k9ikkd81pa49qc0np7fg3fc8nlhyn";
           };
 
@@ -63,15 +63,11 @@ delib.module {
           recycle-bin = pkgs.fetchFromGitHub {
             owner = "uhs-robert";
             repo = "recycle-bin.yazi";
-            rev = "v1.1.0"; # If a new version is released change it here
+            rev = "v1.1.0"; # NOTE: If a new version is released change it here
             sha256 = "00yh6w3f088dvhcb2464l86wxq7202bzgxjdnwi0i9cc1apgc54z";
           };
 
           # nix-prefetch-url --unpack "https://github.com/dedukun/relative-motions.yazi/archive/a603d9ea924dfc0610bcf9d3129e7cba605d4501.tar.gz"
-          # Upstream is unmaintained (HEAD == this pinned rev) and still calls the
-          # deprecated `ya.mgr_emit()` (removed-soon since yazi v25.5.28, see yazi PR #2653).
-          # `ya.emit()` is a drop-in rename with the same signature, so we patch it in
-          # place - a global rename reproduces the fixed community forks byte-for-byte.
           relative-motions = lib.mkForce (
             let
               src = pkgs.fetchFromGitHub {
@@ -96,12 +92,6 @@ delib.module {
             sha256 = "1nbmczlzl7wa564gk7wr4jb84ja3as3z1b537vj5477dzrys6y98";
           };
 
-          # Local plugin (not fetched from GitHub): routes deletes under the NAS
-          # SMB mount (/mnt/nicol_nas) through a real/permanent delete so the
-          # NAS's own server-side #recycle interception catches it - yazi's
-          # normal client-side XDG trash rename never triggers a real unlink,
-          # so the NAS never sees it. Everywhere else (including $HOME and the
-          # rclone cloud mounts) falls through to the regular client-side trash.
           smart-remove = pkgs.writeTextDir "main.lua" ''
             local M = {}
 
@@ -189,17 +179,11 @@ delib.module {
           };
 
           opener = {
-            # run: shell command to run
-            # block: wait for the command to finish before returning to Yazi
-            # orphan: Keeps the application running even if you close Yazi. This is ideal for GUI apps like VS Code or media players
-            # for: restrict the command to a specific OS (linux, macos, windows, unix)
-
-            # Text editor
             edit = [
               {
                 run = ''$EDITOR "$@"'';
                 desc = "Edit";
-                block = true; # Wait for the editor to close before returning to Yazi
+                block = true;
                 for = "unix";
               }
               {
@@ -304,8 +288,6 @@ delib.module {
             ];
           };
 
-          # Tells Yazi how to handle different file types
-          # They match the name or mime type of the file
           open = {
             rules = [
               {
@@ -393,7 +375,6 @@ delib.module {
             bizarre_retry = 5; # How many times Yazi retries a task that failed for an unexpected ("bizarre") reason before giving up
             image_alloc = 1073741824; # maximum memory (in bytes) Yazi is allowed to use for decoding images.
 
-            # maximum pixel dimensions (Width x Height) Yazi will attempt to decode.
             image_bound = [
               20000
               20000

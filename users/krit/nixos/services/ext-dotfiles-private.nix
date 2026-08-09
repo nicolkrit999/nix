@@ -83,8 +83,6 @@ let
       "vicinae/common"
       "vicinae/nixos-laptop"
     ];
-    # Headless NAS: no gsd (interactive/session-drift tooling), no vicinae
-    # (GUI launcher - this host has no display).
     Nicol-NAS = [
       "claude/common"
       "claude/Nicol-NAS"
@@ -112,10 +110,6 @@ let
       ".school-workspace/.claude/agents" = "claude/school/.claude/agents";
       ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
     };
-    # Actual-budget MCP is the only reason this binary is mapped here: this
-    # host's mcpSecrets (hosts/Nicol-NAS/default.nix) already provisions the
-    # three ACTUAL_* secrets, so the actual MCP server is meant to run on the
-    # NAS. Momentary/school workspace mappings are desktop-only and excluded.
     Nicol-NAS = {
       ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
     };

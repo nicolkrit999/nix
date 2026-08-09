@@ -1,4 +1,3 @@
-# This module configures the KDE Plasma screen locker (kscreenlocker) using the community "plasma-manager" flake
 { delib
 , pkgs
 , lib

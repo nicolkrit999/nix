@@ -6,7 +6,6 @@
 delib.module {
   name = "programs.fish";
 
-  # Always enabled to ensure the fixes functions works
   home.always =
     { myconfig, ... }:
     let
@@ -19,7 +18,6 @@ delib.module {
         enable = true;
 
         interactiveShellInit =
-          # Common init for both platforms
           ''
             # LOAD USER CONFIG
             if test -f "$HOME/.custom.fish"
@@ -46,7 +44,6 @@ delib.module {
             bind --erase --all alt-c
             bind ctrl-g fzf-cd-widget
           ''
-          # NixOS-specific init
           + lib.optionalString isNixOS ''
             # FIX HYPRLAND SOCKET
             set -l hypr_dir "/run/user/"(id -u)"/hypr"

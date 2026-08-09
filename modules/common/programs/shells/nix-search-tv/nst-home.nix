@@ -65,7 +65,6 @@ delib.module {
       '')
     ];
 
-    # Pre-warm the index on activation for plug-and-play UX (mirrors tv update-channels pattern)
     home.activation.updateNixSearchTvIndex =
       inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         $DRY_RUN_CMD ${pkgs.nix-search-tv}/bin/nix-search-tv print > /dev/null 2>&1 || true

@@ -12,7 +12,6 @@ delib.module {
     , ...
     }:
     let
-      # If variables are missing, these defaults will be used.
       safeEditor = myconfig.constants.editor or "vscode";
       safeBrowser = myconfig.constants.browser or "firefox";
       safeTerm = myconfig.constants.terminal.name or "alacritty";
@@ -46,12 +45,9 @@ delib.module {
         };
       };
 
-      # Check if the chosen editor is a terminal one
       isTermEditor = builtins.hasAttr safeEditor termEditors;
       editorConfig = termEditors.${safeEditor};
 
-      # Resolve browsers that don't follow the "name.desktop" convention
-      # Add more as needed
       browserDesktopMap = {
         "vivaldi" = "vivaldi-stable.desktop";
         "brave" = "brave-browser.desktop";
@@ -59,7 +55,6 @@ delib.module {
         "chromium" = "chromium-browser.desktop";
       };
 
-      # EDITOR
       myEditor =
         if isTermEditor then
           "user-${safeEditor}.desktop"
@@ -68,10 +63,8 @@ delib.module {
         else
           "${safeEditor}.desktop";
 
-      # BROWSER (Uses the map, defaults to name.desktop)
       myBrowser = browserDesktopMap.${safeBrowser} or "${safeBrowser}.desktop";
 
-      # FILE MANAGER
       myFileManager =
         if safeFileManager == "dolphin" then "org.kde.dolphin.desktop" else "${safeFileManager}.desktop";
 

@@ -57,15 +57,12 @@ delib.module {
       # -----------------------------------------------------------------------
 
       # 🔑 Password Manager Integration
-      # Connects Firefox to 'browserpass' for secure credential handling.
-      # Currently disabled due to proton pass usage
       programs.browserpass.enable = false;
 
       programs.firefox = {
         enable = true;
         profiles.${myconfig.constants.user} = {
           # 🔍 Search Configuration
-          # Forces Google as default while keeping privacy options like Kagi and duck duck go available.
           search = {
             force = true; # Enforce custom search engine settings
             default = "kagi"; # Set Google as the default search engine

@@ -35,7 +35,6 @@ delib.module {
     , ...
     }:
     let
-      # Styling helper functions
       c = config.lib.stylix.colors.withHashtag;
       colors = {
         active = c.base0D; # Accent blue - same as Hyprland active border

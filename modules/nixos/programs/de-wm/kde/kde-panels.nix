@@ -1,4 +1,3 @@
-# Configure taskbar and panels using the community "plasma-manager" flake
 { delib
 , lib
 , ...

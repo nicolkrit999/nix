@@ -1,4 +1,3 @@
-# Configure kde plasma desktop appearance using the community "plasma-manager" flake
 { delib
 , ...
 }:

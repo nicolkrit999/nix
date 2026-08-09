@@ -31,15 +31,11 @@ delib.module {
 
       vicinaeCommand = [ "vicinae" "toggle" ];
 
-      # Three-way active check: only dispatch to noctalia's IPC if noctalia
-      # is actually running on Niri (master + per-WM + wm.enable).
       noctaliaActiveOnNiri =
         (parent.noctalia.enable or false)
         && (parent.noctalia.enableOnNiri or false)
         && (parent.niri.enable or false);
 
-      # No fallback by design: super+shift+a is the *shell* launcher. If noctalia
-      # isn't active on Niri, the bind is a no-op (use super+a → vicinae instead).
       shellLauncherCommand =
         if noctaliaActiveOnNiri then
           [
@@ -50,9 +46,6 @@ delib.module {
         else
           [ "true" ];
 
-      # Direct dispatch - bypasses the universalLock chain (loginctl → hypridle
-      # → universalLock → pgrep noctalia → hyprlock fallback) which silently
-      # falls through to hyprlock when noctalia isn't pgrep-matched.
       shellLockCommand =
         if noctaliaActiveOnNiri then
           [
@@ -63,9 +56,6 @@ delib.module {
         else
           [ "loginctl" "lock-session" ];
 
-      # Media / brightness keys: when noctalia is active it shows its own OSD
-      # via PipeWire / brightness DBus signals. Routing through swayosd-client
-      # would pop swayosd's OSD instead and noctalia would never see the event.
       mediaBinds =
         if noctaliaActiveOnNiri then {
           "XF86AudioRaiseVolume".action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%+" ];

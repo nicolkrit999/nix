@@ -176,7 +176,7 @@ delib.host {
 
       cachix = {
         enable = true;
-        push = true; # Only the builder must have this true (for now "nixos-desktop")
+        push = true;
         authTokenPath = "/run/secrets/cachix-push-token";
       };
 
@@ -292,7 +292,6 @@ delib.host {
             pulseaudio
             ssh
             supergenpass
-            # systemd
             wifi-commander
             wikipedia
             zoxide-recent-directories
@@ -365,16 +364,6 @@ delib.host {
           monitors = [
             { output = "DP-1"; mode = "3840x2160@240"; position = "1440x560"; scale = 1.5; bitdepth = 10; }
             { output = "DP-2"; mode = "3840x2160@144"; position = "0x0"; scale = 1.5; transform = 1; bitdepth = 10; }
-            # HDMI-A-1 = the JetKVM (KVM-over-IP). It identifies itself with an ASUS PA248QV
-            # EDID profile - there is no physical PA248QV monitor. Mirroring DP-1 so the KVM
-            # shows the main monitor.
-            #
-            # Caveat: the JetKVM must NOT be powered/streaming during boot or reboot - amdgpu
-            # Display Core cannot blank its CRTC when the compositor releases DRM master with
-            # that stream active, which wedges the machine (jetkvm/kvm#1140, no kernel fix as
-            # of 2026-07). Hotplugging it into an already-running session is the safe path;
-            # see the hyprland-jetkvm-teardown systemd user unit in home.nix, which disables
-            # this output before Hyprland exits on shutdown/reboot/logout.
             { output = "HDMI-A-1"; mode = "1920x1080@60"; position = "0x0"; scale = 1; mirror = "DP-1"; }
           ];
           execOnce = [
@@ -636,8 +625,8 @@ delib.host {
       services = {
         audio = {
           enable = true;
-          #clockRate = 192000;
         };
+
         autotrash.enable = true;
         external.dotfiles.enable = true;
         external.dotfiles-private.enable = true;

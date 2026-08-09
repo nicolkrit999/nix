@@ -3,8 +3,6 @@ delib.module {
   name = "services.tlp";
   options = delib.singleEnableOption false;
 
-  # Mutual exclusivity with services.auto-cpufreq is enforced via an assertion in
-  # auto-cpufreq.nix (fires when both are enabled, regardless of which module owns it).
   nixos.ifEnabled = { ... }: {
     services.tlp = {
       enable = true;

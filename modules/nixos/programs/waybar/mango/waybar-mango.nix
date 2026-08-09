@@ -48,22 +48,12 @@ delib.module {
         (parent.noctalia.enable or false)
         && (parent.noctalia.enableOnMango or false);
 
-      # Extract monitor names from parent.mango.monitors entries like
-      # "name:^DP-1$,width:..." → "DP-1". Used to spawn one waybar bar per
-      # monitor so per-monitor modules (tags/layout/window) reflect THIS
-      # monitor's state rather than always showing the first output's data.
       extractMonitorName = monStr:
         let m = builtins.match ".*name:\\^?([^$,]+)\\$?,.*" monStr;
         in if m != null then builtins.head m else null;
       monitorNames = lib.filter (n: n != null)
         (map extractMonitorName (parent.mango.monitors or [ ]));
 
-      # mmsg IPC was reshaped in the 26.05 mango bump:
-      #   old: `mmsg -o <mon> -g -t/-l/-c`, `mmsg -g -o/-k`, `mmsg -s -l <sym>`
-      #   new: `mmsg get all-monitors|tags|focusing-client|keyboardlayout`, `mmsg dispatch <func>[,arg]`
-      # All read-side modules now go through a single `mmsg get all-monitors` +
-      # jq filter on `.name==$mon`, which gives us tags / layout_symbol /
-      # active_client in one JSON shot per tick.
       mkPerMonitorModules = mon: {
         "custom/tags" = {
           exec = ''
@@ -108,7 +98,6 @@ delib.module {
             esac
           '';
           interval = 1;
-          # `dispatch` targets the focused monitor; toggle S<->T based on its current symbol.
           on-click = "sh -c 'cur=$(mmsg get all-monitors 2>/dev/null | ${pkgs.jq}/bin/jq -r \".monitors[] | select(.active == true) | .layout_symbol\"); if [ \"$cur\" = \"S\" ]; then mmsg dispatch setlayout,T; else mmsg dispatch setlayout,S; fi'";
           on-click-right = "mmsg dispatch setlayout,S";
           tooltip = false;
@@ -269,13 +258,7 @@ delib.module {
         };
       };
 
-      # One bar per detected monitor, each with its monitor name baked into the
-      # per-monitor exec scripts. Waybar's `output` field pins each bar to its
-      # output, and JSON config can be a list of bar objects.
       mkBar = mon: waybarConfig // (mkPerMonitorModules mon) // { output = mon; };
-      # Fallback when monitor names aren't parseable from parent.mango.monitors:
-      # one bar (replicated on every output) that always shows the focused
-      # monitor's data via runtime selmon lookup.
       focusedSel = "$(mmsg get all-monitors 2>/dev/null | ${pkgs.jq}/bin/jq -r '.monitors[] | select(.active == true) | .name' | head -1)";
       bars =
         if monitorNames != [ ]

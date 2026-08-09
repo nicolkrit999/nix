@@ -9,7 +9,7 @@ delib.module {
     networking.firewall = {
       allowedUDPPorts = [ 41641 ];
       trustedInterfaces = [ "tailscale0" ];
-      checkReversePath = "loose"; # Strict reverse path filtering breaks VPNs
+      checkReversePath = "loose";
     };
 
     systemd.services.tailscale-autoconnect = {
@@ -27,8 +27,6 @@ delib.module {
         RemainAfterExit = true;
       };
 
-      # Bounded retry loop: up to 20 attempts, 15s apart (~5 minutes total)
-      # before giving up and leaving it to be retried on the next boot / manually.
       script = ''
         for i in $(seq 1 20); do
           if ${pkgs.tailscale}/bin/tailscale up; then

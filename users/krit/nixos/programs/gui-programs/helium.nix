@@ -33,10 +33,6 @@ let
     print(json.loads(zf.read("manifest.json").decode("utf-8-sig"))["version"])
   '';
 
-  # Per-extension store path containing the CRX and a Chromium-format
-  # update manifest (gupdate XML). ExtensionInstallForcelist points at
-  # ${out}/updates.xml; codebase inside that XML is a file:// URL to the
-  # CRX in the same store path.
   buildExtension = spec: pkgs.runCommand "helium-ext-${spec.id}"
     {
       nativeBuildInputs = [ pkgs.python3 ];
@@ -86,14 +82,8 @@ delib.module {
         ExtensionInstallForcelist =
           map (e: "${e.id};file://${e.drv}/updates.xml") builtExtensions;
 
-        # Whitelist file:// as an install source for the self-hosted CRXs.
         ExtensionInstallSources = [ "file:///*" ];
 
-        # Pin the requested extensions. Left-to-right order is NOT
-        # enforceable by policy (Chromium stores toolbar order in profile
-        # Local State, not managed policies). Drag once after first launch;
-        # desired order: OneTab → Behind the Overlay → Kagi Summarizer →
-        # Proton Pass → SimpleLogin.
         ExtensionSettings = {
           "chphlpgkkbolifaimnlloiipkdnihall".toolbar_pin = "force_pinned"; # OneTab
           "ljipkdpcjbmhkdjjmbbaggebcednbbme".toolbar_pin = "force_pinned"; # Behind the Overlay

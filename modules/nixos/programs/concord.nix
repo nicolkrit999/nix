@@ -6,7 +6,6 @@ let
   });
 in
 delib.module {
-  # Discord tui
   name = "programs.concord";
   options = delib.singleEnableOption false;
 

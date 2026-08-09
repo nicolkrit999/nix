@@ -6,9 +6,6 @@ delib.module {
   name = "krit.services.nicol-nas.local-packages";
   options = delib.singleEnableOption false;
 
-  # Home-manager-only host (UGOS appliance, no NixOS) - packages go through
-  # home.packages, not users.users.<user>.packages (that's the NixOS-only
-  # pattern used by krit.services.desktop.local-packages).
   home.ifEnabled =
     { ... }:
     {

@@ -38,8 +38,6 @@ delib.module {
 
     ];
 
-    # SSH Askpass is set globally in common-configuration-nixos.nix (seahorse)
-    # since GNOME Keyring is enforced system-wide regardless of DE.
     services.gnome.rygel.enable = false;
 
   };

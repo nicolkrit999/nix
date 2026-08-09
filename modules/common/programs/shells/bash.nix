@@ -5,7 +5,6 @@
 delib.module {
   name = "programs.bash";
 
-  # Always enabled to ensure the fixes functions works
   home.always =
     { myconfig, ... }:
     let

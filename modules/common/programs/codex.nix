@@ -4,7 +4,6 @@ let
   codex = inputs.codex-cli-nix.packages.${system}.default;
 in
 delib.module {
-  # OpenAI Codex CLI
   name = "programs.codex";
   options = delib.singleEnableOption false;
 

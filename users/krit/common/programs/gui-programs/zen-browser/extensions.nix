@@ -4,9 +4,6 @@ delib.module {
 
   home.ifEnabled = { ... }:
     let
-      # Using pkgs.callPackage (system pkgs, allowUnfree=true) instead of
-      # inputs.firefox-addons.packages.${system} (rycee's own pkgs, no allowUnfree)
-      # so unfree addons like onetab can be evaluated.
       buildFirefoxXpiAddon = lib.makeOverridable (
         { stdenv ? pkgs.stdenv
         , fetchurl ? pkgs.fetchurl

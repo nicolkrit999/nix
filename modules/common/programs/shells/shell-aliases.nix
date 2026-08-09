@@ -75,30 +75,17 @@ delib.module {
 
       cName = myconfig.cachix.name;
       cachixTokenPath = myconfig.cachix.authTokenPath or "";
-      # `env VAR=val cachix` (not the `VAR=val cmd` prefix) - fish has no inline
-      # env-assignment syntax, and `env` wraps the last pipe stage so the token
-      # reaches cachix.
       cachixPush =
         if cachixTokenPath != "" then
           "nix path-info -r /run/current-system | env CACHIX_AUTH_TOKEN=$(cat ${cachixTokenPath}) cachix push ${cName}"
         else
           "nix path-info -r /run/current-system | cachix push ${cName}";
 
-      # Run a command string under POSIX `sh -c` so its operators (&&, |, $(),
-      # env VAR=val, ;) are parsed by /bin/sh, never the user's interactive
-      # shell. This makes every cache command behave identically under bash, zsh
-      # and fish, which otherwise disagree on `&&` vs `; and`, `{ }` vs
-      # `begin..end`, and the `VAR=val cmd` prefix.
       shc = script: "sh -c ${lib.escapeShellArg script}";
 
-      # Standalone aliases: push one cache, no rebuild, errors surface to the user.
       atticPushAlias = shc atticPush;
       cachixPushAlias = shc cachixPush;
 
-      # sw-style wrapper: rebuild first, then - only if it succeeded - push to
-      # every enabled cache. Each push is isolated with `|| true` so one cache
-      # failing never aborts the other, while the rebuild's exit status still
-      # gates whether any push runs (the whole block lives behind one `&&`).
       wrapCaches =
         cmd:
         let
@@ -178,13 +165,6 @@ delib.module {
       // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPushAlias; });
 
       homeAliases = {
-        # -b hm-backup: standalone home-manager has no equivalent of the
-        # NixOS/darwin-integration `home-manager.backupFileExtension` option
-        # (that option only exists in the nixos/nix-darwin integration
-        # layer), so activation backups have to be requested per-invocation
-        # via the CLI flag instead. "hm-backup" matches the extension string
-        # used by the darwin integration (see darwinAliases below) for
-        # consistency across the repo.
         sw = "cd ${flakeDir} && git add -A && home-manager switch -b hm-backup --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
         swdry = "cd ${flakeDir} && git add -A && home-manager build --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
         upd = "cd ${flakeDir} && git add -A && nix flake update && home-manager switch -b hm-backup --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";

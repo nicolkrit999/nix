@@ -1,15 +1,3 @@
-# Proton Drive CLI - official Bun-compiled single-file executable
-# Reference: https://proton.me/drive/download
-#
-# The CLI is a Bun standalone executable. Bun locates its embedded JS payload
-# via /proc/self/exe plus a byte-offset trailer at the end of the file, so the
-# binary MUST NOT be modified. patchelf rewrites the ELF, shifts the file
-# layout, invalidates that offset, and Bun silently degrades to the bare Bun
-# CLI -- at which point `proton-drive auth login` is parsed as the reserved
-# `bun auth` subcommand and errors out. We therefore run the pristine binary
-# inside an FHS sandbox that supplies the standard dynamic linker and libsecret
-# (dlopen'd at runtime), leaving the executable byte-for-byte untouched. This is
-# self-contained and does not depend on programs.nix-ld (off on some hosts).
 { delib
 , pkgs
 , lib
@@ -36,7 +24,6 @@ delib.module {
         hash = "sha256-8A56mjygDtQYpY8fQr0mC2cvHtJyI18Yz+7tVI3u5XM=";
       };
 
-      # Pristine, unmodified Linux binary placed in the store (no patchelf).
       rawLinuxBin = pkgs.runCommandLocal "proton-drive-raw-${version}" { } ''
         install -m755 -D ${linuxSrc} $out/bin/proton-drive
       '';
@@ -50,8 +37,6 @@ delib.module {
         '';
       };
 
-      # macOS uses a native Mach-O binary; dyld resolves libraries natively and
-      # secrets go through the Keychain, so no FHS/patchelf shenanigans needed.
       darwinPackage = pkgs.stdenvNoCC.mkDerivation {
         pname = "proton-drive";
         inherit version;

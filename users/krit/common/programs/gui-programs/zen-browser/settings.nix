@@ -6,7 +6,6 @@ delib.module {
     programs.zen-browser = {
       policies = {
         DisablePocket = true;
-        # Proton Pass handles credentials — kill Firefox's manager entirely.
         OfferToSaveLogins = false;
         PasswordManagerEnabled = false;
       };
@@ -27,7 +26,6 @@ delib.module {
         "browser.sessionstore.resume_from_crash" = false;
 
         # Disable built-in password manager — Proton Pass handles credentials.
-        # rememberSignons=false suppresses the save-password prompt entirely.
         "signon.rememberSignons" = false;
         "signon.autofillForms" = false;
         "signon.generation.enabled" = false;

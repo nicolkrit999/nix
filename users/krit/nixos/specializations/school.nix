@@ -11,8 +11,6 @@ let
   c = config.myconfig.constants;
   term = c.terminal.name;
 
-  # Distrobox apps to provision - each entry defines a container and how to check/install.
-  # The check script and setup script both derive from this list.
   distroboxApps = [
     {
       name = "tkgate";
@@ -101,7 +99,6 @@ delib.module {
   name = "krit.specializations.school";
   options = delib.singleEnableOption false;
 
-  # Import sops-nix to make sops.secrets available
   nixos.always = {
     imports = [ inputs.nix-sops.nixosModules.sops ];
   };
@@ -322,9 +319,6 @@ delib.module {
             icon = "tkgate";
           })
 
-          # sqldeveloper-school wrapper: launches Oracle SQL Developer inside the school-arch
-          # distrobox container with all env fixes needed for Java GUI on Wayland WMs.
-          # All env var changes are scoped to this process only - no system-wide side effects.
           (pkgs.writeShellScriptBin "sqldeveloper-school" ''
             ${pkgs.xhost}/bin/xhost +local: >/dev/null 2>&1
             exec ${pkgs.distrobox}/bin/distrobox enter school-arch -- bash -c '

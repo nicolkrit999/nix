@@ -1,4 +1,3 @@
-# Configure kde keybinds using the community "plasma-manager" flake
 { delib
 , lib
 , pkgs

@@ -23,6 +23,7 @@ delib.module {
           cryptomator # Client side encryptions for cloud drives
           cpu-x # Hardware information visualizer application
           drawio # Diagramming application
+          fresh-editor # Terminal-based text editor with LSP support and TypeScript plugins
           gearlever # Manager appimages
           gramps # Genealogy software
           gsimplecal # Simple calendar application
@@ -107,7 +108,6 @@ delib.module {
           # -----------------------------------------------------------------------
           # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
           # -----------------------------------------------------------------------
-          fresh-editor # Lightweight terminal text editor - not in 25.11
         ]);
     };
 }

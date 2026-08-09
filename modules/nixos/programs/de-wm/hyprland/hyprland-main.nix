@@ -289,8 +289,6 @@ delib.module {
               background_color = "rgb(${config.lib.stylix.colors.base00})";
             };
 
-            # Don't upscale XWayland surfaces on fractional-scaled outputs, so
-            # apps that render their own HiDPI stay crisp instead of blurry.
             xwayland = {
               force_zero_scaling = true;
             };
