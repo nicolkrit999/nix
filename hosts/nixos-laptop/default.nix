@@ -334,25 +334,8 @@ delib.host {
 
         headroom.enable = true;
 
-        claude-code = {
-          enable = true;
-          mcpSecrets = [
-            { sopsSecret = "openrouter_api_claude_code"; envVar = "OPENROUTER_API_KEY"; }
-            { sopsSecret = "claude_mcp_actual_password"; envVar = "ACTUAL_PASSWORD"; }
-            { sopsSecret = "claude_mcp_actual_sync_id"; envVar = "ACTUAL_SYNC_ID"; }
-            { sopsSecret = "claude_mcp_actual_encryption_password"; envVar = "ACTUAL_BUDGET_ENCRYPTION_PASSWORD"; }
-            { sopsSecret = "claude_mcp_context7_api_key"; envVar = "CONTEXT7_API_KEY"; }
-            { sopsSecret = "claude_mcp_openai_api_key"; envVar = "OPENAI_API_KEY"; }
-            { sopsSecret = "claude_mcp_milvus_token"; envVar = "MILVUS_TOKEN"; }
-            { sopsSecret = "claude_mcp_github_token"; envVar = "GITHUB_TOKEN"; }
-            { sopsSecret = "claude_mcp_portainer_token"; envVar = "PORTAINER_TOKEN"; }
-            { sopsSecret = "claude_mcp_sparkyfitness_api_key"; envVar = "SPARKYFITNESS_API_KEY"; }
-            #{ sopsSecret = "claude_mcp_kagi_api_key"; envVar = "KAGI_API_KEY"; }
-          ];
-          mcpEnv = {
-            ACTUAL_SERVER_URL = "https://budget.nicolkrit.ch";
-          };
-        };
+        # mcpSecrets / mcpEnv default in modules/common/programs/claude-code.nix (shared across all hosts)
+        claude-code.enable = true;
 
 
         git = {

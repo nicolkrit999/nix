@@ -171,12 +171,10 @@ delib.module {
           sopsFile = commonSecrets;
           owner = user;
         };
-        /*
-        claude_mcp_kagi_api_key = {
+        claude_mcp_vikunja_token = {
           sopsFile = commonSecrets;
           owner = user;
         };
-        */
         tailscale_key = {
           sopsFile = commonSecrets;
           owner = user;

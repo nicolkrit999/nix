@@ -48,12 +48,30 @@ delib.module {
           };
         };
       });
-      default = [ ];
+      # Shared across every host (nixos-desktop, nixos-laptop, Krits-MacBook-Pro) -
+      # keep this list as the single source of truth instead of duplicating it per-host.
+      default = [
+        { sopsSecret = "openrouter_api_claude_code"; envVar = "OPENROUTER_API_KEY"; }
+        { sopsSecret = "claude_mcp_actual_password"; envVar = "ACTUAL_PASSWORD"; }
+        { sopsSecret = "claude_mcp_actual_sync_id"; envVar = "ACTUAL_SYNC_ID"; }
+        { sopsSecret = "claude_mcp_actual_encryption_password"; envVar = "ACTUAL_BUDGET_ENCRYPTION_PASSWORD"; }
+        { sopsSecret = "claude_mcp_context7_api_key"; envVar = "CONTEXT7_API_KEY"; }
+        { sopsSecret = "claude_mcp_openai_api_key"; envVar = "OPENAI_API_KEY"; }
+        { sopsSecret = "claude_mcp_milvus_token"; envVar = "MILVUS_TOKEN"; }
+        { sopsSecret = "claude_mcp_github_token"; envVar = "GITHUB_TOKEN"; }
+        { sopsSecret = "claude_mcp_portainer_token"; envVar = "PORTAINER_TOKEN"; }
+        { sopsSecret = "claude_mcp_sparkyfitness_api_key"; envVar = "SPARKYFITNESS_API_KEY"; }
+        { sopsSecret = "claude_mcp_vikunja_token"; envVar = "VIKUNJA_API_TOKEN"; }
+        #{ sopsSecret = "claude_mcp_kagi_api_key"; envVar = "KAGI_API_KEY"; }
+      ];
       description = "List of MCP secrets to provision via sops-nix.";
     };
     mcpEnv = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      default = { };
+      # Shared across every host - see mcpSecrets above for the same rationale.
+      default = {
+        ACTUAL_SERVER_URL = "https://budget.nicolkrit.ch";
+      };
       description = "Static environment variables for MCP servers.";
     };
   };

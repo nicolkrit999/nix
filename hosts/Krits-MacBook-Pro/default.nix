@@ -71,6 +71,7 @@ delib.host {
         television.enable = true;
         zoxide.enable = true;
         headroom.enable = true;
+        # mcpSecrets / mcpEnv default in modules/common/programs/claude-code.nix (shared across all hosts)
         claude-code.enable = true;
         codex.enable = true;
         herdr.enable = true;
