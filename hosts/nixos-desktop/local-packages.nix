@@ -19,6 +19,7 @@ delib.module {
           # -----------------------------------------------------------------------
           # 🖥️ DESKTOP APPLICATIONS
           # -----------------------------------------------------------------------
+          censor # PDF document redaction for the GNOME desktop
           concessio # File permission viewer/calculator
           cryptomator # Client side encryptions for cloud drives
           cpu-x # Hardware information visualizer application
@@ -54,6 +55,7 @@ delib.module {
           nchat # terminal-based chat client with support for telegram and whatsapp
           ratty # GPU-rendered terminal emulator with inline 3D graphics
           tealdeer # Fast implementation of tldr (simplified man pages)
+          iperf3 # Network bandwidth testing tool
 
           # -----------------------------------------------------------------------------------
           # 🧑🏽‍💻 CODING

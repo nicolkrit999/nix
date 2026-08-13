@@ -316,6 +316,7 @@ delib.host {
 
         # mcpSecrets / mcpEnv default in modules/common/programs/claude-code.nix (shared across all hosts)
         claude-code.enable = true;
+        vikunja-desktop.enable = true;
 
 
         git = {

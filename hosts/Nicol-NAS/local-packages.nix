@@ -28,6 +28,7 @@ delib.module {
         neovim # Text editor
         sops # edit/decrypt repo secrets on the NAS - makes the sops-host alias work
         age # key tooling for sops
+        iperf3 # Network bandwidth testing tool
       ];
     };
 }
