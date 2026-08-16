@@ -1,4 +1,7 @@
 { delib, pkgs, ... }:
+let
+  myGitUserName = "Krit Pio Nicol";
+in
 delib.host {
   name = "Krits-MacBook-Pro";
   type = "desktop";
@@ -22,7 +25,7 @@ delib.host {
         darwinStateVersion = 4;
         homeStateVersion = "25.11";
 
-        gitUserName = "Krit Pio Nicol";
+        gitUserName = myGitUserName;
         gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
 
         theme = {
@@ -74,6 +77,31 @@ delib.host {
         # mcpSecrets / mcpEnv default in modules/common/programs/claude-code.nix (shared across all hosts)
         claude-code.enable = true;
         vikunja-desktop.enable = true;
+
+        thunderbird = {
+          enable = true;
+          sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
+          accounts = [
+            {
+              name = "gmail";
+              addressLocalSecretName = "thunderbird_gmail_address_local";
+              addressDomainSecretName = "thunderbird_gmail_address_domain";
+              realName = myGitUserName;
+              flavor = "gmail.com";
+              primary = true;
+              authentication = "login";
+              passwordSecretName = "thunderbird_gmail_app_password";
+            }
+            {
+              name = "outlook";
+              addressLocalSecretName = "thunderbird_outlook_address_local";
+              addressDomainSecretName = "thunderbird_outlook_address_domain";
+              realName = myGitUserName;
+              flavor = "outlook.office365.com";
+            }
+          ];
+        };
+
         codex.enable = true;
         herdr.enable = true;
         npm = {
