@@ -60,7 +60,12 @@ delib.module {
           passwordSecretName = lib.mkOption {
             type = lib.types.nullOr lib.types.str;
             default = null;
-            description = "sops secret name holding this account's password; leave null for OAuth2.";
+            description = ''
+              sops secret name holding this account's password; leave null for OAuth2.
+              Thunderbird cannot read this itself - it keeps credentials in its own
+              encrypted store - so the secret is only decrypted to /run/secrets/<name>
+              for the one-time manual entry into Thunderbird's password prompt.
+            '';
           };
         };
       });
@@ -152,9 +157,6 @@ delib.module {
             (lib.optionalAttrs (a.authentication != null) {
               imap.authentication = a.authentication;
               smtp.authentication = a.authentication;
-            })
-            (lib.optionalAttrs (a.passwordSecretName != null) {
-              passwordCommand = [ "cat" "/run/secrets/${a.passwordSecretName}" ];
             })
           ];
         })

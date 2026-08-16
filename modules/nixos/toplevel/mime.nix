@@ -65,6 +65,12 @@ delib.module {
 
       myBrowser = browserDesktopMap.${safeBrowser} or "${safeBrowser}.desktop";
 
+      myMailer =
+        if (myconfig.programs.thunderbird.enable or false) then
+          "thunderbird.desktop"
+        else
+          myBrowser;
+
       myFileManager =
         if safeFileManager == "dolphin" then "org.kde.dolphin.desktop" else "${safeFileManager}.desktop";
 
@@ -109,6 +115,9 @@ delib.module {
           "x-scheme-handler/about" = myBrowser;
           "x-scheme-handler/unknown" = myBrowser;
           "application/pdf" = myBrowser;
+
+          # Mail (Thunderbird when enabled, otherwise the browser)
+          "x-scheme-handler/mailto" = myMailer;
 
           # Editor
           "text/plain" = myEditor;
