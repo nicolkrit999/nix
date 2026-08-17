@@ -59,6 +59,11 @@ applies to genuinely new modules. `nix-config-architect` is used here (not
 another agent) because it authored the module and already holds its purpose
 and placement in context; no other agent in this pipeline touches
 documentation.
+- **Exclusion - anything under `users/`:** modules created anywhere inside
+  the repo-root `users/` directory are opinionated, personal config - not
+  general-purpose modules useful to everybody - and must NOT get a
+  `possibilities.md` entry. Skip step 6 entirely for any module whose path
+  starts with `users/`.
 
 ## Exit condition
 
