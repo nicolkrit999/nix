@@ -691,6 +691,8 @@ delib.host {
         local-packages.enable = true;
       };
 
+      krit.services.network-tools.enable = true;
+
       krit.services.logitech = {
         enable = true;
         mouses = {

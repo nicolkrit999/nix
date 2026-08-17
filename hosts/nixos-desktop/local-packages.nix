@@ -55,7 +55,6 @@ delib.module {
           nchat # terminal-based chat client with support for telegram and whatsapp
           ratty # GPU-rendered terminal emulator with inline 3D graphics
           tealdeer # Fast implementation of tldr (simplified man pages)
-          iperf3 # Network bandwidth testing tool
 
           # -----------------------------------------------------------------------------------
           # 🧑🏽‍💻 CODING
