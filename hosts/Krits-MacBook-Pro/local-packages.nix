@@ -45,7 +45,6 @@ delib.module {
         asciinema
         cbonsai
         neo-cowsay
-        iperf3 # Network bandwidth testing tool
       ];
 
       homebrew = {
