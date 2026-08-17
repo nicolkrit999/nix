@@ -11,7 +11,7 @@ let
     jq # Lightweight and flexible command-line JSON processor
     yq # Command-line YAML/XML/TOML processor - jq wrapper for YAML, XML, TOML documents
     wol # Implements Wake On LAN functionality in a small program
-    evebox # Web Based Event Viewer (GUI) for Suricata EVE Events in Elastic Search
+    #evebox # Web Based Event Viewer (GUI) for Suricata EVE Events in Elastic Search (compatible with darwin but currently broken) FIXME
     miniupnpc # Client that implements the UPnP Internet Gateway Device (IGD) specification
     trippy # Network diagnostic tool
     ntopng # High-speed web-based traffic analysis and flow collection tool
@@ -34,6 +34,7 @@ delib.module {
       suricata # Free and open source, mature, fast and robust network threat detection engine
       ptcpdump # Process-aware, eBPF-based tcpdump
       wavemon # Ncurses-based monitoring application for wireless network devices
+      evebox # Web Based Event Viewer (GUI) for Suricata EVE Events in Elastic Search
       iw # Tool to use nl80211
     ]);
   };
