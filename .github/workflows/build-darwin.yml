@@ -20,124 +20,6 @@ concurrency:
 
 jobs:
   # ===========================================================================
-  # JOB: Pre-warm the heavy aarch64-darwin packages
-  # ===========================================================================
-  # Runs in PARALLEL with build-darwin, deliberately not as a `needs:`
-  # dependency. These packages are the ones that don't fit in a single job's
-  # budget, so gating the main build on them would just stall the thing that
-  # populates most of the cache.
-  #
-  # Why this job exists: run 754 spent its entire 300-minute budget on
-  # thunderbird-unwrapped, which nixpkgs does not ship prebuilt for
-  # aarch64-darwin (Nix chose to build it rather than substitute it), and a
-  # 3-core macOS runner cannot finish a Thunderbird build inside GitHub's
-  # 360-minute hard job cap. Left in the main build it consumes one of two
-  # --max-jobs slots for the whole run, every run.
-  #
-  # Here it gets its own budget and its own runner, and because the build runs
-  # under `cachix watch-exec` every dependency it completes is pushed
-  # immediately. So even a leg that times out advances the chain: the next run
-  # substitutes what this one built and starts further along. Add attrs to the
-  # matrix as new heavy darwin packages appear.
-  prewarm-darwin:
-    runs-on: macos-15
-    timeout-minutes: 350
-    continue-on-error: true
-    permissions:
-      contents: read
-      id-token: write
-    strategy:
-      fail-fast: false
-      matrix:
-        attr:
-          - thunderbird
-    env:
-      NIXPKGS_ALLOW_UNFREE: 1
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-        with:
-          flakehub: false
-          extra-conf: |
-            auto-optimise-store = true
-            experimental-features = nix-command flakes
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Cachix
-        id: cachix_setup
-        continue-on-error: true
-        env:
-          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
-        run: |
-          nix profile install --accept-flake-config nixpkgs#cachix
-          cachix use ${{ env.CACHIX_NAME }}
-
-      # Built through the host's own pkgs instance rather than plain
-      # nixpkgs#<attr>, so this is the exact derivation build-darwin would
-      # otherwise build (same overlays, unfree allowance, system) - not a
-      # look-alike from a different nixpkgs instantiation that would land on a
-      # different store path and warm nothing.
-      - name: Pre-warm ${{ matrix.attr }}
-        id: prewarm
-        # 300 not 330: leaves the same ~50-minute tail as build-darwin for
-        # the backstop push, which on a cold store has real work to do.
-        continue-on-error: true
-        timeout-minutes: 300
-        env:
-          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
-        run: |
-          ATTR='.#darwinConfigurations.Krits-MacBook-Pro.pkgs.${{ matrix.attr }}'
-
-          # Self-diagnosing guard: denix generates darwinConfigurations, and if
-          # a future denix/nix-darwin release stops exposing `.pkgs` this leg
-          # would otherwise fail identically on every run with a confusing
-          # error. Skip cleanly and say so instead.
-          if ! nix eval --raw "$ATTR.drvPath" > /dev/null 2>&1; then
-            echo "::warning::$ATTR does not evaluate - skipping this pre-warm leg."
-            exit 0
-          fi
-
-          # Probe first: `cachix watch-exec` failing would be indistinguishable
-          # from the build failing, and a cachix problem must never be reported
-          # as a broken config. If the subcommand isn't usable, build plainly -
-          # the end-of-job push still populates the cache either way.
-          WATCH=0
-          if [ "${{ steps.cachix_setup.outcome }}" = "success" ] && [ -n "$CACHIX_AUTH_TOKEN" ] \
-             && cachix watch-exec --help > /dev/null 2>&1; then
-            WATCH=1
-          fi
-          BUILD="nix build $ATTR --no-link --print-out-paths --keep-going --max-jobs 2 --cores 4 > out.txt"
-          if [ "$WATCH" = 1 ]; then
-            echo "Building under 'cachix watch-exec' - paths are pushed as they are built."
-            cachix watch-exec ${{ env.CACHIX_NAME }} -- bash -c "$BUILD"
-          else
-            bash -c "$BUILD"
-          fi
-
-      - name: Push ${{ matrix.attr }} to Cachix
-        if: always() && steps.cachix_setup.outcome == 'success'
-        continue-on-error: true
-        env:
-          CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
-          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
-        run: |
-          if [ -z "$CACHIX_TOKEN" ]; then
-            echo "Skipping Cachix push: no auth token found (likely a fork)."
-            exit 0
-          fi
-
-          if [ -s out.txt ]; then
-            cachix push ${{ env.CACHIX_NAME }} $(cat out.txt)
-            exit 0
-          fi
-
-          # Backstop for whatever watch-exec's hook didn't cover.
-          echo "No output path for ${{ matrix.attr }} - pushing every valid store path instead."
-          nix path-info --all | grep -v '\.drv$' | cachix push ${{ env.CACHIX_NAME }}
-
-  # ===========================================================================
   # JOB: Build aarch64-darwin (MacBook Pro)
   # ===========================================================================
   build-darwin:
@@ -162,6 +44,25 @@ jobs:
             auto-optimise-store = true
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            # Auto-GC during the build. macOS runners share one APFS container
+            # and start with only ~40 GiB free, which is the real ceiling on a
+            # cold darwin build: run 754 reached 38 GiB of store with 1.4 GiB
+            # left (disk 100% full) and then produced no output at all for five
+            # hours until the step timeout killed it. When free space drops
+            # below min-free, Nix collects unreferenced paths until max-free is
+            # available again, instead of wedging on a full disk.
+            #
+            # Safe here in a way it would not be in build.yml: that workflow
+            # sets keep-outputs/keep-derivations on purpose, to stop a saved
+            # store cache from referencing pruned files (the 2026-07-07
+            # "user-environment.drv does not exist" failure), and auto-GC would
+            # work against it - while having nothing to fix, since
+            # nothing-but-nix leaves that job ~78 GiB free. Darwin has no store
+            # cache to protect. Anything GC removes here has already been
+            # uploaded by watch-exec, so the worst case is re-substituting it
+            # from our own cache.
+            min-free = 5000000000
+            max-free = 15000000000
 
       # Non-critical: only used to speed up this job and to push the build
       # output below. A failed install must not fail the whole job - the
@@ -197,6 +98,14 @@ jobs:
       #   timeout, was killed, and the push step was skipped - five hours of
       #   macOS build time discarded. With watch-exec every path that finished
       #   in those five hours would already have been in the cache.
+      #
+      # That run was building thunderbird-unwrapped-153.0.1 during a window
+      # where nixpkgs had bumped but Hydra had not yet published the darwin
+      # build, so it compiled locally and filled the disk (1.4 GiB left at the
+      # timeout). Two days later 153.0.2 substituted from cache.nixos.org in
+      # eight minutes. Cold builds like that are rare but they are exactly
+      # when the cache matters most, and exactly when the run is most likely
+      # to die before reaching the end of the job.
       #
       # It also means successive runs make incremental progress through a long
       # dependency chain: each run substitutes what earlier runs pushed and
