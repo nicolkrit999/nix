@@ -62,37 +62,60 @@ jobs:
 
       - name: Build Darwin Configuration
         id: build
-        # continue-on-error: --keep-going already builds everything it can
-        # even when some derivations fail (unfree/unsupported/broken deps),
-        # so a partial failure here must not skip the Cachix push below -
-        # we want to push whatever DID build, not push nothing. Genuine
-        # partial-failure visibility is handled by the dedicated notify step
-        # further down instead of by failing the job.
-        continue-on-error: true
+        # --keep-going: when a derivation fails (broken dep, unfree, or a
+        # package whose meta.platforms excludes aarch64-darwin) keep building
+        # every other branch of the graph, so one bad package doesn't cost us
+        # the whole closure. The push step below runs regardless of this
+        # step's outcome and uploads whatever did build - so a partial
+        # failure still fails the job (the red check is the signal that
+        # something needs fixing) without throwing the build away.
         timeout-minutes: 300
         run: |
           nix build .#darwinConfigurations.Krits-MacBook-Pro.system --no-link --print-out-paths --keep-going --max-jobs 2 --cores 4 > outpaths.txt
 
-      # Non-critical secondary goal: pushing to the binary cache must never
-      # fail the job on its own (e.g. the 2026-07-08 "Error: not found:
-      # cachix" incident). Gated only on Cachix being set up, not on a clean
-      # build - outpaths.txt can hold partial results from a --keep-going
-      # run that hit some failures, and those are still worth caching.
+      # Pushing to the binary cache is a non-critical secondary goal: it must
+      # never fail the job on its own (e.g. the 2026-07-08 "Error: not found:
+      # cachix" incident).
+      #
+      # (success() || failure()) rather than a plain success gate: salvaging a
+      # broken run is the whole point. If the build or the flake check failed,
+      # everything that DID build is still valid in the local store and still
+      # worth caching - dropping it makes the next run rebuild it from
+      # scratch. Deliberately NOT always(): a cancelled run (concurrency,
+      # manual) is killed mid-build and its store is not worth uploading.
       - name: Push to Cachix (Darwin)
         id: cachix_push
-        if: steps.cachix_setup.outcome == 'success'
+        if: (success() || failure()) && steps.cachix_setup.outcome == 'success'
         continue-on-error: true
         env:
           CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
-          if [ ! -s outpaths.txt ]; then
-            echo "Skipping Cachix push: no output paths were built."
-          elif [ -n "$CACHIX_TOKEN" ]; then
-            cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
-          else
-            echo "Skipping Cachix push: No auth token found (likely a fork)."
+          if [ -z "$CACHIX_TOKEN" ]; then
+            echo "Skipping Cachix push: no auth token found (likely a fork)."
+            exit 0
           fi
+
+          if [ -s outpaths.txt ]; then
+            # Clean build: push the toplevel closure. Fast and targeted.
+            cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
+            exit 0
+          fi
+
+          # outpaths.txt is empty. --print-out-paths only prints paths Nix
+          # actually realised, and the toplevel system depends on everything,
+          # so ANY failed derivation leaves the toplevel unrealised and the
+          # file empty - even when --keep-going built thousands of paths
+          # first. Same when evaluation died before the build ran at all.
+          # Skipping the push here is exactly what used to throw away every
+          # partial result and make the next run start cold.
+          #
+          # Pushing the store wholesale is safe: Cachix's upstream-cache
+          # filter (on by default) drops every path already present in
+          # cache.nixos.org, so this uploads only what this repo actually
+          # produced, not a copy of nixpkgs.
+          echo "No toplevel output path - pushing every valid store path instead."
+          nix path-info --all | grep -v '\.drv$' | cachix push ${{ env.CACHIX_NAME }}
 
       - name: Check Disk Usage
         if: always()
@@ -119,21 +142,7 @@ jobs:
         env:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
         run: |
-          jq -n --arg content "🚨 nix-darwin build failed on **aarch64-darwin**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
-          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
-
-      # The build step is now continue-on-error (see its comment), so a
-      # partial --keep-going failure no longer fails the job/triggers the
-      # hard-failure notice above. Surface it here instead so broken
-      # derivations don't go silently unnoticed just because the rest of
-      # the closure built and pushed fine.
-      - name: Notify on Partial Build Failure (Darwin)
-        if: steps.build.outcome == 'failure' && env.WEBHOOK_ID != ''
-        continue-on-error: true
-        env:
-          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-        run: |
-          jq -n --arg content "⚠️ nix-darwin build had errors on **aarch64-darwin** (some derivations failed) - pushed what succeeded to Cachix. Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
+          jq -n --arg content "🚨 nix-darwin build failed on **aarch64-darwin** (whatever did build was still pushed to Cachix). Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
           curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
 
       # Non-critical infra (cachix setup/push) failing must not fail the
