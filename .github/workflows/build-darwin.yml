@@ -62,27 +62,33 @@ jobs:
 
       - name: Build Darwin Configuration
         id: build
-        # Fail early enough that the store-cache save/push below still fits
-        # inside the job budget; --keep-going maximizes what lands in the
-        # cache per attempt. Only a real build failure (a genuine Nix config
-        # issue) should fail this step/job - the Cachix push is a separate,
-        # non-critical step below.
+        # continue-on-error: --keep-going already builds everything it can
+        # even when some derivations fail (unfree/unsupported/broken deps),
+        # so a partial failure here must not skip the Cachix push below -
+        # we want to push whatever DID build, not push nothing. Genuine
+        # partial-failure visibility is handled by the dedicated notify step
+        # further down instead of by failing the job.
+        continue-on-error: true
         timeout-minutes: 300
         run: |
           nix build .#darwinConfigurations.Krits-MacBook-Pro.system --no-link --print-out-paths --keep-going --max-jobs 2 --cores 4 > outpaths.txt
 
       # Non-critical secondary goal: pushing to the binary cache must never
       # fail the job on its own (e.g. the 2026-07-08 "Error: not found:
-      # cachix" incident) - only the actual build above is a hard failure.
+      # cachix" incident). Gated only on Cachix being set up, not on a clean
+      # build - outpaths.txt can hold partial results from a --keep-going
+      # run that hit some failures, and those are still worth caching.
       - name: Push to Cachix (Darwin)
         id: cachix_push
-        if: steps.build.outcome == 'success' && steps.cachix_setup.outcome == 'success'
+        if: steps.cachix_setup.outcome == 'success'
         continue-on-error: true
         env:
           CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
-          if [ -n "$CACHIX_TOKEN" ]; then
+          if [ ! -s outpaths.txt ]; then
+            echo "Skipping Cachix push: no output paths were built."
+          elif [ -n "$CACHIX_TOKEN" ]; then
             cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
           else
             echo "Skipping Cachix push: No auth token found (likely a fork)."
@@ -101,8 +107,11 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          OUT_PATHS=$(cat outpaths.txt)
-          nix path-info -sh -r $OUT_PATHS
+          if [ -s outpaths.txt ]; then
+            nix path-info -sh -r $(cat outpaths.txt)
+          else
+            echo "No output paths were built."
+          fi
 
       - name: Notify on Failure (Darwin)
         if: failure() && env.WEBHOOK_ID != ''
@@ -111,6 +120,20 @@ jobs:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
         run: |
           jq -n --arg content "🚨 nix-darwin build failed on **aarch64-darwin**! Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+
+      # The build step is now continue-on-error (see its comment), so a
+      # partial --keep-going failure no longer fails the job/triggers the
+      # hard-failure notice above. Surface it here instead so broken
+      # derivations don't go silently unnoticed just because the rest of
+      # the closure built and pushed fine.
+      - name: Notify on Partial Build Failure (Darwin)
+        if: steps.build.outcome == 'failure' && env.WEBHOOK_ID != ''
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          jq -n --arg content "⚠️ nix-darwin build had errors on **aarch64-darwin** (some derivations failed) - pushed what succeeded to Cachix. Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
           curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
 
       # Non-critical infra (cachix setup/push) failing must not fail the
