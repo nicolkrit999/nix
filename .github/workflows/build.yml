@@ -152,7 +152,7 @@ jobs:
       # rebuilding. Never fails the job: it is a cache optimisation.
       - name: Push Flake Check Output to Cachix
         id: cachix_push
-        if: (success() || failure()) && steps.cachix_setup.outcome == 'success'
+        if: always() && steps.cachix_setup.outcome == 'success'
         continue-on-error: true
         env:
           CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -292,8 +292,10 @@ jobs:
       # place. The end-of-step push below stays as a backstop.
       - name: Pre-warm ${{ matrix.attr }}
         id: prewarm
+        # 100 not 110: leaves a ~20-minute tail inside the 120-minute job
+        # cap for the backstop push.
         continue-on-error: true
-        timeout-minutes: 110
+        timeout-minutes: 100
         env:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
@@ -315,7 +317,7 @@ jobs:
           fi
 
       - name: Push ${{ matrix.attr }} to Cachix
-        if: (success() || failure()) && steps.cachix_setup.outcome == 'success'
+        if: always() && steps.cachix_setup.outcome == 'success'
         continue-on-error: true
         env:
           CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -510,15 +512,22 @@ jobs:
       # never fail the job on its own (e.g. the 2026-07-08 "Error: not found:
       # cachix" incident).
       #
-      # (success() || failure()) rather than a plain success gate: salvaging a
-      # broken run is the whole point. If the build or the flake check failed,
-      # everything that DID build is still valid in the local store and still
-      # worth caching - dropping it makes the next run rebuild it from
-      # scratch. Deliberately NOT always(): a cancelled run (concurrency,
-      # manual) is killed mid-build and its store is not worth uploading.
+      # always(), not a success/failure gate: salvaging a broken run is the
+      # whole point. Whatever DID build is still valid in the local store and
+      # still worth caching - dropping it makes the next run rebuild it from
+      # scratch.
+      #
+      # Cancellation is included deliberately. cancel-in-progress fires often
+      # here (5 of 12 recent build.yml runs, 2 of 12 darwin runs), and run 1095
+      # shows always() steps really do execute in the grace window before the
+      # runner shuts down - it got roughly eleven minutes. That is the one
+      # difference from Save Nix Store Cache below, which stays off cancelled
+      # runs on purpose: a store snapshot taken mid-build is internally
+      # inconsistent, whereas Cachix uploads whole valid paths one at a time,
+      # so a push cut short just means fewer paths, never a corrupt cache.
       - name: Push to Cachix (x86_64)
         id: cachix_push
-        if: (success() || failure()) && steps.cachix_setup.outcome == 'success'
+        if: always() && steps.cachix_setup.outcome == 'success'
         continue-on-error: true
         env:
           CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -550,27 +559,10 @@ jobs:
           echo "No toplevel output path - pushing every valid store path instead."
           nix path-info --all | grep -v '\.drv$' | cachix push ${{ env.CACHIX_NAME }}
 
-      - name: Check Disk Usage
-        if: always()
-        continue-on-error: true
-        run: |
-          echo "--- Disk Space Usage ---"
-          df -h /nix
-          echo "--- Nix Store Size ---"
-          du -sh /nix/store
-          echo "--- Swap ---"
-          free -h
-
-      - name: Show Package Tree (x86_64)
-        if: always()
-        continue-on-error: true
-        run: |
-          if [ -s outpaths.txt ]; then
-            nix path-info -sh -r $(cat outpaths.txt)
-          else
-            echo "No output paths were built."
-          fi
-
+      # Ordered directly after the Cachix push and before the diagnostic
+      # steps: these two are the only things in the job that persist
+      # anything, so nothing that merely prints information may run
+      # ahead of them and eat a timeout or cancellation grace window.
       # Runs even when the build step failed or timed out, so partially built
       # derivations survive into the next attempt instead of rebuilding from
       # scratch every retry. NOT always(): a cancelled run (concurrency,
@@ -594,6 +586,30 @@ jobs:
           # deleted every good cache on each save, leaving only this run's
           # (possibly broken) one. GitHub's 10 GB per-repo LRU eviction
           # handles cleanup on its own.
+
+      # No `du -sh /nix/store` here: it walks the whole store and took over
+      # ten minutes on a 32G store in run 1095, where it burned the entire
+      # cancellation grace window and was SIGTERM'd (exit 143) before the
+      # steps that actually persist anything could run. df reports the same
+      # actionable number instantly.
+      - name: Check Disk Usage
+        if: always()
+        continue-on-error: true
+        run: |
+          echo "--- Disk Space Usage ---"
+          df -h /nix
+          echo "--- Swap ---"
+          free -h
+
+      - name: Show Package Tree (x86_64)
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ -s outpaths.txt ]; then
+            nix path-info -sh -r $(cat outpaths.txt)
+          else
+            echo "No output paths were built."
+          fi
 
       - name: Notify on Failure (x86_64)
         if: failure() && env.WEBHOOK_ID != ''
