@@ -30,7 +30,14 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install CA Certificates
-        run: sudo apt-get update && sudo apt-get install -y ca-certificates
+        # Best-effort, and bounded. ca-certificates is preinstalled on the
+        # runner image and Nix uses its own CA bundle, so a broken third-party
+        # apt repo must not fail the suite - and `timeout-minutes` covers the
+        # case `|| true` cannot: apt HANGING rather than failing. Run 1130 lost
+        # a job to a 27-minute apt stall that a manual Cancel could not reach.
+        continue-on-error: true
+        timeout-minutes: 5
+        run: sudo apt-get update || true; sudo apt-get install -y ca-certificates || true
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -39,6 +46,11 @@ jobs:
         run: sudo chmod 1777 /mnt
 
       - name: Maximize Nix Space
+        # Best-effort disk optimisation - it must never fail the suite. build.yml
+        # already guarded this; tests-nixos.yml did not, and on 2026-08-19 it
+        # failed here and skipped all six tests, which the summary below then
+        # reported as six FAILURES.
+        continue-on-error: true
         uses: wimpysworld/nothing-but-nix@main
         with:
           hatchet-protocol: "cleave"
@@ -150,20 +162,40 @@ jobs:
         run: |
 
           FAILED=()
+          SKIPPED=()
 
-          [[ "$MINIMAL_OUTCOME"    != "success" ]] && FAILED+=("✗  minimal-defaults")
-          [[ "$SPEC_OUTCOME"       != "success" ]] && FAILED+=("✗  spec-contract")
-          [[ "$CONFLICT_OUTCOME"   != "success" ]] && FAILED+=("✗  conflicting-modules")
-          [[ "$SHELLS_OUTCOME"     != "success" ]] && FAILED+=("✗  custom-shells")
-          [[ "$ARCH_OUTCOME"       != "success" ]] && FAILED+=("✗  arch-compat (aarch64)")
-          [[ "$WALLPAPERS_OUTCOME" != "success" ]] && FAILED+=("✗  wallpapers")
+          # A test that never RAN is not a test that FAILED. Before this, any
+          # earlier step dying skipped every test and the summary then announced
+          # six failures that had not happened - a Discord notice naming six
+          # broken tests when none had executed. Classify the two separately.
+          # Appended inside `if` blocks, never as `[[ ... ]] &&`: under `bash -e`
+          # a false test makes that list return non-zero and aborts the step at
+          # the first line that does not apply.
+          classify() {
+            case "$2" in
+              success) ;;
+              skipped) SKIPPED+=("-  $1") ;;
+              *)       FAILED+=("✗  $1") ;;
+            esac
+          }
+          classify "minimal-defaults"     "$MINIMAL_OUTCOME"
+          classify "spec-contract"        "$SPEC_OUTCOME"
+          classify "conflicting-modules"  "$CONFLICT_OUTCOME"
+          classify "custom-shells"        "$SHELLS_OUTCOME"
+          classify "arch-compat (aarch64)" "$ARCH_OUTCOME"
+          classify "wallpapers"           "$WALLPAPERS_OUTCOME"
+
+          if [[ ${#SKIPPED[@]} -gt 0 ]]; then
+            echo "::warning::${#SKIPPED[@]} test(s) never ran - an earlier step failed: ${SKIPPED[*]}"
+            FAILED+=("${SKIPPED[@]}")
+          fi
 
           if [[ ${#FAILED[@]} -eq 0 ]]; then
             echo "All NixOS tests passed."
             exit 0
           fi
 
-          echo "Failed tests: ${FAILED[*]}"
+          echo "Not passing: ${FAILED[*]}"
 
           if [[ -n "$WEBHOOK_ID" ]]; then
             REPORT=$(printf '%s\n' "${FAILED[@]}")

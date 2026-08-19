@@ -33,6 +33,14 @@ jobs:
 
       - name: Install CA Certificates
         continue-on-error: true
+        # timeout-minutes is load-bearing, not decoration. continue-on-error and
+        # the `|| true` below cover this step FAILING; neither covers it HANGING.
+        # Run 1130 lost a whole job to exactly that: apt-get stalled on an
+        # unreachable mirror and the step sat for 27+ minutes, holding the job
+        # toward its 180-minute cap AND blocking every later run in the same
+        # concurrency group - and because the runner itself was unreachable, a
+        # manual Cancel could not be delivered either.
+        timeout-minutes: 5
         run: |
           # Best-effort freshness refresh: ca-certificates is preinstalled on
           # the runner image and Nix uses its own CA bundle (NIX_SSL_CERT_FILE),
@@ -623,6 +631,14 @@ jobs:
 
       - name: Install CA Certificates
         continue-on-error: true
+        # timeout-minutes is load-bearing, not decoration. continue-on-error and
+        # the `|| true` below cover this step FAILING; neither covers it HANGING.
+        # Run 1130 lost a whole job to exactly that: apt-get stalled on an
+        # unreachable mirror and the step sat for 27+ minutes, holding the job
+        # toward its 180-minute cap AND blocking every later run in the same
+        # concurrency group - and because the runner itself was unreachable, a
+        # manual Cancel could not be delivered either.
+        timeout-minutes: 5
         run: |
           # Best-effort freshness refresh: ca-certificates is preinstalled on
           # the runner image and Nix uses its own CA bundle (NIX_SSL_CERT_FILE),

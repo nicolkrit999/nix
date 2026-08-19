@@ -532,6 +532,29 @@ whole file as a single argument and break every push.
   like a delivered notification. Use `--fail`. (`webhook-curl-fail`.)
 - **`grep -c` exits 1 on zero matches** under `-e`; the `|| true` on the
   `pushed=` lines is load-bearing.
+- **A newer run does NOT displace a running one.** `cancel-in-progress: true`
+  cancels *pending* runs in the group; a run already `in_progress` keeps going
+  and the newcomer queues behind it. Observed repeatedly (1111 vs 1112-1114,
+  1130 vs 1131/1132). So a stuck job blocks every later run on the same ref.
+- **`if: always()` at JOB level survives run cancellation.** When run 1130 was
+  superseded, its `flake-check` and all 8 pre-warm legs were cancelled — and its
+  two `build-x86_64` legs were created **7 seconds later** and ran to completion
+  anyway, because that job carries `if: always()`. Useful, but it means a
+  cancelled run can still hold the concurrency slot for hours.
+- **A hung step is not a failed step.** `continue-on-error` and `|| true` cover a
+  command *failing*; neither covers it *hanging*. Run 1130's `Install CA
+  Certificates` stalled on an unreachable apt mirror for 27+ minutes, and
+  because the runner itself was unreachable a manual **Cancel could not be
+  delivered** — the job was unkillable until its 180-minute cap. Anything that
+  can block on the network needs `timeout-minutes`. Guarded by the
+  `package-manager-timeout` invariant.
+- **Escaping a blocked concurrency group:** the group is
+  `workflow + github.ref`, so a run on a *different* ref is unaffected. Opening a
+  PR from a branch at the same commit gets a build on `refs/pull/N/merge` and
+  starts immediately, without waiting for the stuck run on `develop`.
+- **`list_workflow_runs` with a `branch` filter can return STALE data** — it
+  served two-week-old runs repeatedly while today's were live. Query without the
+  filter and sort client-side by `created_at`.
 - **GitHub's queue.** Runs can sit `pending` for 20+ minutes. Observed: an older
   in-progress run continuing while newer runs in the same concurrency group were
   cancelled, and the newest held `pending` until the old one ended. Be patient
