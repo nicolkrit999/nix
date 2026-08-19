@@ -125,11 +125,13 @@ delib.host {
             wallpaperSHA256 = "1rn290hx0vl70w1dvksqrp8n713zyswc0gm98zsh962nw9jrkmrk";
             gifURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/fr0st-xyz/wallz/wallz-main/Animated/06.%20Animated.gif";
             gifSHA256 = "1pl466cmnsp5hhxlz8z7kd3r7zdr365wwx94l9g1sf48fy0bv0qb";
+            videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/landscape/girl-desk-working.MP4";
+            videoSHA256 = "0q6asqgcq0n5va8210v5jhqlqw7nzw1i5wdr8cn8bccj316fnfgy";
           }
           {
             targetMonitor = "*";
-            wallpaperURL = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/b56bc78bf5861f9d39afd2592ad572013dff6146/wallpapers/Pictures/wallpapers/various/other-user-github-repos/adarsh-67r-catppuccin-mocha-walls-main/space.png";
-            wallpaperSHA256 = "1bnyvwgic8j830034rn1lwdky9fmz0y9k01iv5jnkpskfi0w7vci";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/landscape/Delorean-Hyperspeed.mp4";
+            wallpaperSHA256 = "02x9d9yh6fc8q967yx7s70fqhrlcpsllkqhw65k6qk79vg9kp7mx";
           }
         ];
 
@@ -141,7 +143,7 @@ delib.host {
           base16Theme = "catppuccin-mocha";
           catppuccin = true;
           catppuccinFlavor = "mocha";
-          catppuccinAccent = "mauve";
+          catppuccinAccent = "sapphire";
         };
 
         # ---------------------------------------------------------------
@@ -630,7 +632,7 @@ delib.host {
         sddm-astronaut = {
           enable = true;
           embeddedTheme = "jake_the_dog";
-          background = ../../users/krit/src/wallpapers/car.gif;
+          #background = ;
         };
         sddm-pixie = {
           enable = false;

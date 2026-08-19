@@ -63,7 +63,7 @@ delib.module {
                 outputArg = if isWildcard then "ALL" else w.targetMonitor;
                 playCmd =
                   if isAnimated then
-                    "mpvpaper -f -o loop ${outputArg} ${mediaPath}"
+                    "mpvpaper -f -o \"loop mute=yes\" ${outputArg} ${mediaPath}"
                   else
                     "awww img ${targetArgs}${mediaPath}";
               in

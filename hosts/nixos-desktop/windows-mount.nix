@@ -4,7 +4,7 @@ delib.module {
   options = delib.singleEnableOption false;
 
   nixos.ifEnabled =
-    { myconfig, ... }:
+    { ... }:
     {
       boot.supportedFilesystems = [ "ntfs3" ];
 
@@ -14,7 +14,7 @@ delib.module {
         options = [
           "nofail"
           "noatime"
-          "uid=${toString config.users.users.${myconfig.constants.user}.uid}"
+          "uid=1000"
           "gid=${toString config.users.groups.users.gid}"
           "umask=022"
           "windows_names"
