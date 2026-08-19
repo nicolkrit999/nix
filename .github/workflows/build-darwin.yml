@@ -236,7 +236,11 @@ jobs:
             exit 0
           fi
           cachix push ${{ env.CACHIX_NAME }} < topush.txt 2>&1 | tee push.log
-          echo "pushed=$(grep -c '^Pushing ' push.log || true)" >> "$GITHUB_OUTPUT"
+          # Anchored on the store path on purpose: `cachix push` prints a summary
+          # header ("Pushing 14 paths (2089 are already present) ... ") as well as one
+          # `Pushing /nix/store/...` line per path, so a bare '^Pushing ' counted N+1.
+          # Run 1136's flake-check reported pushed=15 when exactly 14 paths went up.
+          echo "pushed=$(grep -c '^Pushing /nix/store/' push.log || true)" >> "$GITHUB_OUTPUT"
 
       # No `du -sh /nix/store` here - see the matching step in build.yml.
       # It cost 2m49s on run 754 and over ten minutes on a large Linux store,

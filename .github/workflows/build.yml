@@ -233,7 +233,11 @@ jobs:
             exit 0
           fi
           cachix push ${{ env.CACHIX_NAME }} < topush.txt 2>&1 | tee push.log
-          echo "pushed=$(grep -c '^Pushing ' push.log || true)" >> "$GITHUB_OUTPUT"
+          # Anchored on the store path on purpose: `cachix push` prints a summary
+          # header ("Pushing 14 paths (2089 are already present) ... ") as well as one
+          # `Pushing /nix/store/...` line per path, so a bare '^Pushing ' counted N+1.
+          # Run 1136's flake-check reported pushed=15 when exactly 14 paths went up.
+          echo "pushed=$(grep -c '^Pushing /nix/store/' push.log || true)" >> "$GITHUB_OUTPUT"
 
       - name: Check for Dead Code (deadnix)
         continue-on-error: true
@@ -495,7 +499,11 @@ jobs:
             # one store path per line must become one argument per path.
             # Quoting would pass the whole file as a single argument.
             cachix push ${{ env.CACHIX_NAME }} $(cat out.txt) 2>&1 | tee push.log
-            echo "pushed=$(grep -c '^Pushing ' push.log || true)" >> "$GITHUB_OUTPUT"
+            # Anchored on the store path on purpose: `cachix push` prints a summary
+            # header ("Pushing 14 paths (2089 are already present) ... ") as well as one
+            # `Pushing /nix/store/...` line per path, so a bare '^Pushing ' counted N+1.
+            # Run 1136's flake-check reported pushed=15 when exactly 14 paths went up.
+            echo "pushed=$(grep -c '^Pushing /nix/store/' push.log || true)" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -529,7 +537,11 @@ jobs:
             exit 0
           fi
           cachix push ${{ env.CACHIX_NAME }} < topush.txt 2>&1 | tee push.log
-          echo "pushed=$(grep -c '^Pushing ' push.log || true)" >> "$GITHUB_OUTPUT"
+          # Anchored on the store path on purpose: `cachix push` prints a summary
+          # header ("Pushing 14 paths (2089 are already present) ... ") as well as one
+          # `Pushing /nix/store/...` line per path, so a bare '^Pushing ' counted N+1.
+          # Run 1136's flake-check reported pushed=15 when exactly 14 paths went up.
+          echo "pushed=$(grep -c '^Pushing /nix/store/' push.log || true)" >> "$GITHUB_OUTPUT"
 
       # This job had NO notification at all, which is exactly why its push step
       # could fail with "Neither auth token nor signing key are present." on
@@ -785,7 +797,7 @@ jobs:
       # and uploads each store path the moment it is built, in parallel with
       # the rest of the build. That is what keeps a run that never reaches the
       # push step from losing everything: hitting this step's timeout, the
-      # 350-minute job cap, or a cancellation no longer discards hours of work,
+      # 180-minute job cap, or a cancellation no longer discards hours of work,
       # because each path was already in the cache when it finished. It also
       # lets successive runs make incremental progress through a long chain.
       #
@@ -880,7 +892,11 @@ jobs:
             # one store path per line must become one argument per path.
             # Quoting would pass the whole file as a single argument.
             cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt) 2>&1 | tee push.log
-            echo "pushed=$(grep -c '^Pushing ' push.log || true)" >> "$GITHUB_OUTPUT"
+            # Anchored on the store path on purpose: `cachix push` prints a summary
+            # header ("Pushing 14 paths (2089 are already present) ... ") as well as one
+            # `Pushing /nix/store/...` line per path, so a bare '^Pushing ' counted N+1.
+            # Run 1136's flake-check reported pushed=15 when exactly 14 paths went up.
+            echo "pushed=$(grep -c '^Pushing /nix/store/' push.log || true)" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -921,7 +937,11 @@ jobs:
             exit 0
           fi
           cachix push ${{ env.CACHIX_NAME }} < topush.txt 2>&1 | tee push.log
-          echo "pushed=$(grep -c '^Pushing ' push.log || true)" >> "$GITHUB_OUTPUT"
+          # Anchored on the store path on purpose: `cachix push` prints a summary
+          # header ("Pushing 14 paths (2089 are already present) ... ") as well as one
+          # `Pushing /nix/store/...` line per path, so a bare '^Pushing ' counted N+1.
+          # Run 1136's flake-check reported pushed=15 when exactly 14 paths went up.
+          echo "pushed=$(grep -c '^Pushing /nix/store/' push.log || true)" >> "$GITHUB_OUTPUT"
 
       # Ordered directly after the Cachix push and before the diagnostic
       # steps: these two are the only things in the job that persist

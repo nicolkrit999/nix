@@ -278,6 +278,40 @@ def check_cache_keys(path):
                          f"forever. Save keys: {save_keys}")
 
 
+def check_push_count(path):
+    """15. `cachix push` prints a summary header line ("Pushing 14 paths (2089 are
+    already present) ...") in addition to one "Pushing /nix/store/..." line per
+    path. Counting with a bare '^Pushing ' therefore returns N+1 whenever anything
+    was pushed. Run 1136's flake-check reported pushed=15 for exactly 14 uploaded
+    paths, and that inflated number is what reaches Discord and the job summary.
+
+    The zero case still behaved (cachix prints "Nothing to push ..." with no
+    Pushing line at all), which is why the "0 pushed after a failed build" alarm
+    never caught it and the bug survived several runs.
+    """
+    global checked
+    wf = path.name
+    if wf not in CACHE_PRODUCERS:
+        return
+    doc = yaml.safe_load(path.read_text())
+    if not doc or "jobs" not in doc:
+        return
+
+    for job_name, job in doc["jobs"].items():
+        for i, st in enumerate(job.get("steps") or []):
+            run = st.get("run") or ""
+            if "grep -c" not in run or "Pushing" not in run:
+                continue
+            for m in re.finditer(r"grep -c\s+(['\"])\^Pushing(.*?)\1", run):
+                checked += 1
+                if not m.group(2).startswith(" /nix/store/"):
+                    fail(wf, job_name, step_name(st, i), "push-count-anchored",
+                         f"counts pushed paths with '^Pushing{m.group(2)}' instead of "
+                         f"anchoring on the store path. Only '^Pushing /nix/store/' counts "
+                         f"exactly the per-path lines; a bare '^Pushing ' also matches "
+                         f"cachix's summary header and overcounts by 1.")
+
+
 def main():
     paths = sorted(WORKFLOW_DIR.glob("*.yml")) + sorted(WORKFLOW_DIR.glob("*.yaml"))
     if not paths:
@@ -286,6 +320,7 @@ def main():
     for p in paths:
         check_workflow(p)
         check_cache_keys(p)
+        check_push_count(p)
 
     print(f"checked {checked} invariant(s) across {len(paths)} workflow file(s)\n")
     if failures:
