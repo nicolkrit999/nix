@@ -308,11 +308,23 @@ Guarded by the `push-always` invariant.
 
 This is the important one, and it is not intuitive.
 
-`always()` covers a failed step, a timed-out step, and a cancelled run — for
-cancellation there is a grace window of roughly **eleven minutes** in which
-`always()` steps really do execute (observed in run 1095).
+`always()` covers a failed step and a timed-out step.
 
-It does **not** cover the runner itself dying. There is nothing left to run the
+⚠️ **On cancellation it is not reliable.** Two runs behaved completely
+differently:
+
+- Run 1095 got a grace window of roughly **eleven minutes**, in which `always()`
+  steps really did execute (and `du -sh /nix/store` ate all of it).
+- Run 1115 was cancelled by the concurrency group and its `always()` push step
+  was marked **`skipped`**. The whole job wrapped up in **under one second**.
+  27 minutes of work, no salvage push.
+
+So a cancellation may or may not give you a window. Design for the worst case:
+`watch-exec` is what actually protects a cancelled run, and **avoiding
+unnecessary cancellation matters** — every push to a branch with a run in flight
+discards that run's remaining work.
+
+It also does **not** cover the runner itself dying. There is nothing left to run the
 step. The signature is unmistakable: the job's conclusion is `failure`, the build
 step is still marked `in_progress`, the push step is still marked `pending`, and
 the logs return **HTTP 404** because they were never uploaded.
@@ -370,14 +382,28 @@ what it changed.
 | **1110** | Baseline, desktop only, warm | build **12m44s**, push 9s, cache save 2m36s, job 19m41s |
 | **1111** | Both hosts in one `nix build`. Runner died at 68 min; build step stuck `in_progress`, push step `pending`, logs 404. Nothing pushed, and no notification | One host per runner (matrix); the `report` watchdog job |
 | **1111** (pre-warm) | Confirmed on the wire: `env: CACHIX_TOKEN: ***` then `Neither auth token nor signing key are present.` and exit 1 — reported by GitHub as step `conclusion: success` | `CACHIX_AUTH_TOKEN` set wherever cachix writes; `cachix-auth` invariant |
-| **1115** | Auth fix validated: `outcome=success`, `pushed=0`, notifier silent on all 8 legs | — |
+| **1115** (pre-warm) | Auth fix validated: `outcome=success`, `pushed=0`, notifier silent on all 8 legs | — |
+| **1115** (build) | Cancelled by the concurrency group after 27 min. `always()` push step **skipped**, job over in <1s. Log shows 38 `copying path`, **zero** `building` lines, last output at 11:12 then silence — it was still *evaluating*, with repeated `builtins.derivation … options.json` (IFD) warnings | §6.3 rewritten: `always()` is not reliable on cancellation |
 
 ### The 1111 lesson, stated plainly
 
 Adding `nixos-laptop` to the same `nix build` was justified as "the laptop's
 marginal cost is only its host-specific derivations". Measured, that is false:
-12m44s → died at 68 minutes. With `keep-outputs` retaining every *intermediate*
-output, two closures do not fit in the headroom sized for one.
+12m44s → died at 68 minutes.
+
+⚠️ **The mechanism is not confirmed.** The first hypothesis was disk exhaustion:
+`keep-outputs` retains every *intermediate* output, and the ~78 GiB headroom was
+sized for one closure. Run 1115 does **not** support that. Building the same two
+hosts, it logged 38 substitutions and **zero builds** in 27 minutes, still inside
+evaluation, emitting repeated IFD warnings for `options.json`. Nothing had been
+built, so nothing could have filled the disk.
+
+What is solid: **two hosts in one `nix build` is dramatically more expensive than
+one, and the cost lands before the build phase.** Evaluation is single-threaded
+and holds both configurations in one evaluator process, and IFD serialises it
+further. One host per runner is therefore the right fix either way — it halves
+both the evaluation work and the evaluator's peak memory. Do not write the disk
+explanation back into the code comments until something actually measures it.
 
 ---
 
@@ -461,8 +487,17 @@ things and trusting unsettled ones.
   `building '/nix/store/…'`, not only at the end.
 - 🟠 **Per-host build timings after the matrix split are unmeasured.** Baseline to
   beat is run 1110's 12m44s for the desktop alone. The laptop's true marginal
-  cost is still unknown — run 1111 died before finishing, so the only honest
-  statement is "more than assumed".
+  cost is still unknown — run 1111 died and run 1115 was cancelled, both before
+  finishing, so the only honest statement is "more than assumed".
+- 🟠 **Why two hosts in one `nix build` is so expensive is not established.** Run
+  1115 points at evaluation and IFD rather than disk (§7). Worth an actual
+  measurement — `nix build --print-build-logs` timing of the evaluation phase per
+  host — before anyone theorises again.
+- 🟠 **`cancel-in-progress: true` may be wrong for these workflows.** Run 1115
+  shows a cancellation can discard a long build *and* skip the salvage push. For
+  a workflow whose primary goal is "cache as much as possible", that is a real
+  cost. The alternative (let runs finish) costs runner minutes and queue depth.
+  Not yet decided.
 - 🟠 **Whether `tgt` / `doom` are worth pre-warming is unmeasured.** Both would
   need work to be addressable (§5): `doom` is reachable through the existing
   config tree without touching `flake.nix`, `tgt` would need a single-system
