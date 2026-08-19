@@ -432,6 +432,20 @@ what it changed.
 | **761** (darwin, on `main`) | Build step hit its own `timeout-minutes: 300` at 300.23 min and failed. The job then ran post-steps normally for 3.3 min — GitHub did not kill it. **`Push to Cachix` was `skipped`**, because `main`'s gate is `if: steps.build.outcome == 'success'` with no `always()`. Five hours of building, nothing cached | The `always()` push gate, fixed on `develop`. `main` still has the old gate |
 | **1115** (build) | Cancelled by the concurrency group after 27 min. `always()` push step **skipped**, job over in <1s. Log shows 38 `copying path`, **zero** `building` lines, last output at 11:12 then silence — it was still *evaluating*, with repeated `builtins.derivation … options.json` (IFD) warnings | §6.3 rewritten: `always()` is not reliable on cancellation |
 
+### `main` lags `develop` on purpose
+
+`main` still carries the pre-fix workflows — `build-darwin.yml` caps of 300/350
+and a push gated on `steps.build.outcome == 'success'` with no `always()`, the
+combination that lost five hours in run 761.
+
+**This is known and accepted, not a gap to fix.** `develop` is where the
+workflows are stabilised; the owner promotes to `main` by hand once satisfied,
+and that single merge brings every fix across at once. No Nix code is being
+changed on `main` in the meantime, so the stale workflows there are not building
+anything that matters.
+
+Do not "helpfully" open a PR against `main` to sync it.
+
 ### The 1111 lesson, stated plainly
 
 Adding `nixos-laptop` to the same `nix build` was justified as "the laptop's
@@ -529,7 +543,7 @@ Automation cannot resolve these. If one is blocking, it needs the repo owner.
 | Rotating `CACHIX_AUTH_TOKEN` or the Discord webhook secrets | Repository secrets are write-only to CI and unreadable from a session. | Update under Settings → Secrets. |
 | Cachix storage running out | The cache's quota is an account-level setting. | Raise the plan, or `cachix gc`. |
 | Giving CI access to the NAS / `attic` | The NAS is Tailscale-only and CI is deliberately not on the tailnet — see the note in the cachix doc. **This is a decision, not a gap. Do not "fix" it.** | Nothing — it is intentional. |
-| Merging to `main` | `develop` is the integration branch; promotion to `main` is a human call. | Merge when satisfied. **`main` currently still has every pre-fix bug**: `build-darwin.yml` caps of 300/350 and a push gated on `steps.build.outcome == 'success'` with no `always()` — the exact combination that threw away five hours of run 761. Until `develop` is promoted, any build running from `main` can still lose everything it built. |
+| Merging to `main` | `develop` is the integration branch; promotion to `main` is a human call. | Merge when satisfied. |
 | Approving a flake-update PR | A dependency bump is a judgement call about what the machines will run. | Review and merge. |
 
 **Anything an automated session cannot finish should be recorded here rather than
