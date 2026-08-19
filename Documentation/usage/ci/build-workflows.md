@@ -48,8 +48,8 @@ nobody was told**.
 
 | File | What it does | Runner | Job cap |
 |---|---|---|---|
-| `build.yml` | flake check, pre-warm, build both x86_64 hosts, push | `ubuntu-latest` | 120 / 120 / 350 / 10 <br>(`flake-check` / `prewarm-cache` / `build-x86_64` / `report`) |
-| `build-darwin.yml` | flake check + build the Mac config, push | `macos-15` | 350 |
+| `build.yml` | flake check, pre-warm, build both x86_64 hosts, push | `ubuntu-latest` | 120 / 60 / 180 / 10 <br>(`flake-check` / `prewarm-cache` / `build-x86_64` / `report`) |
+| `build-darwin.yml` | flake check + build the Mac config, push | `macos-15` | 180 |
 | `check-workflows.yml` | static analysis of the workflow files themselves | `ubuntu-latest` | 15 |
 | `tests-nixos.yml`, `tests-darwin.yml` | the `templates/tests/` suite | both | 120 / 90 |
 | `update-flake.yml` | weekly `nix flake update` → PR | `ubuntu-latest` | — |
@@ -78,6 +78,33 @@ prewarm-cache ──needs──> build-x86_64 (matrix: nixos-desktop, nixos-lapt
   push hid there for months (see §7, run 1111). It has its own per-leg notifier
   for this reason.
 - `report` is a watchdog. See §6.4.
+
+### ⏱️ Timeout budget
+
+Every cap is deliberately well under GitHub's 360-minute hard kill, and the
+**serial** chain is what matters: `prewarm-cache` (60) runs before
+`build-x86_64` (180) via `needs:`, so the critical path is **240 minutes**, not
+the sum of every job.
+
+| | job cap | build-step cap |
+|---|---|---|
+| `flake-check` | 120 | — |
+| `prewarm-cache` | 60 | 45 per leg |
+| `build-x86_64` | 180 | 150 |
+| `report` | 10 | — |
+| `build-darwin` | 180 | 150 |
+
+Each build-step cap leaves a tail inside its job cap for the push, the cache save
+and the notifier.
+
+**A tight cap is safe here, and that is not obvious.** Hitting a timeout is not
+data loss: `watch-exec` has already uploaded every path as it was built, and the
+store cache still saves on a timeout (the save step runs on failure, just not on
+cancellation). So the next run resumes further along the dependency chain —
+progress is monotonic across runs. Two bounded runs beat one five-hour run that
+risks the hard kill, which *would* lose the cache save.
+
+---
 
 ---
 

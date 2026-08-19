@@ -26,7 +26,7 @@ jobs:
     runs-on: macos-15
     # Stay below GitHub's hard 360-minute job kill so the cachix daemon's
     # final flush still runs on a slow build.
-    timeout-minutes: 350
+    timeout-minutes: 180
     permissions:
       contents: read
       id-token: write
@@ -135,7 +135,7 @@ jobs:
       # branch of the graph, so one bad package doesn't cost us the closure.
       - name: Build Darwin Configuration
         id: build
-        timeout-minutes: 300
+        timeout-minutes: 150
         env:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
@@ -253,7 +253,10 @@ jobs:
         continue-on-error: true
         run: |
           if [ -s outpaths.txt ]; then
-            nix path-info -sh -r $(cat outpaths.txt)
+            # shellcheck disable=SC2046  # word splitting is REQUIRED here:
+          # one store path per line must become one argument per path.
+          # Quoting would pass the whole file as a single argument.
+          nix path-info -sh -r $(cat outpaths.txt)
           else
             echo "No output paths were built."
           fi
