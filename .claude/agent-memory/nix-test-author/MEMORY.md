@@ -1,1 +1,1 @@
-- [Wallpaper test eval-scenario pattern](feedback_wallpaper_test_eval_scenario.md) — gnome/kde home.ifEnabled calls pkgs.fetchurl at eval time; safe in pure eval (FOD path computed without fetching); include gnome-main, kde-main, waypaper module in nixosPaths for wallpaper tests
+- [Wallpaper test eval-scenario pattern](feedback_wallpaper_test_eval_scenario.md) - gnome/kde fetchurl eval-safety + nixosPaths setup; fetchurl store path suffix = URL basename not sha256 (assert on filename, not hash, to prove which media field won)

@@ -55,6 +55,7 @@ delib.module {
       home.packages = with pkgs; [
         xwayland-satellite # X11 Support
         awww # Wallpaper
+        mpvpaper # Video/gif wallpaper
         libnotify # Notifications
         hyprpicker # Color Picker
         wl-clipboard # Clipboard
@@ -197,16 +198,25 @@ delib.module {
               ++ (map
               (w:
                 let
-                  imgPath =
-                    if w.gifURL != "" then
+                  isAnimated = w.videoURL != "" || w.gifURL != "";
+                  mediaPath =
+                    if w.videoURL != "" then
+                      pkgs.fetchurl { url = w.videoURL; sha256 = w.videoSHA256; }
+                    else if w.gifURL != "" then
                       pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
                     else
                       pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
                   isWildcard = w.targetMonitor == "*";
                   targetStr = if isWildcard then "" else "-o ${w.targetMonitor} ";
                   sleepSecs = if isWildcard then "1" else "2";
+                  outputArg = if isWildcard then "ALL" else w.targetMonitor;
+                  playCmd =
+                    if isAnimated then
+                      "mpvpaper -f -o loop ${outputArg} ${mediaPath}"
+                    else
+                      "awww img ${targetStr}${mediaPath}";
                 in
-                { command = [ "sh" "-c" "sleep ${sleepSecs} && awww img ${targetStr}${imgPath}" ]; }
+                { command = [ "sh" "-c" "sleep ${sleepSecs} && ${playCmd}" ]; }
               )
               (lib.sort (a: b: a.targetMonitor == "*" && b.targetMonitor != "*") myconfig.constants.wallpapers))
           else

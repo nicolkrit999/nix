@@ -49,16 +49,25 @@ delib.module {
             ++ map
             (w:
               let
-                imgPath =
-                  if w.gifURL != "" then
+                isAnimated = w.videoURL != "" || w.gifURL != "";
+                mediaPath =
+                  if w.videoURL != "" then
+                    pkgs.fetchurl { url = w.videoURL; sha256 = w.videoSHA256; }
+                  else if w.gifURL != "" then
                     pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
                   else
                     pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
                 isWildcard = w.targetMonitor == "*";
                 targetArgs = if isWildcard then "" else "-o ${w.targetMonitor} ";
                 sleepSecs = if isWildcard then "1" else "2";
+                outputArg = if isWildcard then "ALL" else w.targetMonitor;
+                playCmd =
+                  if isAnimated then
+                    "mpvpaper -f -o loop ${outputArg} ${mediaPath}"
+                  else
+                    "awww img ${targetArgs}${mediaPath}";
               in
-              "sh -c 'sleep ${sleepSecs} && awww img ${targetArgs}${imgPath}'")
+              "sh -c 'sleep ${sleepSecs} && ${playCmd}'")
             myconfig.constants.wallpapers
         ) ++ lib.optionals (!wallpaperOwnedByShell && waypaperActive) [
         "waypaper --restore"
@@ -194,6 +203,7 @@ delib.module {
         kdePackages.gwenview
         grimblast
         awww
+        mpvpaper
         hyprpicker
         imv
         mpv

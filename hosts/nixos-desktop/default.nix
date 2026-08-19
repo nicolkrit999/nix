@@ -718,6 +718,7 @@ delib.host {
       krit.services.desktop = {
         flatpak.enable = true;
         local-packages.enable = true;
+        windows-mount.enable = true;
       };
 
       krit.services.network-tools.enable = true;

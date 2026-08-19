@@ -109,6 +109,7 @@ delib.module {
           # -----------------------------------------------------------------------
           # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
           # -----------------------------------------------------------------------
+          openlogi # Local-first companion for Logitech HID++ peripherals
         ]);
     };
 }

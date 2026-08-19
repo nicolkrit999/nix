@@ -40,6 +40,8 @@ delib.module {
               wallpaperSHA256 = strOption "";
               gifURL = strOption "";
               gifSHA256 = strOption "";
+              videoURL = strOption "";
+              videoSHA256 = strOption "";
             };
           })
           [

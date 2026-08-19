@@ -41,6 +41,7 @@ delib.module {
       home.packages = with pkgs; [
         xwayland-satellite
         awww
+        mpvpaper
         libnotify
         hyprpicker
         wl-clipboard
@@ -188,12 +189,14 @@ delib.module {
           tap_and_drag = 1;
           drag_lock = 1;
           trackpad_natural_scrolling = 0;
-          disable_while_typing = 1;
-          left_handed = 0;
-          middle_button_emulation = 0;
+          trackpad_disable_while_typing = 1;
+          trackpad_left_handed = 0;
+          trackpad_middle_button_emulation = 0;
           swipe_min_threshold = 1;
 
           mouse_natural_scrolling = 0;
+          mouse_left_handed = 0;
+          mouse_middle_button_emulation = 0;
 
           gappih = 8;
           gappiv = 8;
@@ -222,16 +225,25 @@ delib.module {
               ++ (map
               (w:
                 let
-                  imgPath =
-                    if w.gifURL != "" then
+                  isAnimated = w.videoURL != "" || w.gifURL != "";
+                  mediaPath =
+                    if w.videoURL != "" then
+                      pkgs.fetchurl { url = w.videoURL; sha256 = w.videoSHA256; }
+                    else if w.gifURL != "" then
                       pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
                     else
                       pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
                   isWildcard = w.targetMonitor == "*";
                   targetArgs = if isWildcard then "" else "-o ${w.targetMonitor} ";
                   sleepSecs = if isWildcard then "1" else "2";
+                  outputArg = if isWildcard then "ALL" else w.targetMonitor;
+                  playCmd =
+                    if isAnimated then
+                      "mpvpaper -f -o loop ${outputArg} ${mediaPath}"
+                    else
+                      "awww img ${targetArgs}${mediaPath}";
                 in
-                "sh -c 'sleep ${sleepSecs} && awww img ${targetArgs}${imgPath}'")
+                "sh -c 'sleep ${sleepSecs} && ${playCmd}'")
               myconfig.constants.wallpapers)
           else
             [ "waypaper --restore" ])

@@ -2,7 +2,7 @@
 
 ## Adaptive Host Support
 
-Leverage `denix` to create customized environments per host. Each host can choose which modules to enable and configure their behavior using `constants` — typed variables passed to module logic.
+Leverage `denix` to create customized environments per host. Each host can choose which modules to enable and configure their behavior using `constants` - typed variables passed to module logic.
 
 ### Host-specific home-manager modules
 the `/modules` folder contains system-wide general modules, useful for everyone.
@@ -18,7 +18,7 @@ The `/templates` folder holds modules not auto-discovered by denix (files withou
 Some tools are better configured through their own official methods rather than Nix syntax. In these cases a `.nix` file applies basic logic and/or sources an external directory, while the rest of the config lives in its original location.
 
 This enables two scenarios:
-1. **With a custom setup** (e.g. stowed from another repo or by using `mkOutOfStoreSymlink`): the `.nix` config and the original file merge — hybrid environment.
+1. **With a custom setup** (e.g. stowed from another repo or by using `mkOutOfStoreSymlink`): the `.nix` config and the original file merge - hybrid environment.
 2. **Without a custom setup**: only the `.nix` behavior applies; the rest is default.
 
 Currently applies to:
@@ -40,25 +40,38 @@ A base16 colorscheme is chosen per host. The user can also enable Catppuccin (wh
 
 ---
 
-## Wallpapers (gif included in window managers)
+## Wallpapers (video and gif included in window managers)
 
 Wallpapers are host-specific and tied to the monitor list. They apply automatically in all desktop environments and windows managers (except cosmic, currently not working).
 
 - First monitor → first wallpaper, second monitor → second wallpaper, etc
-- In KDE Plasma the "primary" monitor takes the first wallpaper — if you change the primary monitor in System Settings, it will get the first wallpaper.
+- In KDE Plasma the "primary" monitor takes the first wallpaper - if you change the primary monitor in System Settings, it will get the first wallpaper.
 - Using the optional `waypaper` module it is possible to setup using a gui any wallpaper, including videos and wallpaper engines dynamic wallpapers. If waypaper is disabled then the declarative wallpaper set up is completely disabled for window manager, and the chosen wallpaper in the ui is applied inconditionally to any future and present wm
 - **waypaper limitation:** waypaper 2.7 cannot set different wallpapers per monitor simultaneously, and does not support wallpaper rotation (portrait monitors receive the same image as landscape ones). For per-monitor wallpapers, use the declarative awww path with `waypaper` disabled.
+
+### Static vs. gif vs. video: two engines, one priority order
+
+On the wlroots WMs (Hyprland, niri, MangoWM) each `wallpapers` entry can set `wallpaperURL` (static), `gifURL`, and/or `videoURL` at the same time. Only one is ever played per entry, chosen by priority **video > gif > static** - whichever most-specific field is non-empty wins, so setting a `videoURL` makes any `gifURL`/`wallpaperURL` on the same entry dead weight.
+
+Two different tools render the result, split by content type rather than one tool doing everything:
+
+- **`mpvpaper`** plays `videoURL` and `gifURL` entries (`isAnimated = true`). It's an mpv wrapper, so it's the correct tool for anything with frames to decode/loop.
+- **`awww`** plays `wallpaperURL` (static-only) entries.
+
+**Why not just use mpvpaper for everything, including static images?** It technically can render a still image, but doing so hits [mpvpaper upstream issue #82](https://github.com/GhostNaN/mpvpaper/issues/82): with no next frame to advance to, mpv's render loop spins and pins a CPU core indefinitely. It's a bug, not a missing feature - but it makes mpvpaper the wrong choice for static content specifically. `awww` has no such issue and is purpose-built for static wallpapers, so both packages stay installed side by side and dispatch picks the engine per-entry based on which URL field is set.
+
+Practical implication: only add a `videoURL`/`gifURL` to an entry when you actually want animated/video content there - leaving both empty is what keeps an entry on the `awww` static path.
 
 ---
 
 ## Multiple Desktop Environments
 
 - **Hyprland** - default tiling window manager.
-- **niri** — scroll-based tiling windows manager.
-- **MangoWM + mangowc** — Tiling window manager supporting a vast choices of tiling layouts.
-- **KDE Plasma** — highly configurable, Windows-like launcher.
-- **GNOME** — simple, macOS-like launcher; familiar to Ubuntu/Mint users.
-- **Cosmic** — system76's revisited GNOME (currently unstable — expect freezes, black screens on logout, broken keybindings).
+- **niri** - scroll-based tiling windows manager.
+- **MangoWM + mangowc** - Tiling window manager supporting a vast choices of tiling layouts.
+- **KDE Plasma** - highly configurable, Windows-like launcher.
+- **GNOME** - simple, macOS-like launcher; familiar to Ubuntu/Mint users.
+- **Cosmic** - system76's revisited GNOME (currently unstable - expect freezes, black screens on logout, broken keybindings).
 
 ### Caelestia & noctalia shell
 - Caelestia is available on Hyprland
@@ -69,7 +82,7 @@ Wallpapers are host-specific and tied to the monitor list. They apply automatica
 
 > **Warning:** Disabling the DE you are currently using with `nixos-rebuild switch` will immediately drop you into TTY.
 
-**Safe approach — build for next boot:**
+**Safe approach - build for next boot:**
 ```bash
 cd ~/nix
 sudo nixos-rebuild boot --flake .
@@ -99,10 +112,10 @@ rm ~/.config/hypr/hyprland.conf && sw
 
 Specializations are bootloader entries that apply an alternative NixOS configuration overlay at boot. Enabling the module adds the entry; the base system is unaffected unless that entry is selected. The following specializations are available:
 
-- **`deep-focus`** — Launches browser, editor, file manager, and terminal into numbered workspaces on login and forces swaync DND mode. Supports both Hyprland and Niri.
-- **`guest`** — Ephemeral guest session (see below).
-- **`safe-mode`** — Recovery specialization: disables all compositors and theming,allow booting into IceWM via startx, forces bash/xterm/nano, and installs a minimal rescue toolkit (mc, ncdu, parted, btrfs-progs, etc.).
-- **`secure-travel`** — Hardened travel mode: kernel sysctl hardening, GNOME-only desktop, ProtonVPN + Tor Browser, MAC address randomization, strict firewall, Quad9 DNS-over-TLS, VPN kill-switch. Disables Tailscale, Bluetooth, nix-ld, nix-alien, and claude-code.
+- **`deep-focus`** - Launches browser, editor, file manager, and terminal into numbered workspaces on login and forces swaync DND mode. Supports both Hyprland and Niri.
+- **`guest`** - Ephemeral guest session (see below).
+- **`safe-mode`** - Recovery specialization: disables all compositors and theming,allow booting into IceWM via startx, forces bash/xterm/nano, and installs a minimal rescue toolkit (mc, ncdu, parted, btrfs-progs, etc.).
+- **`secure-travel`** - Hardened travel mode: kernel sysctl hardening, GNOME-only desktop, ProtonVPN + Tor Browser, MAC address randomization, strict firewall, Quad9 DNS-over-TLS, VPN kill-switch. Disables Tailscale, Bluetooth, nix-ld, nix-alien, and claude-code.
 
 ---
 
@@ -141,7 +154,7 @@ Choose a shell per host: `bash`, `zsh`, or `fish`.
 
 - Enable snapshots with a host-specific retention policy.
 - Only available if installed using BTRFS filesystems.
-- Neither the filesystem nor the snapshots module are mandatory — if you use a different filesystem, keep the variable `false` or remove the module entirely.
+- Neither the filesystem nor the snapshots module are mandatory - if you use a different filesystem, keep the variable `false` or remove the module entirely.
 
 ---
 
@@ -176,12 +189,12 @@ environment.persistence."/persist" = {
 
 ### Critical Requirements
 
-1. **Declare passwords** — `/etc/shadow` is wiped on reboot, so passwords must be set in Nix code.
-2. **SOPS key path** — point SOPS to the physical `/persist` path to avoid a boot-time race:
+1. **Declare passwords** - `/etc/shadow` is wiped on reboot, so passwords must be set in Nix code.
+2. **SOPS key path** - point SOPS to the physical `/persist` path to avoid a boot-time race:
    ```nix
    sops.age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
    ```
-3. **`/persist` must exist** — both manual partitioning and disko configs already create this mountpoint.
+3. **`/persist` must exist** - both manual partitioning and disko configs already create this mountpoint.
 
 ---
 
