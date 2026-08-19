@@ -162,6 +162,29 @@ Two properties to know:
   `cachix watch-exec --help` works. Any one failing drops to a plain build,
   because a Cachix problem must never be indistinguishable from a broken config.
 
+#### It now proves itself on every run
+
+Because this property was repeatedly *unprovable* by hand (see §11), each
+watch-exec build tees its output to `watch.log`, and a
+**`Report Continuous Push (watch-exec)`** step (`if: always()`,
+`continue-on-error`) counts and publishes two step outputs:
+
+| output | counted from | meaning |
+|---|---|---|
+| `streamed` | `^Pushing /nix/store/` | paths the post-build hook uploaded **during** the build |
+| `built`    | `^building '/nix/store/` | derivations actually compiled on this runner |
+
+The alarm is the point of the step:
+
+- `built > 0` **and** `streamed == 0` → `::warning::` — continuous push is broken.
+  This is the genuinely bad state, and it is **invisible without this check**,
+  because the layer-3 backstop silently covers for it.
+- `streamed == 0` with `built == 0` → normal warm run, stays quiet.
+
+⚠️ `set -o pipefail` before that pipe is **mandatory, not stylistic**: under the
+default `bash -e` shell `false | tee` exits **0**, so without it a failing build
+would be reported as green. Guarded by the `pipefail` invariant (§8).
+
 ### Layer 2 — the targeted push (fast path, clean builds)
 
 If the build step's **outcome is `success`** and `outpaths.txt` is non-empty,
@@ -198,6 +221,23 @@ On a warm run everything substitutes from `cache.nixos.org`, the upstream filter
 skips it all, and the notifier records `pushed=0`. **This is the expected result
 of a healthy warm run.** It is reported as a `note` (⚪) that rides along in a
 message being sent anyway, never as a trigger.
+
+#### The count was inflated by one until 2026-08-19
+
+`cachix push` prints a **summary header** — `Pushing 14 paths (2089 are already
+present) using zstd to cache krit-nixos` — as well as one `Pushing /nix/store/…`
+line per path. The old `grep -c '^Pushing '` matched both, so `pushed` was always
+`N+1` whenever anything was uploaded. Run 1136's flake-check uploaded exactly
+**14** paths and reported `pushed=15`.
+
+All six push steps across both workflows shared the bug. It survived several runs
+because the **zero case was always correct** — with nothing to upload cachix
+prints `Nothing to push - all store paths are already on Cachix.` and no
+`Pushing` line at all — so the "0 pushed after a failed build" alarm never fired
+on it. A bug that only manifests when things are working hides well.
+
+Counting is now anchored on the store path (`^Pushing /nix/store/`) and guarded
+by the `push-count-anchored` invariant (§8).
 
 Corollary for debugging: searching a store path on the Cachix website and finding
 nothing does **not** mean pushing is broken. If that path is in
@@ -364,6 +404,11 @@ differently:
 - Run 1115 was cancelled by the concurrency group and its `always()` push step
   was marked **`skipped`**. The whole job wrapped up in **under one second**.
   27 minutes of work, no salvage push.
+- Darwin run **796** (2026-08-19) was cancelled after 2h09m and the **entire
+  `always()` tail executed**: `Push to Cachix (Darwin)` 19:09:21→19:09:25,
+  then `Check Disk Usage`, `Show Package Tree`, `Report Job Status` and
+  `Notify (darwin)`, job done at 19:09:37. Post-job cleanup even reaped a live
+  `cachix` orphan (`Terminate orphan process: pid (7051) (cachix)`).
 
 So a cancellation may or may not give you a window. Design for the worst case:
 `watch-exec` is what actually protects a cancelled run, and **avoiding
@@ -429,6 +474,10 @@ what it changed.
 | **1111** | Both hosts in one `nix build`. Runner died at 68 min; build step stuck `in_progress`, push step `pending`, logs 404. Nothing pushed, and no notification | One host per runner (matrix); the `report` watchdog job |
 | **1111** (pre-warm) | Confirmed on the wire: `env: CACHIX_TOKEN: ***` then `Neither auth token nor signing key are present.` and exit 1 — reported by GitHub as step `conclusion: success` | `CACHIX_AUTH_TOKEN` set wherever cachix writes; `cachix-auth` invariant |
 | **1122** | ✅ **First fully green matrix run.** `nixos-desktop` build **10m35s**, push ran (6s); `nixos-laptop` build **10m55s**, push ran (1s); both in parallel, **17m18s wall clock for the pair** — faster than run 1110's 19m41s for the desktop *alone*. Every step green on both legs | Confirms the matrix split; the laptop is effectively free in wall-clock terms |
+| **1133** (cold) | `nix flake check` failed on a missing `ffmpeg_9` attribute after a flake bump — **yet the pushes still ran**: flake-check built 5 derivations and pushed 22 paths (1808 already present) | Confirms the "push what worked even when something failed" design end-to-end |
+| **794** (darwin) | `##[error]The action 'Build Darwin Configuration' has timed out after 150 minutes.` — then **2h11m** of nothing but `running auto-GC to free 13525108224 bytes` / `deleting garbage…` | First evidence the macOS runner **GC-thrashes under disk pressure** during a long compile; a longer cap may not help (§11.4) |
+| **796** (darwin) | Cancelled after **2h09m42s** having built exactly **one** derivation (`firefox-unwrapped-154.0`) that never finished. Entire `always()` tail still ran | Refines §6.3 — a cancellation *can* give a full grace window |
+| **1136** (cold) | flake-check green in 4m07s on a genuine cache miss; **`pushed=15` reported for exactly 14 uploaded paths** | Exposed the push-count off-by-one at all six sites → fix + `push-count-anchored` invariant (§3) |
 | **1115** (pre-warm) | Auth fix validated: `outcome=success`, `pushed=0`, notifier silent on all 8 legs | — |
 | **761** (darwin, on `main`) | Build step hit its own `timeout-minutes: 300` at 300.23 min and failed. The job then ran post-steps normally for 3.3 min — GitHub did not kill it. **`Push to Cachix` was `skipped`**, because `main`'s gate is `if: steps.build.outcome == 'success'` with no `always()`. Five hours of building, nothing cached | The `always()` push gate, fixed on `develop`. `main` still has the old gate |
 | **1115** (build) | Cancelled by the concurrency group after 27 min. `always()` push step **skipped**, job over in <1s. Log shows 38 `copying path`, **zero** `building` lines, last output at 11:12 then silence — it was still *evaluating*, with repeated `builtins.derivation … options.json` (IFD) warnings | §6.3 rewritten: `always()` is not reliable on cancellation |
@@ -494,11 +543,24 @@ gets built must reach the cache, and failures must not be silent.
 Current checks: `cachix-auth`, `push-always`, `push-non-fatal`, `step-ref`,
 `outcome-not-conclusion`, `pipefail`, `bash-c-newline`, `grace-window`,
 `matrix-cache-key`, `notify-guard`, `notify-non-fatal`, `webhook-curl-fail`,
-`cache-prefix-match`.
+`cache-prefix-match`, `push-count-anchored`.
+
+As of 2026-08-19 that is **137 assertions** across 6 workflow files (the count
+scales with the number of matching steps, not the number of check names).
 
 **If you add a check, mutation-test it** — reintroduce the bug in a temp copy and
 confirm the checker fails. A check that cannot fail is worse than no check,
-because it reads as coverage.
+because it reads as coverage. `push-count-anchored` was mutation-tested against
+both a bare `'^Pushing '` and a subtly-short `'^Pushing /nix/'`; `pipefail` was
+re-mutation-tested against the new `watch.log` pipe.
+
+⚠️ **`cachix-auth` matches the literal text `cachix push` / `cachix watch-exec`
+anywhere in a step's `run:` block, including inside an `echo`.** That strictness
+is deliberate — it errs toward demanding the token. If a new step merely *talks*
+about watch-exec, reword the message rather than weakening the check or handing a
+secret to a step that does not need one. (This is why the
+`Report Continuous Push` fallback message says "continuous push (watch-exec)"
+instead of naming the command.)
 
 `actionlint` runs alongside it, gated on its own analysis with **shellcheck
 advisory only**. Several shellcheck findings here are deliberate:
@@ -581,32 +643,143 @@ Automation cannot resolve these. If one is blocking, it needs the repo owner.
 left in a chat message**, because chat scrollback is not something a future
 session can rely on reading.
 
-## 10. Open questions and things not yet verified
+## 11. Open questions, current state, and what is left to do
 
 Keep this section honest — it is what stops the next person re-testing settled
-things and trusting unsettled ones.
+things and trusting unsettled ones. **If you are a session that has lost its
+context, start here.**
 
-- 🔴 **`watch-exec` has never been observed uploading mid-build.** It is
-  confirmed to *engage* (`Building under 'cachix watch-exec'`, run 768), but
-  every run so far has been warm, so there has been nothing to upload. Since it
-  is the only protection against runner death (§6.3), this is the most valuable
-  thing left to confirm. It needs a **cold** run — a flake bump changes
-  `flake.lock`, which changes the store-cache key, which misses the cache
-  entirely. Look for `Pushing /nix/store/…` interleaved with
-  `building '/nix/store/…'`, not only at the end.
-- 🟠 **Per-host build timings after the matrix split are unmeasured.** Baseline to
-  beat is run 1110's 12m44s for the desktop alone. The laptop's true marginal
-  cost is still unknown — run 1111 died and run 1115 was cancelled, both before
-  finishing, so the only honest statement is "more than assumed".
-- 🟠 **Why two hosts in one `nix build` is so expensive is not established.** Run
-  1115 points at evaluation and IFD rather than disk (§7). Worth an actual
+### 11.1 State as of 2026-08-19 20:00 UTC
+
+Branch `develop` @ `469ba73`. Two commits landed this evening:
+
+| commit | what |
+|---|---|
+| `05337d4` | push-count off-by-one fixed at all six sites + invariant `push-count-anchored` |
+| `469ba73` | `Report Continuous Push (watch-exec)` self-proving step on all three watch-exec builds |
+
+Settled today, with evidence:
+
+- ✅ `nix flake check` passes **cold on both platforms** at `f46fc67` — Linux
+  run 1136 flake-check 4m07s, Darwin run 796 `Check Flake` 16:57:41→16:59:39.
+  The `ffmpeg_9` failure of run 1133 is gone; `ffmpeg` appears nowhere in the log.
+- ✅ The `always()` tail **does** run inside a cancellation grace window (§6.3,
+  Darwin run 796) — refines, but does not overturn, the run-1115 observation.
+- ✅ Cachix is populated and serving: prewarm legs substituted e.g. `vscode`
+  **from `krit-nixos.cachix.org`**, not upstream.
+- ✅ The repo owns **zero** deprecated `stdenv.isLinux`/`isDarwin` predicates
+  (17 uses of `stdenv.hostPlatform.is*`). The one remaining deprecation warning
+  in the eval log comes from a **flake input**, not this repo.
+
+### 11.2 🔴 The one unproven claim: does `watch-exec` upload mid-build?
+
+Still **UNPROVEN**, and it is the most valuable thing left, because it is the
+only protection against runner death (§6.3) and the justification for the
+150-minute step cap.
+
+**The method, so nobody has to re-derive it:**
+
+1. **Precondition first, before reading any `Pushing` line.** Count
+   `building '/nix/store/` inside the build step. Nix does not fire the
+   post-build hook for *substituted* paths, and it fires only on derivation
+   **completion**. Zero builds — or builds that never finish — means the verdict
+   is **UNANSWERED, never "no"**. Both hypotheses predict zero `Pushing` lines.
+2. **The discriminator is the step boundary, not the string format.**
+   `Pushing /nix/store/…` **inside** the `Build <host>` block proves streaming.
+   The same lines only inside the separate `Push to Cachix` step prove nothing.
+3. **Timestamp spread decides it.** Lines spread across the build window are
+   proof; lines clustered at its end are not.
+4. Count cachix's `Pushing N paths (…)` summary header **separately** — see the
+   off-by-one in §3.
+
+**Why every attempt so far failed, so they are not repeated:**
+
+| attempt | why it could not answer |
+|---|---|
+| All warm runs | 100% substituted, `building` count **0**. Hook cannot fire. |
+| Run 1136 prewarm legs ×8 | Took the watch-exec branch (banner present in all 8, fallback in none) but built **0** paths; 199–443 `copying path` lines each. Null result. |
+| Run 1136 flake-check | Not wrapped in watch-exec at all — it has a separate push step. Says nothing either way. |
+| Darwin run 796 | Built exactly **one** derivation (`firefox-unwrapped-154.0`), which **never completed** — 2h03m of log silence, then cancelled. No completion event ⇒ no hook event. |
+| Run 1136 Linux legs | Genuinely cold and building thousands of derivations, but still in flight at time of writing. **This is the live candidate.** |
+
+**From 2026-08-19 onward this should not need forensics at all** — the
+`Report Continuous Push` step (§3, layer 1) answers it on every run.
+
+### 11.3 ⚠️ Investigating a run from a session — two API traps
+
+- `get_job_logs` on an **in-progress** job does not merely 404. It can return a
+  **frozen, non-advancing partial snapshot**: capped at ~5000 lines, identical
+  across repeated polls, `original_length` pinned. On run 1136's legs that was
+  **20 seconds out of a 64-minute step (~0.5%)**. Never read such a snapshot as
+  the step's full output, and never conclude "absent" from it.
+- `get_workflow_run_logs_url` returns **404 until the run reaches a terminal
+  state**. Complete logs only exist after the run ends.
+- When a snapshot has no `##[group]`/`##[endgroup]` markers (they scrolled out),
+  attribute lines to steps using the REST **step timeline** instead: any line at
+  or after the build step's `started_at`, with the next step never started, is
+  inside the build step.
+
+### 11.4 🔴 Darwin is red until Firefox 154.0 reaches `cache.nixos.org`
+
+**Root cause, established 2026-08-19.** `flake.lock` commit `4ad758a`
+(12:09:07 UTC) moved firefox **153.0.4 → 154.0**. The partition is clean:
+
+| runs | outcome |
+|---|---|
+| **without** `4ad758a` (771, 783, 789) | all succeeded in **~6 min**, **0 derivations built** |
+| **with** `4ad758a` (792–797) | **not one has completed** |
+
+Four reached the identical derivation and never left it —
+`jw9644qkl05mjkszcwd1vim8sdyw2s4b-firefox-unwrapped-154.0.drv` — dying at 5m19s,
+20m17s, 2h04m27s, and one true 150-minute step timeout (run 794).
+
+**This is upstream lag, not a config fault.** aarch64-darwin Firefox *is*
+normally cached: `cache.nixos.org/wkl53z1p….narinfo` → **HTTP 200** for
+`firefox-unwrapped-153.0.4`, and the fast runs substituted it from
+`cache.nixos.org` with the wrapper coming from `krit-nixos.cachix.org`. CI has
+**never** compiled darwin Firefox. Version 154.0 simply has not landed yet.
+
+**Decision (owner, 2026-08-19): wait it out.** No config change. Both workflows
+carry a weekly `0 5 * * 5` cron, so Darwin retests every Friday and on any push.
+A step timeout sets `steps.build.outcome = failure`, which fires the 🔴 notifier —
+**that alert is the "still not cached" signal**; its absence means recovery.
+
+Rejected, and why, so it is not re-proposed:
+
+- *Raise the timeout* — the compile exceeded 124 min without finishing; step cap
+  150, job cap 180, hard GitHub ceiling 360. And run 794 spent **2h11m** emitting
+  only `running auto-GC to free 13525108224 bytes` / `deleting garbage…`, i.e.
+  the runner was **GC-thrashing under disk pressure**, so more time may not help.
+- *Disable Firefox on the Mac host* — the owner declined, because the only
+  host-level lever that actually works is `home-packages.enable = false`, which
+  disables too much. ⚠️ Note for anyone revisiting: setting
+  `krit.programs.firefox.enable = false` **alone does not work** —
+  `home-packages-darwin.nix` then re-adds `pkgs.firefox` to
+  `environment.systemPackages` via `lib.optional (!isProgramEnabled browserName)`.
+
+### 11.5 🟠 A run can ignore cancellation and jam the concurrency group
+
+Seen twice on 2026-08-19. Run 1130's `Install CA Certificates` hung unkillably
+and blocked the group until its 180-minute cap. Then the 19:08:39 push cancelled
+the **Darwin** run within ~40s but left `build.yml` run 1136's two Linux legs
+running; run 1137 sat `pending` with **0 jobs** for 20+ minutes.
+
+There is no in-workflow fix — `timeout-minutes` is the only real backstop, which
+is one more reason the caps matter. A session cannot force-cancel either
+(§10: `actions: write` → 403).
+
+### 11.6 Still open, lower priority
+
+- 🟠 **Why two hosts in one `nix build` was so expensive is not established.**
+  Run 1115 points at evaluation and IFD rather than disk (§7). Worth an actual
   measurement — `nix build --print-build-logs` timing of the evaluation phase per
   host — before anyone theorises again.
 - 🟠 **`cancel-in-progress: true` may be wrong for these workflows.** Run 1115
   shows a cancellation can discard a long build *and* skip the salvage push. For
   a workflow whose primary goal is "cache as much as possible", that is a real
   cost. The alternative (let runs finish) costs runner minutes and queue depth.
-  Not yet decided.
+  Not yet decided — but note §6.3's 2026-08-19 data point, where the salvage push
+  *did* run.
 - 🟠 **Whether `tgt` / `doom` are worth pre-warming is unmeasured.** Both would
   need work to be addressable (§5): `doom` is reachable through the existing
   config tree without touching `flake.nix`, `tgt` would need a single-system
@@ -615,3 +788,21 @@ things and trusting unsettled ones.
   bad idea: `concord` is used via `.overrideAttrs`, so a plain re-export is a
   *different derivation* and pre-warming it would cache a path the build never
   substitutes.
+- 🟠 **Wire `steps.watch_report.outputs.streamed` into the Discord notifier.**
+  Today the broken-continuous-push alarm surfaces only as a `::warning::`
+  annotation in the Actions UI. Deliberately deferred to keep the instrumentation
+  commit small; do it once the step has been seen working on a real run.
+- ⚪ **Resolved 2026-08-19, do not re-open:** per-host build timings after the
+  matrix split. Run 1122 measured them — desktop **10m35s**, laptop **10m55s**,
+  **17m18s wall clock for the pair**, against run 1110's 19m41s for the desktop
+  alone (§7).
+
+### 11.7 Needs the owner, not automation
+
+Tracked in §10. Still outstanding:
+
+- **Flake-update PRs never trigger builds.** `DeterminateSystems/update-flake-lock`
+  uses the default `GITHUB_TOKEN`, and GitHub does not start workflows from
+  `GITHUB_TOKEN`-created events, so those PRs land with **zero checks**. The
+  permanent fix is a PAT in repository secrets — owner-only.
+- **Promotion of `develop` → `main`.**
