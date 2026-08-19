@@ -546,6 +546,8 @@ Automation cannot resolve these. If one is blocking, it needs the repo owner.
 | Situation | Why automation cannot | What the owner needs to do |
 |---|---|---|
 | Cancelling a workflow run | The session token has no `actions: write`; `POST /actions/runs/:id/cancel` returns **403**. | Cancel from the Actions tab. |
+| **Triggering any `workflow_dispatch`** | Same missing permission: `POST /actions/workflows/:id/dispatches` returns **403**. An automated session cannot start `update-flake.yml`, nor manually dispatch `build.yml` / `build-darwin.yml` against a branch. | Actions tab → pick the workflow → **Run workflow**. |
+| Producing a `flake.lock` bump by hand | There is no Nix in the session container, so `nix flake update` cannot be run locally either. Combined with the row above, a flake bump is entirely owner-or-schedule driven. | Run **Update Flake Lockfile** from the Actions tab, or wait for the Friday 04:00 UTC cron. |
 | Rotating `CACHIX_AUTH_TOKEN` or the Discord webhook secrets | Repository secrets are write-only to CI and unreadable from a session. | Update under Settings → Secrets. |
 | Cachix storage running out | The cache's quota is an account-level setting. | Raise the plan, or `cachix gc`. |
 | Giving CI access to the NAS / `attic` | The NAS is Tailscale-only and CI is deliberately not on the tailnet — see the note in the cachix doc. **This is a decision, not a gap. Do not "fix" it.** | Nothing — it is intentional. |
