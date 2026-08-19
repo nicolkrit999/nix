@@ -465,9 +465,48 @@ jobs:
           BUILD='nix build .#nixosConfigurations.nixos-desktop.pkgs.${{ matrix.attr }} --no-link --print-out-paths --keep-going > out.txt'
           if [ "$WATCH" = 1 ]; then
             echo "Building under 'cachix watch-exec' - paths are pushed as they are built."
-            cachix watch-exec ${{ env.CACHIX_NAME }} -- bash -c "$BUILD"
+            # pipefail BEFORE this pipe is mandatory, not stylistic: under the
+            # default `bash -e` shell a failing build piped into tee exits 0, so
+            # a broken config would be reported as a green build. Verified
+            # locally: `bash -e -c 'false | tee /dev/null'` exits 0.
+            set -o pipefail
+            cachix watch-exec ${{ env.CACHIX_NAME }} -- bash -c "$BUILD" 2>&1 | tee watch.log
           else
             bash -c "$BUILD"
+          fi
+
+      # Makes the continuous-push property observable on every run instead of
+      # something that has to be re-derived by hand from raw logs. watch.log is
+      # watch-exec's own output: its Nix post-build hook prints one
+      # "Pushing /nix/store/..." line per path it uploads WHILE the build runs.
+      #
+      # The alarm below is the point of the step. Nix does not fire the hook for
+      # substituted paths, so streamed=0 on a warm run is normal and means
+      # nothing. streamed=0 while the build genuinely built derivations is the
+      # signal that continuous push is broken - and that is precisely the case
+      # that is invisible without this check, because the end-of-job backstop
+      # push then quietly covers for it.
+      - name: Report Continuous Push (watch-exec)
+        id: watch_report
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ ! -f watch.log ]; then
+            echo "No watch.log - this build did not run under continuous push (watch-exec)."
+            echo "streamed=n/a" >> "$GITHUB_OUTPUT"
+            echo "built=n/a" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Anchored on the store path for the same reason the push steps are:
+          # cachix also prints a "Pushing N paths (...)" summary header.
+          STREAMED=$(grep -c '^Pushing /nix/store/' watch.log || true)
+          BUILT=$(grep -c "^building '/nix/store/" watch.log || true)
+          echo "watch-exec streamed $STREAMED path(s) to Cachix during the build"
+          echo "($BUILT derivation(s) were actually built; substituted paths never fire the hook)"
+          echo "streamed=$STREAMED" >> "$GITHUB_OUTPUT"
+          echo "built=$BUILT" >> "$GITHUB_OUTPUT"
+          if [ "$BUILT" -gt 0 ] && [ "$STREAMED" -eq 0 ]; then
+            echo "::warning::watch-exec streamed 0 paths despite building $BUILT derivation(s) - continuous push is not working, so a killed or cancelled run will lose everything it built."
           fi
 
       - name: Push ${{ matrix.attr }} to Cachix
@@ -838,10 +877,49 @@ jobs:
           BUILD='nix build .#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel --no-link --print-out-paths --keep-going --max-jobs 2 --cores 4 > outpaths.txt'
           if [ "$WATCH" = 1 ]; then
             echo "Building under 'cachix watch-exec' - paths are pushed as they are built."
-            cachix watch-exec ${{ env.CACHIX_NAME }} -- bash -c "$BUILD"
+            # pipefail BEFORE this pipe is mandatory, not stylistic: under the
+            # default `bash -e` shell a failing build piped into tee exits 0, so
+            # a broken config would be reported as a green build. Verified
+            # locally: `bash -e -c 'false | tee /dev/null'` exits 0.
+            set -o pipefail
+            cachix watch-exec ${{ env.CACHIX_NAME }} -- bash -c "$BUILD" 2>&1 | tee watch.log
           else
             echo "Cachix unavailable - building without continuous push."
             bash -c "$BUILD"
+          fi
+
+      # Makes the continuous-push property observable on every run instead of
+      # something that has to be re-derived by hand from raw logs. watch.log is
+      # watch-exec's own output: its Nix post-build hook prints one
+      # "Pushing /nix/store/..." line per path it uploads WHILE the build runs.
+      #
+      # The alarm below is the point of the step. Nix does not fire the hook for
+      # substituted paths, so streamed=0 on a warm run is normal and means
+      # nothing. streamed=0 while the build genuinely built derivations is the
+      # signal that continuous push is broken - and that is precisely the case
+      # that is invisible without this check, because the end-of-job backstop
+      # push then quietly covers for it.
+      - name: Report Continuous Push (watch-exec)
+        id: watch_report
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ ! -f watch.log ]; then
+            echo "No watch.log - this build did not run under continuous push (watch-exec)."
+            echo "streamed=n/a" >> "$GITHUB_OUTPUT"
+            echo "built=n/a" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Anchored on the store path for the same reason the push steps are:
+          # cachix also prints a "Pushing N paths (...)" summary header.
+          STREAMED=$(grep -c '^Pushing /nix/store/' watch.log || true)
+          BUILT=$(grep -c "^building '/nix/store/" watch.log || true)
+          echo "watch-exec streamed $STREAMED path(s) to Cachix during the build"
+          echo "($BUILT derivation(s) were actually built; substituted paths never fire the hook)"
+          echo "streamed=$STREAMED" >> "$GITHUB_OUTPUT"
+          echo "built=$BUILT" >> "$GITHUB_OUTPUT"
+          if [ "$BUILT" -gt 0 ] && [ "$STREAMED" -eq 0 ]; then
+            echo "::warning::watch-exec streamed 0 paths despite building $BUILT derivation(s) - continuous push is not working, so a killed or cancelled run will lose everything it built."
           fi
 
       # Pushing to the binary cache is a non-critical secondary goal: it must
