@@ -428,6 +428,7 @@ what it changed.
 | **1110** | Baseline, desktop only, warm | build **12m44s**, push 9s, cache save 2m36s, job 19m41s |
 | **1111** | Both hosts in one `nix build`. Runner died at 68 min; build step stuck `in_progress`, push step `pending`, logs 404. Nothing pushed, and no notification | One host per runner (matrix); the `report` watchdog job |
 | **1111** (pre-warm) | Confirmed on the wire: `env: CACHIX_TOKEN: ***` then `Neither auth token nor signing key are present.` and exit 1 — reported by GitHub as step `conclusion: success` | `CACHIX_AUTH_TOKEN` set wherever cachix writes; `cachix-auth` invariant |
+| **1122** | ✅ **First fully green matrix run.** `nixos-desktop` build **10m35s**, push ran (6s); `nixos-laptop` build **10m55s**, push ran (1s); both in parallel, **17m18s wall clock for the pair** — faster than run 1110's 19m41s for the desktop *alone*. Every step green on both legs | Confirms the matrix split; the laptop is effectively free in wall-clock terms |
 | **1115** (pre-warm) | Auth fix validated: `outcome=success`, `pushed=0`, notifier silent on all 8 legs | — |
 | **761** (darwin, on `main`) | Build step hit its own `timeout-minutes: 300` at 300.23 min and failed. The job then ran post-steps normally for 3.3 min — GitHub did not kill it. **`Push to Cachix` was `skipped`**, because `main`'s gate is `if: steps.build.outcome == 'success'` with no `always()`. Five hours of building, nothing cached | The `always()` push gate, fixed on `develop`. `main` still has the old gate |
 | **1115** (build) | Cancelled by the concurrency group after 27 min. `always()` push step **skipped**, job over in <1s. Log shows 38 `copying path`, **zero** `building` lines, last output at 11:12 then silence — it was still *evaluating*, with repeated `builtins.derivation … options.json` (IFD) warnings | §6.3 rewritten: `always()` is not reliable on cancellation |
@@ -452,7 +453,12 @@ Adding `nixos-laptop` to the same `nix build` was justified as "the laptop's
 marginal cost is only its host-specific derivations". Measured, that is false:
 12m44s → died at 68 minutes.
 
-⚠️ **The mechanism is not confirmed.** The first hypothesis was disk exhaustion:
+✅ **The fix is confirmed by run 1122.** One host per runner, and both now build
+in **10m35s / 10m55s** in parallel — 17m18s wall clock for the pair, against
+19m41s for the desktop alone before. So the cost was never the laptop's
+*content*; it was putting two configurations through a single `nix build`.
+
+⚠️ **The underlying mechanism is still not confirmed.** The first hypothesis was disk exhaustion:
 `keep-outputs` retains every *intermediate* output, and the ~78 GiB headroom was
 sized for one closure. Run 1115 does **not** support that. Building the same two
 hosts, it logged 38 substitutions and **zero builds** in 27 minutes, still inside
