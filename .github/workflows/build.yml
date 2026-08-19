@@ -532,6 +532,37 @@ jobs:
     # - a failed/skipped/timed-out leg there must never block the real build.
     if: always()
     runs-on: ubuntu-latest
+    # ONE HOST PER RUNNER, not both in a single job.
+    #
+    # Run 1110 built nixos-desktop alone in 12m44s and pushed cleanly. Run 1111
+    # added nixos-laptop to the same `nix build` and the runner DIED after 68
+    # minutes: the job ended with "Build x86_64 Configurations" still marked
+    # in_progress, "Push to Cachix" still marked pending, and the logs
+    # returning HTTP 404 because they were never uploaded.
+    #
+    # That is the one failure mode always() does NOT cover. always() runs a
+    # step after a failure, a timeout, or a cancellation - but when the runner
+    # itself dies there is nothing left to run the step, so the push is lost
+    # outright. Keeping each job inside a resource envelope a runner survives
+    # is therefore a push-reliability measure, not a performance tweak.
+    #
+    # Why it blew up: this job deliberately sets keep-outputs/keep-derivations
+    # (see Install Nix below) so a saved store cache never references pruned
+    # files. That retains every INTERMEDIATE output, not just the runtime
+    # closure, and the ~78 GiB nothing-but-nix frees was sized for one system
+    # closure. Two closures' worth of retained intermediates does not fit.
+    #
+    # A matrix also gives independent failure domains - the laptop dying can no
+    # longer cost us the desktop's push - and runs the two in parallel, so the
+    # wall clock is max(desktop, laptop) rather than their sum. fail-fast is
+    # off for the same reason: one host failing must never cancel the other's
+    # build, which would throw away exactly the paths we exist to cache.
+    strategy:
+      fail-fast: false
+      matrix:
+        host:
+          - nixos-desktop
+          - nixos-laptop
     # Stay below GitHub's hard 360-minute job kill: a hard-killed job loses
     # its cache-save and cachix-flush steps, which is why retries used to
     # restart from zero.
@@ -635,10 +666,17 @@ jobs:
         continue-on-error: true
         uses: nix-community/cache-nix-action/restore@v7
         with:
-          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
-          # Same-lock only - see the flake-check job for the rationale.
+          # matrix.host is part of the key: without it both matrix legs of the
+          # SAME run would compute an identical primary-key (run_id and
+          # run_attempt are shared across a matrix), so the second save would
+          # collide with the first and one host's store would be lost.
+          primary-key: nix-${{ runner.os }}-${{ matrix.host }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          # Same-lock AND same-host only - see the flake-check job for the
+          # same-lock rationale. Restoring the other host's store would work
+          # (Nix stores are additive) but would pull a large archive whose
+          # host-specific half is useless here.
           restore-prefixes-first-match: |
-            nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+            nix-${{ runner.os }}-${{ matrix.host }}-${{ hashFiles('flake.lock') }}
 
       - name: Verify Restored Store
         # Best-effort, and now declared as such. The `|| true` below already
@@ -688,10 +726,9 @@ jobs:
       # --keep-going: when a derivation fails (broken dep, unfree, or a package
       # unsupported on this platform) keep building every other branch of the
       # graph, so one bad package doesn't cost us the whole closure.
-      # Builds nixos-desktop AND nixos-laptop: a rebuild on either machine
-      # after a flake bump should substitute rather than build, including
-      # the host-specific paths that differ between them.
-      - name: Build x86_64 Configurations
+      # One host per job - see the matrix on the job above for why both in a
+      # single `nix build` killed the runner and cost us the push entirely.
+      - name: Build ${{ matrix.host }}
         id: build
         timeout-minutes: 270
         env:
@@ -708,19 +745,13 @@ jobs:
              && cachix watch-exec --help > /dev/null 2>&1; then
             WATCH=1
           fi
-          # Both x86_64 hosts in ONE nix build on ONE runner, not two jobs:
-          # they share nearly their whole closure, so the laptop's marginal
-          # cost is only its host-specific derivations (home-manager
-          # generation, system-path, activation scripts) rather than a second
-          # full build. --keep-going means a failure in one still builds the
-          # other, and --print-out-paths writes one line per realised toplevel,
-          # so outpaths.txt may legitimately hold one path or two.
-          # Backslash continuations, not bare newlines: BUILD is handed to
-          # `bash -c`, which would otherwise read each line as its own command.
-          BUILD='nix build \
-                   .#nixosConfigurations.nixos-desktop.config.system.build.toplevel \
-                   .#nixosConfigurations.nixos-laptop.config.system.build.toplevel \
-                   --no-link --print-out-paths --keep-going --max-jobs 2 --cores 4 > outpaths.txt'
+          # Exactly one toplevel, so outpaths.txt holds at most one line.
+          # Kept on a single physical line on purpose: BUILD is handed to
+          # `bash -c`, which reads a bare newline as the end of one command and
+          # the start of another - an earlier version of this variable spanned
+          # several lines and would have run `nix build` with no arguments at
+          # all. If this ever needs wrapping again, use backslash continuations.
+          BUILD='nix build .#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel --no-link --print-out-paths --keep-going --max-jobs 2 --cores 4 > outpaths.txt'
           if [ "$WATCH" = 1 ]; then
             echo "Building under 'cachix watch-exec' - paths are pushed as they are built."
             cachix watch-exec ${{ env.CACHIX_NAME }} -- bash -c "$BUILD"
@@ -746,7 +777,7 @@ jobs:
       # runs on purpose: a store snapshot taken mid-build is internally
       # inconsistent, whereas Cachix uploads whole valid paths one at a time,
       # so a push cut short just means fewer paths, never a corrupt cache.
-      - name: Push to Cachix (x86_64)
+      - name: Push to Cachix (${{ matrix.host }})
         id: cachix_push
         if: always() && steps.cachix_setup.outcome == 'success'
         continue-on-error: true
@@ -766,12 +797,12 @@ jobs:
           fi
 
           # Gate on the build's OUTCOME, not merely on outpaths.txt being
-          # non-empty. With two hosts, one can realise while the other fails -
-          # outpaths.txt then holds a single path, the targeted branch would be
-          # taken, and the failed host's completed dependencies would rely
-          # entirely on watch-exec having been available. Requiring a clean
-          # build before taking the fast path means any partial failure falls
-          # through to the whole-store push instead.
+          # non-empty. --keep-going means the build can fail while still having
+          # realised plenty; --print-out-paths would then print nothing (the
+          # toplevel depends on everything) and an emptiness-only test would
+          # take neither branch usefully. Requiring a clean build before the
+          # targeted fast path means ANY failure falls through to the
+          # whole-store push, which is what actually salvages partial work.
           if [ "${{ steps.build.outcome }}" = "success" ] && [ -s outpaths.txt ]; then
             cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt) 2>&1 | tee push.log
             echo "pushed=$(grep -c '^Pushing ' push.log || true)" >> "$GITHUB_OUTPUT"
@@ -836,7 +867,7 @@ jobs:
         continue-on-error: true
         uses: nix-community/cache-nix-action/save@v7
         with:
-          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          primary-key: nix-${{ runner.os }}-${{ matrix.host }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
           gc-max-store-size-linux: 7000000000
           # Deliberately NO purge-* options. Purging needs an `actions: write`
           # permission this job doesn't grant, so they were always a silent
@@ -859,7 +890,7 @@ jobs:
           echo "--- Swap ---"
           free -h
 
-      - name: Show Package Tree (x86_64)
+      - name: Show Package Tree (${{ matrix.host }})
         if: always()
         continue-on-error: true
         run: |
@@ -884,7 +915,7 @@ jobs:
       # `[ test ] && append`. Under `bash -e` a false test makes that an `&&`
       # list returning non-zero, which aborts the step - the notifier would
       # stop at the first finding that did not apply.
-      - name: Notify (x86_64)
+      - name: Notify (${{ matrix.host }})
         if: always() && env.WEBHOOK_ID != ''
         continue-on-error: true
         env:
@@ -939,11 +970,11 @@ jobs:
             exit 0
           fi
           if [ -n "$CRIT" ]; then
-            HEAD="🚨 **build-x86_64 - failed**"
+            HEAD="🚨 **build ${{ matrix.host }} - failed**"
           elif [ -n "$WARN" ]; then
-            HEAD="⚠️ **build-x86_64 - finished, but with problems**"
+            HEAD="⚠️ **build ${{ matrix.host }} - finished, but with problems**"
           else
-            HEAD="ℹ️ **build-x86_64**"
+            HEAD="ℹ️ **build ${{ matrix.host }}**"
           fi
           jq -n --arg h "$HEAD" --arg b "$BODY" --arg u "$RUN_URL" \
             '{content: ($h + "\n" + $b + "\n" + $u)}' > payload.json

@@ -1,0 +1,117 @@
+name: "Check CI workflow files"
+
+# The build workflows are the only thing standing between a broken flake bump
+# and a machine that has to compile everything from source. Their failure mode
+# is quiet: a push step that authenticates with the wrong variable, a guard that
+# skips exactly when there is most to salvage, a `bash -c` string that silently
+# runs nothing. Every one of those shipped at some point and none turned a job
+# red. This workflow exists so the next one is caught by a machine instead of by
+# noticing months later that the cache is empty.
+
+env:
+  # Declared at workflow level so the notify step's `if:` can read it. Step-level
+  # env is not visible to that step's own `if:`.
+  WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - ".github/workflows/**"
+      - ".github/scripts/**"
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - ".github/scripts/**"
+  # Weekly, independent of any edit: actions get deprecated, runner images
+  # change, and a workflow that was correct in August can rot by November
+  # without anybody touching the file.
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-workflows:
+    runs-on: ubuntu-latest
+    # Pure static analysis - no Nix, no builds. If this is not finished in a
+    # couple of minutes something is wrong.
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install actionlint
+        run: |
+          set -o pipefail
+          curl -sSfL -o download-actionlint.bash \
+            https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash
+          bash download-actionlint.bash
+          ./actionlint --version
+
+      # Hard gate. actionlint's own analysis - unknown keys, bad `if:`
+      # expressions, invalid contexts, references to matrix values that do not
+      # exist, deprecated runner labels.
+      #
+      # -shellcheck= disables the shellcheck integration deliberately. It is run
+      # as a separate advisory step below because several of its findings are
+      # things this repo does ON PURPOSE: `cachix push <cache> $(cat out.txt)`
+      # relies on word splitting to turn one path per line into one argument
+      # per path, and SC2046 would have us quote it, which would pass the whole
+      # file as a single argument and break every push.
+      - name: actionlint
+        run: ./actionlint -shellcheck= .github/workflows/*.yml
+
+      # Advisory. Real shell smells do show up here, but so do the deliberate
+      # ones above, so it reports without gating.
+      - name: shellcheck (advisory)
+        id: shellcheck
+        continue-on-error: true
+        run: ./actionlint .github/workflows/*.yml
+
+      - name: Install PyYAML
+        run: python3 -m pip install --quiet pyyaml
+
+      # Hard gate. The repo-specific invariants - every one of them a bug that
+      # actually happened here, with the run number that exposed it.
+      - name: Check workflow invariants
+        id: invariants
+        run: python3 .github/scripts/check-workflow-invariants.py
+
+      - name: Notify (workflow check)
+        # WEBHOOK_ID guard: on a fork without secrets the URL is malformed and
+        # this would curl a broken endpoint every run. continue-on-error: a
+        # Discord outage must not be the reason this check goes red.
+        if: always() && env.WEBHOOK_ID != ''
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          CRIT=""; WARN=""
+          crit() { CRIT="${CRIT}🔴 $1"$'\n'; }
+          warn() { WARN="${WARN}🟠 $1"$'\n'; }
+
+          if [ "${{ steps.invariants.outcome }}" = "failure" ]; then
+            crit "A CI workflow invariant was violated - see the job log for which one"
+          fi
+          if [ "${{ steps.shellcheck.outcome }}" = "failure" ]; then
+            warn "shellcheck flagged something in a workflow \`run:\` block (advisory)"
+          fi
+
+          # Silent when everything holds. A channel that gets a message on every
+          # green run is a channel nobody reads.
+          if [ -z "${CRIT}${WARN}" ]; then
+            echo "Nothing to report - no notification sent."
+            exit 0
+          fi
+          if [ -n "$CRIT" ]; then
+            HEAD="🚨 **CI workflow check - failed**"
+          else
+            HEAD="⚠️ **CI workflow check - advisory**"
+          fi
+          jq -n --arg h "$HEAD" --arg b "${CRIT}${WARN}" --arg u "$RUN_URL" \
+            '{content: ($h + "\n" + $b + "\n" + $u)}' > payload.json
+          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
