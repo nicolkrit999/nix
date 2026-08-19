@@ -84,6 +84,19 @@ jobs:
             # "user-environment.drv does not exist" failure on restore).
             keep-outputs = true
             keep-derivations = true
+            # The same extra substituters the real machines trust, from
+            # modules/nixos/toplevel/nix-nixos.nix. CI had NONE of them, so it
+            # COMPILED FROM SOURCE what every one of your machines simply
+            # downloads - run 1095 shows vicinae-0.25.0 being built locally
+            # even though vicinae publishes a cachix. Nothing new is trusted
+            # here: this is exactly the set already in the system config, with
+            # the same public keys.
+            #
+            # Note this is NOT covered by --accept-flake-config, which the
+            # builds do not pass (only `nix profile install` does), so an input
+            # flake's own nixConfig.extra-substituters is ignored regardless.
+            extra-substituters = https://hyprland.cachix.org https://cosmic.cachix.org https://walker.cachix.org https://claude-code.cachix.org https://vicinae.cachix.org https://catppuccin.cachix.org
+            extra-trusted-public-keys = hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc= cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE= walker.cachix.org-1:fG8q+uAaMqhsMxWjwvk0IMb4mFPFLqHjuvfwQxE4oJM= claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk= vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc= catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI=
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             download-attempts = 15
@@ -332,6 +345,11 @@ jobs:
           - vesktop
           - signal-desktop
           - tor-browser
+          # Added on evidence, not guesswork: thunderbird-unwrapped is what run
+          # 754 spent its entire 300-minute budget compiling when nixpkgs had
+          # bumped ahead of Hydra. It is ~340 MiB and exactly the Hydra-lag
+          # window this matrix exists to cover.
+          - thunderbird
     env:
       NIXPKGS_ALLOW_UNFREE: 1
       # Needed by the notifier below. Without it env.WEBHOOK_ID is empty and
@@ -346,6 +364,19 @@ jobs:
         with:
           flakehub: false
           extra-conf: |
+            # The same extra substituters the real machines trust, from
+            # modules/nixos/toplevel/nix-nixos.nix. CI had NONE of them, so it
+            # COMPILED FROM SOURCE what every one of your machines simply
+            # downloads - run 1095 shows vicinae-0.25.0 being built locally
+            # even though vicinae publishes a cachix. Nothing new is trusted
+            # here: this is exactly the set already in the system config, with
+            # the same public keys.
+            #
+            # Note this is NOT covered by --accept-flake-config, which the
+            # builds do not pass (only `nix profile install` does), so an input
+            # flake's own nixConfig.extra-substituters is ignored regardless.
+            extra-substituters = https://hyprland.cachix.org https://cosmic.cachix.org https://walker.cachix.org https://claude-code.cachix.org https://vicinae.cachix.org https://catppuccin.cachix.org
+            extra-trusted-public-keys = hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc= cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE= walker.cachix.org-1:fG8q+uAaMqhsMxWjwvk0IMb4mFPFLqHjuvfwQxE4oJM= claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk= vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc= catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI=
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             download-attempts = 15
@@ -576,6 +607,19 @@ jobs:
             # "user-environment.drv does not exist" failure on restore).
             keep-outputs = true
             keep-derivations = true
+            # The same extra substituters the real machines trust, from
+            # modules/nixos/toplevel/nix-nixos.nix. CI had NONE of them, so it
+            # COMPILED FROM SOURCE what every one of your machines simply
+            # downloads - run 1095 shows vicinae-0.25.0 being built locally
+            # even though vicinae publishes a cachix. Nothing new is trusted
+            # here: this is exactly the set already in the system config, with
+            # the same public keys.
+            #
+            # Note this is NOT covered by --accept-flake-config, which the
+            # builds do not pass (only `nix profile install` does), so an input
+            # flake's own nixConfig.extra-substituters is ignored regardless.
+            extra-substituters = https://hyprland.cachix.org https://cosmic.cachix.org https://walker.cachix.org https://claude-code.cachix.org https://vicinae.cachix.org https://catppuccin.cachix.org
+            extra-trusted-public-keys = hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc= cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE= walker.cachix.org-1:fG8q+uAaMqhsMxWjwvk0IMb4mFPFLqHjuvfwQxE4oJM= claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk= vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc= catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI=
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             download-attempts = 15

@@ -42,6 +42,13 @@ jobs:
           flakehub: false
           extra-conf: |
             auto-optimise-store = true
+            # Same idea as build.yml: give CI the caches the machines already
+            # trust, so it substitutes instead of compiling. Only the two that
+            # actually apply to aarch64-darwin - hyprland/cosmic/walker/vicinae
+            # are Linux-only, and every extra substituter costs a narinfo
+            # round-trip per path.
+            extra-substituters = https://claude-code.cachix.org https://catppuccin.cachix.org
+            extra-trusted-public-keys = claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk= catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI=
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             # Auto-GC during the build. macOS runners share one APFS container
