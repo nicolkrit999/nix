@@ -29,11 +29,11 @@ let
       hash = wheelSrc.${currentSystem}.hash;
     };
 
-    nativeBuildInputs = lib.optionals pkgs.stdenv.isLinux [
+    nativeBuildInputs = lib.optionals pkgs.stdenv.hostPlatform.isLinux [
       pkgs.autoPatchelfHook
     ];
 
-    buildInputs = lib.optionals pkgs.stdenv.isLinux (with pkgs; [
+    buildInputs = lib.optionals pkgs.stdenv.hostPlatform.isLinux (with pkgs; [
       stdenv.cc.cc.lib
       zlib
     ]);
@@ -94,7 +94,7 @@ delib.module {
     programs.zsh.shellAliases = lib.mkIf (myconfig.constants.shell == "zsh") shellAliases;
     programs.bash.shellAliases = lib.mkIf (myconfig.constants.shell == "bash") shellAliases;
 
-    systemd.user.services.headroom-proxy = lib.mkIf pkgs.stdenv.isLinux {
+    systemd.user.services.headroom-proxy = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
       Unit = {
         Description = "Headroom AI context compression proxy";
         After = [ "network.target" ];
@@ -109,7 +109,7 @@ delib.module {
       };
     };
 
-    launchd.agents.headroom-proxy = lib.mkIf pkgs.stdenv.isDarwin {
+    launchd.agents.headroom-proxy = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
       enable = true;
       config = {
         Label = "com.headroom.proxy";

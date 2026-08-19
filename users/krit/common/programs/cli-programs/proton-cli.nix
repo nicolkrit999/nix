@@ -54,7 +54,7 @@ delib.module {
     in
     {
       home.packages = [
-        (if pkgs.stdenv.isLinux then linuxPackage else darwinPackage)
+        (if pkgs.stdenv.hostPlatform.isLinux then linuxPackage else darwinPackage)
       ];
     };
 }

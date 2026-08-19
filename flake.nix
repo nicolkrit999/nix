@@ -244,8 +244,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Pinned to the last revision before upstream commit 399b6384
+    # ("chore(update): ffmpeg_8 -> ffmpeg_9", 2026-08-15). That commit makes
+    # both package.nix and the home-manager module require `ffmpeg_9`, which
+    # only exists in nixos-unstable - nixos-26.05 tops out at `ffmpeg_8`.
+    # Upstream targets nixos-unstable exclusively, so the pin must stay until
+    # this repo moves to a channel that ships ffmpeg_9 (26.11), at which point
+    # drop the `/a19fe7e4...` suffix and re-lock.
     zen-browser = {
-      url = "github:0xc000022070/zen-browser-flake";
+      url = "github:0xc000022070/zen-browser-flake/a19fe7e45d173d5e455771d7ecce9bbd02a9598f";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         home-manager.follows = "home-manager";
