@@ -97,6 +97,25 @@ the sum of every job.
 Each build-step cap leaves a tail inside its job cap for the push, the cache save
 and the notifier.
 
+#### The real GitHub ceilings, and a number that is easy to misread
+
+| Limit | Value | What happens |
+|---|---|---|
+| Job execution time (GitHub-hosted) | **6 hours / 360 min** | the job is **hard-killed** — post-steps do not run, so the cache save is lost |
+| Workflow run total | 35 days | run is cancelled |
+| Queue wait | 24 h | run is dropped |
+
+⚠️ **There is no 300-minute GitHub limit.** That number looks real because run 761
+died at ~306 minutes, but it was *our own* cap: `build-darwin.yml` had
+`timeout-minutes: 300` on the build step, and the step failed at **300.23 min**,
+on the dot. The job then kept running for a further **3.3 minutes** of post-steps
+and finished normally — which is the proof that GitHub had not killed it.
+
+The distinction matters when choosing caps. A *step* timeout is orderly: later
+steps still run, so the push and the cache save happen. Only the **360-minute
+job** kill is catastrophic, because nothing runs afterwards. Our caps are set to
+stay clear of that, not of 300.
+
 **A tight cap is safe here, and that is not obvious.** Hitting a timeout is not
 data loss: `watch-exec` has already uploaded every path as it was built, and the
 store cache still saves on a timeout (the save step runs on failure, just not on
@@ -410,6 +429,7 @@ what it changed.
 | **1111** | Both hosts in one `nix build`. Runner died at 68 min; build step stuck `in_progress`, push step `pending`, logs 404. Nothing pushed, and no notification | One host per runner (matrix); the `report` watchdog job |
 | **1111** (pre-warm) | Confirmed on the wire: `env: CACHIX_TOKEN: ***` then `Neither auth token nor signing key are present.` and exit 1 — reported by GitHub as step `conclusion: success` | `CACHIX_AUTH_TOKEN` set wherever cachix writes; `cachix-auth` invariant |
 | **1115** (pre-warm) | Auth fix validated: `outcome=success`, `pushed=0`, notifier silent on all 8 legs | — |
+| **761** (darwin, on `main`) | Build step hit its own `timeout-minutes: 300` at 300.23 min and failed. The job then ran post-steps normally for 3.3 min — GitHub did not kill it. **`Push to Cachix` was `skipped`**, because `main`'s gate is `if: steps.build.outcome == 'success'` with no `always()`. Five hours of building, nothing cached | The `always()` push gate, fixed on `develop`. `main` still has the old gate |
 | **1115** (build) | Cancelled by the concurrency group after 27 min. `always()` push step **skipped**, job over in <1s. Log shows 38 `copying path`, **zero** `building` lines, last output at 11:12 then silence — it was still *evaluating*, with repeated `builtins.derivation … options.json` (IFD) warnings | §6.3 rewritten: `always()` is not reliable on cancellation |
 
 ### The 1111 lesson, stated plainly
@@ -509,7 +529,7 @@ Automation cannot resolve these. If one is blocking, it needs the repo owner.
 | Rotating `CACHIX_AUTH_TOKEN` or the Discord webhook secrets | Repository secrets are write-only to CI and unreadable from a session. | Update under Settings → Secrets. |
 | Cachix storage running out | The cache's quota is an account-level setting. | Raise the plan, or `cachix gc`. |
 | Giving CI access to the NAS / `attic` | The NAS is Tailscale-only and CI is deliberately not on the tailnet — see the note in the cachix doc. **This is a decision, not a gap. Do not "fix" it.** | Nothing — it is intentional. |
-| Merging to `main` | `develop` is the integration branch; promotion to `main` is a human call. | Merge when satisfied. |
+| Merging to `main` | `develop` is the integration branch; promotion to `main` is a human call. | Merge when satisfied. **`main` currently still has every pre-fix bug**: `build-darwin.yml` caps of 300/350 and a push gated on `steps.build.outcome == 'success'` with no `always()` — the exact combination that threw away five hours of run 761. Until `develop` is promoted, any build running from `main` can still lose everything it built. |
 | Approving a flake-update PR | A dependency bump is a judgement call about what the machines will run. | Review and merge. |
 
 **Anything an automated session cannot finish should be recorded here rather than
