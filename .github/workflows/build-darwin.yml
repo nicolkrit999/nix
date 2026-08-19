@@ -169,8 +169,14 @@ jobs:
           CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
+          # pipefail: the `| tee` below would otherwise mask cachix's exit code,
+          # reintroducing exactly the silent-success failure this step exists
+          # to avoid.
+          set -o pipefail
+
           if [ -z "$CACHIX_TOKEN" ]; then
             echo "Skipping Cachix push: no auth token found (likely a fork)."
+            echo "pushed=skipped" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -205,9 +211,17 @@ jobs:
           # first so that failure is visible.
           if ! nix path-info --all > allpaths.txt; then
             echo "::warning::nix path-info failed - nothing could be pushed this run."
+            echo "pushed=error" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          grep -v -e '\.drv$' -e '-self-test-' allpaths.txt | cachix push ${{ env.CACHIX_NAME }}
+          grep -v -e '\.drv$' -e '-self-test-' allpaths.txt > topush.txt || true
+          if [ ! -s topush.txt ]; then
+            echo "Nothing left to push after filtering."
+            echo "pushed=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          cachix push ${{ env.CACHIX_NAME }} < topush.txt 2>&1 | tee push.log
+          echo "pushed=$(grep -c '^Pushing ' push.log || true)" >> "$GITHUB_OUTPUT"
 
       # No `du -sh /nix/store` here - see the matching step in build.yml.
       # It cost 2m49s on run 754 and over ten minutes on a large Linux store,
@@ -244,31 +258,81 @@ jobs:
           fi
           echo "flake check: ${{ steps.flake_check.outcome }}, build: ${{ steps.build.outcome }}"
 
-      - name: Notify on Failure (Darwin)
-        if: failure() && env.WEBHOOK_ID != ''
+      # ONE consolidated notice per job, replacing the previous separate ones.
+      # The old split was structurally unsound: hard failures fired on
+      # failure() while infra problems fired on success(), so a FAILED job
+      # suppressed the infra report entirely - you would never learn that
+      # Cachix had broken too. It also let a condition name a step the message
+      # body never mentioned, which is how a notice could fire listing nothing.
+      # Collecting every finding in the same step that decides whether to send
+      # removes both classes of bug.
+      #
+      # Silent on a clean run: no findings, no message.
+      #
+      # Shell note: findings are appended inside `if` blocks, never as
+      # `[ test ] && append`. Under `bash -e` a false test makes that an `&&`
+      # list returning non-zero, which aborts the step - the notifier would
+      # stop at the first finding that did not apply.
+      - name: Notify (darwin)
+        if: always() && env.WEBHOOK_ID != ''
         continue-on-error: true
         env:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          jq -n --arg content "🚨 nix-darwin run failed on **aarch64-darwin** (flake check and/or build - whatever did build was still pushed to Cachix). Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
+          CRIT=""; WARN=""; INFO=""; NOTE=""
+          crit() { CRIT="${CRIT}🔴 $1"$'\n'; }
+          warn() { WARN="${WARN}🟠 $1"$'\n'; }
+          info() { INFO="${INFO}🔵 $1"$'\n'; }
+          # note() rides along in a message that is being sent anyway, but never
+          # causes one on its own. Routine facts - "0 new paths, everything was
+          # already cached" - are true on every warm run, so promoting them to a
+          # trigger would mean a Discord message after every single green build,
+          # and a channel nobody reads is the same as no notifications at all.
+          note() { NOTE="${NOTE}⚪ $1"$'\n'; }
+          if [ "${{ steps.flake_check.outcome }}" = "failure" ]; then
+            crit "\`nix flake check --impure\` failed - the build and Cachix push still ran"
+          fi
+          if [ "${{ steps.build.outcome }}" = "failure" ]; then
+            crit "Build failed or timed out - whatever DID build was still pushed to Cachix"
+          fi
+          if [ "${{ steps.cachix_setup.outcome }}" = "failure" ]; then
+            warn "Cachix CLI setup failed - nothing could be pushed this run"
+          fi
+          if [ "${{ steps.cachix_push.outcome }}" = "failure" ]; then
+            warn "Cachix push failed - build output was not cached"
+          fi
+          P="${{ steps.cachix_push.outputs.pushed }}"
+          if [ "$P" = "error" ]; then
+            warn "\`nix path-info\` failed - the store could not be listed, so nothing was pushed"
+          elif [ "$P" = "0" ]; then
+            note "Cachix push uploaded 0 new paths"
+          elif [ -n "$P" ] && [ "$P" != "skipped" ]; then
+            note "Pushed $P new store path(s) to Cachix"
+          fi
+          # 0 pushed after a FAILED build is different from 0 after a clean one:
+          # --keep-going plus the whole-store fallback should have salvaged
+          # something, so nothing uploaded means the salvage path itself did not
+          # work. Worth waking someone for.
+          if [ "$P" = "0" ] && [ "${{ steps.build.outcome }}" = "failure" ]; then
+            warn "Build failed AND the fallback push uploaded nothing - partial results were NOT salvaged"
+          fi
+
+          # Send decision uses CRIT/WARN/INFO only; NOTE rides along.
+          BODY="${CRIT}${WARN}${INFO}${NOTE}"
+          if [ -z "${CRIT}${WARN}${INFO}" ]; then
+            echo "Nothing to report - no notification sent."
+            exit 0
+          fi
+          if [ -n "$CRIT" ]; then
+            HEAD="🚨 **build-darwin - failed**"
+          elif [ -n "$WARN" ]; then
+            HEAD="⚠️ **build-darwin - finished, but with problems**"
+          else
+            HEAD="ℹ️ **build-darwin**"
+          fi
+          jq -n --arg h "$HEAD" --arg b "$BODY" --arg u "$RUN_URL" \
+            '{content: ($h + "\n" + $b + "\n" + $u)}' > payload.json
           curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
 
-      # Non-critical infra (cachix setup/push) failing must not fail the
-      # job, but should still be surfaced - reported separately from the
-      # hard-failure notice above, which only fires when the actual build
-      # step failed.
-      - name: Notify Non-Critical Issues (Darwin)
-        if: success() && env.WEBHOOK_ID != '' && (steps.cachix_setup.outcome == 'failure' || steps.cachix_push.outcome == 'failure')
-        continue-on-error: true
-        env:
-          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-        run: |
-          ISSUES=""
-          if [ "${{ steps.cachix_setup.outcome }}" == "failure" ]; then
-            ISSUES="${ISSUES}- Cachix CLI setup failed (binary cache push skipped this run)"$'\n'
-          fi
-          if [ "${{ steps.cachix_push.outcome }}" == "failure" ]; then
-            ISSUES="${ISSUES}- Cachix push failed (build succeeded, but its outputs weren't cached)"$'\n'
-          fi
-          jq -n --arg content "⚠️ build-darwin: non-critical CI infra issue(s), job still succeeded:"$'\n'"${ISSUES}Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
-          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+
