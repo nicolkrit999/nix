@@ -203,7 +203,19 @@ def check_workflow(path):
                          "stalled mirror can hold the job to its cap and block every later "
                          "run in the concurrency group. (run 1130)")
 
-            # 11. Every curl to a Discord webhook must use --fail. Without it curl
+            # 11. A best-effort optimisation action must never be able to fail a
+            #     job. nothing-but-nix frees disk; it is a speedup, not a
+            #     correctness requirement. build.yml guarded it, tests-nixos.yml
+            #     did not, and on 2026-08-19 it failed there and skipped all six
+            #     tests - which the summary then reported as six FAILURES.
+            if "wimpysworld/nothing-but-nix" in step.get("uses", ""):
+                checked += 1
+                if step.get("continue-on-error") is not True:
+                    fail(wf, job_name, name, "besteffort-non-fatal",
+                         "uses nothing-but-nix without continue-on-error: true. It frees "
+                         "disk as an optimisation and must never fail a job on its own.")
+
+            # 12. Every curl to a Discord webhook must use --fail. Without it curl
             #     exits 0 on an HTTP 4xx/5xx, so a rotated or revoked webhook token
             #     reports a delivered notification that never arrived.
             if "WEBHOOK_URL" in run and "curl" in run:
@@ -214,7 +226,7 @@ def check_workflow(path):
                          "4xx/5xx, so a rotated or revoked token is reported as a delivered "
                          "notification that in fact never arrived.")
 
-            # 12. A notifier that can fire without a webhook configured spams
+            # 13. A notifier that can fire without a webhook configured spams
             #     errors; one that is not continue-on-error can fail the job for a
             #     Discord outage.
             if "discord.com/api/webhooks" in str(step.get("env", {})) or "WEBHOOK_URL" in run:
@@ -231,7 +243,7 @@ def check_workflow(path):
 
 
 def check_cache_keys(path):
-    """13. A restore prefix that matches no save key means the job silently always
+    """14. A restore prefix that matches no save key means the job silently always
     runs cold. Introduced for real by reordering a matrix variable into the middle
     of the save key while a sibling job still restored the old prefix - nothing
     errors, the cache simply never hits again.
