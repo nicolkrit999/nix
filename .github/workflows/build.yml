@@ -39,6 +39,8 @@ jobs:
           # so a broken third-party apt repo (packages.microsoft.com,
           # dl.google.com, ...) must never fail the job. Worst case we keep
           # the image's cert bundle - exactly what we'd have without this step.
+          # shellcheck disable=SC2046  # word splitting is REQUIRED here:
+          # grep -l can list several files and each must be its own argument.
           sudo rm -f $(grep -lr packages.microsoft.com /etc/apt/sources.list.d/ 2>/dev/null) || true
           sudo apt-get update || true
           sudo apt-get install -y ca-certificates || true
@@ -229,13 +231,18 @@ jobs:
         continue-on-error: true
         run: |
           NO_COLOR=1 nix run --inputs-from . nixpkgs#deadnix -- . > deadnix_report.txt || true
+          # Quoted, and grouped into one redirect: every other GITHUB_OUTPUT /
+          # GITHUB_ENV write in these workflows quotes the path, and this was the
+          # only place that did not.
           if [ -s deadnix_report.txt ]; then
-            echo "HAS_DEAD_CODE=true" >> $GITHUB_ENV
-            echo "DEADCODE_REPORT<<EOF" >> $GITHUB_ENV
-            head -n 20 deadnix_report.txt >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
+            {
+              echo "HAS_DEAD_CODE=true"
+              echo "DEADCODE_REPORT<<EOF"
+              head -n 20 deadnix_report.txt
+              echo "EOF"
+            } >> "$GITHUB_ENV"
           else
-            echo "HAS_DEAD_CODE=false" >> $GITHUB_ENV
+            echo "HAS_DEAD_CODE=false" >> "$GITHUB_ENV"
           fi
 
 
@@ -340,11 +347,15 @@ jobs:
   # rebuilds inside build-x86_64 as before.
   prewarm-cache:
     runs-on: ubuntu-latest
-    # 120 rather than 60: a leg killed by the job timeout used to push nothing,
-    # so a package that needed 70 minutes never got cached and every later run
-    # paid for it again. It now pushes continuously (see below), but the extra
-    # headroom lets the slow legs actually finish.
-    timeout-minutes: 120
+    # prewarm-cache runs BEFORE build-x86_64 (needs:), so its cap adds to the
+    # build's on the critical path. 60 + 180 keeps the whole serial chain under
+    # four hours, comfortably clear of the ~300-minute mark and of GitHub's
+    # 360-minute hard kill.
+    #
+    # A leg that hits this cap is not wasted: watch-exec has already uploaded
+    # everything it built, so the next run starts further along. That is exactly
+    # the property that lets the cap be tight.
+    timeout-minutes: 60
     continue-on-error: true
     strategy:
       fail-fast: false
@@ -423,10 +434,10 @@ jobs:
       # place. The end-of-step push below stays as a backstop.
       - name: Pre-warm ${{ matrix.attr }}
         id: prewarm
-        # 100 not 110: leaves a ~20-minute tail inside the 120-minute job
-        # cap for the backstop push.
+        # 45 leaves a ~15-minute tail inside the 60-minute job cap for the
+        # backstop push.
         continue-on-error: true
-        timeout-minutes: 100
+        timeout-minutes: 45
         env:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
@@ -472,6 +483,9 @@ jobs:
           fi
 
           if [ -s out.txt ]; then
+          # shellcheck disable=SC2046  # word splitting is REQUIRED here:
+            # one store path per line must become one argument per path.
+            # Quoting would pass the whole file as a single argument.
             cachix push ${{ env.CACHIX_NAME }} $(cat out.txt) 2>&1 | tee push.log
             echo "pushed=$(grep -c '^Pushing ' push.log || true)" >> "$GITHUB_OUTPUT"
             exit 0
@@ -587,10 +601,16 @@ jobs:
         host:
           - nixos-desktop
           - nixos-laptop
-    # Stay below GitHub's hard 360-minute job kill: a hard-killed job loses
-    # its cache-save and cachix-flush steps, which is why retries used to
-    # restart from zero.
-    timeout-minutes: 350
+    # Capped well under the ~300-minute mark on purpose. A cold run (any
+    # flake.lock bump misses the store cache entirely) could otherwise approach
+    # GitHub's 360-minute hard kill, and a hard kill loses the cache-save step.
+    #
+    # Truncation is NOT data loss here, which is what makes a tight cap safe:
+    # cachix watch-exec has already uploaded every path as it was built, and the
+    # store cache still saves on a timeout, so the next run resumes further along
+    # the dependency chain. Progress is monotonic across runs - two bounded runs
+    # beat one five-hour run that risks the hard kill.
+    timeout-minutes: 180
     permissions:
       contents: read
       id-token: write
@@ -609,6 +629,8 @@ jobs:
           # so a broken third-party apt repo (packages.microsoft.com,
           # dl.google.com, ...) must never fail the job. Worst case we keep
           # the image's cert bundle - exactly what we'd have without this step.
+          # shellcheck disable=SC2046  # word splitting is REQUIRED here:
+          # grep -l can list several files and each must be its own argument.
           sudo rm -f $(grep -lr packages.microsoft.com /etc/apt/sources.list.d/ 2>/dev/null) || true
           sudo apt-get update || true
           sudo apt-get install -y ca-certificates || true
@@ -762,7 +784,9 @@ jobs:
       # single `nix build` killed the runner and cost us the push entirely.
       - name: Build ${{ matrix.host }}
         id: build
-        timeout-minutes: 270
+        # Leaves a ~30-minute tail inside the 180-minute job cap for the push,
+        # the cache save and the notifier.
+        timeout-minutes: 150
         env:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
@@ -836,6 +860,9 @@ jobs:
           # targeted fast path means ANY failure falls through to the
           # whole-store push, which is what actually salvages partial work.
           if [ "${{ steps.build.outcome }}" = "success" ] && [ -s outpaths.txt ]; then
+          # shellcheck disable=SC2046  # word splitting is REQUIRED here:
+            # one store path per line must become one argument per path.
+            # Quoting would pass the whole file as a single argument.
             cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt) 2>&1 | tee push.log
             echo "pushed=$(grep -c '^Pushing ' push.log || true)" >> "$GITHUB_OUTPUT"
             exit 0
@@ -927,7 +954,10 @@ jobs:
         continue-on-error: true
         run: |
           if [ -s outpaths.txt ]; then
-            nix path-info -sh -r $(cat outpaths.txt)
+            # shellcheck disable=SC2046  # word splitting is REQUIRED here:
+          # one store path per line must become one argument per path.
+          # Quoting would pass the whole file as a single argument.
+          nix path-info -sh -r $(cat outpaths.txt)
           else
             echo "No output paths were built."
           fi

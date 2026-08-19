@@ -48,8 +48,8 @@ nobody was told**.
 
 | File | What it does | Runner | Job cap |
 |---|---|---|---|
-| `build.yml` | flake check, pre-warm, build both x86_64 hosts, push | `ubuntu-latest` | 120 / 120 / 350 / 10 <br>(`flake-check` / `prewarm-cache` / `build-x86_64` / `report`) |
-| `build-darwin.yml` | flake check + build the Mac config, push | `macos-15` | 350 |
+| `build.yml` | flake check, pre-warm, build both x86_64 hosts, push | `ubuntu-latest` | 120 / 60 / 180 / 10 <br>(`flake-check` / `prewarm-cache` / `build-x86_64` / `report`) |
+| `build-darwin.yml` | flake check + build the Mac config, push | `macos-15` | 180 |
 | `check-workflows.yml` | static analysis of the workflow files themselves | `ubuntu-latest` | 15 |
 | `tests-nixos.yml`, `tests-darwin.yml` | the `templates/tests/` suite | both | 120 / 90 |
 | `update-flake.yml` | weekly `nix flake update` → PR | `ubuntu-latest` | — |
@@ -78,6 +78,52 @@ prewarm-cache ──needs──> build-x86_64 (matrix: nixos-desktop, nixos-lapt
   push hid there for months (see §7, run 1111). It has its own per-leg notifier
   for this reason.
 - `report` is a watchdog. See §6.4.
+
+### ⏱️ Timeout budget
+
+Every cap is deliberately well under GitHub's 360-minute hard kill, and the
+**serial** chain is what matters: `prewarm-cache` (60) runs before
+`build-x86_64` (180) via `needs:`, so the critical path is **240 minutes**, not
+the sum of every job.
+
+| | job cap | build-step cap |
+|---|---|---|
+| `flake-check` | 120 | — |
+| `prewarm-cache` | 60 | 45 per leg |
+| `build-x86_64` | 180 | 150 |
+| `report` | 10 | — |
+| `build-darwin` | 180 | 150 |
+
+Each build-step cap leaves a tail inside its job cap for the push, the cache save
+and the notifier.
+
+#### The real GitHub ceilings, and a number that is easy to misread
+
+| Limit | Value | What happens |
+|---|---|---|
+| Job execution time (GitHub-hosted) | **6 hours / 360 min** | the job is **hard-killed** — post-steps do not run, so the cache save is lost |
+| Workflow run total | 35 days | run is cancelled |
+| Queue wait | 24 h | run is dropped |
+
+⚠️ **There is no 300-minute GitHub limit.** That number looks real because run 761
+died at ~306 minutes, but it was *our own* cap: `build-darwin.yml` had
+`timeout-minutes: 300` on the build step, and the step failed at **300.23 min**,
+on the dot. The job then kept running for a further **3.3 minutes** of post-steps
+and finished normally — which is the proof that GitHub had not killed it.
+
+The distinction matters when choosing caps. A *step* timeout is orderly: later
+steps still run, so the push and the cache save happen. Only the **360-minute
+job** kill is catastrophic, because nothing runs afterwards. Our caps are set to
+stay clear of that, not of 300.
+
+**A tight cap is safe here, and that is not obvious.** Hitting a timeout is not
+data loss: `watch-exec` has already uploaded every path as it was built, and the
+store cache still saves on a timeout (the save step runs on failure, just not on
+cancellation). So the next run resumes further along the dependency chain —
+progress is monotonic across runs. Two bounded runs beat one five-hour run that
+risks the hard kill, which *would* lose the cache save.
+
+---
 
 ---
 
@@ -382,8 +428,24 @@ what it changed.
 | **1110** | Baseline, desktop only, warm | build **12m44s**, push 9s, cache save 2m36s, job 19m41s |
 | **1111** | Both hosts in one `nix build`. Runner died at 68 min; build step stuck `in_progress`, push step `pending`, logs 404. Nothing pushed, and no notification | One host per runner (matrix); the `report` watchdog job |
 | **1111** (pre-warm) | Confirmed on the wire: `env: CACHIX_TOKEN: ***` then `Neither auth token nor signing key are present.` and exit 1 — reported by GitHub as step `conclusion: success` | `CACHIX_AUTH_TOKEN` set wherever cachix writes; `cachix-auth` invariant |
+| **1122** | ✅ **First fully green matrix run.** `nixos-desktop` build **10m35s**, push ran (6s); `nixos-laptop` build **10m55s**, push ran (1s); both in parallel, **17m18s wall clock for the pair** — faster than run 1110's 19m41s for the desktop *alone*. Every step green on both legs | Confirms the matrix split; the laptop is effectively free in wall-clock terms |
 | **1115** (pre-warm) | Auth fix validated: `outcome=success`, `pushed=0`, notifier silent on all 8 legs | — |
+| **761** (darwin, on `main`) | Build step hit its own `timeout-minutes: 300` at 300.23 min and failed. The job then ran post-steps normally for 3.3 min — GitHub did not kill it. **`Push to Cachix` was `skipped`**, because `main`'s gate is `if: steps.build.outcome == 'success'` with no `always()`. Five hours of building, nothing cached | The `always()` push gate, fixed on `develop`. `main` still has the old gate |
 | **1115** (build) | Cancelled by the concurrency group after 27 min. `always()` push step **skipped**, job over in <1s. Log shows 38 `copying path`, **zero** `building` lines, last output at 11:12 then silence — it was still *evaluating*, with repeated `builtins.derivation … options.json` (IFD) warnings | §6.3 rewritten: `always()` is not reliable on cancellation |
+
+### `main` lags `develop` on purpose
+
+`main` still carries the pre-fix workflows — `build-darwin.yml` caps of 300/350
+and a push gated on `steps.build.outcome == 'success'` with no `always()`, the
+combination that lost five hours in run 761.
+
+**This is known and accepted, not a gap to fix.** `develop` is where the
+workflows are stabilised; the owner promotes to `main` by hand once satisfied,
+and that single merge brings every fix across at once. No Nix code is being
+changed on `main` in the meantime, so the stale workflows there are not building
+anything that matters.
+
+Do not "helpfully" open a PR against `main` to sync it.
 
 ### The 1111 lesson, stated plainly
 
@@ -391,7 +453,12 @@ Adding `nixos-laptop` to the same `nix build` was justified as "the laptop's
 marginal cost is only its host-specific derivations". Measured, that is false:
 12m44s → died at 68 minutes.
 
-⚠️ **The mechanism is not confirmed.** The first hypothesis was disk exhaustion:
+✅ **The fix is confirmed by run 1122.** One host per runner, and both now build
+in **10m35s / 10m55s** in parallel — 17m18s wall clock for the pair, against
+19m41s for the desktop alone before. So the cost was never the laptop's
+*content*; it was putting two configurations through a single `nix build`.
+
+⚠️ **The underlying mechanism is still not confirmed.** The first hypothesis was disk exhaustion:
 `keep-outputs` retains every *intermediate* output, and the ~78 GiB headroom was
 sized for one closure. Run 1115 does **not** support that. Building the same two
 hosts, it logged 38 substitutions and **zero builds** in 27 minutes, still inside
@@ -479,6 +546,8 @@ Automation cannot resolve these. If one is blocking, it needs the repo owner.
 | Situation | Why automation cannot | What the owner needs to do |
 |---|---|---|
 | Cancelling a workflow run | The session token has no `actions: write`; `POST /actions/runs/:id/cancel` returns **403**. | Cancel from the Actions tab. |
+| **Triggering any `workflow_dispatch`** | Same missing permission: `POST /actions/workflows/:id/dispatches` returns **403**. An automated session cannot start `update-flake.yml`, nor manually dispatch `build.yml` / `build-darwin.yml` against a branch. | Actions tab → pick the workflow → **Run workflow**. |
+| Producing a `flake.lock` bump by hand | There is no Nix in the session container, so `nix flake update` cannot be run locally either. Combined with the row above, a flake bump is entirely owner-or-schedule driven. | Run **Update Flake Lockfile** from the Actions tab, or wait for the Friday 04:00 UTC cron. |
 | Rotating `CACHIX_AUTH_TOKEN` or the Discord webhook secrets | Repository secrets are write-only to CI and unreadable from a session. | Update under Settings → Secrets. |
 | Cachix storage running out | The cache's quota is an account-level setting. | Raise the plan, or `cachix gc`. |
 | Giving CI access to the NAS / `attic` | The NAS is Tailscale-only and CI is deliberately not on the tailnet — see the note in the cachix doc. **This is a decision, not a gap. Do not "fix" it.** | Nothing — it is intentional. |

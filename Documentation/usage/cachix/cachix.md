@@ -32,7 +32,7 @@ We define a strict hierarchy of trust and power to optimize resources.
 ### 🥇 Tier 1: The Cloud (GitHub Actions)
 
 - **Role:** The Primary Builder.
-- **Trigger:** Automatically runs on every `git push`.
+- **Trigger:** `push` on **`develop`** and **`main`**, any **pull request**, a weekly **schedule** (`0 5 * * 5`, Fridays 05:00 UTC), and manual **`workflow_dispatch`**. Pushing a feature branch with no PR open does *not* start a build.
 - **Capabilities:**
 - Builds **both** `x86_64-linux` hosts natively — `nixos-desktop` *and* `nixos-laptop`, one per runner (`build.yml`).
 - Builds the **`aarch64-darwin`** Mac natively on a `macos-15` runner (`build-darwin.yml`).
@@ -85,9 +85,9 @@ To get the most out of this system, follow this lifecycle for system updates:
 2. **Push:** You run `git push`.
 3. **The "Coffee Break" (Wait):**
 
-- GitHub Actions detects the push and starts the compilation`.
+- GitHub Actions detects the push — on `develop`/`main`, or on any branch with a PR open — and starts the compilation.
 - It compiles your system and uploads the results to `krit-nixos.cachix.org`.
-- _Duration:_ ~15-20 minutes for a **warm** `x86_64-linux` run (run 1110: 12m44s of building, ~20 minutes end to end). A **cold** run — anything that changes `flake.lock`, since the store-cache key includes its hash — is far slower, and the caps are deliberately generous (270-minute build step, 350-minute job).
+- _Duration:_ ~15-20 minutes for a **warm** `x86_64-linux` run (run 1110: 12m44s of building, ~20 minutes end to end). A **cold** run — anything that changes `flake.lock`, since the store-cache key includes its hash — is far slower. Caps are bounded rather than generous (150-minute build step, 180-minute job), because a timeout is not data loss here: `watch-exec` has already uploaded whatever was built, so the next run resumes further along.
 
 4. **Update:**
 
