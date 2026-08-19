@@ -87,7 +87,7 @@ To get the most out of this system, follow this lifecycle for system updates:
 
 - GitHub Actions detects the push — on `develop`/`main`, or on any branch with a PR open — and starts the compilation.
 - It compiles your system and uploads the results to `krit-nixos.cachix.org`.
-- _Duration:_ ~15-20 minutes for a **warm** `x86_64-linux` run (run 1110: 12m44s of building, ~20 minutes end to end). A **cold** run — anything that changes `flake.lock`, since the store-cache key includes its hash — is far slower, and the caps are deliberately generous (270-minute build step, 350-minute job).
+- _Duration:_ ~15-20 minutes for a **warm** `x86_64-linux` run (run 1110: 12m44s of building, ~20 minutes end to end). A **cold** run — anything that changes `flake.lock`, since the store-cache key includes its hash — is far slower. Caps are bounded rather than generous (150-minute build step, 180-minute job), because a timeout is not data loss here: `watch-exec` has already uploaded whatever was built, so the next run resumes further along.
 
 4. **Update:**
 
