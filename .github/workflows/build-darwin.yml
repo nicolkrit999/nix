@@ -174,25 +174,23 @@ jobs:
             exit 0
           fi
 
-          if [ -s outpaths.txt ]; then
-            # Clean build: push the toplevel closure. Fast and targeted.
-            cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
-            exit 0
-          fi
-
-          # outpaths.txt is empty. --print-out-paths only prints paths Nix
-          # actually realised, and the toplevel system depends on everything,
-          # so ANY failed derivation leaves the toplevel unrealised and the
-          # file empty - even when --keep-going built thousands of paths
-          # first. Same when evaluation died before the build ran at all.
-          # Skipping the push here is exactly what used to throw away every
-          # partial result and make the next run start cold.
+          # Always the whole store here, with no targeted fast path - unlike
+          # build.yml, where the flake check is a separate job that pushes its
+          # own store. On Darwin the flake check shares this job and runs
+          # OUTSIDE watch-exec, so anything it builds is covered by neither the
+          # post-build hook nor the toplevel closure; a targeted push would
+          # silently leave it uncached on every clean run.
           #
-          # Pushing the store wholesale is safe: Cachix's upstream-cache
-          # filter (on by default) drops every path already present in
-          # cache.nixos.org, so this uploads only what this repo actually
-          # produced, not a copy of nixpkgs.
-          echo "No toplevel output path - pushing every valid store path instead."
+          # It also covers the case that motivated the fallback in the first
+          # place: --print-out-paths only prints paths Nix actually realised,
+          # and the toplevel depends on everything, so ANY failed derivation
+          # leaves outpaths.txt empty even when --keep-going built thousands of
+          # paths first.
+          #
+          # Safe wholesale: Cachix's upstream-cache filter (on by default)
+          # drops every path already in cache.nixos.org, so this uploads only
+          # what this repo actually produced, not a copy of nixpkgs.
+          echo "Pushing every valid store path (build output plus anything the flake check built)."
           # -self-test-: the Determinate installer writes a self-test path per
           # run whose name carries a timestamp (self-test-bash-1787097653189,
           # self-test-zsh-...), so it is a brand-new store path every single
@@ -200,7 +198,16 @@ jobs:
           # cache without bound for no benefit, since nothing ever substitutes
           # it. Everything else the installer produces is version-stable and
           # deduplicates, so a narrow exclusion is enough.
-          nix path-info --all | grep -v -e '\.drv$' -e '-self-test-' | cachix push ${{ env.CACHIX_NAME }}
+          # Not a bare pipeline: GitHub runs these with `bash -e`, not
+          # `-o pipefail`, so a failing `nix path-info` would be masked - cachix
+          # would read empty stdin, report nothing to push and exit 0, and the
+          # run would look fine while caching nothing. Materialise the list
+          # first so that failure is visible.
+          if ! nix path-info --all > allpaths.txt; then
+            echo "::warning::nix path-info failed - nothing could be pushed this run."
+            exit 0
+          fi
+          grep -v -e '\.drv$' -e '-self-test-' allpaths.txt | cachix push ${{ env.CACHIX_NAME }}
 
       # No `du -sh /nix/store` here - see the matching step in build.yml.
       # It cost 2m49s on run 754 and over ten minutes on a large Linux store,

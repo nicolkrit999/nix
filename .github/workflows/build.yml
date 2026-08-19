@@ -172,7 +172,16 @@ jobs:
           # cache without bound for no benefit, since nothing ever substitutes
           # it. Everything else the installer produces is version-stable and
           # deduplicates, so a narrow exclusion is enough.
-          nix path-info --all | grep -v -e '\.drv$' -e '-self-test-' | cachix push ${{ env.CACHIX_NAME }}
+          # Not a bare pipeline: GitHub runs these with `bash -e`, not
+          # `-o pipefail`, so a failing `nix path-info` would be masked - cachix
+          # would read empty stdin, report nothing to push and exit 0, and the
+          # run would look fine while caching nothing. Materialise the list
+          # first so that failure is visible.
+          if ! nix path-info --all > allpaths.txt; then
+            echo "::warning::nix path-info failed - nothing could be pushed this run."
+            exit 0
+          fi
+          grep -v -e '\.drv$' -e '-self-test-' allpaths.txt | cachix push ${{ env.CACHIX_NAME }}
 
       - name: Check for Dead Code (deadnix)
         continue-on-error: true
@@ -230,6 +239,9 @@ jobs:
           fi
           if [ "${{ steps.cachix_setup.outcome }}" == "failure" ]; then
             ISSUES="${ISSUES}- Cachix CLI setup failed (no binary-cache substituter this run, no functional impact)"$'\n'
+          fi
+          if [ "${{ steps.cachix_push.outcome }}" == "failure" ]; then
+            ISSUES="${ISSUES}- Cachix push failed (flake check output wasn't cached)"$'\n'
           fi
           jq -n --arg content "⚠️ flake-check: non-critical CI infra issue(s), job still succeeded:"$'\n'"${ISSUES}Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}' > payload.json
           curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
@@ -327,7 +339,13 @@ jobs:
         if: always() && steps.cachix_setup.outcome == 'success'
         continue-on-error: true
         env:
+          # CACHIX_AUTH_TOKEN is the one cachix actually reads. Without it this
+          # step failed with "Neither auth token nor signing key are present."
+          # on every leg of every run, and continue-on-error hid it - the job
+          # still reported success while pushing nothing. CACHIX_TOKEN is only
+          # this script's own "is a token configured" guard.
           CACHIX_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
           if [ -z "$CACHIX_TOKEN" ]; then
             echo "Skipping Cachix push: no auth token found (likely a fork)."
@@ -352,7 +370,16 @@ jobs:
           # cache without bound for no benefit, since nothing ever substitutes
           # it. Everything else the installer produces is version-stable and
           # deduplicates, so a narrow exclusion is enough.
-          nix path-info --all | grep -v -e '\.drv$' -e '-self-test-' | cachix push ${{ env.CACHIX_NAME }}
+          # Not a bare pipeline: GitHub runs these with `bash -e`, not
+          # `-o pipefail`, so a failing `nix path-info` would be masked - cachix
+          # would read empty stdin, report nothing to push and exit 0, and the
+          # run would look fine while caching nothing. Materialise the list
+          # first so that failure is visible.
+          if ! nix path-info --all > allpaths.txt; then
+            echo "::warning::nix path-info failed - nothing could be pushed this run."
+            exit 0
+          fi
+          grep -v -e '\.drv$' -e '-self-test-' allpaths.txt | cachix push ${{ env.CACHIX_NAME }}
 
   build-x86_64:
     needs: prewarm-cache
@@ -567,11 +594,14 @@ jobs:
             exit 0
           fi
 
-          if [ -s outpaths.txt ]; then
-            # Push the toplevel closure(s) - one line per host that realised, so
-            # this is one or two paths. If only one of the two hosts built, the
-            # other's completed dependencies are already in the cache via
-            # watch-exec, so nothing is lost by not taking the fallback here.
+          # Gate on the build's OUTCOME, not merely on outpaths.txt being
+          # non-empty. With two hosts, one can realise while the other fails -
+          # outpaths.txt then holds a single path, the targeted branch would be
+          # taken, and the failed host's completed dependencies would rely
+          # entirely on watch-exec having been available. Requiring a clean
+          # build before taking the fast path means any partial failure falls
+          # through to the whole-store push instead.
+          if [ "${{ steps.build.outcome }}" = "success" ] && [ -s outpaths.txt ]; then
             cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
             exit 0
           fi
@@ -588,7 +618,7 @@ jobs:
           # filter (on by default) drops every path already present in
           # cache.nixos.org, so this uploads only what this repo actually
           # produced, not a copy of nixpkgs.
-          echo "No toplevel output path - pushing every valid store path instead."
+          echo "Build did not fully succeed - pushing every valid store path instead."
           # -self-test-: the Determinate installer writes a self-test path per
           # run whose name carries a timestamp (self-test-bash-1787097653189,
           # self-test-zsh-...), so it is a brand-new store path every single
@@ -596,7 +626,16 @@ jobs:
           # cache without bound for no benefit, since nothing ever substitutes
           # it. Everything else the installer produces is version-stable and
           # deduplicates, so a narrow exclusion is enough.
-          nix path-info --all | grep -v -e '\.drv$' -e '-self-test-' | cachix push ${{ env.CACHIX_NAME }}
+          # Not a bare pipeline: GitHub runs these with `bash -e`, not
+          # `-o pipefail`, so a failing `nix path-info` would be masked - cachix
+          # would read empty stdin, report nothing to push and exit 0, and the
+          # run would look fine while caching nothing. Materialise the list
+          # first so that failure is visible.
+          if ! nix path-info --all > allpaths.txt; then
+            echo "::warning::nix path-info failed - nothing could be pushed this run."
+            exit 0
+          fi
+          grep -v -e '\.drv$' -e '-self-test-' allpaths.txt | cachix push ${{ env.CACHIX_NAME }}
 
       # Ordered directly after the Cachix push and before the diagnostic
       # steps: these two are the only things in the job that persist
