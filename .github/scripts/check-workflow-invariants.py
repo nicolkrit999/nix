@@ -181,6 +181,22 @@ def check_workflow(path):
                              f"matrix variable. All legs of a run share run_id/run_attempt, so "
                              f"the keys collide.")
 
+            # 13. A step that shells out to a package manager must declare
+            #     timeout-minutes. continue-on-error and `|| true` cover a step
+            #     FAILING; neither covers it HANGING. Run 1130: apt-get stalled on
+            #     an unreachable mirror, the step sat 27+ minutes holding the job
+            #     toward its cap, and it blocked every later run in the same
+            #     concurrency group - and the runner was unreachable, so a manual
+            #     Cancel could not be delivered either.
+            if re.search(r"\b(apt-get|apt|yum|dnf|brew|pacman)\s+(update|install|upgrade)\b", run):
+                checked += 1
+                if step.get("timeout-minutes") is None:
+                    fail(wf, job_name, name, "package-manager-timeout",
+                         "shells out to a package manager without timeout-minutes. "
+                         "continue-on-error and `|| true` cover failure, not hanging - a "
+                         "stalled mirror can hold the job to its cap and block every later "
+                         "run in the concurrency group. (run 1130)")
+
             # 11. Every curl to a Discord webhook must use --fail. Without it curl
             #     exits 0 on an HTTP 4xx/5xx, so a rotated or revoked webhook token
             #     reports a delivered notification that never arrived.

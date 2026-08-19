@@ -30,7 +30,14 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install CA Certificates
-        run: sudo apt-get update && sudo apt-get install -y ca-certificates
+        # Best-effort, and bounded. ca-certificates is preinstalled on the
+        # runner image and Nix uses its own CA bundle, so a broken third-party
+        # apt repo must not fail the suite - and `timeout-minutes` covers the
+        # case `|| true` cannot: apt HANGING rather than failing. Run 1130 lost
+        # a job to a 27-minute apt stall that a manual Cancel could not reach.
+        continue-on-error: true
+        timeout-minutes: 5
+        run: sudo apt-get update || true; sudo apt-get install -y ca-certificates || true
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
