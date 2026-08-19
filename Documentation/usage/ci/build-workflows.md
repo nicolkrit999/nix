@@ -472,6 +472,23 @@ whole file as a single argument and break every push.
 
 ---
 
+## 10. ⚠️ Things only a human can do
+
+Automation cannot resolve these. If one is blocking, it needs the repo owner.
+
+| Situation | Why automation cannot | What the owner needs to do |
+|---|---|---|
+| Cancelling a workflow run | The session token has no `actions: write`; `POST /actions/runs/:id/cancel` returns **403**. | Cancel from the Actions tab. |
+| Rotating `CACHIX_AUTH_TOKEN` or the Discord webhook secrets | Repository secrets are write-only to CI and unreadable from a session. | Update under Settings → Secrets. |
+| Cachix storage running out | The cache's quota is an account-level setting. | Raise the plan, or `cachix gc`. |
+| Giving CI access to the NAS / `attic` | The NAS is Tailscale-only and CI is deliberately not on the tailnet — see the note in the cachix doc. **This is a decision, not a gap. Do not "fix" it.** | Nothing — it is intentional. |
+| Merging to `main` | `develop` is the integration branch; promotion to `main` is a human call. | Merge when satisfied. |
+| Approving a flake-update PR | A dependency bump is a judgement call about what the machines will run. | Review and merge. |
+
+**Anything an automated session cannot finish should be recorded here rather than
+left in a chat message**, because chat scrollback is not something a future
+session can rely on reading.
+
 ## 10. Open questions and things not yet verified
 
 Keep this section honest — it is what stops the next person re-testing settled

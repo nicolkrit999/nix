@@ -65,11 +65,15 @@ We define a strict hierarchy of trust and power to optimize resources.
 - **Configuration:** Pull **and** push enabled, same token (`hosts/Krits-MacBook-Pro/default.nix`).
 - **Its factory** is `build-darwin.yml`, not `build.yml` — a separate workflow on a `macos-15` runner. `build.yml` never builds anything for macOS.
 
-### 📦 A second warehouse: `attic`
+### 📦 A note on `attic` — local only, and deliberately not in CI
 
-All three hosts also push to a self-hosted **attic** cache on the NAS
-(`myconfig.attic`, `attic-push` alias). Cachix is the public/offsite warehouse;
-attic is the local one. This document only covers Cachix.
+The hosts also push to a self-hosted **attic** cache on the NAS
+(`myconfig.attic`, `attic-push` alias). It is **not part of the CI workflows and
+must not be added to them**: the NAS is reachable only over Tailscale, and the
+GitHub runners are deliberately not given Tailscale access.
+
+So: attic is a machine-to-machine convenience on the local network. Cachix is the
+only cache CI knows about. Everything below is about Cachix.
 
 ---
 
