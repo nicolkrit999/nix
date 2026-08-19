@@ -165,7 +165,14 @@ jobs:
           # No single output path to name here - flake check has many roots -
           # so push the store. Upstream-cache filtering keeps this to what this
           # run actually produced rather than a copy of nixpkgs.
-          nix path-info --all | grep -v '\.drv$' | cachix push ${{ env.CACHIX_NAME }}
+          # -self-test-: the Determinate installer writes a self-test path per
+          # run whose name carries a timestamp (self-test-bash-1787097653189,
+          # self-test-zsh-...), so it is a brand-new store path every single
+          # run. Observed being pushed on both platforms; left in, it grows the
+          # cache without bound for no benefit, since nothing ever substitutes
+          # it. Everything else the installer produces is version-stable and
+          # deduplicates, so a narrow exclusion is enough.
+          nix path-info --all | grep -v -e '\.drv$' -e '-self-test-' | cachix push ${{ env.CACHIX_NAME }}
 
       - name: Check for Dead Code (deadnix)
         continue-on-error: true
@@ -338,7 +345,14 @@ jobs:
           # than discarding the whole leg. Upstream-cache filtering keeps this
           # to what actually got built here.
           echo "No output path for ${{ matrix.attr }} - pushing every valid store path instead."
-          nix path-info --all | grep -v '\.drv$' | cachix push ${{ env.CACHIX_NAME }}
+          # -self-test-: the Determinate installer writes a self-test path per
+          # run whose name carries a timestamp (self-test-bash-1787097653189,
+          # self-test-zsh-...), so it is a brand-new store path every single
+          # run. Observed being pushed on both platforms; left in, it grows the
+          # cache without bound for no benefit, since nothing ever substitutes
+          # it. Everything else the installer produces is version-stable and
+          # deduplicates, so a narrow exclusion is enough.
+          nix path-info --all | grep -v -e '\.drv$' -e '-self-test-' | cachix push ${{ env.CACHIX_NAME }}
 
   build-x86_64:
     needs: prewarm-cache
@@ -557,7 +571,14 @@ jobs:
           # cache.nixos.org, so this uploads only what this repo actually
           # produced, not a copy of nixpkgs.
           echo "No toplevel output path - pushing every valid store path instead."
-          nix path-info --all | grep -v '\.drv$' | cachix push ${{ env.CACHIX_NAME }}
+          # -self-test-: the Determinate installer writes a self-test path per
+          # run whose name carries a timestamp (self-test-bash-1787097653189,
+          # self-test-zsh-...), so it is a brand-new store path every single
+          # run. Observed being pushed on both platforms; left in, it grows the
+          # cache without bound for no benefit, since nothing ever substitutes
+          # it. Everything else the installer produces is version-stable and
+          # deduplicates, so a narrow exclusion is enough.
+          nix path-info --all | grep -v -e '\.drv$' -e '-self-test-' | cachix push ${{ env.CACHIX_NAME }}
 
       # Ordered directly after the Cachix push and before the diagnostic
       # steps: these two are the only things in the job that persist
