@@ -109,6 +109,13 @@ jobs:
             nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
 
       - name: Verify Restored Store
+        # Best-effort, and now declared as such. The `|| true` below already
+        # made this practically unfailable, but the guarantee lived in the
+        # command rather than the step: drop that `|| true` in a future edit
+        # and a store-verify hiccup would silently skip the Cachix push AND
+        # the store-cache save, because neither carries a status function that
+        # survives a hard failure here.
+        continue-on-error: true
         run: |
           # A restored cache can carry db registrations whose files never
           # made it into the archive (snapshot of a killed build - bit us on
@@ -483,6 +490,13 @@ jobs:
             nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
 
       - name: Verify Restored Store
+        # Best-effort, and now declared as such. The `|| true` below already
+        # made this practically unfailable, but the guarantee lived in the
+        # command rather than the step: drop that `|| true` in a future edit
+        # and a store-verify hiccup would silently skip the Cachix push AND
+        # the store-cache save, because neither carries a status function that
+        # survives a hard failure here.
+        continue-on-error: true
         run: |
           # A restored cache can carry db registrations whose files never
           # made it into the archive (snapshot of a killed build - bit us on
