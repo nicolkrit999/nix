@@ -32,7 +32,7 @@ The `_test.nix` files assert substring presence/absence in the WM exec strings a
 |-----------|---------------|
 | Shell active on this WM | neither `awww-daemon`/`mpvpaper` nor `waypaper --restore` |
 | `waypaper.enable = false`, no shell, only `wallpaperURL` set | `awww-daemon` + `awww img <path>` |
-| `waypaper.enable = false`, no shell, `gifURL` or `videoURL` set | `mpvpaper -f -o loop <output> <path>` (not `awww img`) |
+| `waypaper.enable = false`, no shell, `gifURL` or `videoURL` set | `mpvpaper -f -o "loop mute=yes" <output> <path>` (not `awww img`) |
 | `waypaper.enable = true`, no shell | `waypaper --restore` (wins over static/gif/video regardless of which are set) |
 | `videoURL` set | video wins over gif and static - mpvpaper uses `videoURL` |
 | `gifURL` set (no `videoURL`) | gif wins over static - mpvpaper uses `gifURL` |
@@ -63,7 +63,7 @@ The `_test.nix` files assert substring presence/absence in the WM exec strings a
 | Check | Expected |
 |-------|----------|
 | hyprland exec contains `awww-daemon` | true |
-| hyprland exec contains `mpvpaper -f -o loop ALL` (gif via mpvpaper, wildcard monitor) | true |
+| hyprland exec contains `mpvpaper -f -o "loop mute=yes" ALL` (gif via mpvpaper, wildcard monitor) | true |
 | hyprland exec contains gif filename (gif wins over static) | true |
 | hyprland exec contains `awww img` | false |
 | hyprland exec contains `waypaper --restore` | false |
@@ -99,10 +99,10 @@ The `_test.nix` files assert substring presence/absence in the WM exec strings a
 | Check | Expected |
 |-------|----------|
 | hyprland exec contains `awww-daemon` | true |
-| hyprland exec contains `mpvpaper -f -o loop ALL` (gif via mpvpaper) | true |
+| hyprland exec contains `mpvpaper -f -o "loop mute=yes" ALL` (gif via mpvpaper) | true |
 | hyprland exec contains gif filename | true |
 | hyprland exec contains `waypaper --restore` | false |
-| mango/niri exec contain `mpvpaper -f -o loop ALL` | true |
+| mango/niri exec contain `mpvpaper -f -o "loop mute=yes" ALL` | true |
 | GNOME background URI has `file:///nix/store/` prefix | true |
 | KDE plasma wallpaper list non-empty | true |
 
@@ -177,11 +177,11 @@ The `_test.nix` files assert substring presence/absence in the WM exec strings a
 | Check | Expected |
 |-------|----------|
 | hyprland exec contains `awww-daemon` | true |
-| hyprland exec contains `mpvpaper -f -o loop ALL` (video wins over static, wildcard monitor) | true |
+| hyprland exec contains `mpvpaper -f -o "loop mute=yes" ALL` (video wins over static, wildcard monitor) | true |
 | hyprland exec contains video filename | true |
 | hyprland exec contains `awww img` | false |
 | hyprland exec contains `waypaper --restore` | false |
-| mango/niri exec contain `mpvpaper -f -o loop ALL`, not `awww img` | true |
+| mango/niri exec contain `mpvpaper -f -o "loop mute=yes" ALL`, not `awww img` | true |
 | GNOME background URI has `file:///nix/store/` prefix (static, DEs never see videoURL) | true |
 | KDE plasma wallpaper list non-empty | true |
 
@@ -189,7 +189,7 @@ The `_test.nix` files assert substring presence/absence in the WM exec strings a
 
 | Check | Expected |
 |-------|----------|
-| hyprland/mango/niri exec contain `mpvpaper -f -o loop ALL` (video wins over gif and static) | true |
+| hyprland/mango/niri exec contain `mpvpaper -f -o "loop mute=yes" ALL` (video wins over gif and static) | true |
 | hyprland exec contains video filename | true |
 | hyprland exec contains gif filename (video beats gif) | false |
 | hyprland exec contains `awww img` | false |
@@ -212,8 +212,8 @@ The `_test.nix` files assert substring presence/absence in the WM exec strings a
 
 | Check | Expected |
 |-------|----------|
-| hyprland exec contains `mpvpaper -f -o loop DP-1` (named monitor, mpvpaper syntax) | true |
-| hyprland exec contains `mpvpaper -f -o loop ALL` | false |
+| hyprland exec contains `mpvpaper -f -o "loop mute=yes" DP-1` (named monitor, mpvpaper syntax) | true |
+| hyprland exec contains `mpvpaper -f -o "loop mute=yes" ALL` | false |
 | hyprland exec contains `awww img` | false |
 | hyprland exec contains `waypaper --restore` | false |
-| mango/niri exec contain `mpvpaper -f -o loop DP-1`, not `awww img` | true/false as above |
+| mango/niri exec contain `mpvpaper -f -o "loop mute=yes" DP-1`, not `awww img` | true/false as above |

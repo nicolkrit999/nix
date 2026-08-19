@@ -19,20 +19,20 @@ nix-tests.runTests {
   "W12: x86_64 video+static wallpaper, no waypaper" = helpers: {
     "hyprland exec contains awww-daemon" =
       helpers.isTrue (H.hyprExecHas "awww-daemon" config);
-    "hyprland exec contains mpvpaper -f -o loop ALL (video wins over static)" =
-      helpers.isTrue (H.hyprExecHas "mpvpaper -f -o loop ALL" config);
+    "hyprland exec contains mpvpaper -f -o \"loop mute=yes\" ALL (video wins over static)" =
+      helpers.isTrue (H.hyprExecHas "mpvpaper -f -o \\\"loop mute=yes\\\" ALL" config);
     "hyprland exec contains video filename" =
       helpers.isTrue (H.hyprExecHas videoFile config);
     "hyprland exec does NOT contain awww img" =
       helpers.isFalse (H.hyprExecHas "awww img" config);
     "hyprland exec does NOT contain waypaper --restore" =
       helpers.isFalse (H.hyprExecHas "waypaper --restore" config);
-    "mango exec contains mpvpaper -f -o loop ALL" =
-      helpers.isTrue (H.mangoExecHas "mpvpaper -f -o loop ALL" config);
+    "mango exec contains mpvpaper -f -o \"loop mute=yes\" ALL" =
+      helpers.isTrue (H.mangoExecHas "mpvpaper -f -o \"loop mute=yes\" ALL" config);
     "mango exec does NOT contain awww img" =
       helpers.isFalse (H.mangoExecHas "awww img" config);
-    "niri spawn contains mpvpaper -f -o loop ALL" =
-      helpers.isTrue (H.niriSpawnHas "mpvpaper -f -o loop ALL" config);
+    "niri spawn contains mpvpaper -f -o \"loop mute=yes\" ALL" =
+      helpers.isTrue (H.niriSpawnHas "mpvpaper -f -o \"loop mute=yes\" ALL" config);
     "niri spawn does NOT contain awww img" =
       helpers.isFalse (H.niriSpawnHas "awww img" config);
     # GNOME always uses the static wallpaperURL (videoURL is WM-only)
