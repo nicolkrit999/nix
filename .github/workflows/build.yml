@@ -154,7 +154,15 @@ jobs:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
           nix profile install --accept-flake-config nixpkgs#cachix
-          cachix use ${{ env.CACHIX_NAME }}
+          # NOT fatal, and deliberately so. `cachix use` configures this cache as
+          # a SUBSTITUTER - it affects downloading and has nothing to do with
+          # pushing. Every push step in this workflow is gated on this step's
+          # outcome, so letting `cachix use` fail the step meant a transient
+          # substituter-config hiccup silently disabled ALL pushing even with a
+          # perfectly valid token. The gate now reflects what it claims to:
+          # whether the cachix CLI is installed and usable.
+          cachix use ${{ env.CACHIX_NAME }} \
+            || echo "::warning::cachix use failed - this cache is not configured as a substituter for this job. Pushing is unaffected."
 
       # continue-on-error so the push below still runs. `nix flake check
       # --all-systems` realises real derivations (IFD, every host's closure
@@ -312,7 +320,11 @@ jobs:
           fi
           jq -n --arg h "$HEAD" --arg b "$BODY" --arg u "$RUN_URL" \
             '{content: ($h + "\n" + $b + "\n" + $u)}' > payload.json
-          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+          # --fail so a rotated/revoked webhook is not reported as delivered, and
+          # `|| echo` so the notice never fails the step (and is never the last
+          # command left returning non-zero under bash -e).
+          curl -sS --fail -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL" \
+            || echo "::warning::Discord webhook delivery failed - the notification above was NOT sent."
 
 
 
@@ -390,7 +402,15 @@ jobs:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
           nix profile install --accept-flake-config nixpkgs#cachix
-          cachix use ${{ env.CACHIX_NAME }}
+          # NOT fatal, and deliberately so. `cachix use` configures this cache as
+          # a SUBSTITUTER - it affects downloading and has nothing to do with
+          # pushing. Every push step in this workflow is gated on this step's
+          # outcome, so letting `cachix use` fail the step meant a transient
+          # substituter-config hiccup silently disabled ALL pushing even with a
+          # perfectly valid token. The gate now reflects what it claims to:
+          # whether the cachix CLI is installed and usable.
+          cachix use ${{ env.CACHIX_NAME }} \
+            || echo "::warning::cachix use failed - this cache is not configured as a substituter for this job. Pushing is unaffected."
 
       # Built via the flake's own nixosConfigurations.nixos-desktop.pkgs
       # rather than plain nixpkgs#<attr>, so this is the exact same
@@ -524,7 +544,11 @@ jobs:
           fi
           jq -n --arg h "⚠️ **pre-warm ${{ matrix.attr }} - problem**" --arg b "$WARN" --arg u "$RUN_URL" \
             '{content: ($h + "\n" + $b + "\n" + $u)}' > payload.json
-          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+          # --fail so a rotated/revoked webhook is not reported as delivered, and
+          # `|| echo` so the notice never fails the step (and is never the last
+          # command left returning non-zero under bash -e).
+          curl -sS --fail -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL" \
+            || echo "::warning::Discord webhook delivery failed - the notification above was NOT sent."
 
   build-x86_64:
     needs: prewarm-cache
@@ -670,13 +694,13 @@ jobs:
           # SAME run would compute an identical primary-key (run_id and
           # run_attempt are shared across a matrix), so the second save would
           # collide with the first and one host's store would be lost.
-          primary-key: nix-${{ runner.os }}-${{ matrix.host }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ matrix.host }}-${{ github.run_id }}-${{ github.run_attempt }}
           # Same-lock AND same-host only - see the flake-check job for the
           # same-lock rationale. Restoring the other host's store would work
           # (Nix stores are additive) but would pull a large archive whose
           # host-specific half is useless here.
           restore-prefixes-first-match: |
-            nix-${{ runner.os }}-${{ matrix.host }}-${{ hashFiles('flake.lock') }}
+            nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ matrix.host }}
 
       - name: Verify Restored Store
         # Best-effort, and now declared as such. The `|| true` below already
@@ -709,7 +733,15 @@ jobs:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
           nix profile install --accept-flake-config nixpkgs#cachix
-          cachix use ${{ env.CACHIX_NAME }}
+          # NOT fatal, and deliberately so. `cachix use` configures this cache as
+          # a SUBSTITUTER - it affects downloading and has nothing to do with
+          # pushing. Every push step in this workflow is gated on this step's
+          # outcome, so letting `cachix use` fail the step meant a transient
+          # substituter-config hiccup silently disabled ALL pushing even with a
+          # perfectly valid token. The gate now reflects what it claims to:
+          # whether the cachix CLI is installed and usable.
+          cachix use ${{ env.CACHIX_NAME }} \
+            || echo "::warning::cachix use failed - this cache is not configured as a substituter for this job. Pushing is unaffected."
 
       # Wrapped in `cachix watch-exec`, which registers a Nix post-build hook
       # and uploads each store path the moment it is built, in parallel with
@@ -867,7 +899,7 @@ jobs:
         continue-on-error: true
         uses: nix-community/cache-nix-action/save@v7
         with:
-          primary-key: nix-${{ runner.os }}-${{ matrix.host }}-${{ hashFiles('flake.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ matrix.host }}-${{ github.run_id }}-${{ github.run_attempt }}
           gc-max-store-size-linux: 7000000000
           # Deliberately NO purge-* options. Purging needs an `actions: write`
           # permission this job doesn't grant, so they were always a silent
@@ -978,6 +1010,75 @@ jobs:
           fi
           jq -n --arg h "$HEAD" --arg b "$BODY" --arg u "$RUN_URL" \
             '{content: ($h + "\n" + $b + "\n" + $u)}' > payload.json
-          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+          # --fail so a rotated/revoked webhook is not reported as delivered, and
+          # `|| echo` so the notice never fails the step (and is never the last
+          # command left returning non-zero under bash -e).
+          curl -sS --fail -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL" \
+            || echo "::warning::Discord webhook delivery failed - the notification above was NOT sent."
 
+  # A JOB-LEVEL watchdog, deliberately on its own runner.
+  #
+  # Run 1111 is why this exists. Its build runner died outright: the job ended
+  # with "Build x86_64 Configurations" still marked in_progress, "Push to
+  # Cachix" still marked pending, and the logs returning HTTP 404 because they
+  # were never uploaded. Every other notifier in this workflow lives INSIDE the
+  # job it reports on, so when the runner dies there is nothing left to run them
+  # - the single worst failure this workflow can suffer was also the only one
+  # that told nobody at all.
+  #
+  # needs.<job>.result is filled in by GitHub regardless of how the job ended,
+  # and this job runs on a different machine, so it survives what the in-job
+  # notifiers cannot. On a matrix, .result aggregates: 'failure' if any leg
+  # failed.
+  #
+  # if: always() - without a status function this would be skipped for exactly
+  # the failures it exists to report.
+  report:
+    needs: [flake-check, prewarm-cache, build-x86_64]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+    steps:
+      - name: Notify on job-level failure
+        if: always() && env.WEBHOOK_ID != ''
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          FLAKE_CHECK: ${{ needs.flake-check.result }}
+          PREWARM: ${{ needs.prewarm-cache.result }}
+          BUILD: ${{ needs.build-x86_64.result }}
+        run: |
+          BAD=""
+          bad() { BAD="${BAD}🔴 $1"$'\n'; }
 
+          # prewarm-cache is job-level continue-on-error, so its result is
+          # 'success' even when legs fail - its own per-leg notifier covers it
+          # and is not second-guessed here.
+          if [ "$BUILD" = "failure" ] || [ "$BUILD" = "cancelled" ]; then
+            bad "build-x86_64 ended: \`$BUILD\`"
+          fi
+          if [ "$FLAKE_CHECK" = "failure" ] || [ "$FLAKE_CHECK" = "cancelled" ]; then
+            bad "flake-check ended: \`$FLAKE_CHECK\`"
+          fi
+
+          # Silent whenever every job reached a normal end, so this never
+          # duplicates a green run.
+          if [ -z "$BAD" ]; then
+            echo "All jobs reached a normal end - no job-level notification sent."
+            exit 0
+          fi
+
+          jq -n \
+            --arg h "🚨 **build run ended badly (job-level backstop)**" \
+            --arg b "$BAD" \
+            --arg n "If no per-job notice arrived alongside this one, the runner itself died - in that case the push step never ran and NOTHING from that job reached Cachix." \
+            --arg u "$RUN_URL" \
+            '{content: ($h + "\n" + $b + "\n" + $n + "\n" + $u)}' > payload.json
+          # --fail so a rotated/revoked webhook is not reported as delivered, and
+          # `|| echo` so the notice never fails the step (and is never the last
+          # command left returning non-zero under bash -e).
+          curl -sS --fail -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL" \
+            || echo "::warning::Discord webhook delivery failed - the notification above was NOT sent."

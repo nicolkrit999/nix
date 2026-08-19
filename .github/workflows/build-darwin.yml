@@ -81,7 +81,15 @@ jobs:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
           nix profile install --accept-flake-config nixpkgs#cachix
-          cachix use ${{ env.CACHIX_NAME }}
+          # NOT fatal, and deliberately so. `cachix use` configures this cache as
+          # a SUBSTITUTER - it affects downloading and has nothing to do with
+          # pushing. Every push step in this workflow is gated on this step's
+          # outcome, so letting `cachix use` fail the step meant a transient
+          # substituter-config hiccup silently disabled ALL pushing even with a
+          # perfectly valid token. The gate now reflects what it claims to:
+          # whether the cachix CLI is installed and usable.
+          cachix use ${{ env.CACHIX_NAME }} \
+            || echo "::warning::cachix use failed - this cache is not configured as a substituter for this job. Pushing is unaffected."
 
       # continue-on-error: the flake check is this workflow's SECONDARY goal.
       # It validates every flake output - other hosts, homeConfigurations, the
@@ -340,6 +348,10 @@ jobs:
           fi
           jq -n --arg h "$HEAD" --arg b "$BODY" --arg u "$RUN_URL" \
             '{content: ($h + "\n" + $b + "\n" + $u)}' > payload.json
-          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+          # --fail so a rotated/revoked webhook is not reported as delivered, and
+          # `|| echo` so the notice never fails the step (and is never the last
+          # command left returning non-zero under bash -e).
+          curl -sS --fail -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL" \
+            || echo "::warning::Discord webhook delivery failed - the notification above was NOT sent."
 
 

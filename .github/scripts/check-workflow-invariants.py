@@ -181,6 +181,17 @@ def check_workflow(path):
                              f"matrix variable. All legs of a run share run_id/run_attempt, so "
                              f"the keys collide.")
 
+            # 11. Every curl to a Discord webhook must use --fail. Without it curl
+            #     exits 0 on an HTTP 4xx/5xx, so a rotated or revoked webhook token
+            #     reports a delivered notification that never arrived.
+            if "WEBHOOK_URL" in run and "curl" in run:
+                checked += 1
+                if not re.search(r"curl[^\n]*--fail", run):
+                    fail(wf, job_name, name, "webhook-curl-fail",
+                         "curls the Discord webhook without --fail. curl exits 0 on HTTP "
+                         "4xx/5xx, so a rotated or revoked token is reported as a delivered "
+                         "notification that in fact never arrived.")
+
             # 10. A notifier that can fire without a webhook configured spams
             #     errors; one that is not continue-on-error can fail the job for a
             #     Discord outage.
@@ -197,6 +208,42 @@ def check_workflow(path):
                          "fork with no secrets this curls a malformed URL every run.")
 
 
+def check_cache_keys(path):
+    """12. A restore prefix that matches no save key means the job silently always
+    runs cold. Introduced for real by reordering a matrix variable into the middle
+    of the save key while a sibling job still restored the old prefix - nothing
+    errors, the cache simply never hits again.
+    """
+    global checked
+    wf = path.name
+    doc = yaml.safe_load(path.read_text())
+    if not doc or "jobs" not in doc:
+        return
+
+    save_keys = []
+    for job in doc["jobs"].values():
+        for st in job.get("steps") or []:
+            if st.get("uses", "").startswith("nix-community/cache-nix-action/save"):
+                k = str((st.get("with") or {}).get("primary-key", ""))
+                if k:
+                    save_keys.append(k)
+    if not save_keys:
+        return
+
+    for job_name, job in doc["jobs"].items():
+        for i, st in enumerate(job.get("steps") or []):
+            if not st.get("uses", "").startswith("nix-community/cache-nix-action/restore"):
+                continue
+            prefixes = str((st.get("with") or {}).get("restore-prefixes-first-match", ""))
+            for pref in [p.strip() for p in prefixes.splitlines() if p.strip()]:
+                checked += 1
+                if not any(k.startswith(pref) for k in save_keys):
+                    fail(wf, job_name, step_name(st, i), "cache-prefix-match",
+                         f"restore prefix '{pref}' is not a prefix of ANY save key in this "
+                         f"workflow, so it can never hit. The job will silently run cold "
+                         f"forever. Save keys: {save_keys}")
+
+
 def main():
     paths = sorted(WORKFLOW_DIR.glob("*.yml")) + sorted(WORKFLOW_DIR.glob("*.yaml"))
     if not paths:
@@ -204,6 +251,7 @@ def main():
 
     for p in paths:
         check_workflow(p)
+        check_cache_keys(p)
 
     print(f"checked {checked} invariant(s) across {len(paths)} workflow file(s)\n")
     if failures:

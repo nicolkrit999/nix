@@ -114,4 +114,8 @@ jobs:
           fi
           jq -n --arg h "$HEAD" --arg b "${CRIT}${WARN}" --arg u "$RUN_URL" \
             '{content: ($h + "\n" + $b + "\n" + $u)}' > payload.json
-          curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+          # --fail so a rotated/revoked webhook is not reported as delivered, and
+          # `|| echo` so the notice never fails the step (and is never the last
+          # command left returning non-zero under bash -e).
+          curl -sS --fail -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL" \
+            || echo "::warning::Discord webhook delivery failed - the notification above was NOT sent."

@@ -174,7 +174,11 @@ jobs:
               --arg url "$RUN_URL" \
               '{content: "🧪 **NixOS Tests Failed** | `\($ref)` (\($event))\n```\n\($report)\n```\n🔗 \($url)"}' \
               > payload.json
-            curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+            # --fail so a rotated/revoked webhook is not reported as delivered, and
+          # `|| echo` so the notice never fails the step (and is never the last
+          # command left returning non-zero under bash -e).
+          curl -sS --fail -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL" \
+            || echo "::warning::Discord webhook delivery failed - the notification above was NOT sent."
           fi
 
           exit 1
