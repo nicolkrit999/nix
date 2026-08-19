@@ -48,7 +48,7 @@ nobody was told**.
 
 | File | What it does | Runner | Job cap |
 |---|---|---|---|
-| `build.yml` | flake check, pre-warm, build both x86_64 hosts, push | `ubuntu-latest` | 120 / 120 / 350 / 10 |
+| `build.yml` | flake check, pre-warm, build both x86_64 hosts, push | `ubuntu-latest` | 120 / 120 / 350 / 10 <br>(`flake-check` / `prewarm-cache` / `build-x86_64` / `report`) |
 | `build-darwin.yml` | flake check + build the Mac config, push | `macos-15` | 350 |
 | `check-workflows.yml` | static analysis of the workflow files themselves | `ubuntu-latest` | 15 |
 | `tests-nixos.yml`, `tests-darwin.yml` | the `templates/tests/` suite | both | 120 / 90 |
@@ -84,7 +84,18 @@ prewarm-cache ──needs──> build-x86_64 (matrix: nixos-desktop, nixos-lapt
 ## 3. How the push actually works
 
 There are **three layers**, and they exist because each one has a hole the next
-one covers.
+one covers. ⚠️ **They are not applied uniformly** — which push step you are
+looking at matters:
+
+| Push step | Layer 1 `watch-exec` | Layer 2 targeted | Layer 3 whole-store |
+|---|---|---|---|
+| `build-x86_64` | ✅ | ✅ gated on build **outcome** + non-empty `outpaths.txt` | ✅ |
+| `prewarm-cache` (per leg) | ✅ | ✅ but gated on `[ -s out.txt ]` **only**, no outcome gate | ✅ |
+| `build-darwin` | ✅ | ❌ **none** — always whole-store | ✅ always |
+| `flake-check` | ❌ | ❌ | ✅ |
+
+Darwin always pushes the whole store on purpose: its job also runs the flake
+check, and a targeted push would miss everything the check built.
 
 ### Layer 1 — `cachix watch-exec` (continuous, during the build)
 
@@ -100,9 +111,10 @@ Two properties to know:
 
 - Nix does **not** fire the hook for *substituted* paths. Only what was genuinely
   built on that runner is uploaded. That is desirable, not a bug.
-- It is probed before use (`cachix watch-exec --help`). If the subcommand is not
-  usable the build runs plain, because a Cachix problem must never be
-  indistinguishable from a broken config.
+- It is probed before use, and the probe is a **three-part conjunction** — the
+  `Set up Cachix` step succeeded, `CACHIX_AUTH_TOKEN` is non-empty, and
+  `cachix watch-exec --help` works. Any one failing drops to a plain build,
+  because a Cachix problem must never be indistinguishable from a broken config.
 
 ### Layer 2 — the targeted push (fast path, clean builds)
 
@@ -113,6 +125,10 @@ Gating on the *outcome* rather than merely on the file being non-empty is
 deliberate: `--keep-going` means the build can fail having realised plenty, and
 `--print-out-paths` prints nothing in that case (the toplevel depends on
 everything), so an emptiness test alone takes neither branch usefully.
+
+**Only `build-x86_64` has this outcome gate.** The pre-warm legs use the
+emptiness test alone (`if [ -s out.txt ]`), which is acceptable there because a
+leg builds a single package rather than a whole system closure.
 
 ### Layer 3 — the whole-store fallback (salvage)
 
@@ -209,8 +225,12 @@ flag (only `nix profile install nixpkgs#cachix` does), so an input flake's own
   `--repair` is load-bearing: plain `--verify` leaves a missing path registered
   whenever something still refers to it, so Nix keeps trusting the db and never
   re-substitutes.
-- `auto-optimise-store` is **off** in CI. The hardlink farm under
-  `/nix/store/.links` does not survive the cache archive round-trip.
+- `auto-optimise-store` is **off on Linux** (`build.yml`), because the hardlink
+  farm under `/nix/store/.links` does not survive the cache archive round-trip
+  and this is the job that *saves* the cache. Darwin turns it **on**
+  (`build-darwin.yml:44`) — it has no store cache to round-trip, so the dedupe is
+  a free disk saving on a machine whose ~40 GiB ceiling is the binding
+  constraint.
 - The save step is **not** `always()`. A cancelled run snapshots a store whose db
   references paths the tar never captured. This is the one deliberate difference
   from the Cachix push, which *is* `always()`: Cachix uploads whole valid paths
@@ -241,10 +261,28 @@ added because run 754 spent its entire 300-minute budget compiling
 `thunderbird-unwrapped`. Adding legs on suspicion costs runner minutes and adds
 notification noise for no proven gain.
 
-⚠️ **Packages from flake inputs cannot be addressed this way.** `tgt`, `concord`
-and `herdr` come from `inputs.<x>.packages.<system>.default`, so they are not
-attributes of `pkgs` and `pkgs.tgt` fails with *attribute missing*. `doom` is not
-a package at all — it is a home-manager module (`programs.doom-emacs`). See §9.
+### 🚨 Do not pre-warm a flake-input package by name
+
+`tgt`, `concord` and `herdr` come from `inputs.<x>.packages.<system>.default`, so
+the derivation the config installs is **not** the `pkgs` attribute of the same
+name. The trap is that two of those attributes *exist anyway* in the pinned
+`nixos-26.05`, and are different software — so `.pkgs.<name>` does not error, it
+silently builds and caches the wrong thing:
+
+| Name | What the config installs | What `pkgs.<name>` is in nixos-26.05 |
+|---|---|---|
+| `tgt` | `github:FedericoBruzzone/tgt` — a Telegram TUI | **tgt 1.0.95, the iSCSI Target daemon** — unrelated |
+| `concord` | `github:chojs23/concord` | **concord 2.3.0, a Discord API library in C** — unrelated |
+| `herdr` | `github:ogulcancelik/herdr` tracking **master** | *absent* from nixos-26.05 — this one does fail cleanly with *attribute missing*. (It exists in `unstable` as 0.8.0, the same project, so this trap appears the moment the channel moves.) |
+
+`concord` is additionally wrapped in `.overrideAttrs` in
+`modules/nixos/programs/concord.nix`, so even the correct input is not the
+derivation the system uses.
+
+`doom` is not a package at all — it is a home-manager module
+(`programs.doom-emacs`, from `nix-doom-emacs-unstraightened`), so it has no
+`pkgs` attribute to name. It *is* reachable through the config tree without
+touching `flake.nix`. See §10.
 
 ---
 
@@ -346,7 +384,10 @@ output, two closures do not fit in the headroom sized for one.
 ## 8. The invariant checker
 
 `.github/scripts/check-workflow-invariants.py`, run by `check-workflows.yml` on
-any change under `.github/workflows/**` or `.github/scripts/**`, plus weekly.
+pushes to `develop`/`main` and on **any pull request** that touches
+`.github/workflows/**` or `.github/scripts/**`, plus weekly (`0 6 * * 1`) and on
+manual dispatch. The `pull_request` trigger has no branch filter, which is why it
+runs on feature branches.
 
 ```bash
 python3 .github/scripts/check-workflow-invariants.py
@@ -383,10 +424,12 @@ whole file as a single argument and break every push.
 - **`[ test ] && cmd` as the last command of a step.** When the test is false the
   list returns non-zero and the step fails. Notifiers therefore append findings
   inside `if` blocks, never with `&&`.
-- **`bash -c` treats bare newlines as separate commands.** A multi-line
-  single-quoted variable handed to `bash -c` runs only its first line — the
-  `BUILD='nix build …'` variable nearly shipped this way, which would have run
-  `nix build` with no arguments. Use backslash continuations. (`bash-c-newline`.)
+- **`bash -c` treats bare newlines as separate commands.** It does not stop after
+  the first line — it executes *every* line as its own command. A multi-line
+  single-quoted `BUILD='nix build …'` variable nearly shipped this way: the first
+  line would have run `nix build` with no arguments, and each following line
+  would then have been run as a command in its own right. Use backslash
+  continuations. (`bash-c-newline`.)
 - **Cross-job step references evaluate to `''` silently.** `steps.<id>.*` for an
   id not declared in the *same* job does not error. (`step-ref`.)
 - **Matrix legs share `run_id` and `run_attempt`.** A cache key that does not
