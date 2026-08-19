@@ -499,7 +499,7 @@ what it changed.
 | **794** (darwin) | `##[error]The action 'Build Darwin Configuration' has timed out after 150 minutes.` — then **2h11m** of nothing but `running auto-GC to free 13525108224 bytes` / `deleting garbage…` | First evidence the macOS runner **GC-thrashes under disk pressure** during a long compile; a longer cap may not help (§11.4) |
 | **796** (darwin) | Cancelled after **2h09m42s** having built exactly **one** derivation (`firefox-unwrapped-154.0`) that never finished. Entire `always()` tail still ran | Refines §6.3 — a cancellation *can* give a full grace window |
 | **1136** (cold) | flake-check green in 4m07s on a genuine cache miss; **`pushed=15` reported for exactly 14 uploaded paths** | Exposed the push-count off-by-one at all six sites → fix + `push-count-anchored` invariant (§3) |
-| **1136 / 1137** (cold) | 🔴 **Four cold Linux runner deaths in one evening**, one host per runner, at 70.5 / 108.5 / 28.7 / 76.5 min — none reaching its 150-min cap. `Push to Cachix` never ran on any of them | Reopened the matrix-split fix: it was only ever validated warm. No salvage push and no store-cache save on a cold build |
+| **1136 / 1137** (cold) | Four cold legs died mid-build at 70.5 / 108.5 / 28.7 / 76.5 min, none reaching its 150-min cap, and `Push to Cachix` ran on none of them. **Three turned out to be delayed cancellations from later pushes** (30-70 min to land); only 1137's laptop died with nothing cancelling it | The cost of `cancel-in-progress` on long builds, not runner capacity — see §7. Corrected after first being recorded as four spontaneous runner deaths |
 | **1139** (cold) | flake-check green at `ace17ce` in 2m59s; all 8 pre-warm legs green and the new `Report Continuous Push` step observed printing `streamed 0 / built 0` with no false alarm | Validates the self-proving instrumentation and the anchored push count end-to-end |
 | **1115** (pre-warm) | Auth fix validated: `outcome=success`, `pushed=0`, notifier silent on all 8 legs | — |
 | **761** (darwin, on `main`) | Build step hit its own `timeout-minutes: 300` at 300.23 min and failed. The job then ran post-steps normally for 3.3 min — GitHub did not kill it. **`Push to Cachix` was `skipped`**, because `main`'s gate is `if: steps.build.outcome == 'success'` with no `always()`. Five hours of building, nothing cached | The `always()` push gate, fixed on `develop`. `main` still has the old gate |
@@ -530,30 +530,42 @@ both build in **10m35s / 10m55s** in parallel — 17m18s wall clock for the pair
 against 19m41s for the desktop alone before. So the cost was never the laptop's
 *content*; it was putting two configurations through a single `nix build`.
 
-🔴 **REOPENED 2026-08-19: the split does NOT save a COLD build.** Run 1122 was
-warm. On genuinely cold builds the runner still dies, one host per runner:
+⚠️ **2026-08-19: four cold legs died mid-build — but THREE were self-inflicted.**
+The first reading of that evening was "cold builds kill their runners". Lining the
+deaths up against the pushes shows otherwise:
 
-| run | leg | build window | elapsed | how |
-|---|---|---|---|---|
-| 1136 | laptop | 18:30:06 → 19:40:36 | 70.5 min | runner gone, later steps never ran |
-| 1136 | desktop | 18:28:43 → 20:17:12 | 108.5 min | runner gone, later steps never ran |
-| 1137 | laptop | 20:23:31 → 20:52:12 | 28.7 min | exit 143 + shutdown signal, later steps skipped |
-| 1137 | desktop | 20:24:27 → 21:40:56 | 76.5 min | runner gone, later steps never ran |
+| time | event |
+|---|---|
+| **19:08:39** | a push creates run 1137 → requests cancel of 1136 |
+| 19:40:36 | 1136 laptop dies — **+32.0 min after the cancel request** |
+| 20:17:12 | 1136 desktop dies — **+68.6 min after** |
+| 20:52:12 | 1137 laptop dies (`exit 143`, shutdown signal) — **no cancel pending** |
+| **20:53:40** | a push creates 1138 → cancels 1137 |
+| **20:54:21** | a push creates 1139 → cancels 1138 |
+| 21:40:56 | 1137 desktop dies — **+46.6 min after** |
 
-None reached its 150-minute step cap. **The consequence hits the primary goal
-directly**: `Push to Cachix` never runs, so there is no salvage push, and
-`Save Nix Store Cache` never runs either, so the next run starts cold again — a
-death loop that explains why every run that week began from nothing.
+Three of the four are **delayed cancellations landing**, not spontaneous runner
+loss. Every push to a branch with a build in flight destroys that build (§6.3),
+and on these heavy builds the cancel takes **30-70 minutes** to take effect while
+the runner keeps burning. Only **1137's laptop** is a genuine unexplained
+termination: it died 88 seconds *before* the next push, with nothing cancelling
+it. One data point, not four.
 
-That makes `watch-exec` (§3, layer 1) not merely the most important push layer on
-a cold build but the **only** one that can work — and §11.2 is still open on
-whether it does.
+🔑 **The real lesson is about `cancel-in-progress`, not about runner capacity.**
+Because these were cancellations, `always()` was unreliable (§6.3), so
+`Push to Cachix` did not run and `Save Nix Store Cache` did not run — everything
+those hours built was lost instead of salvaged, and the next run started cold
+again. For a workflow whose primary goal is "cache as much as possible", ordinary
+development on the branch silently destroys the work. See §11.6.
 
-⚠️ **Cause not established.** The obvious hypothesis is resource exhaustion on
-`ubuntu-latest` with `--max-jobs 2 --cores 4`, but **no OOM or ENOSPC line has
-ever been observed**: the logs truncate long before the death (§6.3) and the
-full-run ZIP is unreachable. Four deaths with one visible cause line is not a
-diagnosis. Do not record it as one.
+That also makes `watch-exec` (§3, layer 1) the **only** push layer that can
+survive this case — and §11.2 is still open on whether it does.
+
+⚠️ **Do not record a cause for the one real death.** Resource exhaustion on
+`ubuntu-latest` with `--max-jobs 2 --cores 4` is the obvious guess, but **no OOM
+or ENOSPC line has ever been observed**: the logs truncate long before the death
+(§6.3) and the full-run ZIP is unreachable. One death with one visible cause line
+is not a diagnosis.
 
 ⚠️ **The underlying mechanism is still not confirmed.** The first hypothesis was disk exhaustion:
 `keep-outputs` retains every *intermediate* output, and the ~78 GiB headroom was
