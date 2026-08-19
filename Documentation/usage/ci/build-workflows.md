@@ -417,8 +417,29 @@ discards that run's remaining work.
 
 It also does **not** cover the runner itself dying. There is nothing left to run the
 step. The signature is unmistakable: the job's conclusion is `failure`, the build
-step is still marked `in_progress`, the push step is still marked `pending`, and
-the logs return **HTTP 404** because they were never uploaded.
+step is still marked `in_progress`, and the push step is still marked `pending`.
+
+⚠️ **Correction (2026-08-19): the logs do not 404 — they are TRUNCATED.** They
+return the portion uploaded before the runner died, which can end 30-60 minutes
+before the death, with no error line at all. Of the four cold deaths that day,
+only one (run 1137's laptop) had a visible cause:
+
+```
+##[error]Process completed with exit code 143.
+##[error]The runner has received a shutdown signal. This can happen when the
+         runner service is stopped, or a manually started runner is canceled.
+Terminate orphan process: pid (5106) (cachix)
+```
+
+Two variants exist, and they are not the same thing:
+
+| variant | later steps | seen in |
+|---|---|---|
+| runner simply gone | still `pending` — never evaluated | 1136 laptop + desktop, 1137 desktop |
+| shutdown signal | `skipped` — `always()` evaluated to false | 1137 laptop |
+
+Neither runs the push. `Terminate orphan process: … (cachix)` in the second shows
+`watch-exec` was alive to the last moment.
 
 Two consequences:
 
@@ -478,6 +499,8 @@ what it changed.
 | **794** (darwin) | `##[error]The action 'Build Darwin Configuration' has timed out after 150 minutes.` — then **2h11m** of nothing but `running auto-GC to free 13525108224 bytes` / `deleting garbage…` | First evidence the macOS runner **GC-thrashes under disk pressure** during a long compile; a longer cap may not help (§11.4) |
 | **796** (darwin) | Cancelled after **2h09m42s** having built exactly **one** derivation (`firefox-unwrapped-154.0`) that never finished. Entire `always()` tail still ran | Refines §6.3 — a cancellation *can* give a full grace window |
 | **1136** (cold) | flake-check green in 4m07s on a genuine cache miss; **`pushed=15` reported for exactly 14 uploaded paths** | Exposed the push-count off-by-one at all six sites → fix + `push-count-anchored` invariant (§3) |
+| **1136 / 1137** (cold) | 🔴 **Four cold Linux runner deaths in one evening**, one host per runner, at 70.5 / 108.5 / 28.7 / 76.5 min — none reaching its 150-min cap. `Push to Cachix` never ran on any of them | Reopened the matrix-split fix: it was only ever validated warm. No salvage push and no store-cache save on a cold build |
+| **1139** (cold) | flake-check green at `ace17ce` in 2m59s; all 8 pre-warm legs green and the new `Report Continuous Push` step observed printing `streamed 0 / built 0` with no false alarm | Validates the self-proving instrumentation and the anchored push count end-to-end |
 | **1115** (pre-warm) | Auth fix validated: `outcome=success`, `pushed=0`, notifier silent on all 8 legs | — |
 | **761** (darwin, on `main`) | Build step hit its own `timeout-minutes: 300` at 300.23 min and failed. The job then ran post-steps normally for 3.3 min — GitHub did not kill it. **`Push to Cachix` was `skipped`**, because `main`'s gate is `if: steps.build.outcome == 'success'` with no `always()`. Five hours of building, nothing cached | The `always()` push gate, fixed on `develop`. `main` still has the old gate |
 | **1115** (build) | Cancelled by the concurrency group after 27 min. `always()` push step **skipped**, job over in <1s. Log shows 38 `copying path`, **zero** `building` lines, last output at 11:12 then silence — it was still *evaluating*, with repeated `builtins.derivation … options.json` (IFD) warnings | §6.3 rewritten: `always()` is not reliable on cancellation |
@@ -502,10 +525,35 @@ Adding `nixos-laptop` to the same `nix build` was justified as "the laptop's
 marginal cost is only its host-specific derivations". Measured, that is false:
 12m44s → died at 68 minutes.
 
-✅ **The fix is confirmed by run 1122.** One host per runner, and both now build
-in **10m35s / 10m55s** in parallel — 17m18s wall clock for the pair, against
-19m41s for the desktop alone before. So the cost was never the laptop's
+✅ **Confirmed by run 1122 — but only for WARM runs.** One host per runner, and
+both build in **10m35s / 10m55s** in parallel — 17m18s wall clock for the pair,
+against 19m41s for the desktop alone before. So the cost was never the laptop's
 *content*; it was putting two configurations through a single `nix build`.
+
+🔴 **REOPENED 2026-08-19: the split does NOT save a COLD build.** Run 1122 was
+warm. On genuinely cold builds the runner still dies, one host per runner:
+
+| run | leg | build window | elapsed | how |
+|---|---|---|---|---|
+| 1136 | laptop | 18:30:06 → 19:40:36 | 70.5 min | runner gone, later steps never ran |
+| 1136 | desktop | 18:28:43 → 20:17:12 | 108.5 min | runner gone, later steps never ran |
+| 1137 | laptop | 20:23:31 → 20:52:12 | 28.7 min | exit 143 + shutdown signal, later steps skipped |
+| 1137 | desktop | 20:24:27 → 21:40:56 | 76.5 min | runner gone, later steps never ran |
+
+None reached its 150-minute step cap. **The consequence hits the primary goal
+directly**: `Push to Cachix` never runs, so there is no salvage push, and
+`Save Nix Store Cache` never runs either, so the next run starts cold again — a
+death loop that explains why every run that week began from nothing.
+
+That makes `watch-exec` (§3, layer 1) not merely the most important push layer on
+a cold build but the **only** one that can work — and §11.2 is still open on
+whether it does.
+
+⚠️ **Cause not established.** The obvious hypothesis is resource exhaustion on
+`ubuntu-latest` with `--max-jobs 2 --cores 4`, but **no OOM or ENOSPC line has
+ever been observed**: the logs truncate long before the death (§6.3) and the
+full-run ZIP is unreachable. Four deaths with one visible cause line is not a
+diagnosis. Do not record it as one.
 
 ⚠️ **The underlying mechanism is still not confirmed.** The first hypothesis was disk exhaustion:
 `keep-outputs` retains every *intermediate* output, and the ~78 GiB headroom was
@@ -667,6 +715,14 @@ Settled today, with evidence:
   Darwin run 796) — refines, but does not overturn, the run-1115 observation.
 - ✅ Cachix is populated and serving: prewarm legs substituted e.g. `vscode`
   **from `krit-nixos.cachix.org`**, not upstream.
+- ✅ **The self-proving step works** (run 1139 prewarm legs). Real output:
+  `watch-exec streamed 0 path(s) to Cachix during the build` /
+  `(0 derivation(s) were actually built; substituted paths never fire the hook)`.
+  `watch.log` existed, so the `set -o pipefail` + `| tee` change works in
+  production — that was the riskiest part of the change. The
+  `built > 0 && streamed == 0` alarm correctly stayed **silent** at `built=0`
+  (no false positive), and `pushed=0` confirms the anchored count from §3.
+- ✅ `flake-check` green at `ace17ce` (2m59s) — the mpvpaper change evaluates.
 - ✅ The repo owns **zero** deprecated `stdenv.isLinux`/`isDarwin` predicates
   (17 uses of `stdenv.hostPlatform.is*`). The one remaining deprecation warning
   in the eval log comes from a **flake input**, not this repo.
@@ -679,11 +735,19 @@ only protection against runner death (§6.3) and the justification for the
 
 **The method, so nobody has to re-derive it:**
 
-1. **Precondition first, before reading any `Pushing` line.** Count
-   `building '/nix/store/` inside the build step. Nix does not fire the
-   post-build hook for *substituted* paths, and it fires only on derivation
-   **completion**. Zero builds — or builds that never finish — means the verdict
-   is **UNANSWERED, never "no"**. Both hypotheses predict zero `Pushing` lines.
+1. **Precondition first, before reading any `Pushing` line.** The hook fires only
+   on derivation **completion**, and never for *substituted* paths. So the
+   precondition is "derivations demonstrably **completed**" — and
+
+   ⚠️ **`building '/nix/store/…'` lines are ANNOUNCEMENTS, not completions.**
+   Counting them is not sufficient and misled this investigation once already.
+   Run 1136's legs showed 5000 such lines that resolved to only ~1768 distinct
+   derivations, each re-announced about three times, with a pending set that
+   never shrank between passes. A satisfied-looking count can therefore describe
+   a build that finished nothing at all.
+
+   Zero builds — or builds that never demonstrably finish — means the verdict is
+   **UNANSWERED, never "no"**. Both hypotheses predict zero `Pushing` lines.
 2. **The discriminator is the step boundary, not the string format.**
    `Pushing /nix/store/…` **inside** the `Build <host>` block proves streaming.
    The same lines only inside the separate `Push to Cachix` step prove nothing.
@@ -707,11 +771,19 @@ only protection against runner death (§6.3) and the justification for the
 
 ### 11.3 ⚠️ Investigating a run from a session — two API traps
 
-- `get_job_logs` on an **in-progress** job does not merely 404. It can return a
-  **frozen, non-advancing partial snapshot**: capped at ~5000 lines, identical
-  across repeated polls, `original_length` pinned. On run 1136's legs that was
-  **20 seconds out of a 64-minute step (~0.5%)**. Never read such a snapshot as
-  the step's full output, and never conclude "absent" from it.
+- **`get_job_logs` is hard-capped at ~5000 TAIL lines — for completed jobs too.**
+  Requesting `tail_lines: 60000` still returns exactly 5000. There is no
+  `head`/`offset` parameter, so **the head of any large log is unreachable from a
+  session**, and `original_length` is unreliable (it has come back *smaller* than
+  the payload actually returned). On run 1136's legs the retrievable window was
+  **31 s and 20 s — 0.73% and 0.31%** of their build steps.
+- On an **in-progress** job it can also return a **frozen, non-advancing
+  snapshot**: identical across repeated polls. Never read such a snapshot as the
+  step's full output, and never conclude "absent" from it.
+- The full-run ZIP (`get_workflow_run_logs_url` →
+  `results-receiver.actions.githubusercontent.com`) is **blocked by this
+  environment's egress policy (403 to CONNECT)**, so it is not a way around the
+  cap. Do not retry it.
 - `get_workflow_run_logs_url` returns **404 until the run reaches a terminal
   state**. Complete logs only exist after the run ends.
 - When a snapshot has no `##[group]`/`##[endgroup]` markers (they scrolled out),
