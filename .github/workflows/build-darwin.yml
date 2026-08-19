@@ -193,7 +193,14 @@ jobs:
           # cache.nixos.org, so this uploads only what this repo actually
           # produced, not a copy of nixpkgs.
           echo "No toplevel output path - pushing every valid store path instead."
-          nix path-info --all | grep -v '\.drv$' | cachix push ${{ env.CACHIX_NAME }}
+          # -self-test-: the Determinate installer writes a self-test path per
+          # run whose name carries a timestamp (self-test-bash-1787097653189,
+          # self-test-zsh-...), so it is a brand-new store path every single
+          # run. Observed being pushed on both platforms; left in, it grows the
+          # cache without bound for no benefit, since nothing ever substitutes
+          # it. Everything else the installer produces is version-stable and
+          # deduplicates, so a narrow exclusion is enough.
+          nix path-info --all | grep -v -e '\.drv$' -e '-self-test-' | cachix push ${{ env.CACHIX_NAME }}
 
       # No `du -sh /nix/store` here - see the matching step in build.yml.
       # It cost 2m49s on run 754 and over ten minutes on a large Linux store,
