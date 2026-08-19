@@ -181,14 +181,20 @@ def check_workflow(path):
                              f"matrix variable. All legs of a run share run_id/run_attempt, so "
                              f"the keys collide.")
 
-            # 13. A step that shells out to a package manager must declare
+            # 10. A step that shells out to a package manager must declare
             #     timeout-minutes. continue-on-error and `|| true` cover a step
             #     FAILING; neither covers it HANGING. Run 1130: apt-get stalled on
             #     an unreachable mirror, the step sat 27+ minutes holding the job
             #     toward its cap, and it blocked every later run in the same
             #     concurrency group - and the runner was unreachable, so a manual
             #     Cancel could not be delivered either.
-            if re.search(r"\b(apt-get|apt|yum|dnf|brew|pacman)\s+(update|install|upgrade)\b", run):
+            # The verb may be separated from the command by any number of flags
+            # or their values (`apt-get -y install`, `apt-get -o Acquire::Retries=3
+            # update`), so intervening tokens are allowed - but bounded by shell
+            # separators so a match cannot run past the end of the command.
+            _PKG = r"(?:apt-get|apt|yum|dnf|brew|pacman|apk|zypper)"
+            _VERB = r"(?:update|upgrade|install|add)"
+            if re.search(rf"\b{_PKG}\b(?:\s+(?!{_VERB}\b)[^\s;|&]+)*\s+{_VERB}\b", run):
                 checked += 1
                 if step.get("timeout-minutes") is None:
                     fail(wf, job_name, name, "package-manager-timeout",
@@ -208,7 +214,7 @@ def check_workflow(path):
                          "4xx/5xx, so a rotated or revoked token is reported as a delivered "
                          "notification that in fact never arrived.")
 
-            # 10. A notifier that can fire without a webhook configured spams
+            # 12. A notifier that can fire without a webhook configured spams
             #     errors; one that is not continue-on-error can fail the job for a
             #     Discord outage.
             if "discord.com/api/webhooks" in str(step.get("env", {})) or "WEBHOOK_URL" in run:
@@ -225,7 +231,7 @@ def check_workflow(path):
 
 
 def check_cache_keys(path):
-    """12. A restore prefix that matches no save key means the job silently always
+    """13. A restore prefix that matches no save key means the job silently always
     runs cold. Introduced for real by reordering a matrix variable into the middle
     of the save key while a sibling job still restored the old prefix - nothing
     errors, the cache simply never hits again.
