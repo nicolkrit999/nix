@@ -29,6 +29,26 @@ This repo manages multiple NixOS **and** nix-darwin hosts using the [denix](http
 
 Nixpkgs channel: `nixos-26.05`. Home-manager user: `krit`.
 
+## 🏭 CI build workflows - read the doc before touching them
+
+`Documentation/usage/ci/build-workflows.md` is the reference for
+`.github/workflows/build.yml` and `build-darwin.yml`: what they do, the priority
+order of their goals, and - most importantly - **why** each odd-looking decision
+is there, with the incident that caused it.
+
+**Read it before changing, debugging, or reasoning about a build workflow.**
+Several decisions look like bugs and are not: the GC settings differ between
+Linux and Darwin on purpose, `pushed=0` is the normal result of a healthy warm
+run, and `always()` deliberately does not protect the case you probably think it
+does. Every one of those has been re-derived from scratch at least once because
+the reasoning lived only in a commit message.
+
+Treat it as a map, not as gospel - verify against the file before acting, and
+update the doc in the same commit when you invalidate part of it.
+
+`.github/scripts/check-workflow-invariants.py` enforces the subset of this that
+can be checked mechanically; run it after any workflow edit.
+
 ## ⛔ `stateVersion` is NEVER bumped
 
 `system.stateVersion`, `home.stateVersion`, and the `myconfig.constants.homeStateVersion` / `stateVersion` defaults are **frozen at the release each host was first installed under**. Most hosts in this repo are pinned at `"25.11"`. **Do not change these values when bumping nixpkgs channels.** No exceptions, no "I'll just bump it on this one host", no search-and-replace.

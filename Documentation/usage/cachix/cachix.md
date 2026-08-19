@@ -6,6 +6,12 @@ This document explains the "Build Once, Run Everywhere" architecture used in thi
 
 ---
 
+> 🔧 **Looking for how the CI workflows themselves work?** This document covers
+> the strategy. For the machinery - what each job does, why the Nix settings
+> differ per platform, how the three push layers work, and the incident log
+> behind the current design - see
+> [`../ci/build-workflows.md`](../ci/build-workflows.md).
+
 ## 1. The Core Concept: "Factory vs. Warehouse"
 
 In a standard Nix setup, every computer acts as a **Factory**—it downloads source code and compiles it into binaries. This is slow and resource-intensive.
