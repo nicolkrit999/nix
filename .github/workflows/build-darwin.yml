@@ -400,4 +400,19 @@ jobs:
           curl -sS --fail -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL" \
             || echo "::warning::Discord webhook delivery failed - the notification above was NOT sent."
 
+      # Deliberately the LAST step - see the twin in build.yml. `Report Continuous
+      # Push` prints streamed/built once mid-job, the logs API is hard-capped at
+      # ~5000 TAIL lines with no head/offset, and the full-log blob URL is blocked
+      # by egress policy, so on a long build those numbers are unreadable. Nothing
+      # else consumes steps.watch_report.outputs.*; this step is that consumer.
+      - name: Continuous Push Summary (log tail)
+        if: always()
+        continue-on-error: true
+        run: |
+          echo "=== continuous-push summary: darwin ==="
+          echo "streamed=${{ steps.watch_report.outputs.streamed }}"
+          echo "built=${{ steps.watch_report.outputs.built }}"
+          echo "pushed=${{ steps.cachix_push.outputs.pushed }}"
+          echo "build_outcome=${{ steps.build.outcome }}"
+
 
