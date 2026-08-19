@@ -496,6 +496,9 @@ jobs:
       # --keep-going: when a derivation fails (broken dep, unfree, or a package
       # unsupported on this platform) keep building every other branch of the
       # graph, so one bad package doesn't cost us the whole closure.
+      # Builds nixos-desktop AND nixos-laptop: a rebuild on either machine
+      # after a flake bump should substitute rather than build, including
+      # the host-specific paths that differ between them.
       - name: Build x86_64 Configurations
         id: build
         timeout-minutes: 270
@@ -513,7 +516,19 @@ jobs:
              && cachix watch-exec --help > /dev/null 2>&1; then
             WATCH=1
           fi
-          BUILD='nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --no-link --print-out-paths --keep-going --max-jobs 2 --cores 4 > outpaths.txt'
+          # Both x86_64 hosts in ONE nix build on ONE runner, not two jobs:
+          # they share nearly their whole closure, so the laptop's marginal
+          # cost is only its host-specific derivations (home-manager
+          # generation, system-path, activation scripts) rather than a second
+          # full build. --keep-going means a failure in one still builds the
+          # other, and --print-out-paths writes one line per realised toplevel,
+          # so outpaths.txt may legitimately hold one path or two.
+          # Backslash continuations, not bare newlines: BUILD is handed to
+          # `bash -c`, which would otherwise read each line as its own command.
+          BUILD='nix build \
+                   .#nixosConfigurations.nixos-desktop.config.system.build.toplevel \
+                   .#nixosConfigurations.nixos-laptop.config.system.build.toplevel \
+                   --no-link --print-out-paths --keep-going --max-jobs 2 --cores 4 > outpaths.txt'
           if [ "$WATCH" = 1 ]; then
             echo "Building under 'cachix watch-exec' - paths are pushed as they are built."
             cachix watch-exec ${{ env.CACHIX_NAME }} -- bash -c "$BUILD"
@@ -553,7 +568,10 @@ jobs:
           fi
 
           if [ -s outpaths.txt ]; then
-            # Clean build: push the toplevel closure. Fast and targeted.
+            # Push the toplevel closure(s) - one line per host that realised, so
+            # this is one or two paths. If only one of the two hosts built, the
+            # other's completed dependencies are already in the cache via
+            # watch-exec, so nothing is lost by not taking the fallback here.
             cachix push ${{ env.CACHIX_NAME }} $(cat outpaths.txt)
             exit 0
           fi
