@@ -130,7 +130,12 @@ jobs:
         run: nix run github:danielefongo/nix-tests -- templates/tests/nixos/test-nixos-wallpapers
 
       - name: Summary and notify on failure
-        if: always()
+        # always() && WEBHOOK_ID: on a fork without secrets the webhook URL is
+        # malformed, so this would curl a broken endpoint on every single run.
+        # continue-on-error: a Discord outage must never turn a passing test
+        # suite into a failed job - the notice is secondary to the result.
+        if: always() && env.WEBHOOK_ID != ''
+        continue-on-error: true
         env:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
           EVENT_NAME: ${{ github.event_name }}
@@ -169,7 +174,11 @@ jobs:
               --arg url "$RUN_URL" \
               '{content: "🧪 **NixOS Tests Failed** | `\($ref)` (\($event))\n```\n\($report)\n```\n🔗 \($url)"}' \
               > payload.json
-            curl -s -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL"
+            # --fail so a rotated/revoked webhook is not reported as delivered, and
+          # `|| echo` so the notice never fails the step (and is never the last
+          # command left returning non-zero under bash -e).
+          curl -sS --fail -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL" \
+            || echo "::warning::Discord webhook delivery failed - the notification above was NOT sent."
           fi
 
           exit 1

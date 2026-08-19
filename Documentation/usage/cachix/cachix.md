@@ -2,9 +2,16 @@
 
 This document explains the "Build Once, Run Everywhere" architecture used in this repository. By leveraging **Cachix** and **GitHub Actions**, we ensure that your laptop almost _never_ has to compile code from scratch, saving battery, heat, and time.
 
-- Currently this benefits are only for `x86_64-linux` pc as doing for other architecture would mean keeping an host with that architecture up to date but especially use a lot more cachix space
+- Two architectures are built in the cloud today: **`x86_64-linux`** (both NixOS hosts, in `build.yml`) and **`aarch64-darwin`** (the MacBook, in `build-darwin.yml`, on a GitHub-hosted Apple-silicon runner). Both push to the same `krit-nixos` cache.
+- **`aarch64-linux` is not built.** That is the architecture that would need a machine kept up to date, and a lot more Cachix space.
 
 ---
+
+> 🔧 **Looking for how the CI workflows themselves work?** This document covers
+> the strategy. For the machinery - what each job does, why the Nix settings
+> differ per platform, how the three push layers work, and the incident log
+> behind the current design - see
+> [`../ci/build-workflows.md`](../ci/build-workflows.md).
 
 ## 1. The Core Concept: "Factory vs. Warehouse"
 
@@ -27,7 +34,8 @@ We define a strict hierarchy of trust and power to optimize resources.
 - **Role:** The Primary Builder.
 - **Trigger:** Automatically runs on every `git push`.
 - **Capabilities:**
-- Builds for **x86_64** (Desktop) natively.
+- Builds **both** `x86_64-linux` hosts natively — `nixos-desktop` *and* `nixos-laptop`, one per runner (`build.yml`).
+- Builds the **`aarch64-darwin`** Mac natively on a `macos-15` runner (`build-darwin.yml`).
 
 - **Why it exists:** To do the heavy lifting while you sleep. It creates the cache entries before you even wake up to update your laptop.
 
@@ -41,15 +49,31 @@ We define a strict hierarchy of trust and power to optimize resources.
 
 - **Why Push is enabled:** If you are developing a new feature locally and haven't pushed to GitHub yet, your Desktop compiles it. By enabling push, your Desktop uploads these new binaries to Cachix. If you then switch to your Laptop, it can download the binaries your Desktop just built, skipping the cloud entirely.
 
-### 🥉 Tier 3: The Laptop (Pure Consumer)
+### 🥉 Tier 3: The Laptop
 
-- **Role:** The Consumer.
+- **Role:** Mostly a consumer, but it *can* push.
 - **Trigger:** Runs when you update (`nh os switch`).
 - **Configuration:**
 - **Pull:** Enabled.
-- **Push:** **DISABLED**.
+- **Push:** **ENABLED** — `hosts/nixos-laptop/default.nix` sets `cachix.push = true` with the same `/run/secrets/cachix-push-token` as the Desktop.
 
-- **Goal:** Zero compilation. If the Laptop starts compiling `webkit` or `gcc`, **something is wrong**. It should only ever download compressed binaries.
+- **Goal:** Still zero compilation in normal use. If the Laptop starts compiling `webkit` or `gcc`, **something is wrong** — but if it does build something, that result is uploaded rather than thrown away.
+
+### 🍎 Tier 3b: The MacBook (`Krits-MacBook-Pro`)
+
+- **Role:** Consumer, with its own cloud builder.
+- **Configuration:** Pull **and** push enabled, same token (`hosts/Krits-MacBook-Pro/default.nix`).
+- **Its factory** is `build-darwin.yml`, not `build.yml` — a separate workflow on a `macos-15` runner. `build.yml` never builds anything for macOS.
+
+### 📦 A note on `attic` — local only, and deliberately not in CI
+
+The hosts also push to a self-hosted **attic** cache on the NAS
+(`myconfig.attic`, `attic-push` alias). It is **not part of the CI workflows and
+must not be added to them**: the NAS is reachable only over Tailscale, and the
+GitHub runners are deliberately not given Tailscale access.
+
+So: attic is a machine-to-machine convenience on the local network. Cachix is the
+only cache CI knows about. Everything below is about Cachix.
 
 ---
 
@@ -63,7 +87,7 @@ To get the most out of this system, follow this lifecycle for system updates:
 
 - GitHub Actions detects the push and starts the compilation`.
 - It compiles your system and uploads the results to `krit-nixos.cachix.org`.
-- _Duration:_ ~5-15 minutes depending on complexity.
+- _Duration:_ ~15-20 minutes for a **warm** `x86_64-linux` run (run 1110: 12m44s of building, ~20 minutes end to end). A **cold** run — anything that changes `flake.lock`, since the store-cache key includes its hash — is far slower, and the caps are deliberately generous (270-minute build step, 350-minute job).
 
 4. **Update:**
 
@@ -78,25 +102,27 @@ To get the most out of this system, follow this lifecycle for system updates:
 
 This file is the "Robot" that runs the factory.
 
-- **Concurrency:** It cancels old builds if you push new code immediately, saving runner time.
-- **The Cache Loop:** It pulls from Cachix before starting (to speed up its own build) and pushes to Cachix immediately after finishing.
-- **Split Architecture:** It runs separate jobs for x86 and ARM to ensure both architectures are cached simultaneously.
+- **Trigger:** `push` only on **`develop`** and **`main`**, plus **any pull request**, a weekly schedule, and manual dispatch. Pushing a feature branch with no PR open does *not* start a build.
+- **Concurrency:** It cancels older runs of the same workflow on the same ref. ⚠️ This is a genuine trade-off, not a free saving — a cancelled run can lose a long build *and* skip its salvage push. Avoid pushing again while a build you care about is in flight.
+- **The Cache Loop:** It pulls from Cachix before starting, and pushes **continuously during the build** via `cachix watch-exec`, not only at the end. It also pushes when the build *fails*, so a broken package never costs you everything else.
+- **Split by host, not by architecture:** `build.yml` has no ARM job — every job runs on `ubuntu-latest`. Its build matrix splits over the two **x86_64 hosts** (`nixos-desktop`, `nixos-laptop`), one per runner. macOS is a separate workflow entirely.
+
+> 📖 For the full mechanics — the three push layers, why the Nix settings differ per platform, and the incident log behind the current design — see [`../ci/build-workflows.md`](../ci/build-workflows.md).
 
 ### The System Logic (`cachix.nix`)
 
 This file configures your machines to talk to the warehouse.
 
-- **Automatic Auth:** It uses `sops-nix` to securely inject your `CACHIX_AUTH_TOKEN` only on machines allowed to push (the Desktop).
-- **The "Rebuild-Push" Alias:**
-- It creates a shell alias `rebuild-push`.
-- **Function:** Rebuilds your system _and_ uploads the result to Cachix in one go.
-- **Use Case:** Use this on your Desktop when you want to share a build with your Laptop immediately without waiting for GitHub Actions.
+- **Automatic Auth:** `sops-nix` injects the token at `/run/secrets/cachix-push-token`. All three hosts currently enable push and reference it.
+- **Pushing happens automatically on switch.** The rebuild aliases are wrapped (`wrapCaches` in `modules/common/programs/shells/shell-aliases.nix`), so a normal `sw`/switch already pipes `nix path-info -r /run/current-system` into both `attic push` and `cachix push`. Each is suffixed `|| true`, so a cache being unreachable never fails your rebuild.
+- **The manual alias is `cachix-push`** (and `attic-push` for the NAS). There is no `rebuild-push` alias.
+- **Use Case:** run `cachix-push` when you want to share the *current* system closure immediately without waiting for GitHub Actions.
 
 ---
 
 ## 5. Troubleshooting & FAQ
 
-### ❓ Why does the Desktop have "Push" enabled?
+### ❓ Why do the machines have "Push" enabled?
 
 To act as a local cache server. If GitHub is down, or if you are iterating rapidly on a private branch, your Desktop serves as the "Builder" for your Laptop.
 
@@ -114,5 +140,9 @@ If you see your laptop building `firefox`, `gcc`, or `linux-kernel`, **STOP** (C
 
 ### ❓ What if I push to the same branch twice?
 
-The old build will **automatically stop**.
-We use `cancel-in-progress: true` in our workflow. If you push a fix 2 minutes after a previous push, the system kills the old (now obsolete) build to save resources and immediately starts the new one.
+Usually, yes — we use `cancel-in-progress: true`, so pushing a fix kills the now-obsolete build and starts the new one.
+
+⚠️ **Two caveats worth knowing:**
+
+1. It is not instantaneous or perfectly ordered. An older in-progress run has been observed continuing while newer runs in the same group were cancelled and the newest sat `pending` for 20+ minutes. GitHub's queue can be slow — be patient before assuming something is broken.
+2. **Cancelling is not free.** A cancelled run can lose everything it had left to do, including its salvage push to Cachix (observed in run 1115). What it already built is usually safe, because `watch-exec` uploads paths as they are produced — but if a build matters, let it finish.
