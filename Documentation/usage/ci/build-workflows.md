@@ -778,8 +778,43 @@ only protection against runner death (§6.3) and the justification for the
 | Darwin run 796 | Built exactly **one** derivation (`firefox-unwrapped-154.0`), which **never completed** — 2h03m of log silence, then cancelled. No completion event ⇒ no hook event. |
 | Run 1136 Linux legs | Genuinely cold and building thousands of derivations, but still in flight at time of writing. **This is the live candidate.** |
 
-**From 2026-08-19 onward this should not need forensics at all** — the
-`Report Continuous Push` step (§3, layer 1) answers it on every run.
+**From 2026-08-19 onward this needs no forensics** — the `Report Continuous Push`
+step (§3, layer 1) answers it on every run, and `Continuous Push Summary (log tail)`
+re-echoes the numbers as the final step so they survive the log cap (§11.3).
+
+### 11.2.1 The instrument is proven; the question is not
+
+Run 1142 (`6a8cf91`) was the first run carrying that summary step. It worked on both
+legs — on a success and on a failure, in a 37k-line and a 49k-line log — landing in
+the last ~90 lines each time:
+
+```
+=== continuous-push summary: nixos-desktop ===
+streamed=0   built=0   pushed=0   build_outcome=success
+                       (nixos-laptop)
+             built=0   pushed=8   build_outcome=failure
+```
+
+Values are self-consistent (desktop pushed 0 having built nothing; the laptop's 8
+came from the whole-store fallback after its build failed), and the
+`built > 0 && streamed == 0` alarm correctly stayed silent at `built=0`.
+
+**The verdict is still UNANSWERED**, by the rule stated above: `built=0` means
+nothing was compiled, so the hook never fired, so `streamed=0` carries no
+information. It is not evidence against streaming.
+
+### 11.2.2 🔑 Why a routine run can no longer answer this
+
+Cachix is now fully warm — populated by the flake-check pushes, the pre-warm legs
+and the whole-store fallbacks. A normal build therefore **substitutes everything and
+compiles nothing**, and Nix never fires the post-build hook for a substituted path.
+
+The workflows now work well enough that the property cannot be observed on a healthy
+run. It can only be seen when something genuinely has to build — i.e. after a real
+cache miss, which in practice means a `flake.lock` bump. **The Friday 05:00 UTC
+update-flake cron is exactly that event**, and the summary step means the numbers
+will be captured automatically when it happens. Do not chase this by hand again;
+read the summary line after the next dependency bump.
 
 ### 11.3 ⚠️ Investigating a run from a session — two API traps
 
@@ -840,6 +875,45 @@ Rejected, and why, so it is not re-proposed:
   `krit.programs.firefox.enable = false` **alone does not work** —
   `home-packages-darwin.nix` then re-adds `pkgs.firefox` to
   `environment.systemPackages` via `lib.optional (!isProgramEnabled browserName)`.
+
+### 11.4b 🔴 The store-cache save can fail SILENTLY on a full root filesystem
+
+Found on run 1142's `nixos-laptop` leg (job 96276704503), 2026-08-20:
+
+```
+zstd: error 70 : Write error : cannot write block : No space left on device
+/usr/bin/tar: cache.tzst: Wrote only 6144 of 10240 bytes
+/usr/bin/tar: Error is not recoverable: exiting now
+##[warning]Failed to save: "/usr/bin/tar" failed with error: … exit code 2
+##[warning]Cache save failed.
+Could not save the new cache.
+```
+
+with, at that moment:
+
+| filesystem | size | used | avail | use% | mounted |
+|---|---|---|---|---|---|
+| `/dev/root` | 145G | 143G | **1.7G** | **99%** | `/` |
+| `/dev/loop0` | 111G | 4.8G | 103G | 5% | `/nix` |
+
+`cache.tzst` is written to the **root** filesystem, which these runners keep at 99%
+by design, while `/nix` — expanded by `Maximize Nix Space` — sits at 5%. The tarball
+has nowhere to go, so the save fails and **the next run on that host starts cold**.
+
+🔴 **The part that matters is that it is silent.** `cache-nix-action` swallows the
+tar failure into a `##[warning]` and still reports the step outcome as `success`.
+The notifier's rendered source in that same job reads `if [ "success" = "failure" ]`
+on the cache-save branch, so the "Nix store cache save failed" warning never fired
+and Discord said nothing. This is exactly the failure class §8 exists to prevent:
+what CI builds must reach the cache, and a failure to do so must not be silent.
+
+Not yet fixed — the options (write the tarball to `/mnt`, shrink what is cached, or
+have the notifier detect the warning rather than the step outcome) are a judgement
+call for the owner.
+
+⚠️ **This also corrects the resource-exhaustion guess in §7.** Disk exhaustion is
+real, but it strikes `Save Nix Store Cache` writing to `/dev/root`, **not** the build
+on `/nix`. Treat it as proven for the cache save and still unproven for the build.
 
 ### 11.5 🟠 A run can ignore cancellation and jam the concurrency group
 
