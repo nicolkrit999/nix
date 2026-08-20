@@ -5,6 +5,7 @@ let
   # Darwin-compatible network tools
   sharedPackages = (with pkgs; [
     bandwhich # CLI utility for displaying current network utilization
+    ethtool # Utility for controlling network drivers and hardware
     #evebox # Web Based Event Viewer (GUI) for Suricata EVE Events in Elastic Search (compatible with darwin but currently broken) FIXME
     iperf3 # Tool to measure IP bandwidth using UDP or TCP
     jq # Lightweight and flexible command-line JSON processor
