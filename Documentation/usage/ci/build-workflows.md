@@ -723,17 +723,22 @@ Commits that make up the current CI state, oldest first:
 | `7e9a003` | `Continuous Push Summary (log tail)` — makes the watch-exec numbers survive the tail cap |
 | `6a8cf91` | merge of PR #46 (wallpaper test assertions), retargeted `main` → `develop` before merging |
 | `37fb53c` | run-1142 verdict + the silent store-cache save failure (§11.4b) |
-| *this commit* | failed-build error tail re-printed at end of job (§11.4c); §11.4 marked resolved |
+| `86bdfce` | failed-build error tail re-printed at end of job (§11.4c); §11.4 marked resolved |
+| *this commit* | `Show Package Tree` no longer fails green after the store-cache GC (§11.4d); §11.4e recorded |
 
-Where each workflow stands at `6a8cf91`:
+Where each workflow stands at `86bdfce` — **all five green**:
 
 | workflow | state |
 |---|---|
-| `tests-nixos.yml` | ✅ green step by step — `minimal-defaults`, `spec-contract`, `conflicting-modules`, `custom-shells`, `arch-compat (aarch64)`, **`wallpapers`**, summary |
-| `tests-darwin.yml` | ✅ green (run 334) |
-| `build-darwin.yml` | ✅ green (run 802) — see §11.4, resolved |
-| `build.yml` | 🟠 `flake-check` ✅, all 8 prewarm legs ✅, `nixos-desktop` ✅, **`nixos-laptop` ❌** — environmental, not config: see §11.4c |
-| `check-workflow-invariants` | ✅ 147 invariants across 6 workflow files |
+| `tests-nixos.yml` | ✅ run 336 (and green step by step at `6a8cf91`: `minimal-defaults`, `spec-contract`, `conflicting-modules`, `custom-shells`, `arch-compat (aarch64)`, **`wallpapers`**, summary) |
+| `tests-darwin.yml` | ✅ run 335 |
+| `build-darwin.yml` | ✅ run 803 — see §11.4, resolved |
+| `build.yml` | ✅ run 1143 — all 12 jobs, `nixos-laptop` included (§11.4c) |
+| `check-workflow-invariants` | ✅ run 20 — 147 invariants across 6 workflow files |
+
+⚠️ "Green" is not the same as "clean": run 1143 was reported green with a step
+exiting 1 on both legs (§11.4d) and the local store cache not restoring at all
+(§11.4e).
 
 Settled 2026-08-19, with evidence:
 
@@ -979,6 +984,11 @@ it. Job-level detail:
 configuration.** Do not go looking for a bug in the laptop's Nix config on the
 strength of run 1142.
 
+Run **1143** (`86bdfce`) is the second control: `nixos-laptop` built **green in
+10m53s**, desktop in 11m58s, the whole run green. Two green runs either side of
+one red one, on effectively the same Nix inputs — treat run 1142's laptop leg as
+a one-off until something reproduces it.
+
 🔴 **The actual error is unrecoverable, and that is its own defect.** The build
 step ended at 01:03:30; `Save Nix Store Cache` then ran for 2m08s and emitted
 4000+ GC `deleting '/nix/store/...'` lines. Since the logs API returns only a
@@ -998,6 +1008,63 @@ failure will be diagnosable from the API alone.
 **NOT ESTABLISHED**. Disk pressure is the obvious suspect (`/dev/root` was at 99%
 with 1.7G free, and `TMPDIR` lives there — see §11.4b), but that is a hypothesis,
 not a finding. **Do not write it up as the cause.**
+
+### 11.4d ✅ FIXED — `Show Package Tree` failed on every Linux build, silently
+
+Found on run 1143 (`86bdfce`), on **both** legs, in a run GitHub reported as
+fully green:
+
+```
+error: path '/nix/store/…-nixos-system-nixos-laptop-26.05.20260819.b18a4b9' is not valid
+##[error]Process completed with exit code 1.
+```
+
+`continue-on-error: true` turns a step's *conclusion* into `success` even when
+its *outcome* is `failure`, and the job listing shows the conclusion — so
+`Show Package Tree` has been exiting 1 while reading green.
+
+**The ordering is not the bug.** `Save Nix Store Cache` runs
+`nix store gc` down to `gc-max-store-size-linux: 7000000000` and runs *before*
+the diagnostics on purpose (run 1095: a `du -sh /nix/store` placed ahead of the
+persisting steps burned the whole cancellation grace window and was SIGTERM'd).
+The built toplevel is not a GC root, so on a warm run it is collected by the
+time the tree is printed. ⛔ **Do not "fix" this by moving the step ahead of the
+save.**
+
+✅ Fixed by making the step filter `outpaths.txt` down to paths that are still
+valid and say plainly when none are, instead of erroring. Darwin needs no change
+— `build-darwin.yml` has no store-cache save, hence no GC, and its tree step has
+been succeeding (runs 802, 803).
+
+⚠️ **The general lesson, worth more than the fix:** `continue-on-error: true` is
+all over these workflows and it makes *every* one of those steps capable of
+failing green. §11.4b was the same shape. When auditing, read the step's
+**outcome**, never its conclusion — and remember the job-level listing only
+gives you the conclusion.
+
+### 11.4e 🔴 The local store cache appears never to be restored
+
+Run 1143, both legs: `Restore Nix Store Cache` took **1 second**
+(07:49:32→07:49:33 desktop, 07:50:18→07:50:18 laptop) and `Verify Restored
+Store` 0s. A multi-gigabyte tarball cannot be restored in a second — that is a
+**cache miss**, on a run whose `flake.lock` was unchanged from the previous one,
+with `restore-prefixes-first-match` correctly set to
+`nix-${{ runner.os }}-<lock-hash>-<host>`.
+
+Consistent with §11.4b: if the save silently ENOSPC'd, there is nothing to
+restore. The other candidate is GitHub's 10 GB per-repo LRU eviction, which two
+multi-GB host stores would blow straight through. **Which of the two it is has
+NOT been established** — do not write either up as the cause.
+
+What it means in practice: the builds are being carried entirely by **Cachix
+substitution**, not by the local store cache, which is why they still come in at
+~11–12 minutes with `built=0`. It also raises the stakes on §11.4b from "the
+next run starts cold" to "every run starts cold".
+
+⚠️ Note for whoever investigates: on run 1143 the cache-save output was itself
+**unreadable** — `Show Package Tree` printed so many store paths that the entire
+5000-line tail covered only the final **3 seconds** of the job. §11.4d's fix
+also clears that window, so the next run's save output should be readable.
 
 ### 11.5 🟠 A run can ignore cancellation and jam the concurrency group
 

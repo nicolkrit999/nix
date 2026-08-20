@@ -1063,18 +1063,44 @@ jobs:
           echo "--- Swap ---"
           free -h
 
+      # `Save Nix Store Cache` above runs `nix store gc` down to
+      # gc-max-store-size BEFORE this step - deliberately, see its comment - and
+      # the built toplevel is not a GC root, so by the time this runs the
+      # closure it would print has usually just been collected. Run 1143 hit
+      # exactly that on BOTH legs:
+      #
+      #   error: path '/nix/store/...-nixos-system-nixos-laptop-...' is not valid
+      #   ##[error]Process completed with exit code 1.
+      #
+      # `continue-on-error: true` turned that into a step reported as `success`,
+      # so it went unnoticed - the silent-failure class §8 exists to prevent.
+      # The ordering is not the bug and must not be "fixed" by moving this step
+      # ahead of the save: run 1095 is why nothing that merely prints may run
+      # before the steps that persist. So ask only about paths still valid, and
+      # say plainly when there are none.
       - name: Show Package Tree (${{ matrix.host }})
         if: always()
         continue-on-error: true
         run: |
-          if [ -s outpaths.txt ]; then
-            # shellcheck disable=SC2046  # word splitting is REQUIRED here:
-          # one store path per line must become one argument per path.
-          # Quoting would pass the whole file as a single argument.
-          nix path-info -sh -r $(cat outpaths.txt)
-          else
+          if [ ! -s outpaths.txt ]; then
             echo "No output paths were built."
+            exit 0
           fi
+          VALID=""
+          while read -r p; do
+            [ -n "$p" ] || continue
+            if nix path-info "$p" >/dev/null 2>&1; then
+              VALID="$VALID $p"
+            fi
+          done < outpaths.txt
+          if [ -z "$VALID" ]; then
+            echo "The built closure is no longer in the store - the store-cache save"
+            echo "garbage-collected it down to gc-max-store-size. Nothing to show."
+            exit 0
+          fi
+          # shellcheck disable=SC2086  # word splitting is REQUIRED here:
+          # one store path per word must become one argument per path.
+          nix path-info -sh -r $VALID
 
       # ONE consolidated notice per job, replacing the previous separate ones.
       # The old split was structurally unsound: hard failures fired on
