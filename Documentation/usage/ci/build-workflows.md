@@ -726,7 +726,8 @@ Commits that make up the current CI state, oldest first:
 | `86bdfce` | failed-build error tail re-printed at end of job (§11.4c); §11.4 marked resolved |
 | `1656261` | `Show Package Tree` no longer fails green after the store-cache GC (§11.4d); §11.4e recorded |
 | `1689924` | `root-safe-haven: 12288` — the store cache can finally be written (§11.4b, §11.4e) |
-| *this commit* | run 1145 evidence: 2.70 GiB saved, "Saved the new cache." |
+| `66f5519` | run 1145 evidence: 2.70 GiB saved, "Saved the new cache." — built nothing, see the marker trap in §11.4e |
+| *this commit* | re-arms the restore proof |
 
 Where each workflow stands (`86bdfce`/`1656261`) — **all five green**:
 
@@ -1106,6 +1107,15 @@ proves the restore.** Expect `Restore Nix Store Cache` to take tens of seconds
 rather than one, and the build to start from a populated store. If it is still
 1 second, the problem is the key or the retention, not the space — go read the
 save log of the run before it first.
+
+⚠️ **A trap that cost one round here.** Commit `66f5519` was pushed deliberately
+*without* a skip marker, to be that proof run — and created **no run at all**.
+Its message contained the sentence "No `[skip ci]` on purpose", and GitHub
+matches the marker **anywhere in the commit message**, quoted, negated or merely
+discussed. Never name `[skip ci]`, `[ci skip]`, `[skip actions]` or
+`[actions skip]` in prose inside a commit message you want to build; write
+"deliberately not skipped" instead. This is the same shape as the `cachix-auth`
+literal-text trap in §8: a string inside prose being read as the real thing.
 
 What it means in practice: the builds are being carried entirely by **Cachix
 substitution**, not by the local store cache, which is why they still come in at
