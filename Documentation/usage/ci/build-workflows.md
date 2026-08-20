@@ -727,7 +727,7 @@ Commits that make up the current CI state, oldest first:
 | `1656261` | `Show Package Tree` no longer fails green after the store-cache GC (§11.4d); §11.4e recorded |
 | `1689924` | `root-safe-haven: 12288` — the store cache can finally be written (§11.4b, §11.4e) |
 | `66f5519` | run 1145 evidence: 2.70 GiB saved, "Saved the new cache." — built nothing, see the marker trap in §11.4e |
-| *this commit* | re-arms the restore proof |
+| `03c0784` | re-arms the restore proof; run 1146 confirms restore, save and green on both legs |
 
 Where each workflow stands (`86bdfce`/`1656261`) — **all five green**:
 
@@ -1086,7 +1086,7 @@ failing green. §11.4b was the same shape. When auditing, read the step's
 **outcome**, never its conclusion — and remember the job-level listing only
 gives you the conclusion.
 
-### 11.4e ✅ RESOLVED — the local store cache was never restored, because it was never saved
+### 11.4e ✅ RESOLVED — the store cache now saves AND restores (but buys resilience, not speed)
 
 Run 1143, both legs: `Restore Nix Store Cache` took **1 second**
 (07:49:32→07:49:33 desktop, 07:50:18→07:50:18 laptop) and `Verify Restored
@@ -1100,13 +1100,46 @@ eviction.** The save failed before a single byte was uploaded, so there had neve
 been anything for GitHub's 10 GB LRU to evict. Nothing was wrong with the restore
 keys.
 
-⏳ **One step still unwitnessed.** Run 1145 saved 2.70 GiB successfully, but its
-own restore still took 1 second — necessarily, since the save it would need
-happens later in the same job. **The first run after `1689924` is the one that
-proves the restore.** Expect `Restore Nix Store Cache` to take tens of seconds
-rather than one, and the build to start from a populated store. If it is still
-1 second, the problem is the key or the retention, not the space — go read the
-save log of the run before it first.
+✅ **Proven end to end on run 1146** (`03c0784`), the first run to start after a
+successful save. `Restore Nix Store Cache`, which had been 0–1 s on every run
+before it:
+
+| job | restore |
+|---|---|
+| `flake-check` | **65 s** |
+| `nixos-laptop` | **88 s** |
+| `nixos-desktop` | **97 s** |
+
+A miss returns immediately; these are hits. (The restore's own log lines sit
+before the retrievable tail, so the durations — not the text — are the evidence.)
+Note `flake-check` restores too: its prefix key `nix-Linux-<lock-hash>` matches
+the build job's host-specific save. Run 1146 then saved again cleanly —
+`Sent 2857915588 of 2857915588 (100.0%), 278.0 MBs/sec` / `Saved the new cache.`,
+with `/dev/root` at 12G free.
+
+⚠️ **Do not expect this to make CI faster. It does not.** Build-step times:
+
+| run | desktop | laptop | restored? |
+|---|---|---|---|
+| 1143 | 11m58s | 10m53s | no |
+| 1144 | 11m44s | 10m42s | no |
+| 1145 | 13m19s | 12m04s | no |
+| **1146** | **11m07s** | **9m54s** | **yes** |
+
+Run 1146 is the fastest of the four on both legs — by ~40–50 s — while paying
+88–97 s for the restore itself. That is a wash, and the spread across 1143–1145
+shows the run-to-run variance is bigger than the effect. **The reason is §11.2.2:
+Cachix is fully warm, so a healthy build substitutes everything and compiles
+nothing** (`built=0` on every leg of every run). The local store cache is not
+buying speed here; it is buying **resilience** — a second source if Cachix or
+`cache.nixos.org` is slow or unavailable, and a warm store for a retry after a
+killed run.
+
+🟠 **Open question for the owner, now that the numbers exist:** whether ~3 minutes
+of save plus ~1.5 minutes of restore per leg is worth that resilience, or whether
+the store cache should simply be dropped and Cachix trusted as the single source.
+Nobody has to decide today — but decide on these numbers, not on the assumption
+that a cache must be faster.
 
 ⚠️ **A trap that cost one round here.** Commit `66f5519` was pushed deliberately
 *without* a skip marker, to be that proof run — and created **no run at all**.
