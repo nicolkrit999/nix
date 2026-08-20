@@ -1,2 +1,3 @@
 - [JetKVM EDID firmware solution](project_jetkvm_edid_firmware_solution.md) - CONFIG_DRM_LOAD_EDID_FIRMWARE enabled; use edid-generator + boot.kernelParams
 - [Vicinae bluetooth extension still blocked](vicinae_bluetooth_extension_blocked.md) - node-gyp sandbox issue #314 OPEN; flake still excludes extension; keep workaround
+- [Vicinae services→programs rename warning](vicinae_services_programs_rename_warning.md) - mkRenamedOptionModule self-warns; no upstream fix; removing empty themes={} won't help
