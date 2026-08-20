@@ -724,9 +724,10 @@ Commits that make up the current CI state, oldest first:
 | `6a8cf91` | merge of PR #46 (wallpaper test assertions), retargeted `main` → `develop` before merging |
 | `37fb53c` | run-1142 verdict + the silent store-cache save failure (§11.4b) |
 | `86bdfce` | failed-build error tail re-printed at end of job (§11.4c); §11.4 marked resolved |
-| *this commit* | `Show Package Tree` no longer fails green after the store-cache GC (§11.4d); §11.4e recorded |
+| `1656261` | `Show Package Tree` no longer fails green after the store-cache GC (§11.4d); §11.4e recorded |
+| *this commit* | `root-safe-haven: 12288` — the store cache can finally be written (§11.4b, §11.4e) |
 
-Where each workflow stands at `86bdfce` — **all five green**:
+Where each workflow stands (`86bdfce`/`1656261`) — **all five green**:
 
 | workflow | state |
 |---|---|
@@ -736,9 +737,10 @@ Where each workflow stands at `86bdfce` — **all five green**:
 | `build.yml` | ✅ run 1143 — all 12 jobs, `nixos-laptop` included (§11.4c) |
 | `check-workflow-invariants` | ✅ run 20 — 147 invariants across 6 workflow files |
 
-⚠️ "Green" is not the same as "clean": run 1143 was reported green with a step
-exiting 1 on both legs (§11.4d) and the local store cache not restoring at all
-(§11.4e).
+⚠️ "Green" is not the same as "clean". Run 1143 was reported green with a step
+exiting 1 on both legs (§11.4d) and the store cache silently not saving or
+restoring at all (§11.4b, §11.4e). Both are now fixed — but they were fixed
+because someone read the step *outcomes* and the timings, not the tick marks.
 
 Settled 2026-08-19, with evidence:
 
@@ -919,7 +921,7 @@ Rejected, and why, so it is not re-proposed:
   `home-packages-darwin.nix` then re-adds `pkgs.firefox` to
   `environment.systemPackages` via `lib.optional (!isProgramEnabled browserName)`.
 
-### 11.4b 🔴 The store-cache save can fail SILENTLY on a full root filesystem
+### 11.4b ✅ FIXED (space) / 🟠 OPEN (silence) — the store-cache save on a full root filesystem
 
 Found on run 1142's `nixos-laptop` leg (job 96276704503), 2026-08-20:
 
@@ -950,9 +952,31 @@ on the cache-save branch, so the "Nix store cache save failed" warning never fir
 and Discord said nothing. This is exactly the failure class §8 exists to prevent:
 what CI builds must reach the cache, and a failure to do so must not be silent.
 
-Not yet fixed — the options (write the tarball to `/mnt`, shrink what is cached, or
-have the notifier detect the warning rather than the step outcome) are a judgement
-call for the owner.
+✅ **Fixed on run 1144's evidence: `root-safe-haven: 12288`.** The cause was not
+mysterious once the log window was readable (§11.4d cleared it). `Maximize Nix
+Space` — `wimpysworld/nothing-but-nix` with `hatchet-protocol: cleave` — defaults
+`root-safe-haven` to **2048 MB** and hands everything else to the /nix btrfs, so
+root ran at 1.7G free while /nix held 4.5G of 110G. Run 1144's laptop leg, in
+full:
+
+```
+Current store size in bytes: 6721367680.
+##[warning]You are running out of disk space. … Free space left: 60 MB
+zstd: error 70 : Write error : cannot write block : No space left on device
+/usr/bin/tar: cache.tzst: Cannot write: Broken pipe
+##[warning]Cache save failed.
+…
+Nothing to report - no notification sent.
+```
+
+A 6.26 GiB store cannot be tarred into 1.7 GB of headroom. 12 GB covers a
+zstd-compressed store at the 7 GB `gc-max-store-size` ceiling with room to spare
+and costs nothing — /nix keeps ~98G for a store that uses 4.5G.
+
+⚠️ Still true and still unfixed: the **silence**. `cache-nix-action` reports the
+step outcome as `success` regardless, so the notifier's cache-save branch is dead
+code. Fixing the space stops this particular failure; it does not make the next
+one audible. Wiring the notifier to the warning text is still open.
 
 ⚠️ **This also corrects the resource-exhaustion guess in §7.** Disk exhaustion is
 real, but it strikes `Save Nix Store Cache` writing to `/dev/root`, **not** the build
@@ -1042,7 +1066,7 @@ failing green. §11.4b was the same shape. When auditing, read the step's
 **outcome**, never its conclusion — and remember the job-level listing only
 gives you the conclusion.
 
-### 11.4e 🔴 The local store cache appears never to be restored
+### 11.4e ✅ RESOLVED — the local store cache was never restored, because it was never saved
 
 Run 1143, both legs: `Restore Nix Store Cache` took **1 second**
 (07:49:32→07:49:33 desktop, 07:50:18→07:50:18 laptop) and `Verify Restored
@@ -1051,10 +1075,10 @@ Store` 0s. A multi-gigabyte tarball cannot be restored in a second — that is a
 with `restore-prefixes-first-match` correctly set to
 `nix-${{ runner.os }}-<lock-hash>-<host>`.
 
-Consistent with §11.4b: if the save silently ENOSPC'd, there is nothing to
-restore. The other candidate is GitHub's 10 GB per-repo LRU eviction, which two
-multi-GB host stores would blow straight through. **Which of the two it is has
-NOT been established** — do not write either up as the cause.
+✅ **Established on run 1144: it is the ENOSPC save (§11.4b), not LRU
+eviction.** The save fails before a single byte is uploaded, so there has never
+been anything for GitHub's 10 GB LRU to evict. Nothing was wrong with the restore
+keys.
 
 What it means in practice: the builds are being carried entirely by **Cachix
 substitution**, not by the local store cache, which is why they still come in at

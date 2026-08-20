@@ -725,11 +725,30 @@ jobs:
           sudo swapon /swapfile
           free -h
 
+      # root-safe-haven is the reason the store cache works at all. It defaults
+      # to 2048 (MB), and `cleave` hands everything else to the /nix btrfs - so
+      # the root filesystem sat at 145G total / 143G used / 1.7G free while /nix
+      # sat at 110G with 4.5G used. `Save Nix Store Cache` writes cache.tzst to
+      # the ROOT filesystem, so it ran out of space every single time:
+      #
+      #   Current store size in bytes: 6721367680.
+      #   ##[warning]You are running out of disk space. … Free space left: 60 MB
+      #   zstd: error 70 : Write error : cannot write block : No space left on device
+      #   ##[warning]Cache save failed.
+      #
+      # reported as step outcome `success` (see §11.4b), so nothing ever landed
+      # in the cache and every subsequent `Restore Nix Store Cache` completed in
+      # ONE SECOND - a miss. Runs 1142, 1143 and 1144 all show it.
+      #
+      # 12 GB of headroom covers a zstd-compressed store at the 7 GB
+      # gc-max-store-size ceiling with room to spare, and costs nothing: /nix
+      # keeps ~98G for a store that uses 4.5G.
       - name: Maximize Nix Space
         continue-on-error: true
         uses: wimpysworld/nothing-but-nix@main
         with:
           hatchet-protocol: "cleave"
+          root-safe-haven: 12288
           witness-carnage: true
           nix-permission-edict: false
 
