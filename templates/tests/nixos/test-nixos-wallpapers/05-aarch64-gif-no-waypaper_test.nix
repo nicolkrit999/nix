@@ -15,8 +15,8 @@ nix-tests.runTests {
   "W05: aarch64 gif+static wallpaper, no waypaper" = helpers: {
     "hyprland exec contains awww-daemon" =
       helpers.isTrue (H.hyprExecHas "awww-daemon" config);
-    "hyprland exec contains mpvpaper -f -o \"loop mute=yes\" ALL (gif path)" =
-      helpers.isTrue (H.hyprExecHas "mpvpaper -f -o \\\"loop mute=yes\\\" ALL" config);
+    "hyprland exec contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL (gif path)" =
+      helpers.isTrue (H.hyprExecHas "mpvpaper -f -o \\\"loop mute=yes panscan=1.0\\\" ALL" config);
     "hyprland exec contains gif filename" =
       helpers.isTrue (H.hyprExecHas gifFile config);
     "hyprland exec does NOT contain awww img" =
@@ -25,12 +25,12 @@ nix-tests.runTests {
       helpers.isFalse (H.hyprExecHas "waypaper --restore" config);
     "mango exec contains awww-daemon" =
       helpers.isTrue (H.mangoExecHas "awww-daemon" config);
-    "mango exec contains mpvpaper -f -o \"loop mute=yes\" ALL" =
-      helpers.isTrue (H.mangoExecHas "mpvpaper -f -o \"loop mute=yes\" ALL" config);
+    "mango exec contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" =
+      helpers.isTrue (H.mangoExecHas "mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" config);
     "niri spawn contains awww-daemon" =
       helpers.isTrue (H.niriSpawnHas "awww-daemon" config);
-    "niri spawn contains mpvpaper -f -o \"loop mute=yes\" ALL" =
-      helpers.isTrue (H.niriSpawnHas "mpvpaper -f -o \"loop mute=yes\" ALL" config);
+    "niri spawn contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" =
+      helpers.isTrue (H.niriSpawnHas "mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" config);
     "gnome uses static store path (not gifURL)" =
       helpers.isTrue (lib.hasPrefix "file:///nix/store/" (builtins.toString gnomeBgUri));
     "kde plasma wallpaper list non-empty (static)" =

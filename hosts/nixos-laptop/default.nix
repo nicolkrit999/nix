@@ -693,6 +693,8 @@ delib.host {
         local-packages.enable = true;
       };
 
+      krit.services.windows-mount.enable = true;
+
       krit.services.network-tools.enable = true;
 
       krit.services.logitech = {

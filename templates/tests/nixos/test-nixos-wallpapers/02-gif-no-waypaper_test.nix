@@ -21,8 +21,8 @@ nix-tests.runTests {
   "W02: x86_64 gif+static wallpaper, no waypaper" = helpers: {
     "hyprland exec contains awww-daemon" =
       helpers.isTrue (H.hyprExecHas "awww-daemon" config);
-    "hyprland exec contains mpvpaper -f -o \"loop mute=yes\" ALL (gif dispatched via mpvpaper, wildcard monitor)" =
-      helpers.isTrue (H.hyprExecHas "mpvpaper -f -o \\\"loop mute=yes\\\" ALL" config);
+    "hyprland exec contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL (gif dispatched via mpvpaper, wildcard monitor)" =
+      helpers.isTrue (H.hyprExecHas "mpvpaper -f -o \\\"loop mute=yes panscan=1.0\\\" ALL" config);
     "hyprland exec contains gif filename (gif path chosen over static)" =
       helpers.isTrue (H.hyprExecHas gifFile config);
     "hyprland exec does NOT contain awww img (gif wins over static)" =
@@ -31,16 +31,16 @@ nix-tests.runTests {
       helpers.isFalse (H.hyprExecHas "waypaper --restore" config);
     "mango exec contains awww-daemon" =
       helpers.isTrue (H.mangoExecHas "awww-daemon" config);
-    "mango exec contains mpvpaper -f -o \"loop mute=yes\" ALL" =
-      helpers.isTrue (H.mangoExecHas "mpvpaper -f -o \"loop mute=yes\" ALL" config);
+    "mango exec contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" =
+      helpers.isTrue (H.mangoExecHas "mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" config);
     "mango exec does NOT contain awww img" =
       helpers.isFalse (H.mangoExecHas "awww img" config);
     "mango exec does NOT contain waypaper --restore" =
       helpers.isFalse (H.mangoExecHas "waypaper --restore" config);
     "niri spawn contains awww-daemon" =
       helpers.isTrue (H.niriSpawnHas "awww-daemon" config);
-    "niri spawn contains mpvpaper -f -o \"loop mute=yes\" ALL" =
-      helpers.isTrue (H.niriSpawnHas "mpvpaper -f -o \"loop mute=yes\" ALL" config);
+    "niri spawn contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" =
+      helpers.isTrue (H.niriSpawnHas "mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" config);
     "niri spawn does NOT contain awww img" =
       helpers.isFalse (H.niriSpawnHas "awww img" config);
     "niri spawn does NOT contain waypaper --restore" =
