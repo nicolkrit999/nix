@@ -709,16 +709,33 @@ Keep this section honest — it is what stops the next person re-testing settled
 things and trusting unsettled ones. **If you are a session that has lost its
 context, start here.**
 
-### 11.1 State as of 2026-08-19 20:00 UTC
+### 11.1 State as of 2026-08-20
 
-Branch `develop` @ `469ba73`. Two commits landed this evening:
+Branch `develop`. Nothing is running; there is no unpushed or unsalvaged work.
+Commits that make up the current CI state, oldest first:
 
 | commit | what |
 |---|---|
 | `05337d4` | push-count off-by-one fixed at all six sites + invariant `push-count-anchored` |
 | `469ba73` | `Report Continuous Push (watch-exec)` self-proving step on all three watch-exec builds |
+| `ffe698f` / `6bc8825` | this section (§11) written and fact-checked |
+| `01ab644` | runner-death diagnosis corrected — three of four "deaths" were self-inflicted cancellations |
+| `7e9a003` | `Continuous Push Summary (log tail)` — makes the watch-exec numbers survive the tail cap |
+| `6a8cf91` | merge of PR #46 (wallpaper test assertions), retargeted `main` → `develop` before merging |
+| `37fb53c` | run-1142 verdict + the silent store-cache save failure (§11.4b) |
+| *this commit* | failed-build error tail re-printed at end of job (§11.4c); §11.4 marked resolved |
 
-Settled today, with evidence:
+Where each workflow stands at `6a8cf91`:
+
+| workflow | state |
+|---|---|
+| `tests-nixos.yml` | ✅ green step by step — `minimal-defaults`, `spec-contract`, `conflicting-modules`, `custom-shells`, `arch-compat (aarch64)`, **`wallpapers`**, summary |
+| `tests-darwin.yml` | ✅ green (run 334) |
+| `build-darwin.yml` | ✅ green (run 802) — see §11.4, resolved |
+| `build.yml` | 🟠 `flake-check` ✅, all 8 prewarm legs ✅, `nixos-desktop` ✅, **`nixos-laptop` ❌** — environmental, not config: see §11.4c |
+| `check-workflow-invariants` | ✅ 147 invariants across 6 workflow files |
+
+Settled 2026-08-19, with evidence:
 
 - ✅ `nix flake check` passes **cold on both platforms** at `f46fc67` — Linux
   run 1136 flake-check 4m07s, Darwin run 796 `Check Flake` 16:57:41→16:59:39.
@@ -838,7 +855,28 @@ read the summary line after the next dependency bump.
   or after the build step's `started_at`, with the next step never started, is
   inside the build step.
 
-### 11.4 🔴 Darwin is red until Firefox 154.0 reaches `cache.nixos.org`
+⚠️ **Corollary, learned the hard way on run 1142 (§11.4c): a step that runs
+*after* the failing one can flood the tail and bury the error.** `Save Nix Store
+Cache` emitted 4000+ GC `deleting '/nix/store/...'` lines in 54 seconds, so the
+last 4000 lines the API would return covered only those 54 seconds — the nix
+error was unreachable. `get_check_run` is not a way around it either: it returns
+an empty `output.text` for these jobs. This is why both workflows now re-print
+`tail -n 100 watch.log` as the very last thing a failed build job does.
+
+### 11.4 ✅ RESOLVED — Darwin was red until Firefox 154.0 reached `cache.nixos.org`
+
+✅ **Resolved 2026-08-19 without a config change, exactly as predicted.** Darwin
+runs **800, 801 and 802** all succeeded. Run 802 (`6a8cf91`, job 96261106836):
+`Build Darwin Configuration` **5m01s**, whole job **8m56s**, and its
+`Continuous Push Summary` reads `streamed=0 built=0 pushed=0
+build_outcome=success` — **zero derivations compiled**, i.e. the substituted
+profile is back and Firefox 154.0 now comes from a binary cache. The "wait it
+out" decision was correct; nothing needed to be disabled or re-timed.
+
+The rest of this section is the historical record. Keep it: the *rejected*
+options at the end are the part that stops the wrong fix being re-proposed the
+next time a Darwin package lags upstream.
+
 
 **Root cause, established 2026-08-19.** `flake.lock` commit `4ad758a`
 (12:09:07 UTC) moved firefox **153.0.4 → 154.0**. The partition is clean:
@@ -914,6 +952,52 @@ call for the owner.
 ⚠️ **This also corrects the resource-exhaustion guess in §7.** Disk exhaustion is
 real, but it strikes `Save Nix Store Cache` writing to `/dev/root`, **not** the build
 on `/nix`. Treat it as proven for the cache save and still unproven for the build.
+
+### 11.4c 🟠 Run 1142's `nixos-laptop` failure is NOT a Nix-code failure
+
+Run 1142 (`develop`, `6a8cf91`) failed on its `nixos-laptop` leg. Run **1141**
+(`fix/wallpaper-test-mpvpaper-assertions`, `84d99ff`) built the **same** laptop
+configuration **green**, in 11m28s. The two commits are a controlled experiment:
+
+```
+$ git diff --name-only 84d99ff 6a8cf91
+.github/workflows/build-darwin.yml
+.github/workflows/build.yml
+```
+
+Nothing else. No `.nix` file, no `flake.lock`, no host file — the Nix inputs are
+byte-identical, and the only workflow change was the final
+`Continuous Push Summary` step, which runs *after* the build and cannot influence
+it. Job-level detail:
+
+| run | head | laptop `Build` step | rest of the job |
+|---|---|---|---|
+| 1141 | `84d99ff` | ✅ success, 11m28s | all green |
+| 1142 | `6a8cf91` | ❌ failure, 10m40s | all green (backstop push uploaded 8 paths) |
+
+**Same inputs, opposite outcomes ⇒ the failure is environmental, not
+configuration.** Do not go looking for a bug in the laptop's Nix config on the
+strength of run 1142.
+
+🔴 **The actual error is unrecoverable, and that is its own defect.** The build
+step ended at 01:03:30; `Save Nix Store Cache` then ran for 2m08s and emitted
+4000+ GC `deleting '/nix/store/...'` lines. Since the logs API returns only a
+**tail** (§11.3), the last 4000 lines it will hand back cover just the final 54
+seconds of the job — the nix error message sits before that window and cannot be
+reached. `get_check_run` returns empty `output.text` for these jobs, so there is
+no second route to it.
+
+✅ **Fixed forward.** The final `Continuous Push Summary` step in both workflows
+now re-prints `tail -n 100 watch.log` when `steps.build.outcome != 'success'`.
+`watch.log` is the build's own stdout+stderr (it is the `tee` target of the
+`watch-exec` pipe), so its tail *is* the nix error — re-emitting it as the last
+thing the job prints puts it back inside the retrievable window. The next laptop
+failure will be diagnosable from the API alone.
+
+⚠️ Until such a run happens, the **cause** of run 1142's laptop failure remains
+**NOT ESTABLISHED**. Disk pressure is the obvious suspect (`/dev/root` was at 99%
+with 1.7G free, and `TMPDIR` lives there — see §11.4b), but that is a hypothesis,
+not a finding. **Do not write it up as the cause.**
 
 ### 11.5 🟠 A run can ignore cancellation and jam the concurrency group
 

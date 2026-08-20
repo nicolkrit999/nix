@@ -415,4 +415,19 @@ jobs:
           echo "pushed=${{ steps.cachix_push.outputs.pushed }}"
           echo "build_outcome=${{ steps.build.outcome }}"
 
+          # The same tail cap also swallows the ERROR. Run 1142's nixos-laptop
+          # leg failed inside `Build nixos-laptop` at 01:03:30; the `Save Nix
+          # Store Cache` step that ran afterwards emitted 4000+ GC
+          # "deleting '/nix/store/...'" lines in 54 seconds, which pushed the nix
+          # error message out of the retrievable tail entirely - the last 4000
+          # lines the API would return covered only the final 54 seconds of the
+          # job. The failure was diagnosable ONLY by comparing it against run
+          # 1141, which built the byte-identical tree green. watch.log holds the
+          # build's own stdout+stderr, so re-printing its tail here puts the
+          # error back inside the window the API will return.
+          if [ "${{ steps.build.outcome }}" != "success" ] && [ -f watch.log ]; then
+            echo "=== tail of the failed build (re-printed so it survives the log tail cap) ==="
+            tail -n 100 watch.log
+          fi
+
 
