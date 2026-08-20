@@ -725,7 +725,8 @@ Commits that make up the current CI state, oldest first:
 | `37fb53c` | run-1142 verdict + the silent store-cache save failure (§11.4b) |
 | `86bdfce` | failed-build error tail re-printed at end of job (§11.4c); §11.4 marked resolved |
 | `1656261` | `Show Package Tree` no longer fails green after the store-cache GC (§11.4d); §11.4e recorded |
-| *this commit* | `root-safe-haven: 12288` — the store cache can finally be written (§11.4b, §11.4e) |
+| `1689924` | `root-safe-haven: 12288` — the store cache can finally be written (§11.4b, §11.4e) |
+| *this commit* | run 1145 evidence: 2.70 GiB saved, "Saved the new cache." |
 
 Where each workflow stands (`86bdfce`/`1656261`) — **all five green**:
 
@@ -971,7 +972,25 @@ Nothing to report - no notification sent.
 
 A 6.26 GiB store cannot be tarred into 1.7 GB of headroom. 12 GB covers a
 zstd-compressed store at the 7 GB `gc-max-store-size` ceiling with room to spare
-and costs nothing — /nix keeps ~98G for a store that uses 4.5G.
+and costs nothing — /nix keeps ~93G for a store that uses 4.5G.
+
+✅ **Proven on run 1145** (`1689924`), `nixos-laptop`, the first successful store
+cache save on record here:
+
+```
+Current store size in bytes: 6721367680.
+Saving a new cache with the key "nix-Linux-…-nixos-laptop-32350723106-1".
+…
+Sent 2895665968 of 2895665968 (100.0%), 161.4 MBs/sec
+Saved the new cache.
+```
+
+**2.70 GiB uploaded, 100%, saved.** Not one `zstd: error`, `No space left`, or
+`Cache save failed` on either leg. Disk afterwards: `/dev/root 145G 133G 12G 92%`
+and `/nix 100G 4.5G 93G 5%` — so the tarball needed ~2.7 GB and had never had
+more than 1.7 GB to work with. (The one remaining `Failed to save:` line in these
+logs is the unrelated `docker.io--tonistiigi--binfmt` action cache, which reports
+a concurrent reservation on every run and is harmless.)
 
 ⚠️ Still true and still unfixed: the **silence**. `cache-nix-action` reports the
 step outcome as `success` regardless, so the notifier's cache-save branch is dead
@@ -1076,9 +1095,17 @@ with `restore-prefixes-first-match` correctly set to
 `nix-${{ runner.os }}-<lock-hash>-<host>`.
 
 ✅ **Established on run 1144: it is the ENOSPC save (§11.4b), not LRU
-eviction.** The save fails before a single byte is uploaded, so there has never
+eviction.** The save failed before a single byte was uploaded, so there had never
 been anything for GitHub's 10 GB LRU to evict. Nothing was wrong with the restore
 keys.
+
+⏳ **One step still unwitnessed.** Run 1145 saved 2.70 GiB successfully, but its
+own restore still took 1 second — necessarily, since the save it would need
+happens later in the same job. **The first run after `1689924` is the one that
+proves the restore.** Expect `Restore Nix Store Cache` to take tens of seconds
+rather than one, and the build to start from a populated store. If it is still
+1 second, the problem is the key or the retention, not the space — go read the
+save log of the run before it first.
 
 What it means in practice: the builds are being carried entirely by **Cachix
 substitution**, not by the local store cache, which is why they still come in at
