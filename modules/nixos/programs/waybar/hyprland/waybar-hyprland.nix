@@ -13,6 +13,7 @@ delib.module {
       enable = boolOption true;
       waybarLayout = attrsOption { };
       waybarWorkspaceIcons = attrsOption { };
+      keyboardName = strOption "";
     };
 
   home.ifEnabled =
@@ -96,8 +97,14 @@ delib.module {
         "hyprland/language" = {
           min-length = 5;
           tooltip = true;
-          on-click = "hyprctl switchxkblayout all next";
-        } // cfg.waybarLayout;
+        } // (
+          if cfg.keyboardName != "" then {
+            on-click = "hyprctl switchxkblayout ${cfg.keyboardName} next";
+            keyboard-name = cfg.keyboardName;
+          } else {
+            on-click = "hyprctl switchxkblayout all next";
+          }
+        ) // cfg.waybarLayout;
 
         "custom/weather" = {
           format = "{}";

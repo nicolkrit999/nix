@@ -147,7 +147,7 @@ delib.host {
 
         screenshots = "$HOME/Pictures/Screenshots";
         keyboardLayout = "us,it,de,fr";
-        keyboardVariant = "intl,,,";
+        keyboardVariant = "alt-intl,,,";
 
         weather = "Lugano";
         useFahrenheit = false;
@@ -581,6 +581,7 @@ delib.host {
         waybar-hyprland = {
           enable = true;
           waybarLayout = langLayout;
+          keyboardName = "mode-designs-m256w-h";
           waybarWorkspaceIcons = {
             "1" = "";
             "2" = ":";
