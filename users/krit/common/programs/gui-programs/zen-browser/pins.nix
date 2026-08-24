@@ -386,13 +386,21 @@ delib.module {
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 107;
         };
+        "Cloudflare - dashboard" = {
+          id = "40000000-0000-4000-8000-000000000035";
+          url = "https://dash.cloudflare.com/";
+          container = 1;
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 108;
+        };
         "Duplicati" = {
           id = "40000000-0000-4000-8000-000000000028";
           url = "https://duplicati.nicolkrit.ch/";
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 108;
+          position = 109;
         };
         "Jellyfin" = {
           id = "40000000-0000-4000-8000-000000000022";
@@ -400,7 +408,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 109;
+          position = 110;
         };
         "qBittorrent" = {
           id = "40000000-0000-4000-8000-00000000002b";
@@ -408,7 +416,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 110;
+          position = 111;
         };
         "Foto" = {
           id = "40000000-0000-4000-8000-000000000023";
@@ -416,7 +424,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 111;
+          position = 112;
         };
         "IT Tools" = {
           id = "40000000-0000-4000-8000-000000000030";
@@ -424,7 +432,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 112;
+          position = 113;
         };
         "OmniTools" = {
           id = "40000000-0000-4000-8000-000000000032";
@@ -432,7 +440,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 113;
+          position = 114;
         };
         "Gitea" = {
           id = "40000000-0000-4000-8000-000000000029";
@@ -440,7 +448,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 114;
+          position = 115;
         };
         "Linkwarden" = {
           id = "40000000-0000-4000-8000-00000000002c";
@@ -448,7 +456,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 115;
+          position = 116;
         };
         "PrivateBin" = {
           id = "40000000-0000-4000-8000-00000000002a";
@@ -456,7 +464,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 116;
+          position = 117;
         };
         "Promemoria" = {
           id = "40000000-0000-4000-8000-000000000033";
@@ -464,7 +472,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 117;
+          position = 118;
         };
         "Home Assistant" = {
           id = "40000000-0000-4000-8000-00000000002f";
@@ -472,7 +480,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 118;
+          position = 119;
         };
         "Fitness" = {
           id = "40000000-0000-4000-8000-00000000002d";
@@ -480,7 +488,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 119;
+          position = 120;
         };
 
         # ── Utilities ────────────────────────────────────────────────────────
