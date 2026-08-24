@@ -10,6 +10,39 @@ delib.module {
     specialisation.home.configuration = {
       system.nixos.tags = [ "home" ];
 
+      services.logind.settings.Login = {
+        HandleLidSwitch = "ignore";
+        HandleLidSwitchExternalPower = "ignore";
+        HandleLidSwitchDocked = "ignore";
+      };
+
+      myconfig.constants.wallpapers = lib.mkForce [
+        {
+          targetMonitor = "eDP-1";
+          wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/1%20rain_world.png";
+          wallpaperSHA256 = "0lmjfz4zng97xzbcnxwx9aqciznxcdhj5n3dnifj7jp40xm2s7qk";
+
+          videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/landscape/girl-desk-working.MP4";
+          videoSHA256 = "0q6asqgcq0n5va8210v5jhqlqw7nzw1i5wdr8cn8bccj316fnfgy";
+        }
+        {
+          targetMonitor = "DP-1";
+          wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/1%20rain_world.png";
+          wallpaperSHA256 = "0lmjfz4zng97xzbcnxwx9aqciznxcdhj5n3dnifj7jp40xm2s7qk";
+
+          videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/landscape/girl-desk-working.MP4";
+          videoSHA256 = "0q6asqgcq0n5va8210v5jhqlqw7nzw1i5wdr8cn8bccj316fnfgy";
+        }
+        {
+          targetMonitor = "DP-2";
+          wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/switch_swirl.jpg";
+          wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
+
+          videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/portrait/purple-car.mp4";
+          videoSHA256 = "0g1gxwhwbg7brglwxg069ivacs33p7hmy4mn7gkz9zh4xlwrmag4";
+        }
+      ];
+
       myconfig.programs.hyprland.monitors = lib.mkForce [
         { output = "eDP-1"; mode = "3200x2000@120"; position = "0x0"; scale = 1.6; }
         { output = "DP-1"; mode = "3840x2160@240"; position = "1440x560"; scale = 1.5; bitdepth = 10; }
