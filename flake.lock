@@ -1245,6 +1245,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-laptop-kernel-pin": {
+      "locked": {
+        "lastModified": 1786534138,
+        "narHash": "sha256-fBJMdnKUTUDtfi/BYLr71HLaC9dG382arxLF2Egg2uo=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "044bfe75bfe4c7bbe043dc17b5e42ea823b84a09",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "044bfe75bfe4c7bbe043dc17b5e42ea823b84a09",
+        "type": "github"
+      }
+    },
     "nixpkgs-lib": {
       "locked": {
         "lastModified": 1785031560,
@@ -1756,6 +1772,7 @@
         "nix-topology": "nix-topology",
         "nix-yazi-plugins": "nix-yazi-plugins",
         "nixpkgs": "nixpkgs_9",
+        "nixpkgs-laptop-kernel-pin": "nixpkgs-laptop-kernel-pin",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "noctalia-shell": "noctalia-shell",
         "nur": "nur",

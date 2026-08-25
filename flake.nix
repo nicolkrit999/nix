@@ -113,6 +113,16 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+
+    # Pinned nixos-26.05 revision where `linuxPackages_latest` still resolves
+    # to kernel 7.1.8 (last known-good kernel on `nixos-laptop`, Dell XPS 16 /
+    # Panther Lake, before kernel 7.2.0 broke all audio via an ACPI `_SB.AUDC`
+    # duplication bug - upstream Kernel Bugzilla #221499). Used ONLY by
+    # `modules/nixos/toplevel/kernel.nix` for `nixos-laptop`; do not follow
+    # the main `nixpkgs` input or this pin becomes pointless. Re-check
+    # Bugzilla #221499 periodically and unpin once fixed upstream - see
+    # `nix-debugger` memory `project_laptop_panther_lake_issues.md`.
+    nixpkgs-laptop-kernel-pin.url = "github:nixos/nixpkgs/044bfe75bfe4c7bbe043dc17b5e42ea823b84a09";
     nix-flatpak.url = "github:gmodena/nix-flatpak";
     impermanence.url = "github:nix-community/impermanence";
     nix-alien.url = "github:thiagokokada/nix-alien";
