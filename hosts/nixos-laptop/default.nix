@@ -195,7 +195,7 @@ delib.host {
       # ---------------------------------------------------------------
       bluetooth = {
         enable = true;
-        autoEnableOnBoot = false;
+        autoEnableOnBoot = true;
       };
 
       cachix = {
