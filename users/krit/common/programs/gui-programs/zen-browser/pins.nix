@@ -493,6 +493,14 @@ delib.module {
 
         # ── Utilities ────────────────────────────────────────────────────────
 
+        "Unifi Cloud" = {
+          id = "40000000-0000-4000-8000-000000000036";
+          url = "https://unifi.ui.com/";
+          container = 1;
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000004";
+          position = 100;
+        };
         "Git Rawify" = {
           id = "40000000-0000-4000-8000-000000000031";
           url = "https://git-rawify.vercel.app/";
