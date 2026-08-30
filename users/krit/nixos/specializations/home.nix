@@ -1,7 +1,42 @@
 { delib
 , lib
+, pkgs
 , ...
 }:
+let
+  asus = {
+    make = "ASUSTek COMPUTER INC";
+    model = "PG32UCDP";
+    serial = "SALMQS185801";
+  };
+  lg = {
+    make = "LG Electronics";
+    model = "27GN950";
+    serial = "202NTWGFH113";
+  };
+
+  hyprDesc = m: "desc:${m.make} ${m.model} ${m.serial}";
+
+  niriKey = m: "${m.make} ${m.model} ${m.serial}";
+
+  resolveMonitorBySerial = pkgs.writeShellScript "resolve-monitor-by-serial" ''
+    set -euo pipefail
+    serial="$1"
+    if command -v niri >/dev/null 2>&1 && niri msg -j outputs >/dev/null 2>&1; then
+      niri msg -j outputs \
+        | ${pkgs.jq}/bin/jq -r --arg s "$serial" \
+            'to_entries[] | select(.value.serial == $s) | .key' \
+        | head -n1
+    elif command -v hyprctl >/dev/null 2>&1 && hyprctl monitors -j >/dev/null 2>&1; then
+      hyprctl monitors -j \
+        | ${pkgs.jq}/bin/jq -r --arg s "$serial" \
+            '.[] | select(.serial == $s) | .name' \
+        | head -n1
+    fi
+  '';
+
+  monitorBySerial = m: "$(${resolveMonitorBySerial} ${m.serial})";
+in
 delib.module {
   name = "krit.specializations.home";
   options = delib.singleEnableOption false;
@@ -16,56 +51,43 @@ delib.module {
         HandleLidSwitchDocked = "ignore";
       };
 
+      myconfig.programs.mango.enable = lib.mkForce false;
+
       myconfig.constants.wallpapers = lib.mkForce [
         {
           targetMonitor = "eDP-1";
           wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/1%20rain_world.png";
           wallpaperSHA256 = "0lmjfz4zng97xzbcnxwx9aqciznxcdhj5n3dnifj7jp40xm2s7qk";
-
-          /*
-          videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/landscape/girl-desk-working.MP4";
-          videoSHA256 = "0q6asqgcq0n5va8210v5jhqlqw7nzw1i5wdr8cn8bccj316fnfgy";
-          */
         }
         {
-          targetMonitor = "DP-1";
+          targetMonitor = monitorBySerial lg;
           wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/switch_swirl.jpg";
           wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
-
-          /*
-          videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/portrait/purple-car.mp4";
-          videoSHA256 = "0g1gxwhwbg7brglwxg069ivacs33p7hmy4mn7gkz9zh4xlwrmag4";
-          */
         }
         {
-          targetMonitor = "DP-2";
+          targetMonitor = monitorBySerial asus;
           wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/1%20rain_world.png";
           wallpaperSHA256 = "0lmjfz4zng97xzbcnxwx9aqciznxcdhj5n3dnifj7jp40xm2s7qk";
-
-          /*
-          videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/landscape/girl-desk-working.MP4";
-          videoSHA256 = "0q6asqgcq0n5va8210v5jhqlqw7nzw1i5wdr8cn8bccj316fnfgy";
-          */
         }
       ];
 
       myconfig.programs.hyprland.monitors = lib.mkForce [
         { output = "eDP-1"; mode = "3200x2000@120"; position = "4000x560"; scale = 1.6; }
-        { output = "DP-1"; mode = "3840x2160@144"; position = "0x0"; scale = 1.5; transform = 1; bitdepth = 10; }
-        { output = "DP-2"; mode = "3840x2160@240"; position = "1440x560"; scale = 1.5; bitdepth = 10; }
+        { output = hyprDesc lg; mode = "3840x2160@144"; position = "0x0"; scale = 1.5; transform = 1; bitdepth = 10; }
+        { output = hyprDesc asus; mode = "3840x2160@240"; position = "1440x560"; scale = 1.5; bitdepth = 10; }
       ];
 
       myconfig.programs.hyprland.monitorWorkspaces = lib.mkForce [
-        { workspace = "1"; monitor = "DP-2"; }
-        { workspace = "2"; monitor = "DP-2"; }
-        { workspace = "3"; monitor = "DP-2"; }
-        { workspace = "4"; monitor = "DP-2"; }
-        { workspace = "5"; monitor = "DP-2"; }
-        { workspace = "6"; monitor = "DP-1"; }
-        { workspace = "7"; monitor = "DP-1"; }
-        { workspace = "8"; monitor = "DP-1"; }
-        { workspace = "9"; monitor = "DP-1"; }
-        { workspace = "10"; monitor = "DP-1"; }
+        { workspace = "1"; monitor = hyprDesc asus; }
+        { workspace = "2"; monitor = hyprDesc asus; }
+        { workspace = "3"; monitor = hyprDesc asus; }
+        { workspace = "4"; monitor = hyprDesc asus; }
+        { workspace = "5"; monitor = hyprDesc asus; }
+        { workspace = "6"; monitor = hyprDesc lg; }
+        { workspace = "7"; monitor = hyprDesc lg; }
+        { workspace = "8"; monitor = hyprDesc lg; }
+        { workspace = "9"; monitor = hyprDesc lg; }
+        { workspace = "10"; monitor = hyprDesc lg; }
       ];
 
       myconfig.programs.mango.monitors = lib.mkForce [
@@ -88,7 +110,7 @@ delib.module {
             refresh = 120.0;
           };
         };
-        "DP-1" = {
+        "${niriKey lg}" = {
           mode = {
             width = 3840;
             height = 2160;
@@ -104,7 +126,7 @@ delib.module {
             flipped = false;
           };
         };
-        "DP-2" = {
+        "${niriKey asus}" = {
           mode = {
             width = 3840;
             height = 2160;
