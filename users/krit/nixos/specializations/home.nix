@@ -90,16 +90,86 @@ delib.module {
         { workspace = "10"; monitor = hyprDesc lg; }
       ];
 
-      myconfig.programs.mango.monitors = lib.mkForce [
-        "name:^eDP-1$,width:3200,height:2000,refresh:120,x:0,y:0,scale:1.6"
-        "name:^DP-1$,width:3840,height:2160,refresh:144,x:0,y:0,scale:1.5,rr:1"
-        "name:^DP-2$,width:3840,height:2160,refresh:240,x:1440,y:560,scale:1.5"
+      myconfig.programs.hyprland.windowRules = lib.mkForce [
+        { match.class = "^(nvim)$"; workspace = "2"; }
+        { match.class = "^(yazi)$"; workspace = "3"; }
+        { match.class = "^(kitty)$"; workspace = "8"; }
+        { match.class = "^(code)$"; workspace = "2 silent"; }
+        { match.class = "^(nvim-editor)$"; workspace = "2 silent"; }
+        { match.class = "^(org.kde.kate)$"; workspace = "2 silent"; }
+        { match.class = "^(jetbrains-pycharm-ce)$"; workspace = "2 silent"; }
+        { match.class = "^(jetbrains-Clion)$"; workspace = "2 silent"; }
+        { match.class = "^(jetbrains-idea-ce)$"; workspace = "2 silent"; }
+        { match.class = "^(org.kde.dolphin)$"; workspace = "3 silent"; }
+        { match.class = "^(thunar)$"; workspace = "3 silent"; }
+        { match.class = "^(yazi)$"; workspace = "3 silent"; }
+        { match.class = "^(ranger)$"; workspace = "3 silent"; }
+        { match.class = "^(org.gnome.Nautilus)$"; workspace = "3 silent"; }
+        { match.class = "^(nemo)$"; workspace = "3 silent"; }
+        { match.class = "^(winboat)$"; workspace = "7 silent"; }
+        { match.class = "^(Actual)$"; workspace = "10 silent"; }
+        { match.class = "^(org.jellyfin.JellyfinDesktop)$"; workspace = "6 silent"; }
+        { match.class = "^(chromium-browser)$"; workspace = "6 silent"; }
+        { match.class = "^(brave-browser)$"; workspace = "6 silent"; }
+        { match.class = "^(brave-.*\\..*)$"; workspace = "6 silent"; }
+        { match.class = "(?i)spotify"; workspace = "6 silent"; }
+        { match.class = "^(kitty)$"; workspace = "8 silent"; }
+        { match.class = "^(alacritty)$"; workspace = "8 silent"; }
+        { match.class = "^(foot)$"; workspace = "8 silent"; }
+        { match.class = "^(xfce4-terminal)$"; workspace = "8 silent"; }
+        { match.class = "^(com.system76.CosmicTerm)$"; workspace = "8 silent"; }
+        { match.class = "^(org.kde.konsole)$"; workspace = "8 silent"; }
+        { match.class = "^(gnome-terminal)$"; workspace = "8 silent"; }
+        { match.class = "^(XTerm)$"; workspace = "8 silent"; }
+        { match.class = "^(vesktop)$"; workspace = "9 silent"; }
+        { match.class = "^(org.telegram.desktop)$"; workspace = "9 silent"; }
+        { match.class = "^(whatsapp-electron)$"; workspace = "9 silent"; }
+        { match.class = "^(com.rtosta.zapzap)$"; workspace = "9 silent"; }
+
+        { match.class = "^(scratch-term)$"; float = true; }
+        { match.class = "^(scratch-term)$"; center = true; }
+        { match.class = "^(scratch-term)$"; size = "80% 80%"; }
+        { match.class = "^(scratch-term)$"; workspace = "special:magic"; }
+        { match.class = "^(scratch-fs)$"; float = true; }
+        { match.class = "^(scratch-fs)$"; center = true; }
+        { match.class = "^(scratch-fs)$"; size = "80% 80%"; }
+        { match.class = "^(scratch-fs)$"; workspace = "special:magic"; }
+        { match.class = "^(scratch-browser)$"; float = true; }
+        { match.class = "^(scratch-browser)$"; center = true; }
+        { match.class = "^(scratch-browser)$"; size = "80% 80%"; }
+        { match.class = "^(scratch-browser)$"; workspace = "special:magic"; }
+
+        { match.class = "^winboat-.*$"; workspace = "7"; }
+        { match.class = "^winboat-.*$"; suppress_event = "fullscreen maximize activate activatefocus"; }
+        { match.class = "^winboat-.*$"; no_initial_focus = true; }
+        { match.class = "^winboat-.*$"; no_anim = true; }
+        { match.class = "^winboat-.*$"; rounding = 0; }
+        { match.class = "^winboat-.*$"; no_shadow = true; }
+        { match.class = "^winboat-.*$"; no_blur = true; }
+        { match.class = "^winboat-.*$"; opaque = true; }
       ];
 
-      myconfig.programs.mango.monitorLayouts = lib.mkForce {
-        "eDP-1" = "scroller";
-        "DP-1" = "vertical_tile";
-        "DP-2" = "center_tile";
+      myconfig.programs.hyprland.execOnce = lib.mkForce [
+        "hyprctl dispatch workspace 1"
+        "[workspace 1 silent] zen-beta"
+        "[workspace 2 silent] kitty --class nvim -e nvim"
+        "[workspace 3 silent] kitty --class yazi -e yazi"
+        "[workspace 8 silent] kitty"
+        "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
+      ];
+
+      myconfig.programs.waybar-hyprland.waybarWorkspaceIcons = lib.mkForce {
+        "1" = "";
+        "2" = ":";
+        "3" = ":";
+        "4" = "";
+        "5" = "";
+        "6" = ":";
+        "7" = "";
+        "8" = ":";
+        "9" = ":󰭹";
+        "10" = ":";
+        "magic" = ":";
       };
 
       myconfig.programs.niri.outputs = lib.mkForce {
