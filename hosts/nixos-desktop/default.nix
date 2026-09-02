@@ -652,6 +652,7 @@ delib.host {
         external.dotfiles-private.enable = true;
         hyprlock.enable = true;
         impermanence.enable = true;
+        localsend.enable = true;
         rcloneMount.enable = true;
         resolved.enable = true;
         tailscale.enable = true;
