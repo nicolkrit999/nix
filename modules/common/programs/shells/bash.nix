@@ -38,7 +38,6 @@ delib.module {
                   exec systemd-cat -t uwsm_start uwsm start default
               fi
           fi
-
         '';
       };
     };
