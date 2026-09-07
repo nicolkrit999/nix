@@ -116,6 +116,7 @@ delib.host {
             mpv
           ];
         };
+        prismlauncher.enable = true;
         shell-aliases.enable = true;
       };
 

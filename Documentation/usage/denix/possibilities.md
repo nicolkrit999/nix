@@ -154,6 +154,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`programs.nix-alien`**: Enables nix-alien for running unpatched Linux binaries in Nix via automatic FHS environment generation.
 * **`programs.nix-ld`**: Enables Nix's dynamic linker (`nix-ld`) so pre-compiled binaries can run without manual patching.
 * **`programs.nix-topology`**: Imports the nix-topology module for generating visual diagrams of the NixOS network/host architecture.
+* **`programs.prismlauncher`**: Installs Prism Launcher (`pkgs.prismlauncher`), a Minecraft (Java Edition) launcher, as an unopinionated home-manager package. Works on both NixOS and Darwin. Recommended over the official Mojang launcher, which is broken on NixOS for Minecraft 1.19+.
 * **`programs.swayosd`**: An on-screen display server for volume, brightness, and other indicators on Wayland. Auto-activates only when the active WM (Hyprland, Niri, or Mango) has no shell (caelestia/noctalia) providing its own OSD. Installs the udev rules system-wide.
 * **`programs.tgt`**: Installs tgt, a Telegram TUI client, built from source against nixpkgs-unstable's tdlib to satisfy the required minimum version.
 * **`programs.vicinae`**: A Wayland application launcher with Raycast-style extensions, stylix theming, browser/file-search providers, and configurable extra extensions and packages. Runs as a systemd user service with layer-shell overlay mode.

@@ -266,6 +266,7 @@ delib.host {
             mpv # claudefm: playback
           ];
         };
+        prismlauncher.enable = true;
         shell-aliases.enable = true;
         starship.enable = true;
         statix.enable = true;
