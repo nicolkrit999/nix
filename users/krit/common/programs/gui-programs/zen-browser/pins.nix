@@ -354,9 +354,9 @@ delib.module {
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 103;
         };
-        "Tugtainer" = {
-          id = "40000000-0000-4000-8000-000000000027";
-          url = "https://tugtainer.nicolkrit.ch/";
+        "Adguard" = {
+          id = "40000000-0000-4000-8000-000000000037";
+          url = "https://adguard.nicolkrit.ch/";
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
@@ -370,13 +370,21 @@ delib.module {
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 105;
         };
+        "Tugtainer" = {
+          id = "40000000-0000-4000-8000-000000000027";
+          url = "https://tugtainer.nicolkrit.ch/";
+          container = 1;
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 106;
+        };
         "Beszel" = {
           id = "40000000-0000-4000-8000-000000000024";
           url = "https://beszel.nicolkrit.ch/";
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 106;
+          position = 107;
         };
         "Tailscale Admin" = {
           id = "40000000-0000-4000-8000-000000000034";
@@ -384,7 +392,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 107;
+          position = 108;
         };
         "Cloudflare - dashboard" = {
           id = "40000000-0000-4000-8000-000000000035";
@@ -392,7 +400,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 108;
+          position = 109;
         };
         "Duplicati" = {
           id = "40000000-0000-4000-8000-000000000028";
@@ -400,7 +408,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 109;
+          position = 110;
         };
         "Jellyfin" = {
           id = "40000000-0000-4000-8000-000000000022";
@@ -408,7 +416,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 110;
+          position = 111;
         };
         "qBittorrent" = {
           id = "40000000-0000-4000-8000-00000000002b";
@@ -416,7 +424,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 111;
+          position = 112;
         };
         "Foto" = {
           id = "40000000-0000-4000-8000-000000000023";
@@ -424,7 +432,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 112;
+          position = 113;
         };
         "IT Tools" = {
           id = "40000000-0000-4000-8000-000000000030";
@@ -432,7 +440,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 113;
+          position = 114;
         };
         "OmniTools" = {
           id = "40000000-0000-4000-8000-000000000032";
@@ -440,7 +448,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 114;
+          position = 115;
         };
         "Gitea" = {
           id = "40000000-0000-4000-8000-000000000029";
@@ -448,7 +456,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 115;
+          position = 116;
         };
         "Linkwarden" = {
           id = "40000000-0000-4000-8000-00000000002c";
@@ -456,7 +464,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 116;
+          position = 117;
         };
         "PrivateBin" = {
           id = "40000000-0000-4000-8000-00000000002a";
@@ -464,7 +472,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 117;
+          position = 118;
         };
         "Promemoria" = {
           id = "40000000-0000-4000-8000-000000000033";
@@ -472,7 +480,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 118;
+          position = 119;
         };
         "Home Assistant" = {
           id = "40000000-0000-4000-8000-00000000002f";
@@ -480,7 +488,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 119;
+          position = 120;
         };
         "Fitness" = {
           id = "40000000-0000-4000-8000-00000000002d";
@@ -488,7 +496,7 @@ delib.module {
           container = 1;
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 120;
+          position = 121;
         };
 
         # ── Utilities ────────────────────────────────────────────────────────
