@@ -81,7 +81,7 @@ delib.module {
             if ${pkgs.tailscale}/bin/tailscale up; then
               exit 0
             fi
-            sleep 15
+            sleep 3
           done
           echo "tailscale-autoconnect: giving up after repeated failures" >&2
           exit 1

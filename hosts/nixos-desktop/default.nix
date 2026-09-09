@@ -729,7 +729,7 @@ delib.host {
       # 👤 KRIT SERVICES
       # ---------------------------------------------------------------
       krit.services.desktop = {
-        admin-vlan.enable = true;
+        admin-vlan.enable = false;
         flatpak.enable = true;
         local-packages.enable = true;
       };
