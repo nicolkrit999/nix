@@ -29,6 +29,10 @@ let
     gsd = [
       ".gsd"
     ];
+
+    "openlogi/Krits-MacBook-Pro" = [
+      ".config/openlogi"
+    ];
   };
 
   packagesPerHost = {
@@ -36,6 +40,7 @@ let
       "claude/common"
       "claude/mac"
       "gsd"
+      "openlogi/Krits-MacBook-Pro"
     ];
   };
 

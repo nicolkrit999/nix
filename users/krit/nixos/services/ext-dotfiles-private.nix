@@ -66,6 +66,14 @@ let
     "vicinae/nixos-laptop" = [
       ".config/vicinae/settings.json"
     ];
+
+    "openlogi/nixos-desktop" = [
+      ".config/openlogi"
+    ];
+
+    "openlogi/nixos-laptop" = [
+      ".config/openlogi"
+    ];
   };
 
   packagesPerHost = {
@@ -75,6 +83,7 @@ let
       "gsd"
       "vicinae/common"
       "vicinae/nixos-desktop"
+      "openlogi/nixos-desktop"
     ];
     nixos-laptop = [
       "claude/common"
@@ -82,6 +91,7 @@ let
       "gsd"
       "vicinae/common"
       "vicinae/nixos-laptop"
+      "openlogi/nixos-laptop"
     ];
     Nicol-NAS = [
       "claude/common"

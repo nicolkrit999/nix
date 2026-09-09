@@ -739,13 +739,15 @@ delib.host {
       krit.services.network-tools.enable = true;
 
       krit.services.logitech = {
-        enable = true;
+        enable = false;
         mouses = {
           mx-master-3s.enable = true;
           mx-master-4.enable = true;
           superlight.enable = true;
         };
       };
+
+      programs.openlogi.enable = true;
 
 
       krit.services.nas = {

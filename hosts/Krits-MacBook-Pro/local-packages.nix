@@ -83,6 +83,7 @@ delib.module {
           "vlc"
           "github"
           "dash"
+          "openlogi"
         ];
       };
     };
