@@ -732,6 +732,7 @@ delib.host {
         admin-vlan.enable = false;
         flatpak.enable = true;
         local-packages.enable = true;
+        ping-watchdog.enable = true;
       };
 
       krit.services.windows-mount.enable = true;

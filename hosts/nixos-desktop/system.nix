@@ -18,6 +18,7 @@ delib.host {
 
     environment.persistence."/persist" = {
       directories = [
+        "/var/lib/systemd/linger"
       ];
       files = [
       ];
