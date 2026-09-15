@@ -155,6 +155,24 @@ delib.module {
       myconfig.constants.browser = lib.mkForce "brave-school";
       myconfig.constants.editor = lib.mkForce "nvim";
 
+      # Force exit-node off on every boot into this specialisation, regardless
+      # of whatever exit-node state tailscale persisted from the last boot.
+      systemd.services.tailscale-school-exit-node-off = {
+        description = "Force tailscale exit-node off for the school specialisation";
+        after = [ "tailscaled.service" "tailscale-autoconnect.service" ];
+        wants = [ "tailscaled.service" "tailscale-autoconnect.service" ];
+        wantedBy = [ "multi-user.target" ];
+
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+        };
+
+        script = ''
+          ${pkgs.tailscale}/bin/tailscale set --exit-node=
+        '';
+      };
+
       # Self-contained virtualisation: school doesn't depend on the host's virtualisation.nix
       virtualisation.podman.enable = true;
       environment.systemPackages = with pkgs; [
