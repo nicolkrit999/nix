@@ -9,18 +9,10 @@ delib.module {
         # S = shift, C = control, A = alt
         mgr.prepend_keymap = [
           # -----------------------------------------------------------------------
-          # 📦 PLUGIN KEYBINDINGS (Prefix 'b')
+          # 📦 PLUGIN KEYBINDINGS (Prefix 'u')
           # -----------------------------------------------------------------------
-          # 1. Relative Motions
-          {
-            on = [
-              "n"
-              "m"
-            ];
-            run = "plugin relative-motions";
-            desc = "📍 Trigger Relative Motion (then type number+dir)";
-          }
-
+          # 1. Relative Motions - counts (top-level, unchanged: consumed as a vim-style
+          #    count prefix before a direction key, so this MUST stay outside the 'u' submenu)
           {
             on = [ "1" ];
             run = "plugin relative-motions 1";
@@ -67,17 +59,36 @@ delib.module {
             desc = "Move in relative steps";
           }
 
-          # 2. ouch
+          # 2. Plugins submenu ('u') - ouch, recycle-bin, relative-motions trigger.
+          #    z/Z (fzf/zoxide) and d (smart-remove) stay top-level - see their own
+          #    sections below; two-key latency on those high-frequency actions isn't worth it.
           {
-            on = [ "c" ];
+            on = [
+              "u"
+              "c"
+            ];
             run = "plugin ouch";
             desc = "Compress with ouch";
           }
-
-          # 3. recycle-bin
           {
             on = [
+              "u"
+              "n"
+            ];
+            run = "plugin relative-motions";
+            desc = "📍 Trigger Relative Motion (then type number+dir)";
+          }
+          {
+            on = [
+              "u"
               "b"
+            ];
+            run = "plugin recycle-bin -- open";
+            desc = "Open Recycle Bin";
+          }
+          {
+            on = [
+              "u"
               "r"
             ];
             run = "plugin recycle-bin -- restore";
@@ -85,7 +96,7 @@ delib.module {
           }
           {
             on = [
-              "b"
+              "u"
               "e"
             ];
             run = "plugin recycle-bin -- empty";
@@ -93,19 +104,45 @@ delib.module {
           }
           {
             on = [
-              "b"
+              "u"
               "D"
             ];
             run = "plugin recycle-bin -- emptyDays";
             desc = "Empty Trash older than X days";
           }
+
+          # -----------------------------------------------------------------------
+          # 🖼️ faster-piper preview scrolling (Alt-modified, no conflicts)
+          # -----------------------------------------------------------------------
           {
-            on = [
-              "b"
-              "b"
-            ];
-            run = "plugin recycle-bin -- open";
-            desc = "Open Recycle Bin";
+            on = [ "<A-Up>" ];
+            run = "seek -1";
+            desc = "Scroll preview up";
+          }
+          {
+            on = [ "<A-Down>" ];
+            run = "seek +1";
+            desc = "Scroll preview down";
+          }
+          {
+            on = [ "<A-PageUp>" ];
+            run = "seek -15";
+            desc = "Scroll preview page up";
+          }
+          {
+            on = [ "<A-PageDown>" ];
+            run = "seek +15";
+            desc = "Scroll preview page down";
+          }
+          {
+            on = [ "<A-Home>" ];
+            run = "seek -10000";
+            desc = "Scroll preview to the top";
+          }
+          {
+            on = [ "<A-End>" ];
+            run = "seek +10000";
+            desc = "Scroll preview to the bottom";
           }
 
           # -----------------------------------------------------------------------

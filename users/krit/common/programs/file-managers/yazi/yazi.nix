@@ -2,8 +2,12 @@
 , pkgs
 , lib
 , moduleSystem
+, inputs
 , ...
 }:
+let
+  pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+in
 delib.module {
   name = "krit.programs.yazi";
   options = delib.singleEnableOption false;
@@ -41,33 +45,49 @@ delib.module {
         ouch
         trash-cli
         rich-cli
+        glow # Terminal Markdown renderer, used by the faster-piper "*.md" previewer
+        eza # Used by the faster-piper directory-tree previewer
+        hexyl # Terminal hex viewer, used by the faster-piper fallback previewer
+        sqlite # Provides sqlite3, used by the faster-piper SQLite schema previewer
       ];
 
       programs.yazi = {
         enable = true;
+        # nixos-26.05 ships yazi 26.5.6; faster-piper.yazi requires Yazi >=26.8.15
+        # (uses the th.icon:match / Url.spec.is_search APIs, missing on older Yazi).
+        package = pkgs-unstable.yazi;
         shellWrapperName = "y";
         enableZshIntegration = myconfig.constants.shell == "zsh";
         enableFishIntegration = myconfig.constants.shell == "fish";
         enableBashIntegration = myconfig.constants.shell == "bash";
 
         plugins = {
-          # nix-prefetch-url --unpack "https://github.com/ndtoan96/ouch.yazi/archive/refs/tags/v0.7.0.tar.gz"
+          # nurl https://github.com/alberti42/faster-piper.yazi v1.1.1
+          faster-piper = pkgs.fetchFromGitHub {
+            owner = "alberti42";
+            repo = "faster-piper.yazi";
+            tag = "v1.1.1"; # NOTE: If a new version is released change it here
+            hash = "sha256-a7/KTIoIU9idxhYmYFsp6/ezmiBK/mEYfEz9zqZZiEU=";
+          };
+
+          # nurl https://github.com/ndtoan96/ouch.yazi v0.7.2
           ouch = pkgs.fetchFromGitHub {
             owner = "ndtoan96";
             repo = "ouch.yazi";
-            rev = "v0.7.0"; # NOTE: If a new version is released change it here
-            sha256 = "03fjnga97bvrblvf53w7lp0k9ikkd81pa49qc0np7fg3fc8nlhyn";
+            tag = "v0.7.2"; # NOTE: If a new version is released change it here
+            hash = "sha256-t1kUo4+YODeTG9d5Yq/vxElcmRHIebC5TRv+uDGG88c=";
           };
 
-          # nix-prefetch-url --unpack "https://github.com/uhs-robert/recycle-bin.yazi/archive/refs/tags/v1.1.0.tar.gz"
+          # nurl https://github.com/uhs-robert/recycle-bin.yazi v1.1.1
           recycle-bin = pkgs.fetchFromGitHub {
             owner = "uhs-robert";
             repo = "recycle-bin.yazi";
-            rev = "v1.1.0"; # NOTE: If a new version is released change it here
-            sha256 = "00yh6w3f088dvhcb2464l86wxq7202bzgxjdnwi0i9cc1apgc54z";
+            tag = "v1.1.1"; # NOTE: If a new version is released change it here
+            hash = "sha256-ghmjM4jmXNC4+P2sl70UhI+8Vv5k3PZV7AwV7iBj1I4=";
           };
 
           # nix-prefetch-url --unpack "https://github.com/dedukun/relative-motions.yazi/archive/a603d9ea924dfc0610bcf9d3129e7cba605d4501.tar.gz"
+          # NOTE: re-checked 2026-09-16 - a603d9e is still the HEAD of the default branch, no bump needed.
           relative-motions = lib.mkForce (
             let
               src = pkgs.fetchFromGitHub {
@@ -84,12 +104,12 @@ delib.module {
             ''
           );
 
-          # nix-prefetch-url --unpack "https://github.com/AnirudhG07/rich-preview.yazi/archive/7d616ad88498747b46124f32a35847324862cd83.tar.gz"
+          # nurl https://github.com/AnirudhG07/rich-preview.yazi 02597c4a129a36e3ab013b1fd052cf0f555d5490
           rich-preview = pkgs.fetchFromGitHub {
             owner = "AnirudhG07";
             repo = "rich-preview.yazi";
-            rev = "7d616ad88498747b46124f32a35847324862cd83";
-            sha256 = "1nbmczlzl7wa564gk7wr4jb84ja3as3z1b537vj5477dzrys6y98";
+            rev = "02597c4a129a36e3ab013b1fd052cf0f555d5490";
+            hash = "sha256-8QfBzKyNmKFxwtOmhhpnxUZBRmrN3mPWV/n/0MZlsYo=";
           };
 
           smart-remove = pkgs.writeTextDir "main.lua" ''
@@ -383,15 +403,11 @@ delib.module {
           };
 
           plugin = {
-            # Previewers (Mediainfo + Rich-Preview)
+            # Previewers (Mediainfo + Rich-Preview + faster-piper)
             prepend_previewers = [
-              # -- Rich Preview --
+              # -- Rich Preview -- (rendered Markdown was moved to faster-piper+glow below)
               {
                 url = "*.csv";
-                run = "rich-preview";
-              }
-              {
-                url = "*.md";
                 run = "rich-preview";
               }
               {
@@ -429,6 +445,54 @@ delib.module {
               {
                 url = "*.css";
                 run = "rich-preview";
+              }
+
+              # -- faster-piper --
+              {
+                # Rendered Markdown via glow, a more polished terminal renderer than rich-preview's.
+                # glow's -s (style) flag accepts "dark"/"light" directly, matching yazi's $t exactly.
+                url = "*.md";
+                run = ''faster-piper -- CLICOLOR_FORCE=1 glow -w=$w -s=$t "$1"'';
+              }
+              {
+                # Directory tree preview
+                url = "*/";
+                run = ''faster-piper -- eza -TL=3 --color=always --icons=always --group-directories-first --no-quotes "$1"'';
+              }
+              {
+                # Tarball listing
+                url = "*.tar*";
+                run = ''faster-piper --format=url -- tar tf "$1"'';
+              }
+              {
+                # SQLite schema preview
+                mime = "application/sqlite3";
+                run = ''faster-piper -- sqlite3 "$1" ".schema --indent"'';
+              }
+            ];
+
+            # Preload the same faster-piper commands so their previews feel instant (Option B
+            # from faster-piper's README: the run command MUST be identical to its previewer).
+            prepend_preloaders = [
+              {
+                url = "*.md";
+                run = ''faster-piper -- CLICOLOR_FORCE=1 glow -w=$w -s=$t "$1"'';
+              }
+              {
+                url = "*/";
+                run = ''faster-piper -- eza -TL=3 --color=always --icons=always --group-directories-first --no-quotes "$1"'';
+              }
+              {
+                url = "*.tar*";
+                run = ''faster-piper --format=url -- tar tf "$1"'';
+              }
+            ];
+
+            # Fallback for anything nothing else handles - must come last (append, not prepend).
+            append_previewers = [
+              {
+                url = "*";
+                run = ''faster-piper -- hexyl --border=none --terminal-width=$w "$1"'';
               }
             ];
           };
