@@ -47,7 +47,7 @@ delib.module {
             || lib.attrByPath [ "home-manager" "users" myconfig.constants.user "programs" name "enable" ] false config;
         in
         (lib.optional (!isProgramEnabled termName) myTermPkg)
-        ++ (lib.optional (!isProgramEnabled browserName) myBrowserPkg)
+        ++ (lib.optional (browserName != "" && !isProgramEnabled browserName) myBrowserPkg)
         ++ (lib.optional (!isProgramEnabled fileManagerName) myFileManagerPkg)
         ++ (lib.optional (!isProgramEnabled editorName) myEditorPkg);
     };

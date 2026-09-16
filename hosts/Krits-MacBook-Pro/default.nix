@@ -18,7 +18,12 @@ delib.host {
 
         terminal.name = "alacritty";
         shell = "fish";
-        browser = "firefox";
+        # No browser wanted: this host is CI-only (the physical MacBook Pro
+        # no longer exists), and firefox-unwrapped currently has no cached
+        # aarch64-darwin binary, forcing a from-source build that times out
+        # CI. "" opts out of the forced browser fallback in
+        # home-packages-darwin.nix.
+        browser = "";
         editor = "nvim";
         fileManager = "yazi";
 
@@ -126,7 +131,6 @@ delib.host {
           yazi.enable = false;
           kitty.enable = true;
           alacritty.enable = true;
-          firefox.profileNames = [ "krit" ];
           librewolf.profileNames = [
             "default"
             "privacy"
@@ -150,7 +154,10 @@ delib.host {
       krit.programs = {
         direnv.enable = false;
         neovim.enable = true;
-        firefox.enable = true;
+        # Disabled: CI-only host (physical MacBook Pro no longer exists),
+        # and firefox-unwrapped currently has no cached aarch64-darwin
+        # binary, forcing an uncached from-source build that times out CI.
+        firefox.enable = false;
         librewolf.enable = false;
         chromium.enable = false;
         yazi.enable = true;
