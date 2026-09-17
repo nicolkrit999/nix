@@ -760,7 +760,7 @@ delib.module {
 
         "ownCloud" = {
           id = "40000000-0000-4000-8000-000000000081";
-          url = "https://owncloud.nicolkrit.ch/";
+          url = "https://opencloud.nicolkrit.ch/";
           container = 4; # University
           workspace = "10000000-0000-4000-8000-000000000004";
           folderParentId = "30000000-0000-4000-8000-000000000042";

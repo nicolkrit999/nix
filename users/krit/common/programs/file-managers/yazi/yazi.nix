@@ -201,19 +201,19 @@ delib.module {
           opener = {
             edit = [
               {
-                run = ''$EDITOR "$@"'';
+                run = "$EDITOR %s";
                 desc = "Edit";
                 block = true;
                 for = "unix";
               }
               {
-                run = ''code "%*"'';
+                run = "code %s";
                 desc = "code";
                 orphan = true;
                 for = "windows";
               }
               {
-                run = ''code -w "%*"'';
+                run = "code -w %s";
                 desc = "code (block)";
                 block = true;
                 for = "windows";
@@ -223,17 +223,17 @@ delib.module {
             # Play media files
             play = [
               {
-                run = ''xdg-open "$@"'';
+                run = "xdg-open %s";
                 desc = "Play";
                 for = "linux";
               }
               {
-                run = ''open "$@"'';
+                run = "open %s";
                 desc = "Play";
                 for = "macos";
               }
               {
-                run = ''start "" "%1"'';
+                run = ''start "" %s1'';
                 desc = "Play";
                 orphan = true;
                 for = "windows";
@@ -243,17 +243,17 @@ delib.module {
             # Open media files
             open = [
               {
-                run = ''xdg-open "$@"'';
+                run = "xdg-open %s";
                 desc = "Open";
                 for = "linux";
               }
               {
-                run = ''open "$@"'';
+                run = "open %s";
                 desc = "Open";
                 for = "macos";
               }
               {
-                run = ''start "" "%1"'';
+                run = ''start "" %s1'';
                 desc = "Open";
                 orphan = true;
                 for = "windows";
@@ -263,23 +263,23 @@ delib.module {
             # Open folder in file manager (separate window)
             reveal = [
               {
-                run = ''xdg-open "$(dirname "$1")"'';
+                run = "xdg-open %d1";
                 desc = "Reveal";
                 for = "linux";
               }
               {
-                run = ''open -R "$1"'';
+                run = "open -R %s1";
                 desc = "Reveal";
                 for = "macos";
               }
               {
-                run = ''explorer /select,"%1"'';
+                run = "explorer /select,%s1";
                 desc = "Reveal";
                 orphan = true;
                 for = "windows";
               }
               {
-                run = ''clear; exiftool "$1"; echo "Press enter to exit"; read _'';
+                run = ''clear; exiftool %s1; echo "Press enter to exit"; read _'';
                 desc = "Show EXIF";
                 block = true;
                 for = "unix";
@@ -289,7 +289,7 @@ delib.module {
             # Extract archives
             extract = [
               {
-                run = ''ouch d -y "$@"'';
+                run = "ouch d -y %s";
                 desc = "Extract here with ouch";
                 for = "unix";
               }
@@ -298,11 +298,11 @@ delib.module {
             # Download files if browsing a remove location, so not on the local disk
             download = [
               {
-                run = ''ya emit download --open "$@"'';
+                run = "ya emit download --open %s";
                 desc = "Download and open";
               }
               {
-                run = ''ya emit download "$@"'';
+                run = "ya emit download %s";
                 desc = "Download";
               }
             ];
