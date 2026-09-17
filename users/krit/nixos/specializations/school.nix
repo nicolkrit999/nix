@@ -179,7 +179,7 @@ delib.module {
         distrobox
         networkmanager-openconnect # For Cisco AnyConnect / GlobalProtect
         networkmanager-openvpn # For OpenVPN connections
-        (pkgs.owncloud-client.overrideAttrs (old: {
+        (pkgs.opencloud-desktop.overrideAttrs (old: {
           qtWrapperArgs = (old.qtWrapperArgs or [ ]) ++ [
             "--prefix"
             "NIXPKGS_QT6_QML_IMPORT_PATH"
@@ -204,7 +204,7 @@ delib.module {
 
         home.activation.createSchoolDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           mkdir -p $HOME/.school-workspace/oneDrive || true
-          mkdir -p $HOME/.school-workspace/owncloud || true
+          mkdir -p $HOME/.school-workspace/opencloud || true
           mkdir -p $HOME/.school-workspace/projects || true
           mkdir -p $HOME/.school-workspace/year/1st/1-semester || true
           mkdir -p $HOME/.school-workspace/year/1st/2-semester || true
