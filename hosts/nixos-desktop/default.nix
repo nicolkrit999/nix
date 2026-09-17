@@ -753,7 +753,7 @@ delib.host {
 
       krit.services.nas = {
         desktop-borg-backup.enable = true;
-        owncloud.enable = true;
+        opencloud.enable = true;
         smb.enable = true;
         sshfs.enable = false;
       };

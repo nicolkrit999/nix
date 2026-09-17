@@ -758,7 +758,7 @@ delib.module {
 
         # ── Personal resources ───────────────────────────────────────────────
 
-        "ownCloud" = {
+        "OpenCloud" = {
           id = "40000000-0000-4000-8000-000000000081";
           url = "https://opencloud.nicolkrit.ch/";
           container = 4; # University

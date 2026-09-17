@@ -124,7 +124,7 @@ sudo rsync -a /etc/logid.cfg /persist/etc/ || true
 **`/etc/ssh`**: Stores permanent SSH host keys; essential for system identity and decrypting SOPS secrets before login.
 
  
-**`/var/cache/fscache`**: Provides a persistent cache for network filesystems like WebDAV/OwnCloud; prevents `cachefilesd.service` from failing.
+**`/var/cache/fscache`**: Provides a persistent cache for network filesystems like WebDAV/OpenCloud; prevents `cachefilesd.service` from failing.
 
  
 **`/var/lib/bluetooth`**: Keeps records of all paired Bluetooth devices so you don't have to re-pair them every boot.

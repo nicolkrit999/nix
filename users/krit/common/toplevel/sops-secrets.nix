@@ -67,9 +67,8 @@ delib.module {
 
         nas_ssh_key.sopsFile = commonSecrets;
         nas-krit-credentials.sopsFile = commonSecrets;
-        nas_owncloud_url.sopsFile = commonSecrets;
-        nas_owncloud_user.sopsFile = commonSecrets;
-        nas_owncloud_pass.sopsFile = commonSecrets;
+        nas_opencloud_user.sopsFile = commonSecrets;
+        nas_opencloud_pass.sopsFile = commonSecrets;
 
         tailscale_key.sopsFile = commonSecrets;
 

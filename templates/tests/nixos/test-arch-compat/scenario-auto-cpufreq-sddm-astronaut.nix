@@ -169,7 +169,7 @@ let
     (src + "/users/krit/nixos/services/hardware/logitech/mouses/logitech-main.nix")
     (src + "/users/krit/nixos/services/nas/borg-backup/borg-backup-desktop.nix")
     (src + "/users/krit/nixos/services/nas/borg-backup/borg-backup-laptop.nix")
-    (src + "/users/krit/nixos/services/nas/owncloud.nix")
+    (src + "/users/krit/nixos/services/nas/opencloud.nix")
     (src + "/users/krit/nixos/services/nas/smb.nix")
     (src + "/users/krit/nixos/services/nas/ssh.nix")
     (src + "/users/krit/nixos/specializations/entertainment.nix")

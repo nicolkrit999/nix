@@ -174,7 +174,7 @@ delib.host {
 
       krit.services.nas = {
         Krits-MacBook-Pro-borg-backup.enable = true;
-        owncloud.enable = false;
+        opencloud.enable = false;
         smb.enable = true;
         sshfs.enable = false;
       };

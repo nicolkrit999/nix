@@ -1,12 +1,13 @@
 # Wires sops secrets to krit services
 # Import this in host system.nix imports block (after sops module)
-{ config, ... }:
+{ config, lib, ... }:
 {
-  # davfs-secrets template for owncloud
+  # davfs-secrets template for opencloud: one "<url> <user> <pass>" line per
+  # space, same account for all of them (see krit.services.nas.opencloud.spaces)
   sops.templates."davfs-secrets" = {
-    content = ''
-      ${config.sops.placeholder.nas_owncloud_url} ${config.sops.placeholder.nas_owncloud_user} ${config.sops.placeholder.nas_owncloud_pass}
-    '';
+    content = lib.concatMapStringsSep "\n"
+      (space: "${space.url} ${config.sops.placeholder.nas_opencloud_user} ${config.sops.placeholder.nas_opencloud_pass}")
+      config.myconfig.krit.services.nas.opencloud.spaces;
     owner = "root";
     group = "root";
     mode = "0600";
@@ -19,7 +20,7 @@
   myconfig.krit.services.nas.desktop-borg-backup.sshKeyPath = config.sops.secrets.borg-private-key.path;
   myconfig.krit.services.nas.laptop-borg-backup.passphraseFile = config.sops.secrets.borg-passphrase.path;
   myconfig.krit.services.nas.laptop-borg-backup.sshKeyPath = config.sops.secrets.borg-private-key.path;
-  myconfig.krit.services.nas.owncloud.secretsFile = config.sops.templates."davfs-secrets".path;
+  myconfig.krit.services.nas.opencloud.secretsFile = config.sops.templates."davfs-secrets".path;
 
   # Wire tailscale auth key
   services.tailscale.authKeyFile = config.sops.secrets.tailscale_key.path;
