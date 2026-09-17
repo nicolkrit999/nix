@@ -6,7 +6,7 @@
   # space, same account for all of them (see krit.services.nas.opencloud.spaces)
   sops.templates."davfs-secrets" = {
     content = lib.concatMapStringsSep "\n"
-      (space: "${space.url} ${config.sops.placeholder.nas_opencloud_user} ${config.sops.placeholder.nas_opencloud_pass}")
+      (space: ''${space.url} "${config.sops.placeholder.nas_opencloud_user}" "${config.sops.placeholder.nas_opencloud_pass}"'')
       config.myconfig.krit.services.nas.opencloud.spaces;
     owner = "root";
     group = "root";
