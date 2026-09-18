@@ -283,12 +283,13 @@ delib.module {
           # Required Tools
           mars-mips # MIPS simulator (tecnica digitale)
 
-          # CS Tools (usefule)
+          # CS Tools (useful)
           dbeaver-bin
           insomnia
           wireshark
           zeal
           rclone
+          filezilla
 
           # Custom Shell Scripts
           (pkgs.writeShellScriptBin "brave-school" ''exec ${pkgs.brave}/bin/brave --user-data-dir=$HOME/.config/BraveSoftware/School "$@"'')
