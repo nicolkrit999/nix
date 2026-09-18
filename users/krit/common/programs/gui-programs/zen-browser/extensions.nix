@@ -37,6 +37,7 @@ delib.module {
     {
       # ── Rycee (NUR) extensions ──────────────────────────────────────────────
       programs.zen-browser.profiles.default.extensions.packages = with addons; [
+        vimium # vim like keybinds for browser
         ublock-origin # Ad/tracker blocker
         proton-pass # Proton Pass password manager
         #firefox-color # Theme support (used by catppuccin)
