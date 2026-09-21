@@ -30,8 +30,8 @@ delib.module {
 
   home.ifEnabled =
     { cfg
-    , myconfig
     , parent
+    , myconfig
     , ...
     }:
     let
@@ -45,11 +45,39 @@ delib.module {
 
       gap = myconfig.constants.niri.gap or 8;
       rounding = myconfig.constants.niri.rounding or 10;
-      waypaperActive = parent.waypaper.enable or false;
+
       noctaliaActiveOnNiri =
         (parent.noctalia.enable or false)
         && (parent.noctalia.enableOnNiri or false);
       wallpaperOwnedByShell = noctaliaActiveOnNiri;
+      skwdWallActive = parent.skwdWall.enable or false;
+
+      wallpaperSpawns = lib.optionals (!wallpaperOwnedByShell && !skwdWallActive)
+        ([{ command = [ "awww-daemon" ]; }]
+          ++ (map
+          (w:
+            let
+              isAnimated = w.videoURL != "" || w.gifURL != "";
+              mediaPath =
+                if w.videoURL != "" then
+                  pkgs.fetchurl { url = w.videoURL; sha256 = w.videoSHA256; }
+                else if w.gifURL != "" then
+                  pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
+                else
+                  pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
+              isWildcard = w.targetMonitor == "*";
+              targetStr = if isWildcard then "" else "-o ${w.targetMonitor} ";
+              sleepSecs = if isWildcard then "1" else "2";
+              outputArg = if isWildcard then "ALL" else w.targetMonitor;
+              playCmd =
+                if isAnimated then
+                  "mpvpaper -f -o \"loop mute=yes panscan=1.0\" ${outputArg} ${mediaPath}"
+                else
+                  "awww img ${targetStr}${mediaPath}";
+            in
+            { command = [ "sh" "-c" "sleep ${sleepSecs} && ${playCmd}" ]; }
+          )
+          (lib.sort (a: b: a.targetMonitor == "*" && b.targetMonitor != "*") myconfig.constants.wallpapers)));
     in
     {
       home.packages = with pkgs; [
@@ -192,35 +220,7 @@ delib.module {
               ];
             }
           ]
-          ++ (if wallpaperOwnedByShell then [ ]
-          else if !waypaperActive then
-            [{ command = [ "awww-daemon" ]; }]
-              ++ (map
-              (w:
-                let
-                  isAnimated = w.videoURL != "" || w.gifURL != "";
-                  mediaPath =
-                    if w.videoURL != "" then
-                      pkgs.fetchurl { url = w.videoURL; sha256 = w.videoSHA256; }
-                    else if w.gifURL != "" then
-                      pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
-                    else
-                      pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
-                  isWildcard = w.targetMonitor == "*";
-                  targetStr = if isWildcard then "" else "-o ${w.targetMonitor} ";
-                  sleepSecs = if isWildcard then "1" else "2";
-                  outputArg = if isWildcard then "ALL" else w.targetMonitor;
-                  playCmd =
-                    if isAnimated then
-                      "mpvpaper -f -o \"loop mute=yes panscan=1.0\" ${outputArg} ${mediaPath}"
-                    else
-                      "awww img ${targetStr}${mediaPath}";
-                in
-                { command = [ "sh" "-c" "sleep ${sleepSecs} && ${playCmd}" ]; }
-              )
-              (lib.sort (a: b: a.targetMonitor == "*" && b.targetMonitor != "*") myconfig.constants.wallpapers))
-          else
-            [{ command = [ "waypaper" "--restore" ]; }])
+          ++ wallpaperSpawns
           ++ (map
             (cmd: { command = [ "bash" "-c" cmd ]; })
             cfg.execOnce);

@@ -41,12 +41,12 @@ delib.module {
         (parent.noctalia.enable or false)
         && (parent.noctalia.enableOnHyprland or false);
       wallpaperOwnedByShell = caelestiaActiveOnHyprland || noctaliaActiveOnHyprland;
-      waypaperActive = parent.waypaper.enable or false;
+      skwdWallActive = parent.skwdWall.enable or false;
 
-      wallpaperCmds = lib.optionals (!wallpaperOwnedByShell && !waypaperActive)
+      wallpaperCmds = lib.optionals (!wallpaperOwnedByShell && !skwdWallActive)
         (
           [ "awww-daemon" ]
-            ++ map
+          ++ map
             (w:
               let
                 isAnimated = w.videoURL != "" || w.gifURL != "";
@@ -69,9 +69,7 @@ delib.module {
               in
               "sh -c 'sleep ${sleepSecs} && ${playCmd}'")
             myconfig.constants.wallpapers
-        ) ++ lib.optionals (!wallpaperOwnedByShell && waypaperActive) [
-        "waypaper --restore"
-      ];
+        );
 
       execOnceItems = [
         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"

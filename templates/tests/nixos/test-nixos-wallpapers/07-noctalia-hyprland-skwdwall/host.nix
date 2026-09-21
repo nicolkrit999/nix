@@ -1,10 +1,10 @@
 import ../shared/mk-fake-host.nix {
-  name = "wp-11-noctalia-dormant";
+  name = "wp-07-noctalia-hyprland-skwdwall";
   constants = import ../shared/base-constants-static.nix;
-  skwdWall = false;
+  skwdWall = true;
   shells.noctalia = {
     enable = true;
-    enableOnHyprland = false;
+    enableOnHyprland = true;
     enableOnNiri = false;
     enableOnMango = false;
   };

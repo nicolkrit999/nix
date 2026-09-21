@@ -1,1 +1,1 @@
-- [Wallpaper test eval-scenario pattern](feedback_wallpaper_test_eval_scenario.md) - gnome/kde fetchurl eval-safety + nixosPaths setup; fetchurl store path suffix = URL basename not sha256 (assert on filename, not hash, to prove which media field won)
+- [Wallpaper test eval-scenario pattern](feedback_wallpaper_test_eval_scenario.md) - gnome/kde fetchurl eval-safety + nixosPaths setup; fetchurl store path suffix = URL basename not sha256; 2026-09-21 waypaper→skwdWall rename, open aarch64/KDE pkg bug, no "we" schema field yet

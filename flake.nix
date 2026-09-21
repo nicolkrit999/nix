@@ -225,6 +225,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # x86_64-linux only (meta.platforms) - never reference on Darwin
+    skwd-wall = {
+      url = "github:liixini/skwd-wall/nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     elephant.url = "github:abenz1267/elephant";
     walker = {
       url = "github:abenz1267/walker";

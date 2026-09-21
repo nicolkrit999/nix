@@ -13,8 +13,6 @@ nix-tests.runTests {
       helpers.isFalse (H.hyprExecHas "mpvpaper -f -o \\\"loop mute=yes panscan=1.0\\\" ALL" config);
     "hyprland exec does NOT contain awww img" =
       helpers.isFalse (H.hyprExecHas "awww img" config);
-    "hyprland exec does NOT contain waypaper --restore" =
-      helpers.isFalse (H.hyprExecHas "waypaper --restore" config);
     "mango exec contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" DP-1 for named monitor" =
       helpers.isTrue (H.mangoExecHas "mpvpaper -f -o \"loop mute=yes panscan=1.0\" DP-1" config);
     "mango exec does NOT contain awww img" =

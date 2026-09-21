@@ -6,8 +6,8 @@
 #   getHm         config                     -> home-manager sub-config for "krit"
 #
 # Two nixos-extra variants are supported:
-#   nixosExtraX86  — x86_64-linux platform stub
-#   nixosExtraAarch64 — aarch64-linux platform stub
+#   nixosExtraX86  - x86_64-linux platform stub
+#   nixosExtraAarch64 - aarch64-linux platform stub
 #
 # Uses builtins.getFlake "path:/home/krit/nix" which works without --impure
 # because the path: scheme is a proper flake URI.
@@ -49,14 +49,14 @@ let
     (src + "/modules/nixos/programs/de-wm/gnome/gnome-main.nix")
     (src + "/modules/nixos/programs/de-wm/kde/kde-main.nix")
 
-    # Waypaper module (the enable option the WMs read via parent.waypaper.enable)
-    (src + "/modules/nixos/programs/waypaper.nix")
+    # skwd-wall module (the enable option the WMs read via parent.skwdWall.enable)
+    (src + "/modules/nixos/programs/skwd-wall.nix")
 
     # Custom shells (wallpaper ownership logic)
     (src + "/modules/nixos/programs/shells/caelestia-main.nix")
     (src + "/modules/nixos/programs/shells/noctalia-main.nix")
 
-    # Waybars (needed so waybar.*.enable options exist — waybars default off)
+    # Waybars (needed so waybar.*.enable options exist - waybars default off)
     (src + "/modules/nixos/programs/waybar/hyprland/waybar-hyprland.nix")
     (src + "/modules/nixos/programs/waybar/niri/waybar-niri.nix")
     (src + "/modules/nixos/programs/waybar/mango/waybar-mango.nix")
@@ -134,6 +134,16 @@ let
     in
     builtins.any (n: lib.hasInfix pkgName n) names;
 
+  # Whether the skwd-deck systemd service (skwd-walld) is enabled at the
+  # NixOS system level - set by `nixos.ifEnabled` in skwd-wall.nix.
+  skwdDeckEnabled = config: config.services.skwd-deck.enable or false;
+
+  # KDE's plasma-manager wallpaperCustomPlugin.plugin, or null when unset
+  # (mkIf false leaves the option at its default/empty submodule).
+  kdeWallpaperCustomPlugin = config:
+    let hm = getHm config;
+    in hm.programs.plasma.workspace.wallpaperCustomPlugin.plugin or null;
+
 in
 {
   inherit evalScenario getConfig getHm lib flake;
@@ -142,4 +152,5 @@ in
   inherit getMangoExecStr mangoExecHas;
   inherit getNiriSpawnStr niriSpawnHas;
   inherit hmHasPkg;
+  inherit skwdDeckEnabled kdeWallpaperCustomPlugin;
 }

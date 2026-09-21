@@ -1810,6 +1810,7 @@
         "openlogi": "openlogi",
         "plasma-manager": "plasma-manager",
         "quickshell": "quickshell_2",
+        "skwd-wall": "skwd-wall",
         "spotify-adblock-src": "spotify-adblock-src",
         "stylix": "stylix",
         "tgt": "tgt",
@@ -1902,6 +1903,27 @@
       "original": {
         "owner": "wlrfx",
         "repo": "scenefx",
+        "type": "github"
+      }
+    },
+    "skwd-wall": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790013649,
+        "narHash": "sha256-4zvYULaLts9reCVTPm6/5suqwc7kcGYkqAgR4qRxcOc=",
+        "owner": "liixini",
+        "repo": "skwd-wall",
+        "rev": "aa346448e81a056c5a46e17dd1624bc05842e88e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "liixini",
+        "ref": "nix",
+        "repo": "skwd-wall",
         "type": "github"
       }
     },

@@ -32,9 +32,16 @@ delib.module {
 
   home.ifEnabled =
     { myconfig
+    , parent
     , ...
     }:
     let
+      skwdWallActive = parent.skwdWall.enable or false;
+
+      # skwd-wall only publishes x86_64-linux outputs; guard the attr access so
+      # aarch64-linux hosts don't hit a missing-attribute eval error.
+      skwdWallPlasmaAvailable = skwdWallActive && pkgs.stdenv.hostPlatform.isx86_64;
+
       wallpaperPaths = builtins.map
         (
           w:
@@ -74,6 +81,12 @@ delib.module {
         X-KDE-autostart-phase=1
       '';
 
+      # skwd-wall's Plasma wallpaper plugin (x86_64-linux only, matches this
+      # file's nixos-only placement). plasma-manager's workspace.wallpaper
+      # can't select a non-org.kde.image plugin, so wallpaperCustomPlugin is
+      # used instead when skwd-wall owns the wallpaper.
+      home.packages = lib.optional skwdWallPlasmaAvailable inputs.skwd-wall.packages.${pkgs.system}.skwd-paper-plasma;
+
       programs.plasma = {
         enable = true;
         overrideConfig = lib.mkForce true;
@@ -84,7 +97,10 @@ delib.module {
           colorScheme = theme;
           lookAndFeel = lookAndFeel;
           cursor.theme = cursorTheme;
-          wallpaper = wallpaperPaths;
+          wallpaper = lib.mkIf (!skwdWallPlasmaAvailable) wallpaperPaths;
+          wallpaperCustomPlugin = lib.mkIf skwdWallPlasmaAvailable {
+            plugin = "org.skwd.wall.plasma";
+          };
         };
       };
 

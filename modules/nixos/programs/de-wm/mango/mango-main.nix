@@ -17,8 +17,8 @@ delib.module {
 
   home.ifEnabled =
     { cfg
-    , myconfig
     , parent
+    , myconfig
     , ...
     }:
     let
@@ -30,11 +30,41 @@ delib.module {
         "isfloating:1,width:900,height:600,appid:^(xdg-desktop-portal-kde|xdg-desktop-portal-gtk)$"
         "isfloating:1,focused_opacity:0,unfocused_opacity:0,isnoanimation:1,noblur:1,width:1,height:1,isopensilent:1,appid:^(xwaylandvideobridge)$"
       ];
-      waypaperActive = parent.waypaper.enable or false;
+
       noctaliaActiveOnMango =
         (parent.noctalia.enable or false)
         && (parent.noctalia.enableOnMango or false);
       wallpaperOwnedByShell = noctaliaActiveOnMango;
+      skwdWallActive = parent.skwdWall.enable or false;
+
+      wallpaperExecs =
+        if wallpaperOwnedByShell || skwdWallActive then
+          [ ]
+        else
+          [ "awww-daemon" ]
+          ++ (map
+            (w:
+              let
+                isAnimated = w.videoURL != "" || w.gifURL != "";
+                mediaPath =
+                  if w.videoURL != "" then
+                    pkgs.fetchurl { url = w.videoURL; sha256 = w.videoSHA256; }
+                  else if w.gifURL != "" then
+                    pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
+                  else
+                    pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
+                isWildcard = w.targetMonitor == "*";
+                targetArgs = if isWildcard then "" else "-o ${w.targetMonitor} ";
+                sleepSecs = if isWildcard then "1" else "2";
+                outputArg = if isWildcard then "ALL" else w.targetMonitor;
+                playCmd =
+                  if isAnimated then
+                    "mpvpaper -f -o \"loop mute=yes panscan=1.0\" ${outputArg} ${mediaPath}"
+                  else
+                    "awww img ${targetArgs}${mediaPath}";
+              in
+              "sh -c 'sleep ${sleepSecs} && ${playCmd}'")
+            myconfig.constants.wallpapers);
     in
     with config.lib.stylix.colors;
     {
@@ -218,34 +248,7 @@ delib.module {
             "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
             "dbus-update-activation-environment --systemd --all"
           ]
-          ++ (if wallpaperOwnedByShell then [ ]
-          else if !waypaperActive then
-            [ "awww-daemon" ]
-              ++ (map
-              (w:
-                let
-                  isAnimated = w.videoURL != "" || w.gifURL != "";
-                  mediaPath =
-                    if w.videoURL != "" then
-                      pkgs.fetchurl { url = w.videoURL; sha256 = w.videoSHA256; }
-                    else if w.gifURL != "" then
-                      pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
-                    else
-                      pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
-                  isWildcard = w.targetMonitor == "*";
-                  targetArgs = if isWildcard then "" else "-o ${w.targetMonitor} ";
-                  sleepSecs = if isWildcard then "1" else "2";
-                  outputArg = if isWildcard then "ALL" else w.targetMonitor;
-                  playCmd =
-                    if isAnimated then
-                      "mpvpaper -f -o \"loop mute=yes panscan=1.0\" ${outputArg} ${mediaPath}"
-                    else
-                      "awww img ${targetArgs}${mediaPath}";
-                in
-                "sh -c 'sleep ${sleepSecs} && ${playCmd}'")
-              myconfig.constants.wallpapers)
-          else
-            [ "waypaper --restore" ])
+          ++ wallpaperExecs
           ++ cfg.execOnce;
         };
 

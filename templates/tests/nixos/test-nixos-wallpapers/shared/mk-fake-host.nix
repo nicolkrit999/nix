@@ -1,11 +1,11 @@
 # Builds a delib.host definition for wallpaper test scenarios.
 #
 # spec fields:
-#   name            string     — host name
-#   system          string     — "x86_64-linux" (default) or "aarch64-linux"
-#   constants       attrset    — result of importing a base-constants-*.nix
-#   waypaper        bool       — whether programs.waypaper is enabled (default false)
-#   shells          attrset    — caelestia/noctalia enable flags (default all off)
+#   name            string     - host name
+#   system          string     - "x86_64-linux" (default) or "aarch64-linux"
+#   constants       attrset    - result of importing a base-constants-*.nix
+#   skwdWall        bool       - whether programs.skwdWall is enabled (default false)
+#   shells          attrset    - caelestia/noctalia enable flags (default all off)
 #
 # All three WMs (hyprland, mango, niri), gnome, and kde are always enabled so
 # that each test can assert across all WM/DE outputs in a single host eval.
@@ -33,7 +33,7 @@ delib.host {
     programs.gnome.enable = true;
     programs.kde.enable = true;
 
-    programs.waypaper.enable = spec.waypaper or false;
+    programs.skwdWall.enable = spec.skwdWall or false;
 
     programs.caelestia = {
       enable = caelestia.enable or false;
@@ -47,7 +47,7 @@ delib.host {
       enableOnMango = noctalia.enableOnMango or false;
     };
 
-    # Waybars off — avoids shell+waybar conflict assertions in shell scenarios.
+    # Waybars off - avoids shell+waybar conflict assertions in shell scenarios.
     programs.waybar-hyprland.enable = false;
     programs.waybar-niri.enable = false;
     programs.waybar-mango.enable = false;

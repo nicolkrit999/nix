@@ -1,4 +1,4 @@
-# W13 - x86_64, wallpaperURL + gifURL + videoURL all set, waypaper disabled
+# W13 - x86_64, wallpaperURL + gifURL + videoURL all set, skwdWall disabled
 # Full priority chain: video > gif > static. Expected: WMs dispatch the VIDEO
 # via mpvpaper, never the gif or static path.
 { nix-tests }:
@@ -15,7 +15,7 @@ let
   gnomeBgUri = hm.dconf.settings."org/gnome/desktop/background".picture-uri or "";
 in
 nix-tests.runTests {
-  "W13: x86_64 video+gif+static wallpaper, no waypaper" = helpers: {
+  "W13: x86_64 video+gif+static wallpaper, skwdWall disabled" = helpers: {
     "hyprland exec contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL (video wins over gif+static)" =
       helpers.isTrue (H.hyprExecHas "mpvpaper -f -o \\\"loop mute=yes panscan=1.0\\\" ALL" config);
     "hyprland exec contains video filename" =

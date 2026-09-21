@@ -275,7 +275,7 @@ delib.host {
         tmux.enable = true;
         television.enable = true;
         walker.enable = false;
-        waypaper.enable = false;
+        skwdWall.enable = false;
         zoxide.enable = true;
         zen.browser.enable = true;
 
