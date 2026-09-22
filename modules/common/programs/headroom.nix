@@ -77,9 +77,28 @@ let
 
   headroom = pkgs.python3.withPackages (_: [ headroom-pkg ]);
 
+  proxyPort = 8787;
+  proxyAddr = "127.0.0.1:${toString proxyPort}";
+
+  statusHint =
+    if pkgs.stdenv.hostPlatform.isDarwin
+    then "launchctl list com.headroom.proxy"
+    else "systemctl --user status headroom-proxy";
+
+  # Opt-in, per session: routes ONE `claude` invocation through the persistent
+  # proxy. Plain `claude` stays direct. Fails with a clear message when the
+  # proxy is not up, instead of Claude Code's "firewall or proxy" error.
+  # 127.0.0.1 rather than localhost so the client never tries ::1 first.
+  headroom-claude = pkgs.writeShellScriptBin "headroom-claude" ''
+    if ! (exec 3<>/dev/tcp/127.0.0.1/${toString proxyPort}) 2>/dev/null; then
+      echo "headroom-claude: proxy is not running on ${proxyAddr} (${statusHint})" >&2
+      exit 1
+    fi
+    ANTHROPIC_BASE_URL="http://${proxyAddr}" ENABLE_TOOL_SEARCH=true exec claude "$@"
+  '';
+
   shellAliases = {
     headroom-wrap = "headroom wrap claude";
-    headroom-claude = "ANTHROPIC_BASE_URL=http://localhost:8787 ENABLE_TOOL_SEARCH=true claude";
   };
 in
 delib.module {
@@ -88,7 +107,7 @@ delib.module {
   options = delib.singleEnableOption false;
 
   home.ifEnabled = { myconfig, ... }: {
-    home.packages = [ headroom pkgs.ast-grep ];
+    home.packages = [ headroom headroom-claude pkgs.ast-grep ];
 
     programs.fish.shellAbbrs = lib.mkIf (myconfig.constants.shell == "fish") shellAliases;
     programs.zsh.shellAliases = lib.mkIf (myconfig.constants.shell == "zsh") shellAliases;
@@ -100,7 +119,7 @@ delib.module {
         After = [ "network.target" ];
       };
       Service = {
-        ExecStart = "${headroom}/bin/headroom proxy --port 8787";
+        ExecStart = "${headroom}/bin/headroom proxy --port ${toString proxyPort}";
         Restart = "on-failure";
         RestartSec = "5s";
       };
@@ -113,7 +132,7 @@ delib.module {
       enable = true;
       config = {
         Label = "com.headroom.proxy";
-        ProgramArguments = [ "${headroom}/bin/headroom" "proxy" "--port" "8787" ];
+        ProgramArguments = [ "${headroom}/bin/headroom" "proxy" "--port" (toString proxyPort) ];
         RunAtLoad = true;
         KeepAlive = true;
       };
