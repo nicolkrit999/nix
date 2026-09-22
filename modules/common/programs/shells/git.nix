@@ -1,4 +1,4 @@
-{ delib, inputs, pkgs, ... }:
+{ delib, inputs, pkgs, lib, ... }:
 delib.module {
   name = "programs.git";
   options =
@@ -40,6 +40,13 @@ delib.module {
           };
           init.defaultBranch = "main";
           pull.ff = "only";
+        };
+
+        iniContent.filter.lfs = {
+          clean = lib.mkForce "git-lfs clean -- %f";
+          smudge = lib.mkForce "git-lfs smudge -- %f";
+          process = lib.mkForce "git-lfs filter-process";
+          required = lib.mkForce true;
         };
       };
 

@@ -142,35 +142,7 @@ delib.host {
           catppuccinAccent = "sapphire";
         };
 
-        # ---------------------------------------------------------------
-        # 🪟 HYPRLAND CONSTANTS
-        # ---------------------------------------------------------------
-        /*
-          # Commented out as it matches the fallbacks
-        hyprland = {
-          rounding = 10;
-          gap = 5;
-          borderSize = 2;
-          terminalOpacity = 0.9;
-        };
-        */
-
-        # ---------------------------------------------------------------
-        # 🌀 NIRI CONSTANTS
-        # ---------------------------------------------------------------
-        /*
-        # Commented out as it matches the fallbacks
-        niri = {
-          gap = 8;
-          rounding = 10;
-        };
-        */
-
-        /*
-        # Commented out as it matches the fallbacks
-        screenshots = "$HOME/Pictures/Screenshots";
-        keyboardLayout = "us";
-        */
+        keyboardLayout = "us,it,de,fr";
         keyboardVariant = "intl";
 
         weather = "Lugano";
@@ -242,26 +214,29 @@ delib.host {
         bat.enable = true;
         cava.enable = false;
         claude-desktop.enable = true;
-        codex.enable = true;
+        codex.enable = false;
         herdr.enable = true;
         comma.enable = true;
         concord.enable = true;
-        doom.enable = true;
+        doom.enable = false;
         eza.enable = true;
         fzf.enable = true;
-        fzf.nix-search-tv.enable = true;
+        fzf.nix-search-tv.enable = false;
         gnome-keyring.enable = true;
-        google-antigravity.enable = true;
+        google-antigravity.enable = false;
         lazygit.enable = true;
         nix-alien.enable = false;
         nix-topology.enable = false;
+
         nltchNur = {
           enable = false;
           packages = [ ];
           permittedInsecurePackages = [ "electron-40.10.5" ];
         };
+
         spotifyAdblock.enable = true;
         nix-ld.enable = false;
+
         npm = {
           enable = true;
           packages = [
@@ -278,7 +253,7 @@ delib.host {
         shell-aliases.enable = true;
         starship.enable = true;
         statix.enable = false;
-        swayosd.enable = true;
+        swayosd.enable = false;
         tgt.enable = true;
         tmux.enable = true;
         television.enable = true;
@@ -332,14 +307,14 @@ delib.host {
           ];
         };
 
-        headroom.enable = true;
+        headroom.enable = false;
 
         # mcpSecrets / mcpEnv default in modules/common/programs/claude-code.nix (shared across all hosts)
         claude-code.enable = true;
         vikunja-desktop.enable = true;
 
         thunderbird = {
-          enable = true;
+          enable = false;
           sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
           accounts = [
             {
@@ -482,7 +457,7 @@ delib.host {
         };
 
         mango = {
-          enable = true;
+          enable = false;
           monitors = [
             "name:^eDP-1$,width:3200,height:2000,refresh:120,x:0,y:0,scale:1.6"
           ];
@@ -557,7 +532,7 @@ delib.host {
         };
 
         waybar-mango = {
-          enable = true;
+          enable = false;
           waybarLayout = langLayout;
         };
 
@@ -576,7 +551,7 @@ delib.host {
         };
 
         gnome = {
-          enable = false; # Gnome pulls lot of elements. Since i almost never use it keep it disabled to save battery and resources
+          enable = false;
           pinnedApps = pinnedApps;
           extraBinds = [
             # 🖱️ LOGITECH MX MASTER Thumb button gesstures
@@ -672,11 +647,11 @@ delib.host {
         firefox.enable = false;
         helium.enable = false;
         kitty.enable = true;
-        krokiet.enable = true;
+        krokiet.enable = false;
         librewolf.enable = false;
         neovim.enable = true;
         pwas.enable = true;
-        proton-cli.enable = true;
+        proton-cli.enable = false;
         ranger.enable = false;
         yazi.enable = true;
         zathura.enable = true;
@@ -700,21 +675,21 @@ delib.host {
         mouses = {
           mx-master-3s.enable = true;
           mx-master-4.enable = true;
-          superlight.enable = true;
+          superlight.enable = false;
         };
       };
 
 
       krit.services.nas = {
         laptop-borg-backup.enable = true;
-        opencloud.enable = true;
+        opencloud-mount.enable = true;
         smb.enable = true;
         sshfs.enable = false;
       };
 
       krit.services.cloud = {
         googleDrive.enable = true;
-        onedrivePersonal.enable = true;
+        onedrivePersonal.enable = false;
         pcloud.enable = true;
         protonDrive.enable = true;
       };

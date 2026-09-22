@@ -4,7 +4,7 @@
 , ...
 }:
 delib.module {
-  name = "krit.services.nas.opencloud";
+  name = "krit.services.nas.opencloud-mount";
   options = with delib; moduleOptions {
     enable = boolOption false;
     secretsFile = strOption "";

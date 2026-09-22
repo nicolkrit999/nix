@@ -10,4 +10,10 @@ delib.module {
   nixos.ifEnabled = {
     environment.systemPackages = [ tgt ];
   };
+
+  home.ifEnabled = { ... }: {
+    home.activation.createTgtDir = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      $DRY_RUN_CMD mkdir -p "$HOME/.tgt"
+    '';
+  };
 }

@@ -108,7 +108,7 @@ delib.host {
     krit.services.logitech.enable = true;
     krit.services.nas.desktop-borg-backup.enable = true;
     krit.services.nas.laptop-borg-backup.enable = true;
-    krit.services.nas.opencloud.enable = true;
+    krit.services.nas.opencloud-mount.enable = true;
     krit.services.nas.smb.enable = true;
     krit.services.nas.sshfs.enable = true;
     krit.specializations.entertainment.enable = true;

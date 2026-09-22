@@ -15,7 +15,6 @@ delib.module {
       services.flatpak = {
         enable = true;
         packages = [
-          "io.github.philippkosarev.bmi" # Bmi calculator
           "io.github.lluciocc.Vish" # Gui bash script editor
           "io.github.iionel.Visu" # Algorithm visualizer
           "com.actualbudget.actual" # Actual budget budgeting app
