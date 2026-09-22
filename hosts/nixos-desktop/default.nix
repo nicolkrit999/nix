@@ -426,6 +426,7 @@ delib.host {
             { match.class = "^(winboat)$"; workspace = "${appWorkspaces.vm} silent"; }
             { match.class = "^(Actual)$"; workspace = "${appWorkspaces.other} silent"; }
             { match.class = "^(org.jellyfin.JellyfinDesktop)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
+            { match.class = "(^de.haeckerfelix.Shortwave)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
             { match.class = "^(chromium-browser)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
             { match.class = "^(brave-browser)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
             { match.class = "^(brave-.*\\..*)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }

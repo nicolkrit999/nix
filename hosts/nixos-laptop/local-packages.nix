@@ -30,6 +30,7 @@ delib.module {
           obs-studio # Streaming/Recording
           proton-pass # Password manager by Proton
           signal-desktop # Encrypted messaging application
+          shortwave # Find and listen to internet radio stations
           teams-for-linux # Unofficial Microsoft Teams client
           tor-browser # Privacy-focused web browser
           vscode # Microsoft visual studio code IDE
