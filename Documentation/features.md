@@ -46,8 +46,8 @@ Wallpapers are host-specific and tied to the monitor list. They apply automatica
 
 - First monitor → first wallpaper, second monitor → second wallpaper, etc
 - In KDE Plasma the "primary" monitor takes the first wallpaper - if you change the primary monitor in System Settings, it will get the first wallpaper.
-- Using the optional `waypaper` module it is possible to setup using a gui any wallpaper, including videos and wallpaper engines dynamic wallpapers. If waypaper is disabled then the declarative wallpaper set up is completely disabled for window manager, and the chosen wallpaper in the ui is applied inconditionally to any future and present wm
-- **waypaper limitation:** waypaper 2.7 cannot set different wallpapers per monitor simultaneously, and does not support wallpaper rotation (portrait monitors receive the same image as landscape ones). For per-monitor wallpapers, use the declarative awww path with `waypaper` disabled.
+- GNOME always uses this declarative static-per-monitor setup, regardless of the `skwdWall` toggle below - Mutter has no wlr-layer-shell support, so skwd-wall cannot render there.
+- Enabling `programs.skwdWall` installs and enables [skwd-wall](https://github.com/liixini/skwd-wall)/skwd-deck, a GUI-driven wallpaper daemon supporting per-monitor wallpaper types (static/gif/video/Wallpaper Engine scenes, mixed across monitors) with live hotplug persistence. When enabled, it takes over Hyprland, niri, MangoWM, and KDE Plasma completely - the declarative `wallpapers` setup below is fully disabled on those four, and whatever is chosen in skwd-wall's UI applies unconditionally to any present and future window manager among them. skwd-wall is x86_64-linux only; its per-monitor state (`outputs.json`, `monitors.json`, etc.) is owned entirely by its own daemon and is never touched by Nix.
 
 ### Static vs. gif vs. video: two engines, one priority order
 
