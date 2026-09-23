@@ -291,6 +291,48 @@ delib.module {
           rclone
           filezilla
 
+          # CS Notes / Cheat Sheets - shared toolchain (Typst/LaTeX/Pandoc, diagrams, PDF/image tooling, spellcheck)
+          # from templates/krit/dev-environments/language-combined/{cs-notes,cs-cheat-sheets}/flake.nix
+          typst
+          typstyle
+          tectonic
+          pandoc
+          haskellPackages.pandoc-crossref
+          graphviz
+          d2
+          gnuplot
+          poppler-utils
+          ghostscript
+          imagemagick
+          qpdf
+          librsvg
+          inkscape
+          jq
+          hunspell
+          hunspellDicts.en_US
+          hunspellDicts.it_IT
+
+          # CS Notes-specific extras (not in cs-cheat-sheets)
+          tinymist
+          plantuml
+          mermaid-cli
+
+          # CS Notes / Cheat Sheets - merged Python scientific/stats stack (union of both flakes)
+          (python313.withPackages (ps: [
+            ps.numpy
+            ps.scipy
+            ps.sympy
+            ps.matplotlib
+            ps.seaborn
+            ps.pandas
+            ps.statsmodels
+            ps.scikit-learn
+            ps.networkx
+            ps.ipython
+            ps.pygments
+            ps.genanki
+          ]))
+
           # Custom Shell Scripts
           (pkgs.writeShellScriptBin "brave-school" ''exec ${pkgs.brave}/bin/brave --user-data-dir=$HOME/.config/BraveSoftware/School "$@"'')
           (pkgs.makeDesktopItem {
