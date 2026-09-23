@@ -32,7 +32,7 @@ delib.module {
         fd
         ffmpeg
         mediainfo
-        poppler
+        poppler-utils # pdftoppm/pdftotext for the PDF previewer (bare `poppler` ships only libs, and collides with poppler-utils in buildEnv)
         jq
         zip
         unzip

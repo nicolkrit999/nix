@@ -75,7 +75,13 @@ let
     };
   };
 
-  headroom = pkgs.python3.withPackages (_: [ headroom-pkg ]);
+  # Expose only `bin/headroom`, not a whole python environment. A
+  # `python3.withPackages` env also ships bin/{python,idle,pydoc,...}, which
+  # collides in home-manager's buildEnv with any other python env in
+  # `home.packages` (e.g. the school specialisation's scientific stack).
+  # `headroom-pkg`'s console script is already self-contained (its wrapper
+  # embeds every dependency path via `site.addsitedir`).
+  headroom = pkgs.python3.pkgs.toPythonApplication headroom-pkg;
 
   proxyPort = 8787;
   proxyAddr = "127.0.0.1:${toString proxyPort}";

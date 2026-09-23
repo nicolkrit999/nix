@@ -15,6 +15,7 @@ delib.module {
       services.flatpak = {
         enable = true;
         packages = [
+          "co.logonoff.awakeonlan" # AwakeOnLan, a tool to wake up computers on the network
           "io.github.philippkosarev.bmi" # Bmi calculator
           "io.github.lluciocc.Vish" # Gui bash script editor
           "io.github.iionel.Visu" # Algorithm visualizer

@@ -6,3 +6,6 @@
 - [flake check misses build-phase failures](project_flake_check_misses_build_failures.md) - check/--dry-run only evaluate; config-validator errors need a real `nix build`
 - [sops MCP secrets wiring asymmetry](project_sops_mcp_secrets_asymmetry.md) - NixOS/home derive `claude_mcp_*` from the `mcpSecrets` option list; darwin hardcodes them, so darwin-block edits are a silent no-op on Linux
 - [journal clock skew on nixos-desktop](project_journal_clock_skew_desktop.md) - RTC +2h jump makes journalctl --since/--until return nothing; dump once and correlate by line number
+- [nurl mangles the helium crx URLs](project_nurl_mangles_crx_urls.md) - nurl eats the %-escapes and returns the empty-file hash; use `nix store prefetch-file` for CWS extension hashes
+- [denix ifEnabled arg set](project_denix_ifenabled_arg_set.md) - bodies get ONLY {name,myconfig,cfg,parent}; adding config/lib to the lambda throws a misleading framework-level error
+- [home.packages buildEnv collisions](project_home_packages_buildenv_collisions.md) - two python envs collide via bin/idle, poppler vs poppler-utils; only the SPECIALISATION home-manager-path catches it

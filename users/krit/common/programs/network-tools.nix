@@ -52,4 +52,10 @@ delib.module {
   darwin.ifEnabled = {
     environment.systemPackages = sharedPackages;
   };
+
+  home.ifEnabled = {
+    home.shellAliases = {
+      wol-nas = "wol -i 192.168.1.255 6c:1f:f7:40:1e:d6";
+    };
+  };
 }

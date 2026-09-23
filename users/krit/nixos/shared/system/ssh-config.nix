@@ -1,4 +1,4 @@
-{ delib, pkgs, moduleSystem, ... }:
+{ delib, lib, pkgs, moduleSystem, ... }:
 let
   mkSshSettings = user: {
     "nicol-nas" = {
@@ -56,6 +56,19 @@ delib.module {
         IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
         IdentitiesOnly yes
         ProxyCommand cloudflared access ssh --hostname %h
+    '' + lib.optionalString (builtins.elem myconfig.constants.hostname [ "nixos-desktop" "nixos-laptop" ]) ''
+
+      # UniFi Cloud Gateway Fiber console shell - convenience alias so
+      # `ssh gateway` works without -i. Key is a manually-generated,
+      # non-nix-managed ed25519 keypair whose pubkey is already in root's
+      # authorized_keys on the gateway (used for Wake-on-LAN tooling).
+      # Each host (desktop, laptop) has its own separate id_gateway_wol
+      # keypair - same path/filename, different key material per machine.
+      Host gateway
+        HostName 192.168.1.1
+        User root
+        IdentityFile /home/${myconfig.constants.user}/.ssh/id_gateway_wol
+        IdentitiesOnly yes
     '';
 
     # Manage ~/.ssh/config via home-manager so switching away from the school
@@ -67,7 +80,17 @@ delib.module {
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
-        settings = mkSshSettings myconfig.constants.user;
+        settings = mkSshSettings myconfig.constants.user
+          // lib.optionalAttrs (builtins.elem myconfig.constants.hostname [ "nixos-desktop" "nixos-laptop" ]) {
+          # UniFi Cloud Gateway Fiber console shell - see matching comment on
+          # the system-wide extraConfig block above.
+          "gateway" = {
+            HostName = "192.168.1.1";
+            User = "root";
+            IdentityFile = "/home/${myconfig.constants.user}/.ssh/id_gateway_wol";
+            IdentitiesOnly = "yes";
+          };
+        };
       };
     };
   };
