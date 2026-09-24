@@ -10,6 +10,8 @@ env:
 jobs:
   update:
     runs-on: ubuntu-latest
+    env:
+      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,8 +22,125 @@ jobs:
           flakehub: false
 
       - name: Update flake.lock
+        id: update
         uses: DeterminateSystems/update-flake-lock@main
         with:
           target-branch: develop # Opens the PR against develop, not main
           pr-title: "chore: update flake.lock"
           pr-labels: "dependencies, automated"
+
+      # Silent on a routine no-op run (flake.lock already current - no PR
+      # created/updated). Reports failure of the update step itself, or - when
+      # a PR was created/updated - a per-input bump list.
+      #
+      # The list is derived from the PR body rather than by diffing flake.lock
+      # ourselves: `update-flake-lock` runs `nix flake update
+      # --commit-lockfile-summary`, so nix's own commit body already contains
+      # an authoritative "Updated/Added/Removed input 'X'" diff (old/new
+      # locked ref + date), and the action's default PR body template embeds
+      # that commit body verbatim in a fenced code block. Relaying it avoids
+      # re-deriving nix's own lock-graph diff logic in shell/jq.
+      - name: Notify (flake.lock update)
+        if: always() && env.WEBHOOK_ID != ''
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          UPDATE_OUTCOME: ${{ steps.update.outcome }}
+          PR_NUMBER: ${{ steps.update.outputs.pull-request-number }}
+          PR_URL: ${{ steps.update.outputs.pull-request-url }}
+          PR_OP: ${{ steps.update.outputs.pull-request-operation }}
+        run: |
+          if [ "$UPDATE_OUTCOME" = "failure" ]; then
+            jq -n --arg h "🚨 **update-flake-lock - failed**" --arg u "$RUN_URL" \
+              '{content: ($h + "\n" + $u)}' > payload.json
+            curl -sS --fail -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL" \
+              || echo "::warning::Discord webhook delivery failed - the notification above was NOT sent."
+            exit 0
+          fi
+
+          if [ "$PR_OP" != "created" ] && [ "$PR_OP" != "updated" ]; then
+            echo "No flake.lock changes ($PR_OP) - no notification sent."
+            exit 0
+          fi
+
+          gh pr view "$PR_NUMBER" --json body -q .body > pr_body.txt
+
+          python3 <<'PYEOF'
+          import json, re
+
+          with open("pr_body.txt") as f:
+              body = f.read()
+
+          m = re.search(r"\n```\n(.*?)\n```\n", body, re.S)
+          diff_text = m.group(1) if m else ""
+
+          entries = []
+          for bm in re.finditer(
+              r"^• (Updated|Added|Removed) input '([^']+)':?\n?((?:(?!^• ).*\n?)*)",
+              diff_text,
+              re.M,
+          ):
+              action, name, detail = bm.group(1), bm.group(2), bm.group(3)
+              quote_lines, new = [], None
+              for line in detail.strip("\n").splitlines():
+                  line = line.strip()
+                  if not line:
+                      continue
+                  if line.startswith("→"):
+                      new = line[1:].strip()
+                  elif line.startswith("'"):
+                      quote_lines.append(line)
+              old = quote_lines[0] if quote_lines else None
+              if new is None and len(quote_lines) > 1:
+                  new = quote_lines[1]
+              entries.append((name, action, old, new))
+
+          entries.sort(key=lambda e: e[0].lower())
+
+          lines = []
+          for name, action, old, new in entries:
+              if action == "Updated":
+                  lines.append(f"**{name}**\n  {old}\n  → {new}")
+              elif action == "Added":
+                  lines.append(f"**{name}** _(new input)_\n  {new or old}")
+              else:
+                  lines.append(f"**{name}** _(removed)_")
+
+          if not lines:
+              lines = ["_(nix produced no parseable per-input diff - see the PR for details)_"]
+
+          header = f"📦 **flake.lock updated - {len(entries)} input(s) changed**"
+
+          # Discord caps message content at 2000 chars; split on entry
+          # boundaries so no single input's old/new ref is ever cut in half.
+          chunks, current = [], ""
+          for line in lines:
+              candidate = (current + "\n\n" + line) if current else line
+              if len(candidate) > 1700 and current:
+                  chunks.append(current)
+                  current = line
+              else:
+                  current = candidate
+          if current:
+              chunks.append(current)
+
+          for i, chunk in enumerate(chunks):
+              suffix = f" ({i + 1}/{len(chunks)})" if len(chunks) > 1 else ""
+              with open(f"payload-{i}.json", "w") as f:
+                  json.dump({"content": f"{header}{suffix}\n\n{chunk}"}, f)
+
+          with open("chunk_count.txt", "w") as f:
+              f.write(str(len(chunks)))
+          PYEOF
+
+          COUNT="$(cat chunk_count.txt)"
+          i=0
+          while [ "$i" -lt "$COUNT" ]; do
+            curl -sS --fail -H "Content-Type: application/json" -d @"payload-$i.json" "$WEBHOOK_URL" \
+              || echo "::warning::Discord webhook delivery failed for chunk $i - the notification was NOT sent."
+            i=$((i + 1))
+          done
+
+          echo "PR: $PR_URL"

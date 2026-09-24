@@ -1,4 +1,4 @@
-{ delib, inputs, pkgs, lib, ... }:
+{ delib, inputs, pkgs, ... }:
 delib.module {
   name = "programs.skwdWall";
 
