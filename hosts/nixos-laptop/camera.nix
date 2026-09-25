@@ -30,6 +30,18 @@ delib.module {
     { ... }:
     let
       unstableSrc = inputs.nixpkgs-unstable;
+
+      # Patches fetched from the gossamer reference config's upstream source
+      # (Omarchy's packaging tree), not vendored locally - same pattern
+      # gossamer itself uses. See the CVS-bridge comment below for why these
+      # are required on top of nixpkgs-unstable's stock ipu75xa-camera-hal
+      # revision.
+      omarchyPatch =
+        path: hash:
+        pkgs.fetchurl {
+          url = "https://raw.githubusercontent.com/omacom/omarchy-pkgs/59732a3e6fc5f158360b480ad38f479faf1f3677/pkgbuilds/${path}";
+          inherit hash;
+        };
     in
     {
       nixpkgs.overlays = [
@@ -37,15 +49,50 @@ delib.module {
           # Firmware/image-processing blobs (proprietary, unfree, no binary
           # cache - built locally). No kernel dependency, safe to build
           # straight against our stable pkgs.
-          ipu7-camera-bins = final.callPackage "${unstableSrc}/pkgs/by-name/ip/ipu7-camera-bins/package.nix" { };
+          #
+          # Pinned (not nixpkgs-unstable's stock revision) to match the
+          # ipu75xa-camera-hal pin below - both come from the gossamer
+          # reference config, which pins these two together deliberately.
+          ipu7-camera-bins = (final.callPackage "${unstableSrc}/pkgs/by-name/ip/ipu7-camera-bins/package.nix" { }).overrideAttrs (old: {
+            src = final.fetchFromGitHub {
+              owner = "intel";
+              repo = "ipu7-camera-bins";
+              rev = "403c67db6b279dd02752f11db6a34552f31a3ac5";
+              hash = "sha256-Sj1jBOOegTk8tdmDN06MYEa7KmutnfSb5AEhXhoQkSc=";
+            };
+          });
           ivsc-firmware = final.callPackage "${unstableSrc}/pkgs/by-name/iv/ivsc-firmware/package.nix" { };
 
           # Userspace HAL for the Panther Lake variant (ipu75xa). Same recipe
           # as ipu7x-camera-hal, just built with ipuVersion = "ipu75xa" -
           # mirrors how nixpkgs itself derives `ipu75xa-camera-hal`.
-          ipu75xa-camera-hal = final.callPackage "${unstableSrc}/pkgs/by-name/ip/ipu7x-camera-hal/package.nix" {
-            ipuVersion = "ipu75xa";
-          };
+          #
+          # Pinned to a specific upstream commit, with two patches applied on
+          # top, rather than nixpkgs-unstable's stock revision - ported from
+          # the gossamer reference config (same laptop model). Linux 7.2
+          # inserts Intel CVS (Synaptics SVP7500 bridge) between the sensor
+          # and the IPU7; the HAL must route through that bridge and
+          # configure both of its pads, which the stock HAL revision doesn't
+          # do yet. Without these, capture opens but every frame is solid
+          # black (confirmed on real hardware 2026-09-25 - see camera.nix
+          # header / project memory for the exact symptom).
+          ipu75xa-camera-hal =
+            (final.callPackage "${unstableSrc}/pkgs/by-name/ip/ipu7x-camera-hal/package.nix" {
+              ipuVersion = "ipu75xa";
+              ipu7-camera-bins = final.ipu7-camera-bins;
+            }).overrideAttrs
+              (old: {
+                src = final.fetchFromGitHub {
+                  owner = "intel";
+                  repo = "ipu7-camera-hal";
+                  rev = "b1f6ebef12111fb5da0133b144d69dd9b001836c";
+                  hash = "sha256-fz3ALh2F57NWYU6D1XuKfAzES2754GfZr1xQBwfkG3U=";
+                };
+                patches = (old.patches or [ ]) ++ [
+                  (omarchyPatch "intel-ipu7-camera/0005-camhal-MediaControl-route-through-Intel-CVS-bridge.patch" "sha256-RoXRaI3RcEUc3VjOjLJYIBL7Mu1MTIkgagCy79fgf0g=")
+                  (omarchyPatch "intel-ipu7-camera/0006-camhal-ipu75xa-ov08x40-Intel-CVS-formats.patch" "sha256-wyZHihTekMmPfaGxdJZ6VS6dGxSHkTHOoGIyxorqhqE=")
+                ];
+              });
 
           # GStreamer source plugin, built inside our OWN gst_all_1 scope so
           # it links against our own gst-plugins-base/gstreamer, not

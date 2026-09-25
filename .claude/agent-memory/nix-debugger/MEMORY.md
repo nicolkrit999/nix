@@ -9,3 +9,4 @@
 - [nurl mangles the helium crx URLs](project_nurl_mangles_crx_urls.md) - nurl eats the %-escapes and returns the empty-file hash; use `nix store prefetch-file` for CWS extension hashes
 - [denix ifEnabled arg set](project_denix_ifenabled_arg_set.md) - bodies get ONLY {name,myconfig,cfg,parent}; adding config/lib to the lambda throws a misleading framework-level error
 - [home.packages buildEnv collisions](project_home_packages_buildenv_collisions.md) - two python envs collide via bin/idle, poppler vs poppler-utils; only the SPECIALISATION home-manager-path catches it
+- [Dell XPS16 firmware knobs](project_dell_xps16_firmware_knobs.md) - laptop rejects als_enabled (EINVAL) + sysman writes (EOPNOTSUPP, BIOS admin pw); set in BIOS setup instead
