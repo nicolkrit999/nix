@@ -71,7 +71,20 @@ delib.module {
           # --- Linters & Formatters ---
           pyright
 
-          # --- Treesitter & Parsers ---
+          # --- Fonts ---
+          nerd-fonts.hack
+          nerd-fonts.jetbrains-mono
+        ];
+
+        # NOTE: grammar/plugin packages MUST go through `plugins`, not
+        # `extraPackages`. `extraPackages` only prepends to $PATH (fine for
+        # CLI tools/LSPs), it never touches packpath/runtimepath. `plugins`
+        # is wired onto packpath via home-manager's unconditional
+        # `xdg.dataFile."nvim/site/pack/hm"` link (~/.local/share/nvim/site/pack/hm),
+        # which Neovim auto-loads at startup regardless of
+        # `sideloadInitLua` (that option only affects init.lua sideloading,
+        # not the packpath symlink).
+        plugins = [
           (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
             p.lua
             p.vim
@@ -80,11 +93,44 @@ delib.module {
             p.html
             p.hyprlang
             p.regex
+            p.python
+            p.javascript
+            p.typescript
+            p.tsx
+            p.java
+            p.c
+            p.cpp
+            p.rust
+            p.go
+            p.ruby
+            p.c_sharp
+            p.php
+            p.php_only
+            p.bash
+            p.sql
+            p.yaml
+            p.latex
+            p.nix
+            p.css
+            p.xml
+            p.markdown
+            p.markdown_inline
+            p.jsdoc
+            p.comment
+            p.dtd
+            p.typst
+            p.haskell
+            p.kotlin
+            p.swift
+            p.scala
+            p.r
+            p.julia
+            p.zig
+            p.asm
+            p.fish
+            p.make
+            p.dockerfile
           ]))
-
-          # --- Fonts ---
-          nerd-fonts.hack
-          nerd-fonts.jetbrains-mono
         ];
       };
     };

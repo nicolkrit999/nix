@@ -24,6 +24,7 @@ delib.module {
           concessio # File permission viewer/calculator
           cryptomator # Client side encryptions for cloud drives
           drawio # Diagramming application
+          google-chrome # Freeware web browser developed by Google
           jellyfin-desktop # Media server
           libreoffice-qt # Open source microsoft office alternative
           localsend # Simple file sharing over local network

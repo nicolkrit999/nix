@@ -99,8 +99,20 @@ jobs:
 
           entries.sort(key=lambda e: e[0].lower())
 
+          # Some inputs are pinned via a raw http(s) URL (e.g. self-hosted
+          # Forgejo sources) rather than a 'github:owner/repo/rev' shorthand.
+          # Discord auto-embeds every raw URL it sees, so the same link
+          # showing up in both the old and new ref lines produces two
+          # near-identical embeds stacked under one entry. Wrapping URLs in
+          # <angle brackets> is Discord's documented way to suppress that.
+          def suppress_embeds(s):
+              if s is None:
+                  return s
+              return re.sub(r"https?://[^\s'\")]+", r"<\g<0>>", s)
+
           lines = []
           for name, action, old, new in entries:
+              old, new = suppress_embeds(old), suppress_embeds(new)
               if action == "Updated":
                   lines.append(f"**{name}**\n  {old}\n  → {new}")
               elif action == "Added":
