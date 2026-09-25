@@ -282,6 +282,7 @@ delib.module {
         home.packages = with pkgs; [
           # Required Tools
           mars-mips # MIPS simulator (tecnica digitale)
+          geogebra6 #Dynamic mathematics software with graphics, algebra and spreadsheets
 
           # CS Tools (useful)
           dbeaver-bin

@@ -665,6 +665,7 @@ delib.host {
       krit.services.laptop = {
         flatpak.enable = true;
         local-packages.enable = true;
+        camera.enable = true;
       };
 
       krit.services.windows-mount.enable = true;

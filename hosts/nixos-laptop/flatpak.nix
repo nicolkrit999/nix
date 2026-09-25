@@ -16,13 +16,25 @@ delib.module {
         enable = true;
         packages = [
           "co.logonoff.awakeonlan" # AwakeOnLan, a tool to wake up computers on the network
+
+          "com.actualbudget.actual" # Actual budget budgeting app
+          "com.github.tchx84.Flatseal" # Flatseal, a permissions manager for Flatpak applications
+          "com.github.unrud.VideoDownloader" # Video Downloader, a tool for downloading videos from various platforms
+          "com.rtosta.zapzap" # Whatsapp client for Linux
+
+
+          "dev.mariinkys.StarryDex" # Pokedex
+
+
+          "io.github.philippkosarev.bmi" # Bmi calculator
+          "io.github.shonebinu.Brief" # Brief, command lines cheatsheet application
+          "io.github.AshBuk.FingerGo" # Typing trainer
           "io.github.lluciocc.Vish" # Gui bash script editor
           "io.github.iionel.Visu" # Algorithm visualizer
-          "com.actualbudget.actual" # Actual budget budgeting app
+
+          "lol.siembra.tuxtypeplus" # Typing test games
+
           "me.iepure.devtoolbox" # DevToolbox, a collection of tools for developers
-          "com.github.unrud.VideoDownloader" # Video Downloader, a tool for downloading videos from various platforms
-          "com.github.tchx84.Flatseal" # Flatseal, a permissions manager for Flatpak applications
-          "com.rtosta.zapzap" # Whatsapp client for Linux
         ];
         update.onActivation = false;
         remotes = [

@@ -67,6 +67,58 @@ delib.host {
       options iwlwifi power_save=0 uapsd_disable=1
     '';
 
+    # Backport of the upstream fix for the intel_cvs driver claiming the GPIO
+    # shared with all 4 CS35L57 speaker amps, killing the whole SOF/SoundWire
+    # sound card (thesofproject/linux#5940). Remove once the tracked kernel
+    # includes this fix.
+    boot.kernelPatches = [
+      {
+        name = "intel-cvs-wake-irq";
+        patch = ./intel-cvs-wake-irq.patch;
+      }
+    ];
+
+    # Required for Dell keyboard ambient-light backlight + adaptive charging below.
+    boot.kernelModules = [ "dell_wmi_sysman" "dell_laptop" ];
+
+    systemd.services.dell-keyboard-auto-backlight = {
+      description = "Enable Dell ambient-light keyboard illumination";
+      wantedBy = [ "multi-user.target" ];
+      after = [
+        "systemd-modules-load.service"
+        "systemd-backlight@leds:dell::kbd_backlight.service"
+      ];
+      unitConfig.ConditionPathExists = "/sys/class/leds/dell::kbd_backlight/als_enabled";
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+      # Let firmware handle light sensing and the existing input/idle timeout.
+      # This model ignores als_setting writes; leave its threshold to firmware.
+      script = ''
+        backlight=/sys/class/leds/dell::kbd_backlight
+        printf 1 > "$backlight/als_enabled"
+        test "$(cat "$backlight/als_enabled")" = 1
+      '';
+    };
+
+    systemd.services.dell-adaptive-charging = {
+      description = "Select Dell Adaptive battery charging";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "systemd-modules-load.service" ];
+      unitConfig.ConditionPathExists = "/sys/class/firmware-attributes/dell-wmi-sysman/attributes/PrimaryBattChargeCfg/current_value";
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+      script = ''
+        setting=/sys/class/firmware-attributes/dell-wmi-sysman/attributes/PrimaryBattChargeCfg/current_value
+        if [ "$(cat "$setting")" != Adaptive ]; then
+          printf '%s' Adaptive > "$setting"
+        fi
+        test "$(cat "$setting")" = Adaptive
+      '';
+    };
 
     hardware.enableRedistributableFirmware = true; # Intel CPU microcode + GPU firmware for Panther Lake
     hardware.graphics = {
