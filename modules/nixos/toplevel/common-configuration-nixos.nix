@@ -184,14 +184,19 @@ delib.module {
       # SYSTEM TWEAKS
       # -----------------------------------------------------
 
-      boot.initrd.systemd.enable = true; # Allow systemd services such as hybernation/sleep, unlock luks at boot, tpm integration, etc
+      boot.initrd.systemd.enable = true;
       boot.initrd.systemd.emergencyAccess = myconfig.constants.emergencyAccess or false;
-      # Reduce shutdown wait time for stuck services
+
+      boot.kernelParams = [
+        "panic=10"
+        "pause_on_oops=300"
+      ];
+      boot.crashDump.enable = true;
+      console.font = "Lat2-Terminus16";
       systemd.settings.Manager = {
         DefaultTimeoutStopSec = "10s";
       };
 
-      # Enable home-manager backup files extension
       home-manager.backupFileExtension = lib.mkForce "hm-backup";
 
     };
