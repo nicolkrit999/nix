@@ -25,7 +25,7 @@ delib.module {
         };
         battery = {
           governor = "powersave"; # Favor battery life on battery
-          turbo = "never"; # Keep turbo off on battery — reduces heat, fan noise, and power draw
+          turbo = "auto"; # Enable turbo when the system ask it
           energy_performance_preference = "power"; # HWP hint: maximize battery life
         };
       };
