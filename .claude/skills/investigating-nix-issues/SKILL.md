@@ -113,6 +113,13 @@ evidence gathered, what was tried, and the remaining unknowns.
   delete it. Unresolved or pending runtime confirmation -> rewrite it with
   the new evidence, what was ruled out, what partially worked, and the
   refined next steps, so the next session doesn't re-tread this one.
+- **New momentary fix discovered mid-investigation** (a pin/overlay/workaround
+  the fix introduced, not the originating issue itself): search
+  `/home/krit/.claude/projects/-home-krit-nix/memory/` for an existing entry
+  on that specific issue first - update it additively if one exists, and
+  only create + index a new file when nothing already covers it. Don't
+  default to a new file just because this loop's own originating entry is
+  a different one.
 - **Regression guard (optional):** if the root cause was silent config drift
   that an eval assertion could have caught, offer the `adding-nix-tests`
   loop to pin the fixed behavior.

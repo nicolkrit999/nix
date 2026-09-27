@@ -51,6 +51,14 @@ step 1 (not a paraphrase).
   `nix-config-architect` instead, with the error and any researcher findings.
 - If the failure is sops/secrets-related, stop and surface it to the user -
   no agent in this fleet has sops access.
+- **If the fix is a momentary workaround** (a pin, overlay, `mkForce`, or
+  similar tied to a current upstream limitation) - `nix-debugger` will flag
+  this in its report rather than write memory itself (agents don't own
+  memory). Before writing anything, search
+  `/home/krit/.claude/projects/-home-krit-nix/memory/` for an existing entry
+  about this same issue: update it additively (new date, refreshed status)
+  if one exists, and only create + index a new file when nothing already
+  covers it.
 
 **3. RE-VERIFY - dispatch `nix-checker` again** on the SAME check(s) from
 step 1, even if the fix "looks obviously correct."

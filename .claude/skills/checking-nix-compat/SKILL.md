@@ -23,6 +23,13 @@ guard, moving a small block) itself.
 a placement move or non-trivial rework (splitting a module, restructuring
 options) beyond what the compat-checker applied directly. Pass it the
 compat-checker's judgment verbatim, not a paraphrase.
+- **If the guard/fix is a momentary workaround** tied to a current upstream
+  platform limitation (not just a permanent placement rule) - whichever
+  agent applied it will flag this rather than write memory itself (agents
+  don't own memory). Before writing anything, search
+  `/home/krit/.claude/projects/-home-krit-nix/memory/` for an existing entry
+  about this same issue: update it additively if one exists, and only
+  create + index a new file when nothing already covers it.
 
 **3. VERIFY - dispatch `nix-checker`** for BOTH per-arch dry-builds
 (`nixos-desktop` toplevel for x86_64-linux AND `Krits-MacBook-Pro` system for

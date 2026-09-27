@@ -21,6 +21,15 @@ structural change with no new packages/options).
 researcher's findings. It follows repo patterns: denix `delib.module`/`host`
 conventions, the 3-way common/nixos/darwin split, the constants system, and
 must never bump `stateVersion`.
+- **If this introduces a pin/overlay/`mkForce`/similar tied to a current
+  upstream limitation** (missing hardware support, an open upstream issue,
+  a package not yet released), that's a memory event, not just code. Before
+  writing a new memory file for it, search
+  `/home/krit/.claude/projects/-home-krit-nix/memory/` for an existing entry
+  about this same issue - update it additively (new date, refreshed status)
+  rather than duplicating it. Only create and index a new file when nothing
+  already covers it. Comments in the code itself stay terse (a one-line
+  pointer at most) - the full story lives in memory.
 - **Default placement rule:** before authoring, dispatch `nix-compat-checker`
   to determine whether what's being implemented is compatible with
   nix-darwin - do not decide this yourself or leave it to the architect to
@@ -31,9 +40,11 @@ must never bump `stateVersion`.
   only applies when the user hasn't specified otherwise in their prompt -
   an explicit user instruction on placement always wins.
 
-**3. LINT - dispatch `nix-syntax-linter`** to parse/format-check the new code
-and check for denix anti-patterns. It is read-only - findings go back to
-`nix-config-architect` to fix, not applied by the linter itself.
+**3. LINT - dispatch `nix-syntax-linter`** to parse/format-check the new code,
+check for denix anti-patterns, and flag any comment that violates this repo's
+Comment Discipline (non-terse, narrates a diagnosis/fix, or restates trivial
+code). It is read-only - findings go back to `nix-config-architect` to fix,
+not applied by the linter itself.
 
 **4. VERIFY - dispatch `nix-checker`** to run flake check, the relevant
 per-host dry-builds, and the tests suite.

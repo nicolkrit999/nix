@@ -24,4 +24,7 @@ You judge and fix cross-platform/cross-arch compatibility. Targets: `x86_64-linu
 - Per-arch dry-build: `nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --dry-run` and the Darwin equivalent `nix build .#darwinConfigurations.Krits-MacBook-Pro.system --dry-run`.
 - The `arch-compat` test (`templates/tests/nixos/check-nixos-aarch64-compat.sh`, run via `run-tests.sh`).
 
-Diagnose the incompatibility, decide the correct placement/guard, and apply or hand the authoring change to `nix-config-architect`. Re-verify via `nix-checker`. Explain the 'why' (which platform breaks and how the guard fixes it).
+Diagnose the incompatibility, decide the correct placement/guard, and apply or hand the authoring change to `nix-config-architect`. Re-verify via `nix-checker`. Explain the 'why' (which platform breaks and how the guard fixes it) **in your report, not as a code comment.** When you apply a guard/move yourself, add no comment unless it states a permanent, non-obvious platform fact a bare `lib.mkIf`/path wouldn't convey; a terse pointer is okay-ish for a genuine upstream quirk, but never a narration of "why this guard was added" or "fixes the darwin build."
+
+### Momentary fixes and memory
+If the guard you applied is a momentary workaround for a current upstream platform limitation (not a permanent placement rule), flag that plainly in your report. You have no Write/Edit tool for memory files and agents don't own memory anyway - the orchestrator checks `/home/krit/.claude/projects/-home-krit-nix/memory/` for an existing entry about this quirk and updates it additively, only creating a new file when nothing already covers it.

@@ -2,6 +2,39 @@
 let
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
 
+  # Reapplies two settings on the Xiaomi TV Box S (3rd Gen, Google TV) that
+  # reset every time the box reboots: fixed-to-user-rotation (otherwise locks
+  # the UI back to landscape) and the SYSTEM_ALERT_WINDOW appop for
+  # orientationfaker (the overlay it draws needs it to stay visible). Network
+  # ADB doesn't care about host OS, so this is cross-platform like everything
+  # else here.
+  tvPortrait = pkgs.writeShellApplication {
+    name = "tv-portrait";
+    runtimeInputs = [ pkgs.android-tools ];
+    text = ''
+      TV="192.168.10.33:5555"
+
+      adb disconnect "$TV" >/dev/null 2>&1 || true
+      adb connect "$TV"
+
+      if ! adb -s "$TV" get-state >/dev/null 2>&1; then
+        echo "Offline, restarting adb server..."
+        adb kill-server
+        adb connect "$TV"
+      fi
+
+      if ! timeout 15 adb -s "$TV" wait-for-device; then
+        echo "Error: $TV did not come online within 15s (is the TV box powered on?)" >&2
+        exit 1
+      fi
+
+      adb -s "$TV" shell wm fixed-to-user-rotation disabled
+      adb -s "$TV" shell appops set net.mm2d.android.orientationfaker SYSTEM_ALERT_WINDOW allow
+
+      echo "Done. Open Screen Orientation Control on the TV if the service isn't running."
+    '';
+  };
+
   # Darwin-compatible network tools
   sharedPackages = (with pkgs; [
     arping # ARP broadcast utility (may need sudo/capabilities for raw-socket access to actually send ARP requests)
@@ -19,6 +52,9 @@ let
     tcpdump # Network sniffer
     trippy # Network diagnostic tool
     tshark # Powerful network protocol analyzer
+  ]) ++ [
+    tvPortrait # Reapplies portrait-mode settings on the Xiaomi TV Box S after reboot
+  ] ++ (with pkgs; [
     wireshark # Powerful network protocol analyzer
     wol # Implements Wake On LAN functionality in a small program
     yq # Command-line YAML/XML/TOML processor - jq wrapper for YAML, XML, TOML documents
