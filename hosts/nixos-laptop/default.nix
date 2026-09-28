@@ -409,6 +409,7 @@ delib.host {
             { match.class = "^(brave-browser)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
             { match.class = "^(brave-.*\\..*)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
             { match.class = "(?i)spotify"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
+            { match.class = "^(sidra)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
             { match.class = "(^de.haeckerfelix.Shortwave)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
             { match.class = "^(kitty)$"; workspace = "${appWorkspaces.terminal} silent"; }
             { match.class = "^(alacritty)$"; workspace = "${appWorkspaces.terminal} silent"; }
