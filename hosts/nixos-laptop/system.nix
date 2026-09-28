@@ -84,6 +84,20 @@ delib.host {
     # Adaptive battery charging is set in BIOS setup (Battery Configuration), not here:
     # a BIOS admin password is set, so dell-wmi-sysman writes are rejected (EOPNOTSUPP).
 
+    services.udev.packages = [ pkgs.brightnessctl ];
+
+    # Delay works around the Dell EC turning the keyboard backlight back off shortly
+    # after boot; see memory/project_laptop_panther_lake_issues.md for the backstory.
+    systemd.services.kbd-backlight-restore = {
+      description = "Restore keyboard backlight after Dell EC auto-off";
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStartPre = "/run/current-system/sw/bin/sleep 15";
+        ExecStart = "${pkgs.brightnessctl}/bin/brightnessctl --device='*::kbd_backlight' set 2";
+      };
+    };
+
     hardware.enableRedistributableFirmware = true; # Intel CPU microcode + GPU firmware for Panther Lake
     hardware.graphics = {
       enable = true;

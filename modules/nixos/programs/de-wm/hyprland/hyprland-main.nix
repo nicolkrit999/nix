@@ -112,10 +112,17 @@ delib.module {
         { match.title = "^(Enter name of file)(.*)$"; float = true; }
         { match.title = "^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"; center = true; }
         { match.title = "^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"; size = "50% 50%"; }
+        { match.title = "^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"; pin = true; }
 
         { match.class = "^(xdg-desktop-portal-kde)$"; float = true; }
         { match.class = "^(xdg-desktop-portal-kde)$"; center = true; }
         { match.class = "^(xdg-desktop-portal-kde)$"; size = "50% 50%"; }
+        { match.class = "^(xdg-desktop-portal-kde)$"; pin = true; }
+
+        { match.class = "^(xdg-desktop-portal-gtk)$"; float = true; }
+        { match.class = "^(xdg-desktop-portal-gtk)$"; center = true; }
+        { match.class = "^(xdg-desktop-portal-gtk)$"; size = "50% 50%"; }
+        { match.class = "^(xdg-desktop-portal-gtk)$"; pin = true; }
 
         { match.class = ".*"; suppress_event = "maximize"; }
         {
