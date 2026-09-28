@@ -31,11 +31,11 @@ let
       check = "test -x /opt/sqldeveloper/sqldeveloper.sh";
       preInstall = "sudo pacman -Syu --noconfirm --needed jdk17-openjdk fzf libxrender libxtst libxi fontconfig ttf-dejavu gtk3 alsa-lib";
       install = builtins.concatStringsSep "\n" [
-        ''RPM=$(ls $HOME/nix/users/krit/src/vendor-bins/oracle-sqldeveloper/sqldeveloper-*.noarch.rpm 2>/dev/null | head -1)''
+        ''RPM=$(ls $HOME/dotfiles-private/various/binaries/oracle-sql-developer/sqldeveloper-*.noarch.rpm 2>/dev/null | head -1)''
         ''if [ -z "$RPM" ]; then''
         ''  echo "ERROR: Download sqldeveloper-*.noarch.rpm from:"''
         ''  echo "  https://www.oracle.com/database/sqldeveloper/technologies/download/"''
-        ''  echo "Place it in: ~/nix/users/krit/src/vendor-bins/oracle-sqldeveloper/"''
+        ''  echo "Place it in: ~/dotfiles-private/various/binaries/oracle-sql-developer/"''
         ''  exit 1''
         ''fi''
         ''sudo bsdtar -xf "$RPM" -C /''
@@ -68,11 +68,11 @@ let
   # Deep check: enters each container and verifies the actual package is installed.
   distroboxDeepCheck = pkgs.writeShellScript "school-distrobox-deep-check" ''
     # Check that the SQL Developer RPM exists before anything else
-    RPM=$(ls $HOME/nix/users/krit/src/vendor-bins/oracle-sqldeveloper/sqldeveloper-*.noarch.rpm 2>/dev/null | head -1)
+    RPM=$(ls $HOME/dotfiles-private/various/binaries/oracle-sql-developer/sqldeveloper-*.noarch.rpm 2>/dev/null | head -1)
     if [ -z "$RPM" ]; then
       echo "Missing: sqldeveloper RPM file"
       echo "  Download from: https://www.oracle.com/database/sqldeveloper/technologies/download/"
-      echo "  Place the .rpm in: ~/nix/users/krit/src/vendor-bins/oracle-sqldeveloper/"
+      echo "  Place the .rpm in: ~/dotfiles-private/various/binaries/oracle-sql-developer/"
       exit 1
     fi
 
