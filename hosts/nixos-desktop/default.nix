@@ -268,6 +268,7 @@ delib.host {
         };
         prismlauncher.enable = true;
         shell-aliases.enable = true;
+        sidra.enable = true;
         starship.enable = true;
         statix.enable = true;
         swayosd.enable = true;

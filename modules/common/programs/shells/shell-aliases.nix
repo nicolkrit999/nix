@@ -112,8 +112,9 @@ delib.module {
         dedup = "nix store optimise";
         cg = "nix-collect-garbage -d";
         nix-gc-roots = "nix-store --gc --print-roots";
-        deadnixfixall = "nix run github:astro/deadnix -- -e ${flakeDir}";
-        deadnixscanall = "nix run github:astro/deadnix -- ${flakeDir}";
+        # pinned to v1.3.2: deadnix HEAD (as of ~2026-09-05) fails to build, its flake.lock bumped nixpkgs and its own src trips clippy::pedantic; unpin once upstream fixes or a newer working tag ships
+        deadnixfixall = "nix run github:astro/deadnix/v1.3.2 -- -e ${flakeDir}";
+        deadnixscanall = "nix run github:astro/deadnix/v1.3.2 -- ${flakeDir}";
         enabledevalcheck = ''nix eval .#homeConfigurations."${myconfig.constants.user}@${myconfig.constants.hostname}".config.home.packages --apply 'ps: builtins.sort (a: b: a < b) (map (p: p.name or p.pname) ps)' | tr '[]' '\n' | tr '"' '\n' | grep -v '^\s*$' | sort -u'';
 
         fmt-dry = "cd ${flakeDir} && git add -A && nix fmt -- --check";

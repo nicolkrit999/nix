@@ -72,6 +72,9 @@ These modules work on both NixOS and Darwin hosts.
 * **`programs.nltchNur`**: Installs a configurable list of NUR (Nix User Repository) packages as system packages, with support for permitting specific insecure packages via `permittedInsecurePackages`.
 * **`programs.npm`**: Installs `nodejs_latest` and configures npm with a global prefix under `~/.npm-global`, adding it to `PATH` so globally installed packages are available in all shells.
 * **`programs.shell-aliases`**: A centralized repository of command-line shortcuts deployed across bash, zsh, and fish.
+* **`programs.sidra`**: Installs Sidra (https://github.com/wimpysworld/sidra), an Apple Music desktop client, via `home.packages` from its own `sidra` flake input (`inputs.sidra.packages.<system>.default`). The `customTheme` option (default `true`) declaratively generates Sidra's `custom-theme.json` from this repo's live Stylix/base16 colors, so its UI matches the rest of the desktop theme instead of using one of Sidra's bundled built-in styles.
+  * **Warning:** With `customTheme` enabled, `custom-theme.json` is managed declaratively and any manual edits to it will be overwritten on the next rebuild. Set `customTheme = false` to freely pick one of Sidra's other bundled styles in-app instead.
+
 * **`programs.starship`**: A fast, deeply customizable prompt for any shell, themed dynamically.
 * **`programs.statix`**: Installs statix, a static analysis / linter for Nix code that catches common mistakes and anti-patterns.
 * **`programs.television`**: Installs the `television` TUI fuzzy-finder with a Nix channel and an `ns` shell wrapper for interactive Nix package search.

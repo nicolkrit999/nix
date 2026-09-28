@@ -123,6 +123,7 @@ delib.host {
         };
         prismlauncher.enable = true;
         shell-aliases.enable = true;
+        sidra.enable = false;
       };
 
       stylix = {

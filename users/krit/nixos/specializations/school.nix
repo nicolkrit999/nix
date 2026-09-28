@@ -154,6 +154,7 @@ delib.module {
       # Override host-default constants for school specialization
       myconfig.constants.browser = lib.mkForce "brave-school";
       myconfig.constants.editor = lib.mkForce "nvim";
+      myconfig.constants.shell = lib.mkForce "bash";
 
       # Force exit-node off on every boot into this specialisation, regardless
       # of whatever exit-node state tailscale persisted from the last boot.

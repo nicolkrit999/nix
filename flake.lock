@@ -1793,6 +1793,7 @@
         "openlogi": "openlogi",
         "plasma-manager": "plasma-manager",
         "quickshell": "quickshell_2",
+        "sidra": "sidra",
         "skwd-wall": "skwd-wall",
         "spotify-adblock-src": "spotify-adblock-src",
         "stylix": "stylix",
@@ -1886,6 +1887,26 @@
       "original": {
         "owner": "wlrfx",
         "repo": "scenefx",
+        "type": "github"
+      }
+    },
+    "sidra": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789899222,
+        "narHash": "sha256-B00sDpFqhTYuVQIesCdR7GeYJFNogz5U1VmJlSEJnmc=",
+        "owner": "wimpysworld",
+        "repo": "sidra",
+        "rev": "ebba6a85eadd15de9d324503b012f84bf5eaf4ce",
+        "type": "github"
+      },
+      "original": {
+        "owner": "wimpysworld",
+        "repo": "sidra",
         "type": "github"
       }
     },

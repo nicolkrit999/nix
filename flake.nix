@@ -230,6 +230,11 @@
     vicinae.url = "github:vicinaehq/vicinae";
     vicinae-extensions.url = "github:vicinaehq/extensions";
 
+    sidra = {
+      url = "github:wimpysworld/sidra";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     auto-cpufreq = {
       url = "github:AdnanHodzic/auto-cpufreq";
       inputs.nixpkgs.follows = "nixpkgs";
