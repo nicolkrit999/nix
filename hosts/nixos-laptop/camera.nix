@@ -53,7 +53,7 @@ delib.module {
           # Pinned (not nixpkgs-unstable's stock revision) to match the
           # ipu75xa-camera-hal pin below - both come from the gossamer
           # reference config, which pins these two together deliberately.
-          ipu7-camera-bins = (final.callPackage "${unstableSrc}/pkgs/by-name/ip/ipu7-camera-bins/package.nix" { }).overrideAttrs (old: {
+          ipu7-camera-bins = (final.callPackage "${unstableSrc}/pkgs/by-name/ip/ipu7-camera-bins/package.nix" { }).overrideAttrs (_old: {
             src = final.fetchFromGitHub {
               owner = "intel";
               repo = "ipu7-camera-bins";
@@ -97,7 +97,7 @@ delib.module {
           # GStreamer source plugin, built inside our OWN gst_all_1 scope so
           # it links against our own gst-plugins-base/gstreamer, not
           # unstable's - this is what avoids the ABI mismatch.
-          gst_all_1 = prev.gst_all_1.overrideScope (gfinal: gprev: {
+          gst_all_1 = prev.gst_all_1.overrideScope (gfinal: _gprev: {
             icamerasrc-ipu75xa = gfinal.callPackage "${unstableSrc}/pkgs/development/libraries/gstreamer/icamerasrc" {
               ipuVariant = "ipu7";
               ipu7x-camera-hal = final.ipu75xa-camera-hal;
@@ -121,7 +121,7 @@ delib.module {
       # otherwise conflict at equal priority - kernel.nix itself is untouched
       # and this still resolves to the same base kernelPackages it selects.
       boot.kernelPackages = lib.mkForce (
-        pkgs.linuxKernel.packages.linux_testing.extend (kfinal: kprev: {
+        pkgs.linuxKernel.packages.linux_testing.extend (kfinal: _kprev: {
           ipu7-drivers = kfinal.callPackage "${unstableSrc}/pkgs/os-specific/linux/ipu7-drivers" { };
         })
       );
