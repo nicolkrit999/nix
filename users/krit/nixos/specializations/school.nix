@@ -11,6 +11,19 @@ let
   c = config.myconfig.constants;
   term = c.terminal.name;
 
+  # HiDPI scale for the distrobox-launched X11/Java tools below (tkgate,
+  # SQL Developer). Matches each host's physical panel, mirroring the
+  # Hyprland monitor "scale" already declared for it (see
+  # hosts/nixos-desktop/default.nix, hosts/nixos-laptop/default.nix).
+  # Deliberately static, not queried from the running compositor: scale is
+  # a property of the panel, not of whichever WM/DE happens to be active.
+  guiScale =
+    if c.hostname == "nixos-desktop" then 1.5
+    else if c.hostname == "nixos-laptop" then 1.6
+    else 1.0;
+  guiScaleStr = toString guiScale;
+  xftDpi = toString (builtins.floor (96 * guiScale));
+
   # Self-contained OpenCloud mount for the school workspace: mounted directly
   # into $HOME/.school-workspace/opencloud regardless of whether
   # krit.services.nas.opencloud-mount is enabled on the host. Reuses that
@@ -408,11 +421,27 @@ delib.module {
 
           (pkgs.writeShellScriptBin "tkgate-school" ''
             ${pkgs.xhost}/bin/xhost +local: >/dev/null 2>&1
-            exec ${pkgs.distrobox}/bin/distrobox enter school-ubuntu -- bash -c '
+            export DISPLAY="''${DISPLAY:-:0}"
+
+            # Xft.dpi lives in the X server's RESOURCE_MANAGER, shared by every
+            # X11/Xwayland client on this DISPLAY (not just tkgate, and not
+            # scoped to any one WM/compositor). Scope the override to this
+            # invocation only: capture the current value, restore it on any
+            # exit path (normal, error, or signal) via trap.
+            origDpi=$(${pkgs.xrdb}/bin/xrdb -query 2>/dev/null | awk '/^Xft\.dpi:/{print $2}')
+            origDpi="''${origDpi:-96}"
+            restore_dpi() {
+              ${pkgs.xrdb}/bin/xrdb -merge <<< "Xft.dpi: $origDpi" 2>/dev/null || true
+            }
+            trap restore_dpi EXIT INT TERM
+
+            ${pkgs.xrdb}/bin/xrdb -merge <<< "Xft.dpi: ${xftDpi}" 2>/dev/null || true
+            ${pkgs.distrobox}/bin/distrobox enter school-ubuntu -- bash -c '
               if ! command -v tkgate >/dev/null 2>&1; then
                 echo "tkgate is not installed. Run: school-distrobox-setup"
                 exit 1
               fi
+              export DISPLAY="'"$DISPLAY"'"
               exec tkgate "$@"
             ' _ "$@"
           '')
@@ -432,7 +461,7 @@ delib.module {
               fi
               export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
               export _JAVA_AWT_WM_NONREPARENTING=1
-              export JAVA_TOOL_OPTIONS="-Dsun.java2d.xrender=false"
+              export JAVA_TOOL_OPTIONS="-Dsun.java2d.xrender=false -Dsun.java2d.uiScale=${guiScaleStr}"
               export GDK_BACKEND=x11
               exec /opt/sqldeveloper/sqldeveloper.sh "$@"
             ' _ "$@"
