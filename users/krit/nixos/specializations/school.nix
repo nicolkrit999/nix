@@ -11,6 +11,34 @@ let
   c = config.myconfig.constants;
   term = c.terminal.name;
 
+  # Self-contained OpenCloud mount for the school workspace: mounted directly
+  # into $HOME/.school-workspace/opencloud regardless of whether
+  # krit.services.nas.opencloud-mount is enabled on the host. Reuses that
+  # module's space list and the always-present "davfs-secrets" sops template
+  # (see templates/krit/sops/service-wiring.nix) so the school profile never
+  # depends on the default profile's NAS mount being turned on.
+  schoolOpencloudSpaces = config.myconfig.krit.services.nas.opencloud-mount.spaces;
+  schoolOpencloudMountPoint = "/home/${myUserName}/.school-workspace/opencloud";
+  schoolOpencloudUid = toString config.users.users.${myUserName}.uid;
+  schoolOpencloudGid = toString config.users.groups.users.gid;
+  mkSchoolOpencloudFileSystem = space: {
+    name = "${schoolOpencloudMountPoint}/${space.path}";
+    value = {
+      device = space.url;
+      fsType = "davfs";
+      options = [
+        "uid=${schoolOpencloudUid}"
+        "gid=${schoolOpencloudGid}"
+        "file_mode=0664"
+        "dir_mode=0775"
+        "_netdev"
+        "nofail"
+        "noauto"
+        "x-systemd.automount"
+      ];
+    };
+  };
+
   distroboxApps = [
     {
       name = "tkgate";
@@ -174,6 +202,26 @@ delib.module {
         '';
       };
 
+      # Self-contained OpenCloud mount: school doesn't depend on the host's
+      # krit.services.nas.opencloud-mount being enabled.
+      services.davfs2.enable = true;
+      services.davfs2.settings.globalSection = {
+        use_locks = "0";
+        gui_optimize = "1";
+      };
+      environment.etc."davfs2/secrets".source = config.sops.templates."davfs-secrets".path;
+      users.users.${myUserName}.extraGroups = [ "davfs2" ];
+      # OpenCloud is only reachable over the tailnet - force the full
+      # myconfig.services.tailscale wrapper (not just the raw NixOS option),
+      # so tailscale-autoconnect.service actually exists and authenticates,
+      # regardless of whether the host enables this module by default.
+      myconfig.services.tailscale.enable = lib.mkForce true;
+      fileSystems = lib.listToAttrs (map mkSchoolOpencloudFileSystem schoolOpencloudSpaces);
+      systemd.tmpfiles.rules = [
+        "d /home/${myUserName}/.school-workspace 0700 ${myUserName} users -"
+        "d ${schoolOpencloudMountPoint}/University 0700 ${myUserName} users -"
+      ];
+
       # Self-contained virtualisation: school doesn't depend on the host's virtualisation.nix
       virtualisation.podman.enable = true;
       environment.systemPackages = with pkgs; [
@@ -205,7 +253,6 @@ delib.module {
 
         home.activation.createSchoolDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           mkdir -p $HOME/.school-workspace/oneDrive || true
-          mkdir -p $HOME/.school-workspace/opencloud || true
           mkdir -p $HOME/.school-workspace/projects || true
           mkdir -p $HOME/.school-workspace/year/1st/1-semester || true
           mkdir -p $HOME/.school-workspace/year/1st/2-semester || true
