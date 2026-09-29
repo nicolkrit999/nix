@@ -24,10 +24,12 @@ delib.module {
           concessio # File permission viewer/calculator
           cryptomator # Client side encryptions for cloud drives
           drawio # Diagramming application
+          gallery-dl # Command-line program to download image-galleries and -collections from several image hosting sites
           google-chrome # Freeware web browser developed by Google
           jellyfin-desktop # Media server
           libreoffice-qt # Open source microsoft office alternative
           localsend # Simple file sharing over local network
+          media-downloader # Qt/C++ GUI front end for yt-dlp and others
           obs-studio # Streaming/Recording
           proton-pass # Password manager by Proton
           signal-desktop # Encrypted messaging application

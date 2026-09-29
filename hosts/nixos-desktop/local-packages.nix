@@ -25,6 +25,7 @@ delib.module {
           cpu-x # Hardware information visualizer application
           drawio # Diagramming application
           fresh-editor # Terminal-based text editor with LSP support and TypeScript plugins
+          gallery-dl # Command-line program to download image-galleries and -collections from several image hosting sites
           gearlever # Manager appimages
           google-chrome # Freeware web browser developed by Google
           gramps # Genealogy software
@@ -33,6 +34,7 @@ delib.module {
           jellyfin-desktop # Media server
           libreoffice-qt # Open source microsoft office alternative
           localsend # Simple file sharing over local network
+          media-downloader # Qt/C++ GUI front end for yt-dlp and others
           obs-studio # Streaming/Recording
           proton-pass # Password manager by Proton
           signal-desktop # Encrypted messaging application
