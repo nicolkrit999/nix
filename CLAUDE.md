@@ -169,6 +169,17 @@ Uses stylix + catppuccin-nix. Controlled via `myconfig.constants.theme.base16The
 
 Managed with sops-nix + age encryption. Per-user secrets and per-host secrets are kept in separate yaml files under `users/` and `hosts/` respectively. Config at `.sops.yaml`. Never hardcode sensitive values - the repo is public.
 
+## Known gotchas
+
+Non-obvious, previously-investigated issues. Read the linked doc before
+re-investigating one of these from scratch.
+
+- **GRUB briefly shows a bogus 1970 date on `nixos-desktop` boot** - firmware/CMOS RTC read quirk, not a config bug. [`Documentation/usage/gotchas/grub-1970-boot-clock.md`](Documentation/usage/gotchas/grub-1970-boot-clock.md)
+- **Rebuilding from inside a live Hyprland session kicks you to SDDM** - OPEN, no fix yet; root cause narrowed to an nixpkgs/Hyprland bump + a Home Manager/uwsm systemd teardown bug, not this repo's Lua config switch. [`Documentation/usage/gotchas/hyprland-rebuild-kicks-sddm.md`](Documentation/usage/gotchas/hyprland-rebuild-kicks-sddm.md)
+- **Stylix + Qt/KDE/GTK theming pitfalls** - never enable `stylix.targets.qt` (crashes Plasma), KDE zebra-striping fix, GTK3 dark-mode fix. [`Documentation/usage/gotchas/stylix-qt-kde-gtk-theming.md`](Documentation/usage/gotchas/stylix-qt-kde-gtk-theming.md)
+- **xdg-desktop-portal silently unavailable under non-KDE/GNOME WMs** - dual-level `UseIn=` + `NIX_XDG_DESKTOP_PORTAL_DIR` trap, full diagnosis recipe. [`Documentation/usage/gotchas/xdg-desktop-portal-nixos.md`](Documentation/usage/gotchas/xdg-desktop-portal-nixos.md)
+- **`school-onedrive` is deliberately not sops-managed** - SUPSI SSO forces recurring re-auth regardless, so sops would add overhead without fixing anything. [`Documentation/usage/gotchas/school-onedrive-no-sops.md`](Documentation/usage/gotchas/school-onedrive-no-sops.md)
+
 ## `./templates/`
 
 Contains `.nix` files not written in the denix style. Not auto-discovered; must be imported manually in the desired host (either directly or via a `default.nix` with an `imports` block).
