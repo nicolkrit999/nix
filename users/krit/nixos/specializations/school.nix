@@ -270,13 +270,7 @@ delib.module {
         home.shellAliases = { school = "cd ~/.school-workspace"; };
 
         # On interactive shell start, check if distrobox tools are present
-        programs.fish.interactiveShellInit = lib.mkIf (c.shell == "fish") ''
-          ${distroboxStartupCheck} 2>/dev/null
-        '';
-        programs.bash.initExtra = lib.mkIf (c.shell == "bash") ''
-          ${distroboxStartupCheck} 2>/dev/null
-        '';
-        programs.zsh.initContent = lib.mkIf (c.shell == "zsh") ''
+        programs.bash.initExtra = ''
           ${distroboxStartupCheck} 2>/dev/null
         '';
 
