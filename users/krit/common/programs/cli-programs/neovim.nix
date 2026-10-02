@@ -44,6 +44,7 @@ delib.module {
 
       home.packages = with pkgs; [
         nodejs_latest # nvim :run on .js/.ts and markdown-preview.nvim build
+        neovide # GUI frontend; must be in the profile, extraPackages only reaches nvim's own PATH
       ];
 
       programs.neovim = {
