@@ -7,7 +7,7 @@
     { ... }@inputs:
 
     let
-      goVersion = 25; # Change this to update the whole stack
+      goVersion = 26; # Change this to update the whole stack
 
       supportedSystems = [
         "x86_64-linux"
@@ -39,6 +39,9 @@
             packages = with pkgs; [
               # go (version is specified by overlay)
               go
+
+              # https://github.com/golang/tools/tree/master/gopls
+              gopls
 
               # goimports, godoc, etc.
               gotools

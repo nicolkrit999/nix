@@ -36,9 +36,12 @@
         {
           default = pkgs.mkShellNoCC {
             packages = with pkgs; [
-              node2nix
+              eslint
               nodejs
-              nodePackages.pnpm
+              pnpm
+              prettier
+              typescript
+              typescript-language-server
               yarn
             ];
           };

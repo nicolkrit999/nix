@@ -32,9 +32,10 @@
               with pkgs;
               [
                 poetry
-                python311
+                python313
+                ruff
               ]
-              ++ (with python311Packages; [
+              ++ (with python313Packages; [
                 ipykernel
                 pip
                 venvShellHook

@@ -516,9 +516,7 @@ delib.host {
         # ---------------------------------------------------------------
         waybar-hyprland = {
           enable = true;
-          waybarLayout = {
-            "format-en" = "🇺🇸-EN";
-          };
+          waybarLayout = langLayout;
           waybarWorkspaceIcons = {
             "1" = "";
             "2" = ":";
@@ -541,9 +539,7 @@ delib.host {
 
         waybar-niri = {
           enable = true;
-          waybarLayout = {
-            "format-en" = "🇺🇸-EN";
-          };
+          waybarLayout = langLayout;
         };
 
         # ---------------------------------------------------------------

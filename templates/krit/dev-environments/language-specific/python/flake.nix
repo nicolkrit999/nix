@@ -67,10 +67,6 @@
                 pkgs.pyright # Static type checker (Written in TS, top-level pkg)
                 pkgs.ruff # Extremely fast Python linter (Written in Rust, top-level pkg)
                 #pkgs.jetbrains.pycharm-oss
-
-                # 3. NEOVIM PLUGINS
-                pkgs.vimPlugins.coc-pyright # Python support for CoC
-                (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [ p.python ]))
               ];
             };
         in

@@ -2,12 +2,12 @@
   description = "Mega-Flake: Fullstack Environment (Node, Python, Java, Go, PHP, Ruby, C#, SQL)";
 
   inputs = {
-    # Using Unstable to ensure access to latest JDK 23 and frameworks
+    # Using Unstable to ensure access to latest JDK 25 and frameworks
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
   outputs =
-    { nixpkgs }:
+    { nixpkgs, ... }:
     let
       supportedSystems = [
         "x86_64-linux"
@@ -39,6 +39,7 @@
               corepack # Includes 'pnpm' and 'yarn'
               typescript
               vscode-langservers-extracted # Language servers for HTML/CSS/JSON
+              typescript-language-server # TypeScript/JavaScript language server
 
               # ---------------------------------------------------------
               # 🐍 Python 3.13 (with Django)
@@ -49,6 +50,7 @@
                 ps.django # Django Framework included directly
                 ps.black # Formatter
               ]))
+              ruff # Python linter / language server
 
               # ---------------------------------------------------------
               # ☕ Java 25 / Kotlin / Spring Boot
@@ -79,12 +81,13 @@
               # 🐹 Golang
               # ---------------------------------------------------------
               go
+              gopls # Go language server
 
               # ---------------------------------------------------------
               # 🗄️ Databases (Clients & Tools)
               # ---------------------------------------------------------
               postgresql # psql client
-              mysql80 # mysql client
+              mysql84 # mysql client
               mongosh # MongoDB Shell client (modern replacement for mongo)
               sqlite # SQLite3
             ];

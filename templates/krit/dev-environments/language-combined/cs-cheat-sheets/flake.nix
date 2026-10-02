@@ -35,6 +35,7 @@
               # native multi-column (`columns`), tables (`table`), code
               # highlighting (`raw`), and full math/symbol support built in.
               typstyle # Typst formatter
+              tinymist # Typst language server
 
               # Tectonic ships full LaTeX and fetches ONLY the packages each
               # document uses (cached) — so ALL the cheat-sheet layout packages

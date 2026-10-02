@@ -30,6 +30,7 @@
             packages = with pkgs; [
               latex2html
               latex2mathml
+              pandoc
               texlive.combined.scheme-full
               texlab
               tectonic

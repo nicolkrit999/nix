@@ -28,7 +28,10 @@
     {
       overlays.default = final: _prev: rec {
         rEnv = final.rWrapper.override {
-          packages = with final.rPackages; [ knitr ];
+          packages = with final.rPackages; [
+            knitr
+            languageserver
+          ];
         };
       };
 

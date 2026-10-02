@@ -31,6 +31,7 @@ delib.module {
         baseIndex = 1;
         mouse = true;
         escapeTime = 0;
+        focusEvents = true;
         keyMode = "vi";
         terminal = "screen-256color";
 

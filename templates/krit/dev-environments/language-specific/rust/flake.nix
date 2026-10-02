@@ -61,7 +61,8 @@
               cargo-edit
               cargo-watch
               rust-analyzer
-            ];
+            ]
+            ++ (if stdenv.hostPlatform.system == "aarch64-darwin" then [ ] else [ gdb ]);
 
             env = {
               # Required by rust-analyzer

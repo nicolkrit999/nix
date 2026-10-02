@@ -2,8 +2,12 @@
 , pkgs
 , lib
 , moduleSystem
+, inputs
 , ...
 }:
+let
+  pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+in
 delib.module {
   name = "krit.programs.neovim";
   options = delib.singleEnableOption false;
@@ -39,11 +43,12 @@ delib.module {
       };
 
       home.packages = with pkgs; [
-        nodejs_latest # Ensure it's installed to allow copilot.lua to work
+        nodejs_latest # nvim :run on .js/.ts and markdown-preview.nvim build
       ];
 
       programs.neovim = {
         enable = true;
+        package = pkgs-unstable.neovim-unwrapped;
         viAlias = true;
         vimAlias = true;
         withRuby = false;
@@ -51,12 +56,26 @@ delib.module {
 
         sideloadInitLua = true;
 
+        extraWrapperArgs = [
+          "--set"
+          "SNACKS_SQLITE3_PATH"
+          "${pkgs.sqlite.out}/lib/libsqlite3${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}"
+        ];
+
         extraPackages = with pkgs; [
           ripgrep
           fd
+          fzf
+          git
+          curl
+          universal-ctags
+          python3Packages.pylatexenc
         ]
-        # xclip is Linux-only
-        ++ lib.optionals isNixOS [ xclip ]
+        # wl-clipboard and xdg-utils are Linux-only
+        ++ lib.optionals isNixOS [
+          wl-clipboard
+          xdg-utils
+        ]
         ++ [
 
           # --- Language Servers (LSP) ---
@@ -64,16 +83,15 @@ delib.module {
           lua-language-server
           nixd
           nixpkgs-fmt
-          python313Packages.python-lsp-server
           yaml-language-server
-          vim-language-server
+          typos-lsp
+          ltex-ls-plus
+          marksman
 
           # --- Linters & Formatters ---
           pyright
-
-          # --- Fonts ---
-          nerd-fonts.hack
-          nerd-fonts.jetbrains-mono
+          stylua
+          prettier
         ];
 
         # NOTE: grammar/plugin packages MUST go through `plugins`, not
@@ -85,7 +103,7 @@ delib.module {
         # `sideloadInitLua` (that option only affects init.lua sideloading,
         # not the packpath symlink).
         plugins = [
-          (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
+          (pkgs-unstable.vimPlugins.nvim-treesitter.withPlugins (p: [
             p.lua
             p.vim
             p.json
@@ -122,6 +140,10 @@ delib.module {
             p.haskell
             p.kotlin
             p.swift
+            p.diff
+            p.gitcommit
+            p.git_config
+            p.git_rebase
             p.scala
             p.r
             p.julia
