@@ -18,7 +18,10 @@
         inputs.nixpkgs.lib.genAttrs supportedSystems (
           system:
           f {
-            pkgs = import inputs.nixpkgs { inherit system; };
+            pkgs = import inputs.nixpkgs {
+              inherit system;
+              config.allowUnfree = true; # jetbrains.clion
+            };
           }
         );
     in
