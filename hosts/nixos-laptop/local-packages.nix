@@ -45,6 +45,7 @@ delib.module {
           # -----------------------------------------------------------------------------------
           distrobox-tui # TUI for DistroBox
           hwinfo # Hardware detection tool from openSUSE
+          gh # GitHub CLI tool 
           grex # Command-line tool for generating regular expressions
           nchat # terminal-based chat client with support for telegram and whatsapp
           tealdeer # Fast implementation of tldr (simplified man pages)

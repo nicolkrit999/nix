@@ -55,6 +55,7 @@ delib.module {
           hwinfo # Hardware detection tool from openSUSE
           cointop # Fastest and most interactive terminal based UI application for tracking cryptocurrencies
           jellyfin-tui # Jellyfin music streaming client for the terminal
+          gh # GitHub CLI tool 
           grex # Command-line tool for generating regular expressions
           nchat # terminal-based chat client with support for telegram and whatsapp
           ratty # GPU-rendered terminal emulator with inline 3D graphics

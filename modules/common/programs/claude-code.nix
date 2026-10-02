@@ -28,6 +28,7 @@ let
     pkgs.nodejs_latest
     pkgs.bun
     pkgs.rtk
+    pkgs.gh
   ];
 in
 delib.module {
