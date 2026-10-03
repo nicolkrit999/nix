@@ -74,7 +74,6 @@ delib.module {
         "/Users/krit/.config/bat"
         "/Users/krit/.config/stylix"
         "/Users/krit/.config/ranger"
-        "/Users/krit/.config/fastfetch"
         "/Users/krit/.config/iterm2"
         "/Users/krit/.config/forge"
         "/Users/krit/.config/gdu"

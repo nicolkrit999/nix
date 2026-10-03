@@ -752,6 +752,7 @@ delib.host {
       };
 
       programs.openlogi.enable = true;
+      programs.fastfetch.enable = true;
 
 
       krit.services.nas = {

@@ -133,7 +133,6 @@ git remote set-url origin <ssh-url>   # switch the clone over to SSH
 
 ```bash
 sw                 # home-manager switch -b hm-backup (repo alias)
-enabledevalcheck   # package audit alias
 
 # for jobs that must survive an SSH disconnect:
 tmux new -A -s main
@@ -227,8 +226,6 @@ git commit --no-verify
 ## 13. Auditing
 
 ```bash
-enabledevalcheck   # prints this host's sorted home.packages
-
 nix build .#homeConfigurations."krit@Nicol-NAS".activationPackage --dry-run
 ```
 

@@ -12,7 +12,6 @@ delib.module {
         notion-app
         carbon-now-cli
         cloudflared
-        fastfetch
         fd
         ffmpeg
         gh
@@ -25,7 +24,6 @@ delib.module {
         nix-search-cli
         ntfs3g
         pay-respects
-        pokemon-colorscripts
         ripgrep
         stow
         tmate

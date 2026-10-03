@@ -34,7 +34,6 @@ delib.module {
       '';
 
       flakeDir = "~/nix";
-      safeEditor = myconfig.constants.editor;
       isImpure = myconfig.constants.nixImpure or false;
       isNixOS = moduleSystem == "nixos";
       isDarwin = moduleSystem == "darwin";
@@ -115,16 +114,13 @@ delib.module {
         # pinned to v1.3.2: deadnix HEAD (as of ~2026-09-05) fails to build, its flake.lock bumped nixpkgs and its own src trips clippy::pedantic; unpin once upstream fixes or a newer working tag ships
         deadnixfixall = "nix run github:astro/deadnix/v1.3.2 -- -e ${flakeDir}";
         deadnixscanall = "nix run github:astro/deadnix/v1.3.2 -- ${flakeDir}";
-        enabledevalcheck = ''nix eval .#homeConfigurations."${myconfig.constants.user}@${myconfig.constants.hostname}".config.home.packages --apply 'ps: builtins.sort (a: b: a < b) (map (p: p.name or p.pname) ps)' | tr '[]' '\n' | tr '"' '\n' | grep -v '^\s*$' | sort -u'';
 
         fmt-dry = "cd ${flakeDir} && git add -A && nix fmt -- --check";
-        fmt = "cd ${flakeDir} && git add -A && nix fmt -- **/*.nix";
-        merge_dev-main = "cd ${flakeDir} && git stash && git checkout main && git pull origin main && git merge develop && git push; git checkout develop && git stash pop";
-        merge_main-dev = "cd ${flakeDir} && git stash && git checkout develop && git pull origin develop && git merge main && git push; git checkout develop && git stash pop";
+        fmt = "cd ${flakeDir} && git add -A && nix fmt";
         cdnix = "cd ${flakeDir}";
 
         fzf-prev = ''fzf --preview="cat {}"'';
-        fzf-editor = "${safeEditor} $(fzf -m --preview='cat {}')";
+        fzf-editor = "$EDITOR $(fzf -m --preview='cat {}')";
         zlist = "zoxide query -l -s";
         tksession = "tmux kill-session -t";
         tks = "tmux kill-server";
@@ -138,13 +134,13 @@ delib.module {
         swboot = "cd ${flakeDir} && git add -A && ${nixosBootWrapped}";
         swtest = "cd ${flakeDir} && git add -A && ${nixosTestCmd}";
         swdry = "cd ${flakeDir} && git add -A && nh os switch ${flakeDir} --dry";
-        sw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
-        swfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${nixosSwitchCmd} --fallback"}";
+        sw = "cd ${flakeDir} && ${nixosSwitchWrapped}";
+        swfall = "cd ${flakeDir} && ${wrapCaches "${nixosSwitchCmd} --fallback"}";
         gsw = "cd ${flakeDir} && git add -A && ${nixosSwitchWrapped}";
         gswfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${nixosSwitchCmd} --fallback"}";
         gswoff = "cd ${flakeDir} && git add -A && nh os switch ${flakeDir} -- --offline";
         swsrc = "cd ${flakeDir} && git add -A && ${wrapCaches "${nixosSwitchCmd} --option substitute false"}";
-        swoff = "cd ${flakeDir} && git add -A && nh os switch ${flakeDir} -- --offline";
+        swoff = "cd ${flakeDir} && nh os switch ${flakeDir} -- --offline";
         tswsrc = "cd ${flakeDir} && git add -A && time ${wrapCaches "${nixosSwitchCmd} --option substitute false"}";
 
         nfc = "cd ${flakeDir} && git add -A && nix flake check";
@@ -166,7 +162,8 @@ delib.module {
       // (lib.optionalAttrs cachixEnabled { cachix-push = cachixPushAlias; });
 
       homeAliases = {
-        sw = "cd ${flakeDir} && git add -A && home-manager switch -b hm-backup --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
+        sw = "cd ${flakeDir} && home-manager switch -b hm-backup --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
+        gsw = "cd ${flakeDir} && git add -A && home-manager switch -b hm-backup --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
         swdry = "cd ${flakeDir} && git add -A && home-manager build --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
         upd = "cd ${flakeDir} && git add -A && nix flake update && home-manager switch -b hm-backup --flake .#${myconfig.constants.user}@${myconfig.constants.hostname}";
         hm-gens = "home-manager generations";
@@ -174,8 +171,8 @@ delib.module {
       };
 
       darwinAliases = {
-        sw = "cd ${flakeDir} && git add -A && ${darwinSwitchWrapped}";
-        swfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${darwinSwitchCmd} --fallback"}";
+        sw = "cd ${flakeDir} && ${darwinSwitchWrapped}";
+        swfall = "cd ${flakeDir} && ${wrapCaches "${darwinSwitchCmd} --fallback"}";
         gsw = "cd ${flakeDir} && git add -A && ${darwinSwitchWrapped}";
         gswfall = "cd ${flakeDir} && git add -A && ${wrapCaches "${darwinSwitchCmd} --fallback"}";
         swdry = "cd ${flakeDir} && git add -A && nh darwin switch ${flakeDir} --dry";

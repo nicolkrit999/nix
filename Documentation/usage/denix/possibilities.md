@@ -49,7 +49,7 @@ These modules work on both NixOS and Darwin hosts.
 
 #### Command-Line Programs (`programs.`)
 
-* **`programs.bash`**: Configures the Bash shell with Hyprland socket fixes, custom `.bashrc` loading, and optional `tmux` autostart.
+* **`programs.bash`**: Configures the Bash shell with Hyprland socket fixes, custom `.bashrc` loading, optional `tmux` autostart, and the fastfetch splash when `programs.fastfetch` is enabled.
 * **`programs.bat`**: A `cat` command alternative featuring syntax highlighting, line numbers, and Git integration.
 * **`programs.claude-code`**: Sets up the Claude Code CLI tool with optional MCP secrets provisioning via sops-nix and required environment configuration.
 * **`programs.codex`**: Installs the OpenAI Codex CLI (a terminal-based coding agent) via the third-party `codex-cli-nix` flake (`github:sadjow/codex-cli-nix`) rather than nixpkgs' own `codex` package, chosen for its hourly-updated binary cache and freshness. Ships as a self-contained native Rust binary with no runtime dependencies.
@@ -58,7 +58,10 @@ These modules work on both NixOS and Darwin hosts.
   * **Warning:** Because `provideEmacs = true`, this module's `emacs` binary IS Doom Emacs. Installing vanilla Emacs in parallel (via `environment.systemPackages`, `home.packages`, or another module) will collide on the `emacs` / `emacsclient` binaries - one install will shadow the other depending on PATH order.
 
 * **`programs.eza`**: A modern, colorful replacement for the standard `ls` command, featuring icons and Git status awareness.
-* **`programs.fish`**: Configures the Fish shell with alias/abbreviation setup and environment initialization.
+* **`programs.fastfetch`**: Fully declarative fastfetch (via home-manager `programs.fastfetch.settings`) plus `pokemon-colorscripts`; self-contained, installs both. The logo is a `command-raw` that runs pokemon-colorscripts (no images). All colours come from the stylix base16 palette (ANSI-name fallback when stylix is off), and modules are grouped into coloured boxed categories (System, Desktop, Hardware, Connectivity & Audio) with the `user@host` title resolved at runtime. Options: `generations` (default `""`, only valid with `random`), `random` (`true`), `pokemon` (`"pikachu"`, used when `random` is false), `showName` (`false`), `osIcon` and `boxWidth` (per-platform defaults: Linux `"󱄅"` / `56`, Darwin `""` / `69`). The bash, zsh and fish modules run the splash in interactive shells when this module is enabled, tmux-aware (shown inside tmux rather than in the outer shell that launches it).
+  * **Warning:** An existing `~/.config/fastfetch` symlink or directory (e.g. from the old external-dotfiles mapping) must be removed once before the first rebuild, otherwise home-manager refuses to write `config.jsonc`.
+
+* **`programs.fish`**: Configures the Fish shell with alias/abbreviation setup and environment initialization, and launches the fastfetch splash when `programs.fastfetch` is enabled.
 * **`programs.fzf`**: A highly efficient command-line fuzzy finder used extensively in shell aliases.
   * **Warning:** Disabling this would cause some shell aliases to not work.
 
@@ -88,7 +91,7 @@ These modules work on both NixOS and Darwin hosts.
 * **`programs.zoxide`**: A smarter `cd` command that tracks your most frequently visited directories.
   * **Warning:** Disabling this would cause some aliases to not work.
 
-* **`programs.zsh`**: Configures the Zsh shell with shell aliases and common initialization settings.
+* **`programs.zsh`**: Configures the Zsh shell with shell aliases and common initialization settings, plus the fastfetch splash when `programs.fastfetch` is enabled.
 
 #### Services (`services.`)
 

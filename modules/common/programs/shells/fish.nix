@@ -9,6 +9,7 @@ delib.module {
   home.always =
     { myconfig, ... }:
     let
+      fastfetchEnabled = myconfig.programs.fastfetch.enable or false;
       currentShell = myconfig.constants.shell or "bash";
       isNixOS = moduleSystem == "nixos";
       isDarwin = moduleSystem == "darwin";
@@ -38,7 +39,7 @@ delib.module {
             ''}
 
             # Disable greeting
-            set -U fish_greeting
+            set -g fish_greeting
 
             # FZF keybindings
             bind --erase --all alt-c
@@ -66,6 +67,18 @@ delib.module {
 
                     exec systemd-cat -t uwsm_start uwsm start default
                 end
+            end
+          ''
+          + lib.optionalString fastfetchEnabled ''
+
+            # STARTUP SPLASH
+            if status is-interactive
+              and begin
+                set -q TMUX
+                or not command -v tmux > /dev/null
+                ${lib.optionalString (!isDarwin) "or not set -q DISPLAY"}
+              end
+              fastfetch
             end
           '';
 

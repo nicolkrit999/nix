@@ -12,9 +12,6 @@ let
     # noctalia-shell
     ".config/noctalia" = "linux/linux-general/shells/quickshell/.config/noctalia";
 
-    # fastfetch (NixOS flavor)
-    ".config/fastfetch" = "linux/linux-distro-specific/nixOS/catppuccin-mocha-fastfetch-nixOS/.config/fastfetch";
-
     # general-bash
     ".bashrc_custom" = "general/shells/.bashrc_custom";
 

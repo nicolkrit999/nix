@@ -9,6 +9,7 @@ delib.module {
   home.always =
     { myconfig, ... }:
     let
+      fastfetchEnabled = myconfig.programs.fastfetch.enable or false;
       currentShell = myconfig.constants.shell or "bash";
       isNixOS = moduleSystem == "nixos";
       isDarwin = moduleSystem == "darwin";
@@ -72,6 +73,17 @@ delib.module {
                     exec systemd-cat -t uwsm_start uwsm start default
                 fi
             fi
+          ''
+          + lib.optionalString fastfetchEnabled ''
+
+            # STARTUP SPLASH
+            case "$-" in
+              (*i*)
+                if [ -n "$TMUX" ] || ! command -v tmux > /dev/null${if isDarwin then "" else " || [ -z \"$DISPLAY\" ]"}; then
+                  fastfetch
+                fi
+                ;;
+            esac
           '';
       };
     };

@@ -6,9 +6,6 @@
 
 let
   mappings = {
-    # fastfetch (macOS flavor)
-    ".config/fastfetch" = "macOS/fastfetch/.config/fastfetch";
-
     # general-bash
     ".bashrc_custom" = "general/shells/.bashrc_custom";
 

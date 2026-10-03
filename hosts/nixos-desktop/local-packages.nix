@@ -87,7 +87,6 @@ delib.module {
           # 🏠 GENERAL (moved from home-base)
           # -----------------------------------------------------------------------------------
           efibootmgr
-          fastfetch
           fd
           gh
           htop
@@ -95,7 +94,6 @@ delib.module {
           killall
           nix-search-cli
           pay-respects
-          pokemon-colorscripts
           ripgrep
           stow
           tmate

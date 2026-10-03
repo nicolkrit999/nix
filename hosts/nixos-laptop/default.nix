@@ -220,6 +220,7 @@ delib.host {
         concord.enable = true;
         doom.enable = false;
         eza.enable = true;
+        fastfetch.enable = true;
         fzf.enable = true;
         fzf.nix-search-tv.enable = false;
         gnome-keyring.enable = true;

@@ -68,6 +68,7 @@ delib.host {
 
         bat.enable = true;
         eza.enable = true;
+        fastfetch.enable = true;
         statix.enable = true;
         comma.enable = true;
         git.enable = true;
