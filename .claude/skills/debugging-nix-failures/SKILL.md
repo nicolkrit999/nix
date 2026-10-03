@@ -17,6 +17,14 @@ else - don't assume the machine/arch from context. This picks the right
 dry-build target and flags (Darwin needs `--impure` on `nix flake check`).
 Optionally check `./hosts/<host>/` for host-specific config.
 
+If the user says they ALREADY rebuilt and something behaves wrongly (rather
+than the build erroring), this is not a build failure: confirm the new
+generation is actually active first (`readlink /run/current-system` vs
+`readlink /nix/var/nix/profiles/system`, and the `switch-to-configuration`
+entry in `journalctl -b` - a boot-only rebuild is not activated until
+reboot), then use `investigating-nix-issues` instead. Do this check in the
+main loop before dispatching any agent.
+
 ## The loop
 
 **Step 0 - sanity check (main loop):** run `git status`. Untracked files are

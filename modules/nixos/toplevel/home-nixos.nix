@@ -88,6 +88,9 @@ delib.module {
               rm -f "$HOME/.config/kdeglobals"
               rm -f "$HOME/.local/share/applications/mimeapps.list"
               rm -f "$HOME/.config/mimeapps.list.hm-backup"
+              if [ -L "$HOME/.config/fastfetch" ]; then
+                rm -f "$HOME/.config/fastfetch"
+              fi
             '';
             createEssentialDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
               mkdir -p "${myconfig.constants.screenshots}"

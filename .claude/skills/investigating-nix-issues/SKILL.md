@@ -12,6 +12,26 @@ loops; agents cannot call each other.
 
 ## The loop
 
+**Step -1 - CHECK WHICH GENERATION IS ACTUALLY ACTIVE (main loop, mandatory,
+before anything else).** Whenever the report involves runtime behavior after
+a rebuild ("I rebuilt and X", "after the rebuild", "it still does Y"), first
+establish whether the config being blamed is the one running. This is a quick
+read-only fact check, not debugging, so do it in the main loop; never dispatch
+an investigation before it:
+- `readlink /run/current-system` vs `readlink /nix/var/nix/profiles/system`
+  - if they differ, the newest generation was built but NOT activated.
+- The `switch-to-configuration` entry in `journalctl -b` (`switch`/`test` vs
+  `boot`) and `uptime` - a boot-only rebuild (`swboot`, `nh os boot`) takes
+  effect only after the next reboot.
+- For user-level symptoms also check the active home-manager generation
+  (`systemctl status home-manager-<user>.service`, `readlink
+  ~/.local/state/home-manager/gcroots/current-home`) and whether the live
+  files (`~/.config/...`) are the old or the new ones.
+If the new generation is not active, stop: tell the user to activate (`sw`,
+`swtest`, or reboot) and re-test before any further investigation. Treat any
+sign that old config is still live (a leftover old symlink, behavior matching
+the previous setup) as a reason to run this check first.
+
 **Step 0 - FRAME (main loop, no agent needed):** pin down before dispatching
 anyone:
 - **Symptom** - what is observably wrong (behavior, boot-time failure, dead
