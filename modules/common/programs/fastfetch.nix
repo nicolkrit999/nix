@@ -14,7 +14,7 @@ delib.module {
   options = delib.moduleOptions {
     enable = delib.boolOption false;
     osIcon = delib.strOption (if isDarwin then "" else "󱄅");
-    boxWidth = delib.intOption (if isDarwin then 69 else 56);
+    boxWidth = delib.intOption (if isDarwin then 69 else 70);
     generations = delib.strOption "";
     random = delib.boolOption true;
     pokemon = delib.strOption "pikachu";
