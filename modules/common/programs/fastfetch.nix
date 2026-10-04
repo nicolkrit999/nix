@@ -7,6 +7,13 @@
 }:
 let
   isDarwin = moduleSystem == "darwin";
+  splash = pkgs.writeShellScript "fastfetch-splash" ''
+    for _ in $(${lib.getExe' pkgs.coreutils "seq"} 30); do
+      ${lib.getExe' pkgs.coreutils "timeout"} 0.5 ${lib.getExe' pkgs.wireplumber "wpctl"} inspect @DEFAULT_AUDIO_SINK@ > /dev/null 2>&1 && break
+      ${lib.getExe' pkgs.coreutils "sleep"} 0.1
+    done
+    exec fastfetch "$@"
+  '';
 in
 delib.module {
   name = "programs.fastfetch";
@@ -19,6 +26,7 @@ delib.module {
     random = delib.boolOption true;
     pokemon = delib.strOption "pikachu";
     showName = delib.boolOption false;
+    splashCommand = delib.strOption (if isDarwin then "fastfetch" else "${splash}");
   };
 
   home.ifEnabled = { cfg, myconfig, ... }:

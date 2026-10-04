@@ -10,6 +10,7 @@ delib.module {
     { myconfig, ... }:
     let
       fastfetchEnabled = myconfig.programs.fastfetch.enable or false;
+      splashCmd = myconfig.programs.fastfetch.splashCommand or "fastfetch";
       currentShell = myconfig.constants.shell or "bash";
       isNixOS = moduleSystem == "nixos";
       isDarwin = moduleSystem == "darwin";
@@ -32,7 +33,7 @@ delib.module {
           # Darwin-specific init
           + lib.optionalString isDarwin ''
             # TMUX AUTOSTART (always on Darwin)
-            if command -v tmux > /dev/null && [[ -z "$TMUX" ]] && [[ "$-" == *i* ]]; then
+            if command -v tmux > /dev/null && [[ -z "$TMUX" ]] && [[ -z "$NVIM" ]] && [[ "$-" == *i* ]]; then
               exec tmux new-session -A -s main
             fi
 
@@ -63,7 +64,7 @@ delib.module {
             fi
 
             # TMUX AUTOSTART (Only in GUI)
-            if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
+            if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -z "$NVIM" ] && [ -n "$DISPLAY" ]; then
               tmux new-session -A -s main
             fi
 
@@ -80,7 +81,7 @@ delib.module {
             case "$-" in
               (*i*)
                 if [ -n "$TMUX" ] || ! command -v tmux > /dev/null${if isDarwin then "" else " || [ -z \"$DISPLAY\" ]"}; then
-                  fastfetch
+                  ${splashCmd}
                 fi
                 ;;
             esac

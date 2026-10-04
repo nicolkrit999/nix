@@ -10,6 +10,7 @@ delib.module {
     { myconfig, ... }:
     let
       fastfetchEnabled = myconfig.programs.fastfetch.enable or false;
+      splashCmd = myconfig.programs.fastfetch.splashCommand or "fastfetch";
       currentShell = myconfig.constants.shell or "bash";
       isNixOS = moduleSystem == "nixos";
       isDarwin = moduleSystem == "darwin";
@@ -30,10 +31,11 @@ delib.module {
               if command -v tmux > /dev/null
                 and status is-interactive
                 and not set -q TMUX
+                and not set -q NVIM
                 exec tmux new-session -A -s main
               end
             '' else ''
-              if command -v tmux > /dev/null; and not set -q TMUX; and set -q DISPLAY
+              if command -v tmux > /dev/null; and not set -q TMUX; and not set -q NVIM; and set -q DISPLAY
                 tmux new-session -A -s main
               end
             ''}
@@ -78,7 +80,7 @@ delib.module {
                 or not command -v tmux > /dev/null
                 ${lib.optionalString (!isDarwin) "or not set -q DISPLAY"}
               end
-              fastfetch
+              ${splashCmd}
             end
           '';
 

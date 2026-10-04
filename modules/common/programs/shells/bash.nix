@@ -9,6 +9,7 @@ delib.module {
     { myconfig, ... }:
     let
       fastfetchEnabled = myconfig.programs.fastfetch.enable or false;
+      splashCmd = myconfig.programs.fastfetch.splashCommand or "fastfetch";
       currentShell = myconfig.constants.shell or "bash";
     in
     lib.mkIf (currentShell == "bash") {
@@ -29,7 +30,7 @@ delib.module {
           fi
 
           # 3. TMUX AUTOSTART
-          if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -n "$DISPLAY" ]; then
+          if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -z "$NVIM" ] && [ -n "$DISPLAY" ]; then
             tmux new-session -A -s main
           fi
 
@@ -46,7 +47,7 @@ delib.module {
           case "$-" in
             (*i*)
               if [ -n "$TMUX" ] || ! command -v tmux > /dev/null || [ -z "$DISPLAY" ]; then
-                fastfetch
+                ${splashCmd}
               fi
               ;;
           esac
