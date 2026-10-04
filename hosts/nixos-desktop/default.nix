@@ -445,7 +445,7 @@ delib.host {
             { match.class = "^(org.telegram.desktop)$"; workspace = "${appWorkspaces.chat} silent"; }
             { match.class = "^(whatsapp-electron)$"; workspace = "${appWorkspaces.chat} silent"; }
             { match.class = "^(com.rtosta.zapzap)$"; workspace = "${appWorkspaces.chat} silent"; }
-            { match.class = "^(zathura)$"; workspace = "${appWorkspaces.other}"; }
+            { match.class = "(?i).*zathura.*"; workspace = "${appWorkspaces.other}"; }
 
             { match.class = "^(scratch-term)$"; float = true; }
             { match.class = "^(scratch-term)$"; center = true; }
