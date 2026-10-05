@@ -48,6 +48,10 @@
           default = pkgs.mkShellNoCC {
             JAVA_HOME = "${pkgs.jdk.home}";
 
+            # Exported as a real variable (not only in shellHook) so
+            # `nix print-dev-env --json` exposes it to non-shell consumers.
+            env.JAVA_TOOL_OPTIONS = "-javaagent:${pkgs.lombok}/share/java/lombok.jar";
+
             packages = with pkgs; [
               jdk
               gradle
@@ -72,39 +76,33 @@
               vimPlugins.nvim-java-test
             ];
 
-            shellHook =
-              let
-                loadLombok = "-javaagent:${pkgs.lombok}/share/java/lombok.jar";
-                prevOptions = "\${JAVA_TOOL_OPTIONS:+ $JAVA_TOOL_OPTIONS}";
-              in
-              ''
-                # 1. Lombok Setup
-                export JAVA_TOOL_OPTIONS="${loadLombok}${prevOptions}"
+            shellHook = ''
+              # 1. Lombok agent: set via env.JAVA_TOOL_OPTIONS above
 
-                # 2. User Info
-                echo "☕ Java Environment Active (JDK ${toString javaVersion})"
+              # 2. User Info
+              echo "☕ Java Environment Active (JDK ${toString javaVersion})"
 
-                # 3. HIDE the tools inside .direnv so Git never sees them
-                #    We use .direnv/tools because .direnv is already ignored.
-                mkdir -p .direnv/tools
-                ln -sfn ${pkgs.jdt-language-server} ./.direnv/tools/jdtls
+              # 3. HIDE the tools inside .direnv so Git never sees them
+              #    We use .direnv/tools because .direnv is already ignored.
+              mkdir -p .direnv/tools
+              ln -sfn ${pkgs.jdt-language-server} ./.direnv/tools/jdtls
 
-                # 4. Setup Debugger & Test Extensions for Neovim (nvim-java)
-                #    (These are already hidden in ~/.local/share, so they are fine)
-                NVIM_PACKAGES="$HOME/.local/share/nvim/nvim-java/packages"
-                mkdir -p "$NVIM_PACKAGES/java-debug-adapter"
-                mkdir -p "$NVIM_PACKAGES/java-test"
+              # 4. Setup Debugger & Test Extensions for Neovim (nvim-java)
+              #    (These are already hidden in ~/.local/share, so they are fine)
+              NVIM_PACKAGES="$HOME/.local/share/nvim/nvim-java/packages"
+              mkdir -p "$NVIM_PACKAGES/java-debug-adapter"
+              mkdir -p "$NVIM_PACKAGES/java-test"
 
-                # Link vscode-java-debug
-                ln -sfn "${pkgs.vscode-extensions.vscjava.vscode-java-debug}/share/vscode/extensions/vscjava.vscode-java-debug" \
-                      "$NVIM_PACKAGES/java-debug-adapter/extension"
+              # Link vscode-java-debug
+              ln -sfn "${pkgs.vscode-extensions.vscjava.vscode-java-debug}/share/vscode/extensions/vscjava.vscode-java-debug" \
+                    "$NVIM_PACKAGES/java-debug-adapter/extension"
 
-                # Link vscode-java-test
-                ln -sfn "${pkgs.vscode-extensions.vscjava.vscode-java-test}/share/vscode/extensions/vscjava.vscode-java-test" \
-                      "$NVIM_PACKAGES/java-test/extension"
+              # Link vscode-java-test
+              ln -sfn "${pkgs.vscode-extensions.vscjava.vscode-java-test}/share/vscode/extensions/vscjava.vscode-java-test" \
+                    "$NVIM_PACKAGES/java-test/extension"
 
-                echo "✅ JDTLS and DAP Extensions linked (Hidden in .direnv)"
-              '';
+              echo "✅ JDTLS and DAP Extensions linked (Hidden in .direnv)"
+            '';
           };
         }
       );
