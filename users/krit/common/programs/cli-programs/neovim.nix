@@ -93,6 +93,18 @@ delib.module {
           pyright
           stylua
           prettier
+          shfmt
+          taplo
+          typstyle
+          (texlive.withPackages (ps: [ ps.latexindent ]))
+          clang-tools
+          google-java-format
+          ruff
+          rustfmt
+          gofumpt
+          gotools
+          libxml2.bin
+          sql-formatter
         ];
 
         # NOTE: grammar/plugin packages MUST go through `plugins`, not
