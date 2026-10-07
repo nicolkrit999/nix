@@ -42,7 +42,6 @@ delib.module {
           # -----------------------------------------------------------------------------------
           # 🖥️ CLI UTILITIES
           # -----------------------------------------------------------------------------------
-          atuin # Replacement for a shell history which records additional commands context with optional encrypted synchronization between machines
           distrobox-tui # TUI for DistroBox
           hwinfo # Hardware detection tool from openSUSE
           gh # GitHub CLI tool

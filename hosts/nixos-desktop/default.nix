@@ -278,6 +278,7 @@ delib.host {
         walker.enable = false;
         skwdWall.enable = false;
         zoxide.enable = true;
+        atuin.enable = true;
         zen.browser.enable = true;
 
         vicinae = {
