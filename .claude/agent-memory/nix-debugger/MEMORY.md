@@ -10,4 +10,5 @@
 - [denix ifEnabled arg set](project_denix_ifenabled_arg_set.md) - bodies get ONLY {name,myconfig,cfg,parent}; adding config/lib to the lambda throws a misleading framework-level error
 - [home.packages buildEnv collisions](project_home_packages_buildenv_collisions.md) - two python envs collide via bin/idle, poppler vs poppler-utils; only the SPECIALISATION home-manager-path catches it
 - [Dell XPS16 firmware knobs](project_dell_xps16_firmware_knobs.md) - laptop rejects als_enabled (EINVAL) + sysman writes (EOPNOTSUPP, BIOS admin pw); set in BIOS setup instead
+- [laptop haptic touchpad unobservable](project_laptop_haptic_touchpad_unobservable.md) - 06CB:D01A haptics run in its firmware (feature rpt 0x37 intensity); journals identical working vs broken
 - [specialisation outer config binding](project_specialisation_outer_config_binding.md) - file-level `c = config...` inside specialisation sees PARENT values (school.nix shell hook dropped); + distrobox containers die when their store path is GC'd
