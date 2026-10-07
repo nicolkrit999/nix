@@ -51,11 +51,12 @@ delib.module {
           # -----------------------------------------------------------------------------------
           # 🖥️ CLI UTILITIES
           # -----------------------------------------------------------------------------------
+          atuin # Replacement for a shell history which records additional commands context with optional encrypted synchronization between machines
           distrobox-tui # TUI for DistroBox
           hwinfo # Hardware detection tool from openSUSE
           cointop # Fastest and most interactive terminal based UI application for tracking cryptocurrencies
           jellyfin-tui # Jellyfin music streaming client for the terminal
-          gh # GitHub CLI tool 
+          gh # GitHub CLI tool
           grex # Command-line tool for generating regular expressions
           nchat # terminal-based chat client with support for telegram and whatsapp
           ratty # GPU-rendered terminal emulator with inline 3D graphics
