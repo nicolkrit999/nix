@@ -7,7 +7,7 @@ let
   # chrome.runtime.onInstalled fires once on real install - not on every
   # launch the way --load-extension did.
   extensionSpecs = [
-    { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-xU0UTOYPtMGwBdHaCVOMdmo/aB2wFARiZwBzAcB1Jsg="; } # Proton Pass
+    { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-twziJd+ehNangagE8EuuM2MAVmBIgszKzDqjt31kkDs="; } # Proton Pass
     { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-OyDmCxFC732/HVF6n/nuVSe9ltxgg8L9xCPp9RuXPTo="; } # Awesome Screen Recorder & Screenshot
     { id = "chphlpgkkbolifaimnlloiipkdnihall"; hash = "sha256-jCjPqfSn5su3J7AESK5YD7o3I6X6YStG+PlCmp0Qd2o="; } # OneTab
     { id = "dphilobhebphkdjbpfohgikllaljmgbn"; hash = "sha256-IgmQYXUjBM0iONHXqTgcvIXihN2ZrXWCZsQZZg1xPxk="; } # SimpleLogin

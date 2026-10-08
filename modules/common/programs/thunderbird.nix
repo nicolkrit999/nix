@@ -1,4 +1,4 @@
-{ delib, lib, config, pkgs, ... }:
+{ delib, lib, config, pkgs, moduleSystem, ... }:
 let
   mkSopsSecrets = { myconfig, user }:
     let
@@ -136,12 +136,12 @@ delib.module {
         else ".thunderbird/default/user.js";
     in
     {
-      home.file.${userJsKey}.enable = false;
-
       programs.thunderbird = {
         enable = true;
         profiles.default.isDefault = true;
       };
+    } // lib.optionalAttrs (moduleSystem != "home") {
+      home.file.${userJsKey}.enable = false;
 
       accounts.email.accounts = lib.listToAttrs (map
         (a: {
