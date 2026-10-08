@@ -99,7 +99,7 @@ delib.module {
         { match.class = "^(org.kde.kate)$"; workspace = "2 silent"; }
         { match.class = "^(jetbrains-pycharm-ce)$"; workspace = "2 silent"; }
         { match.class = "^(jetbrains-Clion)$"; workspace = "2 silent"; }
-        { match.class = "^(jetbrains-idea-ce)$"; workspace = "2 silent"; }
+        { match.class = "^(jetbrains-idea)$"; workspace = "2 silent"; }
         { match.class = "^(org.kde.dolphin)$"; workspace = "3 silent"; }
         { match.class = "^(thunar)$"; workspace = "3 silent"; }
         { match.class = "^(yazi)$"; workspace = "3 silent"; }

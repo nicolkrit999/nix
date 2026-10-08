@@ -397,7 +397,7 @@ delib.host {
             { match.class = "^(org.kde.kate)$"; workspace = "${appWorkspaces.editor} silent"; }
             { match.class = "^(jetbrains-pycharm-ce)$"; workspace = "${appWorkspaces.editor} silent"; }
             { match.class = "^(jetbrains-Clion)$"; workspace = "${appWorkspaces.editor} silent"; }
-            { match.class = "^(jetbrains-idea-ce)$"; workspace = "${appWorkspaces.editor} silent"; }
+            { match.class = "^(jetbrains-idea)$"; workspace = "${appWorkspaces.editor} silent"; }
             { match.class = "^(org.kde.dolphin)$"; workspace = "${appWorkspaces.fileManager} silent"; }
             { match.class = "^(thunar)$"; workspace = "${appWorkspaces.fileManager} silent"; }
             { match.class = "^(yazi)$"; workspace = "${appWorkspaces.fileManager} silent"; }

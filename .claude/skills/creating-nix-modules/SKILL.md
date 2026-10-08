@@ -1,6 +1,6 @@
 ---
 name: creating-nix-modules
-description: Use this skill when adding or modifying nix configuration that introduces new functionality, such as new denix modules, enabling programs/services, host constants, theming, or home-manager config. Trigger phrases include 'add a module', 'enable X on host Y', 'install/integrate package Z', 'configure <service> in nix', 'add this to my nixos config', 'set up <program> via home-manager'. Drives the research-author-lint-verify pipeline across nix-package-researcher, nix-config-architect, nix-syntax-linter, and nix-checker. Does NOT cover diagnosing an existing build failure (use debugging-nix-failures instead) or pure attribute/option lookups with no authoring (dispatch nix-package-researcher directly).
+description: Use this skill when adding or modifying nix configuration that introduces new functionality: denix modules, enabling programs/services, host constants, theming, home-manager config. Packages default to the unstable package set (pkgs.X); the stable set (pkgsStable) is used only when the prompt explicitly says so. Trigger phrases include 'add a module', 'enable X on host Y', 'install/integrate package Z', 'configure <service> in nix', 'add this to my nixos config', 'set up <program> via home-manager'. Drives research, author, lint and verify across nix-package-researcher, nix-config-architect, nix-syntax-linter and nix-checker. Does NOT cover diagnosing an existing build failure (use debugging-nix-failures) or pure lookups with no authoring (dispatch nix-package-researcher directly).
 ---
 
 # Creating Nix Modules
@@ -16,7 +16,7 @@ attribute paths, option names, and channel availability before any authoring
 begins. Training data lags nixpkgs, so don't trust remembered attribute names.
 Research defaults to `nixos-unstable`; only if the user says in the prompt that
 the package must be stable, also have the researcher check the stable channel
-for it (existence, version). Skip this step only if the task genuinely needs no lookup (e.g. purely
+for that package (existence, version). Skip this step only if the task genuinely needs no lookup (e.g. purely
 structural change with no new packages/options).
 
 **2. AUTHOR - dispatch `nix-config-architect`** with the task plus the
@@ -32,16 +32,15 @@ must never bump `stateVersion`.
   rather than duplicating it. Only create and index a new file when nothing
   already covers it. Comments in the code itself stay terse (a one-line
   pointer at most) - the full story lives in memory.
-- **Channel rule:** new modules/packages use `pkgs.X` (unstable) by default.
-  ONLY if the user says in the prompt that a module/package must be stable,
-  have the architect take `pkgsStable` as an argument of the outer module
-  function (e.g. `{ delib, pkgs, pkgsStable, ... }:` - not inside an
-  `ifEnabled` block, which only receives `cfg`/`myconfig`) and use
-  `pkgsStable.X` for just that package. It works in `nixos.*`, `darwin.*` and
-  `home.*` blocks alike. Add a one-line comment saying why it is pinned and
-  record the pin and its drop condition as described in
-  `Documentation/usage/denix/pkgs-stable.md`. Treat it as a memory event like
-  any other workaround.
+- **Channel rule:** use `pkgs.X` (unstable) by default. ONLY if the user's
+  prompt says a module/package must be stable: have the architect take
+  `pkgsStable` as an OUTER module argument (`{ delib, pkgs, pkgsStable, ... }:`,
+  not inside `ifEnabled`, which only receives `cfg`/`myconfig`), use
+  `pkgsStable.X` for just that package (works in `nixos.*`, `darwin.*`,
+  `home.*`) with a one-line why-pinned comment, and record the pin and drop
+  condition per `Documentation/usage/denix/pkgs-stable.md`. Pin only
+  self-contained leaf packages (never libraries, drivers or desktop
+  frameworks; see its risks section). Treat it as a memory event.
 - **Default placement rule:** before authoring, dispatch `nix-compat-checker`
   to determine whether what's being implemented is compatible with
   nix-darwin - do not decide this yourself or leave it to the architect to

@@ -27,6 +27,21 @@ delib.module {
 
 A pinned package must be recorded with its reason and the condition for dropping the pin, so it does not stay pinned forever.
 
+## Limits and risks
+
+The pinned package comes from an older nixpkgs than the rest of the system, which is the point of a pin, but it only stays safe for self-contained packages.
+
+- **Safe:** leaf command-line tools and standalone apps. They bring their own libraries (including their own `glibc`) from the stable set, so nothing collides; the cost is a larger closure.
+- **Risky:** anything that shares an interface with the system.
+  - OpenGL/Vulkan apps: host drivers built against a newer `glibc` can fail to load in an app linked against an older one.
+  - Qt, KDE, GTK, GStreamer, PAM and NSS plugins, and input methods must match the program's own version.
+  - Daemons that talk to unstable services over D-Bus or sockets can hit protocol drift.
+  - Home-manager writes config for the module's own version of a program; an older pinned program may not understand it.
+  - Python environments mixing stable and unstable packages can break on compiled parts.
+- **Never pin:** kernel modules or drivers (they must match the running kernel), libraries, desktop frameworks.
+- **Overlays:** the repo's overlays apply only to the main `pkgs`, not to `pkgsStable`.
+- **Keep the gap small:** a stable pin only receives security backports. Bump `nixpkgs-stable` once per release so it never falls two releases behind, and give every pin a drop condition.
+
 ## Updating
 
 `nix flake update nixpkgs-stable` moves only the stable input. Changing which release branch it follows means editing its URL in `flake.nix`; never touch `stateVersion` when doing so.
