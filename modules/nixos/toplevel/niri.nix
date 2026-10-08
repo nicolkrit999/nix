@@ -16,10 +16,11 @@ delib.module {
     programs.niri.package = pkgs.niri;
   };
 
-  home.always = { ... }: {
-    imports = lib.optionals (moduleSystem == "home") [
+  home.always = { ... }: lib.optionalAttrs (moduleSystem == "home") {
+    imports = [
       inputs.niri.homeModules.niri
     ];
+    programs.niri.package = pkgs.niri;
   };
 
   nixos.ifEnabled = {

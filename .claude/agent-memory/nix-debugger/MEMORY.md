@@ -3,7 +3,7 @@
 - [x86_64-darwin dropped from unstable](project_x86_64_darwin_dropped_unstable.md) - unstable/26.11 throws for x86_64-darwin (even `hello`); breaks `--all-systems` on template flakes, not a package bug
 - [laptop audio killed by kernel 7.2.0](project_laptop_audio_kernel_72_regression.md) - cs35l56 spk-id-gpios EBUSY since 7.1.8->7.2.0 (gen 307->308); also: GRUB configurationLimit hides still-bootable older profiles
 - [wallpapers targetMonitor must be literal](project_wallpapers_targetmonitor_literal.md) - mango bakes targetMonitor into flat key=value mango-config.conf; any `=` breaks its parser, and the list can't be split per-consumer
-- [flake check misses build-phase failures](project_flake_check_misses_build_failures.md) - check/--dry-run only evaluate; config-validator errors need a real `nix build`
+- [flake check misses build-phase failures](project_flake_check_misses_build_failures.md) - check/--dry-run only evaluate; also never deep-evals homeConfigurations; bisect via git+file?rev=
 - [sops MCP secrets wiring asymmetry](project_sops_mcp_secrets_asymmetry.md) - NixOS/home derive `claude_mcp_*` from the `mcpSecrets` option list; darwin hardcodes them, so darwin-block edits are a silent no-op on Linux
 - [journal clock skew on nixos-desktop](project_journal_clock_skew_desktop.md) - RTC +2h jump makes journalctl --since/--until return nothing; dump once and correlate by line number
 - [nurl mangles the helium crx URLs](project_nurl_mangles_crx_urls.md) - nurl eats the %-escapes and returns the empty-file hash; use `nix store prefetch-file` for CWS extension hashes
@@ -14,3 +14,4 @@
 - [specialisation outer config binding](project_specialisation_outer_config_binding.md) - file-level `c = config...` inside specialisation sees PARENT values (school.nix shell hook dropped); + distrobox containers die when their store path is GC'd
 - [catppuccin global enable gate](project_catppuccin_global_enable_gate.md) - catppuccin main needs catppuccin.enable=true for ANY port; unset = all ports silently no-op (looks like a mere autoEnable warning)
 - [test stylix stub targets](project_test_stylix_stub_targets.md) - test stylix-stub.nix must `// cfg.targets` or myconfig.stylix.targets.* are dropped in tests only (vicinae arch-compat, not eval cache)
+- [RTK git diff patch trap](project_rtk_git_diff_patch_trap.md) - `git diff > patch` is RTK-filtered, not a real patch; use `rtk proxy git diff` and wc -l it before reverting

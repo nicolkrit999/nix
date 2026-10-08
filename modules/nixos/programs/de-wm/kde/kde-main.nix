@@ -68,7 +68,7 @@ delib.module {
           "org.kde.breezedark.desktop"
         else
           "org.kde.breeze.desktop";
-      cursorTheme = config.stylix.cursor.name;
+      cursorTheme = lib.mkIf (config.stylix.cursor != null) config.stylix.cursor.name;
     in
     {
       xdg.configFile."autostart/ibus-daemon.desktop".text = ''

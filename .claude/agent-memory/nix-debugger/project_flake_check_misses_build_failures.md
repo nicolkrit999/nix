@@ -24,3 +24,12 @@ For specialisations, reach them at
 `.config.specialisation.<name>.configuration.home-manager.users.krit....`.
 Nuance to [[tests-no-rebuild-needed]]: `git add` is still enough (no system
 activation required), but the *verification command* must be a build, not a check.
+
+**Also: flake check does not deep-evaluate `homeConfigurations`** (a non-schema
+output). The standalone `krit@nixos-*` outputs were broken from at least
+2025-12 to 2026-10-08 while every checker report said "homeConfigurations
+PASSED". To actually check them, evaluate
+`.#homeConfigurations."krit@<host>".activationPackage.drvPath`. Before calling
+a failure a "regression", bisect with
+`nix eval "git+file:///home/krit/nix?rev=<sha>#..."`, which uses that commit's
+own lock and does not touch the working tree.
