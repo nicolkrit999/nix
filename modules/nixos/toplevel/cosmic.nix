@@ -14,7 +14,7 @@ delib.module {
       environment.cosmic.excludePackages = with pkgs; [
         cosmic-term
         cosmic-store
-        cosmic-applibrary
+        cosmic-app-library
         cosmic-edit
         cosmic-files
         cosmic-player

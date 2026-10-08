@@ -107,7 +107,7 @@ delib.module {
     in
     {
       hardware.logitech.wireless.enable = true;
-      hardware.logitech.wireless.enableGraphical = true;
+      programs.solaar.enable = true;
 
       environment.systemPackages = with pkgs; [
         logiops

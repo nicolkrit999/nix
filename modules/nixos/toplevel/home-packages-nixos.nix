@@ -1,6 +1,5 @@
 { delib
 , pkgs
-, pkgs-unstable
 , lib
 , config
 , ...
@@ -64,8 +63,7 @@ delib.module {
         ])
         ++ (with pkgs.kdePackages; [
           gwenview
-        ])
-        ++ (with pkgs-unstable; [ ]);
+        ]);
     };
 
 }

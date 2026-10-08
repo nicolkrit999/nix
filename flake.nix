@@ -12,6 +12,15 @@
 
       forAllSystems = nixpkgs.lib.genAttrs allSystems;
 
+      pkgsStableFor = forAllSystems (system: import inputs.nixpkgs-stable {
+        inherit system;
+        config.allowUnfree = true;
+      });
+
+      pkgsStableModule = { pkgs, ... }: {
+        _module.args.pkgsStable = pkgsStableFor.${pkgs.stdenv.hostPlatform.system};
+      };
+
       # Common exclusions for all module systems
       baseExclude = [
 
@@ -80,11 +89,13 @@
             })
           ];
 
+          extraModules = [ pkgsStableModule ];
+
           paths = platformPaths;
 
           exclude = baseExclude ++ platformExclude;
 
-          specialArgs = { inherit inputs moduleSystem; };
+          specialArgs = { inherit inputs moduleSystem pkgsStableFor; };
 
         };
       generatedNixosConfigs = mkConfigurations "nixos";
@@ -111,8 +122,8 @@
     });
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-26.05";
     nix-flatpak.url = "github:gmodena/nix-flatpak";
     impermanence.url = "github:nix-community/impermanence";
     nix-alien.url = "github:thiagokokada/nix-alien";
@@ -120,7 +131,7 @@
     claude-code.url = "github:sadjow/claude-code-nix";
     claude-desktop = {
       url = "github:aaddrick/claude-desktop-debian";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     claude-cowork-service.url = "github:patrickjaja/claude-cowork-service";
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
@@ -130,7 +141,7 @@
     };
 
     nix-darwin = {
-      url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
+      url = "github:nix-darwin/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -142,12 +153,12 @@
     };
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-26.05";
+      url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     stylix = {
-      url = "github:danth/stylix/release-26.05";
+      url = "github:danth/stylix/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -169,7 +180,7 @@
     };
 
     catppuccin = {
-      url = "github:catppuccin/nix/release-26.05";
+      url = "github:catppuccin/nix/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

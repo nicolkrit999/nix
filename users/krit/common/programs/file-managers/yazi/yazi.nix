@@ -2,12 +2,8 @@
 , pkgs
 , lib
 , moduleSystem
-, inputs
 , ...
 }:
-let
-  pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-in
 delib.module {
   name = "krit.programs.yazi";
   options = delib.singleEnableOption false;
@@ -53,9 +49,9 @@ delib.module {
 
       programs.yazi = {
         enable = true;
-        # nixos-26.05 ships yazi 26.5.6; faster-piper.yazi requires Yazi >=26.8.15
-        # (uses the th.icon:match / Url.spec.is_search APIs, missing on older Yazi).
-        package = pkgs-unstable.yazi;
+        # faster-piper.yazi requires Yazi >=26.8.15 (uses the th.icon:match /
+        # Url.spec.is_search APIs, missing on older Yazi).
+        package = pkgs.yazi;
         shellWrapperName = "y";
         enableZshIntegration = myconfig.constants.shell == "zsh";
         enableFishIntegration = myconfig.constants.shell == "fish";

@@ -109,12 +109,12 @@ delib.module {
   nixos.ifEnabled = { ... }: {
     environment.systemPackages = sharedPackages ++ [
       # NixOS-only packages
-      pkgs.libreoffice-still
+      pkgs.libreoffice
     ];
   };
 
   darwin.ifEnabled = { ... }: {
     environment.systemPackages = sharedPackages;
-    # Note: libreoffice-still not available on aarch64-darwin - install via Homebrew Cask if needed
+    # Note: libreoffice not available on aarch64-darwin - install via Homebrew Cask if needed
   };
 }

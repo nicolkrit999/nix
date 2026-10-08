@@ -86,14 +86,12 @@ delib.module {
 
           # --- GRAPHICS & GUI SUPPORT ---
           gtk3 # Standard GUI toolkit
-          libsForQt5.qt5.qtwayland # Qt5 Wayland bridge
+          qt5.qtwayland # Qt5 Wayland bridge
           kdePackages.qtwayland # Qt6 Wayland bridge
         ]
         ++ (with pkgs.kdePackages; [
           gwenview # Default image viewer as defined in mime.nix
-        ])
-
-        ++ (with pkgs-unstable; [ ]);
+        ]);
 
       # ---------------------------------------------------------
       # FONTS

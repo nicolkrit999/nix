@@ -5,6 +5,11 @@ delib.module {
   nixos.always = { ... }: {
     imports = [ inputs.catppuccin.nixosModules.catppuccin ];
 
+    catppuccin = {
+      enable = true;
+      autoEnable = false;
+    };
+
     home-manager.sharedModules = [
       inputs.catppuccin.homeModules.catppuccin
     ];
@@ -21,5 +26,10 @@ delib.module {
     imports = lib.optionals (moduleSystem == "home") [
       inputs.catppuccin.homeModules.catppuccin
     ];
+
+    catppuccin = {
+      enable = true;
+      autoEnable = false;
+    };
   };
 }

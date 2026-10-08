@@ -1,8 +1,7 @@
-{ delib, pkgs, inputs, ... }:
+{ delib, pkgs, ... }:
 let
-  pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
   sharedIfEnabledBody = {
-    environment.systemPackages = [ pkgs-unstable.nix-sweep ];
+    environment.systemPackages = [ pkgs.nix-sweep ];
   };
 in
 delib.module {

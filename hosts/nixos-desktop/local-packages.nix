@@ -1,6 +1,5 @@
 { delib
 , pkgs
-, inputs
 , ...
 }:
 delib.module {
@@ -9,10 +8,6 @@ delib.module {
 
   nixos.ifEnabled =
     { myconfig, ... }:
-    let
-      pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-    in
-
     {
       users.users.${myconfig.constants.user}.packages =
         (with pkgs; [
@@ -96,7 +91,7 @@ delib.module {
           pay-respects
           ripgrep
           stow
-          tmate
+          upterm
           tree
           unzip
           yt-dlp
@@ -105,12 +100,6 @@ delib.module {
 
           # -----------------------------------------------------------------------
           # ❓ OTHER
-          # -----------------------------------------------------------------------
-        ])
-
-        ++ (with pkgs-unstable; [
-          # -----------------------------------------------------------------------
-          # ⚠️ UNSTABLE PACKAGES (Bleeding Edge)
           # -----------------------------------------------------------------------
         ]);
     };

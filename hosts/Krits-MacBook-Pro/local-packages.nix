@@ -26,7 +26,7 @@ delib.module {
         pay-respects
         ripgrep
         stow
-        tmate
+        upterm
         tree
         unzip
         vscode

@@ -1,4 +1,4 @@
-{ delib, pkgs, lib, inputs, ... }:
+{ delib, pkgs, lib, ... }:
 delib.module {
   name = "krit.system.virtualisation";
   options = delib.singleEnableOption false;
@@ -16,15 +16,7 @@ delib.module {
       distroshelf # Gui manager for distrobox
       boxbuddy # Unofficial GUI for managing your Distroboxes
       openssl_oqs # Used to generate post-quantum certificates
-    ] ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux") (
-      let
-        pkgs-unstable = import inputs.nixpkgs-unstable {
-          system = pkgs.stdenv.hostPlatform.system;
-          inherit (pkgs) config;
-        };
-      in
-      [ pkgs-unstable.winboat ]
-    );
+    ] ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux") [ pkgs.winboat ];
   };
 
   # Distrobox exports binaries to ~/.distrobox-bin

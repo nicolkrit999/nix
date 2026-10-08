@@ -1,7 +1,5 @@
-{ delib, pkgs, inputs, ... }:
+{ delib, pkgs, ... }:
 let
-  pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-
   # Reapplies two settings on the Xiaomi TV Box S (3rd Gen, Google TV) that
   # reset every time the box reboots: fixed-to-user-rotation (otherwise locks
   # the UI back to landscape) and the SYSTEM_ALERT_WINDOW appop for
@@ -58,7 +56,6 @@ let
     wireshark # Powerful network protocol analyzer
     wol # Implements Wake On LAN functionality in a small program
     yq # Command-line YAML/XML/TOML processor - jq wrapper for YAML, XML, TOML documents
-  ]) ++ (with pkgs-unstable; [
     unifly # Elegant UniFi network management CLI & TUI - for humans and agents
   ]);
 in

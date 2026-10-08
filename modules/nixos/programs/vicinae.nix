@@ -21,6 +21,10 @@ delib.module {
     imports = [ inputs.vicinae.homeManagerModules.default ];
   };
 
+  nixos.ifEnabled = { ... }: {
+    myconfig.stylix.targets.vicinae.fonts.enable = false;
+  };
+
   home.ifEnabled =
     { cfg
     , myconfig

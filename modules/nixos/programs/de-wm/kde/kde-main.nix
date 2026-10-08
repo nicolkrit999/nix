@@ -85,7 +85,7 @@ delib.module {
       # file's nixos-only placement). plasma-manager's workspace.wallpaper
       # can't select a non-org.kde.image plugin, so wallpaperCustomPlugin is
       # used instead when skwd-wall owns the wallpaper.
-      home.packages = lib.optional skwdWallPlasmaAvailable inputs.skwd-wall.packages.${pkgs.system}.skwd-paper-plasma;
+      home.packages = lib.optional skwdWallPlasmaAvailable inputs.skwd-wall.packages.${pkgs.stdenv.hostPlatform.system}.skwd-paper-plasma;
 
       programs.plasma = {
         enable = true;

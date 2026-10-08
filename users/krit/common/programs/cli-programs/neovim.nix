@@ -2,12 +2,8 @@
 , pkgs
 , lib
 , moduleSystem
-, inputs
 , ...
 }:
-let
-  pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-in
 delib.module {
   name = "krit.programs.neovim";
   options = delib.singleEnableOption false;
@@ -49,7 +45,7 @@ delib.module {
 
       programs.neovim = {
         enable = true;
-        package = pkgs-unstable.neovim-unwrapped;
+        package = pkgs.neovim-unwrapped;
         viAlias = true;
         vimAlias = true;
         withRuby = false;
@@ -116,7 +112,7 @@ delib.module {
         # `sideloadInitLua` (that option only affects init.lua sideloading,
         # not the packpath symlink).
         plugins = [
-          (pkgs-unstable.vimPlugins.nvim-treesitter.withPlugins (p: [
+          (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
             p.lua
             p.vim
             p.json
