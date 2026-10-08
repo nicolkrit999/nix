@@ -15,7 +15,7 @@ You diagnose Nix evaluation/build failures and fix the root cause. Judgment work
 - **`imports` error / module not loading** → `imports` placed outside an `always {}` block (denix trap).
 - **`stateVersion` type/attr errors** → never "fix" by bumping it; the real cause is elsewhere (see CLAUDE.md). 
 - **sops / age decryption failure** → key mismatch or secret not defined for this host; you have no sops access - surface a precise snippet for the user.
-- **Renamed/removed attribute after a channel bump** → confirm the new attr path via the nixos MCP (or ask `nix-package-researcher`).
+- **Renamed/removed attribute after a channel bump** → confirm the new attr path via the nixos MCP (or ask `nix-package-researcher`); query channel `unstable` (the default here) unless the user explicitly asks about stable.
 - **Module conflict / duplicate option** → two modules set the same option without mkMerge/mkForce.
 - **`home.ifEnabled` / `nixos.ifEnabled` lambda arg errors** (`called without required argument 'hm'` / `'config'`) → denix's `ifEnabled` callbacks only receive `myconfig` (and `pkgs`/`lib` from the outer module scope). Standard HM args (`config`, `hm`, `osConfig`) are **not** injected. Fix: use `inputs.home-manager.lib.hm.dag` for dag entries; reach nixpkgs lib via the outer `lib` binding; never add `config` or `hm` to the lambda arg set. Use `lib.optionalAttrs` (not `lib.mkIf`) to conditionally include attrs into `home.activation`.
 

@@ -256,7 +256,7 @@ jobs:
           # self-test-zsh-...), so it is a brand-new store path every single
           # run. Observed being pushed on both platforms; left in, it grows the
           # cache without bound for no benefit, since nothing ever substitutes
-          # it. Everything else the installer produces is version-stable and
+          # it. Everything else the installer produces is identical from run to run and
           # deduplicates, so a narrow exclusion is enough.
           # Not a bare pipeline: GitHub runs these with `bash -e`, not
           # `-o pipefail`, so a failing `nix path-info` would be masked - cachix

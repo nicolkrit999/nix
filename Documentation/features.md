@@ -140,7 +140,7 @@ To switch from RAM-based to disk-based wiping, remove the `tmpfs` `fileSystems."
 
 ## Flakes & Home Manager Integration
 
-Fully declarative management of user dotfiles and applications via home-manager and support for flakes.
+Fully declarative management of user dotfiles and applications via home-manager and support for flakes. Packages come from nixos-unstable by default; a permanent stable nixpkgs input (`pkgsStable`) is available to pin individual packages.
 
 ---
 

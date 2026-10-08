@@ -21,7 +21,7 @@ engine (`configType = "lua"`), but investigation concluded the Lua switch is
   happened 2026-06-01 - too early to be the direct trigger for a regression
   that started later.
 - `programs.hyprland.withUWSM = true` and `systemd.variables = ["--all"]`
-  have been stable since 2026-03-20, untouched near the regression window.
+  have been unchanged since 2026-03-20, untouched near the regression window.
 - What actually lines up in time: `nixpkgs` bumps around 2026-08-21 and
   2026-09-04, which likely pulled in a newer, Lua-capable Hyprland build.
 - Best-matching upstream bug for the exact symptom (clean/graceful kick to

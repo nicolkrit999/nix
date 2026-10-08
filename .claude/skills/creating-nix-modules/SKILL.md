@@ -14,7 +14,9 @@ to agents - never do this work directly in the main loop. The orchestrator
 **1. RESEARCH - dispatch `nix-package-researcher`** to confirm exact
 attribute paths, option names, and channel availability before any authoring
 begins. Training data lags nixpkgs, so don't trust remembered attribute names.
-Skip this step only if the task genuinely needs no lookup (e.g. purely
+Research defaults to `nixos-unstable`; only if the user says in the prompt that
+the package must be stable, also have the researcher check the stable channel
+for it (existence, version). Skip this step only if the task genuinely needs no lookup (e.g. purely
 structural change with no new packages/options).
 
 **2. AUTHOR - dispatch `nix-config-architect`** with the task plus the
@@ -30,6 +32,16 @@ must never bump `stateVersion`.
   rather than duplicating it. Only create and index a new file when nothing
   already covers it. Comments in the code itself stay terse (a one-line
   pointer at most) - the full story lives in memory.
+- **Channel rule:** new modules/packages use `pkgs.X` (unstable) by default.
+  ONLY if the user says in the prompt that a module/package must be stable,
+  have the architect take `pkgsStable` as an argument of the outer module
+  function (e.g. `{ delib, pkgs, pkgsStable, ... }:` - not inside an
+  `ifEnabled` block, which only receives `cfg`/`myconfig`) and use
+  `pkgsStable.X` for just that package. It works in `nixos.*`, `darwin.*` and
+  `home.*` blocks alike. Add a one-line comment saying why it is pinned and
+  record the pin and its drop condition as described in
+  `Documentation/usage/denix/pkgs-stable.md`. Treat it as a memory event like
+  any other workaround.
 - **Default placement rule:** before authoring, dispatch `nix-compat-checker`
   to determine whether what's being implemented is compatible with
   nix-darwin - do not decide this yourself or leave it to the architect to

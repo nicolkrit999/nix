@@ -129,6 +129,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    # Permanent second nixpkgs input for future per-package pins (pkgsStable); currently unused.
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-26.05";
     nix-flatpak.url = "github:gmodena/nix-flatpak";
     impermanence.url = "github:nix-community/impermanence";

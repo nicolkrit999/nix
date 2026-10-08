@@ -233,7 +233,7 @@ nixos =
   { ... }:
   {
     nixpkgs.hostPlatform = "x86_64-linux";
-    system.stateVersion = "25.11";
+    system.stateVersion = "XX.YY"; # the release you first install under; never change it afterwards
     imports = [
       inputs.disko.nixosModules.disko
       inputs.nix-sops.nixosModules.sops

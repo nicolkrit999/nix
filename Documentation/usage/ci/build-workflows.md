@@ -351,15 +351,16 @@ notification noise for no proven gain.
 
 `tgt`, `concord` and `herdr` come from `inputs.<x>.packages.<system>.default`, so
 the derivation the config installs is **not** the `pkgs` attribute of the same
-name. The trap is that two of those attributes *exist anyway* in the pinned
-`nixos-26.05`, and are different software — so `.pkgs.<name>` does not error, it
+name. The trap is that those attributes *exist anyway* in the pinned
+`nixos-unstable` (as of the last check), and are different software or a different
+build of the same project — so `.pkgs.<name>` does not error, it
 silently builds and caches the wrong thing:
 
-| Name | What the config installs | What `pkgs.<name>` is in nixos-26.05 |
+| Name | What the config installs | What `pkgs.<name>` is in the pinned nixpkgs |
 |---|---|---|
 | `tgt` | `github:FedericoBruzzone/tgt` — a Telegram TUI | **tgt 1.0.95, the iSCSI Target daemon** — unrelated |
 | `concord` | `github:chojs23/concord` | **concord 2.3.0, a Discord API library in C** — unrelated |
-| `herdr` | `github:ogulcancelik/herdr` tracking **master** | *absent* from nixos-26.05 — this one does fail cleanly with *attribute missing*. (It exists in `unstable` as 0.8.0, the same project, so this trap appears the moment the channel moves.) |
+| `herdr` | `github:ogulcancelik/herdr` tracking **master** | **herdr 0.9.3**, the same project but a nixpkgs release rather than the flake's master — it does not fail, it silently builds and caches a different revision. |
 
 `concord` is additionally wrapped in `.overrideAttrs` in
 `modules/nixos/programs/concord.nix`, so even the correct input is not the
@@ -1059,7 +1060,7 @@ Found on run 1143 (`86bdfce`), on **both** legs, in a run GitHub reported as
 fully green:
 
 ```
-error: path '/nix/store/…-nixos-system-nixos-laptop-26.05.20260819.b18a4b9' is not valid
+error: path '/nix/store/…-nixos-system-nixos-laptop-<release>.20260819.b18a4b9' is not valid
 ##[error]Process completed with exit code 1.
 ```
 

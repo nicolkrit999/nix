@@ -16,6 +16,8 @@ When you need a Nix fetcher expression, **prefer `nurl <url> [ref]`** over hand-
 
 When you need to confirm an attribute path / option / version, ask `nix-package-researcher` rather than guessing - don't burn context calling the nixos MCP yourself.
 
+**Channel policy:** the default is nixos-unstable; use plain `pkgs.X`. Use `pkgsStable.X` (taken as an argument of the outer module function, see `../../Documentation/usage/denix/pkgs-stable.md`) only when the user explicitly asks for a stable package, and record the pin and its drop condition.
+
 ## Core Responsibility
 
 Configure, modify, refine, and extend this self-contained config. It supports multiple DEs (GNOME, KDE Plasma, COSMIC) and WMs (Hyprland, Niri) on Linux plus a self-contained darwin config, all driven by a per-host constants system that cascades through modules.

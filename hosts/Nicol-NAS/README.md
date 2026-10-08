@@ -107,7 +107,7 @@ Status: done - this host is commissioned and on the `develop` branch.
 Kept here for reference / re-provisioning after an overlay wipe.
 
 ```bash
-nix run github:nix-community/home-manager/release-26.05 -- switch \
+nix run github:nix-community/home-manager -- switch \
   -b hm-backup --flake .#krit@Nicol-NAS
 ```
 
@@ -161,7 +161,7 @@ Common (cross-host) secrets decrypt at activation via the sops-nix user
 service. It's a oneshot - `systemctl --user status sops-nix.service` showing
 `inactive (dead)` together with a `Main PID exited, code=exited, status=0/SUCCESS`
 line in the journal is the **healthy** state, not a failure. Decrypted
-secrets land under `$XDG_RUNTIME_DIR/secrets.d/<generation>` with stable
+secrets land under `$XDG_RUNTIME_DIR/secrets.d/<generation>` with persistent
 symlinks published under `~/.config/sops-nix/secrets`.
 
 This host also has its own secrets file, `hosts/Nicol-NAS/Nicol-NAS-secrets-sops.yaml`,

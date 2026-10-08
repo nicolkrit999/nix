@@ -82,6 +82,8 @@ let
       scholarly # citation-management - Google Scholar
       markitdown # markitdown skill - file-to-markdown
     ]
+    ++ markitdown.optional-dependencies.all # docx/xlsx/xls/pdf/pptx/audio/youtube/outlook converters
+    ++ litellm.optional-dependencies.proxy # litellm CLI and proxy server (rich, typer, websockets)
   );
 
   # Shared CLI tools

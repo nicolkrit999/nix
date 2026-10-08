@@ -165,10 +165,10 @@ delib.module {
     };
 
   # Hyprland exec-once is set at the NixOS layer because the parent option
-  # `myconfig.programs.hyprland.execOnce` lives in NixOS scope. main.nix's
-  # home.ifEnabled reads it and renders the commands via extraConfig
-  # (HM 26.05's lua renderer can't emit hyphenated keys). mkAfter preserves
-  # end-of-list ordering across all contributors.
+  # `myconfig.programs.hyprland.execOnce` lives in NixOS scope. hyprland-main.nix's
+  # home.ifEnabled reads it and renders the commands as a Lua function bound to
+  # the `hyprland.start` event. mkAfter preserves end-of-list ordering across
+  # all contributors.
   nixos.always =
     { cfg
     , parent

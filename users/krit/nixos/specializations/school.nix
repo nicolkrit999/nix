@@ -410,13 +410,13 @@ delib.module {
             export XDG_CONFIG_HOME=$HOME/.config/school-env
             export XDG_DATA_HOME=$HOME/.local/share/school-env
             export XDG_CACHE_HOME=$HOME/.cache/school-env
-            exec ${pkgs.jetbrains.idea}/bin/idea "$@"
+            exec ${pkgs.intellij-idea}/bin/intellij-idea "$@"
           '')
           (pkgs.makeDesktopItem {
             name = "idea-school";
             desktopName = "IDEA (School)";
             exec = "idea-school";
-            icon = "idea";
+            icon = "intellij-idea";
           })
 
           (pkgs.writeShellScriptBin "tkgate-school" ''

@@ -15,7 +15,7 @@ Prefer the MCP over guessing — training data lags nixpkgs by months. Discover 
 - Binary cache status → `nix(action="cache")`. Browse a namespace → `nix(action="browse")`.
 - Wiki / nix.dev → `source="wiki"` / `source="nix-dev"`. Version history + commit → `nix_versions`. Flake inputs from store → `nix(action="flake-inputs")`.
 
-Channel aliases: `unstable` = nixos-unstable; this repo tracks **nixos-26.05** (current stable line). 
+**Channel default: `unstable`.** This repo tracks nixos-unstable, so pass `channel="unstable"` for every `nix` lookup (info/search/options/cache) and treat the locked nixpkgs revision in `flake.lock` as the reference for "is it in effect here". Check a stable channel only when the prompt explicitly asks for it (e.g. "does stable have it", "pin this to stable"); the same applies to `nix_versions` history lookups. A permanent `nixpkgs-stable` input (`pkgsStable`) exists for such pins.
 
 **Token discipline:** MCP responses are large. Query when it clearly saves work (confirm an attr path before adding a package, check a renamed/removed attr after a build error, verify an option in the current channel). Do NOT query for things answerable from the repo (grep CLAUDE.md, read a sibling module) or speculatively. One targeted query beats three. Mention `nix-search-tv` (local TUI) when the user could browse interactively instead.
 

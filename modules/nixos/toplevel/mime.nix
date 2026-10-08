@@ -49,7 +49,6 @@ delib.module {
       editorConfig = termEditors.${safeEditor};
 
       browserDesktopMap = {
-        "vivaldi" = "vivaldi-stable.desktop";
         "brave" = "brave-browser.desktop";
         "chrome" = "google-chrome.desktop";
         "chromium" = "chromium-browser.desktop";

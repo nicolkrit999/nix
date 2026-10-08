@@ -27,4 +27,4 @@ unavoidable, automating the storage isn't worth it.
 If ever revisited, the fix would mirror `pcloud.nix`'s pattern
 (`sops.secrets.rclone_school_onedrive_conf` + `configFile` in
 `rcloneMount.mounts`) - but only worth it if SUPSI's auth model turns out to
-be more stable than assumed.
+be less volatile than assumed.

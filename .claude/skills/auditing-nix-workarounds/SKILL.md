@@ -1,6 +1,6 @@
 ---
 name: auditing-nix-workarounds
-description: Use this skill to sweep this repo's memory files for "momentary" tweaks - temporary code that exists only because of a current upstream limitation (missing hardware/kernel/driver support, an open GitHub issue/PR, a package not yet released or merged, a fix not yet in the tracked stable channel) - confirm which ones are still actually present in the repo, check whether the underlying upstream condition has resolved, and revert whichever are confirmed fixed in the current stable channel. Trigger phrases include 'check for momentary fixes', 'are any of our workarounds obsolete', 'sweep memory for temporary tweaks', 'can we revert any pins/overlays yet', 'audit the temporary hacks', 'is this upstream fix landed yet', 'do a momentary-tweak sweep'. Drives a memory-scan -> confirm-live -> research (nix-package-researcher across BOTH the stable and unstable channels, or a one-off generic agent for non-package upstream research) -> revert (nix-config-architect) -> verify (nix-checker/nix-debugger) loop, followed by memory bookkeeping and an end-of-run user confirmation phase. Does NOT retry a single already-known workaround the user points at directly (use investigating-nix-issues) or diagnose a currently-failing build (use debugging-nix-failures).
+description: Use this skill to sweep this repo's memory files for "momentary" tweaks - temporary code that exists only because of a current upstream limitation (missing hardware/kernel/driver support, an open GitHub issue/PR, a package not yet released or merged, a fix not yet in the locked nixpkgs revision) - confirm which ones are still actually present in the repo, check whether the underlying upstream condition has resolved, and revert whichever are confirmed fixed in the locked nixpkgs revision. Trigger phrases include 'check for momentary fixes', 'are any of our workarounds obsolete', 'sweep memory for temporary tweaks', 'can we revert any pins/overlays yet', 'audit the temporary hacks', 'is this upstream fix landed yet', 'do a momentary-tweak sweep'. Drives a memory-scan -> confirm-live -> research (nix-package-researcher against nixos-unstable and the locked revision, or a one-off generic agent for non-package upstream research) -> revert (nix-config-architect) -> verify (nix-checker/nix-debugger) loop, followed by memory bookkeeping and an end-of-run user confirmation phase. Does NOT retry a single already-known workaround the user points at directly (use investigating-nix-issues) or diagnose a currently-failing build (use debugging-nix-failures).
 ---
 
 # Auditing Nix Workarounds
@@ -26,7 +26,7 @@ From each file, extract candidates: version pins, disabled options,
 `mkForce`/`overrideAttrs` hacks, commented-out blocks, or anything else
 whose stated reason is "waiting on X" - a kernel patch, driver/hardware
 support, an upstream GitHub issue or PR, a package not yet released or
-merged, or a fix not yet in the tracked channel.
+merged, or a fix not yet in the locked nixpkgs revision.
 
 ## Step 1 - CONFIRM LIVE (main loop, no agent)
 
@@ -43,11 +43,14 @@ Route by what kind of fact is needed. Dispatch several in parallel when
 candidates are independent.
 
 - **Package/attribute/option/channel status** -> dispatch
-  `nix-package-researcher`. This repo tracks `nixos-26.05` and wants to
-  stay there - the researcher must check **both** the current stable
-  channel and `unstable`. Checking unstable is only to learn whether the
-  underlying fix has landed there yet, as a signal of when it'll reach
-  stable. **A fix present only in unstable is never grounds to revert.**
+  `nix-package-researcher`. This repo tracks `nixos-unstable`, so the
+  researcher checks `unstable` and, where the commit matters, whether the
+  fix is already in the revision locked in `flake.lock` (a fix that landed
+  upstream after the lock is not yet in effect here). **A fix that exists
+  only in a newer nixpkgs revision than the locked one is not grounds to
+  revert until the lock is updated.** A package pinned through `pkgsStable`
+  is a candidate in its own right: check whether unstable has caught up and
+  the pin can be dropped.
 - **Non-package upstream research** (is this GitHub issue closed, did this
   kernel version add the driver, has this upstream PR merged, what does
   the changelog say) -> spawn a one-off generic subagent via the Agent tool
@@ -62,11 +65,11 @@ candidates are independent.
 
 ## Step 3 - DECIDE per candidate
 
-- **Fixed in stable, or the upstream condition is confirmed resolved** ->
+- **Fixed in the locked nixpkgs revision, or the upstream condition is confirmed resolved** ->
   revert it (Step 4).
-- **Fixed only in unstable, or the upstream condition is still open** ->
+- **Fixed only in a newer nixpkgs revision than the locked one, or the upstream condition is still open** ->
   leave the code untouched. Capture the evidence (issue/PR link, changelog
-  reference, "present in unstable commit X but not yet backported" etc.)
+  reference, "present in nixpkgs commit X, newer than the locked revision" etc.)
   for the final report and the memory update in Step 5.
 - **Research inconclusive** - `nix-package-researcher` and/or the one-off
   research agent turned up no evidence either confirming or denying that
@@ -78,7 +81,7 @@ candidates are independent.
   the only way to actually know is to revert it and rebuild, and that is
   the user's call to make, not something this skill decides on its own.
 
-## Step 4 - REVERT (only candidates confirmed fixed in stable)
+## Step 4 - REVERT (only candidates confirmed fixed in the locked revision)
 
 1. Dispatch `nix-config-architect` to remove the tweak and restore normal/
    upstream behavior. If the tweak had an explanatory comment, that comment
@@ -121,7 +124,7 @@ candidates are independent.
   reverted on today's date, that verification passed, and that it is
   pending the user's live rebuild-and-test confirmation. Leave the
   `MEMORY.md` index line untouched for now.
-- **Still needed (unstable-only or upstream unresolved):** update the
+- **Still needed (fix not yet in the locked revision, or upstream unresolved):** update the
   memory file with today's check date, and refresh its content if anything
   changed since it was last written (new comment on the issue, a PR
   opened/merged, status changed) - mirror the existing "re-confirmed still
@@ -163,7 +166,7 @@ candidate must land in exactly one:
   pending the Step 6 confirmation (or already confirmed and cleaned up).
 - **Must stay (cannot be reverted)** - candidates confirmed still needed
   via research: precisely why (issue/PR links, changelog references,
-  "landed in unstable commit X, not yet in 26.05" etc.).
+  "landed in nixpkgs commit X, not yet in the locked revision" etc.).
 - **Reverted, then proven necessary again and restored** - its own bucket,
   distinct from "must stay": research said the tweak was safe to revert,
   it was reverted, but verification (`nix-checker`) then failed in a way
@@ -178,10 +181,10 @@ candidate must land in exactly one:
   find out is to actually revert it and rebuild live. Present these after
   the buckets above, once everything that was researchable is done. Do not
   revert these without the user opting in.
-- **Unstable-only opportunities** - explicitly ask the user whether they
-  want to move that specific package/component to unstable to get the fix
-  early. Never make that switch yourself - a channel change is a separate,
-  larger decision the user makes explicitly.
+- **Lock-update opportunities** - the fix exists in a newer nixpkgs revision
+  than the locked one. Explicitly ask the user whether they want to update
+  the lock (or the specific input) to get it. Never update the lock
+  yourself - that is a separate, larger decision the user makes explicitly.
 - **Needs physical verification** - anything from Step 2 that no agent
   could check, listed as an open item with what to physically test.
 
@@ -194,7 +197,7 @@ load-bearing; every touched memory file reflects today's findings; the
 Step 6 confirmation question has been asked for every candidate left in
 the reverted state; and the final report sorts every candidate into
 exactly one of: reverted / must-stay / reverted-then-restored /
-cannot-be-verified-via-research / unstable-only / needs-physical-
+cannot-be-verified-via-research / lock-update / needs-physical-
 verification.
 
 ## Out of scope
@@ -205,6 +208,6 @@ verification.
   `debugging-nix-failures`.
 - Discovering new candidates by grepping the repo for TODO/FIXME/HACK
   markers instead of memory - that's a different sweep, not this skill.
-- Actually switching a host or package to the unstable channel - always
-  hand that decision back to the user; never perform it as part of this
-  skill.
+- Updating `flake.lock`, or moving a package to or from `pkgsStable` -
+  always hand that decision back to the user; never perform it as part of
+  this skill.

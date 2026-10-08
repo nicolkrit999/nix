@@ -43,13 +43,17 @@ These modules work on both NixOS and Darwin hosts.
 * **`stylix`**: Global theming engine that colors and styles almost every application automatically based on the constants.
   * **Warning:** Disabling this would cause massive graphical inconsistencies regarding general theming, polarity, and wallpaper.
 
+* **`attic`**: Configures an Attic binary cache (`serverUrl`, `cacheName`, `publicKey`) as a substituter, with optional pushing (`push`) and a sops-provisioned auth token (`authTokenPath`).
+* **`nix-sweeps`**: Installs `nix-sweep` and sets garbage-collection retention (`gcd`, default `30d`; `gcn`, default `3`). Enabled by default.
+
 #### Themes
 
-* **`themes.catppuccin`**: Imports the catppuccin-nix theming modules for both NixOS/Darwin system-level and home-manager, enabling Catppuccin palette integration across all supported applications.
+* **`themes.catppuccin`**: Imports the catppuccin-nix theming modules for both NixOS/Darwin system-level and home-manager. Sets `catppuccin.enable = true` with `catppuccin.autoEnable = false`: catppuccin-nix gates every port on `enable`, so it must be on, while `autoEnable = false` keeps ports opt-in so only the ports explicitly enabled elsewhere in the repo are themed.
 
 #### Command-Line Programs (`programs.`)
 
 * **`programs.bash`**: Configures the Bash shell with Hyprland socket fixes, custom `.bashrc` loading, optional `tmux` autostart, and the fastfetch splash when `programs.fastfetch` is enabled.
+* **`programs.atuin`**: Shell history search via atuin, integrated with whichever shell `constants.shell` selects (zsh, fish or bash). Ctrl-R is left to fzf (`--disable-ctrl-r`); atuin's search is bound to Ctrl-O, and the Up arrow keeps atuin's behaviour.
 * **`programs.bat`**: A `cat` command alternative featuring syntax highlighting, line numbers, and Git integration.
 * **`programs.claude-code`**: Sets up the Claude Code CLI tool with optional MCP secrets provisioning via sops-nix and required environment configuration.
 * **`programs.codex`**: Installs the OpenAI Codex CLI (a terminal-based coding agent) via the third-party `codex-cli-nix` flake (`github:sadjow/codex-cli-nix`) rather than nixpkgs' own `codex` package, chosen for its hourly-updated binary cache and freshness. Ships as a self-contained native Rust binary with no runtime dependencies.
@@ -95,6 +99,7 @@ These modules work on both NixOS and Darwin hosts.
 
 #### Services (`services.`)
 
+* **`services.localsend`**: Opens TCP/UDP port 53317 in the NixOS firewall for LocalSend.
 * **`services.tailscale`**: A zero-config mesh VPN service that builds secure networks between your devices. On NixOS also configures the firewall (UDP port 41641, trusted tailscale0 interface, loose reverse-path filtering).
 
 ---
@@ -120,7 +125,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`bluetooth`**: Enables the system Bluetooth daemon and related utility packages.
 * **`boot`**: Sets up the Plymouth boot splash screen and GRUB bootloader with UEFI support, OS prober, and multi-resolution graphics configuration.
 * **`env`**: Exports system-wide environment variables (`BROWSER`, `TERMINAL`, `EDITOR`, `XDG_BIN_HOME`) derived from the host constants.
-* **`kernel`**: Selects the Zen kernel on x86_64 for desktop performance, and falls back to the latest standard kernel on other architectures (e.g., ARM).
+* **`kernel`**: Selects the kernel package set per host: `nixos-desktop` uses Zen (`linuxPackages_zen`), `nixos-laptop` uses `linuxKernel.packages.linux_testing`, `Krits-MacBook-Pro` uses `linuxPackages_latest`, and any other host uses the default `linuxPackages`.
 * **`mime`**: Explicitly maps the defined default applications to file types across the system.
   * **Warning:** Disabling this would cause the shortcuts that open "browser, editor, file manager" to fail and/or open with the distro's fallback.
 
@@ -165,8 +170,8 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`programs.prismlauncher`**: Installs Prism Launcher (`pkgs.prismlauncher`), a Minecraft (Java Edition) launcher, as an unopinionated home-manager package. Works on both NixOS and Darwin. Recommended over the official Mojang launcher, which is broken on NixOS for Minecraft 1.19+.
 * **`programs.skwdWall`**: Installs and enables [skwd-wall](https://github.com/liixini/skwd-wall)/skwd-deck, a GUI-driven wallpaper daemon for Wayland window managers, gated to x86_64-linux (NixOS only, never Darwin). When enabled, it completely replaces the declarative wallpaper logic in Hyprland, Mango, and Niri (their wallpaper exec/spawn commands are disabled entirely - skwd-walld owns the surface instead), and in KDE Plasma it swaps the static `workspace.wallpaper` for the `skwd-paper-plasma` custom plugin (`org.skwd.wall.plasma`), installing that package. It supports static/gif/video wallpapers and Wallpaper Engine (Steam Workshop) scenes, mixed independently across monitors, with live hotplug persistence. **GNOME is excluded entirely** and always keeps the declarative static-per-monitor wallpaper setup regardless of this toggle, since Mutter has no wlr-layer-shell support. The module only manages service/package enablement and does a one-time non-destructive seed of general settings (`restoreOnStartup`); per-monitor wallpaper assignment state (`outputs.json`, `monitors.json`, `last-applied.json`, etc.) is owned entirely by the skwd-walld daemon at runtime and is never generated or touched by Nix.
 * **`programs.swayosd`**: An on-screen display server for volume, brightness, and other indicators on Wayland. Auto-activates only when the active WM (Hyprland, Niri, or Mango) has no shell (caelestia/noctalia) providing its own OSD. Installs the udev rules system-wide.
-* **`programs.tgt`**: Installs tgt, a Telegram TUI client, built from source against nixpkgs-unstable's tdlib to satisfy the required minimum version.
-* **`programs.vicinae`**: A Wayland application launcher with Raycast-style extensions, stylix theming, browser/file-search providers, and configurable extra extensions and packages. Runs as a systemd user service with layer-shell overlay mode.
+* **`programs.tgt`**: Installs tgt, a Telegram TUI client, from the `tgt` flake input (`github:FedericoBruzzone/tgt`) rather than nixpkgs, whose `tgt` attribute is an unrelated iSCSI target daemon. Also creates `~/.tgt` via a home-manager activation step.
+* **`programs.vicinae`**: A Wayland application launcher with Raycast-style extensions, stylix theming, browser/file-search providers, and configurable extra extensions and packages. Runs as a systemd user service with layer-shell overlay mode. The stylix vicinae target's font handling is disabled (`stylix.targets.vicinae.fonts.enable = false`) so the repo's JetBrainsMono Nerd Font wins, while stylix colors are kept.
 * **`programs.walker`**: Installs the Walker application launcher with optional Hyprland and Waybar integration.
   * **Warning:** Disabling this means missing an app launcher in Hyprland/niri.
 
@@ -174,6 +179,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 
 #### Services (`services.`)
 
+* **`services.rcloneMount`**: Declares rclone remotes (`mounts`: name, remote, config file, mount point, VFS cache mode) as systemd user services that FUSE-mount them, creating the mount points via tmpfiles.
 * **`services.audio`**: Configures the PipeWire sound server and related audio management tools.
 * **`services.auto-cpufreq`**: Enables the auto-cpufreq daemon, an automatic CPU speed and power optimizer that dynamically adjusts CPU governors and turbo based on battery state and system load. Mutually exclusive with TLP.
 * **`services.autotrash`**: Runs `autotrash` as a daily systemd timer to automatically delete files from the user's trash that exceed a configurable number of days (`retentionDays`, default: 30).
