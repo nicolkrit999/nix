@@ -15,4 +15,5 @@
 - [catppuccin global enable gate](project_catppuccin_global_enable_gate.md) - catppuccin main needs catppuccin.enable=true for ANY port; unset = all ports silently no-op (looks like a mere autoEnable warning)
 - [test stylix stub targets](project_test_stylix_stub_targets.md) - test stylix-stub.nix must `// cfg.targets` or myconfig.stylix.targets.* are dropped in tests only (vicinae arch-compat, not eval cache)
 - [RTK git diff patch trap](project_rtk_git_diff_patch_trap.md) - `git diff > patch` is RTK-filtered, not a real patch; use `rtk proxy git diff` and wc -l it before reverting
+- [KDE text-scale dconf leak](project_kde_textscale_dconf_leak.md) - Plasma login writes text-scaling-factor 1.25 (kcmfonts forceFontDPI=120); Zen/GTK in Hyprland 1.25x big
 - [HM hyprland uwsm PropagatesStopTo](project_hm_hyprland_uwsm_propagatesstop.md) - HM start-hook `stop hyprland-session.target` now stops graphical-session -> uwsm Hyprland exits RC 0 after 2s

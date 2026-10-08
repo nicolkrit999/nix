@@ -20,6 +20,9 @@ delib.module {
             "imageSaveLocation" = "file://${myconfig.constants.screenshots}/";
           };
         };
+        "kcmfonts"."General"."forceFontDPI" = 0;
       };
+
+      dconf.settings."org/gnome/desktop/interface".text-scaling-factor = 1.0;
     };
 }
