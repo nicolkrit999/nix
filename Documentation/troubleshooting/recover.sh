@@ -14,7 +14,12 @@
 #   5. on-disk flake repo: stashes uncommitted changes, checks out the branch
 #      and fast-forwards it from the clone this script was run from
 #   6. chroots in and runs `nixos-rebuild boot --install-bootloader`
-#   7. unmounts, closes LUKS, offers to reboot
+#   7. replaces stale GRUB copies on the boot partition that the firmware may
+#      still start (old GRUB + new modules = "symbol ... not found")
+#   8. unmounts, closes LUKS, offers to reboot
+#
+# Full walkthrough (making the USB, every prompt, what to do after):
+#   Documentation/troubleshooting/README.md
 #
 # Usage, on the live USB:
 #   nix-shell -p git                      # if git is missing
@@ -33,6 +38,8 @@
 #   --skip-mount     you already mounted everything under /mnt by hand
 #   --shell          mount everything, then open a shell in the chroot instead
 #                    of rebuilding
+#   --grub-only      only do step 7 (no internet, git or rebuild needed): for
+#                    "symbol ... not found" right after a rebuild that worked
 #   -h, --help       show this help
 
 set -Eeuo pipefail
@@ -44,6 +51,7 @@ ASSUME_YES=0
 KEEP_CHANGES=0
 SKIP_MOUNT=0
 SHELL_ONLY=0
+GRUB_ONLY=0
 FLAKE_IN_TARGET=""
 
 info() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
@@ -96,6 +104,7 @@ while (($#)); do
     ;;
   --skip-mount) SKIP_MOUNT=1 ;;
   --shell) SHELL_ONLY=1 ;;
+  --grub-only) GRUB_ONLY=1 ;;
   -h | --help)
     awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"
     exit 0
@@ -529,6 +538,60 @@ run_rebuild() { # extra nixos-rebuild args...
 $CHROOT_SCRIPT"
 }
 
+# ------------------------------------------------------ stale GRUB copies ---
+
+# grub-install writes the GRUB program twice: <boot>/grub/x86_64-efi/core.efi,
+# next to the modules it has to match, and a copy under EFI/ for the firmware
+# to start. A firmware entry left over from an earlier install can keep
+# starting a different, OLD copy (nixos-laptop: Boot0000 "NixOS-boot" ->
+# EFI/NixOS-boot/grubx64.efi, while efiInstallAsRemovable only refreshes
+# EFI/BOOT/BOOTX64.EFI). Nothing updates that copy, so on the next GRUB update
+# old program + new modules = "symbol ... not found" before the menu shows -
+# even though the rebuild itself succeeded. Make every GRUB image on the boot
+# partition(s) identical to core.efi.
+sync_grub_copies() {
+  local fresh=$MNT/boot/grub/x86_64-efi/core.efi esp f rel stale=0
+  if [[ ! -f $fresh ]]; then
+    ok "No EFI GRUB in /boot/grub - nothing to check"
+    return 0
+  fi
+  info "Checking every GRUB copy the firmware could start"
+  for esp in "$MNT/boot" "$MNT/boot/efi" "$MNT/efi"; do
+    [[ -d $esp/EFI ]] || continue
+    while IFS= read -r -d '' f; do
+      # GRUB images only - never Windows' boot manager or systemd-boot
+      grep -qaE 'grub_mod_init|grub rescue>' "$f" || continue
+      rel=${f#"$MNT"}
+      if [[ -n $(find "${f%/*}" -maxdepth 1 -iname 'shim*.efi' -print -quit) ]]; then
+        warn "$rel is started through shim (Secure Boot) - not touching it"
+        continue
+      fi
+      if cmp -s "$fresh" "$f"; then
+        ok "$rel is current"
+      else
+        cp "$f" "$f.old"
+        cp "$fresh" "$f"
+        ok "$rel was an OLD GRUB - replaced (backup next to it: ${f##*/}.old)"
+        stale=1
+      fi
+    done < <(find "$esp/EFI" -type f -iname '*.efi' -print0 2>/dev/null)
+  done
+  sync
+  if ((stale)); then
+    warn "A stale GRUB copy is what makes GRUB fail with 'symbol ... not found'."
+  fi
+  show_boot_order
+}
+
+show_boot_order() {
+  local order line
+  command -v efibootmgr >/dev/null || return 0
+  order=$(efibootmgr 2>/dev/null | sed -n 's/^BootOrder: //p')
+  [[ -n $order ]] || return 0
+  line=$(efibootmgr -v 2>/dev/null | grep "^Boot${order%%,*}" || true)
+  ok "Firmware starts first: ${line:0:150}"
+}
+
 # ---------------------------------------------------------------- cleanup ---
 
 cleanup() {
@@ -551,9 +614,11 @@ cleanup() {
 
 # ------------------------------------------------------------------- main ---
 
-ensure_network
-ensure_git
-SCRIPT_REPO=$(git -c safe.directory='*' -C "$(dirname "$SCRIPT_PATH")" rev-parse --show-toplevel 2>/dev/null || true)
+if ((!GRUB_ONLY)); then
+  ensure_network
+  ensure_git
+  SCRIPT_REPO=$(git -c safe.directory='*' -C "$(dirname "$SCRIPT_PATH")" rev-parse --show-toplevel 2>/dev/null || true)
+fi
 
 DETECTED_HOST=""
 if ((SKIP_MOUNT)); then
@@ -587,6 +652,15 @@ else
   FSTAB=$WORK/fstab.$((idx + 1))
   fix_mapper_names "$FSTAB"
   mount_from_fstab "$FSTAB"
+fi
+
+if ((GRUB_ONLY)); then
+  sync_grub_copies
+  cleanup
+  echo
+  info "Done. The USB stick can stay in; if the live system comes up again, remove it and reboot."
+  if ask "Reboot now?" y; then systemctl reboot; fi
+  exit 0
 fi
 
 if [[ -z $HOST ]]; then
@@ -648,9 +722,10 @@ until run_rebuild "${extra[@]}"; do
   esac
 done
 ok "System rebuilt and GRUB reinstalled"
+sync_grub_copies
 if ((STASHED)); then warn "Your uncommitted changes are in 'git stash list' in $FLAKE_IN_TARGET"; fi
 
 cleanup
 echo
-info "Done. Remove the USB stick while the machine restarts (or it may boot the USB again)."
+info "Done. The USB stick can stay in; if the live system comes up again, remove it and reboot."
 if ask "Reboot now?" y; then systemctl reboot; fi

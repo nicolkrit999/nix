@@ -92,4 +92,5 @@
 | Tmux guide | [tmux-guide.md](./Documentation/usage/tmux/tmux-guide.md) |
 | Emergency recovery (GRUB) | [emergency-recovery-gnu-grub.md](./Documentation/troubleshooting/emergency-recovery-gnu-grub.md) |
 | Emergency recovery (script) | [recover.sh](./Documentation/troubleshooting/recover.sh) |
+| Emergency recovery (guide) | [troubleshooting/README.md](./Documentation/troubleshooting/README.md) |
 | Notes & project origin | [notes.md](./Documentation/notes.md) |

@@ -7,6 +7,9 @@ doesn't appear at all. If GRUB still shows its menu, use section 2 instead.
 
 ### A. Automated: `recover.sh` (recommended)
 
+> Step-by-step guide for the whole process (making the USB, every prompt,
+> what to do after): [README.md](./README.md).
+
 Boot a NixOS live USB in UEFI mode, then:
 
 ```bash
