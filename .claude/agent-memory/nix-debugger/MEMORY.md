@@ -16,5 +16,5 @@
 - [test stylix stub targets](project_test_stylix_stub_targets.md) - test stylix-stub.nix must `// cfg.targets` or myconfig.stylix.targets.* are dropped in tests only (vicinae arch-compat, not eval cache)
 - [RTK git diff patch trap](project_rtk_git_diff_patch_trap.md) - `git diff > patch` is RTK-filtered, not a real patch; use `rtk proxy git diff` and wc -l it before reverting
 - [KDE text-scale dconf leak](project_kde_textscale_dconf_leak.md) - Plasma login writes text-scaling-factor 1.25 (kcmfonts forceFontDPI=120); Zen/GTK in Hyprland 1.25x big
-- [Input glibc vs /run/opengl-driver](project_input_glibc_vs_opengl_driver.md) - non-following input + newer system mesa = "EGL not available"/QRhi fatal (vicinae); fix with nixpkgs follows
+- [Input glibc vs /run/opengl-driver](project_input_glibc_vs_opengl_driver.md) - non-following input + newer system mesa = "EGL not available"/QRhi fatal (vicinae); fix with nixpkgs follows; then watch for gcc15Stdenv vs gcc16 GLIBCXX link splits
 - [HM hyprland uwsm PropagatesStopTo](project_hm_hyprland_uwsm_propagatesstop.md) - HM start-hook `stop hyprland-session.target` now stops graphical-session -> uwsm Hyprland exits RC 0 after 2s
