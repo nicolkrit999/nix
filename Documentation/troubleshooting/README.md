@@ -13,7 +13,8 @@ This folder holds the emergency kit for when a NixOS machine no longer boots:
 | What you see at power-on | What to do |
 |---|---|
 | The GRUB menu shows, but NixOS fails later (black screen, emergency mode, crash) | **No USB needed.** In GRUB choose *"NixOS - All configurations"*, pick an older generation, boot it, then fix the config and rebuild normally. |
-| GRUB shows `error: symbol '…' not found`, `grub rescue>` or a `minimal bash-like` prompt | Live USB → `recover.sh` (most likely `--grub-only`, see [section 6](#6-grub-says-symbol--not-found-after-a-successful-rebuild)) |
+| GRUB shows `error: symbol '…' not found` | Live USB → `recover.sh --grub-only` (see [section 4](#4-run-the-script)) |
+| GRUB shows `grub rescue>` or a `minimal bash-like` prompt | Live USB → `recover.sh` |
 | No GRUB at all, the machine goes straight to Windows or the firmware | Live USB → `recover.sh` |
 
 ## 1. Before: what you need
@@ -62,12 +63,27 @@ Windows ISOs; Linux ISOs are "hybrid" disk images that must be copied byte for b
 
 ## 4. Run the script
 
+### Which command?
+
+| What you saw at power-on | Run |
+|---|---|
+| GRUB error `symbol '…' not found` | `recover.sh --grub-only` - fast, no rebuild. If GRUB still fails afterwards, run the full `recover.sh`. |
+| `grub rescue>`, `minimal bash-like`, or no GRUB at all | `recover.sh` (full run) |
+| Not sure | `recover.sh` (full run). It ends with the same step `--grub-only` does, so it is always safe - just slower, and it needs internet. |
+
+Both need the clone below (that's where the script is), so connect to the internet either way.
+
+### Commands
+
 ```bash
 nix-shell -p git                                # only if git is missing
 git clone -b develop https://github.com/nicolkrit999/nix
 cd nix
-./Documentation/troubleshooting/recover.sh --branch develop
+./Documentation/troubleshooting/recover.sh --branch develop     # full run
+./Documentation/troubleshooting/recover.sh --grub-only          # OR: only the stale-GRUB fix
 ```
+
+Run **one** of the last two lines, per the table above.
 
 - `-b develop`: clone the branch that contains the newest version of the recovery script.
 - `--branch develop`: build the system from `develop`. Leave it out to build `main` (the default).
@@ -104,7 +120,7 @@ skipped mounts for Windows (`ntfs3`) and the NAS shares (`noauto`); a long downl
 |---|---|
 | `--branch NAME` | Build another branch than `main` (e.g. `develop`). |
 | `--keep-changes` | Uncommitted changes in the on-disk repo are **needed** for the build. Default is to stash them. |
-| `--grub-only` | The rebuild already worked, but GRUB stops with `symbol … not found`. No internet needed. |
+| `--grub-only` | The rebuild already worked, but GRUB stops with `symbol … not found`. Skips internet check, git and rebuild. |
 | `--shell` | Mount everything and open a shell inside the installed system, to fix something by hand. |
 | `--skip-mount` | You mounted everything under `/mnt` yourself. |
 | `--flake PATH` | The repo isn't found automatically (path as seen from the installed system). |
