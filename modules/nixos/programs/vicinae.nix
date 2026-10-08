@@ -4,6 +4,11 @@
 , lib
 , ...
 }:
+let
+  vicinaePackage = inputs.vicinae.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
+    gcc15Stdenv = pkgs.stdenv;
+  };
+in
 delib.module {
   name = "programs.vicinae";
   options = with delib; moduleOptions {
@@ -15,6 +20,7 @@ delib.module {
 
   nixos.always = { ... }: {
     imports = [ inputs.vicinae.nixosModules.default ];
+    programs.vicinae.input-server.package = vicinaePackage;
   };
 
   home.always = { ... }: {
@@ -38,7 +44,7 @@ delib.module {
     {
       programs.vicinae = {
         enable = true;
-        package = inputs.vicinae.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        package = vicinaePackage;
 
         systemd = {
           enable = true;

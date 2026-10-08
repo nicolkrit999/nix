@@ -245,7 +245,10 @@
       inputs.elephant.follows = "elephant";
     };
 
-    vicinae.url = "github:vicinaehq/vicinae";
+    vicinae = {
+      url = "github:vicinaehq/vicinae";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     vicinae-extensions.url = "github:vicinaehq/extensions";
 
     sidra = {

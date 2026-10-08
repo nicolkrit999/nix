@@ -1392,22 +1392,6 @@
     },
     "nixpkgs_11": {
       "locked": {
-        "lastModified": 1790578696,
-        "narHash": "sha256-ZoxIApko70jCdbH3l20HWXOBaT2HZd87orzd2yJ9dVE=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "7a0f122f5090cf4c2ade2a13a0e229d4e19ba71f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_12": {
-      "locked": {
         "lastModified": 1779560665,
         "narHash": "sha256-tpyBcxPpcQb8ukyNF7DoCwfSY3VPsxHoYwj00Cayv5o=",
         "owner": "nixos",
@@ -1422,7 +1406,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_13": {
+    "nixpkgs_12": {
       "locked": {
         "lastModified": 1790185690,
         "narHash": "sha256-xJ+X4hBtOcAFGBOe5nAMyMUeF9foJBmIOu3NjBqBycU=",
@@ -2270,7 +2254,9 @@
     },
     "vicinae": {
       "inputs": {
-        "nixpkgs": "nixpkgs_11",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "numen": "numen",
         "soulver-cpp": "soulver-cpp",
         "systems": "systems_10"
@@ -2292,7 +2278,7 @@
     "vicinae-extensions": {
       "inputs": {
         "flake-compat": "flake-compat_3",
-        "nixpkgs": "nixpkgs_12",
+        "nixpkgs": "nixpkgs_11",
         "systems": "systems_11",
         "vicinae": "vicinae_2"
       },
@@ -2340,7 +2326,7 @@
         "elephant": [
           "elephant"
         ],
-        "nixpkgs": "nixpkgs_13",
+        "nixpkgs": "nixpkgs_12",
         "systems": "systems_12"
       },
       "locked": {
