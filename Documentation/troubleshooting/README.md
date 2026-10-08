@@ -140,12 +140,21 @@ found` before the menu, on every boot, no matter how often the system is rebuilt
 ```bash
 ./Documentation/troubleshooting/recover.sh --grub-only
 ```
-It unlocks and mounts the disk, replaces every out-of-date GRUB copy on the boot partition with the
-current one (keeping a `.old` backup), shows which entry the firmware starts first, and unmounts. Windows'
-boot manager and systemd-boot are never touched.
+It unlocks and mounts the disk, replaces every out-of-date NixOS GRUB copy (`EFI/BOOT/`, `EFI/NixOS*/`)
+with the current one (keeping a `.old` backup next to it), shows which entry the firmware starts first,
+and unmounts. Windows' boot manager, systemd-boot and other distros' GRUB are never touched.
 
-**Prevention.** `modules/nixos/toplevel/boot.nix` syncs that copy on every rebuild
-(`boot.loader.grub.extraInstallCommands`), and `recover.sh` does the same check after every repair.
+Already booted into NixOS (e.g. via F12 → the drive's second "UEFI …" entry, which starts
+`EFI/BOOT/BOOTX64.EFI`)? Then this does the same without the USB:
+```bash
+sudo cp /boot/EFI/NixOS-boot/grubx64.efi /boot/EFI/NixOS-boot/grubx64.efi.old
+sudo cp /boot/grub/x86_64-efi/core.efi /boot/EFI/NixOS-boot/grubx64.efi
+```
+
+**Prevention.** `modules/nixos/toplevel/boot.nix` syncs `EFI/NixOS*/grubx64.efi` with the freshly
+installed GRUB on every rebuild (`boot.loader.grub.extraInstallCommands`; it prints
+`boot.nix: refreshed stale GRUB copy …` when it had to), and `recover.sh` does the same check after
+every repair.
 
 ## 7. Problems seen before
 

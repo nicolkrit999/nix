@@ -547,8 +547,9 @@ $CHROOT_SCRIPT"
 # EFI/NixOS-boot/grubx64.efi, while efiInstallAsRemovable only refreshes
 # EFI/BOOT/BOOTX64.EFI). Nothing updates that copy, so on the next GRUB update
 # old program + new modules = "symbol ... not found" before the menu shows -
-# even though the rebuild itself succeeded. Make every GRUB image on the boot
-# partition(s) identical to core.efi.
+# even though the rebuild itself succeeded. Make NixOS' GRUB images (EFI/BOOT
+# and EFI/NixOS*; another distro's GRUB on a shared ESP is left alone)
+# identical to core.efi. boot.nix does the same on every normal rebuild.
 sync_grub_copies() {
   local fresh=$MNT/boot/grub/x86_64-efi/core.efi esp f rel stale=0
   if [[ ! -f $fresh ]]; then
@@ -574,7 +575,8 @@ sync_grub_copies() {
         ok "$rel was an OLD GRUB - replaced (backup next to it: ${f##*/}.old)"
         stale=1
       fi
-    done < <(find "$esp/EFI" -type f -iname '*.efi' -print0 2>/dev/null)
+    done < <(find "$esp/EFI" -mindepth 2 -maxdepth 2 -type f -iname '*.efi' \
+      \( -ipath "$esp/EFI/BOOT/*" -o -ipath "$esp/EFI/NixOS*/*" \) -print0 2>/dev/null)
   done
   sync
   if ((stale)); then
