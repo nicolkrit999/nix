@@ -68,6 +68,7 @@ delib.module {
     {
       stylix.targets = {
         neovim.enable = false;
+        rofi.enable = false;
         bat.enable = !isCatppuccin;
         lazygit.enable = !isCatppuccin;
         starship.enable = !isCatppuccin;

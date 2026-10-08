@@ -7,7 +7,7 @@ delib.module {
     nixpkgs.overlays = [ inputs.antigravity-nix.overlays.default ];
     environment.systemPackages = [
       (pkgs.google-antigravity-no-fhs.override {
-        useSystemChromeProfile = true;
+        useUserProfile = true;
       })
       pkgs.google-chrome
     ];

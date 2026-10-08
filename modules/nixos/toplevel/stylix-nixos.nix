@@ -129,6 +129,7 @@ delib.module {
             lazygit.enable = !isCatppuccin;
             starship.enable = !isCatppuccin;
             wofi.enable = false;
+            rofi.enable = false;
             waybar.enable = false;
             kde.enable = !isCatppuccin;
             qt.enable = false;

@@ -59,6 +59,7 @@ delib.module {
         swaync.enable = !isCatppuccin;
         tmux.enable = !isCatppuccin;
         wofi.enable = false;
+        rofi.enable = false;
         waybar.enable = false;
         neovim.enable = false;
         gnome.enable = false;
