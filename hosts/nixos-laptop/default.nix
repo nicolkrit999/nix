@@ -372,7 +372,7 @@ delib.host {
             { output = ""; mode = "preferred"; position = "auto"; scale = 1; }
           ];
           execOnce = [
-            "hyprctl dispatch workspace 1"
+            "hyprctl dispatch 'hl.dsp.focus({ workspace = \"1\" })'"
             "[workspace 1 silent] ${myBrowser}"
             "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
             "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"

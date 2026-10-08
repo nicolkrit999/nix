@@ -1,4 +1,4 @@
-{ delib, ... }:
+{ delib, pkgs, ... }:
 delib.module {
   name = "krit.programs.zathura";
   options = delib.singleEnableOption false;
@@ -12,6 +12,9 @@ delib.module {
     , ...
     }:
     {
+      home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+      fonts.fontconfig.enable = true;
+
       # -----------------------------------------------------------------------
       # 🎨 CATPPUCCIN THEME
       # -----------------------------------------------------------------------
@@ -46,7 +49,7 @@ delib.module {
         };
 
         options = {
-          font = "JetBrains Mono Bold 16";
+          font = "JetBrainsMono Nerd Font Bold 16";
 
           # UX Improvements
           selection-clipboard = "clipboard";

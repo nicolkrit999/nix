@@ -1,7 +1,7 @@
 { delib
 , lib
 , config
-
+, pkgs
 , ...
 }:
 delib.module {
@@ -19,7 +19,7 @@ delib.module {
     let
       customLayout = ''
         /* Force Font Family */
-        * { font-family: "JetBrains Mono"; }
+        * { font-family: "JetBrainsMono Nerd Font Propo"; }
 
         /* 1. NOTIFICATION POPUP */
         .notification-row .notification-background { min-width: 30em; }
@@ -69,6 +69,8 @@ delib.module {
 
 
     lib.mkIf (hyprlandSwayNC || niriSwayNC || mangoSwayNC) {
+      home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+      fonts.fontconfig.enable = true;
 
       catppuccin.swaync.enable = myconfig.constants.theme.catppuccin or false;
       catppuccin.swaync.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";

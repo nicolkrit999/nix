@@ -33,15 +33,15 @@ delib.module {
         fonts = {
           monospace = {
             package = pkgs.nerd-fonts.jetbrains-mono;
-            name = "JetBrainsMono Nerd Font Mono";
+            name = "JetBrainsMono Nerd Font";
           };
           sansSerif = {
-            package = pkgs.inter;
-            name = "Inter";
+            package = pkgs.nerd-fonts.jetbrains-mono;
+            name = "JetBrainsMono Nerd Font Propo";
           };
           serif = {
-            package = pkgs.noto-fonts;
-            name = "Noto Serif";
+            package = pkgs.nerd-fonts.jetbrains-mono;
+            name = "JetBrainsMono Nerd Font Propo";
           };
           sizes = {
             applications = 12;

@@ -1,6 +1,7 @@
 { delib
 , lib
 , config
+, pkgs
 , moduleSystem
 , ...
 }:
@@ -27,6 +28,9 @@ delib.module {
       cfg = myconfig.krit.programs.kitty;
     in
     {
+      home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+      fonts.fontconfig.enable = true;
+
       catppuccin.kitty.enable = myconfig.constants.theme.catppuccin or false;
       catppuccin.kitty.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
 

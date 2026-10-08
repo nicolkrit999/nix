@@ -18,7 +18,9 @@ delib.module {
     {
       home.packages = with pkgs; [
         xdg-utils
+        nerd-fonts.jetbrains-mono
       ];
+      fonts.fontconfig.enable = true;
 
       programs.walker = {
         enable = true;

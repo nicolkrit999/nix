@@ -33,6 +33,8 @@ delib.module {
           "${fallbackWallpaper}";
     in
     lib.mkIf anyWmEnabled {
+      home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+      fonts.fontconfig.enable = true;
 
       catppuccin.hyprlock.enable = catppuccinEnabled;
       catppuccin.hyprlock.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";

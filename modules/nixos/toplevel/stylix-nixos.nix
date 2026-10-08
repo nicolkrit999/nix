@@ -64,12 +64,13 @@ delib.module {
             package = pkgs.nerd-fonts.jetbrains-mono;
           };
           sansSerif = {
-            name = "Noto Sans";
-            package = pkgs.noto-fonts;
+            name = "JetBrainsMono Nerd Font Propo";
+            package = pkgs.nerd-fonts.jetbrains-mono;
           };
+          # JetBrains has no serif face, so serif uses the proportional variant too
           serif = {
-            name = "Noto Serif";
-            package = pkgs.noto-fonts;
+            name = "JetBrainsMono Nerd Font Propo";
+            package = pkgs.nerd-fonts.jetbrains-mono;
           };
           sizes = {
             terminal = 13;

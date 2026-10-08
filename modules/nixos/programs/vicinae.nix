@@ -106,6 +106,7 @@ delib.module {
         themes = { };
       };
 
-      home.packages = cfg.extraPackages;
+      home.packages = cfg.extraPackages ++ [ pkgs.nerd-fonts.jetbrains-mono ];
+      fonts.fontconfig.enable = true;
     };
 }

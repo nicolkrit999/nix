@@ -38,6 +38,7 @@ delib.module {
     }:
     let
       accentColor = config.lib.stylix.colors.withHashtag.base0E;
+      fontFamily = cfg.themeConfig.fontFamily or "JetBrainsMono Nerd Font";
       getExtension = path:
         let
           filename = builtins.baseNameOf (toString path);
@@ -53,6 +54,7 @@ delib.module {
       effectiveThemeConfig =
         { background = "assets/background.jpg"; }  # Default fallback (upstream asset)
         // { accentColor = accentColor; }  # Base16 accent from stylix
+        // { fontFamily = fontFamily; }
         // cfg.themeConfig  # User overrides (can override accentColor if desired)
         // (lib.optionalAttrs (cfg.background != null) { background = "assets/${bgFilename}"; });
 
@@ -68,8 +70,8 @@ delib.module {
         src = pkgs.fetchFromGitHub {
           owner = "xCaptaiN09";
           repo = "pixie-sddm";
-          rev = "main";
-          sha256 = "sha256-lmE/49ySuAZDh5xLochWqfSw9qWrIV+fYaK5T2Ckck8=";
+          rev = "1e1a863761f742e8d509d569382b17c112e29fdc";
+          sha256 = "sha256-wV5XnU+4ME1HZAsGad+Lb+zTCqryn0WWo75FaoOFefc=";
         };
 
         dontBuild = true;
@@ -84,6 +86,8 @@ delib.module {
           ${themeConfContent}
           EOF
           ''}
+
+          sed -i 's|^fontFamily=.*|fontFamily=${fontFamily}|' $out/share/sddm/themes/pixie/theme.conf
 
           ${lib.optionalString (cfg.background != null) ''
             cp ${cfg.background} $out/share/sddm/themes/pixie/assets/${bgFilename}
@@ -114,6 +118,8 @@ delib.module {
           qtmultimedia # For QtQuick.Effects blur support
         ];
       };
+
+      fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
 
       environment.systemPackages = [
         sddm-pixie

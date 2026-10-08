@@ -217,5 +217,5 @@ These modules are active on Darwin (macOS/nix-darwin) hosts. Most are always-on 
 * **`common-configuration` (darwin)**: Core Darwin system defaults - sets hostname, enables Touch ID for sudo, configures macOS system preferences, and links system packages.
 * **`home-packages` (darwin)**: Installs the host's chosen browser, terminal, editor, and file manager via home-manager packages on macOS, with a translation layer to map Nix-native names to Homebrew/macOS equivalents.
 * **`nix` (darwin)**: Configures the Nix daemon settings (garbage collection, flakes, trusted users, substituters) for nix-darwin.
-* **`stylix` (darwin)**: Darwin-specific Stylix theming engine - applies the base16 palette and fonts across supported macOS/home-manager applications.
+* **`stylix` (darwin)**: Darwin-specific Stylix theming engine - applies the base16 palette and fonts (JetBrainsMono Nerd Font family: regular for monospace, Propo for sans/serif) across supported macOS/home-manager applications.
 * **`user` (darwin)**: Declares the primary user account for nix-darwin (uid, home directory, shell).

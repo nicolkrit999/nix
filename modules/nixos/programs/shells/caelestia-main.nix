@@ -44,7 +44,7 @@ delib.module {
         # 2. Fallback: If in Hyprland (without UWSM), exit Hyprland directly
         if [ "$XDG_CURRENT_DESKTOP" = "Hyprland" ];
         then
-            exec hyprctl dispatch exit
+            exec hyprctl dispatch 'hl.dsp.exit()'
         fi
 
         # 3. Fallback: If in Niri, exit Niri
@@ -156,9 +156,7 @@ delib.module {
         pkgs.qt6.qtdeclarative
 
         pkgs.kdePackages.kirigami
-        pkgs.nerd-fonts.caskaydia-cove
         pkgs.nerd-fonts.jetbrains-mono
-        pkgs.rubik
         pkgs.material-symbols
       ];
 

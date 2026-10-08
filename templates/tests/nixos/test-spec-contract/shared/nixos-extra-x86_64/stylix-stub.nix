@@ -35,8 +35,8 @@ delib.module {
       fonts = {
         emoji = { name = "Noto Color Emoji"; package = pkgs.noto-fonts-color-emoji; };
         monospace = { name = "JetBrainsMono Nerd Font"; package = pkgs.nerd-fonts.jetbrains-mono; };
-        sansSerif = { name = "Noto Sans"; package = pkgs.noto-fonts; };
-        serif = { name = "Noto Serif"; package = pkgs.noto-fonts; };
+        sansSerif = { name = "JetBrainsMono Nerd Font Propo"; package = pkgs.nerd-fonts.jetbrains-mono; };
+        serif = { name = "JetBrainsMono Nerd Font Propo"; package = pkgs.nerd-fonts.jetbrains-mono; };
         sizes = { terminal = 13; applications = 11; };
       };
     };

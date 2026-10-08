@@ -218,6 +218,9 @@ delib.module {
       configDir = "waybar-hyprland";
     in
     {
+      home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+      fonts.fontconfig.enable = true;
+
       assertions = [
         {
           assertion = !(isHyprlandEnabled && hasShellOnHyprland);

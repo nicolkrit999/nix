@@ -199,6 +199,9 @@ delib.module {
       configDir = "waybar-niri";
     in
     {
+      home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+      fonts.fontconfig.enable = true;
+
       assertions = [
         {
           assertion = !(isNiriEnabled && noctaliaActiveOnNiri);

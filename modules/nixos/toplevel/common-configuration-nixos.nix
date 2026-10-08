@@ -97,9 +97,9 @@ delib.module {
       # FONTS
       # ---------------------------------------------------------
       fonts.packages = with pkgs; [
-        nerd-fonts.jetbrains-mono # Primary monospace font (coding/terminal)
+        nerd-fonts.jetbrains-mono # Primary family: mono, Mono and Propo (UI/sans/serif) variants
         nerd-fonts.symbols-only # Icon fallback
-        noto-fonts # "No Tofu" standard
+        noto-fonts # Script fallback coverage ("no tofu"), not a primary UI font
         dejavu_fonts # Core Linux fallback
         noto-fonts-lgc-plus # Extended European/Greek/Cyrillic
         noto-fonts-color-emoji # Color emojis

@@ -52,7 +52,7 @@ delib.module {
         description = ''
           Attribute set of [General] options. Applied via direct sed on
           the active theme .conf (not the upstream .conf.user path, which
-          has upstream bugs — see HourFormat FIXME). Wins over
+          has upstream bugs - see HourFormat FIXME). Wins over
           stylixIntegration defaults.
         '';
       };
@@ -137,7 +137,10 @@ delib.module {
             HoverVirtualKeyboardButtonTextColor = c.base0D;
           };
 
-      effectiveThemeConfig = stylixThemeConfig // cfg.themeConfig;
+      effectiveThemeConfig =
+        { Font = "JetBrainsMono Nerd Font"; }
+        // stylixThemeConfig
+        // cfg.themeConfig;
 
       baseTheme = pkgs.sddm-astronaut.override {
         embeddedTheme = cfg.embeddedTheme;
@@ -173,7 +176,7 @@ delib.module {
     {
       assertions = [{
         assertion = !(myconfig.services.sddm-pixie.enable or false);
-        message = "services.sddm-astronaut and services.sddm-pixie are mutually exclusive — enable only one in your host config.";
+        message = "services.sddm-astronaut and services.sddm-pixie are mutually exclusive - enable only one in your host config.";
       }];
 
       services.xserver.enable = true;
@@ -210,6 +213,8 @@ delib.module {
       } // lib.optionalAttrs (myconfig.constants.lcTime != "") {
         LC_TIME = myconfig.constants.lcTime;
       };
+
+      fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
 
       environment.systemPackages = [
         sddmTheme

@@ -226,6 +226,7 @@ delib.module {
         systemd = {
           enable = true;
           variables = [ "--all" ];
+          extraCommands = [ "systemctl --user start hyprland-session.target" ];
         };
 
         settings = {

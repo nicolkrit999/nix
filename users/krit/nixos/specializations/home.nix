@@ -150,7 +150,7 @@ delib.module {
       ];
 
       myconfig.programs.hyprland.execOnce = lib.mkForce [
-        "hyprctl dispatch workspace 1"
+        "hyprctl dispatch 'hl.dsp.focus({ workspace = \"1\" })'"
         "[workspace 1 silent] zen-beta"
         "[workspace 2 silent] kitty --class nvim -e nvim"
         "[workspace 3 silent] kitty --class yazi -e yazi"

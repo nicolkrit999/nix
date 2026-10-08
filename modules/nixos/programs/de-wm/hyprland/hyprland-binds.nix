@@ -61,7 +61,7 @@ delib.module {
       moveToWsSilent = ws: "hl.dsp.window.move({ workspace = \"${ws}\", follow = false })";
       resizeBy = x: y: "hl.dsp.window.resize({ x = ${toString x}, y = ${toString y}, relative = true })";
       focusMonitor = m: "hl.dsp.focus({ monitor = ${luaQ m} })";
-      moveToMonitor = m: exec "hyprctl dispatch movewindow mon:${m}";
+      moveToMonitor = m: "hl.dsp.window.move({ monitor = ${luaQ m} })";
 
       bindelList =
         if shellActiveOnHyprland then [

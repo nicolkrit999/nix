@@ -10,7 +10,7 @@ let
       sig=$(ls -1 "$XDG_RUNTIME_DIR/hypr" 2>/dev/null | head -n1)
       [ -n "$sig" ] && export HYPRLAND_INSTANCE_SIGNATURE="$sig"
     fi
-    ${pkgs.hyprland}/bin/hyprctl keyword monitor "HDMI-A-1,disable"
+    ${pkgs.hyprland}/bin/hyprctl eval 'hl.monitor({ output = "HDMI-A-1", disabled = true })'
     sleep 1
     exit 0
   '';
