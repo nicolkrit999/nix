@@ -2,39 +2,57 @@
 
 ## 1. Live USB Recovery (The "Deep" Fix)
 
-Use this if you encounter the **"GNU GRUB minimal bash-like"** screen or a total boot failure.
+Use this if you encounter the **"GNU GRUB minimal bash-like"** screen or GRUB
+doesn't appear at all. If GRUB still shows its menu, use section 2 instead.
 
-### A. Identify Your Hardware
+### A. Automated: `recover.sh` (recommended)
 
-Run `lsblk -o NAME,FSTYPE,SIZE,MOUNTPOINT,UUID` to confirm partition names. Search for this pattern:
-
-- **`nvme3n1p1` (1GB)**: EFI/Boot partition (FAT32).
-- **`nvme3n1p2` (1.8TB)**: Main Btrfs partition containing system subvolumes.
-
-### B. The Mounting Sequence
-
-You must mount subvolumes in this specific order to rebuild the system "map":
+Boot a NixOS live USB in UEFI mode, then:
 
 ```bash
-# 1. Mount the Root subvolume (@)
-mount -o subvol=@ /dev/nvme3n1p2 /mnt
-
-# 2. Mount Nix Store and Home (@nix, @home)
-mkdir -p /mnt/nix /mnt/home /mnt/boot
-mount -o subvol=@nix /dev/nvme3n1p2 /mnt/nix
-mount -o subvol=@home /dev/nvme3n1p2 /mnt/home
-
-# 3. Mount the physical EFI partition
-mount /dev/nvme3n1p1 /mnt/boot
-
+nix-shell -p git                      # if git is missing
+git clone https://github.com/nicolkrit999/nix && cd nix
+./Documentation/troubleshooting/recover.sh
 ```
 
-### C. Reinstalling from the Host Config
+It detects everything from the disk itself (any host, encrypted or not,
+tmpfs root or not, dual boot or not): it offers `nmtui` if there's no
+internet, asks for the LUKS passphrase if there is an encrypted partition,
+finds the NixOS install, mounts it from the system's own fstab, stashes
+uncommitted changes in the on-disk repo and fast-forwards `main`, then runs
+`nixos-rebuild boot --install-bootloader` in a chroot, unmounts and offers to
+reboot. See `--help` for the options (hostname override, `--keep-changes`,
+`--shell`, `--skip-mount`).
+
+### B. Manual fallback
+
+Current layout of `nixos-desktop` / `nixos-laptop` (see each host's
+`hardware-configuration.nix`): `/` is a **tmpfs** (impermanence, there is no
+`@` root subvolume), everything persistent lives in Btrfs subvolumes, and on
+the laptop the Btrfs sits inside LUKS.
 
 ```bash
-cd /mnt/home/<username>/nixOS
-sudo nixos-install --root /mnt --flake .#hostname --option tarball-ttl 0
+lsblk -f                                         # find the partitions
+cryptsetup open /dev/<luks-partition> cryptroot  # laptop only: asks the passphrase
+BTRFS=/dev/mapper/cryptroot                      # desktop: the Btrfs partition itself
 
+mount -t tmpfs -o mode=755 none /mnt
+mkdir -p /mnt/{nix,home,persist,var/log,boot,etc}
+mount -o subvol=@nix     $BTRFS /mnt/nix
+mount -o subvol=@home    $BTRFS /mnt/home
+mount -o subvol=@persist $BTRFS /mnt/persist
+mount -o subvol=@log     $BTRFS /mnt/var/log
+mount /dev/<efi-partition> /mnt/boot
+touch /mnt/etc/NIXOS                             # nixos-enter refuses an empty root without it
+
+nixos-enter --root /mnt
+# inside the chroot:
+mkdir -p /run/binfmt                             # desktop: its binfmt sandbox path must exist
+cd /home/krit/nix
+nixos-rebuild boot --install-bootloader --flake .#<hostname>
+# add `--option sandbox false` if the build fails with sandbox/namespace errors
+exit
+umount -R /mnt && reboot
 ```
 
 ---
@@ -51,10 +69,10 @@ Use this if the system crashes but you can still reach the GRUB bootloader.
 
 ### B. Hardening Your Bootloader
 
-Add this to your `boot.nix` to prevent the menu from corrupting or becoming too large:
+Already set in `modules/nixos/toplevel/boot.nix`, to keep the menu from growing too large:
 
 ```nix
-boot.loader.grub.configurationLimit = 20; # Always keep 20 versions available
+boot.loader.grub.configurationLimit = 10;
 
 ```
 
