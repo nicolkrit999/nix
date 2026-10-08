@@ -1,6 +1,7 @@
 { delib
 , pkgs
 , lib
+, config
 , inputs
 , moduleSystem
 , ...
@@ -83,6 +84,9 @@ delib.module {
   home.ifEnabled =
     { cfg, myconfig, ... }:
     let
+      sansFont = config.stylix.fonts.sansSerif;
+      monoFont = config.stylix.fonts.monospace;
+      appFontSize = config.stylix.fonts.sizes.applications;
       isCatppuccin = myconfig.constants.theme.catppuccin or false;
       polarity = myconfig.constants.theme.polarity or "dark";
       catppuccinGtkTheme = {
@@ -145,10 +149,16 @@ delib.module {
         }
       ];
 
-      dconf.settings = {
-        "org/gnome/desktop/interface".color-scheme =
-          if polarity == "dark" then "prefer-dark" else "prefer-light";
+      dconf.settings."org/gnome/desktop/interface" = {
+        color-scheme = if polarity == "dark" then "prefer-dark" else "prefer-light";
+      } // lib.optionalAttrs isCatppuccin {
+        font-name = "${sansFont.name} ${toString appFontSize}";
+        document-font-name = "${sansFont.name} ${toString appFontSize}";
+        monospace-font-name = "${monoFont.name} ${toString appFontSize}";
       };
+
+      home.packages = lib.optionals isCatppuccin [ sansFont.package monoFont.package ];
+      fonts.fontconfig.enable = lib.mkIf isCatppuccin true;
 
       home.sessionVariables = lib.mkIf isCatppuccin {
         GTK_THEME = "catppuccin-${myconfig.constants.theme.catppuccinFlavor or "mocha"}-${
@@ -161,6 +171,10 @@ delib.module {
         (lib.mkIf isCatppuccin {
           enable = true;
           theme = catppuccinGtkTheme;
+          font = {
+            inherit (sansFont) name package;
+            size = appFontSize;
+          };
         })
         {
           gtk3.extraConfig.gtk-application-prefer-dark-theme = if polarity == "dark" then 1 else 0;

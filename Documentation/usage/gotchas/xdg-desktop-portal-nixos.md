@@ -74,7 +74,11 @@ registered via `nixpkgs.overlays`, then wired into both `nixos.always`
   orthogonal to whether the portal loads at all - see
   [stylix-qt-kde-gtk-theming.md](stylix-qt-kde-gtk-theming.md).
 - Per-WM main modules (`mango-main.nix`, `hyprland-main.nix`, `niri-main.nix`)
-  - set `XDG_CURRENT_DESKTOP`. Don't append extra desktop names here as a
+  - set `XDG_CURRENT_DESKTOP` for their own session only. Never put
+  `XDG_CURRENT_DESKTOP` / `XDG_SESSION_DESKTOP` / `XDG_SESSION_TYPE` in
+  `home.sessionVariables`: `hm-session-vars` is sourced by every session's login
+  shell and overwrites the value SDDM set from the session file (this once made
+  COSMIC and GNOME report `mango`). Don't append extra desktop names here as a
   portal workaround - fix `UseIn=` instead.
 - `helium.nix` (and other Chromium-based browser modules) - most visible
   symptom carrier. Don't add browser-specific flags as a fix; the issue is
@@ -144,3 +148,16 @@ New WM added and not in `permissiveDesktops`; xdg-desktop-portal or
 home-manager version bumps that change `UseIn=`/env-var semantics;
 `useGlobalPkgs`/`useUserPackages` flipped; a new portal-using app fails the
 `busctl` check after a refactor.
+
+## `portalConfig` keys must be lowercase
+
+xdg-desktop-portal (>= 1.18) lowercases each `XDG_CURRENT_DESKTOP` entry before
+looking up `<desktop>-portals.conf`, on a case-sensitive filesystem. Keys such
+as `Hyprland`, `KDE`, `GNOME` therefore never match; the `common`/`portals.conf`
+file silently won instead. Keep the keys in `xdg-portal.nix` lowercase
+(`hyprland`, `kde`, `gnome`, `cosmic`, `niri`, `mango`). `UseIn=` matching is
+case-insensitive, so `permissiveDesktops` is unaffected.
+
+Note: the running portal only loads backends from `NIX_XDG_DESKTOP_PORTAL_DIR`
+(the per-user profile: gtk, kde, hyprland), so `gnome`/`cosmic` backends are not
+loadable regardless of the config keys. Open follow-up, not fixed here.

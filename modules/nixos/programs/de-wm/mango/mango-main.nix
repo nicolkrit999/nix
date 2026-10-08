@@ -94,9 +94,6 @@ delib.module {
         SDL_VIDEODRIVER = "wayland";
         CLUTTER_BACKEND = "wayland";
         _JAVA_AWT_WM_NONREPARENTING = "1";
-        XDG_CURRENT_DESKTOP = "mango";
-        XDG_SESSION_TYPE = "wayland";
-        XDG_SESSION_DESKTOP = "mango";
         GDK_SCALE =
           let
             firstMonitor = if cfg.monitors != [ ] then builtins.head cfg.monitors else "";

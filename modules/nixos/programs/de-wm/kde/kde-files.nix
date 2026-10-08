@@ -1,4 +1,5 @@
 { delib
+, config
 , ...
 }:
 delib.module {
@@ -8,7 +9,25 @@ delib.module {
     { myconfig
     , ...
     }:
+    let
+      sans = config.stylix.fonts.sansSerif.name;
+      mono = config.stylix.fonts.monospace.name;
+      pointSize = config.stylix.fonts.sizes.applications;
+      sansFont = { family = sans; inherit pointSize; };
+    in
     {
+      home.packages = [ config.stylix.fonts.sansSerif.package ];
+      fonts.fontconfig.enable = true;
+
+      programs.plasma.fonts = {
+        general = sansFont;
+        menu = sansFont;
+        toolbar = sansFont;
+        windowTitle = sansFont;
+        small = { family = sans; pointSize = pointSize - 2; };
+        fixedWidth = { family = mono; inherit pointSize; };
+      };
+
       programs.plasma.configFile = {
         "spectaclerc" = {
           "General" = {

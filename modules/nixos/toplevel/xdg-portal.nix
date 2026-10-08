@@ -17,13 +17,15 @@ let
     '';
   });
 
+  # xdg-desktop-portal lowercases XDG_CURRENT_DESKTOP before looking up <desktop>-portals.conf,
+  # so these keys must be lowercase.
   portalConfig = {
-    Hyprland = {
+    hyprland = {
       default = [ "hyprland" "kde" "gtk" ];
       "org.freedesktop.impl.portal.FileChooser" = [ "kde" "gtk" ];
     };
-    KDE.default = [ "kde" "gtk" ];
-    GNOME.default = [ "gnome" "gtk" ];
+    kde.default = [ "kde" "gtk" ];
+    gnome.default = [ "gnome" "gtk" ];
     cosmic.default = [ "cosmic" "gtk" ];
     niri = {
       default = [ "gtk" ];

@@ -17,4 +17,6 @@
 - [RTK git diff patch trap](project_rtk_git_diff_patch_trap.md) - `git diff > patch` is RTK-filtered, not a real patch; use `rtk proxy git diff` and wc -l it before reverting
 - [KDE text-scale dconf leak](project_kde_textscale_dconf_leak.md) - Plasma login writes text-scaling-factor 1.25 (kcmfonts forceFontDPI=120); Zen/GTK in Hyprland 1.25x big
 - [Input glibc vs /run/opengl-driver](project_input_glibc_vs_opengl_driver.md) - non-following input + newer system mesa = "EGL not available"/QRhi fatal (vicinae); fix with nixpkgs follows; then watch for gcc15Stdenv vs gcc16 GLIBCXX link splits
+- [fontconfig stale per-user profile cache](project_fontconfig_stale_profile_cache.md) - GTK tofu + "cairo scaled font file not found" after fonts leave HM profile; fc-cache -r
+- [HM sessionVariables leak into all sessions](project_hm_sessionvars_leak_all_sessions.md) - mango's XDG_CURRENT_DESKTOP in home.sessionVariables hits COSMIC/GNOME via fish login shell
 - [HM hyprland uwsm PropagatesStopTo](project_hm_hyprland_uwsm_propagatesstop.md) - HM start-hook `stop hyprland-session.target` now stops graphical-session -> uwsm Hyprland exits RC 0 after 2s
