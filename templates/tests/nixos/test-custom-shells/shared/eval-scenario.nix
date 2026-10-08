@@ -106,7 +106,7 @@ let
     configs.${builtins.head names}.config;
 
   # Render a Hyprland lua-mode bind entry into a searchable string.
-  # In 26.05 lua mode each bind is a table `{ _args = [ keyStr luaInline flags? ]; }`
+  # With configType = "lua" each bind is a table `{ _args = [ keyStr luaInline flags? ]; }`
   # rather than a plain "MODS, KEY, dispatch, arg" string, so substring assertions
   # must flatten it first. String args pass through; lua-inline dispatchers
   # contribute their `.expr`; flag attrsets are dropped.

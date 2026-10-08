@@ -43,6 +43,7 @@ TESTS=(
   "NixOS  · custom-shells         | $NIX_TESTS templates/tests/nixos/test-custom-shells"
   "NixOS  · arch-compat (aarch64) | bash templates/tests/nixos/test-arch-compat/check-nixos-aarch64-compat.sh${FAST:+ $FAST}"
   "NixOS  · wallpapers            | $NIX_TESTS templates/tests/nixos/test-nixos-wallpapers"
+  "Common · unstable-switch       | bash templates/tests/common/test-unstable-switch-invariants/check-common-unstable-switch.sh"
   "Darwin · minimal-defaults      | bash templates/tests/darwin/test-minimal-defaults/check-darwin-minimal-defaults.sh"
 )
 # ══════════════════════════════════════════════════════════════════════════════

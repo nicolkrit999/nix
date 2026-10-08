@@ -13,3 +13,4 @@
 - [laptop haptic touchpad unobservable](project_laptop_haptic_touchpad_unobservable.md) - 06CB:D01A haptics run in its firmware (feature rpt 0x37 intensity); journals identical working vs broken
 - [specialisation outer config binding](project_specialisation_outer_config_binding.md) - file-level `c = config...` inside specialisation sees PARENT values (school.nix shell hook dropped); + distrobox containers die when their store path is GC'd
 - [catppuccin global enable gate](project_catppuccin_global_enable_gate.md) - catppuccin main needs catppuccin.enable=true for ANY port; unset = all ports silently no-op (looks like a mere autoEnable warning)
+- [test stylix stub targets](project_test_stylix_stub_targets.md) - test stylix-stub.nix must `// cfg.targets` or myconfig.stylix.targets.* are dropped in tests only (vicinae arch-compat, not eval cache)

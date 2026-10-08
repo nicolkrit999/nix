@@ -17,8 +17,14 @@
         config.allowUnfree = true;
       });
 
-      pkgsStableModule = { pkgs, ... }: {
+      pkgsStableArg = { pkgs, ... }: {
         _module.args.pkgsStable = pkgsStableFor.${pkgs.stdenv.hostPlatform.system};
+      };
+
+      pkgsStableModule = { moduleSystem, ... }: {
+        imports = [ pkgsStableArg ];
+      } // nixpkgs.lib.optionalAttrs (moduleSystem != "home") {
+        home-manager.sharedModules = [ pkgsStableArg ];
       };
 
       # Common exclusions for all module systems

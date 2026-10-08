@@ -42,7 +42,7 @@ delib.module {
     };
   };
 
-  home.ifEnabled = { myconfig, ... }:
+  home.ifEnabled = { cfg, myconfig, ... }:
     let
       isCatppuccin = myconfig.constants.theme.catppuccin or false;
     in
@@ -61,8 +61,9 @@ delib.module {
         wofi.enable = false;
         waybar.enable = false;
         neovim.enable = false;
+        gnome.enable = false;
         gtksourceview.enable = false;
         hyprpaper.enable = lib.mkForce false;
-      };
+      } // cfg.targets;
     };
 }

@@ -112,8 +112,10 @@ The `_test.nix` files assert substring presence/absence in the WM exec strings a
 | hyprland/mango/niri exec contain `awww-daemon` | false |
 | `services.skwd-deck.enable` | true |
 | `skwd-paper-plasma` in home packages (aarch64 has no skwd-wall package) | false |
+| KDE `wallpaperCustomPlugin` | unset (`null`) |
+| KDE plasma wallpaper list | non-empty (static fallback) |
 
-> **Known gap:** as of this writing, `kde-main.nix` accesses `inputs.skwd-wall.packages.${pkgs.system}.skwd-paper-plasma` unconditionally when `skwdWallActive` is true, with no arch guard beyond "not Darwin". The skwd-wall flake only publishes packages for `x86_64-linux`, so this scenario currently fails at eval with `attribute 'aarch64-linux' missing` rather than cleanly asserting "not installed". This is intentional - the check is left in place (not weakened) so the gap stays visible until a guard is added in `kde-main.nix`.
+> `kde-main.nix` guards the `skwd-paper-plasma` lookup with `pkgs.stdenv.hostPlatform.isx86_64` (`skwdWallPlasmaAvailable`), because the skwd-wall flake only publishes packages for `x86_64-linux`. On aarch64 the package is omitted and KDE falls back to the static wallpaper list. The last two rows above are the regression guard: dropping the arch guard turns this scenario into an `attribute 'aarch64-linux' missing` eval error.
 
 ### W07 - noctalia on hyprland, skwdWall ENABLED
 

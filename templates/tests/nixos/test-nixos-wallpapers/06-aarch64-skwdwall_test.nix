@@ -1,7 +1,7 @@
 # W06 - aarch64-linux, static wallpaper, skwdWall ENABLED
 # Same toggle as W03 but on aarch64-linux. The skwd-wall flake only publishes
 # packages for x86_64-linux (see nix/binary-packages.nix upstream), so KDE's
-# `inputs.skwd-wall.packages.${pkgs.system}.skwd-paper-plasma` lookup in
+# `inputs.skwd-wall.packages.${system}.skwd-paper-plasma` lookup in
 # kde-main.nix is guarded by `pkgs.stdenv.hostPlatform.isx86_64`
 # (skwdWallPlasmaAvailable), so aarch64 simply omits the package instead of
 # failing to evaluate. This test is the regression guard for that: if the
