@@ -2,6 +2,16 @@
 let
   # Shared shell script wrappers
   caiScript = pkgs.writeShellScriptBin "cai" ''
+    # cai is local-only; cloud sessions go through ccai.
+    for a in "$@"; do
+      case "$a" in
+        --cloud|--cloud=*)
+          echo "cai: --cloud is not allowed here, use ccai instead." >&2
+          exit 1
+          ;;
+      esac
+    done
+
     CLAUDE_JSON="$HOME/.claude.json"
     TARGET="$(readlink -f "$CLAUDE_JSON" 2>/dev/null || echo "$CLAUDE_JSON")"
     if [ -f "$TARGET" ]; then
@@ -33,6 +43,47 @@ let
       -u ANTHROPIC_API_KEY \
       -u OPENROUTER_API_KEY \
       ${pkgs.claude-code}/bin/claude "$@"
+  '';
+
+  # Cloud session on the normal Anthropic route. Cloud sessions run on
+  # Anthropic's side, so any OpenRouter/custom-endpoint env is stripped.
+  # `claude --cloud` needs a task description: if none was given, ask for it
+  # and pass it straight through instead of failing.
+  ccaiScript = pkgs.writeShellScriptBin "ccai" ''
+    flags=()
+    desc=""
+    takes_value=0
+    for a in "$@"; do
+      if [ "$takes_value" = 1 ]; then
+        flags+=("$a")
+        takes_value=0
+        continue
+      fi
+      case "$a" in
+        --environment) flags+=("$a"); takes_value=1 ;;
+        -*) flags+=("$a") ;;
+        *) desc="$desc''${desc:+ }$a" ;;
+      esac
+    done
+
+    if [ -z "$desc" ]; then
+      if [ ! -t 0 ]; then
+        echo "ccai: a task description is required (usage: ccai \"task\" [flags])." >&2
+        exit 1
+      fi
+      while [ -z "$desc" ]; do
+        printf 'Cloud task description: ' >&2
+        IFS= read -r desc || exit 1
+      done
+    fi
+
+    exec env \
+      -u ANTHROPIC_BASE_URL \
+      -u ANTHROPIC_AUTH_TOKEN \
+      -u ANTHROPIC_MODEL \
+      -u ANTHROPIC_API_KEY \
+      -u OPENROUTER_API_KEY \
+      ${pkgs.claude-code}/bin/claude --cloud "$desc" "''${flags[@]}"
   '';
 
   caiOpenrouterScript = pkgs.writeShellScriptBin "cai-openrouter" ''
@@ -99,6 +150,7 @@ let
   sharedPackages = [
     caiScript
     caiSubScript
+    ccaiScript
     caiOpenrouterScript
     pythonWithPackages
   ] ++ commonCliTools;
