@@ -150,6 +150,7 @@ delib.module {
           states = { warning = 20; critical = 5; };
           format = "<span color='${c.base0A}'>{icon}</span> {capacity}%";
           format-charging = "<span color='${c.base0B}'>󰂄</span> {capacity}%";
+          format-critical = "<span color='${c.base00}'>{icon}</span> {capacity}% {time}";
           format-alt = "{time} <span color='${c.base0A}'>{icon}</span>";
           format-icons = [ "󰂎" "󰁻" "󰁾" "󰂀" "󰁹" ];
         };
@@ -192,7 +193,7 @@ delib.module {
             elif nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -q "ethernet:connected"; then
               echo "<span color='${c.base0C}'>󰈀</span> ${myconfig.constants.hostname or "nixos"}"
             else
-              echo "<span color='${c.base03}'>󰤭</span> offline"
+              echo "<span color='${c.base05}'>󰤭</span> offline"
             fi
           '';
           interval = 5;
@@ -206,7 +207,7 @@ delib.module {
             if bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then
               echo "<span color='${c.base0D}'>󰂯</span>"
             else
-              echo "<span color='${c.base03}'>󰂲</span>"
+              echo "<span color='${c.base05}'>󰂲</span>"
             fi
           '';
           interval = 5;

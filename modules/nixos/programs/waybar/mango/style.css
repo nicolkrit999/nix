@@ -71,29 +71,29 @@ window#waybar .modules-right > widget > box {
 
 /* ----------------------------------------------------------------------- */
 /* TAGS (Mango — dwl-style tags rendered via pango in custom/tags)          */
-/* Active/inactive pills are drawn inline via <span background=...>         */
-/* so the module itself stays as a bare container.                          */
+/* The active tag is filled inline via <span background=...>; the module  */
+/* itself is the shared pill.                                              */
 /* ----------------------------------------------------------------------- */
 
 #custom-tags {
   padding: 4px 16px;
   margin: 0 4px;
-  background-color: @base02;
+  background-color: @base01;
   border-radius: 100px;
   border: none;
   box-shadow: none;
-  color: @base07;
+  color: @base05;
 }
 
 
 #custom-window {
   padding: 4px 16px;
   margin: 0 4px;
-  background-color: @base02;
+  background-color: @base01;
   border-radius: 100px;
   border: none;
   outline: none;
-  color: @base07;
+  color: @base05;
 }
 
 #clock,
@@ -108,27 +108,37 @@ window#waybar .modules-right > widget > box {
 #custom-notification {
   padding: 4px 16px;
   margin: 0 4px;
-  background-color: @base02;
+  background-color: @base01;
   border-radius: 100px;
   border: none;
-  color: @base07;
+  color: @base05;
   transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #clock {
   font-weight: 600;
   letter-spacing: 0.5px;
-  color: @base06;
+  color: @base05;
 }
 
 #battery.warning {
-  color: @base09;
+  box-shadow: inset 0 0 0 2px @base09;
 }
 
-#battery.critical {
-  color: @base08;
+/* Charging keeps the normal pill so the green charging icon stays readable */
+#battery.critical:not(.charging) {
+  background-color: @base08;
+  color: @base00;
 }
 
-#pulseaudio.muted {
-  color: @base08;
+/* Tooltips — explicit colors so they never fall back to the GTK theme's
+   (possibly opposite-polarity) tooltip background */
+tooltip {
+  background-color: @base00;
+  border: 1px solid @base02;
+  border-radius: 8px;
+}
+
+tooltip label {
+  color: @base05;
 }

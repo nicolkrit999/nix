@@ -83,13 +83,13 @@ window#waybar .modules-right > widget > box {
 
 /* Workspace buttons as pill-shaped modules */
 #workspaces button {
-  background-color: @base02;
+  background-color: @base01;
   background-image: none;
   margin: 0 4px;
   padding: 4px 16px;
   min-width: 0;
   border-radius: 100px;
-  color: @base07;                 /* brighter foreground for contrast against @base02 pill */
+  color: @base05;
   border: none;
   box-shadow: none;
   outline: none;
@@ -102,9 +102,11 @@ window#waybar .modules-right > widget > box {
   min-width: 28px;
 }
 
-/* Active workspace — accent fill */
+/* Active workspace — foreground fill (readable on dark and light schemes),
+   accent kept as a bottom underline */
 #workspaces button.active {
-  background-color: @base0D;
+  background-color: @base05;
+  box-shadow: inset 0 -2px @base0D;
 }
 
 #workspaces button.active label {
@@ -113,7 +115,12 @@ window#waybar .modules-right > widget > box {
 
 /* Hover — lift one step */
 #workspaces button:hover {
-  background-color: @base03;
+  background-color: @base02;
+}
+
+/* Keep the active fill while hovering (same specificity, :hover would win) */
+#workspaces button.active:hover {
+  background-color: @base05;
 }
 
 /* ----------------------------------------------------------------------- */
@@ -123,11 +130,11 @@ window#waybar .modules-right > widget > box {
 #custom-window {
   padding: 4px 16px;
   margin: 0 4px;
-  background-color: @base02;
+  background-color: @base01;
   border-radius: 100px;
   border: none;
   outline: none;
-  color: @base07;                 /* brighter foreground for contrast against @base02 pill */
+  color: @base05;
 }
 
 /* ----------------------------------------------------------------------- */
@@ -145,10 +152,10 @@ window#waybar .modules-right > widget > box {
 #custom-notification {
   padding: 4px 16px;
   margin: 0 4px;
-  background-color: @base02;
+  background-color: @base01;
   border-radius: 100px;
   border: none;
-  color: @base07;                 /* brighter foreground for contrast against @base02 pill */
+  color: @base05;
   transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -156,19 +163,28 @@ window#waybar .modules-right > widget > box {
 #clock {
   font-weight: 600;
   letter-spacing: 0.5px;
-  color: @base06;
+  color: @base05;
 }
 
 /* Battery warning/critical states */
 #battery.warning {
-  color: @base09;
+  box-shadow: inset 0 0 0 2px @base09;
 }
 
-#battery.critical {
-  color: @base08;
+/* Charging keeps the normal pill so the green charging icon stays readable */
+#battery.critical:not(.charging) {
+  background-color: @base08;
+  color: @base00;
 }
 
-/* Pulseaudio muted state — use accent red for semantic cue + contrast against @base02 */
-#pulseaudio.muted {
-  color: @base08;
+/* Tooltips — explicit colors so they never fall back to the GTK theme's
+   (possibly opposite-polarity) tooltip background */
+tooltip {
+  background-color: @base00;
+  border: 1px solid @base02;
+  border-radius: 8px;
+}
+
+tooltip label {
+  color: @base05;
 }

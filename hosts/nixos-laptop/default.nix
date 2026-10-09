@@ -121,14 +121,15 @@ delib.host {
 
           {
             targetMonitor = "eDP-1";
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/1%20rain_world.png";
-            wallpaperSHA256 = "0lmjfz4zng97xzbcnxwx9aqciznxcdhj5n3dnifj7jp40xm2s7qk";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-websites/imgur/imgur_japan_2.jpg";
+            wallpaperSHA256 = "1pkk3glmqjl2h2cgrx9jcwp069xh73d14nxhs6sijqh73vhj7wrg";
+
           }
-          {
-            targetMonitor = "*";
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/switch_swirl.jpg";
-            wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
-          }
+          # {
+          #   targetMonitor = "*";
+          #   wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/switch_swirl.jpg";
+          #   wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
+          # }
         ];
 
         # ---------------------------------------------------------------
@@ -136,8 +137,9 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "catppuccin-mocha";
-          catppuccin = true;
+          base16Theme = "rose-pine-moon";
+
+          catppuccin = false;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "sapphire";
         };
@@ -148,9 +150,9 @@ delib.host {
         weather = "Lugano";
 
         /*
-        # Commented out as it matches the fallbacks
-        useFahrenheit = false;
-        nixImpure = false;
+          # Commented out as it matches the fallbacks
+          useFahrenheit = false;
+          nixImpure = false;
         */
 
         timeZone = "Europe/Zurich";
@@ -295,15 +297,44 @@ delib.host {
             zoxide-recent-directories
           ];
           extraRayCastExtensions = [
-            { name = "downloads-manager"; hash = "sha256-GNEWSFWOsS7Ks0nPgqZrFqIYwdw1CYgswIhgAumvTOc="; }
-            { name = "gif-search"; hash = "sha256-aWIYh6tQbdZxT04TRVEc/HmgJUXFl0eMFpIZpCaIQ4U="; }
-            { name = "google-search"; hash = "sha256-nGTMIrSEgZX+gPpNc0tLme0MprVzA3Ap4gvEnq3n6IU="; }
-            { name = "lorem-ipsum"; hash = "sha256-zMhwb4imj79XByXbbVHqhQxso9Jj87bBuJNbqwEjMxs="; }
-            { name = "notion"; hash = "sha256-4ot/xa7PcwXB0ImsSyXBo3SXwfJgBlA0OLEv9HMYiO0="; }
-            { name = "remove-paywall"; hash = "sha256-i0jPsCbkl9X/Ka2fRYFHxk3COPxP8V+2C3dTdg6118c="; }
-            { name = "google-translate"; installName = "translate"; hash = "sha256-VhJ9wRnToUPccVIQwp4nxQ2ExkgukZIqqET5tS4RpfI="; }
-            { name = "video-downloader"; hash = "sha256-/Q9VW59t4xgQROuumw/6DWENAWqada+GHszvMyVrT0w="; }
-            { name = "visual-studio-code-recent-projects"; installName = "visual-studio-code"; hash = "sha256-fhTmPfLoFpU2wuPHlL0WlLqtHBCLJ7/VMKjt3wLewQc="; }
+            {
+              name = "downloads-manager";
+              hash = "sha256-GNEWSFWOsS7Ks0nPgqZrFqIYwdw1CYgswIhgAumvTOc=";
+            }
+            {
+              name = "gif-search";
+              hash = "sha256-aWIYh6tQbdZxT04TRVEc/HmgJUXFl0eMFpIZpCaIQ4U=";
+            }
+            {
+              name = "google-search";
+              hash = "sha256-nGTMIrSEgZX+gPpNc0tLme0MprVzA3Ap4gvEnq3n6IU=";
+            }
+            {
+              name = "lorem-ipsum";
+              hash = "sha256-zMhwb4imj79XByXbbVHqhQxso9Jj87bBuJNbqwEjMxs=";
+            }
+            {
+              name = "notion";
+              hash = "sha256-4ot/xa7PcwXB0ImsSyXBo3SXwfJgBlA0OLEv9HMYiO0=";
+            }
+            {
+              name = "remove-paywall";
+              hash = "sha256-i0jPsCbkl9X/Ka2fRYFHxk3COPxP8V+2C3dTdg6118c=";
+            }
+            {
+              name = "google-translate";
+              installName = "translate";
+              hash = "sha256-VhJ9wRnToUPccVIQwp4nxQ2ExkgukZIqqET5tS4RpfI=";
+            }
+            {
+              name = "video-downloader";
+              hash = "sha256-/Q9VW59t4xgQROuumw/6DWENAWqada+GHszvMyVrT0w=";
+            }
+            {
+              name = "visual-studio-code-recent-projects";
+              installName = "visual-studio-code";
+              hash = "sha256-fhTmPfLoFpU2wuPHlL0WlLqtHBCLJ7/VMKjt3wLewQc=";
+            }
           ];
           extraPackages = with pkgs; [
             aria2 # Required by aria2-manager extension
@@ -340,12 +371,10 @@ delib.host {
           ];
         };
 
-
         git = {
           enable = true;
           customGitIgnores = [ ];
         };
-
 
         # ---------------------------------------------------------------
         # 🐚 SHELLS
@@ -368,8 +397,18 @@ delib.host {
         hyprland = {
           enable = true;
           monitors = [
-            { output = "eDP-1"; mode = "3200x2000@120"; position = "0x0"; scale = 1.6; }
-            { output = ""; mode = "preferred"; position = "auto"; scale = 1; }
+            {
+              output = "eDP-1";
+              mode = "3200x2000@120";
+              position = "0x0";
+              scale = 1.6;
+            }
+            {
+              output = "";
+              mode = "preferred";
+              position = "auto";
+              scale = 1;
+            }
           ];
           execOnce = [
             "hyprctl dispatch 'hl.dsp.focus({ workspace = \"1\" })'"
@@ -381,83 +420,301 @@ delib.host {
           ];
 
           monitorWorkspaces = [
-            { workspace = "1"; monitor = "eDP-1"; }
-            { workspace = "2"; monitor = "eDP-1"; }
-            { workspace = "3"; monitor = "eDP-1"; }
-            { workspace = "4"; monitor = "eDP-1"; }
-            { workspace = "5"; monitor = "eDP-1"; }
+            {
+              workspace = "1";
+              monitor = "eDP-1";
+            }
+            {
+              workspace = "2";
+              monitor = "eDP-1";
+            }
+            {
+              workspace = "3";
+              monitor = "eDP-1";
+            }
+            {
+              workspace = "4";
+              monitor = "eDP-1";
+            }
+            {
+              workspace = "5";
+              monitor = "eDP-1";
+            }
           ];
 
           windowRules = [
-            { match.class = "^(${myEditor})$"; workspace = appWorkspaces.editor; }
-            { match.class = "^(${myFileManager})$"; workspace = appWorkspaces.fileManager; }
-            { match.class = "^(${myTerminal})$"; workspace = appWorkspaces.terminal; }
-            { match.class = "^(code)$"; workspace = "${appWorkspaces.editor} silent"; }
-            { match.class = "^(nvim-editor)$"; workspace = "${appWorkspaces.editor} silent"; }
-            { match.class = "^(org.kde.kate)$"; workspace = "${appWorkspaces.editor} silent"; }
-            { match.class = "^(jetbrains-pycharm-ce)$"; workspace = "${appWorkspaces.editor} silent"; }
-            { match.class = "^(jetbrains-Clion)$"; workspace = "${appWorkspaces.editor} silent"; }
-            { match.class = "^(jetbrains-idea)$"; workspace = "${appWorkspaces.editor} silent"; }
-            { match.class = "^(org.kde.dolphin)$"; workspace = "${appWorkspaces.fileManager} silent"; }
-            { match.class = "^(thunar)$"; workspace = "${appWorkspaces.fileManager} silent"; }
-            { match.class = "^(yazi)$"; workspace = "${appWorkspaces.fileManager} silent"; }
-            { match.class = "^(ranger)$"; workspace = "${appWorkspaces.fileManager} silent"; }
-            { match.class = "^(org.gnome.Nautilus)$"; workspace = "${appWorkspaces.fileManager} silent"; }
-            { match.class = "^(nemo)$"; workspace = "${appWorkspaces.fileManager} silent"; }
-            { match.class = "^(winboat)$"; workspace = "${appWorkspaces.vm} silent"; }
-            { match.class = "^(Actual)$"; workspace = "${appWorkspaces.other} silent"; }
-            { match.class = "^(org.jellyfin.JellyfinDesktop)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
-            { match.class = "^(chromium-browser)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
-            { match.class = "^(brave-browser)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
-            { match.class = "^(brave-.*\\..*)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
-            { match.class = "(?i)spotify"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
-            { match.class = "^(sidra)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
-            { match.class = "(^de.haeckerfelix.Shortwave)$"; workspace = "${appWorkspaces.browser-Entertainment} silent"; }
-            { match.class = "^(kitty)$"; workspace = "${appWorkspaces.terminal} silent"; }
-            { match.class = "^(alacritty)$"; workspace = "${appWorkspaces.terminal} silent"; }
-            { match.class = "^(foot)$"; workspace = "${appWorkspaces.terminal} silent"; }
-            { match.class = "^(xfce4-terminal)$"; workspace = "${appWorkspaces.terminal} silent"; }
-            { match.class = "^(com.system76.CosmicTerm)$"; workspace = "${appWorkspaces.terminal} silent"; }
-            { match.class = "^(org.kde.konsole)$"; workspace = "${appWorkspaces.terminal} silent"; }
-            { match.class = "^(gnome-terminal)$"; workspace = "${appWorkspaces.terminal} silent"; }
-            { match.class = "^(XTerm)$"; workspace = "${appWorkspaces.terminal} silent"; }
-            { match.class = "^(vesktop)$"; workspace = "${appWorkspaces.chat} silent"; }
-            { match.class = "^(org.telegram.desktop)$"; workspace = "${appWorkspaces.chat} silent"; }
-            { match.class = "^(whatsapp-electron)$"; workspace = "${appWorkspaces.chat} silent"; }
-            { match.class = "^(com.rtosta.zapzap)$"; workspace = "${appWorkspaces.chat} silent"; }
+            {
+              match.class = "^(${myEditor})$";
+              workspace = appWorkspaces.editor;
+            }
+            {
+              match.class = "^(${myFileManager})$";
+              workspace = appWorkspaces.fileManager;
+            }
+            {
+              match.class = "^(${myTerminal})$";
+              workspace = appWorkspaces.terminal;
+            }
+            {
+              match.class = "^(code)$";
+              workspace = "${appWorkspaces.editor} silent";
+            }
+            {
+              match.class = "^(nvim-editor)$";
+              workspace = "${appWorkspaces.editor} silent";
+            }
+            {
+              match.class = "^(org.kde.kate)$";
+              workspace = "${appWorkspaces.editor} silent";
+            }
+            {
+              match.class = "^(jetbrains-pycharm-ce)$";
+              workspace = "${appWorkspaces.editor} silent";
+            }
+            {
+              match.class = "^(jetbrains-Clion)$";
+              workspace = "${appWorkspaces.editor} silent";
+            }
+            {
+              match.class = "^(jetbrains-idea)$";
+              workspace = "${appWorkspaces.editor} silent";
+            }
+            {
+              match.class = "^(org.kde.dolphin)$";
+              workspace = "${appWorkspaces.fileManager} silent";
+            }
+            {
+              match.class = "^(thunar)$";
+              workspace = "${appWorkspaces.fileManager} silent";
+            }
+            {
+              match.class = "^(yazi)$";
+              workspace = "${appWorkspaces.fileManager} silent";
+            }
+            {
+              match.class = "^(ranger)$";
+              workspace = "${appWorkspaces.fileManager} silent";
+            }
+            {
+              match.class = "^(org.gnome.Nautilus)$";
+              workspace = "${appWorkspaces.fileManager} silent";
+            }
+            {
+              match.class = "^(nemo)$";
+              workspace = "${appWorkspaces.fileManager} silent";
+            }
+            {
+              match.class = "^(winboat)$";
+              workspace = "${appWorkspaces.vm} silent";
+            }
+            {
+              match.class = "^(Actual)$";
+              workspace = "${appWorkspaces.other} silent";
+            }
+            {
+              match.class = "^(org.jellyfin.JellyfinDesktop)$";
+              workspace = "${appWorkspaces.browser-Entertainment} silent";
+            }
+            {
+              match.class = "^(chromium-browser)$";
+              workspace = "${appWorkspaces.browser-Entertainment} silent";
+            }
+            {
+              match.class = "^(brave-browser)$";
+              workspace = "${appWorkspaces.browser-Entertainment} silent";
+            }
+            {
+              match.class = "^(brave-.*\\..*)$";
+              workspace = "${appWorkspaces.browser-Entertainment} silent";
+            }
+            {
+              match.class = "(?i)spotify";
+              workspace = "${appWorkspaces.browser-Entertainment} silent";
+            }
+            {
+              match.class = "^(sidra)$";
+              workspace = "${appWorkspaces.browser-Entertainment} silent";
+            }
+            {
+              match.class = "(^de.haeckerfelix.Shortwave)$";
+              workspace = "${appWorkspaces.browser-Entertainment} silent";
+            }
+            {
+              match.class = "^(kitty)$";
+              workspace = "${appWorkspaces.terminal} silent";
+            }
+            {
+              match.class = "^(alacritty)$";
+              workspace = "${appWorkspaces.terminal} silent";
+            }
+            {
+              match.class = "^(foot)$";
+              workspace = "${appWorkspaces.terminal} silent";
+            }
+            {
+              match.class = "^(xfce4-terminal)$";
+              workspace = "${appWorkspaces.terminal} silent";
+            }
+            {
+              match.class = "^(com.system76.CosmicTerm)$";
+              workspace = "${appWorkspaces.terminal} silent";
+            }
+            {
+              match.class = "^(org.kde.konsole)$";
+              workspace = "${appWorkspaces.terminal} silent";
+            }
+            {
+              match.class = "^(gnome-terminal)$";
+              workspace = "${appWorkspaces.terminal} silent";
+            }
+            {
+              match.class = "^(XTerm)$";
+              workspace = "${appWorkspaces.terminal} silent";
+            }
+            {
+              match.class = "^(vesktop)$";
+              workspace = "${appWorkspaces.chat} silent";
+            }
+            {
+              match.class = "^(org.telegram.desktop)$";
+              workspace = "${appWorkspaces.chat} silent";
+            }
+            {
+              match.class = "^(whatsapp-electron)$";
+              workspace = "${appWorkspaces.chat} silent";
+            }
+            {
+              match.class = "^(com.rtosta.zapzap)$";
+              workspace = "${appWorkspaces.chat} silent";
+            }
 
-            { match.class = "^(scratch-term)$"; float = true; }
-            { match.class = "^(scratch-term)$"; center = true; }
-            { match.class = "^(scratch-term)$"; size = "80% 80%"; }
-            { match.class = "^(scratch-term)$"; workspace = "special:magic"; }
-            { match.class = "^(scratch-fs)$"; float = true; }
-            { match.class = "^(scratch-fs)$"; center = true; }
-            { match.class = "^(scratch-fs)$"; size = "80% 80%"; }
-            { match.class = "^(scratch-fs)$"; workspace = "special:magic"; }
-            { match.class = "^(scratch-browser)$"; float = true; }
-            { match.class = "^(scratch-browser)$"; center = true; }
-            { match.class = "^(scratch-browser)$"; size = "80% 80%"; }
-            { match.class = "^(scratch-browser)$"; workspace = "special:magic"; }
+            {
+              match.class = "^(scratch-term)$";
+              float = true;
+            }
+            {
+              match.class = "^(scratch-term)$";
+              center = true;
+            }
+            {
+              match.class = "^(scratch-term)$";
+              size = "80% 80%";
+            }
+            {
+              match.class = "^(scratch-term)$";
+              workspace = "special:magic";
+            }
+            {
+              match.class = "^(scratch-fs)$";
+              float = true;
+            }
+            {
+              match.class = "^(scratch-fs)$";
+              center = true;
+            }
+            {
+              match.class = "^(scratch-fs)$";
+              size = "80% 80%";
+            }
+            {
+              match.class = "^(scratch-fs)$";
+              workspace = "special:magic";
+            }
+            {
+              match.class = "^(scratch-browser)$";
+              float = true;
+            }
+            {
+              match.class = "^(scratch-browser)$";
+              center = true;
+            }
+            {
+              match.class = "^(scratch-browser)$";
+              size = "80% 80%";
+            }
+            {
+              match.class = "^(scratch-browser)$";
+              workspace = "special:magic";
+            }
 
-            { match.class = "^winboat-.*$"; workspace = appWorkspaces.vm; }
-            { match.class = "^winboat-.*$"; suppress_event = "fullscreen maximize activate activatefocus"; }
-            { match.class = "^winboat-.*$"; no_initial_focus = true; }
-            { match.class = "^winboat-.*$"; no_anim = true; }
-            { match.class = "^winboat-.*$"; rounding = 0; }
-            { match.class = "^winboat-.*$"; no_shadow = true; }
-            { match.class = "^winboat-.*$"; no_blur = true; }
-            { match.class = "^winboat-.*$"; opaque = true; }
+            {
+              match.class = "^winboat-.*$";
+              workspace = appWorkspaces.vm;
+            }
+            {
+              match.class = "^winboat-.*$";
+              suppress_event = "fullscreen maximize activate activatefocus";
+            }
+            {
+              match.class = "^winboat-.*$";
+              no_initial_focus = true;
+            }
+            {
+              match.class = "^winboat-.*$";
+              no_anim = true;
+            }
+            {
+              match.class = "^winboat-.*$";
+              rounding = 0;
+            }
+            {
+              match.class = "^winboat-.*$";
+              no_shadow = true;
+            }
+            {
+              match.class = "^winboat-.*$";
+              no_blur = true;
+            }
+            {
+              match.class = "^winboat-.*$";
+              opaque = true;
+            }
           ];
 
           extraBinds = [
-            { _args = [ "SUPER + SHIFT + return" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-term")'') ]; }
-            { _args = [ "SUPER + SHIFT + F" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-fs -e yazi")'') ]; }
-            { _args = [ "SUPER + SHIFT + B" (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myBrowser} --new-window --class scratch-browser")'') ]; }
+            {
+              _args = [
+                "SUPER + SHIFT + return"
+                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-term")'')
+              ];
+            }
+            {
+              _args = [
+                "SUPER + SHIFT + F"
+                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-fs -e yazi")'')
+              ];
+            }
+            {
+              _args = [
+                "SUPER + SHIFT + B"
+                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myBrowser} --new-window --class scratch-browser")'')
+              ];
+            }
 
-            { _args = [ "XF86Tools" (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m-1" })'') ]; }
-            { _args = [ "XF86Launch5" (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m+1" })'') ]; }
-            { _args = [ "XF86Launch6" (lib.generators.mkLuaInline "hl.dsp.window.fullscreen()") ]; }
-            { _args = [ "XF86Launch7" (lib.generators.mkLuaInline "hl.dsp.window.close()") ]; }
+            {
+              _args = [
+                "XF86Tools"
+                (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m-1" })'')
+              ];
+            }
+            {
+              _args = [
+                "XF86Launch5"
+                (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m+1" })'')
+              ];
+            }
+            {
+              _args = [
+                "XF86Launch6"
+                (lib.generators.mkLuaInline "hl.dsp.window.fullscreen()")
+              ];
+            }
+            {
+              _args = [
+                "XF86Launch7"
+                (lib.generators.mkLuaInline "hl.dsp.window.close()")
+              ];
+            }
           ];
         };
 
@@ -556,10 +813,26 @@ delib.host {
           pinnedApps = pinnedApps;
           extraBinds = [
             # 🖱️ LOGITECH MX MASTER Thumb button gesstures
-            { name = "Gesture Left (Prev Workspace)"; command = "${pkgs.wtype}/bin/wtype -M super -k Page_Up -m super"; binding = "XF86Tools"; }
-            { name = "Gesture Right (Next Workspace)"; command = "${pkgs.wtype}/bin/wtype -M super -k Page_Down -m super"; binding = "XF86Launch5"; }
-            { name = "Gesture Up (Maximize)"; command = "${pkgs.wtype}/bin/wtype -M super -k Up -m super"; binding = "XF86Launch6"; }
-            { name = "Gesture Down (Close)"; command = "${pkgs.wtype}/bin/wtype -M super -M shift -k c -m shift -m super"; binding = "XF86Launch7"; }
+            {
+              name = "Gesture Left (Prev Workspace)";
+              command = "${pkgs.wtype}/bin/wtype -M super -k Page_Up -m super";
+              binding = "XF86Tools";
+            }
+            {
+              name = "Gesture Right (Next Workspace)";
+              command = "${pkgs.wtype}/bin/wtype -M super -k Page_Down -m super";
+              binding = "XF86Launch5";
+            }
+            {
+              name = "Gesture Up (Maximize)";
+              command = "${pkgs.wtype}/bin/wtype -M super -k Up -m super";
+              binding = "XF86Launch6";
+            }
+            {
+              name = "Gesture Down (Close)";
+              command = "${pkgs.wtype}/bin/wtype -M super -M shift -k c -m shift -m super";
+              binding = "XF86Launch7";
+            }
           ];
         };
 
@@ -568,10 +841,22 @@ delib.host {
           pinnedApps = pinnedApps;
           extraBinds = {
             # 🖱️ LOGITECH MX MASTER Thumb button gesstures
-            "gesture-left" = { key = "XF86Tools"; command = "qdbus org.kde.KWin /KWin org.kde.KWin.previousDesktop"; };
-            "gesture-right" = { key = "XF86Launch5"; command = "qdbus org.kde.KWin /KWin org.kde.KWin.nextDesktop"; };
-            "gesture-up" = { key = "XF86Launch6"; command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Maximize\""; };
-            "gesture-down" = { key = "XF86Launch7"; command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Close\""; };
+            "gesture-left" = {
+              key = "XF86Tools";
+              command = "qdbus org.kde.KWin /KWin org.kde.KWin.previousDesktop";
+            };
+            "gesture-right" = {
+              key = "XF86Launch5";
+              command = "qdbus org.kde.KWin /KWin org.kde.KWin.nextDesktop";
+            };
+            "gesture-up" = {
+              key = "XF86Launch6";
+              command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Maximize\"";
+            };
+            "gesture-down" = {
+              key = "XF86Launch7";
+              command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Close\"";
+            };
           };
         };
       };
@@ -605,7 +890,7 @@ delib.host {
 
         sddm-astronaut = {
           enable = true;
-          embeddedTheme = "jake_the_dog";
+          embeddedTheme = "pixel_sakura";
           #background = ;
         };
         sddm-pixie = {
@@ -628,9 +913,9 @@ delib.host {
           enable = true;
           customSettings = {
             /*
-            "mute-protonvpn" = {
-              state = "ignored";
-              app-name = ".*Proton.*";
+              "mute-protonvpn" = {
+                state = "ignored";
+                app-name = ".*Proton.*";
             */
           };
         };
@@ -658,7 +943,6 @@ delib.host {
         zathura.enable = true;
       };
 
-
       # ---------------------------------------------------------------
       # 👤 KRIT SERVICES
       # ---------------------------------------------------------------
@@ -680,7 +964,6 @@ delib.host {
           superlight.enable = false;
         };
       };
-
 
       krit.services.nas = {
         laptop-borg-backup.enable = true;
