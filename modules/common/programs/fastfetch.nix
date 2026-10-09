@@ -26,6 +26,7 @@ delib.module {
     random = delib.boolOption true;
     pokemon = delib.strOption "pikachu";
     showName = delib.boolOption false;
+    bigPokemon = delib.boolOption true;
     splashCommand = delib.strOption (if isDarwin then "fastfetch" else "${splash}");
   };
 
@@ -68,6 +69,7 @@ delib.module {
       pokemonExe = lib.getExe pkgs.pokemon-colorscripts;
       pokemonArgs =
         lib.optional (!cfg.showName) "--no-title"
+        ++ lib.optional cfg.bigPokemon "--big"
         ++ (
           if cfg.random
           then [ "-r" ] ++ lib.optional (cfg.generations != "") (lib.escapeShellArg cfg.generations)

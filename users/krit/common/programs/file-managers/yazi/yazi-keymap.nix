@@ -346,7 +346,7 @@ delib.module {
           }
           {
             on = [ "A" ];
-            run = "shell 'mk ' --interactive --cursor=9999";
+            run = "shell 'mk ' --interactive --cursor=3";
             desc = "Create files/dirs (brace expansion; trailing / = dir)";
           }
           {
