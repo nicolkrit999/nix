@@ -74,7 +74,7 @@ delib.module {
             package = pkgs.nerd-fonts.jetbrains-mono;
           };
           sizes = {
-            terminal = 13;
+            terminal = 11;
             applications = 11;
           };
         };

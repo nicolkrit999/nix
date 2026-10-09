@@ -56,6 +56,8 @@ delib.module {
           (craftBundle "gridcraft" "0.3.0" "sha256-O67AHQtKSZKq64FZ44E8hnwYDkKYEV/jaiCWLwHPYDo=") # Excel-like spreadsheet
           (craftBundle "wordcraft" "0.3.0" "sha256-ehlzr4a3QPIiCUTzry/0IPUW0u5s803DexqxUbS+ZsI=") # Word-like word processor
           (craftBundle "filmcraft" "0.4.0" "sha256-Mq9YakI3J99G7pWFrjF+kkf1NBTJ5pocdg0b0AT5YXk=") # Premiere-like video editor
+          (craftBundle "designcraft" "0.4.0" "sha256-5eWGTF+27a9QgcDn6NBt05K5I4ITf1JJ708s6W9HgOU=") # InDesign-like page layout (magazines, books, print)
+          (craftBundle "effectcraft" "0.6.0" "sha256-HKYzfZId+pGNot2z3TvnvSquQBOE4ySRDFg1SmCHfOY=") # After Effects-like motion graphics / VFX compositor
         ];
         update.onActivation = false;
         remotes = [
