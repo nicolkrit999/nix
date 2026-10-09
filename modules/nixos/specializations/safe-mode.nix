@@ -43,6 +43,7 @@ delib.module {
       myconfig.constants.theme.catppuccin = lib.mkForce false;
       myconfig.programs.caelestia.enable = lib.mkForce false;
       myconfig.programs.noctalia.enable = lib.mkForce false;
+      myconfig.programs.fastfetch.enable = lib.mkForce false;
 
       # Feed Stylix dummy data to prevent evaluation errors
       stylix.base16Scheme = lib.mkForce "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
