@@ -18,9 +18,12 @@ let
   # Deliberately static, not queried from the running compositor: scale is
   # a property of the panel, not of whichever WM/DE happens to be active.
   guiScale =
-    if c.hostname == "nixos-desktop" then 1.5
-    else if c.hostname == "nixos-laptop" then 1.6
-    else 1.0;
+    if c.hostname == "nixos-desktop" then
+      1.5
+    else if c.hostname == "nixos-laptop" then
+      1.6
+    else
+      1.0;
   guiScaleStr = toString guiScale;
   xftDpi = toString (builtins.floor (96 * guiScale));
 
@@ -72,13 +75,13 @@ let
       check = "test -x /opt/sqldeveloper/sqldeveloper.sh";
       preInstall = "sudo pacman -Syu --noconfirm --needed jdk17-openjdk fzf libxrender libxtst libxi fontconfig ttf-dejavu gtk3 alsa-lib";
       install = builtins.concatStringsSep "\n" [
-        ''RPM=$(ls $HOME/dotfiles-private/various/binaries/oracle-sql-developer/sqldeveloper-*.noarch.rpm 2>/dev/null | head -1)''
+        "RPM=$(ls $HOME/dotfiles-private/various/binaries/oracle-sql-developer/sqldeveloper-*.noarch.rpm 2>/dev/null | head -1)"
         ''if [ -z "$RPM" ]; then''
-        ''  echo "ERROR: Download sqldeveloper-*.noarch.rpm from:"''
-        ''  echo "  https://www.oracle.com/database/sqldeveloper/technologies/download/"''
-        ''  echo "Place it in: ~/dotfiles-private/various/binaries/oracle-sql-developer/"''
-        ''  exit 1''
-        ''fi''
+        ''echo "ERROR: Download sqldeveloper-*.noarch.rpm from:"''
+        ''echo "  https://www.oracle.com/database/sqldeveloper/technologies/download/"''
+        ''echo "Place it in: ~/dotfiles-private/various/binaries/oracle-sql-developer/"''
+        "exit 1"
+        "fi"
         ''sudo bsdtar -xf "$RPM" -C /''
       ];
       postInstall = builtins.concatStringsSep "\n" [
@@ -164,17 +167,22 @@ delib.module {
 
       # Clear default profile behaviour
       myconfig.programs.hyprland.execOnce = lib.mkForce (
-        if c.hostname == "nixos-desktop" then [
-          "[workspace 2 silent] ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
-          "[workspace 3 silent] ${term} --class yazi -d $HOME/.school-workspace -e yazi"
-          "[workspace 7 silent] brave-school --app=https://www.icorsi.ch/"
-          "[workspace 8 silent] ${term} -d $HOME/.school-workspace"
-        ] else if c.hostname == "nixos-laptop" then [
-          "[workspace 2 silent] ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
-          "[workspace 3 silent] ${term} --class yazi -d $HOME/.school-workspace -e yazi"
-          "[workspace 4 silent] ${term} -d $HOME/.school-workspace"
-          "[workspace 5 silent] brave-school --app=https://www.icorsi.ch/"
-        ] else [ ]
+        if c.hostname == "nixos-desktop" then
+          [
+            "[workspace 2 silent] ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
+            "[workspace 3 silent] ${term} --class yazi -d $HOME/.school-workspace -e yazi"
+            "[workspace 7 silent] brave-school --app=https://www.icorsi.ch/"
+            "[workspace 8 silent] ${term} -d $HOME/.school-workspace"
+          ]
+        else if c.hostname == "nixos-laptop" then
+          [
+            "[workspace 2 silent] ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
+            "[workspace 3 silent] ${term} --class yazi -d $HOME/.school-workspace -e yazi"
+            "[workspace 4 silent] ${term} -d $HOME/.school-workspace"
+            "[workspace 5 silent] brave-school --app=https://www.icorsi.ch/"
+          ]
+        else
+          [ ]
       );
       myconfig.programs.hyprland.windowRules = lib.mkForce [ ];
 
@@ -201,8 +209,14 @@ delib.module {
       # of whatever exit-node state tailscale persisted from the last boot.
       systemd.services.tailscale-school-exit-node-off = {
         description = "Force tailscale exit-node off for the school specialisation";
-        after = [ "tailscaled.service" "tailscale-autoconnect.service" ];
-        wants = [ "tailscaled.service" "tailscale-autoconnect.service" ];
+        after = [
+          "tailscaled.service"
+          "tailscale-autoconnect.service"
+        ];
+        wants = [
+          "tailscaled.service"
+          "tailscale-autoconnect.service"
+        ];
         wantedBy = [ "multi-user.target" ];
 
         serviceConfig = {
@@ -258,7 +272,6 @@ delib.module {
           ];
         }))
       ];
-
 
       # Configure allowed_signers for GPG SSH signing, and force git to use the school key and email
       home-manager.users.${myUserName} = { pkgs, lib, ... }: {
@@ -327,7 +340,9 @@ delib.module {
         };
 
         # 🐚 Workspace Alias (shell-agnostic via home.shellAliases)
-        home.shellAliases = { school = "cd ~/.school-workspace"; };
+        home.shellAliases = {
+          school = "cd ~/.school-workspace";
+        };
 
         # On interactive shell start, check if distrobox tools are present
         programs.bash.initExtra = ''
@@ -337,7 +352,7 @@ delib.module {
         home.packages = with pkgs; [
           # Required Tools
           mars-mips # MIPS simulator (tecnica digitale)
-          geogebra6 #Dynamic mathematics software with graphics, algebra and spreadsheets
+          geogebra6 # Dynamic mathematics software with graphics, algebra and spreadsheets
 
           # CS Tools (useful)
           dbeaver-bin
@@ -346,6 +361,7 @@ delib.module {
           zeal
           rclone
           filezilla
+          libreoffice-qt
 
           # CS Notes / Cheat Sheets - shared toolchain (Typst/LaTeX/Pandoc, diagrams, PDF/image tooling, spellcheck)
           # from templates/krit/dev-environments/language-combined/{cs-notes,cs-cheat-sheets}/flake.nix
@@ -497,12 +513,12 @@ delib.module {
                   echo "    ${app.name} already installed, skipping."
                 else
                   ${lib.optionalString (app ? rootInit) ''
-                  echo "    Running rootInit in ${app.container}..."
-                  ${pkgs.podman}/bin/podman exec --user root ${app.container} bash -c '${app.rootInit}' || true
+                    echo "    Running rootInit in ${app.container}..."
+                    ${pkgs.podman}/bin/podman exec --user root ${app.container} bash -c '${app.rootInit}' || true
                   ''}
                   ${lib.optionalString (app ? preInstall) ''
-                  echo "    Installing dependencies in ${app.container}..."
-                  distrobox enter ${app.container} -- bash -c '${app.preInstall}' || true
+                    echo "    Installing dependencies in ${app.container}..."
+                    distrobox enter ${app.container} -- bash -c '${app.preInstall}' || true
                   ''}
                   echo "    Installing ${app.name}..."
                   if ! distrobox enter ${app.container} -- bash -c '${app.install}'; then
@@ -510,7 +526,7 @@ delib.module {
                     FAILURES=$((FAILURES + 1))
                   else
                     ${lib.optionalString (app ? postInstall) ''
-                    distrobox enter ${app.container} -- bash -c '${app.postInstall}' || true
+                      distrobox enter ${app.container} -- bash -c '${app.postInstall}' || true
                     ''}
                     echo "    ${app.name} installed."
                   fi
@@ -596,22 +612,43 @@ delib.module {
                 comment = "Launch ${name}";
                 exec = "brave-school --app=\"${url}\" --password-store=basic";
                 icon = icon;
-                settings = { StartupWMClass = startupClass; };
+                settings = {
+                  StartupWMClass = startupClass;
+                };
                 terminal = false;
                 type = "Application";
                 categories = [ "Education" ];
-                mimeType = [ "x-scheme-handler/https" "x-scheme-handler/http" ];
+                mimeType = [
+                  "x-scheme-handler/https"
+                  "x-scheme-handler/http"
+                ];
               };
             };
           in
           builtins.listToAttrs [
-            (makeSchoolPwa "SUPSI Portal" "https://portalestudenti.supsi.ch/" "education" "brave-portalestudenti.supsi.ch__-Default")
-            (makeSchoolPwa "iCorsi" "https://www.icorsi.ch/" "applications-education" "brave-www.icorsi.ch__-Default")
-            (makeSchoolPwa "School OpenCloud" "https://opencloud.nicolkrit.ch/" "folder-cloud" "brave-opencloud.nicolkrit.ch__-Default")
-            (makeSchoolPwa "NotebookLM" "https://notebooklm.google.com/" "utilities-terminal" "brave-notebooklm.google.com__-Default")
+            (makeSchoolPwa "SUPSI Portal" "https://portalestudenti.supsi.ch/" "education"
+              "brave-portalestudenti.supsi.ch__-Default"
+            )
+            (makeSchoolPwa "iCorsi" "https://www.icorsi.ch/" "applications-education"
+              "brave-www.icorsi.ch__-Default"
+            )
+            (makeSchoolPwa "School OpenCloud" "https://opencloud.nicolkrit.ch/" "folder-cloud"
+              "brave-opencloud.nicolkrit.ch__-Default"
+            )
+            (makeSchoolPwa "NotebookLM" "https://notebooklm.google.com/" "utilities-terminal"
+              "brave-notebooklm.google.com__-Default"
+            )
             (makeSchoolPwa "USI Rooms" "https://usirooms.xyz/" "office-calendar" "brave-usirooms.xyz__-Default")
-            (makeSchoolPwa "School OneDrive" "https://supsi-my.sharepoint.com/personal/kritpio_nicol_supsi_ch/_layouts/15/onedrive.aspx?sw=bypass&bypassReason=abandoned&startedResponseCatch=true" "folder-remote" "brave-supsi--my.sharepoint.com__-Default")
-            (makeSchoolPwa "Lecture Calendar" "https://calendar.google.com/calendar/u/0?cid=NDg0Zjg5MjUyOThlY2M0YzA2NWVkMTNhNGIwM2I4MjdlNTY0YWM5OWRlYjBjMDE0NThiNTZiOWY3MGY3ZmI5Y0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t" "x-office-calendar" "brave-calendar.google.com__-Default")
+            (makeSchoolPwa "School OneDrive"
+              "https://supsi-my.sharepoint.com/personal/kritpio_nicol_supsi_ch/_layouts/15/onedrive.aspx?sw=bypass&bypassReason=abandoned&startedResponseCatch=true"
+              "folder-remote"
+              "brave-supsi--my.sharepoint.com__-Default"
+            )
+            (makeSchoolPwa "Lecture Calendar"
+              "https://calendar.google.com/calendar/u/0?cid=NDg0Zjg5MjUyOThlY2M0YzA2NWVkMTNhNGIwM2I4MjdlNTY0YWM5OWRlYjBjMDE0NThiNTZiOWY3MGY3ZmI5Y0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t"
+              "x-office-calendar"
+              "brave-calendar.google.com__-Default"
+            )
           ];
       };
     };

@@ -73,6 +73,74 @@ delib.module {
           then [ "-r" ] ++ lib.optional (cfg.generations != "") (lib.escapeShellArg cfg.generations)
           else [ "-n" (lib.escapeShellArg cfg.pokemon) ]
         );
+      modules = [
+        (header "System" "system")
+        "break"
+        ((entry "title" "󰀄" "system") // {
+          key = "title";
+          color = {
+            user = palette.system;
+            at = palette.system;
+            host = palette.desktop;
+          };
+        })
+        (entry "os" "${cfg.osIcon}" "system")
+        (entry "kernel" "" "system")
+        (entry "uptime" "" "system")
+        (entry "packages" "󰏖" "system")
+        (entry "locale" "" "system")
+        "break"
+        (footer "system")
+        "break"
+        (header "Desktop" "desktop")
+        "break"
+        (entry "de" "󰟀" "desktop")
+        (entry "wm" "󰨇" "desktop")
+        (entry "theme" "󰉼" "desktop")
+        (entry "icons" "󰀻" "desktop")
+        (entry "cursor" "󰆿" "desktop")
+        (entry "font" "󰛖" "desktop")
+        (entry "terminal" "" "desktop")
+        (entry "shell" "" "desktop")
+        "break"
+        (footer "desktop")
+        "break"
+        (header "Hardware" "hardware")
+        "break"
+        (entry "host" "" "hardware")
+        (entry "cpu" "" "hardware")
+        (entry "gpu" "󱤓" "hardware")
+        (entry "memory" "󰍛" "hardware")
+        (entry "swap" "󰓡" "hardware")
+        (entry "disk" "" "hardware")
+        (entry "display" "󰍹" "hardware")
+        (entry "battery" "󰁹" "hardware")
+        "break"
+        (footer "hardware")
+        "break"
+        (header "Connectivity & Audio" "connectivity")
+        "break"
+        (entry "wifi" "" "connectivity")
+        (entry "sound" "" "connectivity")
+        "break"
+        (footer "connectivity")
+      ];
+
+      # Vertically centres the sprite against the info column: measure the
+      # sprite's height at runtime and prepend half the height difference as
+      # blank lines. Info height = module count (each module, incl. "break",
+      # is one line; a module that prints nothing, e.g. battery on a desktop,
+      # makes the sprite sit at most one line low).
+      centeredPokemon = pkgs.writeShellScript "fastfetch-pokemon-centered" ''
+        sprite=$(${lib.escapeShellArg pokemonExe} ${lib.concatStringsSep " " pokemonArgs})
+        height=$(printf '%s\n' "$sprite" | ${lib.getExe' pkgs.coreutils "wc"} -l)
+        pad=$(( (${toString (lib.length modules)} - height) / 2 ))
+        while [ "$pad" -gt 0 ]; do
+          echo
+          pad=$((pad - 1))
+        done
+        printf '%s\n' "$sprite"
+      '';
     in
     {
       assertions = [
@@ -89,65 +157,13 @@ delib.module {
         settings = {
           logo = {
             type = "command-raw";
-            source = lib.concatStringsSep " " ([ (lib.escapeShellArg pokemonExe) ] ++ pokemonArgs);
-            padding.top = 3;
+            source = "${centeredPokemon}";
           };
           display = {
             separator = "    ";
             key.type = "icon";
           };
-          modules = [
-            (header "System" "system")
-            "break"
-            ((entry "title" "󰀄" "system") // {
-              key = "title";
-              color = {
-                user = palette.system;
-                at = palette.system;
-                host = palette.desktop;
-              };
-            })
-            (entry "os" "${cfg.osIcon}" "system")
-            (entry "kernel" "" "system")
-            (entry "uptime" "" "system")
-            (entry "packages" "󰏖" "system")
-            (entry "locale" "" "system")
-            "break"
-            (footer "system")
-            "break"
-            (header "Desktop" "desktop")
-            "break"
-            (entry "de" "󰟀" "desktop")
-            (entry "wm" "󰨇" "desktop")
-            (entry "theme" "󰉼" "desktop")
-            (entry "icons" "󰀻" "desktop")
-            (entry "cursor" "󰆿" "desktop")
-            (entry "font" "󰛖" "desktop")
-            (entry "terminal" "" "desktop")
-            (entry "shell" "" "desktop")
-            "break"
-            (footer "desktop")
-            "break"
-            (header "Hardware" "hardware")
-            "break"
-            (entry "host" "" "hardware")
-            (entry "cpu" "" "hardware")
-            (entry "gpu" "󱤓" "hardware")
-            (entry "memory" "󰍛" "hardware")
-            (entry "swap" "󰓡" "hardware")
-            (entry "disk" "" "hardware")
-            (entry "display" "󰍹" "hardware")
-            (entry "battery" "󰁹" "hardware")
-            "break"
-            (footer "hardware")
-            "break"
-            (header "Connectivity & Audio" "connectivity")
-            "break"
-            (entry "wifi" "" "connectivity")
-            (entry "sound" "" "connectivity")
-            "break"
-            (footer "connectivity")
-          ];
+          inherit modules;
         };
       };
     };

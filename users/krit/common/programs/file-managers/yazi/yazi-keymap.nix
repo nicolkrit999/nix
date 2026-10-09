@@ -1,10 +1,24 @@
-{ delib, ... }:
+{ delib, pkgs, ... }:
 delib.module {
   name = "krit.programs.yazi";
 
   home.ifEnabled =
     { ... }:
     {
+      # `mk` creates its arguments after the shell has brace-expanded them:
+      # a trailing "/" makes a directory, anything else a file (parents are
+      # created, existing files are left untouched).
+      home.packages = [
+        (pkgs.writeShellScriptBin "mk" ''
+          for p in "$@"; do
+            case "$p" in
+              */) mkdir -p -- "$p" ;;
+              *) mkdir -p -- "$(dirname -- "$p")" && touch -- "$p" ;;
+            esac
+          done
+        '')
+      ];
+
       programs.yazi.keymap = {
         # S = shift, C = control, A = alt
         mgr.prepend_keymap = [
@@ -329,6 +343,11 @@ delib.module {
             on = [ "a" ];
             run = "create";
             desc = "Create a file (ends with / for directories)";
+          }
+          {
+            on = [ "A" ];
+            run = "shell 'mk ' --interactive --cursor=9999";
+            desc = "Create files/dirs (brace expansion; trailing / = dir)";
           }
           {
             on = [ "r" ];
