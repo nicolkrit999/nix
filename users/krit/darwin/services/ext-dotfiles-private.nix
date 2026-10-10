@@ -1,6 +1,7 @@
 { delib
 , pkgs
 , lib
+, inputs
 , ...
 }:
 
@@ -30,6 +31,11 @@ let
       ".gsd"
     ];
 
+    # devdocs.nvim offline docs, shared so every host sees the same installed set
+    devdocs = [
+      ".local/share/nvim/devdocs"
+    ];
+
     "openlogi/Krits-MacBook-Pro" = [
       ".config/openlogi"
     ];
@@ -40,6 +46,7 @@ let
       "claude/common"
       "claude/mac"
       "gsd"
+      "devdocs"
       "openlogi/Krits-MacBook-Pro"
     ];
   };
@@ -57,6 +64,12 @@ let
       "school-workspace/.mcp.json" = "claude/school/.mcp.json";
     };
   };
+
+  # Home paths that GUIs rewrite in place (replacing the symlink with a regular
+  # file/dir); their live content is copied back into the repo before HM relinks.
+  syncBack = [
+    ".config/openlogi"
+  ];
 in
 
 delib.module {
@@ -89,10 +102,47 @@ delib.module {
         enabledPackages;
 
       mappings = packageMappings // extraMappings;
+
+      syncBackEntries = lib.filter (p: mappings ? ${p}) syncBack;
+
+      syncBackScript = lib.concatMapStringsSep "\n"
+        (p: "sync_back ${lib.escapeShellArg p} ${lib.escapeShellArg mappings.${p}}")
+        syncBackEntries;
     in
     {
       home.file = builtins.mapAttrs
         (_: relPath: { source = mkLink relPath; force = true; })
         mappings;
+
+      home.activation.syncBackDotfilesPrivate =
+        inputs.home-manager.lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+          export PATH=${lib.makeBinPath [ pkgs.coreutils pkgs.diffutils pkgs.rsync ]}:$PATH
+          repo_root="${homeDir}/dotfiles-private"
+
+          sync_back() {
+            live="${homeDir}/$1"
+            repo="$repo_root/$2"
+            [ -L "$live" ] && return 0
+            if [ -f "$live" ]; then
+              [ -d "$(dirname "$repo")" ] || return 0
+              [ -d "$repo" ] && return 0
+              if ! cmp -s "$live" "$repo"; then
+                cp -f "$live" "$repo.syncback.tmp" \
+                  && mv -f "$repo.syncback.tmp" "$repo" \
+                  || { rm -f "$repo.syncback.tmp"; return 0; }
+              fi
+              rm -f "$live"
+            elif [ -d "$live" ]; then
+              [ -d "$repo" ] && [ ! -L "$repo" ] || return 0
+              if ! diff -rq "$live" "$repo" >/dev/null 2>&1; then
+                rsync -a "$live"/ "$repo"/ || return 0
+              fi
+              rm -rf "$live"
+            fi
+          }
+
+          ${syncBackScript}
+          true
+        '';
     };
 }
