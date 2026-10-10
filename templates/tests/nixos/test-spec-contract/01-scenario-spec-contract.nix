@@ -67,6 +67,7 @@ let
 
     # Programs whose enable options specs override
     (src + "/modules/common/programs/claude-code.nix")
+    (src + "/modules/common/programs/fastfetch.nix")
     (src + "/modules/nixos/programs/claude-desktop.nix")
     (src + "/modules/nixos/programs/nix-alien.nix")
     (src + "/modules/nixos/programs/nix-ld.nix")

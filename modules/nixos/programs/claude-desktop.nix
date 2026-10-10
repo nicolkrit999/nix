@@ -12,6 +12,6 @@ delib.module {
         });
       })
     ];
-    environment.systemPackages = [ pkgs.claude-desktop-fhs ];
+    environment.systemPackages = [ (pkgs.passwordStoreWrap pkgs.claude-desktop-fhs) ];
   };
 }

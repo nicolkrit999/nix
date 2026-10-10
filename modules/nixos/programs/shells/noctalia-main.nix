@@ -131,7 +131,7 @@ delib.module {
         ];
       };
 
-      wayland.windowManager.mango.settings.exec = lib.mkIf activeOnMango (lib.mkAfter [
+      wayland.windowManager.mango.settings.exec_once = lib.mkIf activeOnMango (lib.mkAfter [
         "start-noctalia"
       ]);
     };

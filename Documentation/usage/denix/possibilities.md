@@ -112,7 +112,7 @@ These modules are only available on NixOS hosts.
 
 These modules are always active on NixOS hosts and handle platform integration. They are not toggled by the user.
 
-* **`common-configuration`**: Core NixOS system baseline - sets hostname, locale/keyboard, fonts, essential system packages (git, curl, sops, polkit-gnome, etc.), security wrappers for GPU screen recorder, GNOME Keyring/PAM integration, and boot tweaks. Always enabled.
+* **`common-configuration`**: Core NixOS system baseline - sets hostname, locale/keyboard, fonts, essential system packages (git, curl, sops, polkit-gnome, etc.), security wrappers for GPU screen recorder, GNOME Keyring/PAM integration (gnome-keyring is the sole Secret Service provider and gcr-ssh-agent the sole SSH agent, see `Documentation/usage/gotchas/secret-service-single-provider.md`), and boot tweaks. Always enabled.
 * **`home-manager`** (common): Configures home-manager's extra special args (`myconfig`, shared inputs) and shared modules (plasma-manager) so all home-manager modules in the repo receive them automatically. Always enabled on NixOS.
 * **`home-packages`**: Installs the host's chosen browser, terminal, editor, and file manager as system packages based on `constants`, plus shared GUI utilities (cliphist, gwenview). Falls back gracefully if a program module already provides the package.
   * **Warning:** Disabling this means the system does not automatically install the chosen browser, editor, file manager, and terminal based on the host preferences.
@@ -143,12 +143,12 @@ These modules are always active on NixOS hosts and handle platform integration. 
 
 * **`programs.cosmic`**: The Rust-based COSMIC desktop environment built by System76.
 * **`programs.gnome`**: The GNOME desktop environment, with optional extra app pinning and keyboard shortcut configurations.
-* **`programs.hyprland`**: A highly customizable, dynamic tiling Wayland compositor. Includes monitor config, exec-on-start rules, workspace-to-monitor assignments, window rules, wallpaper management, and optional extra keybinds.
+* **`programs.hyprland`**: A highly customizable, dynamic tiling Wayland compositor. Includes monitor config, exec-on-start rules, workspace-to-monitor assignments, window rules, wallpaperd wallpaper management (mpvpaper for video/gif, awww for stills; see `Documentation/features.md`), and optional extra keybinds.
   * **Warning:** Enabled to have at least one WM.
 
 * **`programs.kde`**: The KDE Plasma desktop environment. Includes optional app pinning, keyboard shortcuts, panel layout, krunner config, screen locker, and input settings.
-* **`programs.mango`**: MangoWM - a dwm-inspired practical Wayland compositor. Configured with scrollable-tiling and master-stack layouts, full stylix color integration, per-monitor rules, xwayland-satellite for X11 app support, and swww wallpaper management. Includes optional keybinds and exec-once entries.
-* **`programs.niri`**: A scrollable-tiling Wayland compositor with optional exec-on-start and keybind configurations.
+* **`programs.mango`**: MangoWM - a dwm-inspired practical Wayland compositor. Configured with scrollable-tiling and master-stack layouts, full stylix color integration, per-monitor rules, built-in Xwayland for X11 app support, and wallpaperd wallpaper management (mpvpaper for video/gif, awww for stills). Includes optional keybinds and exec-once entries.
+* **`programs.niri`**: A scrollable-tiling Wayland compositor with wallpaperd wallpaper management (mpvpaper for video/gif, awww for stills) and optional exec-on-start and keybind configurations.
 
 #### Custom Shells
 
@@ -160,7 +160,6 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`programs.cava`**: Configures cava, a terminal audio spectrum visualizer, with stylix color integration.
 * **`programs.claude-desktop`**: Installs the Claude Desktop GUI application via the claude-desktop flake input (FHS-wrapped for NixOS compatibility).
 * **`programs.concord`**: Installs the Concord Discord TUI client, built from source with the `voice-playback` feature enabled.
-* **`programs.gnome-keyring`**: Starts the GNOME Keyring secret-service component (`org.freedesktop.secrets`) at graphical-session start via a home-manager systemd user service, so Electron/`safeStorage` apps (e.g. Claude Desktop) can store credentials under Wayland/UWSM. Complements the always-on PAM keyring unlock in `common-configuration`.
 * **`programs.google-antigravity`**: Installs Google Antigravity, Google's agentic development platform/IDE designed for AI-assisted software development. Installed via the `antigravity-nix` flake (no-FHS NixOS-compatible variant) with the system Chrome profile, alongside `google-chrome`.
 * **`programs.nix-alien`**: Enables nix-alien for running unpatched Linux binaries in Nix via automatic FHS environment generation.
 * **`programs.nix-ld`**: Enables Nix's dynamic linker (`nix-ld`) so pre-compiled binaries can run without manual patching.

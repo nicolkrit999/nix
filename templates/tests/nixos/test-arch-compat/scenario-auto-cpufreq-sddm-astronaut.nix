@@ -76,6 +76,7 @@ let
     (src + "/modules/common/programs/shells/zoxide.nix")
     (src + "/modules/common/programs/shells/nix-search-tv/nst-home.nix")
     (src + "/modules/common/programs/claude-code.nix")
+    (src + "/modules/common/programs/fastfetch.nix")
     (src + "/modules/common/programs/headroom.nix")
     (src + "/modules/common/programs/comma.nix")
     (src + "/modules/common/programs/doom/doom-main.nix")

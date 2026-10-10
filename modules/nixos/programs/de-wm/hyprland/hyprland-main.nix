@@ -43,33 +43,12 @@ delib.module {
       wallpaperOwnedByShell = caelestiaActiveOnHyprland || noctaliaActiveOnHyprland;
       skwdWallActive = parent.skwdWall.enable or false;
 
-      wallpaperCmds = lib.optionals (!wallpaperOwnedByShell && !skwdWallActive)
-        (
-          [ "awww-daemon" ]
-          ++ map
-            (w:
-              let
-                isAnimated = w.videoURL != "" || w.gifURL != "";
-                mediaPath =
-                  if w.videoURL != "" then
-                    pkgs.fetchurl { url = w.videoURL; sha256 = w.videoSHA256; }
-                  else if w.gifURL != "" then
-                    pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
-                  else
-                    pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
-                isWildcard = w.targetMonitor == "*";
-                targetArgs = if isWildcard then "" else "-o ${w.targetMonitor} ";
-                sleepSecs = if isWildcard then "1" else "2";
-                outputArg = if isWildcard then "ALL" else w.targetMonitor;
-                playCmd =
-                  if isAnimated then
-                    "mpvpaper -f -o \"loop mute=yes panscan=1.0\" ${outputArg} ${mediaPath}"
-                  else
-                    "awww img ${targetArgs}${mediaPath}";
-              in
-              "sh -c 'sleep ${sleepSecs} && ${playCmd}'")
-            myconfig.constants.wallpapers
-        );
+      wp = import ../wallpaperd/mk-wallpaperd.nix { inherit lib pkgs; } {
+        wm = "hyprland";
+        wallpapers = myconfig.constants.wallpapers;
+      };
+
+      wallpaperCmds = lib.optionals (!wallpaperOwnedByShell && !skwdWallActive) wp.startupCmds;
 
       execOnceItems = [
         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"

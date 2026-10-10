@@ -31,3 +31,9 @@ nix run github:danielefongo/nix-tests -- conflict/01-two-shells-on-hyprland_test
 | `conflict/` | Assertions that must fire when two conflicting modules are both active |
 | `positive/` | Valid combinations that must NOT fire any assertion |
 | `dormant-flag/` | Shell enabled but `enableOnWM = false` — must behave like no shell |
+
+## Wallpaper note
+
+The Hyprland scenarios set one `wallpapers` entry (`shared/one-wallpaper.nix`) so the
+`hyprland-wallpaperd` supervisor is present or suppressed depending on shell ownership.
+With `wallpapers = [ ]` the supervisor is never started, so the check would be vacuous.

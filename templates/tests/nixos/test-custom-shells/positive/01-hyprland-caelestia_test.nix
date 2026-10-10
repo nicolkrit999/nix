@@ -1,6 +1,6 @@
 # P01 — Hyprland + caelestia active
 # Caelestia is the active shell on Hyprland. Expected: clean eval, caelestia
-# dispatchers in binds, swaync + awww wallpaper suppressed (caelestia handles both),
+# dispatchers in binds, swaync + wallpaper supervisor suppressed (caelestia handles both),
 # waybar absent (default off, blocked by contract anyway).
 { nix-tests }:
 let
@@ -19,8 +19,8 @@ nix-tests.runTests {
       helpers.isTrue hm.programs.hyprlock.enable;
     "swaync suppressed — caelestia active on hyprland" =
       helpers.isFalse hm.services.swaync.enable;
-    "awww wallpaper suppressed — caelestia provides wallpaper" =
-      helpers.isFalse (lib.hasInfix "awww-daemon" execLua);
+    "wallpaper supervisor suppressed — caelestia provides wallpaper" =
+      helpers.isFalse (lib.hasInfix "hyprland-wallpaperd" execLua);
     "Super+Shift+A dispatches to caelestiaQS" =
       helpers.isTrue (builtins.any (b: lib.hasInfix "caelestiaQS" (H.bindStr b)) binds);
     "Super+Delete dispatches to caelestiaLogout lock" =

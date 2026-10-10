@@ -93,13 +93,15 @@ delib.module {
               VG)  echo "<span color='${c.base0A}'>󰬔</span> VGrid" ;;
               VK)  echo "<span color='${c.base0B}'>󰬔</span> VDeck" ;;
               RT)  echo "<span color='${c.base0D}'>󰕴</span> RTile" ;;
-              TG)  echo "<span color='${c.base0F}'>󱁻</span> TGMix" ;;
+              DW)  echo "<span color='${c.base0B}'>󰕰</span> Dwindle" ;;
+              F)   echo "<span color='${c.base0A}'>󰕰</span> Fair" ;;
+              VF)  echo "<span color='${c.base0A}'>󰬔</span> VFair" ;;
               *)   echo "$layout" ;;
             esac
           '';
           interval = 1;
-          on-click = "sh -c 'cur=$(mmsg get all-monitors 2>/dev/null | ${pkgs.jq}/bin/jq -r \".monitors[] | select(.active == true) | .layout_symbol\"); if [ \"$cur\" = \"S\" ]; then mmsg dispatch setlayout,T; else mmsg dispatch setlayout,S; fi'";
-          on-click-right = "mmsg dispatch setlayout,S";
+          on-click = "sh -c 'cur=$(mmsg get all-monitors 2>/dev/null | ${pkgs.jq}/bin/jq -r \".monitors[] | select(.active == true) | .layout_symbol\"); if [ \"$cur\" = \"S\" ]; then mmsg dispatch setlayout,tile; else mmsg dispatch setlayout,scroller; fi'";
+          on-click-right = "mmsg dispatch setlayout,scroller";
           tooltip = false;
         };
 

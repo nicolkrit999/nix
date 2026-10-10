@@ -1,21 +1,16 @@
+# W11 - noctalia enable=true but all enableOnXxx=false: no WM is shell-owned,
+# so every WM falls through to its own wallpaper supervisor.
 { nix-tests }:
 let
   H = import ./shared/eval-scenario.nix;
+  E = H.expect;
   config = H.getConfig ./11-noctalia-dormant H.nixosExtraX86;
 in
 nix-tests.runTests {
-  "W11: noctalia enable=true but all enableOnXxx=false → all WMs fall through to awww" = helpers: {
-    "hyprland exec contains awww-daemon (noctalia dormant, not shell-owned)" =
-      helpers.isTrue (H.hyprExecHas "awww-daemon" config);
-    "hyprland exec contains awww img" =
-      helpers.isTrue (H.hyprExecHas "awww img" config);
-    "mango exec contains awww-daemon (noctalia dormant, not shell-owned)" =
-      helpers.isTrue (H.mangoExecHas "awww-daemon" config);
-    "mango exec contains awww img" =
-      helpers.isTrue (H.mangoExecHas "awww img" config);
-    "niri spawn contains awww-daemon (noctalia dormant, not shell-owned)" =
-      helpers.isTrue (H.niriSpawnHas "awww-daemon" config);
-    "niri spawn contains awww img" =
-      helpers.isTrue (H.niriSpawnHas "awww img" config);
-  };
+  "W11: noctalia dormant on every WM -> all WMs run the wallpaper supervisor" = helpers:
+    H.perWm helpers config [
+      E.supervisor
+      E.daemon
+      (E.spec "*=image:" "*=image:")
+    ];
 }

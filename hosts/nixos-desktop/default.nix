@@ -12,6 +12,43 @@ let
   myEditor = "nvim";
   myFileManager = "yazi";
   myLocale = "en_US.UTF-8";
+
+  mangoScratch = pkgs.writeShellApplication {
+    name = "mango-scratch";
+    runtimeInputs = [ pkgs.jq pkgs.coreutils ];
+    text = ''
+      mon=$(mmsg get all-monitors | jq -r '[.monitors[] | select(.active) | .name][0] // empty')
+      active=$(mmsg get all-clients | jq --arg m "$mon" '[.clients[] | select(.monitor == $m and .is_visible and (.is_global | not) and (.is_unglobal | not) and (.tags | index(0)))] | length' || echo 0)
+      if (( ''${active:-0} == 0 )); then
+        mmsg dispatch toggle_special_tag
+      fi
+      exec "$@"
+    '';
+  };
+
+  mangoPlace = pkgs.writeShellApplication {
+    name = "mango-place";
+    runtimeInputs = [ pkgs.jq pkgs.coreutils ];
+    text = ''
+      out=$1
+      pat=$2
+      shift 3
+      before=$(mmsg get all-clients | jq -c '[.clients[].id]' || echo '[]')
+      mmsg dispatch "focusmon,$out"
+      "$@" &
+      for _ in $(seq 60); do
+        sleep 0.5
+        found=$(mmsg get all-clients | jq -r --argjson b "$before" --arg p "$pat" '[.clients[] | select((.appid | test($p)) and ((.id as $i | $b | index($i)) == null))][0] | if . then "\(.id) \(.monitor)" else empty end' || true)
+        if [[ -n $found ]]; then
+          read -r id mon <<< "$found"
+          if [[ $mon != "$out" ]]; then
+            mmsg dispatch "tagmon,$out,1 client,$id"
+          fi
+          break
+        fi
+      done
+    '';
+  };
   myGitUserName = "Krit Pio Nicol";
 
   # 🌟 HYPRLAND APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
@@ -242,7 +279,6 @@ delib.host {
         eza.enable = true;
         fzf.enable = true;
         fzf.nix-search-tv.enable = true;
-        gnome-keyring.enable = true;
         google-antigravity.enable = true;
         lazygit.enable = true;
         nix-alien.enable = true;
@@ -393,7 +429,7 @@ delib.host {
             "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
             "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
             "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
-            "uwsm app -- brave --app=https://www.youtube.com --password-store=gnome"
+            "uwsm app -- pwa-youtube.desktop"
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
           ];
           monitorWorkspaces = [
@@ -488,37 +524,41 @@ delib.host {
           monitors = [
             "name:^DP-1$,width:3840,height:2160,refresh:240,x:1440,y:560,scale:1.5"
             "name:^DP-2$,width:3840,height:2160,refresh:144,x:0,y:0,scale:1.5,rr:1"
-            "name:^HDMI-A-1$,width:1920,height:1080,refresh:60,x:4000,y:560,scale:1"
+            "name:^HDMI-A-1$,width:1920,height:1080,refresh:60,x:4000,y:560,scale:1,disable:1"
           ];
           monitorLayouts = {
             "DP-1" = "center_tile";
-            "DP-2" = "vertical_scroller";
+            "DP-2" = "vertical_deck";
             "HDMI-A-1" = "scroller";
           };
           execOnce = [
             # DP-1
             "sh -c 'sleep 3 && ${myTerminal} --class mango-startup-fileManager -e ${myFileManager}'"
             "sh -c 'sleep 6 && ${myTerminal} --class mango-startup-editor -e ${myEditor}'"
-            "sh -c 'sleep 9 && ${myBrowser} --class=mango-startup-browser'"
+            "sh -c 'sleep 9 && exec ${lib.getExe mangoPlace} DP-1 ^zen-beta$ -- ${myBrowser}'"
 
             # DP-2
-            "sh -c 'sleep 12 && brave --app=https://www.youtube.com --password-store=gnome --class=mango-startup-youtube'"
-            "sh -c 'sleep 15 && ${myTerminal} --class mango-startup-terminal'"
+            "sh -c 'sleep 12 && ${myTerminal} --class mango-startup-terminal'"
+            "sh -c 'sleep 15 && ${pkgs.gtk3}/bin/gtk-launch pwa-youtube'"
             "sh -c 'sleep 18 && flatpak run com.rtosta.zapzap'"
           ];
           windowRules = [
-            "monitor:DP-1,appid:^mango-startup-fileManager$"
-            "monitor:DP-1,appid:^mango-startup-editor$"
-            "monitor:DP-1,appid:^mango-startup-browser$"
-            "monitor:DP-2,appid:^brave-.*\\..*$"
-            "monitor:DP-2,appid:^mango-startup-terminal$"
-            "monitor:DP-2,appid:^com.rtosta.zapzap$"
+            "monitor:^DP-1$,app_id:^mango-startup-fileManager$"
+            "monitor:^DP-1$,app_id:^mango-startup-editor$"
+            "monitor:^DP-2$,app_id:^brave-www\\.youtube\\.com__-Default$"
+            "monitor:^DP-2$,app_id:^mango-startup-terminal$"
+            "monitor:^DP-2$,app_id:^com\\.rtosta\\.zapzap$"
+            "is_floating:1,width:0.8,height:0.8,tags:0,app_id:^scratch-term$"
+            "is_floating:1,width:0.8,height:0.8,tags:0,app_id:^scratch-fs$"
           ];
           extraBinds = [
             "NONE,XF86Tools,viewtoleft_have_client,0"
             "NONE,XF86Launch5,viewtoright_have_client,0"
-            "NONE,XF86Launch6,togglemaximizescreen,"
+            "NONE,XF86Launch6,togglefullscreen,"
             "NONE,XF86Launch7,killclient,"
+            "SUPER+SHIFT,Return,spawn,${lib.getExe mangoScratch} ${myTerminal} --class scratch-term"
+            "SUPER+SHIFT,F,spawn,${lib.getExe mangoScratch} ${myTerminal} --class scratch-fs -e ${myFileManager}"
+            "SUPER+SHIFT,B,spawn,${lib.getExe mangoScratch} ${myBrowser} --new-window"
           ];
         };
 

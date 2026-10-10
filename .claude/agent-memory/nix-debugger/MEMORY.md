@@ -21,3 +21,4 @@
 - [HM sessionVariables leak into all sessions](project_hm_sessionvars_leak_all_sessions.md) - mango's XDG_CURRENT_DESKTOP in home.sessionVariables hits COSMIC/GNOME via fish login shell
 - [HM hyprland uwsm PropagatesStopTo](project_hm_hyprland_uwsm_propagatesstop.md) - HM start-hook `stop hyprland-session.target` now stops graphical-session -> uwsm Hyprland exits RC 0 after 2s
 - [uwsm black screen = graphical.target wait](project_uwsm_graphical_target_flatpak_block.md) - uwsm holds Hyprland until graphical.target; nix-flatpak oneshot Before=graphical.target blocks it during long installs
+- [mango config value 255 truncation](project_mango_config_value_255_truncation.md) - mango silently cuts values >255 chars; long exec_once -> broken sh -c, never runs, mango -p passes

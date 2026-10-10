@@ -18,8 +18,8 @@ nix-tests.runTests {
       helpers.isTrue hm.programs.hyprlock.enable;
     "swaync IS installed — dormant enableOnHyprland must not suppress it" =
       helpers.isTrue hm.services.swaync.enable;
-    "awww wallpaper IS active — hyprlandFallback active" =
-      helpers.isTrue (lib.hasInfix "awww-daemon" execLua);
+    "wallpaper supervisor IS active — hyprlandFallback active" =
+      helpers.isTrue (lib.hasInfix "hyprland-wallpaperd" execLua);
     "waybar-hyprland systemd service present" =
       helpers.isTrue (hm.systemd.user.services ? "waybar-hyprland");
     "Super+Shift+A is no-op not noctalia IPC" =

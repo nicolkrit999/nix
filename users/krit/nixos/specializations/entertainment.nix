@@ -36,10 +36,10 @@ delib.module {
           ${pkgs.brave}/bin/brave &
 
           # Launch YouTube PWA
-          ${pkgs.brave}/bin/brave --app="https://www.youtube.com" --password-store=basic &
+          ${pkgs.brave}/bin/brave --app="https://www.youtube.com" &
 
           # Launch Apple Music PWA
-          ${pkgs.brave}/bin/brave --app="https://music.apple.com/ch/home?l=en" --password-store=basic &
+          ${pkgs.brave}/bin/brave --app="https://music.apple.com/ch/home?l=en" &
 
           # Launch Jellyfin
           ${pkgs.jellyfin-desktop}/bin/jellyfin-desktop &

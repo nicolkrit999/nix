@@ -37,10 +37,10 @@ delib.module {
   nixos.ifEnabled =
     { cfg, myconfig, ... }:
     {
-      # GPG agent for SSH signing
+      # gpg-agent is for GPG only; gcr-ssh-agent is the single SSH agent
       programs.gnupg.agent = {
         enable = true;
-        enableSSHSupport = true;
+        enableSSHSupport = false;
         pinentryPackage = pkgs.pinentry-qt;
       };
 

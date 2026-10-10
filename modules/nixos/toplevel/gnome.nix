@@ -30,7 +30,6 @@ delib.module {
       baobab # Disk usage analyzer
       simple-scan # Document scanner
       gnome-software # Software center
-      seahorse # Password and key manager
       gnome-weather # Weather application
       gnome-text-editor # Text editor
       gnome-system-monitor # System monitor

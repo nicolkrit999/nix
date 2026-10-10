@@ -1,5 +1,5 @@
 # P03 — Hyprland, no shell
-# No custom shell active. Expected: swaync + awww wallpaper + waybar all present,
+# No custom shell active. Expected: swaync + wallpaper supervisor + waybar all present,
 # bind dispatchers are no-op (Super+Shift+A) and loginctl (Super+Delete).
 { nix-tests }:
 let
@@ -18,8 +18,8 @@ nix-tests.runTests {
       helpers.isTrue hm.programs.hyprlock.enable;
     "swaync installed — no shell to suppress it" =
       helpers.isTrue hm.services.swaync.enable;
-    "awww wallpaper active — hyprlandFallback active" =
-      helpers.isTrue (lib.hasInfix "awww-daemon" execLua);
+    "wallpaper supervisor active — hyprlandFallback active" =
+      helpers.isTrue (lib.hasInfix "hyprland-wallpaperd" execLua);
     "waybar-hyprland systemd service present" =
       helpers.isTrue (hm.systemd.user.services ? "waybar-hyprland");
     "Super+Shift+A is a no-op (no shell active)" =

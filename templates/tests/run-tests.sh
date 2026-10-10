@@ -43,6 +43,11 @@ TESTS=(
   "NixOS  · custom-shells         | $NIX_TESTS templates/tests/nixos/test-custom-shells"
   "NixOS  · arch-compat (aarch64) | bash templates/tests/nixos/test-arch-compat/check-nixos-aarch64-compat.sh${FAST:+ $FAST}"
   "NixOS  · wallpapers            | $NIX_TESTS templates/tests/nixos/test-nixos-wallpapers"
+  "NixOS  · mango-option-names    | $NIX_TESTS templates/tests/nixos/test-mango-option-names"
+  "NixOS  · mango-desktop-host    | bash templates/tests/nixos/test-mango-desktop-host/check-nixos-mango-desktop-host.sh"
+  "NixOS  · secret-service        | bash templates/tests/nixos/test-secret-service/check-nixos-secret-service.sh"
+  "NixOS  · mango-ipc-helpers     | bash templates/tests/nixos/test-mango-ipc-helpers/check-nixos-mango-ipc-helpers.sh"
+  "NixOS  · wallpaperd-runtime    | bash templates/tests/nixos/test-wallpaperd-runtime/check-nixos-wallpaperd-runtime.sh"
   "Common · unstable-switch       | bash templates/tests/common/test-unstable-switch-invariants/check-common-unstable-switch.sh"
   "Darwin · minimal-defaults      | bash templates/tests/darwin/test-minimal-defaults/check-darwin-minimal-defaults.sh"
 )

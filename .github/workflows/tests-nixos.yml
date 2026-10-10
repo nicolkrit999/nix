@@ -141,6 +141,31 @@ jobs:
         continue-on-error: true
         run: nix run github:danielefongo/nix-tests --inputs-from . --override-input nixpkgs nixpkgs -- templates/tests/nixos/test-nixos-wallpapers
 
+      - name: "Test: mango-option-names"
+        id: mango-option-names
+        continue-on-error: true
+        run: nix run github:danielefongo/nix-tests --inputs-from . --override-input nixpkgs nixpkgs -- templates/tests/nixos/test-mango-option-names
+
+      - name: "Test: mango-desktop-host"
+        id: mango-desktop-host
+        continue-on-error: true
+        run: bash templates/tests/nixos/test-mango-desktop-host/check-nixos-mango-desktop-host.sh
+
+      - name: "Test: secret-service"
+        id: secret-service
+        continue-on-error: true
+        run: bash templates/tests/nixos/test-secret-service/check-nixos-secret-service.sh
+
+      - name: "Test: mango-ipc-helpers"
+        id: mango-ipc-helpers
+        continue-on-error: true
+        run: bash templates/tests/nixos/test-mango-ipc-helpers/check-nixos-mango-ipc-helpers.sh
+
+      - name: "Test: wallpaperd-runtime"
+        id: wallpaperd-runtime
+        continue-on-error: true
+        run: bash templates/tests/nixos/test-wallpaperd-runtime/check-nixos-wallpaperd-runtime.sh
+
       - name: Summary and notify on failure
         # always() && WEBHOOK_ID: on a fork without secrets the webhook URL is
         # malformed, so this would curl a broken endpoint on every single run.
@@ -159,6 +184,11 @@ jobs:
           SHELLS_OUTCOME: ${{ steps.custom-shells.outcome }}
           ARCH_OUTCOME: ${{ steps.arch-compat.outcome }}
           WALLPAPERS_OUTCOME: ${{ steps.wallpapers.outcome }}
+          MANGO_NAMES_OUTCOME: ${{ steps.mango-option-names.outcome }}
+          MANGO_HOST_OUTCOME: ${{ steps.mango-desktop-host.outcome }}
+          SECRET_SERVICE_OUTCOME: ${{ steps.secret-service.outcome }}
+          MANGO_IPC_OUTCOME: ${{ steps.mango-ipc-helpers.outcome }}
+          WALLPAPERD_OUTCOME: ${{ steps.wallpaperd-runtime.outcome }}
         run: |
 
           FAILED=()
@@ -184,6 +214,11 @@ jobs:
           classify "custom-shells"        "$SHELLS_OUTCOME"
           classify "arch-compat (aarch64)" "$ARCH_OUTCOME"
           classify "wallpapers"           "$WALLPAPERS_OUTCOME"
+          classify "mango-option-names"   "$MANGO_NAMES_OUTCOME"
+          classify "mango-desktop-host"   "$MANGO_HOST_OUTCOME"
+          classify "secret-service"       "$SECRET_SERVICE_OUTCOME"
+          classify "mango-ipc-helpers"    "$MANGO_IPC_OUTCOME"
+          classify "wallpaperd-runtime"   "$WALLPAPERD_OUTCOME"
 
           if [[ ${#SKIPPED[@]} -gt 0 ]]; then
             echo "::warning::${#SKIPPED[@]} test(s) never ran - an earlier step failed: ${SKIPPED[*]}"

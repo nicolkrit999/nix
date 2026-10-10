@@ -16,7 +16,7 @@ delib.module {
           genericName = "Web App";
           comment = "Launch ${name} as a PWA";
 
-          exec = "${pkgs.brave}/bin/brave --app=\"${url}\" --password-store=gnome";
+          exec = "${pkgs.brave}/bin/brave --app=\"${url}\"";
 
           icon = icon;
 

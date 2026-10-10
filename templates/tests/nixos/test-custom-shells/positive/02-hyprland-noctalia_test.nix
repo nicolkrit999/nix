@@ -1,7 +1,7 @@
 # P02 — Hyprland + noctalia active
 # Noctalia is the active shell on Hyprland (rarer combo; Hyprland is the one
 # WM that supports both shells). Expected: noctalia dispatchers, swaync +
-# awww wallpaper suppressed.
+# wallpaper supervisor suppressed.
 { nix-tests }:
 let
   H = import ../shared/eval-scenario.nix;
@@ -19,8 +19,8 @@ nix-tests.runTests {
       helpers.isTrue hm.programs.hyprlock.enable;
     "swaync suppressed — noctalia active on hyprland" =
       helpers.isFalse hm.services.swaync.enable;
-    "awww wallpaper suppressed — noctalia active on hyprland" =
-      helpers.isFalse (lib.hasInfix "awww-daemon" execLua);
+    "wallpaper supervisor suppressed — noctalia active on hyprland" =
+      helpers.isFalse (lib.hasInfix "hyprland-wallpaperd" execLua);
     "Super+Shift+A dispatches to noctalia launcher IPC" =
       helpers.isTrue (builtins.any (b: lib.hasInfix "noctalia-shell ipc call toggleAppLauncher" (H.bindStr b)) binds);
     "Super+Delete dispatches to noctalia lock IPC" =

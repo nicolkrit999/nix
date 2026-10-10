@@ -69,6 +69,7 @@ delib.module {
     programs.helium = {
       enable = true;
       defaultBrowser = false;
+      extraFlags = [ "--password-store=gnome-libsecret" ];
       extensions = [ ];
 
       extraPolicies = {

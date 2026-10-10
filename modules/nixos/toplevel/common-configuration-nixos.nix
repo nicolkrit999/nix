@@ -155,14 +155,23 @@ delib.module {
       '';
 
       # Keyrings & Wallets
-      # Globally enable GNOME Keyring
+      # gnome-keyring is the ONLY Secret Service provider, unlocked via PAM.
+      # See Documentation/usage/gotchas/secret-service-single-provider.md
       services.gnome.gnome-keyring.enable = true;
+
+      # gcr-ssh-agent is the only SSH agent (gpg-agent SSH support is off)
+      services.gnome.gcr-ssh-agent.enable = true;
+      environment.extraInit = ''
+        if [ -z "$SSH_AUTH_SOCK" ] && [ -n "$XDG_RUNTIME_DIR" ]; then
+          export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
+        fi
+      '';
 
       security.pam.services.login.enableGnomeKeyring = true;
       security.pam.services.sddm.enableGnomeKeyring = true;
-      security.pam.services.login.enableKwallet = lib.mkForce false;
-      security.pam.services.kde.enableKwallet = lib.mkForce false;
-      security.pam.services.sddm.enableKwallet = lib.mkForce false;
+      security.pam.services.login.kwallet.enable = lib.mkForce false;
+      security.pam.services.kde.kwallet.enable = lib.mkForce false;
+      security.pam.services.sddm.kwallet.enable = lib.mkForce false;
 
       programs.ssh.askPassword = lib.mkForce "${pkgs.seahorse}/libexec/seahorse/ssh-askpass";
 

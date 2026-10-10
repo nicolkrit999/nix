@@ -25,7 +25,7 @@ delib.module {
         .notification-row .notification-background { min-width: 30em; }
 
         /* 2. CONTROL CENTER (Sidebar) */
-        .control-center { min-width: 15%; }
+        .control-center { min-width: 24em; }
 
         /* 3. TEXT SIZING */
         .notification-content .summary { font-size: 1.5rem; font-weight: bold; }

@@ -6,9 +6,9 @@ delib.module {
   nixos.ifEnabled = {
     nixpkgs.overlays = [ inputs.antigravity-nix.overlays.default ];
     environment.systemPackages = [
-      (pkgs.google-antigravity-no-fhs.override {
+      (pkgs.passwordStoreWrap (pkgs.google-antigravity-no-fhs.override {
         useUserProfile = true;
-      })
+      }))
       pkgs.google-chrome
     ];
   };

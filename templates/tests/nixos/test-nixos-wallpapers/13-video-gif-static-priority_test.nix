@@ -1,41 +1,34 @@
-# W13 - x86_64, wallpaperURL + gifURL + videoURL all set, skwdWall disabled
-# Full priority chain: video > gif > static. Expected: WMs dispatch the VIDEO
-# via mpvpaper, never the gif or static path.
+# W13 - x86_64, wallpaperURL + gifURL + videoURL all set on "*", skwdWall disabled
+# Full priority chain: video > gif > static. Every WM gets one "*=video:" spec
+# with the video, never the gif or static path, and no awww-daemon.
 { nix-tests }:
 let
   H = import ./shared/eval-scenario.nix;
+  E = H.expect;
   lib = H.lib;
   config = H.getConfig ./13-video-gif-static-priority H.nixosExtraX86;
   hm = H.getHm config;
 
-  # fetchurl derives the store path suffix from the URL's basename, not the sha256.
   videoFile = "loop.mp4";
   gifFile = "may_chill.gif";
 
   gnomeBgUri = hm.dconf.settings."org/gnome/desktop/background".picture-uri or "";
 in
 nix-tests.runTests {
-  "W13: x86_64 video+gif+static wallpaper, skwdWall disabled" = helpers: {
-    "hyprland exec contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL (video wins over gif+static)" =
-      helpers.isTrue (H.hyprExecHas "mpvpaper -f -o \\\"loop mute=yes panscan=1.0\\\" ALL" config);
-    "hyprland exec contains video filename" =
-      helpers.isTrue (H.hyprExecHas videoFile config);
-    "hyprland exec does NOT contain gif filename (video beats gif)" =
-      helpers.isFalse (H.hyprExecHas gifFile config);
-    "hyprland exec does NOT contain awww img" =
-      helpers.isFalse (H.hyprExecHas "awww img" config);
-    "mango exec contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" =
-      helpers.isTrue (H.mangoExecHas "mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" config);
-    "mango exec does NOT contain gif filename" =
-      helpers.isFalse (H.mangoExecHas gifFile config);
-    "niri spawn contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" =
-      helpers.isTrue (H.niriSpawnHas "mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" config);
-    "niri spawn does NOT contain gif filename" =
-      helpers.isFalse (H.niriSpawnHas gifFile config);
-    # GNOME/KDE always use the static wallpaperURL regardless of gif/video
-    "gnome dconf background picture-uri references a store path" =
-      helpers.isTrue (lib.hasPrefix "file:///nix/store/" (builtins.toString gnomeBgUri));
-    "kde plasma wallpaper list is non-empty" =
-      helpers.isTrue (builtins.length hm.programs.plasma.workspace.wallpaper > 0);
-  };
+  "W13: x86_64 video+gif+static wallpaper, skwdWall disabled" = helpers:
+    H.perWm helpers config [
+      E.supervisor
+      E.noDaemon
+      (E.spec "*=video: (video wins over gif+static)" "*=video:")
+      (E.spec "video filename" videoFile)
+      (E.noSpec "gif filename (video beats gif)" gifFile)
+      (E.noSpec "image entry" "=image:")
+      E.noDirectAwww
+    ]
+    // {
+      "gnome dconf background picture-uri references a store path" =
+        helpers.isTrue (lib.hasPrefix "file:///nix/store/" (builtins.toString gnomeBgUri));
+      "kde plasma wallpaper list is non-empty" =
+        helpers.isTrue (builtins.length hm.programs.plasma.workspace.wallpaper > 0);
+    };
 }

@@ -1,25 +1,19 @@
-# W15 - named monitor generates the explicit -o flag in mpvpaper commands
-# too (not just awww). Mirror of W09 but for the video/mpvpaper dispatch path.
+# W15 - declared-only video: DP-1=video: spec, no "*" entry, no awww-daemon.
+# Mirror of W09 for the video path.
 { nix-tests }:
 let
   H = import ./shared/eval-scenario.nix;
+  E = H.expect;
   config = H.getConfig ./15-named-monitor-video H.nixosExtraX86;
 in
 nix-tests.runTests {
-  "W15: named monitor generates -o DP-1 in mpvpaper commands" = helpers: {
-    "hyprland exec contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" DP-1 for named monitor" =
-      helpers.isTrue (H.hyprExecHas "mpvpaper -f -o \\\"loop mute=yes panscan=1.0\\\" DP-1" config);
-    "hyprland exec does NOT contain mpvpaper -f -o \"loop mute=yes panscan=1.0\" ALL" =
-      helpers.isFalse (H.hyprExecHas "mpvpaper -f -o \\\"loop mute=yes panscan=1.0\\\" ALL" config);
-    "hyprland exec does NOT contain awww img" =
-      helpers.isFalse (H.hyprExecHas "awww img" config);
-    "mango exec contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" DP-1 for named monitor" =
-      helpers.isTrue (H.mangoExecHas "mpvpaper -f -o \"loop mute=yes panscan=1.0\" DP-1" config);
-    "mango exec does NOT contain awww img" =
-      helpers.isFalse (H.mangoExecHas "awww img" config);
-    "niri spawn contains mpvpaper -f -o \"loop mute=yes panscan=1.0\" DP-1 for named monitor" =
-      helpers.isTrue (H.niriSpawnHas "mpvpaper -f -o \"loop mute=yes panscan=1.0\" DP-1" config);
-    "niri spawn does NOT contain awww img" =
-      helpers.isFalse (H.niriSpawnHas "awww img" config);
-  };
+  "W15: named monitor generates a DP-1=video: spec, no fallback" = helpers:
+    H.perWm helpers config [
+      E.supervisor
+      E.noDaemon
+      (E.spec "DP-1=video:" "DP-1=video:")
+      (E.noSpec "wildcard fallback entry" "*=")
+      (E.noSpec "image entry" "=image:")
+      E.noDirectMpv
+    ];
 }

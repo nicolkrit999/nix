@@ -110,8 +110,8 @@ let
 
   # Extract mango exec list as a flat space-joined string for substring search.
   getMangoExecStr = config:
-    let hm = getHm config;
-    in lib.concatStringsSep " " hm.wayland.windowManager.mango.settings.exec;
+    let s = (getHm config).wayland.windowManager.mango.settings;
+    in lib.concatStringsSep " " ((s.exec or [ ]) ++ (s.exec_once or [ ]));
 
   mangoExecHas = substr: config:
     lib.hasInfix substr (getMangoExecStr config);
@@ -125,6 +125,49 @@ let
 
   niriSpawnHas = substr: config:
     lib.hasInfix substr (getNiriSpawnStr config);
+
+  # Per-WM accessors: flat startup string and substring predicate.
+  wmStr = {
+    hyprland = getHyprExecLua;
+    mango = getMangoExecStr;
+    niri = getNiriSpawnStr;
+  };
+  wmHas = {
+    hyprland = hyprExecHas;
+    mango = mangoExecHas;
+    niri = niriSpawnHas;
+  };
+
+  # Occurrences of `needle` in the WM's startup string.
+  wmCount = wm: needle: config:
+    builtins.length (lib.splitString needle (wmStr.${wm} config)) - 1;
+
+  # Expand expectations into one check per WM (hyprland, mango, niri).
+  # Each expectation: { label; s = substring | (wm: substring); want = bool; }
+  perWm = helpers: config: expectations:
+    lib.listToAttrs (lib.concatMap
+      (wm: map
+        (e:
+          let needle = if builtins.isFunction e.s then e.s wm else e.s; in
+          {
+            name = "${wm}: ${e.label}";
+            value = (if e.want then helpers.isTrue else helpers.isFalse)
+              (wmHas.${wm} needle config);
+          })
+        expectations)
+      (builtins.attrNames wmHas));
+
+  # Reusable expectations for perWm.
+  expect = {
+    supervisor = { label = "runs its own <wm>-wallpaperd supervisor"; s = wm: "${wm}-wallpaperd"; want = true; };
+    noSupervisor = { label = "has no wallpaperd supervisor"; s = "-wallpaperd"; want = false; };
+    daemon = { label = "starts awww-daemon --no-cache (a still image is used)"; s = "awww-daemon --no-cache"; want = true; };
+    noDaemon = { label = "does NOT start awww-daemon (no still image)"; s = "awww-daemon"; want = false; };
+    noDirectAwww = { label = "has no direct awww img call (supervisor owns it)"; s = "awww img"; want = false; };
+    noDirectMpv = { label = "has no direct mpvpaper call (supervisor owns it)"; s = "mpvpaper"; want = false; };
+    spec = label: s: { label = "spec contains ${label}"; inherit s; want = true; };
+    noSpec = label: s: { label = "spec has no ${label}"; inherit s; want = false; };
+  };
 
   # Check whether a package name appears in home.packages.
   hmHasPkg = pkgName: config:
@@ -151,6 +194,7 @@ in
   inherit getHyprExecLua hyprExecHas;
   inherit getMangoExecStr mangoExecHas;
   inherit getNiriSpawnStr niriSpawnHas;
+  inherit wmStr wmHas wmCount perWm expect;
   inherit hmHasPkg;
   inherit skwdDeckEnabled kdeWallpaperCustomPlugin;
 }

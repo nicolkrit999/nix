@@ -18,7 +18,7 @@ delib.module {
           { id = "icpgjfneehieebagbmdbhnlpiopdcmna"; } # New Tab Redirect (Custom URL)
         ];
 
-        commandLineArgs = [ "--enable-features=UseOzonePlatform" ];
+        commandLineArgs = [ "--enable-features=UseOzonePlatform" "--password-store=gnome-libsecret" ];
       };
     };
 }

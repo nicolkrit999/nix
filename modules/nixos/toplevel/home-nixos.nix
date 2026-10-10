@@ -64,14 +64,24 @@ delib.module {
               </Menu>
             '';
 
-            dataFile."dbus-1/services/org.kde.kwalletd5.service".text = ''
-              [D-BUS Service]
-              Name=org.kde.kwalletd5
-              Exec=${pkgs.coreutils}/bin/false
-            '';
+            # kwalletd6 and org.kde.kwalletd5 are deliberately NOT stubbed:
+            # kwallet 6.30 ships kwalletd5.service as Exec=kwalletd6, the
+            # frontend into gnome-keyring. Stubbed here: the ksecretd entry
+            # points (secretservicecompat, portal kwallet) and the legacy
+            # org.kde.kwalletd name (no package ships it; guard only).
             dataFile."dbus-1/services/org.kde.kwalletd.service".text = ''
               [D-BUS Service]
               Name=org.kde.kwalletd
+              Exec=${pkgs.coreutils}/bin/false
+            '';
+            dataFile."dbus-1/services/org.kde.secretservicecompat.service".text = ''
+              [D-BUS Service]
+              Name=org.kde.secretservicecompat
+              Exec=${pkgs.coreutils}/bin/false
+            '';
+            dataFile."dbus-1/services/org.freedesktop.impl.portal.desktop.kwallet.service".text = ''
+              [D-BUS Service]
+              Name=org.freedesktop.impl.portal.desktop.kwallet
               Exec=${pkgs.coreutils}/bin/false
             '';
           };

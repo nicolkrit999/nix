@@ -610,7 +610,7 @@ delib.module {
                 name = name;
                 genericName = "School Web App";
                 comment = "Launch ${name}";
-                exec = "brave-school --app=\"${url}\" --password-store=basic";
+                exec = "brave-school --app=\"${url}\"";
                 icon = icon;
                 settings = {
                   StartupWMClass = startupClass;

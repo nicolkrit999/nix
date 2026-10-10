@@ -47,8 +47,32 @@ delib.module {
       # Skip idle actions while Nix is rebuilding
       busyGuard = "pgrep -f 'nix.build|nix.flake.check|nh.os|nixos-rebuild' > /dev/null && exit 0";
 
-      dpmsOff = "if pgrep -x Hyprland > /dev/null; then hyprctl dispatch 'hl.dsp.dpms({ action = \"off\" })'; elif pgrep -x niri > /dev/null; then niri msg action power-off-monitors; elif pgrep -x mango > /dev/null; then ${pkgs.wlopm}/bin/wlopm --off '*'; fi";
-      dpmsOn = "if pgrep -x Hyprland > /dev/null; then hyprctl dispatch 'hl.dsp.dpms({ action = \"on\" })'; elif pgrep -x niri > /dev/null; then niri msg action power-on-monitors; elif pgrep -x mango > /dev/null; then ${pkgs.wlopm}/bin/wlopm --on '*'; fi";
+      mangoDpms = pkgs.writeShellApplication {
+        name = "mango-dpms";
+        runtimeInputs = [ pkgs.wlopm pkgs.gawk pkgs.coreutils ];
+        text = ''
+          rec="''${XDG_RUNTIME_DIR:-/tmp}/mango-dpms-''${WAYLAND_DISPLAY:-wayland-0}"
+          case ''${1:-} in
+            off)
+              { cat "$rec" 2>/dev/null || true; wlopm | awk '$2 == "on" { print $1 }'; } | sort -u > "$rec.new"
+              mv "$rec.new" "$rec"
+              while read -r o; do wlopm --off "$o"; done < "$rec"
+              ;;
+            on)
+              if [[ -s $rec ]]; then
+                while read -r o; do wlopm --on "$o"; done < "$rec"
+              fi
+              rm -f "$rec"
+              ;;
+            *)
+              exit 2
+              ;;
+          esac
+        '';
+      };
+
+      dpmsOff = "if pgrep -x Hyprland > /dev/null; then hyprctl dispatch 'hl.dsp.dpms({ action = \"off\" })'; elif pgrep -x niri > /dev/null; then niri msg action power-off-monitors; elif pgrep -x mango > /dev/null; then ${lib.getExe mangoDpms} off; fi";
+      dpmsOn = "if pgrep -x Hyprland > /dev/null; then hyprctl dispatch 'hl.dsp.dpms({ action = \"on\" })'; elif pgrep -x niri > /dev/null; then niri msg action power-on-monitors; elif pgrep -x mango > /dev/null; then ${lib.getExe mangoDpms} on; fi";
     in
 
 

@@ -1,6 +1,5 @@
 { delib
 , lib
-, pkgs
 , ...
 }:
 let
@@ -18,24 +17,6 @@ let
   hyprDesc = m: "desc:${m.make} ${m.model} ${m.serial}";
 
   niriKey = m: "${m.make} ${m.model} ${m.serial}";
-
-  resolveMonitorBySerial = pkgs.writeShellScript "resolve-monitor-by-serial" ''
-    set -euo pipefail
-    serial="$1"
-    if command -v niri >/dev/null 2>&1 && niri msg -j outputs >/dev/null 2>&1; then
-      niri msg -j outputs \
-        | ${pkgs.jq}/bin/jq -r --arg s "$serial" \
-            'to_entries[] | select(.value.serial == $s) | .key' \
-        | head -n1
-    elif command -v hyprctl >/dev/null 2>&1 && hyprctl monitors -j >/dev/null 2>&1; then
-      hyprctl monitors -j \
-        | ${pkgs.jq}/bin/jq -r --arg s "$serial" \
-            '.[] | select(.serial == $s) | .name' \
-        | head -n1
-    fi
-  '';
-
-  monitorBySerial = m: "$(${resolveMonitorBySerial} ${m.serial})";
 in
 delib.module {
   name = "krit.specializations.home";
@@ -60,12 +41,12 @@ delib.module {
           wallpaperSHA256 = "0lmjfz4zng97xzbcnxwx9aqciznxcdhj5n3dnifj7jp40xm2s7qk";
         }
         {
-          targetMonitor = monitorBySerial lg;
+          targetMonitor = hyprDesc lg;
           wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/switch_swirl.jpg";
           wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
         }
         {
-          targetMonitor = monitorBySerial asus;
+          targetMonitor = hyprDesc asus;
           wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/1%20rain_world.png";
           wallpaperSHA256 = "0lmjfz4zng97xzbcnxwx9aqciznxcdhj5n3dnifj7jp40xm2s7qk";
         }

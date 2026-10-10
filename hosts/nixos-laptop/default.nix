@@ -225,7 +225,6 @@ delib.host {
         fastfetch.enable = true;
         fzf.enable = true;
         fzf.nix-search-tv.enable = false;
-        gnome-keyring.enable = true;
         google-antigravity.enable = false;
         lazygit.enable = true;
         nix-alien.enable = false;
@@ -736,7 +735,7 @@ delib.host {
           extraBinds = [
             "NONE,XF86Tools,viewtoleft_have_client,0"
             "NONE,XF86Launch5,viewtoright_have_client,0"
-            "NONE,XF86Launch6,togglemaximizescreen,"
+            "NONE,XF86Launch6,togglefullscreen,"
             "NONE,XF86Launch7,killclient,"
           ];
         };

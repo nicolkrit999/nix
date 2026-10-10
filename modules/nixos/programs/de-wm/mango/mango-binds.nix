@@ -33,6 +33,64 @@ delib.module {
 
       screenshotsDir = myconfig.constants.screenshots;
 
+      mangoScreenshot = pkgs.writeShellApplication {
+        name = "mango-screenshot";
+        runtimeInputs = [ pkgs.grim pkgs.slurp pkgs.wl-clipboard pkgs.libnotify pkgs.jq pkgs.coreutils ];
+        text = ''
+          mkdir -p "${screenshotsDir}"
+          stamp=$(date +%Y%m%d-%H%M%S)
+          case ''${1:-output} in
+            area)
+              region=$(slurp) || exit 0
+              f="${screenshotsDir}/area-$stamp.png"
+              grim -g "$region" "$f"
+              ;;
+            *)
+              out=$(mmsg get all-monitors | jq -r '[.monitors[] | select(.active) | .name][0] // empty')
+              f="${screenshotsDir}/screenshot-$stamp.png"
+              if [[ -n $out ]]; then grim -o "$out" "$f"; else grim "$f"; fi
+              ;;
+          esac
+          wl-copy < "$f"
+          notify-send "Screenshot" "Saved $f"
+        '';
+      };
+
+      mangoPip = pkgs.writeShellApplication {
+        name = "mango-pip";
+        runtimeInputs = [ pkgs.jq pkgs.coreutils ];
+        text = ''
+          q() { mmsg get focusing-client | jq -r "$1" 2>/dev/null || echo null; }
+
+          id=$(q '.id | tostring')
+          if [[ $id == null ]]; then exit 0; fi
+          dir="''${XDG_RUNTIME_DIR:-/tmp}/mango-pip"
+          mkdir -p "$dir"
+
+          if [[ $(q '.is_global | tostring') == true ]]; then
+            mmsg dispatch toggleglobal
+            if [[ -e $dir/$id ]]; then
+              rm -f "$dir/$id"
+            elif [[ $(q '.is_floating | tostring') == true ]]; then
+              mmsg dispatch togglefloating
+            fi
+            exit 0
+          fi
+
+          floating=$(q '.is_floating | tostring')
+          if [[ $floating == null ]]; then exit 0; fi
+          if [[ $floating == false ]]; then
+            mmsg dispatch togglefloating
+          else
+            touch "$dir/$id"
+          fi
+          if [[ $(q '.is_floating | tostring') == true ]]; then
+            mmsg dispatch resizewin,800,450
+            mmsg dispatch toggleglobal
+          fi
+        '';
+      };
+
       noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
       noctaliaActiveOnMango =
@@ -52,6 +110,15 @@ delib.module {
         else
           "SUPER,Delete,spawn,loginctl lock-session";
 
+      mediaSymBinds =
+        if noctaliaActiveOnMango then [
+          "NONE,XF86AudioPause,spawn,playerctl play-pause"
+          "NONE,XF86AudioPlay,spawn,playerctl play-pause"
+        ] else [
+          "NONE,XF86AudioPause,spawn,swayosd-client --playerctl play-pause"
+          "NONE,XF86AudioPlay,spawn,swayosd-client --playerctl play-pause"
+        ];
+
       mediaBinds =
         if noctaliaActiveOnMango then [
           "SUPER,BracketRight,spawn,brightnessctl set 5%+"
@@ -65,8 +132,6 @@ delib.module {
           "NONE,XF86KbdBrightnessUp,spawn,brightnessctl --device='*::kbd_backlight' set +10%"
           "NONE,XF86KbdBrightnessDown,spawn,brightnessctl --device='*::kbd_backlight' set 10%-"
           "NONE,XF86AudioNext,spawn,playerctl next"
-          "NONE,XF86AudioPause,spawn,playerctl play-pause"
-          "NONE,XF86AudioPlay,spawn,playerctl play-pause"
           "NONE,XF86AudioPrev,spawn,playerctl previous"
           "NONE,XF86AudioStop,spawn,playerctl stop"
         ] else [
@@ -81,8 +146,6 @@ delib.module {
           "NONE,XF86KbdBrightnessUp,spawn,swayosd-client --keyboard-brightness raise"
           "NONE,XF86KbdBrightnessDown,spawn,swayosd-client --keyboard-brightness lower"
           "NONE,XF86AudioNext,spawn,swayosd-client --playerctl next"
-          "NONE,XF86AudioPause,spawn,swayosd-client --playerctl play-pause"
-          "NONE,XF86AudioPlay,spawn,swayosd-client --playerctl play-pause"
           "NONE,XF86AudioPrev,spawn,swayosd-client --playerctl previous"
           "NONE,XF86AudioStop,spawn,swayosd-client --playerctl stop"
           "NONE,Caps_Lock,spawn,swayosd-client --caps-lock"
@@ -106,25 +169,27 @@ delib.module {
         "SUPER,M,togglefullscreen,"
         "SUPER,Space,togglefloating,"
         "SUPER,G,toggleglobal,"
+        "SUPER+ALT,P,toggleglobal,"
+        "SUPER,P,spawn,${lib.getExe mangoPip}"
         "SUPER,O,toggleoverview,"
         "SUPER,I,minimized,"
         "SUPER+SHIFT,I,restore_minimized"
         "SUPER+SHIFT,R,reload_config"
         "SUPER+ALT,N,switch_layout"
-        "SUPER,T,setlayout,tile"
-        "SUPER,S,setlayout,scroller"
+        "SUPER,T,dwindle_toggle_current_split"
+        "SUPER+ALT,T,setlayout,tile"
+        "SUPER,S,toggle_special_tag"
+        "SUPER+SHIFT,S,tag_special_tag"
+        "SUPER+ALT,S,setlayout,scroller"
 
         "SUPER+ALT,W,spawn,pkill -SIGUSR2 waybar"
         "SUPER+SHIFT,W,spawn,pkill -x -SIGUSR1 waybar"
 
-        "ALT,Tab,toggleoverview,"
-        "ALT,backslash,togglefloating,"
-        "ALT,a,togglemaximizescreen,"
-        "ALT,f,togglefullscreen,"
-        "ALT+SHIFT,f,togglefakefullscreen,"
-        "ALT,z,toggle_scratchpad"
-        "ALT,e,set_proportion,1.0"
-        "ALT,x,switch_proportion_preset,"
+        "SUPER+ALT,A,togglemaximizescreen,"
+        "SUPER+ALT,F,togglefakefullscreen,"
+        "SUPER+ALT,Z,toggle_scratchpad"
+        "SUPER+ALT,E,set_proportion,1.0"
+        "SUPER+ALT,X,switch_proportion_preset,next"
 
         "SUPER,Tab,focusstack,next"
         "SUPER,Left,focusdir,left"
@@ -155,18 +220,30 @@ delib.module {
         "SUPER,8,view,8,0"
         "SUPER,9,view,9,0"
 
-        "SUPER+SHIFT,1,tag,1,0"
-        "SUPER+SHIFT,2,tag,2,0"
-        "SUPER+SHIFT,3,tag,3,0"
-        "SUPER+SHIFT,4,tag,4,0"
-        "SUPER+SHIFT,5,tag,5,0"
-        "SUPER+SHIFT,6,tag,6,0"
-        "SUPER+SHIFT,7,tag,7,0"
-        "SUPER+SHIFT,8,tag,8,0"
-        "SUPER+SHIFT,9,tag,9,0"
+        "SUPER+SHIFT,1,tagsilent,1"
+        "SUPER+SHIFT,2,tagsilent,2"
+        "SUPER+SHIFT,3,tagsilent,3"
+        "SUPER+SHIFT,4,tagsilent,4"
+        "SUPER+SHIFT,5,tagsilent,5"
+        "SUPER+SHIFT,6,tagsilent,6"
+        "SUPER+SHIFT,7,tagsilent,7"
+        "SUPER+SHIFT,8,tagsilent,8"
+        "SUPER+SHIFT,9,tagsilent,9"
 
-        "SUPER+CTRL,Left,focusmon,left"
-        "SUPER+CTRL,Right,focusmon,right"
+        "SUPER+ALT,1,tag,1,0"
+        "SUPER+ALT,2,tag,2,0"
+        "SUPER+ALT,3,tag,3,0"
+        "SUPER+ALT,4,tag,4,0"
+        "SUPER+ALT,5,tag,5,0"
+        "SUPER+ALT,6,tag,6,0"
+        "SUPER+ALT,7,tag,7,0"
+        "SUPER+ALT,8,tag,8,0"
+        "SUPER+ALT,9,tag,9,0"
+
+        "SUPER+CTRL,Left,resizewin,-60,+0"
+        "SUPER+CTRL,Right,resizewin,+60,+0"
+        "SUPER+CTRL,Up,resizewin,+0,-60"
+        "SUPER+CTRL,Down,resizewin,+0,+60"
         "SUPER+CTRL,H,focusmon,left"
         "SUPER+CTRL,L,focusmon,right"
         "SUPER+ALT,Left,tagmon,left"
@@ -178,25 +255,19 @@ delib.module {
         "SUPER,minus,incgaps,-1"
         "SUPER+SHIFT,G,togglegaps"
 
-        "CTRL+SHIFT,Up,movewin,+0,-50"
-        "CTRL+SHIFT,Down,movewin,+0,+50"
-        "CTRL+SHIFT,Left,movewin,-50,+0"
-        "CTRL+SHIFT,Right,movewin,+50,+0"
+        "SUPER+CTRL+SHIFT,Up,movewin,+0,-50"
+        "SUPER+CTRL+SHIFT,Down,movewin,+0,+50"
+        "SUPER+CTRL+SHIFT,Left,movewin,-50,+0"
+        "SUPER+CTRL+SHIFT,Right,movewin,+50,+0"
 
-        "CTRL+ALT,Up,resizewin,+0,-50"
-        "CTRL+ALT,Down,resizewin,+0,+50"
-        "CTRL+ALT,Left,resizewin,-50,+0"
-        "CTRL+ALT,Right,resizewin,+50,+0"
-
-        "NONE,Print,spawn,sh -c 'mkdir -p ${screenshotsDir} && f=${screenshotsDir}/screenshot-$(date +%Y%m%d-%H%M%S).png && grim \"$f\" && wl-copy < \"$f\" && notify-send \"Screenshot\" \"Saved $f\"'"
-        "SUPER+CTRL,3,spawn,sh -c 'mkdir -p ${screenshotsDir} && f=${screenshotsDir}/screenshot-$(date +%Y%m%d-%H%M%S).png && grim \"$f\" && wl-copy < \"$f\" && notify-send \"Screenshot\" \"Saved $f\"'"
-        "SUPER+CTRL,4,spawn,sh -c 'mkdir -p ${screenshotsDir} && f=${screenshotsDir}/area-$(date +%Y%m%d-%H%M%S).png && grim -g \"$(slurp)\" \"$f\" && wl-copy < \"$f\" && notify-send \"Screenshot\" \"Saved $f\"'"
-      ] ++ mediaBinds;
+        "NONE,Print,spawn,${lib.getExe mangoScreenshot} output"
+        "SUPER+CTRL,3,spawn,${lib.getExe mangoScreenshot} output"
+        "SUPER+CTRL,4,spawn,${lib.getExe mangoScreenshot} area"
+      ];
 
       baseMouseBinds = [
         "SUPER,btn_left,moveresize,curmove"
         "SUPER,btn_right,moveresize,curresize"
-        "NONE,btn_middle,togglemaximizescreen,0"
       ];
 
       baseAxisBinds = [
@@ -215,14 +286,14 @@ delib.module {
         fallback ++ perMonitor;
 
       baseGestureBinds = [
-        "none,left,3,focusdir,left"
-        "none,right,3,focusdir,right"
-        "none,up,3,focusdir,up"
-        "none,down,3,focusdir,down"
-        "none,left,4,viewtoleft_have_client"
-        "none,right,4,viewtoright_have_client"
-        "none,up,4,toggleoverview"
-        "none,down,4,toggleoverview"
+        "none,left,3,viewtoright_have_client"
+        "none,right,3,viewtoleft_have_client"
+        "none,up,3,togglefullscreen"
+        "none,down,3,killclient"
+        "none,left,4,viewtoright_have_client"
+        "none,right,4,viewtoleft_have_client"
+        "none,up,4,spawn,vicinae toggle"
+        "none,down,4,toggle_special_tag"
       ];
 
       baseLayerRules = [
@@ -235,11 +306,13 @@ delib.module {
     {
       wayland.windowManager.mango.settings = {
         bind = baseBinds ++ cfg.extraBinds;
+        bindl = mediaBinds;
+        bindsl = mediaSymBinds;
         mousebind = baseMouseBinds ++ cfg.extraMouseBinds;
         axisbind = baseAxisBinds ++ cfg.extraAxisBinds;
         gesturebind = baseGestureBinds;
-        tagrule = tagRules;
-        layerrule = baseLayerRules ++ cfg.extraLayerRules;
+        tag_rule = tagRules;
+        layer_rule = baseLayerRules ++ cfg.extraLayerRules;
       };
     };
 }

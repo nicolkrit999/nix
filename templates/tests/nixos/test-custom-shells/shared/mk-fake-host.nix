@@ -25,7 +25,7 @@ delib.host {
   homeManagerSystem = "x86_64-linux";
 
   myconfig = _: {
-    constants = import ./base-constants.nix;
+    constants = (import ./base-constants.nix) // { wallpapers = spec.wallpapers or [ ]; };
 
     programs = {
       hyprland.enable = wm.hyprland or false;

@@ -45,6 +45,9 @@ A base16 colorscheme is chosen per host. The user can also enable Catppuccin (wh
 Wallpapers are host-specific and tied to the monitor list. They apply automatically in all desktop environments and windows managers (except cosmic, currently not working).
 
 - First monitor → first wallpaper, second monitor → second wallpaper, etc
+- An entry targeted at `*` is a fallback: it applies only to outputs without their own entry, including monitors hot-plugged later that the host file does not declare. It never stacks under a declared monitor, and mirrored or disabled outputs get no wallpaper.
+- On Hyprland, niri and MangoWM one supervisor (`<wm>-wallpaperd`) owns all wallpaper processes: it reconciles on output changes, retries failed starts, restarts a crashed `mpvpaper`, and reconnects if the compositor event stream drops without killing running wallpapers. A second instance exits immediately (lock).
+- The supervisor is not a denix module and has no enable toggle. It lives in `modules/nixos/programs/de-wm/wallpaperd/` (`mk-wallpaperd.nix` turns the `wallpapers` list into per-output `OUTPUT=video|image:/nix/store/...` arguments and packages `wallpaperd.sh` with only the tools it needs). That folder is excluded from denix auto-discovery in `flake.nix`; `hyprland-main.nix`, `niri-main.nix` and `mango-main.nix` import it directly, so it runs whenever one of those WMs is enabled. It starts nothing when `skwdWall` is enabled, when a shell owns the wallpaper (caelestia/noctalia on Hyprland, noctalia on niri/MangoWM), or when the `wallpapers` list is empty.
 - In KDE Plasma the "primary" monitor takes the first wallpaper - if you change the primary monitor in System Settings, it will get the first wallpaper.
 - GNOME always uses this declarative static-per-monitor setup, regardless of the `skwdWall` toggle below - Mutter has no wlr-layer-shell support, so skwd-wall cannot render there.
 - Enabling `programs.skwdWall` installs and enables [skwd-wall](https://github.com/liixini/skwd-wall)/skwd-deck, a GUI-driven wallpaper daemon supporting per-monitor wallpaper types (static/gif/video/Wallpaper Engine scenes, mixed across monitors) with live hotplug persistence. When enabled, it takes over Hyprland, niri, MangoWM, and KDE Plasma completely - the declarative `wallpapers` setup below is fully disabled on those four, and whatever is chosen in skwd-wall's UI applies unconditionally to any present and future window manager among them. skwd-wall is x86_64-linux only; its per-monitor state (`outputs.json`, `monitors.json`, etc.) is owned entirely by its own daemon and is never touched by Nix.
@@ -55,10 +58,10 @@ On the wlroots WMs (Hyprland, niri, MangoWM) each `wallpapers` entry can set `wa
 
 Two different tools render the result, split by content type rather than one tool doing everything:
 
-- **`mpvpaper`** plays `videoURL` and `gifURL` entries (`isAnimated = true`). It's an mpv wrapper, so it's the correct tool for anything with frames to decode/loop.
+- **`mpvpaper`** plays `videoURL` and `gifURL` entries (kind `video` in `mk-wallpaperd.nix`), with `loop mute=yes panscan=1.0`. It's an mpv wrapper, so it's the correct tool for anything with frames to decode/loop.
 - **`awww`** plays `wallpaperURL` (static-only) entries.
 
-**Why not just use mpvpaper for everything, including static images?** It technically can render a still image, but doing so hits [mpvpaper upstream issue #82](https://github.com/GhostNaN/mpvpaper/issues/82): with no next frame to advance to, mpv's render loop spins and pins a CPU core indefinitely. It's a bug, not a missing feature - but it makes mpvpaper the wrong choice for static content specifically. `awww` has no such issue and is purpose-built for static wallpapers, so both packages stay installed side by side and dispatch picks the engine per-entry based on which URL field is set.
+**Why not just use mpvpaper for everything, including static images?** It technically can render a still image, but doing so hits [mpvpaper upstream issue #82](https://github.com/GhostNaN/mpvpaper/issues/82): with no next frame to advance to, mpv's render loop spins and pins a CPU core indefinitely. It's a bug, not a missing feature - but it makes mpvpaper the wrong choice for static content specifically. `awww` has no such issue and is purpose-built for static wallpapers, so both stay available and the engine is picked per entry based on which URL field is set. `awww-daemon` is only started when at least one entry is a still image.
 
 Practical implication: only add a `videoURL`/`gifURL` to an entry when you actually want animated/video content there - leaving both empty is what keeps an entry on the `awww` static path.
 
@@ -155,6 +158,16 @@ Choose a shell per host: `bash`, `zsh`, or `fish`.
 - Enable snapshots with a host-specific retention policy.
 - Only available if installed using BTRFS filesystems.
 - Neither the filesystem nor the snapshots module are mandatory - if you use a different filesystem, keep the variable `false` or remove the module entirely.
+
+---
+
+## Single Secret Service Provider
+
+- gnome-keyring is the only `org.freedesktop.secrets` provider on every host and in every DE/WM session, unlocked at login through PAM (login and sddm). In the guest specialisation the keyring is started but stays locked, since autologin has no password; the guest gets one new-keyring password prompt per boot.
+- KWallet is not a second store: `kwalletd6` runs only as a compatibility frontend into gnome-keyring, `ksecretd` is off and its D-Bus names are stubbed.
+- gcr-ssh-agent is the only SSH agent; gpg-agent keeps GPG only.
+- The Secret portal is routed to gnome-keyring in every session, and all Chromium/Electron apps are pinned to `--password-store=gnome-libsecret` (`modules/nixos/toplevel/libsecret-pinning.nix`).
+- Details and pitfalls: `Documentation/usage/gotchas/secret-service-single-provider.md`.
 
 ---
 

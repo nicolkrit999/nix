@@ -52,32 +52,13 @@ delib.module {
       wallpaperOwnedByShell = noctaliaActiveOnNiri;
       skwdWallActive = parent.skwdWall.enable or false;
 
+      wp = import ../wallpaperd/mk-wallpaperd.nix { inherit lib pkgs; } {
+        wm = "niri";
+        wallpapers = myconfig.constants.wallpapers;
+      };
+
       wallpaperSpawns = lib.optionals (!wallpaperOwnedByShell && !skwdWallActive)
-        ([{ command = [ "awww-daemon" ]; }]
-          ++ (map
-          (w:
-            let
-              isAnimated = w.videoURL != "" || w.gifURL != "";
-              mediaPath =
-                if w.videoURL != "" then
-                  pkgs.fetchurl { url = w.videoURL; sha256 = w.videoSHA256; }
-                else if w.gifURL != "" then
-                  pkgs.fetchurl { url = w.gifURL; sha256 = w.gifSHA256; }
-                else
-                  pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; };
-              isWildcard = w.targetMonitor == "*";
-              targetStr = if isWildcard then "" else "-o ${w.targetMonitor} ";
-              sleepSecs = if isWildcard then "1" else "2";
-              outputArg = if isWildcard then "ALL" else w.targetMonitor;
-              playCmd =
-                if isAnimated then
-                  "mpvpaper -f -o \"loop mute=yes panscan=1.0\" ${outputArg} ${mediaPath}"
-                else
-                  "awww img ${targetStr}${mediaPath}";
-            in
-            { command = [ "sh" "-c" "sleep ${sleepSecs} && ${playCmd}" ]; }
-          )
-          (lib.sort (a: b: a.targetMonitor == "*" && b.targetMonitor != "*") myconfig.constants.wallpapers)));
+        (map (c: { command = c; }) wp.startupArgv);
     in
     {
       home.packages = with pkgs; [
