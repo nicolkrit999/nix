@@ -53,6 +53,13 @@ delib.module {
         # Equivalent of running `sudo tailscale set --operator=$USER` once by
         # hand: lets the configured user run `tailscale up`/`set` without sudo.
         extraSetFlags = [ "--operator=${myconfig.constants.user}" ];
+        # Must list every non-default pref, else the nixpkgs autoconnect `tailscale up` fails.
+        extraUpFlags = [
+          "--reset"
+          "--accept-routes"
+          "--exit-node-allow-lan-access"
+          "--operator=${myconfig.constants.user}"
+        ];
       };
 
       networking.firewall = {
@@ -72,13 +79,13 @@ delib.module {
         wantedBy = [ "multi-user.target" ];
 
         serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
+          Type = "exec";
+          TimeoutStartSec = "30s";
         };
 
         script = ''
           for i in $(seq 1 20); do
-            if ${pkgs.tailscale}/bin/tailscale up; then
+            if ${pkgs.tailscale}/bin/tailscale up --timeout=20s; then
               exit 0
             fi
             sleep 3

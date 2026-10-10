@@ -13,6 +13,13 @@ WantedBy+Before=graphical.target) took ~1.5 min installing new .flatpak bundles.
 pressed the power key before the timeout, twice (clean `Power key pressed short` poweroff, not a crash). The "working" boot
 was a Plasma login, which does not wait on graphical.target, so it didn't prove Hyprland worked.
 
+Second variant (2026-10-10, laptop): flatpak-managed-install is `After=multi-user.target`, so anything stuck in
+multi-user stalls it AND graphical.target forever. Culprit was the repo's own `tailscale-autoconnect` (Type=oneshot,
+no start timeout, WantedBy multi-user) running interactive `tailscale up` after the node key expired: it blocks on the
+browser auth URL indefinitely. Tell: `systemctl list-jobs` shows it `running` + flatpak `waiting`; `tailscale status`
+= "Logged out". Also: nixpkgs `tailscaled-autoconnect` echoes the full auth key into the journal when `tailscale up`
+rejects flags (needs --reset / matching extraUpFlags).
+
 **Why:** the gap between a graphical-looking login and a compositor that never starts is invisible: no coredump, no Hyprland log.
 **How to apply:** on any uwsm black screen, grep the system journal for `uwsm[` and `Reached target Graphical Interface`
 before chasing GPU or config causes. Also check which session the "good" boot logged into (sddm `Session ... selected`). See [[hm-hyprland-uwsm-propagatesstop]].
