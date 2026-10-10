@@ -22,3 +22,4 @@
 - [HM hyprland uwsm PropagatesStopTo](project_hm_hyprland_uwsm_propagatesstop.md) - HM start-hook `stop hyprland-session.target` now stops graphical-session -> uwsm Hyprland exits RC 0 after 2s
 - [uwsm black screen = graphical.target wait](project_uwsm_graphical_target_flatpak_block.md) - uwsm holds Hyprland until graphical.target; nix-flatpak oneshot Before=graphical.target blocks it during long installs
 - [mango config value 255 truncation](project_mango_config_value_255_truncation.md) - mango silently cuts values >255 chars; long exec_once -> broken sh -c, never runs, mango -p passes
+- [base16 base07 not brightest](project_base16_base07_not_brightest.md) - rose-pine-moon base07 is dark; over-wallpaper text contrast is set by the wallpaper, not the scheme (hyprlock 1.5:1)

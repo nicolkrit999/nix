@@ -18,6 +18,17 @@ delib.module {
 
       c = config.lib.stylix.colors;
 
+      # Perceptual luma (0..255000) of a base16 hex colour, pure Nix.
+      luma = hex:
+        let ch = i: lib.fromHexString (builtins.substring i 2 hex);
+        in 2126 * ch 0 + 7152 * ch 2 + 722 * ch 4;
+      bgLuma = luma c.base00;
+      isDarkScheme = bgLuma < luma c.base05;
+      dist = hex: let d = luma hex - bgLuma; in if d < 0 then -d else d;
+      # Text colour with the largest luma gap to base00 (base07 is not always the brightest)
+      fg = if dist c.base07 > dist c.base05 then c.base07 else c.base05;
+      shadowColor = c.base00;
+
       hasWallpapers = (myconfig.constants ? wallpapers) && (myconfig.constants.wallpapers != [ ]);
       fallbackWallpaper = ../../../templates/src/wallpapers/nix-black-4k.png;
       lockWallpaper =
@@ -45,9 +56,6 @@ delib.module {
       } // lib.optionalAttrs (!catppuccinEnabled) {
         settings = {
           general = {
-            no_fade_in = false;
-            grace = 0;
-            disable_loading_bar = false;
             hide_cursor = true;
             fail_timeout = 5000;
           };
@@ -56,7 +64,10 @@ delib.module {
             {
               monitor = "";
               path = lockWallpaper;
-              blur_passes = 0;
+              blur_passes = 2;
+              blur_size = 4;
+              brightness = if isDarkScheme then 0.6 else 1.25;
+              contrast = 1.0;
             }
           ];
 
@@ -81,7 +92,7 @@ delib.module {
             {
               monitor = "";
               size = "400, 70";
-              color = "rgba(ffffff33)";
+              color = "rgba(${c.base00}b3)";
               rounding = -1;
               border_size = 0;
               rotate = 0;
@@ -96,7 +107,11 @@ delib.module {
             {
               monitor = "";
               text = "Welcome!";
-              color = "rgba(${c.base05}bf)";
+              color = "rgba(${fg}ff)";
+              shadow_passes = 3;
+              shadow_size = 4;
+              shadow_color = "rgba(${shadowColor}e6)";
+              shadow_boost = 0.6;
               font_size = 75;
               font_family = "JetBrainsMono Nerd Font Propo";
               position = "165, 450";
@@ -106,7 +121,11 @@ delib.module {
             {
               monitor = "";
               text = ''cmd[update:1000] echo "<span>$(date +"%I:%M")</span>"'';
-              color = "rgba(${c.base05}bf)";
+              color = "rgba(${fg}ff)";
+              shadow_passes = 3;
+              shadow_size = 4;
+              shadow_color = "rgba(${shadowColor}e6)";
+              shadow_boost = 0.6;
               font_size = 55;
               font_family = "JetBrainsMono Nerd Font Propo";
               position = "255, 335";
@@ -116,7 +135,11 @@ delib.module {
             {
               monitor = "";
               text = ''cmd[update:60000] echo "$(date +'%A, %B %d')"'';
-              color = "rgba(${c.base05}bf)";
+              color = "rgba(${fg}ff)";
+              shadow_passes = 3;
+              shadow_size = 4;
+              shadow_color = "rgba(${shadowColor}e6)";
+              shadow_boost = 0.6;
               font_size = 28;
               font_family = "JetBrainsMono Nerd Font Propo";
               position = "180, 240";
@@ -126,7 +149,11 @@ delib.module {
             {
               monitor = "";
               text = " $USER";
-              color = "rgba(${c.base05}cc)";
+              color = "rgba(${fg}ff)";
+              shadow_passes = 3;
+              shadow_size = 4;
+              shadow_color = "rgba(${shadowColor}e6)";
+              shadow_boost = 0.6;
               font_size = 20;
               font_family = "JetBrainsMono Nerd Font Propo";
               position = "310, -205";
@@ -144,14 +171,11 @@ delib.module {
               dots_spacing = 0.2;
               dots_center = true;
               outer_color = "rgba(${c.base00}00)";
-              inner_color = "rgba(ffffff1a)";
-              font_color = "rgba(${c.base06}ff)";
+              inner_color = "rgba(${c.base00}b3)";
+              font_color = "rgba(${fg}ff)";
               font_family = "JetBrainsMono Nerd Font Propo";
               fade_on_empty = false;
-              placeholder_text =
-                if (myconfig.constants.theme.polarity or "dark") == "dark"
-                then ''<i><span foreground="##ffffff99">🔒 Enter Pass</span></i>''
-                else ''<i><span foreground="##${c.base03}99">🔒 Enter Pass</span></i>'';
+              placeholder_text = ''<i><span foreground="##${fg}cc">🔒 Enter Pass</span></i>'';
               hide_input = false;
               check_color = "rgba(${c.base09}f2)";
               fail_color = "rgba(${c.base08}f2)";
