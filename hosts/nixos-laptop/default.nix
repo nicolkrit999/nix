@@ -121,15 +121,14 @@ delib.host {
 
           {
             targetMonitor = "eDP-1";
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-websites/imgur/imgur_japan_2.jpg";
-            wallpaperSHA256 = "1pkk3glmqjl2h2cgrx9jcwp069xh73d14nxhs6sijqh73vhj7wrg";
-
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-websites/imgur/imgur_japan_33.jpg";
+            wallpaperSHA256 = "1ib8j4s08kig2gcwmp1yslybbiy0036nxxy1fmk6i34vhzcxy63h";
           }
-          # {
-          #   targetMonitor = "*";
-          #   wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/switch_swirl.jpg";
-          #   wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
-          # }
+          {
+            targetMonitor = "*";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/switch_swirl.jpg";
+            wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
+          }
         ];
 
         # ---------------------------------------------------------------
@@ -890,11 +889,11 @@ delib.host {
         sddm-astronaut = {
           enable = false;
           embeddedTheme = "pixel_sakura";
-          background = "imgur_japan_19.jpg";
+          background = "imgur_japan_33.jpg";
         };
         sddm-pixie = {
           enable = true;
-          background = "imgur_japan_19.jpg";
+          background = "imgur_japan_33.jpg";
           avatar = "face-512.jpg";
         };
 
