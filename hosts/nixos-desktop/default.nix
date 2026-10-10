@@ -718,7 +718,7 @@ delib.host {
         sddm-pixie = {
           enable = false;
           #background = ;
-          avatar = ../../users/krit/src/profile-picture/face-512.jpg;
+          avatar = "face-512.jpg";
         };
 
         snapshots = {

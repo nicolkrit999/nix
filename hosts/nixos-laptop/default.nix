@@ -888,13 +888,14 @@ delib.host {
         };
 
         sddm-astronaut = {
-          enable = true;
+          enable = false;
           embeddedTheme = "pixel_sakura";
-          #background = ;
+          background = "imgur_japan_19.jpg";
         };
         sddm-pixie = {
-          enable = false;
-          avatar = ../../users/krit/src/profile-picture/face-512.jpg;
+          enable = true;
+          background = "imgur_japan_19.jpg";
+          avatar = "face-512.jpg";
         };
 
         snapshots = {

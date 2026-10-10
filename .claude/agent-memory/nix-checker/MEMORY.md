@@ -1,0 +1,1 @@
+- [SDDM greeter QML check](reference_sddm_greeter_qml_check.md) - test-mode hides QML errors; use QT_FORCE_STDERR_LOGGING=1 and grep, control-test first
