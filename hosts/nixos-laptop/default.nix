@@ -121,8 +121,8 @@ delib.host {
 
           {
             targetMonitor = "eDP-1";
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-websites/imgur/imgur_japan_33.jpg";
-            wallpaperSHA256 = "1ib8j4s08kig2gcwmp1yslybbiy0036nxxy1fmk6i34vhzcxy63h";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-websites/imgur/imgur_japan_2.jpg";
+            wallpaperSHA256 = "1pkk3glmqjl2h2cgrx9jcwp069xh73d14nxhs6sijqh73vhj7wrg";
           }
           {
             targetMonitor = "*";
