@@ -21,7 +21,7 @@ let
   # Common module paths shared by all wallpaper test scenarios.
   commonPaths = [
     # home-manager integration
-    (src + "/modules/common/toplevel/home-manager.nix")
+    (src + "/modules/nixos/toplevel/home-manager.nix")
 
     # Constants schema (declares myconfig.constants.* options including wallpapers)
     (src + "/modules/nixos/config/constants-nixos.nix")

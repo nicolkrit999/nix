@@ -1,6 +1,6 @@
-{ delib, pkgs, ... }:
+{ delib, moduleSystem, lib, pkgs, ... }:
 let
-  sharedIfEnabledBody = {
+  sharedIfEnabled = {
     environment.systemPackages = [ pkgs.nix-sweep ];
   };
 in
@@ -10,17 +10,28 @@ delib.module {
     with delib;
     moduleOptions {
       enable = boolOption true;
-      gcd = strOption "30d";
-      gcn = strOption "3";
+      gcd = noDefault (strOption null);
+      gcn = noDefault (strOption null);
     };
 
-  nixos.ifEnabled = { ... }: sharedIfEnabledBody;
+  myconfig.always =
+    { myconfig, ... }:
+    {
+      nix-sweeps = {
+        gcd = lib.mkDefault myconfig.nh.gcd;
+        gcn = lib.mkDefault myconfig.nh.gcn;
+      };
+    };
 
-  darwin.ifEnabled = { ... }: sharedIfEnabledBody;
+  nixos.ifEnabled = sharedIfEnabled;
+
+  darwin.ifEnabled = sharedIfEnabled;
 
   home.ifEnabled =
     { cfg, ... }:
     {
+      home.packages = lib.optionals (moduleSystem == "home") [ pkgs.nix-sweep ];
+
       xdg.configFile."nix-sweep/presets.toml".text = ''
         [default]
         keep-min = ${cfg.gcn}

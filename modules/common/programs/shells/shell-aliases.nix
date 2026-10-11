@@ -33,7 +33,7 @@ delib.module {
         echo "Done. Reboot to confirm auto-unlock."
       '';
 
-      flakeDir = "~/nix";
+      flakeDir = "~/${myconfig.constants.flakeDir}";
       isImpure = myconfig.constants.nixImpure or false;
       isNixOS = moduleSystem == "nixos";
       isDarwin = moduleSystem == "darwin";

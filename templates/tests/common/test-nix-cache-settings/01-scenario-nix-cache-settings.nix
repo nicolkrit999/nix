@@ -60,7 +60,45 @@ let
   sweepsToml = cfg: cfg.config.home-manager.users.krit.xdg.configFile."nix-sweep/presets.toml".text;
   sweepsParsed = cfg: builtins.fromTOML (sweepsToml cfg);
 
+  userOf = cfg: cfg.config.myconfig.constants.user;
+  hmOf = cfg: cfg.config.home-manager.users.${userOf cfg};
+  aliasesOf = cfg: (hmOf cfg).home.shellAliases;
+
+  pushGatingProblems = cfg:
+    let
+      my = cfg.config.myconfig;
+      a = aliasesOf cfg;
+      want = {
+        attic = my.attic.enable && my.attic.push;
+        cachix = my.cachix.enable && my.cachix.push;
+      };
+      marker = { attic = "attic push "; cachix = "cachix push "; };
+      inAlias = alias: tool:
+        lib.optional (lib.hasInfix marker.${tool} a.${alias} != want.${tool})
+          "${alias} ${if want.${tool} then "lacks" else "has"} the ${tool} push command (enable && push = ${lib.boolToString want.${tool}})";
+      pushAlias = tool:
+        lib.optional ((a ? "${tool}-push") != want.${tool})
+          "${tool}-push alias ${if want.${tool} then "missing" else "present"} (enable && push = ${lib.boolToString want.${tool}})";
+    in
+    lib.concatMap (alias: if a ? ${alias} then inAlias alias "attic" ++ inAlias alias "cachix" else [ "alias ${alias} missing" ]) [ "sw" "upd" ]
+    ++ pushAlias "attic" ++ pushAlias "cachix";
+
+  presetsFile = "nix-sweep/presets.toml";
+  isSweep = p: lib.getName p == "nix-sweep";
+  sweepInstalledProblems = label: hmCfg: extraPkgs:
+    if !(hmCfg.xdg.configFile ? ${presetsFile}) then [ ]
+    else if builtins.any isSweep (hmCfg.home.packages ++ extraPkgs) then [ ]
+    else [ "${label}: ${presetsFile} is generated but nix-sweep is not installed" ];
+  systemSweepProblems = name: cfg: sweepInstalledProblems name (hmOf cfg) cfg.config.environment.systemPackages;
+  homeSweepProblems = name: home: sweepInstalledProblems name home.config [ ];
+
+  homes = flake.homeConfigurations;
+  hostPresetCount = builtins.length (builtins.filter (c: (hmOf c).xdg.configFile ? ${presetsFile}) (builtins.attrValues hosts));
+  homePresetCount = builtins.length (builtins.filter (h: h.config.xdg.configFile ? ${presetsFile}) (builtins.attrValues homes));
+
   perHost = name: cfg: {
+    "check-${name}-push-alias-gating" = failIf (pushGatingProblems cfg);
+    "check-${name}-nix-sweep-installed" = failIf (systemSweepProblems name cfg);
     "check-${name}-substituter-key-pairing" = failIf (pairingProblems cfg);
     "check-${name}-substituter-nonempty" =
       if builtins.length (substituters cfg) >= 2 then ok
@@ -120,7 +158,45 @@ let
   atticOn = extra: withModules desktop [{ myconfig.attic = extra; }];
   forced = lib.mapAttrs (_: lib.mkForce);
 
+  homeChecks = {
+    "check-homes-nix-sweep-installed" = failIf (lib.concatLists (lib.mapAttrsToList homeSweepProblems homes));
+    "check-homes-presets-nonempty" =
+      if hostPresetCount >= 1 && (flake.nixosConfigurations == { } || homePresetCount >= 1) then ok
+      else "FAIL: ${presetsFile} generated on ${toString hostPresetCount} system hosts and ${toString homePresetCount} homeConfigurations, the install checks would run over nothing";
+  };
+
+  pushOn = attic: cachix: withModules desktop [{
+    myconfig.attic = forced { enable = attic.enable; push = attic.push; };
+    myconfig.cachix = forced { enable = cachix.enable; push = cachix.push; };
+  }];
+  pushFlags = enable: push: { inherit enable push; };
+  dropSweep = pkgs: builtins.filter (p: !(isSweep p)) pkgs;
+  someHome = builtins.head (builtins.attrValues homes);
+
   controls = {
+    "check-control-push-both-on" =
+      let c = pushOn (pushFlags true true) (pushFlags true true);
+      in failIf (pushGatingProblems c ++ lib.optional (!((aliasesOf c) ? attic-push && (aliasesOf c) ? cachix-push)) "push aliases missing with both push on");
+    "check-control-push-attic-off" =
+      let c = pushOn (pushFlags true false) (pushFlags true true);
+      in failIf (pushGatingProblems c ++ lib.optional (lib.hasInfix "attic push " (aliasesOf c).sw) "sw still pushes to attic");
+    "check-control-push-cachix-off" =
+      let c = pushOn (pushFlags true true) (pushFlags true false);
+      in failIf (pushGatingProblems c ++ lib.optional (lib.hasInfix "cachix push " (aliasesOf c).upd) "upd still pushes to cachix");
+    "check-control-push-cachix-disabled-push-true" =
+      let c = pushOn (pushFlags true true) (pushFlags false true);
+      in failIf (pushGatingProblems c ++ lib.optional ((aliasesOf c) ? cachix-push) "cachix-push alias with cachix disabled");
+    "check-control-push-both-off" =
+      let c = pushOn (pushFlags true false) (pushFlags true false);
+      in failIf (pushGatingProblems c ++ lib.optional ((aliasesOf c).sw != (aliasesOf (pushOn (pushFlags false false) (pushFlags false false))).sw) "sw with push off differs from sw with both caches disabled");
+    "check-control-nix-sweep-missing-detected" =
+      let c = withModules desktop [{ environment.systemPackages = lib.mkForce (dropSweep desktop.config.environment.systemPackages); }];
+      in if systemSweepProblems "desktop-mutant" c != [ ] then ok else "FAIL: removing nix-sweep from systemPackages was not detected";
+    "check-control-home-nix-sweep-missing-detected" =
+      if homes == { } then ok
+      else
+        let h = someHome.extendModules { modules = [{ home.packages = lib.mkForce (dropSweep someHome.config.home.packages); }]; };
+        in if homeSweepProblems "home-mutant" h != [ ] then ok else "FAIL: removing nix-sweep from home.packages was not detected";
     "check-control-wrong-key-detected" =
       let c = withModules desktop [{ myconfig.cachix.publicKey = lib.mkForce "someone-else.cachix.org-1:AAAA="; myconfig.attic.publicKey = lib.mkForce "wrong:AAAA="; }];
       in
@@ -160,5 +236,5 @@ let
 in
 lib.foldl' (a: b: a // b) { } (
   lib.mapAttrsToList perHost hosts
-  ++ [ (nixosOnly "nixos-desktop" hosts.nixos-desktop) (nixosOnly "nixos-laptop" hosts.nixos-laptop) darwinOnly controls ]
+  ++ [ (nixosOnly "nixos-desktop" hosts.nixos-desktop) (nixosOnly "nixos-laptop" hosts.nixos-laptop) darwinOnly homeChecks controls ]
 )

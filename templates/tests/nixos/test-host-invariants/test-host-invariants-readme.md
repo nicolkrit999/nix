@@ -1,6 +1,6 @@
 # test-host-invariants
 
-Asserts boot and lockout invariants on the REAL `nixos-desktop` and `nixos-laptop` configurations (impermanence, sops host key, bootloader, password wiring, tailscale base).
+Asserts boot and lockout invariants on the REAL `nixos-desktop` and `nixos-laptop` configurations (impermanence, sops host key, bootloader, password wiring, tailscale base, home-manager wiring).
 
 ## Run
 
@@ -56,4 +56,7 @@ Per host unless marked.
 | tailscale-trusted / reverse-path | `tailscale0` trusted, `checkReversePath == "loose"` |
 | tailscale-operator | `--operator=<user>` in up/set flags |
 | tailscale-autoconnect-wantedby | wantedBy `multi-user.target` |
+| hm-use-global-pkgs-pinned | `home-manager.useGlobalPkgs == false` (deliberate pin, see the xdg-desktop-portal gotcha doc) |
+| hm-use-user-packages | `home-manager.useUserPackages == true` |
+| hm-plasma-manager-loaded | `home-manager.users.<user>.programs.plasma` is declared (plasma-manager reaches HM on NixOS; Darwin's HM lacks it, so the probe discriminates) |
 | no-failing-assertions | `config.assertions` has no failing entry |

@@ -35,7 +35,7 @@ let
     (src + "/templates/tests/nixos/test-custom-shells/shared/nixos-extra")
 
     # home-manager integration (needed so config.home-manager.users.krit.* exists)
-    (src + "/modules/common/toplevel/home-manager.nix")
+    (src + "/modules/nixos/toplevel/home-manager.nix")
 
     # Constants schema (declares myconfig.constants.* options)
     (src + "/modules/nixos/config/constants-nixos.nix")

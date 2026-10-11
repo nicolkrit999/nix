@@ -13,10 +13,9 @@ let
   denix = flake.inputs.denix;
 
   darwinPaths = [
-    # Constants schema and HM wiring
+    # Constants schema and theming
     (src + "/modules/darwin/config/constants-darwin.nix")
     (src + "/modules/common/config/constants.nix")
-    (src + "/modules/common/toplevel/home-manager.nix")
     (src + "/modules/common/themes/catppuccin.nix")
 
     # Darwin always-on infrastructure

@@ -21,7 +21,7 @@ let
     {
       assertions = [
         {
-          assertion = !cfg.enable || (cfg.serverUrl != "" && cfg.cacheName != "" && cfg.publicKey != "");
+          assertion = cfg.serverUrl != "" && cfg.cacheName != "" && cfg.publicKey != "";
           message = ''
             attic is enabled but serverUrl/cacheName/publicKey are not all set.
             This module requires a self-hosted Attic server - it carries no default
@@ -30,20 +30,25 @@ let
           '';
         }
         {
-          assertion = !cfg.enable || !hasAuthToken || (config.sops.secrets ? ${tokenSecretName});
+          assertion = !hasAuthToken || (config.sops.secrets ? ${tokenSecretName});
           message = ''
             attic.authTokenPath is set to "${cfg.authTokenPath}" but no
             sops.secrets."${tokenSecretName}" is declared, so pull auth (via
             nix.settings.netrc-file) has nothing to render its token from.
           '';
         }
+        {
+          assertion = !cfg.push || hasAuthToken;
+          message = ''
+            attic.push is true but attic.authTokenPath is empty. The push aliases
+            log in with the token read from that path; set
+            myconfig.attic.authTokenPath (or set attic.push = false).
+          '';
+        }
       ];
 
       nix.settings = {
-        # NOTE: only store-level params (priority, want-mass-query, trusted) are
-        # valid here. `connect-timeout` is a global nix.conf setting, not a store
-        # param - passing it in the URL makes every nix invocation print
-        # "warning: unknown setting 'connect-timeout'" and has no effect.
+        # Store-URL params only; connect-timeout is a global setting and is ignored here
         extra-substituters = [ "${cfg.serverUrl}/${cfg.cacheName}?priority=10" ];
         extra-trusted-public-keys = [ cfg.publicKey ];
       } // lib.optionalAttrs hasAuthToken {

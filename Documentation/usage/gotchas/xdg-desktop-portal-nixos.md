@@ -103,7 +103,7 @@ manifest-only `gnome-keyring.portal`, plus `environment.pathsToLink`) and
 ## Files that interact with this
 
 - `xdg-portal.nix` (toplevel) - primary implementation.
-- `home-manager.nix` (common toplevel, `nixos.always` block) - sets
+- `home-manager.nix` (nixos toplevel, `nixos.always` block) - sets
   `useGlobalPkgs = false` / `useUserPackages = true`. First is why the
   home-level patch is needed at all (overlay doesn't propagate to home-manager
   pkgs otherwise); second triggers the `pathsToLink` assertion above. Don't

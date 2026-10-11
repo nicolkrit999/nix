@@ -47,11 +47,7 @@ delib.host {
       # ---------------------------------------------------------------
       krit.commonSopsSecrets.enable = true;
 
-      nix-sweeps = {
-        enable = true;
-        gcd = "30d";
-        gcn = "3";
-      };
+      nix-sweeps.enable = true;
 
       stylix = {
         enable = true;

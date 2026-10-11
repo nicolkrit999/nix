@@ -17,6 +17,7 @@ let
   themes = builtins.filter (n: my.services.${n}.enable or false) [ "sddm-astronaut" "sddm-pixie" ];
   powerMgrs = builtins.filter (n: my.services.${n}.enable or false) [ "auto-cpufreq" "tlp" ];
   tsFw = cfg.networking.firewall;
+  hmUser = cfg.home-manager.users.${my.constants.user};
   tsFlags = cfg.services.tailscale.extraUpFlags ++ cfg.services.tailscale.extraSetFlags;
   checks =
     {
@@ -90,6 +91,13 @@ let
       check-tailscale-autoconnect-wantedby = check
         (has "multi-user.target" cfg.systemd.services.tailscale-autoconnect.wantedBy)
         "tailscale-autoconnect not wantedBy multi-user.target";
+
+      check-hm-use-global-pkgs-pinned = check (cfg.home-manager.useGlobalPkgs == false)
+        "home-manager.useGlobalPkgs is not false (deliberate pin)";
+      check-hm-use-user-packages = check (cfg.home-manager.useUserPackages == true)
+        "home-manager.useUserPackages is not true";
+      check-hm-plasma-manager-loaded = check (hmUser.programs ? plasma && hmUser.programs.plasma ? enable)
+        "home-manager.users.${my.constants.user}.programs.plasma is not declared (plasma-manager not imported)";
 
       check-no-failing-assertions = check (failing == [ ])
         (builtins.toJSON (map (a: a.message) failing));

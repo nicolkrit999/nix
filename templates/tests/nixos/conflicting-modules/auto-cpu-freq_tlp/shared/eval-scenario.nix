@@ -11,7 +11,7 @@ let
   nixosPaths = [
     (src + "/templates/tests/nixos/conflicting-modules/auto-cpu-freq_tlp/shared/nixos-extra")
 
-    (src + "/modules/common/toplevel/home-manager.nix")
+    (src + "/modules/nixos/toplevel/home-manager.nix")
     (src + "/modules/nixos/config/constants-nixos.nix")
     (src + "/modules/common/config/constants.nix")
 

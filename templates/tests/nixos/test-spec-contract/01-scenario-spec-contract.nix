@@ -18,7 +18,7 @@ let
     (src + "/templates/tests/nixos/test-spec-contract/shared/nixos-extra-x86_64")
 
     # Core infrastructure
-    (src + "/modules/common/toplevel/home-manager.nix")
+    (src + "/modules/nixos/toplevel/home-manager.nix")
     (src + "/modules/nixos/config/constants-nixos.nix")
     (src + "/modules/common/config/constants.nix")
     (src + "/modules/nixos/toplevel/nix-nixos.nix")

@@ -190,11 +190,7 @@ delib.host {
         gcd = "15d";
         gcn = "5";
       };
-      nix-sweeps = {
-        enable = true;
-        gcd = "15d";
-        gcn = "5";
-      };
+      nix-sweeps.enable = true;
 
       qt.enable = true;
 

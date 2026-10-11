@@ -14,7 +14,7 @@ let
     (src + "/templates/tests/nixos/test-arch-compat/shared/nixos-extra-aarch64")
 
     # Core setup
-    (src + "/modules/common/toplevel/home-manager.nix")
+    (src + "/modules/nixos/toplevel/home-manager.nix")
     (src + "/modules/nixos/config/constants-nixos.nix")
     (src + "/modules/common/config/constants.nix")
     (src + "/modules/nixos/toplevel/nix-nixos.nix")

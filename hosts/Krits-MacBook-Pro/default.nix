@@ -145,11 +145,7 @@ delib.host {
         gcd = "30d";
         gcn = "10";
       };
-      nix-sweeps = {
-        enable = true;
-        gcd = "30d";
-        gcn = "10";
-      };
+      nix-sweeps.enable = true;
 
       home-packages.enable = true;
 

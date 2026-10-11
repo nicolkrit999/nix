@@ -36,15 +36,15 @@ These modules work on both NixOS and Darwin hosts.
 
 #### Top-Level
 
-* **`cachix`**: Configures Nix to pull from (and optionally push to) a specified binary cache, resulting in much faster rebuilds and evaluation.
+* **`cachix`**: Configures Nix to pull from (and optionally push to) a specified binary cache, resulting in much faster rebuilds (pre-built binaries instead of local compilation).
 * **`nh`**: A fast, user-friendly wrapper for NixOS/nix-darwin rebuild commands.
-  * **Warning:** Disabling this would cause most nix-related aliases (`build`, `flake check`, and similar) to fail since they rely on `nh` being present.
+  * **Warning:** The rebuild aliases (`sw`, `gsw`, `upd`, `swboot`, `swtest`, ...) call `nh os` / `nh darwin`, so disabling `nh` fails evaluation with an assertion unless `constants.nixImpure` is true (NixOS only; `swdry`, `swoff`, `gswoff` and `swpure` call `nh` even then).
 
 * **`stylix`**: Global theming engine that colors and styles almost every application automatically based on the constants.
   * **Warning:** Disabling this would cause massive graphical inconsistencies regarding general theming, polarity, and wallpaper.
 
 * **`attic`**: Configures an Attic binary cache (`serverUrl`, `cacheName`, `publicKey`) as a substituter, with optional pushing (`push`) and a sops-provisioned auth token (`authTokenPath`).
-* **`nix-sweeps`**: Installs `nix-sweep` and sets garbage-collection retention (`gcd`, default `30d`; `gcn`, default `3`). Enabled by default.
+* **`nix-sweeps`**: Installs `nix-sweep` and writes its presets with garbage-collection retention (`gcd`, `gcn`), which default to `nh.gcd` / `nh.gcn` so a host only sets them once on `nh`. Enabled by default.
 
 #### Themes
 
