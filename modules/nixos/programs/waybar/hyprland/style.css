@@ -5,7 +5,7 @@
   font-size: 14px;
   letter-spacing: 0.3px;
   min-height: 0;
-  color: @base05;
+  color: @fg_pill;
 }
 
 /* TRANSPARENT BAR BACKGROUND - wallpaper shows through */
@@ -87,7 +87,7 @@ window#waybar .modules-right > widget > box {
   padding: 4px 16px;
   min-width: 0;
   border-radius: 100px;
-  color: @base05;
+  color: @fg_pill;
   border: none;
   transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1),
               color           0.18s cubic-bezier(0.4, 0, 0.2, 1);
@@ -98,6 +98,10 @@ window#waybar .modules-right > widget > box {
   min-width: 28px;
 }
 
+#workspaces button:hover label {
+  color: @fg_hover;
+}
+
 /* Active workspace — foreground fill (readable on dark and light schemes),
    accent kept as a bottom underline */
 #workspaces button.active {
@@ -106,7 +110,7 @@ window#waybar .modules-right > widget > box {
 }
 
 #workspaces button.active label {
-  color: @base00;
+  color: @fg_active;
 }
 
 /* Hover — lift one step */
@@ -130,7 +134,7 @@ window#waybar #window {
   border-radius: 100px;
   border: none;
   outline: none;
-  color: @base05;
+  color: @fg_pill;
 }
 
 #window label {
@@ -183,7 +187,7 @@ window#waybar #window {
   background-color: @base01;
   border-radius: 100px;
   border: none;
-  color: @base05;
+  color: @fg_pill;
   transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -191,7 +195,7 @@ window#waybar #window {
 #clock {
   font-weight: 600;
   letter-spacing: 0.5px;
-  color: @base05;
+  color: @fg_pill;
 }
 
 /* Battery warning/critical states */
@@ -202,7 +206,7 @@ window#waybar #window {
 /* Charging keeps the normal pill so the green charging icon stays readable */
 #battery.critical:not(.charging) {
   background-color: @base08;
-  color: @base00;
+  color: @fg_crit;
 }
 
 /* Tooltips — explicit colors so they never fall back to the GTK theme's
@@ -214,5 +218,5 @@ tooltip {
 }
 
 tooltip label {
-  color: @base05;
+  color: @fg_tooltip;
 }

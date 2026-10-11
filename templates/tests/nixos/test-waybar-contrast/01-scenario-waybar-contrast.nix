@@ -18,7 +18,7 @@ let
     unikitty = { role = "scenario"; polarity = "light"; palette = import (libDir + "/scheme-unikitty.nix"); };
     ocean = { role = "scenario"; polarity = "dark"; palette = import (libDir + "/scheme-ocean.nix"); };
     darkviolet = { role = "scenario"; polarity = "dark"; palette = import (libDir + "/scheme-darkviolet.nix"); };
-    synthetic-flat = { role = "negative"; polarity = "dark"; palette = flat; };
+    synthetic-flat = { role = "edge"; polarity = "dark"; palette = flat; };
   };
 
   variantOf = s:

@@ -15,17 +15,18 @@ scheme in between does too. "Light"/"dark" is stylix **polarity**, not how the c
 
 Palettes are vendored inline in `templates/tests/lib/scheme-{windows-nt-light,unikitty,ocean,darkviolet}.nix`
 (MIT, tinted-theming schemes-spec 0.11; only base00-base0F, base24's base10-base17 are not read by
-waybar or stylix here). `catppuccin-mocha` is the positive control.
+waybar or stylix here). `catppuccin-mocha` is the positive control; `synthetic-flat` is the all-grey edge case.
 
 ## Run
 
 ```bash
-bash templates/tests/run-tests.sh --only waybar-contrast      # from the repo root
+bash templates/tests/run-tests.sh --only nixos-waybar-contrast      # from the repo root
 bash check-nixos-waybar-contrast.sh                            # from this folder
 ```
 
-This test is expected to FAIL while the config picks colors without regard to contrast: a red result
-is a finding about the waybar styling, not a broken test. Do not loosen the thresholds.
+The test is expected to PASS: the waybar styling is contrast-aware (`modules/nixos/programs/waybar/contrast-lib.nix`).
+Text falls back to black/white when no theme slot reaches 4.5:1, and accents are tinted toward black or
+white until they reach 3:1. A red result is a finding about the waybar styling. Do not loosen the thresholds.
 
 ## How it works
 
@@ -69,12 +70,27 @@ background; workspace text is the `label` inside `button`.
 | `stylix.polarity` (system and home-manager) equals the scenario polarity | override took effect |
 | each WM yields >= 12 elements from >= 5 modules | extraction is not vacuous |
 
-Controls:
+Edge scenario (real config):
+
+| Scenario | Expected |
+|----------|----------|
+| `synthetic-flat` (all 16 slots `#777777`, zero usable theme slots) | 0 FAIL on all three WMs, and every passing text element resolved to `#000000`/`#ffffff` (proves the fallback ran, not a vacuous pass) |
+
+Checker controls (synthetic CSS + bar config fed through `analyse()`, the same cascade/extraction path as the real scenarios, no real config involved):
+
+| Control | Expected |
+|---------|----------|
+| text fg == bg | FAIL |
+| span fg == bg | FAIL |
+| text at 4.4:1 / 4.6:1 | FAIL / PASS |
+| span at 2.9:1 / 3.1:1 | FAIL / PASS |
+| span at 4.4:1 | PASS (icon threshold is 3:1, not 4.5) |
+
+Other controls:
 
 | Control | Expected |
 |---------|----------|
 | `catppuccin-mocha` through the same pipeline | 0 FAIL |
-| `synthetic-flat` (all 16 slots `#777777`) | every judged element FAILs, on all three WMs |
 | ratio black/white = 21, equal colors = 1 | math is right |
 | translucent black bg + white fg | worst-case (over white) backdrop fails 4.5 |
 | no opaque background | `WARN`, not PASS |

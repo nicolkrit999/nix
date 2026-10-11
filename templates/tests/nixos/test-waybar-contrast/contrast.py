@@ -398,6 +398,14 @@ def line(status, scheme, wm, el, kind, fg, bg, r, note):
     return f"  {col}{status:4}{X} {scheme:17} {wm:9} {el:58} {kind:5} fg={fg or '-':8} bg={bg or '-':11} {rs}  {note}"
 
 
+def synth(text_fg, span_fg, bg="#ffffff"):
+    css = f"@define-color pill {bg};\nwindow#waybar {{ background-color: transparent; color: #000000; }}\n#clock {{ background-color: @pill; color: {text_fg}; }}\ntooltip {{ background-color: #ffffff; color: #000000; }}"
+    cfg = json.dumps({"modules-right": ["clock"], "clock": {"format": f"<span color='{span_fg}'>x</span> t"}})
+    _, rows, _ = analyse(css, cfg, {})
+    pick = lambda kind: [r[0] for r in rows if r[1].startswith("clock") and r[2] == kind]
+    return pick("text"), pick("span")
+
+
 def controls():
     res = []
 
@@ -419,6 +427,17 @@ def controls():
     chk("pseudo-class only matches when set", mini.fg([node("label", None, ["z"])]) == parse_color("#888888") and mini.fg([node("label", None, ["z"], ["hover"])]) == parse_color("#010101"))
     chk(":not() excludes", mini.fg([node("label", None, ["w", "v"])]) == parse_color("#888888") and mini.fg([node("label", None, ["w"])]) == parse_color("#020202"))
     chk("same-specificity later rule wins", Css("* { color: #111111; } * { color: #222222; }").fg([node("label")]) == parse_color("#222222"))
+    cases = [
+        ("text fg == bg fails", synth("#ffffff", "#000000")[0], ["FAIL"]),
+        ("span fg == bg fails", synth("#000000", "#ffffff")[1], ["FAIL"]),
+        ("text at 4.4:1 fails", synth("#787878", "#000000")[0], ["FAIL"]),
+        ("text at 4.6:1 passes", synth("#757575", "#000000")[0], ["PASS"]),
+        ("span at 2.9:1 fails", synth("#000000", "#979797")[1], ["FAIL"]),
+        ("span at 3.1:1 passes", synth("#000000", "#929292")[1], ["PASS"]),
+        ("span at 4.4:1 passes (icon threshold is 3:1)", synth("#000000", "#787878")[1], ["PASS"]),
+    ]
+    for name, got, want in cases:
+        chk(f"synthetic css/config through analyse(): {name}", got == want, f"got {got}")
     return res
 
 
@@ -426,15 +445,15 @@ def main(path):
     data = json.load(open(path))
     fails = 0
     matrix = {}
-    order = [k for k in data if data[k]["role"] == "control"] + [k for k in data if data[k]["role"] == "scenario"]
+    order = [k for k in data if data[k]["role"] == "control"] + [k for k in data if data[k]["role"] in ("scenario", "edge")]
     print("\nChecker controls")
     for name, ok, detail in controls():
         print(f"  {G + 'PASS' if ok else R + 'FAIL'}{X} {name} {detail if not ok else ''}")
         fails += 0 if ok else 1
     wms = ["hyprland", "niri", "mango"]
-    for sk in order + [k for k in data if data[k]["role"] == "negative"]:
+    for sk in order:
         s = data[sk]
-        neg = s["role"] == "negative"
+        flat = s["role"] == "edge"
         print(f"\n=== {sk} ({s['role']}, polarity {s['polarity']}, base00 #{s['palette']['base00']}, base05 #{s['palette']['base05']}) ===")
         if not s["polarityApplied"]:
             print(f"  {R}FAIL{X} stylix.polarity override did not apply")
@@ -446,7 +465,7 @@ def main(path):
                 print(f"  {R}FAIL{X} {wm}: waybar css/config not generated")
                 counts["FAIL"] += 1
                 matrix[(sk, wm)] = counts
-                fails += 0 if neg else 1
+                fails += 1
                 continue
             try:
                 css, rows, nmods = analyse(b["css"], b["config"], s["palette"])
@@ -454,30 +473,29 @@ def main(path):
                 print(f"  {R}FAIL{X} {wm}: {e}")
                 counts["FAIL"] += 1
                 matrix[(sk, wm)] = counts
-                fails += 0 if neg else 1
+                fails += 1
                 continue
             bad = [k for k in s["palette"] if css.defs.get(k, "").lower() != "#" + s["palette"][k].lower()]
             if bad:
                 print(f"  {R}FAIL{X} {wm}: palette not applied to @define-color: {bad}")
                 counts["FAIL"] += 1
-                fails += 0 if neg else 1
+                fails += 1
             if len(rows) < 12 or nmods < 5:
                 print(f"  {R}FAIL{X} {wm}: only {len(rows)} elements from {nmods} modules, extraction is vacuous")
                 counts["FAIL"] += 1
-                fails += 0 if neg else 1
+                fails += 1
             for row in rows:
                 st = row[0]
                 counts[st] += 1
-                if not neg:
-                    print(line(st, sk, wm, row[1], row[2], row[3], row[4], row[5], row[6]))
+                print(line(st, sk, wm, row[1], row[2], row[3], row[4], row[5], row[6]))
             matrix[(sk, wm)] = counts
-            if neg:
-                judged_rows = [r for r in rows if r[0] in ("PASS", "FAIL")]
-                ok = judged_rows and all(r[0] == "FAIL" for r in judged_rows)
-                print(f"  {G + 'PASS' if ok else R + 'FAIL'}{X} negative control {wm}: flat palette fails every judged element ({sum(1 for r in judged_rows if r[0] == 'FAIL')}/{len(judged_rows)})")
+            fails += counts["FAIL"] - (1 if bad else 0) - (1 if len(rows) < 12 or nmods < 5 else 0)
+            if flat:
+                texts = [r for r in rows if r[2] == "text" and r[0] == "PASS"]
+                fb = [r for r in texts if r[3] in ("#000000", "#ffffff")]
+                ok = bool(texts) and len(fb) == len(texts)
+                print(f"  {G + 'PASS' if ok else R + 'FAIL'}{X} flat fallback {wm}: every passing text element resolved to #000000/#ffffff ({len(fb)}/{len(texts)})")
                 fails += 0 if ok else 1
-            else:
-                fails += counts["FAIL"] - (1 if bad else 0) - (1 if len(rows) < 12 or nmods < 5 else 0)
     print("\nSummary matrix (PASS/FAIL/WARN rows per scheme x waybar)")
     print(f"  {'scheme':18}" + "".join(f"{w:>18}" for w in wms))
     for sk in order:

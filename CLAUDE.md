@@ -25,7 +25,7 @@ The hook does **not** cover built-in `Read`/`Grep`/`Glob` tools. Prefer shell eq
 
 ## Tests
 
-`templates/tests/{nixos,common,darwin}/` holds the test suite: auto-discovered folders (`check-*.sh` or `*_test.nix`, optional `test.conf`), no registry; run with `templates/tests/run-tests.sh`. Overview, rules and log locations: [`Documentation/usage/tests/tests-overview.md`](Documentation/usage/tests/tests-overview.md). To add or fix tests use the `adding-nix-tests` skill.
+`templates/tests/{nixos,common,darwin}/` holds the test suite: auto-discovered folders (`check-*.sh` or `*_test.nix`, optional `test.conf`), no registry; run with `templates/tests/run-tests.sh`. Overview, rules and log locations: [`Documentation/usage/tests/tests-overview.md`](Documentation/usage/tests/tests-overview.md). To add or fix tests use the `adding-nix-tests` skill: new/renamed test files must be `git add`ed before running, and ANY test change runs its "Docs sync" checklist (readme, overview count/rows, CI group table, guard `run-tests.sh --only common-test-infra`).
 
 ## Overview
 

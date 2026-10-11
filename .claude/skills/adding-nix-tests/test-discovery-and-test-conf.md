@@ -17,7 +17,15 @@ Source of truth: `templates/tests/lib/discover.py` (docstring lists everything).
   `nixos-conflicting-modules`. `run-tests.sh --only` also accepts the folder name
   or an unambiguous suffix (`--only arch-compat`).
 - There is no registry. `run-tests.sh`, `run-test.py`, `test-report.py`, the
-  invariant checker and the CI `discover` job all call `discover.py`.
+  invariant checker and the CI `discover` job all call `discover.py`, so a new,
+  renamed or removed test needs NO edit to `run-tests.sh`, `tests-nixos.yml`,
+  `tests-darwin.yml` or any script.
+- `discover.py` reads the working tree, but the test's nix evals go through the
+  flake (tracked files only) and CI sees only committed files: `git add` every
+  new/renamed file before running anything.
+- What DOES need editing by hand is the docs: see "Docs sync" in `./SKILL.md`.
+  That includes any `test.conf` change below (it moves the test between rows of
+  the CI group table and changes the step budgets).
 
 ## test.conf (optional, per folder)
 

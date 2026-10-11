@@ -14,7 +14,7 @@ WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 
 echo ""
-echo -e "${BOLD}=== Waybar contrast (4 extreme schemes x hyprland/niri/mango, plus mocha control and flat negative control) ===${NC}"
+echo -e "${BOLD}=== Waybar contrast (4 extreme schemes x hyprland/niri/mango, plus mocha control and flat edge scenario) ===${NC}"
 
 if ! nix eval --json --impure --file "$DIR/01-scenario-waybar-contrast.nix" >"$WORK/schemes.json" 2>"$WORK/err"; then
   cat "$WORK/err" >&2

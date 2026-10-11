@@ -22,24 +22,8 @@ delib.module {
     }:
     let
       c = config.lib.stylix.colors.withHashtag;
-      cssVariables = ''
-        @define-color base00 ${c.base00};
-        @define-color base01 ${c.base01};
-        @define-color base02 ${c.base02};
-        @define-color base03 ${c.base03};
-        @define-color base04 ${c.base04};
-        @define-color base05 ${c.base05};
-        @define-color base06 ${c.base06};
-        @define-color base07 ${c.base07};
-        @define-color base08 ${c.base08};
-        @define-color base09 ${c.base09};
-        @define-color base0A ${c.base0A};
-        @define-color base0B ${c.base0B};
-        @define-color base0C ${c.base0C};
-        @define-color base0D ${c.base0D};
-        @define-color base0E ${c.base0E};
-        @define-color base0F ${c.base0F};
-      '';
+      t = (import ../contrast-lib.nix { inherit lib; }).mkTheme c;
+      cssVariables = t.cssVariables;
 
       cssContent = builtins.readFile ./style.css;
 
@@ -96,9 +80,9 @@ delib.module {
         };
 
         "pulseaudio" = {
-          format = "<span color='${c.base0D}'>{icon}</span> {volume}%";
-          format-bluetooth = "<span color='${c.base0D}'>{icon}</span> {volume}%";
-          format-muted = "<span color='${c.base08}'>󰖁</span> Muted";
+          format = "<span color='${t.accent c.base0D}'>{icon}</span> {volume}%";
+          format-bluetooth = "<span color='${t.accent c.base0D}'>{icon}</span> {volume}%";
+          format-muted = "<span color='${t.accent c.base08}'>󰖁</span> Muted";
           format-icons = {
             headphones = "󰋋";
             handsfree = "󰋎";
@@ -115,11 +99,11 @@ delib.module {
           format = "{}";
           exec = ''
             if ! wpctl inspect @DEFAULT_AUDIO_SOURCE@ >/dev/null 2>&1; then
-              echo "<span color='${c.base08}'>󰍭</span>"
+              echo "<span color='${t.accent c.base08}'>󰍭</span>"
             elif wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null | grep -q MUTED; then
-              echo "<span color='${c.base08}'>󰍭</span>"
+              echo "<span color='${t.accent c.base08}'>󰍭</span>"
             else
-              echo "<span color='${c.base0B}'>󰍬</span>"
+              echo "<span color='${t.accent c.base0B}'>󰍬</span>"
             fi
           '';
           interval = 1;
@@ -129,17 +113,17 @@ delib.module {
 
         "battery" = {
           states = { warning = 20; critical = 5; };
-          format = "<span color='${c.base0A}'>{icon}</span> {capacity}%";
-          format-charging = "<span color='${c.base0B}'>󰂄</span> {capacity}%";
-          format-critical = "<span color='${c.base00}'>{icon}</span> {capacity}% {time}";
-          format-alt = "{time} <span color='${c.base0A}'>{icon}</span>";
+          format = "<span color='${t.accent c.base0A}'>{icon}</span> {capacity}%";
+          format-charging = "<span color='${t.accent c.base0B}'>󰂄</span> {capacity}%";
+          format-critical = "<span color='${t.fg.crit}'>{icon}</span> {capacity}% {time}";
+          format-alt = "{time} <span color='${t.accent c.base0A}'>{icon}</span>";
           format-icons = [ "󰂎" "󰁻" "󰁾" "󰂀" "󰁹" ];
         };
 
         "clock" = {
           locale = myconfig.constants.mainLocale or "en_US.UTF-8";
-          format = "<span color='${c.base0E}'></span> {:%I:%M %p}";
-          format-alt = "<span color='${c.base0E}'></span> {:%m/%d/%Y - %I:%M %p}";
+          format = "<span color='${t.accent c.base0E}'></span> {:%I:%M %p}";
+          format-alt = "<span color='${t.accent c.base0E}'></span> {:%m/%d/%Y - %I:%M %p}";
           tooltip-format = "<tt><small>{calendar}</small></tt>";
           calendar = {
             mode = "year";
@@ -154,7 +138,7 @@ delib.module {
           exec = ''
             count=$(swaync-client -c 2>/dev/null || echo "0")
             if [ "$count" -gt 0 ]; then
-              echo "<span color='${c.base09}'>󰂚</span> $count"
+              echo "<span color='${t.accent c.base09}'>󰂚</span> $count"
             else
               echo "󰂜"
             fi
@@ -170,11 +154,11 @@ delib.module {
           exec = ''
             wifi_info=$(nmcli -t -f active,ssid dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2)
             if [ -n "$wifi_info" ]; then
-              echo "<span color='${c.base0C}'>󰤨</span> $wifi_info"
+              echo "<span color='${t.accent c.base0C}'>󰤨</span> $wifi_info"
             elif nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -q "ethernet:connected"; then
-              echo "<span color='${c.base0C}'>󰈀</span> ${myconfig.constants.hostname or "nixos"}"
+              echo "<span color='${t.accent c.base0C}'>󰈀</span> ${myconfig.constants.hostname or "nixos"}"
             else
-              echo "<span color='${c.base05}'>󰤭</span> offline"
+              echo "<span color='${t.fg.pill}'>󰤭</span> offline"
             fi
           '';
           interval = 5;
@@ -186,9 +170,9 @@ delib.module {
           format = "{}";
           exec = ''
             if bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then
-              echo "<span color='${c.base0D}'>󰂯</span>"
+              echo "<span color='${t.accent c.base0D}'>󰂯</span>"
             else
-              echo "<span color='${c.base05}'>󰂲</span>"
+              echo "<span color='${t.fg.pill}'>󰂲</span>"
             fi
           '';
           interval = 5;

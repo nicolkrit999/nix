@@ -82,4 +82,6 @@ Use a directory outside `/tmp` (4 GB tmpfs); expect substituter downloads.
   runs `nix eval --raw --impure` per attribute and prints a pass/fail table.
 - Exit non-zero on any failure; keep tests deterministic.
 - Default to no code comments; the readme explains what/why/how.
+- Adding, removing or renaming a check (or its control) changes the readme's
+  `## Checks` table and possibly the overview row: run the "Docs sync" in `./SKILL.md`.
 - Tests read the real current config, so they verify a later fix without a rebuild.

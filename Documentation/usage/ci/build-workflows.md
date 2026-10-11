@@ -1367,7 +1367,7 @@ there is no cold-cache data point yet.
 | `heavy-b` | `nixos-wallpaperd-runtime`, `nixos-mango-desktop-host` (cap 20 each) | 193 s | ~8 min | ~13 min | real builds |
 | `harness` | every folder with `*_test.nix` (conflicting-modules, custom-shells, wallpapers, mango-option-names) | 82 s (+ ~1 min wallpapers asserts) | ~6 min | ~8 min | builds the nix-tests harness once per runner |
 | `nixos` | default for `nixos/` (12 tests) | 259 s | ~10 min | ~16 min | real-host evals |
-| `nixos-b` | secret-service, nas-mounts, hyprland-lua-config, keybind-conflicts, waybar-configs, ssh-trust-pins, borg-backup-config | 243 s | ~9 min | ~15 min | split from `nixos` by `test.conf` |
+| `nixos-b` | secret-service, nas-mounts, hyprland-lua-config, keybind-conflicts, waybar-configs, waybar-contrast, ssh-trust-pins, borg-backup-config, portal-routing (cap 20) | 243 s | ~9 min | ~15 min | split from `nixos` by `test.conf` |
 | `common` | default for `common/` (10 tests) | 270 s | ~10 min | ~17 min | scenario evals |
 | `darwin` (macOS) | darwin-minimal-defaults, darwin-host-contract, darwin-home-paths | 115 s | ~4-5 min | ~7 min | separate workflow |
 
@@ -1376,7 +1376,7 @@ there is no cold-cache data point yet.
 test step uses `timeout-minutes: ${{ fromJSON(needs.discover.outputs.step_timeouts)[matrix.group] }}`.
 The budget (`step_budget`) is the sum of the group's per-test caps + 1 minute per
 test (kill grace, evidence merge, the final redaction pass) + 2 per leg. On
-2026-10-11: `nixos` 134 (12 tests, caps 120), `common` 112, `nixos-b` 79,
+2026-10-11: `nixos` 134 (12 tests, caps 120), `common` 112, `nixos-b` 111 (9 tests, caps 100),
 `heavy-a` 49, `harness` 46, `heavy-b` 44, `darwin` 35. **Why:** the step cap
 used to be a fixed 50 minutes while the `nixos` group's caps summed to 120. Each
 test is stopped by its own cap and the next one starts, but a few slow tests in
