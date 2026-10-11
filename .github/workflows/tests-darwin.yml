@@ -100,6 +100,9 @@ jobs:
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             # Full eval traces in every test log (show-trace invariant).
             show-trace = true
+            # A runner's 1-hour negative narinfo cache hid a fresh cachix push and
+            # made portal-routing compile noctalia (run 38136950163): never cache a miss.
+            narinfo-cache-negative-ttl = 0
             extra-substituters = https://catppuccin.cachix.org https://krit-nixos.cachix.org
             extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI= krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=
 

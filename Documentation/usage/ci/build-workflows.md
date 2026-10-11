@@ -612,6 +612,7 @@ Current checks: `cachix-auth`, `push-always`, `push-non-fatal`, `step-ref`,
 `push-count-anchored`, and the test-suite checks of §12.6: `test-gate`,
 `notify-not-gate`, `test-runner-wrapper`, `test-step-timeout`, `test-log-upload`,
 `matrix-no-fail-fast`, `test-notify-job`, `no-secrets-in-tests`, `show-trace`,
+`narinfo-no-negative-cache`,
 `discord-payload-hygiene`, `test-discovery`, `notify-report-fallback`,
 `test-trigger`, `test-job-unconditional`, `checkout-no-persist`, `stop-commands`,
 `test-step-budget`, `test-step-continue`, `test-job-needs`, `harness-pinned`,
@@ -1333,7 +1334,8 @@ discover (ubuntu, 5) ──> tests (matrix: one leg per CI group, 240 / 80 on ma
   says how to bump it (a newer release means switching to the codeberg URL);
   the `harness-pinned` invariant fails on a non-40-hex rev, a dropped override,
   or any unpinned `nix run …danielefongo/nix-tests` call under `.github/` or
-  `templates/tests/`.
+  `templates/tests/`. Before the first harness command, run-test.py runs
+  `discover.NIX_TESTS_WARM` once (§12.9).
 
 - **Harness fakes must not use IFD.** nix-tests evaluates with
   `nix-instantiate --eval`, which is read-only: derivations are computed but no
@@ -1724,7 +1726,7 @@ including tree mutations for the budget and the harness pin, all caught).
 | `test-step-budget` | every other step of a test job has an integer `timeout-minutes`, and their sum + the largest discovered group budget ≤ job cap − 5, so the job cap never fires first; every group budget ≥ its per-test caps + 1 min per test |
 | `test-step-continue` | the test step is `continue-on-error: true` (the Gate carries the verdict) |
 | `test-job-needs` | a test job `needs:` only the discover job; a chain on another leg would skip that leg's tests when the first one fails |
-| `harness-pinned` | `discover.NIX_TESTS` pins the nix-tests harness to a 40-hex rev and keeps `--inputs-from . --override-input nixpkgs nixpkgs`; no unpinned `nix run …danielefongo/nix-tests` call anywhere under `.github/` or `templates/tests/` (Markdown excluded) |
+| `harness-pinned` | `discover.NIX_TESTS` pins the nix-tests harness to a 40-hex rev and keeps `--inputs-from . --override-input nixpkgs nixpkgs`; `discover.NIX_TESTS_WARM` archives the harness at the same rev with the same flags (§12.9); no unpinned `nix run …danielefongo/nix-tests` call anywhere under `.github/` or `templates/tests/` (Markdown excluded) |
 | `darwin-runner-aligned` | the `tests-darwin.yml` legs use the same `runs-on:` image as `build-darwin.yml` |
 | `test-log-upload` | upload uses always(), continue-on-error, pinned `@vN`, retention set, `test-logs` path, and a name with run_id, run_attempt and the matrix var; it comes after the test step |
 | `matrix-no-fail-fast` | the test matrix sets `fail-fast: false` |
@@ -1737,6 +1739,7 @@ including tree mutations for the budget and the harness pin, all caught).
 | `untrusted-expr-in-run` | (all workflows) no `${{ github.event.* }}`, `github.head_ref` or `inputs.*` expanded inside `run:` (script injection); pass them through `env:` |
 | `root-safe-haven` | (all workflows) a nothing-but-nix step in a job that restores or saves the store cache sets `root-safe-haven` ≥ 12288 (default 2048 MB → ENOSPC, §11.4b, §12.1) |
 | `show-trace` | `show-trace = true` is in `extra-conf` |
+| `narinfo-no-negative-cache` | `narinfo-cache-negative-ttl = 0` is in `extra-conf` (§12.8) |
 | `discord-payload-hygiene` | **behavioural**: it imports `test-report.py` and asserts that `payload()` sets the mention and embed flags and rejects content over 2000 chars (a grep was fooled by the docstring) |
 | `notify-report-fallback` | the notify job's `test-report.py` step has an `id:`, and every Discord step in that job reads `steps.<id>.outcome` (in `run:` or `env:`), so a crashed report can never read as "nothing to report" |
 | `test-discovery` | the matrix comes from `discover.py --matrix --platform <p> --github-output`; the real tree discovers cleanly with ≥ 1 CI group per platform |
@@ -1760,3 +1763,70 @@ including tree mutations for the budget and the harness pin, all caught).
 - The discovery-derived step timeout (§12.2) and the runner-error containment
   (§12.3) are verified locally (actionlint, checker, unit tests), not yet on a
   real run.
+
+### 12.8 Nix version in the test legs, and the negative narinfo cache
+
+**`narinfo-cache-negative-ttl = 0`** is in both test workflows' `extra-conf`
+(`narinfo-no-negative-cache` invariant). Nix remembers a narinfo MISS for an
+hour by default. In run 38136950163 a runner had looked up a path before the
+cachix push that made it available, so the miss was cached and `portal-routing`
+compiled noctalia from source instead of substituting it. The cost of a ttl of 0
+is a few more HTTP lookups. `build.yml` and `build-darwin.yml` were left
+unchanged; they hit the same default, and the setting is safe there too if it
+ever bites.
+
+**Nix version drift (deliberately NOT aligned).** The legs install Determinate
+Nix 3.23.1 (based on Nix 2.35.2) via `nix-installer-action@main`. The hosts run
+upstream `pkgs.nix` from the locked nixpkgs (2.34.8 on 2026-10-11). Pinning the
+legs to the same upstream Nix would need a hand-maintained tarball URL
+(`nix-package-url`) or a second install step, would diverge the tests from
+`build.yml` whose store cache they restore, and cannot be verified without a CI
+run. It was judged not worth the maintenance; revisit if a failure is traced to
+the Nix version difference (the known one: Determinate writes `.drv` files
+asynchronously, which is why the store-state tests must not assume a `.drv`
+exists right after instantiation).
+
+### 12.9 Harness input warm-up (libgit2 "object not found" on an empty fetcher cache)
+
+**Symptom.** A harness test fails at random with
+`while fetching the input 'github:…'` followed by
+`getting Git object '<sha>': object not found - no match for id (…) (libgit2 error code = 9)`
+or `adding a file to a tree builder: failed to insert entry: invalid object specified - <file> (libgit2 error code = 14)`.
+The config is fine. It needs BOTH an empty `~/.cache/nix` (every fresh CI
+runner) AND inputs that are not yet valid store paths; with either one warm it
+does not happen. Locally reproduced 2026-10-11 in 1 of 3 runs of
+`nixos-custom-shells` on an empty chroot store + empty `XDG_CACHE_HOME`
+(failing input `nix-community/nixpkgs.lib`; earlier runs: caelestia shell,
+flake-parts, denix).
+
+**Cause (upstream Nix, unfixed in 2.34.7, 2.35.2 and master as of 2026-10-11).**
+nix-tests evaluates every `*_test.nix` file in its own parallel
+`nix-instantiate`, and each one `getFlake`s this repo and fetches the inputs
+it touches. A locked github input whose store path is not valid is unpacked
+into the shared git tarball cache `~/.cache/nix/tarball-cache-v2`. Nix reads
+that cache's pack directory only once per repo handle (`refresh = nullptr` in
+`GitRepoImpl::getPool`, `src/libfetchers/git-utils.cc`), and its own comment
+calls "another process unpacking a similar tarball to the cache at the same
+time" a very unrealistic scenario. With many parallel evaluators it is the
+normal case: one process finds a tree or blob that another process's freshly
+written pack holds, but its handle never sees that pack. No upstream issue
+covers the multi-process case; related: NixOS/nix#11815 (same symptom,
+parallel fetches on CI, closed without a fix) and NixOS/nix#14620 (the
+in-process thread variant, fixed). Source:
+https://github.com/NixOS/nix/blob/2.34.7/src/libfetchers/git-utils.cc#L398-L416
+
+**Fix (test-side).** `Input::getAccessorUnchecked` uses an existing store path
+for a locked input with a narHash and never touches the tarball cache. So
+run-test.py runs `discover.NIX_TESTS_WARM` (`nix flake archive .` and
+`nix flake archive` of the pinned harness with the same `--inputs-from .
+--override-input nixpkgs nixpkgs`) once per process, before its first harness
+command, under a `flock` on `$XDG_CACHE_HOME/nix/nix-tests-warm.lock`, so
+concurrent `run-tests.sh --parallel` workers warm one after the other. The
+output goes into the test's log as `===== warm-up: … =====`; a failing warm-up
+is logged and never fails the test (the harness then fetches by itself). It
+counts against the first harness test's deadline. Cost: about 0 s on the
+desktop, about 4 min and 2.3 GB on a fully empty store (all 126 input paths,
+measured 2026-10-11); a CI leg that restored build.yml's store cache already
+has most of them. Remove the warm-up when Nix refreshes the pack list across
+processes (check `getPool` / `readPackDirOnlyOnce` in git-utils.cc).
+

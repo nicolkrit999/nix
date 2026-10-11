@@ -66,3 +66,7 @@ which programs a host enables.
 | `specialisationNames` | `deep-focus`, `guest`, `safemode`, `secure-travel` all exist as specialisations (the dry-build attrs rely on these names) |
 
 The former "expected incompatibility" path (`EXPECTED_DIRECT_MODULES`) was dead code and was removed.
+
+## Store independence
+
+The `stylix-stub.nix` fixture uses the inline scheme `templates/tests/lib/scheme-catppuccin-mocha.nix` instead of reading the base16-schemes package, and re-pins `stylix.base16Scheme` (`mkOverride 40`) inside the `guest` and `safemode` specialisations, whose production modules read the package yaml. Every nix call in `check-nixos-aarch64-compat.sh` runs with `--option allow-import-from-derivation false`, so any remaining or reintroduced IFD fails locally instead of only on a fresh CI store.

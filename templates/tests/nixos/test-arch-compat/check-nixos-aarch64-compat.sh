@@ -77,7 +77,7 @@ run_check() {
   printf "  %-55s " "$label"
   local err
   # --show-trace makes module names visible in traces (needed for DIRECT MODULE classification).
-  if err=$(nix build --dry-run --no-link --impure --show-trace --file "$DIR/$file" "$attr" 2>&1); then
+  if err=$(nix build --dry-run --no-link --impure --option allow-import-from-derivation false --show-trace --file "$DIR/$file" "$attr" 2>&1); then
     printf "${GREEN}✓ ok${NC}\n"
     ((PASS++)) || true
   else
@@ -105,7 +105,7 @@ run_value_check() {
   local file="$1" name="$2"
   printf "  %-55s " "value: $name ($file)"
   local out
-  if out=$(nix eval --raw --impure --file "$DIR/$file" "checks.$name" 2>&1) && [[ "$out" == "ok" ]]; then
+  if out=$(nix eval --raw --impure --option allow-import-from-derivation false --file "$DIR/$file" "checks.$name" 2>&1) && [[ "$out" == "ok" ]]; then
     printf "${GREEN}✓ ok${NC}\n"
     ((PASS++)) || true
   else

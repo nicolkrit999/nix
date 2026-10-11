@@ -18,9 +18,9 @@ bash check-nixos-keybind-conflicts.sh
 
 ## How it works
 
-`01-scenario-keybind-conflicts.nix` evaluates the real flake (`nixosConfigurations.nixos-desktop` / `nixos-laptop`) plus every specialisation of each, and for every variant where a desktop module is enabled reads the final home-manager values. Bind strings are normalised (lowercased, modifiers sorted, `Mod`/`Meta`/`Win` aliased to `super`) before comparing, so reordered or differently-cased duplicates are caught. Checks are exposed as `"ok"` / `"FAIL: ..."` strings under `results`; `control` holds matcher self-tests on synthetic inputs, and `gnome-scripts` holds the rendered GNOME screenshot script text.
+`01-scenario-keybind-conflicts.nix` evaluates the real flake (`nixosConfigurations.nixos-desktop` / `nixos-laptop`) plus every specialisation of each, and for every variant where a desktop module is enabled reads the final home-manager values. Bind strings are normalised (lowercased, modifiers sorted, `Mod`/`Meta`/`Win` aliased to `super`) before comparing, so reordered or differently-cased duplicates are caught. Checks are exposed as `"ok"` / `"FAIL: ..."` strings under `results`; `control` holds matcher self-tests on synthetic inputs, and `gnome-scripts` holds the GNOME screenshot script text, taken from the `.drv` (its `__json` `text` field, context kept) so the script is never built or realised.
 
-`check-nixos-keybind-conflicts.sh` runs `nix eval --json --impure` on each attribute, prints a per-check PASS/FAIL list and `bash -n`s the screenshot script. It exits non-zero on any failure. Eval-only apart from building the small screenshot script; about 10-20 s warm.
+`check-nixos-keybind-conflicts.sh` runs `nix eval --json --impure` on each attribute, prints a per-check PASS/FAIL list and `bash -n`s the screenshot script. It exits non-zero on any failure. Eval-only (the screenshot script is read from its `.drv`, never built); about 10-20 s warm.
 
 ## Checks
 

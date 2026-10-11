@@ -316,6 +316,9 @@ class DiscoveryCase(unittest.TestCase):
         self.assertRegex(discover.NIX_TESTS_REV, r"^[0-9a-f]{40}$")
         self.assertIn(f"/{discover.NIX_TESTS_REV} --inputs-from . --override-input nixpkgs nixpkgs --",
                       discover.NIX_TESTS)
+        self.assertIn(f"/{discover.NIX_TESTS_REV} --inputs-from . --override-input nixpkgs nixpkgs",
+                      " ".join(discover.NIX_TESTS_WARM))
+        self.assertIn("nix flake archive .", discover.NIX_TESTS_WARM)
         tests = {t["name"]: t for t in discover.discover(self.tree())}
         self.assertTrue(tests["nixos-b"]["commands"][0].startswith(discover.NIX_TESTS + " "))
 

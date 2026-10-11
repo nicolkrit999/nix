@@ -148,6 +148,15 @@ let
     // lib.optionalAttrs (enabled c "gnome") (gnomeChecks c)
     // lib.optionalAttrs (enabled c "kde") (kdeChecks c);
 
+  readDrv = d: builtins.readFile (builtins.appendContext d { ${d} = { path = true; }; });
+  scriptTextOf = cmd:
+    let
+      drv = readDrv (lib.head (lib.filter (lib.hasSuffix ".drv") (builtins.attrNames (builtins.getContext cmd))));
+      esc = lib.head (lib.splitString "\"),(\"out\"" (lib.elemAt (lib.splitString "(\"__json\",\"" drv) 1));
+      json = builtins.replaceStrings [ "\\\\" "\\\"" "\\n" "\\t" "\\r" ] [ "\\" "\"" "\n" "\t" "\r" ] esc;
+    in
+    (builtins.fromJSON (builtins.unsafeDiscardStringContext json)).text;
+
   gnomeScripts = lib.filterAttrs (_: v: v != "") (lib.mapAttrs
     (_name: c:
       if !(enabled c "gnome") then ""
@@ -156,7 +165,7 @@ let
           ds = (hmOf c).dconf.settings;
           shot = lib.filter (e: (e.binding or "") == "Print") (map (n: ds.${n}) (lib.filter (lib.hasPrefix gnomePrefix) (builtins.attrNames ds)));
         in
-        if shot == [ ] then "" else builtins.readFile (lib.head shot).command)
+        if shot == [ ] then "" else scriptTextOf (lib.head shot).command)
     variants);
 in
 {

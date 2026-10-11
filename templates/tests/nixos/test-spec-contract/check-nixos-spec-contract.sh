@@ -25,7 +25,7 @@ run_check() {
   printf "  %-62s " "$label"
   local result stderr_file
   stderr_file=$(mktemp)
-  if result=$(nix eval --raw --impure --file "$DIR/01-scenario-spec-contract.nix" "$attr" 2>"$stderr_file"); then
+  if result=$(nix eval --raw --impure --option allow-import-from-derivation false --file "$DIR/01-scenario-spec-contract.nix" "$attr" 2>"$stderr_file"); then
     if [[ "$result" == "ok" ]]; then
       printf "${GREEN}✓ ok${NC}\n"
       ((PASS++)) || true

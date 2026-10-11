@@ -40,6 +40,7 @@ import sys
 sys.dont_write_bytecode = True
 
 import argparse  # noqa: E402
+import fcntl  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
 import shutil  # noqa: E402
@@ -125,6 +126,57 @@ def _merge_evidence(ev_dir: Path, f, errors: list):
     shutil.rmtree(ev_dir, ignore_errors=True)  # raw (unredacted) copies never reach an artifact
 
 
+_warm = {"done": False}
+
+
+def _warm_harness_inputs(f, env, cwd, deadline, echo):
+    """Fetch every flake input once, serialised across concurrent run-test.py
+    processes by a flock, before the first harness command of this process.
+    A failure is noted in the log and never fails the test."""
+    if _warm["done"]:
+        return
+    _warm["done"] = True
+    lock_dir = Path(env.get("XDG_CACHE_HOME") or Path.home() / ".cache") / "nix"
+    lock_dir.mkdir(parents=True, exist_ok=True)
+
+    def out(b):
+        f.write(b)
+        f.flush()
+        if echo:
+            sys.stdout.buffer.write(b)
+            sys.stdout.buffer.flush()
+
+    with open(lock_dir / "nix-tests-warm.lock", "w") as lk:
+        while True:
+            try:
+                fcntl.flock(lk, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if _stop["sig"] or time.monotonic() >= deadline:
+                    out(b"[run-test.py] warm-up: lock wait gave up\n")
+                    return
+                time.sleep(0.5)
+        for cmd in tc.discover.NIX_TESTS_WARM:
+            out(f"\n===== warm-up: {cmd} =====\n".encode())
+            t0 = time.monotonic()
+            p = subprocess.Popen(["bash", "-c", cmd], cwd=cwd, env=env, stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True)
+            _stop["proc"] = p
+            try:
+                data, _ = p.communicate(timeout=max(1.0, deadline - time.monotonic()))
+            except subprocess.TimeoutExpired:
+                _terminate(p)
+                data, rc = p.communicate()[0], "timeout"
+            else:
+                rc = p.returncode
+            finally:
+                _stop["proc"] = None
+            out(tc.redact(tc.ANSI.sub(b"", data or b"")))
+            out(f"[run-test.py] warm-up exit {rc} after {round(time.monotonic() - t0)}s\n".encode())
+            if rc != 0 or _stop["sig"]:
+                return
+
+
 def run_one(name, commands, timeout_min, log_dir: Path, ctx, echo=True, extra_meta=None, cwd=None) -> int:
     log_dir.mkdir(parents=True, exist_ok=True)
     log, meta_p, ev_dir = log_dir / f"{name}.log", log_dir / f"{name}.meta.json", log_dir / f"{name}.d"
@@ -155,6 +207,8 @@ def run_one(name, commands, timeout_min, log_dir: Path, ctx, echo=True, extra_me
         # our own annotation below comes after the resume.
         resume = tc.stop_commands() if echo else ""
         _stop["resume"] = resume  # run_one_safe resumes it if we crash before the resume below
+        if any(tc.discover.NIX_TESTS_REPO in c for c in commands):
+            _warm_harness_inputs(f, env, cwd or tc.ROOT, deadline, echo)
         for i, cmd in enumerate(commands):
             if _stop["sig"] or timed_out:
                 break

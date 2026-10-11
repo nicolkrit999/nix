@@ -86,6 +86,11 @@ NON_TEST_DIRS = {"lib"}
 NIX_TESTS_REPO = "github:danielefongo/nix-tests"
 NIX_TESTS_REV = "866429d23a6ebf6e03837434f18e4cace9c37bc5"
 NIX_TESTS = f"nix run {NIX_TESTS_REPO}/{NIX_TESTS_REV} --inputs-from . --override-input nixpkgs nixpkgs --"
+# Upstream Nix tarball-cache race, see build-workflows.md 12.9.
+NIX_TESTS_WARM = [
+    "nix flake archive .",
+    f"nix flake archive {NIX_TESTS_REPO}/{NIX_TESTS_REV} --inputs-from . --override-input nixpkgs nixpkgs",
+]
 
 DEFAULT_TIMEOUT_MIN = 10
 # A CI leg's test step gets a timeout DERIVED from its group (step_budget): the sum

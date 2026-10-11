@@ -80,3 +80,7 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | Check | Expected |
 |-------|----------|
 | `hyprland.monitors` | differs from base, non-empty, each entry has `output` and `mode` |
+
+## Store independence
+
+The `stylix-stub.nix` fixture uses the inline scheme `templates/tests/lib/scheme-catppuccin-mocha.nix` (and re-pins it in the `guest` and `safemode` specialisations) instead of reading the base16-schemes package; the check script evaluates with `--option allow-import-from-derivation false`, so an IFD fails on a warm store too.

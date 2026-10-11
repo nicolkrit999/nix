@@ -19,13 +19,16 @@ delib.module {
 
   nixos.always = { ... }: {
     imports = [ inputs.stylix.nixosModules.stylix ];
+    specialisation = lib.genAttrs [ "guest" "safemode" ] (_: {
+      configuration.stylix.base16Scheme = lib.mkOverride 40 (import ../../../../lib/scheme-catppuccin-mocha.nix);
+    });
   };
 
   nixos.ifEnabled = { ... }: {
     stylix = {
       enable = true;
       polarity = "dark";
-      base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+      base16Scheme = import ../../../../lib/scheme-catppuccin-mocha.nix;
       image = pkgs.runCommand "dummy-wallpaper.png" { } "touch $out";
       cursor = {
         name = "DMZ-Black";

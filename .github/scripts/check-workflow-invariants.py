@@ -700,6 +700,13 @@ def check_test_workflow(path):
                  "extra-conf must contain `show-trace = true`: without it every eval error in a test "
                  "log is one line with no trace.")
 
+        # 26. narinfo-no-negative-cache
+        checked += 1
+        if not inst or not re.search(r"^\s*narinfo-cache-negative-ttl\s*=\s*0\s*$", str((inst[0].get("with") or {}).get("extra-conf", "")), re.M):
+            fail(wf, jn, "Install Nix", "narinfo-no-negative-cache",
+                 "extra-conf must contain `narinfo-cache-negative-ttl = 0`: a runner's 1-hour negative "
+                 "narinfo cache hides a cachix push made after the first miss (run 38136950163).")
+
     # 21. test-notify-job + 23. notify-not-gate
     tj = set(test_jobs)
     notify = []
@@ -912,7 +919,15 @@ def check_harness_pinned(discover):
         fail("templates/tests/lib/discover.py", "-", None, "harness-pinned",
              "NIX_TESTS must keep `--inputs-from . --override-input nixpkgs nixpkgs` (the harness's own "
              "nixpkgs cannot fetch its crates any more; see the comment there).")
-    scan = [*REPO_ROOT.joinpath(".github").rglob("*"), *TESTS_ROOT.rglob("*")]
+    warm = getattr(discover, "NIX_TESTS_WARM", [])
+    checked += 1
+    hw = [w for w in warm if HARNESS_REF.search(w)]
+    if not hw or any(not PINNED_REST.match(HARNESS_REF.search(w).group("rest"))
+                     or "--inputs-from . --override-input nixpkgs nixpkgs" not in w for w in hw):
+        fail("templates/tests/lib/discover.py", "-", None, "harness-pinned",
+             f"NIX_TESTS_WARM = {warm!r} must archive the harness at the same pinned rev with "
+             "`--inputs-from . --override-input nixpkgs nixpkgs` (build-workflows.md 12.9).")
+    scan =[*REPO_ROOT.joinpath(".github").rglob("*"), *TESTS_ROOT.rglob("*")]
     for f in sorted(scan):
         if (not f.is_file() or f.suffix in (".md", ".pyc") or "__pycache__" in f.parts
                 or f.resolve() == Path(__file__).resolve()):

@@ -78,6 +78,12 @@ A CI-like repro must also restrict substituters to CI's set (add
 `NIX_CONFIG=$'substituters = https://cache.nixos.org https://catppuccin.cachix.org https://krit-nixos.cachix.org\ntrusted-public-keys = <keys from tests-nixos.yml + cache.nixos.org>'`):
 the desktop's NAS/attic and extra cachix caches hide builds that time out in CI.
 
+A harness test that fails with libgit2 `object not found` / `invalid object
+specified` while fetching a `github:` input is the upstream tarball-cache race,
+not the test: run-test.py's input warm-up (`discover.NIX_TESTS_WARM`) prevents
+it. Keep that warm-up when changing how harness commands run
+(build-workflows.md §12.9).
+
 ## Script conventions
 
 - `check-*.sh` source `templates/tests/lib/evidence.sh` near the top:
