@@ -230,6 +230,18 @@ def check_workflow(path):
                     fail(wf, job_name, name, "besteffort-non-fatal",
                          "uses nothing-but-nix without continue-on-error: true. It frees "
                          "disk as an optimisation and must never fail a job on its own.")
+                # 11b. With the default root-safe-haven (2048 MB) the root
+                #      filesystem cannot hold the store-cache archive, so a
+                #      restore or save dies with ENOSPC (build.yml run 1144,
+                #      tests-nixos.yml run 38099944203).
+                if any(s.get("uses", "").startswith("nix-community/cache-nix-action") for s in steps):
+                    checked += 1
+                    haven = (step.get("with") or {}).get("root-safe-haven")
+                    if haven is None or int(haven) < 12288:
+                        fail(wf, job_name, name, "root-safe-haven",
+                             "nothing-but-nix in a job that restores/saves the store cache "
+                             "needs root-safe-haven >= 12288: the default 2048 MB root "
+                             "filesystem cannot hold the cache archive (ENOSPC).")
 
             # 12. Every curl to a Discord webhook must use --fail. Without it curl
             #     exits 0 on an HTTP 4xx/5xx, so a rotated or revoked webhook token

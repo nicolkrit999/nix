@@ -164,7 +164,10 @@ def run_one(name, commands, timeout_min, log_dir: Path, ctx, echo=True, extra_me
                 if echo:
                     sys.stdout.buffer.write(banner); sys.stdout.buffer.flush()
             t0 = time.monotonic()
-            p = subprocess.Popen(["bash", "-c", cmd], cwd=cwd or tc.ROOT, env=env, stdout=subprocess.PIPE,
+            cmd_env = env
+            if tc.discover.NIX_TESTS_REPO in cmd:  # harness evals are read-only: an IFD only works with a warm store
+                cmd_env = {**env, "NIX_CONFIG": env["NIX_CONFIG"] + "\nallow-import-from-derivation = false"}
+            p = subprocess.Popen(["bash", "-c", cmd], cwd=cwd or tc.ROOT, env=cmd_env, stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True)
             _stop["proc"] = p
 

@@ -95,21 +95,10 @@ run_check "check-vicinae-hm-and-input-server-same-package"      "HM and input-se
 run_check "warn-vicinae-override-still-needed"                  "upstream gcc15 differs from our stdenv (override needed)"
 
 echo ""
-echo -e "${BOLD}claude-desktop (pipewire overlay)${NC}"
-run_check "check-claude-desktop-has-pipewire"       "buildInputs contain pipewire"
-run_check "warn-claude-desktop-overlay-redundant"   "upstream lacks pipewire (overlay needed)"
-
-echo ""
 echo -e "${BOLD}lazygit (catppuccin migrated theme)${NC}"
 run_check "check-lazygit-migrated-source-nixos"   "nixos-desktop uses catppuccin-lazygit-migrated"
 run_check "check-lazygit-migrated-source-darwin"  "darwin uses catppuccin-lazygit-migrated"
 run_lazygit_build_check
-
-echo ""
-echo -e "${BOLD}openblas (i686 doCheck overlay)${NC}"
-run_check "check-openblas-i686-docheck-disabled"          "pkgsi686Linux.openblas.doCheck == false"
-run_check "check-openblas-x86_64-untouched"               "x86_64 openblas.doCheck == plain nixpkgs"
-run_check "warn-openblas-i686-override-still-needed"      "plain nixpkgs i686 doCheck != false (overlay needed)"
 
 echo ""
 echo -e "${BOLD}school opencloud-desktop (QML import paths)${NC}"

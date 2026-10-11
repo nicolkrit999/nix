@@ -129,6 +129,12 @@ jobs:
         uses: wimpysworld/nothing-but-nix@main
         with:
           hatchet-protocol: "cleave"
+          # The default root-safe-haven (2048 MB) leaves the root filesystem too
+          # small for the ~3.5 GB store-cache archive the restore step downloads
+          # there: every leg of run 38099944203 failed the restore with ENOSPC
+          # and started from an empty store. Same cause and value as build.yml
+          # (build-workflows.md §11.4b).
+          root-safe-haven: 12288
           witness-carnage: true
           nix-permission-edict: false
 

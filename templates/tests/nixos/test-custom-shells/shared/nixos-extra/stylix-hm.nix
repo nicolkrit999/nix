@@ -1,4 +1,4 @@
-{ inputs, pkgs, ... }:
+{ inputs, ... }:
 {
   imports = [ inputs.stylix.nixosModules.stylix ];
 
@@ -6,6 +6,6 @@
   # No image/wallpaper needed for eval — tests only need color values.
   stylix = {
     enable = true;
-    base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+    base16Scheme = import ../../../../lib/scheme-catppuccin-mocha.nix;
   };
 }

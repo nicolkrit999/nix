@@ -1,4 +1,4 @@
-{ inputs, pkgs, ... }:
+{ inputs, ... }:
 {
   imports = [ inputs.stylix.nixosModules.stylix ];
 
@@ -7,6 +7,6 @@
   # needed — these tests only care about assertion behavior, not theming.
   stylix = {
     enable = true;
-    base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+    base16Scheme = import ../../../../../lib/scheme-catppuccin-mocha.nix;
   };
 }

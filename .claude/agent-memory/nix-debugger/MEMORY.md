@@ -24,3 +24,4 @@
 - [mango config value 255 truncation](project_mango_config_value_255_truncation.md) - mango silently cuts values >255 chars; long exec_once -> broken sh -c, never runs, mango -p passes
 - [base16 base07 not brightest](project_base16_base07_not_brightest.md) - rose-pine-moon base07 is dark; over-wallpaper text contrast is set by the wallpaper, not the scheme (hyprlock 1.5:1)
 - [SDDM label contrast probe](project_sddm_label_contrast_probe.md) - pixie conf rewrite drops autoColor/textColor; build-time magick luma ~0.5s no IFD; mean luma misleads, use fail-fraction
+- [nix-tests read-only IFD](project_nix_tests_readonly_ifd.md) - harness = `nix-instantiate --eval` (read-only): IFD fails on fresh CI store, passes locally; guard via NIX_CONFIG IFD=false

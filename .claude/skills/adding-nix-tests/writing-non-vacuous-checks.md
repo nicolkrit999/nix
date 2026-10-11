@@ -42,6 +42,38 @@ enables every module on purpose.
   `secrets/*.yaml`, and never dump whole config subtrees to stderr: whatever a
   test prints lands in CI artifacts and on Discord.
 
+## Harness (`*_test.nix`) fakes: no IFD
+
+nix-tests evaluates read-only (`nix-instantiate --eval`), so reading a file out of
+a built package during eval fails on a fresh CI runner ("... .drv is not valid")
+while passing on a machine whose store is warm. Never point a fake at
+`${pkgs.<pkg>}/...` for data read at eval time; use an inline value (stylix:
+`import <rel>/templates/tests/lib/scheme-catppuccin-mocha.nix`). `run-test.py`
+sets `allow-import-from-derivation = false` for harness commands to catch this
+locally. Likewise never `readFile (unsafeDiscardStringContext <drv output>)`
+in bash scenarios: it only works where the path was already built.
+
+## Tests must not depend on store state
+
+A test has to pass on an empty store (fresh CI runner). Never
+`readFile (unsafeDiscardStringContext <output or .drv>)`: outputs are never built
+on a fresh store, and Determinate Nix writes `.drv` files asynchronously, so a
+context-less `.drv` read races. Keep the context instead: read a `.drv` with
+`builtins.appendContext d { ${d} = { path = true; }; }` (waits for the write, builds
+nothing), or `readFile` a tiny script with its context kept (Nix builds it), or
+use the derivation's `.text` attribute. Context-discarding is fine for pure string
+comparison, not for reads.
+
+Fresh-store check (a green run on the dev machine proves nothing):
+
+```bash
+S=$HOME/momentary/fresh-store-<name>; rm -rf "$S"; mkdir -p "$S" "$S-cache"
+XDG_CACHE_HOME="$S-cache" NIX_REMOTE="local?root=$S" \
+  bash templates/tests/run-tests.sh --only <name>
+```
+
+Use a directory outside `/tmp` (4 GB tmpfs); expect substituter downloads.
+
 ## Script conventions
 
 - `check-*.sh` source `templates/tests/lib/evidence.sh` near the top:

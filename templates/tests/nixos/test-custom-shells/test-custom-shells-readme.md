@@ -71,3 +71,5 @@ Scenario hosts live in `consumers/NN-*/default.nix`; each `_test.nix` evaluates 
 | C09 control (hyprland) | hypridle and hyprlock enabled, proving C08 can fail |
 
 The positive C01-C04 package/execOnce checks make the absence checks non-vacuous.
+
+**Store independence:** the `stylix-hm.nix` stubs use the inline scheme `templates/tests/lib/scheme-catppuccin-mocha.nix` instead of reading the base16-schemes package. The harness evaluates read-only, so an IFD only works on a warm store (fresh CI legs failed with "base16-schemes ... .drv is not valid"); `run-test.py` runs harness commands with `allow-import-from-derivation = false` so a regression fails locally too.

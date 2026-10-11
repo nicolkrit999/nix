@@ -24,6 +24,8 @@ nix run github:danielefongo/nix-tests -- .
 
 `mango-option-names_test.nix` reads `wayland.windowManager.mango.settings`, and renders it at eval time with the mango flake's own `toMango` generator (`nix/lib.nix`), without building anything and without running `mango -p` (that is covered by the real `config.conf` derivation build). Keys are extracted from the rendered `key = value` lines and compared against the removed names (the 31 keys from the 0.18.0 rejection list) and the removed window-rule sub-fields.
 
+**Store independence:** the `stylix-hm.nix` stubs use the inline scheme `templates/tests/lib/scheme-catppuccin-mocha.nix` instead of reading the base16-schemes package. The harness evaluates read-only, so an IFD only works on a warm store (fresh CI legs failed with "base16-schemes ... .drv is not valid"); `run-test.py` runs harness commands with `allow-import-from-derivation = false` so a regression fails locally too.
+
 ## Checks
 
 ### M01 - mango settings use only 0.18.0 keyword names

@@ -20,7 +20,8 @@ let
 
   has = lib.hasInfix;
   chk = cond: msg: if cond then "ok" else "FAIL: ${msg}";
-  unreadable = p: builtins.unsafeDiscardStringContext p;
+  readDrv = d: builtins.readFile (builtins.appendContext d { ${d} = { path = true; }; });
+  drvTextOf = s: readDrv (lib.head (lib.filter (lib.hasSuffix ".drv") (builtins.attrNames (builtins.getContext s))));
 
   legacyDispatch = text:
     let
@@ -43,7 +44,7 @@ let
       lockText = if lockPkg == null then "" else builtins.readFile "${lockPkg}/bin/universal-lock";
       services = hm.systemd.user.services;
       jetkvm = services.hyprland-jetkvm-teardown or null;
-      jetkvmText = if jetkvm == null then "" else lib.concatMapStrings (e: let s = toString e; in if lib.hasPrefix "/nix/store/" s && !(has "/bin/true" s) then builtins.readFile (unreadable s) else "") (execStrings jetkvm);
+      jetkvmText = if jetkvm == null then "" else lib.concatMapStrings (e: let s = toString e; in if lib.hasPrefix "/nix/store/" s && !(has "/bin/true" s) then drvTextOf s else "") (execStrings jetkvm);
       svcText = lib.concatMapStrings (s: lib.concatStringsSep "\n" (map toString (execStrings s)) + "\n") (lib.attrValues services);
       waybarConf = hm.xdg.configFile."waybar-hyprland/config".text or "";
       corpus = {
@@ -61,7 +62,7 @@ let
       waybarSvc = services.waybar-hyprland or null;
       waybarExec = if waybarSvc == null then "" else toString (lib.head (lib.toList waybarSvc.Service.ExecStart));
       waybarDrvPath = lib.findFirst (lib.hasSuffix ".drv") "" (builtins.attrNames (builtins.getContext waybarExec));
-      waybarDrv = if waybarDrvPath == "" then "" else builtins.readFile waybarDrvPath;
+      waybarDrv = if waybarDrvPath == "" then "" else readDrv waybarDrvPath;
       xwaylandRule = lib.any
         (r: (r.match.class or "") == "^$" && (r.match.xwayland or false) == true && (r.no_focus or false) == true)
         hm.wayland.windowManager.hyprland.settings.window_rule;
@@ -81,7 +82,7 @@ let
       "systemd-no-stop-command" = chk (hm.wayland.windowManager.hyprland.systemd.extraCommands == [ "systemctl --user start hyprland-session.target" ]) "extraCommands: ${builtins.toJSON hm.wayland.windowManager.hyprland.systemd.extraCommands}";
       "waybar-service-present" = chk (waybarSvc != null) "systemd.user.services.waybar-hyprland missing";
       "waybar-lua-dispatch-patch" = chk (has "waybar-hyprland-lua-dispatch.patch" waybarDrv) "waybar in waybar-hyprland ExecStart lacks waybar-hyprland-lua-dispatch.patch";
-      "waybar-control-stock-unpatched" = chk (!(has "waybar-hyprland-lua-dispatch.patch" (builtins.readFile (unreadable flake.inputs.nixpkgs.legacyPackages.x86_64-linux.waybar.drvPath)))) "stock waybar already carries the patch (check cannot bite)";
+      "waybar-control-stock-unpatched" = chk (!(has "waybar-hyprland-lua-dispatch.patch" (builtins.readFile flake.inputs.nixpkgs.legacyPackages.x86_64-linux.waybar.drvPath))) "stock waybar already carries the patch (check cannot bite)";
       "xwayland-phantom-rule-settings" = chk xwaylandRule "no window_rule with class ^$ + xwayland + no_focus";
       "xwayland-phantom-rule-rendered" = chk (has ''["class"] = "^$"'' lua && has ''["xwayland"] = true'' lua) "rendered lua lacks the XWayland phantom rule";
       "wrapper-capabilities-empty" = chk (c.security.wrappers.Hyprland.capabilities == "") "capabilities: ${c.security.wrappers.Hyprland.capabilities}";

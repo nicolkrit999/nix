@@ -24,7 +24,7 @@ bash check-nixos-hyprland-lua-config.sh
 
 `01-scenario-hyprland-lua-config.nix` reads the real `nixos-desktop` and `nixos-laptop` configs and every specialisation whose home-manager Hyprland is enabled (discovered dynamically). `results` maps variant to check to `"ok"` / `"FAIL: <detail>"`. The shell script prints each as PASS/FAIL, then pipes the rendered `hypr/hyprland.lua` through `luac -p` (Lua 5.4) and the `universal-lock` script through `bash -n`, and greps the sources for the legacy form.
 
-The legacy-dispatch scan covers the rendered lua, `hypridle.conf`, the waybar config, `universal-lock`, all user service Exec lines and the jetkvm teardown script; every `hyprctl dispatch` must be followed by `'hl.`. Caelestia's logout script is covered by the repo-wide source grep because no host enables it. Controls prove the matchers bite (legacy text flagged, lua text accepted, `luac` rejects `A`, stock waybar lacks the patch).
+The legacy-dispatch scan covers the rendered lua, `hypridle.conf`, the waybar config, `universal-lock`, all user service Exec lines and the jetkvm teardown script (read from its `.drv` with the string context kept, never from an unbuilt output, so it passes on an empty store; the waybar `.drv` reads follow the same rule); every `hyprctl dispatch` must be followed by `'hl.`. Caelestia's logout script is covered by the repo-wide source grep because no host enables it. Controls prove the matchers bite (legacy text flagged, lua text accepted, `luac` rejects `A`, stock waybar lacks the patch).
 
 ## Checks
 

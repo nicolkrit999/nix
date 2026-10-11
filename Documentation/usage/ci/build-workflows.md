@@ -1335,6 +1335,25 @@ discover (ubuntu, 5) ──> tests (matrix: one leg per CI group, 240 / 80 on ma
   or any unpinned `nix run …danielefongo/nix-tests` call under `.github/` or
   `templates/tests/`.
 
+- **Harness fakes must not use IFD.** nix-tests evaluates with
+  `nix-instantiate --eval`, which is read-only: derivations are computed but no
+  `.drv` is written, so reading a file from a built package (e.g. stylix's
+  `base16Scheme = "${pkgs.base16-schemes}/share/themes/x.yaml"`) only works if
+  some earlier read-write command already wrote that `.drv`. The desktop always
+  has it; a fresh CI leg does not (run 38099944203: `base16-schemes ... .drv is
+  not valid`). The test stylix stubs therefore import the inline scheme
+  `templates/tests/lib/scheme-catppuccin-mocha.nix`, and `run-test.py` appends
+  `allow-import-from-derivation = false` to `NIX_CONFIG` for every command that
+  invokes the harness, so a new IFD fails locally too instead of only in CI.
+
+- **`root-safe-haven: 12288` on the test legs too.** `tests-nixos.yml` ran
+  nothing-but-nix with the default 2048 MB root filesystem, so the ~3.5 GB
+  store-cache archive never fit and every leg's restore failed with `ENOSPC`
+  (run 38099944203, and the single-job run 38081705833 before it): the legs
+  silently started from an empty store. Same cause and fix as the save side in
+  §11.4b. Invariant `root-safe-haven` now requires it in every job that uses
+  cache-nix-action.
+
 ### 12.2 Groups (job split)
 
 Warm runtimes are the local measurements from 2026-10-10 (`22-round2-results.json`;
@@ -1715,6 +1734,7 @@ including tree mutations for the budget and the harness pin, all caught).
 | `checkout-no-persist` | every `actions/checkout` sets `persist-credentials: false` |
 | `stop-commands` | a `run:` that `cat`s a file into the job log wraps it in `::stop-commands::` |
 | `untrusted-expr-in-run` | (all workflows) no `${{ github.event.* }}`, `github.head_ref` or `inputs.*` expanded inside `run:` (script injection); pass them through `env:` |
+| `root-safe-haven` | (all workflows) a nothing-but-nix step in a job that restores or saves the store cache sets `root-safe-haven` ≥ 12288 (default 2048 MB → ENOSPC, §11.4b, §12.1) |
 | `show-trace` | `show-trace = true` is in `extra-conf` |
 | `discord-payload-hygiene` | **behavioural**: it imports `test-report.py` and asserts that `payload()` sets the mention and embed flags and rejects content over 2000 chars (a grep was fooled by the docstring) |
 | `notify-report-fallback` | the notify job's `test-report.py` step has an `id:`, and every Discord step in that job reads `steps.<id>.outcome` (in `run:` or `env:`), so a crashed report can never read as "nothing to report" |

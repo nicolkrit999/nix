@@ -30,8 +30,8 @@ let
     else [ ];
 
   drvText = s:
-    builtins.readFile (builtins.unsafeDiscardStringContext
-      (lib.head (lib.filter (lib.hasSuffix ".drv") (builtins.attrNames (builtins.getContext s)))));
+    let d = lib.head (lib.filter (lib.hasSuffix ".drv") (builtins.attrNames (builtins.getContext s)));
+    in builtins.readFile (builtins.appendContext d { ${d} = { path = true; }; });
   mkdirIn = text:
     let m = builtins.match ''.*mkdir -p [\\"]+([^\\" ]*)[\\"].*'' text;
     in if m == null then [ ] else m;

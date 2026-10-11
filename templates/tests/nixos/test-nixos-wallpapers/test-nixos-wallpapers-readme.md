@@ -53,6 +53,8 @@ mango 0.18 silently cuts config values at 255 chars (commit `4eaaab89`), so `mk-
 
 Coverage matrix per WM (identical for hyprland, mango, niri): declared-only still (W09) and video (W15), two declared outputs (W18), fallback-only still (W01/W04/W11) and video (W02/W05/W12/W13), mixed still-declared + video-fallback (W16) and video-declared + still-fallback (W17).
 
+**Store independence:** the `stylix-hm.nix` stubs use the inline scheme `templates/tests/lib/scheme-catppuccin-mocha.nix` instead of reading the base16-schemes package. The harness evaluates read-only, so an IFD only works on a warm store (fresh CI legs failed with "base16-schemes ... .drv is not valid"); `run-test.py` runs harness commands with `allow-import-from-derivation = false` so a regression fails locally too.
+
 ## Checks
 
 ### W01 - x86_64, static-only on `*`, skwdWall disabled
