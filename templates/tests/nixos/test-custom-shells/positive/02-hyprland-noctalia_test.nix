@@ -1,29 +1,28 @@
 # P02 — Hyprland + noctalia active
-# Noctalia is the active shell on Hyprland (rarer combo; Hyprland is the one
-# WM that supports both shells). Expected: noctalia dispatchers, swaync +
-# wallpaper supervisor suppressed.
+# Expected: noctalia binds, swaync + wallpaper supervisor suppressed.
 { nix-tests }:
 let
   H = import ../shared/eval-scenario.nix;
   lib = H.lib;
   config = H.getConfig ./02-hyprland-noctalia;
   hm = H.getHm config;
-  binds = hm.wayland.windowManager.hyprland.settings.bind;
-  execLua = (builtins.elemAt hm.wayland.windowManager.hyprland.settings.on._args 1).expr;
+  control = H.getHm (H.getConfig ./03-hyprland-no-shell);
+  execLua = H.hyprExecLua hm;
+  controlLua = H.hyprExecLua control;
 in
 nix-tests.runTests {
   "P02: hyprland + noctalia active" = helpers: {
     "no failing assertions" =
       helpers.isTrue (H.allAssertionsPass config);
-    "hyprlock installed — coexists with noctalia (binds dispatch to noctalia IPC)" =
-      helpers.isTrue hm.programs.hyprlock.enable;
     "swaync suppressed — noctalia active on hyprland" =
       helpers.isFalse hm.services.swaync.enable;
-    "wallpaper supervisor suppressed — noctalia active on hyprland" =
-      helpers.isFalse (lib.hasInfix "hyprland-wallpaperd" execLua);
-    "Super+Shift+A dispatches to noctalia launcher IPC" =
-      helpers.isTrue (builtins.any (b: lib.hasInfix "noctalia-shell ipc call toggleAppLauncher" (H.bindStr b)) binds);
-    "Super+Delete dispatches to noctalia lock IPC" =
-      helpers.isTrue (builtins.any (b: lib.hasInfix "noctalia-shell ipc call lockScreen lock" (H.bindStr b)) binds);
+    "control (no shell) still starts the wallpaper supervisor" =
+      helpers.isTrue (lib.hasInfix "hyprland-wallpaperd" controlLua);
+    "wallpaper supervisor suppressed while the rest of the startup block remains" =
+      helpers.isTrue (lib.hasInfix "pkill ibus-daemon" execLua && !(lib.hasInfix "hyprland-wallpaperd" execLua));
+    "Super+Shift+A bind dispatches to noctalia launcher IPC" =
+      helpers.isTrue (lib.hasInfix "noctalia-shell ipc call toggleAppLauncher" (H.hyprBind hm "SUPER+SHIFT + A"));
+    "Super+Delete bind dispatches to noctalia lock IPC" =
+      helpers.isTrue (lib.hasInfix "noctalia-shell ipc call lockScreen lock" (H.hyprBind hm "SUPER + Delete"));
   };
 }

@@ -27,17 +27,19 @@ We use two types of keys:
 
 `sops` does not know what a "Desktop" or "Laptop" is. It simply uses **Regex** to match file paths to keys in `.sops.yaml`.
 
-| If file path matches... | Then encrypt for...                    |
-| ----------------------- | -------------------------------------- |
-| `hosts/desktop/.*`      | User + Desktop Host Key         |
-| `hosts/laptop/.*`       | User + Laptop Host Key          |
-| `common/.*`             | User + Desktop Key + Laptop Key |
+| If file path matches...                                  | Then encrypt for...                              |
+| -------------------------------------------------------- | ------------------------------------------------ |
+| `hosts/nixos-desktop/.*secrets-sops.yaml`                | User + Desktop Host Key                          |
+| `hosts/nixos-laptop/.*secrets-sops.yaml`                 | User + Laptop Host Key                           |
+| `hosts/Krits-MacBook-Pro/.*secrets-sops.yaml`            | User + MacBook Host Key                          |
+| `hosts/Nicol-NAS/.*secrets-sops.yaml`                    | User key only (home-manager-only host, no host key) |
+| `users/krit/common/sops/krit-common-secrets-sops.yaml`   | User + Desktop + Laptop + MacBook keys           |
 
 _If you put a file in the wrong folder, it gets encrypted with the wrong keys._
 
 ### What happens if it gets encrypted with the wrong key?
 
-If you accidentally save a file in `hosts/desktop/` that was meant for the `hosts/laptop`:
+If you accidentally save a file in `hosts/nixos-desktop/` that was meant for `hosts/nixos-laptop`:
 
 1. **The Consequence:** The Laptop will fail to deploy or boot correctly. When it tries to read the secret, it will get a **"Decryption failed"** or **"No matching key found"** error because the file was locked using the Desktop's public key, not the Laptop's.
 2. **Is it reversible?** **YES.**
@@ -58,10 +60,10 @@ If you accidentally save a file in `hosts/desktop/` that was meant for the `host
 
 ```bash
 # 1. Move the file
-mv hosts/desktop/desktop-secrets-sops.yaml hosts/laptop/laptop-secrets-sops.yaml
+mv hosts/nixos-desktop/nixos-desktop-secrets-sops.yaml hosts/nixos-laptop/nixos-laptop-secrets-sops.yaml
 
 # 2. Re-encrypt it with the correct keys (Laptop + User)
-sops updatekeys hosts/laptop/laptop-secrets-sops.yaml
+sops updatekeys hosts/nixos-laptop/nixos-laptop-secrets-sops.yaml
 ```
 
 _Note: As long as your personal User Key is in the file's access list, you can always recover and fix this._
@@ -72,11 +74,11 @@ _Note: As long as your personal User Key is in the file's access list, you can a
 
 ### A. Edit a Host-Specific Secret
 
-1. Navigate to the correct folder (e.g., `hosts/desktop`).
+1. Navigate to the correct folder (e.g., `hosts/nixos-desktop`).
 2. Run the command:
 
 ```bash
-sops desktop-secrets-sops.yaml
+sops nixos-desktop-secrets-sops.yaml
 ```
 
 3. The file opens in your editor (decrypted). Make changes and save.
@@ -87,32 +89,36 @@ sops desktop-secrets-sops.yaml
 
 Common secrets (like WiFi passwords) must be readable by **all** machines. that share a certain key
 
-1. **Update `.sops.yaml`:** Ensure there is a rule for the `common/` folder that lists **all** host keys.
+1. **Update `.sops.yaml`:** Ensure there is a rule for the common secrets file that lists **all** host keys (the existing one is `users/krit/common/sops/krit-common-secrets-sops.yaml`).
 
 ```yaml
-- path_regex: common/<username>-common-secrets-sops.yaml$
+- path_regex: users/krit/common/sops/krit-common-secrets-sops.yaml$
   key_groups:
-    - age: [ *user_krit, *pc_desktop, *pc_laptop ]
+    - age:
+        - *krit
+        - *nixos-desktop
+        - *nixos-laptop
+        - *Krits-MacBook-Pro
 
 ```
 
 2. **Create/Edit the file:**
 
 ```bash
-sops common/<user>-common-secrets-sops.yaml
+sops users/krit/common/sops/krit-common-secrets-sops.yaml
 ```
 
-_Note: If you add a NEW host later, you must re-open and save this file so the new host's key is added to the encryption header._ 3. **Use in Nix:** In your `configuration.nix`, point to this specific file:
+_Note: If you add a NEW host later, you must re-open and save this file so the new host's key is added to the encryption header._ 3. **Use in Nix:** Common secrets are already wired in `users/krit/common/toplevel/sops-secrets.nix` (enabled via `krit.commonSopsSecrets.enable`); for a new one, point to this specific file:
 
 ```nix
-sops.secrets.wifi_password.sopsFile = ../../common/<user>-common-secrets-sops.yaml;
+sops.secrets.wifi_password.sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
 ```
 
 ---
 
 #### 4. Security FAQ: Usernames & Common Secrets
 
-**Q: If I have a `common/<user>-common-secrets-sops.yaml` shared by all my machines, can a stranger read it if they clone my repo and name their user `<username>` (same as mine)?**
+**Q: If I have a `users/krit/common/sops/krit-common-secrets-sops.yaml` shared by all my machines, can a stranger read it if they clone my repo and name their user `<username>` (same as mine)?**
 
 **A: NO.**
 
@@ -127,10 +133,10 @@ In cryptography, **Usernames are irrelevant.** They are just text labels. `sops`
 
 - They have the same _name_ tag.
 - But they do **not** have your computer's physical **Private Key**.
-- Therefore, when their machine tries to decrypt `common/<user>-common-secrets-sops.yaml`, it fails immediately. The file looks like random garbage to them.
+- Therefore, when their machine tries to decrypt `users/krit/common/sops/krit-common-secrets-sops.yaml`, it fails immediately. The file looks like random garbage to them.
 
 3. **Access Control:**
-   You cannot simply "join" the common secrets club. A new machine can only read `common/<user>-common-secrets-sops.yaml` if **YOU** (the owner) manually re-encrypt that file to explicitly include the new machine's public key in the header.
+   You cannot simply "join" the common secrets club. A new machine can only read `users/krit/common/sops/krit-common-secrets-sops.yaml` if **YOU** (the owner) manually re-encrypt that file to explicitly include the new machine's public key in the header.
 
 **Summary:** Your security relies on keeping your **Private Keys** (`keys.txt` and `ssh_host_ed25519_key`) safe. As long as those are not shared, your public repository is secure, regardless of what usernames people use.
 
@@ -145,7 +151,7 @@ If you buy a new computer and want to use this repo:
 1. Install NixOS. It generates a **new** unique SSH host key.
 2. Get the new public key (print it with `cat /etc/ssh/ssh_host_ed25519_key.pub`).
 3. On your old PC (or current working environment), add this new key to `.sops.yaml`.
-4. Run `sops updatekeys hosts/<hostname>/<hostname>-secrets-sops.yaml` to re-encrypt the file for the new machine.
+4. Run `sops updatekeys hosts/<hostname>/<hostname>-secrets-sops.yaml` (and `users/krit/common/sops/krit-common-secrets-sops.yaml` if the host should read common secrets) to re-encrypt the file for the new machine.
 
 ### Scenario B: Restore Identity (Recommended)
 

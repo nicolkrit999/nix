@@ -14,6 +14,8 @@ delib.module {
       mono = config.stylix.fonts.monospace.name;
       pointSize = config.stylix.fonts.sizes.applications;
       sansFont = { family = sans; inherit pointSize; };
+      # I-22: spectacle reads file:// URLs literally, so $HOME must be expanded here
+      screenshotsDir = myconfig.constants.screenshotsAbs;
     in
     {
       home.packages = [ config.stylix.fonts.sansSerif.package ];
@@ -31,12 +33,12 @@ delib.module {
       programs.plasma.configFile = {
         "spectaclerc" = {
           "General" = {
-            "screenshotLocation" = "file://${myconfig.constants.screenshots}/";
+            "screenshotLocation" = "file://${screenshotsDir}/";
             "filenameString" = "Screenshot_%Y%M%D_%H%m%S";
             "rememberLastScreenshotPath" = false;
           };
           "ImageSave" = {
-            "imageSaveLocation" = "file://${myconfig.constants.screenshots}/";
+            "imageSaveLocation" = "file://${screenshotsDir}/";
           };
         };
         "kcmfonts"."General"."forceFontDPI" = 0;

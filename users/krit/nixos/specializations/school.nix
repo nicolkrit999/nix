@@ -35,8 +35,9 @@ let
   # depends on the default profile's NAS mount being turned on.
   schoolOpencloudSpaces = config.myconfig.krit.services.nas.opencloud-mount.spaces;
   schoolOpencloudMountPoint = "/home/${myUserName}/.school-workspace/opencloud";
-  schoolOpencloudUid = toString config.users.users.${myUserName}.uid;
-  schoolOpencloudGid = toString config.users.groups.users.gid;
+  # I-16: davfs2 resolves names, so follow the constant instead of a numeric uid.
+  schoolOpencloudUid = myUserName;
+  schoolOpencloudGid = config.users.users.${myUserName}.group;
   mkSchoolOpencloudFileSystem = space: {
     name = "${schoolOpencloudMountPoint}/${space.path}";
     value = {
@@ -207,7 +208,9 @@ delib.module {
 
       # Force exit-node off on every boot into this specialisation, regardless
       # of whatever exit-node state tailscale persisted from the last boot.
-      systemd.services.tailscale-school-exit-node-off = {
+      # Type=exec so it never blocks boot; tailscale set works on prefs while
+      # logged out, so retrying the set itself also covers booting offline (I-03).
+      systemd.services.tailscale-school-exit-node-off = lib.mkIf config.services.tailscale.enable {
         description = "Force tailscale exit-node off for the school specialisation";
         after = [
           "tailscaled.service"
@@ -219,13 +222,17 @@ delib.module {
         ];
         wantedBy = [ "multi-user.target" ];
 
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-        };
+        path = [ pkgs.tailscale ];
+
+        serviceConfig.Type = "exec";
 
         script = ''
-          ${pkgs.tailscale}/bin/tailscale set --exit-node=
+          for i in $(seq 1 60); do
+            timeout 5 tailscale set --exit-node= && exit 0
+            sleep 3
+          done
+          echo "tailscale-school-exit-node-off: could not clear the exit node" >&2
+          exit 1
         '';
       };
 
@@ -595,7 +602,7 @@ delib.module {
             Type = "notify";
             Restart = "on-failure";
             RestartSec = "10s";
-            Environment = [ "PATH=/run/wrappers/bin/:$PATH" ];
+            Environment = [ "PATH=${lib.makeBinPath [ pkgs.rclone pkgs.coreutils ]}:/run/wrappers/bin" ]; # I-18: no literal $PATH
           };
         };
 

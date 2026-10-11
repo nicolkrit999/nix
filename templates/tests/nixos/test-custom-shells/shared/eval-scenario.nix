@@ -73,6 +73,8 @@ let
     # Services that the activation contract controls
     (src + "/modules/nixos/services/swaync.nix")
     (src + "/modules/nixos/services/hypr/hyprlock.nix")
+    (src + "/modules/nixos/services/hypr/hypridle.nix")
+    (src + "/modules/nixos/programs/swayosd.nix")
   ];
 
   # No broad excludes needed — we list exact files above.
@@ -120,6 +122,23 @@ let
           else "")
         (b._args or [ ]));
 
+  # Flattened dispatcher of the Hyprland bind whose key string is exactly `key`
+  # (throws if no such bind exists, so a renamed/removed key fails the test).
+  hyprBind = hm: key:
+    let
+      hits = builtins.filter
+        (b: !(builtins.isString b) && builtins.elemAt (b._args or [ "" ]) 0 == key)
+        hm.wayland.windowManager.hyprland.settings.bind;
+    in
+    if hits == [ ] then throw "no hyprland bind for key '${key}'" else bindStr (builtins.head hits);
+
+  # Mango bind lines starting with `prefix` (e.g. "SUPER,Delete,spawn,").
+  mangoBinds = hm: prefix:
+    builtins.filter (b: lib.hasPrefix prefix b) hm.wayland.windowManager.mango.settings.bind;
+
+  # Hyprland `on` exec lua (startup block).
+  hyprExecLua = hm: (builtins.elemAt hm.wayland.windowManager.hyprland.settings.on._args 1).expr;
+
   # Home-manager sub-config for user krit.
   getHm = config: config.home-manager.users.krit;
 
@@ -152,6 +171,6 @@ let
 
 in
 {
-  inherit evalScenario getConfig getHm getAllAssertions allAssertionsPass hasFailingAssertion bindStr;
+  inherit evalScenario getConfig getHm getAllAssertions allAssertionsPass hasFailingAssertion bindStr hyprBind mangoBinds hyprExecLua;
   inherit lib flake;
 }

@@ -21,5 +21,5 @@ nix-tests.runTests {
       helpers.isFalse (H.niriSpawnHas "awww-daemon" config);
     "services.skwd-deck is enabled" =
       helpers.isTrue (H.skwdDeckEnabled config);
-  };
+  } // H.perWm helpers config [ H.expect.noSupervisor ];
 }

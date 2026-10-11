@@ -8,6 +8,9 @@
 #   bash check-nixos-spec-contract.sh
 
 set -euo pipefail
+# Full stderr of every failing nix call goes into the test log (CI artifact + local
+# ~/.local/state/nix-tests/); a no-op unless run via run-test.py. See the file.
+source "$(dirname "${BASH_SOURCE[0]}")/../../lib/evidence.sh"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
@@ -52,6 +55,7 @@ run_check "check-guest-stylix-disabled"    "myconfig.stylix.enable == false"
 run_check "check-guest-bluetooth-disabled" "bluetooth.enable == false"
 run_check "check-guest-hyprlock-disabled"  "services.hyprlock.enable == false"
 run_check "check-guest-swaync-disabled"    "services.swaync.enable == false"
+run_check "check-guest-hypridle-disabled"  "services.hypridle.enable == false"
 run_check "check-guest-welcome-desktop"    "autostart .desktop Exec points to guest-welcome"
 
 echo ""
@@ -59,15 +63,13 @@ echo -e "${BOLD}safe-mode${NC}"
 run_check "check-safemode-stylix-disabled"      "myconfig.stylix.enable == false"
 run_check "check-safemode-shell-bash"           "constants.shell == 'bash'"
 run_check "check-safemode-terminal-xterm"       "constants.terminal.name == 'xterm'"
+run_check "check-safemode-fastfetch-disabled" "fastfetch.enable == false"
 run_check "check-safemode-hyprland-disabled"    "hyprland.enable == false"
 run_check "check-safemode-icewm-enabled"        "icewm.enable == true"
 run_check "check-safemode-startx-enabled"       "startx.enable == true"
 run_check "check-safemode-xinitrc-has-icewm"    ".xinitrc contains 'icewm-session'"
 run_check "check-safemode-alias-start-icewm"    "shellAliases.start-icewm == 'startx'"
 
-echo ""
-echo -e "${BOLD}deep-focus${NC}"
-run_check "check-deepfocus-swaync-enabled" "services.swaync.enable == true"
 
 echo ""
 echo -e "${BOLD}secure-travel${NC}"
@@ -93,7 +95,7 @@ run_check "check-school-clear-script"      "school-distrobox-clear in home.packa
 
 echo ""
 echo -e "${BOLD}home${NC}"
-run_check "check-home-monitors-nonempty" "hyprland.monitors is non-empty"
+run_check "check-home-monitors" "hyprland.monitors set, each with output+mode"
 
 echo ""
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"

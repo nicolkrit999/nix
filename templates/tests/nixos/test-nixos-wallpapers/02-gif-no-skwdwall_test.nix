@@ -6,7 +6,6 @@
 let
   H = import ./shared/eval-scenario.nix;
   E = H.expect;
-  lib = H.lib;
   config = H.getConfig ./02-gif-no-skwdwall H.nixosExtraX86;
   hm = H.getHm config;
 
@@ -29,7 +28,7 @@ nix-tests.runTests {
     ]
     // {
       "gnome dconf background picture-uri references a store path (not gifURL directly)" =
-        helpers.isTrue (lib.hasPrefix "file:///nix/store/" (builtins.toString gnomeBgUri));
+        helpers.isTrue (H.isStillUri (builtins.toString gnomeBgUri));
       "kde plasma wallpaper list is non-empty" =
         helpers.isTrue (builtins.length hm.programs.plasma.workspace.wallpaper > 0);
     };

@@ -3,7 +3,7 @@ name: vicinae-bluetooth-extension-still-blocked
 description: vicinae extensions flake still excludes bluetooth extension; node-gyp sandbox issue #314 remains OPEN and unfixed upstream
 metadata:
   type: reference
-  checked_date: 2026-07-28
+  checked_date: 2026-10-11
 ---
 
 **Status:** STILL BLOCKED - workaround remains necessary.
@@ -11,7 +11,7 @@ metadata:
 **Details:**
 - Issue: vicinaehq/extensions#314 "[bluetooth] Bluetooth Extension fails to build under nixos-unstable"
 - Opened: 2026-07-02
-- Status: OPEN (last activity 2026-07-21, no fix in progress)
+- Status: OPEN (last activity 2026-07-21, no fix in progress; re-checked 2026-10-11, still open, upstream flake.nix still removes bluetooth/dbus/systemd)
 - Root cause: node-gyp sandbox build failure in dbus-next → usocket native module
 
 **Evidence:**
@@ -29,4 +29,4 @@ metadata:
 
 3. No merged or open PRs addressing the node-gyp sandbox issue for bluetooth extension
 
-**Recommendation:** Keep the workaround active (disable bluetooth extension in hosts/nixos-laptop/default.nix and hosts/nixos-desktop/default.nix). Re-check on next major update cycle.
+**Recommendation:** Keep the workaround active (the bluetooth extension is commented out in the vicinae extensions list of hosts/nixos-laptop/default.nix and hosts/nixos-desktop/default.nix, with a pointer to #314). Re-check on next major update cycle.

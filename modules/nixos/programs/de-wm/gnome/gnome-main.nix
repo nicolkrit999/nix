@@ -18,12 +18,7 @@ delib.module {
     , ...
     }:
     let
-      fallbackWp = lib.findFirst
-        (
-          w: w.targetMonitor == "*"
-        )
-        (builtins.head myconfig.constants.wallpapers)
-        myconfig.constants.wallpapers;
+      fallbackWp = myconfig.constants.primaryWallpaper;
       wallpaperPath = pkgs.fetchurl {
         url = fallbackWp.wallpaperURL;
         sha256 = fallbackWp.wallpaperSHA256;

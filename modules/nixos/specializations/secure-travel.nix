@@ -75,6 +75,7 @@ delib.module {
         cosmic.enable = lib.mkForce false;
         caelestia.enable = lib.mkForce false;
         noctalia.enable = lib.mkForce false;
+        mango.enable = lib.mkForce false; # I-10: was left enabled on hosts that use it
 
         # Disable attack surface programs
         nix-ld.enable = lib.mkForce false; # Allows unpatched binaries
@@ -92,7 +93,24 @@ delib.module {
 
         # Disable network services
         tailscale.enable = lib.mkForce false; # Using ProtonVPN instead
+        localsend.enable = lib.mkForce false; # I-08: opens LAN ports
       };
+
+      # I-09: NAS consumers force services.tailscale.enable = true at the
+      # NixOS level; disabling them lets tailscale really end up off
+      # without a mkForce-vs-mkForce clash.
+      myconfig.krit.services.nas = {
+        smb.enable = lib.mkForce false;
+        opencloud-mount.enable = lib.mkForce false;
+        sshfs.enable = lib.mkForce false;
+        desktop-borg-backup.enable = lib.mkForce false;
+        laptop-borg-backup.enable = lib.mkForce false;
+      };
+
+      # I-08/I-09: host modules add listening ports; the travel profile must
+      # expose none, and sshd/avahi are pure inbound attack surface.
+      services.openssh.enable = lib.mkForce false;
+      services.avahi.enable = lib.mkForce false;
 
       # Disable other toplevel modules
       myconfig.bluetooth.enable = lib.mkForce false; # Attack vector on public WiFi
@@ -138,8 +156,8 @@ delib.module {
 
         firewall = {
           enable = true;
-          allowedTCPPorts = [ ];
-          allowedUDPPorts = [ ];
+          allowedTCPPorts = lib.mkForce [ ];
+          allowedUDPPorts = lib.mkForce [ ];
           logRefusedConnections = true; # Log blocked connections
           logRefusedPackets = true;
         };
@@ -152,8 +170,14 @@ delib.module {
           Domains = lib.mkForce "~."; # Route all DNS through resolved
           FallbackDNS = lib.mkForce "1.1.1.1 8.8.8.8"; # Fallback for captive portals
           DNSOverTLS = lib.mkForce "opportunistic"; # DoT when available, plain for portals
+          LLMNR = lib.mkForce "false";
+          MulticastDNS = lib.mkForce "false";
         };
       };
+
+      virtualisation.docker.enable = lib.mkForce false;
+      services.gnome.gnome-remote-desktop.enable = lib.mkForce false;
+      services.gnome.gnome-user-share.enable = lib.mkForce false;
 
       # ---------------------------------------------------------
       # 6. 👤 HOME-MANAGER

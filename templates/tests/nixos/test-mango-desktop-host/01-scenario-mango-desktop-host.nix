@@ -3,7 +3,9 @@ let
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
 
-  hm = flake.nixosConfigurations.nixos-desktop.config.home-manager.users.krit;
+  hostCfg = flake.nixosConfigurations.nixos-desktop.config;
+  hm = hostCfg.home-manager.users.krit;
+  mangoOpts = hostCfg.myconfig.programs.mango;
   s = hm.wayland.windowManager.mango.settings;
   idle = hm.services.hypridle.settings;
 
@@ -11,55 +13,108 @@ let
   bindl = s.bindl or [ ];
   bindsl = s.bindsl or [ ];
   windowRule = s.window_rule or [ ];
-  execOnce = s.exec_once or [ ];
 
   has = infix: str: lib.hasInfix infix str;
   anyHas = infix: list: lib.any (has infix) list;
   chk = cond: msg: if cond then "ok" else "FAIL: ${msg}";
   combo = b: lib.concatStringsSep "," (lib.take 2 (lib.splitString "," b));
 
+  keyLists = lib.genAttrs [ "bind" "bindl" "bindsl" "mousebind" "axisbind" "gesturebind" "tag_rule" "layer_rule" ] (k: s.${k} or [ ]);
+  fieldCount = str: lib.length (lib.splitString "," str);
+  isRuleList = k: k == "tag_rule" || k == "layer_rule";
+  minFields = k: if isRuleList k then 2 else 3;
+  badField = k: v: fieldCount v < minFields k || (isRuleList k && lib.any (f: builtins.match "[a-z_]+:.+" f == null) (lib.splitString "," v));
+  shortKeys = lib.concatLists (lib.mapAttrsToList (k: l: map (v: "${k}: ${v}") (lib.filter (badField k) l)) keyLists);
+
+  tagRule = s.tag_rule or [ ];
+  layoutOf = name: id: lib.filter (r: has "id:${toString id}," r && has "monitor_name:^${name}$," r) tagRule;
+  layoutsOpt = mangoOpts.monitorLayouts;
+  tagIds = lib.range 1 9;
+  perMonitorOk = rules: layouts: lib.all
+    (name: lib.all
+      (id: lib.elem "id:${toString id},monitor_name:^${name}$,layout_name:${layouts.${name}}" rules)
+      tagIds)
+    (builtins.attrNames layouts);
+  tagRuleSyntaxOk = r: builtins.match "id:[0-9]+,(monitor_name:[^,]+,)?layout_name:[a-z_]+" r != null;
+
+  sessionVars = hm.home.sessionVariables;
+  sysdVars = hm.wayland.windowManager.mango.systemd.variables;
+  sysdAllow = [ "DISPLAY" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP" "XDG_SESSION_TYPE" "XDG_SESSION_DESKTOP" "XCURSOR_THEME" "XCURSOR_SIZE" ];
+  sysdUndefined = lib.filter (v: !(sessionVars ? ${v}) && !(lib.elem v sysdAllow)) sysdVars;
+  firstMonitor = lib.head mangoOpts.monitors;
+  firstScale = builtins.match ".*scale:([0-9]+(\\.[0-9]+)?).*" firstMonitor;
+
+  hasTag0Rule = rules: cls: lib.any (r: has "tags:0," r && has "app_id:^${cls}$" r) rules;
+  dupCombos = l: let all = map combo l; in lib.filter (c: lib.length (lib.filter (x: x == c) all) > 1) (lib.unique all);
+  emptyPreset = b: lib.hasSuffix "switch_proportion_preset," b;
+  zeroOpacity = r: builtins.match ".*opacity:0(,.*)?" r != null;
+  runsDpms = arg: str: lib.any (l: builtins.match ".*/bin/mango-dpms ${arg}([^a-z].*)?" l != null) (lib.splitString "\n" str);
+  noDirectWlopm = strs: !(lib.any (has "wlopm") strs);
+
   listeners = idle.listener;
   screenOff = lib.findFirst (l: has "wlopm" (l.on-timeout or "") || has "mango-dpms" (l.on-timeout or "")) null listeners;
   hypridleStrings = [ idle.general.after_sleep_cmd ] ++ lib.concatMap (l: [ (l.on-timeout or "") (l.on-resume or "") ]) listeners;
 in
 {
-  check-pip-bind = chk (anyHas "SUPER,P,spawn," (lib.filter (b: has "/bin/mango-pip" b) bind)) "SUPER,P does not spawn mango-pip";
-  check-scratchpad-bind = chk (lib.elem "SUPER+ALT,Z,toggle_scratchpad" bind) "SUPER+ALT,Z is not toggle_scratchpad";
-  check-scratch-binds =
+  check-scratch-binds-have-tag0-rules =
     let
       scratch = lib.filter (b: has "/bin/mango-scratch " b) bind;
-      combos = map combo scratch;
+      classes = lib.concatMap (b: map (m: lib.head m) (lib.filter (m: m != null) (map (builtins.match ".*--class ([a-z-]+).*") [ b ]))) scratch;
+      missing = lib.filter (c: !(hasTag0Rule windowRule c)) classes;
     in
-    chk (lib.all (c: lib.elem c combos) [ "SUPER+SHIFT,Return" "SUPER+SHIFT,F" "SUPER+SHIFT,B" ]) "scratch binds not routed through mango-scratch: ${toString combos}";
-  check-scratch-rules-special-tag =
-    chk (lib.all (a: lib.any (r: has "tags:0," r && has "app_id:^${a}$" r) windowRule) [ "scratch-term" "scratch-fs" ]) "scratch window rules lack tags:0";
-  check-hdmi-disabled =
-    chk (lib.any (r: has "name:^HDMI-A-1$" r && has ",disable:1" r) s.monitor_rule) "HDMI-A-1 monitor rule lacks disable:1";
-  check-no-window-rule-once = chk (!(anyHas "zen" (s.window_rule_once or [ ])) && (s.window_rule_once or [ ]) == [ ]) "window_rule_once is not empty";
-  check-mango-place-startup = chk (anyHas "/bin/mango-place DP-1 ^zen-beta$ -- " execOnce) "mango-place startup line missing";
-  check-gdk-scale-env = chk (lib.elem "GDK_SCALE,1" (s.env or [ ])) "env lacks GDK_SCALE,1";
+    chk (classes != [ ] && missing == [ ]) "mango-scratch classes without a tags:0 window rule (classes: ${toString classes}, missing: ${toString missing})";
+  check-scratch-rule-control =
+    chk (hasTag0Rule [ "is_floating:1,tags:0,app_id:^a$" ] "a" && !(hasTag0Rule [ "is_floating:1,tags:0,app_id:^b$" ] "a") && !(hasTag0Rule [ "is_floating:1,app_id:^a$" ] "a")) "tag0 predicate does not discriminate";
+  check-no-window-rule-once = chk ((s.window_rule_once or [ ]) == [ ]) "window_rule_once is not empty";
   check-no-plain-exec = chk (!(s ? exec) || s.exec == [ ]) "plain exec entries present (use exec_once)";
-  check-bindl-media = chk (anyHas "XF86AudioRaiseVolume" bindl && anyHas "XF86AudioNext" bindl) "bindl lacks volume/next binds";
-  check-bindsl-play-pause = chk (anyHas "XF86AudioPlay" bindsl && anyHas "XF86AudioPause" bindsl) "bindsl lacks Play/Pause";
-  check-media-keys-not-in-bind = chk (!(anyHas "XF86AudioPlay" bind) && !(anyHas "XF86AudioPause" bind)) "Play/Pause also in plain bind";
+  check-media-keys-not-in-bind =
+    let anywhere = bindl ++ bindsl; in
+    chk (anyHas "XF86AudioPlay" anywhere && anyHas "XF86AudioPause" anywhere && !(anyHas "XF86AudioPlay" bind) && !(anyHas "XF86AudioPause" bind)) "Play/Pause missing from bindl/bindsl or also in plain bind";
   check-no-duplicate-combos =
-    let all = map combo (bind ++ bindl ++ bindsl); in
-    chk (lib.length all == lib.length (lib.unique all)) "duplicate key combos: ${toString (lib.filter (c: lib.length (lib.filter (x: x == c) all) > 1) (lib.unique all))}";
-  check-launch6-fullscreen = chk (lib.elem "NONE,XF86Launch6,togglefullscreen," bind) "XF86Launch6 is not togglefullscreen";
-  check-proportion-preset-has-arg = chk (!(lib.any (b: lib.hasSuffix "switch_proportion_preset," b) bind)) "switch_proportion_preset without argument";
-  check-no-zero-opacity-rules = chk (!(lib.any (r: builtins.match ".*opacity:0(,.*)?" r != null) windowRule)) "window rule with opacity:0 (ignored by mango)";
+    chk (dupCombos (bind ++ bindl ++ bindsl) == [ ]) "duplicate key combos: ${toString (dupCombos (bind ++ bindl ++ bindsl))}";
+  check-duplicate-combos-control =
+    chk (dupCombos [ "A,b,x" "A,b,y" "C,d,z" ] == [ "A,b" ] && dupCombos [ "A,b,x" "A,c,x" ] == [ ]) "duplicate predicate does not discriminate";
+  check-proportion-preset-has-arg = chk (!(lib.any emptyPreset bind)) "switch_proportion_preset without argument";
+  check-proportion-preset-control = chk (emptyPreset "SUPER,x,switch_proportion_preset," && !(emptyPreset "SUPER,x,switch_proportion_preset,0.5")) "empty-preset predicate does not discriminate";
+  check-no-zero-opacity-rules = chk (!(lib.any zeroOpacity windowRule)) "window rule with opacity:0 (ignored by mango)";
+  check-zero-opacity-control = chk (zeroOpacity "opacity:0,app_id:^a$" && zeroOpacity "focused_opacity:0" && !(zeroOpacity "focused_opacity:0.01,app_id:^a$")) "opacity predicate does not discriminate";
 
-  check-hypridle-no-wlopm-wildcard =
-    chk (!(lib.any (str: has "wlopm" str) hypridleStrings)) "hypridle still calls wlopm directly";
-  check-hypridle-after-sleep-mango-dpms = chk (has "/bin/mango-dpms on" idle.general.after_sleep_cmd) "after_sleep_cmd lacks mango-dpms on";
+  check-bind-lists-nonempty =
+    chk (lib.all (k: keyLists.${k} != [ ]) [ "bind" "bindl" "bindsl" "mousebind" "axisbind" "gesturebind" "tag_rule" "layer_rule" ]) "an expected bind/rule list is empty: ${toString (lib.filter (k: keyLists.${k} == [ ]) (builtins.attrNames keyLists))}";
+  check-bind-rule-min-fields =
+    chk (shortKeys == [ ]) "malformed entries (binds need >=3 comma fields, rules >=2 key:value fields): ${lib.concatStringsSep " | " shortKeys}";
+  check-min-fields-control =
+    chk (badField "bind" "SUPER,P" && !(badField "bind" "NONE,a,b") && badField "tag_rule" "id:1" && badField "layer_rule" "layer_name:x,oops" && !(badField "layer_rule" "layer_name:x,animation_type_open:zoom")) "field-count predicate does not discriminate";
+
+  check-tag-rule-matches-option =
+    chk (layoutsOpt != { } && perMonitorOk tagRule layoutsOpt) "tag_rule lacks id:1-9 monitor_name/layout_name entries for monitorLayouts (${builtins.toJSON layoutsOpt})";
+  check-tag-rule-one-layout-per-tag-monitor =
+    chk (lib.all (name: lib.all (id: lib.length (layoutOf name id) == 1) tagIds) (builtins.attrNames layoutsOpt)) "a (tag, monitor) pair has zero or several tag_rule entries";
+  check-tag-rule-fallback-per-tag =
+    chk (lib.all (id: lib.elem "id:${toString id},layout_name:${mangoOpts.defaultLayout}" tagRule) tagIds) "fallback tag_rule (defaultLayout ${mangoOpts.defaultLayout}) missing for a tag";
+  check-tag-rule-syntax = chk (lib.all tagRuleSyntaxOk tagRule) "malformed tag_rule: ${toString (lib.filter (r: !tagRuleSyntaxOk r) tagRule)}";
+  check-tag-rule-control =
+    chk (!(perMonitorOk (lib.filter (r: !(has "monitor_name:^${lib.head (builtins.attrNames layoutsOpt)}$" r)) tagRule) layoutsOpt) && !(perMonitorOk tagRule (lib.mapAttrs (_: l: "${l}_x") layoutsOpt))) "per-monitor tag_rule predicate accepts a mutated rule list";
+
+  check-gdk-scale-two-sources =
+    chk (sessionVars.GDK_SCALE != "1" && s.env == [ "GDK_SCALE,1" ] && firstScale != null && lib.head firstScale != "1") "GDK_SCALE contract broken: sessionVariables=${toString (sessionVars.GDK_SCALE or "unset")} env=${toString (s.env or [ ])} firstMonitor=${firstMonitor}";
+  check-gdk-scale-systemd-forwarded = chk (lib.elem "GDK_SCALE" sysdVars) "GDK_SCALE not in systemd.variables";
+  check-systemd-vars-defined = chk (sysdUndefined == [ ]) "systemd.variables without a definition: ${toString sysdUndefined}";
+  check-systemd-vars-control = chk (lib.elem "NOPE" (lib.filter (v: !(sessionVars ? ${v}) && !(lib.elem v sysdAllow)) [ "NOPE" "GDK_SCALE" ])) "undefined-variable predicate does not discriminate";
+
+  check-hypridle-no-direct-wlopm =
+    chk (hypridleStrings != [ ] && lib.any (runsDpms "on") hypridleStrings && noDirectWlopm hypridleStrings) "hypridle calls wlopm directly (or no mango-dpms command present)";
+  check-hypridle-wlopm-control = chk (!(noDirectWlopm [ "x" "wlopm --on '*'" ]) && noDirectWlopm [ "mango-dpms on" ] && runsDpms "on" "a\n/bin/mango-dpms on" && !(runsDpms "on" "/bin/mango-dpms once")) "wlopm/dpms predicates do not discriminate";
+  check-hypridle-after-sleep-mango-dpms = chk (runsDpms "on" idle.general.after_sleep_cmd) "after_sleep_cmd lacks mango-dpms on";
   check-hypridle-screen-off-mango-dpms =
-    chk (screenOff != null && has "/bin/mango-dpms off" screenOff.on-timeout && has "/bin/mango-dpms on" screenOff.on-resume) "screen-off listener lacks mango-dpms off/on";
+    chk (screenOff != null && runsDpms "off" screenOff.on-timeout && runsDpms "on" screenOff.on-resume) "screen-off listener lacks mango-dpms off/on";
   check-hypridle-other-wms-unchanged =
     chk (has "hl.dsp.dpms" idle.general.after_sleep_cmd && has "niri msg action power-on-monitors" idle.general.after_sleep_cmd) "Hyprland/niri dpms branches changed";
 
   mango-dpms-cmd = idle.general.after_sleep_cmd;
-  mango-dpms-drv = lib.head (lib.filter (lib.hasSuffix ".drv") (builtins.attrNames (builtins.getContext idle.general.after_sleep_cmd)));
+  mango-dpms-drv = lib.head (lib.filter (d: lib.hasSuffix "mango-dpms.drv" d) (builtins.attrNames (builtins.getContext idle.general.after_sleep_cmd)));
   mango-config = hm.xdg.configFile."mango/config.conf".source.outPath;
   mango-config-drv = hm.xdg.configFile."mango/config.conf".source.drvPath;
   mango-package = hm.wayland.windowManager.mango.package.outPath;
+  mango-package-drv = hm.wayland.windowManager.mango.package.drvPath;
 }

@@ -4,6 +4,8 @@ delib.host {
   type = "desktop";
   homeManagerSystem = "aarch64-darwin";
 
+  darwin = { nixpkgs.hostPlatform = "aarch64-darwin"; };
+
   myconfig = _: {
     constants = {
       user = "krit";

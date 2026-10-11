@@ -29,19 +29,8 @@ delib.module {
       fg = if dist c.base07 > dist c.base05 then c.base07 else c.base05;
       shadowColor = c.base00;
 
-      hasWallpapers = (myconfig.constants ? wallpapers) && (myconfig.constants.wallpapers != [ ]);
-      fallbackWallpaper = ../../../templates/src/wallpapers/nix-black-4k.png;
-      lockWallpaper =
-        if hasWallpapers then
-          let
-            wp = lib.findFirst
-              (w: w.targetMonitor == "*")
-              (builtins.head myconfig.constants.wallpapers)
-              myconfig.constants.wallpapers;
-          in
-          "${pkgs.fetchurl { url = wp.wallpaperURL; sha256 = wp.wallpaperSHA256; }}"
-        else
-          "${fallbackWallpaper}";
+      wp = myconfig.constants.primaryWallpaper;
+      lockWallpaper = "${pkgs.fetchurl { url = wp.wallpaperURL; sha256 = wp.wallpaperSHA256; }}";
     in
     lib.mkIf anyWmEnabled {
       home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];

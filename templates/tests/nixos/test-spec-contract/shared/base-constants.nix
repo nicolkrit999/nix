@@ -7,7 +7,7 @@
   gitUserEmail = "test@example.com";
   shell = "fish";
   browser = "zen-beta";
-  editor = "nvim";
+  editor = "code";
   fileManager = "yazi";
   terminal = {
     name = "kitty";

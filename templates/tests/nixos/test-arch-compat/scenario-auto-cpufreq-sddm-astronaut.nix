@@ -85,6 +85,7 @@ let
     (src + "/modules/common/programs/statix.nix")
     (src + "/modules/common/programs/television.nix")
     (src + "/modules/common/programs/zen-browser.nix")
+    (src + "/modules/common/services/localsend.nix")
     (src + "/modules/common/services/tailscale.nix")
     (src + "/modules/common/toplevel/cachix.nix")
     (src + "/modules/common/toplevel/nh.nix")
@@ -203,6 +204,28 @@ let
   spec = name: config.specialisation.${name}.configuration.home-manager.users.krit;
 in
 {
+  checks = {
+    hostPlatformIsAarch64 =
+      if config.nixpkgs.hostPlatform.system == "aarch64-linux" && hm.home.activationPackage.system == "aarch64-linux"
+      then "ok" else "FAIL: fixture is not aarch64-linux, every dry-build here would be vacuous";
+    x86OnlyPackageIsRejected =
+      let
+        probe = flake.inputs.nixpkgs.legacyPackages.aarch64-linux.hello.overrideAttrs (o: { meta = o.meta // { platforms = [ "x86_64-linux" ]; }; });
+      in
+      if (builtins.tryEval probe.drvPath).success
+      then "FAIL: x86_64-only package evaluated on aarch64, meta.platforms is not enforced"
+      else "ok";
+    shellsInertOnAarch64 =
+      let
+        exec = config.myconfig.programs.hyprland.execOnce;
+        bad = builtins.filter (e: builtins.match ".*(noctalia|caelestia).*" e != null) exec;
+      in
+      if bad == [ ] then "ok" else "FAIL: shell autostart present on aarch64: ${toString bad}";
+    specialisationNames =
+      let want = [ "deep-focus" "guest" "safemode" "secure-travel" ]; in
+      if builtins.all (n: config.specialisation ? ${n}) want then "ok"
+      else "FAIL: have ${toString (builtins.attrNames config.specialisation)}";
+  };
   "all-modules-auto-cpufreq-sddm-astronaut" = hm.home.activationPackage;
   "specialisation-deep-focus-auto-cpufreq" = (spec "deep-focus").home.activationPackage;
   "specialisation-guest-auto-cpufreq" = (spec "guest").home.activationPackage;

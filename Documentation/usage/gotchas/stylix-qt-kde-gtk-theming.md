@@ -9,10 +9,12 @@ Covers three related theming bugs and the rule that prevents the worst one
 `plasma-integration` from Plasma's own Qt widgets → Plasma either refuses to
 start or crashes on the first mouse click (confirmed user experience).
 
-Always keep `qt.enable = false` explicitly in the stylix targets block
-(`modules/nixos/toplevel/stylix-nixos.nix`), with a comment explaining why -
+Always keep `qt.enable = false` explicitly in the home-manager-side stylix
+targets block (`home.ifEnabled` of `modules/nixos/toplevel/stylix-nixos.nix`); the reason is also commented in `modules/nixos/toplevel/qt.nix` -
 stylix's qt module auto-enables via `autoEnable` (`nixosConfig != null`)
 unless explicitly forced off.
+
+Only the home-manager-side qt target must stay off (that is the one `stylix-nixos.nix` sets to `false`); the NixOS-level stylix qt target is not set by this repo and was verified OK by the user on 2026-10-10.
 
 ## KDE file picker zebra-striping
 

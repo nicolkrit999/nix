@@ -5,6 +5,9 @@
 #   bash check-nixos-secret-service.sh
 
 set -uo pipefail
+# Full stderr of every failing nix call goes into the test log (CI artifact + local
+# ~/.local/state/nix-tests/); a no-op unless run via run-test.py. See the file.
+source "$(dirname "${BASH_SOURCE[0]}")/../../lib/evidence.sh"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"

@@ -9,6 +9,7 @@ delib.module {
       users.mutableUsers = false;
       users.users.${myconfig.constants.user} = {
         isNormalUser = true;
+        uid = 1000;
         description = "${myconfig.constants.user}";
         extraGroups = [
           "wheel"

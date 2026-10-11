@@ -19,11 +19,13 @@ delib.module {
       stamp="''${XDG_STATE_HOME:-$HOME/.local/state}/television-channels.stamp"
       want="${pkgs.television}"
       if [ "$(cat "$stamp" 2>/dev/null)" != "$want" ]; then
-        if $DRY_RUN_CMD ${pkgs.television}/bin/tv update-channels 2>/dev/null; then
+        if $DRY_RUN_CMD ${pkgs.television}/bin/tv update-channels; then
           if [ -z "''${DRY_RUN:-}" ]; then
             mkdir -p "$(dirname "$stamp")"
             printf '%s' "$want" > "$stamp"
           fi
+        else
+          echo "television: tv update-channels failed; will retry next activation" >&2
         fi
       fi
     '';

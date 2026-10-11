@@ -7,6 +7,8 @@ in
 nix-tests.runTests {
   "P02: only sddm-pixie enabled" = helpers: {
     "mutual-exclusivity assertion does NOT fire" =
+      helpers.isFalse (H.hasFailingAssertion "services.sddm-astronaut and services.sddm-pixie are mutually exclusive" config);
+    "no assertion of any kind reports mutual exclusion" =
       helpers.isFalse (H.hasFailingAssertion "mutually exclusive" config);
     "sddm theme is pixie" =
       helpers.isTrue (config.services.displayManager.sddm.theme == "pixie");

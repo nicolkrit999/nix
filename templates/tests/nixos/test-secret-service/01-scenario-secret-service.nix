@@ -6,7 +6,7 @@ let
 
   sys = flake.nixosConfigurations.${host};
   baseCfg = sys.config;
-  cfgs = { base = baseCfg; } // lib.mapAttrs (_: s: s.configuration.config or s.configuration) baseCfg.specialisation;
+  cfgs = { base = baseCfg; } // lib.mapAttrs (_: s: s.configuration) baseCfg.specialisation;
 
   flag = "--password-store=gnome-libsecret";
   has = lib.hasInfix;
@@ -49,30 +49,77 @@ let
   realNames = [ "org.kde.kwalletd6" "org.kde.kwalletd5" "org.freedesktop.secrets" ];
   secretRoute = v: lib.toList v == [ "gnome-keyring" ];
 
-  checks = _cfgName: c:
+  checks = cfgName: c:
     let
       hm = c.home-manager.users.krit;
       plasma = c.services.desktopManager.plasma6.enable;
-      kwalletPkg = lib.any (n: lib.hasPrefix "kwallet-" n) (pkgNames c.services.dbus.packages);
+      kwalletPkg = lib.any (n: has "kwallet" n) (pkgNames c.services.dbus.packages);
       rc = ini (c.environment.etc."xdg/kwalletrc".text or "");
       rcBad = lib.filter (k: (rc.${k} or "<unset>") != wantRc.${k}) (lib.attrNames wantRc);
       stubText = n: hm.xdg.dataFile."dbus-1/services/${n}.service".text or "";
-      stubOk = n: builtins.match ".*Name=${lib.escapeRegex n}\n.*Exec=[^\n]*/bin/false\n.*" (stubText n) != null || builtins.match ".*Name=${lib.escapeRegex n}\n.*Exec=[^\n]*/bin/false" (stubText n) != null;
+      stubOk = n: (hm.xdg.dataFile."dbus-1/services/${n}.service".enable or false) && (builtins.match ".*Name=${lib.escapeRegex n}\n.*Exec=[^\n]*/bin/false\n.*" (stubText n) != null || builtins.match ".*Name=${lib.escapeRegex n}\n.*Exec=[^\n]*/bin/false" (stubText n) != null);
       dbusPkgs = pkgNames c.services.dbus.packages;
       portalNames = pkgNames c.xdg.portal.extraPortals;
       hmPortalNames = pkgNames hm.xdg.portal.extraPortals;
       allPkgs = c.environment.systemPackages ++ hm.home.packages;
-      browsers = lib.filter (p: builtins.match "(brave|chromium|google-chrome|vscode)-[0-9].*" (p.name or "") != null) allPkgs;
-      wrapped = lib.filter (p: builtins.match "(claude-desktop|google-antigravity.*)(-[0-9].*)?" (p.name or "") != null) allPkgs;
+      byInfix = subs: lib.filter (p: !(has "-school" (p.name or "")) && lib.any (s: has s (p.name or "")) subs) allPkgs; # school launchers exec the pinned pkgs.brave/vscode
+      browsers = byInfix [ "brave" "chromium" "google-chrome" "vscode" ];
+      wrapped = byInfix [ "claude-desktop" "antigravity" ];
       portalCfgs = lib.attrNames c.xdg.portal.config;
       chk = cond: msg: if cond then "ok" else msg;
+
+      portalsOf = ps: n: lib.filter (p: lib.hasPrefix n (p.name or "")) ps;
+      patched = p: has "UseIn=" (p.drvAttrs.postFixup or "");
+      unpatchedGtkKde = ps:
+        let sel = portalsOf ps "xdg-desktop-portal-gtk" ++ portalsOf ps "xdg-desktop-portal-kde" ++ portalsOf ps "xdg-desktop-portal-gnome";
+        in portalsOf ps "xdg-desktop-portal-gtk" != [ ] && portalsOf ps "xdg-desktop-portal-kde" != [ ] && !(lib.any patched sel);
+      upperKeys = lib.filter (k: k != lib.toLower k) (lib.attrNames c.xdg.portal.config ++ lib.attrNames hm.xdg.portal.config);
+      portalDiff = lib.filter (k: (hm.xdg.portal.config.${k} or null) != (c.xdg.portal.config.${k} or null))
+        (lib.unique (lib.attrNames c.xdg.portal.config ++ lib.attrNames hm.xdg.portal.config));
+      manifest = lib.findFirst (p: (p.name or "") == "gnome-keyring-portal-manifest") null c.xdg.portal.extraPortals;
+      manifestBody =
+        if manifest == null then ""
+        else lib.head (lib.splitString "\nEOF" (lib.elemAt (lib.splitString "<<EOF\n" manifest.drvAttrs.buildCommand) 1));
+      manifestLines = lib.splitString "\n" manifestBody;
+      manifestKv = lib.listToAttrs (map (l: let kv = lib.splitString "=" l; in lib.nameValuePair (lib.head kv) (lib.concatStringsSep "=" (lib.tail kv)))
+        (lib.filter (l: has "=" l) manifestLines));
+      wmNames = { hyprland = "Hyprland"; mango = "mango"; niri = "niri"; kde = "KDE"; gnome = "GNOME"; cosmic = "COSMIC"; };
+      enabledWms = lib.filterAttrs (n: _: c.myconfig.programs.${n}.enable or false) wmNames;
+      useIn = lib.splitString ";" (manifestKv.UseIn or "");
+      missingWms = lib.filter (w: !(lib.elem w useIn)) (lib.attrValues enabledWms);
+      txt = e: if (e.text or null) == null then "" else e.text;
+      sockNames = a: lib.filter (n: n == "SSH_AUTH_SOCK") (lib.attrNames a);
+      sockSources = lib.filter (s: s.hit) [
+        { n = "environment.variables"; hit = sockNames c.environment.variables != [ ]; }
+        { n = "environment.sessionVariables"; hit = sockNames c.environment.sessionVariables != [ ]; }
+        { n = "systemd.globalEnvironment"; hit = sockNames c.systemd.globalEnvironment != [ ]; }
+        { n = "systemd.user.settings.Manager"; hit = has "SSH_AUTH_SOCK" (builtins.toJSON (c.systemd.user.settings.Manager or { })); }
+        { n = "HM home.sessionVariables"; hit = sockNames hm.home.sessionVariables != [ ]; }
+        { n = "HM systemd.user.sessionVariables"; hit = sockNames hm.systemd.user.sessionVariables != [ ]; }
+      ] ++ map (n: { n = "HM file ${n}"; hit = true; }) (lib.filter
+        (n: has "SSH_AUTH_SOCK" (txt (hm.xdg.configFile.${n} or { }) + txt (hm.xdg.dataFile.${n} or { })))
+        (lib.unique (lib.attrNames hm.xdg.configFile ++ lib.attrNames hm.xdg.dataFile)))
+      ++ map (n: { n = "HM home.file ${n}"; hit = true; }) (lib.filter
+        (n: has "SSH_AUTH_SOCK" (txt hm.home.file.${n}))
+        (lib.attrNames hm.home.file));
+      sockAssigns = lib.length (lib.filter (l: has "export SSH_AUTH_SOCK=" l) (lib.splitString "\n" c.environment.extraInit));
+      electronPkgs = byInfix [ "ungoogled-chromium" "vscode" "claude-desktop" "antigravity" "chromium" "brave" "google-chrome" ];
+      portalKeysMissing = lib.filter (w: !(c.xdg.portal.config ? ${lib.toLower w})) (lib.attrValues enabledWms);
+      samplePam = "auth include login # x (order 1)\nsession substack common-session # y\nauth optional pam_foo.so";
+      sampleIni = ini "[A]\nk=v=w\n\n[B]\nk2=1";
+      selfTest =
+        carries { drvAttrs = { a = "x ${flag} y"; b = 1; }; }
+        && !(carries { drvAttrs = { a = "x"; }; })
+        && includes samplePam == [ "login" "common-session" ]
+        && sampleIni == { "[A]/k" = "v=w"; "[B]/k2" = "1"; }
+        && secretRoute [ "gnome-keyring" ] && !(secretRoute [ "gnome-keyring" "kwallet" ]) && !(secretRoute [ ]);
     in
     {
       "gnome-keyring is enabled" = chk c.services.gnome.gnome-keyring.enable "services.gnome.gnome-keyring.enable is false";
       "gnome-keyring is the only org.freedesktop.secrets D-Bus package" =
         chk
           (lib.length (lib.filter (n: lib.hasPrefix "gnome-keyring-" n && !(has "portal" n)) (lib.unique dbusPkgs)) == 1
-            && !(lib.any (n: builtins.match "(keepassxc|oo7|pass-secret|kwallet-secret|ksecret).*" n != null) dbusPkgs)
+            && !(lib.any (n: builtins.match "(keepassxc|oo7|pass-secret|kwallet-secret|ksecret).*" n != null || has "secret" n || has "bitwarden" n) dbusPkgs)
             && !(c.services.passSecretService.enable or false))
           "another Secret Service provider is on the bus: ${toString dbusPkgs}";
       "kwalletrc carries the intended keys" =
@@ -114,14 +161,42 @@ let
         chk (lib.elem "gnome-keyring-portal-manifest" portalNames && lib.elem "gnome-keyring-portal-manifest" hmPortalNames)
           "manifest-only gnome-keyring.portal missing from extraPortals";
       "Chromium/Electron browsers installed carry gnome-libsecret" =
-        chk (browsers != [ ] && lib.all carries browsers) "without the flag: ${toString (map (p: p.name) (lib.filter (p: !(carries p)) browsers))}";
+        chk ((browsers != [ ] || cfgName != "base") && lib.all carries browsers) "without the flag: ${toString (map (p: p.name) (lib.filter (p: !(carries p)) browsers))}";
       "FHS-wrapped Electron apps carry gnome-libsecret" =
         chk (lib.all carries wrapped) "without the flag: ${toString (map (p: p.name) (lib.filter (p: !(carries p)) wrapped))}";
+      "self-test: helpers accept good samples and reject bad ones" = chk selfTest "carries/includes/ini/secretRoute helper is broken";
+      "portal config has an entry for every enabled WM" =
+        chk (portalKeysMissing == [ ]) "xdg.portal.config lacks keys for: ${toString portalKeysMissing}";
       "HM chromium and helium are pinned when enabled" =
         chk
           ((!(hm.programs.chromium.enable or false) || (lib.elem flag (hm.programs.chromium.commandLineArgs or [ ]) || carries hm.programs.chromium.package))
             && (!(hm.programs.helium.enable or false) || lib.elem flag (hm.programs.helium.extraFlags or [ ])))
           "HM chromium or helium lacks the flag";
+      "portal config top-level keys are lowercase" =
+        chk (portalCfgs != [ ] && upperKeys == [ ]) "non-lowercase xdg.portal.config keys: ${toString upperKeys}";
+      "HM portal config equals the system portal config" =
+        chk (portalDiff == [ ]) "HM and system xdg.portal.config differ for: ${toString portalDiff}";
+      "gtk, kde and gnome portals keep their stock UseIn (no permissive patch)" =
+        chk (unpatchedGtkKde c.xdg.portal.extraPortals && unpatchedGtkKde hm.xdg.portal.extraPortals)
+          "gtk/kde missing from extraPortals, or a gtk/kde/gnome portal carries the UseIn postFixup patch (it makes kde.portal the deprecated-fallback winner in non-KDE sessions)";
+      "environment.pathsToLink has /share/xdg-desktop-portal" =
+        chk (lib.elem "/share/xdg-desktop-portal" c.environment.pathsToLink) "/share/xdg-desktop-portal not in environment.pathsToLink";
+      "gnome-keyring.portal manifest text is well-formed" =
+        chk
+          (manifest != null
+            && lib.hasPrefix "[portal]" manifestBody
+            && !(lib.any (l: lib.hasPrefix " " l || lib.hasPrefix "\t" l) manifestLines)
+            && (manifestKv.DBusName or "") == "org.freedesktop.secrets"
+            && (manifestKv.Interfaces or "") == "org.freedesktop.impl.portal.Secret")
+          "manifest missing, indented, or wrong DBusName/Interfaces: ${builtins.toJSON manifestBody}";
+      "gnome-keyring.portal UseIn lists every enabled WM" =
+        chk (missingWms == [ ]) "UseIn lacks enabled WMs: ${toString missingWms} (enabled: ${toString (lib.attrValues enabledWms)})";
+      "SSH_AUTH_SOCK has a single source (extraInit gcr fallback)" =
+        chk (sockSources == [ ] && sockAssigns == 1)
+          "extra SSH_AUTH_SOCK sources: ${toString (map (s: s.n) sockSources)}; extraInit assignments: ${toString sockAssigns}";
+      "broader Chromium/Electron set carries gnome-libsecret" =
+        chk (lib.all carries electronPkgs)
+          "without the flag: ${toString (map (p: p.name) (lib.filter (p: !(carries p)) electronPkgs))}";
       "duplicate HM gnome-keyring unit is absent" =
         chk
           (!(hm.services.gnome-keyring.enable or false)

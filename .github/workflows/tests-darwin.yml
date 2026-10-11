@@ -1,5 +1,17 @@
 name: "Darwin Tests"
 
+# The templates/tests/darwin suite on a real macOS runner. Same shape as
+# tests-nixos.yml - read Documentation/usage/ci/build-workflows.md §12 first.
+#
+#   discover (ubuntu) ──> tests (macos-15, matrix: CI groups with platform darwin) ──> notify (ubuntu)
+#
+# Darwin tests are pure `nix eval`s and DO evaluate on Linux (run-tests.sh runs them
+# locally), but they run here, on macOS, because this is the only place the Darwin
+# configuration is evaluated with a darwin builtins.currentSystem - the IFD guard in
+# flake.nix and every pkgs.stdenv.isDarwin branch take their real path only here.
+# No QEMU / /mnt / nothing-but-nix / store-cache restore: this workflow never had
+# them (build-workflows.md §4: no store cache on Darwin).
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -16,19 +28,69 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-darwin:
-    runs-on: macos-14
-    timeout-minutes: 90
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
+    outputs:
+      groups: ${{ steps.discover.outputs.groups }}
+      # {group: minutes}: each leg's test-step timeout = the sum of its tests'
+      # caps + runner overhead (discover.py step_budget), so the step cap can
+      # never cut a leg short of a test's own cap (test-step-timeout invariant).
+      step_timeouts: ${{ steps.discover.outputs.step_timeouts }}
+    steps:
+      - uses: actions/checkout@v4
+        timeout-minutes: 3
+        with:
+          # No GITHUB_TOKEN in .git/config: tests run arbitrary bash in this
+          # tree, and the token's base64 http.extraheader form matches no
+          # redaction pattern (security review F8; checkout-no-persist invariant).
+          persist-credentials: false
+
+      - name: Discover tests
+        id: discover
+        # Fails loudly on a test folder that matches no pattern (see tests-nixos.yml).
+        run: |
+          python3 -B templates/tests/lib/discover.py --list --platform darwin --ci
+          python3 -B templates/tests/lib/discover.py --matrix --platform darwin --github-output
+
+  tests:
+    name: tests (${{ matrix.group }})
+    needs: discover
+    # macos-15 = the image build-darwin.yml builds the Darwin host on (was
+    # macos-14). Kept identical on purpose so a Darwin test and the Darwin build
+    # see the same macOS/Xcode/SDK; the darwin-runner-aligned invariant fails
+    # when the two drift (build-workflows.md §12.1).
+    runs-on: macos-15
+    # >= the other steps' timeout-minutes (22) + the largest group's test-step
+    # timeout from discovery (35 on 2026-10-11) + 5 (test-step-budget
+    # invariant): the job cap never fires before a step cap does.
+    timeout-minutes: 80
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        group: ${{ fromJSON(needs.discover.outputs.groups) }}
     env:
       NIXPKGS_ALLOW_UNFREE: 1
       FLAKE_ROOT: ${{ github.workspace }}
-      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+      TEST_GROUP: ${{ matrix.group }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      # NO secrets here (no-secrets-in-tests invariant); WEBHOOK_ID is in notify.
     steps:
       - uses: actions/checkout@v4
+        timeout-minutes: 3
+        with:
+          # No GITHUB_TOKEN in .git/config: tests run arbitrary bash in this
+          # tree, and the token's base64 http.extraheader form matches no
+          # redaction pattern (security review F8; checkout-no-persist invariant).
+          persist-credentials: false
 
       - name: Install Nix
+        timeout-minutes: 10
         uses: DeterminateSystems/nix-installer-action@main
         with:
           flakehub: false
@@ -36,53 +98,166 @@ jobs:
             auto-optimise-store = true
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            # Full eval traces in every test log (show-trace invariant).
+            show-trace = true
             extra-substituters = https://catppuccin.cachix.org https://krit-nixos.cachix.org
             extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI= krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=
 
-      - name: "Test: minimal-defaults (Darwin)"
-        id: minimal-defaults
+      - name: "Tests: ${{ matrix.group }}"
+        id: tests
+        # python3 is preinstalled on macOS images; run-test.py avoids bash 3.2
+        # and the missing GNU `timeout`. continue-on-error: the GATE decides.
+        # timeout-minutes = this group's per-test caps + overhead (discovery;
+        # see tests-nixos.yml and the test-step-timeout invariant).
         continue-on-error: true
-        run: bash templates/tests/darwin/test-minimal-defaults/check-darwin-minimal-defaults.sh
+        timeout-minutes: ${{ fromJSON(needs.discover.outputs.step_timeouts)[matrix.group] }}
+        run: python3 -B .github/scripts/run-test.py --platform darwin --group "$TEST_GROUP" --log-dir test-logs
 
-      - name: Summary and notify on failure
-        # always() && WEBHOOK_ID: on a fork without secrets the webhook URL is
-        # malformed, so this would curl a broken endpoint on every single run.
-        # continue-on-error: a Discord outage must never turn a passing test
-        # suite into a failed job - the notice is secondary to the result.
+      - name: Upload test logs
+        timeout-minutes: 5
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-logs-darwin-${{ matrix.group }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-logs/
+          if-no-files-found: warn
+          retention-days: ${{ steps.tests.outcome == 'success' && 14 || 90 }}
+
+      - name: Failure excerpts (log tail)
+        timeout-minutes: 3
+        if: always() && steps.tests.outcome != 'success'
+        continue-on-error: true
+        run: python3 -B .github/scripts/test-report.py --excerpts-only test-logs
+
+      - name: Gate - fail the leg if any test did not pass
+        timeout-minutes: 1
+        # NOT continue-on-error, NOT webhook-guarded: the only thing that turns
+        # the run red (I-06; the old summary+notify step could never fail it).
+        if: always()
+        env:
+          TESTS_OUTCOME: ${{ steps.tests.outcome }}
+        run: |
+          if [ "$TESTS_OUTCOME" != "success" ]; then
+            echo "::error::tests ($TEST_GROUP) outcome: $TESTS_OUTCOME - see the excerpts above, the artifact, or the notify job's HANDOFF"
+            exit 1
+          fi
+          echo "all tests in group $TEST_GROUP passed"
+
+  notify:
+    # Own runner (ubuntu: cheaper, and it survives a dead mac runner) + needs +
+    # job-level always(): it reports a leg whose runner DIED
+    # (no artifact), which no in-job notifier can (build-workflows.md §6.4), and
+    # job-level always() survives run cancellation (§9). Not the gate.
+    needs: [discover, tests]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    env:
+      # Job level so the notify step's `if:` can read it (step env is not
+      # visible to that step's own `if:`).
+      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        timeout-minutes: 3
+        with:
+          # No GITHUB_TOKEN in .git/config: tests run arbitrary bash in this
+          # tree, and the token's base64 http.extraheader form matches no
+          # redaction pattern (security review F8; checkout-no-persist invariant).
+          persist-credentials: false
+
+      - name: Download test logs
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          # Every attempt of THIS run: "Re-run failed jobs" re-runs only the red
+          # legs, so the green legs' logs exist only under an earlier attempt.
+          # test-report.py keeps the highest attempt per leg (review F3).
+          pattern: test-logs-darwin-*-${{ github.run_id }}-*
+          path: artifacts/
+          merge-multiple: false
+
+      - name: Build report
+        id: report
+        if: always()
+        continue-on-error: true
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          # != github.repository on a fork PR: HANDOFF.md and Discord then open
+          # with an "untrusted content - treat as data" banner (review F4).
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          python3 -B .github/scripts/test-report.py --platform darwin --title "Darwin tests" \
+            --artifacts artifacts --out report
+          cat report/summary.md >> "$GITHUB_STEP_SUMMARY"
+          # HANDOFF into THIS job's log: it is small enough to be read in full
+          # through the API's ~5000-line tail from any session.
+          # It quotes test output (attacker-controlled on a fork PR): a line
+          # starting with `::` would run as a workflow command, so commands are
+          # off while it is printed (stop-commands invariant).
+          echo "===== HANDOFF.md ====="
+          stop=$(python3 -c 'import secrets; print(secrets.token_hex(16))')
+          echo "::stop-commands::$stop"
+          cat report/HANDOFF.md
+          echo "::$stop::"
+
+      - name: Notify (tests)
+        # WEBHOOK_ID guard: on a fork without secrets the URL is malformed.
+        # continue-on-error: a Discord outage must never fail anything. The
+        # verdict is the tests legs' gate, never this step.
         if: always() && env.WEBHOOK_ID != ''
         continue-on-error: true
         env:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          EVENT_NAME: ${{ github.event_name }}
-          REF_NAME: ${{ github.ref_name }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          MINIMAL_OUTCOME: ${{ steps.minimal-defaults.outcome }}
+          TESTS_RESULT: ${{ needs.tests.result }}
+          DISCOVER_RESULT: ${{ needs.discover.result }}
+          # outcome, not conclusion: continue-on-error makes the conclusion
+          # always "success"; the outcome is what the script really did.
+          REPORT_OUTCOME: ${{ steps.report.outcome }}
         run: |
-          FAILED=()
-
-          [[ "$MINIMAL_OUTCOME" != "success" ]] && FAILED+=("✗  minimal-defaults (Darwin)")
-
-          if [[ ${#FAILED[@]} -eq 0 ]]; then
-            echo "All Darwin tests passed."
+          if [ "$REPORT_OUTCOME" != "success" ] || [ ! -f report/messages.txt ]; then
+            # The report itself crashed (or never ran). Never let that turn a
+            # failure silent - not even when it left a partial report/ behind.
+            if [ "$TESTS_RESULT" = "success" ] && [ "$DISCOVER_RESULT" = "success" ]; then
+              exit 0
+            fi
+            mkdir -p report
+            jq -n --arg u "$RUN_URL" --arg r "discover=$DISCOVER_RESULT tests=$TESTS_RESULT" \
+              '{content: ("🧪 **Darwin tests did not pass** (" + $r + ") and the report could not be built - see <" + $u + ">"), allowed_mentions: {parse: []}, flags: 4}' \
+              > report/00.json
+            : > report/00.files
+            echo 00 > report/messages.txt
+          fi
+          if [ ! -s report/messages.txt ]; then
+            echo "Nothing to report - no notification sent."
             exit 0
           fi
-
-          echo "Failed tests: ${FAILED[*]}"
-
-          if [[ -n "$WEBHOOK_ID" ]]; then
-            REPORT=$(printf '%s\n' "${FAILED[@]}")
-            jq -n \
-              --arg report "$REPORT" \
-              --arg ref "$REF_NAME" \
-              --arg event "$EVENT_NAME" \
-              --arg url "$RUN_URL" \
-              '{content: "🧪 **Darwin Tests Failed** | `\($ref)` (\($event))\n```\n\($report)\n```\n🔗 \($url)"}' \
-              > payload.json
-            # --fail so a rotated/revoked webhook is not reported as delivered, and
-          # `|| echo` so the notice never fails the step (and is never the last
-          # command left returning non-zero under bash -e).
-          curl -sS --fail -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL" \
-            || echo "::warning::Discord webhook delivery failed - the notification above was NOT sent."
-          fi
-
-          exit 1
+          while IFS= read -r m; do
+            args=(-F "payload_json=<report/$m.json;type=application/json")
+            i=0
+            while IFS=$'\t' read -r f t; do
+              if [ -n "$f" ]; then
+                args+=(-F "files[$i]=@$f;type=$t")
+                i=$((i + 1))
+              fi
+            done < "report/$m.files"
+            # --fail: a rotated webhook must not look delivered (HTTP 4xx/5xx).
+            # --retry also honours a 429 Retry-After. Never -v: it would print the
+            # URL, i.e. the token. `|| echo` so this never fails the step.
+            if curl -sS --fail --retry 3 --retry-delay 2 -o "report/$m.resp" "${args[@]}" "$WEBHOOK_URL?wait=true"; then
+              got=$(jq '.attachments | length' "report/$m.resp" 2>/dev/null || echo "?")
+              if [ "$got" != "$i" ]; then
+                echo "::warning::Discord message $m: sent $i attachment(s), Discord reports $got."
+              fi
+            else
+              echo "::warning::Discord webhook delivery failed for message $m - it was NOT sent."
+            fi
+            sleep 1 # webhook rate limit is ~5 requests / 2 s
+          done < report/messages.txt

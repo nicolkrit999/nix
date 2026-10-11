@@ -72,8 +72,8 @@ delib.module {
             # -------------------------------------------------------------------
             # These are too big and usually sync via cloud accounts anyway.
             "/home/*/.mozilla"
-            "home/*/.librewolf"
-            "home/*/.librewolf-policyroot"
+            "/home/*/.librewolf" # I-12: anchored, borg patterns are root-relative
+            "/home/*/.librewolf-policyroot"
             "/home/*/.config/google-chrome"
             "/home/*/.config/chromium"
             "/home/*/.config/BraveSoftware"
@@ -110,16 +110,16 @@ delib.module {
             # -------------------------------------------------------------------
             # Assuming these are backed up via Git or Syncthing already
             "/home/*/github-repos" # General repositories folder
-            "/home/*/dotfiles " # Dotfiles repositories (must be in root of home to be stowed)
+            "/home/*/dotfiles" # Dotfiles repositories (must be in root of home to be stowed)
             "/home/*/wallpapers-repo" # Wallpaper repo (must be in root of home to be stowed)
             "/home/*/.school-workspace" # Already backed up by other methods
             # -------------------------------------------------------------------
             # 8. OTHER
             # -------------------------------------------------------------------
-            "home/*/.clouflared"
-            "home/*/.steam"
-            "home/*/.themes"
-            "home/*/momentary"
+            "/home/*/.cloudflared" # I-12: was misspelled .clouflared, never matched
+            "/home/*/.steam"
+            "/home/*/.themes"
+            "/home/*/momentary"
           ];
 
           encryption_passcommand = "cat ${cfg.passphraseFile}";

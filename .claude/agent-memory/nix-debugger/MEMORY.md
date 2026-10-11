@@ -2,7 +2,7 @@
 - [mkShell PATH precedence trap](project_mkshell_path_precedence.md) - devShell $PATH = `packages` list order; `lib.hiPrio` and `postShellHook` are both no-ops (sql template python3 3-round misdiagnosis)
 - [x86_64-darwin dropped from unstable](project_x86_64_darwin_dropped_unstable.md) - unstable throws for x86_64-darwin (even `hello`); breaks `--all-systems` on template flakes, not a package bug
 - [laptop audio killed by kernel 7.2.0](project_laptop_audio_kernel_72_regression.md) - cs35l56 spk-id-gpios EBUSY since 7.1.8->7.2.0 (gen 307->308); also: GRUB configurationLimit hides still-bootable older profiles
-- [wallpapers targetMonitor must be literal](project_wallpapers_targetmonitor_literal.md) - mango bakes targetMonitor into flat key=value mango-config.conf; any `=` breaks its parser, and the list can't be split per-consumer
+- [wallpapers targetMonitor must be literal](project_wallpapers_targetmonitor_literal.md) - mk-wallpaperd spec `<target>=<path>` is a plain argv string: no `$(`/backtick substitution (eval assert); list shared by all WMs, can't be split per-consumer
 - [flake check misses build-phase failures](project_flake_check_misses_build_failures.md) - check/--dry-run only evaluate; also never deep-evals homeConfigurations; bisect via git+file?rev=
 - [sops MCP secrets wiring asymmetry](project_sops_mcp_secrets_asymmetry.md) - NixOS/home derive `claude_mcp_*` from the `mcpSecrets` option list; darwin hardcodes them, so darwin-block edits are a silent no-op on Linux
 - [journal clock skew on nixos-desktop](project_journal_clock_skew_desktop.md) - RTC +2h jump makes journalctl --since/--until return nothing; dump once and correlate by line number
@@ -13,14 +13,14 @@
 - [laptop haptic touchpad unobservable](project_laptop_haptic_touchpad_unobservable.md) - 06CB:D01A haptics run in its firmware (feature rpt 0x37 intensity); journals identical working vs broken
 - [specialisation outer config binding](project_specialisation_outer_config_binding.md) - file-level `c = config...` inside specialisation sees PARENT values (school.nix shell hook dropped); + distrobox containers die when their store path is GC'd
 - [catppuccin global enable gate](project_catppuccin_global_enable_gate.md) - catppuccin main needs catppuccin.enable=true for ANY port; unset = all ports silently no-op (looks like a mere autoEnable warning)
-- [test stylix stub targets](project_test_stylix_stub_targets.md) - test stylix-stub.nix must `// cfg.targets` or myconfig.stylix.targets.* are dropped in tests only (vicinae arch-compat, not eval cache)
+- [test stylix stub targets](project_test_stylix_stub_targets.md) - arch-compat + spec-contract stylix-stub.nix must `// cfg.targets` or myconfig.stylix.targets.* are dropped in tests only (vicinae arch-compat, not eval cache)
 - [RTK git diff patch trap](project_rtk_git_diff_patch_trap.md) - `git diff > patch` is RTK-filtered, not a real patch; use `rtk proxy git diff` and wc -l it before reverting
 - [KDE text-scale dconf leak](project_kde_textscale_dconf_leak.md) - Plasma login writes text-scaling-factor 1.25 (kcmfonts forceFontDPI=120); Zen/GTK in Hyprland 1.25x big
 - [Input glibc vs /run/opengl-driver](project_input_glibc_vs_opengl_driver.md) - non-following input + newer system mesa = "EGL not available"/QRhi fatal (vicinae); fix with nixpkgs follows; then watch for gcc15Stdenv vs gcc16 GLIBCXX link splits
 - [fontconfig stale per-user profile cache](project_fontconfig_stale_profile_cache.md) - GTK tofu + "cairo scaled font file not found" after fonts leave HM profile; fc-cache -r
 - [HM sessionVariables leak into all sessions](project_hm_sessionvars_leak_all_sessions.md) - mango's XDG_CURRENT_DESKTOP in home.sessionVariables hits COSMIC/GNOME via fish login shell
 - [HM hyprland uwsm PropagatesStopTo](project_hm_hyprland_uwsm_propagatesstop.md) - HM start-hook `stop hyprland-session.target` now stops graphical-session -> uwsm Hyprland exits RC 0 after 2s
-- [uwsm black screen = graphical.target wait](project_uwsm_graphical_target_flatpak_block.md) - uwsm waits for graphical.target; held by nix-flatpak oneshot, or by a stuck multi-user oneshot (tailscale-autoconnect)
+- [uwsm black screen = graphical.target wait](project_uwsm_graphical_target_flatpak_block.md) - uwsm waits for graphical.target; held by nix-flatpak oneshot, or by a stuck multi-user oneshot (tailscale-autoconnect, fixed to Type=exec 2026-10-11)
 - [mango config value 255 truncation](project_mango_config_value_255_truncation.md) - mango silently cuts values >255 chars; long exec_once -> broken sh -c, never runs, mango -p passes
 - [base16 base07 not brightest](project_base16_base07_not_brightest.md) - rose-pine-moon base07 is dark; over-wallpaper text contrast is set by the wallpaper, not the scheme (hyprlock 1.5:1)
 - [SDDM label contrast probe](project_sddm_label_contrast_probe.md) - pixie conf rewrite drops autoColor/textColor; build-time magick luma ~0.5s no IFD; mean luma misleads, use fail-fraction

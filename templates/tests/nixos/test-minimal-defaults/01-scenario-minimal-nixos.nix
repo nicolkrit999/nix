@@ -12,37 +12,15 @@ let
   denix = flake.inputs.denix;
 
   nixosPaths = [
-    # x86_64 platform override + HM base + stylix stub
     (src + "/templates/tests/nixos/test-minimal-defaults/shared/nixos-extra-x86_64")
-
-    # Constants schema and HM wiring
     (src + "/modules/common/toplevel/home-manager.nix")
     (src + "/modules/nixos/config/constants-nixos.nix")
     (src + "/modules/common/config/constants.nix")
-    (src + "/modules/common/themes/catppuccin.nix")
-
-    # WM enable options — include all three so cross-WM guards evaluate cleanly
     (src + "/modules/nixos/toplevel/hyprland.nix")
-    (src + "/modules/nixos/toplevel/niri.nix")
-    (src + "/modules/nixos/toplevel/mango.nix")
-
-    # Hyprland DE modules (needed for HM wayland.windowManager.hyprland.* options)
-    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix")
-    (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-binds.nix")
-
-    # Hyprland ecosystem: all auto-enabled (boolOption true) once hyprland is on
     (src + "/modules/nixos/services/hypr/hypridle.nix")
-    (src + "/modules/nixos/services/hypr/hyprlock.nix")
-    (src + "/modules/nixos/services/swaync.nix")
-    (src + "/modules/nixos/programs/waybar/hyprland/waybar-hyprland.nix")
-
-    # Shell modules — required so hyprland-main's *Integration toggles evaluate
-    (src + "/modules/common/programs/shells/bash.nix")
-    (src + "/modules/common/programs/shells/fish.nix")
-    (src + "/modules/common/programs/shells/zsh.nix")
   ];
 
-  config = (denix.lib.configurations {
+  hosts = denix.lib.configurations {
     moduleSystem = "nixos";
     homeManagerUser = "krit";
     extensions = with denix.lib.extensions; [
@@ -58,44 +36,54 @@ let
     };
     paths = [
       (src + "/templates/tests/nixos/test-minimal-defaults/shared/host-minimal-nixos.nix")
+      (src + "/templates/tests/nixos/test-minimal-defaults/shared/host-override-nixos.nix")
+      (src + "/templates/tests/nixos/test-minimal-defaults/shared/host-nowm-nixos.nix")
     ] ++ nixosPaths;
     exclude = [ ];
-  }).minimal-nixos.config;
+  };
 
-  hm = config.home-manager.users.krit;
-  c = config.myconfig.constants;
+  min = hosts.minimal-nixos.config;
+  over = hosts.override-nixos.config;
+  nowm = hosts.nowm-nixos.config;
 
-  checkBool = name: actual: expected:
+  hmOf = cfg: user: cfg.home-manager.users.${user};
+  timeouts = cfg: user:
+    map (l: l.timeout) (hmOf cfg user).services.hypridle.settings.listener;
+  cfgTimeouts = cfg:
+    let h = cfg.myconfig.services.hypridle; in [ h.dimTimeout h.lockTimeout h.screenOffTimeout ];
+  ordered = ts: let a = builtins.elemAt ts 0; b = builtins.elemAt ts 1; c = builtins.elemAt ts 2; in a < b && b < c;
+
+  check = name: actual: expected:
     if actual == expected then "ok"
-    else "FAIL: ${name}: expected ${if expected then "true" else "false"}, got ${if actual then "true" else "false"}";
-
-  checkStr = name: actual: expected:
-    if actual == expected then "ok"
-    else "FAIL: ${name}: expected '${expected}', got '${actual}'";
+    else "FAIL: ${name}: expected ${builtins.toJSON expected}, got ${builtins.toJSON actual}";
 in
 {
-  # ── Build coexistence ────────────────────────────────────────────────────────
-  build-coexistence = hm.home.activationPackage;
+  build-coexistence = (hmOf min "krit").home.activationPackage;
 
-  # ── Constant defaults (from constants-nixos.nix) ─────────────────────────────
-  check-constant-shell = checkStr "constants.shell" c.shell "bash";
-  check-constant-terminal = checkStr "constants.terminal.name" c.terminal.name "alacritty";
-  check-constant-browser = checkStr "constants.browser" c.browser "chromium";
-  check-constant-editor = checkStr "constants.editor" c.editor "nano";
-  check-constant-filemanager = checkStr "constants.fileManager" c.fileManager "dolphin";
-  check-constant-catppuccin = checkBool "constants.theme.catppuccin" c.theme.catppuccin false;
+  check-emergency-access-off =
+    check "constants.emergencyAccess" min.myconfig.constants.emergencyAccess false;
 
-  # ── Auto-enabled module states ───────────────────────────────────────────────
-  check-hyprland-enabled =
-    checkBool "programs.hyprland.enable" config.myconfig.programs.hyprland.enable true;
-  check-stylix-enabled =
-    checkBool "myconfig.stylix.enable" config.myconfig.stylix.enable true;
-  check-swaync-enabled =
-    checkBool "services.swaync.enable" config.myconfig.services.swaync.enable true;
-  check-hyprlock-enabled =
-    checkBool "services.hyprlock.enable" config.myconfig.services.hyprlock.enable true;
-  check-hypridle-enabled =
-    checkBool "services.hypridle.enable" config.myconfig.services.hypridle.enable true;
-  check-waybar-hyprland-enabled =
-    checkBool "programs.waybar-hyprland.enable" config.myconfig.programs.waybar-hyprland.enable true;
+  check-screenshots-abs-default =
+    check "screenshotsAbs (user krit)" min.myconfig.constants.screenshotsAbs "/home/krit/Pictures/Screenshots";
+  check-screenshots-abs-follows-user =
+    check "screenshotsAbs (user alice)" over.myconfig.constants.screenshotsAbs "/home/alice/Pictures/Screenshots";
+
+  check-primary-wallpaper-is-fallback =
+    check "primaryWallpaper.wallpaperURL"
+      min.myconfig.constants.primaryWallpaper.wallpaperURL
+      min.myconfig.constants.fallbackWallpaperURL;
+
+  check-idle-timeouts-ordered-default =
+    check "hypridle default timeouts ordered dim<lock<off" (ordered (cfgTimeouts min)) true;
+  check-idle-timeouts-reach-listeners-default =
+    check "hypridle listeners (default)" (timeouts min "krit") (cfgTimeouts min);
+  check-idle-timeouts-reach-listeners-override =
+    check "hypridle listeners (override)" (timeouts over "krit") [ 100 200 250 ];
+
+  check-hyprland-wrapper-no-caps =
+    check "security.wrappers.Hyprland.capabilities" min.security.wrappers.Hyprland.capabilities "";
+  check-hyprland-disabled-no-nixos-hyprland =
+    check "programs.hyprland.enable (hyprland off)" nowm.programs.hyprland.enable false;
+  check-no-wm-no-idle-actions =
+    check "hm services.hypridle.enable (no WM)" (hmOf nowm "krit").services.hypridle.enable false;
 }

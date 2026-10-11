@@ -107,31 +107,27 @@ delib.module {
         borgmatic
       ];
 
-      environment.etc."borgmatic/config.yaml".text = ''
-        source_directories:
-          - /Users/krit
-
-        repositories:
-          - path: ssh://${nasUser}@${nasHost}${nasPath}
-            label: nas-repo
-
-        exclude_patterns:
-          ${builtins.concatStringsSep "\n    " (map (x: ''- "${x}"'') excludes)}
-
-        compression: auto,zstd
-        archive_name_format: '{hostname}-{now}'
-        encryption_passcommand: cat ${passphraseFile}
-
-        keep_daily: 7
-        keep_weekly: 4
-        keep_monthly: 6
-
-        checks:
-          - name: repository
-          - name: archives
-
-        ssh_command: ssh -i ${sshKeyPath} -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30
-      '';
+      environment.etc."borgmatic/config.yaml".text = builtins.toJSON {
+        source_directories = [ "/Users/krit" ];
+        repositories = [
+          {
+            path = "ssh://${nasUser}@${nasHost}${nasPath}";
+            label = "nas-repo";
+          }
+        ];
+        exclude_patterns = excludes;
+        compression = "auto,zstd";
+        archive_name_format = "{hostname}-{now}";
+        encryption_passcommand = "cat ${passphraseFile}";
+        keep_daily = 7;
+        keep_weekly = 4;
+        keep_monthly = 6;
+        checks = [
+          { name = "repository"; }
+          { name = "archives"; }
+        ];
+        ssh_command = "ssh -i ${sshKeyPath} -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30";
+      };
 
       launchd.user.agents.borgmatic-backup = {
         serviceConfig = {

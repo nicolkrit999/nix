@@ -2,7 +2,7 @@
 # Darwin minimal defaults checker.
 # Verifies that on a Darwin host with only basic identity constants set:
 #   1. Constant defaults match expected values from constants-darwin.nix
-#   2. Auto-enabled modules (singleEnableOption/boolOption true) are active
+#   2. home-packages body is forced and the browser opt-out control differs
 #
 # This test uses nix eval only — no build check (Darwin cross-builds are heavy).
 #
@@ -10,6 +10,9 @@
 #   bash check-darwin-minimal-defaults.sh
 
 set -euo pipefail
+# Full stderr of every failing nix call goes into the test log (CI artifact + local
+# ~/.local/state/nix-tests/); a no-op unless run via run-test.py. See the file.
+source "$(dirname "${BASH_SOURCE[0]}")/../../lib/evidence.sh"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
@@ -48,7 +51,7 @@ echo -e "${BOLD}=== Darwin minimal defaults check ===${NC}"
 echo -e "${DIM}Host sets only user, uid, hostname, and state versions — all else is default.${NC}"
 echo ""
 
-echo -e "${BOLD}constant defaults (from constants-darwin.nix)${NC}"
+echo -e "${BOLD}constant defaults (common constants.nix + constants-darwin.nix)${NC}"
 run_check "check-constant-shell"       "constants.shell == \"bash\""
 run_check "check-constant-terminal"   "constants.terminal.name == \"alacritty\""
 run_check "check-constant-browser"    "constants.browser == \"firefox\""
@@ -57,9 +60,10 @@ run_check "check-constant-filemanager" "constants.fileManager == \"nnn\""
 run_check "check-constant-catppuccin" "constants.theme.catppuccin == false"
 
 echo ""
-echo -e "${BOLD}auto-enabled module states${NC}"
-run_check "check-stylix-enabled"        "myconfig.stylix.enable == true (boolOption true)"
-run_check "check-home-packages-enabled" "home-packages.enable == true (singleEnableOption true)"
+echo -e "${BOLD}home-packages body (forced) + opt-out control${NC}"
+run_check "check-home-packages-installs-browser" "default host installs firefox fallback"
+run_check "check-home-packages-browser-optout"   "browser = \"\" host does not install firefox"
+run_check "check-constant-override-lands"        "host override of constants.browser lands"
 
 echo ""
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"

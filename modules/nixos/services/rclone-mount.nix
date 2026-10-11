@@ -35,7 +35,7 @@ delib.module {
             ExecStop = "/run/wrappers/bin/fusermount -u ${m.mountPoint}";
             Restart = "on-failure";
             RestartSec = "10s";
-            Environment = [ "PATH=/run/wrappers/bin/:$PATH" ];
+            Environment = [ "PATH=${lib.makeBinPath [ pkgs.rclone pkgs.coreutils ]}:/run/wrappers/bin" ]; # I-18: systemd never expands $PATH
           };
         };
       };

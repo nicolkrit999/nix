@@ -6,28 +6,27 @@ metadata:
 ---
 
 `myconfig.constants.wallpapers[].targetMonitor` must always be a **literal
-connector name** (`eDP-1`, `DP-1`, `*`). Never a shell substitution, and never a
-`desc:`/make-model-serial identity string.
+connector name** (`eDP-1`, `DP-1`), `desc:<make> <model> <serial>`, or `*`.
+Never a shell substitution (`$(`, backtick).
 
-**Why:** `modules/nixos/programs/de-wm/mango/mango-main.nix` maps over
-`myconfig.constants.wallpapers` and bakes each `targetMonitor` into an
-`exec=sh -c 'awww img -o <targetMonitor> ...'` entry of
-`wayland.windowManager.mango.settings`. That renders to `mango-config.conf`,
-which mango parses as flat `keyword=value` lines. Any `=` inside the value tears
-the line apart and the build aborts with `[ERROR]: Unknown keyword: ...`. A
-`$(... jq -r "select(.serial==\"X\")" ...)` resolver is full of `=`. Separately,
-`awww`/`mpvpaper` only accept a literal connector via `-o` anyway.
+**Why (current mechanism, re-verified 2026-10-11):** the wallpaper pipeline moved to
+`modules/nixos/programs/de-wm/wallpaperd/mk-wallpaperd.nix` + `wallpaperd.sh`. Each
+wallpaper becomes an argv spec `<targetMonitor>=<image|video>:<store path>` passed to a
+`<wm>-wallpaperd` script. mk-wallpaperd asserts at eval time that no targetMonitor contains
+`$(` or a backtick ("must be a connector name, desc:<make model serial> or *") and that
+targets are unique ("duplicate targetMonitor"). The old failure (mango baking a
+`$(... jq select(.serial=="X") ...)` resolver into `exec=sh -c 'awww img -o ...'` so that any `=` tore the
+`mango-config.conf` line apart: `[ERROR]: Unknown keyword`) no longer applies to the
+spec itself; mango now launches wallpaperd via a launcher script and `fitValues` in
+mango-main.nix caps config values at 255 chars (see [[mango-config-value-255-truncation]]).
+The shell-substitution ban stays because the spec is a plain argv string.
 
-Four other consumers read the same list (hyprland, niri, cosmic, gnome, kde,
-hyprlock, stylix-nixos), so there is **no way to split** "mango entries" from
-"non-mango entries" - mango reads every element. The whole list is literal or
-nothing.
+The list is consumed by hyprland, niri, mango, cosmic (`output."<target>"`, `*` -> `all`), gnome, kde, hyprlock
+and stylix-nixos, so there is still no way to split "mango entries" from "non-mango entries".
 
-**How to apply:** If asked to make monitor config plug-order independent, do it
-in the Hyprland (`desc:<make> <model> <serial>`) and Niri
-(`"<make> <model> <serial>"` output keys) blocks only. Mango stays
-connector-name-keyed everywhere (`monitors`, `monitorLayouts`, mango-binds
-per-monitor layout binds, waybar-mango `mmsg` bars all key on connector name and
-would silently desync). Wallpapers stay connector-name-keyed too, which means
-wallpaper-to-monitor assignment remains plug-order dependent - that is a known,
-accepted limitation, not a bug to fix. See [[flake-check-misses-build-failures]].
+**How to apply:** if asked to make monitor config plug-order independent, do it in the Hyprland
+(`desc:<make> <model> <serial>`) and Niri (`"<make> <model> <serial>"` output keys) blocks.
+Mango stays connector-name-keyed (`monitors`, `monitorLayouts`, per-monitor layout binds, waybar-mango
+`mmsg` bars all key on connector name and would silently desync). Wallpaper-to-monitor assignment in mango is
+therefore still plug-order dependent: a known, accepted limitation. Hosts today use literal names
+(desktop DP-1/DP-2/`*`, laptop eDP-1/`*`). See [[flake-check-misses-build-failures]].

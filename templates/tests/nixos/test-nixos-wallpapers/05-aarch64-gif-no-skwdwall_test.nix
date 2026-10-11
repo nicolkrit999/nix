@@ -5,7 +5,6 @@
 let
   H = import ./shared/eval-scenario.nix;
   E = H.expect;
-  lib = H.lib;
   config = H.getConfig ./05-aarch64-gif-no-skwdwall H.nixosExtraAarch64;
   hm = H.getHm config;
 
@@ -25,7 +24,7 @@ nix-tests.runTests {
     ]
     // {
       "gnome uses static store path (not gifURL)" =
-        helpers.isTrue (lib.hasPrefix "file:///nix/store/" (builtins.toString gnomeBgUri));
+        helpers.isTrue (H.isStillUri (builtins.toString gnomeBgUri));
       "kde plasma wallpaper list non-empty (static)" =
         helpers.isTrue (builtins.length hm.programs.plasma.workspace.wallpaper > 0);
     };

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # NixOS minimal defaults checker.
-# Verifies that on a host with only constants.user = "krit" set:
-#   1. Constant defaults match expected values from constants-nixos.nix
-#   2. Auto-enabled modules (singleEnableOption/boolOption true) are active
-#   3. The full auto-enabled module set coexists without conflicts (dry-run)
+# See test-minimal-defaults-readme.md for what each check asserts.
 #
 # Usage:
 #   bash check-nixos-minimal-defaults.sh
 
 set -euo pipefail
+# Full stderr of every failing nix call goes into the test log (CI artifact + local
+# ~/.local/state/nix-tests/); a no-op unless run via run-test.py. See the file.
+source "$(dirname "${BASH_SOURCE[0]}")/../../lib/evidence.sh"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
@@ -60,25 +60,26 @@ run_build_check() {
 
 echo ""
 echo -e "${BOLD}=== NixOS minimal defaults check ===${NC}"
-echo -e "${DIM}Host has only constants.user = \"krit\" — all else is default.${NC}"
+echo -e "${DIM}Hosts: minimal (user krit), override (user alice + custom idle timeouts), nowm (hyprland off).${NC}"
 echo ""
 
-echo -e "${BOLD}constant defaults (from constants-nixos.nix)${NC}"
-run_eval_check "check-constant-shell" "constants.shell == \"bash\""
-run_eval_check "check-constant-terminal" "constants.terminal.name == \"alacritty\""
-run_eval_check "check-constant-browser" "constants.browser == \"chromium\""
-run_eval_check "check-constant-editor" "constants.editor == \"nano\""
-run_eval_check "check-constant-filemanager" "constants.fileManager == \"dolphin\""
-run_eval_check "check-constant-catppuccin" "constants.theme.catppuccin == false"
+echo -e "${BOLD}constants safety and derivation${NC}"
+run_eval_check "check-emergency-access-off" "constants.emergencyAccess defaults to false"
+run_eval_check "check-screenshots-abs-default" "screenshotsAbs expands \$HOME for krit"
+run_eval_check "check-screenshots-abs-follows-user" "screenshotsAbs follows constants.user (alice)"
+run_eval_check "check-primary-wallpaper-is-fallback" "primaryWallpaper falls back to fallbackWallpaperURL"
 
 echo ""
-echo -e "${BOLD}auto-enabled module states${NC}"
-run_eval_check "check-hyprland-enabled" "programs.hyprland.enable == true (singleEnableOption true)"
-run_eval_check "check-stylix-enabled" "myconfig.stylix.enable == true (boolOption true)"
-run_eval_check "check-swaync-enabled" "services.swaync.enable == true (boolOption true)"
-run_eval_check "check-hyprlock-enabled" "services.hyprlock.enable == true (boolOption true)"
-run_eval_check "check-hypridle-enabled" "services.hypridle.enable == true (boolOption true)"
-run_eval_check "check-waybar-hyprland-enabled" "programs.waybar-hyprland.enable == true (boolOption true)"
+echo -e "${BOLD}hypridle invariants${NC}"
+run_eval_check "check-idle-timeouts-ordered-default" "default timeouts ordered dim < lock < screenOff"
+run_eval_check "check-idle-timeouts-reach-listeners-default" "listeners use the configured timeouts (default)"
+run_eval_check "check-idle-timeouts-reach-listeners-override" "listeners use the configured timeouts (override)"
+run_eval_check "check-no-wm-no-idle-actions" "no WM enabled => hypridle not enabled"
+
+echo ""
+echo -e "${BOLD}hyprland module effects${NC}"
+run_eval_check "check-hyprland-wrapper-no-caps" "Hyprland wrapper has no capabilities"
+run_eval_check "check-hyprland-disabled-no-nixos-hyprland" "disabled module => NixOS programs.hyprland off"
 
 echo ""
 echo -e "${BOLD}coexistence (dry-run build)${NC}"

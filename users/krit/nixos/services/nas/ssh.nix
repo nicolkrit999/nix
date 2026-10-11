@@ -1,4 +1,5 @@
 { delib
+, config
 , pkgs
 , lib
 , ...
@@ -18,6 +19,7 @@ delib.module {
       nasUser = "root";
       nasHost = "100.101.189.91";
       mountPoint = "/mnt/nicol_nas/ssh/system_root";
+      userCfg = config.users.users.${myconfig.constants.user};
     in
     {
       environment.systemPackages = [ pkgs.sshfs ];
@@ -37,8 +39,8 @@ delib.module {
           "x-systemd.automount"
           "allow_other"
           "IdentityFile=${cfg.identityFile}"
-          "uid=1000"
-          "gid=100"
+          "uid=${toString userCfg.uid}"
+          "gid=${toString config.users.groups.${userCfg.group}.gid}"
           "umask=022"
           "idmap=user"
           "reconnect"

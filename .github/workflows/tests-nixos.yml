@@ -1,5 +1,19 @@
 name: "NixOS Tests"
 
+# The templates/tests suite on Linux. Read Documentation/usage/ci/build-workflows.md
+# §12 ("Test workflows: discovery, logs, gate, notify") before changing this file.
+#
+#   discover ──> tests (matrix: one leg per CI group) ──> notify (if: always())
+#
+# - discover: templates/tests/lib/discover.py finds every test folder (no registry)
+#   and FAILS the run when a folder matches no test pattern.
+# - tests: each leg runs its group through .github/scripts/run-test.py (complete
+#   per-test log, per-test timeout), uploads the logs as an artifact, and ends with
+#   a GATE step that turns the leg red when any test did not pass.
+# - notify: own runner, reads every leg's artifact, writes HANDOFF.md into its own
+#   (small, fully API-readable) log and sends the Discord report with full logs
+#   attached. It is NOT the gate: the run is red because a leg is red.
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -16,18 +30,76 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-nixos:
+  discover:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 5
     permissions:
       contents: read
-    env:
-      NIXPKGS_ALLOW_UNFREE: 1
-      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
-      CURL_HTTP_VERSION: 1.1
-      FLAKE_ROOT: ${{ github.workspace }}
+    outputs:
+      groups: ${{ steps.discover.outputs.groups }}
+      # {group: minutes}: each leg's test-step timeout = the sum of its tests'
+      # caps + runner overhead (discover.py step_budget), so the step cap can
+      # never cut a leg short of a test's own cap (test-step-timeout invariant).
+      step_timeouts: ${{ steps.discover.outputs.step_timeouts }}
     steps:
       - uses: actions/checkout@v4
+        timeout-minutes: 3
+        with:
+          # No GITHUB_TOKEN in .git/config: tests run arbitrary bash in this
+          # tree, and the token's base64 http.extraheader form matches no
+          # redaction pattern (security review F8; checkout-no-persist invariant).
+          persist-credentials: false
+
+      - name: Discover tests
+        id: discover
+        # Fails (exit 2, one ::error per problem) when a folder under
+        # templates/tests/{nixos,common,darwin}/ has neither check-*.sh nor
+        # *_test.nix, when test.conf has an unknown key, or when two folders
+        # derive the same test name. A test that silently never runs is the
+        # failure this guards against.
+        run: |
+          python3 -B templates/tests/lib/discover.py --list --platform linux --ci
+          python3 -B templates/tests/lib/discover.py --matrix --platform linux --github-output
+
+  tests:
+    name: tests (${{ matrix.group }})
+    needs: discover
+    runs-on: ubuntu-latest
+    # Job cap >= the other steps' timeout-minutes (44) + the LARGEST group's
+    # test-step timeout from discovery (134 for `nixos` on 2026-10-11) + 5: the
+    # job cap can never fire before a step cap does, so a slow setup can never
+    # eat the time the upload and gate need (test-step-budget invariant, review
+    # F7). A job-cap kill skips every later step; a step-cap kill does not. The
+    # checker computes the budgets itself and fails when a new test outgrows
+    # this cap: then split the group (test.conf `group =`) or raise this.
+    # Warm legs take ~10 min (build-workflows.md §12.2); the caps are only
+    # reached when tests hang.
+    timeout-minutes: 240
+    permissions:
+      contents: read
+    strategy:
+      # REQUIRED: a red leg must not cancel the other legs - their logs are evidence.
+      fail-fast: false
+      matrix:
+        group: ${{ fromJSON(needs.discover.outputs.groups) }}
+    env:
+      NIXPKGS_ALLOW_UNFREE: 1
+      CURL_HTTP_VERSION: 1.1
+      FLAKE_ROOT: ${{ github.workspace }}
+      TEST_GROUP: ${{ matrix.group }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      # NO secrets in this job's env: GitHub masks secrets in the live log only,
+      # not in the log FILES uploaded as artifacts (no-secrets-in-tests invariant).
+      # WEBHOOK_ID lives in the notify job.
+    steps:
+      - uses: actions/checkout@v4
+        timeout-minutes: 3
+        with:
+          # No GITHUB_TOKEN in .git/config: tests run arbitrary bash in this
+          # tree, and the token's base64 http.extraheader form matches no
+          # redaction pattern (security review F8; checkout-no-persist invariant).
+          persist-credentials: false
 
       - name: Install CA Certificates
         # Best-effort, and bounded. ca-certificates is preinstalled on the
@@ -40,9 +112,11 @@ jobs:
         run: sudo apt-get update || true; sudo apt-get install -y ca-certificates || true
 
       - name: Set up QEMU
+        timeout-minutes: 3
         uses: docker/setup-qemu-action@v3
 
       - name: Open permissions on /mnt
+        timeout-minutes: 1
         run: sudo chmod 1777 /mnt
 
       - name: Maximize Nix Space
@@ -51,6 +125,7 @@ jobs:
         # failed here and skipped all six tests, which the summary below then
         # reported as six FAILURES.
         continue-on-error: true
+        timeout-minutes: 5
         uses: wimpysworld/nothing-but-nix@main
         with:
           hatchet-protocol: "cleave"
@@ -58,6 +133,7 @@ jobs:
           nix-permission-edict: false
 
       - name: Install Nix
+        timeout-minutes: 5
         uses: DeterminateSystems/nix-installer-action@main
         with:
           flakehub: false
@@ -77,15 +153,23 @@ jobs:
             download-attempts = 15
             http-connections = 25
             connect-timeout = 30
+            # Full eval traces in every test log (show-trace invariant). The
+            # check scripts keep the complete stderr of failing nix calls
+            # (templates/tests/lib/evidence.sh); without this it is one line.
+            show-trace = true
             extra-substituters = https://catppuccin.cachix.org https://krit-nixos.cachix.org
             extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI= krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=
 
       # Restore only - build.yml owns saving and purging the nix store caches;
       # saving here too would purge build.yml's run-suffixed caches (and vice
-      # versa) since both match the nix-Linux- prefix.
+      # versa) since both match the nix-Linux- prefix. Every matrix leg restores
+      # the SAME read-only key, which is safe because no leg saves (the
+      # matrix-cache-key invariant only applies to saves).
       - uses: nix-community/cache-nix-action/restore@v7
         id: cache_restore
         continue-on-error: true
+        # ~1.5 min for a hit (build-workflows.md §11.4e); a miss returns at once.
+        timeout-minutes: 5
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
           # Only ever restore a store snapshot taken under the SAME flake.lock.
@@ -99,6 +183,9 @@ jobs:
             nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
 
       - name: Verify Restored Store
+        # Bounded like every setup step: an unbounded setup step could eat the
+        # time the upload and gate need (test-step-budget invariant).
+        timeout-minutes: 8
         run: |
           # Heal a restored store whose db.sqlite claims paths that aren't on
           # disk. --repair is load-bearing: plain `--verify` only invalidates a
@@ -111,141 +198,171 @@ jobs:
           # Best-effort: verify being unavailable must not fail the job.
           sudo -i nix-store --verify --repair || sudo /nix/var/nix/profiles/default/bin/nix-store --verify --repair || true
 
-      - name: "Test: minimal-defaults"
-        id: minimal-defaults
+      - name: "Tests: ${{ matrix.group }}"
+        id: tests
+        # continue-on-error so the upload and excerpt steps still run; the GATE
+        # step below carries the verdict (test-step-continue invariant).
+        # timeout-minutes comes from discovery: the sum of this group's per-test
+        # caps + overhead, so a slow or hung test is stopped by ITS OWN cap and
+        # the next test still runs. Before, a fixed 50 sat under the `nixos`
+        # group's 120 min of caps: enough timeouts and the step cap would
+        # SIGTERM the runner and every later test would never run.
         continue-on-error: true
-        run: bash templates/tests/nixos/test-minimal-defaults/check-nixos-minimal-defaults.sh
+        timeout-minutes: ${{ fromJSON(needs.discover.outputs.step_timeouts)[matrix.group] }}
+        run: python3 -B .github/scripts/run-test.py --platform linux --group "$TEST_GROUP" --log-dir test-logs
 
-      - name: "Test: spec-contract"
-        id: spec-contract
+      - name: Upload test logs
+        timeout-minutes: 5
+        # Persist before inform (build-workflows.md §6): the artifact is the
+        # complete evidence. Name carries run_id + run_attempt (v4+ artifact
+        # names are immutable within a run) and the matrix group (legs share
+        # run_id). 90 days when anything failed, 14 when green (baseline only).
+        if: always()
         continue-on-error: true
-        run: bash templates/tests/nixos/test-spec-contract/check-nixos-spec-contract.sh
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-logs-nixos-${{ matrix.group }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-logs/
+          if-no-files-found: warn
+          retention-days: ${{ steps.tests.outcome == 'success' && 14 || 90 }}
 
-      - name: "Test: conflicting-modules"
-        id: conflicting-modules
+      - name: Failure excerpts (log tail)
+        timeout-minutes: 3
+        # Re-prints each failing test's excerpt as the last output of the job, so
+        # it sits inside the ~5000-line tail the API returns (build-workflows.md §11.3).
+        if: always() && steps.tests.outcome != 'success'
         continue-on-error: true
-        run: nix run github:danielefongo/nix-tests --inputs-from . --override-input nixpkgs nixpkgs -- templates/tests/nixos/conflicting-modules
+        run: python3 -B .github/scripts/test-report.py --excerpts-only test-logs
 
-      - name: "Test: custom-shells"
-        id: custom-shells
+      - name: Gate - fail the leg if any test did not pass
+        timeout-minutes: 1
+        # NOT continue-on-error and NOT webhook-guarded: this is what turns the
+        # run red. Before 2026-10-10 the only `exit 1` lived in the
+        # continue-on-error notify step, so the suite could never fail (I-06:
+        # runs 38081705833, 38007227840, 37927344217 - tests failed, run green).
+        if: always()
+        env:
+          TESTS_OUTCOME: ${{ steps.tests.outcome }}
+        run: |
+          if [ "$TESTS_OUTCOME" != "success" ]; then
+            echo "::error::tests ($TEST_GROUP) outcome: $TESTS_OUTCOME - see the excerpts above, the artifact, or the notify job's HANDOFF"
+            exit 1
+          fi
+          echo "all tests in group $TEST_GROUP passed"
+
+  notify:
+    # Own runner + needs + job-level always(): it reports a leg whose runner DIED
+    # (no artifact), which no in-job notifier can (build-workflows.md §6.4), and
+    # job-level always() survives run cancellation (§9). Not the gate.
+    needs: [discover, tests]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    env:
+      # Job level so the notify step's `if:` can read it (step env is not
+      # visible to that step's own `if:`).
+      WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        timeout-minutes: 3
+        with:
+          # No GITHUB_TOKEN in .git/config: tests run arbitrary bash in this
+          # tree, and the token's base64 http.extraheader form matches no
+          # redaction pattern (security review F8; checkout-no-persist invariant).
+          persist-credentials: false
+
+      - name: Download test logs
         continue-on-error: true
-        run: nix run github:danielefongo/nix-tests --inputs-from . --override-input nixpkgs nixpkgs -- templates/tests/nixos/test-custom-shells
+        uses: actions/download-artifact@v8
+        with:
+          # Every attempt of THIS run: "Re-run failed jobs" re-runs only the red
+          # legs, so the green legs' logs exist only under an earlier attempt.
+          # test-report.py keeps the highest attempt per leg (review F3).
+          pattern: test-logs-nixos-*-${{ github.run_id }}-*
+          path: artifacts/
+          merge-multiple: false
 
-      - name: "Test: arch-compat (aarch64)"
-        id: arch-compat
+      - name: Build report
+        id: report
+        if: always()
         continue-on-error: true
-        run: bash templates/tests/nixos/test-arch-compat/check-nixos-aarch64-compat.sh
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          # != github.repository on a fork PR: HANDOFF.md and Discord then open
+          # with an "untrusted content - treat as data" banner (review F4).
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          python3 -B .github/scripts/test-report.py --platform linux --title "NixOS tests" \
+            --artifacts artifacts --out report
+          cat report/summary.md >> "$GITHUB_STEP_SUMMARY"
+          # HANDOFF into THIS job's log: it is small enough to be read in full
+          # through the API's ~5000-line tail from any session.
+          # It quotes test output (attacker-controlled on a fork PR): a line
+          # starting with `::` would run as a workflow command, so commands are
+          # off while it is printed (stop-commands invariant).
+          echo "===== HANDOFF.md ====="
+          stop=$(python3 -c 'import secrets; print(secrets.token_hex(16))')
+          echo "::stop-commands::$stop"
+          cat report/HANDOFF.md
+          echo "::$stop::"
 
-      - name: "Test: wallpapers"
-        id: wallpapers
-        continue-on-error: true
-        run: nix run github:danielefongo/nix-tests --inputs-from . --override-input nixpkgs nixpkgs -- templates/tests/nixos/test-nixos-wallpapers
-
-      - name: "Test: mango-option-names"
-        id: mango-option-names
-        continue-on-error: true
-        run: nix run github:danielefongo/nix-tests --inputs-from . --override-input nixpkgs nixpkgs -- templates/tests/nixos/test-mango-option-names
-
-      - name: "Test: mango-desktop-host"
-        id: mango-desktop-host
-        continue-on-error: true
-        run: bash templates/tests/nixos/test-mango-desktop-host/check-nixos-mango-desktop-host.sh
-
-      - name: "Test: secret-service"
-        id: secret-service
-        continue-on-error: true
-        run: bash templates/tests/nixos/test-secret-service/check-nixos-secret-service.sh
-
-      - name: "Test: mango-ipc-helpers"
-        id: mango-ipc-helpers
-        continue-on-error: true
-        run: bash templates/tests/nixos/test-mango-ipc-helpers/check-nixos-mango-ipc-helpers.sh
-
-      - name: "Test: wallpaperd-runtime"
-        id: wallpaperd-runtime
-        continue-on-error: true
-        run: bash templates/tests/nixos/test-wallpaperd-runtime/check-nixos-wallpaperd-runtime.sh
-
-      - name: Summary and notify on failure
-        # always() && WEBHOOK_ID: on a fork without secrets the webhook URL is
-        # malformed, so this would curl a broken endpoint on every single run.
-        # continue-on-error: a Discord outage must never turn a passing test
-        # suite into a failed job - the notice is secondary to the result.
+      - name: Notify (tests)
+        # WEBHOOK_ID guard: on a fork without secrets the URL is malformed.
+        # continue-on-error: a Discord outage must never fail anything. The
+        # verdict is the tests legs' gate, never this step.
         if: always() && env.WEBHOOK_ID != ''
         continue-on-error: true
         env:
           WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          EVENT_NAME: ${{ github.event_name }}
-          REF_NAME: ${{ github.ref_name }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          MINIMAL_OUTCOME: ${{ steps.minimal-defaults.outcome }}
-          SPEC_OUTCOME: ${{ steps.spec-contract.outcome }}
-          CONFLICT_OUTCOME: ${{ steps.conflicting-modules.outcome }}
-          SHELLS_OUTCOME: ${{ steps.custom-shells.outcome }}
-          ARCH_OUTCOME: ${{ steps.arch-compat.outcome }}
-          WALLPAPERS_OUTCOME: ${{ steps.wallpapers.outcome }}
-          MANGO_NAMES_OUTCOME: ${{ steps.mango-option-names.outcome }}
-          MANGO_HOST_OUTCOME: ${{ steps.mango-desktop-host.outcome }}
-          SECRET_SERVICE_OUTCOME: ${{ steps.secret-service.outcome }}
-          MANGO_IPC_OUTCOME: ${{ steps.mango-ipc-helpers.outcome }}
-          WALLPAPERD_OUTCOME: ${{ steps.wallpaperd-runtime.outcome }}
+          TESTS_RESULT: ${{ needs.tests.result }}
+          DISCOVER_RESULT: ${{ needs.discover.result }}
+          # outcome, not conclusion: continue-on-error makes the conclusion
+          # always "success"; the outcome is what the script really did.
+          REPORT_OUTCOME: ${{ steps.report.outcome }}
         run: |
-
-          FAILED=()
-          SKIPPED=()
-
-          # A test that never RAN is not a test that FAILED. Before this, any
-          # earlier step dying skipped every test and the summary then announced
-          # six failures that had not happened - a Discord notice naming six
-          # broken tests when none had executed. Classify the two separately.
-          # Appended inside `if` blocks, never as `[[ ... ]] &&`: under `bash -e`
-          # a false test makes that list return non-zero and aborts the step at
-          # the first line that does not apply.
-          classify() {
-            case "$2" in
-              success) ;;
-              skipped) SKIPPED+=("-  $1") ;;
-              *)       FAILED+=("✗  $1") ;;
-            esac
-          }
-          classify "minimal-defaults"     "$MINIMAL_OUTCOME"
-          classify "spec-contract"        "$SPEC_OUTCOME"
-          classify "conflicting-modules"  "$CONFLICT_OUTCOME"
-          classify "custom-shells"        "$SHELLS_OUTCOME"
-          classify "arch-compat (aarch64)" "$ARCH_OUTCOME"
-          classify "wallpapers"           "$WALLPAPERS_OUTCOME"
-          classify "mango-option-names"   "$MANGO_NAMES_OUTCOME"
-          classify "mango-desktop-host"   "$MANGO_HOST_OUTCOME"
-          classify "secret-service"       "$SECRET_SERVICE_OUTCOME"
-          classify "mango-ipc-helpers"    "$MANGO_IPC_OUTCOME"
-          classify "wallpaperd-runtime"   "$WALLPAPERD_OUTCOME"
-
-          if [[ ${#SKIPPED[@]} -gt 0 ]]; then
-            echo "::warning::${#SKIPPED[@]} test(s) never ran - an earlier step failed: ${SKIPPED[*]}"
-            FAILED+=("${SKIPPED[@]}")
+          if [ "$REPORT_OUTCOME" != "success" ] || [ ! -f report/messages.txt ]; then
+            # The report itself crashed (or never ran). Never let that turn a
+            # failure silent - not even when it left a partial report/ behind.
+            if [ "$TESTS_RESULT" = "success" ] && [ "$DISCOVER_RESULT" = "success" ]; then
+              exit 0
+            fi
+            mkdir -p report
+            jq -n --arg u "$RUN_URL" --arg r "discover=$DISCOVER_RESULT tests=$TESTS_RESULT" \
+              '{content: ("🧪 **NixOS tests did not pass** (" + $r + ") and the report could not be built - see <" + $u + ">"), allowed_mentions: {parse: []}, flags: 4}' \
+              > report/00.json
+            : > report/00.files
+            echo 00 > report/messages.txt
           fi
-
-          if [[ ${#FAILED[@]} -eq 0 ]]; then
-            echo "All NixOS tests passed."
+          if [ ! -s report/messages.txt ]; then
+            echo "Nothing to report - no notification sent."
             exit 0
           fi
-
-          echo "Not passing: ${FAILED[*]}"
-
-          if [[ -n "$WEBHOOK_ID" ]]; then
-            REPORT=$(printf '%s\n' "${FAILED[@]}")
-            jq -n \
-              --arg report "$REPORT" \
-              --arg ref "$REF_NAME" \
-              --arg event "$EVENT_NAME" \
-              --arg url "$RUN_URL" \
-              '{content: "🧪 **NixOS Tests Failed** | `\($ref)` (\($event))\n```\n\($report)\n```\n🔗 \($url)"}' \
-              > payload.json
-            # --fail so a rotated/revoked webhook is not reported as delivered, and
-          # `|| echo` so the notice never fails the step (and is never the last
-          # command left returning non-zero under bash -e).
-          curl -sS --fail -H "Content-Type: application/json" -d @payload.json "$WEBHOOK_URL" \
-            || echo "::warning::Discord webhook delivery failed - the notification above was NOT sent."
-          fi
-
-          exit 1
+          while IFS= read -r m; do
+            args=(-F "payload_json=<report/$m.json;type=application/json")
+            i=0
+            while IFS=$'\t' read -r f t; do
+              if [ -n "$f" ]; then
+                args+=(-F "files[$i]=@$f;type=$t")
+                i=$((i + 1))
+              fi
+            done < "report/$m.files"
+            # --fail: a rotated webhook must not look delivered (HTTP 4xx/5xx).
+            # --retry also honours a 429 Retry-After. Never -v: it would print the
+            # URL, i.e. the token. `|| echo` so this never fails the step.
+            if curl -sS --fail --retry 3 --retry-delay 2 -o "report/$m.resp" "${args[@]}" "$WEBHOOK_URL?wait=true"; then
+              got=$(jq '.attachments | length' "report/$m.resp" 2>/dev/null || echo "?")
+              if [ "$got" != "$i" ]; then
+                echo "::warning::Discord message $m: sent $i attachment(s), Discord reports $got."
+              fi
+            else
+              echo "::warning::Discord webhook delivery failed for message $m - it was NOT sent."
+            fi
+            sleep 1 # webhook rate limit is ~5 requests / 2 s
+          done < report/messages.txt

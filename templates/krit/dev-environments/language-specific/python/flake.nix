@@ -10,7 +10,6 @@
       supportedSystems = [
         "x86_64-linux"
         "aarch64-linux"
-        "x86_64-darwin"
         "aarch64-darwin"
       ];
       forEachSupportedSystem =
@@ -42,10 +41,9 @@
                   venvVersion="$("$venvDir/bin/python" -c 'import platform; print(platform.python_version())')"
                   # Simple check: does the venv version start with the python version we requested?
                   [[ "$venvVersion" == "${python.version}"* ]] && return
-                  cat <<EOF
-                  Warning: Python version mismatch: [$venvVersion (venv)] != [${python.version}]
-                  Delete '$venvDir' and reload to rebuild for version ${python.version}
-                  EOF
+                  # I-20: the old heredoc terminator was indented and never closed
+                  echo "Warning: Python version mismatch: [$venvVersion (venv)] != [${python.version}]"
+                  echo "Delete '$venvDir' and reload to rebuild for version ${python.version}"
                 }
                 venvVersionWarn
               '';
@@ -79,9 +77,6 @@
 
           # Option 3: python 3.12 (LTS)
           py-lts = mkPythonShell "312";
-
-          # Option 4: python 3.11 (older)
-          py311 = mkPythonShell "311";
         }
 
       );

@@ -8,6 +8,8 @@ in
 nix-tests.runTests {
   "C01: tlp + auto-cpufreq must assert" = helpers: {
     "mutual-exclusivity assertion fires" =
-      helpers.isTrue (H.hasFailingAssertion "mutually exclusive" config);
+      helpers.isTrue (H.hasFailingAssertion "services.auto-cpufreq and services.tlp are mutually exclusive" config);
+    "exactly one mutual-exclusion assertion fails" =
+      helpers.isTrue (H.failingCount "mutually exclusive" config == 1);
   };
 }

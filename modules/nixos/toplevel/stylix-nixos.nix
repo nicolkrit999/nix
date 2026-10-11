@@ -33,7 +33,7 @@ delib.module {
   nixos.ifEnabled =
     { myconfig, ... }:
     let
-      fallbackWp = lib.findFirst (w: w.targetMonitor == "*") (builtins.head myconfig.constants.wallpapers) myconfig.constants.wallpapers;
+      fallbackWp = myconfig.constants.primaryWallpaper;
     in
     {
       home-manager.sharedModules = [{ stylix.enableReleaseChecks = true; }];
@@ -103,12 +103,7 @@ delib.module {
           myconfig.constants.theme.catppuccinAccent or "mauve"
         }-standard+rimless,black";
       };
-      hasWallpapers = myconfig.constants ? wallpapers && myconfig.constants.wallpapers != [ ];
-      fallbackWp =
-        if hasWallpapers then
-          lib.findFirst (w: w.targetMonitor == "*") (builtins.head myconfig.constants.wallpapers) myconfig.constants.wallpapers
-        else
-          null;
+      fallbackWp = myconfig.constants.primaryWallpaper;
 
     in
     {
@@ -120,12 +115,12 @@ delib.module {
           }.yaml";
         }
 
-        (lib.mkIf hasWallpapers {
+        {
           image = pkgs.fetchurl {
             url = fallbackWp.wallpaperURL;
             sha256 = fallbackWp.wallpaperSHA256;
           };
-        })
+        }
 
         {
           targets = {

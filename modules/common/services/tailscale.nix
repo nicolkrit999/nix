@@ -53,7 +53,14 @@ delib.module {
         # Equivalent of running `sudo tailscale set --operator=$USER` once by
         # hand: lets the configured user run `tailscale up`/`set` without sudo.
         extraSetFlags = [ "--operator=${myconfig.constants.user}" ];
-        # Must list every non-default pref, else the nixpkgs autoconnect `tailscale up` fails.
+        # extraUpFlags only feed nixpkgs' tailscaled-autoconnect, which exists only when
+        # authKeyFile is set (templates/krit/sops/service-wiring.nix); the repo's own
+        # tailscale-autoconnect below runs a bare `tailscale up`. That upstream unit calls `up`
+        # only in NeedsLogin/NeedsMachineAuth/Stopped, never while Running, so --reset cannot
+        # drop an exit node picked in a live session. It does wipe one persisted across a
+        # logout/Stopped state: wanted, since `up` otherwise refuses to run until every
+        # non-default pref (an exit node included) is restated, and the school specialisation
+        # clears the exit node on boot anyway. Re-pick with tailscalenodeset.
         extraUpFlags = [
           "--reset"
           "--accept-routes"
@@ -78,9 +85,11 @@ delib.module {
         wants = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
 
+        # Type=exec: the start job finishes at exec, so this never blocks boot and
+        # TimeoutStartSec does not bound the retry loop (I-02). The loop is bounded
+        # by its own iteration count (~20 x ~23s worst case) and runs in the background.
         serviceConfig = {
           Type = "exec";
-          TimeoutStartSec = "30s";
         };
 
         script = ''

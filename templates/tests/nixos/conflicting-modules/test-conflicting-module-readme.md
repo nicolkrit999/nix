@@ -15,6 +15,8 @@ contains its own README, `shared/`, `conflict/`, `positive/` setup.
 
 ## Run all conflict tests
 
+Via the suite runner (from the repo root): `bash templates/tests/run-tests.sh --only nixos-conflicting-modules` (name as shown by `--list`).
+
 ```bash
 nix run github:danielefongo/nix-tests -- templates/tests/nixos/conflicting-modules
 ```

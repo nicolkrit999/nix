@@ -133,7 +133,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`qt`**: Configures Qt application themes, platform integrations, and rendering engines.
   * **Warning:** Disabling this would cause graphical inconsistencies in Qt applications.
 
-* **`timezone`**: Sets the system timezone from the `constants.timeZone` value (default: `Etc/UTC`).
+* **`constants.timeZone`**: Not a module; the system timezone is set by `common-configuration` from the `timeZone` constant (default: `Etc/UTC`).
 * **`xdg-portal`**: Configures XDG desktop portals with DE-specific backends for screensharing and file picking (Hyprland, KDE, GNOME, COSMIC, and niri all have tailored configurations).
   * **Warning:** Disabling this would cause graphical inconsistencies as well as some apps not behaving correctly.
 * **`zram`**: Enables a compressed swap space in RAM to drastically improve system performance under memory pressure.
@@ -174,7 +174,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`programs.walker`**: Installs the Walker application launcher with optional Hyprland and Waybar integration.
   * **Warning:** Disabling this means missing an app launcher in Hyprland/niri.
 
-* **`programs.waybar`**: A powerful, modular status bar for Wayland window managers, configured with workspaces, workspace icons, keyboard layout display, and system tray integrations. Per-WM variants exist for Hyprland, Mango, and Niri.
+* **`programs.waybar-hyprland`, `programs.waybar-mango`, `programs.waybar-niri`**: A powerful, modular status bar for Wayland window managers, configured with workspaces, workspace icons, keyboard layout display, and system tray integrations. There is no generic `programs.waybar` module; each window manager has its own variant.
 
 #### Services (`services.`)
 

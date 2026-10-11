@@ -17,3 +17,9 @@ result-*
 # Ignore Nix flake lock file
 # Uncommented because cachix.nix need it in the repo
 #flake.lock
+
+# Python bytecode (the CI scripts in .github/scripts/ and templates/tests/lib/
+# set dont_write_bytecode / run with -B, but an ad-hoc `python3 -c 'import ...'`
+# still writes it; one stray .pyc was once staged by accident)
+**/__pycache__/
+*.py[cod]

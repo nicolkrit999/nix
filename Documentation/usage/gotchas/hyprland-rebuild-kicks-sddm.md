@@ -1,6 +1,13 @@
 # Rebuilding from inside a live Hyprland session kicks you to SDDM
 
-**Status: OPEN, no fix applied.**
+**Status: OPEN for the rebuild kick, no dedicated fix applied.** A related,
+separate workaround exists: `hyprland-main.nix` sets
+`wayland.windowManager.hyprland.systemd.extraCommands` to only
+`systemctl --user start hyprland-session.target` (dropping the default
+`stop && start`), which cures Hyprland exiting right after login on
+home-manager master. It touches the same `stop hyprland-session.target`
+mechanism described below, but whether it also stops the kick on
+`nh os switch` has not been re-tested.
 
 **Symptom:** every `nixos-rebuild switch` / `nh os switch` run from inside a
 live Hyprland session kicks the user back out to SDDM (the login manager -

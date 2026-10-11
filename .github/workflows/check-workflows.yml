@@ -19,10 +19,16 @@ on:
     paths:
       - ".github/workflows/**"
       - ".github/scripts/**"
+      # The invariant checker runs test discovery (a folder matching no test
+      # pattern fails it), so test-tree edits are checked here too.
+      - "templates/tests/**"
   pull_request:
     paths:
       - ".github/workflows/**"
       - ".github/scripts/**"
+      # The invariant checker runs test discovery (a folder matching no test
+      # pattern fails it), so test-tree edits are checked here too.
+      - "templates/tests/**"
   # Weekly, independent of any edit: actions get deprecated, runner images
   # change, and a workflow that was correct in August can rot by November
   # without anybody touching the file.
@@ -33,6 +39,13 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+# Least privilege (security review F9). The job only reads the checkout and
+# runs static analysis; the Discord notice uses the webhook secret, not
+# GITHUB_TOKEN. Every scope not listed here is `none`, so a compromised action
+# or script in this job cannot push, comment or touch releases.
+permissions:
+  contents: read
 
 jobs:
   check-workflows:
@@ -80,6 +93,15 @@ jobs:
         id: invariants
         run: python3 .github/scripts/check-workflow-invariants.py
 
+      # Hard gate. The CI test-logging pipeline: discovery, run-test.py (exit
+      # code, timeout, redaction) and test-report.py (every Discord payload
+      # <= 2000 chars, <= 10 files, <= 8 MiB, no mention pings, pass-only run
+      # sends nothing). Pure Python, no Nix.
+      - name: Test-logging unit tests
+        id: unittests
+        if: always()
+        run: python3 -B .github/scripts/test_test_report.py
+
       - name: Notify (workflow check)
         # WEBHOOK_ID guard: on a fork without secrets the URL is malformed and
         # this would curl a broken endpoint every run. continue-on-error: a
@@ -96,6 +118,9 @@ jobs:
 
           if [ "${{ steps.invariants.outcome }}" = "failure" ]; then
             crit "A CI workflow invariant was violated - see the job log for which one"
+          fi
+          if [ "${{ steps.unittests.outcome }}" = "failure" ]; then
+            crit "The CI test-logging unit tests failed - see the job log"
           fi
           if [ "${{ steps.shellcheck.outcome }}" = "failure" ]; then
             warn "shellcheck flagged something in a workflow \`run:\` block (advisory)"

@@ -160,6 +160,12 @@ delib.module {
             height = 2000;
             refresh = 120.0;
           };
+          # I-17: match hyprland home-spec eDP-1 (scale 1.6 at 4000x560)
+          scale = 1.6;
+          position = {
+            x = 4000;
+            y = 560;
+          };
         };
         "${niriKey lg}" = {
           mode = {

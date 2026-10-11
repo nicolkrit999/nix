@@ -5,6 +5,9 @@
 #   bash check-nixos-wallpaperd-runtime.sh
 
 set -uo pipefail
+# Full stderr of every failing nix call goes into the test log (CI artifact + local
+# ~/.local/state/nix-tests/); a no-op unless run via run-test.py. See the file.
+source "$(dirname "${BASH_SOURCE[0]}")/../../lib/evidence.sh"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 SCRIPT="${WPD_SCRIPT:-$DIR/../../../../modules/nixos/programs/de-wm/wallpaperd/wallpaperd.sh}"
 
@@ -142,6 +145,8 @@ settle() {
   sleep 0.6
 }
 
+starts() { grep -E "^(mpv-start|img) $1 " "$S/log"; }
+
 has() { grep -Fxq -- "$1" "$S/log"; }
 
 count() { grep -Fxc -- "$1" "$S/log" || true; }
@@ -156,7 +161,7 @@ wait_for() {
   return 1
 }
 
-lists_gt() { (( $(lists) > $1 )); }
+started() { [[ -n $(starts "$1") ]]; }
 
 count_ge() { (( $(count "$1") >= $2 )); }
 
@@ -221,11 +226,9 @@ run_scenario() {
   check "declared name DP-1 gets its still via awww" has "img DP-1 /w/dp1.png"
   check "desc: entry gets its video on DP-2 via mpvpaper" has "mpv-start DP-2 /w/dp2.mp4"
   check "undeclared DP-3 gets the fallback" has "$fbmatch"
-  check "fallback never lands on DP-1" negate has "img DP-1 /w/fb.png"
-  check "fallback video never lands on DP-1" negate has "mpv-start DP-1 /w/fb.mp4"
-  check "fallback never lands on desc:-declared DP-2" negate has "mpv-start DP-2 /w/fb.mp4"
-  check "fallback still never lands on desc:-declared DP-2" negate has "img DP-2 /w/fb.png"
-  check "declared DP-1 never gets mpvpaper" negate has "mpv-start DP-1 /w/dp1.png"
+  check "DP-1 is started exactly once, with its declared still" test "$(starts DP-1)" = "img DP-1 /w/dp1.png"
+  check "DP-2 is started exactly once, with its desc: video" test "$(starts DP-2)" = "mpv-start DP-2 /w/dp2.mp4"
+  check "undeclared DP-3 is started exactly once, with the fallback" test "$(starts DP-3)" = "$fbmatch"
   check "disabled DP-4 is skipped" negate grep -Eq '^(mpv-start|img) DP-4 ' "$S/log"
   if [[ $WM == hyprland ]]; then
     check "mirrored DP-5 is skipped" negate grep -Eq '^(mpv-start|img) DP-5 ' "$S/log"
@@ -257,7 +260,9 @@ run_scenario() {
   settle "$before"
   if [[ $FB == video ]]; then
     check "unplugged DP-3 has its mpvpaper stopped" has "mpv-stop DP-3"
-    check "other outputs are not stopped by the unplug" negate has "mpv-stop DP-2"
+    check "the unplug stops only DP-3 (DP-2 and HDMI-A-1 keep running)" test "$(grep -c '^mpv-stop ' "$S/log")" -eq 1
+  else
+    check "image fallback: the unplug stops no mpvpaper" negate grep -q '^mpv-stop ' "$S/log"
   fi
 
   before=$(lists)
@@ -271,6 +276,15 @@ run_scenario() {
     check "re-enabled DP-4 now gets the fallback" has "mpv-start DP-4 /w/fb.mp4"
   else
     check "re-enabled DP-4 now gets the fallback" has "img DP-4 /w/fb.png"
+  fi
+
+  if [[ $WM == hyprland ]]; then
+    before=$(lists)
+    sed -i $'s/^DP-5\t.*/DP-5\tOther\tMirror\tU5\ton/' "$S/model.tsv"
+    write_outputs
+    emit_event
+    settle "$before"
+    check "un-mirrored DP-5 now gets the fallback (skip was the mirror state)" started DP-5
   fi
 
   if [[ $FB == image ]]; then
@@ -294,7 +308,10 @@ run_scenario() {
   check "DP-2 video not restarted by a dropped event stream" test "$(count 'mpv-start DP-2 /w/dp2.mp4')" -eq 1
   before=$(lists)
   emit_event
-  check "events work again after the reconnect" wait_for 5 lists_gt "$before"
+  printf '%s\n' $'DP-7\tHot\tAfter\tA7\ton' >>"$S/model.tsv"
+  write_outputs
+  emit_event
+  check "an output added after the reconnect gets the fallback" wait_for 10 started DP-7
 
   kill -USR1 "$(cat "$S/pid-DP-2")"
   check "crashed mpvpaper is restarted" wait_for 15 count_ge 'mpv-start DP-2 /w/dp2.mp4' 2
@@ -360,7 +377,11 @@ mango_config_values() {
     return
   fi
   check "at least one host enables mango" test "$(jq '[.[][] | select(length > 0)] | length' <<<"$json")" -gt 0
-  check "a wallpaper daemon is in some mango exec_once" test "$(jq '[.[][].exec_once // [] | .[] | select(test("wallpaperd"))] | length' <<<"$json")" -gt 0
+  check "the wallpaperd launcher script is a whole mango exec_once command" test "$(jq '[.[][].exec_once // [] | .[] | select(test("mango-wallpaperd-start$"))] | length' <<<"$json")" -gt 0
+
+  local ctl="sh -c 'exec wallpaperd --wm mango DP-1=image:/a DP-2=video:/b *=video:/$(printf 'c%.0s' $(seq 300))'"
+  check "control: a 255-cut of an over-long inlined argv is rejected by bash -n" negate bash -n -c "${ctl:0:255}"
+  check "control: the over-long sample really exceeds 255 chars" test "${#ctl}" -gt 255
 
   local host user key v cut bad=0
   while IFS=$'\t' read -r host user key v; do

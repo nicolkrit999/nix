@@ -32,8 +32,9 @@ delib.module {
     { cfg, myconfig, ... }:
     let
       mountPoint = "/mnt/nicol_nas/webdav/opencloud";
-      uid = toString config.users.users.${myconfig.constants.user}.uid;
-      gid = toString config.users.groups.users.gid;
+      # I-16: davfs2 accepts names; follow the constant, no numeric uid assumption.
+      uid = myconfig.constants.user;
+      gid = config.users.users.${myconfig.constants.user}.group;
 
       mkOpencloudFileSystem = space: {
         name = "${mountPoint}/${space.path}";

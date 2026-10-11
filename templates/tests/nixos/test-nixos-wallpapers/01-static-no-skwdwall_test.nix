@@ -6,7 +6,6 @@
 let
   H = import ./shared/eval-scenario.nix;
   E = H.expect;
-  lib = H.lib;
   config = H.getConfig ./01-static-no-skwdwall H.nixosExtraX86;
   hm = H.getHm config;
 in
@@ -26,7 +25,7 @@ nix-tests.runTests {
       "kde wallpaperCustomPlugin is unset" =
         helpers.isTrue (H.kdeWallpaperCustomPlugin config == null);
       "gnome dconf background picture-uri is set (always static, skwdWall-independent)" =
-        helpers.isTrue (lib.hasPrefix "file:///nix/store/"
+        helpers.isTrue (H.isStillUri
           (builtins.toString (hm.dconf.settings."org/gnome/desktop/background".picture-uri or "")));
       "services.skwd-deck is NOT enabled (skwdWall disabled)" =
         helpers.isFalse (H.skwdDeckEnabled config);

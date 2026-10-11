@@ -5,6 +5,9 @@
 #   bash check-nixos-mango-desktop-host.sh
 
 set -uo pipefail
+# Full stderr of every failing nix call goes into the test log (CI artifact + local
+# ~/.local/state/nix-tests/); a no-op unless run via run-test.py. See the file.
+source "$(dirname "${BASH_SOURCE[0]}")/../../lib/evidence.sh"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"
@@ -51,26 +54,40 @@ echo -e "${BOLD}=== mango on the real nixos-desktop host ===${NC}"
 echo ""
 
 echo -e "${BOLD}settings${NC}"
-run_check check-pip-bind                    "SUPER,P runs mango-pip"
-run_check check-scratchpad-bind             "SUPER+ALT,Z is toggle_scratchpad"
-run_check check-scratch-binds               "SUPER+SHIFT Return/F/B go through mango-scratch"
-run_check check-scratch-rules-special-tag   "scratch window rules carry tags:0"
-run_check check-hdmi-disabled               "HDMI-A-1 monitor rule has disable:1"
+run_check check-scratch-binds-have-tag0-rules  "every mango-scratch --class has a tags:0 window rule"
+run_check check-scratch-rule-control           "control: tag0 predicate discriminates"
 run_check check-no-window-rule-once         "window_rule_once is empty (no zen rule)"
-run_check check-mango-place-startup         "mango-place startup line for zen present"
-run_check check-gdk-scale-env               "env contains GDK_SCALE,1"
 run_check check-no-plain-exec               "no plain exec entries"
-run_check check-bindl-media                 "bindl holds volume/next binds"
-run_check check-bindsl-play-pause           "bindsl holds Play/Pause"
 run_check check-media-keys-not-in-bind      "Play/Pause not duplicated in bind"
 run_check check-no-duplicate-combos         "no duplicate combos across bind/bindl/bindsl"
-run_check check-launch6-fullscreen          "XF86Launch6 is togglefullscreen"
+run_check check-duplicate-combos-control        "control: duplicate predicate discriminates"
 run_check check-proportion-preset-has-arg   "switch_proportion_preset always has an argument"
+run_check check-proportion-preset-control       "control: empty-preset predicate discriminates"
 run_check check-no-zero-opacity-rules       "no opacity:0 window rules"
+run_check check-zero-opacity-control            "control: opacity predicate discriminates"
+
+echo ""
+echo -e "${BOLD}bind/rule shape and layouts${NC}"
+run_check check-bind-lists-nonempty                 "bind/mousebind/axisbind/gesturebind/tag_rule/layer_rule non-empty"
+run_check check-bind-rule-min-fields                "binds have >=3 comma fields, rules >=2 key:value fields"
+run_check check-min-fields-control                  "control: field-count predicate discriminates"
+run_check check-tag-rule-matches-option             "tag_rule: tags 1-9 per monitor agree with monitorLayouts option"
+run_check check-tag-rule-one-layout-per-tag-monitor "tag_rule: exactly one entry per (tag, monitor)"
+run_check check-tag-rule-fallback-per-tag           "tag_rule: defaultLayout fallback for tags 1-9"
+run_check check-tag-rule-syntax                     "tag_rule entries are well formed"
+run_check check-tag-rule-control                    "control: tag_rule predicate rejects mutated lists"
+
+echo ""
+echo -e "${BOLD}GDK_SCALE and systemd variables${NC}"
+run_check check-gdk-scale-two-sources               "sessionVariables GDK_SCALE (not 1) vs mango env GDK_SCALE,1"
+run_check check-gdk-scale-systemd-forwarded         "GDK_SCALE forwarded to systemd"
+run_check check-systemd-vars-defined                "systemd.variables defined or allow-listed"
+run_check check-systemd-vars-control                "control: undefined-variable predicate discriminates"
 
 echo ""
 echo -e "${BOLD}hypridle${NC}"
-run_check check-hypridle-no-wlopm-wildcard        "hypridle never calls wlopm directly"
+run_check check-hypridle-no-direct-wlopm        "hypridle never calls wlopm directly (mango-dpms present)"
+run_check check-hypridle-wlopm-control          "control: wlopm/dpms predicates discriminate"
 run_check check-hypridle-after-sleep-mango-dpms   "after_sleep_cmd runs mango-dpms on"
 run_check check-hypridle-screen-off-mango-dpms    "screen-off listener runs mango-dpms off/on"
 run_check check-hypridle-other-wms-unchanged      "Hyprland and niri branches unchanged"
@@ -80,14 +97,15 @@ echo -e "${BOLD}mango -p${NC}"
 conf=$(nix eval --raw --impure --file "$SCENARIO" mango-config 2>/dev/null)
 pkg=$(nix eval --raw --impure --file "$SCENARIO" mango-package 2>/dev/null)
 confdrv=$(nix eval --raw --impure --file "$SCENARIO" mango-config-drv 2>/dev/null)
-if [[ -n $conf && -n $pkg ]] && nix build --no-link "$confdrv^out" >/dev/null 2>&1 && [[ -x $pkg/bin/mango ]]; then
+pkgdrv=$(nix eval --raw --impure --file "$SCENARIO" mango-package-drv 2>/dev/null)
+if [[ -n $conf && -n $pkg && -n $confdrv && -n $pkgdrv ]] && nix build --no-link "$confdrv^out" "$pkgdrv^out" >/dev/null 2>"$WORK/build.err" && [[ -x $pkg/bin/mango ]]; then
   out=$("$pkg/bin/mango" -c "$conf" -p 2>&1)
   rc=$?
   assert "mango -p exits 0" test "$rc" -eq 0
   assert "mango -p prints nothing (exit code alone is unreliable)" test -z "$out"
 else
   printf "  %-66s " "build mango and its config.conf"
-  fail "build mango and its config.conf" "could not realise $conf / $pkg"
+  fail "build mango and its config.conf" "could not realise $conf / $pkg: $(grep -E 'error:' "$WORK/build.err" 2>/dev/null | head -2 | tr '\n' ' ')"
 fi
 
 echo ""

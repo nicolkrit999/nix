@@ -593,13 +593,9 @@ delib.host {
                 flipped = false;
               };
             };
+            # I-17: niri cannot mirror; HDMI-A-1 is the JetKVM (hyprland/mango mirror it), so disable it
             "HDMI-A-1" = {
-              mode = {
-                width = 1920;
-                height = 1080;
-                refresh = 60.0;
-              };
-              scale = 1.0;
+              enable = false;
             };
           };
           execOnce = [

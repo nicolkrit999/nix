@@ -4,10 +4,10 @@ Verifies that a nix-darwin host with only basic identity constants (`user`, `uid
 
 Two things are checked:
 
-1. **Constant defaults** — all `myconfig.constants.*` fallback values match what `constants-darwin.nix` declares.
-2. **Auto-enabled modules** — `stylix` (`boolOption true`) and `home-packages` (`singleEnableOption true`) are active on a minimal Darwin host.
+1. **Constant defaults** - `myconfig.constants.*` fallbacks (shell, terminal, editor, catppuccin from `common/config/constants.nix`; browser, fileManager from `darwin/config/constants-darwin.nix`).
+2. **home-packages body** - the module body is forced through `environment.systemPackages`, with a control host (`browser = ""`) proving the opt-out changes the result.
 
-Eval-only test — no `nix build --dry-run` (Darwin cross-builds from Linux are heavy and slow).
+Eval-only test - no `nix build --dry-run` (Darwin cross-builds from Linux are heavy and slow). No stylix stub: the former tautological stylix/`enable` default checks were removed.
 
 ## Run
 
@@ -23,11 +23,11 @@ bash check-darwin-minimal-defaults.sh
 
 ## How it works
 
-`01-scenario-minimal-darwin.nix` builds a minimal denix Darwin configuration with the auto-enabled modules in the path list, then exposes `check-*` attributes as `"ok"` or `"FAIL: ..."` strings.
+`01-scenario-minimal-darwin.nix` builds two minimal denix Darwin hosts (`minimal-darwin`, `nobrowser-darwin` with `browser = ""`) from an explicit module list, then exposes `check-*` attributes as `"ok"` or `"FAIL: ..."` strings.
 
 `check-darwin-minimal-defaults.sh` calls `nix eval --raw --impure` for each check.
 
-## What is checked
+## Checks
 
 | Check | Expected |
 |-------|----------|
@@ -37,5 +37,6 @@ bash check-darwin-minimal-defaults.sh
 | `constants.editor` | `"nano"` |
 | `constants.fileManager` | `"nnn"` |
 | `constants.theme.catppuccin` | `false` |
-| `myconfig.stylix.enable` | `true` |
-| `home-packages.enable` | `true` |
+| default host systemPackages | contains firefox |
+| `browser = ""` host systemPackages (control) | does not contain firefox |
+| `browser = ""` host `constants.browser` | `""` (override lands) |

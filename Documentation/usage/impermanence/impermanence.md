@@ -7,7 +7,7 @@
 
 ## 🛠️ How it Works in This Repo
 
-### 1. Global Persistence (`impermanence.nix`)
+### 1. Global Persistence (`modules/nixos/services/impermanence.nix`)
 
 All standard system requirements (Machine IDs, NetworkManager connections, Bluetooth, SSH host keys, and Docker/Podman data) are already pre-configured in the global module. You do not need to manually add these for every new host. 
 
@@ -80,11 +80,9 @@ sudo mkdir -p /persist/var/cache/
 # 2. Copy the mandatory system files
 sudo rsync -a /etc/machine-id /persist/etc/ || true
 
-sudo rsync -a /etc/adjtime /persist/etc/ || true
-
 sudo rsync -a /etc/nixos /persist/etc/ || true
 
-sudo rsync -a /var/cache/fscache/ || true
+sudo rsync -a /var/cache/fscache /persist/var/cache/ || true
 
 sudo rsync -a /etc/ssh /persist/etc/ || true
 
@@ -107,7 +105,7 @@ sudo rsync -a /var/db/sudo/lectured /persist/var/db/sudo/ || true
 sudo rsync -a /var/lib/flatpak /persist/var/lib/ || true
 sudo rsync -a /var/lib/docker /persist/var/lib/ || true
 sudo rsync -a /var/lib/containers /persist/var/lib/ || true
-sudo rsync -a /etc/logid.cfg /persist/etc/ || true
+sudo rsync -a /var/lib/snapper /persist/var/lib/ || true
 ```
 ---
 
@@ -156,13 +154,17 @@ sudo rsync -a /etc/logid.cfg /persist/etc/ || true
 **`/var/lib/containers`**: Maintains state for Podman containers and images.
 
 
+**`/var/lib/snapper`**: Keeps snapper's state (snapshot configs and metadata) across reboots.
+
+
+**`/var/lib/systemd/linger`** (`nixos-desktop` only, set in its `system.nix`): Keeps the `loginctl enable-linger` state of users.
+
+
 
 ### **Files**
  
 **`/etc/machine-id`**: A unique ID for your OS instance; required for system logs (journald) and network DHCP stability.
 
-
-**`/etc/adjtime`**: Keeps your hardware clock (RTC) synchronized and adjusted for time drift.
 
 
 

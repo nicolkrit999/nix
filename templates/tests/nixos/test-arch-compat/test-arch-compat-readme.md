@@ -9,6 +9,8 @@ eval time and is reported.
 
 ## Run all tests
 
+Via the suite runner (from the repo root): `bash templates/tests/run-tests.sh --only nixos-arch-compat` (name as shown by `--list`).
+
 ```bash
 bash templates/tests/nixos/test-arch-compat/check-nixos-aarch64-compat.sh
 ```
@@ -48,3 +50,19 @@ Available attributes per scenario file:
 - `specialisation-guest-tlp`
 - `specialisation-safe-mode-tlp`
 - `specialisation-secure-travel-tlp`
+
+## Value checks
+
+Each scenario also exposes a `checks` attrset (`"ok"` / `"FAIL: ..."`), run by the script
+via `nix eval --raw --impure --file <scenario> checks.<name>` for both scenarios. The fake
+hosts deliberately enable every module (that is the point of this test); no check asserts
+which programs a host enables.
+
+| Check | Expected |
+|-------|----------|
+| `hostPlatformIsAarch64` | `nixpkgs.hostPlatform` and the HM `activationPackage.system` are `aarch64-linux` (guards against every dry-build being vacuously x86) |
+| `x86OnlyPackageIsRejected` | negative control: an `x86_64-linux`-only package fails `tryEval` on aarch64, proving `meta.platforms` is enforced |
+| `shellsInertOnAarch64` | with caelestia and noctalia enabled, `myconfig.programs.hyprland.execOnce` has no noctalia/caelestia entry (the `isx86_64` gating works) |
+| `specialisationNames` | `deep-focus`, `guest`, `safemode`, `secure-travel` all exist as specialisations (the dry-build attrs rely on these names) |
+
+The former "expected incompatibility" path (`EXPECTED_DIRECT_MODULES`) was dead code and was removed.

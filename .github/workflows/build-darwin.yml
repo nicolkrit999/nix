@@ -23,6 +23,9 @@ jobs:
   # JOB: Build aarch64-darwin (MacBook Pro)
   # ===========================================================================
   build-darwin:
+    # macos-15 since 2026-06-24 (was macos-14). tests-darwin.yml's legs use the
+    # SAME image so tests and build evaluate under one macOS/Xcode/SDK; change
+    # both together (darwin-runner-aligned invariant, build-workflows.md §12.1).
     runs-on: macos-15
     # Stay below GitHub's hard 360-minute job kill so the cachix daemon's
     # final flush still runs on a slow build.

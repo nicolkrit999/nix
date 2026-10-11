@@ -31,5 +31,5 @@ nix-tests.runTests {
       helpers.isTrue (H.kdeWallpaperCustomPlugin config == null);
     "kde plasma wallpaper list is non-empty (static fallback, not an empty config)" =
       helpers.isTrue (builtins.length hm.programs.plasma.workspace.wallpaper > 0);
-  };
+  } // H.perWm helpers config [ H.expect.noSupervisor ];
 }

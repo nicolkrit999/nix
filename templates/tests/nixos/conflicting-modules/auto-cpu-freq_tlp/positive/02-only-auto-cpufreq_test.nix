@@ -7,6 +7,8 @@ in
 nix-tests.runTests {
   "P02: only auto-cpufreq enabled" = helpers: {
     "mutual-exclusivity assertion does NOT fire" =
+      helpers.isFalse (H.hasFailingAssertion "services.auto-cpufreq and services.tlp are mutually exclusive" config);
+    "no assertion of any kind reports mutual exclusion" =
       helpers.isFalse (H.hasFailingAssertion "mutually exclusive" config);
     "programs.auto-cpufreq.enable is true" =
       helpers.isTrue config.programs.auto-cpufreq.enable;

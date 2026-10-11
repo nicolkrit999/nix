@@ -1,13 +1,10 @@
 # test-minimal-defaults (NixOS)
 
-Verifies that a NixOS host with only `constants.user = "krit"` set behaves correctly.
-
-Two things are checked:
-
-1. **Constant defaults** — all `myconfig.constants.*` fallback values match what `constants-nixos.nix` declares.
-2. **Auto-enabled modules** — modules with `singleEnableOption true` or `boolOption true` are active on the minimal host. Because `hyprland` auto-enables, the full hyprland ecosystem (hyprlock, hypridle, swaync, waybar-hyprland) also activates. The dry-run build proves they all coexist.
+Verifies safety-relevant constants defaults, derived constants, hypridle invariants and the hyprland module's effects on slim fake hosts. It does not assert which programs a real host enables.
 
 ## Run
+
+Via the suite runner (from the repo root): `bash templates/tests/run-tests.sh --only nixos-minimal-defaults` (name as shown by `--list`); the direct command is below.
 
 ```bash
 bash templates/tests/nixos/test-minimal-defaults/check-nixos-minimal-defaults.sh
@@ -21,27 +18,26 @@ bash check-nixos-minimal-defaults.sh
 
 ## How it works
 
-The scenario file `01-scenario-minimal-nixos.nix` builds a minimal denix configuration with only the auto-enabled modules in the path list, then exposes:
+`01-scenario-minimal-nixos.nix` builds three fake hosts from only the modules under test (home-manager wiring, both constants modules, `programs.hyprland`, `services.hypridle`):
 
-- `build-coexistence` — `home.activationPackage` (for `nix build --dry-run`)
-- `check-*` — string `"ok"` or `"FAIL: ..."` (for `nix eval --raw`)
+- `minimal-nixos`: only `constants.user = "krit"`.
+- `override-nixos`: `constants.user = "alice"` and custom hypridle timeouts (100/200/250). Acts as the control that derived values follow their inputs.
+- `nowm-nixos`: `programs.hyprland.enable = false`. Acts as the control for the module gate.
 
-`check-nixos-minimal-defaults.sh` drives both types of checks and reports pass/fail with color output.
+Each `check-*` attribute is `"ok"` or `"FAIL: ..."` (`nix eval --raw`); `build-coexistence` is the minimal host's `home.activationPackage` (`nix build --dry-run`). The script drives both and reports pass/fail.
 
-## What is checked
+## Checks
 
 | Check | Expected |
 |-------|----------|
-| `constants.shell` | `"bash"` |
-| `constants.terminal.name` | `"alacritty"` |
-| `constants.browser` | `"chromium"` |
-| `constants.editor` | `"nano"` |
-| `constants.fileManager` | `"dolphin"` |
-| `constants.theme.catppuccin` | `false` |
-| `programs.hyprland.enable` | `true` |
-| `myconfig.stylix.enable` | `true` |
-| `services.swaync.enable` | `true` |
-| `services.hyprlock.enable` | `true` |
-| `services.hypridle.enable` | `true` |
-| `programs.waybar-hyprland.enable` | `true` |
+| `constants.emergencyAccess` | `false` by default |
+| `screenshotsAbs` (minimal) | `/home/krit/Pictures/Screenshots` |
+| `screenshotsAbs` (override) | `/home/alice/Pictures/Screenshots` |
+| `primaryWallpaper.wallpaperURL` | equals `fallbackWallpaperURL` (independent option) |
+| hypridle default timeouts | strictly ordered dim < lock < screenOff |
+| hypridle listeners (minimal) | timeouts equal the configured options |
+| hypridle listeners (override) | `[100 200 250]` |
+| hypridle with no WM (nowm) | HM `services.hypridle.enable == false` |
+| `security.wrappers.Hyprland.capabilities` | `""` |
+| NixOS `programs.hyprland.enable` (nowm) | `false` |
 | `build-coexistence` | dry-run succeeds |

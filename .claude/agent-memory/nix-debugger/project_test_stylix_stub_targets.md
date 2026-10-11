@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-The test suites (arch-compat, minimal-defaults, spec-contract, darwin minimal-defaults) don't load production `modules/nixos/toplevel/stylix-nixos.nix`. They load a `stylix-stub.nix` that copies it (dummy wallpaper). If a stub declares `myconfig.stylix.targets` but doesn't merge `// cfg.targets` into `stylix.targets`, every program module's `myconfig.stylix.targets.*` is silently dropped in tests only. Real hosts pass and the test fails with a stylix-vs-repo "conflicting definition values" error.
+The test suites test-arch-compat (`shared/nixos-extra-aarch64/stylix-stub.nix`) and test-spec-contract (`shared/nixos-extra-x86_64/stylix-stub.nix`) don't load production `modules/nixos/toplevel/stylix-nixos.nix`. They load a `stylix-stub.nix` that copies it (dummy wallpaper). Both currently merge `// cfg.targets` correctly. (test-minimal-defaults, nixos and darwin, no longer has a stub; removed 2026-10-11.) If a stub declares `myconfig.stylix.targets` but doesn't merge `// cfg.targets` into `stylix.targets`, every program module's `myconfig.stylix.targets.*` is silently dropped in tests only. Real hosts pass and the test fails with a stylix-vs-repo "conflicting definition values" error.
 
 **Why:** On 2026-10-08, after the switch to unstable, the new stylix vicinae target produced a font conflict that showed up only in arch-compat. nix-checker blamed a "stale eval cache", which was wrong: it reproduced deterministically.
 

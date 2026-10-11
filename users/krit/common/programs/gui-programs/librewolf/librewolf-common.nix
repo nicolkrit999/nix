@@ -49,7 +49,9 @@ delib.module {
         buildMozillaXpiAddon = buildFirefoxXpiAddon;
       };
 
-      policyRoot = "/home/${myconfig.constants.user}/.librewolf-policyroot";
+      # config.home.homeDirectory is not reachable from ifEnabled; mirror home-base.nix (darwin /Users, else /home)
+      homeDir = "${if moduleSystem == "darwin" then "/Users" else "/home"}/${myconfig.constants.user}";
+      policyRoot = "${homeDir}/.librewolf-policyroot";
 
       policiesJson = builtins.toJSON {
         policies = {
@@ -211,8 +213,8 @@ delib.module {
 
         "browser.download.useDownloadDir" = true;
         "browser.download.folderList" = 2;
-        "browser.download.dir" = "/home/${myconfig.constants.user}/Downloads";
-        "browser.download.lastDir" = "/home/${myconfig.constants.user}/Downloads";
+        "browser.download.dir" = "${homeDir}/Downloads";
+        "browser.download.lastDir" = "${homeDir}/Downloads";
 
         # Telemetry/junk off
         "extensions.pocket.enabled" = false;

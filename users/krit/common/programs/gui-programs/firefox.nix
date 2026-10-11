@@ -2,6 +2,7 @@
 , pkgs
 , inputs
 , lib
+, moduleSystem
 , ...
 }:
 delib.module {
@@ -17,6 +18,8 @@ delib.module {
     , ...
     }:
     let
+      # I-21: /home is Linux-only; macOS homes live under /Users
+      homeDir = "${if moduleSystem == "darwin" then "/Users" else "/home"}/${myconfig.constants.user}";
       buildFirefoxXpiAddon = lib.makeOverridable (
         { stdenv ? pkgs.stdenv
         , fetchurl ? pkgs.fetchurl
@@ -141,8 +144,8 @@ delib.module {
             # Don't ask for download dir and force it to Downloads
             "browser.download.useDownloadDir" = true;
             "browser.download.folderList" = 2;
-            "browser.download.dir" = "/home/${myconfig.constants.user}/Downloads";
-            "browser.download.lastDir" = "/home/${myconfig.constants.user}/Downloads";
+            "browser.download.dir" = "${homeDir}/Downloads";
+            "browser.download.lastDir" = "${homeDir}/Downloads";
 
             # Disable crappy home activity stream page
             # hides the default promoted/suggested tiles on Firefox's new-tab screen from several major websites.

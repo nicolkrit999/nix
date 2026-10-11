@@ -748,6 +748,7 @@ delib.host {
                 height = 2000;
                 refresh = 120.0;
               };
+              scale = 1.6; # I-17: match hyprland/mango eDP-1 scale
             };
           };
           execOnce = [

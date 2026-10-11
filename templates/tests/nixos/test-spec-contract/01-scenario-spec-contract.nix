@@ -78,6 +78,12 @@ let
     (src + "/modules/nixos/services/swaync.nix")
     (src + "/modules/common/services/tailscale.nix")
     (src + "/modules/nixos/toplevel/bluetooth.nix")
+    (src + "/modules/common/services/localsend.nix")
+    (src + "/users/krit/nixos/services/nas/smb.nix")
+    (src + "/users/krit/nixos/services/nas/opencloud.nix")
+    (src + "/users/krit/nixos/services/nas/ssh.nix")
+    (src + "/users/krit/nixos/services/nas/borg-backup/borg-backup-desktop.nix")
+    (src + "/users/krit/nixos/services/nas/borg-backup/borg-backup-laptop.nix")
 
     # Shell modules (used by safe-mode to force bash and by school initExtra)
     (src + "/modules/common/programs/shells/bash.nix")
@@ -126,6 +132,10 @@ let
   # specHm name → home-manager krit config within that specialization
   specHm = name: (spec name).home-manager.users.krit;
 
+  checkOverride = name: baseVal: specVal: expected:
+    if baseVal == expected then "FAIL: ${name}: base host already ${lib.boolToString expected}, override is vacuous"
+    else checkBool name specVal expected;
+
   checkBool = name: actual: expected:
     if actual == expected then "ok"
     else "FAIL: ${name}: expected ${if expected then "true" else "false"}, got ${if actual then "true" else "false"}";
@@ -138,93 +148,115 @@ let
     if lib.strings.hasInfix substr str then "ok"
     else "FAIL: ${name}: expected to contain '${substr}'";
 
-  checkNonEmpty = name: lst:
-    if builtins.length lst > 0 then "ok"
-    else "FAIL: ${name}: expected non-empty list, got []";
+  checkAdded = name: baseLst: specLst:
+    if baseLst != [ ] then "FAIL: ${name}: base host already has entries, check is vacuous"
+    else if specLst == [ ] then "FAIL: ${name}: expected non-empty list, got []"
+    else "ok";
 
-  checkPkgInList = name: pkglist: pname:
-    if builtins.any (p: (p.pname or p.name or "") == pname) pkglist then "ok"
+  hasPkg = pkglist: pname: builtins.any (p: (p.pname or p.name or "") == pname) pkglist;
+  checkPkgInList = name: basePkgs: pkglist: pname:
+    if hasPkg basePkgs pname then "FAIL: ${name}: '${pname}' already in base home.packages, check is vacuous"
+    else if hasPkg pkglist pname then "ok"
     else "FAIL: ${name}: package '${pname}' not found in home.packages";
+
+  baseHm = config.home-manager.users.krit;
+  off = sp: path: name: expected: checkOverride "${sp}.${name}" (path config) (path (spec sp)) expected;
 in
 {
   # ── guest ────────────────────────────────────────────────────────────────────
   check-guest-hyprland-disabled =
-    checkBool "guest.hyprland.enable" (spec "guest").myconfig.programs.hyprland.enable false;
+    off "guest" (c: c.myconfig.programs.hyprland.enable) "hyprland.enable" false;
   check-guest-stylix-disabled =
-    checkBool "guest.myconfig.stylix.enable" (spec "guest").myconfig.stylix.enable false;
+    off "guest" (c: c.myconfig.stylix.enable) "stylix.enable" false;
   check-guest-bluetooth-disabled =
-    checkBool "guest.bluetooth.enable" (spec "guest").myconfig.bluetooth.enable false;
+    off "guest" (c: c.myconfig.bluetooth.enable) "bluetooth.enable" false;
   check-guest-hyprlock-disabled =
-    checkBool "guest.services.hyprlock.enable" (spec "guest").myconfig.services.hyprlock.enable false;
+    off "guest" (c: c.myconfig.services.hyprlock.enable) "hyprlock.enable" false;
+  check-guest-hypridle-disabled =
+    off "guest" (c: c.myconfig.services.hypridle.enable) "hypridle.enable" false;
   check-guest-swaync-disabled =
-    checkBool "guest.services.swaync.enable" (spec "guest").myconfig.services.swaync.enable false;
-  # The .desktop text holds the derivation Exec path, not the zenity call directly;
-  # verifying "guest-welcome" confirms the autostart entry points to the right wrapper.
+    off "guest" (c: c.myconfig.services.swaync.enable) "swaync.enable" false;
   check-guest-welcome-desktop =
-    checkContains "guest autostart .desktop"
-      (spec "guest").environment.etc."xdg/autostart/guest-welcome.desktop".text
-      "guest-welcome";
+    let
+      path = "xdg/autostart/guest-welcome.desktop";
+      text = (spec "guest").environment.etc.${path}.text;
+    in
+    if config.environment.etc ? ${path} then "FAIL: base host already has ${path}, check is vacuous"
+    else if !(lib.strings.hasInfix "/bin/guest-welcome\n" text) then "FAIL: guest autostart Exec does not end in /bin/guest-welcome"
+    else checkContains "guest autostart OnlyShowIn" text "OnlyShowIn=XFCE;";
 
   # ── safe-mode ────────────────────────────────────────────────────────────────
   check-safemode-stylix-disabled =
-    checkBool "safemode.myconfig.stylix.enable" (spec "safemode").myconfig.stylix.enable false;
+    off "safemode" (c: c.myconfig.stylix.enable) "stylix.enable" false;
   check-safemode-shell-bash =
-    checkStr "safemode.constants.shell" (spec "safemode").myconfig.constants.shell "bash";
+    if config.myconfig.constants.shell == "bash" then "FAIL: base shell already bash, check is vacuous"
+    else checkStr "safemode.constants.shell" (spec "safemode").myconfig.constants.shell "bash";
   check-safemode-terminal-xterm =
-    checkStr "safemode.constants.terminal.name" (spec "safemode").myconfig.constants.terminal.name "xterm";
+    if config.myconfig.constants.terminal.name == "xterm" then "FAIL: base terminal already xterm, check is vacuous"
+    else checkStr "safemode.constants.terminal.name" (spec "safemode").myconfig.constants.terminal.name "xterm";
   check-safemode-hyprland-disabled =
-    checkBool "safemode.hyprland.enable" (spec "safemode").myconfig.programs.hyprland.enable false;
+    off "safemode" (c: c.myconfig.programs.hyprland.enable) "hyprland.enable" false;
+  check-safemode-fastfetch-disabled =
+    off "safemode" (c: c.myconfig.programs.fastfetch.enable) "fastfetch.enable" false;
   check-safemode-icewm-enabled =
-    checkBool "safemode.icewm.enable" (spec "safemode").services.xserver.windowManager.icewm.enable true;
+    off "safemode" (c: c.services.xserver.windowManager.icewm.enable) "icewm.enable" true;
   check-safemode-startx-enabled =
-    checkBool "safemode.startx.enable" (spec "safemode").services.xserver.displayManager.startx.enable true;
+    off "safemode" (c: c.services.xserver.displayManager.startx.enable) "startx.enable" true;
   check-safemode-xinitrc-has-icewm =
     checkContains "safemode .xinitrc"
       (specHm "safemode").home.file.".xinitrc".text
       "icewm-session";
   check-safemode-alias-start-icewm =
-    checkStr "safemode.shellAliases.start-icewm"
-      ((specHm "safemode").home.shellAliases."start-icewm" or "MISSING")
-      "startx";
-
-  # ── deep-focus ───────────────────────────────────────────────────────────────
-  check-deepfocus-swaync-enabled =
-    checkBool "deep-focus.services.swaync.enable" (spec "deep-focus").myconfig.services.swaync.enable true;
+    if baseHm.home.shellAliases ? "start-icewm" then "FAIL: base host already has start-icewm alias, check is vacuous"
+    else
+      checkStr "safemode.shellAliases.start-icewm"
+        ((specHm "safemode").home.shellAliases."start-icewm" or "MISSING")
+        "startx";
 
   # ── secure-travel ─────────────────────────────────────────────────────────────
   check-securetravel-bluetooth-disabled =
-    checkBool "secure-travel.bluetooth.enable" (spec "secure-travel").myconfig.bluetooth.enable false;
+    off "secure-travel" (c: c.myconfig.bluetooth.enable) "bluetooth.enable" false;
   check-securetravel-hyprland-disabled =
-    checkBool "secure-travel.hyprland.enable" (spec "secure-travel").myconfig.programs.hyprland.enable false;
+    off "secure-travel" (c: c.myconfig.programs.hyprland.enable) "hyprland.enable" false;
   check-securetravel-tailscale-disabled =
-    checkBool "secure-travel.tailscale.enable" (spec "secure-travel").myconfig.services.tailscale.enable false;
+    off "secure-travel" (c: c.myconfig.services.tailscale.enable) "tailscale.enable" false;
   check-securetravel-nix-ld-disabled =
-    checkBool "secure-travel.nix-ld.enable" (spec "secure-travel").myconfig.programs.nix-ld.enable false;
+    off "secure-travel" (c: c.myconfig.programs.nix-ld.enable) "nix-ld.enable" false;
   check-securetravel-gnome-enabled =
-    checkBool "secure-travel.gnome.enable" (spec "secure-travel").myconfig.programs.gnome.enable true;
+    off "secure-travel" (c: c.myconfig.programs.gnome.enable) "gnome.enable" true;
   check-securetravel-killswitch-exists =
-    checkNonEmpty "secure-travel NM dispatcherScripts"
+    checkAdded "secure-travel NM dispatcherScripts"
+      config.networking.networkmanager.dispatcherScripts
       (spec "secure-travel").networking.networkmanager.dispatcherScripts;
 
   # ── entertainment ─────────────────────────────────────────────────────────────
   check-entertainment-kde-enabled =
-    checkBool "entertainment.kde.enable" (spec "entertainment").myconfig.programs.kde.enable true;
+    off "entertainment" (c: c.myconfig.programs.kde.enable) "kde.enable" true;
   check-entertainment-hyprland-disabled =
-    checkBool "entertainment.hyprland.enable" (spec "entertainment").myconfig.programs.hyprland.enable false;
+    off "entertainment" (c: c.myconfig.programs.hyprland.enable) "hyprland.enable" false;
 
   # ── school ────────────────────────────────────────────────────────────────────
   check-school-browser-constant =
-    checkStr "school.constants.browser" (spec "school").myconfig.constants.browser "brave-school";
+    if config.myconfig.constants.browser == "brave-school" then "FAIL: base browser already brave-school, check is vacuous"
+    else checkStr "school.constants.browser" (spec "school").myconfig.constants.browser "brave-school";
   check-school-editor-constant =
-    checkStr "school.constants.editor" (spec "school").myconfig.constants.editor "nvim";
+    if config.myconfig.constants.editor == "nvim" then "FAIL: base editor already nvim, check is vacuous"
+    else checkStr "school.constants.editor" (spec "school").myconfig.constants.editor "nvim";
   check-school-setup-script =
-    checkPkgInList "school home.packages" (specHm "school").home.packages "school-distrobox-setup";
+    checkPkgInList "school home.packages" baseHm.home.packages (specHm "school").home.packages "school-distrobox-setup";
   check-school-check-script =
-    checkPkgInList "school home.packages" (specHm "school").home.packages "school-distrobox-check";
+    checkPkgInList "school home.packages" baseHm.home.packages (specHm "school").home.packages "school-distrobox-check";
   check-school-clear-script =
-    checkPkgInList "school home.packages" (specHm "school").home.packages "school-distrobox-clear";
+    checkPkgInList "school home.packages" baseHm.home.packages (specHm "school").home.packages "school-distrobox-clear";
 
   # ── home ──────────────────────────────────────────────────────────────────────
-  check-home-monitors-nonempty =
-    checkNonEmpty "home spec hyprland.monitors" (spec "home").myconfig.programs.hyprland.monitors;
+  check-home-monitors =
+    let
+      ms = (spec "home").myconfig.programs.hyprland.monitors;
+      bad = builtins.filter (m: (m.output or "") == "" || (m.mode or "") == "") ms;
+    in
+    if ms == config.myconfig.programs.hyprland.monitors then "FAIL: home spec monitors equal base host monitors, spec forces nothing"
+    else if ms == [ ] then "FAIL: home spec sets no monitors"
+    else if bad != [ ] then "FAIL: home spec has ${toString (builtins.length bad)} monitor(s) without output/mode"
+    else "ok";
 }

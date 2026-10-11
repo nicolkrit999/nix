@@ -3,5 +3,4 @@ import ../../shared/mk-fake-host.nix {
   wm.hyprland = true;
   wallpapers = import ../../shared/one-wallpaper.nix;
   shells.caelestia = { enable = false; enableOnHyprland = true; };
-  waybar.hyprland = true;
 }

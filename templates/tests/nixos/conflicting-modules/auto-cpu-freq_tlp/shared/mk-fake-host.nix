@@ -19,7 +19,6 @@ delib.host {
     services = {
       tlp.enable = spec.tlp or false;
       auto-cpufreq.enable = spec."auto-cpufreq" or false;
-      thermald.enable = true;
     };
   };
 }

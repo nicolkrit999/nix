@@ -48,7 +48,7 @@
 
 ## Scenario: "Starting the Work Day"
 
-You open a terminal — tmux starts automatically (configured via `programs.bash`).
+You open a terminal — tmux starts automatically (the bash, zsh and fish modules each attach to or create a session named `main`; on NixOS this requires a graphical session (`$DISPLAY` set), on Darwin it always starts).
 
 ```
 ┌──────────────────────────────────────────────┐

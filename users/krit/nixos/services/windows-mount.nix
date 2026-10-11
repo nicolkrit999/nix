@@ -38,8 +38,8 @@ delib.module {
         options = [
           "nofail"
           "noatime"
-          "uid=1000"
-          "gid=${toString config.users.groups.users.gid}"
+          "uid=${toString config.users.users.${myconfig.constants.user}.uid}"
+          "gid=${toString config.users.groups.${config.users.users.${myconfig.constants.user}.group}.gid}"
           "umask=022"
           "windows_names"
         ];

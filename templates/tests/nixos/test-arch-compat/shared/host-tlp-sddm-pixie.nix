@@ -15,7 +15,7 @@ delib.host {
     programs.kde.enable = true;
     programs.cosmic.enable = true;
 
-    # Custom shells: aarch64 assertion fires - expected, tests that the assertion path works.
+    # Custom shells: enabled on purpose; shellsInertOnAarch64 asserts they are no-ops on aarch64.
     programs.caelestia = {
       enable = true;
       enableOnHyprland = true;

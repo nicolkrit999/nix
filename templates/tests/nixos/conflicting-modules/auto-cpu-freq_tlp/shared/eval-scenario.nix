@@ -16,7 +16,6 @@ let
     (src + "/modules/common/config/constants.nix")
 
     (src + "/modules/nixos/services/power/auto-cpufreq.nix")
-    (src + "/modules/nixos/services/power/thermald.nix")
     (src + "/modules/nixos/services/power/tlp.nix")
   ];
 
@@ -60,8 +59,13 @@ let
     in
     builtins.length matches > 0;
 
+  failingCount = msgSubstr: config:
+    builtins.length (builtins.filter
+      (a: !(a.assertion) && lib.hasInfix msgSubstr a.message)
+      (getAssertions config));
+
 in
 {
-  inherit evalScenario getConfig getAssertions allAssertionsPass hasFailingAssertion;
+  inherit evalScenario getConfig getAssertions allAssertionsPass hasFailingAssertion failingCount;
   inherit lib flake;
 }

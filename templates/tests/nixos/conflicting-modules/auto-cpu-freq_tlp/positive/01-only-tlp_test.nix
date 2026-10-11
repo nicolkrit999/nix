@@ -7,6 +7,8 @@ in
 nix-tests.runTests {
   "P01: only tlp enabled" = helpers: {
     "mutual-exclusivity assertion does NOT fire" =
+      helpers.isFalse (H.hasFailingAssertion "services.auto-cpufreq and services.tlp are mutually exclusive" config);
+    "no assertion of any kind reports mutual exclusion" =
       helpers.isFalse (H.hasFailingAssertion "mutually exclusive" config);
     "services.tlp.enable is true" =
       helpers.isTrue config.services.tlp.enable;

@@ -8,6 +8,9 @@
 #   bash check-common-unstable-switch.sh
 
 set -euo pipefail
+# Full stderr of every failing nix call goes into the test log (CI artifact + local
+# ~/.local/state/nix-tests/); a no-op unless run via run-test.py. See the file.
+source "$(dirname "${BASH_SOURCE[0]}")/../../lib/evidence.sh"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 
@@ -46,7 +49,7 @@ run_grep_check() {
   local label="$1" pattern="$2"
   printf "  %-62s " "$label"
   local hits
-  hits=$(cd "$REPO_ROOT" && grep -rInE --include='*.nix' "$pattern" flake.nix modules hosts users packages 2>/dev/null | head -5 | tr '\n' '~' || true)
+  hits=$(cd "$REPO_ROOT" && grep -rInE --include='*.nix' "$pattern" flake.nix modules hosts users packages 2>/dev/null | grep -vE '^[^:]+:[0-9]+:[[:space:]]*#' | head -5 | tr '\n' '~' || true)
   if [[ -z "$hits" ]]; then
     printf "${GREEN}✓ ok${NC}\n"
     ((PASS++)) || true
@@ -92,6 +95,8 @@ run_check "check-atuin-ctrl-r-disabled" "flags == [ --disable-ctrl-r ]"
 run_check "check-atuin-bash-ctrl-o"     "bash: Ctrl-O -> atuin-search"
 run_check "check-atuin-zsh-ctrl-o"      "zsh: Ctrl-O -> atuin-search"
 run_check "check-atuin-fish-ctrl-o"     "fish: Ctrl-O -> atuin-search"
+run_check "check-atuin-fish-insert-ctrl-o" "fish: insert-mode Ctrl-O -> atuin-search"
+run_check "check-atuin-disabled-no-bindings" "atuin disabled: no atuin bindings"
 
 echo ""
 echo -e "${BOLD}removed names${NC}"

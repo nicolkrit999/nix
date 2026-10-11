@@ -79,7 +79,11 @@ Practical implication: only add a `videoURL`/`gifURL` to an entry when you actua
 ### Caelestia & noctalia shell
 - Caelestia is available on Hyprland
 - Noctalia is available in all WMs
-- Potential incompatibility with waybar, hyprlock and similar is already handled and tested using `test-custom-shell`.
+- Potential incompatibility with waybar, hyprlock and similar is already handled and tested using `nixos-custom-shells`.
+
+### Portals
+
+xdg-desktop-portal backends are chosen per session through `<desktop>-portals.conf` (`modules/nixos/toplevel/xdg-portal.nix`): each of Hyprland, KDE, GNOME, COSMIC, niri and mango gets its own backend order, and the Secret portal is routed to gnome-keyring everywhere. Interfaces a desktop does not support are routed to `none`, so xdg-desktop-portal's deprecated `UseIn=` fallback cannot pick another desktop's backend (e.g. kde.portal in COSMIC or mango); `test-portal-routing` checks the selected backend per session without switching. Pitfalls and a diagnosis recipe: `Documentation/usage/gotchas/xdg-desktop-portal-nixos.md`.
 
 ### Changing Desktop Environments Safely
 
@@ -118,7 +122,7 @@ Specializations are bootloader entries that apply an alternative NixOS configura
 - **`deep-focus`** - Launches browser, editor, file manager, and terminal into numbered workspaces on login and forces swaync DND mode. Supports both Hyprland and Niri.
 - **`guest`** - Ephemeral guest session (see below).
 - **`safe-mode`** - Recovery specialization: disables all compositors and theming,allow booting into IceWM via startx, forces bash/xterm/nano, and installs a minimal rescue toolkit (mc, ncdu, parted, btrfs-progs, etc.).
-- **`secure-travel`** - Hardened travel mode: kernel sysctl hardening, GNOME-only desktop, ProtonVPN + Tor Browser, MAC address randomization, strict firewall, Quad9 DNS-over-TLS, VPN kill-switch. Disables Tailscale, Bluetooth, nix-ld, nix-alien, and claude-code.
+- **`secure-travel`** - Hardened travel mode: kernel sysctl hardening, GNOME-only desktop, ProtonVPN + Tor Browser, MAC address randomization, strict firewall, Quad9 DNS-over-TLS, VPN kill-switch. The firewall's allowed TCP/UDP port lists are forced empty, and inbound attack surface is switched off: sshd, avahi, localsend, docker, LLMNR and mDNS in systemd-resolved, and GNOME remote desktop / user sharing. Also disables Bluetooth, nix-ld, nix-alien and claude-code. Tailscale is off too: the NAS consumers (smb, opencloud-mount, sshfs, borg backups), which would otherwise force it on, are disabled in this specialization. Checked against the real hosts by `spec-real-hosts-security`.
 
 ---
 
@@ -225,3 +229,11 @@ Pre-built binaries for this config are hosted on [Cachix](https://app.cachix.org
 - `aarch64-linux`. For this architecture there are some tests suits that enable the majority of modules and evaluate, this should catch most of the incompatibilities
 - `aarch64-darwin` (macOS via nix-darwin)
 
+---
+
+## Tests & CI
+
+- `templates/tests/` holds auto-discovered tests (`nixos/`, `common/`, `darwin/`): every folder with a `check-*.sh` and/or `*_test.nix` is one test, with an optional `test.conf` (CI group, timeout, platforms). There is no registry to edit, and a folder matching no pattern is an error.
+- Run them with `bash templates/tests/run-tests.sh` (`--parallel`, `--fast`, `--list`, `--only <name>`, `--keep-logs`, `--prune-only`). Logs land in `~/.local/state/nix-tests/<timestamp>-<sha>/` (with a `latest` link) and old runs are pruned (20 runs / 60 days / 500 MB).
+- Coverage includes the spec contracts (guest, secure-travel, school), secret service, wallpapers and the wallpaper supervisor, the screenshot folder being identical across every DE/WM/shell, keybind conflicts, NAS mounts, tailscale, state-version freeze, and cross-arch evaluation.
+- In CI, `tests-nixos.yml` and `tests-darwin.yml` build a matrix from the same discovery, run each test with a per-test timeout and a complete log, upload the logs as an artifact, and fail the leg when any test fails. A final job sends a Discord report with the logs attached. See `Documentation/usage/ci/build-workflows.md`.

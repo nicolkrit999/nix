@@ -9,18 +9,14 @@
 #   bash check-nixos-aarch64-compat.sh --fast   # skip specialisation batches
 
 set -euo pipefail
+# Full stderr of every failing nix call goes into the test log (CI artifact + local
+# ~/.local/state/nix-tests/); a no-op unless run via run-test.py. See the file.
+source "$(dirname "${BASH_SOURCE[0]}")/../../lib/evidence.sh"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # ── colours ──────────────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
-
-# ── expected aarch64 incompatibilities ───────────────────────────────────────
-# Modules whose aarch64 failure is a known, accepted limitation rather than a
-# regression. These are shown as ⚠ expected and do NOT cause exit 1.
-# caelestia and noctalia are no longer here: their active* booleans are now
-# gated on isx86_64, so they silently do nothing on aarch64 instead of failing.
-EXPECTED_DIRECT_MODULES=()
 
 FAST=0
 [[ "${1:-}" == "--fast" ]] && FAST=1
@@ -47,10 +43,8 @@ fi
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 PASS=0
-EXPECTED=0
 FAIL=0
 declare -a FAILURES=()
-declare -a EXPECTEDS=()
 
 classify_error() {
   local err="$1"
@@ -78,16 +72,6 @@ classify_error() {
   echo "UNKNOWN"
 }
 
-is_expected_direct_module() {
-  local kind="$1"
-  for m in "${EXPECTED_DIRECT_MODULES[@]}"; do
-    if [[ "$kind" == "DIRECT MODULE ($m)" ]]; then
-      return 0
-    fi
-  done
-  return 1
-}
-
 run_check() {
   local file="$1" attr="$2" label="$3"
   printf "  %-55s " "$label"
@@ -108,15 +92,26 @@ run_check() {
       | grep -v "^$" \
       | head -4 \
       | tr '\n' '~')
-    if is_expected_direct_module "$kind"; then
-      printf "${YELLOW}⚠ expected${NC}\n"
-      ((EXPECTED++)) || true
-      EXPECTEDS+=("$label|$kind|$excerpt")
-    else
-      printf "${RED}✗ fail${NC}\n"
-      ((FAIL++)) || true
-      FAILURES+=("$label|$kind|$excerpt")
-    fi
+    printf "${RED}✗ fail${NC}\n"
+    ((FAIL++)) || true
+    FAILURES+=("$label|$kind|$excerpt")
+  fi
+}
+
+CHECKS=(hostPlatformIsAarch64 x86OnlyPackageIsRejected shellsInertOnAarch64 specialisationNames)
+SCENARIOS=(scenario-auto-cpufreq-sddm-astronaut.nix scenario-tlp-sddm-pixie.nix)
+
+run_value_check() {
+  local file="$1" name="$2"
+  printf "  %-55s " "value: $name ($file)"
+  local out
+  if out=$(nix eval --raw --impure --file "$DIR/$file" "checks.$name" 2>&1) && [[ "$out" == "ok" ]]; then
+    printf "${GREEN}✓ ok${NC}\n"
+    ((PASS++)) || true
+  else
+    printf "${RED}✗ fail${NC}\n"
+    ((FAIL++)) || true
+    FAILURES+=("value: $name ($file)|VALUE CHECK|$(echo "$out" | grep -E "FAIL|error:" | head -4 | tr '\n' '~')")
   fi
 }
 
@@ -131,28 +126,22 @@ for entry in "${TESTS[@]}"; do
   run_check "$file" "$attr" "$label"
 done
 
+for sc in "${SCENARIOS[@]}"; do
+  for c in "${CHECKS[@]}"; do
+    run_value_check "$sc" "$c"
+  done
+done
+
 # ── summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"
 
-if [[ $EXPECTED -gt 0 ]]; then
-  echo -e "${YELLOW}${BOLD}Expected aarch64 incompatibilities ($EXPECTED) — assertions confirmed:${NC}"
-  echo ""
-  for entry in "${EXPECTEDS[@]}"; do
-    IFS="|" read -r label kind err <<< "$entry"
-    echo -e "  ${YELLOW}⚠${NC} ${BOLD}$label${NC}"
-    echo -e "    ${DIM}→ $kind (expected — module has explicit aarch64 assertion)${NC}"
-  done
-  echo ""
-fi
-
 if [[ $FAIL -eq 0 ]]; then
-  total=$((PASS + EXPECTED))
-  echo -e "${GREEN}${BOLD}All $total batches passed ($PASS ok, $EXPECTED expected-incompatible).${NC}"
+  echo -e "${GREEN}${BOLD}All $PASS checks passed.${NC}"
   exit 0
 fi
 
-echo -e "${RED}${BOLD}UNEXPECTED FAILURES ($FAIL of $((PASS + EXPECTED + FAIL))):${NC}"
+echo -e "${RED}${BOLD}UNEXPECTED FAILURES ($FAIL of $((PASS + FAIL))):${NC}"
 echo ""
 
 for entry in "${FAILURES[@]}"; do
@@ -165,8 +154,8 @@ for entry in "${FAILURES[@]}"; do
   echo ""
 done
 
-echo -e "${DIM}Tip: DIRECT MODULE = flake input has no aarch64-linux output or the module fires an aarch64 assertion."
+echo -e "${DIM}Tip: DIRECT MODULE = flake input has no aarch64-linux output."
 echo -e "     TRANSITIVE DEP = a dependency of a module is x86-only."
-echo -e "     Add expected modules to EXPECTED_DIRECT_MODULES at the top of this script.${NC}"
+echo -e "${NC}"
 echo ""
 exit 1

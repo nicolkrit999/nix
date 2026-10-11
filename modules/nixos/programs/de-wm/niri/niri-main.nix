@@ -43,6 +43,8 @@ delib.module {
         shadow = c.base00; # Darkest shade - neutral shadow base
       };
 
+      # I-22: niri's environment/screenshot-path never shell-expand $HOME
+      screenshotsDir = myconfig.constants.screenshotsAbs;
       gap = myconfig.constants.niri.gap or 8;
       rounding = myconfig.constants.niri.rounding or 10;
 
@@ -187,8 +189,10 @@ delib.module {
           environment = {
             "NIXOS_OZONE_WL" = "1";
             "DISPLAY" = ":1";
-            "XDG_SCREENSHOTS_DIR" = myconfig.constants.screenshots;
+            "XDG_SCREENSHOTS_DIR" = screenshotsDir;
           };
+
+          screenshot-path = "${screenshotsDir}/Screenshot_%Y-%m-%d_%H-%M-%S.png";
 
           spawn-at-startup = [
             { command = [ "xwayland-satellite" ":1" ]; }

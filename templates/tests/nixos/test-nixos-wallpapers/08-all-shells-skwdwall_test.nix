@@ -5,7 +5,6 @@
 { nix-tests }:
 let
   H = import ./shared/eval-scenario.nix;
-  lib = H.lib;
   config = H.getConfig ./08-all-shells-skwdwall H.nixosExtraX86;
   hm = H.getHm config;
 in
@@ -25,7 +24,7 @@ nix-tests.runTests {
       helpers.isTrue (H.hmHasPkg "skwd-paper-plasma" config);
     # GNOME is not part of the skwdWall toggle
     "gnome dconf background is set (static wallpaper, unaffected by skwdWall)" =
-      helpers.isTrue (lib.hasPrefix "file:///nix/store/"
+      helpers.isTrue (H.isStillUri
         (builtins.toString (hm.dconf.settings."org/gnome/desktop/background".picture-uri or "")));
-  };
+  } // H.perWm helpers config [ H.expect.noSupervisor ];
 }

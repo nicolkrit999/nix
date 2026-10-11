@@ -16,9 +16,9 @@ Currently applies to:
 
 | Tool | Nix reference | Original reference |
 |------|---------------|--------------------|
-| Shells (zsh, bash, fish) | `zsh.nix`, `bash.nix`, `fish.nix` | `~/.zshrc_custom`, `.bashrc_custom`, `.custom.fish` |
-| Caelestia | `caelestia-main.nix` | `~/.config/caelestia/shell.json` |
-| Noctalia | `noctalia-main.nix` | `~/.config/noctalia/config.json` |
+| Shells (zsh, bash, fish) | `modules/common/programs/shells/{zsh,bash,fish}.nix` | `~/.zshrc_custom`, `.bashrc_custom`, `.custom.fish` |
+| Caelestia | `modules/nixos/programs/shells/caelestia-main.nix` | `~/.config/caelestia/shell.json` |
+| Noctalia | `modules/nixos/programs/shells/noctalia-main.nix` | `~/.config/noctalia/config.json` |
 
 ---
 
@@ -29,7 +29,7 @@ This NixOS configuration began as a local copy and adaptation of the excellent w
 While that repository laid the foundation, this setup has been **heavily customized** and expanded over time. Key changes include:
 
 - **Heavily improved host variables**: many more aspects configurable per host.
-- **Multiple Desktop Environments**: Hyprland (with waybar, caelestia, noctalia), niri, KDE, GNOME, Cosmic, XFCE.
+- **Multiple Desktop Environments**: Hyprland (with waybar, caelestia, noctalia), Mango, niri, KDE, GNOME, Cosmic (XFCE only for the guest specialization).
 - **Ephemeral Guest User**: secure, non-persistent account with automatic RAM-based home wipe on reboot.
 - **Theming Overhaul**: base16 colorscheme + Catppuccin via `stylix`.
 - **Hybrid Declarative Aspects**: declarative config coexisting with official non-Nix customization methods.

@@ -1,6 +1,5 @@
 { delib
 , pkgs
-, lib
 , ...
 }:
 delib.module {
@@ -11,7 +10,7 @@ delib.module {
     , ...
     }:
     let
-      fallbackWp = lib.findFirst (w: w.targetMonitor == "*") (builtins.head myconfig.constants.wallpapers) myconfig.constants.wallpapers;
+      fallbackWp = myconfig.constants.primaryWallpaper;
       idleTimeout = myconfig.services.hypridle.lockTimeout or 600;
     in
     {

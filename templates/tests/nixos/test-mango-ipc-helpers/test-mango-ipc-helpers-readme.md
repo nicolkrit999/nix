@@ -4,6 +4,8 @@ Runs the real `mango-scratch`, `mango-place` and `mango-pip` scripts of the `nix
 
 ## Run
 
+Via the suite runner (from the repo root): `bash templates/tests/run-tests.sh --only nixos-mango-ipc-helpers` (name as shown by `--list`).
+
 From repo root:
 
 ```bash
@@ -20,11 +22,18 @@ bash check-nixos-mango-ipc-helpers.sh
 
 ## How it works
 
-`01-scenario-mango-ipc-helpers.nix` reads `nixosConfigurations.nixos-desktop` (home-manager user `krit`), finds the `mango-scratch` bind, the `mango-place` `exec_once` line and the `mango-pip` bind, and exposes each script path and its `.drv`. The script builds the derivations, drops the `export PATH=` line and runs the scripts with a stub `mmsg` first in `PATH` (plus a short `sleep` stub), in a temp `XDG_RUNTIME_DIR`.
+`01-scenario-mango-ipc-helpers.nix` reads `nixosConfigurations.nixos-desktop` (home-manager user `krit`), finds the `mango-scratch` bind, the `mango-place` `exec_once` line and the `mango-pip` bind, and exposes each script path and its `.drv`. The script builds the derivations, asserts the `export PATH=` line contains jq and coreutils (runtimeInputs), drops it and runs the scripts with a stub `mmsg` first in `PATH` (plus a short `sleep` stub), in a temp `XDG_RUNTIME_DIR`.
 
 The stub serves the all-monitors, all-clients and focusing-client JSON using the field names of mango 0.18.0 `src/ipc/ipc.c` (`appid`, `is_global`, `is_unglobal`, `is_floating`, `is_visible`, 1-based `tags`, special tag `0`) and logs every `dispatch`. For `mango-pip` the stub keeps the focused client's floating/global state and flips it on `togglefloating` / `toggleglobal`.
 
 ## Checks
+
+Every script run also asserts exit status 0 and that the stub logged no `unexpected` mmsg call. Eval/build errors of the scenario are reported with their stderr.
+
+### runtimeInputs
+| Check | Expected |
+|-------|----------|
+| each script's `export PATH=` line | contains jq and coreutils |
 
 ### mango-scratch
 | Check | Expected |
@@ -34,15 +43,18 @@ The stub serves the all-monitors, all-clients and focusing-client JSON using the
 | `is_global` / `is_unglobal` window on tag 0 | not counted: toggle dispatched |
 | invisible window, window on another monitor, window on a normal tag | not counted: toggle dispatched |
 | `mmsg get all-clients` fails | active defaults to 0: toggle dispatched, command exec'd |
+| command with spaces/quotes in args | arguments preserved through `exec` |
+| failing command | its exit status propagates |
 
 ### mango-place
 | Check | Expected |
 |-------|----------|
 | start | `focusmon,DP-1` dispatched |
-| new matching window on DP-1 | no `tagmon` |
+| new matching window on DP-1 | poll loop saw the window, no `tagmon` |
 | new matching window on DP-2 | `tagmon,DP-1,1 client,7` |
 | matching window that existed before launch | ignored |
-| new non-matching window | never moved |
+| new non-matching window | window was visible to the loop, never moved, exit 0 |
+| control: matching appid, same setup | moved (proves the no-move check can fail) |
 
 ### mango-pip
 | Check | Expected |

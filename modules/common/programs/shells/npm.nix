@@ -31,7 +31,15 @@ delib.module {
       npmGlobalPackages = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         stamp="''${XDG_STATE_HOME:-$HOME/.local/state}/npm-global-packages.stamp"
         want="${builtins.hashString "sha256" (pkgs.nodejs_latest.outPath + lib.concatStringsSep " " myconfig.programs.npm.packages)}"
-        if [ "$(cat "$stamp" 2>/dev/null)" != "$want" ]; then
+        installed=1
+        for pkg in ${lib.concatStringsSep " " myconfig.programs.npm.packages}; do
+          case "$pkg" in
+            @*) rest="''${pkg#@}"; name="@''${rest%%@*}" ;;
+            *) name="''${pkg%%@*}" ;;
+          esac
+          [ -d "$HOME/.npm-global/lib/node_modules/$name" ] || installed=0
+        done
+        if [ "$(cat "$stamp" 2>/dev/null)" != "$want" ] || [ "$installed" = 0 ]; then
           if $DRY_RUN_CMD env PATH="${pkgs.nodejs_latest}/bin:$PATH" ${pkgs.nodejs_latest}/bin/npm install -g ${lib.concatStringsSep " " myconfig.programs.npm.packages}; then
             if [ -z "''${DRY_RUN:-}" ]; then
               mkdir -p "$(dirname "$stamp")"

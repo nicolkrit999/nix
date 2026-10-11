@@ -55,8 +55,16 @@ let
     in
     builtins.length matches > 0;
 
+  allAssertionsPass = config:
+    builtins.all (a: a.assertion) (getAssertions config);
+
+  failingCount = msgSubstr: config:
+    builtins.length (builtins.filter
+      (a: !(a.assertion) && lib.hasInfix msgSubstr a.message)
+      (getAssertions config));
+
 in
 {
-  inherit evalScenario getConfig getAssertions hasFailingAssertion;
+  inherit evalScenario getConfig getAssertions allAssertionsPass hasFailingAssertion failingCount;
   inherit lib flake;
 }

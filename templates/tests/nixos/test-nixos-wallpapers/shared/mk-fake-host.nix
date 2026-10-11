@@ -5,34 +5,25 @@
 #   system          string     - "x86_64-linux" (default) or "aarch64-linux"
 #   constants       attrset    - result of importing a base-constants-*.nix
 #   skwdWall        bool       - whether programs.skwdWall is enabled (default false)
+#   gnome, kde      bool       - enable GNOME / KDE (default true)
 #   shells          attrset    - caelestia/noctalia enable flags (default all off)
+#   minimal         bool       - enable ONLY hyprland/niri/mango (per `wms`), gnome, kde as
+#                                flagged; no shell/waybar/swaync lines (default false)
+#   wms             [string]   - WMs enabled when minimal (default all three)
 #
-# All three WMs (hyprland, mango, niri), gnome, and kde are always enabled so
-# that each test can assert across all WM/DE outputs in a single host eval.
-# Waybars default to OFF (prevents shell-conflict assertions from firing).
+# Non-minimal: all three WMs, gnome, and kde are enabled so that each test can
+# assert across all WM/DE outputs in a single host eval; waybars default OFF.
 spec:
-{ delib, ... }:
+{ delib, lib, ... }:
 let
   shells = spec.shells or { };
   caelestia = shells.caelestia or { };
   noctalia = shells.noctalia or { };
   system = spec.system or "x86_64-linux";
-in
-delib.host {
-  name = spec.name;
-  type = "desktop";
-  homeManagerSystem = system;
-
-  myconfig = _: {
-    constants = spec.constants;
-
-    # All WMs and DEs enabled so every output path is exercised in one eval.
-    programs.hyprland.enable = true;
-    programs.niri.enable = true;
-    programs.mango.enable = true;
-    programs.gnome.enable = true;
-    programs.kde.enable = true;
-
+  minimal = spec.minimal or false;
+  wms = spec.wms or [ "hyprland" "niri" "mango" ];
+  has = wm: !minimal || builtins.elem wm wms;
+  full = {
     programs.skwdWall.enable = spec.skwdWall or false;
 
     programs.caelestia = {
@@ -47,11 +38,27 @@ delib.host {
       enableOnMango = noctalia.enableOnMango or false;
     };
 
-    # Waybars off - avoids shell+waybar conflict assertions in shell scenarios.
     programs.waybar-hyprland.enable = false;
     programs.waybar-niri.enable = false;
     programs.waybar-mango.enable = false;
 
     services.swaync.enable = false;
   };
+in
+delib.host {
+  name = spec.name;
+  type = "desktop";
+  homeManagerSystem = system;
+
+  myconfig = _: lib.recursiveUpdate
+    {
+      constants = spec.constants;
+
+      programs.hyprland.enable = has "hyprland";
+      programs.niri.enable = has "niri";
+      programs.mango.enable = has "mango";
+      programs.gnome.enable = spec.gnome or true;
+      programs.kde.enable = spec.kde or true;
+    }
+    (if minimal then { } else full);
 }

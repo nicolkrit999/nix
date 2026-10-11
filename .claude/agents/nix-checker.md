@@ -23,6 +23,9 @@ You mechanically verify the config and report results. No fixing, no authoring.
 2. `nix build .#darwinConfigurations.Krits-MacBook-Pro.system --dry-run`.
 
 ### Test suite
-`bash templates/tests/run-tests.sh` (flags: `--parallel`, `--fast`). Registry covers NixOS (minimal-defaults, spec-contract, conflicting-modules, custom-shells, arch-compat) and Darwin (minimal-defaults). Note: `--parallel` output is noisy if the NAS is offline.
+Tests are auto-discovered (`templates/tests/lib/discover.py`), no registry. Run ONE test folder per checker agent for targeted runs and triage of specific tests (the orchestrator spawns many in parallel, one per folder). For a FULL-suite verification the orchestrator instead runs the whole suite with ONE `bash templates/tests/run-tests.sh --parallel` (fast, ~1-4 min) in a single agent, with builds (flake check, each host toplevel, darwin dry, home dry) in separate parallel agents:
+- `bash templates/tests/run-tests.sh --only <name>` (names via `--list`; folder name or unambiguous suffix works), or the folder's `check-*.sh` directly.
+- Whole suite (full verification, or when asked): `bash templates/tests/run-tests.sh [--parallel] [--fast]`. `--parallel` output is noisy if the NAS is offline.
+- Logs: `~/.local/state/nix-tests/<timestamp>-<sha>/<test>.log` (`latest` symlink); report the log path of every failing test and quote the failing lines verbatim. Do not diagnose or weaken tests: a failure is not proof of a config bug, hand it to `nix-debugger`.
 
 **Report** the exact command, pass/fail per check, and verbatim error output on failure. Then: trivial/obvious cause → name it; non-trivial failure → "hand to `nix-debugger`"; the fix itself → `nix-config-architect`. You never edit `.nix` files.

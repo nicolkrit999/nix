@@ -11,10 +11,10 @@ This repo has dedicated subagents covering nearly every recurring task: writing 
 | `nix-config-architect` | **Hub / general.** Authors or modifies config: modules, DE/WM enablement, sops-nix secrets, hosts, per-host constants, package/service integration, stylix/catppuccin theming, disko, home-manager. Default for any config-writing task with no more specific agent. | `nix-checker` (verify), `nix-package-researcher` (lookups), `nix-debugger` (diagnose failures), `nix-compat-checker` (cross-arch), `nix-test-author` (tests), `nix-syntax-linter` (lint sweeps) | Package/option lookups, cross-arch verification, root-causing failures, running the test suite - hand these off instead of doing them inline. |
 | `nix-package-researcher` | Pure read-only lookup: does package/attribute X exist, option paths, channel availability, binary-cache status, version history. | - | Making config changes - always hands findings back to `nix-config-architect`. |
 | `nix-compat-checker` | Cross-platform/cross-arch compat: will it build on aarch64-darwin, is a Linux-only option safe in a shared module, correct module placement (common/nixos/darwin), IFD-guard correctness, specialisations. Runs per-arch dry-builds + the arch-compat test. | `nix-config-architect` (for fixes beyond a compat check) | Broad config authoring unrelated to compat. |
-| `nix-checker` | Read-only verification: `nix flake check`, per-host dry-builds, templates/tests suite. Run after any change, or on "verify"/"check the build"/"does it evaluate"/"run flake check"/"dry build"/"run the tests". | `nix-debugger` (on failure needing root-cause), `nix-config-architect` (on failure needing a config fix) | Modifying config or diagnosing *why* something failed - it only reports pass/fail with exact errors. |
+| `nix-checker` | Read-only verification: `nix flake check`, per-host dry-builds, templates/tests suite (targeted runs/triage: one test folder per agent, `run-tests.sh --only <name>`, many agents in parallel; full-suite verification: ONE `run-tests.sh --parallel` in a single agent, with builds - flake check, each host toplevel, darwin dry, home dry - as separate parallel agents). Run after any change, or on "verify"/"check the build"/"does it evaluate"/"run flake check"/"dry build"/"run the tests". | `nix-debugger` (on failure needing root-cause), `nix-config-architect` (on failure needing a config fix) | Modifying config or diagnosing *why* something failed - it only reports pass/fail with exact errors. |
 | `nix-debugger` | Root-causes a failing build/eval/rebuild: eval errors, type errors, "option does not exist", broken imports, IFD failures, sops decryption errors, module conflicts, renamed/removed attrs. Diagnoses **and** applies the fix. | `nix-checker` (always re-verifies after fixing) | Leaving a fix unverified - every fix loops back through `nix-checker`. |
 | `nix-syntax-linter` | Fast read-only syntax/convention checks, no evaluation: parse errors, formatting drift, denix/repo anti-patterns. | `nix-config-architect` (applies the actual fixes) | Fixing anything itself - it only flags. |
-| `nix-test-author` | Writes/improves tests and manages the `run-tests.sh` registry. | `nix-checker` (to actually *run* the suite) | Running the test suite - that's `nix-checker`'s job. |
+| `nix-test-author` | Writes/improves tests (auto-discovered folders under `templates/tests/`, no registry) following the repo test rules; use the `adding-nix-tests` skill. | `nix-checker` (to actually *run* tests) | Running the test suite or diagnosing test failures - that's `nix-checker` / `nix-debugger`. |
 
 **Rule of thumb:** before researching a package/option, verifying a build, debugging a failure, checking cross-arch compat, linting, or writing tests yourself, ask "is there an agent for this?" If yes, use it - don't do it in the main loop. This holds with no exceptions for the operations the table lists as agent-owned (`nix flake check`, dry-builds, package/option research, failure debugging, cross-arch checks, lint sweeps, test-suite runs) - there is no "but it's quick" or "but I already have the context" carve-out; a matching agent is always used, even for a single follow-up command after you already diagnosed the issue yourself. Only work directly when NO agent's role matches the operation at all: quick one-line answers, reading a single file to answer a question, or config-writing edits `nix-config-architect` would itself make inline (its own delegated-away pieces still don't count - see its "Never does" column).
 
@@ -22,6 +22,10 @@ This repo has dedicated subagents covering nearly every recurring task: writing 
 
 RTK is active via a `PreToolUse` hook - Bash commands are auto-rewritten (e.g. `git status` → `rtk git status`).
 The hook does **not** cover built-in `Read`/`Grep`/`Glob` tools. Prefer shell equivalents (`cat`, `grep`, `find`) over built-in tools when the output would benefit from filtering, so RTK can intercept it.
+
+## Tests
+
+`templates/tests/{nixos,common,darwin}/` holds the test suite: auto-discovered folders (`check-*.sh` or `*_test.nix`, optional `test.conf`), no registry; run with `templates/tests/run-tests.sh`. Overview, rules and log locations: [`Documentation/usage/tests/tests-overview.md`](Documentation/usage/tests/tests-overview.md). To add or fix tests use the `adding-nix-tests` skill.
 
 ## Overview
 
@@ -49,6 +53,8 @@ the reasoning lived only in a commit message.
 
 Treat it as a map, not as gospel - verify against the file before acting, and
 update the doc in the same commit when you invalidate part of it.
+
+The test workflows (`tests-nixos.yml`, `tests-darwin.yml`: discovery-driven matrix legs, per-test logs as artifacts, a gate step, Discord with attached logs) are covered in the same doc (section "Test workflows: discovery, logs, gate, notify").
 
 `.github/scripts/check-workflow-invariants.py` enforces the subset of this that
 can be checked mechanically; run it after any workflow edit.
@@ -180,7 +186,7 @@ re-investigating one of these from scratch.
 
 - **GRUB briefly shows a bogus 1970 date on `nixos-desktop` boot** - firmware/CMOS RTC read quirk, not a config bug. [`Documentation/usage/gotchas/grub-1970-boot-clock.md`](Documentation/usage/gotchas/grub-1970-boot-clock.md)
 - **Stylix + Qt/KDE/GTK theming pitfalls** - never enable `stylix.targets.qt` (crashes Plasma), KDE zebra-striping fix, GTK3 dark-mode fix. [`Documentation/usage/gotchas/stylix-qt-kde-gtk-theming.md`](Documentation/usage/gotchas/stylix-qt-kde-gtk-theming.md)
-- **xdg-desktop-portal silently unavailable under non-KDE/GNOME WMs** - dual-level `UseIn=` + `NIX_XDG_DESKTOP_PORTAL_DIR` trap, full diagnosis recipe. [`Documentation/usage/gotchas/xdg-desktop-portal-nixos.md`](Documentation/usage/gotchas/xdg-desktop-portal-nixos.md)
+- **xdg-desktop-portal routing under non-KDE/GNOME WMs** - xdp 1.22 model (layered `*-portals.conf`, `XDG_DATA_DIRS` loading, `UseIn=` only a deprecated fallback), per-desktop routing that follows upstream defaults, diagnosis recipe. [`Documentation/usage/gotchas/xdg-desktop-portal-nixos.md`](Documentation/usage/gotchas/xdg-desktop-portal-nixos.md)
 - **GRUB `symbol '…' not found` after a GRUB update, although the rebuild succeeded** - the firmware starts a stale `EFI/NixOS-boot/grubx64.efi` left from the original install, while `efiInstallAsRemovable` only refreshes `EFI/BOOT/BOOTX64.EFI`. `boot.nix` now syncs it on every rebuild; recovery: `recover.sh --grub-only`. [`Documentation/troubleshooting/README.md`](Documentation/troubleshooting/README.md#6-grub-says-symbol--not-found-after-a-successful-rebuild)
 - **`school-onedrive` is deliberately not sops-managed** - SUPSI SSO forces recurring re-auth regardless, so sops would add overhead without fixing anything. [`Documentation/usage/gotchas/school-onedrive-no-sops.md`](Documentation/usage/gotchas/school-onedrive-no-sops.md)
 - **Exactly one Secret Service provider (gnome-keyring)** - kwalletd6 is only a frontend into it, ksecretd and the second SSH agent are off, every Chromium/Electron app is pinned to `--password-store=gnome-libsecret`. Read before touching any keyring/wallet/portal/SSH-agent config. [`Documentation/usage/gotchas/secret-service-single-provider.md`](Documentation/usage/gotchas/secret-service-single-provider.md)

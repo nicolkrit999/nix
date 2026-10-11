@@ -15,6 +15,8 @@ delib.host {
     programs.nix-alien.enable = true; # guest/secure-travel disable
     programs.claude-code.enable = true; # guest/secure-travel disable
     programs.claude-desktop.enable = true; # guest disables
+    services.hyprlock.enable = true; # guest disables
+    programs.fastfetch.enable = true; # safe-mode disables
     bluetooth.enable = true; # guest/secure-travel disable
     services.tailscale.enable = true; # secure-travel disables
 

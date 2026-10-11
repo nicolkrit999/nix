@@ -4,6 +4,8 @@ Runs `modules/nixos/programs/de-wm/wallpaperd/wallpaperd.sh` for all three backe
 
 ## Run
 
+Via the suite runner (from the repo root): `bash templates/tests/run-tests.sh --only nixos-wallpaperd-runtime` (name as shown by `--list`); the direct command is below.
+
 From repo root:
 
 ```bash
@@ -16,7 +18,7 @@ From inside the directory:
 bash check-nixos-wallpaperd-runtime.sh
 ```
 
-`WPD_SCRIPT=<path>` points the check at an alternative copy of `wallpaperd.sh`.
+`WPD_SCRIPT=<path>` points the check at an alternative copy of `wallpaperd.sh`. Runs in the `heavy-b` CI group (`test.conf`, timeout 20 min).
 
 ## How it works
 
@@ -26,7 +28,7 @@ The check prepends `set -euo pipefail` to a copy of `wallpaperd.sh` (what `write
 - The daemon is started with fd 8 closed (`8>&-`). The event stream is a FIFO the check holds open read-write on fd 8; writing one backend-specific line (`monitoradded>>x`, `{"WorkspacesChanged":{}}`, any mmsg line) triggers a reconcile.
 - `mpvpaper` and `awww img` stubs append to a log (`mpv-start`, `mpv-stop`, `img`, `fd9-leak`); assertions grep that log. Stubs flag an inherited lock fd 9.
 - Specs: `DP-1=image`, `desc:Acme Panel S2=video` (on DP-2) and a `*` fallback, run once with a video fallback and once with an image fallback per backend (6 runs).
-- Initial outputs: DP-1, DP-2, DP-3 (undeclared), DP-4 (disabled), and on hyprland DP-5 (mirrored). Then HDMI-A-1 is hot-plugged, DP-3 unplugged, DP-4 re-enabled, and the supervisor gets SIGTERM.
+- Initial outputs: DP-1, DP-2, DP-3 (undeclared), DP-4 (disabled), and on hyprland DP-5 (mirrored). Then HDMI-A-1 is hot-plugged, DP-3 unplugged, DP-4 re-enabled, on hyprland DP-5 un-mirrored, (image fallback) DP-6 hot-plugged while `awww img` fails, the event stream is dropped and reopened, DP-7 is added, DP-2's `mpvpaper` is crashed, and finally the supervisor gets SIGTERM.
 - Every stub exits 1 (logging `bad-args`) unless called with exactly the arguments the script should send.
 - Stream drop: fd 8 is closed so the stub's `cat` sees EOF, then reopened once a second `stream-open` is logged.
 - Crash: the DP-2 `mpvpaper` stub is sent SIGUSR1 (logs `mpv-crash`, exits).
@@ -39,23 +41,23 @@ Per run (backend x fallback kind):
 
 | Check | Expected |
 |-------|----------|
-| declared name DP-1 gets its still via `awww img` | logged |
-| `desc:` entry gets its video on DP-2 via `mpvpaper` | logged |
-| undeclared DP-3 gets the fallback (video via mpvpaper / image via awww) | logged |
-| fallback never lands on DP-1 or on the `desc:`-declared DP-2 | not logged |
-| declared DP-1 never gets mpvpaper | not logged |
+| DP-1 is started exactly once, with its declared still (`awww img`) | exactly that one start line |
+| DP-2 (`desc:` entry) is started exactly once, with its video (`mpvpaper`) | exactly that one start line |
+| undeclared DP-3 is started exactly once, with the fallback (video via mpvpaper / image via awww) | exactly that one start line |
 | disabled DP-4 is skipped | no start |
 | mirrored DP-5 is skipped (hyprland only) | no start |
 | no start targets `*` or `ALL` | none |
-| DP-2 video started exactly once (also after hot-plug) | 1 |
+| DP-2 video started exactly once, also after the HDMI-A-1 hot-plug | 1 |
 | children (`mpvpaper`, `awww img`) do not inherit lock fd 9 | no `fd9-leak` |
 | hot-plugged undeclared HDMI-A-1 gets the fallback | logged |
-| unplugged DP-3 has its `mpvpaper` stopped, DP-2 untouched (video fallback) | `mpv-stop DP-3` only |
+| unplugged DP-3 has its `mpvpaper` stopped, nothing else (video fallback) | exactly one `mpv-stop`, for DP-3 |
+| unplug stops no `mpvpaper` (image fallback) | no `mpv-stop` |
 | re-enabled DP-4 gets the fallback | logged |
+| un-mirrored DP-5 gets the fallback (hyprland only; control for the mirror skip) | started |
 | every tool called with the expected arguments | no `bad-args` |
 | event stream opened once at startup | 1 |
 | failed still start (image fallback) is retried until it succeeds | `img DP-6` logged after `img-fail` |
-| dropped event stream is reopened; daemon alive; no `mpv-stop DP-2`; DP-2 not restarted; events work again | true |
+| dropped event stream is reopened; daemon alive; no `mpv-stop DP-2`; DP-2 not restarted; a new output added after the reconnect gets the fallback (the event is processed, not just the reconnect reconcile) | true |
 | crashed DP-2 `mpvpaper` is restarted; daemon alive | second `mpv-start DP-2` |
 | supervisor exits on SIGTERM; remaining `mpvpaper` stopped (video fallback) | true |
 | lock is free after SIGTERM | second instance not refused, and it listed outputs |
@@ -67,8 +69,9 @@ When `nix` is available the check also evaluates `wayland.windowManager.mango.se
 | Check | Expected |
 |-------|----------|
 | at least one host enables mango | true |
-| a wallpaper daemon is in some mango `exec_once` | true |
+| the `mango-wallpaperd-start` launcher script is a whole mango `exec_once` command | true |
 | every string value (`exec_once`, `window_rule`, `monitor_rule`, ...) is at most 255 chars | true |
 | every `exec_once` / `exec`, cut at 255 chars the way mango reads it, is valid shell (`bash -n -c`) | true |
+| control: an over-long inlined argv, cut at 255 chars, is rejected by `bash -n` (and really exceeds 255) | true, proves the shell-validity check can fail |
 
 This catches a wallpaper daemon argv inlined into `exec_once` (321 chars with three video specs): mango spawned `sh -c` with an unterminated quote, so the daemon never started.

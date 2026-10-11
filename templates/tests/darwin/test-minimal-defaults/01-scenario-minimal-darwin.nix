@@ -13,9 +13,6 @@ let
   denix = flake.inputs.denix;
 
   darwinPaths = [
-    # Stylix stub with dummy image (replaces modules/darwin/toplevel/stylix-darwin.nix)
-    (src + "/templates/tests/darwin/test-minimal-defaults/shared/darwin-extra")
-
     # Constants schema and HM wiring
     (src + "/modules/darwin/config/constants-darwin.nix")
     (src + "/modules/common/config/constants.nix")
@@ -28,11 +25,11 @@ let
     (src + "/modules/darwin/toplevel/user-darwin.nix")
     (src + "/modules/darwin/toplevel/nix-darwin.nix")
 
-    # Auto-enabled module under test
+    # Module under test (body is forced via environment.systemPackages)
     (src + "/modules/darwin/toplevel/home-packages-darwin.nix")
   ];
 
-  config = (denix.lib.configurations {
+  configs = (denix.lib.configurations {
     moduleSystem = "darwin";
     homeManagerUser = "krit";
     extensions = with denix.lib.extensions; [
@@ -48,11 +45,16 @@ let
     };
     paths = [
       (src + "/templates/tests/darwin/test-minimal-defaults/shared/host-minimal-darwin.nix")
+      (src + "/templates/tests/darwin/test-minimal-defaults/shared/host-nobrowser-darwin.nix")
     ] ++ darwinPaths;
     exclude = [ ];
-  }).minimal-darwin.config;
+  });
 
+  config = configs.minimal-darwin.config;
   c = config.myconfig.constants;
+
+  hasPkg = cfg: n:
+    builtins.elem n (map (p: p.pname or (builtins.parseDrvName p.name).name) cfg.environment.systemPackages);
 
   checkBool = name: actual: expected:
     if actual == expected then "ok"
@@ -71,9 +73,13 @@ in
   check-constant-filemanager = checkStr "constants.fileManager" c.fileManager "nnn";
   check-constant-catppuccin = checkBool "constants.theme.catppuccin" c.theme.catppuccin false;
 
-  # ── Auto-enabled module states ───────────────────────────────────────────────
-  check-stylix-enabled =
-    checkBool "myconfig.stylix.enable" config.myconfig.stylix.enable true;
-  check-home-packages-enabled =
-    checkBool "home-packages.enable" config.myconfig.home-packages.enable true;
+  # ── Module body forced: browser fallback lands, and "" opts out (control) ────
+  check-home-packages-installs-browser =
+    checkBool "systemPackages has firefox (default host)" (hasPkg config "firefox") true;
+  check-home-packages-browser-optout =
+    checkBool "systemPackages has firefox (browser = \"\" host)"
+      (hasPkg configs.nobrowser-darwin.config "firefox")
+      false;
+  check-constant-override-lands =
+    checkStr "nobrowser host constants.browser" configs.nobrowser-darwin.config.myconfig.constants.browser "";
 }

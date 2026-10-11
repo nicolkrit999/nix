@@ -4,6 +4,8 @@ Regression guard for the mango 0.18.0 snake_case keyword rename: the generated m
 
 ## Run
 
+Via the suite runner (from the repo root): `bash templates/tests/run-tests.sh --only nixos-mango-option-names` (name as shown by `--list`).
+
 From repo root:
 
 ```bash
@@ -33,18 +35,20 @@ nix run github:danielefongo/nix-tests -- .
 | rendered text yields more than 10 keys (parser sanity) | true |
 | no `window_rule` entry uses `appid`, `isfloating`, `isnoanimation`, `isnoshadow`, `noblur`, `isopensilent` | true |
 | `window_rule` entries use `app_id:` and `is_floating:` | true |
-| `monitor_rule` has 2 entries and is a rendered key | true |
+| `monitor_rule` entry count equals the host monitors count (2) and is a rendered key | true |
 | a `monitor_rule` entry for HDMI-A-1 carries `disable:1` | true |
 | `tag_rule` and `layer_rule` are rendered keys | true |
 | `window_rule_once` is set, rendered, free of old sub-fields, uses `app_id:` | true |
 | `window_rule` entries use none of the full 0.18.0 old sub-field list | true |
-| old-sub-field detector flags a legacy rule (self-check) | true |
+| old-sub-field detector (field-name split, newline-safe) flags legacy rules and ignores `appid:` inside a value (self-check) | true |
 | `tag_rule` has no `nmaster`/`mfact`; `layer_rule` has no `noblur`/`noanim`/`noshadow` | true |
 | `bind`, `bindl`, `bindsl` are all rendered keys | true |
-| Pause/Play are exactly 2 entries in `bindsl` and absent from `bindl` | true |
+| every non-comment rendered line parses as `key = value` (scanner drops nothing) | true |
+| key scanner flags legacy keys written with indent / no spaces (self-check) | true |
+| Pause/Play are exactly 2 `spawn ... play-pause` entries in `bindsl` and absent from `bindl` | true |
 | volume and brightness keys are in `bindl` | true |
 | the retired plain `binds` key is not rendered | true |
-| `SUPER+CTRL+Left` is `resizewin`, no `SUPER+CTRL+Left` `focusmon` | true |
+| `SUPER+CTRL+Left/Right/Up/Down` are `resizewin`, none is a `focusmon` | true |
 | `SUPER+SHIFT+1` is `tagsilent`, `SUPER+ALT+1` is `tag` | true |
 | `SUPER+S` is `toggle_special_tag` | true |
-| no `btn_middle` mousebind | true |
+| `btn_middle` appears nowhere in the rendered config | true |
