@@ -29,8 +29,23 @@ delib.module {
       fg = if dist c.base07 > dist c.base05 then c.base07 else c.base05;
       shadowColor = c.base00;
 
-      wp = myconfig.constants.primaryWallpaper;
-      lockWallpaper = "${pkgs.fetchurl { url = wp.wallpaperURL; sha256 = wp.wallpaperSHA256; }}";
+      statics = lib.filter (w: w.wallpaperURL != "") myconfig.constants.wallpapers;
+      perMonitor = lib.filter (w: w.targetMonitor != "*") statics;
+      catchAll = lib.findFirst (w: w.targetMonitor == "*")
+        (
+          if statics == [ ] then {
+            wallpaperURL = myconfig.constants.fallbackWallpaperURL;
+            wallpaperSHA256 = myconfig.constants.fallbackWallpaperSHA256;
+          } else lib.head statics
+        )
+        statics;
+      fetchWp = w: "${pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; }}";
+      bgLook = {
+        blur_passes = 2;
+        blur_size = 4;
+        brightness = if isDarkScheme then 0.6 else 1.25;
+        contrast = 1.0;
+      };
     in
     lib.mkIf anyWmEnabled {
       home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
@@ -49,16 +64,12 @@ delib.module {
             fail_timeout = 5000;
           };
 
-          background = lib.mkForce [
-            {
-              monitor = "";
-              path = lockWallpaper;
-              blur_passes = 2;
-              blur_size = 4;
-              brightness = if isDarkScheme then 0.6 else 1.25;
-              contrast = 1.0;
-            }
-          ];
+          background = lib.mkForce (
+            map
+              (w: bgLook // { monitor = w.targetMonitor; path = fetchWp w; zindex = -1; })
+              perMonitor
+            ++ [ (bgLook // { monitor = ""; path = fetchWp catchAll; zindex = -2; }) ]
+          );
 
           image = lib.mkForce [
             {

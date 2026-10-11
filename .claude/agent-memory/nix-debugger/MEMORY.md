@@ -25,3 +25,4 @@
 - [base16 base07 not brightest](project_base16_base07_not_brightest.md) - rose-pine-moon base07 is dark; over-wallpaper text contrast is set by the wallpaper, not the scheme (hyprlock 1.5:1)
 - [SDDM label contrast probe](project_sddm_label_contrast_probe.md) - pixie conf rewrite drops autoColor/textColor; build-time magick luma ~0.5s no IFD; mean luma misleads, use fail-fraction
 - [nix-tests read-only IFD](project_nix_tests_readonly_ifd.md) - harness = `nix-instantiate --eval` (read-only): IFD fails on fresh CI store, passes locally; guard via NIX_CONFIG IFD=false
+- [CI tests narrow substituters](project_ci_tests_narrow_substituters.md) - test legs trust only 3 caches; realising noctalia etc. = silent source build -> 10-min timeout

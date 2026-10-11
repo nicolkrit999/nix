@@ -82,7 +82,7 @@ Every scenario calls the real entry point, `run-tests.sh --prune-only`, which ca
 | a second `old-readme.md` | "unexpected readme name" |
 | untracked `forgotten.nix` | "untracked ... git add it" |
 | new folder with only check script + readme | missing overview row, count sentence and §12.2 `common` count all flagged |
-| `portal-routing` dropped from the §12.2 `nixos-b` row | "does not name `nixos-portal-routing`" |
+| `borg-backup-config` dropped from the §12.2 `nixos-b` row | "does not name `nixos-borg-backup-config`" |
 | `(99 tests)` in the §12.2 `nixos` row | wrong count at that line |
 | `group = solo` in a `test.conf` | "no row for CI group `solo`" |
 | `nixos-spec-school` added to the `heavy-b` row | "names `nixos-spec-school`, whose group is `nixos`" |

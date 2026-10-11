@@ -1,3 +1,4 @@
 - [Vicinae bluetooth extension still blocked](vicinae_bluetooth_extension_blocked.md) - node-gyp sandbox issue #314 OPEN; flake still excludes extension; keep workaround
 - [Vicinae services→programs rename warning](vicinae_services_programs_rename_warning.md) - mkRenamedOptionModule self-warns; no upstream fix; removing empty themes={} won't help
 - [Secret Service upstream facts](project_secret_service_upstream_facts.md) - kwallet 3 switches, Plasma pull-in, portal Secret routing, xdp 1.22 UseIn is fallback-only; the 2026-10-09 gaps are now closed in the repo
+- [hyprlock lock background sources](project_hyprlock_lock_background_sources.md) - laptop shows * fallback, desktop uses catppuccin bg (module inert); hyprlock per-monitor stacking/zindex rules

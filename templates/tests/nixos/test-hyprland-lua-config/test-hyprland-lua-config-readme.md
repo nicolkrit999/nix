@@ -18,11 +18,11 @@ From inside the directory:
 bash check-nixos-hyprland-lua-config.sh
 ```
 
-`FLAKE_ROOT=<path>` evaluates another copy of the repo. Runtime is about one minute (one evaluation of both hosts and their specialisations; the small script derivations are built via IFD).
+`FLAKE_ROOT=<path>` evaluates another copy of the repo. Runtime is about one minute (one evaluation of both hosts and their specialisations). Nothing is built: every script is read from its derivation, never from a realised output.
 
 ## How it works
 
-`01-scenario-hyprland-lua-config.nix` reads the real `nixos-desktop` and `nixos-laptop` configs and every specialisation whose home-manager Hyprland is enabled (discovered dynamically). `results` maps variant to check to `"ok"` / `"FAIL: <detail>"`. The shell script prints each as PASS/FAIL, then pipes the rendered `hypr/hyprland.lua` through `luac -p` (Lua 5.4) and the `universal-lock` script through `bash -n`, and greps the sources for the legacy form.
+`01-scenario-hyprland-lua-config.nix` reads the real `nixos-desktop` and `nixos-laptop` configs and every specialisation whose home-manager Hyprland is enabled (discovered dynamically). `results` maps variant to check to `"ok"` / `"FAIL: <detail>"`. The shell script prints each as PASS/FAIL, then pipes the rendered `hypr/hyprland.lua` through `luac -p` (Lua 5.4) and the `universal-lock` script through `bash -n`. The `universal-lock` text is the derivation's `text` attribute (exactly what `writeShellScriptBin` writes, shebang included), not `builtins.readFile` of its output: realising it would build its `noctalia` input from source on CI, which is in none of the CI caches, and greps the sources for the legacy form.
 
 The legacy-dispatch scan covers the rendered lua, `hypridle.conf`, the waybar config, `universal-lock`, all user service Exec lines and the jetkvm teardown script (read from its `.drv` with the string context kept, never from an unbuilt output, so it passes on an empty store; the waybar `.drv` reads follow the same rule); every `hyprctl dispatch` must be followed by `'hl.`. Caelestia's logout script is covered by the repo-wide source grep because no host enables it. Controls prove the matchers bite (legacy text flagged, lua text accepted, `luac` rejects `A`, stock waybar lacks the patch).
 
@@ -36,6 +36,7 @@ The legacy-dispatch scan covers the rendered lua, `hypridle.conf`, the waybar co
 | `no-legacy-dispatch` | every `hyprctl dispatch` uses `'hl.` form |
 | `hypridle-three-listeners`, `hypridle-timeouts-increase` | 3 listeners, strictly increasing timeouts |
 | `hypridle-dpms-lua` | off/on use `hl.dsp.dpms({ action = ... })` incl. `after_sleep_cmd` |
+| `universal-lock-present` | `universal-lock` is in `home.packages` and its derivation carries a non-empty script `text` |
 | `hypridle-lock-cmd` | `lock_cmd` equals the `universal-lock` package binary |
 | `systemd-no-stop-command` | `systemd.extraCommands` is only the start command |
 | `waybar-service-present`, `waybar-lua-dispatch-patch` | service exists and its waybar derivation includes the lua-dispatch patch |

@@ -60,9 +60,10 @@ A test has to pass on an empty store (fresh CI runner). Never
 on a fresh store, and Determinate Nix writes `.drv` files asynchronously, so a
 context-less `.drv` read races. Keep the context instead: read a `.drv` with
 `builtins.appendContext d { ${d} = { path = true; }; }` (waits for the write, builds
-nothing), or `readFile` a tiny script with its context kept (Nix builds it), or
-use the derivation's `.text` attribute. Context-discarding is fine for pure string
-comparison, not for reads.
+nothing), or use the derivation's `.text` attribute. Avoid `readFile` of an
+output even with its context kept: Nix realises it AND every store path the
+script interpolates (`universal-lock` -> `noctalia`, built from source on CI).
+Context-discarding is fine for pure string comparison, not for reads.
 
 Fresh-store check (a green run on the dev machine proves nothing):
 
@@ -73,6 +74,9 @@ XDG_CACHE_HOME="$S-cache" NIX_REMOTE="local?root=$S" \
 ```
 
 Use a directory outside `/tmp` (4 GB tmpfs); expect substituter downloads.
+A CI-like repro must also restrict substituters to CI's set (add
+`NIX_CONFIG=$'substituters = https://cache.nixos.org https://catppuccin.cachix.org https://krit-nixos.cachix.org\ntrusted-public-keys = <keys from tests-nixos.yml + cache.nixos.org>'`):
+the desktop's NAS/attic and extra cachix caches hide builds that time out in CI.
 
 ## Script conventions
 

@@ -242,7 +242,7 @@ bash templates/tests/nixos/test-nixos-wallpapers/asserts/check-nixos-wallpapers-
 
 From inside the directory: `bash asserts/check-nixos-wallpapers-asserts.sh`.
 
-Negative checks grep stderr for the documented `assertMsg` text. Real-host checks read `nixosConfigurations.<host>.config.myconfig.constants.wallpapers` and compare it against values recomputed independently in the scenario (no hash or URL is hardcoded). Scenario dirs `19-empty-wm`, `20-empty-gnome`, `21-empty-kde` (base `shared/base-constants-empty.nix`) and `22-nostar-wm`, `23-nostar-gnome`, `24-nostar-kde`, `25-star-second` (bases `shared/base-constants-no-star.nix` / `base-constants-star-second.nix`) are used only by this script. These hosts are `minimal` (see `mk-fake-host.nix`): only what the check needs is enabled (`19`: the three WMs for hyprlock/startup; `20`/`23`: GNOME only; `21`/`24`: KDE only, plus `kde-kscreenlocker.nix` loaded through `getConfigWith`; `22`: hyprland only; `25`: nothing but the constants); no shell, waybar or swaync lines.
+Negative checks grep stderr for the documented `assertMsg` text. Real-host checks read `nixosConfigurations.<host>.config.myconfig.constants.wallpapers` and compare it against values recomputed independently in the scenario (no hash or URL is hardcoded). Scenario dirs `19-empty-wm`, `20-empty-gnome`, `21-empty-kde` (base `shared/base-constants-empty.nix`) and `22-nostar-wm`, `23-nostar-gnome`, `24-nostar-kde`, `25-star-second` (bases `shared/base-constants-no-star.nix` / `base-constants-star-second.nix`) and `26-lock-desktop-like`, `27-lock-laptop-like`, `28-lock-star-only`, `29-lock-desc-video` (variants of `shared/base-constants-lock.nix`, hyprland only, for the hyprlock per-monitor checks) are used only by this script. These hosts are `minimal` (see `mk-fake-host.nix`): only what the check needs is enabled (`19`: the three WMs for hyprlock/startup; `20`/`23`: GNOME only; `21`/`24`: KDE only, plus `kde-kscreenlocker.nix` loaded through `getConfigWith`; `22`: hyprland only; `25`: nothing but the constants); no shell, waybar or swaync lines.
 
 | Check | Expected |
 |-------|----------|
@@ -260,7 +260,16 @@ Negative checks grep stderr for the documented `assertMsg` text. Real-host check
 | `wallpapers = [ ]`, GNOME | `gnome-main` dconf settings use the fallback wallpaper constant |
 | `wallpapers = [ ]`, KDE | `kde-main` evaluates; `kde-kscreenlocker` appearance wallpaper is the fallback constant |
 | `primaryWallpaper` (no `*` entry, 2 declared) | is the first entry (`22-nostar-wm`) |
-| hyprlock / `gnome-main` / `kde-kscreenlocker` (no `*` entry) | use the first entry's store path, not the second's, not the fallback (`22`/`23`/`24`, base `shared/base-constants-no-star.nix`) |
+| `gnome-main` / `kde-kscreenlocker` (no `*` entry) | use the first entry's store path, not the second's, not the fallback (`23`/`24`, base `shared/base-constants-no-star.nix`) |
+| hyprlock (no `*` entry, `22`) | one background per entry (`DP-1`, `HDMI-A-1`, own store paths) plus a `monitor = ""` catch-all that is the first entry |
+| hyprlock `wallpapers = [ ]` | single `monitor = ""` background with the fallback constant |
+| hyprlock desktop-like (`26`: DP-1, DP-2, `*`) | DP-1 and DP-2 backgrounds with their own files, one `monitor = ""` catch-all with the `*` file at a lower `zindex` than every specific one; three distinct files |
+| hyprlock laptop-like (`27`: eDP-1, `*`) | eDP-1 background plus `*` catch-all |
+| hyprlock `*` only (`28`) | single catch-all |
+| hyprlock `desc:` target with video-only entries (`29`) | `desc:` monitor passes through unchanged; video-only entries (`DP-3`, `*`) emit no background; catch-all is the first static entry |
+| hyprlock control | a reverted single-`*` background fails the same predicate (`lockOk`) that the desktop-like case passes |
+| hyprlock on the real `nixos-laptop` | eDP-1 background uses its own wallpaper, catch-all uses `*`, and the two files differ |
+| `nixos-desktop` hyprlock | not covered on the real host: catppuccin is on there, so `hyprlock.nix` sets no `settings`; the desktop-like fixture covers the logic |
 | `stylix-nixos.nix` | reads `constants.primaryWallpaper`, has no `findFirst` of its own (source check: it cannot be loaded next to the stub) |
 | `*` entry that is not first (`25-star-second`, `shared/base-constants-star-second.nix`) | `primaryWallpaper` is the `*` entry |
 

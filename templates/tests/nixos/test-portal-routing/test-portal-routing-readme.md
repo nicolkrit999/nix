@@ -20,13 +20,14 @@ bash check-nixos-portal-routing.sh
 ```
 
 Builds `system-path` and the home-manager `home-path` per host/specialisation (mostly cached); no VM,
-no session switch. Cold about 12 min, warm about 6 min (`test.conf`: group `nixos-b`, timeout 20).
+no session switch. The `home-path` is built without its bin-only script wrappers (see `03-homepath.nix`). Cold about 12 min, warm about 6 min (`test.conf`: group `heavy-c`, timeout 30; CI run 38099944203 measured 14m34s).
 
 ## How it works
 
 - `01-scenario-portal-routing.nix` evaluates `xdg.portal.config` (system and HM) and whether HM portals are enabled, per specialisation.
 - `02-sessions.nix` joins `services.displayManager.sessionPackages`; `portal_routing.py desktops` reads `DesktopNames=` from the session files, giving the `XDG_CURRENT_DESKTOP` values.
 - `portal_routing.py write-config` renders the config like the NixOS module (`<desktop>-portals.conf`, `portals.conf`).
+- `03-homepath.nix` builds `home-manager.users.krit.home.path` with every `writeShellScriptBin`/`writeTextFile` entry whose `destination` is under `/bin/` filtered out (they can only ship `bin/`, never `share/xdg-desktop-portal`). This drops `universal-lock` and with it the noctalia source build (about 18 min on CI's narrow caches, a 404 once krit-nixos evicts it; runs 38135221346 and 38136950163). It asserts `home.path` is still an overridable buildEnv and that something was dropped, so it fails loudly instead of silently building the full path.
 - `portal-xdp-sim.sh` runs the real `xdg-desktop-portal` on a private D-Bus with no service dirs (no backend starts) with `XDG_DATA_DIRS=<hm>/share:<system>/share`, and prints its choice per interface.
 - `portal_routing.py verdict` evaluates the output per desktop.
 

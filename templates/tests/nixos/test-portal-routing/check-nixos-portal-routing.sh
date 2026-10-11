@@ -2,7 +2,8 @@
 # Which backend xdg-desktop-portal actually selects, per host, specialisation and session
 # desktop, with no session switch: the built system-path and home-manager home-path shares
 # plus the repo's xdg.portal.config run through the real xdg-desktop-portal binary on a
-# private D-Bus. Builds system-path and home-path (mostly cached), no VM.
+# private D-Bus. Builds system-path and home-path (bin-only script wrappers left out, see
+# 03-homepath.nix), no VM.
 #
 # Usage:
 #   bash check-nixos-portal-routing.sh
@@ -61,7 +62,7 @@ for h in "${HOSTS[@]}"; do
     SD="$(HOST=$h SPEC=$s nix build --no-link --print-out-paths --impure --file "$DIR/02-sessions.nix" 2>>"$WORK/build.err" | tail -1)"
     hmon=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]]["hmPortal"])' "$WORK/$h/cfgs.json" "$s")
     HMSHARE=/nonexistent
-    if [[ $hmon == True ]]; then HMSHARE="$(build "$(attr "$h" "$sub.home-manager.users.krit.home.path")")/share"; fi
+    if [[ $hmon == True ]]; then HMSHARE="$(HOST=$h SPEC=$s nix build --no-link --print-out-paths --impure --file "$DIR/03-homepath.nix" 2>>"$WORK/build.err" | tail -1)/share"; fi
     python3 -I -c 'import json,sys; json.dump(json.load(open(sys.argv[1]))[sys.argv[2]]["portalConfig"], open(sys.argv[3], "w"))' \
       "$WORK/$h/cfgs.json" "$s" "$WORK/$h/$s.pc.json"
     CFGHOME="$WORK/$h/$s.cfg"

@@ -89,6 +89,32 @@ let
     && !lib.hasInfix secondPath (builtins.unsafeDiscardStringContext (builtins.toJSON x))
     && !usesFallback x;
   hmEmpty = H.getHm emptyWm;
+
+  lockHost = n: emptyHost (here + "/${n}");
+  bgsOf = cfg: (H.getHm cfg).programs.hyprlock.settings.background;
+  lockPath = n: storePath "https://example.invalid/${n}.png";
+  # expect: [ { monitor; path } ] specific entries, catchAll: path of the monitor="" entry
+  lockOk = { specific, catchAll }: bgs:
+    let
+      sp = lib.filter (b: b.monitor != "") bgs;
+      ca = lib.filter (b: b.monitor == "") bgs;
+      pathOf = b: builtins.unsafeDiscardStringContext b.path;
+    in
+    builtins.length ca == 1
+    && pathOf (builtins.head ca) == catchAll
+    && builtins.sort builtins.lessThan (map (b: b.monitor) sp) == builtins.sort builtins.lessThan (map (e: e.monitor) specific)
+    && builtins.all (e: builtins.any (b: b.monitor == e.monitor && pathOf b == e.path) sp) specific
+    && builtins.all (b: (builtins.head ca).zindex < b.zindex) sp;
+  revertedSingleStar = path: [{ monitor = ""; inherit path; zindex = -1; }];
+  desktopExpect = {
+    specific = [{ monitor = "DP-1"; path = lockPath "lock-dp1"; } { monitor = "DP-2"; path = lockPath "lock-dp2"; }];
+    catchAll = lockPath "lock-star";
+  };
+  laptopWs = wallpapersOf "nixos-laptop";
+  laptopEdp = lib.findFirst (w: w.targetMonitor == "eDP-1") null laptopWs;
+  laptopStar = lib.findFirst (w: w.targetMonitor == "*") null laptopWs;
+  fetchPath = w: builtins.unsafeDiscardStringContext "${pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; }}";
+  laptopBgs = (H.getHm flake.nixosConfigurations.nixos-laptop.config).programs.hyprlock.settings.background;
   fb = emptyWm.myconfig.constants;
   fallbackPath = builtins.unsafeDiscardStringContext "${pkgs.fetchurl { url = fb.fallbackWallpaperURL; sha256 = fb.fallbackWallpaperSHA256; }}";
   usesFallback = x: lib.hasInfix fallbackPath (builtins.unsafeDiscardStringContext (builtins.toJSON x));
@@ -100,12 +126,40 @@ in
     && !H.mangoExecHas "wallpaperd" emptyWm && !H.niriSpawnHas "wallpaperd" emptyWm
     && !H.niriSpawnHas "awww" emptyWm
   );
-  emptyHyprlockFallback = guard (usesFallback hmEmpty.programs.hyprlock.settings.background);
+  emptyHyprlockFallback = guard (usesFallback hmEmpty.programs.hyprlock.settings.background
+    && lockOk { specific = [ ]; catchAll = fallbackPath; } (bgsOf emptyWm));
+  lockDesktop = guard (lockOk desktopExpect (bgsOf (lockHost "26-lock-desktop-like")));
+  lockDesktopDistinct = guard (
+    let ps = map (b: builtins.unsafeDiscardStringContext b.path) (bgsOf (lockHost "26-lock-desktop-like"));
+    in builtins.length (lib.unique ps) == 3
+  );
+  lockControlRevertedFails = guard (!lockOk desktopExpect (revertedSingleStar (lockPath "lock-star")));
+  lockControlRevertedHasNoSpecific = guard (builtins.length (bgsOf (lockHost "26-lock-desktop-like")) > 1);
+  lockLaptopLike = guard (lockOk
+    { specific = [{ monitor = "eDP-1"; path = lockPath "lock-edp1"; }]; catchAll = lockPath "lock-star"; }
+    (bgsOf (lockHost "27-lock-laptop-like")));
+  lockStarOnly = guard (lockOk { specific = [ ]; catchAll = lockPath "lock-star"; } (bgsOf (lockHost "28-lock-star-only")));
+  lockDescVideo = guard (lockOk
+    { specific = [{ monitor = "desc:Foo Bar 123"; path = lockPath "lock-desc"; }]; catchAll = lockPath "lock-desc"; }
+    (bgsOf (lockHost "29-lock-desc-video")));
+  lockNoVideoPaths = guard (
+    let j = builtins.unsafeDiscardStringContext (builtins.toJSON (bgsOf (lockHost "29-lock-desc-video")));
+    in !lib.hasInfix "lock-dp3-video" j && !lib.hasInfix "lock-star-video" j && !lib.hasInfix "DP-3" j
+  );
+  lockRealLaptop = guard (laptopEdp != null && laptopStar != null && lockOk
+    { specific = [{ monitor = "eDP-1"; path = fetchPath laptopEdp; }]; catchAll = fetchPath laptopStar; }
+    laptopBgs);
+  lockRealLaptopNotStar = guard (fetchPath laptopEdp != fetchPath laptopStar);
   emptyGnome = guard (usesFallback (H.getHm emptyGnomeCfg).dconf.settings);
   emptyKde = deep (H.getHm emptyKdeCfg).programs.plasma.workspace;
   emptyKscreenlocker = guard (usesFallback (H.getHm emptyKdeCfg).programs.plasma.kscreenlocker.appearance);
   noStarPrimary = guard (noStarWm.myconfig.constants.primaryWallpaper.wallpaperURL == "https://example.invalid/first-entry.png");
-  noStarHyprlock = guard (picks (H.getHm noStarWm).programs.hyprlock.settings.background);
+  noStarHyprlock = guard (lockOk
+    {
+      specific = [{ monitor = "DP-1"; path = firstPath; } { monitor = "HDMI-A-1"; path = secondPath; }];
+      catchAll = firstPath;
+    }
+    (bgsOf noStarWm));
   noStarGnome = guard (picks (H.getHm noStarGnome).dconf.settings);
   noStarKscreenlocker = guard (picks (H.getHm noStarKde).programs.plasma.kscreenlocker.appearance);
   noStarStylixReadsPrimary =

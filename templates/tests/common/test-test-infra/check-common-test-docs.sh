@@ -124,8 +124,8 @@ fi
 
 fresh wf-member
 L="$(line_of "$WF" '^\| `nixos-b` ')"
-sed -i "${L}s/, portal-routing[^,|]*//" "$S/$WF"
-expect_fail "§12.2: a group member dropped from an explicit row" "$WF:$L: row \`nixos-b\` does not name \`nixos-portal-routing\`"
+sed -i "${L}s/, borg-backup-config[^,|]*//" "$S/$WF"
+expect_fail "§12.2: a group member dropped from an explicit row" "$WF:$L: row \`nixos-b\` does not name \`nixos-borg-backup-config\`"
 
 fresh wf-default-count
 L="$(line_of "$WF" '^\| `nixos` \| default for')"

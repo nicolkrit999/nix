@@ -22,6 +22,8 @@ let
   chk = cond: msg: if cond then "ok" else "FAIL: ${msg}";
   readDrv = d: builtins.readFile (builtins.appendContext d { ${d} = { path = true; }; });
   drvTextOf = s: readDrv (lib.head (lib.filter (lib.hasSuffix ".drv") (builtins.attrNames (builtins.getContext s))));
+  lockPkgOf = c: lib.findFirst (p: (p.name or "") == "universal-lock") null (hmOf c).home.packages;
+  lockTextOf = p: if p == null then "" else builtins.unsafeDiscardStringContext (p.text or "");
 
   legacyDispatch = text:
     let
@@ -39,9 +41,8 @@ let
       lua = hm.xdg.configFile."hypr/hyprland.lua".text;
       idleConf = hm.xdg.configFile."hypr/hypridle.conf".text;
       idle = hm.services.hypridle.settings;
-      pkgByName = n: lib.findFirst (p: (p.name or "") == n) null hm.home.packages;
-      lockPkg = pkgByName "universal-lock";
-      lockText = if lockPkg == null then "" else builtins.readFile "${lockPkg}/bin/universal-lock";
+      lockPkg = lockPkgOf c;
+      lockText = lockTextOf lockPkg;
       services = hm.systemd.user.services;
       jetkvm = services.hyprland-jetkvm-teardown or null;
       jetkvmText = if jetkvm == null then "" else lib.concatMapStrings (e: let s = toString e; in if lib.hasPrefix "/nix/store/" s && !(has "/bin/true" s) then drvTextOf s else "") (execStrings jetkvm);
@@ -74,7 +75,7 @@ let
       "no-legacy-dispatch" =
         let bad = lib.concatLists (lib.mapAttrsToList (k: t: map (s: "${k}: hyprctl dispatch ${snippet s}") (legacyDispatch t)) corpus);
         in chk (bad == [ ]) (lib.concatStringsSep " | " bad);
-      "universal-lock-present" = chk (lockPkg != null && lockText != "") "universal-lock package not found in home.packages";
+      "universal-lock-present" = chk (lockPkg != null && lockText != "") (if lockPkg == null then "universal-lock package not found in home.packages" else "universal-lock derivation has no text attribute");
       "hypridle-three-listeners" = chk (builtins.length listeners == 3) "expected 3 listeners, got ${toString (builtins.length listeners)}";
       "hypridle-timeouts-increase" = chk (increasing timeouts) "timeouts not strictly increasing: ${toString timeouts}";
       "hypridle-dpms-lua" = chk (offListener != null && has ''hl.dsp.dpms({ action = "off" })'' offListener.on-timeout && has ''hl.dsp.dpms({ action = "on" })'' (offListener.on-resume or "") && has ''hl.dsp.dpms({ action = "on" })'' idle.general.after_sleep_cmd) "hypridle dpms off/on lua dispatch missing";
@@ -98,11 +99,7 @@ in
   variants = builtins.attrNames variants;
   results = results;
   lua-texts = lib.mapAttrs (_: c: (hmOf c).xdg.configFile."hypr/hyprland.lua".text) variants;
-  lock-texts = lib.mapAttrs
-    (_: c:
-      let p = lib.findFirst (p: (p.name or "") == "universal-lock") null (hmOf c).home.packages;
-      in if p == null then "" else builtins.readFile "${p}/bin/universal-lock")
-    variants;
+  lock-texts = lib.mapAttrs (_: c: lockTextOf (lockPkgOf c)) variants;
   control = {
     "legacy-matcher-flags-bad-text" = chk (builtins.length (legacyDispatch controlBad) == 2) "matcher found ${toString (builtins.length (legacyDispatch controlBad))} legacy uses in control text, expected 2";
     "legacy-matcher-accepts-good-text" = chk (legacyDispatch controlGood == [ ]) "matcher flagged the lua-form control text";
