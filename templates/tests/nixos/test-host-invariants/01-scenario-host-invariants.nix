@@ -88,9 +88,13 @@ let
         "checkReversePath=${toString tsFw.checkReversePath}";
       check-tailscale-operator = check (has "--operator=${my.constants.user}" tsFlags)
         "tailscale flags lack --operator=<user>: ${builtins.toJSON tsFlags}";
-      check-tailscale-autoconnect-wantedby = check
-        (has "multi-user.target" cfg.systemd.services.tailscale-autoconnect.wantedBy)
-        "tailscale-autoconnect not wantedBy multi-user.target";
+      check-tailscale-authkey-sops = check
+        (cfg.sops.secrets ? tailscale_key
+          && cfg.services.tailscale.authKeyFile == cfg.sops.secrets.tailscale_key.path
+          && (cfg.sops.secrets.tailscale_key.owner or null == "root"
+          || (cfg.sops.secrets.tailscale_key.owner or null == null && cfg.sops.secrets.tailscale_key.uid == 0))
+          && cfg.sops.secrets.tailscale_key.mode == "0400")
+        "services.tailscale.authKeyFile is not the root-only (0400) sops secret tailscale_key";
 
       check-hm-use-global-pkgs-pinned = check (cfg.home-manager.useGlobalPkgs == false)
         "home-manager.useGlobalPkgs is not false (deliberate pin)";

@@ -106,9 +106,8 @@ delib.module {
         localsend.enable = lib.mkForce false; # I-08: opens LAN ports
       };
 
-      # I-09: NAS consumers force services.tailscale.enable = true at the
-      # NixOS level; disabling them lets tailscale really end up off
-      # without a mkForce-vs-mkForce clash.
+      # I-09: the NAS consumers enable the tailscale wrapper and only work
+      # over the tailnet; turn them off with it.
       myconfig.krit.services.nas = {
         smb.enable = lib.mkForce false;
         opencloud-mount.enable = lib.mkForce false;

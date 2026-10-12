@@ -1,4 +1,4 @@
-{ delib, pkgs, lib, moduleSystem, ... }:
+{ delib, pkgs, lib, config, moduleSystem, ... }:
 delib.module {
   name = "services.tailscale";
   options = delib.singleEnableOption false;
@@ -6,7 +6,7 @@ delib.module {
   home.ifEnabled =
     { myconfig, ... }:
     let
-      currentShell = myconfig.constants.shell or "bash";
+      currentShell = myconfig.constants.shell;
 
       posixHelpers = ''
         # TAILSCALE EXIT-NODE HELPERS
@@ -24,22 +24,24 @@ delib.module {
       trayscaleNeeded =
         moduleSystem == "nixos"
         && (
-          (myconfig.programs.hyprland.enable or false)
-          || (myconfig.programs.niri.enable or false)
-          || (myconfig.programs.mango.enable or false)
+          myconfig.programs.hyprland.enable
+          || myconfig.programs.niri.enable
+          || myconfig.programs.mango.enable
         );
     in
     {
-      programs.zsh.initContent = lib.mkIf (currentShell == "zsh") (lib.mkAfter posixHelpers);
-      programs.bash.initExtra = lib.mkIf (currentShell == "bash") (lib.mkAfter posixHelpers);
+      programs = {
+        zsh.initContent = lib.mkIf (currentShell == "zsh") (lib.mkAfter posixHelpers);
+        bash.initExtra = lib.mkIf (currentShell == "bash") (lib.mkAfter posixHelpers);
 
-      programs.fish.functions = lib.mkIf (currentShell == "fish") {
-        tailscalenodeset = ''
-          tailscale set --exit-node=(tailscale exit-node suggest | string match -r -g 'exit-node=([^`\s]+)') --exit-node-allow-lan-access=true
-        '';
-        tailscalenoderemove = ''
-          tailscale set --exit-node=
-        '';
+        fish.functions = lib.mkIf (currentShell == "fish") {
+          tailscalenodeset = ''
+            tailscale set --exit-node=(tailscale exit-node suggest | string match -r -g 'exit-node=([^`\s]+)') --exit-node-allow-lan-access=true
+          '';
+          tailscalenoderemove = ''
+            tailscale set --exit-node=
+          '';
+        };
       };
 
       home.packages = lib.optional trayscaleNeeded pkgs.trayscale;
@@ -50,62 +52,36 @@ delib.module {
     {
       services.tailscale = {
         enable = true;
+        openFirewall = true;
+        useRoutingFeatures = "client";
         # Equivalent of running `sudo tailscale set --operator=$USER` once by
         # hand: lets the configured user run `tailscale up`/`set` without sudo.
         extraSetFlags = [ "--operator=${myconfig.constants.user}" ];
-        # extraUpFlags only feed nixpkgs' tailscaled-autoconnect, which exists only when
-        # authKeyFile is set (templates/krit/sops/service-wiring.nix); the repo's own
-        # tailscale-autoconnect below runs a bare `tailscale up`. That upstream unit calls `up`
-        # only in NeedsLogin/NeedsMachineAuth/Stopped, never while Running, so --reset cannot
-        # drop an exit node picked in a live session. It does wipe one persisted across a
-        # logout/Stopped state: wanted, since `up` otherwise refuses to run until every
-        # non-default pref (an exit node included) is restated, and the school specialisation
-        # clears the exit node on boot anyway. Re-pick with tailscalenodeset.
+        # Only nixpkgs' tailscaled-autoconnect (present because service-wiring.nix sets
+        # authKeyFile) uses these, and only in NeedsLogin/NeedsMachineAuth/Stopped. --reset is
+        # needed there: `up` refuses to run unless every non-default pref is restated.
         extraUpFlags = [
           "--reset"
-          "--accept-routes"
           "--exit-node-allow-lan-access"
           "--operator=${myconfig.constants.user}"
         ];
       };
 
-      networking.firewall = {
-        allowedUDPPorts = [ 41641 ];
-        trustedInterfaces = [ "tailscale0" ];
-        checkReversePath = "loose";
-      };
-
-      systemd.services.tailscale-autoconnect = {
-        description = "Retry `tailscale up` until network is actually ready";
-        after = [
-          "network-online.target"
-          "NetworkManager-wait-online.service"
-          "tailscaled.service"
-        ];
-        wants = [ "network-online.target" ];
-        wantedBy = [ "multi-user.target" ];
-
-        # Type=exec: the start job finishes at exec, so this never blocks boot and
-        # TimeoutStartSec does not bound the retry loop (I-02). The loop is bounded
-        # by its own iteration count (~20 x ~23s worst case) and runs in the background.
-        serviceConfig = {
-          Type = "exec";
-        };
-
-        script = ''
-          for i in $(seq 1 20); do
-            if ${pkgs.tailscale}/bin/tailscale up --timeout=20s; then
-              exit 0
-            fi
-            sleep 3
-          done
-          echo "tailscale-autoconnect: giving up after repeated failures" >&2
-          exit 1
-        '';
-      };
+      networking.firewall.trustedInterfaces = [ "tailscale0" ];
     };
 
-  darwin.ifEnabled = {
-    services.tailscale.enable = true;
-  };
+  darwin.ifEnabled =
+    let
+      caskName = c: if builtins.isString c then c else c.name;
+    in
+    {
+      services.tailscale.enable = true;
+
+      assertions = [
+        {
+          assertion = !(builtins.elem "tailscale-app" (map caskName config.homebrew.casks));
+          message = "myconfig.services.tailscale runs the nix-darwin tailscaled daemon, but the Homebrew cask \"tailscale-app\" is also installed. Tailscale supports only one macOS variant per machine: drop the cask or disable myconfig.services.tailscale.";
+        }
+      ];
+    };
 }

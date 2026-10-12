@@ -182,10 +182,6 @@ delib.module {
           sopsFile = commonSecrets;
           owner = user;
         };
-        tailscale_key = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
         attic-push-token = {
           sopsFile = commonSecrets;
           owner = user;
@@ -216,7 +212,6 @@ delib.module {
           github_general_ssh_key = {
             path = "${homeDir}/.ssh/id_github";
           };
-          tailscale_key = { };
         } // mkClaudeMcpSecretsHome myconfig.programs.claude-code.mcpSecrets;
       }
     else

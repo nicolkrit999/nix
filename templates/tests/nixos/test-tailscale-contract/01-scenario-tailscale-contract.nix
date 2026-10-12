@@ -10,16 +10,14 @@ let
   check = cond: detail: if cond then "ok" else "FAIL: ${detail}";
   has = x: xs: builtins.elem x xs;
 
-  svc = c: c.systemd.services.tailscale-autoconnect;
-  ac = svc cfg;
-  acCfg = ac.serviceConfig;
-  script = ac.script;
+  ts = cfg.services.tailscale;
 
-  num = re: let m = builtins.match re script; in if m == null then null else lib.toInt (builtins.head m);
-  loops = num ".*seq 1 ([0-9]+).*";
-  upTimeout = num ".*tailscale up --timeout=([0-9]+)s.*";
-  sleepSec = num ".*sleep ([0-9]+).*";
-  worstCase = loops * (upTimeout + sleepSec);
+  flagName = f: lib.head (lib.splitString "=" (lib.removePrefix "-" (lib.removePrefix "-" f)));
+  flagVal = f: let parts = lib.splitString "=" f; in if lib.length parts < 2 then null else lib.concatStringsSep "=" (lib.tail parts);
+  falsy = v: has v [ "0" "f" "F" "false" "FALSE" "False" ];
+  dnsOff = flags: lib.filter (f: flagName f == "accept-dns" && flagVal f != null && falsy (flagVal f)) flags;
+  routesOn = flags: lib.filter (f: flagName f == "accept-routes" && !(flagVal f != null && falsy (flagVal f))) flags;
+  allFlags = c: c.services.tailscale.extraUpFlags ++ c.services.tailscale.extraSetFlags;
 
   school = cfg.specialisation.school.configuration;
   exitOff = school.systemd.services.tailscale-school-exit-node-off;
@@ -29,6 +27,8 @@ let
   offSleep = let m = builtins.match ".*sleep ([0-9]+).*" offScript; in if m == null then null else lib.toInt (builtins.head m);
   offSetTimeout = let m = builtins.match ".*timeout ([0-9]+) tailscale set.*" offScript; in if m == null then null else lib.toInt (builtins.head m);
   offWorst = if offLoops == null || offSleep == null || offSetTimeout == null then null else offLoops * (offSetTimeout + offSleep);
+  offDeps = exitOff.after ++ exitOff.wants;
+  offDangling = lib.filter (u: lib.hasSuffix ".service" u && !(school.systemd.services ? ${lib.removeSuffix ".service" u})) offDeps;
   travel = cfg.specialisation.secure-travel.configuration;
 
   disabled = (sys.extendModules { modules = [{ myconfig.services.tailscale.enable = lib.mkForce false; }]; }).config;
@@ -52,25 +52,26 @@ let
     check-firewall-loose-rpfilter = check (cfg.networking.firewall.checkReversePath == "loose")
       "checkReversePath = ${toString cfg.networking.firewall.checkReversePath}";
     check-firewall-udp-41641 = check (has 41641 cfg.networking.firewall.allowedUDPPorts) "udp 41641 not open";
-    check-autoconnect-unit-exists = check (cfg.systemd.services ? tailscale-autoconnect) "no tailscale-autoconnect unit";
-    check-autoconnect-control-absent-when-disabled = check (!(disabled.systemd.services ? tailscale-autoconnect))
-      "autoconnect unit exists with module disabled";
-    check-autoconnect-type-exec = check (acCfg.Type == "exec") "Type=${acCfg.Type}";
-    check-autoconnect-no-misleading-timeout = check (!(acCfg ? TimeoutStartSec)) "TimeoutStartSec set on the Type=exec autoconnect unit (cannot bound the loop)";
-    check-autoconnect-wantedby-multiuser = check (has "multi-user.target" ac.wantedBy) "wantedBy=${builtins.toJSON ac.wantedBy}";
-    check-autoconnect-after-tailscaled = check (has "tailscaled.service" ac.after && has "network-online.target" ac.after)
-      "after=${builtins.toJSON ac.after}";
-    check-autoconnect-script-up-timeout = check (lib.hasInfix "tailscale up --timeout=20s" script) "script lacks --timeout=20s";
-    check-autoconnect-script-parsed = check (loops != null && upTimeout != null && sleepSec != null)
-      "cannot parse loop/timeout/sleep from the autoconnect script";
-    check-autoconnect-retry-loop-bounded = check
-      (loops != null && upTimeout != null && sleepSec != null && loops <= 100 && worstCase <= 3600)
-      "retry loop unbounded or too long: loops=${toString loops} worst=${toString worstCase}s";
-    check-autoconnect-gives-up = check (lib.hasInfix "exit 1" script) "script never exits non-zero after the loop";
-    check-school-has-autoconnect = check (school.systemd.services ? tailscale-autoconnect) "school lacks autoconnect unit";
+    check-authkeyfile-set = check (ts.authKeyFile != null) "services.tailscale.authKeyFile is null (no upstream tailscaled-autoconnect login)";
+    check-upstream-autoconnect-exists = check (cfg.systemd.services ? tailscaled-autoconnect) "no upstream tailscaled-autoconnect unit";
+    check-upstream-autoconnect-control-absent-when-disabled = check (!(disabled.systemd.services ? tailscaled-autoconnect))
+      "tailscaled-autoconnect exists with the module disabled";
+    check-no-repo-autoconnect-unit = check (!(cfg.systemd.services ? tailscale-autoconnect)) "removed repo unit tailscale-autoconnect is back";
+    check-no-accept-dns-false = check (dnsOff (allFlags cfg) == [ ] && dnsOff (allFlags school) == [ ])
+      "accept-dns disabled (tailnet DNS SPOF rule): ${builtins.toJSON (dnsOff (allFlags cfg) ++ dnsOff (allFlags school))}";
+    check-no-accept-routes = check (routesOn (allFlags cfg) == [ ] && routesOn (allFlags school) == [ ])
+      "accept-routes enabled (NAS advertises the home LAN): ${builtins.toJSON (routesOn (allFlags cfg) ++ routesOn (allFlags school))}";
+    check-flag-detectors-control = check
+      (dnsOff [ "--accept-dns=false" ] != [ ] && dnsOff [ "-accept-dns=0" ] != [ ] && dnsOff [ "--accept-dns" "--accept-dns=true" ] == [ ]
+        && routesOn [ "--accept-routes" ] != [ ] && routesOn [ "--accept-routes=true" ] != [ ] && routesOn [ "--accept-routes=false" ] == [ ])
+      "accept-dns/accept-routes flag detectors are broken";
+    check-school-no-repo-autoconnect-unit = check (!(school.systemd.services ? tailscale-autoconnect)) "school has the removed repo unit tailscale-autoconnect";
+    check-school-has-upstream-autoconnect = check (school.systemd.services ? tailscaled-autoconnect) "school lacks upstream tailscaled-autoconnect";
     check-school-exitoff-ordering-units = check
-      (has "tailscale-autoconnect.service" exitOff.after && has "tailscale-autoconnect.service" exitOff.wants && has "tailscaled.service" exitOff.after)
-      "after=${builtins.toJSON exitOff.after} wants=${builtins.toJSON exitOff.wants}";
+      (has "tailscaled.service" exitOff.after && !(has "tailscale-autoconnect.service" offDeps) && offDangling == [ ])
+      "after=${builtins.toJSON exitOff.after} wants=${builtins.toJSON exitOff.wants} dangling=${builtins.toJSON offDangling}";
+    check-school-exitoff-path-service-package = check (has school.services.tailscale.package exitOff.path)
+      "exit-off path does not contain services.tailscale.package";
     check-school-exitoff-wantedby = check (has "multi-user.target" exitOff.wantedBy) "wantedBy=${builtins.toJSON exitOff.wantedBy}";
     check-school-exitoff-script = check (lib.hasInfix "tailscale set --exit-node=" exitOff.script) "exit-node reset missing";
     check-school-exitoff-not-blocking-oneshot = check
@@ -84,13 +85,11 @@ let
     check-school-exitoff-after-tailscaled-prefs-edit = check
       (has "tailscaled.service" exitOff.after && lib.hasInfix "tailscale set --exit-node=" exitOff.script && !(lib.hasInfix "tailscale up" exitOff.script))
       "after=${builtins.toJSON exitOff.after}; script must be a prefs edit (tailscale set) ordered after tailscaled";
-    check-school-autoconnect-nonblocking = check
-      (school.systemd.services.tailscale-autoconnect.serviceConfig.Type == "exec")
-      "school tailscale-autoconnect Type=${school.systemd.services.tailscale-autoconnect.serviceConfig.Type} (must stay exec, boot hang regression)";
     check-secure-travel-myconfig-tailscale-off = check (!travel.myconfig.services.tailscale.enable) "myconfig.services.tailscale enabled in secure-travel";
     check-secure-travel-nixos-tailscale-off = check (!travel.services.tailscale.enable)
       "services.tailscale.enable true in secure-travel (myconfig wrapper=${lib.boolToString travel.myconfig.services.tailscale.enable}; a NAS consumer still forces it on?)";
-    check-secure-travel-no-autoconnect = check (!(travel.systemd.services ? tailscale-autoconnect)) "autoconnect unit present in secure-travel";
+    check-secure-travel-no-autoconnect = check (!(travel.systemd.services ? tailscale-autoconnect) && !(travel.systemd.services ? tailscaled-autoconnect))
+      "an autoconnect unit is present in secure-travel";
     check-secure-travel-tailscale0-untrusted = check (!(has "tailscale0" travel.networking.firewall.trustedInterfaces)) "tailscale0 trusted in secure-travel";
   };
 in

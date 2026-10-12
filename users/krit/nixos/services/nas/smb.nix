@@ -1,6 +1,5 @@
 { delib
 , pkgs
-, lib
 , config
 , ...
 }:
@@ -63,7 +62,7 @@ delib.module {
       environment.systemPackages = [ pkgs.cifs-utils ];
       services.cachefilesd.enable = true;
       fileSystems = builtins.listToAttrs (map mountShare shares);
-      services.tailscale.enable = lib.mkForce true;
+      myconfig.services.tailscale.enable = true;
       # Lock the parent - share contents stay 0777 (NAS quirk) but only
       # the configured user can traverse to them.
       systemd.tmpfiles.rules = [

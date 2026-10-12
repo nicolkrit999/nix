@@ -99,8 +99,7 @@ These modules work on both NixOS and Darwin hosts.
 
 #### Services (`services.`)
 
-* **`services.localsend`**: Opens TCP/UDP port 53317 in the NixOS firewall for LocalSend.
-* **`services.tailscale`**: A zero-config mesh VPN service that builds secure networks between your devices. On NixOS also configures the firewall (UDP port 41641, trusted tailscale0 interface, loose reverse-path filtering).
+* **`services.tailscale`**: A zero-config mesh VPN service that builds secure networks between your devices. On NixOS it also opens the tailscaled UDP port, trusts the tailscale0 interface and sets loose reverse-path filtering (upstream `openFirewall` and `useRoutingFeatures = "client"`). On macOS it runs the nix-darwin tailscaled daemon and asserts that the `tailscale-app` Homebrew cask is not installed alongside it.
 
 ---
 
@@ -185,6 +184,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`services.hypridle`**: An idle management daemon for Wayland that automatically dims, locks, and turns off displays after configurable inactivity timeouts.
 * **`services.hyprlock`**: A screen locker built specifically for the Hyprland ecosystem.
 * **`services.impermanence`**: Configures an ephemeral root filesystem with a persistent `/persist` overlay for important directories and files (NetworkManager, SSH, Bluetooth, Tailscale, etc.).
+* **`services.localsend`**: Installs LocalSend through nixpkgs `programs.localsend` and opens its TCP/UDP port 53317 in the firewall.
 * **`services.resolved`**: Enables systemd-resolved as the system DNS resolver with DNS-over-TLS (opportunistic), Quad9 fallback DNS (`9.9.9.9`, `149.112.112.112`), and global DNS routing (`~.`).
 * **`services.sddm-astronaut`**: Configures the SDDM login manager with the Astronaut theme (jake_the_dog variant).
   * **Warning (sddm):** Without a display manager there would be no graphical login, forcing use of a TTY.

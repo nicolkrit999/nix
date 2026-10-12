@@ -21,7 +21,7 @@ delib.module {
     ];
   };
 
-  # Critical for CI: ensures catppuccin options exist during `nix flake check`
+  # Standalone home builds have no host to add the HM module via sharedModules; import it here.
   home.always = { ... }: {
     imports = lib.optionals (moduleSystem == "home") [
       inputs.catppuccin.homeModules.catppuccin

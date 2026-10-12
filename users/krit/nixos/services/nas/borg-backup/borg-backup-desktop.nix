@@ -1,5 +1,4 @@
 { delib
-, lib
 , config
 , ...
 }:
@@ -143,6 +142,6 @@ delib.module {
           RandomizedDelaySec = "5m";
         };
       };
-      services.tailscale.enable = lib.mkForce true;
+      myconfig.services.tailscale.enable = true;
     };
 }

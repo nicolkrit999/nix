@@ -76,7 +76,7 @@ let
     (src + "/modules/common/programs/statix.nix")
     (src + "/modules/common/programs/television.nix")
     (src + "/modules/common/programs/zen-browser.nix")
-    (src + "/modules/common/services/localsend.nix")
+    (src + "/modules/nixos/services/localsend.nix")
     (src + "/modules/common/services/tailscale.nix")
     (src + "/modules/common/toplevel/cachix.nix")
     (src + "/modules/common/toplevel/nh.nix")

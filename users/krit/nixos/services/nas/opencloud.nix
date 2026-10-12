@@ -65,7 +65,7 @@ delib.module {
 
       fileSystems = lib.listToAttrs (map mkOpencloudFileSystem cfg.spaces);
 
-      services.tailscale.enable = lib.mkForce true;
+      myconfig.services.tailscale.enable = true;
       users.users.${myconfig.constants.user}.extraGroups = [ "davfs2" ];
       systemd.tmpfiles.rules = [
         "d /mnt/nicol_nas 0700 ${myconfig.constants.user} users -"

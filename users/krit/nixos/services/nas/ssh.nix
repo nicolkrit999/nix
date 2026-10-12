@@ -1,7 +1,6 @@
 { delib
 , config
 , pkgs
-, lib
 , ...
 }:
 delib.module {
@@ -23,7 +22,7 @@ delib.module {
     in
     {
       environment.systemPackages = [ pkgs.sshfs ];
-      services.tailscale.enable = lib.mkForce true;
+      myconfig.services.tailscale.enable = true;
       systemd.tmpfiles.rules = [
         "d /mnt/nicol_nas 0700 ${myconfig.constants.user} users -"
         "d ${mountPoint} 0755 ${myconfig.constants.user} users -"

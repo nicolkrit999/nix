@@ -214,15 +214,13 @@ delib.module {
         description = "Force tailscale exit-node off for the school specialisation";
         after = [
           "tailscaled.service"
-          "tailscale-autoconnect.service"
+          "tailscaled-set.service"
+          "tailscaled-autoconnect.service"
         ];
-        wants = [
-          "tailscaled.service"
-          "tailscale-autoconnect.service"
-        ];
+        wants = [ "tailscaled.service" ];
         wantedBy = [ "multi-user.target" ];
 
-        path = [ pkgs.tailscale ];
+        path = [ config.services.tailscale.package ];
 
         serviceConfig.Type = "exec";
 
@@ -246,9 +244,9 @@ delib.module {
       environment.etc."davfs2/secrets".source = config.sops.templates."davfs-secrets".path;
       users.users.${myUserName}.extraGroups = [ "davfs2" ];
       # OpenCloud is only reachable over the tailnet - force the full
-      # myconfig.services.tailscale wrapper (not just the raw NixOS option),
-      # so tailscale-autoconnect.service actually exists and authenticates,
-      # regardless of whether the host enables this module by default.
+      # myconfig.services.tailscale wrapper (--operator, firewall trust/rpfilter,
+      # exit-node helpers), not just the raw NixOS option. Login is upstream
+      # tailscaled-autoconnect via authKeyFile (templates/krit/sops/service-wiring.nix).
       myconfig.services.tailscale.enable = lib.mkForce true;
       fileSystems = lib.listToAttrs (map mkSchoolOpencloudFileSystem schoolOpencloudSpaces);
       systemd.tmpfiles.rules = [

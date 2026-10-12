@@ -4,7 +4,15 @@ let
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
 
-  base = flake.nixosConfigurations.${host}.config;
+  sys = flake.nixosConfigurations.${host};
+  base = sys.config;
+  withLocalsend = on: (sys.extendModules { modules = [{ myconfig.services.localsend.enable = lib.mkForce on; }]; }).config;
+  lsOn = withLocalsend true;
+  lsOff = withLocalsend false;
+  lsPort = 53317;
+  lsPkgIn = c: builtins.elem c.programs.localsend.package.pname (pkgNames c.environment.systemPackages);
+  lsWired = c: c.programs.localsend.enable && builtins.elem lsPort c.networking.firewall.allowedTCPPorts
+    && builtins.elem lsPort c.networking.firewall.allowedUDPPorts && lsPkgIn c;
   has = name: base.specialisation ? ${name};
   spec = name: base.specialisation.${name}.configuration;
 
@@ -126,6 +134,13 @@ let
     "secure-travel: resolved MulticastDNS off" = eq "MulticastDNS" s.services.resolved.settings.Resolve.MulticastDNS "false";
     "secure-travel: gnome-remote-desktop disabled" = eq "grd" s.services.gnome.gnome-remote-desktop.enable false;
     "secure-travel: gnome-user-share disabled" = eq "gus" s.services.gnome.gnome-user-share.enable false;
+    "secure-travel: myconfig.services.localsend.enable == false" = eq "myconfig localsend" s.myconfig.services.localsend.enable false;
+    "secure-travel: programs.localsend.enable == false" = eq "programs.localsend" s.programs.localsend.enable false;
+    "localsend: enabled module sets programs.localsend.enable" = eq "programs.localsend" lsOn.programs.localsend.enable true;
+    "localsend: enabled module opens TCP 53317" = yes "tcp ${toString lsPort} not open: ${builtins.toJSON lsOn.networking.firewall.allowedTCPPorts}" (builtins.elem lsPort lsOn.networking.firewall.allowedTCPPorts);
+    "localsend: enabled module opens UDP 53317" = yes "udp ${toString lsPort} not open: ${builtins.toJSON lsOn.networking.firewall.allowedUDPPorts}" (builtins.elem lsPort lsOn.networking.firewall.allowedUDPPorts);
+    "localsend: enabled module installs the localsend package system-wide" = yes "programs.localsend.package not in environment.systemPackages" (lsPkgIn lsOn);
+    "control: localsend disabled leaves 53317 closed and the program off" = yes "localsend wiring present with the module off" (!(lsWired lsOff) && !(builtins.elem lsPort lsOff.networking.firewall.allowedTCPPorts) && !(builtins.elem lsPort lsOff.networking.firewall.allowedUDPPorts));
     "secure-travel: tags contain secure-travel" = yes "tags" (builtins.elem "secure-travel" s.system.nixos.tags);
     "control: base tailscale enabled (secure-travel override is not vacuous)" = eq "base tailscale" base.myconfig.services.tailscale.enable true;
     "control: base root account differs from secure-travel" = yes "base already locked" (base.users.users.root.hashedPassword != "!" || base.users.users.root.hashedPasswordFile != null);

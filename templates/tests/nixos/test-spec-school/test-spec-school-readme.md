@@ -34,8 +34,8 @@ Per host (scenario report):
 |-------|----------|
 | specialisation evaluates | `specialisation.school` exists, tags `[ "school" ]` |
 | constants.shell | `bash` |
-| tailscale | `myconfig.services.tailscale.enable`, `tailscale-autoconnect` service exists |
-| exit-node-off unit | `wantedBy multi-user.target`, all `after`/`wants` units exist in `systemd.services`, stays `After`/`Wants` `tailscale-autoconnect.service` |
+| tailscale | `myconfig.services.tailscale.enable`; upstream `tailscaled-autoconnect` exists and the removed repo unit `tailscale-autoconnect` does not |
+| exit-node-off unit | `wantedBy multi-user.target`, all `after`/`wants` units exist in `systemd.services`, `After` `tailscaled.service`, never references `tailscale-autoconnect.service` |
 | exit-node-off non-blocking | `serviceConfig.Type = "exec"` |
 | exit-node-off retry | script retries `tailscale set --exit-node= && exit 0` in a bounded `seq` loop with `timeout`, ends `exit 1`, and does not wait on `BackendState` |
 | exit-node-off path | `tailscale` package on the unit `path` |

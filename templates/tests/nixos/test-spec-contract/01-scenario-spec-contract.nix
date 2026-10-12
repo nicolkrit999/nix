@@ -82,7 +82,7 @@ let
     (src + "/modules/nixos/services/swaync.nix")
     (src + "/modules/common/services/tailscale.nix")
     (src + "/modules/nixos/toplevel/bluetooth.nix")
-    (src + "/modules/common/services/localsend.nix")
+    (src + "/modules/nixos/services/localsend.nix")
     (src + "/users/krit/nixos/services/nas/smb.nix")
     (src + "/users/krit/nixos/services/nas/opencloud.nix")
     (src + "/users/krit/nixos/services/nas/ssh.nix")

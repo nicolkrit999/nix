@@ -61,7 +61,7 @@ delib.module {
 
     in
     {
-      services.tailscale.enable = lib.mkForce true;
+      # Tailnet access on darwin comes from the tailscale-app cask (hosts/Krits-MacBook-Pro/local-packages.nix).
 
       sops.secrets.nas-krit-credentials = {
         sopsFile = ../../../common/sops/krit-common-secrets-sops.yaml;

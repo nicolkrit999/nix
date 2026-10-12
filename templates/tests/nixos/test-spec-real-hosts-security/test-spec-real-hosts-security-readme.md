@@ -26,11 +26,11 @@ Needs `nix`, `jq`, `bash`. Eval-only (no builds); both hosts evaluate in paralle
 
 `check-nixos-spec-real-hosts-security.sh` evaluates `results` once per host, prints a PASS/FAIL line per check, then runs `bash -n` on the killswitch text. It exits non-zero on any failure.
 
-Guest checks compare independent sources (uid vs gid vs tmpfs `uid=`/`gid=` options vs firewall `--uid-owner` vs slice name; AccountsService session vs `defaultSession`) rather than hardcoded literals. `control:` checks prove the main checks can fail (the base config has tailscale on, no guest user, a DE enabled, and a non-locked root).
+Guest checks compare independent sources (uid vs gid vs tmpfs `uid=`/`gid=` options vs firewall `--uid-owner` vs slice name; AccountsService session vs `defaultSession`) rather than hardcoded literals. `control:` checks prove the main checks can fail (the base config has tailscale on, no guest user, a DE enabled, and a non-locked root). For localsend the scenario builds two `extendModules` twins of the real host with `myconfig.services.localsend.enable` forced on and off: the enabled twin must open TCP and UDP 53317 and install `programs.localsend.package` system-wide, the disabled twin must not open 53317. That proves the port the secure-travel `allowed*Ports == []` check removes really comes from the module, without asserting whether a host enables localsend.
 
 Scope: only specialisation purpose contracts are asserted (guest isolation, secure-travel hardening and GNOME-only, entertainment). Which specialisations a host declares is a host choice and is not checked. The hosts are the real ones, so no fake host is involved.
 
-Three secure-travel gaps this test was written against are fixed in `modules/nixos/specializations/secure-travel.nix` and now pass: the NAS consumers are disabled so `services.tailscale.enable` really ends up false, the firewall port lists are `mkForce [ ]` (sshd, avahi and localsend are off too), and mango is disabled.
+Three secure-travel gaps this test was written against are fixed in `modules/nixos/specializations/secure-travel.nix` and now pass: the NAS consumers (which enable the tailscale wrapper and only work over the tailnet) are disabled so `services.tailscale.enable` really ends up false, the firewall port lists are `mkForce [ ]` (sshd, avahi and localsend are off too), and mango is disabled.
 
 ## Checks
 
@@ -68,7 +68,16 @@ Three secure-travel gaps this test was written against are fixed in `modules/nix
 | tailscale | `myconfig.services.tailscale.enable == false`, `services.tailscale.enable == false`, `tailscale0` not trusted |
 | DEs | gnome only |
 | killswitch | script text passes `bash -n` |
+| localsend | `myconfig.services.localsend.enable == false`, `programs.localsend.enable == false` |
 | controls | base tailscale on, root not locked in base, helper detects mismatch |
+
+### localsend module (twins of the real host)
+| Check | Expected |
+|-------|----------|
+| enabled module sets programs.localsend.enable | `programs.localsend.enable == true` |
+| enabled module opens TCP 53317 / UDP 53317 | 53317 in `allowedTCPPorts` and in `allowedUDPPorts` |
+| enabled module installs the localsend package system-wide | `programs.localsend.package` (by pname) in `environment.systemPackages` |
+| control: localsend disabled | 53317 in neither port list, `programs.localsend` not wired |
 
 ### entertainment (only where the host declares it: the desktop, not the laptop)
 | Check | Expected |

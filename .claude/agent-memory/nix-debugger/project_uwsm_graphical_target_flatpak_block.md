@@ -17,7 +17,7 @@ Second variant (2026-10-10, laptop): flatpak-managed-install is `After=multi-use
 multi-user stalls it AND graphical.target forever. Culprit was the repo's own `tailscale-autoconnect` (Type=oneshot,
 no start timeout, WantedBy multi-user) running interactive `tailscale up` after the node key expired: it blocks on the
 browser auth URL indefinitely. Tell: `systemctl list-jobs` shows it `running` + flatpak `waiting`; `tailscale status`
-= "Logged out". FIXED 2026-10-11 (commit 4ddd6ec1): `tailscale-autoconnect` is now Type=exec with a bounded retry loop (`tailscale up --timeout=20s`, 20 tries), so it no longer blocks multi-user.target; the tell above applies only if that regression returns (guarded by the tailscale-contract test). Also: nixpkgs `tailscaled-autoconnect` echoes the full auth key into the journal when `tailscale up`
+= "Logged out". HISTORICAL: 4ddd6ec1 (2026-10-11) made it Type=exec with `tailscale up --timeout=20s`, which then failed every boot; the unit was REMOVED 2026-10-12 (audit batch 3). Login is now only nixpkgs `tailscaled-autoconnect` (Type=notify, WantedBy tailscaled, not multi-user), so this variant should not recur unless someone re-adds a multi-user oneshot running `tailscale up`. Also: nixpkgs `tailscaled-autoconnect` echoes the full auth key into the journal when `tailscale up`
 rejects flags (needs --reset / matching extraUpFlags).
 
 **Why:** the gap between a graphical-looking login and a compositor that never starts is invisible: no coredump, no Hyprland log.
