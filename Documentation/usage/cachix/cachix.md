@@ -114,7 +114,7 @@ This file is the "Robot" that runs the factory.
 This file configures your machines to talk to the warehouse.
 
 - **Automatic Auth:** `sops-nix` injects the token at `/run/secrets/cachix-push-token`. All three hosts currently enable push and reference it.
-- **Pushing happens automatically on switch.** The rebuild aliases are wrapped (`wrapCaches` in `modules/common/programs/shells/shell-aliases.nix`), so a normal `sw`/switch already pipes `nix path-info -r /run/current-system` into both `attic push` and `cachix push`. Each is suffixed `|| true`, so a cache being unreachable never fails your rebuild.
+- **Pushing happens automatically on switch.** The rebuild aliases are wrapped (`wrapCaches` in `modules/common/programs/shells/shell-aliases.nix`), so a normal `sw`/switch already pipes `nix path-info -r /run/current-system` (for `swboot`: `/nix/var/nix/profiles/system`, since the boot generation is not current yet) into both `attic push` and `cachix push`. Each is suffixed `|| true`, so a cache being unreachable never fails your rebuild.
 - **The manual alias is `cachix-push`** (and `attic-push` for the NAS). There is no `rebuild-push` alias.
 - **Use Case:** run `cachix-push` when you want to share the *current* system closure immediately without waiting for GitHub Actions.
 

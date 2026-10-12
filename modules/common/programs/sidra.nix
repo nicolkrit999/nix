@@ -10,7 +10,7 @@ delib.module {
   home.ifEnabled = { myconfig, cfg, ... }:
     let
       c = config.lib.stylix.colors.withHashtag;
-      polarity = myconfig.constants.theme.polarity or "dark";
+      inherit (myconfig.constants.theme) polarity;
 
       sidraColors = {
         crust = c.base00;
@@ -35,7 +35,7 @@ delib.module {
     {
       home.packages = [ inputs.sidra.packages.${pkgs.stdenv.hostPlatform.system}.default ];
 
-      home.file.${customThemePath} = lib.mkIf cfg.customTheme {
+      home.file.${customThemePath} = lib.mkIf (cfg.customTheme && myconfig.stylix.enable) {
         text = builtins.toJSON {
           ${polarity} = sidraColors;
         };

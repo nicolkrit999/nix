@@ -1,6 +1,6 @@
 { delib
 , pkgs
-, inputs
+, lib
 , ...
 }:
 delib.module {
@@ -11,7 +11,7 @@ delib.module {
     home.packages = [
       pkgs.nix-search-tv
       (pkgs.writeShellScriptBin "ns" ''
-                export PATH="${pkgs.fzf}/bin:${pkgs.nix-search-tv}/bin:$PATH"
+                export PATH="${pkgs.fzf}/bin:${pkgs.nix-search-tv}/bin:$PATH${lib.optionalString pkgs.stdenv.hostPlatform.isLinux ":${pkgs.xdg-utils}/bin"}"
 
                 # Ensure POSIX-compatible shell for subprocess compat (handles fish/nushell)
                 case "$(basename "$SHELL")" in
@@ -34,7 +34,8 @@ delib.module {
                 fi
 
                 CMD="''${NIX_SEARCH_TV:-nix-search-tv}"
-                STATE_FILE="/tmp/nix-search-tv-fzf"
+                STATE_FILE="$(mktemp -t nix-search-tv-fzf.XXXXXX)"
+                trap 'rm -f "$STATE_FILE"' EXIT
                 echo "" > "$STATE_FILE"
 
                 # Header text
@@ -64,10 +65,5 @@ delib.module {
                 $CMD print | fzf "''${FZF_ARGS[@]}"
       '')
     ];
-
-    home.activation.updateNixSearchTvIndex =
-      inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        $DRY_RUN_CMD ${pkgs.nix-search-tv}/bin/nix-search-tv print > /dev/null 2>&1 || true
-      '';
   };
 }

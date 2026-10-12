@@ -9,9 +9,9 @@ delib.module {
   home.always =
     { myconfig, ... }:
     let
-      fastfetchEnabled = myconfig.programs.fastfetch.enable or false;
-      splashCmd = myconfig.programs.fastfetch.splashCommand or "fastfetch";
-      currentShell = myconfig.constants.shell or "bash";
+      fastfetchEnabled = myconfig.programs.fastfetch.enable;
+      splashCmd = myconfig.programs.fastfetch.splashCommand;
+      currentShell = myconfig.constants.shell;
       isNixOS = moduleSystem == "nixos";
       isDarwin = moduleSystem == "darwin";
     in
@@ -23,14 +23,12 @@ delib.module {
         syntaxHighlighting.enable = true;
 
         initContent =
-          # Common init
           ''
             # LOAD USER CONFIG
             if [ -f "$HOME/.zshrc_custom" ]; then
               source "$HOME/.zshrc_custom"
             fi
           ''
-          # Darwin-specific init
           + lib.optionalString isDarwin ''
             # TMUX AUTOSTART (always on Darwin)
             if command -v tmux > /dev/null && [[ -z "$TMUX" ]] && [[ -z "$NVIM" ]] && [[ "$-" == *i* ]]; then
@@ -38,7 +36,6 @@ delib.module {
             fi
 
             export CASE_SENSITIVE="true"
-            export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 
             if [ -z "$SSH_AUTH_SOCK" ]; then
               eval "$(ssh-agent -s)" >/dev/null
@@ -51,7 +48,6 @@ delib.module {
               . "$HOME/.iterm2_shell_integration.zsh"
             fi
           ''
-          # NixOS-specific init
           + lib.optionalString isNixOS ''
             # FIX HYPRLAND SOCKET (Dynamic Update)
             if [ -d "/run/user/$(id -u)/hypr" ];

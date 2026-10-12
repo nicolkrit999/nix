@@ -83,6 +83,39 @@ let
     lib.concatMap (alias: if a ? ${alias} then inAlias alias "attic" ++ inAlias alias "cachix" else [ "alias ${alias} missing" ]) [ "sw" "upd" ]
     ++ pushAlias "attic" ++ pushAlias "cachix";
 
+  atticConfigFile = "attic/config.toml";
+  atticConfigProblems = cfg:
+    let
+      at = cfg.config.myconfig.attic;
+      files = (hmOf cfg).xdg.configFile;
+      want = at.enable && at.push;
+      server = files.${atticConfigFile}.source.value.servers.nas-push or null;
+    in
+    if (files.${atticConfigFile}.enable or false) != want then
+      [ "${atticConfigFile} ${if want then "missing" else "present"} (attic enable && push = ${lib.boolToString want})" ]
+    else if !want then [ ]
+    else if server == null then [ "${atticConfigFile} has no servers.nas-push" ]
+    else
+      lib.optional (builtins.attrNames server != [ "endpoint" "token-file" ])
+        "nas-push keys are ${builtins.toJSON (builtins.attrNames server)}, expected only endpoint and token-file"
+      ++ lib.optional ((server.token-file or null) != at.authTokenPath) "nas-push token-file is not attic.authTokenPath"
+      ++ lib.optional ((server.endpoint or null) != at.serverUrl) "nas-push endpoint is not attic.serverUrl";
+
+  tokenArgvProblems = cfg:
+    let
+      a = aliasesOf cfg;
+      c = cfg.config.myconfig.cachix;
+      count = needle: hay: builtins.length (lib.splitString needle hay) - 1;
+      safeCachix = "CACHIX_AUTH_TOKEN=\"$(cat ${c.authTokenPath})\" cachix push ";
+      offenders = needle: builtins.filter (n: lib.hasInfix needle a.${n}) (builtins.attrNames a);
+    in
+    map (n: "alias ${n} runs attic login") (offenders "attic login")
+    ++ map (n: "alias ${n} passes CACHIX_AUTH_TOKEN through env argv") (offenders "env CACHIX_AUTH_TOKEN=")
+    ++ lib.optionals (c.enable && c.push && c.authTokenPath != "")
+      (map (n: "alias ${n} runs cachix push without the CACHIX_AUTH_TOKEN=\"$(cat <authTokenPath>)\" prefix")
+        (builtins.filter (n: count "cachix push " a.${n} != count safeCachix a.${n}) (offenders "cachix push ")))
+    ++ atticConfigProblems cfg;
+
   presetsFile = "nix-sweep/presets.toml";
   isSweep = p: lib.getName p == "nix-sweep";
   sweepInstalledProblems = label: hmCfg: extraPkgs:
@@ -98,6 +131,7 @@ let
 
   perHost = name: cfg: {
     "check-${name}-push-alias-gating" = failIf (pushGatingProblems cfg);
+    "check-${name}-push-token-off-argv" = failIf (tokenArgvProblems cfg);
     "check-${name}-nix-sweep-installed" = failIf (systemSweepProblems name cfg);
     "check-${name}-substituter-key-pairing" = failIf (pairingProblems cfg);
     "check-${name}-substituter-nonempty" =
@@ -176,19 +210,45 @@ let
   controls = {
     "check-control-push-both-on" =
       let c = pushOn (pushFlags true true) (pushFlags true true);
-      in failIf (pushGatingProblems c ++ lib.optional (!((aliasesOf c) ? attic-push && (aliasesOf c) ? cachix-push)) "push aliases missing with both push on");
+      in failIf (pushGatingProblems c ++ tokenArgvProblems c ++ lib.optional (!((aliasesOf c) ? attic-push && (aliasesOf c) ? cachix-push)) "push aliases missing with both push on");
     "check-control-push-attic-off" =
       let c = pushOn (pushFlags true false) (pushFlags true true);
-      in failIf (pushGatingProblems c ++ lib.optional (lib.hasInfix "attic push " (aliasesOf c).sw) "sw still pushes to attic");
+      in failIf (pushGatingProblems c ++ tokenArgvProblems c ++ lib.optional (lib.hasInfix "attic push " (aliasesOf c).sw) "sw still pushes to attic");
     "check-control-push-cachix-off" =
       let c = pushOn (pushFlags true true) (pushFlags true false);
-      in failIf (pushGatingProblems c ++ lib.optional (lib.hasInfix "cachix push " (aliasesOf c).upd) "upd still pushes to cachix");
+      in failIf (pushGatingProblems c ++ tokenArgvProblems c ++ lib.optional (lib.hasInfix "cachix push " (aliasesOf c).upd) "upd still pushes to cachix");
     "check-control-push-cachix-disabled-push-true" =
       let c = pushOn (pushFlags true true) (pushFlags false true);
-      in failIf (pushGatingProblems c ++ lib.optional ((aliasesOf c) ? cachix-push) "cachix-push alias with cachix disabled");
+      in failIf (pushGatingProblems c ++ tokenArgvProblems c ++ lib.optional ((aliasesOf c) ? cachix-push) "cachix-push alias with cachix disabled");
     "check-control-push-both-off" =
       let c = pushOn (pushFlags true false) (pushFlags true false);
-      in failIf (pushGatingProblems c ++ lib.optional ((aliasesOf c).sw != (aliasesOf (pushOn (pushFlags false false) (pushFlags false false))).sw) "sw with push off differs from sw with both caches disabled");
+      in failIf (pushGatingProblems c ++ tokenArgvProblems c ++ lib.optional ((aliasesOf c).sw != (aliasesOf (pushOn (pushFlags false false) (pushFlags false false))).sw) "sw with push off differs from sw with both caches disabled");
+    "check-control-token-argv-detected" =
+      let
+        c = withModules desktop [{
+          home-manager.users.krit.home.shellAliases = {
+            sw = lib.mkForce "attic login nas-push http://attic.example \"$(cat /run/test-token)\"";
+            upd = lib.mkForce "nix path-info -r /run/current-system | env CACHIX_AUTH_TOKEN=$(cat /run/test-token) cachix push x";
+            cachix-push = lib.mkForce "nix path-info -r /run/current-system | cachix push x";
+          };
+        }];
+        p = tokenArgvProblems c;
+        hit = alias: what: builtins.any (m: lib.hasPrefix "alias ${alias} ${what}" m) p;
+      in
+      if hit "sw" "runs attic login" && hit "upd" "passes CACHIX_AUTH_TOKEN" && hit "cachix-push" "runs cachix push without" then ok
+      else "FAIL: mutant token-on-argv aliases not all detected: ${builtins.toJSON p}";
+    "check-control-attic-config-token-detected" =
+      let
+        c = withModules desktop [
+          ({ pkgs, ... }: {
+            home-manager.users.krit.xdg.configFile.${atticConfigFile}.source = lib.mkForce ((pkgs.formats.toml { }).generate "attic-config.toml" {
+              servers.nas-push = { endpoint = desktop.config.myconfig.attic.serverUrl; token = "not-a-real-token"; };
+            });
+          })
+        ];
+      in
+      if builtins.length (atticConfigProblems c) == 2 then ok
+      else "FAIL: inline attic token not detected: ${builtins.toJSON (atticConfigProblems c)}";
     "check-control-nix-sweep-missing-detected" =
       let c = withModules desktop [{ environment.systemPackages = lib.mkForce (dropSweep desktop.config.environment.systemPackages); }];
       in if systemSweepProblems "desktop-mutant" c != [ ] then ok else "FAIL: removing nix-sweep from systemPackages was not detected";

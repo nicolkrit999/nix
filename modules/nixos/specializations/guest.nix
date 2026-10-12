@@ -1,11 +1,13 @@
 { delib
 , lib
 , config
+, options
 , pkgs
 , ...
 }:
 let
   myUserName = config.myconfig.constants.user;
+  hasClaudeWrappers = options ? myconfig.krit.programs.claude-code-wrappers;
 
   guestWelcomeScript = pkgs.writeShellScriptBin "guest-welcome" ''
     # Wait for panel/notifications stack so the dialog isn't drawn under it.
@@ -54,6 +56,12 @@ delib.module {
       myconfig.programs.nix-alien.enable = lib.mkForce false;
       myconfig.programs.claude-code.enable = lib.mkForce false;
       myconfig.programs.claude-desktop.enable = lib.mkForce false;
+      myconfig.programs.codex.enable = lib.mkForce false;
+      myconfig.programs.herdr.enable = lib.mkForce false;
+      myconfig.programs.headroom.enable = lib.mkForce false;
+      imports = lib.optional hasClaudeWrappers {
+        myconfig.krit.programs.claude-code-wrappers.enable = lib.mkForce false;
+      };
       myconfig.bluetooth.enable = lib.mkForce false;
 
       myconfig.stylix.enable = lib.mkForce false;

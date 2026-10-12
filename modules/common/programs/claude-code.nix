@@ -1,10 +1,13 @@
-{ delib, inputs, pkgs, lib, moduleSystem, config, ... }:
+{ delib, inputs, pkgs, lib, moduleSystem, ... }:
 let
-  shellAliases = {
+  # Deliberately unpinned `@latest`: a manual escape hatch, not a managed tool.
+  templateAliases = {
     caitempplugins = "npx claude-code-templates@latest --plugins";
     caitemphealt = "npx claude-code-templates@latest --health-check";
     caitempchat = "npx claude-code-templates@latest --chats";
     caitempanalytics = "npx claude-code-templates@latest --analytics";
+  };
+  openrouterAliases = {
     cai-openrouter-geminipro = "cai-openrouter --model google/gemini-3.1-pro-preview[1m]";
     cai-openrouter-geminiflash = "cai-openrouter --model google/gemini-3.1-flash-lite-preview[1m]";
     cai-openrouter-gptpro = "cai-openrouter --model openai/gpt-5.5-pro[1m]";
@@ -15,7 +18,7 @@ let
     cai-openrouter-scout = "cai-openrouter --model meta-llama/llama-4-scout[1m]";
     cai-openrouter-glmturbo = "cai-openrouter --model z-ai/glm-5-turbo";
     cai-openrouter-grokbeta = "cai-openrouter --model x-ai/grok-4.20-beta[1m]";
-    cai-openrouter-grokmulti = "cai-openrouter --model x-ai/grok-4.20-multi-agent-beta[1m]"; # In reality support 2M but it does not alllow anything more than 1m
+    cai-openrouter-grokmulti = "cai-openrouter --model x-ai/grok-4.20-multi-agent-beta[1m]"; # In reality support 2M but it does not allow anything more than 1m
     cai-openrouter-free-step = "cai-openrouter --model stepfun/step-3.5-flash:free";
     cai-openrouter-free-hunter = "cai-openrouter --model openrouter/hunter-alpha[1m]";
     cai-openrouter-mistralsmall = "cai-openrouter --model mistralai/mistral-small-2603";
@@ -23,19 +26,23 @@ let
     cai-openrouter-qwen = "cai-openrouter --model qwen/qwen3.5-397b-a17b";
     cai-openrouter-minimax = "cai-openrouter --model minimax/minimax-m2.5";
   };
-  claudeCodePackages = [
-    pkgs.claude-code
-    pkgs.nodejs_latest
+  overlays = [ inputs.claude-code.overlays.default ];
+  claudeCodeTools = [
     pkgs.bun
-    pkgs.rtk
     pkgs.gh
+    pkgs.nodejs_latest
+    pkgs.rtk
   ];
+  sharedIfEnabled = {
+    environment.systemPackages = [ pkgs.claude-code ] ++ claudeCodeTools;
+  };
 in
 delib.module {
   name = "programs.claude-code";
 
   options = delib.moduleOptions {
     enable = delib.boolOption false;
+    cowork = delib.boolOption false;
     mcpSecrets = lib.mkOption {
       type = lib.types.listOf (lib.types.submodule {
         options = {
@@ -49,8 +56,8 @@ delib.module {
           };
         };
       });
-      # Shared across every host (nixos-desktop, nixos-laptop, Krits-MacBook-Pro) -
-      # keep this list as the single source of truth instead of duplicating it per-host.
+      # Default for every host that does not override it (Nicol-NAS does; the
+      # Darwin sops declarations keep their own static list).
       default = [
         { sopsSecret = "openrouter_api_claude_code"; envVar = "OPENROUTER_API_KEY"; }
         { sopsSecret = "claude_mcp_actual_password"; envVar = "ACTUAL_PASSWORD"; }
@@ -65,86 +72,70 @@ delib.module {
         { sopsSecret = "claude_mcp_vikunja_token"; envVar = "VIKUNJA_API_TOKEN"; }
         { sopsSecret = "claude_mcp_beszel_email"; envVar = "BESZEL_EMAIL"; }
         { sopsSecret = "claude_mcp_beszel_password"; envVar = "BESZEL_PASSWORD"; }
-        #{ sopsSecret = "claude_mcp_kagi_api_key"; envVar = "KAGI_API_KEY"; }
       ];
-      description = "List of MCP secrets to provision via sops-nix.";
+      description = "Names of the MCP secrets; the sops declarations are generated from this list elsewhere, MCP launchers read the secret files themselves.";
     };
     mcpEnv = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      # Shared across every host - see mcpSecrets above for the same rationale.
+      # Default unless a host overrides it; only the home-build wrapper exports it.
       default = {
         ACTUAL_SERVER_URL = "https://budget.nicolkrit.ch";
       };
-      description = "Static environment variables for MCP servers.";
+      description = "Static environment variables exported by the home-build `claude` wrapper.";
     };
   };
 
   # ===========================================================================
   # DARWIN CONFIGURATION
   # ===========================================================================
-  darwin.always =
-    { ... }:
-    {
-      nixpkgs.overlays = [
-        inputs.claude-code.overlays.default
-      ];
-    };
+  darwin.always.nixpkgs.overlays = overlays;
 
-  darwin.ifEnabled =
-    { ... }:
-    {
-      environment.systemPackages = claudeCodePackages;
-    };
+  darwin.ifEnabled = sharedIfEnabled;
 
   # ===========================================================================
   # NIXOS CONFIGURATION
   # ===========================================================================
-  nixos.always = { ... }: {
+  nixos.always = {
     imports = [ inputs.claude-cowork-service.nixosModules.default ];
-    nixpkgs.overlays = [
-      inputs.claude-code.overlays.default
-    ];
+    nixpkgs.overlays = overlays;
   };
 
-  nixos.ifEnabled = { ... }: {
-    environment.systemPackages = claudeCodePackages;
+  nixos.ifEnabled = { cfg, ... }: sharedIfEnabled // {
+    services.claude-cowork.enable = cfg.cowork;
   };
 
-  home.ifEnabled = { myconfig, ... }:
+  home.always = lib.optionalAttrs (moduleSystem == "home") {
+    nixpkgs.overlays = overlays;
+  };
+
+  home.ifEnabled = { cfg, myconfig, ... }:
     let
-      mcpSecrets = myconfig.programs.claude-code.mcpSecrets;
-      mcpEnv = myconfig.programs.claude-code.mcpEnv;
+      shellAliases = templateAliases
+        // lib.optionalAttrs myconfig.krit.programs.claude-code-wrappers.enable openrouterAliases;
 
-      mcpSecretExports = map
-        (s: ''export ${s.envVar}="$(cat ${lib.escapeShellArg config.sops.secrets.${s.sopsSecret}.path})"'')
-        mcpSecrets;
       mcpStaticExports = lib.mapAttrsToList
         (name: value: "export ${name}=${lib.escapeShellArg value}")
-        mcpEnv;
+        cfg.mcpEnv;
 
       claudeHomeWrapper = pkgs.writeShellScriptBin "claude" ''
-        ${lib.concatStringsSep "\n" (mcpSecretExports ++ mcpStaticExports)}
+        ${lib.concatStringsSep "\n" mcpStaticExports}
         exec ${pkgs.claude-code}/bin/claude "$@"
       '';
-
-      homeClaudeCodePackages = [
-        claudeHomeWrapper
-        pkgs.nodejs_latest
-        pkgs.bun
-        pkgs.rtk
-      ];
     in
     {
       home.sessionVariables.CLAUDE_BINARY = "${pkgs.claude-code}/bin/.claude-unwrapped";
-      programs.git.ignores = [
-        "credentials.json"
-        "security_warnings_*.json"
-      ];
 
-      programs.fish.shellAbbrs = lib.mkIf (myconfig.constants.shell == "fish") shellAliases;
-      programs.zsh.shellAliases = lib.mkIf (myconfig.constants.shell == "zsh") shellAliases;
-      programs.bash.shellAliases = lib.mkIf (myconfig.constants.shell == "bash") shellAliases;
+      programs = {
+        git.ignores = [
+          "credentials.json"
+          "security_warnings_*.json"
+        ];
 
-      home.packages = if moduleSystem == "home" then homeClaudeCodePackages else [ ];
+        fish.shellAbbrs = lib.mkIf (myconfig.constants.shell == "fish") shellAliases;
+        zsh.shellAliases = lib.mkIf (myconfig.constants.shell == "zsh") shellAliases;
+        bash.shellAliases = lib.mkIf (myconfig.constants.shell == "bash") shellAliases;
+      };
+
+      home.packages = lib.optionals (moduleSystem == "home") ([ claudeHomeWrapper ] ++ claudeCodeTools);
     };
 }

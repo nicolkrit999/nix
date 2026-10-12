@@ -12,8 +12,8 @@ delib.module {
     { cfg, myconfig, ... }:
     {
       home.activation.setupNixRepoHooks = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        if [ -d "$HOME/nix/.git" ]; then
-          $DRY_RUN_CMD ${pkgs.git}/bin/git -C "$HOME/nix" config core.hooksPath .githooks
+        if [ -d "$HOME/${myconfig.constants.flakeDir}/.git" ]; then
+          run ${pkgs.git}/bin/git -C "$HOME/${myconfig.constants.flakeDir}" config core.hooksPath .githooks
         fi
       '';
 
@@ -29,19 +29,19 @@ delib.module {
           "result"
           "*.swp"
           ".DS_Store"
-
         ]
         ++ cfg.customGitIgnores;
 
         settings = {
           user = {
-            name = myconfig.constants.gitUserName;
-            email = myconfig.constants.gitUserEmail;
+            name = lib.mkIf (myconfig.constants.gitUserName != "") myconfig.constants.gitUserName;
+            email = lib.mkIf (myconfig.constants.gitUserEmail != "") myconfig.constants.gitUserEmail;
           };
           init.defaultBranch = "main";
           pull.ff = "only";
         };
 
+        # GitHub Desktop needs the PATH git-lfs; HM's store-path default breaks it (8d8b312f)
         iniContent.filter.lfs = {
           clean = lib.mkForce "git-lfs clean -- %f";
           smudge = lib.mkForce "git-lfs smudge -- %f";

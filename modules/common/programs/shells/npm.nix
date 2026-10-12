@@ -6,50 +6,48 @@
 }:
 delib.module {
   name = "programs.npm";
-  options = delib.moduleOptions {
-    enable = delib.boolOption false;
-    packages = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ ];
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      packages = description (listOfOption str [ ]) "Global npm packages installed imperatively at activation: a deliberate, unpinned escape hatch.";
+      hostPackages = listOfOption package [ ];
     };
-    hostPackages = lib.mkOption {
-      type = lib.types.listOf lib.types.package;
-      default = [ ];
-    };
-  };
 
-  home.ifEnabled = { myconfig, ... }: {
-    home.packages = [ pkgs.nodejs_latest ] ++ myconfig.programs.npm.hostPackages;
+  home.ifEnabled = { cfg, ... }: {
+    home = {
+      packages = [ pkgs.nodejs_latest ] ++ cfg.hostPackages;
 
-    home.file.".npmrc".text = ''
-      prefix = ''${HOME}/.npm-global
-    '';
-
-    home.sessionPath = [ "$HOME/.npm-global/bin" ];
-
-    home.activation = lib.optionalAttrs (myconfig.programs.npm.packages != [ ]) {
-      npmGlobalPackages = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        stamp="''${XDG_STATE_HOME:-$HOME/.local/state}/npm-global-packages.stamp"
-        want="${builtins.hashString "sha256" (pkgs.nodejs_latest.outPath + lib.concatStringsSep " " myconfig.programs.npm.packages)}"
-        installed=1
-        for pkg in ${lib.concatStringsSep " " myconfig.programs.npm.packages}; do
-          case "$pkg" in
-            @*) rest="''${pkg#@}"; name="@''${rest%%@*}" ;;
-            *) name="''${pkg%%@*}" ;;
-          esac
-          [ -d "$HOME/.npm-global/lib/node_modules/$name" ] || installed=0
-        done
-        if [ "$(cat "$stamp" 2>/dev/null)" != "$want" ] || [ "$installed" = 0 ]; then
-          if $DRY_RUN_CMD env PATH="${pkgs.nodejs_latest}/bin:$PATH" ${pkgs.nodejs_latest}/bin/npm install -g ${lib.concatStringsSep " " myconfig.programs.npm.packages}; then
-            if [ -z "''${DRY_RUN:-}" ]; then
-              mkdir -p "$(dirname "$stamp")"
-              printf '%s' "$want" > "$stamp"
-            fi
-          else
-            echo "npm global install failed; will retry next activation" >&2
-          fi
-        fi
+      file.".npmrc".text = ''
+        prefix = ''${HOME}/.npm-global
       '';
+
+      sessionPath = [ "$HOME/.npm-global/bin" ];
+
+      activation = lib.optionalAttrs (cfg.packages != [ ]) {
+        npmGlobalPackages = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          stamp="''${XDG_STATE_HOME:-$HOME/.local/state}/npm-global-packages.stamp"
+          want="${builtins.hashString "sha256" (pkgs.nodejs_latest.outPath + lib.concatStringsSep " " cfg.packages)}"
+          installed=1
+          for pkg in ${lib.concatStringsSep " " cfg.packages}; do
+            case "$pkg" in
+              @*) rest="''${pkg#@}"; name="@''${rest%%@*}" ;;
+              *) name="''${pkg%%@*}" ;;
+            esac
+            [ -d "$HOME/.npm-global/lib/node_modules/$name" ] || installed=0
+          done
+          if [ "$(cat "$stamp" 2>/dev/null)" != "$want" ] || [ "$installed" = 0 ]; then
+            if run env PATH="${pkgs.nodejs_latest}/bin:$PATH" ${pkgs.nodejs_latest}/bin/npm install -g ${lib.concatStringsSep " " cfg.packages}; then
+              if [ -z "''${DRY_RUN:-}" ]; then
+                mkdir -p "$(dirname "$stamp")"
+                printf '%s' "$want" > "$stamp"
+              fi
+            else
+              echo "npm global install failed; will retry next activation" >&2
+            fi
+          fi
+        '';
+      };
     };
   };
 }

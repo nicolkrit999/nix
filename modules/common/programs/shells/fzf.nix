@@ -1,6 +1,6 @@
 { delib, ... }:
 delib.module {
-  # Disabling this module disable some aliases inside the shells .nix files
+  # Disabling this breaks fzf-prev/fzf-editor and drops fish's ctrl-g fzf-cd-widget bind
   name = "programs.fzf";
   options = delib.singleEnableOption true;
 
@@ -9,7 +9,7 @@ delib.module {
     , ...
     }:
     let
-      currentShell = myconfig.constants.shell or "zsh";
+      currentShell = myconfig.constants.shell;
     in
     {
       programs.fzf = {

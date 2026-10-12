@@ -1,5 +1,6 @@
 { delib
 , lib
+, pkgs
 , moduleSystem
 , ...
 }:
@@ -12,19 +13,18 @@ delib.module {
     , ...
     }:
     let
+      # Foreign-distro /etc/profile resets PATH and __HM_SESS_VARS_SOURCED stops nested login shells from
+      # re-sourcing hm-session-vars, so standalone homes use non-login panes; darwin needs login panes for path_helper.
       isStandaloneHome = moduleSystem == "home";
     in
     {
-      # -----------------------------------------------------------------------
-      catppuccin.tmux.enable = myconfig.constants.theme.catppuccin or false;
-      catppuccin.tmux.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
-      # -----------------------------------------------------------------------
-
-      catppuccin.tmux.extraConfig = lib.mkIf myconfig.constants.theme.catppuccin ''
-        set -g @catppuccin_window_status_style "rounded"
-        set -g @catppuccin_status_modules_right "directory session user host"
-        set -g @catppuccin_window_current_fill "${myconfig.constants.theme.catppuccinAccent}"
-      '';
+      catppuccin.tmux = {
+        enable = myconfig.constants.theme.catppuccin;
+        flavor = myconfig.constants.theme.catppuccinFlavor;
+        extraConfig = lib.mkIf myconfig.constants.theme.catppuccin ''
+          set -g @catppuccin_window_status_style "rounded"
+        '';
+      };
 
       programs.tmux = {
         enable = true;
@@ -37,8 +37,7 @@ delib.module {
 
         extraConfig = ''
           ${lib.optionalString isStandaloneHome ''
-            # Spawn non-login shells in panes so they inherit this server's PATH
-            # instead of re-running /etc/profile (see comment above on why).
+            # Non-login pane shells keep this server's PATH instead of re-running /etc/profile
             set -g default-command "$SHELL"
           ''}
           # TERMINAL FILE MANAGERS IMAGE PREVIEW SUPPORT
@@ -51,7 +50,7 @@ delib.module {
           set -as terminal-features ",xterm-kitty:RGB"
           set -as terminal-features ",xterm-256color:RGB"
 
-          bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "wl-copy"
+          bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "${if pkgs.stdenv.hostPlatform.isDarwin then "pbcopy" else "${pkgs.wl-clipboard}/bin/wl-copy"}"
 
           # --- CUSTOM BINDINGS (Alt/Meta based) ---
           bind -n M-r source-file ~/.config/tmux/tmux.conf \; display "Reloaded!"

@@ -52,11 +52,12 @@ delib.module {
     {
       assertions = [
         {
-          assertion = !myconfig.programs.shell-aliases.enable;
+          assertion = !myconfig.programs.shell-aliases.enable || myconfig.constants.nixImpure;
           message = ''
             myconfig.nh.enable is false, but the Darwin rebuild aliases from
-            programs.shell-aliases (sw, gsw, upd, swdry, ...) always run
-            `nh darwin`. Enable nh or disable programs.shell-aliases.
+            programs.shell-aliases (sw, gsw, upd, swdry, ...) run `nh darwin`
+            while constants.nixImpure is false. Enable nh, set
+            constants.nixImpure = true, or disable programs.shell-aliases.
           '';
         }
       ];

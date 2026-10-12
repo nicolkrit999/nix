@@ -36,6 +36,13 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | `services.hyprlock.enable` | `false` |
 | `services.swaync.enable` | `false` |
 | `services.hypridle.enable` | `false` |
+| `programs.claude-code.enable` | `false` |
+| `programs.claude-desktop.enable` | `false` |
+| `programs.codex.enable` | `false` |
+| `programs.herdr.enable` | `false` |
+| `programs.headroom.enable` | `false` |
+| `headroom-proxy` user unit | absent (base present) |
+| `krit.programs.claude-code-wrappers.enable` | `false` |
 | autostart `.desktop` | Exec ends in `/bin/guest-welcome`, `OnlyShowIn=XFCE;`, absent in base |
 
 ### safe-mode
@@ -58,6 +65,13 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | `hyprland.enable` | `false` |
 | `services.tailscale.enable` | `false` |
 | `programs.nix-ld.enable` | `false` |
+| `programs.claude-code.enable` | `false` |
+| `programs.claude-desktop.enable` | `false` |
+| `programs.codex.enable` | `false` |
+| `programs.herdr.enable` | `false` |
+| `programs.headroom.enable` | `false` |
+| `headroom-proxy` user unit | absent (base present) |
+| `krit.programs.claude-code-wrappers.enable` | `false` |
 | `programs.gnome.enable` | `true` |
 | NM `dispatcherScripts` | non-empty (base empty) |
 

@@ -11,29 +11,27 @@ delib.module {
     , ...
     }:
     let
-      isCatppuccin = myconfig.constants.theme.catppuccin or false;
-      currentShell = myconfig.constants.shell or "zsh";
+      isCatppuccin = myconfig.constants.theme.catppuccin;
+      currentShell = myconfig.constants.shell;
 
-      base16Accent = config.lib.stylix.colors.withHashtag.base0E;
+      colors = config.lib.stylix.colors.withHashtag;
 
-      mainColor =
-        if isCatppuccin then (myconfig.constants.theme.catppuccinAccent or "mauve") else base16Accent;
+      mainColor = if isCatppuccin then myconfig.constants.theme.catppuccinAccent else colors.base0E;
 
-      successColor = if isCatppuccin then "green" else config.lib.stylix.colors.withHashtag.base0B;
+      successColor = if isCatppuccin then "green" else colors.base0B;
 
-      errorColor = if isCatppuccin then "red" else config.lib.stylix.colors.withHashtag.base08;
+      errorColor = if isCatppuccin then "red" else colors.base08;
     in
     {
-      # -----------------------------------------------------------------------
       catppuccin.starship.enable = isCatppuccin;
-      catppuccin.starship.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
+      catppuccin.starship.flavor = myconfig.constants.theme.catppuccinFlavor;
 
       programs.starship = {
         enable = true;
         enableZshIntegration = currentShell == "zsh";
         enableFishIntegration = currentShell == "fish";
         enableBashIntegration = currentShell == "bash";
-        enableTransience = myconfig.constants.terminal.animation or false;
+        enableTransience = myconfig.constants.terminal.animation;
 
         settings = {
           add_newline = true;

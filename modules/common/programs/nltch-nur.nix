@@ -1,12 +1,9 @@
-{ delib, lib, config, ... }:
+{ delib, lib, config, moduleSystem, ... }:
 let
-  sharedIfEnabled = {
-    environment.systemPackages = config.myconfig.programs.nltchNur.packages;
-  };
-  sharedAlways = {
-    nixpkgs.config = {
-      permittedInsecurePackages = config.myconfig.programs.nltchNur.permittedInsecurePackages;
-    };
+  cfg = config.myconfig.programs.nltchNur;
+  shared = {
+    environment.systemPackages = cfg.packages;
+    nixpkgs.config.permittedInsecurePackages = cfg.permittedInsecurePackages;
   };
 in
 delib.module {
@@ -24,9 +21,11 @@ delib.module {
     };
   };
 
-  nixos.ifEnabled = sharedIfEnabled;
-  nixos.always = sharedAlways;
+  nixos.ifEnabled = shared;
+  darwin.ifEnabled = shared;
 
-  darwin.ifEnabled = sharedIfEnabled;
-  darwin.always = sharedAlways;
+  home.ifEnabled = lib.optionalAttrs (moduleSystem == "home") {
+    home.packages = cfg.packages;
+    nixpkgs.config.permittedInsecurePackages = cfg.permittedInsecurePackages;
+  };
 }

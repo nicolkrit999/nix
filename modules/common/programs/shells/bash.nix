@@ -1,5 +1,6 @@
 { delib
 , lib
+, moduleSystem
 , ...
 }:
 delib.module {
@@ -8,50 +9,64 @@ delib.module {
   home.always =
     { myconfig, ... }:
     let
-      fastfetchEnabled = myconfig.programs.fastfetch.enable or false;
-      splashCmd = myconfig.programs.fastfetch.splashCommand or "fastfetch";
-      currentShell = myconfig.constants.shell or "bash";
+      fastfetchEnabled = myconfig.programs.fastfetch.enable;
+      splashCmd = myconfig.programs.fastfetch.splashCommand;
+      currentShell = myconfig.constants.shell;
+      isNixOS = moduleSystem == "nixos";
+      isDarwin = moduleSystem == "darwin";
     in
     lib.mkIf (currentShell == "bash") {
       programs.bash = {
         enable = true;
-        initExtra = ''
-          # 1. FIX HYPRLAND SOCKET
-          if [ -d "/run/user/$(id -u)/hypr" ]; then
-            SOCKET_FILE=$(find /run/user/$(id -u)/hypr/ -name ".socket.sock" -print -quit)
-            if [ -n "$SOCKET_FILE" ]; then
-              export HYPRLAND_INSTANCE_SIGNATURE=$(basename $(dirname "$SOCKET_FILE"))
+        initExtra =
+          lib.optionalString isNixOS ''
+            # FIX HYPRLAND SOCKET
+            if [ -d "/run/user/$(id -u)/hypr" ]; then
+              SOCKET_FILE=$(find /run/user/$(id -u)/hypr/ -name ".socket.sock" -print -quit)
+              if [ -n "$SOCKET_FILE" ]; then
+                export HYPRLAND_INSTANCE_SIGNATURE=$(basename $(dirname "$SOCKET_FILE"))
+              fi
             fi
-          fi
 
-          # 2. LOAD USER CONFIG
-          if [ -f "$HOME/.bashrc_custom" ]; then
-            source "$HOME/.bashrc_custom"
-          fi
+          ''
+          + ''
+            # LOAD USER CONFIG
+            if [ -f "$HOME/.bashrc_custom" ]; then
+              source "$HOME/.bashrc_custom"
+            fi
+          ''
+          + lib.optionalString isDarwin ''
 
-          # 3. TMUX AUTOSTART
-          if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -z "$NVIM" ] && [ -n "$DISPLAY" ]; then
-            tmux new-session -A -s main
-          fi
+            # TMUX AUTOSTART
+            if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -z "$NVIM" ] && [[ "$-" == *i* ]]; then
+              exec tmux new-session -A -s main
+            fi
+          ''
+          + lib.optionalString isNixOS ''
 
-          # 5. UWSM STARTUP (Universal & Safe)
-          if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
-              if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
-                  exec systemd-cat -t uwsm_start uwsm start default
-              fi
-          fi
-        ''
-        + lib.optionalString fastfetchEnabled ''
+            # TMUX AUTOSTART
+            if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -z "$NVIM" ] && [ -n "$DISPLAY" ]; then
+              tmux new-session -A -s main
+            fi
 
-          # STARTUP SPLASH
-          case "$-" in
-            (*i*)
-              if [ -n "$TMUX" ] || ! command -v tmux > /dev/null || [ -z "$DISPLAY" ]; then
-                ${splashCmd}
-              fi
-              ;;
-          esac
-        '';
+            # UWSM STARTUP (Universal & Safe)
+            if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+                if command -v uwsm > /dev/null && uwsm check may-start > /dev/null && uwsm select; then
+                    exec systemd-cat -t uwsm_start uwsm start default
+                fi
+            fi
+          ''
+          + lib.optionalString fastfetchEnabled ''
+
+            # STARTUP SPLASH
+            case "$-" in
+              (*i*)
+                if [ -n "$TMUX" ] || ! command -v tmux > /dev/null${lib.optionalString (!isDarwin) " || [ -z \"$DISPLAY\" ]"}; then
+                  ${splashCmd}
+                fi
+                ;;
+            esac
+          '';
       };
     };
 }

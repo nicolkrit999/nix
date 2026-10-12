@@ -22,7 +22,7 @@ bash check-common-secret-wiring.sh
 
 No secret values are read: the sops yamls are only scanned for top-level key names (values are encrypted anyway). Expected paths are derived independently (`/run/secrets/<name>`, `/home|/Users/<user>/.ssh/...`) from what the modules declare.
 
-Note: on integrated hosts (NixOS/Darwin) the `claude` MCP wrapper is installed only for `moduleSystem == "home"` (claude-code.nix). Nothing in the repo exports the MCP env vars there; external dotfiles (e.g. `start-actual-mcp`) read `/run/secrets/<name>` directly, so the contract asserted for those hosts is "secret declared, owned by the user, at `/run/secrets/<name>`". The wrapper is asserted only on the NAS home build.
+Note: the `claude` wrapper is installed only for `moduleSystem == "home"` (claude-code.nix). On no build does the repo export the MCP secrets as env vars: the MCP launchers in the external dotfiles (e.g. `start-actual-mcp`) read their own secret file, so the contract asserted everywhere is "secret declared, owned by the user, at its declared path". The NAS home wrapper exports only the static `mcpEnv` values and must not read any secret (same contract as `test-home-standalone-configs` `claude-wrapper-no-secret-exports`, which checks it on a synthetic home build; this test checks it on the real `krit@Nicol-NAS` config).
 
 ## Checks
 
@@ -31,7 +31,7 @@ Note: on integrated hosts (NixOS/Darwin) the `claude` MCP wrapper is installed o
 | mcp-envvars-unique | `mcpSecrets` envVar values non-empty and unique on all hosts and the NAS |
 | mcp-secrets-declared | every `mcpSecrets[].sopsSecret` is in `sops.secrets` with owner = user, path `/run/secrets/<name>`, common sops file (catches Darwin's static list drifting from the default list) |
 | mcp-secrets-in-yaml | each such key exists in the common yaml |
-| mcp-nas-home-wrapper | NAS: `claude` wrapper in `home.packages`, every secret in HM `sops.secrets`, wrapper exports each envVar from the secret path |
+| mcp-nas-home-wrapper | NAS: `claude` wrapper in `home.packages`, every secret in HM `sops.secrets`, `mcpEnv` non-empty, wrapper exports exactly the `mcpEnv` keys and contains no `$(cat`, `/run/secrets` or declared secret path |
 | cache-token-secrets | cachix/attic `authTokenPath` basename is a declared secret at that path and in its yaml; attic key starts with `<cacheName>:`; cachix key with `<name>.cachix.org-`; `netrc-file` is the `attic-netrc` template embedding the attic placeholder |
 | attic-assertion-bites | control: pointing the token at an undeclared secret makes the attic assertion fail |
 | github-pat-include | `nix.extraOptions` `!include`s the declared PAT secret path; key in yaml |

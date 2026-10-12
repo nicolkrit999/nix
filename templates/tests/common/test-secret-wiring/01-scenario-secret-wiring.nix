@@ -87,16 +87,24 @@ in
       cfg = nas.config;
       s = cfg.sops.secrets;
       mcp = cfg.myconfig.programs.claude-code.mcpSecrets;
+      env = cfg.myconfig.programs.claude-code.mcpEnv;
       wrapper = lib.filter (p: (p.name or "") == "claude") cfg.home.packages;
-      text = if wrapper == [ ] then "" else (lib.head wrapper).text or "";
+      text = if wrapper == [ ] then "" else builtins.unsafeDiscardStringContext ((lib.head wrapper).text or "");
+      exported = lib.concatMap
+        (l: let m = builtins.match "export ([A-Za-z_][A-Za-z0-9_]*)=.*" l; in if m == null then [ ] else m)
+        (lib.splitString "\n" text);
+      secretPaths = map (m: builtins.unsafeDiscardStringContext s.${m.sopsSecret}.path) (lib.filter (m: s ? ${m.sopsSecret}) mcp);
     in
     failures (
       lib.optional (wrapper == [ ]) "no `claude` wrapper in home.packages for the home-only build"
+      ++ lib.optional (env == { }) "NAS mcpEnv empty: no-secret check would be vacuous"
       ++ map (m: "${m.sopsSecret} not in home sops.secrets") (lib.filter (m: !(s ? ${m.sopsSecret})) mcp)
-      ++ lib.optionals (wrapper != [ ]) (lib.concatMap
-        (m: lib.optional (s ? ${m.sopsSecret} && !(lib.hasInfix "export ${m.envVar}=" text && lib.hasInfix s.${m.sopsSecret}.path text))
-          "wrapper lacks export of ${m.envVar} from ${m.sopsSecret}")
-        mcp)
+      ++ lib.optionals (wrapper != [ ]) (
+        lib.optional (lib.sort lib.lessThan exported != lib.sort lib.lessThan (lib.attrNames env))
+          "wrapper exports ${builtins.toJSON exported}, expected exactly the mcpEnv keys ${builtins.toJSON (lib.attrNames env)}"
+        ++ map (needle: "wrapper reads a secret (${needle})")
+          (lib.filter (needle: lib.hasInfix needle text) ([ "$(cat" "/run/secrets" ] ++ secretPaths))
+      )
     );
 
   check-cache-token-secrets = perHost allHosts (h:

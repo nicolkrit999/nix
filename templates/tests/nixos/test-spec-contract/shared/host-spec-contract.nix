@@ -8,27 +8,42 @@ delib.host {
     constants = import ./base-constants.nix;
 
     # Enabled so specializations' lib.mkForce false is a real override:
-    programs.hyprland.enable = true; # guest/safe-mode/secure-travel/entertainment disable
-    programs.caelestia.enable = true; # guest/safe-mode/secure-travel disable
-    programs.noctalia.enable = true; # guest/safe-mode disable
-    programs.nix-ld.enable = true; # guest/secure-travel disable
-    programs.nix-alien.enable = true; # guest/secure-travel disable
-    programs.claude-code.enable = true; # guest/secure-travel disable
-    programs.claude-desktop.enable = true; # guest disables
-    services.hyprlock.enable = true; # guest disables
-    programs.fastfetch.enable = true; # safe-mode disables
+    programs = {
+      hyprland.enable = true; # guest/safe-mode/secure-travel/entertainment disable
+      caelestia.enable = true; # guest/safe-mode/secure-travel disable
+      noctalia.enable = true; # guest/safe-mode disable
+      nix-ld.enable = true; # guest/secure-travel disable
+      nix-alien.enable = true; # guest/secure-travel disable
+      claude-code.enable = true; # guest/secure-travel disable
+      claude-desktop.enable = true; # guest/secure-travel disable
+      codex.enable = true; # guest/secure-travel disable
+      herdr.enable = true; # guest/secure-travel disable
+      headroom.enable = true; # guest/secure-travel disable
+      fastfetch.enable = true; # safe-mode disables
+    };
+    services = {
+      hyprlock.enable = true; # guest disables
+      tailscale.enable = true; # secure-travel disables
+    };
     bluetooth.enable = true; # guest/secure-travel disable
-    services.tailscale.enable = true; # secure-travel disables
 
     # Global specializations
-    specializations.deep-focus.enable = true;
-    specializations.guest.enable = true;
-    specializations.safe-mode.enable = true;
-    specializations.secure-travel.enable = true;
+    specializations = {
+      deep-focus.enable = true;
+      guest.enable = true;
+      safe-mode.enable = true;
+      secure-travel.enable = true;
+    };
 
-    # krit specializations
-    krit.specializations.entertainment.enable = true;
-    krit.specializations.home.enable = true;
-    krit.specializations.school.enable = true;
+    krit = {
+      programs.claude-code-wrappers.enable = true; # guest/secure-travel disable
+
+      # krit specializations
+      specializations = {
+        entertainment.enable = true;
+        home.enable = true;
+        school.enable = true;
+      };
+    };
   };
 }

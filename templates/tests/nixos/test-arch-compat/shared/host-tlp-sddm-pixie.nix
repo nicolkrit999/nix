@@ -39,6 +39,7 @@ delib.host {
     programs.zoxide.enable = true;
     programs.npm.enable = true;
     programs.claude-code.enable = true;
+    programs.codex.enable = true;
     programs.comma.enable = true;
     # doom disabled: home.always still imports nix-doom-emacs-unstraightened homeModule
     # (aarch64-compat tested), but home.ifEnabled (doomDir = ./doomdir) requires the
@@ -46,6 +47,7 @@ delib.host {
     programs.doom.enable = false;
     programs.nltchNur.enable = true;
     programs.headroom.enable = true;
+    programs.herdr.enable = true;
     programs.statix.enable = true;
     programs.television.enable = true;
     programs.zen.browser.enable = true;

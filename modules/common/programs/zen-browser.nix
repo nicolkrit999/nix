@@ -9,20 +9,16 @@ delib.module {
 
   options = delib.singleEnableOption false;
 
-  home.always = { ... }: {
-    imports = [ inputs.zen-browser.homeModules.beta ];
-  };
+  home.always.imports = [ inputs.zen-browser.homeModules.beta ];
 
-  nixos.ifEnabled = { ... }: {
-    myconfig.stylix.targets."zen-browser".profileNames = [ "default" ];
-  };
+  myconfig.ifEnabled.stylix.targets."zen-browser".profileNames = [ "default" ];
 
-  home.ifEnabled = { ... }: {
+  home.ifEnabled = {
     home.sessionVariables.MOZ_ENABLE_WAYLAND = "1";
 
     programs.zen-browser = {
       enable = true;
-      setAsDefaultBrowser = false;
+      setAsDefaultBrowser = false; # pinned on purpose, equals the upstream default
 
       policies = {
         DisableTelemetry = true;

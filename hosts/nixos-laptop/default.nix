@@ -228,7 +228,6 @@ delib.host {
         nltchNur = {
           enable = false;
           packages = [ ];
-          permittedInsecurePackages = [ "electron-40.10.5" ];
         };
 
         spotifyAdblock.enable = true;

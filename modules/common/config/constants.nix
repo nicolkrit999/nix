@@ -27,7 +27,7 @@ delib.module {
         catppuccinAccent = strOption "mauve";
       };
 
-      nixImpure = boolOption false;
+      nixImpure = boolOption false; # NixOS/Darwin rebuild aliases use nixos-rebuild/darwin-rebuild --impure instead of nh; home aliases ignore it
 
       flakeDir = strOption "nix"; # Flake checkout, relative to the user's home
     };

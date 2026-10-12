@@ -75,12 +75,8 @@ let
     };
   };
 
-  # Expose only `bin/headroom`, not a whole python environment. A
-  # `python3.withPackages` env also ships bin/{python,idle,pydoc,...}, which
-  # collides in home-manager's buildEnv with any other python env in
-  # `home.packages` (e.g. the school specialisation's scientific stack).
-  # `headroom-pkg`'s console script is already self-contained (its wrapper
-  # embeds every dependency path via `site.addsitedir`).
+  # toPythonApplication, not python3.withPackages: a withPackages env's bin/python
+  # collides in home.packages with other python envs (school specialisation).
   headroom = pkgs.python3.pkgs.toPythonApplication headroom-pkg;
 
   proxyPort = 8787;
@@ -91,9 +87,7 @@ let
     then "launchctl list com.headroom.proxy"
     else "systemctl --user status headroom-proxy";
 
-  # Opt-in, per session: routes ONE `claude` invocation through the persistent
-  # proxy. Plain `claude` stays direct. Fails with a clear message when the
-  # proxy is not up, instead of Claude Code's "firewall or proxy" error.
+  # Routes one `claude` invocation through the proxy; fails clearly when it is down.
   # 127.0.0.1 rather than localhost so the client never tries ::1 first.
   headroom-claude = pkgs.writeShellScriptBin "headroom-claude" ''
     if ! (exec 3<>/dev/tcp/127.0.0.1/${toString proxyPort}) 2>/dev/null; then
@@ -113,17 +107,16 @@ delib.module {
   options = delib.singleEnableOption false;
 
   home.ifEnabled = { myconfig, ... }: {
-    home.packages = [ headroom headroom-claude pkgs.ast-grep ];
+    home.packages = [ pkgs.ast-grep headroom headroom-claude ];
 
-    programs.fish.shellAbbrs = lib.mkIf (myconfig.constants.shell == "fish") shellAliases;
-    programs.zsh.shellAliases = lib.mkIf (myconfig.constants.shell == "zsh") shellAliases;
-    programs.bash.shellAliases = lib.mkIf (myconfig.constants.shell == "bash") shellAliases;
+    programs = {
+      fish.shellAbbrs = lib.mkIf (myconfig.constants.shell == "fish") shellAliases;
+      zsh.shellAliases = lib.mkIf (myconfig.constants.shell == "zsh") shellAliases;
+      bash.shellAliases = lib.mkIf (myconfig.constants.shell == "bash") shellAliases;
+    };
 
     systemd.user.services.headroom-proxy = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
-      Unit = {
-        Description = "Headroom AI context compression proxy";
-        After = [ "network.target" ];
-      };
+      Unit.Description = "Headroom AI context compression proxy";
       Service = {
         ExecStart = "${headroom}/bin/headroom proxy --port ${toString proxyPort}";
         Restart = "on-failure";

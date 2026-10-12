@@ -1,11 +1,13 @@
 { delib
 , lib
 , config
+, options
 , pkgs
 , ...
 }:
 let
   myUserName = config.myconfig.constants.user;
+  hasClaudeWrappers = options ? myconfig.krit.programs.claude-code-wrappers;
 in
 delib.module {
   name = "specializations.secure-travel";
@@ -81,6 +83,14 @@ delib.module {
         nix-ld.enable = lib.mkForce false; # Allows unpatched binaries
         nix-alien.enable = lib.mkForce false; # Same concern
         claude-code.enable = lib.mkForce false; # External API calls
+        claude-desktop.enable = lib.mkForce false; # External API calls
+        codex.enable = lib.mkForce false; # External API calls
+        herdr.enable = lib.mkForce false; # AI agent multiplexer
+        headroom.enable = lib.mkForce false; # Proxy for external API calls
+      };
+
+      imports = lib.optional hasClaudeWrappers {
+        myconfig.krit.programs.claude-code-wrappers.enable = lib.mkForce false; # Bundles claude
       };
 
       # ---------------------------------------------------------

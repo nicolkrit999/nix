@@ -55,9 +55,24 @@ run_host_check() {
   rm -f "$stderr_file"
 }
 
+run_group() {
+  local attr="$1" json rc=0 stderr_file
+  stderr_file=$(mktemp)
+  json=$(FLAKE_ROOT="$REPO_ROOT" nix eval --json --impure --file "$SCENARIO" "$attr" 2>"$stderr_file") || rc=$?
+  if [[ "$rc" -ne 0 ]]; then
+    record "$attr" "" "$rc" "$stderr_file"
+    rm -f "$stderr_file"
+    return
+  fi
+  rm -f "$stderr_file"
+  while IFS=$'\t' read -r name result; do
+    record "$name" "$result" 0 /dev/null
+  done < <(python3 -c 'import json,sys; [print(f"{k}\t{v}") for k,v in sorted(json.load(sys.stdin).items())]' <<<"$json")
+}
+
 echo ""
 echo -e "${BOLD}=== Standalone homeConfigurations ===${NC}"
-echo -e "${DIM}Deep drvPath instantiation plus catppuccin, pkgsStable, substituters.${NC}"
+echo -e "${DIM}Deep drvPath instantiation plus catppuccin, pkgsStable, substituters, home-build program wiring.${NC}"
 echo ""
 
 echo -e "${BOLD}instantiation${NC}"
@@ -75,6 +90,10 @@ echo -e "${BOLD}nix settings${NC}"
 run_check "check-substituters-match-nixos"       "extra-substituters == NixOS list"
 run_check "check-trusted-keys-match-nixos"       "extra-trusted-public-keys == NixOS list"
 run_check "check-nix-conf-rendered"              "nix.conf rendered with non-empty substituters"
+
+echo ""
+echo -e "${BOLD}home-build programs (NAS twins: claude-code, codex, herdr, nltchNur, thunderbird)${NC}"
+run_group "homePrograms"
 
 echo ""
 echo -e "${DIM}----------------------------------------------------------------------${NC}"

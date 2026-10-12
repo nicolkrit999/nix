@@ -1,17 +1,18 @@
-{ delib, inputs, pkgs, ... }:
+{ delib, inputs, pkgs, lib, moduleSystem, ... }:
 let
-  system = pkgs.stdenv.hostPlatform.system;
-  herdr = inputs.herdr.packages.${system}.default;
+  herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  shared = {
+    environment.systemPackages = [ herdr ];
+  };
 in
 delib.module {
   name = "programs.herdr";
   options = delib.singleEnableOption false;
 
-  nixos.ifEnabled = {
-    environment.systemPackages = [ herdr ];
-  };
+  nixos.ifEnabled = shared;
+  darwin.ifEnabled = shared;
 
-  darwin.ifEnabled = {
-    environment.systemPackages = [ herdr ];
+  home.ifEnabled = {
+    home.packages = lib.optionals (moduleSystem == "home") [ herdr ];
   };
 }

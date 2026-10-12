@@ -8,13 +8,9 @@ delib.module {
   name = "programs.vikunja-desktop";
   options = delib.singleEnableOption false;
 
-  home.ifEnabled = { ... }: lib.mkMerge [
-    (lib.mkIf (pkgs.stdenv.hostPlatform.system == "aarch64-darwin") {
-      home.packages = [ pkgs.vikunja-desktop ];
-    })
-    (lib.mkIf (pkgs.stdenv.hostPlatform.system != "aarch64-darwin") {
-      home.packages = [ pkgs.vikunja-desktop ];
-
+  home.ifEnabled = lib.mkMerge [
+    { home.packages = [ pkgs.vikunja-desktop ]; }
+    (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
       xdg.desktopEntries.vikunja-desktop = {
         name = "Vikunja Desktop";
         genericName = "To-Do list app";

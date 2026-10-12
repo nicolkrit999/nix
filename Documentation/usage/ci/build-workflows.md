@@ -1371,7 +1371,7 @@ there is no cold-cache data point yet.
 | `harness` | every folder with `*_test.nix` (conflicting-modules, custom-shells, wallpapers, mango-option-names) | 82 s (+ ~1 min wallpapers asserts) | ~6 min | ~8 min | builds the nix-tests harness once per runner |
 | `nixos` | default for `nixos/` (12 tests) | 259 s | ~10 min | ~16 min | real-host evals |
 | `nixos-b` | secret-service, nas-mounts, hyprland-lua-config, keybind-conflicts, waybar-configs, waybar-contrast, ssh-trust-pins, borg-backup-config (8 tests) | 538 s inside a full parallel run (2026-10-11) | 615 s for the 7 tests that finished in run 38136950163 (hyprland-lua-config timed out there, since fixed) | not measured | split from `nixos` by `test.conf` |
-| `common` | default for `common/` (10 tests) | 270 s | ~10 min | ~17 min | scenario evals |
+| `common` | default for `common/` (12 tests) | 270 s (2026-10-10, before `common-ai-tool-modules`, `common-npu-npm-parsing` and the home-standalone program checks: ~+70 s local, not re-measured) | ~12 min | ~19 min | scenario evals |
 | `darwin` (macOS) | darwin-minimal-defaults, darwin-host-contract, darwin-home-paths | 115 s | ~4-5 min | ~7 min | separate workflow |
 
 **The test step's cap is computed per group** (since 2026-10-11). `discover.py
@@ -1379,7 +1379,7 @@ there is no cold-cache data point yet.
 test step uses `timeout-minutes: ${{ fromJSON(needs.discover.outputs.step_timeouts)[matrix.group] }}`.
 The budget (`step_budget`) is the sum of the group's per-test caps + 1 minute per
 test (kill grace, evidence merge, the final redaction pass) + 2 per leg. On
-2026-10-11: `nixos` 134 (12 tests, caps 120), `common` 112, `nixos-b` 90 (8 tests, caps 80),
+2026-10-11: `nixos` 134 (12 tests, caps 120), `common` 112 (134 since 2026-10-12: 12 tests, caps 120), `nixos-b` 90 (8 tests, caps 80),
 `heavy-a` 49, `harness` 46, `heavy-b` 44, `heavy-c` 33, `darwin` 35. **Why:** the step cap
 used to be a fixed 50 minutes while the `nixos` group's caps summed to 120. Each
 test is stopped by its own cap and the next one starts, but a few slow tests in

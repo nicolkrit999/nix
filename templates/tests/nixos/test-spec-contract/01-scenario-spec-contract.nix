@@ -67,6 +67,10 @@ let
 
     # Programs whose enable options specs override
     (src + "/modules/common/programs/claude-code.nix")
+    (src + "/modules/common/programs/codex.nix")
+    (src + "/modules/common/programs/headroom.nix")
+    (src + "/modules/common/programs/herdr.nix")
+    (src + "/users/krit/common/programs/claude-code-wrappers.nix")
     (src + "/modules/common/programs/fastfetch.nix")
     (src + "/modules/nixos/programs/claude-desktop.nix")
     (src + "/modules/nixos/programs/nix-alien.nix")
@@ -176,6 +180,20 @@ in
     off "guest" (c: c.myconfig.services.hypridle.enable) "hypridle.enable" false;
   check-guest-swaync-disabled =
     off "guest" (c: c.myconfig.services.swaync.enable) "swaync.enable" false;
+  check-guest-claude-code-disabled =
+    off "guest" (c: c.myconfig.programs.claude-code.enable) "claude-code.enable" false;
+  check-guest-claude-desktop-disabled =
+    off "guest" (c: c.myconfig.programs.claude-desktop.enable) "claude-desktop.enable" false;
+  check-guest-codex-disabled =
+    off "guest" (c: c.myconfig.programs.codex.enable) "codex.enable" false;
+  check-guest-herdr-disabled =
+    off "guest" (c: c.myconfig.programs.herdr.enable) "herdr.enable" false;
+  check-guest-headroom-disabled =
+    off "guest" (c: c.myconfig.programs.headroom.enable) "headroom.enable" false;
+  check-guest-headroom-unit-absent =
+    off "guest" (c: c.home-manager.users.krit.systemd.user.services ? headroom-proxy) "headroom-proxy unit present" false;
+  check-guest-claude-wrappers-disabled =
+    off "guest" (c: c.myconfig.krit.programs.claude-code-wrappers.enable) "claude-code-wrappers.enable" false;
   check-guest-welcome-desktop =
     let
       path = "xdg/autostart/guest-welcome.desktop";
@@ -222,6 +240,20 @@ in
     off "secure-travel" (c: c.myconfig.services.tailscale.enable) "tailscale.enable" false;
   check-securetravel-nix-ld-disabled =
     off "secure-travel" (c: c.myconfig.programs.nix-ld.enable) "nix-ld.enable" false;
+  check-securetravel-claude-code-disabled =
+    off "secure-travel" (c: c.myconfig.programs.claude-code.enable) "claude-code.enable" false;
+  check-securetravel-claude-desktop-disabled =
+    off "secure-travel" (c: c.myconfig.programs.claude-desktop.enable) "claude-desktop.enable" false;
+  check-securetravel-codex-disabled =
+    off "secure-travel" (c: c.myconfig.programs.codex.enable) "codex.enable" false;
+  check-securetravel-herdr-disabled =
+    off "secure-travel" (c: c.myconfig.programs.herdr.enable) "herdr.enable" false;
+  check-securetravel-headroom-disabled =
+    off "secure-travel" (c: c.myconfig.programs.headroom.enable) "headroom.enable" false;
+  check-securetravel-headroom-unit-absent =
+    off "secure-travel" (c: c.home-manager.users.krit.systemd.user.services ? headroom-proxy) "headroom-proxy unit present" false;
+  check-securetravel-claude-wrappers-disabled =
+    off "secure-travel" (c: c.myconfig.krit.programs.claude-code-wrappers.enable) "claude-code-wrappers.enable" false;
   check-securetravel-gnome-enabled =
     off "secure-travel" (c: c.myconfig.programs.gnome.enable) "gnome.enable" true;
   check-securetravel-killswitch-exists =

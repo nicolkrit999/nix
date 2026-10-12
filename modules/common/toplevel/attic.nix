@@ -2,6 +2,7 @@
 , config
 , lib
 , pkgs
+, moduleSystem
 , ...
 }:
 let
@@ -41,7 +42,8 @@ let
           assertion = !cfg.push || hasAuthToken;
           message = ''
             attic.push is true but attic.authTokenPath is empty. The push aliases
-            log in with the token read from that path; set
+            use the nas-push server from ~/.config/attic/config.toml, whose
+            token-file is that path; set
             myconfig.attic.authTokenPath (or set attic.push = false).
           '';
         }
@@ -79,4 +81,15 @@ delib.module {
   nixos.ifEnabled = sharedIfEnabled;
 
   darwin.ifEnabled = sharedIfEnabled;
+
+  home.ifEnabled =
+    { cfg, ... }:
+    lib.mkIf (cfg.push && moduleSystem != "home") {
+      xdg.configFile."attic/config.toml".source = (pkgs.formats.toml { }).generate "attic-config.toml" {
+        servers.nas-push = {
+          endpoint = cfg.serverUrl;
+          token-file = cfg.authTokenPath;
+        };
+      };
+    };
 }

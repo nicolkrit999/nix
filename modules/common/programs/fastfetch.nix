@@ -32,11 +32,9 @@ delib.module {
 
   home.ifEnabled = { cfg, myconfig, ... }:
     let
-      # Category colours come from the stylix base16 palette:
-      #   system -> base0D, desktop -> base0E, hardware -> base0B, connectivity -> base0C
       # Fallback (stylix disabled, e.g. some specialisations): ANSI names.
       stylixColors = config.lib.stylix.colors.withHashtag;
-      hasPalette = (myconfig.stylix.enable or false) && ((config.lib.stylix or { }) ? colors);
+      hasPalette = myconfig.stylix.enable && ((config.lib.stylix or { }) ? colors);
       palette =
         if hasPalette then {
           system = stylixColors.base0D;
@@ -86,7 +84,7 @@ delib.module {
             host = palette.desktop;
           };
         })
-        (entry "os" "${cfg.osIcon}" "system")
+        (entry "os" cfg.osIcon "system")
         (entry "kernel" "" "system")
         (entry "uptime" "" "system")
         (entry "packages" "󰏖" "system")

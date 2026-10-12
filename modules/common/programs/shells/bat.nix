@@ -8,8 +8,8 @@ delib.module {
     , ...
     }:
     {
-      catppuccin.bat.enable = myconfig.constants.theme.catppuccin or false;
-      catppuccin.bat.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
+      catppuccin.bat.enable = myconfig.constants.theme.catppuccin;
+      catppuccin.bat.flavor = myconfig.constants.theme.catppuccinFlavor;
 
       programs.bat = {
         enable = true;

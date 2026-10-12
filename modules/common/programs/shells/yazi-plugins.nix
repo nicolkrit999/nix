@@ -1,7 +1,5 @@
 { delib
 , inputs
-, moduleSystem
-, lib
 , ...
 }:
 delib.module {
@@ -10,12 +8,12 @@ delib.module {
   options = delib.singleEnableOption false;
 
   home.always = { ... }: {
-    imports = lib.optionals (moduleSystem != "darwin") [
+    imports = [
       inputs.nix-yazi-plugins.legacyPackages.x86_64-linux.homeManagerModules.default
     ];
   };
 
-  home.ifEnabled = { ... }: {
+  home.ifEnabled = _: {
     programs.yazi.enable = true;
 
     programs.yazi.yaziPlugins = {

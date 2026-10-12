@@ -140,18 +140,19 @@ delib.module {
         enable = true;
         profiles.default.isDefault = true;
       };
+
+      warnings = lib.optional (moduleSystem == "home" && myconfig.programs.thunderbird.accounts != [ ])
+        "programs.thunderbird.accounts is ignored in standalone home-manager builds (needs the NixOS/Darwin sops template); Thunderbird stays unconfigured.";
     } // lib.optionalAttrs (moduleSystem != "home") {
       home.file.${userJsKey}.enable = false;
 
       accounts.email.accounts = lib.listToAttrs (map
         (a: {
-          name = a.name;
+          inherit (a) name;
           value = lib.mkMerge [
             {
               address = "${config.sops.placeholder.${a.addressLocalSecretName}}@${config.sops.placeholder.${a.addressDomainSecretName}}";
-              realName = a.realName;
-              flavor = a.flavor;
-              primary = a.primary;
+              inherit (a) realName flavor primary;
               thunderbird.enable = true;
             }
             (lib.optionalAttrs (a.authentication != null) {

@@ -1,17 +1,20 @@
-{ delib, inputs, pkgs, ... }:
+{ delib, inputs, pkgs, lib, moduleSystem, ... }:
 let
-  system = pkgs.stdenv.hostPlatform.system;
-  codex = inputs.codex-cli-nix.packages.${system}.default;
+  overlays = [ inputs.codex-cli-nix.overlays.default ];
+  shared = {
+    nixpkgs.overlays = overlays;
+    environment.systemPackages = [ pkgs.codex ];
+  };
 in
 delib.module {
   name = "programs.codex";
   options = delib.singleEnableOption false;
 
-  nixos.ifEnabled = {
-    environment.systemPackages = [ codex ];
-  };
+  nixos.ifEnabled = shared;
+  darwin.ifEnabled = shared;
 
-  darwin.ifEnabled = {
-    environment.systemPackages = [ codex ];
+  home.ifEnabled = lib.optionalAttrs (moduleSystem == "home") {
+    nixpkgs.overlays = overlays;
+    home.packages = [ pkgs.codex ];
   };
 }

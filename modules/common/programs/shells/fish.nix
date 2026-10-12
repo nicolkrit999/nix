@@ -9,9 +9,10 @@ delib.module {
   home.always =
     { myconfig, ... }:
     let
-      fastfetchEnabled = myconfig.programs.fastfetch.enable or false;
-      splashCmd = myconfig.programs.fastfetch.splashCommand or "fastfetch";
-      currentShell = myconfig.constants.shell or "bash";
+      fastfetchEnabled = myconfig.programs.fastfetch.enable;
+      splashCmd = myconfig.programs.fastfetch.splashCommand;
+      currentShell = myconfig.constants.shell;
+      fzfEnabled = myconfig.programs.fzf.enable;
       isNixOS = moduleSystem == "nixos";
       isDarwin = moduleSystem == "darwin";
     in
@@ -42,6 +43,8 @@ delib.module {
 
             # Disable greeting
             set -g fish_greeting
+          ''
+          + lib.optionalString fzfEnabled ''
 
             # FZF keybindings
             bind --erase --all alt-c
@@ -89,6 +92,8 @@ delib.module {
             if functions -q fzf_key_bindings
               fzf_key_bindings
             end
+          ''
+          + lib.optionalString fzfEnabled ''
 
             bind ctrl-g fzf-cd-widget
 

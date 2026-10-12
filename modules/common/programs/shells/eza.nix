@@ -8,14 +8,14 @@ delib.module {
     , ...
     }:
     let
-      currentShell = myconfig.constants.shell or "zsh";
+      currentShell = myconfig.constants.shell;
     in
     {
-      # ------------------------------------------------------------------------------------
-      catppuccin.eza.enable = myconfig.constants.theme.catppuccin or false;
-      catppuccin.eza.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
-      catppuccin.eza.accent = myconfig.constants.theme.catppuccinAccent or "mauve";
-      # ------------------------------------------------------------------------------------
+      catppuccin.eza = {
+        enable = myconfig.constants.theme.catppuccin;
+        flavor = myconfig.constants.theme.catppuccinFlavor;
+        accent = myconfig.constants.theme.catppuccinAccent;
+      };
 
       programs.eza = {
         enable = true;
