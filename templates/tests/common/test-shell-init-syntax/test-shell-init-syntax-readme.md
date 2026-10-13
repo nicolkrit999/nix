@@ -22,7 +22,7 @@ bash check-common-shell-init.sh
 
 `check-common-shell-init.sh` evaluates each variant once, prints one PASS/FAIL line per check, then writes the rendered text to files and runs `bash -n`, `zsh -n` (pinned nixpkgs) and `fish --no-execute` on them. Exits 1 on any failure.
 
-Variants: NixOS minimal host x {bash, zsh, fish} x fastfetch {on, off}; minimal bash with nixImpure true (+ cachix push), true with nh off, and false; minimal bash with git wiring twins; real nixos-desktop; real Darwin host (fish); Darwin forced zsh with fastfetch; Darwin forced bash with fastfetch and nixImpure false; Darwin nixImpure true with nh on and off.
+Variants: NixOS minimal host x {bash, zsh, fish} x fastfetch {on, off}; minimal bash with nixImpure true (+ cachix push), true with nh off, and false; minimal bash with git wiring twins; real nixos-desktop; real Darwin host (fish); Darwin forced zsh with fastfetch; Darwin forced bash with fastfetch and nixImpure false; Darwin nixImpure true with nh on and off; standalone home (`krit@Nicol-NAS` via `homeConfigurations`, `nixImpure` forced true and false; skipped without `nixosConfigurations`).
 
 The `--apple-use-keychain` check applies only to the forced-zsh Darwin variant (it exists only in zsh.nix; the Mac shell is fish), so Darwin bash and fish must not carry it. `tpm-reenroll` is a package, not an alias.
 
@@ -45,6 +45,8 @@ Per variant (all):
 | deadnix-unpinned | deadnix aliases follow upstream HEAD (`github:astro/deadnix`, no tag pin) |
 | tpm-reenroll-present/absent | package on NixOS only, never an alias |
 | nfc-impure-yes/no | Darwin `nfc` has `--impure`, NixOS does not |
+| home-impure-true / home-impure-false | (standalone home) `sw`, `gsw`, `swdry`, `upd`, `nfc` contain `--impure` iff `nixImpure` |
+| home-hm-gens-untouched | (standalone home) `hm-gens` stays `home-manager generations` |
 
 NixOS variants:
 

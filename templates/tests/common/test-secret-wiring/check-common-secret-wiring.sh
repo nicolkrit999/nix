@@ -52,6 +52,7 @@ run_check "check-mcp-envvars-unique"      "mcp envVars are unique and non-empty 
 run_check "check-mcp-secrets-declared"    "every mcpSecret is a sops secret (owner, /run/secrets path, file)"
 run_check "check-mcp-secrets-in-yaml"     "every mcpSecret key exists in the common sops yaml"
 run_check "check-mcp-nas-home-wrapper"    "NAS home build: claude wrapper exports mcpEnv only, no secret"
+run_check "check-mcp-nas-launchers"        "NAS home build: claude-mcp-* launchers use HM sops path, no secret on argv"
 
 echo ""
 echo -e "${BOLD}binary caches and nix PAT${NC}"
@@ -71,6 +72,7 @@ run_check "check-davfs-secrets-template"  "davfs-secrets template root:0600 with
 run_check "check-nas-wiring-nixos"        "NAS module secret paths match declared secrets"
 run_check "check-nas-secrets-darwin"      "Darwin NAS modules have their secrets declared"
 run_check "check-thunderbird-forced"      "thunderbird template/secrets owners, files, keys"
+run_check "check-thunderbird-profile-dirs" "thunderbird profile dirs: NixOS install -d, darwin mkdir/chown/chmod"
 run_check "check-ssh-key-paths"           "github/school ssh key paths under the user's home"
 
 echo ""

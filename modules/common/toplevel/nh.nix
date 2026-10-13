@@ -1,4 +1,4 @@
-{ delib, ... }:
+{ delib, lib, config, moduleSystem, ... }:
 delib.module {
   name = "nh";
   options =
@@ -44,6 +44,17 @@ delib.module {
         clean.enable = true;
         clean.extraArgs = [ "--keep-since" cfg.gcd "--keep" cfg.gcn ];
         flake = "/Users/${myconfig.constants.user}/${myconfig.constants.flakeDir}";
+      };
+    };
+
+  home.ifEnabled =
+    { cfg, myconfig, ... }:
+    lib.optionalAttrs (moduleSystem == "home") {
+      programs.nh = {
+        enable = true;
+        clean.enable = true;
+        clean.extraArgs = [ "--keep-since" cfg.gcd "--keep" cfg.gcn ];
+        flake = "${config.home.homeDirectory}/${myconfig.constants.flakeDir}";
       };
     };
 

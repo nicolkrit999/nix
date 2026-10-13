@@ -44,13 +44,14 @@ run_group() {
 }
 
 echo ""
-echo -e "${BOLD}=== AI tool modules: headroom, claude-code cowork, codex overlay ===${NC}"
+echo -e "${BOLD}=== AI tool modules: headroom, claude-code cowork + openrouterAliases, codex overlay ===${NC}"
 echo -e "${DIM}template-host-minimal + extendModules toggles, eval only.${NC}"
 echo ""
 
 run_group headroom "headroom"
 run_group cowork   "claude-code cowork toggle"
 run_group codex    "codex overlay"
+run_group openrouter "claude-code openrouterAliases"
 
 echo -e "${DIM}----------------------------------------------------------------------${NC}"
 

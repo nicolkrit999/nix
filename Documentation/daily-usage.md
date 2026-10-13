@@ -1,6 +1,6 @@
 # Daily Usage & Updates
 
-After editing any file, use these aliases to apply changes. They require `myconfig.nh.enable = true` (the default). With `constants.nixImpure = true` the rebuild aliases use `nixos-rebuild --impure` (Darwin: `darwin-rebuild --impure`) instead and nh may be disabled; `swpure` stays pure and uses `nh` when it is enabled.
+After editing any file, use these aliases to apply changes. They require `myconfig.nh.enable = true` (the default). With `constants.nixImpure = true` the rebuild aliases use `nixos-rebuild --impure` (Darwin: `darwin-rebuild --impure`) instead and nh may be disabled; `swpure` stays pure and uses `nh` when it is enabled. Standalone home aliases (`sw`, `gsw`, `swdry`, `upd`, `nfc`) append `--impure`.
 
 | Alias | Command | Description |
 |-------|---------|-------------|

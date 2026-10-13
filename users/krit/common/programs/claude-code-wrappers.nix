@@ -160,6 +160,8 @@ delib.module {
 
   options = delib.singleEnableOption false;
 
+  myconfig.ifEnabled.programs.claude-code.openrouterAliases = true;
+
   nixos.ifEnabled = { ... }: {
     environment.systemPackages = sharedPackages ++ [
       # NixOS-only packages

@@ -1,8 +1,8 @@
 # test-ai-tool-modules
 
-Wiring contracts of the AI tool modules in `modules/common/programs/`: the headroom proxy (`headroom.nix`), the claude-code `cowork` toggle (`claude-code.nix`) and the codex overlay (`codex.nix`). It does not test whether a host enables any of them: every variant forces its own toggles on `template-host-minimal`.
+Wiring contracts of the AI tool modules in `modules/common/programs/`: the headroom proxy (`headroom.nix`), the claude-code `cowork` toggle and `openrouterAliases` option (`claude-code.nix`) and the codex overlay (`codex.nix`). It does not test whether a host enables any of them: every variant forces its own toggles on `template-host-minimal`.
 
-Why: headroom's address is spelled in two places (unit `ExecStart` and the `headroom-claude` script) and drifts silently; a `python3.withPackages` env would put a second `bin/python` into `home.packages` (collision with the school specialisation's python env); a user unit `After=network.target` is a no-op. `cowork` must stay opt-in, and `pkgs.codex` must come from the `codex-cli-nix` overlay rather than a second nixpkgs import.
+Why: headroom's address is spelled in two places (unit `ExecStart` and the `headroom-claude` script) and drifts silently; a `python3.withPackages` env would put a second `bin/python` into `home.packages` (collision with the school specialisation's python env); a user unit `After=network.target` is a no-op. `cowork` must stay opt-in, `claude-code.nix` must evaluate without the `users/krit` tree (it reads only its own `openrouterAliases` option, set by `claude-code-wrappers.nix`, never `myconfig.krit.*`), and `pkgs.codex` must come from the `codex-cli-nix` overlay rather than a second nixpkgs import.
 
 That headroom, codex and the claude-code wrappers are off (and the `headroom-proxy` unit absent) in the `guest` and `secure-travel` specialisations is covered by `nixos-spec-contract` (`templates/tests/nixos/test-spec-contract/`), not repeated here.
 
@@ -24,9 +24,9 @@ bash check-common-ai-tool-modules.sh
 
 ## How it works
 
-`01-scenario-ai-tool-modules.nix` loads the real flake (`FLAKE_ROOT`, default `/home/krit/nix`) and builds `template-host-minimal.extendModules` twins, each with only the toggles a check needs (headroom on/off; claude-code on, on with `cowork = true`, off with `cowork = true`; codex on/off). A probe module exposes the host's final `pkgs.codex`. Results are attrsets of `"ok"` / `"FAIL: ..."` per group.
+`01-scenario-ai-tool-modules.nix` loads the real flake (`FLAKE_ROOT`, default `/home/krit/nix`) and builds `template-host-minimal.extendModules` twins, each with only the toggles a check needs (headroom on/off; claude-code on, on with `cowork = true`, off with `cowork = true`; codex on/off). A fifth variant (`shared/`) is a krit-tree-free host built with `denix.lib.configurations` from only the fake host `cc-bare`, `home-manager.nix`, the constants modules and `claude-code.nix`, once as is and once with `openrouterAliases = true`. A probe module exposes the host's final `pkgs.codex`. Results are attrsets of `"ok"` / `"FAIL: ..."` per group.
 
-`check-common-ai-tool-modules.sh` evaluates each group (`headroom`, `cowork`, `codex`) with one `nix eval --json --impure` and prints a PASS/FAIL line per check. Nothing is built: the headroom package is identified by the store path in `ExecStart` and checked through its `pythonModule` passthru (`toPythonApplication` sets it to `false`); the overlay origin is read from `meta.position`. Runtime about 15 s warm. On Darwin (no `nixosConfigurations`) every check reports `ok`.
+`check-common-ai-tool-modules.sh` evaluates each group (`headroom`, `cowork`, `codex`, `openrouter`) with one `nix eval --json --impure` and prints a PASS/FAIL line per check. Nothing is built: the headroom package is identified by the store path in `ExecStart` and checked through its `pythonModule` passthru (`toPythonApplication` sets it to `false`); the overlay origin is read from `meta.position`. Runtime about 15 s warm. On Darwin (no `nixosConfigurations`) every check reports `ok`.
 
 ## Checks
 
@@ -52,6 +52,16 @@ bash check-common-ai-tool-modules.sh
 | check-cowork-default-off | claude-code on, cowork unset: `cowork = false`, `services.claude-cowork.enable = false`, no `claude-cowork` user unit |
 | check-cowork-drives-service | `cowork = true`: service enabled and the user unit exists |
 | check-cowork-needs-claude-code | claude-code off with `cowork = true`: service off, no unit |
+
+### claude-code openrouterAliases
+
+| Check | Expected |
+|-------|----------|
+| check-option-default-off | declared default of `myconfig.programs.claude-code.openrouterAliases` is `false` |
+| check-bare-tree-has-no-krit-options | the bare host really has no `myconfig.krit` (the scenario is the no-krit-tree case) |
+| check-bare-no-openrouter-aliases | bare host, claude-code on: evaluates, no `cai-openrouter-*` alias, `caitempplugins` present (control) |
+| check-option-alone-drives-aliases | bare host with the option forced true: `cai-openrouter-opus` and more appear |
+| check-krit-wrappers-keep-aliases | `template-host-minimal` with `krit.programs.claude-code-wrappers` on: option true and `cai-openrouter-opus` present; with it off (default): option false |
 
 ### codex overlay
 

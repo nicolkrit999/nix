@@ -46,7 +46,11 @@ bash check-common-npu-npm.sh
 | safe_store_name 'a b/c' | `a_b_c` |
 | safe_store_name 'keep+._?=-AZaz09' | unchanged |
 | safe_store_name 'x;rm -rf $(y)' | `x_rm_-rf___y_` |
-| safe_store_name output charset | every result matches `[A-Za-z0-9+._?=-]+` |
+| npu encoded-leading-dot-stripped | `%2Ehidden.png` -> `--name hidden.png` (store names must not start with `.`) |
+| safe_store_name '.hidden.png' | `hidden.png` |
+| safe_store_name '..' | `download` |
+| safe_store_name '' | `download` |
+| safe_store_name output charset | every result matches `[A-Za-z0-9+._?=-]+` and does not start with `.` |
 | npu env var exported by shell-aliases.nix | npu.py reads only `NIX_PREFETCH_URL`; `shell-aliases.nix` exports it and runs `${./npu.py}` |
 
 ### npm.nix activation (eval)

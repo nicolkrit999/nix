@@ -62,7 +62,8 @@ def resolve_page_media(url):
 
 
 def safe_store_name(name):
-    return re.sub(r"[^A-Za-z0-9+._?=-]", "_", name)
+    cleaned = re.sub(r"[^A-Za-z0-9+._?=-]", "_", name).lstrip(".")
+    return cleaned or "download"
 
 
 def main():

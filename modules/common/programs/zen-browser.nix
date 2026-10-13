@@ -14,7 +14,7 @@ delib.module {
   myconfig.ifEnabled.stylix.targets."zen-browser".profileNames = [ "default" ];
 
   home.ifEnabled = {
-    home.sessionVariables.MOZ_ENABLE_WAYLAND = "1";
+    home.sessionVariables = lib.mkIf (moduleSystem != "darwin") { MOZ_ENABLE_WAYLAND = "1"; };
 
     programs.zen-browser = {
       enable = true;

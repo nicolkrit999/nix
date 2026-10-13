@@ -182,14 +182,15 @@ delib.module {
       // pushAliases;
 
       hmTarget = ".#${myconfig.constants.user}@${myconfig.constants.hostname}";
+      hmImpure = lib.optionalString isImpure " --impure";
 
       homeAliases = {
-        sw = "cd ${flakeDir} && home-manager switch -b hm-backup --flake ${hmTarget}";
-        gsw = "cd ${flakeDir} && git add -A && home-manager switch -b hm-backup --flake ${hmTarget}";
-        swdry = "cd ${flakeDir} && git add -A && home-manager build --flake ${hmTarget}";
-        upd = "cd ${flakeDir} && git add -A && nix flake update && home-manager switch -b hm-backup --flake ${hmTarget}";
+        sw = "cd ${flakeDir} && home-manager switch -b hm-backup --flake ${hmTarget}${hmImpure}";
+        gsw = "cd ${flakeDir} && git add -A && home-manager switch -b hm-backup --flake ${hmTarget}${hmImpure}";
+        swdry = "cd ${flakeDir} && git add -A && home-manager build --flake ${hmTarget}${hmImpure}";
+        upd = "cd ${flakeDir} && git add -A && nix flake update && home-manager switch -b hm-backup --flake ${hmTarget}${hmImpure}";
         hm-gens = "home-manager generations";
-        nfc = "cd ${flakeDir} && git add -A && nix flake check";
+        nfc = "cd ${flakeDir} && git add -A && nix flake check${hmImpure}";
       };
 
       darwinAliases = {

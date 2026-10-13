@@ -91,6 +91,12 @@ delib.module {
     {
       environment.systemPackages = [ pkgs.rclone ];
       # Tailnet access on darwin comes from the tailscale-app cask (hosts/Krits-MacBook-Pro/local-packages.nix).
+      assertions = [
+        {
+          assertion = myconfig.services.tailscale.darwinCaskPresent || config.services.tailscale.enable;
+          message = "krit.services.nas.opencloud reaches the NAS over the tailnet but this darwin host has no Tailscale provider: add the Homebrew cask \"tailscale-app\" or enable myconfig.services.tailscale.";
+        }
+      ];
 
       # ---------------------------------------------------------
       # 1. SOPS: Secrets (shared account across all spaces)

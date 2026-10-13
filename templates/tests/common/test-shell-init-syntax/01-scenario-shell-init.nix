@@ -317,11 +317,37 @@ let
       "darwin-impure-nhoff" = { host = "darwin"; impure = true; nh = false; };
     };
 
+  mkHome = impure:
+    let
+      x = flake.homeConfigurations."krit@Nicol-NAS".extendModules {
+        modules = [{ myconfig.constants.nixImpure = lib.mkForce impure; }];
+      };
+      aliases = lib.mapAttrs (_: builtins.unsafeDiscardStringContext) x.config.home.shellAliases;
+      res = ok: msg: if ok then "ok" else "FAIL: ${msg}";
+      impureAliases = [ "sw" "gsw" "swdry" "upd" "nfc" ];
+      bad = lib.filter (n: lib.hasInfix "--impure" aliases.${n} != impure) impureAliases;
+    in
+    {
+      checks = {
+        "home-impure-${if impure then "true" else "false"}" =
+          res (bad == [ ]) "home aliases ${builtins.toJSON bad} disagree with nixImpure=${builtins.toJSON impure}: ${builtins.toJSON (lib.genAttrs bad (n: aliases.${n}))}";
+        "home-hm-gens-untouched" =
+          res (aliases.hm-gens == "home-manager generations") "hm-gens alias changed: ${aliases.hm-gens}";
+      };
+      files = { };
+      shAliases = { };
+    };
+
+  homeVariants = lib.optionalAttrs hasNixos {
+    "home-impure" = mkHome true;
+    "home-pure" = mkHome false;
+  };
+
   nixosOnly = n: lib.hasPrefix "nixos-" n;
   available = lib.filterAttrs (n: _: hasNixos || !nixosOnly n) variants;
 in
 {
   inherit hasNixos;
-  names = builtins.attrNames available;
-  variant = lib.mapAttrs (_: mk) available;
+  names = builtins.attrNames (available // homeVariants);
+  variant = lib.mapAttrs (_: mk) available // homeVariants;
 }

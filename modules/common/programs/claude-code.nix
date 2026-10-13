@@ -1,4 +1,4 @@
-{ delib, inputs, pkgs, lib, moduleSystem, ... }:
+{ delib, inputs, pkgs, lib, config, moduleSystem, ... }:
 let
   # Deliberately unpinned `@latest`: a manual escape hatch, not a managed tool.
   templateAliases = {
@@ -43,6 +43,7 @@ delib.module {
   options = delib.moduleOptions {
     enable = delib.boolOption false;
     cowork = delib.boolOption false;
+    openrouterAliases = delib.boolOption false;
     mcpSecrets = lib.mkOption {
       type = lib.types.listOf (lib.types.submodule {
         options = {
@@ -111,7 +112,26 @@ delib.module {
   home.ifEnabled = { cfg, myconfig, ... }:
     let
       shellAliases = templateAliases
-        // lib.optionalAttrs myconfig.krit.programs.claude-code-wrappers.enable openrouterAliases;
+        // lib.optionalAttrs cfg.openrouterAliases openrouterAliases;
+
+      hasSecret = name: lib.any (s: s.sopsSecret == name) cfg.mcpSecrets;
+      secretPath = name: config.sops.secrets.${name}.path;
+
+      # Standalone home reads the HM sops path; the key stays in env, off argv.
+      mcpLaunchers = lib.optionals (moduleSystem == "home") (
+        lib.optional (hasSecret "claude_mcp_context7_api_key")
+          (pkgs.writeShellScriptBin "claude-mcp-context7" ''
+            CONTEXT7_API_KEY="$(cat ${lib.escapeShellArg (secretPath "claude_mcp_context7_api_key")})"
+            export CONTEXT7_API_KEY
+            PATH=${pkgs.nodejs_latest}/bin:$PATH exec npx -y @upstash/context7-mcp
+          '')
+        ++ lib.optional (hasSecret "claude_mcp_github_token")
+          (pkgs.writeShellScriptBin "claude-mcp-github" ''
+            AUTH_HEADER="Bearer $(cat ${lib.escapeShellArg (secretPath "claude_mcp_github_token")})"
+            export AUTH_HEADER
+            PATH=${pkgs.nodejs_latest}/bin:$PATH exec npx mcp-remote https://api.githubcopilot.com/mcp --header 'Authorization:''${AUTH_HEADER}'
+          '')
+      );
 
       mcpStaticExports = lib.mapAttrsToList
         (name: value: "export ${name}=${lib.escapeShellArg value}")
@@ -136,6 +156,6 @@ delib.module {
         bash.shellAliases = lib.mkIf (myconfig.constants.shell == "bash") shellAliases;
       };
 
-      home.packages = lib.optionals (moduleSystem == "home") ([ claudeHomeWrapper ] ++ claudeCodeTools);
+      home.packages = lib.optionals (moduleSystem == "home") ([ claudeHomeWrapper ] ++ claudeCodeTools ++ mcpLaunchers);
     };
 }

@@ -48,6 +48,7 @@ delib.host {
       krit.commonSopsSecrets.enable = true;
 
       nix-sweeps.enable = true;
+      nh.enable = true; # home-manager nh + nh-clean user timer: the scheduled GC of this home-only build (nix-sweeps only adds the CLI and presets)
 
       stylix = {
         enable = true;
@@ -141,7 +142,6 @@ delib.host {
       home-packages.enable = false; # NixOS-only terminal/browser/editor package translation - not applicable, no home.* block today, disabled anyway
       zram.enable = false; # NixOS-only swap config - not applicable, no home.* block today, disabled anyway
       cachix.enable = false; # NixOS/Darwin-only substituter config - not applicable to this home-only build, disabled anyway
-      nh.enable = false; # NixOS/Darwin-only `nh` CLI + GC wrapper - not applicable to this home-only build, disabled anyway (this NAS's GC is already handled by nix-sweeps above)
 
     };
 }

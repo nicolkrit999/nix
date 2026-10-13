@@ -2,8 +2,8 @@
 # Which backend xdg-desktop-portal actually selects, per host, specialisation and session
 # desktop, with no session switch: the built system-path and home-manager home-path shares
 # plus the repo's xdg.portal.config run through the real xdg-desktop-portal binary on a
-# private D-Bus. Builds system-path and home-path (bin-only script wrappers left out, see
-# 03-homepath.nix), no VM.
+# private D-Bus. Builds system-path and home-path (bin-only script wrappers and heavy
+# portal-less packages left out, see 03-homepath.nix and 04-systempath.nix), no VM.
 #
 # Usage:
 #   bash check-nixos-portal-routing.sh
@@ -31,7 +31,6 @@ fail() { printf "${RED}✗ fail${NC}\n"; FAIL=$((FAIL + 1)); FAILURES+=("$1|$2")
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 
-attr() { echo "path:$FLAKE_ROOT#nixosConfigurations.$1.config$2"; }
 build() { nix build --no-link --print-out-paths "$1" 2>>"$WORK/build.err" | tail -1; }
 
 echo ""
@@ -57,8 +56,7 @@ for h in "${HOSTS[@]}"; do
   mapfile -t CONFIGS < <(python3 -I -c 'import json,sys; print("\n".join(json.load(open(sys.argv[1]))))' "$WORK/$h/cfgs.json")
 
   for s in "${CONFIGS[@]}"; do
-    if [[ $s == base ]]; then sub=""; else sub=".specialisation.$s.configuration"; fi
-    SP="$(build "$(attr "$h" "$sub.system.path")")"
+    SP="$(HOST=$h SPEC=$s nix build --no-link --print-out-paths --impure --file "$DIR/04-systempath.nix" 2>>"$WORK/build.err" | tail -1)"
     SD="$(HOST=$h SPEC=$s nix build --no-link --print-out-paths --impure --file "$DIR/02-sessions.nix" 2>>"$WORK/build.err" | tail -1)"
     hmon=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]]["hmPortal"])' "$WORK/$h/cfgs.json" "$s")
     HMSHARE=/nonexistent

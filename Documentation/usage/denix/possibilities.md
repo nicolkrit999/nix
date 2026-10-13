@@ -38,7 +38,7 @@ These modules work on both NixOS and Darwin hosts.
 
 * **`cachix`**: Configures Nix to pull from (and optionally push to) a specified binary cache, resulting in much faster rebuilds (pre-built binaries instead of local compilation).
 * **`nh`**: A fast, user-friendly wrapper for NixOS/nix-darwin rebuild commands.
-  * **Warning:** The rebuild aliases (`sw`, `gsw`, `upd`, `swboot`, `swtest`, ...) call `nh os` / `nh darwin`, so disabling `nh` fails evaluation with an assertion (NixOS and Darwin) unless `constants.nixImpure` is true. With `nixImpure` the NixOS and Darwin aliases (`sw`, `upd`, `swfall`, `gswfall`, `swdry`, `swoff`, `gswoff`, ...) use `nixos-rebuild` / `darwin-rebuild --impure` instead; `swpure` stays pure and uses `nh` when enabled. Standalone home aliases ignore `nixImpure`.
+  * **Warning:** The rebuild aliases (`sw`, `gsw`, `upd`, `swboot`, `swtest`, ...) call `nh os` / `nh darwin`, so disabling `nh` fails evaluation with an assertion (NixOS and Darwin) unless `constants.nixImpure` is true. With `nixImpure` the NixOS and Darwin aliases (`sw`, `upd`, `swfall`, `gswfall`, `swdry`, `swoff`, `gswoff`, ...) use `nixos-rebuild` / `darwin-rebuild --impure` instead; `swpure` stays pure and uses `nh` when enabled. Standalone home aliases (`sw`, `gsw`, `swdry`, `upd`, `nfc`) append `--impure` instead.
 
 * **`stylix`**: Global theming engine that colors and styles almost every application automatically based on the constants.
   * **Warning:** Disabling this would cause massive graphical inconsistencies regarding general theming, polarity, and wallpaper.
@@ -99,7 +99,7 @@ These modules work on both NixOS and Darwin hosts.
 
 #### Services (`services.`)
 
-* **`services.tailscale`**: A zero-config mesh VPN service that builds secure networks between your devices. On NixOS it also opens the tailscaled UDP port, trusts the tailscale0 interface and sets loose reverse-path filtering (upstream `openFirewall` and `useRoutingFeatures = "client"`). On macOS it runs the nix-darwin tailscaled daemon and asserts that the `tailscale-app` Homebrew cask is not installed alongside it.
+* **`services.tailscale`**: A zero-config mesh VPN service that builds secure networks between your devices. On NixOS it also opens the tailscaled UDP port, trusts the tailscale0 interface and sets loose reverse-path filtering (upstream `openFirewall` and `useRoutingFeatures = "client"`). On macOS it runs the nix-darwin tailscaled daemon and asserts that the `tailscale-app` Homebrew cask is not installed alongside it (the host uses the cask instead, and the darwin NAS modules assert that exactly one Tailscale provider is present via the internal read-only `myconfig.services.tailscale.darwinCaskPresent`).
 
 ---
 

@@ -86,6 +86,8 @@ URL_CASES = [
      [DUMMY_PREFETCH, "--name", "_t_.jpg", "https://example.com/%C3%A9t%C3%A9.jpg"]),
     ("encoded-blob-raw-name", f"{GH}/blob/main/My%20Pic.png",
      [DUMMY_PREFETCH, "--name", "My_Pic.png", "https://raw.githubusercontent.com/owner/repo/main/My%20Pic.png"]),
+    ("encoded-leading-dot-stripped", "https://example.com/img/%2Ehidden.png",
+     [DUMMY_PREFETCH, "--name", "hidden.png", "https://example.com/img/%2Ehidden.png"]),
 ]
 
 for name, url, expected in URL_CASES:
@@ -99,6 +101,9 @@ NAME_CASES = [
     ("a b/c", "a_b_c"),
     ("keep+._?=-AZaz09", "keep+._?=-AZaz09"),
     ("x;rm -rf $(y)", "x_rm_-rf___y_"),
+    (".hidden.png", "hidden.png"),
+    ("..", "download"),
+    ("", "download"),
 ]
 for raw, expected in NAME_CASES:
     got = npu.safe_store_name(raw)
@@ -106,7 +111,7 @@ for raw, expected in NAME_CASES:
 
 all_names = [npu.safe_store_name(raw) for raw, _ in NAME_CASES]
 record("safe_store_name output charset",
-       all(re.fullmatch(r"[A-Za-z0-9+._?=-]+", n) for n in all_names), f"got {all_names}")
+       all(re.fullmatch(r"[A-Za-z0-9+._?=-]+", n) and not n.startswith(".") for n in all_names), f"got {all_names}")
 
 with open(NPU_PATH, encoding="utf-8") as fh:
     env_vars = re.findall(r'os\.environ\["([A-Z_]+)"\]', fh.read())

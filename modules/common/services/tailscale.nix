@@ -1,7 +1,19 @@
 { delib, pkgs, lib, config, moduleSystem, ... }:
 delib.module {
   name = "services.tailscale";
-  options = delib.singleEnableOption false;
+  options = delib.moduleOptions {
+    enable = delib.boolOption false;
+    darwinCaskPresent = lib.mkOption {
+      type = lib.types.bool;
+      readOnly = true;
+      internal = true;
+      description = "Whether this darwin host installs the Homebrew cask \"tailscale-app\" (the alternative Tailscale provider to the nix-darwin daemon).";
+    };
+  };
+
+  myconfig.always.services.tailscale.darwinCaskPresent =
+    moduleSystem == "darwin"
+    && builtins.elem "tailscale-app" (map (c: if builtins.isString c then c else c.name) config.homebrew.casks);
 
   home.ifEnabled =
     { myconfig, ... }:

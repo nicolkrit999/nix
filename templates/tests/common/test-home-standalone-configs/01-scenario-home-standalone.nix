@@ -114,6 +114,33 @@ let
     }];
   };
 
+  nasNhCfg = nasCfg.myconfig.nh;
+  nasFlakeDir = nasCfg.myconfig.constants.flakeDir;
+  nixosNhOn = flake.nixosConfigurations.template-host-minimal.extendModules {
+    modules = [ ({ lib, ... }: { myconfig.nh.enable = lib.mkForce true; }) ];
+  };
+
+  sidraKey = ".config/Sidra/custom-theme.json";
+  sidraTwin = stylixOn: customTheme: nas.extendModules {
+    modules = [
+      ({ lib, ... }: {
+        myconfig.programs.sidra = {
+          enable = lib.mkForce true;
+          customTheme = lib.mkForce customTheme;
+        };
+        myconfig.stylix.enable = lib.mkForce stylixOn;
+      })
+    ];
+  };
+  sidraTheme = x:
+    let f = x.config.home.file;
+    in if f ? ${sidraKey} && f.${sidraKey}.enable then builtins.fromJSON f.${sidraKey}.text else null;
+
+  zenForced = base: base.extendModules {
+    modules = [ ({ lib, ... }: { myconfig.programs.zen.browser.enable = lib.mkForce true; }) ];
+  };
+  zenNames = c: c.stylix.targets."zen-browser".profileNames;
+
   homePrograms = {
     check-claude-code-overlay-source =
       if fromInput flake.inputs.claude-code homeCc then "ok"
@@ -171,6 +198,52 @@ let
         warns = x: lib.any (lib.hasInfix msg) x.config.warnings;
       in
       expect "thunderbird warning [accounts set, accounts empty]" [ (warns progsOn) (warns progsOff) ] [ true false ];
+
+    check-nh-home-timer = all [
+      (expect "NAS myconfig.nh.enable" nasNhCfg.enable true)
+      (expect "NAS programs.nh.enable" nasCfg.programs.nh.enable true)
+      (expect "NAS programs.nh.clean.enable" nasCfg.programs.nh.clean.enable true)
+      (expect "NAS systemd user timer nh-clean present" (nasCfg.systemd.user.timers ? nh-clean) true)
+      (if nasFlakeDir == "" then "FAIL: flakeDir constant empty (control)" else "ok")
+      (expect "NAS programs.nh.flake" nasCfg.programs.nh.flake "${nasCfg.home.homeDirectory}/${nasFlakeDir}")
+      (expect "NAS nh clean extraArgs follow gcd/gcn" nasCfg.programs.nh.clean.extraArgs [ "--keep-since" nasNhCfg.gcd "--keep" nasNhCfg.gcn ])
+    ];
+
+    check-nh-no-duplicate-hm-timer-on-nixos = guard (
+      let u = nixosNhOn.config.home-manager.users.krit;
+      in all [
+        (expect "NixOS system programs.nh.clean.enable (control: nh really on)" nixosNhOn.config.programs.nh.clean.enable true)
+        (expect "integrated HM programs.nh.enable" u.programs.nh.enable false)
+        (expect "integrated HM nh-clean user timer" (u.systemd.user.timers ? nh-clean) false)
+      ]
+    );
+
+    check-sidra-theme-gating =
+      let
+        polarity = nasCfg.myconfig.constants.theme.polarity;
+        on = sidraTheme (sidraTwin true true);
+      in
+      all [
+        (if on == null then "FAIL: stylix on + customTheme on: custom-theme.json missing" else expect "theme json top-level keys" (builtins.attrNames on) [ polarity ])
+        (expect "custom-theme.json [stylix on/customTheme off, stylix off/customTheme on, both off]"
+          [ (sidraTheme (sidraTwin true false)) (sidraTheme (sidraTwin false true)) (sidraTheme (sidraTwin false false)) ]
+          [ null null null ])
+        (expect "sidra disabled: no custom-theme.json" (nasCfg.home.file ? ${sidraKey}) false)
+      ];
+
+    check-zen-stylix-profile-names = all [
+      (expect "NAS zen off: profileNames (control)" (zenNames nasCfg) [ ])
+      (expect "standalone home zen on: profileNames" (zenNames (zenForced homes."krit@template-host-minimal").config) [ "default" ])
+      (expect "krit@nixos-laptop home build profileNames" (zenNames (zenForced homes."krit@nixos-laptop").config) [ "default" ])
+      (expect "krit@nixos-desktop home build profileNames" (zenNames (zenForced homes."krit@nixos-desktop").config) [ "default" ])
+      (guard (
+        let n = zenForced flake.nixosConfigurations.template-host-minimal;
+        in all [
+          (expect "integrated NixOS HM profileNames" (zenNames n.config.home-manager.users.krit) [ "default" ])
+          (expect "NixOS toplevel stylix.targets has zen-browser" (n.config.stylix.targets ? "zen-browser") false)
+        ]
+      ))
+    ];
 
     check-nixos-openrouter-aliases-follow-wrappers = guard (
       let has = x: builtins.elem "cai-openrouter-opus" (aliasKeys x.config.home-manager.users.krit.programs);

@@ -9,7 +9,7 @@ delib.module {
   options = delib.singleEnableOption false;
 
   darwin.ifEnabled =
-    { ... }:
+    { myconfig, ... }:
     let
       nasUser = "krit";
       nasHost = "nicol-nas";
@@ -176,6 +176,12 @@ delib.module {
       };
 
       # Tailnet access on darwin comes from the tailscale-app cask (hosts/Krits-MacBook-Pro/local-packages.nix).
+      assertions = [
+        {
+          assertion = myconfig.services.tailscale.darwinCaskPresent || config.services.tailscale.enable;
+          message = "krit.services.nas.Krits-MacBook-Pro-borg-backup reaches the NAS over the tailnet but this darwin host has no Tailscale provider: add the Homebrew cask \"tailscale-app\" or enable myconfig.services.tailscale.";
+        }
+      ];
 
       sops.secrets.borg-passphrase = {
         owner = "krit";

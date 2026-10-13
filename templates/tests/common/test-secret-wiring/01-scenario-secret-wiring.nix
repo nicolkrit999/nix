@@ -223,4 +223,84 @@ in
     in
     eq "github_general_ssh_key" "id_github" ++ eq "github_general_ssh_pub" "id_github.pub"
     ++ eq "school_ssh_key" "id_school" ++ eq "school_ssh_pub" "id_school.pub");
+  check-mcp-nas-launchers =
+    let
+      cfg = nas.config;
+      nc = builtins.unsafeDiscardStringContext;
+      launcher = pkgs: n: lib.filter (p: (p.name or "") == n) pkgs;
+      pkgsOf = c: c.home.packages;
+      textOf = n: let l = launcher (pkgsOf cfg) n; in if l == [ ] then "" else nc ((lib.head l).text or "");
+      pathOf = sec: nc cfg.sops.secrets.${sec}.path;
+      ctx = textOf "claude-mcp-context7";
+      gh = textOf "claude-mcp-github";
+      execLines = t: lib.filter (l: lib.hasInfix "exec " l) (lib.splitString "\n" t);
+      one = n: sec: t:
+        if t == "" then [ "${n} missing from NAS home.packages" ]
+        else
+          lib.optional (!lib.hasInfix (pathOf sec) t) "${n} does not read the HM sops path ${pathOf sec}"
+          ++ lib.optional (!lib.hasInfix "/.config/sops-nix/" (pathOf sec)) "${sec} HM path is not under .config/sops-nix"
+          ++ lib.optional (lib.hasInfix "/run/secrets" t) "${n} references /run/secrets"
+          ++ lib.optional (lib.hasInfix "--api-key" t) "${n} passes --api-key"
+          ++ lib.optional (execLines t == [ ]) "${n} has no exec line (argv check would be vacuous)"
+          ++ lib.concatMap (l: lib.optional (lib.hasInfix "$(cat" l || lib.hasInfix (pathOf sec) l) "${n} exec line carries the secret: ${l}") (execLines t);
+      hasMcp = c: lib.filter (p: lib.hasPrefix "claude-mcp-" (p.name or "")) (pkgsOf c);
+      withoutCtx = nas.extendModules {
+        modules = [
+          ({ lib, ... }: {
+            myconfig.programs.claude-code.mcpSecrets = lib.mkForce
+              (lib.filter (m: m.sopsSecret != "claude_mcp_context7_api_key") cfg.myconfig.programs.claude-code.mcpSecrets);
+          })
+        ];
+      };
+    in
+    failures (
+      one "claude-mcp-context7" "claude_mcp_context7_api_key" ctx
+      ++ one "claude-mcp-github" "claude_mcp_github_token" gh
+      ++ lib.optional (gh != "" && !lib.hasInfix "--header 'Authorization:\${AUTH_HEADER}'" gh) "github header is not the literal Authorization:\${AUTH_HEADER}"
+      ++ lib.optional (map (p: p.name) (hasMcp withoutCtx.config) != [ "claude-mcp-github" ]) "control: dropping the context7 secret must drop exactly its launcher"
+      ++ lib.optionals hasNixos (lib.optional
+        (hasMcp nixosHosts.nixos-desktop.config.home-manager.users.${userOf nixosHosts.nixos-desktop} != [ ])
+        "integrated NixOS home gained claude-mcp-* launchers (home-only gate broken)")
+    );
+
+  check-thunderbird-profile-dirs =
+    let
+      off = h: withModules h [ ({ lib, ... }: { myconfig.programs.thunderbird.enable = lib.mkForce false; }) ];
+      nixosOne = h0:
+        let
+          h = tbForced h0;
+          user = userOf h;
+          grp = h.config.users.users.${user}.group;
+          a = h.config.system.activationScripts.thunderbirdProfileDirs or null;
+          t = if a == null then "" else a.text;
+          offH = off h0;
+        in
+        lib.optional (a == null) "thunderbirdProfileDirs activation script missing"
+        ++ lib.optionals (a != null) (
+          lib.optional (!lib.hasInfix "install -d -o ${user} -g ${grp} -m 0700" t) "install -d -o ${user} -g ${grp} -m 0700 not in script"
+          ++ lib.optional (!lib.elem "/home/${user}/.thunderbird \\" (map lib.trim (lib.splitString "\n" t))) "parent .thunderbird dir not created"
+          ++ lib.optional (!lib.hasInfix "/home/${user}/.thunderbird/default" t) "profile dir default not created"
+          ++ lib.optional (!(lib.elem "users" a.deps && lib.elem "groups" a.deps)) "deps lack users/groups: ${builtins.toJSON a.deps}"
+        )
+        ++ lib.optional (offH.config.system.activationScripts ? thunderbirdProfileDirs) "control: script still present with thunderbird disabled";
+      darwinOne = h0:
+        let
+          h = tbForced h0;
+          user = userOf h;
+          t = h.config.system.activationScripts.preActivation.text or "";
+          base = "/Users/${user}/Library/Thunderbird";
+          dirs = [ base "${base}/Profiles" "${base}/Profiles/default" ];
+          tLines = map (l: lib.removeSuffix " \\" (lib.trim l)) (lib.splitString "\n" t);
+          offT = (off h0).config.system.activationScripts.preActivation.text or "";
+        in
+        lib.optional (!lib.hasInfix "mkdir -p ${base}/Profiles/default" t) "mkdir -p profile dir missing"
+        ++ lib.optional (!lib.hasInfix "chown ${user}:staff" t) "chown ${user}:staff missing"
+        ++ lib.optional (!lib.hasInfix "chmod 0700" t) "chmod 0700 missing"
+        ++ map (d: "${d} not covered by chown/chmod") (lib.filter (d: lib.count (l: l == d) tLines != 2) dirs)
+        ++ lib.optional (lib.hasInfix "Library/Thunderbird" offT) "control: preActivation still mentions Thunderbird with thunderbird disabled";
+    in
+    failures (
+      lib.concatLists (lib.mapAttrsToList (n: h: map (m: "${n}: ${m}") (nixosOne h)) nixosHosts)
+      ++ lib.concatLists (lib.mapAttrsToList (n: h: map (m: "${n}: ${m}") (darwinOne h)) darwinHosts)
+    );
 }
