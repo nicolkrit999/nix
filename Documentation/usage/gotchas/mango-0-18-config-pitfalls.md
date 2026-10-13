@@ -10,7 +10,7 @@ Non-obvious behaviours of mango 0.18.0 that shaped `modules/nixos/programs/de-wm
 - **`switch_proportion_preset` needs `next`.** With no argument it steps backwards.
 - **DPMS is "output disabled".** Mango's screen-off disables the output, so tools cannot tell asleep from disabled, and `wlopm --on '*'` re-enables outputs configured with `disable:1` (the JetKVM). hypridle therefore uses `mango-dpms`, which only wakes outputs it turned off itself.
 - **Pinned windows count as visible on every tag**, so `mango-scratch` filters on `is_global`/`is_unglobal`.
-- **`GDK_SCALE` must be 1 under mango.** Xwayland gets the logical size and the compositor scales X11 clients; `GDK_SCALE=2` would make X11 GTK/Java apps about 3x. It is set through `settings.env` because the session variable file exports `GDK_SCALE=2` whenever the first monitor is scaled, in every session (needed by Hyprland with `force_zero_scaling`).
+- **`GDK_SCALE` must be 1 under mango.** Xwayland gets the logical size and the compositor scales X11 clients; `GDK_SCALE=2` would make X11 GTK/Java apps about 3x. The compositor env vars (`QT_QPA_PLATFORM`, `GDK_BACKEND`, `SDL_VIDEODRIVER`, `CLUTTER_BACKEND`, `_JAVA_AWT_WM_NONREPARENTING`) live in mango's `settings.env` and `GDK_SCALE,1` stays in mango's env; Hyprland derives its own `GDK_SCALE` from its monitors, and `home.sessionVariables` no longer exports `GDK_SCALE=2`.
 
 Upstream limits (no repo fix possible):
 

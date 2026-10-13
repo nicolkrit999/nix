@@ -6,6 +6,7 @@ delib.module {
   name = "programs.hyprland";
   home.ifEnabled =
     { cfg
+    , parent
     , myconfig
     , ...
     }:
@@ -13,25 +14,24 @@ delib.module {
       inherit (lib.generators) mkLuaInline;
 
       mod = "SUPER";
-      term = myconfig.constants.terminal.name or "alacritty";
-      browser = myconfig.constants.browser or "firefox";
-      rawFm = myconfig.constants.fileManager or "dolphin";
-      rawEd = myconfig.constants.editor or "vscode";
+      term = myconfig.constants.terminal.name;
+      browser = myconfig.constants.browser;
+      rawFm = myconfig.constants.fileManager;
+      rawEd = myconfig.constants.editor;
       termApps = myconfig.constants.terminalApps;
       smartFm = if builtins.elem rawFm termApps then "${term} --class ${rawFm} -e ${rawFm}" else rawFm;
       smartEd = if builtins.elem rawEd termApps then "${term} --class ${rawEd} -e ${rawEd}" else rawEd;
 
-      caelestiaActiveOnHyprland =
-        (myconfig.programs.caelestia.enable or false)
-        && (myconfig.programs.caelestia.enableOnHyprland or false);
-      noctaliaActiveOnHyprland =
-        (myconfig.programs.noctalia.enable or false)
-        && (myconfig.programs.noctalia.enableOnHyprland or false);
+      caelestiaActiveOnHyprland = parent.caelestia.enable && parent.caelestia.enableOnHyprland;
+      noctaliaActiveOnHyprland = parent.noctalia.enable && parent.noctalia.enableOnHyprland;
+
+      vicinaeEnabled = parent.vicinae.enable or true;
 
       shellMenu =
         if caelestiaActiveOnHyprland then "caelestiaQS"
         else if noctaliaActiveOnHyprland then "noctalia-shell ipc call toggleAppLauncher"
-        else "true";
+        else if vicinaeEnabled then "vicinae toggle"
+        else null;
 
       shellLock =
         if caelestiaActiveOnHyprland then "caelestiaLogout lock"
@@ -63,46 +63,59 @@ delib.module {
       focusMonitor = m: "hl.dsp.focus({ monitor = ${luaQ m} })";
       moveToMonitor = m: "hl.dsp.window.move({ monitor = ${luaQ m} })";
 
-      bindelList =
-        if shellActiveOnHyprland then [
-          (mkBind { key = "XF86AudioRaiseVolume"; dispatcher = exec "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86AudioLowerVolume"; dispatcher = exec "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86AudioMute"; dispatcher = exec "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86AudioMicMute"; dispatcher = exec "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86MonBrightnessUp"; dispatcher = exec "brightnessctl set 5%+"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86MonBrightnessDown"; dispatcher = exec "brightnessctl set 5%-"; flags = { locked = true; repeating = true; }; })
-          (mkBind { mods = mod; key = "bracketright"; dispatcher = exec "brightnessctl set 5%+"; flags = { locked = true; repeating = true; }; })
-          (mkBind { mods = mod; key = "bracketleft"; dispatcher = exec "brightnessctl set 5%-"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86KbdBrightnessUp"; dispatcher = exec "brightnessctl --device='*::kbd_backlight' set +10%"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86KbdBrightnessDown"; dispatcher = exec "brightnessctl --device='*::kbd_backlight' set 10%-"; flags = { locked = true; repeating = true; }; })
-        ] else [
-          (mkBind { key = "XF86AudioRaiseVolume"; dispatcher = exec "swayosd-client --output-volume raise"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86AudioLowerVolume"; dispatcher = exec "swayosd-client --output-volume lower"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86AudioMute"; dispatcher = exec "swayosd-client --output-volume mute-toggle"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86AudioMicMute"; dispatcher = exec "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86MonBrightnessUp"; dispatcher = exec "swayosd-client --brightness raise"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86MonBrightnessDown"; dispatcher = exec "swayosd-client --brightness lower"; flags = { locked = true; repeating = true; }; })
-          (mkBind { mods = mod; key = "bracketright"; dispatcher = exec "swayosd-client --brightness raise"; flags = { locked = true; repeating = true; }; })
-          (mkBind { mods = mod; key = "bracketleft"; dispatcher = exec "swayosd-client --brightness lower"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86KbdBrightnessUp"; dispatcher = exec "swayosd-client --keyboard-brightness raise"; flags = { locked = true; repeating = true; }; })
-          (mkBind { key = "XF86KbdBrightnessDown"; dispatcher = exec "swayosd-client --keyboard-brightness lower"; flags = { locked = true; repeating = true; }; })
-        ];
+      repeatBind = { mods ? "", key, cmd }: mkBind {
+        inherit mods key;
+        dispatcher = exec cmd;
+        flags = { locked = true; repeating = true; };
+      };
+      lockedBind = { key, cmd }: mkBind {
+        inherit key;
+        dispatcher = exec cmd;
+        flags = { locked = true; };
+      };
 
-      bindlList =
+      bindelList = map repeatBind (
         if shellActiveOnHyprland then [
-          (mkBind { key = "XF86AudioNext"; dispatcher = exec "playerctl next"; flags = { locked = true; }; })
-          (mkBind { key = "XF86AudioPause"; dispatcher = exec "playerctl play-pause"; flags = { locked = true; }; })
-          (mkBind { key = "XF86AudioPlay"; dispatcher = exec "playerctl play-pause"; flags = { locked = true; }; })
-          (mkBind { key = "XF86AudioPrev"; dispatcher = exec "playerctl previous"; flags = { locked = true; }; })
-          (mkBind { key = "XF86AudioStop"; dispatcher = exec "playerctl stop"; flags = { locked = true; }; })
+          { key = "XF86AudioRaiseVolume"; cmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"; }
+          { key = "XF86AudioLowerVolume"; cmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"; }
+          { key = "XF86AudioMute"; cmd = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
+          { key = "XF86AudioMicMute"; cmd = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
+          { key = "XF86MonBrightnessUp"; cmd = "brightnessctl set 5%+"; }
+          { key = "XF86MonBrightnessDown"; cmd = "brightnessctl set 5%-"; }
+          { mods = mod; key = "bracketright"; cmd = "brightnessctl set 5%+"; }
+          { mods = mod; key = "bracketleft"; cmd = "brightnessctl set 5%-"; }
+          { key = "XF86KbdBrightnessUp"; cmd = "brightnessctl --device='*::kbd_backlight' set +10%"; }
+          { key = "XF86KbdBrightnessDown"; cmd = "brightnessctl --device='*::kbd_backlight' set 10%-"; }
         ] else [
-          (mkBind { key = "XF86AudioNext"; dispatcher = exec "swayosd-client --playerctl next"; flags = { locked = true; }; })
-          (mkBind { key = "XF86AudioPause"; dispatcher = exec "swayosd-client --playerctl play-pause"; flags = { locked = true; }; })
-          (mkBind { key = "XF86AudioPlay"; dispatcher = exec "swayosd-client --playerctl play-pause"; flags = { locked = true; }; })
-          (mkBind { key = "XF86AudioPrev"; dispatcher = exec "swayosd-client --playerctl previous"; flags = { locked = true; }; })
-          (mkBind { key = "XF86AudioStop"; dispatcher = exec "swayosd-client --playerctl stop"; flags = { locked = true; }; })
-          (mkBind { key = "Caps_Lock"; dispatcher = exec "swayosd-client --caps-lock"; flags = { locked = true; }; })
-        ];
+          { key = "XF86AudioRaiseVolume"; cmd = "swayosd-client --output-volume raise"; }
+          { key = "XF86AudioLowerVolume"; cmd = "swayosd-client --output-volume lower"; }
+          { key = "XF86AudioMute"; cmd = "swayosd-client --output-volume mute-toggle"; }
+          { key = "XF86AudioMicMute"; cmd = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
+          { key = "XF86MonBrightnessUp"; cmd = "swayosd-client --brightness raise"; }
+          { key = "XF86MonBrightnessDown"; cmd = "swayosd-client --brightness lower"; }
+          { mods = mod; key = "bracketright"; cmd = "swayosd-client --brightness raise"; }
+          { mods = mod; key = "bracketleft"; cmd = "swayosd-client --brightness lower"; }
+          { key = "XF86KbdBrightnessUp"; cmd = "swayosd-client --keyboard-brightness raise"; }
+          { key = "XF86KbdBrightnessDown"; cmd = "swayosd-client --keyboard-brightness lower"; }
+        ]
+      );
+
+      bindlList = map lockedBind (
+        if shellActiveOnHyprland then [
+          { key = "XF86AudioNext"; cmd = "playerctl next"; }
+          { key = "XF86AudioPause"; cmd = "playerctl play-pause"; }
+          { key = "XF86AudioPlay"; cmd = "playerctl play-pause"; }
+          { key = "XF86AudioPrev"; cmd = "playerctl previous"; }
+          { key = "XF86AudioStop"; cmd = "playerctl stop"; }
+        ] else [
+          { key = "XF86AudioNext"; cmd = "swayosd-client --playerctl next"; }
+          { key = "XF86AudioPause"; cmd = "swayosd-client --playerctl play-pause"; }
+          { key = "XF86AudioPlay"; cmd = "swayosd-client --playerctl play-pause"; }
+          { key = "XF86AudioPrev"; cmd = "swayosd-client --playerctl previous"; }
+          { key = "XF86AudioStop"; cmd = "swayosd-client --playerctl stop"; }
+          { key = "Caps_Lock"; cmd = "swayosd-client --caps-lock"; }
+        ]
+      );
 
       wsKey = n: if n == 0 then "10" else toString n;
       wsBind = n: mkBind { mods = mod; key = toString n; dispatcher = focusWs (wsKey n); };
@@ -111,7 +124,7 @@ delib.module {
     in
     {
       wayland.windowManager.hyprland.settings = {
-        bind = [
+        bind = lib.flatten [
           (mkBind { mods = "${mod}+SHIFT"; key = "C"; dispatcher = "hl.dsp.window.close()"; })
           (mkBind { mods = mod; key = "T"; dispatcher = ''hl.dsp.layout("togglesplit")''; })
           (mkBind { mods = mod; key = "space"; dispatcher = ''hl.dsp.window.float({ action = "toggle" })''; })
@@ -119,8 +132,8 @@ delib.module {
           (mkBind { mods = "${mod}+ALT"; key = "P"; dispatcher = "hl.dsp.window.pin()"; })
           (mkBind { mods = mod; key = "P"; dispatcher = exec "hyprctl dispatch 'hl.dsp.window.float({ action = \"toggle\" })' && hyprctl dispatch 'hl.dsp.window.resize({ x = 800, y = 450, relative = false })' && hyprctl dispatch 'hl.dsp.window.pin()'"; })
 
-          (mkBind { mods = mod; key = "A"; dispatcher = exec "vicinae toggle"; })
-          (mkBind { mods = "${mod}+SHIFT"; key = "A"; dispatcher = exec shellMenu; })
+          (lib.optional vicinaeEnabled (mkBind { mods = mod; key = "A"; dispatcher = exec "vicinae toggle"; }))
+          (lib.optional (shellMenu != null) (mkBind { mods = "${mod}+SHIFT"; key = "A"; dispatcher = exec shellMenu; }))
           (mkBind { mods = mod; key = "return"; dispatcher = exec term; })
           (mkBind { mods = mod; key = "F"; dispatcher = exec smartFm; })
           (mkBind { mods = mod; key = "B"; dispatcher = exec browser; })
@@ -129,18 +142,18 @@ delib.module {
           (mkBind { mods = "${mod}+SHIFT"; key = "Delete"; dispatcher = "hl.dsp.exit()"; })
           (mkBind { mods = mod; key = "Delete"; dispatcher = exec shellLock; })
 
-          (mkBind { mods = mod; key = "period"; dispatcher = exec "vicinae vicinae://launch/core/search-emojis"; })
+          (lib.optional vicinaeEnabled (mkBind { mods = mod; key = "period"; dispatcher = exec "vicinae vicinae://launch/core/search-emojis"; }))
           (mkBind { mods = "${mod}+SHIFT"; key = "P"; dispatcher = exec "hyprpicker -an"; })
-          (mkBind { mods = mod; key = "V"; dispatcher = exec "vicinae vicinae://launch/clipboard/history"; })
+          (lib.optional vicinaeEnabled (mkBind { mods = mod; key = "V"; dispatcher = exec "vicinae vicinae://launch/clipboard/history"; }))
           (mkBind { mods = "${mod}+SHIFT"; key = "R"; dispatcher = exec "hyprctl reload"; })
           (mkBind { mods = mod; key = "N"; dispatcher = exec "swaync-client -t"; })
 
           (mkBind { mods = "${mod}+ALT"; key = "W"; dispatcher = exec "pkill -SIGUSR2 waybar"; })
-          (mkBind { mods = "${mod}+SHIFT"; key = "W"; dispatcher = exec "pkill -x -SIGUSR1 waybar"; })
+          (mkBind { mods = "${mod}+SHIFT"; key = "W"; dispatcher = exec "pkill -SIGUSR1 waybar"; })
 
           (mkBind { key = "Print"; dispatcher = exec "grimblast --notify --freeze copysave output"; })
-          (mkBind { mods = "SUPER+CTRL"; key = "3"; dispatcher = exec "grimblast --notify --freeze copysave output"; })
-          (mkBind { mods = "SUPER+CTRL"; key = "4"; dispatcher = exec "grimblast --notify --freeze copysave area"; })
+          (mkBind { mods = "${mod}+CTRL"; key = "3"; dispatcher = exec "grimblast --notify --freeze copysave output"; })
+          (mkBind { mods = "${mod}+CTRL"; key = "4"; dispatcher = exec "grimblast --notify --freeze copysave area"; })
 
           (mkBind { mods = mod; key = "left"; dispatcher = focusDir "left"; })
           (mkBind { mods = mod; key = "H"; dispatcher = focusDir "left"; })
@@ -182,8 +195,7 @@ delib.module {
         ]
         ++ bindelList
         ++ bindlList
-        ++ (cfg.extraBinds or [ ])
-        ++ (cfg.extraBindl or [ ]);
+        ++ cfg.extraBinds;
       };
     };
 }

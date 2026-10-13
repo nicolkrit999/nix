@@ -19,8 +19,8 @@ nix-tests.runTests {
       helpers.isTrue (snap hm).swaync;
     "binds and startup identical to the no-shell scenario" =
       helpers.isEq (snap hm) (snap control);
-    "Mod+Shift+A is the no-op, not the shell IPC" =
-      helpers.isEq (snap hm).binds."Mod+Shift+A".spawn [ "true" ];
+    "Mod+Shift+A falls back to vicinae, not the shell IPC" =
+      helpers.isEq (snap hm).binds."Mod+Shift+A".spawn [ "vicinae" "toggle" ];
     "Mod+Delete is loginctl lock-session" =
       helpers.isEq (snap hm).binds."Mod+Delete".spawn [ "loginctl" "lock-session" ];
   };

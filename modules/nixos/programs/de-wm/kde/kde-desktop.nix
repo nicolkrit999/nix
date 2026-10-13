@@ -8,11 +8,8 @@ delib.module {
     {
       programs.plasma.desktop = {
         mouseActions = {
-          # Right Click -> Context Menu
           rightClick = "contextMenu";
-          # Scroll Wheel -> Switch Virtual Desktops
           verticalScroll = "switchVirtualDesktop";
-          # Middle Click -> Paste (Standard Linux behavior)
           middleClick = "paste";
         };
         icons = {
@@ -29,20 +26,18 @@ delib.module {
 
           folderPreviewPopups = true;
 
-          # PREVIEW PLUGINS
           previewPlugins = [
+            "audiothumbnail"
+            "comicbookthumbnail"
+            "ebookthumbnail"
+            "fontthumbnail"
+            "gsthumbnail"
             "imagethumbnail"
             "jpegthumbnail"
-            "fontthumbnail"
             "opendocumentthumbnail"
-            "gsthumbnail"
-            "comicbookthumbnail"
-            "audiothumbnail"
-            "ebookthumbnail"
           ];
         };
 
-        # DESKTOP WIDGETS
         widgets = [ ];
       };
     };

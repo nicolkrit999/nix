@@ -1,4 +1,5 @@
 { delib
+, lib
 , pkgs
 , inputs
 , ...
@@ -17,10 +18,9 @@ delib.module {
         app:
         if
           builtins.elem app myconfig.constants.terminalApps
-
         then
           [
-            "${myconfig.constants.terminal.name}"
+            myconfig.constants.terminal.name
             "-e"
             app
           ]
@@ -29,12 +29,13 @@ delib.module {
 
       noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
+      vicinaeEnabled = parent.vicinae.enable or true;
+
       vicinaeCommand = [ "vicinae" "toggle" ];
 
       noctaliaActiveOnNiri =
         (parent.noctalia.enable or false)
-        && (parent.noctalia.enableOnNiri or false)
-        && (parent.niri.enable or false);
+        && (parent.noctalia.enableOnNiri or false);
 
       shellLauncherCommand =
         if noctaliaActiveOnNiri then
@@ -43,6 +44,8 @@ delib.module {
             "-c"
             "${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle"
           ]
+        else if vicinaeEnabled then
+          vicinaeCommand
         else
           [ "true" ];
 
@@ -56,7 +59,18 @@ delib.module {
         else
           [ "loginctl" "lock-session" ];
 
-      mediaBinds =
+      allowWhenLockedKeys = [
+        "XF86AudioRaiseVolume"
+        "XF86AudioLowerVolume"
+        "XF86AudioMute"
+        "XF86AudioMicMute"
+        "XF86MonBrightnessUp"
+        "XF86MonBrightnessDown"
+        "XF86KbdBrightnessUp"
+        "XF86KbdBrightnessDown"
+      ];
+
+      mediaBindsRaw =
         if noctaliaActiveOnNiri then {
           "XF86AudioRaiseVolume".action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%+" ];
           "XF86AudioLowerVolume".action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-" ];
@@ -92,14 +106,20 @@ delib.module {
           "Caps_Lock".action.spawn = [ "swayosd-client" "--caps-lock" ];
         };
 
+      mediaBinds = builtins.mapAttrs
+        (key: bind:
+          if builtins.elem key allowWhenLockedKeys
+          then bind // { allow-when-locked = true; }
+          else bind)
+        mediaBindsRaw;
+
       baseBinds = {
         # -----------------------------------------------------------------------
         # 🚀 APPLICATIONS
         # -----------------------------------------------------------------------
-        "Mod+Return".action.spawn = [ "${myconfig.constants.terminal.name}" ];
-        "Mod+A".action.spawn = vicinaeCommand;
+        "Mod+Return".action.spawn = [ myconfig.constants.terminal.name ];
         "Mod+Shift+A".action.spawn = shellLauncherCommand;
-        "Mod+B".action.spawn = [ "${myconfig.constants.browser}" ];
+        "Mod+B".action.spawn = [ myconfig.constants.browser ];
         "Mod+F".action.spawn = spawnApp myconfig.constants.fileManager;
         "Mod+C".action.spawn = spawnApp myconfig.constants.editor;
 
@@ -188,28 +208,32 @@ delib.module {
         # -----------------------------------------------------------------------
         # 🛠️ UTILITIES
         # -----------------------------------------------------------------------
-        "Mod+Period".action.spawn = [
-          "vicinae"
-          "vicinae://launch/core/search-emojis"
-        ];
         "Mod+Shift+P".action.spawn = [
           "hyprpicker"
           "-an"
-        ];
-        "Mod+V".action.spawn = [
-          "vicinae"
-          "vicinae://launch/clipboard/history"
         ];
         "Mod+O".action.toggle-overview = [ ];
         "Mod+Shift+R".action.spawn = [
           "niri"
           "msg"
           "action"
-          "reload-config"
+          "load-config-file"
+        ];
+      };
+
+      vicinaeBinds = lib.optionalAttrs vicinaeEnabled {
+        "Mod+A".action.spawn = vicinaeCommand;
+        "Mod+Period".action.spawn = [
+          "vicinae"
+          "vicinae://launch/core/search-emojis"
+        ];
+        "Mod+V".action.spawn = [
+          "vicinae"
+          "vicinae://launch/clipboard/history"
         ];
       };
     in
     {
-      programs.niri.settings.binds = baseBinds // mediaBinds // (cfg.extraBinds or { });
+      programs.niri.settings.binds = baseBinds // vicinaeBinds // mediaBinds // cfg.extraBinds;
     };
 }

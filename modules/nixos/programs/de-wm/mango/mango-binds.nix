@@ -95,12 +95,15 @@ delib.module {
 
       noctaliaActiveOnMango =
         (parent.noctalia.enable or false)
-        && (parent.noctalia.enableOnMango or false)
-        && (parent.mango.enable or false);
+        && (parent.noctalia.enableOnMango or false);
+
+      vicinaeEnabled = parent.vicinae.enable or true;
 
       shellLauncherBind =
         if noctaliaActiveOnMango then
           "SUPER+SHIFT,A,spawn,sh -c '${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle'"
+        else if vicinaeEnabled then
+          "SUPER+SHIFT,A,spawn,vicinae toggle"
         else
           "SUPER+SHIFT,A,spawn,true";
 
@@ -151,15 +154,18 @@ delib.module {
           "NONE,Caps_Lock,spawn,swayosd-client --caps-lock"
         ];
 
+      vicinaeBinds = lib.optionals vicinaeEnabled [
+        "SUPER,A,spawn,vicinae toggle"
+        "SUPER,period,spawn,vicinae vicinae://launch/core/search-emojis"
+        "SUPER,V,spawn,vicinae vicinae://launch/clipboard/history"
+      ];
+
       baseBinds = [
         "SUPER,Return,spawn,${term}"
-        "SUPER,A,spawn,vicinae toggle"
         shellLauncherBind
         "SUPER,B,spawn,${browser}"
         "SUPER,F,spawn,${smartLaunch fileManager}"
         "SUPER,C,spawn,${smartLaunch editor}"
-        "SUPER,period,spawn,vicinae vicinae://launch/core/search-emojis"
-        "SUPER,V,spawn,vicinae vicinae://launch/clipboard/history"
         "SUPER+SHIFT,P,spawn,hyprpicker -an"
         "SUPER,N,spawn,swaync-client -t -sw"
 
@@ -183,7 +189,7 @@ delib.module {
         "SUPER+ALT,S,setlayout,scroller"
 
         "SUPER+ALT,W,spawn,pkill -SIGUSR2 waybar"
-        "SUPER+SHIFT,W,spawn,pkill -x -SIGUSR1 waybar"
+        "SUPER+SHIFT,W,spawn,pkill -SIGUSR1 waybar"
 
         "SUPER+ALT,A,togglemaximizescreen,"
         "SUPER+ALT,F,togglefakefullscreen,"
@@ -292,9 +298,9 @@ delib.module {
         "none,down,3,killclient"
         "none,left,4,viewtoright_have_client"
         "none,right,4,viewtoleft_have_client"
-        "none,up,4,spawn,vicinae toggle"
         "none,down,4,toggle_special_tag"
-      ];
+      ]
+      ++ lib.optional vicinaeEnabled "none,up,4,spawn,vicinae toggle";
 
       baseLayerRules = [
         "animation_type_open:zoom,layer_name:rofi"
@@ -305,7 +311,7 @@ delib.module {
     in
     {
       wayland.windowManager.mango.settings = {
-        bind = baseBinds ++ cfg.extraBinds;
+        bind = baseBinds ++ vicinaeBinds ++ cfg.extraBinds;
         bindl = mediaBinds;
         bindsl = mediaSymBinds;
         mousebind = baseMouseBinds ++ cfg.extraMouseBinds;

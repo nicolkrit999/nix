@@ -1,6 +1,10 @@
 # Usage: <wm>-wallpaperd --wm mango|hyprland|niri KEY=KIND:PATH ...
 #   KEY  = connector name | desc:<make model serial> | '*' (fallback for outputs without an entry)
 #   KIND = video|image
+# hwdec=vaapi: skip mpv's nvdec probe, which prints "Cannot load libcuda.so.1"
+# on AMD/Intel and then falls through to vaapi anyway.
+: "${WALLPAPERD_MPV_EXTRA=msg-level=all=warn hwdec=vaapi}"
+
 wm=""
 if [[ ${1:-} == --wm ]]; then
   wm=${2:?missing wm}

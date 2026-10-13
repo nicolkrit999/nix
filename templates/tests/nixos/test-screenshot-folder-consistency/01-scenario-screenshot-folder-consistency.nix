@@ -66,8 +66,8 @@ let
       (map (src "caelestia execOnce XDG_SCREENSHOTS_DIR=" true)
         (lib.concatMap (first ''.*XDG_SCREENSHOTS_DIR=([^ ']*).*'') execOnce)))
     (lib.optionals (en "mango")
-      (map (src "mango autostart_sh export" true)
-        (first ''.*export XDG_SCREENSHOTS_DIR="([^"]*)".*'' (hm.wayland.windowManager.mango.autostart_sh or ""))
+      (map (src "mango autostart_sh mkdir" true)
+        (mkdirIn (hm.wayland.windowManager.mango.autostart_sh or ""))
       ++ map (src "mango-screenshot script" true)
         (lib.concatMap scriptDir (lib.take 1 (lib.filter (has "mango-screenshot") mangoStrings)))))
     (lib.optionals (en "niri")
@@ -79,9 +79,7 @@ let
       (map (src "gnome launch-screenshot script" true)
         (lib.concatMap scriptDir (lib.take 1 gnomeScripts))))
     (lib.optionals (en "kde")
-      (map (src "kde spectaclerc screenshotLocation" false)
-        (lib.optional (spectacleVal "General" "screenshotLocation" != null) (stripUrl (spectacleVal "General" "screenshotLocation")))
-      ++ map (src "kde spectaclerc imageSaveLocation" false)
+      (map (src "kde spectaclerc imageSaveLocation" false)
         (lib.optional (spectacleVal "ImageSave" "imageSaveLocation" != null) (stripUrl (spectacleVal "ImageSave" "imageSaveLocation")))))
   ];
 

@@ -79,9 +79,12 @@ run_check check-tag-rule-control                    "control: tag_rule predicate
 
 echo ""
 echo -e "${BOLD}GDK_SCALE and systemd variables${NC}"
-run_check check-gdk-scale-two-sources               "sessionVariables GDK_SCALE (not 1) vs mango env GDK_SCALE,1"
+run_check check-gdk-scale-two-sources               "GDK_SCALE not in sessionVariables, mango env GDK_SCALE,1, scaled monitor"
+run_check check-compositor-vars-in-mango-env        "QT/GDK/SDL/CLUTTER/JAVA compositor vars are in mango env"
+run_check check-compositor-vars-not-in-session-vars "compositor vars are not in home.sessionVariables"
+run_check check-compositor-vars-control             "control: env-membership predicate discriminates"
 run_check check-gdk-scale-systemd-forwarded         "GDK_SCALE forwarded to systemd"
-run_check check-systemd-vars-defined                "systemd.variables defined or allow-listed"
+run_check check-systemd-vars-defined                "systemd.variables defined (session var, mango env, allow-list)"
 run_check check-systemd-vars-control                "control: undefined-variable predicate discriminates"
 
 echo ""

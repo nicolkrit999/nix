@@ -1,5 +1,5 @@
 # P07 — Mango, no shell
-# Expected: swaync present, SUPER+SHIFT,A no-op, SUPER,Delete loginctl.
+# Expected: swaync present, SUPER+SHIFT,A vicinae toggle, SUPER,Delete loginctl.
 { nix-tests }:
 let
   H = import ../shared/eval-scenario.nix;
@@ -12,8 +12,8 @@ nix-tests.runTests {
       helpers.isTrue (H.allAssertionsPass config);
     "swaync enabled — no shell to suppress it" =
       helpers.isTrue hm.services.swaync.enable;
-    "SUPER+SHIFT,A is bound exactly once, to the no-op" =
-      helpers.isEq (H.mangoBinds hm "SUPER+SHIFT,A,spawn,") [ "SUPER+SHIFT,A,spawn,true" ];
+    "SUPER+SHIFT,A is bound exactly once, to the vicinae toggle" =
+      helpers.isEq (H.mangoBinds hm "SUPER+SHIFT,A,spawn,") [ "SUPER+SHIFT,A,spawn,vicinae toggle" ];
     "SUPER,Delete is bound exactly once, to loginctl lock-session" =
       helpers.isEq (H.mangoBinds hm "SUPER,Delete,spawn,") [ "SUPER,Delete,spawn,loginctl lock-session" ];
   };

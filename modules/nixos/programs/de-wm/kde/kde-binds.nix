@@ -9,10 +9,31 @@ delib.module {
   home.ifEnabled =
     { cfg
     , myconfig
+    , parent
     , ...
     }:
     let
-      spectacleCmd = "${pkgs.kdePackages.spectacle}/bin/spectacle";
+      vicinaeEnabled = parent.vicinae.enable or true;
+      termApps = myconfig.constants.terminalApps;
+      inTerminal = app: "${myconfig.constants.terminal.name} -e ${app}";
+      vicinaeCommands = lib.optionalAttrs vicinaeEnabled {
+        "vicinae-toggle" = {
+          name = "Vicinae: Application Launcher";
+          key = "Meta+A";
+          command = "vicinae toggle";
+        };
+        "vicinae-clipboard" = {
+          name = "Vicinae: Clipboard";
+          key = "Meta+V";
+          command = "vicinae vicinae://launch/clipboard/history";
+        };
+        "vicinae-emoji" = {
+          name = "Vicinae: Emoji Picker";
+          key = "Meta+.";
+          command = "vicinae vicinae://launch/core/search-emojis";
+        };
+      };
+      spectacleCmd = lib.getExe' pkgs.kdePackages.spectacle "spectacle";
     in
     {
       programs.plasma.hotkeys.commands = {
@@ -24,12 +45,7 @@ delib.module {
         "spectacle-open" = {
           name = "Spectacle: Open";
           key = "Meta+Ctrl+0";
-          command = "${spectacleCmd}";
-        };
-        "spectacle-launch" = {
-          name = "Spectacle: Launch";
-          key = "Meta+Ctrl+1";
-          command = "${spectacleCmd}";
+          command = spectacleCmd;
         };
         "spectacle-active" = {
           name = "Spectacle: Active Window";
@@ -57,22 +73,6 @@ delib.module {
           command = "${spectacleCmd} -u";
         };
 
-        "vicinae-toggle" = {
-          name = "Vicinae: Application Launcher";
-          key = "Meta+A";
-          command = "vicinae toggle";
-        };
-        "vicinae-clipboard" = {
-          name = "Vicinae: Clipboard";
-          key = "Meta+V";
-          command = "vicinae vicinae://launch/clipboard/history";
-        };
-        "vicinae-emoji" = {
-          name = "Vicinae: Emoji Picker";
-          key = "Meta+.";
-          command = "vicinae vicinae://launch/core/search-emojis";
-        };
-
         "launch-browser" = {
           name = "Launch ${myconfig.constants.browser}";
           key = "Meta+B";
@@ -81,16 +81,8 @@ delib.module {
         "launch-editor" = {
           key = "Meta+C";
           command =
-            if
-              builtins.elem myconfig.constants.editor [
-                "neovim"
-                "nvim"
-                "nano"
-                "vim"
-                "helix"
-              ]
-            then
-              "${myconfig.constants.terminal.name} -e ${myconfig.constants.editor}"
+            if builtins.elem myconfig.constants.editor termApps then
+              inTerminal myconfig.constants.editor
             else
               myconfig.constants.editor;
         };
@@ -101,20 +93,13 @@ delib.module {
         "launch-filemanager" = {
           key = "Meta+F";
           command =
-            if
-            # Add more if needed
-              builtins.elem myconfig.constants.fileManager [
-                "yazi"
-                "ranger"
-                "lf"
-                "nnn"
-              ]
-            then
-              "${myconfig.constants.terminal.name} -e ${myconfig.constants.fileManager}"
+            if builtins.elem myconfig.constants.fileManager termApps then
+              inTerminal myconfig.constants.fileManager
             else
               myconfig.constants.fileManager;
         };
       }
+      // vicinaeCommands
       // cfg.extraBinds;
 
       programs.plasma.shortcuts = lib.mkForce {
@@ -143,8 +128,5 @@ delib.module {
         "kwin"."Window Close" = "Meta+Shift+C";
         "kwin"."Overview" = "Meta+W";
       };
-
-      # Ensure desktop entries are cleared
-      xdg.desktopEntries = { };
     };
 }

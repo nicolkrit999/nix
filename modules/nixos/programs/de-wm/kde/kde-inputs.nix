@@ -16,8 +16,8 @@ delib.module {
         programs.plasma.input.keyboard = {
           layouts = [
             {
-              layout = myconfig.constants.keyboardLayout or "us";
-              variant = myconfig.constants.keyboardVariant or "";
+              layout = myconfig.constants.keyboardLayout;
+              variant = myconfig.constants.keyboardVariant;
             }
           ];
           numlockOnStartup = "on";

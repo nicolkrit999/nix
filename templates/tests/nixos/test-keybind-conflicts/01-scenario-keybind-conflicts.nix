@@ -75,11 +75,44 @@ let
       "hyprland-ws-focus-1-to-0" = chk (focusF == [ ]) "SUPER+N missing or wrong workspace for N in ${toString focusF}";
       "hyprland-ws-move-1-to-0" = chk (moveF == [ ]) "SUPER+SHIFT+N missing or wrong workspace for N in ${toString moveF}";
       "hyprland-ws-follow-1-to-0" = chk (followF == [ ]) "SUPER+ALT+N missing or wrong workspace for N in ${toString followF}";
+    } // waybarBindChecks "hyprland" (hyprWaybarCmds args);
+
+  upperChars = lib.upperChars;
+  kebab = n: lib.removePrefix "-" (builtins.replaceStrings upperChars (map (u: "-" + lib.toLower u) upperChars) n);
+  enumVariants = { text, honourSkip }:
+    let
+      body = lib.head (lib.splitString "\n}\n" (lib.elemAt (lib.splitString "\npub enum Action {\n" text) 1));
+      step = acc: l:
+        let m = builtins.match "    ([A-Z][A-Za-z0-9]*)([ ({,].*)?" l; in
+        if honourSkip && l == "    #[knuffel(skip)]" then acc // { skip = true; }
+        else if m != null then { skip = false; names = acc.names ++ lib.optional (!acc.skip) (kebab (lib.head m)); }
+        else acc;
+    in
+    (lib.foldl' step { skip = false; names = [ ]; } (lib.splitString "\n" body)).names;
+
+  niriActionSets = c:
+    let src = (hmOf c).programs.niri.package.src; in
+    {
+      bindable = enumVariants { text = builtins.readFile "${src}/niri-config/src/binds.rs"; honourSkip = true; };
+      ipc = enumVariants { text = builtins.readFile "${src}/niri-ipc/src/lib.rs"; honourSkip = false; };
     };
 
-  niriChecks = c:
+  msgActionsIn = text: lib.concatMap (m: m) (lib.filter builtins.isList (builtins.split "niri msg action ([a-z0-9-]+)" text));
+
+  lockedMediaKeys = [
+    "XF86AudioRaiseVolume"
+    "XF86AudioLowerVolume"
+    "XF86AudioMute"
+    "XF86AudioMicMute"
+    "XF86MonBrightnessUp"
+    "XF86MonBrightnessDown"
+    "XF86KbdBrightnessUp"
+    "XF86KbdBrightnessDown"
+  ];
+  unlockedMediaKeys = [ "XF86AudioPlay" "XF86AudioPause" "XF86AudioNext" "XF86AudioPrev" "XF86AudioStop" "Mod+Delete" ];
+
+  niriBindChecks = { binds, startup, actions }:
     let
-      binds = (hmOf c).programs.niri.settings.binds;
       names = builtins.attrNames binds;
       normed = map plusNorm names;
       spawnOf = n: binds.${n}.action.spawn or null;
@@ -88,12 +121,71 @@ let
           let s = spawnOf n; in
           s != null && !(builtins.isList s && s != [ ] && lib.all (x: builtins.isString x && x != "") s))
         names;
+      actionNamesOf = n: let a = binds.${n}.action or null; in if builtins.isAttrs a then builtins.attrNames a else [ "<not-an-action-node>" ];
+      textOf = n:
+        let b = binds.${n}.action; in
+        lib.concatStringsSep " " ((if builtins.isList (b.spawn or null) then b.spawn else [ ]) ++ lib.optional (builtins.isString (b."spawn-sh" or null)) b."spawn-sh");
+      unbindable = lib.filter (n: !(lib.all (a: lib.elem a actions.bindable) (actionNamesOf n))) names;
+      msgTexts = map textOf (lib.filter (n: builtins.isAttrs (binds.${n}.action or null)) names) ++ map (lib.concatStringsSep " ") startup;
+      unknownMsg = lib.filter (a: !(lib.elem a actions.ipc)) (lib.concatMap msgActionsIn msgTexts);
+      reloadKey = "Mod+Shift+R";
+      reloadNames = actionNamesOf reloadKey;
+      reloadText = textOf reloadKey;
+      lockedNow = lib.filter (n: binds.${n}.allow-when-locked or false == true) names;
+      sorted = lib.sort (a: b: a < b);
     in
     {
       "niri-binds-present" = chk (builtins.length names > 50) "only ${toString (builtins.length names)} binds";
       "niri-binds-unique" = chk (dups normed == [ ]) "binds colliding after normalisation: ${lib.concatStringsSep ", " (dups normed)}";
       "niri-spawn-nonempty-strings" = chk (badSpawn == [ ]) "bad spawn lists: ${lib.concatStringsSep ", " badSpawn}";
+      "niri-bind-actions-bindable" = chk (unbindable == [ ]) "binds whose action node niri rejects in config.kdl (IPC-only or unknown): ${lib.concatStringsSep ", " (map (n: "${n}=${lib.concatStringsSep "/" (actionNamesOf n)}") unbindable)}";
+      "niri-msg-actions-exist" = chk (unknownMsg == [ ]) "`niri msg action X` with unknown X: ${lib.concatStringsSep ", " unknownMsg}";
+      "niri-reload-bind-is-load-config-file" = chk
+        (binds ? ${reloadKey}
+          && !(lib.elem "reload-config" (reloadNames ++ msgActionsIn reloadText))
+          && (lib.elem "load-config-file" (reloadNames ++ msgActionsIn reloadText)))
+        "${reloadKey} is missing or not load-config-file (actions: ${lib.concatStringsSep "/" reloadNames}, text: ${reloadText})";
+      "niri-media-keys-allow-when-locked" = chk
+        (lib.all (k: binds ? ${k}) (lockedMediaKeys ++ unlockedMediaKeys) && sorted lockedNow == sorted lockedMediaKeys)
+        "allow-when-locked set is [${lib.concatStringsSep " " (sorted lockedNow)}], expected exactly the 8 volume/mic/brightness keys";
     };
+
+  niriChecks = c:
+    niriBindChecks {
+      binds = (hmOf c).programs.niri.settings.binds;
+      startup = map (s: s.command) (hmOf c).programs.niri.settings.spawn-at-startup;
+      actions = niriActionSets c;
+    };
+
+  waybarCmdOk = sig: cmd:
+    let toks = lib.filter (t: t != "") (lib.splitString " " cmd); in
+    toks != [ ] && lib.head toks == "pkill" && lib.last toks == "waybar" && lib.elem sig toks
+    && !(lib.any (t: builtins.match "-[a-zA-Z]*x[a-zA-Z]*" t != null || t == "--exact") toks);
+
+  waybarBindChecks = prefix: cmdOf:
+    let
+      one = key: sig:
+        let cmds = cmdOf key; in
+        chk (builtins.length cmds == 1 && waybarCmdOk sig (lib.head cmds))
+          "${key}: expected one bind running `pkill ${sig} waybar` without -x, got [${lib.concatStringsSep " | " cmds}]";
+    in
+    {
+      "${prefix}-waybar-toggle-bind" = one "toggle" "-SIGUSR1";
+      "${prefix}-waybar-reload-bind" = one "reload" "-SIGUSR2";
+    };
+
+  hyprWaybarCmds = args: key:
+    let
+      k = if key == "toggle" then norm [ "super" "shift" ] "w" else norm [ "super" "alt" ] "w";
+      hit = lib.filter (a: hyprNorm (builtins.head a) == k) args;
+    in
+    map (a: let m = builtins.match ".*exec_cmd\\(\"(.*)\"\\).*" ((builtins.elemAt a 1).expr or ""); in if m == null then "" else lib.head m) hit;
+
+  mangoWaybarCmds = binds: key:
+    let pfx = if key == "toggle" then "SUPER+SHIFT,W,spawn," else "SUPER+ALT,W,spawn,"; in
+    map (lib.removePrefix pfx) (lib.filter (lib.hasPrefix pfx) binds);
+
+  mangoChecks = c: waybarBindChecks "mango" (mangoWaybarCmds (hmOf c).wayland.windowManager.mango.settings.bind);
 
   gnomePrefix = "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom";
   gnomeChecks = c:
@@ -144,6 +236,7 @@ let
 
   perVariant = _name: c:
     lib.optionalAttrs (enabled c "hyprland") (hyprChecks c)
+    // lib.optionalAttrs (enabled c "mango") (mangoChecks c)
     // lib.optionalAttrs (enabled c "niri") (niriChecks c)
     // lib.optionalAttrs (enabled c "gnome") (gnomeChecks c)
     // lib.optionalAttrs (enabled c "kde") (kdeChecks c);
@@ -167,6 +260,16 @@ let
         in
         if shot == [ ] then "" else scriptTextOf (lib.head shot).command)
     variants);
+  isFail = lib.hasPrefix "FAIL";
+  laptop = variants."nixos-laptop";
+  realNiri = {
+    binds = (hmOf laptop).programs.niri.settings.binds;
+    startup = map (s: s.command) (hmOf laptop).programs.niri.settings.spawn-at-startup;
+    actions = niriActionSets laptop;
+  };
+  niriMut = f: niriBindChecks (realNiri // { binds = f realNiri.binds; });
+  realMangoBinds = (hmOf variants."nixos-desktop").wayland.windowManager.mango.settings.bind;
+  realHyprArgs = map (b: b._args) (hmOf laptop).wayland.windowManager.hyprland.settings.bind;
 in
 {
   results = lib.filterAttrs (_: v: v != { }) (lib.mapAttrs perVariant variants);
@@ -185,6 +288,59 @@ in
         cm = [ "meta+ctrl+7" "Meta+A" ];
       in
       chk (lib.filter (k: lib.elem k (map plusNorm sc)) (map plusNorm cm) != [ ]) "kde collision matcher misses a case-variant collision";
+    "niri-action-lists-parsed" =
+      let a = niriActionSets laptop; in
+      chk (lib.elem "close-window" a.bindable && lib.elem "spawn" a.bindable && !(lib.elem "load-config-file" a.bindable) && lib.elem "load-config-file" a.ipc && lib.elem "focus-column-first" a.ipc && !(lib.elem "reload-config" a.ipc) && builtins.length a.bindable > 100)
+        "niri action lists wrong: bindable ${toString (builtins.length a.bindable)}, ipc ${toString (builtins.length a.ipc)}";
+    "niri-mutation-reload-config-spawn-fails" =
+      let r = niriMut (b: b // { "Mod+Shift+R".action.spawn = [ "niri" "msg" "action" "reload-config" ]; }); in
+      chk (isFail r."niri-msg-actions-exist" && isFail r."niri-reload-bind-is-load-config-file") "reload-config spawn not flagged";
+    "niri-mutation-load-config-file-spawn-passes" =
+      let r = niriMut (b: b // { "Mod+Shift+R".action.spawn = [ "niri" "msg" "action" "load-config-file" ]; }); in
+      chk (r."niri-msg-actions-exist" == "ok" && r."niri-bind-actions-bindable" == "ok" && r."niri-reload-bind-is-load-config-file" == "ok") "valid load-config-file spawn rejected";
+    "niri-mutation-bare-ipc-action-node-fails" =
+      let r = niriMut (b: b // { "Mod+Shift+R".action.load-config-file = [ ]; }); in
+      chk (isFail r."niri-bind-actions-bindable") "IPC-only action node not flagged";
+    "niri-mutation-unknown-action-node-fails" =
+      let r = niriMut (b: b // { "Mod+Shift+R".action.reload-config = [ ]; }); in
+      chk (isFail r."niri-bind-actions-bindable" && isFail r."niri-reload-bind-is-load-config-file") "unknown action node not flagged";
+    "niri-mutation-startup-bogus-action-fails" =
+      let r = niriBindChecks (realNiri // { startup = realNiri.startup ++ [ [ "bash" "-c" "sleep 1 && niri msg action no-such-action" ] ]; }); in
+      chk (isFail r."niri-msg-actions-exist") "bogus niri msg action in spawn-at-startup not flagged";
+    "niri-mutation-unlocked-media-key-fails" =
+      let r = niriMut (b: b // { XF86AudioMute = removeAttrs b.XF86AudioMute [ "allow-when-locked" ]; }); in
+      chk (isFail r."niri-media-keys-allow-when-locked") "media key without allow-when-locked not flagged";
+    "niri-mutation-locked-playback-key-fails" =
+      let r = niriMut (b: b // { XF86AudioPlay = b.XF86AudioPlay // { allow-when-locked = true; }; }); in
+      chk (isFail r."niri-media-keys-allow-when-locked") "allow-when-locked on a playback key not flagged";
+    "niri-mutation-missing-media-key-fails" =
+      let r = niriMut (b: removeAttrs b [ "XF86AudioPlay" ]); in
+      chk (isFail r."niri-media-keys-allow-when-locked") "vanished playback key not flagged";
+    "waybar-cmd-matcher" =
+      chk
+        (waybarCmdOk "-SIGUSR1" "pkill -SIGUSR1 waybar"
+          && !(waybarCmdOk "-SIGUSR1" "pkill -x -SIGUSR1 waybar")
+          && !(waybarCmdOk "-SIGUSR1" "pkill -SIGUSR1 -fx waybar")
+          && !(waybarCmdOk "-SIGUSR1" "pkill --exact -SIGUSR1 waybar")
+          && !(waybarCmdOk "-SIGUSR1" "pkill -SIGUSR1 .waybar-wrapped")
+          && !(waybarCmdOk "-SIGUSR1" "killall -SIGUSR1 waybar")
+          && !(waybarCmdOk "-SIGUSR1" "pkill -SIGUSR2 waybar"))
+        "waybarCmdOk accepts/rejects the wrong commands";
+    "waybar-mutation-mango-x-flag-fails" =
+      let r = waybarBindChecks "mango" (mangoWaybarCmds (map (builtins.replaceStrings [ "pkill -SIGUSR1" ] [ "pkill -x -SIGUSR1" ]) realMangoBinds)); in
+      chk (isFail r."mango-waybar-toggle-bind" && r."mango-waybar-reload-bind" == "ok") "-x on the mango toggle bind not flagged (or reload bind affected)";
+    "waybar-mutation-mango-missing-bind-fails" =
+      let r = waybarBindChecks "mango" (mangoWaybarCmds (lib.filter (b: !(lib.hasPrefix "SUPER+ALT,W," b)) realMangoBinds)); in
+      chk (isFail r."mango-waybar-reload-bind") "removed mango reload bind not flagged";
+    "waybar-mutation-hyprland-x-flag-fails" =
+      let
+        mutate = a:
+          if builtins.length a >= 2 && builtins.isAttrs (builtins.elemAt a 1)
+          then [ (builtins.head a) ((builtins.elemAt a 1) // { expr = builtins.replaceStrings [ "pkill -SIGUSR1" ] [ "pkill -x -SIGUSR1" ] ((builtins.elemAt a 1).expr or ""); }) ]
+          else a;
+        r = waybarBindChecks "hyprland" (hyprWaybarCmds (map mutate realHyprArgs));
+      in
+      chk (isFail r."hyprland-waybar-toggle-bind" && r."hyprland-waybar-reload-bind" == "ok") "-x on the hyprland toggle bind not flagged (or reload bind affected)";
     "dups-ignores-unique" = chk (dups [ "a" "b" ] == [ ] && dups [ "a" "a" "b" ] == [ "a" ]) "dups helper broken";
   };
 }

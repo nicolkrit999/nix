@@ -67,6 +67,7 @@ delib.module {
     { myconfig, ... }:
     let
       primaryWp = myconfig.constants.primaryWallpaper;
+      useFallbackWp = primaryWp.wallpaperURL == "";
     in
     {
       stylix = {
@@ -76,8 +77,8 @@ delib.module {
           myconfig.constants.theme.base16Theme
         }.yaml";
         image = pkgs.fetchurl {
-          url = primaryWp.wallpaperURL;
-          sha256 = primaryWp.wallpaperSHA256;
+          url = if useFallbackWp then myconfig.constants.fallbackWallpaperURL else primaryWp.wallpaperURL;
+          sha256 = if useFallbackWp then myconfig.constants.fallbackWallpaperSHA256 else primaryWp.wallpaperSHA256;
         };
       };
     };
@@ -107,6 +108,7 @@ delib.module {
         name = gtkThemeName;
       };
       primaryWp = myconfig.constants.primaryWallpaper;
+      useFallbackWp = primaryWp.wallpaperURL == "";
     in
     {
       stylix = {
@@ -115,8 +117,8 @@ delib.module {
           myconfig.constants.theme.base16Theme
         }.yaml";
         image = pkgs.fetchurl {
-          url = primaryWp.wallpaperURL;
-          sha256 = primaryWp.wallpaperSHA256;
+          url = if useFallbackWp then myconfig.constants.fallbackWallpaperURL else primaryWp.wallpaperURL;
+          sha256 = if useFallbackWp then myconfig.constants.fallbackWallpaperSHA256 else primaryWp.wallpaperSHA256;
         };
         targets = lib.recursiveUpdate
           {
@@ -128,6 +130,7 @@ delib.module {
             rofi.enable = false;
             waybar.enable = false;
             kde.enable = !isCatppuccin;
+            kde.useWallpaper = false;
             qt.enable = false;
             gnome.enable = false;
             hyprland.enable = !isCatppuccin;

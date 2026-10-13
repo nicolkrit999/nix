@@ -16,12 +16,11 @@ delib.module {
       monitorWorkspaces = listOfOption attrs [ ];
       windowRules = listOfOption attrs [ ];
       extraBinds = listOfOption attrs [ ];
-      extraBindl = listOfOption attrs [ ];
       noHardwareCursors = boolOption false;
     };
 
-  nixos.ifEnabled = {
-    myconfig.stylix.targets.hyprland.enable = false;
+  myconfig.ifEnabled = {
+    stylix.targets.hyprland.enable = false;
   };
 
   home.ifEnabled =
@@ -32,16 +31,35 @@ delib.module {
     }:
     let
       inherit (lib.generators) mkLuaInline;
-      term = myconfig.constants.terminal.name or "alacritty";
+      term = myconfig.constants.terminal.name;
 
-      caelestiaActiveOnHyprland =
-        (parent.caelestia.enable or false)
-        && (parent.caelestia.enableOnHyprland or false);
-      noctaliaActiveOnHyprland =
-        (parent.noctalia.enable or false)
-        && (parent.noctalia.enableOnHyprland or false);
+      caelestiaActiveOnHyprland = parent.caelestia.enable && parent.caelestia.enableOnHyprland;
+      noctaliaActiveOnHyprland = parent.noctalia.enable && parent.noctalia.enableOnHyprland;
       wallpaperOwnedByShell = caelestiaActiveOnHyprland || noctaliaActiveOnHyprland;
       skwdWallActive = parent.skwdWall.enable or false;
+      vicinaeEnabled = parent.vicinae.enable or true;
+
+      hasStylixPalette = (builtins.tryEval config.lib.stylix.colors.base00).success;
+      colors =
+        if hasStylixPalette then config.lib.stylix.colors
+        else {
+          base00 = "1e1e2e";
+          base02 = "45475a";
+          base03 = "585b70";
+          base05 = "cdd6f4";
+          base0C = "94e2d5";
+          base0D = "89b4fa";
+        };
+
+      gdkScale =
+        let
+          rawScale = if cfg.monitors == [ ] then 1 else (builtins.head cfg.monitors).scale or 1;
+          scale =
+            if builtins.isString rawScale then
+              (if builtins.match "[0-9]+(\\.[0-9]+)?" rawScale != null then builtins.fromJSON rawScale else 1)
+            else rawScale;
+        in
+        if scale > 1 then "2" else "1";
 
       wp = import ../wallpaperd/mk-wallpaperd.nix { inherit lib pkgs; } {
         wm = "hyprland";
@@ -52,6 +70,8 @@ delib.module {
 
       execOnceItems = [
         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
+        # Workaround: a stray ibus-daemon autostart shadows the session input method; remove once no
+        # ibus autostart remains (memory: project_ibus_kill_workaround.md).
         "pkill ibus-daemon"
       ] ++ wallpaperCmds ++ cfg.execOnce;
 
@@ -62,46 +82,49 @@ delib.module {
       );
 
       staticWindowRules = [
-        { match.class = "(mpv)|(imv)|(showmethekey-gtk)"; float = true; }
-        { match.class = "(showmethekey-gtk)"; border_size = 0; }
-        { match.class = "(showmethekey-gtk)"; no_focus = true; }
-        { match.class = "(showmethekey-gtk)"; pin = true; }
-        { match.class = "(showmethekey-gtk)"; no_initial_focus = true; }
-        { match.class = "(showmethekey-gtk)"; move = "990 60"; }
-        { match.class = "(showmethekey-gtk)"; size = "900 170"; }
+        { match.class = "(mpv)|(imv)"; float = true; }
+        {
+          match.class = "^(showmethekey-gtk)$";
+          float = true;
+          border_size = 0;
+          no_focus = true;
+          pin = true;
+          no_initial_focus = true;
+          move = "990 60";
+          size = "900 170";
+        }
 
-        { match.class = "^(ueberzugpp_layer)$"; float = true; }
-        { match.class = "^(ueberzugpp_layer)$"; no_anim = true; }
-        { match.class = "^(ueberzugpp_layer)$"; no_shadow = true; }
-        { match.class = "^(ueberzugpp_layer)$"; no_blur = true; }
-        { match.class = "^(ueberzugpp_layer)$"; no_initial_focus = true; }
+        {
+          match.class = "^(ueberzugpp_layer)$";
+          float = true;
+          no_anim = true;
+          no_shadow = true;
+          no_blur = true;
+          no_initial_focus = true;
+        }
 
-        { match.class = "^(org.kde.gwenview)$"; float = true; }
-        { match.class = "^(org.kde.gwenview)$"; center = true; }
-        { match.class = "^(org.kde.gwenview)$"; size = "80% 80%"; }
+        {
+          match.class = "^(org.kde.gwenview)$";
+          float = true;
+          center = true;
+          size = "80% 80%";
+        }
 
-        { match.title = "^(Open File)(.*)$"; float = true; }
-        { match.title = "^(Select a File)(.*)$"; float = true; }
-        { match.title = "^(Choose wallpaper)(.*)$"; float = true; }
-        { match.title = "^(Open Folder)(.*)$"; float = true; }
-        { match.title = "^(Save As)(.*)$"; float = true; }
-        { match.title = "^(Library)(.*)$"; float = true; }
-        { match.title = "^(File Upload)(.*)$"; float = true; }
-        { match.title = "^(Save File)(.*)$"; float = true; }
-        { match.title = "^(Enter name of file)(.*)$"; float = true; }
-        { match.title = "^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"; center = true; }
-        { match.title = "^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"; size = "50% 50%"; }
-        { match.title = "^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$"; pin = true; }
+        {
+          match.title = "^(Open File|Select a File|Choose wallpaper|Open Folder|Save As|Library|File Upload|Save File|Enter name of file)(.*)$";
+          float = true;
+          center = true;
+          size = "50% 50%";
+          pin = true;
+        }
 
-        { match.class = "^(xdg-desktop-portal-kde)$"; float = true; }
-        { match.class = "^(xdg-desktop-portal-kde)$"; center = true; }
-        { match.class = "^(xdg-desktop-portal-kde)$"; size = "50% 50%"; }
-        { match.class = "^(xdg-desktop-portal-kde)$"; pin = true; }
-
-        { match.class = "^(xdg-desktop-portal-gtk)$"; float = true; }
-        { match.class = "^(xdg-desktop-portal-gtk)$"; center = true; }
-        { match.class = "^(xdg-desktop-portal-gtk)$"; size = "50% 50%"; }
-        { match.class = "^(xdg-desktop-portal-gtk)$"; pin = true; }
+        {
+          match.class = "^(xdg-desktop-portal-(kde|gtk))$";
+          float = true;
+          center = true;
+          size = "50% 50%";
+          pin = true;
+        }
 
         { match.class = ".*"; suppress_event = "maximize"; }
         {
@@ -116,15 +139,18 @@ delib.module {
           no_focus = true;
         }
 
-        { match.class = "^(xwaylandvideobridge)$"; opacity = "0.0 override"; }
-        { match.class = "^(xwaylandvideobridge)$"; no_anim = true; }
-        { match.class = "^(xwaylandvideobridge)$"; no_initial_focus = true; }
-        { match.class = "^(xwaylandvideobridge)$"; max_size = "1 1"; }
-        { match.class = "^(xwaylandvideobridge)$"; no_blur = true; }
-        { match.class = "^(xwaylandvideobridge)$"; no_focus = true; }
+        {
+          match.class = "^(xwaylandvideobridge)$";
+          opacity = "0.0 override";
+          no_anim = true;
+          no_initial_focus = true;
+          max_size = "1 1";
+          no_blur = true;
+          no_focus = true;
+        }
       ]
       ++ lib.optional
-        ((myconfig.constants.hyprland.terminalOpacity or 1.0) < 1.0)
+        (myconfig.constants.hyprland.terminalOpacity < 1.0)
         {
           match.class = "^(${term})$";
           opacity = "${toString myconfig.constants.hyprland.terminalOpacity} override";
@@ -154,6 +180,7 @@ delib.module {
         { _args = [ "MOZ_ENABLE_WAYLAND" "1" ]; }
         { _args = [ "QT_QPA_PLATFORM" "wayland;xcb" ]; }
         { _args = [ "GDK_BACKEND" "wayland,x11,*" ]; }
+        { _args = [ "GDK_SCALE" gdkScale ]; }
         { _args = [ "SDL_VIDEODRIVER" "wayland" ]; }
         { _args = [ "CLUTTER_BACKEND" "wayland" ]; }
         { _args = [ "_JAVA_AWT_WM_NONREPARENTING" "1" ]; }
@@ -168,35 +195,39 @@ delib.module {
         { fingers = 3; direction = "left"; action = "workspace"; }
         { fingers = 3; direction = "up"; action = "fullscreen"; }
         { fingers = 3; direction = "down"; action = "close"; }
-        {
-          fingers = 4;
-          direction = "up";
-          action = mkLuaInline ''function() hl.exec_cmd("vicinae toggle") end'';
-        }
+      ]
+      ++ lib.optional vicinaeEnabled {
+        fingers = 4;
+        direction = "up";
+        action = mkLuaInline ''function() hl.exec_cmd("vicinae toggle") end'';
+      }
+      ++ [
         { fingers = 4; direction = "down"; action = "special"; workspace_name = "magic"; }
         { fingers = 4; direction = "pinchin"; action = "float"; }
       ];
     in
 
     {
-      catppuccin.hyprland.enable = myconfig.constants.theme.catppuccin or false;
-      catppuccin.hyprland.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
-      catppuccin.hyprland.accent = myconfig.constants.theme.catppuccinAccent or "mauve";
+      catppuccin.hyprland = {
+        enable = myconfig.constants.theme.catppuccin;
+        flavor = myconfig.constants.theme.catppuccinFlavor;
+        accent = myconfig.constants.theme.catppuccinAccent;
+      };
 
       home.packages = with pkgs; [
-        kdePackages.gwenview
-        grimblast
         awww
-        mpvpaper
+        brightnessctl
+        grimblast
         hyprpicker
         imv
+        kdePackages.gwenview
         mpv
-        brightnessctl
+        mpvpaper
         pavucontrol
         playerctl
         showmethekey
-        wl-clipboard
         wev
+        wl-clipboard
       ];
 
       wayland.windowManager.hyprland = {
@@ -223,18 +254,18 @@ delib.module {
 
           config = {
             general = {
-              gaps_in = myconfig.constants.hyprland.gap or 5;
-              gaps_out = (myconfig.constants.hyprland.gap or 10) * 2;
-              border_size = myconfig.constants.hyprland.borderSize or 2;
+              gaps_in = myconfig.constants.hyprland.gap;
+              gaps_out = myconfig.constants.hyprland.gap * 2;
+              border_size = myconfig.constants.hyprland.borderSize;
 
               "col.active_border" = lib.mkDefault (
                 if myconfig.constants.theme.catppuccin then
                   mkLuaInline "colors.accent"
                 else
-                  "rgb(${config.lib.stylix.colors.base0D})"
+                  "rgb(${colors.base0D})"
               );
 
-              "col.inactive_border" = lib.mkForce "rgba(${config.lib.stylix.colors.base02}66)";
+              "col.inactive_border" = lib.mkForce "rgba(${colors.base02}66)";
 
               resize_on_border = true;
               allow_tearing = false;
@@ -242,7 +273,7 @@ delib.module {
             };
 
             decoration = {
-              rounding = myconfig.constants.hyprland.rounding or 0;
+              rounding = myconfig.constants.hyprland.rounding;
               active_opacity = 1.0;
               inactive_opacity = 1.0;
               shadow = {
@@ -262,9 +293,9 @@ delib.module {
             animations.enabled = true;
 
             input = {
-              kb_layout = myconfig.constants.keyboardLayout or "us";
-              kb_variant = myconfig.constants.keyboardVariant or "";
-              kb_options = "grp:ctrl_alt_toggle";
+              kb_layout = myconfig.constants.keyboardLayout;
+              kb_variant = myconfig.constants.keyboardVariant;
+              kb_options = myconfig.constants.keyboardOptions;
               touchpad.natural_scroll = false;
             };
 
@@ -281,7 +312,7 @@ delib.module {
             misc = {
               force_default_wallpaper = 0;
               disable_hyprland_logo = true;
-              background_color = "rgb(${config.lib.stylix.colors.base00})";
+              background_color = "rgb(${colors.base00})";
             };
 
             xwayland = {
@@ -289,13 +320,13 @@ delib.module {
             };
 
             group = {
-              "col.border_active" = "rgb(${config.lib.stylix.colors.base0D})";
-              "col.border_inactive" = "rgb(${config.lib.stylix.colors.base03})";
-              "col.border_locked_active" = "rgb(${config.lib.stylix.colors.base0C})";
+              "col.border_active" = "rgb(${colors.base0D})";
+              "col.border_inactive" = "rgb(${colors.base03})";
+              "col.border_locked_active" = "rgb(${colors.base0C})";
               groupbar = {
-                text_color = "rgb(${config.lib.stylix.colors.base05})";
-                "col.active" = "rgb(${config.lib.stylix.colors.base0D})";
-                "col.inactive" = "rgb(${config.lib.stylix.colors.base03})";
+                text_color = "rgb(${colors.base05})";
+                "col.active" = "rgb(${colors.base0D})";
+                "col.inactive" = "rgb(${colors.base03})";
               };
             };
           };

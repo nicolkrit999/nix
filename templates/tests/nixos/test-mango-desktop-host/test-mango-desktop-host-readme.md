@@ -59,8 +59,9 @@ The 255-char limit of these lists is not checked here: `test-wallpaperd-runtime`
 ### GDK_SCALE and systemd variables
 | Check | Expected |
 |-------|----------|
-| `home.sessionVariables.GDK_SCALE` vs `settings.env` | not `"1"` (first monitor scale is not 1, Hyprland path) vs `GDK_SCALE,1` (mango override) |
-| `systemd.variables` | contains `GDK_SCALE`; every name is a session variable or in the allow-list (`DISPLAY`, `WAYLAND_DISPLAY`, `XDG_*` session vars, `XCURSOR_*`); control proves the predicate bites |
+| `home.sessionVariables.GDK_SCALE` vs `settings.env` | `GDK_SCALE` is not a session variable (Hyprland derives its own); `settings.env` contains `GDK_SCALE,1` (mango override) while the first monitor scale is not 1 |
+| `QT_QPA_PLATFORM`, `GDK_BACKEND`, `SDL_VIDEODRIVER`, `CLUTTER_BACKEND`, `_JAVA_AWT_WM_NONREPARENTING` | each is a `settings.env` entry (`NAME,value`) and none is in `home.sessionVariables` (moved so only mango sessions get them); control: the env-membership predicate matches only whole names |
+| `systemd.variables` | contains `GDK_SCALE`; every name is a session variable, a `settings.env` entry or in the allow-list (`DISPLAY`, `WAYLAND_DISPLAY`, `XDG_*` session vars, `XCURSOR_*`); control: `NOPE` is rejected while `GDK_SCALE` is accepted only when it is in the env list |
 
 ### hypridle
 | Check | Expected |

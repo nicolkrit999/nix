@@ -18,17 +18,15 @@ delib.module {
     , ...
     }:
     let
-      fallbackWp = myconfig.constants.primaryWallpaper;
+      primaryWp = myconfig.constants.primaryWallpaper;
+      useFallbackWp = primaryWp.wallpaperURL == "";
       wallpaperPath = pkgs.fetchurl {
-        url = fallbackWp.wallpaperURL;
-        sha256 = fallbackWp.wallpaperSHA256;
+        url = if useFallbackWp then myconfig.constants.fallbackWallpaperURL else primaryWp.wallpaperURL;
+        sha256 = if useFallbackWp then myconfig.constants.fallbackWallpaperSHA256 else primaryWp.wallpaperSHA256;
       };
       colorScheme = if myconfig.constants.theme.polarity == "dark" then "prefer-dark" else "prefer-light";
       iconThemeName =
         if myconfig.constants.theme.polarity == "dark" then "Papirus-Dark" else "Papirus-Light";
-
-      rawPinnedApps = cfg.pinnedApps;
-      hasPins = builtins.length rawPinnedApps > 0;
     in
     {
       home.packages =
@@ -40,12 +38,12 @@ delib.module {
               "rimless"
               "black"
             ];
-            variant = myconfig.constants.theme.catppuccinFlavor or "mocha";
+            variant = myconfig.constants.theme.catppuccinFlavor;
           })
         ])
         ++ [
-          pkgs.papirus-icon-theme
           pkgs.hydrapaper
+          pkgs.papirus-icon-theme
         ];
 
       dconf.settings = {
@@ -68,7 +66,7 @@ delib.module {
           button-layout = "appmenu:minimize,maximize,close";
         };
 
-        "org/gnome/shell" = lib.mkIf hasPins { favorite-apps = rawPinnedApps; };
+        "org/gnome/shell" = lib.mkIf (cfg.pinnedApps != [ ]) { favorite-apps = cfg.pinnedApps; };
       };
     };
 }

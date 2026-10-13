@@ -1370,7 +1370,7 @@ there is no cold-cache data point yet.
 | `heavy-c` | `nixos-portal-routing` (cap 30) | 348 s (2026-10-11) | not measured yet | 758 s on a CI-like empty store (local, CI substituters only) | builds whole system.path/home.path profiles; home.path omits bin-only script wrappers (`03-homepath.nix`) so `universal-lock` and with it noctalia are never source-built on CI's narrow caches (noctalia: ~18 min compile, evicted from krit-nixos between runs 38099944203 and 38136950163, which timed out at 20 min; 38135221346 was cancelled by a push); likewise system.path omits openlogi (`04-systempath.nix`, ~25 min Rust build on the desktop; runs 38275067935 and 38275067783 hit the 30 min cap). Run 38099944203 measured 14m34s against the old 20 min cap; the 30 min cap and `heavy-c` are kept as margin |
 | `harness` | every folder with `*_test.nix` (conflicting-modules, custom-shells, wallpapers, mango-option-names) | 82 s (+ ~1 min wallpapers asserts) | ~6 min | ~8 min | builds the nix-tests harness once per runner |
 | `nixos` | default for `nixos/` (14 tests) | 259 s | ~10 min | ~16 min | real-host evals |
-| `nixos-b` | secret-service, nas-mounts, hyprland-lua-config, keybind-conflicts, waybar-configs, waybar-contrast, ssh-trust-pins, borg-backup-config (8 tests) | 538 s inside a full parallel run (2026-10-11) | 615 s for the 7 tests that finished in run 38136950163 (hyprland-lua-config timed out there, since fixed) | not measured | split from `nixos` by `test.conf` |
+| `nixos-b` | secret-service, nas-mounts, hyprland-lua-config, keybind-conflicts, waybar-configs, waybar-contrast, ssh-trust-pins, borg-backup-config, wm-session-services (9 tests; the first 8 measured, wm-session-services not measured) | 538 s inside a full parallel run (2026-10-11) | 615 s for the 7 tests that finished in run 38136950163 (hyprland-lua-config timed out there, since fixed) | not measured | split from `nixos` by `test.conf` |
 | `common` | default for `common/` (12 tests) | 270 s (2026-10-10, before `common-ai-tool-modules`, `common-npu-npm-parsing` and the home-standalone program checks: ~+70 s local, not re-measured) | ~12 min | ~19 min | scenario evals |
 | `darwin` (macOS) | darwin-minimal-defaults, darwin-host-contract, darwin-home-paths | 115 s | ~4-5 min | ~7 min | separate workflow |
 
@@ -1379,7 +1379,7 @@ there is no cold-cache data point yet.
 test step uses `timeout-minutes: ${{ fromJSON(needs.discover.outputs.step_timeouts)[matrix.group] }}`.
 The budget (`step_budget`) is the sum of the group's per-test caps + 1 minute per
 test (kill grace, evidence merge, the final redaction pass) + 2 per leg. On
-2026-10-11: `nixos` 134 (145 since 2026-10-13: 13 tests, caps 130; 166 with `nixos-app-resolution`: 14 tests, caps 150, its `test.conf` cap is 20), `common` 112 (134 since 2026-10-12: 12 tests, caps 120), `nixos-b` 90 (8 tests, caps 80),
+2026-10-11: `nixos` 134 (145 since 2026-10-13: 13 tests, caps 130; 166 with `nixos-app-resolution`: 14 tests, caps 150, its `test.conf` cap is 20), `common` 112 (134 since 2026-10-12: 12 tests, caps 120), `nixos-b` 90 (8 tests, caps 80; 101 since 2026-10-13 with `nixos-wm-session-services`: 9 tests, caps 90),
 `heavy-a` 49, `harness` 46, `heavy-b` 44, `heavy-c` 33, `darwin` 35. **Why:** the step cap
 used to be a fixed 50 minutes while the `nixos` group's caps summed to 120. Each
 test is stopped by its own cap and the next one starts, but a few slow tests in

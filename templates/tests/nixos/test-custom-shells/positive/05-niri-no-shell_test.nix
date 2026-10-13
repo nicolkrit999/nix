@@ -1,5 +1,5 @@
 # P05 — Niri, no shell
-# Expected: swaync present, Mod+Shift+A no-op, Mod+Delete loginctl.
+# Expected: swaync present, Mod+Shift+A vicinae toggle, Mod+Delete loginctl.
 { nix-tests }:
 let
   H = import ../shared/eval-scenario.nix;
@@ -13,8 +13,8 @@ nix-tests.runTests {
       helpers.isTrue (H.allAssertionsPass config);
     "swaync enabled — no shell to suppress it" =
       helpers.isTrue hm.services.swaync.enable;
-    "Mod+Shift+A is a no-op (spawn true)" =
-      helpers.isEq niriBinds."Mod+Shift+A".action.spawn [ "true" ];
+    "Mod+Shift+A falls back to vicinae (spawn vicinae toggle)" =
+      helpers.isEq niriBinds."Mod+Shift+A".action.spawn [ "vicinae" "toggle" ];
     "Mod+Delete dispatches to loginctl lock-session" =
       helpers.isEq niriBinds."Mod+Delete".action.spawn [ "loginctl" "lock-session" ];
   };

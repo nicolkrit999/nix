@@ -23,8 +23,8 @@ nix-tests.runTests {
       helpers.isTrue (snap hm).swaync;
     "binds and startup identical to the no-shell scenario" =
       helpers.isEq (snap hm) (snap control);
-    "Super+Shift+A bind is the no-op, not the shell IPC" =
-      helpers.isEq (snap hm).launcher ''SUPER+SHIFT + A hl.dsp.exec_cmd("true")'';
+    "Super+Shift+A bind falls back to vicinae, not the shell IPC" =
+      helpers.isEq (snap hm).launcher ''SUPER+SHIFT + A hl.dsp.exec_cmd("vicinae toggle")'';
     "Super+Delete bind is loginctl lock-session" =
       helpers.isTrue (lib.hasInfix "loginctl lock-session" (snap hm).lock);
   };

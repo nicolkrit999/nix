@@ -35,23 +35,30 @@ delib.module {
     , ...
     }:
     let
-      c = config.lib.stylix.colors.withHashtag;
+      hasStylixPalette = (builtins.tryEval config.lib.stylix.colors.base00).success;
+      c =
+        if hasStylixPalette then config.lib.stylix.colors.withHashtag
+        else {
+          base00 = "#1e1e2e";
+          base03 = "#585b70";
+          base08 = "#f38ba8";
+          base0D = "#89b4fa";
+        };
       colors = {
-        active = c.base0D; # Accent blue - same as Hyprland active border
-        inactive = c.base03; # Muted mid-tone - clearly distinguishable from active
-        urgent = c.base08; # Red - universally signals urgency
-        shadow = c.base00; # Darkest shade - neutral shadow base
+        active = c.base0D; # accent blue, same as the Hyprland active border
+        inactive = c.base03; # muted, readable but non-distracting
+        urgent = c.base08; # red
+        shadow = c.base00; # neutral shadow base
       };
 
-      # I-22: niri's environment/screenshot-path never shell-expand $HOME
+      # niri's environment/screenshot-path never shell-expand $HOME
       screenshotsDir = myconfig.constants.screenshotsAbs;
-      gap = myconfig.constants.niri.gap or 8;
-      rounding = myconfig.constants.niri.rounding or 10;
+      gap = myconfig.constants.niri.gap;
+      rounding = myconfig.constants.niri.rounding;
 
       noctaliaActiveOnNiri =
         (parent.noctalia.enable or false)
         && (parent.noctalia.enableOnNiri or false);
-      wallpaperOwnedByShell = noctaliaActiveOnNiri;
       skwdWallActive = parent.skwdWall.enable or false;
 
       wp = import ../wallpaperd/mk-wallpaperd.nix { inherit lib pkgs; } {
@@ -59,23 +66,23 @@ delib.module {
         wallpapers = myconfig.constants.wallpapers;
       };
 
-      wallpaperSpawns = lib.optionals (!wallpaperOwnedByShell && !skwdWallActive)
+      wallpaperSpawns = lib.optionals (!noctaliaActiveOnNiri && !skwdWallActive)
         (map (c: { command = c; }) wp.startupArgv);
     in
     {
       home.packages = with pkgs; [
-        xwayland-satellite # X11 Support
-        awww # Wallpaper
-        mpvpaper # Video/gif wallpaper
-        libnotify # Notifications
-        hyprpicker # Color Picker
-        wl-clipboard # Clipboard
-        pavucontrol # GUI Volume Control
-        brightnessctl # Laptop Brightness Keys (Fn+F keys)
-        playerctl # Media Keys (Play/Pause)
-        imv # Image Viewer
-        mpv # Video Player
-        wev # Wayland event viewer
+        awww
+        brightnessctl
+        hyprpicker
+        imv
+        libnotify
+        mpv
+        mpvpaper
+        pavucontrol
+        playerctl
+        wev
+        wl-clipboard
+        xwayland-satellite # niri starts it itself and needs it on PATH
       ];
 
       programs.niri = {
@@ -88,7 +95,7 @@ delib.module {
             keyboard.xkb = {
               layout = myconfig.constants.keyboardLayout;
               variant = myconfig.constants.keyboardVariant;
-              options = "grp:ctrl_alt_toggle";
+              options = myconfig.constants.keyboardOptions;
             };
             touchpad = {
               tap = true;
@@ -97,7 +104,7 @@ delib.module {
             mouse.accel-profile = "flat";
           };
 
-          outputs = cfg.outputs;
+          inherit (cfg) outputs;
 
           layout = {
             gaps = gap;
@@ -115,18 +122,18 @@ delib.module {
             focus-ring = {
               enable = true;
               width = 2;
-              active.color = colors.active; # base0D: accent blue, clearly signals focus
-              inactive.color = colors.inactive; # base03: muted - readable but non-distracting
-              urgent.color = colors.urgent; # base08: red - universally signals urgency
+              active.color = colors.active;
+              inactive.color = colors.inactive;
+              urgent.color = colors.urgent;
             };
             border.enable = false;
 
             shadow = {
               enable = true;
-              softness = 20; # Blur radius in logical px
-              spread = 5; # Expands shadow outward from window edge
-              offset = { x = 0; y = 4; }; # Slight downward offset for physical grounding
-              color = "${colors.shadow}66"; # base00 @ 40% opacity
+              softness = 20;
+              spread = 5;
+              offset = { x = 0; y = 4; };
+              color = "${colors.shadow}66"; # 40% opacity
             };
           };
 
@@ -188,14 +195,12 @@ delib.module {
 
           environment = {
             "NIXOS_OZONE_WL" = "1";
-            "DISPLAY" = ":1";
             "XDG_SCREENSHOTS_DIR" = screenshotsDir;
           };
 
           screenshot-path = "${screenshotsDir}/Screenshot_%Y-%m-%d_%H-%M-%S.png";
 
           spawn-at-startup = [
-            { command = [ "xwayland-satellite" ":1" ]; }
             { command = [ "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" ]; }
             {
               command = [

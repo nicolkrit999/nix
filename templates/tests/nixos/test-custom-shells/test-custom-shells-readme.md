@@ -54,6 +54,18 @@ nix run github:danielefongo/nix-tests -- conflict/01-two-shells-on-hyprland_test
 | `dormant-flag/` | `enable = false` with `enableOnWM = true` — config must equal the no-shell scenario |
 | `consumers/` | Consumer modules (swayosd, swaync, hypridle, hyprlock, execOnce, home.packages) gate correctly on shell ownership |
 
+## Launcher bind (Shift+A) contract
+
+`vicinae` is a stub option (`shared/vicinae-option.nix`, default true) so scenarios can switch it off; the real module is not loaded.
+
+| Scenario | Expected |
+|----------|----------|
+| no shell (or dormant shell) on hyprland / niri / mango, vicinae on | `SUPER+SHIFT + A` / `Mod+Shift+A` / `SUPER+SHIFT,A` runs `vicinae toggle` (P03, P05, P07, D01-D04) |
+| shell active | the shell's launcher IPC (P01, P02, P04, P06) |
+| P08: no shell, vicinae disabled, hyprland | `SUPER+SHIFT + A` and `SUPER + A` are not bound; `SUPER + Delete` still is (control) |
+| P08: no shell, vicinae disabled, mango | `SUPER+SHIFT,A` is exactly one bind to `true`; `SUPER,A` unbound; `SUPER,Delete` still bound (control) |
+| P08: no shell, vicinae disabled, niri | `Mod+Shift+A` is `[ "true" ]`; `Mod+A`, `Mod+Period`, `Mod+V` unbound; `Mod+Delete` still bound (control); with vicinae on (P05 host) the same three binds exist and `Mod+Shift+A` is `vicinae toggle` (control) |
+
 ## consumers/ checks
 
 `shared/eval-scenario.nix` additionally loads `swayosd.nix` and `hypridle.nix`.

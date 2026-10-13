@@ -23,12 +23,12 @@ let
     else if builtins.isAttrs v then lib.concatMap strings (lib.attrValues v)
     else [ ];
 
-  checks = s:
+  checksFor = catAssumed: s:
     let
       c = s.config;
       hm = c.home-manager.users.krit;
       my = c.myconfig;
-      cat = my.constants.theme.catppuccin;
+      cat = if catAssumed == null then my.constants.theme.catppuccin else catAssumed;
       pol = my.constants.theme.polarity;
       dark = pol == "dark";
       darkInt = if dark then 1 else 0;
@@ -54,6 +54,16 @@ let
         ++ lib.attrNames c.environment.variables
         ++ lib.attrNames c.systemd.globalEnvironment;
       leaked = lib.filter (n: lib.elem n forbiddenEnv) envNames;
+      kdeOn = my.programs.kde.enable or false;
+      stylixKde = tgt "kde";
+      ws = hm.programs.plasma.workspace;
+      cap = x: lib.toUpper (builtins.substring 0 1 x) + builtins.substring 1 (-1) x;
+      catScheme = "Catppuccin${cap my.constants.theme.catppuccinFlavor}${cap my.constants.theme.catppuccinAccent}";
+      catKde = (s.pkgs.catppuccin-kde.override {
+        flavour = [ my.constants.theme.catppuccinFlavor ];
+        accents = [ my.constants.theme.catppuccinAccent ];
+      }).drvPath;
+      hasCatKde = lib.any (p: (p.drvPath or "") == catKde) hm.home.packages;
     in
     {
       "HM stylix.targets.qt.enable is false" = chk (hm.stylix.targets.qt.enable == false) "HM qt target enabled";
@@ -90,7 +100,57 @@ let
           (!wm || cat || (builtins.match ".*foreground=\"##[0-9a-f]{6}[0-9a-f]{2}\".*" placeholder != null
             && builtins.match ".*foreground=\"#[^#].*" placeholder == null))
           "placeholder_text: ${placeholder}";
+      "KDE: catppuccin-kde (flavour+accent from constants) is installed iff catppuccin" =
+        chk (!kdeOn || hasCatKde == cat) "installed=${lib.boolToString hasCatKde} catppuccin=${lib.boolToString cat}";
+      "KDE: plasma colorScheme and lookAndFeel are null iff the stylix KDE target is on" =
+        chk (!kdeOn || ((ws.colorScheme == null && ws.lookAndFeel == null) == stylixKde))
+          "stylixKde=${lib.boolToString stylixKde} colorScheme=${toString ws.colorScheme} lookAndFeel=${toString ws.lookAndFeel}";
+      "KDE: catppuccin mode sets colorScheme Catppuccin<Flavor><Accent>" =
+        chk (!kdeOn || !cat || stylixKde || ws.colorScheme == catScheme) "colorScheme=${toString ws.colorScheme}, want ${catScheme}";
+      "KDE: stylix KDE target never owns the wallpaper (useWallpaper false)" =
+        chk (hm.stylix.targets.kde.useWallpaper == false) "useWallpaper=${lib.boolToString hm.stylix.targets.kde.useWallpaper}";
+      "KDE: plasma-manager still declares the wallpapers (list or custom plugin)" =
+        chk (!kdeOn || (builtins.isList ws.wallpaper && ws.wallpaper != [ ]) || (ws.wallpaperCustomPlugin or null) != null) "no plasma wallpaper declared";
     };
+  checks = checksFor null;
+
+  sysOff = variants.catppuccin-off;
+  sysOn = variants.catppuccin-on;
+  kdeOnHost = sys.config.myconfig.programs.kde.enable or false;
+  hmMutant = mod: sysOff.extendModules { modules = [{ home-manager.users.krit = mod; }]; };
+  mutants = {
+    "mutation: module ignores catppuccin (no catppuccin-kde) is caught" = {
+      label = "KDE: catppuccin-kde (flavour+accent from constants) is installed iff catppuccin";
+      r = checksFor true sysOff;
+    };
+    "mutation: colorScheme re-added next to the stylix KDE target is caught" = {
+      label = "KDE: plasma colorScheme and lookAndFeel are null iff the stylix KDE target is on";
+      r = checks (hmMutant { programs.plasma.workspace.colorScheme = lib.mkForce "BreezeDark"; });
+    };
+    "mutation: lookAndFeel re-added next to the stylix KDE target is caught" = {
+      label = "KDE: plasma colorScheme and lookAndFeel are null iff the stylix KDE target is on";
+      r = checks (hmMutant { programs.plasma.workspace.lookAndFeel = lib.mkForce "org.kde.breezedark.desktop"; });
+    };
+    "mutation: stylix useWallpaper true is caught" = {
+      label = "KDE: stylix KDE target never owns the wallpaper (useWallpaper false)";
+      r = checks (hmMutant { stylix.targets.kde.useWallpaper = lib.mkForce true; });
+    };
+    "mutation: wrong colorScheme in catppuccin mode is caught" = {
+      label = "KDE: catppuccin mode sets colorScheme Catppuccin<Flavor><Accent>";
+      r = checks (sysOn.extendModules { modules = [{ home-manager.users.krit.programs.plasma.workspace.colorScheme = lib.mkForce "BreezeDark"; }]; });
+    };
+    "mutation: wallpapers dropped from plasma is caught" = {
+      label = "KDE: plasma-manager still declares the wallpapers (list or custom plugin)";
+      r = checks (hmMutant {
+        programs.plasma.workspace.wallpaper = lib.mkForce null;
+        programs.plasma.workspace.wallpaperCustomPlugin = lib.mkForce null;
+      });
+    };
+  };
+  mutantLine = n:
+    let m = mutants.${n}; r = m.r.${m.label}; in
+    if !kdeOnHost then "ok"
+    else if lib.hasPrefix "FAIL" r then "ok" else "FAIL: mutant not detected, check still passes";
 
   fallbackCheck =
     let
@@ -113,6 +173,7 @@ in
 {
   report = lib.concatStringsSep "\n"
     (lib.concatMap (v: map (n: "${v}\t${n}\t${perVariant.${v}.${n}}") names) (lib.attrNames variants)
-      ++ lib.mapAttrsToList (n: r: "files\t${n}\t${r}") fileChecks) + "\n";
+      ++ lib.mapAttrsToList (n: r: "files\t${n}\t${r}") fileChecks
+      ++ map (n: "control\t${n}\t${mutantLine n}") (lib.attrNames mutants)) + "\n";
   variants = lib.concatStringsSep " " (lib.attrNames variants);
 }

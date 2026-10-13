@@ -45,57 +45,73 @@ delib.module {
       wallpaperPaths = builtins.map
         (
           w:
+          let
+            useFallback = w.wallpaperURL == "";
+          in
           "${pkgs.fetchurl {
-          url = w.wallpaperURL;
-          sha256 = w.wallpaperSHA256;
+          url = if useFallback then myconfig.constants.fallbackWallpaperURL else w.wallpaperURL;
+          sha256 = if useFallback then myconfig.constants.fallbackWallpaperSHA256 else w.wallpaperSHA256;
         }}"
         )
         myconfig.constants.wallpapers;
 
-      capitalize =
-        s: lib.toUpper (builtins.substring 0 1 s) + builtins.substring 1 (builtins.stringLength s) s;
+      isCatppuccin = myconfig.constants.theme.catppuccin;
+      flavor = myconfig.constants.theme.catppuccinFlavor;
+      accent = myconfig.constants.theme.catppuccinAccent;
+      # mirrors the stylix KDE target default in stylix-nixos.nix (on unless catppuccin)
+      stylixKde = myconfig.stylix.enable && (myconfig.stylix.targets.kde.enable or (!isCatppuccin));
 
-      theme =
-        if myconfig.constants.theme.catppuccin then
-          "Catppuccin${capitalize myconfig.constants.theme.catppuccinFlavor}${capitalize myconfig.constants.theme.catppuccinAccent}"
+      colorScheme =
+        if stylixKde then
+          null
+        else if isCatppuccin then
+          "Catppuccin${lib.toSentenceCase flavor}${lib.toSentenceCase accent}"
         else if myconfig.constants.theme.polarity == "dark" then
           "BreezeDark"
         else
           "BreezeLight";
 
       lookAndFeel =
-        if myconfig.constants.theme.polarity == "dark" then
+        if stylixKde then
+          null
+        else if myconfig.constants.theme.polarity == "dark" then
           "org.kde.breezedark.desktop"
         else
           "org.kde.breeze.desktop";
+
       cursorTheme = lib.mkIf (config.stylix.cursor != null) config.stylix.cursor.name;
     in
     {
-      xdg.configFile."autostart/ibus-daemon.desktop".text = ''
+      # Kills the system-wide ibus autostart in Plasma; under its own name so it does not
+      # shadow /etc/xdg/autostart/ibus-daemon.desktop. Memory: project_ibus_kill_workaround.md
+      xdg.configFile."autostart/kde-ibus-kill.desktop".text = ''
         [Desktop Entry]
         Type=Application
         Name=Kill IBus Daemon
         Exec=pkill ibus-daemon
         Hidden=false
         StartupNotify=false
+        OnlyShowIn=KDE;
         X-KDE-autostart-phase=1
       '';
 
-      # skwd-wall's Plasma wallpaper plugin (x86_64-linux only, matches this
-      # file's nixos-only placement). plasma-manager's workspace.wallpaper
-      # can't select a non-org.kde.image plugin, so wallpaperCustomPlugin is
-      # used instead when skwd-wall owns the wallpaper.
-      home.packages = lib.optional skwdWallPlasmaAvailable inputs.skwd-wall.packages.${pkgs.stdenv.hostPlatform.system}.skwd-paper-plasma;
+      # plasma-manager's workspace.wallpaper can't select a non-org.kde.image plugin, so
+      # wallpaperCustomPlugin is used instead when skwd-wall owns the wallpaper.
+      home.packages =
+        lib.optional skwdWallPlasmaAvailable inputs.skwd-wall.packages.${pkgs.stdenv.hostPlatform.system}.skwd-paper-plasma
+        ++ lib.optional isCatppuccin (pkgs.catppuccin-kde.override {
+          flavour = [ flavor ];
+          accents = [ accent ];
+        });
 
       programs.plasma = {
         enable = true;
-        overrideConfig = lib.mkForce true;
+        overrideConfig = true;
 
         workspace = {
           clickItemTo = "select";
 
-          colorScheme = theme;
-          lookAndFeel = lookAndFeel;
+          inherit colorScheme lookAndFeel;
           cursor.theme = cursorTheme;
           wallpaper = lib.mkIf (!skwdWallPlasmaAvailable) wallpaperPaths;
           wallpaperCustomPlugin = lib.mkIf skwdWallPlasmaAvailable {

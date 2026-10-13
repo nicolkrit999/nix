@@ -25,11 +25,16 @@ label alone isn't enough; `KColorScheme` needs the full `[Colors:View]`,
 
 **Fix:** `stylix.targets.kde = !isCatppuccin` in `stylix-nixos.nix` - writes a
 system-level kdeglobals fragment via `xdg.systemDirs.config` plus a `.colors`
-file via `XDG_DATA_DIRS`. Safe on any DE/WM: activation wraps
-`plasma-apply-lookandfeel` in `|| true`, so it no-ops on non-Plasma hosts.
+file via `XDG_DATA_DIRS`. On non-catppuccin hosts the target applies the
+look-and-feel `stylix` at every Plasma login and, through its autostart entry,
+tries in every XDG-autostart session; outside Plasma it only prints
+"Skipping" and changes nothing, so it is harmless on other DEs/WMs but not
+silent. `kde.useWallpaper = false` keeps stylix away from wallpapers
+(plasma-manager owns them), and while the stylix KDE target is on `kde-main.nix`
+leaves `colorScheme`/`lookAndFeel` at `null` so the two do not fight.
 
 Writing to system config level is required because `plasma-manager` (with
-`overrideConfig = lib.mkForce true` in `kde-main.nix`) wipes
+`overrideConfig = true` in `kde-main.nix`) wipes
 `~/.config/kdeglobals` on every rebuild - any `home.activation` script writing
 there directly gets clobbered. `home-nixos.nix` no longer deletes
 `kdeglobals`/`dolphinrc` itself (removed 2026-10-13; dolphinrc is now
@@ -90,7 +95,7 @@ shifts the catppuccin `base01`-`base04` colors by one surface step compared to
 |------|------|
 | `modules/nixos/toplevel/stylix-nixos.nix` | Stylix target flags + unconditional gtk3/gtk4 dark extraConfig |
 | `modules/nixos/toplevel/qt.nix` | QPA env var, qt5ct/qt6ct config, plasma-integration conditional |
-| `modules/nixos/programs/de-wm/kde/kde-main.nix` | `overrideConfig = lib.mkForce true` - wipes `~/.config/kdeglobals` every rebuild |
+| `modules/nixos/programs/de-wm/kde/kde-main.nix` | `overrideConfig = true` - wipes `~/.config/kdeglobals` every rebuild |
 | `modules/nixos/toplevel/home-nixos.nix` | `force = true` on the generated gtk-3.0/gtk-4.0 settings.ini + gtk.css and `.gtkrc-2.0` (replaces the old per-switch `rm`); `mime.nix` does the same for mimeapps.list |
 | `xdg-portal.nix` (toplevel) | Backend availability - see the portal doc |
 

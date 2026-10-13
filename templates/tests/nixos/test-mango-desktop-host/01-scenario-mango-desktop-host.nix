@@ -40,7 +40,12 @@ let
   sessionVars = hm.home.sessionVariables;
   sysdVars = hm.wayland.windowManager.mango.systemd.variables;
   sysdAllow = [ "DISPLAY" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP" "XDG_SESSION_TYPE" "XDG_SESSION_DESKTOP" "XCURSOR_THEME" "XCURSOR_SIZE" ];
-  sysdUndefined = lib.filter (v: !(sessionVars ? ${v}) && !(lib.elem v sysdAllow)) sysdVars;
+  inEnv = env: v: lib.any (e: lib.hasPrefix "${v}," e) env;
+  undefinedVars = env: vars: lib.filter (v: !(sessionVars ? ${v}) && !(inEnv env v) && !(lib.elem v sysdAllow)) vars;
+  sysdUndefined = undefinedVars (s.env or [ ]) sysdVars;
+  compositorVars = [ "QT_QPA_PLATFORM" "GDK_BACKEND" "SDL_VIDEODRIVER" "CLUTTER_BACKEND" "_JAVA_AWT_WM_NONREPARENTING" ];
+  notInEnv = lib.filter (v: !(inEnv (s.env or [ ]) v)) compositorVars;
+  inSession = lib.filter (v: sessionVars ? ${v}) compositorVars;
   firstMonitor = lib.head mangoOpts.monitors;
   firstScale = builtins.match ".*scale:([0-9]+(\\.[0-9]+)?).*" firstMonitor;
 
@@ -97,10 +102,13 @@ in
     chk (!(perMonitorOk (lib.filter (r: !(has "monitor_name:^${lib.head (builtins.attrNames layoutsOpt)}$" r)) tagRule) layoutsOpt) && !(perMonitorOk tagRule (lib.mapAttrs (_: l: "${l}_x") layoutsOpt))) "per-monitor tag_rule predicate accepts a mutated rule list";
 
   check-gdk-scale-two-sources =
-    chk (sessionVars.GDK_SCALE != "1" && s.env == [ "GDK_SCALE,1" ] && firstScale != null && lib.head firstScale != "1") "GDK_SCALE contract broken: sessionVariables=${toString (sessionVars.GDK_SCALE or "unset")} env=${toString (s.env or [ ])} firstMonitor=${firstMonitor}";
+    chk (!(sessionVars ? GDK_SCALE) && lib.elem "GDK_SCALE,1" (s.env or [ ]) && firstScale != null && lib.head firstScale != "1") "GDK_SCALE contract broken: sessionVariables=${toString (sessionVars.GDK_SCALE or "unset")} env=${toString (s.env or [ ])} firstMonitor=${firstMonitor}";
+  check-compositor-vars-in-mango-env = chk (notInEnv == [ ]) "compositor variables missing from mango settings.env: ${toString notInEnv}";
+  check-compositor-vars-not-in-session-vars = chk (inSession == [ ]) "compositor variables still in home.sessionVariables: ${toString inSession}";
+  check-compositor-vars-control = chk (inEnv [ "A,1" ] "A" && !(inEnv [ ] "A") && !(inEnv [ "AB,1" ] "A") && !(inEnv [ "A,1" ] "B")) "env-membership predicate does not discriminate";
   check-gdk-scale-systemd-forwarded = chk (lib.elem "GDK_SCALE" sysdVars) "GDK_SCALE not in systemd.variables";
   check-systemd-vars-defined = chk (sysdUndefined == [ ]) "systemd.variables without a definition: ${toString sysdUndefined}";
-  check-systemd-vars-control = chk (lib.elem "NOPE" (lib.filter (v: !(sessionVars ? ${v}) && !(lib.elem v sysdAllow)) [ "NOPE" "GDK_SCALE" ])) "undefined-variable predicate does not discriminate";
+  check-systemd-vars-control = chk (undefinedVars [ "GDK_SCALE,1" ] [ "NOPE" "GDK_SCALE" ] == [ "NOPE" ] && undefinedVars [ ] [ "GDK_SCALE" ] == [ "GDK_SCALE" ]) "undefined-variable predicate does not discriminate";
 
   check-hypridle-no-direct-wlopm =
     chk (hypridleStrings != [ ] && lib.any (runsDpms "on") hypridleStrings && noDirectWlopm hypridleStrings) "hypridle calls wlopm directly (or no mango-dpms command present)";

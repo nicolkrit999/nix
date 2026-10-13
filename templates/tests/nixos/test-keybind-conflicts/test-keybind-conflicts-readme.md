@@ -1,6 +1,6 @@
 # test-keybind-conflicts
 
-Verifies that the per-compositor keybinding modules (Hyprland, Niri, GNOME, KDE) render collision-free, well-formed binds on the real hosts.
+Verifies that the per-compositor keybinding modules (Hyprland, Niri, GNOME, KDE, plus the mango waybar binds) render collision-free, well-formed binds on the real hosts, that every niri bind names a real action and that the waybar toggle binds hit the running bar.
 
 ## Run
 
@@ -20,6 +20,8 @@ bash check-nixos-keybind-conflicts.sh
 
 `01-scenario-keybind-conflicts.nix` evaluates the real flake (`nixosConfigurations.nixos-desktop` / `nixos-laptop`) plus every specialisation of each, and for every variant where a desktop module is enabled reads the final home-manager values. Bind strings are normalised (lowercased, modifiers sorted, `Mod`/`Meta`/`Win` aliased to `super`) before comparing, so reordered or differently-cased duplicates are caught. Checks are exposed as `"ok"` / `"FAIL: ..."` strings under `results`; `control` holds matcher self-tests on synthetic inputs, and `gnome-scripts` holds the GNOME screenshot script text, taken from the `.drv` (its `__json` `text` field, context kept) so the script is never built or realised.
 
+The niri action lists are parsed at test time from the source of the niri package the host actually uses (`programs.niri.package.src`): `niri-config/src/binds.rs` `enum Action` minus the `#[knuffel(skip)]` variants is what a `config.kdl` bind node may name (IPC-only actions like `load-config-file` are skipped there and rejected by `niri validate`), `niri-ipc/src/lib.rs` `enum Action` is what `niri msg action X` accepts. Names are converted from CamelCase to kebab-case. Nothing is hardcoded except the contract itself (the 8 `allow-when-locked` keys).
+
 `check-nixos-keybind-conflicts.sh` runs `nix eval --json --impure` on each attribute, prints a per-check PASS/FAIL list and `bash -n`s the screenshot script. It exits non-zero on any failure. Eval-only (the screenshot script is read from its `.drv`, never built); about 10-20 s warm.
 
 ## Checks
@@ -33,6 +35,7 @@ bash check-nixos-keybind-conflicts.sh
 | `hyprland-ws-focus-1-to-0` | `SUPER+N` exists once and targets workspace N (key 0 targets 10) |
 | `hyprland-ws-move-1-to-0` | `SUPER+SHIFT+N` moves to workspace N (0 is 10) |
 | `hyprland-ws-follow-1-to-0` | `SUPER+ALT+N` moves to workspace N (0 is 10) |
+| `hyprland-waybar-toggle-bind` / `hyprland-waybar-reload-bind` | `SUPER+SHIFT+W` / `SUPER+ALT+W` run `pkill -SIGUSR1` / `-SIGUSR2 waybar` with no `-x` (the process is `.waybar-wrapped`) |
 
 ### Niri (per variant with niri enabled)
 | Check | Expected |
@@ -40,6 +43,15 @@ bash check-nixos-keybind-conflicts.sh
 | `niri-binds-present` | more than 50 binds |
 | `niri-binds-unique` | no two bind names collide after normalisation |
 | `niri-spawn-nonempty-strings` | every `action.spawn` is a non-empty list of non-empty strings |
+| `niri-bind-actions-bindable` | every bind's action node is a variant niri accepts in `config.kdl` (derived from the niri source, see above) |
+| `niri-msg-actions-exist` | every `niri msg action X` in a spawn bind, `spawn-sh` or `spawn-at-startup` command names an action in the niri IPC enum |
+| `niri-reload-bind-is-load-config-file` | `Mod+Shift+R` exists and reloads via `load-config-file`, never `reload-config` |
+| `niri-media-keys-allow-when-locked` | exactly volume up/down/mute, mic mute, monitor and keyboard brightness up/down have `allow-when-locked = true`; playback keys and `Mod+Delete` exist and do not |
+
+### Mango (per variant with mango enabled)
+| Check | Expected |
+|-------|----------|
+| `mango-waybar-toggle-bind` / `mango-waybar-reload-bind` | `SUPER+SHIFT,W` / `SUPER+ALT,W` are exactly one spawn of `pkill -SIGUSR1` / `-SIGUSR2 waybar`, no `-x` |
 
 ### GNOME (per variant with gnome enabled)
 | Check | Expected |
@@ -68,5 +80,13 @@ bash check-nixos-keybind-conflicts.sh
 | `niri-detects-mod-alias` | `Mod+Shift+A` and `Super+SHIFT+a` collide |
 | `gnome-detects-order-and-case` / `gnome-distinguishes-plain-key` | same for GNOME `<Super>` syntax |
 | `kde-detects-hotkey-vs-shortcut` | case-variant hotkey/shortcut collision is found |
+| `niri-action-lists-parsed` | parsed lists contain `close-window`/`spawn`, IPC list has `load-config-file` and `focus-column-first`, bindable list lacks `load-config-file`, nobody has `reload-config` |
+| `niri-mutation-reload-config-spawn-fails` | real binds with `Mod+Shift+R` = `niri msg action reload-config`: `niri-msg-actions-exist` and the reload check fail |
+| `niri-mutation-load-config-file-spawn-passes` | same bind as `niri msg action load-config-file`: all three pass (acceptance) |
+| `niri-mutation-bare-ipc-action-node-fails` / `niri-mutation-unknown-action-node-fails` | action node `load-config-file` / `reload-config` fails `niri-bind-actions-bindable` |
+| `niri-mutation-startup-bogus-action-fails` | a `niri msg action no-such-action` in `spawn-at-startup` is flagged |
+| `niri-mutation-unlocked-media-key-fails` / `-locked-playback-key-fails` / `-missing-media-key-fails` | removing `allow-when-locked` from a media key, adding it to a playback key, or dropping a playback key fails the media-key check |
+| `waybar-cmd-matcher` | accepts `pkill -SIGUSR1 waybar`; rejects `-x`, `-fx`, `--exact`, `.waybar-wrapped`, `killall`, wrong signal |
+| `waybar-mutation-mango-x-flag-fails` / `-mango-missing-bind-fails` / `-hyprland-x-flag-fails` | real mango/Hyprland binds mutated with `-x` or a removed bind fail the matching waybar check, the untouched sibling bind stays ok |
 | `dups-ignores-unique` | duplicate helper returns only real duplicates |
 | `bash -n rejects broken script` | the syntax check can fail |

@@ -10,6 +10,7 @@ delib.module {
   nixos.ifEnabled = {
     services.desktopManager.plasma6.enable = true;
 
+    # file-capability wrapper would make the binary AT_SECURE (loader strips LD_*, breaks zapzap/flatpak); reason inferred from b1b0fffa, not confirmed
     security.wrappers.kwin_wayland.capabilities = lib.mkForce "";
 
     environment.plasma6.excludePackages = with pkgs.kdePackages; [

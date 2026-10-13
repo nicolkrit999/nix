@@ -33,6 +33,7 @@ The check prepends `set -euo pipefail` to a copy of `wallpaperd.sh` (what `write
 - Stream drop: fd 8 is closed so the stub's `cat` sees EOF, then reopened once a second `stream-open` is logged.
 - Crash: the DP-2 `mpvpaper` stub is sent SIGUSR1 (logs `mpv-crash`, exits).
 - Failed start (image fallback runs): `awww img` fails 5 times for a hot-plugged DP-6, so the first start gives up.
+- `WALLPAPERD_MPV_EXTRA`: the daemon-wide check exports it empty so the `mpvpaper` stub can require exactly `-o "loop mute=yes panscan=1.0"`. A separate mango run with a video spec covers three modes: unset (the script default `msg-level=all=warn hwdec=vaapi` is appended), a custom value (that value is used instead) and empty (nothing appended). The stub logs `mpv-opts` and rejects any other `-o` value.
 - Lock check: after SIGTERM a second instance must not print `already running`. The second instance must also have listed outputs. The FIFO stays open, so a stream process (or the subshell around it) still holding the lock would be caught.
 
 ## Checks
@@ -60,6 +61,9 @@ Per run (backend x fallback kind):
 | dropped event stream is reopened; daemon alive; no `mpv-stop DP-2`; DP-2 not restarted; a new output added after the reconnect gets the fallback (the event is processed, not just the reconnect reconcile) | true |
 | crashed DP-2 `mpvpaper` is restarted; daemon alive | second `mpv-start DP-2` |
 | supervisor exits on SIGTERM; remaining `mpvpaper` stopped (video fallback) | true |
+| `mpvpaper -o` with `WALLPAPERD_MPV_EXTRA` unset | `loop mute=yes panscan=1.0 msg-level=all=warn hwdec=vaapi`, no `bad-args` |
+| `mpvpaper -o` with `WALLPAPERD_MPV_EXTRA=hwdec=no` | `loop mute=yes panscan=1.0 hwdec=no`, no `bad-args` |
+| `mpvpaper -o` with `WALLPAPERD_MPV_EXTRA=` (empty) | `loop mute=yes panscan=1.0`, no `bad-args` |
 | lock is free after SIGTERM | second instance not refused, and it listed outputs |
 
 ## mango config values

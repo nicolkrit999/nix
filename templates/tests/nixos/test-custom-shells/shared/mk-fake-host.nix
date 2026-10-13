@@ -47,6 +47,8 @@ delib.host {
       waybar-hyprland.enable = waybar.hyprland or false;
       waybar-niri.enable = waybar.niri or false;
       waybar-mango.enable = waybar.mango or false;
+
+      vicinae.enable = spec.vicinae or true;
     };
 
     services.swaync.enable = true;

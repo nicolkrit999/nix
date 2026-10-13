@@ -37,7 +37,6 @@ delib.module {
       noctaliaActiveOnMango =
         (parent.noctalia.enable or false)
         && (parent.noctalia.enableOnMango or false);
-      wallpaperOwnedByShell = noctaliaActiveOnMango;
       skwdWallActive = parent.skwdWall.enable or false;
 
       wp = import ../wallpaperd/mk-wallpaperd.nix { inherit lib pkgs; } {
@@ -46,49 +45,50 @@ delib.module {
       };
 
       wallpaperExecs =
-        lib.optionals (!(wallpaperOwnedByShell || skwdWallActive)) wp.launcherCmds;
+        lib.optionals (!(noctaliaActiveOnMango || skwdWallActive)) wp.launcherCmds;
 
       fitValues = key: map (v:
         if lib.stringLength v > 255 then
           throw "programs.mango: ${key} value is ${toString (lib.stringLength v)} chars, mango truncates config values at 255: ${v}"
         else
           v);
+
+      hasStylixPalette = (builtins.tryEval config.lib.stylix.colors.base00).success;
+      colors =
+        if hasStylixPalette then config.lib.stylix.colors
+        else {
+          base00 = "1e1e2e";
+          base03 = "585b70";
+          base08 = "f38ba8";
+          base0A = "f9e2af";
+          base0B = "a6e3a1";
+          base0C = "94e2d5";
+          base0D = "89b4fa";
+          base0E = "cba6f7";
+        };
+      cursorSize = if hasStylixPalette then config.stylix.cursor.size or 24 else 24;
     in
-    with config.lib.stylix.colors;
     {
       home.packages = with pkgs; [
         awww
-        mpvpaper
-        libnotify
-        hyprpicker
-        wl-clipboard
-        pavucontrol
         brightnessctl
-        playerctl
-        imv
-        mpv
         grim
+        hyprpicker
+        imv
+        libnotify
+        mpv
+        mpvpaper
+        pavucontrol
+        playerctl
         slurp
         swappy
         wev
+        wl-clipboard
       ];
 
       home.sessionVariables = {
         XDG_SCREENSHOTS_DIR = myconfig.constants.screenshots;
         NIXOS_OZONE_WL = "1";
-        QT_QPA_PLATFORM = "wayland;xcb";
-        GDK_BACKEND = "wayland,x11,*";
-        SDL_VIDEODRIVER = "wayland";
-        CLUTTER_BACKEND = "wayland";
-        _JAVA_AWT_WM_NONREPARENTING = "1";
-        # Serves Hyprland (force_zero_scaling); mango overrides it via settings.env
-        GDK_SCALE =
-          let
-            firstMonitor = if cfg.monitors != [ ] then builtins.head cfg.monitors else "";
-            m = builtins.match ".*scale:([0-9]+(\\.[0-9]+)?).*" firstMonitor;
-            rawScale = if m != null then builtins.head m else "1";
-          in
-          if rawScale != "1" && rawScale != "1.0" then "2" else "1";
       };
 
       wayland.windowManager.mango = {
@@ -116,7 +116,14 @@ delib.module {
         };
 
         settings = {
-          env = [ "GDK_SCALE,1" ];
+          env = [
+            "QT_QPA_PLATFORM,wayland;xcb"
+            "GDK_BACKEND,wayland,x11,*"
+            "SDL_VIDEODRIVER,wayland"
+            "CLUTTER_BACKEND,wayland"
+            "_JAVA_AWT_WM_NONREPARENTING,1"
+            "GDK_SCALE,1"
+          ];
           monitor_rule = fitValues "monitor_rule" cfg.monitors;
           window_rule = fitValues "window_rule" (baseWindowRules ++ cfg.windowRules);
           window_rule_once = fitValues "window_rule_once" cfg.windowRulesOnce;
@@ -190,7 +197,7 @@ delib.module {
           focus_cross_tag = 0;
           enable_floating_snap = 0;
           snap_distance = 30;
-          cursor_size = 24;
+          cursor_size = cursorSize;
           drag_tile_to_tile = 1;
 
           repeat_rate = 25;
@@ -198,7 +205,7 @@ delib.module {
           numlock_on = 0;
           xkb_rules_layout = myconfig.constants.keyboardLayout;
           xkb_rules_variant = myconfig.constants.keyboardVariant;
-          xkb_rules_options = "grp:ctrl_alt_toggle";
+          xkb_rules_options = myconfig.constants.keyboardOptions;
 
           disable_trackpad = 0;
           tap_to_click = 1;
@@ -221,14 +228,14 @@ delib.module {
           scratchpad_width_ratio = "0.8";
           scratchpad_height_ratio = "0.9";
           border_px = 2;
-          root_color = "0x${base00}ff";
-          border_color = "0x${base03}ff";
-          focus_color = "0x${base0D}ff";
-          maximized_screen_color = "0x${base0B}ff";
-          urgent_color = "0x${base08}ff";
-          scratchpad_color = "0x${base0A}ff";
-          global_color = "0x${base0E}ff";
-          overlay_color = "0x${base0C}ff";
+          root_color = "0x${colors.base00}ff";
+          border_color = "0x${colors.base03}ff";
+          focus_color = "0x${colors.base0D}ff";
+          maximized_screen_color = "0x${colors.base0B}ff";
+          urgent_color = "0x${colors.base08}ff";
+          scratchpad_color = "0x${colors.base0A}ff";
+          global_color = "0x${colors.base0E}ff";
+          overlay_color = "0x${colors.base0C}ff";
 
           exec_once = fitValues "exec_once" (
             [
@@ -241,7 +248,6 @@ delib.module {
         };
 
         autostart_sh = ''
-          export XDG_SCREENSHOTS_DIR="${myconfig.constants.screenshots}"
           mkdir -p "${myconfig.constants.screenshots}"
         '';
       };

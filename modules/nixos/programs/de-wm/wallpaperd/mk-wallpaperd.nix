@@ -15,15 +15,6 @@ let
   needsAwww = lib.any (w: kindOf w == "image") wallpapers;
   needsMpv = lib.any (w: kindOf w == "video") wallpapers;
 
-  checked =
-    assert lib.assertMsg
-      (lib.all (t: !(lib.hasInfix "$(" t || lib.hasInfix "`" t)) targets)
-      "wallpapers: targetMonitor must be a connector name, desc:<make model serial> or *, not a shell substitution";
-    assert lib.assertMsg
-      (lib.length (lib.unique targets) == lib.length targets)
-      "wallpapers: duplicate targetMonitor";
-    true;
-
   package = pkgs.writeShellApplication {
     name = "${wm}-wallpaperd";
     runtimeInputs = [ pkgs.jq pkgs.util-linux pkgs.coreutils pkgs.gnugrep ]
@@ -37,28 +28,32 @@ let
   argv = [ (lib.getExe package) "--wm" wm ] ++ specs;
 
   launcher = pkgs.writeShellScript "${wm}-wallpaperd-start" ''
-    # hwdec=vaapi: skip mpv's nvdec probe, which prints "Cannot load libcuda.so.1"
-    # on AMD/Intel and then falls through to vaapi anyway.
     export WALLPAPERD_MPV_EXTRA="msg-level=all=warn hwdec=vaapi"
     exec ${lib.escapeShellArgs argv} >>"''${XDG_RUNTIME_DIR:-/tmp}/${wm}-wallpaperd.log" 2>&1
   '';
+  awwwDaemon = "${lib.getExe' pkgs.awww "awww-daemon"} --no-cache";
 in
-assert checked;
+assert lib.assertMsg
+  (lib.all (t: !(lib.hasInfix "$(" t || lib.hasInfix "`" t)) targets)
+  "wallpapers: targetMonitor must be a connector name, desc:<make model serial> or *, not a shell substitution";
+assert lib.assertMsg
+  (lib.length (lib.unique targets) == lib.length targets)
+  "wallpapers: duplicate targetMonitor";
 {
-  inherit package needsAwww needsMpv specs argv launcher;
+  inherit package needsAwww needsMpv specs launcher;
 
   startupCmds = lib.optionals (wallpapers != [ ]) (
-    lib.optional needsAwww "awww-daemon --no-cache"
+    lib.optional needsAwww awwwDaemon
     ++ [ (lib.escapeShellArgs argv) ]
   );
 
   launcherCmds = lib.optionals (wallpapers != [ ]) (
-    lib.optional needsAwww "awww-daemon --no-cache"
+    lib.optional needsAwww awwwDaemon
     ++ [ "${launcher}" ]
   );
 
   startupArgv = lib.optionals (wallpapers != [ ]) (
-    lib.optional needsAwww [ "awww-daemon" "--no-cache" ]
+    lib.optional needsAwww [ (lib.getExe' pkgs.awww "awww-daemon") "--no-cache" ]
     ++ [ argv ]
   );
 }

@@ -10,11 +10,7 @@ delib.module {
     , ...
     }:
     let
-
-      rawPinnedApps = cfg.pinnedApps;
-
-      hasPins = builtins.length rawPinnedApps > 0;
-      pinnedLaunchers = builtins.map (app: "applications:${app}") rawPinnedApps;
+      pinnedLaunchers = builtins.map (app: "applications:${app}") cfg.pinnedApps;
     in
     {
       programs.plasma.panels = [
@@ -37,7 +33,7 @@ delib.module {
             }
             {
               name = "org.kde.plasma.icontasks";
-              config = lib.mkIf hasPins {
+              config = lib.mkIf (cfg.pinnedApps != [ ]) {
                 General = {
                   launchers = pinnedLaunchers;
                 };

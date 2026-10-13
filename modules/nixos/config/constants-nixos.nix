@@ -91,6 +91,7 @@ delib.module {
       screenshots = strOption "$HOME/Pictures/Screenshots";
       keyboardLayout = strOption "us";
       keyboardVariant = strOption "";
+      keyboardOptions = strOption "grp:ctrl_alt_toggle";
 
       weather = strOption "London";
       timeZone = strOption "Etc/UTC";

@@ -30,6 +30,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
+export WALLPAPERD_MPV_EXTRA=
+
 { echo 'set -euo pipefail'; cat "$SCRIPT"; } >"$WORK/wallpaperd.sh"
 
 STUBS="$WORK/bin"
@@ -38,8 +40,9 @@ mkdir -p "$STUBS"
 cat >"$STUBS/mpvpaper" <<'STUB'
 #!/usr/bin/env bash
 badargs() { echo "bad-args mpvpaper $*" >>"$WPD_S/log"; exit 1; }
-[[ $# -eq 4 && $1 == -o && $2 == "loop mute=yes panscan=1.0" ]] || badargs "$@"
+[[ $# -eq 4 && $1 == -o && $2 == "${WPD_EXPECT_OPTS-loop mute=yes panscan=1.0}" ]] || badargs "$@"
 out=$3
+echo "mpv-opts $out $2" >>"$WPD_S/log"
 if [[ -e /proc/$$/fd/9 ]]; then echo "fd9-leak mpvpaper $out" >>"$WPD_S/log"; fi
 echo "mpv-start $out $4" >>"$WPD_S/log"
 echo $$ >"$WPD_S/pid-$out"
@@ -350,6 +353,42 @@ for wm in mango hyprland niri; do
     run_scenario "$wm" "$fb"
   done
 done
+
+mpv_extra_case() {
+  local label=$1 expect=$2
+  shift 2
+  WM=mango
+  FB=extra-$label
+  S="$WORK/$WM-$FB"
+  mkdir -p "$S/run"
+  : >"$S/log"
+  mkfifo "$S/ev"
+  export WPD_S="$S" XDG_RUNTIME_DIR="$S/run" WAYLAND_DISPLAY=wl-test
+  export PATH="$STUBS:$PATH"
+  printf '%s\n' $'DP-2\tAcme\tPanel\tS2\ton' >"$S/model.tsv"
+  write_outputs
+
+  exec 8<>"$S/ev"
+  WPD_EXPECT_OPTS="$expect" env "$@" bash "$WORK/wallpaperd.sh" --wm mango \
+    "DP-2=video:/w/dp2.mp4" >"$S/out" 2>&1 8>&- &
+  local pid=$!
+  BG_PIDS+=("$pid")
+  wait_for 10 has "mpv-start DP-2 /w/dp2.mp4" || true
+  sleep 0.3
+
+  echo -e "${BOLD}mpvpaper -o / $label${NC}"
+  check "mpvpaper receives exactly: $expect" has "mpv-opts DP-2 $expect"
+  check "mpvpaper accepted the arguments (no bad-args)" negate grep -q '^bad-args' "$S/log"
+  kill -TERM "$pid" 2>/dev/null || true
+  wait "$pid" 2>/dev/null || true
+  exec 8>&-
+}
+
+echo ""
+echo -e "${BOLD}--- WALLPAPERD_MPV_EXTRA ---${NC}"
+mpv_extra_case unset "loop mute=yes panscan=1.0 msg-level=all=warn hwdec=vaapi" -u WALLPAPERD_MPV_EXTRA
+mpv_extra_case custom "loop mute=yes panscan=1.0 hwdec=no" WALLPAPERD_MPV_EXTRA=hwdec=no
+mpv_extra_case empty "loop mute=yes panscan=1.0" WALLPAPERD_MPV_EXTRA=
 
 # mango reads each config value with sscanf("%255[^\n]") (src/config/load.c) and
 # silently drops the rest, so an exec_once longer than 255 chars is spawned cut.

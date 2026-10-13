@@ -75,6 +75,8 @@ let
     (src + "/modules/nixos/services/hypr/hyprlock.nix")
     (src + "/modules/nixos/services/hypr/hypridle.nix")
     (src + "/modules/nixos/programs/swayosd.nix")
+
+    (src + "/templates/tests/nixos/test-custom-shells/shared/vicinae-option.nix")
   ];
 
   # No broad excludes needed — we list exact files above.

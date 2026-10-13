@@ -8,6 +8,7 @@ delib.module {
   home.ifEnabled =
     { cfg
     , myconfig
+    , parent
     , ...
     }:
     let
@@ -18,110 +19,70 @@ delib.module {
         ${pkgs.libnotify}/bin/notify-send "Screenshot Saved" "Saved to $FILENAME" -i camera-photo
       '';
 
-      customKeyPath =
-        i: "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${toString i}";
+      vicinaeEnabled = parent.vicinae.enable or true;
+      termApps = myconfig.constants.terminalApps;
+      inTerminal = app: "${myconfig.constants.terminal.name} -e ${app}";
+      launchCommand = app: if builtins.elem app termApps then inTerminal app else app;
 
-      customBindings = [
-        {
-          name = "Vicinae: Application Launcher";
-          command = "vicinae toggle";
-          binding = "<Super>a";
-        }
-        {
-          name = "Vicinae: Clipboard";
-          command = "vicinae vicinae://launch/clipboard/history";
-          binding = "<Super>v";
-        }
-        {
-          name = "Vicinae: Emoji Picker";
-          command = "vicinae vicinae://launch/core/search-emojis";
-          binding = "<Super>period";
-        }
-        {
-          name = "Launch Terminal";
-          command = myconfig.constants.terminal.name;
-          binding = "<Super>Return";
-        }
-        {
-          name = "Launch ${myconfig.constants.browser}";
-          command = myconfig.constants.browser;
-          binding = "<Super>b";
-        }
-        {
-          name = "Launch File Manager";
-          command =
-            if
-            # Add more if needed
-              builtins.elem myconfig.constants.fileManager [
-                "yazi"
-                "ranger"
-                "lf"
-                "nnn"
-              ]
-            then
-              "${myconfig.constants.terminal.name} -e ${myconfig.constants.fileManager}"
-            else
-              "${myconfig.constants.fileManager}";
-          binding = "<Super>f";
-        }
-        {
-          name = "Launch editor";
-          command =
-            if
-              builtins.elem myconfig.constants.editor [
-                "neovim"
-                "nvim"
-                "nano"
-                "vim"
-                "helix"
-              ]
-            then
-              "${myconfig.constants.terminal.name} -e ${myconfig.constants.editor}"
-            else
-              "${myconfig.constants.editor}";
-          binding = "<Super>c";
-        }
-        {
-          name = "Take Screenshot (Native)";
-          command = "${screenshotScript}";
-          binding = "Print";
-        }
+      keybindingsPath = "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings";
 
-      ]
-      ++ (cfg.extraBinds or [ ]);
+      customBindings =
+        lib.optionals vicinaeEnabled [
+          {
+            name = "Vicinae: Application Launcher";
+            command = "vicinae toggle";
+            binding = "<Super>a";
+          }
+          {
+            name = "Vicinae: Clipboard";
+            command = "vicinae vicinae://launch/clipboard/history";
+            binding = "<Super>v";
+          }
+          {
+            name = "Vicinae: Emoji Picker";
+            command = "vicinae vicinae://launch/core/search-emojis";
+            binding = "<Super>period";
+          }
+        ]
+        ++ [
+          {
+            name = "Launch Terminal";
+            command = myconfig.constants.terminal.name;
+            binding = "<Super>Return";
+          }
+          {
+            name = "Launch ${myconfig.constants.browser}";
+            command = myconfig.constants.browser;
+            binding = "<Super>b";
+          }
+          {
+            name = "Launch File Manager";
+            command = launchCommand myconfig.constants.fileManager;
+            binding = "<Super>f";
+          }
+          {
+            name = "Launch editor";
+            command = launchCommand myconfig.constants.editor;
+            binding = "<Super>c";
+          }
+          {
+            name = "Take Screenshot (Native)";
+            command = "${screenshotScript}";
+            binding = "Print";
+          }
+        ]
+        ++ cfg.extraBinds;
 
-      dconfList = lib.genList
-        (
-          i: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${toString i}/"
-        )
-        (builtins.length customBindings);
+      customKeyNames = lib.imap0 (i: _: "${keybindingsPath}/custom${toString i}") customBindings;
 
-      dconfSettings =
-        lib.foldl'
-          (
-            acc: item:
-              let
-                index = item.index;
-                binding = item.value;
-              in
-              acc
-              // {
-                "${customKeyPath index}" = {
-                  name = binding.name;
-                  command = binding.command;
-                  binding = binding.binding;
-                };
-              }
-          )
-          { }
-          (
-            lib.imap0
-              (i: v: {
-                index = i;
-                value = v;
-              })
-              customBindings
-          );
+      dconfList = map (path: "/${path}/") customKeyNames;
+
+      dconfSettings = lib.listToAttrs (
+        lib.zipListsWith
+          (path: b: lib.nameValuePair path { inherit (b) name command binding; })
+          customKeyNames
+          customBindings
+      );
 
     in
     {

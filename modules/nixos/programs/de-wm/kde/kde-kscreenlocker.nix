@@ -10,12 +10,13 @@ delib.module {
     , ...
     }:
     let
-      fallbackWp = myconfig.constants.primaryWallpaper;
-      idleTimeout = myconfig.services.hypridle.lockTimeout or 600;
+      primaryWp = myconfig.constants.primaryWallpaper;
+      useFallback = primaryWp.wallpaperURL == "";
+      idleTimeout = myconfig.services.hypridle.lockTimeout;
     in
     {
       programs.plasma.kscreenlocker = {
-        timeout = builtins.floor (idleTimeout / 60);
+        timeout = idleTimeout / 60;
 
         autoLock = true;
         lockOnResume = true;
@@ -23,12 +24,9 @@ delib.module {
         passwordRequiredDelay = 10;
 
         appearance = {
-          wallpaperPictureOfTheDay = null;
-          wallpaperSlideShow = null;
-
           wallpaper = pkgs.fetchurl {
-            url = fallbackWp.wallpaperURL;
-            sha256 = fallbackWp.wallpaperSHA256;
+            url = if useFallback then myconfig.constants.fallbackWallpaperURL else primaryWp.wallpaperURL;
+            sha256 = if useFallback then myconfig.constants.fallbackWallpaperSHA256 else primaryWp.wallpaperSHA256;
           };
           alwaysShowClock = true;
           showMediaControls = true;
