@@ -1,37 +1,41 @@
-{ delib, ... }:
+{ delib, lib, moduleSystem, ... }:
+let
+  editorFlags = {
+    "code" = "code --wait";
+    "gedit" = "gedit --wait";
+    "kate" = "kate --block";
+    "nano" = "nano";
+    "neovim" = "nvim";
+    "nvim" = "nvim";
+    "subl" = "subl --wait";
+    "vim" = "vim";
+    "vscode" = "code --wait";
+  };
+
+  sessionVars = myconfig:
+    let
+      editor = myconfig.constants.editor;
+    in
+    {
+      BROWSER = myconfig.constants.browser;
+      TERMINAL = myconfig.constants.terminal.name;
+      EDITOR = editorFlags.${editor} or editor;
+      XDG_BIN_HOME = "$HOME/.local/bin";
+    };
+in
 delib.module {
   name = "env";
 
   nixos.always =
     { myconfig, ... }:
-    let
-      safeBrowser = myconfig.constants.browser or "firefox";
-      safeTerm = myconfig.constants.terminal.name or "alacritty";
-      safeEditor = myconfig.constants.editor or "vscode";
-
-      # Add more if needed
-      editorFlags = {
-        "code" = "code --wait";
-        "vscode" = "code --wait";
-        "kate" = "kate --block";
-        "gedit" = "gedit --wait";
-        "subl" = "subl --wait";
-        "nano" = "nano";
-        "neovim" = "nvim";
-        "nvim" = "nvim";
-        "vim" = "vim";
-      };
-
-      finalEditor = editorFlags.${safeEditor} or safeEditor;
-    in
     {
       environment.localBinInPath = true;
+      environment.sessionVariables = sessionVars myconfig;
+    };
 
-      environment.sessionVariables = {
-        BROWSER = safeBrowser;
-        TERMINAL = safeTerm;
-        EDITOR = finalEditor;
-        XDG_BIN_HOME = "$HOME/.local/bin";
-      };
+  home.always =
+    { myconfig, ... }:
+    lib.optionalAttrs (moduleSystem == "home") {
+      home.sessionVariables = sessionVars myconfig;
     };
 }

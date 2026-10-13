@@ -48,7 +48,7 @@ delib.module {
         && (parent.caelestia.enableOnHyprland or false)
         && (parent.hyprland.enable or false);
 
-      # noctalia-shell has no aarch64-linux outputs; guard the attr access to avoid eval failure.
+      # The flake input is only evaluated on x86_64; other arches get an empty stand-in.
       noctaliaPkg =
         if pkgs.stdenv.hostPlatform.isx86_64
         then inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default
@@ -147,8 +147,22 @@ delib.module {
         && cfg.enable
         && cfg.enableOnHyprland
         && (parent.hyprland.enable or false);
+
+      activeOnNiri =
+        pkgs.stdenv.hostPlatform.isx86_64
+        && cfg.enable
+        && cfg.enableOnNiri
+        && (parent.niri.enable or false);
+
+      activeOnMango =
+        pkgs.stdenv.hostPlatform.isx86_64
+        && cfg.enable
+        && cfg.enableOnMango
+        && (parent.mango.enable or false);
     in
     {
+      programs.gpu-screen-recorder.enable = lib.mkIf (activeOnHyprland || activeOnNiri || activeOnMango) true;
+
       myconfig.programs.hyprland.execOnce = lib.mkIf activeOnHyprland [
         "start-noctalia"
       ];

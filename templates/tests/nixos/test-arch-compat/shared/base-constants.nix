@@ -24,7 +24,6 @@
   keyboardLayout = "us";
   keyboardVariant = "";
   weather = "Lugano";
-  useFahrenheit = false;
   nixImpure = false;
   timeZone = "Europe/Zurich";
   # wallpapers uses the default from constants-nixos.nix (non-empty); --dry-run never fetches.

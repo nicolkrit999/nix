@@ -10,31 +10,37 @@ delib.module {
     services.desktopManager.gnome.enable = true;
 
     environment.gnome.excludePackages = with pkgs; [
-      gnome-tour # Onboarding
+      # Communication and web
       epiphany # Default browser
       geary # Email
-      totem # Video player
-      yelp # Help viewer
-      nautilus # File manager
-      papers # document viewer
       gnome-connections # Remote desktop management
-      gnome-characters # Character map
-      gnome-console # Terminal
-      gnome-color-manager # Graphical utilities for managing color profiles
-      loupe # image viewer
-      decibels # audio file previewer
-      showtime # video player
-      gnome-music # Music player
-      gnome-maps # Maps application
-      gnome-clocks # Clocks application
-      baobab # Disk usage analyzer
-      simple-scan # Document scanner
-      gnome-software # Software center
-      gnome-weather # Weather application
-      gnome-text-editor # Text editor
-      gnome-system-monitor # System monitor
-      gnome-font-viewer # Font viewer
 
+      # Media
+      decibels # audio file previewer
+      gnome-music # Music player
+      loupe # image viewer
+      showtime # video player
+      totem # Video player
+
+      # Documents and text
+      gnome-text-editor # Text editor
+      papers # document viewer
+      simple-scan # Document scanner
+      yelp # Help viewer
+
+      # System and desktop tools
+      baobab # Disk usage analyzer
+      gnome-characters # Character map
+      gnome-clocks # Clocks application
+      gnome-color-manager # Graphical utilities for managing color profiles
+      gnome-console # Terminal
+      gnome-font-viewer # Font viewer
+      gnome-maps # Maps application
+      gnome-software # Software center
+      gnome-system-monitor # System monitor
+      gnome-tour # Onboarding
+      gnome-weather # Weather application
+      nautilus # File manager
     ];
 
     services.gnome.rygel.enable = false;

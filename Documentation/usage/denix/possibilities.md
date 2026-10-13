@@ -111,30 +111,29 @@ These modules are only available on NixOS hosts.
 
 These modules are always active on NixOS hosts and handle platform integration. They are not toggled by the user.
 
-* **`common-configuration`**: Core NixOS system baseline - sets hostname, locale/keyboard, fonts, essential system packages (git, curl, sops, polkit-gnome, etc.), security wrappers for GPU screen recorder, GNOME Keyring/PAM integration (gnome-keyring is the sole Secret Service provider and gcr-ssh-agent the sole SSH agent, see `Documentation/usage/gotchas/secret-service-single-provider.md`), and boot tweaks. Always enabled.
-* **`home-manager`** (common): Configures home-manager's extra special args (`myconfig`, shared inputs) and shared modules (plasma-manager) so all home-manager modules in the repo receive them automatically. Always enabled on NixOS.
-* **`home-packages`**: Installs the host's chosen browser, terminal, editor, and file manager as system packages based on `constants`, plus shared GUI utilities (cliphist, gwenview). Falls back gracefully if a program module already provides the package.
-  * **Warning:** Disabling this means the system does not automatically install the chosen browser, editor, file manager, and terminal based on the host preferences.
-
-* **`nix`**: Configures the NixOS Nix daemon (trusted users, aarch64-linux cross-compilation, etc.). Always enabled.
-* **`user`**: Declares the primary user account for NixOS (uid, home directory, shell, groups). Always enabled.
+* **`common-configuration`**: Core NixOS system baseline - sets hostname, locale/keyboard, fonts, essential system packages (git, curl, sops, polkit-gnome, etc.), GNOME Keyring/PAM integration (gnome-keyring is the sole Secret Service provider and gcr-ssh-agent the sole SSH agent, see `Documentation/usage/gotchas/secret-service-single-provider.md`), and boot tweaks. Always enabled.
+* **`home-manager`** (NixOS-only): Sets the NixOS home-manager integration options: `useUserPackages = true`, `backupFileExtension = "hm-backup"` and a deliberate `useGlobalPkgs = false` pin (see `Documentation/usage/gotchas/xdg-desktop-portal-nixos.md`). Always enabled on NixOS.
+* **`nix`**: Configures the NixOS Nix daemon (flakes, store optimisation, extra binary caches and keys, `@wheel` as trusted users, automatic GC off because `nh` owns it) and the nix-index-database integration (the system-level layer is on, the home-manager `programs.nix-index` layer is turned off to avoid a duplicate). Always enabled.
+* **`user`**: Declares the primary user account for NixOS (normal user from `constants.user`, login shell from `constants.shell`, groups `wheel` and `networkmanager`). uid and home directory are left to NixOS defaults. Always enabled.
 
 #### System
 
+* **`home-packages`** (toggle, enabled by default): Installs the host's chosen browser, terminal, editor, and file manager from `constants` as system packages, plus shared GUI utilities (cliphist, gwenview). A role is looked up in `pkgs`, then `pkgs.kdePackages`; it is skipped when a program module already provides the package. There is no fallback package: when nothing resolves a role (for example the `zen-beta` browser, which comes from a flake) and no enabled module or home-manager package provides it, an evaluation warning is emitted instead of installing something unrelated.
+  * **Warning:** Disabling this means the system does not automatically install the chosen browser, editor, file manager, and terminal based on the host preferences.
+
 * **`bluetooth`**: Enables the system Bluetooth daemon and related utility packages.
-* **`boot`**: Sets up the Plymouth boot splash screen and GRUB bootloader with UEFI support, OS prober, and multi-resolution graphics configuration.
+* **`boot`**: Sets up the Plymouth boot splash screen and GRUB bootloader with UEFI support, OS prober, and multi-resolution graphics configuration, plus kdump crash-dump reservation, initrd systemd and a stale-GRUB-copy refresh on every rebuild.
 * **`env`**: Exports system-wide environment variables (`BROWSER`, `TERMINAL`, `EDITOR`, `XDG_BIN_HOME`) derived from the host constants.
-* **`kernel`**: Selects the kernel package set per host: `nixos-desktop` uses Zen (`linuxPackages_zen`), `nixos-laptop` uses `linuxKernel.packages.linux_testing`, `Krits-MacBook-Pro` uses `linuxPackages_latest`, and any other host uses the default `linuxPackages`.
+* **`kernel`**: Selects the kernel package set per host: `nixos-desktop` uses Zen (`linuxPackages_zen`), `nixos-laptop` uses `linuxKernel.packages.linux_testing`, and any other host uses the default `linuxPackages`.
 * **`mime`**: Explicitly maps the defined default applications to file types across the system.
   * **Warning:** Disabling this would cause the shortcuts that open "browser, editor, file manager" to fail and/or open with the distro's fallback.
 
-* **`net`**: Enables NetworkManager for network connectivity and installs `impala`, a TUI network monitoring tool.
+* **`net`**: Enables NetworkManager for network connectivity and installs `networkmanagerapplet`. Always enabled.
 * **`qt`**: Configures Qt application themes, platform integrations, and rendering engines.
   * **Warning:** Disabling this would cause graphical inconsistencies in Qt applications.
 
 * **`constants.timeZone`**: Not a module; the system timezone is set by `common-configuration` from the `timeZone` constant (default: `Etc/UTC`).
-* **`xdg-portal`**: Configures XDG desktop portals with DE-specific backends for screensharing and file picking (Hyprland, KDE, GNOME, COSMIC, and niri all have tailored configurations).
-  * **Warning:** Disabling this would cause graphical inconsistencies as well as some apps not behaving correctly.
+* **`xdg-portal`**: Always enabled, no toggle. Configures XDG desktop portals with per-desktop routing for screensharing, file picking and secrets (Hyprland, KDE, GNOME, COSMIC, niri and mango all have tailored configurations, plus a `common` fallback); see `Documentation/usage/gotchas/xdg-desktop-portal-nixos.md`.
 * **`zram`**: Enables a compressed swap space in RAM to drastically improve system performance under memory pressure.
   * **Warning:** Enabled because it is beneficial everywhere.
 
@@ -151,8 +150,8 @@ These modules are always active on NixOS hosts and handle platform integration. 
 
 #### Custom Shells
 
-* **`programs.caelestia`**: A highly customizable visual shell/dashboard overlay designed for Hyprland, with QML2 import paths and environment setup.
-* **`programs.noctalia`**: A highly customizable visual shell environment supporting both Hyprland and Niri, with conditional enablement per compositor.
+* **`programs.caelestia`**: A highly customizable visual shell/dashboard overlay designed for Hyprland, with QML2 import paths and environment setup. Enables `programs.gpu-screen-recorder` (capped `gsr-kms-server` wrapper) while active on Hyprland.
+* **`programs.noctalia`**: A highly customizable visual shell environment supporting both Hyprland and Niri, with conditional enablement per compositor. Enables `programs.gpu-screen-recorder` (capped `gsr-kms-server` wrapper) while active on Hyprland, Niri or Mango.
 
 #### Programs (`programs.`)
 

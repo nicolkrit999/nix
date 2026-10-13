@@ -5,7 +5,7 @@ delib.module {
   nixos.always =
     { myconfig, ... }:
     let
-      currentShell = myconfig.constants.shell or "zsh";
+      currentShell = myconfig.constants.shell;
 
       shellPkg =
         if currentShell == "fish" then
@@ -19,14 +19,16 @@ delib.module {
       programs.zsh.enable = currentShell == "zsh";
       programs.fish.enable = currentShell == "fish";
 
+      environment.systemPackages = [ shellPkg ];
+
       users = {
         defaultUserShell = shellPkg;
         users.${myconfig.constants.user} = {
           isNormalUser = true;
           shell = shellPkg;
           extraGroups = [
-            "wheel"
             "networkmanager"
+            "wheel"
           ];
         };
       };

@@ -20,8 +20,9 @@ let
     (src + "/modules/nixos/toplevel/nix-nixos.nix")
     (src + "/modules/common/themes/catppuccin.nix")
 
-    # Always-on infra that carries the gpu-screen-recorder overlay
+    # Always-on infra
     (src + "/modules/nixos/toplevel/common-configuration-nixos.nix")
+    (src + "/modules/nixos/toplevel/user-nixos.nix")
 
     # WM toplevel enable options
     (src + "/modules/nixos/toplevel/hyprland.nix")

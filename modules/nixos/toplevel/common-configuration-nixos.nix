@@ -10,201 +10,155 @@ delib.module {
     { myconfig
     , ...
     }:
-    let
-      currentShell = myconfig.constants.shell or "zsh";
-
-      shellPkg =
-        if currentShell == "fish" then
-          pkgs.fish
-        else if currentShell == "zsh" then
-          pkgs.zsh
-        else
-          pkgs.bashInteractive;
-    in
     {
       # ---------------------------------------------------------
       # HOST IDENTITY
       # ---------------------------------------------------------
       networking.hostName = myconfig.constants.hostname;
-      system.stateVersion = myconfig.constants.stateVersion or "25.11";
 
       # ---------------------------------------------------------
       # LOCALE & TIME
       # ---------------------------------------------------------
-      time.timeZone = myconfig.constants.timeZone or "Etc/UTC";
+      time.timeZone = myconfig.constants.timeZone;
 
-      # Keyboard Layout
-      services.xserver.xkb = {
-        layout = myconfig.constants.keyboardLayout or "us";
-        variant = myconfig.constants.keyboardVariant or "";
-      };
-      console.useXkbConfig = true;
-
-      # ---------------------------------------------------------
-      # NIX SETTINGS
-      # ---------------------------------------------------------
-      nix.settings = {
-        trusted-users = [
-          "root"
-          "@wheel"
-        ];
-        extra-platforms = [ "aarch64-linux" ]; # Accept aarch64-linux derivations
+      console = {
+        useXkbConfig = true;
+        font = "Lat2-Terminus16";
       };
 
       # Allow unfree packages globally (needed for drivers, code, etc.)
       nixpkgs.config.allowUnfree = true;
 
       # ---------------------------------------------------------
-      # SYSTEM PACKAGES
+      # SYSTEM PACKAGES & ENVIRONMENT
       # ---------------------------------------------------------
-      environment.systemPackages =
-        with pkgs;
-        [
-          # --- CLI UTILITIES ---
-          dix # Nix diff viewer
-          git # Version control
-          git-lfs # Git large file storage (needed by GitHub Desktop and other GUI clients)
-          nixfmt # Nix formatter
-          nix-prefetch-scripts # Tools to get hashes for nix derivations (used in every shell modules)
-          nix-init # Generate nix packages from URLs
-          nix-tree # Interactively browse dependency graphs of nix derivations
-          nurl # Generate nix-fetcher curls from URLs
-          wget # Downloader
-          curl # Downloader
-          nodenv # Support for multiple node versions
+      environment = {
+        systemPackages =
+          with pkgs;
+          [
+            # --- CLI UTILITIES ---
+            dix
+            git
+            git-lfs # Needed by GitHub Desktop and other GUI clients
+            nixfmt
+            nix-prefetch-scripts # Tools to get hashes for nix derivations (used in every shell modules)
+            nix-init
+            nix-tree
+            nurl
+            wget
+            curl
+            nodenv
 
-          # --- SYSTEM TOOLS ---
-          foot # Tiny, zero-config terminal (Rescue tool)
-          gsettings-desktop-schemas # Global theme settings
-          libnotify # Library for desktop notifications (used by most de/wm modules)
-          libsecret # Library for storing and retrieving passwords and other secrets
-          polkit_gnome # Authentication agent, forced in every de/wm
-          seahorse # GNOME key and password manager
-          sops # Secret management
-          shellPkg # The selected shell package (bash, zsh, or fish)
-          tpm2-tss # Used for hosts that installed using disko-cnfig with luks
+            # --- SYSTEM TOOLS ---
+            foot # Tiny, zero-config terminal (Rescue tool)
+            gsettings-desktop-schemas
+            libnotify # Used by most de/wm modules
+            libsecret
+            polkit_gnome # Authentication agent (spawned by the hyprland, niri and mango sessions)
+            seahorse
+            sops
+            tpm2-tss # Used for hosts that installed using disko with luks
 
-          # --- GRAPHICS & GUI SUPPORT ---
-          gtk3 # Standard GUI toolkit
-          qt5.qtwayland # Qt5 Wayland bridge
-          kdePackages.qtwayland # Qt6 Wayland bridge
-        ]
-        ++ (with pkgs.kdePackages; [
-          gwenview # Default image viewer as defined in mime.nix
-        ]);
+            # --- GRAPHICS & GUI SUPPORT ---
+            gtk3
+            qt5.qtwayland
+            kdePackages.qtwayland
+          ]
+          ++ (with pkgs.kdePackages; [
+            gwenview # Default image viewer as defined in mime.nix
+          ]);
+
+        extraInit = ''
+          if [ -z "$SSH_AUTH_SOCK" ] && [ -n "$XDG_RUNTIME_DIR" ]; then
+            export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
+          fi
+        '';
+
+        variables.GTK_APPLICATION_PREFER_DARK_THEME =
+          if myconfig.constants.theme.polarity == "dark" then "1" else "0";
+      };
 
       # ---------------------------------------------------------
       # FONTS
       # ---------------------------------------------------------
-      fonts.packages = with pkgs; [
-        nerd-fonts.jetbrains-mono # Primary family: mono, Mono and Propo (UI/sans/serif) variants
-        nerd-fonts.symbols-only # Icon fallback
-        noto-fonts # Script fallback coverage ("no tofu"), not a primary UI font
-        dejavu_fonts # Core Linux fallback
-        noto-fonts-lgc-plus # Extended European/Greek/Cyrillic
-        noto-fonts-color-emoji # Color emojis
-        noto-fonts-cjk-sans # Asian language support (Chinese/Japanese/Korean)
-        texlivePackages.hebrew-fonts # Hebrew support
-        font-awesome # System icons (Waybar/Bar)
-        powerline-fonts # Shell prompt glyphs
-        powerline-symbols # Terminal font glyphs
-      ];
-      fonts.fontconfig.enable = true;
+      fonts = {
+        packages = with pkgs; [
+          nerd-fonts.jetbrains-mono # Primary family: mono, Mono and Propo (UI/sans/serif) variants
+          nerd-fonts.symbols-only
+          noto-fonts # Script fallback coverage ("no tofu"), not a primary UI font
+          dejavu_fonts
+          noto-fonts-lgc-plus
+          noto-fonts-color-emoji
+          noto-fonts-cjk-sans
+          texlivePackages.hebrew-fonts
+          font-awesome # System icons (Waybar/Bar)
+          powerline-fonts # Shell prompt glyphs
+          powerline-symbols # Terminal font glyphs
+        ];
+        fontconfig.enable = true;
+      };
 
       # ---------------------------------------------------------
       # SECURITY & WRAPPERS
       # ---------------------------------------------------------
-      security.rtkit.enable = true;
-      services.openssh.enable = true;
-
-      # Force wrapper definition to prevent upstream Caelestia/Noctalia merge conflicts
-      security.wrappers = lib.mkIf (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
-        "gpu-screen-recorder" = lib.mkForce {
-          owner = "root";
-          group = "root";
-          capabilities = "cap_sys_admin+ep";
-          source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
+      services = {
+        xserver.xkb = {
+          layout = myconfig.constants.keyboardLayout;
+          variant = myconfig.constants.keyboardVariant;
         };
-        "gsr-kms-server" = lib.mkForce {
-          owner = "root";
-          group = "root";
-          capabilities = "cap_sys_admin+ep";
-          source = "${pkgs.gpu-screen-recorder}/bin/gsr-kms-server";
+
+        openssh = {
+          enable = true;
+          # tailnet-only: tailscale0 is trusted, so no public port 22
+          openFirewall = false;
+        };
+
+        gnome = {
+          # gnome-keyring is the ONLY Secret Service provider, unlocked via PAM.
+          # See Documentation/usage/gotchas/secret-service-single-provider.md
+          gnome-keyring.enable = true;
+          # gcr-ssh-agent is the only SSH agent (gpg-agent SSH support is off)
+          gcr-ssh-agent.enable = true;
         };
       };
 
-      # Polkit Rules: Realtime Audio & GPU Recorder Permissions
-      security.polkit.enable = true;
+      security = {
+        rtkit.enable = true;
 
-      security.polkit.extraConfig = ''
-        polkit.addRule(function(action, subject) {
-          if (subject.isInGroup("wheel")) {
-            // Auto-approve realtime audio requests
-            if (action.id == "org.freedesktop.RealtimeKit1.acquire-high-priority" ||
-                action.id == "org.freedesktop.RealtimeKit1.acquire-real-time") {
-              return polkit.Result.YES;
-            }
-            // Auto-approve gpu-screen-recorder running as root
-            if (action.id == "org.freedesktop.policykit.exec" &&
-                action.lookup("program") &&
-                action.lookup("program").indexOf("gpu-screen-recorder") > -1) {
-              return polkit.Result.YES;
-            }
-          }
-        });
-      '';
+        # Polkit Rules: Realtime Audio Permissions
+        polkit = {
+          enable = true;
+          extraConfig = ''
+            polkit.addRule(function(action, subject) {
+              if (subject.isInGroup("wheel")) {
+                // Auto-approve realtime audio requests
+                if (action.id == "org.freedesktop.RealtimeKit1.acquire-high-priority" ||
+                    action.id == "org.freedesktop.RealtimeKit1.acquire-real-time") {
+                  return polkit.Result.YES;
+                }
+              }
+            });
+          '';
+        };
 
-      # Keyrings & Wallets
-      # gnome-keyring is the ONLY Secret Service provider, unlocked via PAM.
-      # See Documentation/usage/gotchas/secret-service-single-provider.md
-      services.gnome.gnome-keyring.enable = true;
-
-      # gcr-ssh-agent is the only SSH agent (gpg-agent SSH support is off)
-      services.gnome.gcr-ssh-agent.enable = true;
-      environment.extraInit = ''
-        if [ -z "$SSH_AUTH_SOCK" ] && [ -n "$XDG_RUNTIME_DIR" ]; then
-          export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
-        fi
-      '';
-
-      security.pam.services.login.enableGnomeKeyring = true;
-      security.pam.services.sddm.enableGnomeKeyring = true;
-      security.pam.services.login.kwallet.enable = lib.mkForce false;
-      security.pam.services.kde.kwallet.enable = lib.mkForce false;
-      security.pam.services.sddm.kwallet.enable = lib.mkForce false;
+        pam.services = {
+          login = {
+            enableGnomeKeyring = true;
+            kwallet.enable = lib.mkForce false;
+          };
+          sddm = {
+            enableGnomeKeyring = true;
+            kwallet.enable = lib.mkForce false;
+          };
+          kde.kwallet.enable = lib.mkForce false;
+        };
+      };
 
       programs.ssh.askPassword = lib.mkForce "${pkgs.seahorse}/libexec/seahorse/ssh-askpass";
 
       # ---------------------------------------------------------
-      # SHELLS & ENVIRONMENT
-      # ---------------------------------------------------------
-      programs.zsh.enable = currentShell == "zsh";
-      programs.fish.enable = currentShell == "fish";
-
-      # -----------------------------------------------------
-      # GLOBAL THEME VARIABLES
-      # -----------------------------------------------------
-      environment.variables.GTK_APPLICATION_PREFER_DARK_THEME =
-        if myconfig.constants.theme.polarity == "dark" then "1" else "0";
-
-      # -----------------------------------------------------
       # SYSTEM TWEAKS
-      # -----------------------------------------------------
-
-      boot.initrd.systemd.enable = true;
-      boot.initrd.systemd.emergencyAccess = myconfig.constants.emergencyAccess or false;
-
-      boot.kernelParams = [
-        "panic=10"
-        "pause_on_oops=300"
-      ];
-      boot.crashDump.enable = true;
-      console.font = "Lat2-Terminus16";
-      systemd.settings.Manager = {
-        DefaultTimeoutStopSec = "10s";
-      };
-
-      home-manager.backupFileExtension = lib.mkForce "hm-backup";
-
+      # ---------------------------------------------------------
+      systemd.settings.Manager.DefaultTimeoutStopSec = "10s";
     };
 }

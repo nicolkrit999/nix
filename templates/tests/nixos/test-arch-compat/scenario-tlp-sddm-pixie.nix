@@ -16,6 +16,7 @@ let
     (src + "/modules/nixos/toplevel/nix-nixos.nix")
     (src + "/modules/common/themes/catppuccin.nix")
     (src + "/modules/nixos/toplevel/common-configuration-nixos.nix")
+    (src + "/modules/nixos/toplevel/user-nixos.nix")
 
     (src + "/modules/nixos/toplevel/hyprland.nix")
     (src + "/modules/nixos/toplevel/niri.nix")

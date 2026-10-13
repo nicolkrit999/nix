@@ -6,6 +6,39 @@
 , moduleSystem
 , ...
 }:
+let
+  look = myconfig: {
+    polarity = myconfig.constants.theme.polarity;
+    cursor = {
+      name = "DMZ-Black";
+      size = 24;
+      package = pkgs.vanilla-dmz;
+    };
+    fonts = {
+      emoji = {
+        name = "Noto Color Emoji";
+        package = pkgs.noto-fonts-color-emoji;
+      };
+      monospace = {
+        name = "JetBrainsMono Nerd Font";
+        package = pkgs.nerd-fonts.jetbrains-mono;
+      };
+      sansSerif = {
+        name = "JetBrainsMono Nerd Font Propo";
+        package = pkgs.nerd-fonts.jetbrains-mono;
+      };
+      # JetBrains has no serif face, so serif uses the proportional variant too
+      serif = {
+        name = "JetBrainsMono Nerd Font Propo";
+        package = pkgs.nerd-fonts.jetbrains-mono;
+      };
+      sizes = {
+        terminal = 11;
+        applications = 11;
+      };
+    };
+  };
+in
 delib.module {
   name = "stylix";
 
@@ -33,50 +66,18 @@ delib.module {
   nixos.ifEnabled =
     { myconfig, ... }:
     let
-      fallbackWp = myconfig.constants.primaryWallpaper;
+      primaryWp = myconfig.constants.primaryWallpaper;
     in
     {
-      home-manager.sharedModules = [{ stylix.enableReleaseChecks = true; }];
-
       stylix = {
         enable = true;
-        enableReleaseChecks = true;
-        polarity = myconfig.constants.theme.polarity or "dark";
+        inherit (look myconfig) polarity cursor fonts;
         base16Scheme = "${pkgs.base16-schemes}/share/themes/${
-          myconfig.constants.theme.base16Theme or "catppuccin-mocha"
+          myconfig.constants.theme.base16Theme
         }.yaml";
         image = pkgs.fetchurl {
-          url = fallbackWp.wallpaperURL;
-          sha256 = fallbackWp.wallpaperSHA256;
-        };
-
-        cursor = {
-          name = "DMZ-Black";
-          size = 24;
-          package = pkgs.vanilla-dmz;
-        };
-        fonts = {
-          emoji = {
-            name = "Noto Color Emoji";
-            package = pkgs.noto-fonts-color-emoji;
-          };
-          monospace = {
-            name = "JetBrainsMono Nerd Font";
-            package = pkgs.nerd-fonts.jetbrains-mono;
-          };
-          sansSerif = {
-            name = "JetBrainsMono Nerd Font Propo";
-            package = pkgs.nerd-fonts.jetbrains-mono;
-          };
-          # JetBrains has no serif face, so serif uses the proportional variant too
-          serif = {
-            name = "JetBrainsMono Nerd Font Propo";
-            package = pkgs.nerd-fonts.jetbrains-mono;
-          };
-          sizes = {
-            terminal = 11;
-            applications = 11;
-          };
+          url = primaryWp.wallpaperURL;
+          sha256 = primaryWp.wallpaperSHA256;
         };
       };
     };
@@ -87,43 +88,38 @@ delib.module {
       sansFont = config.stylix.fonts.sansSerif;
       monoFont = config.stylix.fonts.monospace;
       appFontSize = config.stylix.fonts.sizes.applications;
-      isCatppuccin = myconfig.constants.theme.catppuccin or false;
-      polarity = myconfig.constants.theme.polarity or "dark";
+      isCatppuccin = myconfig.constants.theme.catppuccin;
+      polarity = myconfig.constants.theme.polarity;
+      preferDark = if polarity == "dark" then 1 else 0;
+      gtkThemeName = "catppuccin-${myconfig.constants.theme.catppuccinFlavor}-${
+        myconfig.constants.theme.catppuccinAccent
+      }-standard+rimless,black";
       catppuccinGtkTheme = {
         package = pkgs.catppuccin-gtk.override {
-          accents = [ (myconfig.constants.theme.catppuccinAccent or "mauve") ];
+          accents = [ myconfig.constants.theme.catppuccinAccent ];
           size = "standard";
           tweaks = [
             "rimless"
             "black"
           ];
-          variant = myconfig.constants.theme.catppuccinFlavor or "mocha";
+          variant = myconfig.constants.theme.catppuccinFlavor;
         };
-        name = "catppuccin-${myconfig.constants.theme.catppuccinFlavor or "mocha"}-${
-          myconfig.constants.theme.catppuccinAccent or "mauve"
-        }-standard+rimless,black";
+        name = gtkThemeName;
       };
-      fallbackWp = myconfig.constants.primaryWallpaper;
-
+      primaryWp = myconfig.constants.primaryWallpaper;
     in
     {
-      stylix = lib.mkMerge [
-        {
-          enable = true;
-          base16Scheme = "${pkgs.base16-schemes}/share/themes/${
-            myconfig.constants.theme.base16Theme or "catppuccin-mocha"
-          }.yaml";
-        }
-
-        {
-          image = pkgs.fetchurl {
-            url = fallbackWp.wallpaperURL;
-            sha256 = fallbackWp.wallpaperSHA256;
-          };
-        }
-
-        {
-          targets = {
+      stylix = {
+        enable = true;
+        base16Scheme = "${pkgs.base16-schemes}/share/themes/${
+          myconfig.constants.theme.base16Theme
+        }.yaml";
+        image = pkgs.fetchurl {
+          url = primaryWp.wallpaperURL;
+          sha256 = primaryWp.wallpaperSHA256;
+        };
+        targets = lib.recursiveUpdate
+          {
             neovim.enable = false;
             bat.enable = !isCatppuccin;
             lazygit.enable = !isCatppuccin;
@@ -140,9 +136,9 @@ delib.module {
             swaync.enable = !isCatppuccin;
             tmux.enable = !isCatppuccin;
             gtksourceview.enable = false; # Could cause slow-downs during rebuilds. See "https://github.com/nix-community/stylix/discussions/2232#discussion-9598872"
-          } // cfg.targets;
-        }
-      ];
+          }
+          cfg.targets;
+      } // lib.optionalAttrs (moduleSystem == "home") (look myconfig);
 
       dconf.settings."org/gnome/desktop/interface" = {
         color-scheme = if polarity == "dark" then "prefer-dark" else "prefer-light";
@@ -156,9 +152,7 @@ delib.module {
       fonts.fontconfig.enable = lib.mkIf isCatppuccin true;
 
       home.sessionVariables = lib.mkIf isCatppuccin {
-        GTK_THEME = "catppuccin-${myconfig.constants.theme.catppuccinFlavor or "mocha"}-${
-          myconfig.constants.theme.catppuccinAccent or "mauve"
-        }-standard+rimless,black";
+        GTK_THEME = gtkThemeName;
         XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS";
       };
 
@@ -172,8 +166,8 @@ delib.module {
           };
         })
         {
-          gtk3.extraConfig.gtk-application-prefer-dark-theme = if polarity == "dark" then 1 else 0;
-          gtk4.extraConfig.gtk-application-prefer-dark-theme = if polarity == "dark" then 1 else 0;
+          gtk3.extraConfig.gtk-application-prefer-dark-theme = preferDark;
+          gtk4.extraConfig.gtk-application-prefer-dark-theme = preferDark;
           gtk4.theme = lib.mkIf isCatppuccin catppuccinGtkTheme;
         }
       ];

@@ -8,25 +8,26 @@ delib.module {
   name = "programs.cosmic";
   options = delib.singleEnableOption false;
 
-  nixos.ifEnabled =
+  nixos.ifEnabled = {
+    services = {
+      desktopManager.cosmic = {
+        enable = true;
+        showExcludedPkgsWarning = false;
+      };
+      displayManager.cosmic-greeter.enable = false;
+    };
 
-    {
-      services.desktopManager.cosmic.enable = true;
-
-      environment.cosmic.excludePackages = with pkgs; [
-        cosmic-term
-        cosmic-store
+    environment = {
+      cosmic.excludePackages = with pkgs; [
         cosmic-app-library
         cosmic-edit
         cosmic-files
         cosmic-player
+        cosmic-store
+        cosmic-term
       ];
 
-      services.displayManager.cosmic-greeter.enable = false;
-
-      services.desktopManager.cosmic.showExcludedPkgsWarning = false;
-
-      environment.systemPackages = lib.optionals config.stylix.enable (
+      systemPackages = lib.optionals config.stylix.enable (
         let
           tkFont = family: ''
             (
@@ -51,4 +52,5 @@ delib.module {
         ]
       );
     };
+  };
 }

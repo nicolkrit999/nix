@@ -1,33 +1,44 @@
 # Set defaults applications. If not enabled the system does not know with what to open file/directories/links and similar
 { delib
 , lib
+, moduleSystem
+, options
 , ...
 }:
 delib.module {
   name = "mime";
   options = delib.singleEnableOption true;
 
+  nixos.ifEnabled =
+    { myconfig, ... }:
+    {
+      home-manager.users.${myconfig.constants.user}.xdg.configFile."mimeapps.list".force = true;
+    };
+
   home.ifEnabled =
     { myconfig
     , ...
     }:
     let
-      safeEditor = myconfig.constants.editor or "vscode";
-      safeBrowser = myconfig.constants.browser or "firefox";
-      safeTerm = myconfig.constants.terminal.name or "alacritty";
-      safeFileManager = myconfig.constants.fileManager or "dolphin";
+      editor = myconfig.constants.editor;
+      browser = myconfig.constants.browser;
+      termName = myconfig.constants.terminal.name;
+      fileManager = myconfig.constants.fileManager;
+
+      nvimEntry = {
+        bin = "nvim";
+        icon = "nvim";
+        name = "Neovim (User)";
+      };
+
+      hasKritNvim =
+        moduleSystem == "nixos"
+        && (options ? myconfig.krit.programs.neovim)
+        && (myconfig.krit.programs.neovim.enable or false);
 
       termEditors = {
-        neovim = {
-          bin = "nvim";
-          icon = "nvim";
-          name = "Neovim (User)";
-        };
-        nvim = {
-          bin = "nvim";
-          icon = "nvim";
-          name = "Neovim (User)";
-        };
+        neovim = nvimEntry;
+        nvim = nvimEntry;
         vim = {
           bin = "vim";
           icon = "vim";
@@ -45,8 +56,10 @@ delib.module {
         };
       };
 
-      isTermEditor = builtins.hasAttr safeEditor termEditors;
-      editorConfig = termEditors.${safeEditor};
+      isNvimEditor = editor == "neovim" || editor == "nvim";
+      deferToKritNvim = hasKritNvim && isNvimEditor;
+      isTermEditor = builtins.hasAttr editor termEditors && !deferToKritNvim;
+      editorConfig = termEditors.${editor};
 
       browserDesktopMap = {
         "brave" = "brave-browser.desktop";
@@ -55,14 +68,16 @@ delib.module {
       };
 
       myEditor =
-        if isTermEditor then
-          "user-${safeEditor}.desktop"
-        else if safeEditor == "vscode" || safeEditor == "code" then
+        if deferToKritNvim then
+          "custom-nvim.desktop"
+        else if isTermEditor then
+          "user-${editor}.desktop"
+        else if editor == "vscode" || editor == "code" then
           "code.desktop"
         else
-          "${safeEditor}.desktop";
+          "${editor}.desktop";
 
-      myBrowser = browserDesktopMap.${safeBrowser} or "${safeBrowser}.desktop";
+      myBrowser = browserDesktopMap.${browser} or "${browser}.desktop";
 
       myMailer =
         if (myconfig.programs.thunderbird.enable or false) then
@@ -71,7 +86,7 @@ delib.module {
           myBrowser;
 
       myFileManager =
-        if safeFileManager == "dolphin" then "org.kde.dolphin.desktop" else "${safeFileManager}.desktop";
+        if fileManager == "dolphin" then "org.kde.dolphin.desktop" else "${fileManager}.desktop";
 
     in
     {
@@ -79,12 +94,11 @@ delib.module {
       # 🖥️ CUSTOM DESKTOP ENTRY (Terminal Editors Only)
       # -----------------------------------------------------------------------
       xdg.desktopEntries = lib.mkIf isTermEditor {
-        "user-${safeEditor}" = {
-          name = editorConfig.name;
+        "user-${editor}" = {
+          inherit (editorConfig) name icon;
           genericName = "Text Editor";
-          comment = "Edit text files in ${safeTerm}";
-          exec = "${safeTerm} -e ${editorConfig.bin} %F";
-          icon = editorConfig.icon;
+          comment = "Edit text files in ${termName}";
+          exec = "${termName} -e ${editorConfig.bin} %F";
           terminal = false;
           categories = [
             "Utility"

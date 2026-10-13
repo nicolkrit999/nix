@@ -16,12 +16,15 @@ delib.module {
     , ...
     }:
     let
-      hyprEnabled = myconfig.programs.hyprland.enable or false;
-      kdeEnabled = myconfig.programs.kde.enable or false;
+      hyprEnabled = myconfig.programs.hyprland.enable;
+      kdeEnabled = myconfig.programs.kde.enable;
       useKdePlatformTheme = hyprEnabled || kdeEnabled;
 
-      isDark = (myconfig.constants.theme.polarity or "dark") == "dark";
+      isDark = myconfig.constants.theme.polarity == "dark";
       iconThemeName = if isDark then "Papirus-Dark" else "Papirus-Light";
+      schemeName = if isDark then "BreezeDark" else "BreezeLight";
+      dataHome = "/home/${myconfig.constants.user}/.local/share";
+      breezeSchemes = "${pkgs.kdePackages.breeze}/share/color-schemes";
     in
     {
       home.sessionVariables = {
@@ -43,35 +46,29 @@ delib.module {
           ]
         );
 
-      xdg.configFile."qt6ct/qt6ct.conf".text = ''
-        [Appearance]
-        icon_theme=${iconThemeName}
-        style=Breeze
-        color_scheme_path=/home/${myconfig.constants.user}/.local/share/qt6ct/colors/${
-          if isDark then "BreezeDark" else "BreezeLight"
-        }.colors
-      '';
+      xdg = {
+        configFile."qt6ct/qt6ct.conf".text = ''
+          [Appearance]
+          icon_theme=${iconThemeName}
+          style=Breeze
+          color_scheme_path=${dataHome}/qt6ct/colors/${schemeName}.colors
+        '';
 
-      xdg.configFile."qt5ct/qt5ct.conf".text = ''
-        [Appearance]
-        icon_theme=${iconThemeName}
-        style=Breeze
-        color_scheme_path=/home/${myconfig.constants.user}/.local/share/qt5ct/colors/${
-          if isDark then "BreezeDark" else "BreezeLight"
-        }.colors
-      '';
+        configFile."qt5ct/qt5ct.conf".text = ''
+          [Appearance]
+          icon_theme=${iconThemeName}
+          style=Breeze
+          color_scheme_path=${dataHome}/qt5ct/colors/${schemeName}.colors
+        '';
 
-      xdg.dataFile."color-schemes/BreezeDark.colors".source =
-        "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeDark.colors";
-      xdg.dataFile."color-schemes/BreezeLight.colors".source =
-        "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeLight.colors";
-      xdg.dataFile."qt6ct/colors/BreezeDark.colors".source =
-        "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeDark.colors";
-      xdg.dataFile."qt6ct/colors/BreezeLight.colors".source =
-        "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeLight.colors";
-      xdg.dataFile."qt5ct/colors/BreezeDark.colors".source =
-        "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeDark.colors";
-      xdg.dataFile."qt5ct/colors/BreezeLight.colors".source =
-        "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeLight.colors";
+        dataFile = {
+          "color-schemes/BreezeDark.colors".source = "${breezeSchemes}/BreezeDark.colors";
+          "color-schemes/BreezeLight.colors".source = "${breezeSchemes}/BreezeLight.colors";
+          "qt6ct/colors/BreezeDark.colors".source = "${breezeSchemes}/BreezeDark.colors";
+          "qt6ct/colors/BreezeLight.colors".source = "${breezeSchemes}/BreezeLight.colors";
+          "qt5ct/colors/BreezeDark.colors".source = "${breezeSchemes}/BreezeDark.colors";
+          "qt5ct/colors/BreezeLight.colors".source = "${breezeSchemes}/BreezeLight.colors";
+        };
+      };
     };
 }

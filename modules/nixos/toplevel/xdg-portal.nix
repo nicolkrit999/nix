@@ -1,6 +1,7 @@
 { delib
 , lib
 , pkgs
+, moduleSystem
 , ...
 }:
 let
@@ -32,6 +33,12 @@ let
     EOF
   '';
 
+  # Standalone home builds use stock pkgs: see Documentation/usage/gotchas/xdg-desktop-portal-nixos.md
+  wlrPortal =
+    if moduleSystem == "home"
+    then patchPortalPkg wlrDesktops pkgs pkgs.xdg-desktop-portal-wlr
+    else pkgs.xdg-desktop-portal-wlr;
+
   secretPortal = { "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ]; };
 
   # "none" stops xdp's deprecated UseIn fallback from picking a backend that
@@ -61,8 +68,7 @@ let
     mango = {
       default = [ "gtk" ];
       "org.freedesktop.impl.portal.Secret" = lib.mkForce [ "gnome-keyring" ];
-      # I-15: the mango flake sets these system-side only; mkForce + shared
-      # binding keeps the home-manager portal config identical.
+      # mkForce: see Documentation/usage/gotchas/xdg-desktop-portal-nixos.md
       "org.freedesktop.impl.portal.ScreenCast" = lib.mkForce [ "wlr" ];
       "org.freedesktop.impl.portal.Screenshot" = lib.mkForce [ "wlr" ];
       "org.freedesktop.impl.portal.Inhibit" = lib.mkForce [ "none" ];
@@ -102,7 +108,7 @@ delib.module {
       extraPortals = [
         pkgs.xdg-desktop-portal-gtk
         pkgs.xdg-desktop-portal-gnome
-        pkgs.xdg-desktop-portal-wlr
+        wlrPortal
         pkgs.kdePackages.xdg-desktop-portal-kde
         gnomeKeyringPortal
       ];

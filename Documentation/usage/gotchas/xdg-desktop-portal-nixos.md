@@ -81,33 +81,39 @@ Stock `hyprland.portal` (`UseIn` includes `wlroots`) can leak into mango
 
 ## Implementation
 
-Lives in `xdg-portal.nix` (toplevel module): an overlay patching `UseIn=` on
-`xdg-desktop-portal-wlr`, registered via `nixpkgs.overlays`, then wired into
+Lives in `xdg-portal.nix` (toplevel module): `patchPortalPkg` rewrites `UseIn=`
+on `xdg-desktop-portal-wlr`. On NixOS the patched package is registered via
+`nixpkgs.overlays` (system level, so every consumer of the package sees the one
+patched derivation), then wired into
 both `nixos.always` (`xdg.portal.extraPortals` = gtk, gnome, kde and a
 manifest-only `gnome-keyring.portal`, plus `environment.pathsToLink`) and
 `home.always` (`xdg.portal.extraPortals` = the same plus wlr) with a shared
-`portalConfig`.
+`portalConfig`. The wlr entry of `home.always` is a shared `wlrPortal` binding:
+integrated home-manager (NixOS) uses the outer, overlay-patched `pkgs`;
+standalone `homeConfigurations` (`moduleSystem == "home"`) have only their own
+stock `pkgs`, so there `patchPortalPkg` is applied to the package directly.
 
 ### Do not remove or "simplify" these - each is load-bearing
 
 | Construct | What breaks if removed |
 |---|---|
-| `nixpkgs.overlays` patch (vs. inline `overrideAttrs`) | Inline wrapping creates a duplicate derivation → `user-units` symlink collision (`File exists: xdg-desktop-portal-gtk.service`) when other modules (flatpak, plasma6, hyprland, gnome) reference the same package. |
+| `nixpkgs.overlays` patch on NixOS (vs. inline `overrideAttrs`) | Inline wrapping creates a second, differently-hashed wlr derivation next to the one other modules reference (e.g. the mango flake's system-side `xdg-desktop-portal-wlr`), which collides on the shared portal/`user-units` paths. The overlay keeps a single patched wlr derivation system-wide. |
 | `home.always` block (looks like a redundant duplicate of `nixos.always`) | home-manager's `xdg.portal.enable` writes the per-user config and share; without matching portals/config there, the two levels diverge. |
 | `none` routes for the session-only interfaces in `mango`/`cosmic`/`common` | xdp falls back via `UseIn` to a backend of another desktop (kde, or hyprland under mango). |
 | Re-adding a permissive `UseIn=` patch on gtk/kde/gnome | Reintroduces the bleeding described above (and rebuilds those portals locally from source). `test-secret-service` fails on it. |
 | `environment.pathsToLink = [ "/share/xdg-desktop-portal" ]` | Home-manager's `xdg.portal` module asserts on this when `useUserPackages = true` (active in this repo) - removing it fails evaluation with an explicit error. |
 | Shared `portalConfig` let-binding between both levels | Diverging config between the two levels makes the active routing depend on which copy is read first. |
-| `home.always = { ... }: { ... }` with no `pkgs` destructure | denix's `home.always` doesn't pass `pkgs`; requesting it errors with `function 'always' called without required argument 'pkgs'`. Use the outer-scope (overlay-patched) `pkgs` instead. |
+| `home.always = { ... }: { ... }` with no `pkgs` destructure | denix's `home.always` doesn't pass `pkgs`; requesting it errors with `function 'always' called without required argument 'pkgs'`. Use the outer-scope `pkgs` instead (overlay-patched on NixOS; stock in standalone home builds, which is why `wlrPortal` patches it explicitly there). |
 
 ## Files that interact with this
 
 - `xdg-portal.nix` (toplevel) - primary implementation.
 - `home-manager.nix` (nixos toplevel, `nixos.always` block) - sets
-  `useGlobalPkgs = false` / `useUserPackages = true`. First is why the
-  home-level patch is needed at all (overlay doesn't propagate to home-manager
-  pkgs otherwise); second triggers the `pathsToLink` assertion above. Don't
-  flip either without verifying.
+  `useGlobalPkgs = false` / `useUserPackages = true`. The first means
+  home-manager's own `pkgs` does not carry the system overlay, which is why
+  `home.always` takes the package from the outer module `pkgs` instead; the
+  second triggers the `pathsToLink` assertion above. Don't flip either without
+  verifying.
 - `stylix-nixos.nix` / `qt.nix` - own dialog *rendering* (theme/dark-mode),
   orthogonal to whether the portal loads at all - see
   [stylix-qt-kde-gtk-theming.md](stylix-qt-kde-gtk-theming.md).
@@ -185,8 +191,8 @@ manifest-only `gnome-keyring.portal`, plus `environment.pathsToLink`) and
 3. Patching `UseIn=` to make a backend "loadable" - on xdp 1.22 it does not
    gate loading; it only widens the deprecated fallback (bleeding).
 4. Setting `NIX_XDG_DESKTOP_PORTAL_DIR` - ignored by the binary.
-5. Inline `overrideAttrs` at NixOS level instead of the overlay - causes a
-   `user-units` symlink collision.
+5. Inline `overrideAttrs` at NixOS level instead of the overlay - produces a
+   duplicate wlr derivation that collides with the system-side one.
 
 ## When to update this doc
 

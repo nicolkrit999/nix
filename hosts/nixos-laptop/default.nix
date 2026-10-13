@@ -150,7 +150,6 @@ delib.host {
 
         /*
           # Commented out as it matches the fallbacks
-          useFahrenheit = false;
           nixImpure = false;
         */
 

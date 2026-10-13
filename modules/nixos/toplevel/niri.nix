@@ -14,6 +14,7 @@ delib.module {
       inputs.niri.nixosModules.niri
     ];
     programs.niri.package = pkgs.niri;
+    niri-flake.cache.enable = false;
   };
 
   home.always = { ... }: lib.optionalAttrs (moduleSystem == "home") {
@@ -23,9 +24,5 @@ delib.module {
     programs.niri.package = pkgs.niri;
   };
 
-  nixos.ifEnabled = {
-    programs.niri = {
-      enable = true;
-    };
-  };
+  nixos.ifEnabled.programs.niri.enable = true;
 }

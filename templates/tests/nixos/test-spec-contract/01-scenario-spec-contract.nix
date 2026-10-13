@@ -24,6 +24,7 @@ let
     (src + "/modules/nixos/toplevel/nix-nixos.nix")
     (src + "/modules/common/themes/catppuccin.nix")
     (src + "/modules/nixos/toplevel/common-configuration-nixos.nix")
+    (src + "/modules/nixos/toplevel/user-nixos.nix")
 
     # WM enable options - specs reference myconfig.programs.*.enable on all of these
     (src + "/modules/nixos/toplevel/hyprland.nix")

@@ -14,12 +14,6 @@ delib.module {
       hardware.bluetooth = {
         enable = true;
         powerOnBoot = cfg.autoEnableOnBoot;
-
-        settings = {
-          Policy = {
-            AutoEnable = if cfg.autoEnableOnBoot then "true" else "false";
-          };
-        };
       };
 
       services.blueman.enable = true;

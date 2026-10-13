@@ -20,7 +20,6 @@
   keyboardLayout = "us";
   keyboardVariant = "";
   weather = "Lugano";
-  useFahrenheit = false;
   nixImpure = false;
   timeZone = "Europe/Zurich";
   theme = {

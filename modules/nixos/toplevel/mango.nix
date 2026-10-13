@@ -17,15 +17,11 @@ delib.module {
     ];
   };
 
-  home.always = { ... }: {
-    imports = lib.optionals (moduleSystem == "home") [
+  home.always = { ... }: lib.optionalAttrs (moduleSystem == "home") {
+    imports = [
       inputs.mango.hmModules.mango
     ];
   };
 
-  nixos.ifEnabled = {
-    programs.mango = {
-      enable = true;
-    };
-  };
+  nixos.ifEnabled.programs.mango.enable = true;
 }

@@ -7,8 +7,6 @@ delib.module {
         pkgs.linuxPackages_zen
       else if myconfig.constants.hostname == "nixos-laptop" then
         pkgs.linuxKernel.packages.linux_testing
-      else if myconfig.constants.hostname == "Krits-MacBook-Pro" then
-        pkgs.linuxPackages_latest
       else
         pkgs.linuxPackages;
   };

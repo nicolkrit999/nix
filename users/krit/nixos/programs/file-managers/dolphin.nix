@@ -56,6 +56,8 @@ delib.module {
         kdePackages.kio-fuse
       ];
 
+      xdg.configFile."dolphinrc".force = true;
+
       xdg.configFile."dolphinrc".text = ''
         [General]
         ShowFullPath=true

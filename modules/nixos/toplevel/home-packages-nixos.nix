@@ -11,59 +11,66 @@ delib.module {
   nixos.ifEnabled =
     { myconfig, ... }:
     let
-      # 🔄 TRANSLATION LAYER
-      translatedEditor =
+      user = myconfig.constants.user;
+
+      editorName =
         let
-          e = myconfig.constants.editor or "vscode";
+          e = myconfig.constants.editor;
         in
         if e == "nvim" then "neovim" else e;
 
-      # 🛡️ SAFE FALLBACKS
-      fallbackTerm = pkgs.alacritty;
-      fallbackBrowser = pkgs.brave;
-      fallbackFileManager = pkgs.kdePackages.dolphin;
-      fallbackEditor = pkgs.vscode;
-
-      # 🔍 PACKAGE LOOKUP
       getPkg =
-        name: fallback:
+        name:
         if builtins.hasAttr name pkgs then
           pkgs.${name}
         else if builtins.hasAttr name pkgs.kdePackages then
           pkgs.kdePackages.${name}
         else
-          fallback;
+          null;
 
-      termName = myconfig.constants.terminal.name or "alacritty";
-      myTermPkg = getPkg termName fallbackTerm;
+      programAliases = {
+        "zen-beta" = [ "zen-browser" ];
+      };
 
-      browserName = myconfig.constants.browser or "brave";
-      myBrowserPkg = getPkg browserName fallbackBrowser;
+      userPackageNames = map lib.getName (
+        lib.attrByPath [ "home-manager" "users" user "home" "packages" ] [ ] config
+      );
 
-      fileManagerName = myconfig.constants.fileManager or "dolphin";
-      myFileManagerPkg = getPkg fileManagerName fallbackFileManager;
+      isProgramEnabled =
+        name:
+        lib.any
+          (n:
+          lib.attrByPath [ "programs" n "enable" ] false config
+          || lib.attrByPath [ "home-manager" "users" user "programs" n "enable" ] false config)
+          ([ name ] ++ (programAliases.${name} or [ ]));
 
-      editorName = translatedEditor;
-      myEditorPkg = getPkg editorName fallbackEditor;
+      isProvided = name: isProgramEnabled name || builtins.elem name userPackageNames;
+
+      roles = {
+        terminal = myconfig.constants.terminal.name;
+        browser = myconfig.constants.browser;
+        fileManager = myconfig.constants.fileManager;
+        editor = editorName;
+      };
     in
     {
-
       environment.systemPackages =
-        let
-          isProgramEnabled = name:
-            lib.attrByPath [ "programs" name "enable" ] false config
-            || lib.attrByPath [ "home-manager" "users" myconfig.constants.user "programs" name "enable" ] false config;
-        in
-        (lib.optional (!isProgramEnabled termName) myTermPkg)
-        ++ (lib.optional (!isProgramEnabled browserName) myBrowserPkg)
-        ++ (lib.optional (!isProgramEnabled fileManagerName) myFileManagerPkg)
-        ++ (lib.optional (!isProgramEnabled editorName) myEditorPkg)
-        ++ (with pkgs; [
-          cliphist
-        ])
-        ++ (with pkgs.kdePackages; [
-          gwenview
-        ]);
-    };
+        lib.concatMap
+          (name:
+            let
+              pkg = getPkg name;
+            in
+            lib.optional (pkg != null && !isProgramEnabled name) pkg)
+          (lib.attrValues roles)
+        ++ [
+          pkgs.cliphist
+          pkgs.kdePackages.gwenview
+        ];
 
+      warnings = lib.concatLists (lib.mapAttrsToList
+        (role: name:
+          lib.optional (getPkg name == null && !isProvided name)
+            "home-packages: constants ${role} = \"${name}\" is neither a package in pkgs/pkgs.kdePackages nor provided by an enabled module; nothing is installed for it.")
+        roles);
+    };
 }

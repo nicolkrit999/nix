@@ -13,17 +13,15 @@ delib.module {
     security.wrappers.kwin_wayland.capabilities = lib.mkForce "";
 
     environment.plasma6.excludePackages = with pkgs.kdePackages; [
-      oxygen
+      discover
+      elisa
       khelpcenter
       konsole
       okular
-      elisa
-      discover
+      oxygen
     ];
 
-    # kwallet, kwallet-pam and kwalletmanager are hard requirements of
-    # plasma6 and cannot be excluded. The KWallet login pieces are masked
-    # below instead.
+    # kwallet pieces cannot be excluded from plasma6: see Documentation/usage/gotchas/secret-service-single-provider.md
     systemd.user.services.plasma-kwallet-pam.enable = false;
 
     # kwalletd6 stays on as a thin frontend that wraps the Secret Service

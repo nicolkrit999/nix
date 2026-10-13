@@ -31,7 +31,10 @@ file via `XDG_DATA_DIRS`. Safe on any DE/WM: activation wraps
 Writing to system config level is required because `plasma-manager` (with
 `overrideConfig = lib.mkForce true` in `kde-main.nix`) wipes
 `~/.config/kdeglobals` on every rebuild - any `home.activation` script writing
-there directly gets clobbered.
+there directly gets clobbered. `home-nixos.nix` no longer deletes
+`kdeglobals`/`dolphinrc` itself (removed 2026-10-13; dolphinrc is now
+`force = true` in `dolphin.nix`); if a switch aborts with "would be clobbered"
+on kdeglobals, see the memory note `project_removed_kde_config_reset`.
 
 ## GTK3 apps / GTK3 portal fallback showing light theme
 
@@ -70,6 +73,17 @@ problem - see
 If `busctl --user introspect org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop | grep FileChooser`
 returns nothing, the bug is backend availability, not theming.
 
+## `base16Scheme` uses IFD (accepted)
+
+`stylix-nixos.nix` points `stylix.base16Scheme` at
+`"${pkgs.base16-schemes}/share/themes/<name>.yaml"`, a path inside a built
+derivation, so evaluation does import-from-derivation. This is cached after the
+first build and accepted on purpose.
+
+Do not "fix" it by switching to stylix's own `tinted-schemes` input: that source
+shifts the catppuccin `base01`-`base04` colors by one surface step compared to
+`pkgs.base16-schemes`, so the swap is not neutral and visibly changes the theme.
+
 ## File map
 
 | File | Role |
@@ -77,6 +91,7 @@ returns nothing, the bug is backend availability, not theming.
 | `modules/nixos/toplevel/stylix-nixos.nix` | Stylix target flags + unconditional gtk3/gtk4 dark extraConfig |
 | `modules/nixos/toplevel/qt.nix` | QPA env var, qt5ct/qt6ct config, plasma-integration conditional |
 | `modules/nixos/programs/de-wm/kde/kde-main.nix` | `overrideConfig = lib.mkForce true` - wipes `~/.config/kdeglobals` every rebuild |
+| `modules/nixos/toplevel/home-nixos.nix` | `force = true` on the generated gtk-3.0/gtk-4.0 settings.ini + gtk.css and `.gtkrc-2.0` (replaces the old per-switch `rm`); `mime.nix` does the same for mimeapps.list |
 | `xdg-portal.nix` (toplevel) | Backend availability - see the portal doc |
 
 ## Checklist when this breaks again
@@ -84,7 +99,7 @@ returns nothing, the bug is backend availability, not theming.
 1. Does kdeglobals have a `[Colors:View]` section?
 2. Is `stylix.targets.kde` enabled?
 3. Is `stylix.targets.qt` still `false`? If someone flipped it `true`, that's the Plasma crash.
-4. Did plasma-manager wipe user kdeglobals since the last rebuild?
+4. Did plasma-manager wipe user kdeglobals since the last rebuild? (`home-nixos.nix` no longer touches it; a switch abort on it means re-adding a `force`/rm, see the memory note above.)
 5. Is `gtk3.extraConfig.gtk-application-prefer-dark-theme` still in the unconditional gtk block?
 6. Does `~/.config/gtk-3.0/settings.ini` actually have `gtk-application-prefer-dark-theme=1`?
 7. Is the FileChooser interface exposed at all (`busctl` check above)? If not, it's backend-availability - see the portal doc, fixing theming won't help.

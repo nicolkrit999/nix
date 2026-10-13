@@ -8,7 +8,7 @@ delib.module {
       gitUserName = strOption "";
       gitUserEmail = strOption "";
 
-      shell = strOption "bash";
+      shell = enumOption [ "bash" "fish" "zsh" ] "bash";
       editor = strOption "nano";
 
       terminal = {

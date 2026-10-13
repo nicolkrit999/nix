@@ -28,7 +28,7 @@ delib.module {
         && cfg.enableOnHyprland
         && (parent.hyprland.enable or false);
 
-      # caelestia-shell has no aarch64-linux outputs; guard the attr access to avoid eval failure.
+      # The flake input is only evaluated on x86_64; other arches get an empty stand-in.
       caelestiaPkg =
         if pkgs.stdenv.hostPlatform.isx86_64
         then inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli
@@ -181,6 +181,8 @@ delib.module {
         && (parent.hyprland.enable or false);
     in
     {
+      programs.gpu-screen-recorder.enable = lib.mkIf activeOnHyprland true;
+
       myconfig.programs.hyprland.execOnce = lib.mkIf activeOnHyprland (lib.mkAfter [
         "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
         "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"

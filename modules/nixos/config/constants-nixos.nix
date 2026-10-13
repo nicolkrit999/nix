@@ -1,6 +1,6 @@
 { delib, lib, ... }:
 let
-  # I-19: single source of the fallback wallpaper, reused by the wallpapers default and every consumer
+  # single source of the fallback wallpaper, reused by the wallpapers default and every consumer
   fallbackWallpaper = {
     url = "https://raw.githubusercontent.com/nicolkrit999/wallpapers-repo/main/wallpapers/Pictures/wallpapers/various/other-user-github-repos/zhichaoh-catppuccin-wallpapers-main/os/nix-black-4k.png";
     sha256 = "144mz3nf6mwq7pmbmd3s9xq7rx2sildngpxxj5vhwz76l1w5h5hx";
@@ -45,7 +45,7 @@ delib.module {
         listOfOption
           (submodule {
             options = {
-              targetMonitor = strOption "*"; # Match any unassigned monitors
+              targetMonitor = strOption "*";
               wallpaperURL = strOption "";
               wallpaperSHA256 = strOption "";
               gifURL = strOption "";
@@ -93,7 +93,6 @@ delib.module {
       keyboardVariant = strOption "";
 
       weather = strOption "London";
-      useFahrenheit = boolOption false;
       timeZone = strOption "Etc/UTC";
 
       emergencyAccess = boolOption false;

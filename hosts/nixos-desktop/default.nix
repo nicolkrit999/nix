@@ -187,7 +187,6 @@ delib.host {
         keyboardVariant = "alt-intl,,,";
 
         weather = "Lugano";
-        useFahrenheit = false;
         nixImpure = false;
 
 

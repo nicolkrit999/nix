@@ -1,4 +1,4 @@
-{ delib, inputs, pkgs, moduleSystem, ... }:
+{ delib, inputs, lib, pkgs, moduleSystem, ... }:
 let
   extraSubstituters = [
     "https://hyprland.cachix.org"
@@ -21,22 +21,16 @@ delib.module {
   name = "nix";
 
   home.always =
-    if moduleSystem == "home" then
-      {
-        imports = [
-          inputs.nix-index-database.homeModules.nix-index
-        ];
-
-        nix.package = pkgs.nix;
-        nix.settings = {
-          extra-substituters = extraSubstituters;
-          extra-trusted-public-keys = extraTrustedPublicKeys;
-        };
-      }
-    else {
+    {
       imports = [
         inputs.nix-index-database.homeModules.nix-index
       ];
+    } // lib.optionalAttrs (moduleSystem == "home") {
+      nix.package = pkgs.nix;
+      nix.settings = {
+        extra-substituters = extraSubstituters;
+        extra-trusted-public-keys = extraTrustedPublicKeys;
+      };
     };
 
   nixos.always = {
@@ -44,22 +38,28 @@ delib.module {
       inputs.nix-index-database.nixosModules.nix-index
     ];
 
-    nixpkgs.overlays = [
-      inputs.nix-index-database.overlays.nix-index
+    home-manager.sharedModules = [
+      { programs.nix-index.enable = false; }
     ];
 
-    nix.nixPath = [ "nixpkgs=flake:nixpkgs" ];
+    nix = {
+      nixPath = [ "nixpkgs=flake:nixpkgs" ];
 
-    nix.settings = {
-      experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
-      auto-optimise-store = true;
+      settings = {
+        experimental-features = [
+          "nix-command"
+          "flakes"
+        ];
+        auto-optimise-store = true;
+        # @wheel stays trusted: swsrc/tswsrc use `--option substitute false` without sudo
+        trusted-users = [ "@wheel" ];
 
-      extra-substituters = extraSubstituters;
-      extra-trusted-public-keys = extraTrustedPublicKeys;
+        extra-substituters = extraSubstituters;
+        extra-trusted-public-keys = extraTrustedPublicKeys;
+      };
+
+      # pin: mirrors darwin; nh owns garbage collection
+      gc.automatic = false;
     };
-    nix.gc.automatic = false;
   };
 }
