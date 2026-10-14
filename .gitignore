@@ -23,3 +23,6 @@ result-*
 # still writes it; one stray .pyc was once staged by accident)
 **/__pycache__/
 *.py[cod]
+
+# tgt (Telegram TUI) writes its log to ./.data/logs in the directory it is launched from
+/.data/
