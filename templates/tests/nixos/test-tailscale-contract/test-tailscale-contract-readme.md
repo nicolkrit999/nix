@@ -1,6 +1,6 @@
 # test-tailscale-contract
 
-Verifies the tailscale wiring on the real hosts: operator flags, firewall, login through the upstream `tailscaled-autoconnect` unit (`authKeyFile` set) with the removed repo unit `tailscale-autoconnect` staying gone, forbidden up/set flags, the school exit-node-off ordering and the secure-travel privacy contract.
+Verifies the tailscale wiring on the real hosts: operator flags, firewall, login through the upstream `tailscaled-autoconnect` unit (`authKeyFile` set) with the removed repo unit `tailscale-autoconnect` staying gone, forbidden up/set flags, the school exit-node-off ordering and the secure-travel contract (tailscale is the VPN, outbound only).
 
 ## Run
 
@@ -26,7 +26,7 @@ Design notes:
 - Login is upstream nixpkgs `tailscaled-autoconnect`, which exists only when `services.tailscale.authKeyFile` is set (both hosts, via `templates/krit/sops/service-wiring.nix`). The repo unit `tailscale-autoconnect` was removed (audit B3-01): its `tailscale up --timeout=20s` was refused on every boot because `up` with any flag must restate every non-default pref.
 - `--accept-dns=false` (in any Go bool spelling, `-`/`--`) must never appear in `extraUpFlags`/`extraSetFlags` on the base host or the school spec: tailnet DNS outages are fixed in the tailnet console, not by turning MagicDNS off. `--accept-routes` (enabled) must not appear either (B3-03): the NAS advertises the home LAN subnet, so it would route the desktop's own LAN through the NAS on the next re-login.
 - School exit-node-off is `Type=exec` (never a blocking oneshot on multi-user.target) and retries `timeout N tailscale set --exit-node=` in a bounded loop (a prefs edit that works while logged out or offline). Every unit it orders after or wants must exist in the spec, and its `path` uses `services.tailscale.package`.
-- secure-travel really turns tailscale off because the NAS consumers are disabled there.
+- secure-travel keeps tailscale ON (it is the VPN; an exit node is picked by hand and a user timer warns while none is active), with `openFirewall = false` and no trusted `tailscale0`: outbound only. The upstream `tailscaled-autoconnect` is allowed there; the removed repo unit stays gone. The NAS consumers are still disabled in the spec.
 - Only real hosts are evaluated, so there is no synthetic host; host choices (whether a host enables tailscale) are not asserted.
 
 ## Checks
@@ -63,7 +63,8 @@ Design notes:
 ### secure-travel specialisation
 | Check | Expected |
 |-------|----------|
-| `secure-travel-myconfig-tailscale-off` | myconfig wrapper off |
-| `secure-travel-nixos-tailscale-off` | `services.tailscale.enable == false` (NAS consumers disabled in the spec) |
-| `secure-travel-no-autoconnect` | neither `tailscale-autoconnect` nor `tailscaled-autoconnect` |
+| `secure-travel-tailscale-on` | myconfig wrapper on and `services.tailscale.enable == true` |
+| `secure-travel-autoconnect-allowed` | upstream `tailscaled-autoconnect` present, repo `tailscale-autoconnect` absent |
+| `secure-travel-no-open-firewall` | `services.tailscale.openFirewall == false` and UDP 41641 not in `allowedUDPPorts` |
+| `secure-travel-control-base-opens-firewall` | base host has `openFirewall == true` (control for the check above) |
 | `secure-travel-tailscale0-untrusted` | `tailscale0` not in trusted interfaces |

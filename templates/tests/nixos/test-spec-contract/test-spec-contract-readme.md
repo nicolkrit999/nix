@@ -2,7 +2,7 @@
 
 Verifies that every specialization's `lib.mkForce` overrides actually land in the evaluated config.
 
-The fake host enables only the features that specializations override. Every check reads back the option value (or config artifact) from the specialization's configuration and asserts it matches the forced value. Nearly every check also has a built-in control: it FAILs if the base host (no specialization) already had the expected value, so an override that changes nothing can no longer pass (the `.xinitrc` content check is the exception). Whether the host itself enables a program is never asserted.
+The fake host enables only the features that specializations override. `shared/nixos-extra-x86_64/guest-base.nix` imports the real impermanence and sops-nix modules and gives the base the values the guest specialisation overrides (ssh, avahi, docker, podman, `allowed-users`, PAT secret mode, a persisted linger dir). Every check reads back the option value (or config artifact) from the specialization's configuration and asserts it matches the forced value. Nearly every check also has a built-in control: it FAILs if the base host (no specialization) already had the expected value, so an override that changes nothing can no longer pass (the `.xinitrc` content check is the exception). Whether the host itself enables a program is never asserted.
 
 ## Run
 
@@ -44,6 +44,21 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | `headroom-proxy` user unit | absent (base present) |
 | `krit.programs.claude-code-wrappers.enable` | `false` |
 | autostart `.desktop` | Exec ends in `/bin/guest-welcome`, `OnlyShowIn=XFCE;`, absent in base |
+| `myconfig.services.tailscale.enable`, `services.tailscale.enable` | `false` |
+| `myconfig.services.localsend.enable`, `services.openssh.enable`, `services.avahi.enable` | `false` |
+| `virtualisation.docker.enable`, `virtualisation.podman.enable` | `false` |
+| `nix.settings.allowed-users` | `[ "krit" ]` (base `[ "@wheel" ]`) |
+| sops `github_fg_pat_token_nix` mode | `"0400"` (base `"0444"`) |
+| `environment.persistence."/persist".directories` | no `/var/lib/systemd/linger`, other entries kept (base has it) |
+| `users.users.guest.extraGroups` | `audio`, `video` only |
+| zenity | not in `environment.systemPackages` (the `guest-welcome` autostart still exists) |
+
+### deep-focus
+| Check | Expected |
+|-------|----------|
+| `services.swaync.enable` | `true` (twin whose base forces it off) |
+| hyprland / niri / mango `execOnce` | contain `swaync-client -dn` (absent in base) |
+| mango `execOnce` | no `zapzap`/`youtube` (base has both), non-empty |
 
 ### safe-mode
 | Check | Expected |
@@ -53,6 +68,8 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | `constants.terminal.name` | `"xterm"` |
 | `hyprland.enable` | `false` |
 | `fastfetch.enable` | `false` |
+| `services.xserver.enable` | `true` (base `false`) |
+| tag | `safemode-tty` in `system.nixos.tags` (absent in base) |
 | `icewm.enable` | `true` |
 | `startx.enable` | `true` |
 | `.xinitrc` text | contains `icewm-session` |
@@ -61,9 +78,13 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 ### secure-travel
 | Check | Expected |
 |-------|----------|
-| `bluetooth.enable` | `false` |
+| `hardware.bluetooth.powerOnBoot` | `false` (base `true`) |
+| bluetooth + blueman | still enabled (control: guest has bluetooth off) |
 | `hyprland.enable` | `false` |
-| `services.tailscale.enable` | `false` |
+| tailscale | `myconfig` and `services.tailscale` on (control: guest has it off) |
+| `services.tailscale.openFirewall` | `false` (base `true`) |
+| `networking.firewall.trustedInterfaces` | `[ "lo" ]` (loopback only, no `tailscale0`; base differs) |
+| `services.localsend.enable` | `false` |
 | `services.coffee.enable` | `false` |
 | `programs.nix-ld.enable` | `false` |
 | `programs.claude-code.enable` | `false` |
@@ -74,7 +95,8 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | `headroom-proxy` user unit | absent (base present) |
 | `krit.programs.claude-code-wrappers.enable` | `false` |
 | `programs.gnome.enable` | `true` |
-| NM `dispatcherScripts` | non-empty (base empty) |
+| user service + timer `secure-travel-exitnode-warn` | exist, `OnActiveSec=45s`, `OnUnitActiveSec=2min` (absent in base) |
+| NM `dispatcherScripts` | empty (control: NetworkManager settings of the spec are evaluated) |
 
 ### entertainment
 | Check | Expected |

@@ -51,18 +51,6 @@ for host in nixos-desktop nixos-laptop; do
       FAILURES+=("$host: $label|$result")
     fi
   done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
-
-  label="secure-travel: killswitch script passes bash -n"
-  printf "  %-70s " "$label"
-  script=$(nix eval --impure --raw --file "$SCENARIO" --argstr host "$host" killswitch 2>/dev/null)
-  if [[ -n "$script" ]] && out=$(bash -n <<<"$script" 2>&1); then
-    printf "${GREEN}✓ ok${NC}\n"
-    ((PASS++)) || true
-  else
-    printf "${RED}✗ fail${NC}\n"
-    ((FAIL++)) || true
-    FAILURES+=("$host: $label|${out:-empty script text}")
-  fi
 done
 
 echo ""

@@ -29,9 +29,37 @@ let
   gid = g.users.groups.guest.gid;
   fsOpts = g.fileSystems."/home/guest".options;
   optVal = key: lib.findFirst (o: lib.hasPrefix "${key}=" o) null fsOpts;
-  fw = g.networking.firewall.extraCommands;
-  fwLines = lib.splitString "\n" fw;
-  uidLines = builtins.filter (l: lib.hasInfix "--uid-owner ${toString uid}" l) fwLines;
+  user = base.myconfig.constants.user;
+  lingerDir = "/var/lib/systemd/linger";
+  excludedDirs = [ lingerDir "/var/lib/containers" "/var/lib/docker" "/var/lib/flatpak" "/var/lib/snapper" "/var/lib/tailscale" ];
+  offUnits = [ "flatpak-managed-install" "nh-clean" "snapperd" "snapper-timeline" "snapper-cleanup" "cleanup-trash" ];
+  persistDirs = c: map (d: d.directory) c.environment.persistence."/persist".directories;
+  lingerTwin = sys.extendModules { modules = [{ environment.persistence."/persist".directories = excludedDirs; }]; };
+  lt = lingerTwin.config;
+  ltg = lt.specialisation.guest.configuration;
+  patMode = c: c.sops.secrets.github_fg_pat_token_nix.mode;
+  kritOffPaths = [
+    [ "programs" "claude-code-wrappers" ]
+    [ "services" "cloud" "googleDrive" ]
+    [ "services" "cloud" "onedrivePersonal" ]
+    [ "services" "cloud" "pcloud" ]
+    [ "services" "cloud" "protonDrive" ]
+    [ "services" "nas" "desktop-borg-backup" ]
+    [ "services" "nas" "laptop-borg-backup" ]
+    [ "services" "nas" "opencloud-mount" ]
+    [ "services" "nas" "smb" ]
+    [ "services" "nas" "sshfs" ]
+    [ "services" "windows-mount" ]
+  ];
+  kritEnable = c: p: lib.attrByPath ([ "myconfig" "krit" ] ++ p ++ [ "enable" ]) false c;
+  exposure = [
+    (c: c.myconfig.services.tailscale.enable)
+    (c: c.myconfig.services.localsend.enable)
+    (c: c.services.openssh.enable)
+    (c: c.services.avahi.enable)
+    (c: c.virtualisation.docker.enable)
+    (c: c.virtualisation.podman.enable)
+  ];
   tmpRule = lib.findFirst (r: lib.hasInfix "AccountsService/users/guest" r && lib.hasPrefix "f " r) "" g.systemd.tmpfiles.rules;
 
   s = spec "secure-travel";
@@ -70,6 +98,14 @@ let
   hasTor = builtins.elem "tor-browser" (pkgNames s.environment.systemPackages);
   isX86 = s.nixpkgs.hostPlatform.isx86_64 or (builtins.match "x86_64.*" s.nixpkgs.hostPlatform.system != null);
 
+  stUser = s.home-manager.users.${user}.systemd.user;
+  stWarnExec = lib.concatStringsSep " " (lib.toList (stUser.services.secure-travel-exitnode-warn.Service.ExecStart or ""));
+  isProton = n: lib.hasInfix "proton" (lib.toLower n) && (lib.hasInfix "vpn" (lib.toLower n));
+  protonPkgs = builtins.filter isProton (pkgNames s.environment.systemPackages ++ pkgNames s.home-manager.users.${user}.home.packages);
+  autostartNames = c: builtins.filter (lib.hasPrefix "xdg/autostart/") (builtins.attrNames c.environment.etc);
+  protonAutostart = builtins.filter isProton (autostartNames s)
+    ++ builtins.filter (n: lib.hasPrefix "autostart/" n && isProton n) (builtins.attrNames (s.home-manager.users.${user}.xdg.configFile or { }));
+
   ent = spec "entertainment";
 
   specChecks = lib.listToAttrs (map
@@ -89,10 +125,35 @@ let
     "guest: /home/guest is tmpfs and nosuid,nodev" =
       yes "fsType/nosuid/nodev" (g.fileSystems."/home/guest".fsType == "tmpfs" && builtins.elem "nosuid" fsOpts && builtins.elem "nodev" fsOpts);
     "guest: systemd slice user-<uid> declared" = yes "slice user-${toString uid} missing" (g.systemd.slices ? "user-${toString uid}");
-    "guest: firewall blocks guest uid to tailscale0" =
-      yes "no REJECT for tailscale0" (builtins.any (l: lib.hasInfix "-o tailscale0" l && lib.hasInfix "-j REJECT" l) uidLines);
-    "guest: firewall blocks guest uid to 100.64.0.0/10" =
-      yes "no REJECT for 100.64.0.0/10" (builtins.any (l: lib.hasInfix "-d 100.64.0.0/10" l && lib.hasInfix "-j REJECT" l) uidLines);
+    "guest: myconfig.services.tailscale disabled" = eq "myconfig tailscale" g.myconfig.services.tailscale.enable false;
+    "guest: services.tailscale disabled" = eq "services.tailscale" g.services.tailscale.enable false;
+    "guest: myconfig.services.localsend disabled" = eq "localsend" g.myconfig.services.localsend.enable false;
+    "guest: openssh disabled" = eq "openssh" g.services.openssh.enable false;
+    "guest: avahi disabled" = eq "avahi" g.services.avahi.enable false;
+    "guest: docker disabled" = eq "docker" g.virtualisation.docker.enable false;
+    "guest: podman disabled" = eq "podman" g.virtualisation.podman.enable false;
+    "guest: nix allowed-users is only the main user" = eq "allowed-users" g.nix.settings.allowed-users [ user ];
+    "guest: github PAT secret mode is 0400" = eq "PAT mode" (patMode g) "0400";
+    "guest: /persist does not persist linger, docker, containers, tailscale, flatpak, snapper" =
+      yes "guest persists ${toString (lib.filter (d: builtins.elem d (persistDirs g) || builtins.elem d (persistDirs ltg)) excludedDirs)}" (lib.all (d: !(builtins.elem d (persistDirs g)) && !(builtins.elem d (persistDirs ltg))) excludedDirs);
+    "guest: flatpak install, nh clean, snapper and autotrash units are gone" =
+      yes "guest still has units ${toString (lib.filter (n: g.systemd.services ? ${n} || g.systemd.timers ? ${n}) offUnits)}" (lib.all (n: !(g.systemd.services ? ${n}) && !(g.systemd.timers ? ${n})) offUnits);
+    "guest: openlogi and thunderbird modules are off" =
+      eq "openlogi/thunderbird" [ g.myconfig.programs.openlogi.enable g.myconfig.programs.thunderbird.enable ] [ false false ];
+    "control: base has the nh clean and snapper units" =
+      yes "base lacks the units, guest absence check is vacuous" (base.systemd.services ? nh-clean && base.systemd.services ? snapperd);
+    "guest: /persist keeps the other persisted directories" =
+      yes "guest persist list ${builtins.toJSON (persistDirs ltg)} lost entries of ${builtins.toJSON (persistDirs lt)}"
+        (lib.subtractLists excludedDirs (persistDirs lt) == persistDirs ltg && persistDirs ltg != [ ]);
+    "guest: extraGroups are audio and video only" = eq "extraGroups" (lib.sort lib.lessThan g.users.users.guest.extraGroups) [ "audio" "video" ];
+    "guest: no zenity in systemPackages" = yes "zenity installed system-wide" (!(builtins.elem "zenity" (pkgNames g.environment.systemPackages)));
+    "guest: welcome autostart still exists" = yes "guest-welcome autostart missing" (g.environment.etc ? "xdg/autostart/guest-welcome.desktop");
+    "control: base exposes at least one service the guest turns off" = yes "base enables none of tailscale/localsend/ssh/avahi/docker/podman" (builtins.any (f: f base) exposure);
+    "control: twin of the host persisting the linger dir has it in its base" = yes "twin does not persist ${lingerDir}, the guest filter is vacuous" (builtins.elem lingerDir (persistDirs lt));
+    "control: base PAT secret mode differs from the guest" = yes "base PAT mode already ${patMode base}" (patMode base != patMode g);
+    "control: base allowed-users differs from the guest" = yes "base allowed-users already ${builtins.toJSON base.nix.settings.allowed-users}" (base.nix.settings.allowed-users != g.nix.settings.allowed-users);
+    "control: base keeps networkmanager or another group the guest drops" = yes "base user groups already minimal" (builtins.elem "networkmanager" base.users.users.${user}.extraGroups);
+    "control: base enables a krit nas/cloud/mount module" = yes "base enables none, the guest krit-off checks are vacuous" (builtins.any (p: kritEnable base p) kritOffPaths);
     "guest: autoLogin enabled for guest" = eq "autoLogin" [ g.services.displayManager.autoLogin.enable g.services.displayManager.autoLogin.user ] [ true "guest" ];
     "guest: autoLogin user exists in users.users" = yes "autoLogin user missing" (g.users.users ? ${g.services.displayManager.autoLogin.user});
     "guest: defaultSession == xfce" = eq "defaultSession" g.services.displayManager.defaultSession "xfce";
@@ -109,7 +170,10 @@ let
     "control: base config has a DE enabled" = yes "no DE in base" (builtins.any (d: base.myconfig.programs.${d}.enable) des);
   } // lib.listToAttrs (map
     (d: lib.nameValuePair "guest: myconfig.programs.${d} disabled" (eq d g.myconfig.programs.${d}.enable false))
-    des);
+    des)
+  // lib.listToAttrs (map
+    (p: lib.nameValuePair "guest: myconfig.krit.${lib.concatStringsSep "." p} disabled" (eq (lib.concatStringsSep "." p) (kritEnable g p) false))
+    kritOffPaths);
 
   stChecks = sysctlChecks // {
     "secure-travel: root hashedPassword == !" = eq "root pw" s.users.users.root.hashedPassword "!";
@@ -122,9 +186,27 @@ let
     "secure-travel: NM ethernet macAddress random" = eq "eth mac" s.networking.networkmanager.ethernet.macAddress "random";
     "secure-travel: resolved DNSOverTLS opportunistic" = eq "DoT" s.services.resolved.settings.Resolve.DNSOverTLS "opportunistic";
     "secure-travel: tor-browser installed (x86_64)" = if isX86 then yes "tor-browser missing" hasTor else "ok";
-    "secure-travel: one NM dispatcher script (killswitch)" = eq "dispatcher count" (builtins.length s.networking.networkmanager.dispatcherScripts) 1;
-    "secure-travel: myconfig.services.tailscale.enable == false" = eq "myconfig tailscale" s.myconfig.services.tailscale.enable false;
-    "secure-travel: services.tailscale.enable == false" = eq "services.tailscale.enable" s.services.tailscale.enable false;
+    "secure-travel: no NM dispatcher scripts" = eq "dispatcher count" (builtins.length s.networking.networkmanager.dispatcherScripts) 0;
+    "secure-travel: myconfig.services.tailscale.enable == true" = eq "myconfig tailscale" s.myconfig.services.tailscale.enable true;
+    "secure-travel: services.tailscale.enable == true" = eq "services.tailscale.enable" s.services.tailscale.enable true;
+    "secure-travel: tailscale openFirewall == false" = eq "openFirewall" s.services.tailscale.openFirewall false;
+    "secure-travel: firewall trustedInterfaces == [ lo ]" = eq "trustedInterfaces" s.networking.firewall.trustedInterfaces [ "lo" ];
+    "secure-travel: bluetooth stays enabled" = eq "bluetooth" [ s.hardware.bluetooth.enable s.services.blueman.enable ] [ true true ];
+    "secure-travel: bluetooth radio off at boot" = eq "powerOnBoot" s.hardware.bluetooth.powerOnBoot false;
+    "secure-travel: exit node warn user service exists" = yes "service secure-travel-exitnode-warn missing" (stUser.services ? secure-travel-exitnode-warn);
+    "secure-travel: exit node warn service runs the warn script" =
+      yes "ExecStart=${stWarnExec}" (lib.hasInfix "secure-travel-exitnode-warn" stWarnExec);
+    "secure-travel: exit node warn timer is 45s then every 2min" =
+      eq "timer" (stUser.timers.secure-travel-exitnode-warn.Timer or { }) { OnActiveSec = "45s"; OnUnitActiveSec = "2min"; };
+    "secure-travel: exit node warn timer starts with the graphical session" =
+      eq "WantedBy" (stUser.timers.secure-travel-exitnode-warn.Install.WantedBy or [ ]) [ "graphical-session.target" ];
+    "secure-travel: no proton vpn package" = yes "proton vpn package present: ${builtins.toJSON protonPkgs}" (protonPkgs == [ ]);
+    "secure-travel: no protonvpn autostart entry" = yes "autostart entries: ${builtins.toJSON protonAutostart}" (protonAutostart == [ ]);
+    "control: proton vpn detector matches vpn names only" = yes "detector wrong" (isProton "proton-vpn-gtk" && isProton "protonvpn.desktop" && isProton "ProtonVPN" && !(isProton "proton-drive") && !(isProton "tor-browser"));
+    "control: guest spec autostart detector sees entries" = yes "etc autostart detector finds nothing in guest" (autostartNames g != [ ]);
+    "control: base secure-travel has no exit node warn unit" = yes "base already has the warn unit" (!(base.home-manager.users.${user}.systemd.user.services ? secure-travel-exitnode-warn));
+    "control: base trusts tailscale0 (secure-travel [ lo ] is an override)" = yes "base trustedInterfaces ${builtins.toJSON base.networking.firewall.trustedInterfaces}" (builtins.elem "tailscale0" base.networking.firewall.trustedInterfaces);
+    "control: base opens the tailscale firewall (secure-travel false is an override)" = eq "base openFirewall" base.services.tailscale.openFirewall true;
     "secure-travel: tailscale0 not a trusted interface" =
       yes "tailscale0 trusted" (!(builtins.elem "tailscale0" s.networking.firewall.trustedInterfaces));
     "secure-travel: gnome is the only DE" =
@@ -145,7 +227,6 @@ let
     "localsend: enabled module installs the localsend package system-wide" = yes "programs.localsend.package not in environment.systemPackages" (lsPkgIn lsOn);
     "control: localsend disabled leaves 53317 closed and the program off" = yes "localsend wiring present with the module off" (!(lsWired lsOff) && !(builtins.elem lsPort lsOff.networking.firewall.allowedTCPPorts) && !(builtins.elem lsPort lsOff.networking.firewall.allowedUDPPorts));
     "secure-travel: tags contain secure-travel" = yes "tags" (builtins.elem "secure-travel" s.system.nixos.tags);
-    "control: base tailscale enabled (secure-travel override is not vacuous)" = eq "base tailscale" base.myconfig.services.tailscale.enable true;
     "control: base root account differs from secure-travel" = yes "base already locked" (base.users.users.root.hashedPassword != "!" || base.users.users.root.hashedPasswordFile != null);
     "control: check helper detects mismatch" = yes "helper broken" (lib.hasPrefix "FAIL" (eq "x" 1 2));
   };
@@ -167,5 +248,4 @@ in
 {
   inherit checks;
   results = lib.mapAttrs (_: safe) checks;
-  killswitch = builtins.concatStringsSep "\n" (map (d: d.source.text or "") s.networking.networkmanager.dispatcherScripts);
 }

@@ -85,11 +85,14 @@ let
     check-school-exitoff-after-tailscaled-prefs-edit = check
       (has "tailscaled.service" exitOff.after && lib.hasInfix "tailscale set --exit-node=" exitOff.script && !(lib.hasInfix "tailscale up" exitOff.script))
       "after=${builtins.toJSON exitOff.after}; script must be a prefs edit (tailscale set) ordered after tailscaled";
-    check-secure-travel-myconfig-tailscale-off = check (!travel.myconfig.services.tailscale.enable) "myconfig.services.tailscale enabled in secure-travel";
-    check-secure-travel-nixos-tailscale-off = check (!travel.services.tailscale.enable)
-      "services.tailscale.enable true in secure-travel (myconfig wrapper=${lib.boolToString travel.myconfig.services.tailscale.enable}; a NAS consumer still forces it on?)";
-    check-secure-travel-no-autoconnect = check (!(travel.systemd.services ? tailscale-autoconnect) && !(travel.systemd.services ? tailscaled-autoconnect))
-      "an autoconnect unit is present in secure-travel";
+    check-secure-travel-tailscale-on = check (travel.myconfig.services.tailscale.enable && travel.services.tailscale.enable)
+      "tailscale is the secure-travel VPN but is off (wrapper=${lib.boolToString travel.myconfig.services.tailscale.enable}, service=${lib.boolToString travel.services.tailscale.enable})";
+    check-secure-travel-autoconnect-allowed = check (travel.systemd.services ? tailscaled-autoconnect && !(travel.systemd.services ? tailscale-autoconnect))
+      "secure-travel needs the upstream tailscaled-autoconnect and not the removed repo unit";
+    check-secure-travel-no-open-firewall = check (!travel.services.tailscale.openFirewall && !(has 41641 travel.networking.firewall.allowedUDPPorts))
+      "secure-travel is outbound only: openFirewall=${lib.boolToString travel.services.tailscale.openFirewall}, udp ${builtins.toJSON travel.networking.firewall.allowedUDPPorts}";
+    check-secure-travel-control-base-opens-firewall = check ts.openFirewall
+      "base host does not open the tailscale port, so the secure-travel no-open-firewall check is vacuous";
     check-secure-travel-tailscale0-untrusted = check (!(has "tailscale0" travel.networking.firewall.trustedInterfaces)) "tailscale0 trusted in secure-travel";
   };
 in

@@ -1,1 +1,2 @@
 - [SDDM greeter QML check](reference_sddm_greeter_qml_check.md) - test-mode hides QML errors; use QT_FORCE_STDERR_LOGGING=1 and grep, control-test first
+- [Closure diff pitfalls](reference_nix_closure_diff_pitfalls.md) - readlink -f specialisation paths, union closures, sub-KiB hiding, HM generation lookup

@@ -20,9 +20,13 @@ delib.host {
       herdr.enable = true; # guest/secure-travel disable
       headroom.enable = true; # guest/secure-travel disable
       fastfetch.enable = true; # safe-mode disables
+      hyprland.execOnce = [ "zapzap" ]; # deep-focus replaces
+      niri.execOnce = [ "zapzap" ]; # deep-focus replaces
+      mango.execOnce = [ "zapzap" "firefox --new-window https://www.youtube.com" ]; # deep-focus replaces
     };
     services = {
-      tailscale.enable = true; # secure-travel disables
+      tailscale.enable = true; # guest disables, secure-travel keeps it on
+      localsend.enable = true; # guest/secure-travel disable
     };
     bluetooth.enable = true; # guest/secure-travel disable
 

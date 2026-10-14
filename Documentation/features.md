@@ -120,10 +120,10 @@ rm ~/.config/hypr/hyprland.conf && sw
 
 Specializations are bootloader entries that apply an alternative NixOS configuration overlay at boot. Enabling the module adds the entry; the base system is unaffected unless that entry is selected. The following specializations are available:
 
-- **`deep-focus`** - Launches browser, editor, file manager, and terminal into numbered workspaces on login and forces swaync DND mode. Supports both Hyprland and Niri.
+- **`deep-focus`** - Replaces the Hyprland, Niri and Mango autostart with browser, editor, file manager and terminal only (numbered workspaces on Hyprland, staggered launches on Niri and Mango; no zapzap/YouTube) and turns swaync DND on. DND only takes effect when swaync is the active notification daemon (not under caelestia/noctalia).
 - **`guest`** - Ephemeral guest session (see below).
-- **`safe-mode`** - Recovery specialization: disables all compositors and theming,allow booting into IceWM via startx, forces bash/xterm/nano, and installs a minimal rescue toolkit (mc, ncdu, parted, btrfs-progs, etc.).
-- **`secure-travel`** - Hardened travel mode: kernel sysctl hardening, GNOME-only desktop, ProtonVPN + Tor Browser, MAC address randomization, strict firewall, Quad9 DNS-over-TLS, VPN kill-switch. The firewall's allowed TCP/UDP port lists are forced empty, and inbound attack surface is switched off: sshd, avahi, localsend, docker, LLMNR and mDNS in systemd-resolved, and GNOME remote desktop / user sharing. Also disables Bluetooth, nix-ld, nix-alien and claude-code. Tailscale is off too: the tailscale wrapper is forced off, and the NAS consumers that need the tailnet (smb, opencloud-mount, sshfs, borg backups) are disabled in this specialization. Checked against the real hosts by `spec-real-hosts-security`.
+- **`safe-mode`** - Recovery specialization (boot entry tag `safemode-tty`): disables all compositors, display managers and theming, boots to a TTY login where IceWM starts via `startx`, forces bash/xterm/nano, and installs a minimal rescue toolkit (mc, ncdu, parted, btrfs-progs, etc.).
+- **`secure-travel`** - Hardened travel mode: kernel sysctl hardening, GNOME-only desktop, Tor Browser, MAC address randomization, strict firewall, Quad9 nameservers with opportunistic DNS-over-TLS. The VPN is Tailscale with a Mullvad exit node picked by hand (`tailscale exit-node list`, `tailscale set --exit-node=<name>`); a home-manager user timer sends a desktop notification every 2 minutes while Tailscale is not running or no exit node is set. This is advisory only, there is no kill switch. The firewall's allowed TCP/UDP port lists are forced empty, and inbound attack surface is switched off: sshd, avahi, localsend, docker, LLMNR and mDNS in systemd-resolved, and GNOME remote desktop / user sharing. Bluetooth stays installed but the adapter is not powered on at boot (`autoEnableOnBoot` off), so headphones can be enabled at runtime. nix-ld, nix-alien and claude-code are disabled. Tailscale stays on (`tailscale0` is not a trusted interface and `openFirewall` is off), while the NAS consumers that need the tailnet (smb, opencloud-mount, sshfs, borg backups) are disabled in this specialization. Checked against the real hosts by `spec-real-hosts-security`.
 
 ---
 
@@ -134,9 +134,9 @@ A secure, non-persistent account for visitors, implemented as a **NixOS speciali
 - **Credentials**: username and password are both `guest`.
 - **Autologin** the guest is already logged in after booting into the generation.
 - **Restricted**: no `sudo`, no access to the NixOS config.
-- **Pre-loaded apps**: browser, file manager, text editor, image viewer, archive manager, calculator and some other tools.
+- **Pre-loaded apps**: Firefox, file manager, text editor (Mousepad), screenshot tool and archive manager (File Roller).
 - **Forced DE**: only XFCE is accessible; all other WMs/DEs are disabled by the specialization.
-- **Tailscale firewall**: iptables rules block tailscale and the CGNAT range for UID 2000.
+- **No krit services**: tailscale, sshd, avahi, localsend, docker/podman, the NAS/cloud/Windows mounts, borg backups and the krit user-manager linger are switched off; the guest is not in the `networkmanager` group, is not allowed to use the nix daemon and cannot read the GitHub token secret (mode 0400).
 - **Resource cap**: systemd slice limits the guest to 75%gb of the total RAM available and a lower CPU weight (90%).
 - **Ephemeral home**: the entire home folder is stored in RAM (`tmpfs`) and wiped on every reboot/shutdown.
   - Advantages: protects SSD lifespan, guaranteed privacy (RAM clears on power loss).

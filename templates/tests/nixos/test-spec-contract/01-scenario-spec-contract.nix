@@ -113,7 +113,7 @@ let
     (src + "/users/krit/nixos/specializations/school.nix")
   ];
 
-  config = (denix.lib.configurations {
+  host = (denix.lib.configurations {
     moduleSystem = "nixos";
     homeManagerUser = "krit";
     extensions = with denix.lib.extensions; [
@@ -131,7 +131,9 @@ let
       (src + "/templates/tests/nixos/test-spec-contract/shared/host-spec-contract.nix")
     ] ++ nixosPaths;
     exclude = [ ];
-  }).spec-contract.config;
+  }).spec-contract;
+  inherit (host) config;
+  swayncOffBase = (host.extendModules { modules = [{ myconfig.services.swaync.enable = lib.mkOverride 60 false; }]; }).config;
 
   # spec name → full NixOS config with that specialization applied
   spec = name: config.specialisation.${name}.configuration;
@@ -154,11 +156,6 @@ let
     if lib.strings.hasInfix substr str then "ok"
     else "FAIL: ${name}: expected to contain '${substr}'";
 
-  checkAdded = name: baseLst: specLst:
-    if baseLst != [ ] then "FAIL: ${name}: base host already has entries, check is vacuous"
-    else if specLst == [ ] then "FAIL: ${name}: expected non-empty list, got []"
-    else "ok";
-
   hasPkg = pkglist: pname: builtins.any (p: (p.pname or p.name or "") == pname) pkglist;
   checkPkgInList = name: basePkgs: pkglist: pname:
     if hasPkg basePkgs pname then "FAIL: ${name}: '${pname}' already in base home.packages, check is vacuous"
@@ -166,6 +163,13 @@ let
     else "FAIL: ${name}: package '${pname}' not found in home.packages";
 
   baseHm = config.home-manager.users.krit;
+  dndIn = wm: get:
+    let
+      has = c: builtins.any (lib.hasInfix "swaync-client -dn") (get c);
+    in
+    if has config then "FAIL: base ${wm} execOnce already enables DND, check is vacuous"
+    else if has (spec "deep-focus") then "ok"
+    else "FAIL: deep-focus ${wm} execOnce lacks 'swaync-client -dn': ${builtins.toJSON (get (spec "deep-focus"))}";
   off = sp: path: name: expected: checkOverride "${sp}.${name}" (path config) (path (spec sp)) expected;
 in
 {
@@ -196,6 +200,48 @@ in
     off "guest" (c: c.home-manager.users.krit.systemd.user.services ? headroom-proxy) "headroom-proxy unit present" false;
   check-guest-claude-wrappers-disabled =
     off "guest" (c: c.myconfig.krit.programs.claude-code-wrappers.enable) "claude-code-wrappers.enable" false;
+  check-guest-tailscale-disabled =
+    off "guest" (c: c.myconfig.services.tailscale.enable) "tailscale.enable" false;
+  check-guest-tailscale-service-off =
+    off "guest" (c: c.services.tailscale.enable) "services.tailscale.enable" false;
+  check-guest-localsend-disabled =
+    off "guest" (c: c.myconfig.services.localsend.enable) "localsend.enable" false;
+  check-guest-openssh-disabled =
+    off "guest" (c: c.services.openssh.enable) "openssh.enable" false;
+  check-guest-avahi-disabled =
+    off "guest" (c: c.services.avahi.enable) "avahi.enable" false;
+  check-guest-docker-disabled =
+    off "guest" (c: c.virtualisation.docker.enable) "docker.enable" false;
+  check-guest-podman-disabled =
+    off "guest" (c: c.virtualisation.podman.enable) "podman.enable" false;
+  check-guest-allowed-users =
+    if config.nix.settings.allowed-users == [ "krit" ] then "FAIL: base allowed-users already [ krit ], check is vacuous"
+    else if (spec "guest").nix.settings.allowed-users == [ "krit" ] then "ok"
+    else "FAIL: guest allowed-users is ${builtins.toJSON (spec "guest").nix.settings.allowed-users}, expected [ krit ] (the guest must not be a nix user)";
+  check-guest-pat-token-mode =
+    let mode = c: c.sops.secrets.github_fg_pat_token_nix.mode; in
+    if mode config == "0400" then "FAIL: base PAT mode already 0400, check is vacuous"
+    else checkStr "guest PAT secret mode" (mode (spec "guest")) "0400";
+  check-guest-no-linger-persistence =
+    let
+      dirs = c: map (d: d.directory) c.environment.persistence."/persist".directories;
+    in
+    if !(builtins.elem "/var/lib/systemd/linger" (dirs config)) then "FAIL: base does not persist linger dir, check is vacuous"
+    else if builtins.elem "/var/lib/systemd/linger" (dirs (spec "guest")) then "FAIL: guest still persists /var/lib/systemd/linger"
+    else if !(builtins.elem "/etc/ssh" (dirs (spec "guest"))) then "FAIL: guest lost the other persisted directories"
+    else "ok";
+  check-guest-extra-groups =
+    let g = (spec "guest").users.users.guest.extraGroups; in
+    if lib.sort lib.lessThan g == [ "audio" "video" ] then "ok"
+    else "FAIL: guest extraGroups is ${builtins.toJSON g}, expected audio and video only";
+  check-guest-no-zenity-system-package =
+    let
+      has = c: hasPkg c.environment.systemPackages "zenity";
+      welcome = (spec "guest").environment.etc."xdg/autostart/guest-welcome.desktop".text;
+    in
+    if has (spec "guest") then "FAIL: zenity in guest environment.systemPackages"
+    else if !(lib.hasInfix "/bin/guest-welcome" welcome) then "FAIL: control: guest-welcome autostart missing, so the zenity-free systemPackages proves nothing"
+    else "ok";
   check-guest-welcome-desktop =
     let
       path = "xdg/autostart/guest-welcome.desktop";
@@ -204,6 +250,26 @@ in
     if config.environment.etc ? ${path} then "FAIL: base host already has ${path}, check is vacuous"
     else if !(lib.strings.hasInfix "/bin/guest-welcome\n" text) then "FAIL: guest autostart Exec does not end in /bin/guest-welcome"
     else checkContains "guest autostart OnlyShowIn" text "OnlyShowIn=XFCE;";
+
+  # ── deep-focus ───────────────────────────────────────────────────────────────
+  check-deepfocus-swaync-enabled =
+    if swayncOffBase.myconfig.services.swaync.enable then "FAIL: control: twin base still has swaync on"
+    else checkBool "deep-focus.swaync.enable" swayncOffBase.specialisation.deep-focus.configuration.myconfig.services.swaync.enable true;
+  check-deepfocus-hyprland-dnd =
+    dndIn "hyprland" (c: c.myconfig.programs.hyprland.execOnce);
+  check-deepfocus-niri-dnd =
+    dndIn "niri" (c: c.myconfig.programs.niri.execOnce);
+  check-deepfocus-mango-dnd =
+    dndIn "mango" (c: c.myconfig.programs.mango.execOnce);
+  check-deepfocus-mango-no-distractions =
+    let
+      lst = c: map lib.toLower c.myconfig.programs.mango.execOnce;
+      bad = c: builtins.filter (e: lib.hasInfix "zapzap" e || lib.hasInfix "youtube" e) (lst c);
+    in
+    if bad config == [ ] then "FAIL: base mango execOnce has no zapzap/youtube, check is vacuous"
+    else if bad (spec "deep-focus") != [ ] then "FAIL: deep-focus mango still starts: ${builtins.toJSON (bad (spec "deep-focus"))}"
+    else if lst (spec "deep-focus") == [ ] then "FAIL: deep-focus mango execOnce is empty"
+    else "ok";
 
   # ── safe-mode ────────────────────────────────────────────────────────────────
   check-safemode-stylix-disabled =
@@ -218,6 +284,12 @@ in
     off "safemode" (c: c.myconfig.programs.hyprland.enable) "hyprland.enable" false;
   check-safemode-fastfetch-disabled =
     off "safemode" (c: c.myconfig.programs.fastfetch.enable) "fastfetch.enable" false;
+  check-safemode-xserver-enabled =
+    if config.services.xserver.enable then "FAIL: base xserver already enabled, check is vacuous"
+    else checkBool "safemode.xserver.enable" (spec "safemode").services.xserver.enable true;
+  check-safemode-tag =
+    if builtins.elem "safemode-tty" config.system.nixos.tags then "FAIL: base already tagged safemode-tty, check is vacuous"
+    else checkBool "safemode tag" (builtins.elem "safemode-tty" (spec "safemode").system.nixos.tags) true;
   check-safemode-icewm-enabled =
     off "safemode" (c: c.services.xserver.windowManager.icewm.enable) "icewm.enable" true;
   check-safemode-startx-enabled =
@@ -234,12 +306,27 @@ in
         "startx";
 
   # ── secure-travel ─────────────────────────────────────────────────────────────
-  check-securetravel-bluetooth-disabled =
-    off "secure-travel" (c: c.myconfig.bluetooth.enable) "bluetooth.enable" false;
+  check-securetravel-bluetooth-radio-off-at-boot =
+    off "secure-travel" (c: c.hardware.bluetooth.powerOnBoot) "bluetooth.powerOnBoot" false;
+  check-securetravel-bluetooth-available =
+    let st = spec "secure-travel"; in
+    if (spec "guest").hardware.bluetooth.enable then "FAIL: control: guest has bluetooth on, override mechanism not proven"
+    else if !(st.hardware.bluetooth.enable && st.services.blueman.enable) then "FAIL: secure-travel bluetooth/blueman not enabled (headphones must work)"
+    else "ok";
   check-securetravel-hyprland-disabled =
     off "secure-travel" (c: c.myconfig.programs.hyprland.enable) "hyprland.enable" false;
-  check-securetravel-tailscale-disabled =
-    off "secure-travel" (c: c.myconfig.services.tailscale.enable) "tailscale.enable" false;
+  check-securetravel-tailscale-enabled =
+    let st = spec "secure-travel"; in
+    if (spec "guest").myconfig.services.tailscale.enable then "FAIL: control: guest has tailscale on, override mechanism not proven"
+    else if !(st.myconfig.services.tailscale.enable && st.services.tailscale.enable) then "FAIL: secure-travel tailscale is off (it is the VPN)"
+    else "ok";
+  check-securetravel-tailscale-no-open-firewall =
+    off "secure-travel" (c: c.services.tailscale.openFirewall) "tailscale.openFirewall" false;
+  check-securetravel-no-trusted-interfaces =
+    if config.networking.firewall.trustedInterfaces == [ "lo" ] then "FAIL: base trustedInterfaces already [ lo ], check is vacuous"
+    else checkBool "secure-travel trustedInterfaces == [ lo ]" ((spec "secure-travel").networking.firewall.trustedInterfaces == [ "lo" ]) true;
+  check-securetravel-localsend-disabled =
+    off "secure-travel" (c: c.myconfig.services.localsend.enable) "localsend.enable" false;
   check-securetravel-coffee-disabled =
     off "secure-travel" (c: c.myconfig.services.coffee.enable) "coffee.enable" false;
   check-securetravel-nix-ld-disabled =
@@ -260,10 +347,20 @@ in
     off "secure-travel" (c: c.myconfig.krit.programs.claude-code-wrappers.enable) "claude-code-wrappers.enable" false;
   check-securetravel-gnome-enabled =
     off "secure-travel" (c: c.myconfig.programs.gnome.enable) "gnome.enable" true;
-  check-securetravel-killswitch-exists =
-    checkAdded "secure-travel NM dispatcherScripts"
-      config.networking.networkmanager.dispatcherScripts
-      (spec "secure-travel").networking.networkmanager.dispatcherScripts;
+  check-securetravel-exitnode-warn-unit =
+    let
+      u = c: c.home-manager.users.krit.systemd.user;
+      st = u (spec "secure-travel");
+    in
+    if (u config).services ? secure-travel-exitnode-warn then "FAIL: base already has the exit node warn unit, check is vacuous"
+    else if !(st.services ? secure-travel-exitnode-warn && st.timers ? secure-travel-exitnode-warn) then "FAIL: user service/timer secure-travel-exitnode-warn missing"
+    else if st.timers.secure-travel-exitnode-warn.Timer.OnActiveSec != "45s" || st.timers.secure-travel-exitnode-warn.Timer.OnUnitActiveSec != "2min" then "FAIL: timer cadence is not 45s/2min"
+    else "ok";
+  check-securetravel-no-dispatcher-killswitch =
+    let st = spec "secure-travel"; in
+    if st.networking.networkmanager.wifi.macAddress != "random" then "FAIL: control: secure-travel NetworkManager settings not evaluated"
+    else if st.networking.networkmanager.dispatcherScripts == [ ] then "ok"
+    else "FAIL: secure-travel still installs a root NM dispatcher script";
 
   # ── entertainment ─────────────────────────────────────────────────────────────
   check-entertainment-kde-enabled =

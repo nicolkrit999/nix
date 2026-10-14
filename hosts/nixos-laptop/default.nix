@@ -1,8 +1,9 @@
-{ delib
-, pkgs
-, lib
-, inputs
-, ...
+{
+  delib,
+  pkgs,
+  lib,
+  inputs,
+  ...
 }:
 let
   # 🌟 CORE APPS & THEME
@@ -234,9 +235,10 @@ delib.host {
         npm = {
           enable = true;
           packages = [
+            "@actual-app/cli" # Actual Budget CLI
             "claudefm" # terminal music player
             "claude-token-counter" # Token usage counter for claude code
-            "@actual-app/cli" # Actual Budget CLI
+            "yoinks" # Video downloader
           ];
           hostPackages = with pkgs; [
             yt-dlp # claudefm: stream source
@@ -750,7 +752,6 @@ delib.host {
             "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
             "sh -c 'sleep 11 && ${myTerminal}'"
             "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
-            #"sh -c 'sleep 17 && protonvpn-app --start-minimized'"
             "sh -c 'sleep 27 && niri msg action focus-column-first'" # Refocus browser after all windows are up
           ];
           extraBinds = {
@@ -903,13 +904,6 @@ delib.host {
 
         swaync = {
           enable = true;
-          customSettings = {
-            /*
-              "mute-protonvpn" = {
-                state = "ignored";
-                app-name = ".*Proton.*";
-            */
-          };
         };
       };
 

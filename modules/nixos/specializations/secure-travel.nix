@@ -8,14 +8,50 @@
 let
   myUserName = config.myconfig.constants.user;
   hasClaudeWrappers = options ? myconfig.krit.programs.claude-code-wrappers;
+  nasOff = lib.genAttrs
+    (lib.filter (n: options ? myconfig.krit.services.nas.${n}) [
+      "desktop-borg-backup"
+      "laptop-borg-backup"
+      "opencloud-mount"
+      "smb"
+      "sshfs"
+    ])
+    (_: { enable = lib.mkForce false; });
+
+  exitNodeWarn = pkgs.writeShellApplication {
+    name = "secure-travel-exitnode-warn";
+    runtimeInputs = [ pkgs.jq pkgs.libnotify pkgs.tailscale ];
+    text = ''
+      notify() {
+        notify-send -u normal -a secure-travel \
+          -h string:x-canonical-private-synchronous:secure-travel-vpn "$1" "$2"
+      }
+
+      pick="Run: tailscale exit-node list, then: tailscale set --exit-node=<name>"
+
+      if ! json=$(tailscale status --json 2>/dev/null); then
+        notify "Tailscale is not running" "Traffic is NOT protected. Start tailscaled and log in. $pick"
+        exit 0
+      fi
+
+      state=$(jq -r '.BackendState // "Unknown"' <<<"$json" 2>/dev/null || echo Unknown)
+      if [ "$state" != "Running" ]; then
+        notify "Tailscale is $state" "Traffic is NOT protected. Log in, then pick an exit node. $pick"
+        exit 0
+      fi
+
+      active=$(jq '[.Peer[]? | select(.ExitNode == true)] | length' <<<"$json")
+      if [ "$active" -eq 0 ]; then
+        notify "No Tailscale exit node set" "Traffic is NOT protected. $pick"
+      fi
+    '';
+  };
 in
 delib.module {
   name = "specializations.secure-travel";
   options = delib.singleEnableOption false;
 
   nixos.ifEnabled = {
-    nixpkgs.config.allowUnfree = true;
-
     specialisation.secure-travel.configuration = {
       system.nixos.tags = [ "secure-travel" ];
 
@@ -66,76 +102,91 @@ delib.module {
       # ---------------------------------------------------------
       # 2. 🖥️ DESKTOP & PROGRAMS (GNOME only - most secure DE)
       # ---------------------------------------------------------
-      myconfig.programs = {
-        # Use GNOME (well-audited, large security team)
-        gnome.enable = lib.mkForce true;
+      myconfig = {
+        programs = {
+          # Use GNOME (well-audited, large security team)
+          gnome.enable = lib.mkForce true;
 
-        # Disable other DEs/WMs
-        hyprland.enable = lib.mkForce false;
-        niri.enable = lib.mkForce false;
-        kde.enable = lib.mkForce false;
-        cosmic.enable = lib.mkForce false;
-        caelestia.enable = lib.mkForce false;
-        noctalia.enable = lib.mkForce false;
-        mango.enable = lib.mkForce false; # I-10: was left enabled on hosts that use it
+          # Disable other DEs/WMs
+          caelestia.enable = lib.mkForce false;
+          cosmic.enable = lib.mkForce false;
+          hyprland.enable = lib.mkForce false;
+          kde.enable = lib.mkForce false;
+          mango.enable = lib.mkForce false;
+          niri.enable = lib.mkForce false;
+          noctalia.enable = lib.mkForce false;
 
-        # Disable attack surface programs
-        nix-ld.enable = lib.mkForce false; # Allows unpatched binaries
-        nix-alien.enable = lib.mkForce false; # Same concern
-        claude-code.enable = lib.mkForce false; # External API calls
-        claude-desktop.enable = lib.mkForce false; # External API calls
-        codex.enable = lib.mkForce false; # External API calls
-        herdr.enable = lib.mkForce false; # AI agent multiplexer
-        headroom.enable = lib.mkForce false; # Proxy for external API calls
-        google-antigravity.enable = lib.mkForce false; # AI agent IDE, external API calls
+          # Disable attack surface programs
+          claude-code.enable = lib.mkForce false; # External API calls
+          claude-desktop.enable = lib.mkForce false; # External API calls
+          codex.enable = lib.mkForce false; # External API calls
+          google-antigravity.enable = lib.mkForce false; # AI agent IDE, external API calls
+          headroom.enable = lib.mkForce false; # Proxy for external API calls
+          herdr.enable = lib.mkForce false; # AI agent multiplexer
+          nix-alien.enable = lib.mkForce false; # Same concern
+          nix-ld.enable = lib.mkForce false; # Allows unpatched binaries
+        };
+
+        # ---------------------------------------------------------
+        # 3. 🔧 SERVICES
+        # ---------------------------------------------------------
+        services = {
+          # Hyprland-session services, unused under GNOME
+          coffee.enable = lib.mkForce false;
+          hypridle.enable = lib.mkForce false;
+
+          localsend.enable = lib.mkForce false; # I-08: opens LAN ports
+
+          # Tailscale is the VPN: a Mullvad exit node is picked by hand and
+          # the advisory user unit below warns while none is active.
+          tailscale.enable = lib.mkForce true;
+        };
+
+        # Bluetooth stays available (headphones) but the radio is off at boot.
+        bluetooth = {
+          enable = lib.mkForce true;
+          autoEnableOnBoot = lib.mkForce false;
+        };
       };
 
-      imports = lib.optional hasClaudeWrappers {
-        myconfig.krit.programs.claude-code-wrappers.enable = lib.mkForce false; # Bundles claude
+      imports =
+        lib.optional hasClaudeWrappers
+          {
+            myconfig.krit.programs.claude-code-wrappers.enable = lib.mkForce false; # Bundles claude
+          }
+        ++ lib.optional (nasOff != { }) {
+          # I-09: the NAS consumers are tailnet-only and stay off in travel mode.
+          myconfig.krit.services.nas = nasOff;
+        };
+
+      # I-08/I-09: the travel profile exposes no listening ports; sshd and
+      # avahi are pure inbound attack surface.
+      services = {
+        avahi.enable = lib.mkForce false;
+        gnome = {
+          gnome-remote-desktop.enable = lib.mkForce false;
+          gnome-user-share.enable = lib.mkForce false;
+        };
+        openssh.enable = lib.mkForce false;
+        resolved = {
+          enable = true;
+          settings.Resolve = {
+            DNSSEC = lib.mkForce "allow-downgrade"; # DNSSEC with captive portal fallback
+            FallbackDNS = lib.mkForce "1.1.1.1 8.8.8.8"; # Fallback for captive portals
+            DNSOverTLS = lib.mkForce "opportunistic"; # DoT when available, plain for portals
+            LLMNR = lib.mkForce "false";
+            MulticastDNS = lib.mkForce "false";
+          };
+        };
+        tailscale.openFirewall = lib.mkForce false; # Outbound only; DERP relays still work
       };
 
-      # ---------------------------------------------------------
-      # 3. 🔧 SERVICES
-      # ---------------------------------------------------------
-      myconfig.services = {
-        # Disable Hyprland-specific
-        hypridle.enable = lib.mkForce false;
-        coffee.enable = lib.mkForce false;
-
-        # Disable network services
-        tailscale.enable = lib.mkForce false; # Using ProtonVPN instead
-        localsend.enable = lib.mkForce false; # I-08: opens LAN ports
-      };
-
-      # I-09: the NAS consumers enable the tailscale wrapper and only work
-      # over the tailnet; turn them off with it.
-      myconfig.krit.services.nas = {
-        smb.enable = lib.mkForce false;
-        opencloud-mount.enable = lib.mkForce false;
-        sshfs.enable = lib.mkForce false;
-        desktop-borg-backup.enable = lib.mkForce false;
-        laptop-borg-backup.enable = lib.mkForce false;
-      };
-
-      # I-08/I-09: host modules add listening ports; the travel profile must
-      # expose none, and sshd/avahi are pure inbound attack surface.
-      services.openssh.enable = lib.mkForce false;
-      services.avahi.enable = lib.mkForce false;
-
-      # Disable other toplevel modules
-      myconfig.bluetooth.enable = lib.mkForce false; # Attack vector on public WiFi
-
-      # ---------------------------------------------------------
-      # 4. 🔒 VPN: ProtonVPN + Soft Kill Switch
-      # ---------------------------------------------------------
-      environment.systemPackages = with pkgs; [
-        proton-vpn
-      ] ++ lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [
-        tor-browser
+      environment.systemPackages = lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [
+        pkgs.tor-browser
       ];
 
       # ---------------------------------------------------------
-      # 5. 🌐 DNS & NETWORK (kill-switch dispatcher + MAC randomization + firewall)
+      # 4. 🌐 DNS & NETWORK (MAC randomization + firewall)
       # ---------------------------------------------------------
       networking = {
         nameservers = [ "9.9.9.9" "149.112.112.112" "2620:fe::fe" "2620:fe::9" ]; # Quad9
@@ -143,25 +194,6 @@ delib.module {
         networkmanager = {
           wifi.macAddress = "random"; # Randomize MAC on each connection
           ethernet.macAddress = "random";
-
-          dispatcherScripts = [
-            {
-              source = pkgs.writeShellScript "vpn-killswitch" ''
-                #!/bin/sh
-                INTERFACE=$1
-                STATUS=$2
-
-                if [ "$INTERFACE" = "proton0" ] || [ "$INTERFACE" = "tun0" ]; then
-                  if [ "$STATUS" = "down" ]; then
-                    ${pkgs.libnotify}/bin/notify-send -u critical "VPN Disconnected" "ProtonVPN connection lost. Traffic is NOT protected."
-                  elif [ "$STATUS" = "up" ]; then
-                    ${pkgs.libnotify}/bin/notify-send -u normal "VPN Connected" "ProtonVPN is active. Traffic is protected."
-                  fi
-                fi
-              '';
-              type = "basic";
-            }
-          ];
         };
 
         firewall = {
@@ -170,40 +202,41 @@ delib.module {
           allowedUDPPorts = lib.mkForce [ ];
           logRefusedConnections = true; # Log blocked connections
           logRefusedPackets = true;
-        };
-      };
-
-      services.resolved = {
-        enable = true;
-        settings.Resolve = {
-          DNSSEC = lib.mkForce "allow-downgrade"; # DNSSEC with captive portal fallback
-          FallbackDNS = lib.mkForce "1.1.1.1 8.8.8.8"; # Fallback for captive portals
-          DNSOverTLS = lib.mkForce "opportunistic"; # DoT when available, plain for portals
-          LLMNR = lib.mkForce "false";
-          MulticastDNS = lib.mkForce "false";
+          trustedInterfaces = lib.mkForce [ "lo" ]; # loopback only; tailscale0 is not trusted while travelling
         };
       };
 
       virtualisation.docker.enable = lib.mkForce false;
-      services.gnome.gnome-remote-desktop.enable = lib.mkForce false;
-      services.gnome.gnome-user-share.enable = lib.mkForce false;
 
       # ---------------------------------------------------------
-      # 6. 👤 HOME-MANAGER
+      # 5. 👤 HOME-MANAGER
       # ---------------------------------------------------------
       home-manager.users.${myUserName} = { pkgs, lib, ... }: {
         home.packages = lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [ pkgs.tor-browser ];
 
-        # GNOME auto-start ProtonVPN
-        xdg.configFile."autostart/protonvpn.desktop".text = ''
-          [Desktop Entry]
-          Type=Application
-          Name=ProtonVPN
-          Exec=sh -c 'sleep 3 && protonvpn-app --start-minimized'
-          Hidden=false
-          NoDisplay=false
-          X-GNOME-Autostart-enabled=true
-        '';
+        systemd.user = {
+          services.secure-travel-exitnode-warn = {
+            Unit = {
+              Description = "Warn when no Tailscale exit node is active (secure-travel)";
+              After = [ "graphical-session.target" ];
+            };
+            Service = {
+              Type = "oneshot";
+              ExecStart = lib.getExe exitNodeWarn;
+            };
+          };
+          timers.secure-travel-exitnode-warn = {
+            Unit = {
+              Description = "Periodic Tailscale exit node check (secure-travel)";
+              PartOf = [ "graphical-session.target" ];
+            };
+            Timer = {
+              OnActiveSec = "45s";
+              OnUnitActiveSec = "2min";
+            };
+            Install.WantedBy = [ "graphical-session.target" ];
+          };
+        };
       };
     };
   };

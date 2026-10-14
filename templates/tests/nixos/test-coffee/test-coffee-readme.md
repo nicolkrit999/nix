@@ -46,7 +46,7 @@ bash check-nixos-coffee-runtime.sh
 The fake host `coffee-host` (`shared/host-coffee.nix`) loads only:
 
 - home-manager, the constants modules, the three WM toplevels (hyprland, niri, mango), `hypridle`, `coffee`, and the real `guest` / `secure-travel` specialisation modules (both enabled);
-- `shared/nixos-extra-x86_64/option-sinks.nix`, which declares as plain bool/raw options the `myconfig.*` and `stylix.*` options that those two specialisations set, so their modules are not loaded.
+- `shared/nixos-extra-x86_64/option-sinks.nix`, which declares as plain bool/raw options the `myconfig.*` and `stylix.*` options that those two specialisations set, so their modules are not loaded. It also stubs `environment.persistence` (with the linger directory) and `sops.secrets`, which `guest.nix` reads and overrides, and the bluetooth `autoEnableOnBoot` option set by secure-travel.
 
 Hyprland is on by default; nothing sets `services.coffee.enable`. Variants are `extendModules` twins of that host:
 

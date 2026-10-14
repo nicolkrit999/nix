@@ -22,15 +22,15 @@ Needs `nix`, `jq`, `bash`. Eval-only (no builds); both hosts evaluate in paralle
 
 ## How it works
 
-`01-scenario-spec-real-hosts-security.nix` takes `{ host }`, loads `flake.nixosConfigurations.<host>` via `builtins.getFlake` (the runner exports `FLAKE_ROOT` = repo root of the script, overridable; the scenario throws if unset) and exposes `results`, an attrset of `label -> "ok" | "FAIL: ..."`. Each check is wrapped in `tryEval`, so a broken attribute fails only that check. It also exposes `killswitch`, the text of the NetworkManager dispatcher script.
+`01-scenario-spec-real-hosts-security.nix` takes `{ host }`, loads `flake.nixosConfigurations.<host>` via `builtins.getFlake` (the runner exports `FLAKE_ROOT` = repo root of the script, overridable; the scenario throws if unset) and exposes `results`, an attrset of `label -> "ok" | "FAIL: ..."`. Each check is wrapped in `tryEval`, so a broken attribute fails only that check. 
+`check-nixos-spec-real-hosts-security.sh` evaluates `results` once per host, prints a PASS/FAIL line per check
+It exits non-zero on any failure.
 
-`check-nixos-spec-real-hosts-security.sh` evaluates `results` once per host, prints a PASS/FAIL line per check, then runs `bash -n` on the killswitch text. It exits non-zero on any failure.
-
-Guest checks compare independent sources (uid vs gid vs tmpfs `uid=`/`gid=` options vs firewall `--uid-owner` vs slice name; AccountsService session vs `defaultSession`) rather than hardcoded literals. `control:` checks prove the main checks can fail (the base config has tailscale on, no guest user, a DE enabled, and a non-locked root). For localsend the scenario builds two `extendModules` twins of the real host with `myconfig.services.localsend.enable` forced on and off: the enabled twin must open TCP and UDP 53317 and install `programs.localsend.package` system-wide, the disabled twin must not open 53317. That proves the port the secure-travel `allowed*Ports == []` check removes really comes from the module, without asserting whether a host enables localsend.
+The guest persistence checks use an `extendModules` twin that persists the excluded directories (linger, docker, containers, tailscale, flatpak, snapper), so the filter is exercised on both hosts. Guest checks compare independent sources (uid vs gid vs tmpfs `uid=`/`gid=` options vs firewall `--uid-owner` vs slice name; AccountsService session vs `defaultSession`) rather than hardcoded literals. `control:` checks prove the main checks can fail (the base config has no guest user, a DE enabled, a non-locked root, a service the guest turns off, a different PAT mode, `allowed-users` and groups, and the tailscale firewall opened and trusted). For localsend the scenario builds two `extendModules` twins of the real host with `myconfig.services.localsend.enable` forced on and off: the enabled twin must open TCP and UDP 53317 and install `programs.localsend.package` system-wide, the disabled twin must not open 53317. That proves the port the secure-travel `allowed*Ports == []` check removes really comes from the module, without asserting whether a host enables localsend.
 
 Scope: only specialisation purpose contracts are asserted (guest isolation, secure-travel hardening and GNOME-only, entertainment). Which specialisations a host declares is a host choice and is not checked. The hosts are the real ones, so no fake host is involved.
 
-Three secure-travel gaps this test was written against are fixed in `modules/nixos/specializations/secure-travel.nix` and now pass: the NAS consumers (which enable the tailscale wrapper and only work over the tailnet) are disabled so `services.tailscale.enable` really ends up false, the firewall port lists are `mkForce [ ]` (sshd, avahi and localsend are off too), and mango is disabled.
+secure-travel keeps tailscale on (it is the VPN, an exit node is picked by hand) but outbound only: `openFirewall` off, no trusted interfaces, firewall port lists `mkForce [ ]` (sshd, avahi and localsend are off too), NAS consumers off, mango disabled, bluetooth available with the radio off at boot. ProtonVPN and the root NetworkManager dispatcher kill switch were removed; a user timer warns while no exit node is active.
 
 ## Checks
 
@@ -45,13 +45,18 @@ Three secure-travel gaps this test was written against are fixed in `modules/nix
 | uid / gid | `users.users.guest.uid == 2000`, `users.groups.guest.gid == uid` |
 | `/home/guest` | tmpfs, `uid=`/`gid=` match user/group, `mode=700`, `nosuid`, `nodev` |
 | `systemd.slices` | has `user-<uid>` |
-| firewall | REJECT rules for the guest uid to `tailscale0` and `100.64.0.0/10` |
+| network services | `myconfig.services.tailscale`, `services.tailscale`, `myconfig.services.localsend`, openssh, avahi, docker, podman all `false` |
+| krit modules | claude-code-wrappers, cloud (googleDrive, onedrivePersonal, pcloud, protonDrive), nas (desktop/laptop borg backup, opencloud-mount, smb, sshfs), windows-mount all `enable == false` (one row per path) |
+| nix | `nix.settings.allowed-users == [ <main user> ]`; sops `github_fg_pat_token_nix` mode `0400` |
+| persistence | guest `/persist` directories lack linger, docker, containers, tailscale, flatpak and snapper dirs and keep the others (twin host that persists them) |
+| background units | guest has no `flatpak-managed-install`, `nh-clean`, `snapperd`, snapper timers or `cleanup-trash` units and the openlogi and thunderbird modules are off (control: base has `nh-clean` and `snapperd`) |
 | display manager | autoLogin enabled for `guest` (user exists), `defaultSession == xfce`, xfce enabled |
-| groups | guest not in `wheel` |
+| groups | guest not in `wheel`; `extraGroups` are `audio` and `video` only |
+| packages | no `zenity` in `systemPackages`; `guest-welcome` autostart still exists |
 | AccountsService tmpfiles rule | contains escaped `[User]\nSession=xfce\n`, no real newline, session equals `defaultSession` |
 | DEs | hyprland, niri, mango, gnome, kde, cosmic all `false` |
 | stylix, bluetooth | `false` |
-| tags / controls | tags contain `guest`; base has no guest user and has a DE enabled |
+| tags / controls | tags contain `guest`; base has no guest user, a DE enabled, a service the guest turns off, a different PAT mode / `allowed-users`, `networkmanager` in the main user's groups, a krit nas/cloud/mount module on; twin persists linger |
 
 ### secure-travel
 | Check | Expected |
@@ -59,17 +64,20 @@ Three secure-travel gaps this test was written against are fixed in `modules/nix
 | sysctl | 23 hardening keys (kptr, dmesg, sysrq, perf, bpf, ptrace, redirects, source route, rp_filter, icmp echo broadcasts, syncookies, martians) have the documented values |
 | root | `hashedPassword == "!"`, `hashedPasswordFile == null` |
 | firewall | enabled, allowed TCP/UDP ports `[]`, `logRefusedPackets` |
-| NetworkManager | wifi/ethernet `macAddress == "random"`, one dispatcher script |
+| NetworkManager | wifi/ethernet `macAddress == "random"`, no dispatcher scripts |
 | resolved | `DNSOverTLS == "opportunistic"` |
 | docker | `virtualisation.docker.enable == false` |
+| tailscale firewall | `services.tailscale.openFirewall == false`, `trustedInterfaces == [ "lo" ]` (controls: base opens it and trusts `tailscale0`) |
+| bluetooth | `hardware.bluetooth.enable` and `services.blueman.enable` true, `powerOnBoot == false` |
+| exit node warn | user service `secure-travel-exitnode-warn` exists and runs the warn script; timer `OnActiveSec=45s`, `OnUnitActiveSec=2min`, `WantedBy=graphical-session.target` (control: absent in base) |
+| Proton VPN | no proton+vpn package in system or home packages, no proton autostart entry (controls: detector matches only vpn names, guest autostart detector sees entries) |
 | resolved | `LLMNR == "false"`, `MulticastDNS == "false"`, `Domains` does not contain `~.` (inert without global `DNS=`; the `DNSOverTLS`/`LLMNR` checks on the same attrset are the controls) |
 | GNOME sharing | `gnome-remote-desktop` and `gnome-user-share` disabled |
 | tor-browser | in systemPackages on x86_64 |
-| tailscale | `myconfig.services.tailscale.enable == false`, `services.tailscale.enable == false`, `tailscale0` not trusted |
+| tailscale | `myconfig.services.tailscale.enable == true`, `services.tailscale.enable == true`, `tailscale0` not trusted |
 | DEs | gnome only |
-| killswitch | script text passes `bash -n` |
 | localsend | `myconfig.services.localsend.enable == false`, `programs.localsend.enable == false` |
-| controls | base tailscale on, root not locked in base, helper detects mismatch |
+| controls | root not locked in base, helper detects mismatch |
 
 ### localsend module (twins of the real host)
 | Check | Expected |

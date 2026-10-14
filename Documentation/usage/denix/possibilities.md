@@ -201,10 +201,10 @@ These modules are always active on NixOS hosts and handle platform integration. 
 
 Specializations are bootloader entries that apply an alternative NixOS configuration overlay at boot time. Enabling the module adds the specialization; the base system is unaffected unless that boot entry is selected.
 
-* **`specializations.deep-focus`**: Launches browser, editor, file manager, and terminal into numbered workspaces on login (supports both Hyprland and Niri), and forces swaync DND mode. Useful for distraction-free work sessions.
-* **`specializations.guest`**: Creates an ephemeral guest session using a tmpfs home directory (25% RAM, cleared on reboot), XFCE desktop, auto-login, firewall rules blocking Tailscale access, and memory/CPU cgroup limits. Includes a localized welcome dialog.
-* **`specializations.safe-mode`**: A recovery specialization that disables all compositors and theming, boots into IceWM via startx, forces bash/xterm/nano as the survival shell stack, and installs a minimal rescue toolkit (mc, ncdu, parted, btrfs-progs, etc.).
-* **`specializations.secure-travel`**: A hardened travel specialization with kernel sysctl hardening, GNOME-only desktop, ProtonVPN + Tor Browser, MAC address randomization, strict firewall, Quad9 DNS-over-TLS, and a VPN kill-switch dispatcher script. Disables Tailscale, Bluetooth, nix-ld, nix-alien, and claude-code.
+* **`specializations.deep-focus`**: Replaces the Hyprland, Niri and Mango autostart with browser, editor, file manager and terminal only and turns swaync DND on (effective when swaync is the active notification daemon). Useful for distraction-free work sessions.
+* **`specializations.guest`**: Creates an ephemeral guest session using a tmpfs home directory (25% RAM, cleared on reboot), XFCE desktop, auto-login, all krit-specific services and mounts (tailscale, sshd, NAS, cloud, docker) switched off, and memory/CPU cgroup limits. Includes a localized welcome dialog.
+* **`specializations.safe-mode`**: A recovery specialization (tag `safemode-tty`) that disables all compositors, display managers and theming, boots to a TTY login where IceWM starts via `startx`, forces bash/xterm/nano as the survival shell stack, and installs a minimal rescue toolkit (mc, ncdu, parted, btrfs-progs, etc.).
+* **`specializations.secure-travel`**: A hardened travel specialization with kernel sysctl hardening, GNOME-only desktop, Tor Browser, MAC address randomization, strict firewall, and Quad9 nameservers with opportunistic DNS-over-TLS. Tailscale stays on as the VPN (Mullvad exit node chosen by hand, untrusted `tailscale0`, no open firewall ports) and a home-manager user timer warns by notification while no exit node is set; it is advisory, not a kill switch. Bluetooth is present but not powered on at boot. Disables nix-ld, nix-alien, and claude-code.
 
 ---
 

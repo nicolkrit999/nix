@@ -14,7 +14,7 @@
 - Theming: base16 + optional Catppuccin via stylix
 - Host-specific wallpapers tied to monitor list
 - Multiple desktop environments: Hyprland with waybar, Hyprland with caelestia, Hyprland with noctalia, niri with noctalia, MangoWM with mangowc, KDE, GNOME, Cosmic
-- NixOS specializations: guest (ephemeral RAM home), safe-mode (IceWM recovery shell), deep-focus (distraction-free workspaces), secure-travel (hardened, kill-switch VPN)
+- NixOS specializations: guest (ephemeral RAM home), safe-mode (IceWM recovery shell), deep-focus (distraction-free workspaces), secure-travel (hardened, Tailscale Mullvad exit-node VPN with advisory warning)
 - flakes & Home Manager integration, tracking nixos-unstable by default with a permanent stable input available for per-package pins
 - Multiple shells (bash, zsh, fish)
 - Optional BTRFS snapshots with per-host retention policy
