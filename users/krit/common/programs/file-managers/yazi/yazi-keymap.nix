@@ -474,6 +474,14 @@ delib.module {
             run = "cd /mnt";
             desc = "Go to the mountpoints";
           }
+          {
+            on = [
+              "g"
+              "M"
+            ];
+            run = "cd ~/momentary";
+            desc = "Go to the momentary";
+          }
 
           {
             on = [
