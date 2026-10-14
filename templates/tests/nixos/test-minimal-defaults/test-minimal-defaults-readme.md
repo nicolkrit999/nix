@@ -18,7 +18,7 @@ bash check-nixos-minimal-defaults.sh
 
 ## How it works
 
-`01-scenario-minimal-nixos.nix` builds three fake hosts from only the modules under test (home-manager wiring, both constants modules, `programs.hyprland`, `services.hypridle`):
+`01-scenario-minimal-nixos.nix` builds three fake hosts from only the modules under test (home-manager wiring, both constants modules, `programs.hyprland`, `services.hypridle`, `services.coffee`):
 
 - `minimal-nixos`: only `constants.user = "krit"`.
 - `override-nixos`: `constants.user = "alice"` and custom hypridle timeouts (100/200/250). Acts as the control that derived values follow their inputs.
@@ -38,6 +38,8 @@ Each `check-*` attribute is `"ok"` or `"FAIL: ..."` (`nix eval --raw`); `build-c
 | hypridle listeners (minimal) | timeouts equal the configured options |
 | hypridle listeners (override) | `[100 200 250]` |
 | hypridle with no WM (nowm) | HM `services.hypridle.enable == false` |
+| coffee with a WM (minimal) | `coffee-on`, `coffee-off`, `coffee-status` in HM `home.packages` |
+| coffee with no WM (nowm) | no coffee scripts, no `Suspend/HibernateKeyIgnoreInhibited` in logind settings |
 | `security.wrappers.Hyprland.capabilities` | `""` |
 | NixOS `programs.hyprland.enable` (nowm) | `false` |
 | `build-coexistence` | dry-run succeeds |

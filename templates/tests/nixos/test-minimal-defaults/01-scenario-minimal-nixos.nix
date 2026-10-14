@@ -18,6 +18,7 @@ let
     (src + "/modules/common/config/constants.nix")
     (src + "/modules/nixos/toplevel/hyprland.nix")
     (src + "/modules/nixos/services/hypr/hypridle.nix")
+    (src + "/modules/nixos/services/power/coffee.nix")
   ];
 
   hosts = denix.lib.configurations {
@@ -86,4 +87,16 @@ in
     check "programs.hyprland.enable (hyprland off)" nowm.programs.hyprland.enable false;
   check-no-wm-no-idle-actions =
     check "hm services.hypridle.enable (no WM)" (hmOf nowm "krit").services.hypridle.enable false;
+
+  check-coffee-installed-with-wm =
+    check "coffee-on/off/status in home.packages (hyprland on)"
+      (builtins.filter (n: builtins.elem n [ "coffee-on" "coffee-off" "coffee-status" ]) (map (p: p.name) (hmOf min "krit").home.packages))
+      [ "coffee-on" "coffee-off" "coffee-status" ];
+  check-coffee-absent-without-wm =
+    check "coffee packages and logind key settings (no WM)"
+      {
+        pkgs = builtins.filter (p: builtins.elem p.name [ "coffee-on" "coffee-off" "coffee-status" ]) (hmOf nowm "krit").home.packages;
+        login = builtins.intersectAttrs { SuspendKeyIgnoreInhibited = null; HibernateKeyIgnoreInhibited = null; } (nowm.services.logind.settings.Login or { });
+      }
+      { pkgs = [ ]; login = { }; };
 }

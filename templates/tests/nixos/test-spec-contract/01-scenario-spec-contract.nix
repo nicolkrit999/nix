@@ -79,6 +79,7 @@ let
 
     # Services whose enable options specs override
     (src + "/modules/nixos/services/hypr/hypridle.nix")
+    (src + "/modules/nixos/services/power/coffee.nix")
     (src + "/modules/nixos/services/hypr/hyprlock.nix")
     (src + "/modules/nixos/services/swaync.nix")
     (src + "/modules/common/services/tailscale.nix")
@@ -179,6 +180,8 @@ in
     off "guest" (c: c.myconfig.services.hyprlock.enable) "hyprlock.enable" false;
   check-guest-hypridle-disabled =
     off "guest" (c: c.myconfig.services.hypridle.enable) "hypridle.enable" false;
+  check-guest-coffee-disabled =
+    off "guest" (c: c.myconfig.services.coffee.enable) "coffee.enable" false;
   check-guest-swaync-disabled =
     off "guest" (c: c.myconfig.services.swaync.enable) "swaync.enable" false;
   check-guest-claude-code-disabled =
@@ -239,6 +242,8 @@ in
     off "secure-travel" (c: c.myconfig.programs.hyprland.enable) "hyprland.enable" false;
   check-securetravel-tailscale-disabled =
     off "secure-travel" (c: c.myconfig.services.tailscale.enable) "tailscale.enable" false;
+  check-securetravel-coffee-disabled =
+    off "secure-travel" (c: c.myconfig.services.coffee.enable) "coffee.enable" false;
   check-securetravel-nix-ld-disabled =
     off "secure-travel" (c: c.myconfig.programs.nix-ld.enable) "nix-ld.enable" false;
   check-securetravel-claude-code-disabled =

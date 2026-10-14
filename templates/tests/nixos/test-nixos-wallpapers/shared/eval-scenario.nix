@@ -66,6 +66,10 @@ let
 
     # swaync (needed so services.swaync.enable option exists)
     (src + "/modules/nixos/services/swaync.nix")
+
+    # coffee (the waybar coffee pill reads services.coffee.enable)
+    (src + "/modules/nixos/services/power/coffee.nix")
+
     (src + "/modules/nixos/services/hypr/hyprlock.nix")
   ];
 

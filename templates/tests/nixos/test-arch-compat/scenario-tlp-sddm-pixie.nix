@@ -98,6 +98,7 @@ let
     (src + "/modules/nixos/services/audio.nix")
     (src + "/modules/nixos/services/autotrash.nix")
     (src + "/modules/nixos/services/hypr/hypridle.nix")
+    (src + "/modules/nixos/services/power/coffee.nix")
     (src + "/modules/nixos/services/hypr/hyprlock.nix")
     (src + "/modules/nixos/services/impermanence.nix")
     (src + "/modules/nixos/services/power/auto-cpufreq.nix")

@@ -289,6 +289,8 @@ def states_for(name, cfg):
         out.append(("charging", ("charging",), ()))
         out.append(("critical+charging", ("critical", "charging"), ()))
         return out
+    if name == "custom/coffee":
+        return [("normal", (), ()), ("active", ("active",), ())]
     return [("normal", (), ())]
 
 

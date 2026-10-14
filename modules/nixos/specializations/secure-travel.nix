@@ -100,6 +100,7 @@ delib.module {
         # Disable Hyprland-specific
         hyprlock.enable = lib.mkForce false;
         hypridle.enable = lib.mkForce false;
+        coffee.enable = lib.mkForce false;
 
         # Disable network services
         tailscale.enable = lib.mkForce false; # Using ProtonVPN instead

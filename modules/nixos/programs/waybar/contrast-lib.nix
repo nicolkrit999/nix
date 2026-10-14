@@ -368,6 +368,7 @@ let
 
       modulesRight = language:
         [ language "custom/weather" "custom/wifi" "custom/bluetooth" "pulseaudio" "custom/mic" "battery" ]
+        ++ lib.optional myconfig.services.coffee.enable "custom/coffee"
         ++ lib.optional myconfig.services.swaync.enable "custom/notification";
 
       modules = {
@@ -417,6 +418,20 @@ let
           format-critical = "<span color='${t.fg.crit}'>{icon}</span> {capacity}% {time}";
           format-alt = "{time} <span color='${t.accent c.base0A}'>{icon}</span>";
           format-icons = [ "󰂎" "󰁻" "󰁾" "󰂀" "󰁹" ];
+        };
+
+        "custom/coffee" = {
+          format = "{}";
+          return-type = "json";
+          exec = ''
+            if ${pkgs.systemd}/bin/systemctl --user is-active --quiet coffee.service; then
+              printf '{"text":"%s","class":"active","tooltip":"%s"}\n' "<span color='${t.accent c.base0F}'>󰅶</span>" "Coffee mode on: no automatic sleep, idle lock or lid action (coffee-off to stop)"
+            else
+              printf '{"text":"","class":"off"}\n'
+            fi
+          '';
+          signal = 8;
+          interval = 60;
         };
 
         "clock" = {

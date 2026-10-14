@@ -13,6 +13,7 @@
 #custom-weather,
 #custom-wifi,
 #custom-bluetooth,
+#custom-coffee,
 #custom-notification {
   padding: 4px 16px;
   margin: 0 4px;
@@ -33,6 +34,11 @@
 /* Battery warning/critical states */
 #battery.warning {
   box-shadow: inset 0 0 0 2px @base09;
+}
+
+/* Coffee mode on: the pill is only shown while coffee is on */
+#custom-coffee.active {
+  box-shadow: inset 0 0 0 2px @base0F;
 }
 
 /* Charging keeps the normal pill so the green charging icon stays readable */

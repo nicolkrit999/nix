@@ -36,6 +36,7 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | `services.hyprlock.enable` | `false` |
 | `services.swaync.enable` | `false` |
 | `services.hypridle.enable` | `false` |
+| `services.coffee.enable` | `false` |
 | `programs.claude-code.enable` | `false` |
 | `programs.claude-desktop.enable` | `false` |
 | `programs.codex.enable` | `false` |
@@ -64,6 +65,7 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | `bluetooth.enable` | `false` |
 | `hyprland.enable` | `false` |
 | `services.tailscale.enable` | `false` |
+| `services.coffee.enable` | `false` |
 | `programs.nix-ld.enable` | `false` |
 | `programs.claude-code.enable` | `false` |
 | `programs.claude-desktop.enable` | `false` |

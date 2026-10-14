@@ -75,6 +75,8 @@ run_eval_check "check-idle-timeouts-ordered-default" "default timeouts ordered d
 run_eval_check "check-idle-timeouts-reach-listeners-default" "listeners use the configured timeouts (default)"
 run_eval_check "check-idle-timeouts-reach-listeners-override" "listeners use the configured timeouts (override)"
 run_eval_check "check-no-wm-no-idle-actions" "no WM enabled => hypridle not enabled"
+run_eval_check "check-coffee-installed-with-wm" "WM enabled => coffee-on/off/status installed"
+run_eval_check "check-coffee-absent-without-wm" "no WM enabled => no coffee scripts, no logind key settings"
 
 echo ""
 echo -e "${BOLD}hyprland module effects${NC}"

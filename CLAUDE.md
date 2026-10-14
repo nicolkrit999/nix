@@ -192,6 +192,8 @@ re-investigating one of these from scratch.
 - **Exactly one Secret Service provider (gnome-keyring)** - kwalletd6 is only a frontend into it, ksecretd and the second SSH agent are off, every Chromium/Electron app is pinned to `--password-store=gnome-libsecret`. Read before touching any keyring/wallet/portal/SSH-agent config. [`Documentation/usage/gotchas/secret-service-single-provider.md`](Documentation/usage/gotchas/secret-service-single-provider.md)
 - **Mango 0.18 config pitfalls** - 0.18 renamed every keyword to snake_case (old names are rejected line by line and the error bar shows only the first 3 stored lines plus a `+N more` count); config values are silently cut at 255 chars (keep long exec_once in a launcher script); `mango -p` exit code can hide errors; `window_rule_once` re-arms on reload; DPMS-on re-enables `disable:1` outputs. [`Documentation/usage/gotchas/mango-0-18-config-pitfalls.md`](Documentation/usage/gotchas/mango-0-18-config-pitfalls.md)
 
+- **Coffee mode blocks only automatic power events** - weak `sleep` lock plus full `idle:handle-lid-switch` lock; manual suspend, the suspend/hibernate keys (logind `*KeyIgnoreInhibited=yes`), the power button and shutdown/reboot keep working. Lid closed + coffee = unlocked session, heat, and `coffee-off` suspends at once. [`Documentation/usage/gotchas/coffee-mode-lid-closed.md`](Documentation/usage/gotchas/coffee-mode-lid-closed.md)
+
 ## `./templates/`
 
 Contains `.nix` files not written in the denix style. Not auto-discovered; must be imported manually in the desired host (either directly or via a `default.nix` with an `imports` block).

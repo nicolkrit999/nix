@@ -43,7 +43,7 @@ white until they reach 3:1. A red result is a finding about the waybar styling. 
      resolve like in the real stylesheet;
    - derives the elements from the bar config (every module listed in `modules-left/center/right`),
      expanding workspace states (default, hover, active, active+hover, urgent, focused) and battery
-     states (normal, each `states` key, charging, critical+charging);
+     states (normal, each `states` key, charging, critical+charging) and coffee states (normal, active);
    - for each element checks the cascaded foreground against the effective background (nearest
      opaque `background-color` up the chain) as **text, >= 4.5:1**, and every pango
      `<span color=..>` in `format*`, `exec`, `rewrite` and `tooltip-format*` strings as an
@@ -64,7 +64,7 @@ background; workspace text is the `label` inside `button`.
 
 | Check | Expected |
 |-------|----------|
-| text contrast (workspace states, clock, window, language, weather, wifi, bluetooth, pulseaudio, mic, battery states, notification, tags, tooltip) | >= 4.5:1 for every scenario and the mocha control |
+| text contrast (workspace states, clock, window, language, weather, wifi, bluetooth, pulseaudio, mic, battery states, coffee states, notification, tags, tooltip) | >= 4.5:1 for every scenario and the mocha control |
 | span / icon accent contrast | >= 3:1 |
 | `@define-color baseXX` equals the scheme palette | override really reached the generated CSS |
 | `stylix.polarity` (system and home-manager) equals the scenario polarity | override took effect |

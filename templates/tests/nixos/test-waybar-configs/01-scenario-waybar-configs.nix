@@ -58,6 +58,8 @@ let
   hexKeys = [ "00" "01" "02" "03" "04" "05" "06" "07" "08" "09" "0A" "0B" "0C" "0D" "0E" "0F" ];
 
   swayncOn = c: c.myconfig.services.swaync.enable or false;
+  coffeeOn = c: c.myconfig.services.coffee.enable or false;
+  afterBattery = mods: let i = lib.lists.findFirstIndex (m: m == "battery") null mods; in if i == null || i + 1 >= lib.length mods then null else lib.elemAt mods (i + 1);
 
   barCommon = c: wm: bars:
     let
@@ -68,11 +70,15 @@ let
       exec = lib.toList svc.Service.ExecStart;
       bar0 = lib.head bars;
       notifPresent = lib.elem "custom/notification" bar0.modules-right;
+      coffeePresent = lib.elem "custom/coffee" bar0.modules-right;
+      coffee = bar0."custom/coffee" or { };
     in
     {
       "${wm}: config is non-empty JSON" = chk (bars != [ ] && lib.all (b: b ? layer && b ? modules-right) bars) "no bar with layer/modules-right";
       "${wm}: every listed module is defined" = allOk (lib.concatMap undefinedModules bars) "undefined modules";
       "${wm}: custom/notification iff swaync enabled" = chk (notifPresent == swayncOn c && (!notifPresent || bar0 ? "custom/notification")) "notification module ${toString notifPresent} vs swaync ${toString (swayncOn c)}";
+      "${wm}: custom/coffee iff coffee enabled, right after battery" = chk (coffeePresent == coffeeOn c && (!coffeePresent || afterBattery bar0.modules-right == "custom/coffee")) "coffee module ${toString coffeePresent} vs coffee ${toString (coffeeOn c)}, after battery: ${toString (afterBattery bar0.modules-right)}";
+      "${wm}: custom/coffee refreshes on signal 8 and tests coffee.service" = chk (!coffeePresent || (coffee.signal or null == 8 && coffee.return-type or "" == "json" && has "is-active --quiet coffee.service" (coffee.exec or ""))) "signal ${toString (coffee.signal or "none")}, return-type ${coffee.return-type or "none"}";
       "${wm}: style.css has 16 palette defines" = chk (lib.length (lib.filter (x: x != "") (colorLines css)) == 16 && missingColors == [ ]) "missing/mismatched palette: ${toString missingColors}";
       "${wm}: style.css has rules beyond the defines" = chk (lib.stringLength css > 1500) "style.css suspiciously short";
       "${wm}: ExecStart points at the generated config and css" = chk (svc != null && has "-c %h/.config/waybar-${wm}/config" (toString exec) && has "-s %h/.config/waybar-${wm}/style.css" (toString exec)) "ExecStart: ${toString exec}";
@@ -142,7 +148,7 @@ let
       "niri: unit bound to niri.service" = chk (svc.Install.WantedBy == [ "niri.service" ] && svc.Unit.PartOf == [ "niri.service" ] && svc.Unit.After == [ "niri.service" ]) "WantedBy ${toString svc.Install.WantedBy}";
     };
 
-  sharedModules = [ "custom/weather" "custom/wifi" "custom/bluetooth" "custom/mic" "custom/notification" "pulseaudio" "battery" "clock" ];
+  sharedModules = [ "custom/weather" "custom/wifi" "custom/bluetooth" "custom/mic" "custom/coffee" "custom/notification" "pulseaudio" "battery" "clock" ];
   driftChecks = c:
     let
       hyp = lib.head (barsOf c "hyprland");
@@ -178,6 +184,7 @@ let
   sample = [ "name:^DP-9$,width:1,height:1,refresh:60,x:0,y:0,scale:1" "name:eDP-1,width:1" ];
   control = {
     "monitor name parser strips anchors" = chk (monitorNames sample == [ "DP-9" "eDP-1" ]) "got ${toString (monitorNames sample)}";
+    "afterBattery finds the next module" = chk (afterBattery [ "a" "battery" "custom/coffee" "z" ] == "custom/coffee" && afterBattery [ "battery" ] == null) "afterBattery mismatch";
     "undefined-module detector bites" = chk (undefinedModules { modules-left = [ "custom/x" ]; } == [ "custom/x" ]) "detector missed an undefined module";
     "undefined-module detector accepts complete bar" = chk (undefinedModules { modules-left = [ "custom/x" ]; "custom/x" = { }; } == [ ]) "detector flagged a complete bar";
     "snippet collector finds exec and on-click" = chk (lib.attrNames (snippetsOf "p" [{ "custom/a" = { exec = "x"; on-click = "y"; format = "z"; }; }]) == [ "p/bar0/custom/a.exec" "p/bar0/custom/a.on-click" ]) "collector mismatch";
