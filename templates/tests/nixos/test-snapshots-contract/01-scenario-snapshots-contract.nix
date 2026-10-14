@@ -65,7 +65,8 @@ let
     + line "${tag}: root-side config SUBVOLUME is ${expectSubvol}" (lib.optional ((cfgs.${rootKey}.SUBVOLUME or null) != expectSubvol) "got ${toString (cfgs.${rootKey}.SUBVOLUME or null)}")
     + line "${tag}: ALLOW_USERS is the configured user on home only, empty on the root-side config" (
       lib.optional ((cfgs.home.ALLOW_USERS or null) != [ user ]) "home=${builtins.toJSON (cfgs.home.ALLOW_USERS or null)}"
-      ++ lib.optional ((cfgs.${rootKey}.ALLOW_USERS or [ ]) != [ ]) "${rootKey}=${builtins.toJSON cfgs.${rootKey}.ALLOW_USERS}")
+      ++ lib.optional ((cfgs.${rootKey}.ALLOW_USERS or [ ]) != [ ]) "${rootKey}=${builtins.toJSON cfgs.${rootKey}.ALLOW_USERS}"
+    )
     + line "${tag}: activation script is createSnapperDirs (createSnapperHome gone)" (lib.optional (!(acts ? createSnapperDirs)) "createSnapperDirs missing" ++ lib.optional (acts ? createSnapperHome) "createSnapperHome still defined")
     + line "${tag}: TIMELINE_LIMIT_* values are numeric strings" badLimits
     + line "${tag}: activation creates ${expectSnapDir}" (lib.optional (!(lib.hasInfix "btrfs subvolume create ${expectSnapDir}\n" (act + "\n"))) "not found in activation text")

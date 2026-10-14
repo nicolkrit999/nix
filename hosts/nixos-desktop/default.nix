@@ -1,9 +1,8 @@
-{
-  delib,
-  pkgs,
-  lib,
-  inputs,
-  ...
+{ delib
+, pkgs
+, lib
+, inputs
+, ...
 }:
 let
   # 🌟 CORE APPS & THEME

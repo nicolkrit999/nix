@@ -55,7 +55,7 @@ let
   }).config;
   rcloneFailing = c: builtins.filter (a: lib.hasInfix "services.rcloneMount" a.message) (builtins.filter (a: !a.assertion) c.assertions);
   dupName = mountsWith [ (builtins.head mounts) ];
-  emptyRemote = mountsWith [ { name = "probe"; remote = ""; configFile = "/x"; mountPoint = "/probe"; } ];
+  emptyRemote = mountsWith [{ name = "probe"; remote = ""; configFile = "/x"; mountPoint = "/probe"; }];
 
   asList = v: if builtins.isList v then v else if v == null then [ ] else [ v ];
   envOf = svc: asList (svc.Service.Environment or null);
