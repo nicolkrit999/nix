@@ -39,8 +39,8 @@ let
       check-persist-dirs = check
         (lib.all (d: has d persistDirs) [ "/etc/ssh" "/var/lib/nixos" "/var/lib/tailscale" "/var/lib/systemd/timesync" "/var/lib/NetworkManager" ])
         "persisted dirs missing one of /etc/ssh /var/lib/nixos /var/lib/tailscale /var/lib/systemd/timesync /var/lib/NetworkManager";
-      check-persist-random-seed = check (has "/var/lib/systemd/random-seed" (map (f: f.file or f) persist.files))
-        "/var/lib/systemd/random-seed not persisted";
+      check-random-seed-not-persisted = check (!(has "/var/lib/systemd/random-seed" (map (f: f.file or f) persist.files)))
+        "/var/lib/systemd/random-seed must not be persisted: systemd creates it before the persist bind unit runs, so a live switch fails with 'A file already exists' (exit 4)";
       check-resolved-no-global-domains = check (!(has "~." (asList (cfg.services.resolved.settings.Resolve.Domains or [ ]))))
         "services.resolved.settings.Resolve.Domains contains ~. (inert without global DNS=)";
       check-resolved-mdns-off-with-avahi = check

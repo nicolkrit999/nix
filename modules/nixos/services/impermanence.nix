@@ -33,7 +33,6 @@ delib.module {
 
       files = [
         "/etc/machine-id"
-        "/var/lib/systemd/random-seed"
       ];
     };
   };

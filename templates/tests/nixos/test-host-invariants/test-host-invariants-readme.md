@@ -40,7 +40,7 @@ Per host unless marked.
 | root-tmpfs | `fileSystems."/".fsType == "tmpfs"` |
 | persist / var-log needed-for-boot | both `neededForBoot` |
 | persist-dirs | `/etc/ssh`, `/var/lib/nixos`, `/var/lib/tailscale`, `/var/lib/systemd/timesync`, `/var/lib/NetworkManager` persisted |
-| persist-machine-id / persist-random-seed | `/etc/machine-id` and `/var/lib/systemd/random-seed` persisted files |
+| persist-machine-id / random-seed-not-persisted | `/etc/machine-id` persisted file; `/var/lib/systemd/random-seed` must NOT be persisted (live switch fails: file already exists) |
 | resolved-no-global-domains | `services.resolved.settings.Resolve.Domains` does not contain `~.` |
 | resolved-mdns-off-with-avahi | `extendModules` twins: avahi forced on gives `MulticastDNS = "false"`, avahi forced off does not |
 | luks-cryptroot (laptop) | all btrfs mounts on `/dev/mapper/cryptroot`, luks device `cryptroot` exists |
