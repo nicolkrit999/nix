@@ -19,13 +19,13 @@ delib.module {
       enable = true;
       settings = {
         charger = {
-          governor = "performance"; # Max speed when plugged in
-          turbo = "auto"; # Let auto-cpufreq decide turbo boost based on load
+          governor = "performance";
+          turbo = "auto";
           energy_performance_preference = "balance_performance"; # HWP hint: favor speed but not at max thermal cost
         };
         battery = {
-          governor = "powersave"; # Favor battery life on battery
-          turbo = "auto"; # Enable turbo when the system ask it
+          governor = "powersave";
+          turbo = "auto";
           energy_performance_preference = "power"; # HWP hint: maximize battery life
         };
       };

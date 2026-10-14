@@ -1,4 +1,6 @@
 { delib
+, config
+, lib
 , pkgs
 , ...
 }:
@@ -28,41 +30,40 @@ delib.module {
       rootSubvolume = if hasImpermanence then "/persist" else "/";
       rootSnapshotsDir = if hasImpermanence then "/persist/.snapshots" else "/.snapshots";
       rootConfigName = if hasImpermanence then "persist" else "root";
+      snapperMounts = [ "/home" rootSubvolume ];
     in
     {
+      assertions = [{
+        assertion = lib.all (mp: (config.fileSystems.${mp}.fsType or "btrfs") == "btrfs") snapperMounts;
+        message = "services.snapshots: snapper needs btrfs, but one of ${toString snapperMounts} is declared with another fsType.";
+      }];
+
       services.snapper = {
         snapshotInterval = "hourly";
         cleanupInterval = "1d";
 
-        configs = {
-          home = {
-            SUBVOLUME = "/home";
-            FSTYPE = "btrfs";
-            ALLOW_USERS = [ "${user}" ];
-
-            TIMELINE_CREATE = true;
-            TIMELINE_CLEANUP = true;
-
-            TIMELINE_LIMIT_HOURLY = cfg.retention.hourly;
-            TIMELINE_LIMIT_DAILY = cfg.retention.daily;
-            TIMELINE_LIMIT_WEEKLY = cfg.retention.weekly;
-            TIMELINE_LIMIT_MONTHLY = cfg.retention.monthly;
-            TIMELINE_LIMIT_YEARLY = cfg.retention.yearly;
+        configs =
+          let
+            timeline = {
+              FSTYPE = "btrfs";
+              TIMELINE_CREATE = true;
+              TIMELINE_CLEANUP = true;
+              TIMELINE_LIMIT_HOURLY = cfg.retention.hourly;
+              TIMELINE_LIMIT_DAILY = cfg.retention.daily;
+              TIMELINE_LIMIT_WEEKLY = cfg.retention.weekly;
+              TIMELINE_LIMIT_MONTHLY = cfg.retention.monthly;
+              TIMELINE_LIMIT_YEARLY = cfg.retention.yearly;
+            };
+          in
+          {
+            home = timeline // {
+              SUBVOLUME = "/home";
+              ALLOW_USERS = [ user ];
+            };
+            ${rootConfigName} = timeline // {
+              SUBVOLUME = rootSubvolume;
+            };
           };
-          ${rootConfigName} = {
-            SUBVOLUME = rootSubvolume;
-            FSTYPE = "btrfs";
-            ALLOW_USERS = [ "${user}" ];
-            TIMELINE_CREATE = true;
-            TIMELINE_CLEANUP = true;
-
-            TIMELINE_LIMIT_HOURLY = cfg.retention.hourly;
-            TIMELINE_LIMIT_DAILY = cfg.retention.daily;
-            TIMELINE_LIMIT_WEEKLY = cfg.retention.weekly;
-            TIMELINE_LIMIT_MONTHLY = cfg.retention.monthly;
-            TIMELINE_LIMIT_YEARLY = cfg.retention.yearly;
-          };
-        };
       };
 
       environment.systemPackages = with pkgs; [
@@ -70,7 +71,7 @@ delib.module {
         snapper-gui
       ];
 
-      system.activationScripts.createSnapperHome = {
+      system.activationScripts.createSnapperDirs = {
         text = ''
           # Setup for home (/home)
           if [ ! -e /home/.snapshots ]; then

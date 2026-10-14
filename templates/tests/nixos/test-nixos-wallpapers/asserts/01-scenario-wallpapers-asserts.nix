@@ -110,6 +110,9 @@ let
     specific = [{ monitor = "DP-1"; path = lockPath "lock-dp1"; } { monitor = "DP-2"; path = lockPath "lock-dp2"; }];
     catchAll = lockPath "lock-star";
   };
+  desktopStatics = lib.filter (w: w.wallpaperURL != "") (wallpapersOf "nixos-desktop");
+  desktopCatchAll = lib.findFirst (w: w.targetMonitor == "*") (lib.head desktopStatics) desktopStatics;
+  desktopHm = H.getHm flake.nixosConfigurations.nixos-desktop.config;
   laptopWs = wallpapersOf "nixos-laptop";
   laptopEdp = lib.findFirst (w: w.targetMonitor == "eDP-1") null laptopWs;
   laptopStar = lib.findFirst (w: w.targetMonitor == "*") null laptopWs;
@@ -175,6 +178,12 @@ in
   lockRealLaptop = guard (laptopEdp != null && laptopStar != null && lockOk
     { specific = [{ monitor = "eDP-1"; path = fetchPath laptopEdp; }]; catchAll = fetchPath laptopStar; }
     laptopBgs);
+  lockCatppuccinBackground = guard (
+    desktopStatics != [ ]
+    && desktopHm.catppuccin.hyprlock.enable
+    && builtins.unsafeDiscardStringContext (toString desktopHm.xdg.configFile.background.source) == fetchPath desktopCatchAll
+  );
+  lockCatppuccinBackgroundAbsentWhenOff = guard (!((H.getHm emptyWm).xdg.configFile ? background) && !(H.getHm emptyWm).catppuccin.hyprlock.enable);
   lockRealLaptopNotStar = guard (fetchPath laptopEdp != fetchPath laptopStar);
   emptyGnome = guard (usesFallback (H.getHm emptyGnomeCfg).dconf.settings);
   emptyKde = deep (H.getHm emptyKdeCfg).programs.plasma.workspace;

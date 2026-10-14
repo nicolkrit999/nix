@@ -1,4 +1,4 @@
-# Shared helpers, prepended to coffee-on.sh / coffee-off.sh / coffee-status.sh.
+# Shared helpers, prepended to coffee-on.sh / coffee-off.sh / coffee-status.sh / coffee-toggle.sh.
 
 if [[ -n ${COFFEE_PATH_PREFIX:-} ]]; then
   PATH="$COFFEE_PATH_PREFIX:$PATH"
@@ -12,6 +12,7 @@ COFFEE_USER=${COFFEE_USER:-${USER:-$(id -un)}}
 COFFEE_STATE_DIR=${COFFEE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/coffee}
 COFFEE_TRIES=${COFFEE_TRIES:-15}
 COFFEE_POLL=${COFFEE_POLL:-0.2}
+# Exists only while coffee-on enabled linger; survives reboots because linger itself may be persisted.
 LINGER_MARKER="$COFFEE_STATE_DIR/linger-by-coffee"
 HYPRIDLE_RECORD="$COFFEE_STATE_DIR/hypridle-before"
 WAYBAR_PROCS='waybar|\.waybar-wrapped'

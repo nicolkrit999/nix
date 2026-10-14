@@ -81,7 +81,6 @@ let
     # Services whose enable options specs override
     (src + "/modules/nixos/services/hypr/hypridle.nix")
     (src + "/modules/nixos/services/power/coffee.nix")
-    (src + "/modules/nixos/services/hypr/hyprlock.nix")
     (src + "/modules/nixos/services/swaync.nix")
     (src + "/modules/common/services/tailscale.nix")
     (src + "/modules/nixos/toplevel/bluetooth.nix")
@@ -177,8 +176,6 @@ in
     off "guest" (c: c.myconfig.stylix.enable) "stylix.enable" false;
   check-guest-bluetooth-disabled =
     off "guest" (c: c.myconfig.bluetooth.enable) "bluetooth.enable" false;
-  check-guest-hyprlock-disabled =
-    off "guest" (c: c.myconfig.services.hyprlock.enable) "hyprlock.enable" false;
   check-guest-hypridle-disabled =
     off "guest" (c: c.myconfig.services.hypridle.enable) "hypridle.enable" false;
   check-guest-coffee-disabled =

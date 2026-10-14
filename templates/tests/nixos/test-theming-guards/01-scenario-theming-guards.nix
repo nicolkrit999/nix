@@ -35,7 +35,7 @@ let
       chk = cond: msg: if cond then "ok" else "FAIL: ${msg}";
       want = n: my.stylix.targets.${n}.enable or (!cat);
       tgt = n: hm.stylix.targets.${n}.enable;
-      mirrored = [ "bat" "lazygit" "starship" "gtk" "hyprlock" "hyprland" "swaync" "tmux" ];
+      mirrored = [ "bat" "lazygit" "starship" "gtk" "hyprland" "swaync" "tmux" ];
       badTargets = lib.filter (n: tgt n != want n) mirrored;
       wm = (my.programs.hyprland.enable or false) || (my.programs.niri.enable or false) || (my.programs.mango.enable or false);
       kdePlat = (my.programs.hyprland.enable or false) || (my.programs.kde.enable or false);
@@ -68,8 +68,10 @@ let
     {
       "HM stylix.targets.qt.enable is false" = chk (hm.stylix.targets.qt.enable == false) "HM qt target enabled";
       "stylix.targets.kde.enable == !catppuccin" = chk (tgt "kde" == !cat) "kde=${lib.boolToString (tgt "kde")} catppuccin=${lib.boolToString cat}";
-      "stylix targets mirror catppuccin (bat lazygit starship gtk hyprlock hyprland swaync tmux)" =
+      "stylix targets mirror catppuccin (bat lazygit starship gtk hyprland swaync tmux)" =
         chk (badTargets == [ ]) "wrong: ${toString badTargets}";
+      "stylix hyprlock target is off in both theme modes (hyprlock.nix builds the look itself)" =
+        chk (tgt "hyprlock" == false) "stylix.targets.hyprlock.enable is on";
       "stylix gnome/waybar/rofi/wofi/neovim targets stay off" =
         chk (lib.all (n: tgt n == false) [ "gnome" "waybar" "rofi" "wofi" "neovim" ]) "a hand-themed target is enabled";
       "gtk3/gtk4 prefer-dark follows polarity" =
@@ -93,6 +95,8 @@ let
         chk (!(my.programs.kde.enable or false) || hm.programs.plasma.overrideConfig == true) "plasma-manager overrideConfig is not true";
       "hyprlock catppuccin target matches theme mode" =
         chk (!wm || (hm.catppuccin.hyprlock.enable == cat)) "catppuccin.hyprlock.enable != catppuccin";
+      "catppuccin.swaync stays off (its style is mkForce-overridden by the module)" =
+        chk (!hm.services.swaync.enable || hm.catppuccin.swaync.enable == false) "catppuccin.swaync.enable is on although services.swaync.style is overridden";
       "hyprlock: every rgba() is 8 lowercase hex digits (base16 mode)" =
         chk (!wm || cat || (rgbaParts != [ ] && badRgba == [ ])) "malformed: ${toString (map lib.head badRgba)} (found ${toString (lib.length rgbaParts)})";
       "hyprlock: pango foreground uses the hyprlang-escaped ## form (base16 mode)" =

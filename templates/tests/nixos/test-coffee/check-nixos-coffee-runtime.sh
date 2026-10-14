@@ -410,21 +410,41 @@ check "coffee-off exits 0, linger 'left as is (yes, not enabled by coffee)'" bas
 check "no disable-linger call, Linger still yes" bash -c '! grep -q disable-linger "$1/calls" && [[ $(cat "$1/linger") == yes ]]' _ "$S"
 check "no forbidden command, expected arguments" clean_calls
 
-section "stale linger marker from an earlier boot"
+section "linger marker from an earlier boot (persisted linger)"
+new_state linger-persisted
+echo yes >"$S/linger"
+mkdir -p "$S/state"
+echo boot-OLD >"$S/state/linger-by-coffee"
+BOOT=boot-B run on on
+check "coffee-on keeps the marker of the earlier boot and says 'already enabled by coffee'" bash -c '[[ $1 -eq 0 && $(cat "$2/state/linger-by-coffee") == boot-OLD ]] && grep -Fq "linger: already enabled by coffee" "$3"' _ "$RC" "$S" "$OUT"
+check "coffee-on makes no enable-linger call for it" bash -c '! grep -q enable-linger "$1/calls"' _ "$S"
+BOOT=boot-B run status st-persisted
+check "coffee-status reports 'yes (enabled by coffee)' although the boot id differs" has "linger: yes (enabled by coffee)"
+BOOT=boot-B run off off
+check "coffee-off disables linger again, verified, and removes the marker" bash -c '[[ $1 -eq 0 && $(cat "$2/linger") == no && ! -f $2/state/linger-by-coffee ]] && grep -q "^loginctl disable-linger tester$" "$2/calls" && grep -Fq "linger: disabled again (coffee had enabled it), verified" "$3"' _ "$RC" "$S" "$OUT"
+check "no forbidden command, expected arguments" clean_calls
+
+new_state linger-persisted-off
+echo yes >"$S/linger"
+mkdir -p "$S/state"
+echo boot-OLD >"$S/state/linger-by-coffee"
+BOOT=boot-B run off off
+check "coffee-off with only a marker of an earlier boot and linger yes: disable-linger once, linger no, marker removed" bash -c '[[ $1 -eq 0 && $(cat "$2/linger") == no && ! -f $2/state/linger-by-coffee && $(grep -c "^loginctl disable-linger tester$" "$2/calls") -eq 1 ]]' _ "$RC" "$S"
+check "no forbidden command, expected arguments" clean_calls
+
+section "marker whose linger is already no (really stale)"
 new_state linger-stale
-echo yes >"$S/linger"
 mkdir -p "$S/state"
 echo boot-OLD >"$S/state/linger-by-coffee"
+run status st-stale
+check "control: coffee-status does not claim 'enabled by coffee' when linger is no" negate has "enabled by coffee"
 run on on
-check "coffee-on drops the stale marker and treats linger as not coffee's" bash -c '[[ $1 -eq 0 && ! -f $2/state/linger-by-coffee ]] && grep -Fq "already enabled (not by coffee" "$3"' _ "$RC" "$S" "$OUT"
-run off off
-check "coffee-off leaves Linger=yes (no disable-linger)" bash -c '[[ $1 -eq 0 && $(cat "$2/linger") == yes ]] && ! grep -q disable-linger "$2/calls"' _ "$RC" "$S"
+check "coffee-on drops the stale marker, enables linger again and writes this boot id" bash -c '[[ $1 -eq 0 && $(grep -c "^loginctl enable-linger tester$" "$2/calls") -eq 1 && $(cat "$2/state/linger-by-coffee") == boot-A && $(cat "$2/linger") == yes ]]' _ "$RC" "$S"
 new_state linger-stale-off
-echo yes >"$S/linger"
 mkdir -p "$S/state"
 echo boot-OLD >"$S/state/linger-by-coffee"
 run off off
-check "coffee-off with only a stale marker: marker removed, linger left as is" bash -c '[[ $1 -eq 0 && ! -f $2/state/linger-by-coffee && $(cat "$2/linger") == yes ]] && grep -Fq "marker from an earlier boot removed" "$3"' _ "$RC" "$S" "$OUT"
+check "coffee-off with a stale marker and linger no: marker removed, no disable-linger call" bash -c '[[ $1 -eq 0 && ! -f $2/state/linger-by-coffee && $(cat "$2/linger") == no ]] && ! grep -q disable-linger "$2/calls"' _ "$RC" "$S"
 check "no forbidden command, expected arguments" clean_calls
 
 section "FAIL: systemd-run refuses the unit"

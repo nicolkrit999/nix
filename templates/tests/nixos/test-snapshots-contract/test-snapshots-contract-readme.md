@@ -34,12 +34,20 @@ Per host, for both the base config and the impermanence-off variant:
 |-------|----------|
 | config keys | base: `home` and `persist`; variant: `home` and `root` |
 | root-side SUBVOLUME | base: `/persist`; variant: `/` |
-| ALLOW_USERS | `[ myconfig.constants.user ]` on every config |
+| ALLOW_USERS | `[ myconfig.constants.user ]` on `home` only; the root-side (`persist`/`root`) config has the default empty `ALLOW_USERS` |
+| activation script | named `createSnapperDirs`; `createSnapperHome` no longer defined |
 | TIMELINE_LIMIT_* | all five limits on every config are numeric strings |
 | activation text | contains `btrfs subvolume create <dir>/.snapshots` (`/persist/.snapshots` or `/.snapshots`) |
 | helper scripts installed | HM packages contain `snap-lock`, `snap-unlock`, `snap-create-home`, `snap-create-root` |
 | script literals | every config name literal in those scripts is a key of `services.snapper.configs` |
 | scripts have text | each script derivation exposes non-empty text |
+
+Per host, once (not in the impermanence-off variant, whose `/` is not btrfs on the real hosts):
+
+| Check | Expected |
+|-------|----------|
+| btrfs assertion passes | base: no failing `services.snapshots` assertion on the real config |
+| btrfs assertion fires | with `fileSystems."/home".fsType` forced to `ext4` (`extendModules`) exactly one `services.snapshots` assertion fails |
 
 Per host, base scripts only:
 

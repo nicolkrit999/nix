@@ -48,7 +48,6 @@ delib.module {
         enableScreensaver = false;
       };
 
-      myconfig.services.hyprlock.enable = lib.mkForce false;
       myconfig.services.hypridle.enable = lib.mkForce false;
       myconfig.services.coffee.enable = lib.mkForce false;
       myconfig.services.swaync.enable = lib.mkForce false;

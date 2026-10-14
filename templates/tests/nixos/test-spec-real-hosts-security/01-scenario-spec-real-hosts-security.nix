@@ -132,6 +132,9 @@ let
     "secure-travel: docker disabled" = eq "docker" s.virtualisation.docker.enable false;
     "secure-travel: resolved LLMNR off" = eq "LLMNR" s.services.resolved.settings.Resolve.LLMNR "false";
     "secure-travel: resolved MulticastDNS off" = eq "MulticastDNS" s.services.resolved.settings.Resolve.MulticastDNS "false";
+    "secure-travel: resolved has no global ~. routing domain" =
+      yes "Domains=${builtins.toJSON s.services.resolved.settings.Resolve.Domains}"
+        (!(builtins.elem "~." (let d = s.services.resolved.settings.Resolve.Domains; in if builtins.isList d then d else [ d ])));
     "secure-travel: gnome-remote-desktop disabled" = eq "grd" s.services.gnome.gnome-remote-desktop.enable false;
     "secure-travel: gnome-user-share disabled" = eq "gus" s.services.gnome.gnome-user-share.enable false;
     "secure-travel: myconfig.services.localsend.enable == false" = eq "myconfig localsend" s.myconfig.services.localsend.enable false;

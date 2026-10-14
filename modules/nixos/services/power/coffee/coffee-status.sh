@@ -14,7 +14,7 @@ fi
 
 linger=$(linger_state)
 linger_by=""
-if [[ -f $LINGER_MARKER && $(cat "$LINGER_MARKER" 2>/dev/null) == "$(boot_id)" ]]; then
+if [[ -f $LINGER_MARKER && $linger == yes ]]; then
   linger_by=" (enabled by coffee)"
 fi
 if unit_loaded hypridle.service; then

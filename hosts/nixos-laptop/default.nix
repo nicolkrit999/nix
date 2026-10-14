@@ -861,7 +861,6 @@ delib.host {
         autotrash.enable = true;
         external.dotfiles.enable = true;
         external.dotfiles-private.enable = true;
-        hyprlock.enable = true;
         impermanence.enable = true;
         localsend.enable = true;
         rcloneMount.enable = true;

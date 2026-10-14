@@ -39,7 +39,9 @@ delib.module {
     let
       sddmDir = ../../../../users + "/${myconfig.constants.user}/src/sddm";
       resolveImg = name:
-        if name == null || builtins.isPath name || lib.hasPrefix "/" name then name
+        if name == null || builtins.isPath name || lib.hasPrefix builtins.storeDir name then name
+        else if lib.hasPrefix "/" name then
+          throw "${name}: absolute paths outside the store are impure; pass a path value or a filename in users/${myconfig.constants.user}/src/sddm/"
         else
           let p = sddmDir + "/${name}"; in
           if builtins.pathExists p then p
@@ -94,8 +96,8 @@ delib.module {
 
       effectiveThemeConfig =
         { background = "assets/background.jpg"; }  # Default fallback (upstream asset)
-        // { accentColor = accentColor; }  # Base16 accent from stylix
-        // { fontFamily = fontFamily; }
+        // { inherit accentColor; }  # Base16 accent from stylix
+        // { inherit fontFamily; }
         // (lib.optionalAttrs hasBg {
           autoColor = "false";
           accentColor = pal.accent;
@@ -160,7 +162,7 @@ delib.module {
           echo "sddm-pixie: $var: no step passed, using strongest"
         }
 
-        if magick "$img[0]" -resize 1920x1080^ -gravity center -extent 1920x1080 +repage -alpha off "$work/base.png" 2>/dev/null \
+        if magick "''${img}[0]" -resize 1920x1080^ -gravity center -extent 1920x1080 +repage -alpha off "$work/base.png" 2>/dev/null \
           && magick "$work/base.png" -blur 0x5 "$work/lock.png" \
           && magick "$work/base.png" -blur 0x10 "$work/login.png"; then
           pick LOCK_DIM "$work/lock.png" "0.4 0.5 0.6 0.7" \
@@ -237,18 +239,14 @@ delib.module {
           conf=$out/share/sddm/themes/pixie/theme.conf
           chmod u+w "$conf"
 
-          ${lib.optionalString (cfg.themeConfig != { } || hasBg) ''
-            # Merge into the upstream conf so keys we do not set (use24HourClock, ...) survive
-            if [ -n "$(tail -c1 "$conf")" ]; then echo >> "$conf"; fi
-            setKey() {
-              local v
-              v=$(printf '%s' "$2" | sed 's/[&|\\]/\\&/g')
-              if grep -q "^$1=" "$conf"; then sed -i "s|^$1=.*|$1=$v|" "$conf"; else echo "$1=$2" >> "$conf"; fi
-            }
-            ${setKeys}
-          ''}
-
-          sed -i 's|^fontFamily=.*|fontFamily=${fontFamily}|' "$conf"
+          # Merge into the upstream conf so keys we do not set (use24HourClock, ...) survive
+          if [ -n "$(tail -c1 "$conf")" ]; then echo >> "$conf"; fi
+          setKey() {
+            local v
+            v=$(printf '%s' "$2" | sed 's/[&|\\]/\\&/g')
+            if grep -q "^$1=" "$conf"; then sed -i "s|^$1=.*|$1=$v|" "$conf"; else echo "$1=$2" >> "$conf"; fi
+          }
+          ${setKeys}
 
           ${lib.optionalString hasBg ''
             cp ${bgPath} $out/share/sddm/themes/pixie/assets/${bgFilename}
@@ -273,21 +271,34 @@ delib.module {
       };
     in
     {
-      services.xserver.enable = true;
-      services.xserver.excludePackages = [ pkgs.xterm ];
+      services = {
+        xserver = {
+          enable = true;
+          excludePackages = [ pkgs.xterm ];
+        };
 
-      services.displayManager.sddm = {
-        enable = true;
-        wayland.enable = true;
-        package = lib.mkForce pkgs.kdePackages.sddm;
-        theme = "pixie";
+        displayManager = {
+          sddm = {
+            enable = true;
+            wayland.enable = true;
+            package = lib.mkForce pkgs.kdePackages.sddm;
+            theme = "pixie";
 
-        extraPackages = with pkgs.kdePackages; [
-          qtdeclarative
-          qtsvg
-          qt5compat
-          qtmultimedia # QtQuick.Effects itself ships in qtdeclarative
-        ];
+            extraPackages = with pkgs.kdePackages; [
+              qtdeclarative
+              qtsvg
+              qt5compat
+              qtmultimedia # QtQuick.Effects itself ships in qtdeclarative
+            ];
+          };
+
+          autoLogin = {
+            enable = false;
+            user = myconfig.constants.user;
+          };
+        };
+
+        getty.autologinUser = null;
       };
 
       fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
@@ -300,12 +311,5 @@ delib.module {
         lib.optionalAttrs (myconfig.constants.lcTime != "") {
           LC_TIME = myconfig.constants.lcTime;
         };
-
-      services.displayManager.autoLogin = {
-        enable = false;
-        user = myconfig.constants.user;
-      };
-
-      services.getty.autologinUser = null;
     };
 }

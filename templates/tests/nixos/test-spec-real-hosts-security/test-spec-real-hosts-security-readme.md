@@ -62,7 +62,7 @@ Three secure-travel gaps this test was written against are fixed in `modules/nix
 | NetworkManager | wifi/ethernet `macAddress == "random"`, one dispatcher script |
 | resolved | `DNSOverTLS == "opportunistic"` |
 | docker | `virtualisation.docker.enable == false` |
-| resolved | `LLMNR == "false"`, `MulticastDNS == "false"` |
+| resolved | `LLMNR == "false"`, `MulticastDNS == "false"`, `Domains` does not contain `~.` (inert without global `DNS=`; the `DNSOverTLS`/`LLMNR` checks on the same attrset are the controls) |
 | GNOME sharing | `gnome-remote-desktop` and `gnome-user-share` disabled |
 | tor-browser | in systemPackages on x86_64 |
 | tailscale | `myconfig.services.tailscale.enable == false`, `services.tailscale.enable == false`, `tailscale0` not trusted |

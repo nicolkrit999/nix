@@ -47,6 +47,15 @@ let
   rcloneUnit = m: (hm cfg)."rclone-mount-${m.name}";
   one = v: if builtins.isList v then builtins.concatStringsSep " " v else v;
   execOf = m: one (rcloneUnit m).Service.ExecStart;
+  stateConf = m: "%S/rclone-mount/${m.name}.conf";
+  preOf = m: one (rcloneUnit m).Service.ExecStartPre;
+  seedScript = m: builtins.readFile (builtins.head (lib.splitString " " (preOf m)));
+  mountsWith = extra: (sys.extendModules {
+    modules = [{ myconfig.services.rcloneMount.mounts = extra; }];
+  }).config;
+  rcloneFailing = c: builtins.filter (a: lib.hasInfix "services.rcloneMount" a.message) (builtins.filter (a: !a.assertion) c.assertions);
+  dupName = mountsWith [ (builtins.head mounts) ];
+  emptyRemote = mountsWith [ { name = "probe"; remote = ""; configFile = "/x"; mountPoint = "/probe"; } ];
 
   asList = v: if builtins.isList v then v else if v == null then [ ] else [ v ];
   envOf = svc: asList (svc.Service.Environment or null);
@@ -150,8 +159,20 @@ let
       "rclone mountPoints collide with each other or a fileSystems entry";
     check-rclone-units-exist = check (lib.all (m: hm cfg ? "rclone-mount-${m.name}") mounts) "an rclone mount has no HM user unit";
     check-rclone-execstart = check
-      (lib.all (m: let e = execOf m; in lib.hasInfix "--config ${m.configFile}" e && lib.hasInfix " ${m.remote} ${m.mountPoint} " e) mounts)
-      "ExecStart lacks configFile/remote/mountPoint";
+      (lib.all (m: let e = execOf m; in lib.hasInfix "--config ${stateConf m} " e && !(lib.hasInfix m.configFile e) && lib.hasInfix " ${m.remote} ${m.mountPoint} " e) mounts)
+      "ExecStart lacks the writable state config / remote / mountPoint, or still points --config at the read-only configFile";
+    check-rclone-config-seed = check
+      (lib.all (m: lib.hasSuffix " ${stateConf m} ${m.configFile}" (preOf m) && lib.hasInfix "[ -e \"$1\" ] ||" (seedScript m) && lib.hasInfix "install" (seedScript m)) mounts)
+      "ExecStartPre does not seed the state config from configFile, or the seed script does not copy only when the target is missing";
+    check-rclone-no-network-online-after = check
+      (lib.all (m: !(builtins.elem "network-online.target" (asList ((rcloneUnit m).Unit.After or null)))) mounts)
+      "an rclone user unit orders After=network-online.target (a no-op in a user unit)";
+    check-rclone-assertions-pass-on-real-host = check (rcloneFailing cfg == [ ])
+      "an rcloneMount assertion fails on the real host";
+    check-rclone-assertion-fires-on-duplicate-name = check (builtins.length (rcloneFailing dupName) == 1)
+      "duplicate mount name did not trigger exactly one rcloneMount assertion";
+    check-rclone-assertion-fires-on-empty-field = check (builtins.length (rcloneFailing emptyRemote) == 1)
+      "empty remote did not trigger exactly one rcloneMount assertion";
     check-rclone-execstop = check
       (lib.all (m: lib.hasSuffix " -u ${m.mountPoint}" (one (rcloneUnit m).Service.ExecStop)) mounts)
       "ExecStop does not unmount the mountPoint";

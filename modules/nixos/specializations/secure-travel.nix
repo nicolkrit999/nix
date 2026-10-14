@@ -99,7 +99,6 @@ delib.module {
       # ---------------------------------------------------------
       myconfig.services = {
         # Disable Hyprland-specific
-        hyprlock.enable = lib.mkForce false;
         hypridle.enable = lib.mkForce false;
         coffee.enable = lib.mkForce false;
 
@@ -178,7 +177,6 @@ delib.module {
         enable = true;
         settings.Resolve = {
           DNSSEC = lib.mkForce "allow-downgrade"; # DNSSEC with captive portal fallback
-          Domains = lib.mkForce "~."; # Route all DNS through resolved
           FallbackDNS = lib.mkForce "1.1.1.1 8.8.8.8"; # Fallback for captive portals
           DNSOverTLS = lib.mkForce "opportunistic"; # DoT when available, plain for portals
           LLMNR = lib.mkForce "false";

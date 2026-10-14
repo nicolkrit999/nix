@@ -133,7 +133,6 @@ delib.host {
       programs.waybar-mango.enable = false; # status bar, gated on mango (already off) but disabled explicitly anyway
 
       # 🧰 Services
-      services.hyprlock.enable = false; # lock screen, Wayland-only
       services.hypridle.enable = false; # idle daemon, Wayland-only
       services.swaync.enable = false; # notification center, Wayland-only
       services.audio.enable = false; # pipewire/pulse/alsa - this NAS has no sound hardware

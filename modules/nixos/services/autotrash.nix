@@ -1,7 +1,6 @@
-{ delib, pkgs, ... }:
+{ delib, config, lib, pkgs, ... }:
 delib.module {
   name = "services.autotrash";
-
 
   options =
     with delib;
@@ -12,20 +11,23 @@ delib.module {
 
   nixos.ifEnabled =
     { cfg, myconfig, ... }:
+    let
+      user = myconfig.constants.user;
+    in
     {
       environment.systemPackages = [ pkgs.autotrash ];
 
-      systemd.services.cleanup_trash = {
+      systemd.services.cleanup-trash = {
         description = "Clean up trash older than ${toString cfg.retentionDays} days";
         serviceConfig = {
           Type = "oneshot";
-          User = myconfig.constants.user;
-          Environment = "HOME=/home/${myconfig.constants.user}";
-          ExecStart = "${pkgs.autotrash}/bin/autotrash -d ${toString cfg.retentionDays}";
+          User = user;
+          Environment = "HOME=${config.users.users.${user}.home}";
+          ExecStart = "${lib.getExe pkgs.autotrash} -d ${toString cfg.retentionDays}";
         };
       };
 
-      systemd.timers.cleanup_trash = {
+      systemd.timers.cleanup-trash = {
         wantedBy = [ "timers.target" ];
         timerConfig = {
           OnCalendar = "daily";

@@ -169,8 +169,12 @@ On failure the script outputs are saved as evidence (`keep_evidence`).
 |-------|----------|
 | user-enabled linger: `coffee-on` | "already enabled (not by coffee, coffee-off leaves it on)", no `enable-linger`, no marker |
 | user-enabled linger: `coffee-off` | "left as is (yes, not enabled by coffee)", no `disable-linger`, `Linger` still yes |
-| stale marker (other boot id): `coffee-on` then `coffee-off` | marker dropped, linger treated as not coffee's, never disabled |
-| stale marker, `coffee-off` only | marker removed, linger left as is |
+| marker with another boot id + `Linger=yes` (persisted linger): `coffee-on` | marker kept, "already enabled by coffee", no `enable-linger` |
+| same state: `coffee-status` | "linger: yes (enabled by coffee)" although the boot id differs |
+| same state: `coffee-off` (after on, and alone) | `disable-linger` once, verified `Linger=no`, marker removed |
+| marker + `Linger=no` (really stale): `coffee-status` | control: no "enabled by coffee" |
+| same state: `coffee-on` | marker dropped, `enable-linger` once, marker = this boot id |
+| same state: `coffee-off` | marker removed, no `disable-linger` call, linger stays no |
 | no forbidden command (per section) | clean call log |
 
 ### Runtime: FAIL and WARN paths

@@ -36,23 +36,29 @@ delib.module {
         .notification-row { outline: none; }
       '';
 
+      isX86 = pkgs.stdenv.hostPlatform.isx86_64;
+
       caelestiaActiveOnHyprland =
-        (myconfig.programs.caelestia.enable or false)
+        isX86
+        && (myconfig.programs.caelestia.enable or false)
         && (myconfig.programs.caelestia.enableOnHyprland or false)
         && (myconfig.programs.hyprland.enable or false);
 
       noctaliaActiveOnHyprland =
-        (myconfig.programs.noctalia.enable or false)
+        isX86
+        && (myconfig.programs.noctalia.enable or false)
         && (myconfig.programs.noctalia.enableOnHyprland or false)
         && (myconfig.programs.hyprland.enable or false);
 
       noctaliaActiveOnNiri =
-        (myconfig.programs.noctalia.enable or false)
+        isX86
+        && (myconfig.programs.noctalia.enable or false)
         && (myconfig.programs.noctalia.enableOnNiri or false)
         && (myconfig.programs.niri.enable or false);
 
       noctaliaActiveOnMango =
-        (myconfig.programs.noctalia.enable or false)
+        isX86
+        && (myconfig.programs.noctalia.enable or false)
         && (myconfig.programs.noctalia.enableOnMango or false)
         && (myconfig.programs.mango.enable or false);
 
@@ -65,6 +71,11 @@ delib.module {
 
       mangoSwayNC =
         (myconfig.programs.mango.enable or false) && !noctaliaActiveOnMango;
+
+      sessionTargets =
+        (lib.optional hyprlandSwayNC "hyprland-session.target")
+        ++ (lib.optional niriSwayNC "niri.service")
+        ++ (lib.optional mangoSwayNC "mango-session.target");
     in
 
 
@@ -72,8 +83,7 @@ delib.module {
       home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
       fonts.fontconfig.enable = true;
 
-      catppuccin.swaync.enable = myconfig.constants.theme.catppuccin or false;
-      catppuccin.swaync.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
+      catppuccin.swaync.enable = false;
 
       services.swaync = {
         enable = true;
@@ -107,21 +117,9 @@ delib.module {
       };
 
       systemd.user.services.swaync = {
-        Unit.PartOf = lib.mkForce (
-          (lib.optional hyprlandSwayNC "hyprland-session.target")
-          ++ (lib.optional niriSwayNC "niri.service")
-          ++ (lib.optional mangoSwayNC "mango-session.target")
-        );
-        Unit.After = lib.mkForce (
-          (lib.optional hyprlandSwayNC "hyprland-session.target")
-          ++ (lib.optional niriSwayNC "niri.service")
-          ++ (lib.optional mangoSwayNC "mango-session.target")
-        );
-        Install.WantedBy = lib.mkForce (
-          (lib.optional hyprlandSwayNC "hyprland-session.target")
-          ++ (lib.optional niriSwayNC "niri.service")
-          ++ (lib.optional mangoSwayNC "mango-session.target")
-        );
+        Unit.PartOf = lib.mkForce sessionTargets;
+        Unit.After = lib.mkForce sessionTargets;
+        Install.WantedBy = lib.mkForce sessionTargets;
       };
     };
 }

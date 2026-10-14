@@ -1,19 +1,22 @@
 { delib, lib, config, pkgs, ... }:
+let
+  anyWmEnabled = myconfig:
+    (myconfig.programs.hyprland.enable or false)
+    || (myconfig.programs.niri.enable or false)
+    || (myconfig.programs.mango.enable or false);
+in
 delib.module {
   name = "services.hyprlock";
-  options = with delib; moduleOptions {
-    enable = boolOption true;
-    settings = attrsOption { };
-  };
+
+  nixos.always =
+    { myconfig, ... }:
+    lib.mkIf (anyWmEnabled myconfig) {
+      security.pam.services.hyprlock = { };
+    };
 
   home.always =
     { myconfig, ... }:
     let
-      anyWmEnabled =
-        (myconfig.programs.hyprland.enable or false)
-        || (myconfig.programs.niri.enable or false)
-        || (myconfig.programs.mango.enable or false);
-
       catppuccinEnabled = myconfig.constants.theme.catppuccin or false;
 
       c = config.lib.stylix.colors;
@@ -40,6 +43,17 @@ delib.module {
         )
         statics;
       fetchWp = w: "${pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; }}";
+      labelBase = {
+        monitor = "";
+        color = "rgba(${fg}ff)";
+        shadow_passes = 3;
+        shadow_size = 4;
+        shadow_color = "rgba(${shadowColor}e6)";
+        shadow_boost = 0.6;
+        font_family = "JetBrainsMono Nerd Font Propo";
+        halign = "left";
+        valign = "center";
+      };
       bgLook = {
         blur_passes = 2;
         blur_size = 4;
@@ -47,13 +61,19 @@ delib.module {
         contrast = 1.0;
       };
     in
-    lib.mkIf anyWmEnabled {
+    lib.mkIf (anyWmEnabled myconfig) {
       home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
       fonts.fontconfig.enable = true;
 
-      catppuccin.hyprlock.enable = catppuccinEnabled;
-      catppuccin.hyprlock.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
-      catppuccin.hyprlock.accent = myconfig.constants.theme.catppuccinAccent or "mauve";
+      catppuccin.hyprlock = {
+        enable = catppuccinEnabled;
+        flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
+        accent = myconfig.constants.theme.catppuccinAccent or "mauve";
+      };
+
+      xdg.configFile.background = lib.mkIf catppuccinEnabled {
+        source = fetchWp catchAll;
+      };
 
       programs.hyprlock = {
         enable = true;
@@ -104,62 +124,26 @@ delib.module {
           ];
 
           label = lib.mkForce [
-            {
-              monitor = "";
+            (labelBase // {
               text = "Welcome!";
-              color = "rgba(${fg}ff)";
-              shadow_passes = 3;
-              shadow_size = 4;
-              shadow_color = "rgba(${shadowColor}e6)";
-              shadow_boost = 0.6;
               font_size = 75;
-              font_family = "JetBrainsMono Nerd Font Propo";
               position = "165, 450";
-              halign = "left";
-              valign = "center";
-            }
-            {
-              monitor = "";
+            })
+            (labelBase // {
               text = ''cmd[update:1000] echo "<span>$(date +"%I:%M")</span>"'';
-              color = "rgba(${fg}ff)";
-              shadow_passes = 3;
-              shadow_size = 4;
-              shadow_color = "rgba(${shadowColor}e6)";
-              shadow_boost = 0.6;
               font_size = 55;
-              font_family = "JetBrainsMono Nerd Font Propo";
               position = "255, 335";
-              halign = "left";
-              valign = "center";
-            }
-            {
-              monitor = "";
+            })
+            (labelBase // {
               text = ''cmd[update:60000] echo "$(date +'%A, %B %d')"'';
-              color = "rgba(${fg}ff)";
-              shadow_passes = 3;
-              shadow_size = 4;
-              shadow_color = "rgba(${shadowColor}e6)";
-              shadow_boost = 0.6;
               font_size = 28;
-              font_family = "JetBrainsMono Nerd Font Propo";
               position = "180, 240";
-              halign = "left";
-              valign = "center";
-            }
-            {
-              monitor = "";
+            })
+            (labelBase // {
               text = " $USER";
-              color = "rgba(${fg}ff)";
-              shadow_passes = 3;
-              shadow_size = 4;
-              shadow_color = "rgba(${shadowColor}e6)";
-              shadow_boost = 0.6;
               font_size = 20;
-              font_family = "JetBrainsMono Nerd Font Propo";
               position = "310, -205";
-              halign = "left";
-              valign = "center";
-            }
+            })
           ];
 
           input-field = lib.mkForce [

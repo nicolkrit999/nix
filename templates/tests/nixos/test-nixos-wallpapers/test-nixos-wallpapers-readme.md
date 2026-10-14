@@ -269,7 +269,7 @@ Negative checks grep stderr for the documented `assertMsg` text. Real-host check
 | hyprlock `desc:` target with video-only entries (`29`) | `desc:` monitor passes through unchanged; video-only entries (`DP-3`, `*`) emit no background; catch-all is the first static entry |
 | hyprlock control | a reverted single-`*` background fails the same predicate (`lockOk`) that the desktop-like case passes |
 | hyprlock on the real `nixos-laptop` | eDP-1 background uses its own wallpaper, catch-all uses `*`, and the two files differ |
-| `nixos-desktop` hyprlock | not covered on the real host: catppuccin is on there, so `hyprlock.nix` sets no `settings`; the desktop-like fixture covers the logic |
+| `nixos-desktop` hyprlock (catppuccin on) | `catppuccin.hyprlock` is on and `xdg.configFile.background.source` is the store path of the host's `*` (else first static) wallpaper; control: with catppuccin off (`19-empty-wm`) no `~/.config/background` is written. The per-monitor background logic itself is covered by the desktop-like fixture |
 | `stylix-nixos.nix` | reads `constants.primaryWallpaper`, has no `findFirst` of its own (source check: it cannot be loaded next to the stub) |
 | `*` entry that is not first (`25-star-second`, `shared/base-constants-star-second.nix`) | `primaryWallpaper` is the `*` entry |
 | primary `*` entry with only `videoURL` (`wallpaperURL == ""`), `30-video-only-gnome` (base `shared/base-constants-video-only-primary.nix`) | fixture sanity: `primaryWallpaper` has empty `wallpaperURL` and the video URL; `gnome-main` dconf settings use the fallback wallpaper and never the video URL |

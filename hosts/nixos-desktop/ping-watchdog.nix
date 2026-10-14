@@ -13,9 +13,9 @@ delib.module {
       # public (1.1.1.1, 9.9.9.9) and tailnet (100.72.14.7) targets, logging
       # reachability transitions - used to diagnose intermittent connectivity
       # issues. Declarative system service (not a home-manager/user service)
-      # so it survives reboots without relying on `loginctl enable-linger`,
-      # which would require adding /var/lib/systemd/linger to the
-      # impermanence persistence allowlist for no real benefit.
+      # so it starts at boot without depending on `loginctl enable-linger`
+      # (linger is persisted on this host, but a system unit needs no user
+      # session at all).
       systemd.services.ping-watchdog = {
         description = "Continuous ping watchdog (1.1.1.1 / 9.9.9.9 / 100.72.14.7) for connectivity-outage diagnostics";
         after = [ "network-online.target" "tailscaled.service" ];

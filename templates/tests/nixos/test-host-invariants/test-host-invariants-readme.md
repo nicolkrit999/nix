@@ -39,8 +39,10 @@ Per host unless marked.
 | impermanence-enabled | `myconfig.services.impermanence.enable` |
 | root-tmpfs | `fileSystems."/".fsType == "tmpfs"` |
 | persist / var-log needed-for-boot | both `neededForBoot` |
-| persist-dirs | `/etc/ssh`, `/var/lib/nixos`, `/var/lib/tailscale` persisted |
-| persist-machine-id | `/etc/machine-id` persisted |
+| persist-dirs | `/etc/ssh`, `/var/lib/nixos`, `/var/lib/tailscale`, `/var/lib/systemd/timesync`, `/var/lib/NetworkManager` persisted |
+| persist-machine-id / persist-random-seed | `/etc/machine-id` and `/var/lib/systemd/random-seed` persisted files |
+| resolved-no-global-domains | `services.resolved.settings.Resolve.Domains` does not contain `~.` |
+| resolved-mdns-off-with-avahi | `extendModules` twins: avahi forced on gives `MulticastDNS = "false"`, avahi forced off does not |
 | luks-cryptroot (laptop) | all btrfs mounts on `/dev/mapper/cryptroot`, luks device `cryptroot` exists |
 | desktop-no-luks (desktop) | no LUKS devices (premise of emergencyAccess) |
 | sops-key-persisted | every `sops.age.sshKeyPaths` entry under `/persist/` |

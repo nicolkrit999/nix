@@ -33,7 +33,6 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | `hyprland.enable` | `false` |
 | `myconfig.stylix.enable` | `false` |
 | `bluetooth.enable` | `false` |
-| `services.hyprlock.enable` | `false` |
 | `services.swaync.enable` | `false` |
 | `services.hypridle.enable` | `false` |
 | `services.coffee.enable` | `false` |

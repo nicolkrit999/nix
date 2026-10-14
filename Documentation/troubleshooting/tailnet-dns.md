@@ -8,7 +8,7 @@ this configuration are recorded here.
 ## `modules/nixos/services/resolved.nix` is exonerated
 
 While Tailscale is up, tailscaled overrides the system resolver configuration
-wholesale, so `FallbackDNS` and `Domains = "~."` in that module are inert.
+wholesale, so `FallbackDNS` in that module is inert (the old global `Domains = "~."` was removed in the batch-8 audit: with no global DNS= servers it never did anything).
 Confirmed by tcpdump on `tailscale0`. Do not re-investigate it for this class of
 outage.
 

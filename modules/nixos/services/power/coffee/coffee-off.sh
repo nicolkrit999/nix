@@ -40,20 +40,15 @@ fi
 
 linger=$(linger_state)
 if [[ -f $LINGER_MARKER ]]; then
-  if [[ $(cat "$LINGER_MARKER" 2>/dev/null) == "$(boot_id)" ]]; then
-    if [[ $linger == yes ]]; then
-      loginctl disable-linger "$COFFEE_USER" 2>/dev/null || true
-      linger=$(linger_state)
-    fi
-    if [[ $linger == no ]]; then
-      rm -f "$LINGER_MARKER"
-      ok "linger: disabled again (coffee had enabled it), verified"
-    else
-      fail "linger: still '${linger:-unknown}' although coffee had enabled it" "loginctl disable-linger $COFFEE_USER"
-    fi
-  else
+  if [[ $linger == yes ]]; then
+    loginctl disable-linger "$COFFEE_USER" 2>/dev/null || true
+    linger=$(linger_state)
+  fi
+  if [[ $linger == no ]]; then
     rm -f "$LINGER_MARKER"
-    ok "linger: marker from an earlier boot removed, linger left as is (${linger:-unknown})"
+    ok "linger: disabled again (coffee had enabled it), verified"
+  else
+    fail "linger: still '${linger:-unknown}' although coffee had enabled it" "loginctl disable-linger $COFFEE_USER"
   fi
 else
   ok "linger: left as is (${linger:-unknown}, not enabled by coffee)"

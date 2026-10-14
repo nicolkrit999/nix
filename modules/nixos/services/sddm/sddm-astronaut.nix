@@ -50,10 +50,12 @@ delib.module {
           PartialBlur = "true";
         };
         description = ''
-          Attribute set of [General] options. Applied via direct sed on
-          the active theme .conf (not the upstream .conf.user path, which
-          has upstream bugs - see HourFormat FIXME). Wins over
-          stylixIntegration defaults.
+          Attribute set of [General] options. Each key is rewritten with sed
+          in the active theme .conf (Themes/<embeddedTheme>.conf); keys the
+          conf does not already define as Key="..." are left untouched. Any
+          upstream Themes/*.conf.user is deleted in the patched copy
+          (rm -f), so the edited .conf is the only source the theme reads.
+          Wins over stylixIntegration defaults.
         '';
       };
 
@@ -77,7 +79,9 @@ delib.module {
     let
       sddmDir = ../../../../users + "/${myconfig.constants.user}/src/sddm";
       resolveImg = name:
-        if name == null || builtins.isPath name || lib.hasPrefix "/" name then name
+        if name == null || builtins.isPath name || lib.hasPrefix builtins.storeDir name then name
+        else if lib.hasPrefix "/" name then
+          throw "${name}: absolute paths outside the store are impure; pass a path value or a filename in users/${myconfig.constants.user}/src/sddm/"
         else
           let p = sddmDir + "/${name}"; in
           if builtins.pathExists p then p
@@ -231,10 +235,8 @@ delib.module {
         // cfg.themeConfig;
 
       baseTheme = pkgs.sddm-astronaut.override {
-        embeddedTheme = cfg.embeddedTheme;
+        inherit (cfg) embeddedTheme;
       };
-
-      needsPatch = bgPath != null || effectiveThemeConfig != { };
 
       themePath = "$out/share/sddm/themes/sddm-astronaut-theme";
       confPath = "${themePath}/Themes/${cfg.embeddedTheme}.conf";
@@ -259,7 +261,7 @@ delib.module {
             right) x=1152 ;;
             *) x=576 ;;
           esac
-          magick "$src[0]" -resize 1920x1080^ -gravity center -extent 1920x1080 +repage \
+          magick "''${src}[0]" -resize 1920x1080^ -gravity center -extent 1920x1080 +repage \
             -alpha off -crop 768x1080+$x+0 +repage -blur 0x16 base.png || return 1
           set -- $(awk -v F=${fgHex} '
             function lin(h, v) { v = strtonum("0x" h) / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ^ 2.4 }
@@ -297,77 +299,75 @@ delib.module {
       '';
 
       sddmTheme =
-        if !needsPatch then baseTheme
-        else
-          pkgs.runCommandLocal "sddm-astronaut-patched"
-            {
-              nativeBuildInputs = lib.optionals hasBg
-                ([ pkgs.imagemagick ] ++ lib.optional isVideo pkgs.ffmpeg-headless);
-            } ''
-            mkdir -p $out
-            cp -r ${baseTheme}/. $out/
-            chmod -R u+w $out
+        pkgs.runCommandLocal "sddm-astronaut-patched"
+          {
+            nativeBuildInputs = lib.optionals hasBg
+              ([ pkgs.imagemagick ] ++ lib.optional isVideo pkgs.ffmpeg-headless);
+          } ''
+          mkdir -p $out
+          cp -r ${baseTheme}/. $out/
+          chmod -R u+w $out
 
-            # Drop any upstream .conf.user so our direct .conf edits are authoritative.
-            rm -f ${themePath}/Themes/*.conf.user
+          # Drop any upstream .conf.user so our direct .conf edits are authoritative.
+          rm -f ${themePath}/Themes/*.conf.user
 
-            ${lib.optionalString hasBg ''
-              cp ${bgPath} ${themePath}/Backgrounds/${bgFilename}
-              sed -i 's|^Background="[^"]*"|Background="Backgrounds/${bgFilename}"|' ${confPath}
+          ${lib.optionalString hasBg ''
+            cp ${bgPath} ${themePath}/Backgrounds/${bgFilename}
+            sed -i 's|^Background="[^"]*"|Background="Backgrounds/${bgFilename}"|' ${confPath}
+          ''}
+
+          ${lib.concatStringsSep "\n" (lib.mapAttrsToList patchLine effectiveThemeConfig)}
+
+          ${lib.optionalString hasBg ''
+            ${measureScript}
+            ${lib.optionalString (!dimUser) ''
+              sed -i "s|^DimBackground=\"[^\"]*\"|DimBackground=\"$DIM\"|" ${confPath}
             ''}
 
-            ${lib.concatStringsSep "\n" (lib.mapAttrsToList patchLine effectiveThemeConfig)}
+            cd ${themePath}
+            substituteInPlace Main.qml --replace-fail \
+              'opacity: config.PartialBlur == "true" ? 0.3 : 1' \
+              "opacity: config.PartialBlur == \"true\" ? $FORM_OPACITY : 1"
 
-            ${lib.optionalString hasBg ''
-              ${measureScript}
-              ${lib.optionalString (!dimUser) ''
-                sed -i "s|^DimBackground=\"[^\"]*\"|DimBackground=\"$DIM\"|" ${confPath}
-              ''}
+            substituteInPlace Components/Input.qml \
+              --replace-fail $'color: config.LoginFieldBackgroundColor\n                opacity: 0.2\n                border.color: "transparent"' \
+                             $'color: config.LoginFieldBackgroundColor\n                opacity: 1.0\n                border.color: "${fieldBorder}"' \
+              --replace-fail $'color: config.PasswordFieldBackgroundColor\n                opacity: 0.2\n                border.color: "transparent"' \
+                             $'color: config.PasswordFieldBackgroundColor\n                opacity: 1.0\n                border.color: "${fieldBorder}"' \
+              --replace-fail $'color: config.LoginButtonTextColor\n                text: parent.text\n                opacity: 0.5' \
+                             $'color: config.LoginButtonTextColor\n                text: parent.text\n                opacity: 1.0' \
+              --replace-fail $'color: config.LoginButtonBackgroundColor\n                opacity: 0.2' \
+                             $'color: config.LoginButtonBackgroundColor\n                opacity: 0.6'
 
-              cd ${themePath}
-              substituteInPlace Main.qml --replace-fail \
-                'opacity: config.PartialBlur == "true" ? 0.3 : 1' \
-                "opacity: config.PartialBlur == \"true\" ? $FORM_OPACITY : 1"
+            substituteInPlace Components/Clock.qml \
+              --replace-fail 'import QtQuick.Controls 2.15' 'import QtQuick.Controls 2.15
+            import QtQuick.Effects' \
+              --replace-fail '    id: clock' '    id: clock
 
-              substituteInPlace Components/Input.qml \
-                --replace-fail $'color: config.LoginFieldBackgroundColor\n                opacity: 0.2\n                border.color: "transparent"' \
-                               $'color: config.LoginFieldBackgroundColor\n                opacity: 1.0\n                border.color: "${fieldBorder}"' \
-                --replace-fail $'color: config.PasswordFieldBackgroundColor\n                opacity: 0.2\n                border.color: "transparent"' \
-                               $'color: config.PasswordFieldBackgroundColor\n                opacity: 1.0\n                border.color: "${fieldBorder}"' \
-                --replace-fail $'color: config.LoginButtonTextColor\n                text: parent.text\n                opacity: 0.5' \
-                               $'color: config.LoginButtonTextColor\n                text: parent.text\n                opacity: 1.0' \
-                --replace-fail $'color: config.LoginButtonBackgroundColor\n                opacity: 0.2' \
-                               $'color: config.LoginButtonBackgroundColor\n                opacity: 0.6'
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    shadowEnabled: true
+                    shadowColor: "${bk}"
+                    shadowOpacity: 0.9
+                    shadowBlur: 0.6
+                    shadowVerticalOffset: 1
+                }'
 
-              substituteInPlace Components/Clock.qml \
-                --replace-fail 'import QtQuick.Controls 2.15' 'import QtQuick.Controls 2.15
-              import QtQuick.Effects' \
-                --replace-fail '    id: clock' '    id: clock
+            substituteInPlace Components/LoginForm.qml \
+              --replace-fail 'import QtQuick.Layouts 1.15' 'import QtQuick.Layouts 1.15
+            import QtQuick.Effects' \
+              --replace-fail '        id: systemButtons' '        id: systemButtons
 
-                  layer.enabled: true
-                  layer.effect: MultiEffect {
-                      shadowEnabled: true
-                      shadowColor: "${bk}"
-                      shadowOpacity: 0.9
-                      shadowBlur: 0.6
-                      shadowVerticalOffset: 1
-                  }'
-
-              substituteInPlace Components/LoginForm.qml \
-                --replace-fail 'import QtQuick.Layouts 1.15' 'import QtQuick.Layouts 1.15
-              import QtQuick.Effects' \
-                --replace-fail '        id: systemButtons' '        id: systemButtons
-
-                  layer.enabled: true
-                  layer.effect: MultiEffect {
-                      shadowEnabled: true
-                      shadowColor: "${bk}"
-                      shadowOpacity: 0.9
-                      shadowBlur: 0.6
-                      shadowVerticalOffset: 1
-                  }'
-            ''}
-          '';
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    shadowEnabled: true
+                    shadowColor: "${bk}"
+                    shadowOpacity: 0.9
+                    shadowBlur: 0.6
+                    shadowVerticalOffset: 1
+                }'
+          ''}
+        '';
     in
     {
       assertions = [{
@@ -375,32 +375,45 @@ delib.module {
         message = "services.sddm-astronaut and services.sddm-pixie are mutually exclusive - enable only one in your host config.";
       }];
 
-      services.xserver.enable = true;
-      services.xserver.excludePackages = [ pkgs.xterm ];
+      services = {
+        xserver = {
+          enable = true;
+          excludePackages = [ pkgs.xterm ];
+        };
 
-      services.displayManager.sddm = {
-        enable = true;
-        wayland.enable = true;
-        package = lib.mkForce pkgs.kdePackages.sddm;
-        theme = "sddm-astronaut-theme";
+        displayManager = {
+          sddm = {
+            enable = true;
+            wayland.enable = true;
+            package = lib.mkForce pkgs.kdePackages.sddm;
+            theme = "sddm-astronaut-theme";
 
-        settings = {
-          General = {
-            InputMethod = "qtvirtualkeyboard";
+            settings = {
+              General = {
+                InputMethod = "qtvirtualkeyboard";
+              };
+            };
+
+            extraPackages = with pkgs; [
+              kdePackages.qtsvg
+              kdePackages.qtmultimedia
+              kdePackages.qtvirtualkeyboard
+              kdePackages.qtdeclarative
+              gst_all_1.gstreamer
+              gst_all_1.gst-plugins-base
+              gst_all_1.gst-plugins-good
+              gst_all_1.gst-plugins-bad
+              gst_all_1.gst-libav
+            ];
+          };
+
+          autoLogin = {
+            enable = false;
+            user = myconfig.constants.user;
           };
         };
 
-        extraPackages = with pkgs; [
-          kdePackages.qtsvg
-          kdePackages.qtmultimedia
-          kdePackages.qtvirtualkeyboard
-          kdePackages.qtdeclarative
-          gst_all_1.gstreamer
-          gst_all_1.gst-plugins-base
-          gst_all_1.gst-plugins-good
-          gst_all_1.gst-plugins-bad
-          gst_all_1.gst-libav
-        ];
+        getty.autologinUser = null;
       };
 
       systemd.services.display-manager.environment = {
@@ -412,16 +425,6 @@ delib.module {
 
       fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
 
-      environment.systemPackages = [
-        sddmTheme
-        pkgs.bibata-cursors
-      ];
-
-      services.displayManager.autoLogin = {
-        enable = false;
-        user = myconfig.constants.user;
-      };
-
-      services.getty.autologinUser = null;
+      environment.systemPackages = [ sddmTheme ];
     };
 }

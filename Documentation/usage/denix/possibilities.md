@@ -179,12 +179,13 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`services.audio`**: Configures the PipeWire sound server and related audio management tools.
 * **`services.auto-cpufreq`**: Enables the auto-cpufreq daemon, an automatic CPU speed and power optimizer that dynamically adjusts CPU governors and turbo based on battery state and system load. Mutually exclusive with TLP.
 * **`services.autotrash`**: Runs `autotrash` as a daily systemd timer to automatically delete files from the user's trash that exceed a configurable number of days (`retentionDays`, default: 30).
+* **`services.coffee`**: Coffee mode for Hyprland, Niri and Mango hosts: `coffee-on`, `coffee-off`, `coffee-status` and `coffee-toggle` (used by the waybar pill click) keep the machine awake against automatic idle and lid events. Sets logind `SuspendKeyIgnoreInhibited` and `HibernateKeyIgnoreInhibited` so the suspend/hibernate keys still work while coffee is on. See the coffee-mode gotcha doc for what it does not block.
 * **`services.hypridle`**: An idle management daemon for Wayland that automatically dims, locks, and turns off displays after configurable inactivity timeouts.
-* **`services.hyprlock`**: A screen locker built specifically for the Hyprland ecosystem.
+* **`services.hyprlock`**: Home-manager lock screen config (hyprlock, themed by catppuccin or stylix) plus its PAM service; active whenever Hyprland, niri or mango is enabled. No options.
 * **`services.impermanence`**: Configures an ephemeral root filesystem with a persistent `/persist` overlay for important directories and files (NetworkManager, SSH, Bluetooth, Tailscale, etc.).
 * **`services.localsend`**: Installs LocalSend through nixpkgs `programs.localsend` and opens its TCP/UDP port 53317 in the firewall.
-* **`services.resolved`**: Enables systemd-resolved as the system DNS resolver with DNS-over-TLS (opportunistic), Quad9 fallback DNS (`9.9.9.9`, `149.112.112.112`), and global DNS routing (`~.`).
-* **`services.sddm-astronaut`**: Configures the SDDM login manager with the Astronaut theme (jake_the_dog variant).
+* **`services.resolved`**: Enables systemd-resolved as the system DNS resolver with DNS-over-TLS (opportunistic), Quad9 fallback DNS (`9.9.9.9`, `149.112.112.112`), and mDNS handed to avahi when it is enabled.
+* **`services.sddm-astronaut`**: Configures the SDDM login manager with the Astronaut theme (`embeddedTheme`, default `astronaut`).
   * **Warning (sddm):** Without a display manager there would be no graphical login, forcing use of a TTY.
   * Only enable one sddm at any moment
 * **`services.sddm-pixie`**: Configures the SDDM login manager with the Pixie theme and customizable styling options.
@@ -194,7 +195,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`services.snapshots`**: A BTRFS snapshot retention automation system using Snapper to back up the filesystem on a configurable timeline (hourly, daily, weekly, monthly, yearly).
 * **`services.swaync`**: A notification daemon and control center for Wayland compositors, with optional per-app notification muting rules.
 * **`services.thermald`**: The Intel thermal daemon. Prevents CPU overheating by dynamically adjusting power limits before the kernel's thermal shutdown triggers. Independent of auto-cpufreq and tlp - can be enabled alongside either. ⚠️ Intel CPUs only; keep disabled on AMD hosts.
-* **`services.tlp`**: An advanced power management tool that optimizes battery life by configuring processor energy-performance policies, frequency scaling, and optional charging thresholds based on power source. Mutually exclusive with auto-cpufreq.
+* **`services.tlp`**: An advanced power management tool that optimizes battery life by configuring processor governors and energy-performance policies based on power source. Forces `power-profiles-daemon` off while enabled. Mutually exclusive with auto-cpufreq.
 
 #### Specializations (`specializations.`)
 

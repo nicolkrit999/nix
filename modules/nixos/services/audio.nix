@@ -15,7 +15,7 @@ delib.module {
       alsa.support32Bit = true;
       pulse.enable = true;
 
-      # Low Latency Config
+      # Fixed clock rate with a 1024 quantum
       extraConfig.pipewire."92-low-latency" = {
         "context.properties" = {
           "default.clock.rate" = cfg.clockRate;
@@ -53,10 +53,6 @@ delib.module {
         };
       };
     };
-    environment.systemPackages = with pkgs; [
-      pipewire
-      wireplumber
-      wiremix
-    ];
+    environment.systemPackages = [ pkgs.wiremix ];
   };
 }

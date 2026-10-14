@@ -134,7 +134,7 @@ delib.module {
             qt.enable = false;
             gnome.enable = false;
             hyprland.enable = !isCatppuccin;
-            hyprlock.enable = !isCatppuccin;
+            hyprlock.enable = false;
             gtk.enable = !isCatppuccin;
             swaync.enable = !isCatppuccin;
             tmux.enable = !isCatppuccin;

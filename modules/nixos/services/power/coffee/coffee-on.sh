@@ -79,10 +79,12 @@ fi
 
 if ((lock_ok)); then
   bid=$(boot_id)
-  if [[ -f $LINGER_MARKER && $(cat "$LINGER_MARKER" 2>/dev/null) != "$bid" ]]; then
+  linger=$(linger_state)
+  # The marker proves coffee enabled linger, across reboots too (linger can be persisted).
+  # It is stale only when linger is no longer yes.
+  if [[ -f $LINGER_MARKER && $linger != yes ]]; then
     rm -f "$LINGER_MARKER"
   fi
-  linger=$(linger_state)
   case $linger in
     yes)
       if [[ -f $LINGER_MARKER ]]; then

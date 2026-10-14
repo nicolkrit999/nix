@@ -36,7 +36,7 @@ Per host, per variant:
 |-------|----------|
 | HM `stylix.targets.qt.enable` | `false` |
 | `stylix.targets.kde.enable` | `== !catppuccin` |
-| targets bat/lazygit/starship/gtk/hyprlock/hyprland/swaync/tmux | `== !catppuccin` unless `myconfig.stylix.targets.<n>.enable` overrides |
+| targets bat/lazygit/starship/gtk/hyprland/swaync/tmux | `== !catppuccin` unless `myconfig.stylix.targets.<n>.enable` overrides |
 | targets gnome/waybar/rofi/wofi/neovim | `false` |
 | `gtk3`/`gtk4` `gtk-application-prefer-dark-theme` | 1 if dark, 0 if light |
 | NixOS and HM `stylix.polarity` | equal the constant |
@@ -51,6 +51,8 @@ Per host, per variant:
 | `stylix.targets.kde.useWallpaper` | `false` |
 | plasma wallpapers (KDE hosts) | still declared (list or custom plugin) |
 | `catppuccin.hyprlock.enable` | `== catppuccin` (when a WM is on) |
+| `stylix.targets.hyprlock.enable` | `false` in both theme modes (the hyprlock module builds its own look; catppuccin mode hands the lock wallpaper over via `~/.config/background`) |
+| `catppuccin.swaync.enable` (swaync hosts, both theme modes) | `false` (the module overrides `services.swaync.style`; the catppuccin target would only install an unused font) |
 | hyprlock `rgba(...)` (base16 mode) | at least one, all 8 lowercase hex digits |
 | hyprlock `foreground="##rrggbbaa"` (base16 mode) | escaped `##` form present, no single `#` |
 

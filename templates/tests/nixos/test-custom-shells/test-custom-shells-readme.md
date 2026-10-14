@@ -81,6 +81,9 @@ Scenario hosts live in `consumers/NN-*/default.nix`; each `_test.nix` evaluates 
 | C07 hyprland+niri+mango, noctalia only on niri | swayosd and swaync kept; swaync PartOf = hyprland + mango targets only; hypridle on |
 | C08 no WM | swayosd-server absent, swaync, hypridle, hyprlock all disabled |
 | C09 control (hyprland) | hypridle and hyprlock enabled, proving C08 can fail |
+| C10 hypridle on hyprland only | `Install.WantedBy` is exactly `hyprland-session.target` (no `graphical-session.target`), `PartOf`/`After` equal it; no `on-timeout` contains an inline `pgrep -f`, all run the `nix-busy` script (control: the dpms timeout still contains `pgrep -x`); dim uses `brightnessctl -c backlight -s set` / `-r`; no `unlock_cmd` (control: `lock_cmd` set); `security.pam.services.hyprlock` exists |
+| C11 hypridle on hyprland+niri+mango | same contract; `WantedBy` is exactly `hyprland-session.target`, `niri.service`, `mango-session.target` |
+| C12 control (no WM) | `security.pam.services.hyprlock` absent, hypridle disabled |
 
 The positive C01-C04 package/execOnce checks make the absence checks non-vacuous.
 

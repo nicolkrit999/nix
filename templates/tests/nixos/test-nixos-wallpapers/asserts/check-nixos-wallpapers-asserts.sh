@@ -100,6 +100,8 @@ expect_ok lockStarOnly               "only a * entry: single catch-all backgroun
 expect_ok lockDescVideo              "desc: monitor passes through; video-only entries emit no background; catch-all is the first static"
 expect_ok lockNoVideoPaths           "video-only entries never reach hyprlock"
 expect_ok lockRealLaptop             "real nixos-laptop: eDP-1 background uses its own wallpaper, catch-all uses *"
+expect_ok lockCatppuccinBackground   "real nixos-desktop (catppuccin on): ~/.config/background is the catch-all wallpaper"
+expect_ok lockCatppuccinBackgroundAbsentWhenOff "control: catppuccin off (19-empty-wm): no ~/.config/background"
 expect_ok lockRealLaptopNotStar      "real nixos-laptop: eDP-1 wallpaper differs from * (control for the above)"
 
 echo ""

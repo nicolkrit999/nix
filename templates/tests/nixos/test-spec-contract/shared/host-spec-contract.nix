@@ -22,7 +22,6 @@ delib.host {
       fastfetch.enable = true; # safe-mode disables
     };
     services = {
-      hyprlock.enable = true; # guest disables
       tailscale.enable = true; # secure-travel disables
     };
     bluetooth.enable = true; # guest/secure-travel disable

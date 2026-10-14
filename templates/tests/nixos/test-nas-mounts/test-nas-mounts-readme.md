@@ -18,7 +18,7 @@ From inside the directory:
 bash check-nixos-nas-mounts.sh
 ```
 
-Eval only. Two host evaluations, each with a few `extendModules` controls; 115 s inside the full parallel suite run of 2026-10-11. Runs in the `nixos-b` CI group (`test.conf`).
+Eval only. Two host evaluations, each with a few `extendModules` controls; the seed check builds the tiny seed script derivation to read its text; 115 s inside the full parallel suite run of 2026-10-11. Runs in the `nixos-b` CI group (`test.conf`).
 
 ## How it works
 
@@ -73,9 +73,12 @@ Values are compared against independent sources (sops secret paths, `users.users
 |-------|----------|
 | rclone-enabled-matches-cloud-modules | mount count equals enabled `krit.services.cloud.*` modules |
 | rclone-names-unique / fields-nonempty / mountpoints-unique | unique non-empty names, non-empty fields, unique mount points not clashing with fileSystems |
-| rclone-units-exist / execstart / execstop / tmpfiles | HM unit per mount; ExecStart has config, remote and mount point; ExecStop unmounts; tmpfiles rule |
+| rclone-units-exist / execstart / execstop / tmpfiles | HM unit per mount; ExecStart passes `--config %S/rclone-mount/<name>.conf` (never the read-only sops configFile), remote and mount point; ExecStop unmounts; tmpfiles rule |
+| rclone-config-seed | ExecStartPre is `<seed script> <state conf> <configFile>`; the script copies only when the target is missing (`[ -e "$1" ] \|\| install ...`) |
+| rclone-no-network-online-after | no rclone user unit has `After=network-online.target` |
+| rclone-assertions-pass-on-real-host / fires-on-duplicate-name / fires-on-empty-field | the module's assertions pass on the real host; a duplicated name and an empty remote (via `extendModules`) each fail exactly one `services.rcloneMount` assertion |
 | rclone-sops-secret-declared / sops-file-has-key | configFile is a declared `rclone_*` secret owned by the user; its sopsFile exists and contains the key |
 | no-literal-PATH-in-hm-units / system-units | no `Environment` entry contains a literal `$PATH` (base and every specialisation) |
 | sweep-covers-school-unit | the sweep sees `school-onedrive-mount` in the school specialisation |
 
-No synthetic hosts are built beyond two minimal `extendModules` overrides (sshfs enabled, unmapped hostname); everything else evaluates the real hosts.
+No synthetic hosts are built beyond minimal `extendModules` overrides (sshfs enabled, unmapped hostname, duplicate rclone name, empty rclone remote); everything else evaluates the real hosts.

@@ -3,11 +3,14 @@ let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
-  cfg = flake.nixosConfigurations.${host}.config;
+  sys = flake.nixosConfigurations.${host};
+  cfg = sys.config;
+  avahiTwin = on: (sys.extendModules { modules = [{ services.avahi.enable = lib.mkForce on; }]; }).config.services.resolved.settings.Resolve;
   my = cfg.myconfig;
 
   check = cond: detail: if cond then "ok" else "FAIL: ${detail}";
   has = x: xs: builtins.elem x xs;
+  asList = v: if builtins.isList v then v else [ v ];
   persist = cfg.environment.persistence."/persist";
   persistDirs = map (d: d.directory or d) persist.directories;
   isLaptop = host == "nixos-laptop";
@@ -34,8 +37,15 @@ let
       check-persist-needed-for-boot = check fs."/persist".neededForBoot "/persist not neededForBoot";
       check-varlog-needed-for-boot = check fs."/var/log".neededForBoot "/var/log not neededForBoot";
       check-persist-dirs = check
-        (lib.all (d: has d persistDirs) [ "/etc/ssh" "/var/lib/nixos" "/var/lib/tailscale" ])
-        "persisted dirs missing one of /etc/ssh /var/lib/nixos /var/lib/tailscale";
+        (lib.all (d: has d persistDirs) [ "/etc/ssh" "/var/lib/nixos" "/var/lib/tailscale" "/var/lib/systemd/timesync" "/var/lib/NetworkManager" ])
+        "persisted dirs missing one of /etc/ssh /var/lib/nixos /var/lib/tailscale /var/lib/systemd/timesync /var/lib/NetworkManager";
+      check-persist-random-seed = check (has "/var/lib/systemd/random-seed" (map (f: f.file or f) persist.files))
+        "/var/lib/systemd/random-seed not persisted";
+      check-resolved-no-global-domains = check (!(has "~." (asList (cfg.services.resolved.settings.Resolve.Domains or [ ]))))
+        "services.resolved.settings.Resolve.Domains contains ~. (inert without global DNS=)";
+      check-resolved-mdns-off-with-avahi = check
+        ((avahiTwin true).MulticastDNS or null == "false" && (avahiTwin false).MulticastDNS or null != "false")
+        "resolved MulticastDNS must be false exactly when avahi is enabled (checked on avahi on/off twins)";
       check-persist-machine-id = check (has "/etc/machine-id" (map (f: f.file or f) persist.files))
         "/etc/machine-id not persisted";
 
