@@ -59,6 +59,11 @@ let
 
   swayncOn = c: c.myconfig.services.swaync.enable or false;
   coffeeOn = c: c.myconfig.services.coffee.enable or false;
+  toggleCmd = c: "${builtins.unsafeDiscardStringContext c.myconfig.services.coffee.togglePackage.outPath}/bin/coffee-toggle";
+  toggleInstalled = c: lib.any (p: (p.outPath or null) == c.myconfig.services.coffee.togglePackage.outPath) (hmOf c).home.packages;
+  offShown = exec:
+    let offLines = lib.filter (has ''"class":"off"'') (lib.splitString "\n" exec);
+    in offLines != [ ] && lib.all (l: has ''"text":"%s"'' l && builtins.match ''.*"<span color='#[0-9a-f]{6}'>[^<]+</span>".*'' l != null) offLines;
   afterBattery = mods: let i = lib.lists.findFirstIndex (m: m == "battery") null mods; in if i == null || i + 1 >= lib.length mods then null else lib.elemAt mods (i + 1);
 
   barCommon = c: wm: bars:
@@ -79,6 +84,8 @@ let
       "${wm}: custom/notification iff swaync enabled" = chk (notifPresent == swayncOn c && (!notifPresent || bar0 ? "custom/notification")) "notification module ${toString notifPresent} vs swaync ${toString (swayncOn c)}";
       "${wm}: custom/coffee iff coffee enabled, right after battery" = chk (coffeePresent == coffeeOn c && (!coffeePresent || afterBattery bar0.modules-right == "custom/coffee")) "coffee module ${toString coffeePresent} vs coffee ${toString (coffeeOn c)}, after battery: ${toString (afterBattery bar0.modules-right)}";
       "${wm}: custom/coffee refreshes on signal 8 and tests coffee.service" = chk (!coffeePresent || (coffee.signal or null == 8 && coffee.return-type or "" == "json" && has "is-active --quiet coffee.service" (coffee.exec or ""))) "signal ${toString (coffee.signal or "none")}, return-type ${coffee.return-type or "none"}";
+      "${wm}: custom/coffee left-click runs the installed coffee-toggle by store path, no right-click" = chk (!coffeePresent || (coffee.on-click or "" == toggleCmd c && toggleInstalled c && !(coffee ? on-click-right) && !(coffee ? on-click-middle))) "on-click ${coffee.on-click or "none"} vs ${toggleCmd c}, installed ${toString (toggleInstalled c)}";
+      "${wm}: custom/coffee is always shown (off prints class off with a glyph) and re-polls every <= 10 s" = chk (!coffeePresent || (offShown (coffee.exec or "") && (coffee.interval or 0) > 0 && coffee.interval <= 10)) "interval ${toString (coffee.interval or "none")}, off branch shown ${toString (offShown (coffee.exec or ""))}";
       "${wm}: style.css has 16 palette defines" = chk (lib.length (lib.filter (x: x != "") (colorLines css)) == 16 && missingColors == [ ]) "missing/mismatched palette: ${toString missingColors}";
       "${wm}: style.css has rules beyond the defines" = chk (lib.stringLength css > 1500) "style.css suspiciously short";
       "${wm}: ExecStart points at the generated config and css" = chk (svc != null && has "-c %h/.config/waybar-${wm}/config" (toString exec) && has "-s %h/.config/waybar-${wm}/style.css" (toString exec)) "ExecStart: ${toString exec}";
@@ -185,6 +192,8 @@ let
   control = {
     "monitor name parser strips anchors" = chk (monitorNames sample == [ "DP-9" "eDP-1" ]) "got ${toString (monitorNames sample)}";
     "afterBattery finds the next module" = chk (afterBattery [ "a" "battery" "custom/coffee" "z" ] == "custom/coffee" && afterBattery [ "battery" ] == null) "afterBattery mismatch";
+    "always-shown detector rejects the old hidden-when-off exec" = chk (!offShown "if x; then\n  printf 'a'\nelse\n  printf '{\"text\":\"\",\"class\":\"off\"}\\n'\nfi\n") "accepted an empty off text";
+    "always-shown detector accepts an off line with a glyph span" = chk (offShown "  printf '{\"text\":\"%s\",\"class\":\"off\"}\\n' \"<span color='#aabbcc'>x</span>\"\n") "rejected a valid off line";
     "undefined-module detector bites" = chk (undefinedModules { modules-left = [ "custom/x" ]; } == [ "custom/x" ]) "detector missed an undefined module";
     "undefined-module detector accepts complete bar" = chk (undefinedModules { modules-left = [ "custom/x" ]; "custom/x" = { }; } == [ ]) "detector flagged a complete bar";
     "snippet collector finds exec and on-click" = chk (lib.attrNames (snippetsOf "p" [{ "custom/a" = { exec = "x"; on-click = "y"; format = "z"; }; }]) == [ "p/bar0/custom/a.exec" "p/bar0/custom/a.on-click" ]) "collector mismatch";

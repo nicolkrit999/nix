@@ -9,9 +9,9 @@ let
     || (myconfig.programs.niri.enable or false)
     || (myconfig.programs.mango.enable or false);
 
-  mkCoffee = name: pkgs.writeShellApplication {
+  mkCoffee = name: extraInputs: pkgs.writeShellApplication {
     name = "coffee-${name}";
-    runtimeInputs = [
+    runtimeInputs = extraInputs ++ [
       pkgs.systemd
       pkgs.util-linux
       pkgs.libnotify
@@ -19,14 +19,29 @@ let
       pkgs.coreutils
       pkgs.gnugrep
     ];
-    excludeShellChecks = [ "SC2329" ];
+    excludeShellChecks = [ "SC2329" ] ++ lib.optional (name == "toggle") "SC2034";
     text = builtins.readFile ./coffee/coffee-lib.sh + builtins.readFile ./coffee/coffee-${name}.sh;
   };
+
+  coffeeOn = mkCoffee "on" [ ];
+  coffeeOff = mkCoffee "off" [ ];
+  coffeeStatus = mkCoffee "status" [ ];
+  coffeeToggle = mkCoffee "toggle" [ coffeeOn coffeeOff ];
 in
 delib.module {
   name = "services.coffee";
 
-  options = delib.singleEnableOption true;
+  options = delib.moduleOptions {
+    enable = delib.boolOption true;
+    togglePackage = lib.mkOption {
+      type = lib.types.package;
+      readOnly = true;
+      internal = true;
+      default = coffeeToggle;
+      defaultText = lib.literalExpression "coffee-toggle";
+      description = "The coffee-toggle script, for click actions (the waybar pill) that cannot rely on PATH.";
+    };
+  };
 
   # coffee's weak sleep lock would otherwise also swallow the suspend/hibernate keys
   nixos.ifEnabled = { myconfig, ... }:
@@ -39,6 +54,6 @@ delib.module {
 
   home.ifEnabled = { myconfig, ... }:
     lib.mkIf (isWmEnabled myconfig) {
-      home.packages = map mkCoffee [ "on" "off" "status" ];
+      home.packages = [ coffeeOn coffeeOff coffeeStatus coffeeToggle ];
     };
 }

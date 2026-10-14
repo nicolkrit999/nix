@@ -425,13 +425,14 @@ let
           return-type = "json";
           exec = ''
             if ${pkgs.systemd}/bin/systemctl --user is-active --quiet coffee.service; then
-              printf '{"text":"%s","class":"active","tooltip":"%s"}\n' "<span color='${t.accent c.base0F}'>󰅶</span>" "Coffee mode on: no automatic sleep, idle lock or lid action (coffee-off to stop)"
+              printf '{"text":"%s","class":"active","tooltip":"%s"}\n' "<span color='${t.accent c.base0F}'>󰅶</span>" "Coffee mode on: no automatic sleep, idle lock or lid action. Click to turn it off"
             else
-              printf '{"text":"","class":"off"}\n'
+              printf '{"text":"%s","class":"off","tooltip":"%s"}\n' "<span color='${t.accent c.base08}'>󰾪</span>" "Coffee mode off. Click to turn it on"
             fi
           '';
+          on-click = "${myconfig.services.coffee.togglePackage}/bin/coffee-toggle";
           signal = 8;
-          interval = 60;
+          interval = 5;
         };
 
         "clock" = {

@@ -56,7 +56,7 @@ let
   };
   spec = c: sp: c.specialisation.${sp}.configuration;
 
-  names = [ "coffee-on" "coffee-off" "coffee-status" ];
+  names = [ "coffee-on" "coffee-off" "coffee-status" "coffee-toggle" ];
   keys = { SuspendKeyIgnoreInhibited = "yes"; HibernateKeyIgnoreInhibited = "yes"; };
   hmOf = c: c.home-manager.users.krit;
   coffeePkgs = c: lib.filter (p: lib.elem (p.name or "") names) (hmOf c).home.packages;
@@ -75,7 +75,12 @@ let
   userUnits = c: lib.attrNames (hmOf c).systemd.user.services;
   off = variants.coffee-disabled;
 
-  pkgText = n: (lib.findFirst (p: p.name == n) null (coffeePkgs main)).text or "";
+  pkgOf = c: n: lib.findFirst (p: p.name == n) null (coffeePkgs c);
+  pkgText = n: (pkgOf main n).text or "";
+  pathEntries = t: lib.concatMap (l: lib.splitString ":" (lib.removePrefix "export PATH=\"" (lib.removeSuffix ":$PATH\"" l))) (lib.filter (lib.hasPrefix "export PATH=") (lib.splitString "\n" t));
+  togglePath = pathEntries (pkgText "coffee-toggle");
+  binOf = n: "${(pkgOf main n).outPath or "missing-${n}"}/bin";
+  toggleFindsOnOff = path: lib.all (n: lib.elem (binOf n) path) [ "coffee-on" "coffee-off" ];
   libSrc = builtins.readFile (src + "/modules/nixos/services/power/coffee/coffee-lib.sh");
   bodySrc = n: builtins.readFile (src + "/modules/nixos/services/power/coffee/${n}.sh");
   strictHeader = t: lib.all (o: lib.hasInfix "set -o ${o}" t) [ "errexit" "nounset" "pipefail" ];
@@ -89,9 +94,9 @@ in
     "option services.coffee.enable defaults to true" =
       chk (host.options.myconfig.services.coffee.enable.default == true && main.myconfig.services.coffee.enable) "default ${show host.options.myconfig.services.coffee.enable.default}, host value ${show main.myconfig.services.coffee.enable}";
 
-    "hyprland only: coffee-on/off/status installed, Suspend/HibernateKeyIgnoreInhibited = yes" = present variants.hyprland;
-    "niri only: coffee-on/off/status installed, Suspend/HibernateKeyIgnoreInhibited = yes" = present variants.niri;
-    "mango only: coffee-on/off/status installed, Suspend/HibernateKeyIgnoreInhibited = yes" = present variants.mango;
+    "hyprland only: coffee-on/off/status/toggle installed, Suspend/HibernateKeyIgnoreInhibited = yes" = present variants.hyprland;
+    "niri only: coffee-on/off/status/toggle installed, Suspend/HibernateKeyIgnoreInhibited = yes" = present variants.niri;
+    "mango only: coffee-on/off/status/toggle installed, Suspend/HibernateKeyIgnoreInhibited = yes" = present variants.mango;
     "no WM: no coffee scripts, no logind key settings" = absent variants.no-wm;
     "coffee disabled (WM on): no coffee scripts, no logind key settings" = absent variants.coffee-disabled;
 
@@ -114,6 +119,11 @@ in
       let bad = lib.filter (n: !(strictHeader (pkgText n) && lib.hasInfix (libSrc + bodySrc n) (pkgText n))) names;
       in chk (bad == [ ]) "mismatched package text: ${show bad}";
 
+    "coffee-toggle has the installed coffee-on and coffee-off on its PATH" =
+      chk (toggleFindsOnOff togglePath) "toggle PATH ${show togglePath}";
+    "services.coffee.togglePackage (waybar on-click) is the installed coffee-toggle" =
+      chk (pkgOf main "coffee-toggle" != null && main.myconfig.services.coffee.togglePackage.outPath == (pkgOf main "coffee-toggle").outPath) "option ${main.myconfig.services.coffee.togglePackage.name}";
+
     "hypridle is enabled with a generated config (subject of the next check)" =
       chk ((hypridleSet main).enable && lib.hasInfix "lock_cmd" (hypridleConf main)) "hypridle enable ${show (hypridleSet main).enable}, conf length ${toString (lib.stringLength (hypridleConf main))}";
     "hypridle does not set ignore_systemd_inhibit (it must honour coffee's idle lock)" =
@@ -127,6 +137,7 @@ in
     "ignore_systemd_inhibit detector accepts false" = chk (!ignoresInhibit { ignore_systemd_inhibit = false; } "ignore_systemd_inhibit = false") "flagged false";
     "absent detector rejects installed coffee" = chk (absent variants.hyprland != "ok") "absent passed on a host with coffee";
     "present detector rejects missing coffee" = chk (present variants.no-wm != "ok") "present passed on a host without coffee";
+    "toggle PATH detector rejects a PATH without coffee-off" = chk (!toggleFindsOnOff (lib.remove (binOf "coffee-off") togglePath)) "accepted a PATH without coffee-off";
     "strict-mode detector rejects a bare script" = chk (!strictHeader "#!/bin/bash\necho hi\n") "accepted a script without set -o";
   };
 }

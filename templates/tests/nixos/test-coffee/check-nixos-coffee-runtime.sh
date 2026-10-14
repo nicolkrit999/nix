@@ -39,7 +39,7 @@ check() {
 negate() { ! "$@"; }
 section() { SECTION=$1; echo ""; echo -e "${BOLD}$1${NC}"; }
 
-for n in on off status; do
+for n in on off status toggle; do
   { echo 'set -euo pipefail'; cat "$SRC/coffee-lib.sh" "$SRC/coffee-$n.sh"; } >"$WORK/coffee-$n.sh"
 done
 
@@ -185,6 +185,10 @@ echo "pkill $*" >>"$CF_S/calls"
 [[ $(cat "$CF_S/waybar") == running ]]
 STUB
 
+for n in on off; do
+  printf '#!/usr/bin/env bash\necho "exec coffee-%s" >>"$CF_S/calls"\nexec bash %q "$@"\n' "$n" "$WORK/coffee-$n.sh" >"$STUBS/coffee-$n"
+done
+
 for f in hyprctl hyprlock swaylock poweroff reboot shutdown halt brightnessctl wlopm xset systemd-sleep wlr-randr; do
   printf '#!/usr/bin/env bash\necho "FORBIDDEN %s $*" >>"$CF_S/calls"\nexit 1\n' "$f" >"$STUBS/$f"
 done
@@ -292,7 +296,7 @@ echo -e "${DIM}Runs coffee-lib.sh + coffee-{on,off,status}.sh against stubs that
 section "static: script text"
 strip() { sed -E 's/(^|[[:space:]])#.*$//; s/"([^"\\]|\\.)*"//g; s/'"'"'[^'"'"']*'"'"'//g' "$@"; }
 FORBID_RE='(^|[^[:alnum:]_-])(poweroff|reboot|shutdown|halt|hyprctl|hyprlock|swaylock|brightnessctl|wlopm|xset)([^[:alnum:]_-]|$)|systemctl.*(suspend|hibernate|poweroff|reboot)|loginctl[[:space:]]+(lock|unlock|terminate|kill)|[Dd][Pp][Mm][Ss]'
-ALL_SRC=("$SRC/coffee-lib.sh" "$SRC/coffee-on.sh" "$SRC/coffee-off.sh" "$SRC/coffee-status.sh")
+ALL_SRC=("$SRC/coffee-lib.sh" "$SRC/coffee-on.sh" "$SRC/coffee-off.sh" "$SRC/coffee-status.sh" "$SRC/coffee-toggle.sh")
 check "no handle-power-key / handle-suspend-key / handle-hibernate-key anywhere" negate grep -qE 'handle-(power|suspend|hibernate)-key' "${ALL_SRC[@]}"
 check "inhibitor types defined once: sleep (weak) and idle:handle-lid-switch (block)" \
   bash -c 'grep -Fxq "COFFEE_WHAT_WEAK=\"sleep\"" "$1" && grep -Fxq "COFFEE_WHAT_BLOCK=\"idle:handle-lid-switch\"" "$1"' _ "$SRC/coffee-lib.sh"
@@ -359,6 +363,41 @@ check "second coffee-off: summary 'coffee is OFF'" has "coffee-off: done, coffee
 run status st-off
 check "coffee-status exits 3 and prints 'coffee: OFF' when off" bash -c '[[ $1 -eq 3 ]] && grep -Fxq "coffee: OFF" "$2"' _ "$RC" "$OUT"
 check "lifecycle: no forbidden command, every stub called with expected arguments" clean_calls
+
+section "coffee-toggle: off -> on -> off, half-on state, exit code"
+new_state toggle
+run toggle t-on
+check "toggle from off exits 0 and says 'coffee is OFF, running coffee-on'" bash -c '[[ $1 -eq 0 ]] && [[ $(head -n 1 "$2") == "coffee-toggle: coffee is OFF, running coffee-on" ]]' _ "$RC" "$OUT"
+check "toggle from off ran coffee-on once and not coffee-off" bash -c '[[ $(grep -c "^exec coffee-on$" "$1/calls") -eq 1 ]] && ! grep -q "^exec coffee-off$" "$1/calls"' _ "$S"
+check "toggle from off: coffee.service active, both coffee locks listed" bash -c '[[ $(cat "$1/unit") == active && $(grep -c "^coffee " "$1/locks") -eq 2 ]]' _ "$S"
+check "toggle from off: coffee-on's summary 'coffee is ON' is the last line" bash -c '[[ $(tail -n 1 "$1") == "coffee-on: done, coffee is ON (7 ok, 0 warn, 0 fail)" ]]' _ "$OUT"
+check "toggle from off: notification 'Coffee mode on' sent, pill refreshed" bash -c '[[ $(grep -c "^notify-send Coffee mode on$" "$1/calls") -eq 1 && $(grep -c "^pkill --signal RTMIN+8 " "$1/calls") -eq 1 ]]' _ "$S"
+check "toggle from off: every output line in the journal (toggle line included)" journal_mirrors
+run toggle t-off
+check "toggle from on exits 0 and says 'coffee is ON, running coffee-off'" bash -c '[[ $1 -eq 0 ]] && [[ $(head -n 1 "$2") == "coffee-toggle: coffee is ON, running coffee-off" ]]' _ "$RC" "$OUT"
+check "toggle from on ran coffee-off once (coffee-on still once)" bash -c '[[ $(grep -c "^exec coffee-off$" "$1/calls") -eq 1 && $(grep -c "^exec coffee-on$" "$1/calls") -eq 1 ]]' _ "$S"
+check "toggle from on: no unit, no coffee lock, linger back to no" bash -c '[[ ! -f $1/unit && $(grep -c "^coffee " "$1/locks") -eq 0 && $(cat "$1/linger") == no ]]' _ "$S"
+check "toggle from on: notification 'Coffee mode off' sent, pill refreshed again" bash -c '[[ $(grep -c "^notify-send Coffee mode off$" "$1/calls") -eq 1 && $(grep -c "^pkill --signal RTMIN+8 " "$1/calls") -eq 2 ]]' _ "$S"
+run toggle t-on2
+check "third toggle turns coffee on again" bash -c '[[ $1 -eq 0 && $(cat "$2/unit") == active && $(grep -c "^exec coffee-on$" "$2/calls") -eq 2 ]]' _ "$RC" "$S"
+check "toggle: no forbidden command (no suspend/lock/dpms), expected arguments" clean_calls
+
+new_state toggle-half
+echo active >"$S/unit"
+run toggle t-half
+check "half on (unit active, no lock): toggle runs coffee-off, exits 0, nothing left" bash -c '[[ $1 -eq 0 && $(head -n 1 "$2") == "coffee-toggle: coffee is INCONSISTENT, running coffee-off" && ! -f $3/unit ]] && grep -q "^exec coffee-off$" "$3/calls" && ! grep -q "^exec coffee-on$" "$3/calls"' _ "$RC" "$OUT" "$S"
+check "half on: no forbidden command, expected arguments" clean_calls
+
+new_state toggle-fail
+echo refuse >"$S/run-mode"
+run on direct
+direct_rc=$RC
+new_state toggle-fail2
+echo refuse >"$S/run-mode"
+run toggle t-fail
+check "toggle exits with coffee-on's exit code when coffee-on fails (non-zero, equal)" bash -c '[[ $1 -ne 0 && $1 -eq $2 ]] && grep -Fq "coffee-on: FAILED, coffee is OFF" "$3"' _ "$RC" "$direct_rc" "$OUT"
+check "failed toggle: no unit, no lock, no notification" bash -c '[[ ! -f $1/unit && $(grep -c "^coffee " "$1/locks") -eq 0 ]] && ! grep -q "^notify-send" "$1/calls"' _ "$S"
+check "failed toggle: no forbidden command, expected arguments" clean_calls
 
 section "linger enabled by the user is never disabled by coffee"
 new_state linger-user

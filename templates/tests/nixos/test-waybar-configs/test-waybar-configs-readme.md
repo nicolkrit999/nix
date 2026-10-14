@@ -34,6 +34,8 @@ Runs in the `nixos-b` CI group (`test.conf`); 63 s inside the full parallel suit
 | custom/notification iff swaync enabled | presence matches `myconfig.services.swaync.enable` |
 | custom/coffee iff coffee enabled, right after battery | presence matches `myconfig.services.coffee.enable`; the module directly follows `battery` in `modules-right` |
 | custom/coffee refreshes on signal 8 | `signal == 8` (the scripts send `RTMIN+8`), `return-type == "json"`, exec tests `coffee.service` |
+| custom/coffee left-click runs the installed coffee-toggle by store path, no right-click | `on-click` == `${myconfig.services.coffee.togglePackage}/bin/coffee-toggle` (works without the coffee bins on waybar's `PATH`), that package is in HM `home.packages`, no `on-click-right` / `on-click-middle` |
+| custom/coffee is always shown and re-polls every <= 10 s | every `exec` line printing `"class":"off"` prints `"text":"%s"` with a `<span color='#rrggbb'>glyph</span>` argument (never the old empty, hidden pill); `0 < interval <= 10` |
 | style.css has 16 palette defines | 16 `@define-color base0X #rrggbb;` lines equal to the home-manager stylix palette |
 | style.css has rules beyond the defines | file is not just the defines |
 | ExecStart points at the generated config and css | `-c %h/.config/waybar-<wm>/config -s .../style.css` |
@@ -76,9 +78,19 @@ Runs in the `nixos-b` CI group (`test.conf`); 63 s inside the full parallel suit
 |-------|----------|
 | weather, wifi, bluetooth, mic, coffee, notification, pulseaudio, battery, clock identical | niri and mango copies equal the hyprland copy |
 
+### custom/coffee exec output
+Every generated `custom/coffee.exec` is run with its `systemctl` store path swapped for a stub (`is-active` exits 0, then 3).
+
+| Check | Expected |
+|-------|----------|
+| coffee on | JSON with `class` `active`, `text` exactly one `<span color='#rrggbb'>` around the cup (U+F0176), non-empty `tooltip` |
+| coffee off | JSON with `class` `off`, `text` the struck cup (U+F0FAA) in a colour span, non-empty `tooltip` (the pill stays visible) |
+| corpus | at least 3 coffee exec snippets |
+| control | the off check rejects the old `{"text":"","class":"off"}` |
+
 ### Syntax and controls
 | Check | Expected |
 |-------|----------|
 | jq parses each generated config | valid object or array; the corpus has at least 5 config files |
 | all snippets pass bash -n | every `exec` / `on-click*` string of every bar (at least 50 collected) |
-| controls | monitor-name parser, `afterBattery` helper, undefined-module detector, snippet collector, no-monitors variant effective, `waybarLayout` non-empty on desktop, jq rejects truncated JSON, bash -n rejects an unterminated `if` |
+| controls | monitor-name parser, `afterBattery` helper, undefined-module detector, snippet collector, no-monitors variant effective, `waybarLayout` non-empty on desktop, jq rejects truncated JSON, bash -n rejects an unterminated `if`, the always-shown detector rejects an empty off text and accepts an off line with a glyph span |

@@ -1,6 +1,6 @@
 # test-coffee
 
-Tests coffee mode (`modules/nixos/services/power/coffee.nix` and the `coffee-on` / `coffee-off` / `coffee-status` scripts in `coffee/`) against the rules in `Documentation/usage/power/coffee-mode.md`:
+Tests coffee mode (`modules/nixos/services/power/coffee.nix` and the `coffee-on` / `coffee-off` / `coffee-status` / `coffee-toggle` scripts in `coffee/`) against the rules in `Documentation/usage/power/coffee-mode.md`:
 
 - Coffee blocks only automatic things: a weak sleep lock plus a full `idle:handle-lid-switch` lock.
 - Manual suspend, the suspend/hibernate keys, the power button, shutdown and reboot keep working.
@@ -15,7 +15,7 @@ Two parts:
 
 Not covered here:
 
-- The waybar pill (placement right after `battery`, signal 8, `coffee.service` probe) is covered by `test-waybar-configs`.
+- The waybar pill (placement right after `battery`, signal 8, `coffee.service` probe, always shown with an `off` class, left-click = `coffee-toggle` by store path) is covered by `test-waybar-configs`; its `off`/`active` contrast by `test-waybar-contrast`.
 - The guest/secure-travel `services.coffee.enable == false` flag (with a base-host control) is covered by `test-spec-contract`.
 - The "no WM => no coffee" case on a defaults-only host is covered by `test-minimal-defaults`.
 
@@ -37,7 +37,7 @@ bash check-nixos-coffee-eval.sh
 bash check-nixos-coffee-runtime.sh
 ```
 
-`COFFEE_SRC=<dir>` points the runtime check at another copy of the four `coffee-*.sh` files (used for mutation testing). Runtime: about 15 s for the eval part and 8 s for the runtime part, on the default `nixos` CI group.
+`COFFEE_SRC=<dir>` points the runtime check at another copy of the five `coffee-*.sh` files (used for mutation testing). Runtime: about 15 s for the eval part and 8 s for the runtime part, on the default `nixos` CI group.
 
 ## How it works
 
@@ -58,7 +58,7 @@ Hyprland is on by default; nothing sets `services.coffee.enable`. Variants are `
 
 The scenario returns one attrset of `"ok"` / `"FAIL: ..."` strings (`results`) plus `control`. The script evaluates each attrset once as JSON and prints one line per entry. It also fails if fewer entries than expected come back.
 
-What "coffee present" means: `coffee-on`, `coffee-off` and `coffee-status` are in the HM `home.packages`, and `services.logind.settings.Login` has `SuspendKeyIgnoreInhibited = "yes"` and `HibernateKeyIgnoreInhibited = "yes"`. "Absent" means none of these is there.
+What "coffee present" means: `coffee-on`, `coffee-off`, `coffee-status` and `coffee-toggle` are in the HM `home.packages`, and `services.logind.settings.Login` has `SuspendKeyIgnoreInhibited = "yes"` and `HibernateKeyIgnoreInhibited = "yes"`. "Absent" means none of these is there.
 
 Why the leaked-WM twins exist: guest and secure-travel already force every WM off, so a plain "coffee absent in guest" check would still pass if `coffee.enable = lib.mkForce false` were removed. With mango leaked back in (as happened for safe-mode), only the coffee force-off keeps coffee out.
 
@@ -67,6 +67,7 @@ Why the leaked-WM twins exist: guest and secure-travel already force every WM of
 How the scripts are run:
 
 - Each script is built as `set -euo pipefail` + `coffee-lib.sh` + `coffee-<name>.sh`, matching the `writeShellApplication` text; the eval check `each package text is ...` ties this to the real package.
+- `coffee-toggle` finds `coffee-on` / `coffee-off` by name; in the stub directory these are wrappers that log `exec coffee-<name>` and run the built test copy (the real package gets them from its `runtimeInputs`, checked by the eval part).
 - They run with `COFFEE_PATH_PREFIX` (stubs first), `COFFEE_STATE_DIR` (per scenario), `COFFEE_TRIES=1`, `COFFEE_POLL=0`, `COFFEE_BOOT_ID=boot-A` and `COFFEE_USER=tester`.
 
 The stubs model this state in files:
@@ -95,7 +96,7 @@ On failure the script outputs are saved as evidence (`keep_evidence`).
 | Check | Expected |
 |-------|----------|
 | option `services.coffee.enable` defaults to true | option default `true` and the fake host (which does not set it) has `true` |
-| hyprland only / niri only / mango only (3 checks) | coffee present (3 scripts, both logind keys `"yes"`) |
+| hyprland only / niri only / mango only (3 checks) | coffee present (4 scripts, both logind keys `"yes"`) |
 | no WM | coffee absent |
 | coffee disabled, WM on | coffee absent |
 | guest; secure-travel (2 checks) | coffee absent in the specialisation |
@@ -104,7 +105,9 @@ On failure the script outputs are saved as evidence (`keep_evidence`).
 | coffee declares no system unit | `systemd.services` names equal with and without coffee |
 | coffee declares no user unit (no lid watcher) | HM `systemd.user.services` names equal with and without coffee |
 | coffee changes logind only by the two `*KeyIgnoreInhibited` keys | `services.logind.settings` with coffee == without coffee + `Login.{Suspend,Hibernate}KeyIgnoreInhibited = "yes"` (no `HandleLidSwitch`, no `PowerKeyIgnoreInhibited`) |
-| each package text is the strict-mode header + `coffee-lib.sh` + its own script | `set -o errexit/nounset/pipefail` and `readFile lib + readFile <name>` inside the package `.text`, for all three |
+| each package text is the strict-mode header + `coffee-lib.sh` + its own script | `set -o errexit/nounset/pipefail` and `readFile lib + readFile <name>` inside the package `.text`, for all four |
+| coffee-toggle has the installed coffee-on and coffee-off on its PATH | the `export PATH=` line of the `coffee-toggle` text contains `<coffee-on>/bin` and `<coffee-off>/bin` of the installed packages |
+| `services.coffee.togglePackage` (waybar on-click) is the installed coffee-toggle | the read-only option's `outPath` equals the installed `coffee-toggle` |
 | hypridle is enabled with a generated config | `services.hypridle.enable` and `hypr/hypridle.conf` contains `lock_cmd` |
 | hypridle does not set `ignore_systemd_inhibit` | not `true` in `settings.general`, not `= true/1/yes/on` in the generated config |
 
@@ -116,13 +119,14 @@ On failure the script outputs are saved as evidence (`keep_evidence`).
 | `ignore_systemd_inhibit` detector bites (settings, config text) and accepts `false` (3 checks) | true |
 | absent detector rejects installed coffee | the hyprland variant is not "absent" |
 | present detector rejects missing coffee | the no-WM variant is not "present" |
+| toggle PATH detector rejects a PATH without coffee-off | true |
 | strict-mode detector rejects a bare script | true |
 
 ### Runtime: static script text
 
 | Check | Expected |
 |-------|----------|
-| no `handle-power-key` / `handle-suspend-key` / `handle-hibernate-key` | none in lib/on/off/status |
+| no `handle-power-key` / `handle-suspend-key` / `handle-hibernate-key` | none in lib/on/off/status/toggle |
 | inhibitor types defined once | `COFFEE_WHAT_WEAK="sleep"`, `COFFEE_WHAT_BLOCK="idle:handle-lid-switch"` |
 | every `--what=` uses those two variables | exactly `--what="$COFFEE_WHAT_BLOCK"` and `--what="$COFFEE_WHAT_WEAK"` |
 | no suspend/poweroff/reboot/lock/dpms/brightness command outside messages and comments | scan (quoted strings and comments stripped) finds nothing |
@@ -147,6 +151,17 @@ On failure the script outputs are saved as evidence (`keep_evidence`).
 | second `coffee-off` | exit 0, "already off", no WARN/FAIL, no extra stop / `disable-linger` / notification, summary OFF |
 | `coffee-status` (off) | exit 3, `coffee: OFF` |
 | no forbidden command, every stub called with expected arguments | no `FORBIDDEN` / `bad-args` in the call log |
+
+### Runtime: coffee-toggle
+
+| Check | Expected |
+|-------|----------|
+| toggle from off | exit 0; first line `coffee-toggle: coffee is OFF, running coffee-on`; `coffee-on` run once, `coffee-off` never; unit active, 2 coffee locks; last line `coffee-on: done, coffee is ON (7 ok, 0 warn, 0 fail)`; `notify-send "Coffee mode on"` once, pill refreshed once; every output line (the toggle line included) in the journal |
+| toggle from on | exit 0; `coffee is ON, running coffee-off`; `coffee-off` run once; no unit, no coffee lock, `Linger=no`; `notify-send "Coffee mode off"` once, pill refreshed again |
+| third toggle | coffee on again (`coffee-on` run twice in total) |
+| half on (unit active, no lock) | `coffee is INCONSISTENT, running coffee-off`, exit 0, no unit left, `coffee-on` never run |
+| `coffee-on` fails under the toggle (`systemd-run` refuses) | the toggle's exit code is non-zero and equal to a direct `coffee-on`'s; `coffee-on: FAILED, coffee is OFF`; no unit, no lock, no notification |
+| no forbidden command (each toggle scenario) | clean call log: no suspend / lock / DPMS / poweroff stub called |
 
 ### Runtime: linger semantics
 

@@ -15,6 +15,7 @@ Module: `modules/nixos/services/power/coffee.nix` (`myconfig.services.coffee.ena
 | `coffee-on` | Starts the transient user unit `coffee.service`, which holds the logind locks below. Enables lingering (if it was off) so the unit, and your tmux panes, survive logout. Refreshes the waybar pill and sends a notification. |
 | `coffee-off` | Stops the unit, turns lingering off again only if `coffee-on` turned it on, then checks that no coffee lock is left in `systemd-inhibit --list`, no `coffee.service` is left, lingering is back to how it was, and hypridle is running. Refreshes the pill and sends a notification. |
 | `coffee-status` | Prints ON / OFF / INCONSISTENT, the unit, linger and hypridle state, and the block/block-weak lines of `systemd-inhibit --list`. Exit code: 0 on, 3 off, 1 inconsistent. |
+| `coffee-toggle` | Uses the same state test as `coffee-status` and runs `coffee-off` when coffee is ON or INCONSISTENT, `coffee-on` when it is OFF. Prints and journals one `coffee-toggle: coffee is <state>, running <script>` line, then the output and exit code are those of the script it ran. The waybar pill's left-click runs it. |
 
 `coffee-on` and `coffee-off` print one line per step, `[ OK ]`, `[WARN]` or `[FAIL]` (coloured
 only on a terminal), and every `[WARN]`/`[FAIL]` line ends with `fix: <command>`, the single
@@ -60,14 +61,26 @@ Still working while coffee is on (deliberate actions and emergencies):
 
 ## Waybar
 
-`custom/coffee` sits right after `battery` in all three waybars. It is hidden while coffee is
-off and shows a cup with an accent ring (`#custom-coffee.active`) while it is on. The scripts
-refresh it with `pkill --signal RTMIN+8` (waybar `signal = 8`); it also re-polls every 60 s.
+`custom/coffee` sits right after `battery` in all three waybars and is always shown. It is drawn
+like the microphone pill (`custom/mic`): a plain pill with one coloured icon, no ring and no level
+bar.
+
+| State | `class` | Text | Tooltip |
+|-------|---------|------|---------|
+| on (`coffee.service` active) | `active` | cup 󰅶 (U+F0176) in the `base0F` accent | Coffee mode on: no automatic sleep, idle lock or lid action. Click to turn it off |
+| off | `off` | struck cup 󰾪 (U+F0FAA) in the `base08` accent, like the muted microphone 󰍭 | Coffee mode off. Click to turn it on |
+
+Both accents go through the contrast helper (`accentOn base01 3`), so they keep at least 3:1 on the
+pill in every scheme. Left-click runs `coffee-toggle` by store path
+(`myconfig.services.coffee.togglePackage`), so it works even when waybar's `PATH` has no coffee
+commands; the notification comes from `coffee-on` / `coffee-off`. Right-click does nothing. The
+scripts refresh the pill with `pkill --signal RTMIN+8` (waybar `signal = 8`), and it re-polls
+every 5 s, so it also corrects itself after a reboot or when the unit dies.
 
 ## Script layout and test hooks
 
 The scripts live in `modules/nixos/services/power/coffee/`: `coffee-lib.sh` is prepended to
-each of `coffee-on.sh`, `coffee-off.sh` and `coffee-status.sh`. Every external command is called
+each of `coffee-on.sh`, `coffee-off.sh`, `coffee-status.sh` and `coffee-toggle.sh`. Every external command is called
 by name, so a test can put stubs first. Environment overrides:
 
 | Variable | Default | Purpose |

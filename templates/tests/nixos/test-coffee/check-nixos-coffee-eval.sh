@@ -56,10 +56,10 @@ echo -e "${BOLD}=== Coffee mode: module contract (eval) ===${NC}"
 echo -e "${DIM}Fake host + extendModules twins: WM gate, enable gate, guest/secure-travel, units, logind, package text, hypridle.${NC}"
 echo ""
 echo -e "${BOLD}contract${NC}"
-run_set results "" 18
+run_set results "" 20
 echo ""
 echo -e "${BOLD}scenario controls${NC}"
-run_set control "control: " 7
+run_set control "control: " 8
 
 echo ""
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"

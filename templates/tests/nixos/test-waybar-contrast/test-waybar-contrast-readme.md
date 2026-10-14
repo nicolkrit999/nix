@@ -43,7 +43,8 @@ white until they reach 3:1. A red result is a finding about the waybar styling. 
      resolve like in the real stylesheet;
    - derives the elements from the bar config (every module listed in `modules-left/center/right`),
      expanding workspace states (default, hover, active, active+hover, urgent, focused) and battery
-     states (normal, each `states` key, charging, critical+charging) and coffee states (normal, active);
+     states (normal, each `states` key, charging, critical+charging) and coffee states (`off`, `active`: the pill is always shown, both classes and both icon spans, the
+     `base0F` cup and the `base08` struck cup from `exec`, are checked);
    - for each element checks the cascaded foreground against the effective background (nearest
      opaque `background-color` up the chain) as **text, >= 4.5:1**, and every pango
      `<span color=..>` in `format*`, `exec`, `rewrite` and `tooltip-format*` strings as an
