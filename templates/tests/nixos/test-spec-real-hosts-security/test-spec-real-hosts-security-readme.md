@@ -74,6 +74,7 @@ secure-travel keeps tailscale on (it is the VPN, an exit node is picked by hand)
 | resolved | `LLMNR == "false"`, `MulticastDNS == "false"`, `Domains` does not contain `~.` (inert without global `DNS=`; the `DNSOverTLS`/`LLMNR` checks on the same attrset are the controls) |
 | GNOME sharing | `gnome-remote-desktop` and `gnome-user-share` disabled |
 | tor-browser | in systemPackages on x86_64 |
+| trayscale | `trayscale` in the krit `home.packages` (exit node picker, GNOME session has no WM-gated copy) |
 | tailscale | `myconfig.services.tailscale.enable == true`, `services.tailscale.enable == true`, `tailscale0` not trusted |
 | DEs | gnome only |
 | localsend | `myconfig.services.localsend.enable == false`, `programs.localsend.enable == false` |

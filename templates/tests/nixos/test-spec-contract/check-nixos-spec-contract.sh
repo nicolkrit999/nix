@@ -120,6 +120,7 @@ run_check "check-securetravel-headroom-unit-absent"     "headroom-proxy user uni
 run_check "check-securetravel-claude-wrappers-disabled" "krit.programs.claude-code-wrappers.enable == false"
 run_check "check-securetravel-gnome-enabled"       "programs.gnome.enable == true"
 run_check "check-securetravel-exitnode-warn-unit"  "user service+timer exit node warn"
+run_check "check-securetravel-trayscale-installed" "trayscale in krit home.packages"
 run_check "check-securetravel-no-dispatcher-killswitch" "no root NM dispatcher script"
 
 echo ""

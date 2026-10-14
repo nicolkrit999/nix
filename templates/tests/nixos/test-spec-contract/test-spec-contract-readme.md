@@ -95,6 +95,7 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | `headroom-proxy` user unit | absent (base present) |
 | `krit.programs.claude-code-wrappers.enable` | `false` |
 | `programs.gnome.enable` | `true` |
+| `trayscale` in krit `home.packages` | present in secure-travel (the shared tailscale module only installs it under hyprland/niri/mango) |
 | user service + timer `secure-travel-exitnode-warn` | exist, `OnActiveSec=45s`, `OnUnitActiveSec=2min` (absent in base) |
 | NM `dispatcherScripts` | empty (control: NetworkManager settings of the spec are evaluated) |
 

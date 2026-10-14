@@ -96,6 +96,7 @@ let
 
   pkgNames = pkgs: map (p: p.pname or p.name or "") pkgs;
   hasTor = builtins.elem "tor-browser" (pkgNames s.environment.systemPackages);
+  hasTrayscale = builtins.elem "trayscale" (pkgNames s.home-manager.users.${user}.home.packages);
   isX86 = s.nixpkgs.hostPlatform.isx86_64 or (builtins.match "x86_64.*" s.nixpkgs.hostPlatform.system != null);
 
   stUser = s.home-manager.users.${user}.systemd.user;
@@ -186,6 +187,7 @@ let
     "secure-travel: NM ethernet macAddress random" = eq "eth mac" s.networking.networkmanager.ethernet.macAddress "random";
     "secure-travel: resolved DNSOverTLS opportunistic" = eq "DoT" s.services.resolved.settings.Resolve.DNSOverTLS "opportunistic";
     "secure-travel: tor-browser installed (x86_64)" = if isX86 then yes "tor-browser missing" hasTor else "ok";
+    "secure-travel: trayscale in krit home.packages" = yes "trayscale missing" hasTrayscale;
     "secure-travel: no NM dispatcher scripts" = eq "dispatcher count" (builtins.length s.networking.networkmanager.dispatcherScripts) 0;
     "secure-travel: myconfig.services.tailscale.enable == true" = eq "myconfig tailscale" s.myconfig.services.tailscale.enable true;
     "secure-travel: services.tailscale.enable == true" = eq "services.tailscale.enable" s.services.tailscale.enable true;

@@ -356,6 +356,12 @@ in
     else if !(st.services ? secure-travel-exitnode-warn && st.timers ? secure-travel-exitnode-warn) then "FAIL: user service/timer secure-travel-exitnode-warn missing"
     else if st.timers.secure-travel-exitnode-warn.Timer.OnActiveSec != "45s" || st.timers.secure-travel-exitnode-warn.Timer.OnUnitActiveSec != "2min" then "FAIL: timer cadence is not 45s/2min"
     else "ok";
+  check-securetravel-trayscale-installed =
+    let
+      names = c: map (p: p.pname or p.name or "") c.home-manager.users.krit.home.packages;
+    in
+    if !(builtins.elem "trayscale" (names (spec "secure-travel"))) then "FAIL: trayscale missing from secure-travel krit home.packages"
+    else "ok";
   check-securetravel-no-dispatcher-killswitch =
     let st = spec "secure-travel"; in
     if st.networking.networkmanager.wifi.macAddress != "random" then "FAIL: control: secure-travel NetworkManager settings not evaluated"

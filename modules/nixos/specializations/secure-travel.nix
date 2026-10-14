@@ -27,7 +27,7 @@ let
           -h string:x-canonical-private-synchronous:secure-travel-vpn "$1" "$2"
       }
 
-      pick="Run: tailscale exit-node list, then: tailscale set --exit-node=<name>"
+      pick="Pick one in Trayscale, or run: tailscale set --exit-node=<name>"
 
       if ! json=$(tailscale status --json 2>/dev/null); then
         notify "Tailscale is not running" "Traffic is NOT protected. Start tailscaled and log in. $pick"
@@ -212,7 +212,8 @@ delib.module {
       # 5. 👤 HOME-MANAGER
       # ---------------------------------------------------------
       home-manager.users.${myUserName} = { pkgs, lib, ... }: {
-        home.packages = lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [ pkgs.tor-browser ];
+        home.packages = [ pkgs.trayscale ]
+          ++ lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [ pkgs.tor-browser ];
 
         systemd.user = {
           services.secure-travel-exitnode-warn = {
