@@ -245,6 +245,22 @@ let
       ))
     ];
 
+    check-hyprland-stylix-target-off =
+      let
+        target = h: homes.${h}.config.stylix.targets.hyprland.enable;
+        twin = h: (homes.${h}.extendModules {
+          modules = [ ({ lib, ... }: { myconfig.stylix.targets.hyprland.enable = lib.mkForce true; }) ];
+        }).config.stylix.targets.hyprland.enable;
+        hosts = [ "krit@nixos-laptop" "krit@nixos-desktop" ];
+      in
+      all (map
+        (h: all [
+          (expect "${h} myconfig.programs.hyprland.enable (control: module active)" (homes.${h}.config.myconfig.programs.hyprland.enable or false) true)
+          (expect "${h} stylix.targets.hyprland.enable" (target h) false)
+          (if twin h == true then "ok" else "FAIL: ${h}: forcing myconfig.stylix.targets.hyprland.enable did not flip the HM target (mutation not detected)")
+        ])
+        hosts);
+
     check-nixos-openrouter-aliases-follow-wrappers = guard (
       let has = x: builtins.elem "cai-openrouter-opus" (aliasKeys x.config.home-manager.users.krit.programs);
       in expect "NixOS cai-openrouter-opus alias [wrappers on, off]" [ (has (nixosCc true)) (has (nixosCc false)) ] [ true false ]

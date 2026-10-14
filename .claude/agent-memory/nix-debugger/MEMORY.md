@@ -26,3 +26,5 @@
 - [SDDM label contrast probe](project_sddm_label_contrast_probe.md) - pixie conf rewrite drops autoColor/textColor; build-time magick luma ~0.5s no IFD; mean luma misleads, use fail-fraction
 - [nix-tests read-only IFD](project_nix_tests_readonly_ifd.md) - harness = `nix-instantiate --eval` (read-only): IFD fails on fresh CI store, passes locally; guard via NIX_CONFIG IFD=false
 - [CI tests narrow substituters](project_ci_tests_narrow_substituters.md) - test legs trust only 3 caches; krit-nixos eviction (noctalia, openlogi, doom) = silent source build -> timeout
+- [niri stylix-off HM stub](project_niri_stylix_off_hm_stub.md) - niri-flake injects HM stylix module always; niri.nix stubs stylix.enable when stylix off; 2nd declaration collides; kitty leak
+- [polkit_gnome XDG autostart dup](project_polkit_gnome_xdg_autostart_dup.md) - systemPackages polkit_gnome autostarts in every session next to WM spawns; test blind spot; XFCE guest keeps it

@@ -368,6 +368,30 @@ delib.module {
           filezilla
           libreoffice-qt
 
+          # moodle-dl GUI (upstream master pin; unreleased, nixpkgs lacks it); see memory project_moodle_dl_gui_master_pin.md
+          (pkgs.moodle-dl.overridePythonAttrs (old: {
+            version = "2.4.0-unstable-2026-06-20";
+            src = pkgs.fetchFromGitHub {
+              owner = "C0D3D3V";
+              repo = "Moodle-DL";
+              rev = "d88b2343f4a54a21404335648bd0c459853fa587";
+              hash = "sha256-y+cW1xlr4rt4euAMOZnIkyrmbDxlHP+D2+0J9PprW8o=";
+            };
+            build-system = [ pkgs.python3Packages.hatchling ];
+            nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.qt6.wrapQtAppsHook ];
+            buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.qt6.qtwayland ];
+            dependencies = old.dependencies ++ [ pkgs.python3Packages.pyside6 ];
+            dontWrapQtApps = true;
+            makeWrapperArgs = [ "\${qtWrapperArgs[@]}" ];
+          }))
+          (pkgs.makeDesktopItem {
+            name = "moodle-dl-gui";
+            desktopName = "Moodle-DL";
+            exec = "moodle-dl --gui";
+            icon = "folder-download";
+            categories = [ "Education" "Network" ];
+          })
+
           # CS Notes / Cheat Sheets - shared toolchain (Typst/LaTeX/Pandoc, diagrams, PDF/image tooling, spellcheck)
           # from templates/krit/dev-environments/language-combined/{cs-notes,cs-cheat-sheets}/flake.nix
           typst

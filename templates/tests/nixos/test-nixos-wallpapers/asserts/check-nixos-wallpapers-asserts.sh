@@ -79,6 +79,17 @@ expect_ok noStarKscreenlocker       "kde-kscreenlocker uses the first entry (not
 expect_ok noStarStylixReadsPrimary  "stylix-nixos.nix reads primaryWallpaper (no own selection logic)"
 expect_ok starSecondPrimary         "a \"*\" entry that is not first still wins"
 
+echo "=== primary entry with only videoURL/gifURL (wallpaperURL empty) ==="
+expect_ok videoOnlyPrimaryIsPrimary   "fixture: the primary entry has an empty wallpaperURL and a videoURL"
+expect_ok videoOnlyGnome              "gnome-main resolves to the fallback wallpaper"
+expect_ok videoOnlyKdeEveryEntry      "kde-main: video-only and gif-only entries use the fallback, the explicit entry keeps its own"
+expect_ok videoOnlyKscreenlocker      "kde-kscreenlocker resolves to the fallback wallpaper"
+expect_ok videoOnlyStylix             "stylix-nixos (nixos-laptop twin) image is the fallback wallpaper"
+expect_ok explicitStylixKeepsOwn      "control: stylix-nixos with an explicit wallpaperURL keeps its own url"
+expect_ok videoOnlyMutantGnomeFails   "mutation: a gnome result without the fallback is rejected"
+expect_ok videoOnlyMutantKdeFails     "mutation: a kde list without the fallback is rejected"
+expect_ok videoOnlyMutantStylixFails  "mutation: a stylix image without the fallback is rejected"
+
 echo "=== hyprlock per-monitor backgrounds ==="
 expect_ok lockDesktop                "desktop-like (DP-1, DP-2, *): own wallpaper per monitor plus a lower-z catch-all with *"
 expect_ok lockDesktopDistinct        "desktop-like: three distinct wallpaper files"

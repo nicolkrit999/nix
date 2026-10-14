@@ -6,6 +6,11 @@ delib.module {
   name = "krit.services.desktop.local-packages";
   options = delib.singleEnableOption false;
 
+  nixos.always = {
+    # Ventoy: precompiled blobs, insecure pin (nixpkgs#404663); update on bump, drop when knownVulnerabilities clears
+    nixpkgs.config.permittedInsecurePackages = [ "ventoy-qt5-1.1.17" ];
+  };
+
   nixos.ifEnabled =
     { myconfig, ... }:
     {
@@ -37,6 +42,7 @@ delib.module {
           telegram-desktop # Messaging
           teams-for-linux # Unofficial Microsoft Teams client
           tor-browser # Privacy-focused web browser
+          ventoy-full-qt # New Bootable USB Solution with GUI support
           vscode # Microsoft visual studio code IDE
           vesktop # Discord client
           vlc # Media player

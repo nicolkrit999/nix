@@ -167,6 +167,83 @@ let
     "hyprlock background uses the shared fallback wallpaper when wallpapers is empty" = fallbackCheck;
   };
 
+  themed = force { base16Theme = "rose-pine-moon"; };
+  stylixOff = themed.extendModules {
+    modules = [
+      { myconfig.stylix.enable = lib.mkForce false; }
+    ];
+  };
+  fallbackPalette = { base00 = "1e1e2e"; base02 = "45475a"; base03 = "585b70"; base08 = "f38ba8"; base0D = "89b4fa"; };
+  stylixPalette = themed.config.lib.stylix.colors;
+
+  rendered = s:
+    let
+      c = s.config;
+      hm = c.home-manager.users.krit;
+      en = n: c.myconfig.programs.${n}.enable or false;
+      safe = x: let r = builtins.tryEval (builtins.deepSeq x x); in if r.success then r.value else "EVAL ERROR";
+      hy = hm.wayland.windowManager.hyprland.settings.config;
+    in
+    lib.optionalAttrs (en "hyprland")
+      {
+        "hyprland group active border" = safe hy.group."col.border_active";
+        "hyprland background" = safe hy.misc.background_color;
+        "hyprland inactive border" = safe hy.general."col.inactive_border";
+      }
+    // lib.optionalAttrs (en "mango") (
+      let ms = hm.wayland.windowManager.mango.settings; in {
+        "mango focus colour" = safe ms.focus_color;
+        "mango root colour" = safe ms.root_color;
+        "mango urgent colour" = safe ms.urgent_color;
+      }
+    )
+    // lib.optionalAttrs (en "niri") (
+      let fr = hm.programs.niri.settings.layout.focus-ring; in {
+        "niri active ring" = safe fr.active.color;
+        "niri inactive ring" = safe fr.inactive.color;
+        "niri urgent ring" = safe fr.urgent.color;
+      }
+    );
+
+  expectedFor = p: {
+    "hyprland group active border" = "rgb(${p.base0D})";
+    "hyprland background" = "rgb(${p.base00})";
+    "hyprland inactive border" = "rgba(${p.base02}66)";
+    "mango focus colour" = "0x${p.base0D}ff";
+    "mango root colour" = "0x${p.base00}ff";
+    "mango urgent colour" = "0x${p.base08}ff";
+    "niri active ring" = "#${p.base0D}";
+    "niri inactive ring" = "#${p.base03}";
+    "niri urgent ring" = "#${p.base08}";
+  };
+  paletteCheck = s: p:
+    let
+      r = rendered s;
+      e = expectedFor p;
+    in
+    lib.mapAttrs (n: v: if v == e.${n} then "ok" else "FAIL: got ${v}, want ${e.${n}}") r;
+  offRes = paletteCheck stylixOff fallbackPalette;
+  onRes = paletteCheck themed stylixPalette;
+  allFail = r: r != { } && lib.all (lib.hasPrefix "FAIL") (lib.attrValues r);
+  stubCheck =
+    let
+      c = stylixOff.config;
+      hm = c.home-manager.users.krit;
+      r = builtins.tryEval (builtins.deepSeq hm.programs.niri.settings.layout.focus-ring hm.stylix.enable);
+    in
+    if !(c.myconfig.programs.niri.enable or false) then "ok"
+    else if r.success && r.value == false then "ok"
+    else "FAIL: niri settings or the stub-provided hm.stylix.enable (false) do not evaluate with stylix off";
+  paletteLines =
+    lib.mapAttrsToList (n: r: "palette\tstylix off: ${n} is the catppuccin-mocha fallback\t${r}") offRes
+    ++ lib.mapAttrsToList (n: r: "palette\tstylix on: ${n} is the stylix palette\t${r}") onRes
+    ++ [
+      "stub\tniri-stylix-off-enable-stub: niri settings evaluate with stylix off and no extra HM declaration\t${stubCheck}"
+      "palette\tstylix off: at least one WM renders\t${if offRes != { } then "ok" else "FAIL: no hyprland/mango/niri enabled"}"
+      "control\tmutation: stylix-on colours checked against the fallback palette are caught\t${if allFail (paletteCheck themed fallbackPalette) then "ok" else "FAIL: mutant not detected, stylix-on render equals the fallback"}"
+      "control\tmutation: stylix-off colours checked against the stylix palette are caught\t${if allFail (paletteCheck stylixOff stylixPalette) then "ok" else "FAIL: mutant not detected, stylix-off render equals the stylix palette"}"
+    ];
+
   perVariant = lib.mapAttrs (_: checks) variants;
   names = lib.attrNames (checks sys);
 in
@@ -174,6 +251,7 @@ in
   report = lib.concatStringsSep "\n"
     (lib.concatMap (v: map (n: "${v}\t${n}\t${perVariant.${v}.${n}}") names) (lib.attrNames variants)
       ++ lib.mapAttrsToList (n: r: "files\t${n}\t${r}") fileChecks
+      ++ paletteLines
       ++ map (n: "control\t${n}\t${mutantLine n}") (lib.attrNames mutants)) + "\n";
   variants = lib.concatStringsSep " " (lib.attrNames variants);
 }

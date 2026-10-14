@@ -88,7 +88,7 @@ delib.module {
         [Desktop Entry]
         Type=Application
         Name=Kill IBus Daemon
-        Exec=pkill ibus-daemon
+        Exec=sh -c "pkill ibus-daemon || true"
         Hidden=false
         StartupNotify=false
         OnlyShowIn=KDE;

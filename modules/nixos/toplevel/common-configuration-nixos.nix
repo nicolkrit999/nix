@@ -54,7 +54,6 @@ delib.module {
             gsettings-desktop-schemas
             libnotify # Used by most de/wm modules
             libsecret
-            polkit_gnome # Authentication agent (spawned by the hyprland, niri and mango sessions)
             seahorse
             sops
             tpm2-tss # Used for hosts that installed using disko with luks

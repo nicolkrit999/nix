@@ -2,6 +2,7 @@
 , pkgs
 , inputs
 , lib
+, config
 , moduleSystem
 , ...
 }:
@@ -27,5 +28,14 @@ delib.module {
   nixos.ifEnabled = {
     programs.niri.enable = true;
     systemd.user.services.niri-flake-polkit.enable = lib.mkForce false;
+    home-manager.sharedModules = lib.mkIf (!config.stylix.enable) [
+      {
+        key = "niri-stylix-off-enable-stub";
+        options.stylix.enable = lib.mkOption {
+          type = lib.types.bool;
+          default = false;
+        };
+      }
+    ];
   };
 }

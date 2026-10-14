@@ -118,9 +118,35 @@ let
   fb = emptyWm.myconfig.constants;
   fallbackPath = builtins.unsafeDiscardStringContext "${pkgs.fetchurl { url = fb.fallbackWallpaperURL; sha256 = fb.fallbackWallpaperSHA256; }}";
   usesFallback = x: lib.hasInfix fallbackPath (builtins.unsafeDiscardStringContext (builtins.toJSON x));
+  videoGnomeCfg = emptyHost (here + "/30-video-only-gnome");
+  videoKdeCfg = emptyHost (here + "/31-video-only-kde");
+  explicitThird = storePath "https://example.invalid/explicit-third.png";
+  videoOnlyPaths = [ (storePath "https://example.invalid/video-only-primary.mp4") (storePath "https://example.invalid/gif-only-second.gif") explicitThird ];
+  kdeWallpapers = map builtins.unsafeDiscardStringContext (H.getHm videoKdeCfg).programs.plasma.workspace.wallpaper;
+  mentions = needle: x: lib.hasInfix needle (builtins.unsafeDiscardStringContext (builtins.toJSON x));
+  lap = flake.nixosConfigurations.nixos-laptop;
+  videoOnlyEntry = still // { wallpaperURL = ""; wallpaperSHA256 = ""; videoURL = "https://example.invalid/stylix-video.mp4"; videoSHA256 = still.wallpaperSHA256; };
+  lapImage = ws: builtins.unsafeDiscardStringContext "${(lap.extendModules { modules = [{ myconfig.constants.wallpapers = lib.mkForce ws; }]; }).config.stylix.image}";
 in
 {
   inherit matrix;
+  videoOnlyPrimaryIsPrimary = guard (
+    let p = videoGnomeCfg.myconfig.constants.primaryWallpaper;
+    in p.wallpaperURL == "" && p.videoURL == "https://example.invalid/video-only-primary.mp4"
+  );
+  videoOnlyGnome = guard (
+    usesFallback (H.getHm videoGnomeCfg).dconf.settings && !mentions "video-only-primary" (H.getHm videoGnomeCfg).dconf.settings
+  );
+  videoOnlyKdeEveryEntry = guard (kdeWallpapers == [ fallbackPath fallbackPath explicitThird ]);
+  videoOnlyKscreenlocker = guard (
+    let a = (H.getHm videoKdeCfg).programs.plasma.kscreenlocker.appearance;
+    in usesFallback a && !mentions "explicit-third" a
+  );
+  videoOnlyStylix = guard (lapImage [ videoOnlyEntry ] == fallbackPath);
+  explicitStylixKeepsOwn = guard (lapImage [ (videoOnlyEntry // { wallpaperURL = "https://example.invalid/explicit-stylix.png"; inherit (still) wallpaperSHA256; }) ] == storePath "https://example.invalid/explicit-stylix.png");
+  videoOnlyMutantGnomeFails = guard (!usesFallback { picture-uri = "file://${storePath "https://example.invalid/video-only-primary.mp4"}"; });
+  videoOnlyMutantKdeFails = guard (videoOnlyPaths != [ fallbackPath fallbackPath explicitThird ]);
+  videoOnlyMutantStylixFails = guard (storePath videoOnlyEntry.videoURL != fallbackPath);
   emptyWmNoStartup = guard (
     !H.hyprExecHas "wallpaperd" emptyWm && !H.hyprExecHas "awww" emptyWm
     && !H.mangoExecHas "wallpaperd" emptyWm && !H.niriSpawnHas "wallpaperd" emptyWm
