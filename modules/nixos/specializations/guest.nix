@@ -60,6 +60,7 @@ delib.module {
       myconfig.programs.codex.enable = lib.mkForce false;
       myconfig.programs.herdr.enable = lib.mkForce false;
       myconfig.programs.headroom.enable = lib.mkForce false;
+      myconfig.programs.google-antigravity.enable = lib.mkForce false;
       imports = lib.optional hasClaudeWrappers {
         myconfig.krit.programs.claude-code-wrappers.enable = lib.mkForce false;
       };

@@ -18,9 +18,21 @@ delib.module {
     extraPackages = listOfOption lib.types.package [ ];
   };
 
-  nixos.always = { ... }: {
+  nixos.always = { cfg, ... }: {
     imports = [ inputs.vicinae.nixosModules.default ];
-    programs.vicinae.input-server.package = vicinaePackage;
+    programs.vicinae.input-server = {
+      enable = cfg.enable;
+      package = vicinaePackage;
+    };
+  };
+
+  nixos.ifEnabled = { myconfig, ... }: {
+    users.groups.vicinae-input = { };
+    users.users.${myconfig.constants.user}.extraGroups = [ "vicinae-input" ];
+    security.wrappers.vicinae-input-server = {
+      group = lib.mkForce "vicinae-input";
+      permissions = "u+rx,g+x";
+    };
   };
 
   home.always = { ... }: {
@@ -83,8 +95,6 @@ delib.module {
             opacity = lib.mkForce 0.98;
             layer_shell.layer = "overlay";
           };
-
-          providers = { };
         };
 
         extensions = (with inputs.vicinae-extensions.packages.${pkgs.stdenv.hostPlatform.system}; [
@@ -100,16 +110,12 @@ delib.module {
               installPhase = ''
                 runHook preInstall
                 mkdir -p $out
-                cp -r /build/.config/raycast/extensions/${installName}/* $out/
+                cp -r "$HOME/.config/raycast/extensions/${installName}/"* $out/
                 runHook postInstall
               '';
             })
           )
-          ([
-            # global raycast extensions
-          ] ++ cfg.extraRayCastExtensions));
-
-        themes = { };
+          cfg.extraRayCastExtensions);
       };
 
       home.packages = cfg.extraPackages ++ [ pkgs.nerd-fonts.jetbrains-mono ];

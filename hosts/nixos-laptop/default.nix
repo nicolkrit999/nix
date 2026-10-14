@@ -222,7 +222,6 @@ delib.host {
         google-antigravity.enable = false;
         lazygit.enable = true;
         nix-alien.enable = false;
-        nix-topology.enable = false;
 
         nltchNur = {
           enable = false;

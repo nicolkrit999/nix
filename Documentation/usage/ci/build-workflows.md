@@ -352,7 +352,8 @@ notification noise for no proven gain.
 
 ### 🚨 Do not pre-warm a flake-input package by name
 
-`tgt`, `concord` and `herdr` come from `inputs.<x>.packages.<system>.default`, so
+`concord` and `herdr` come from `inputs.<x>.packages.<system>.default`, and `tgt`
+is built in `tgt.nix` from the `tgt` input's *source* (against a pinned TDLib), so
 the derivation the config installs is **not** the `pkgs` attribute of the same
 name. The trap is that those attributes *exist anyway* in the pinned
 `nixos-unstable` (as of the last check), and are different software or a different
@@ -364,10 +365,6 @@ silently builds and caches the wrong thing:
 | `tgt` | `github:FedericoBruzzone/tgt` - a Telegram TUI | **tgt 1.0.95, the iSCSI Target daemon** - unrelated |
 | `concord` | `github:chojs23/concord` | **concord 2.3.0, a Discord API library in C** - unrelated |
 | `herdr` | `github:ogulcancelik/herdr` tracking **master** | **herdr 0.9.3**, the same project but a nixpkgs release rather than the flake's master - it does not fail, it silently builds and caches a different revision. |
-
-`concord` is additionally wrapped in `.overrideAttrs` in
-`modules/nixos/programs/concord.nix`, so even the correct input is not the
-derivation the system uses.
 
 `doom` is not a package at all - it is a home-manager module
 (`programs.doom-emacs`, from `nix-doom-emacs-unstraightened`), so it has no
@@ -1231,11 +1228,13 @@ is one more reason the caps matter. A session cannot force-cancel either
 - 🟠 **Whether `tgt` / `doom` are worth pre-warming is unmeasured.** Both would
   need work to be addressable (§5): `doom` is reachable through the existing
   config tree without touching `flake.nix`, `tgt` would need a single-system
-  `packages` output. Do not add either until a log shows it being *built* rather
-  than substituted. A general `packages` output re-exporting flake inputs is a
-  bad idea: `concord` is used via `.overrideAttrs`, so a plain re-export is a
-  *different derivation* and pre-warming it would cache a path the build never
-  substitutes.
+  `packages` output. `tgt` now compiles its pinned TDLib (1.8.61, not on
+  cache.nixos.org) once per nixpkgs bump, so it is the likelier candidate. Do not add either until a log shows it being *built* rather
+  than substituted. A general `packages` output re-exporting flake inputs only
+  helps for inputs the config installs unmodified: any module that overrides or
+  rebuilds an input's package makes a plain re-export a *different derivation*,
+  and pre-warming it would cache a path the build never substitutes. Check each
+  module before re-exporting.
 - 🟠 **Wire `steps.watch_report.outputs.streamed` into the Discord notifier.**
   Today the broken-continuous-push alarm surfaces only as a `::warning::`
   annotation in the Actions UI. Deliberately deferred to keep the instrumentation

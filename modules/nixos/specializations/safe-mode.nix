@@ -25,6 +25,7 @@ delib.module {
 
       myconfig.programs.hyprland.enable = lib.mkForce false;
       myconfig.programs.niri.enable = lib.mkForce false;
+      myconfig.programs.mango.enable = lib.mkForce false;
       myconfig.programs.cosmic.enable = lib.mkForce false;
       myconfig.programs.kde.enable = lib.mkForce false;
       myconfig.programs.gnome.enable = lib.mkForce false;

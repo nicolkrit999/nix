@@ -97,6 +97,7 @@ delib.module {
         && (parent.noctalia.enableOnMango or false);
 
       vicinaeEnabled = parent.vicinae.enable or true;
+      swayosdEnabled = parent.swayosd.enable or true;
 
       shellLauncherBind =
         if noctaliaActiveOnMango then
@@ -113,7 +114,7 @@ delib.module {
           "SUPER,Delete,spawn,loginctl lock-session";
 
       mediaSymBinds =
-        if noctaliaActiveOnMango then [
+        if noctaliaActiveOnMango || !swayosdEnabled then [
           "NONE,XF86AudioPause,spawn,playerctl play-pause"
           "NONE,XF86AudioPlay,spawn,playerctl play-pause"
         ] else [
@@ -122,7 +123,7 @@ delib.module {
         ];
 
       mediaBinds =
-        if noctaliaActiveOnMango then [
+        if noctaliaActiveOnMango || !swayosdEnabled then [
           "SUPER,BracketRight,spawn,brightnessctl set 5%+"
           "SUPER,BracketLeft,spawn,brightnessctl set 5%-"
           "NONE,XF86AudioRaiseVolume,spawn,wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"

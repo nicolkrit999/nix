@@ -95,6 +95,13 @@ run_check "check-vicinae-hm-and-input-server-same-package"      "HM and input-se
 run_check "warn-vicinae-override-still-needed"                  "upstream gcc15 differs from our stdenv (override needed)"
 
 echo ""
+echo -e "${BOLD}tgt (TDLib pinned to the tdlib-rs version)${NC}"
+run_check "check-tgt-single-package"          "exactly one tgt in nixos-desktop systemPackages"
+run_check "check-tgt-links-pinned-tdlib"      "tgt builds against the pinned TDLib"
+run_check "check-tgt-tdlib-rs-unchanged"      "locked tgt source still uses the tdlib-rs the pin is for"
+run_check "warn-tgt-tdlib-pin-still-needed"   "nixpkgs tdlib differs from the pin (pin needed)"
+
+echo ""
 echo -e "${BOLD}lazygit (catppuccin migrated theme)${NC}"
 run_check "check-lazygit-migrated-source-nixos"   "nixos-desktop uses catppuccin-lazygit-migrated"
 run_check "check-lazygit-migrated-source-darwin"  "darwin uses catppuccin-lazygit-migrated"

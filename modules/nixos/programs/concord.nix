@@ -1,9 +1,7 @@
 { delib, inputs, pkgs, ... }:
 let
   system = pkgs.stdenv.hostPlatform.system;
-  concord = inputs.concord.packages.${system}.default.overrideAttrs (old: {
-    cargoExtraArgs = (old.cargoExtraArgs or "--locked") + " --features voice-playback";
-  });
+  concord = inputs.concord.packages.${system}.default;
 in
 delib.module {
   name = "programs.concord";

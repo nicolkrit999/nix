@@ -277,7 +277,6 @@ delib.host {
         google-antigravity.enable = true;
         lazygit.enable = true;
         nix-alien.enable = true;
-        nix-topology.enable = false;
         nltchNur = {
           enable = false;
           packages = [ ];

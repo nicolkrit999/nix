@@ -87,6 +87,7 @@ delib.module {
         codex.enable = lib.mkForce false; # External API calls
         herdr.enable = lib.mkForce false; # AI agent multiplexer
         headroom.enable = lib.mkForce false; # Proxy for external API calls
+        google-antigravity.enable = lib.mkForce false; # AI agent IDE, external API calls
       };
 
       imports = lib.optional hasClaudeWrappers {

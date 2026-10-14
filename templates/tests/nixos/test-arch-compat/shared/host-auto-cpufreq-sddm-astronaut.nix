@@ -69,7 +69,6 @@ delib.host {
     bluetooth.enable = true;
     services.audio.enable = true;
     services.autotrash.enable = true;
-    programs.nix-topology.enable = true;
     services.swaync.enable = true;
     services.tailscale.enable = true;
     services.resolved.enable = true;

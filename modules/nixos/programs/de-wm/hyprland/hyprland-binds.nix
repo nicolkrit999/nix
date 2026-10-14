@@ -26,6 +26,7 @@ delib.module {
       noctaliaActiveOnHyprland = parent.noctalia.enable && parent.noctalia.enableOnHyprland;
 
       vicinaeEnabled = parent.vicinae.enable or true;
+      swayosdEnabled = parent.swayosd.enable or true;
 
       shellMenu =
         if caelestiaActiveOnHyprland then "caelestiaqs ipc call drawers toggle launcher"
@@ -75,7 +76,7 @@ delib.module {
       };
 
       bindelList = map repeatBind (
-        if shellActiveOnHyprland then [
+        if shellActiveOnHyprland || !swayosdEnabled then [
           { key = "XF86AudioRaiseVolume"; cmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"; }
           { key = "XF86AudioLowerVolume"; cmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"; }
           { key = "XF86AudioMute"; cmd = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
@@ -101,7 +102,7 @@ delib.module {
       );
 
       bindlList = map lockedBind (
-        if shellActiveOnHyprland then [
+        if shellActiveOnHyprland || !swayosdEnabled then [
           { key = "XF86AudioNext"; cmd = "playerctl next"; }
           { key = "XF86AudioPause"; cmd = "playerctl play-pause"; }
           { key = "XF86AudioPlay"; cmd = "playerctl play-pause"; }

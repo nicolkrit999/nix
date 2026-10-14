@@ -15,36 +15,36 @@ delib.module {
     { myconfig, ... }:
     let
       caelestiaActiveOnHyprland =
-        (myconfig.programs.caelestia.enable or false)
-        && (myconfig.programs.caelestia.enableOnHyprland or false)
-        && (myconfig.programs.hyprland.enable or false);
+        myconfig.programs.caelestia.enable
+        && myconfig.programs.caelestia.enableOnHyprland
+        && myconfig.programs.hyprland.enable;
 
       noctaliaActiveOnHyprland =
-        (myconfig.programs.noctalia.enable or false)
-        && (myconfig.programs.noctalia.enableOnHyprland or false)
-        && (myconfig.programs.hyprland.enable or false);
+        myconfig.programs.noctalia.enable
+        && myconfig.programs.noctalia.enableOnHyprland
+        && myconfig.programs.hyprland.enable;
 
       noctaliaActiveOnNiri =
-        (myconfig.programs.noctalia.enable or false)
-        && (myconfig.programs.noctalia.enableOnNiri or false)
-        && (myconfig.programs.niri.enable or false);
+        myconfig.programs.noctalia.enable
+        && myconfig.programs.noctalia.enableOnNiri
+        && myconfig.programs.niri.enable;
 
       noctaliaActiveOnMango =
-        (myconfig.programs.noctalia.enable or false)
-        && (myconfig.programs.noctalia.enableOnMango or false)
-        && (myconfig.programs.mango.enable or false);
+        myconfig.programs.noctalia.enable
+        && myconfig.programs.noctalia.enableOnMango
+        && myconfig.programs.mango.enable;
 
       hyprlandNeedsSwayosd =
-        (myconfig.programs.hyprland.enable or false)
+        myconfig.programs.hyprland.enable
         && !caelestiaActiveOnHyprland
         && !noctaliaActiveOnHyprland;
 
       niriNeedsSwayosd =
-        (myconfig.programs.niri.enable or false)
+        myconfig.programs.niri.enable
         && !noctaliaActiveOnNiri;
 
       mangoNeedsSwayosd =
-        (myconfig.programs.mango.enable or false)
+        myconfig.programs.mango.enable
         && !noctaliaActiveOnMango;
 
       swayosdNeeded = hyprlandNeedsSwayosd || niriNeedsSwayosd || mangoNeedsSwayosd;
@@ -57,6 +57,10 @@ delib.module {
           Description = "SwayOSD Server";
           PartOf = [ "graphical-session.target" ];
           After = [ "graphical-session.target" ];
+          ConditionEnvironment =
+            lib.optional hyprlandNeedsSwayosd "|XDG_CURRENT_DESKTOP=Hyprland"
+            ++ lib.optional niriNeedsSwayosd "|XDG_CURRENT_DESKTOP=niri"
+            ++ lib.optional mangoNeedsSwayosd "|XDG_CURRENT_DESKTOP=mango";
         };
         Service = {
           ExecStart = "${pkgs.swayosd}/bin/swayosd-server";

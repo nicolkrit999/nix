@@ -3,10 +3,6 @@ delib.module {
   name = "programs.cava";
   options = delib.singleEnableOption false;
 
-  nixos.ifEnabled = { ... }: {
-    myconfig.stylix.targets.cava.enable = true;
-  };
-
   home.ifEnabled = { ... }:
     {
       programs.cava = {
@@ -16,14 +12,14 @@ delib.module {
           color = {
             gradient = 1;
             gradient_count = 8;
-            gradient_color_1 = "'#${config.lib.stylix.colors.base0D}'"; # Blue-ish
-            gradient_color_2 = "'#${config.lib.stylix.colors.base0C}'"; # Cyan-ish
-            gradient_color_3 = "'#${config.lib.stylix.colors.base0B}'"; # Green-ish
-            gradient_color_4 = "'#${config.lib.stylix.colors.base0A}'"; # Yellow-ish
-            gradient_color_5 = "'#${config.lib.stylix.colors.base09}'"; # Orange-ish
-            gradient_color_6 = "'#${config.lib.stylix.colors.base08}'"; # Red-ish
-            gradient_color_7 = "'#${config.lib.stylix.colors.base0E}'"; # Magenta-ish
-            gradient_color_8 = "'#${config.lib.stylix.colors.base0F}'"; # Brown/Dark Red
+            gradient_color_1 = "'#${config.lib.stylix.colors.base0D}'";
+            gradient_color_2 = "'#${config.lib.stylix.colors.base0C}'";
+            gradient_color_3 = "'#${config.lib.stylix.colors.base0B}'";
+            gradient_color_4 = "'#${config.lib.stylix.colors.base0A}'";
+            gradient_color_5 = "'#${config.lib.stylix.colors.base09}'";
+            gradient_color_6 = "'#${config.lib.stylix.colors.base08}'";
+            gradient_color_7 = "'#${config.lib.stylix.colors.base0E}'";
+            gradient_color_8 = "'#${config.lib.stylix.colors.base0F}'";
           };
         };
       };

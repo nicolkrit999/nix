@@ -7,7 +7,11 @@ delib.module {
     imports = [ inputs.openlogi.nixosModules.default ];
   };
 
-  nixos.ifEnabled = { ... }: {
+  nixos.ifEnabled = { myconfig, ... }: {
+    assertions = [{
+      assertion = !(myconfig.krit.services.logitech.enable or false);
+      message = "programs.openlogi and krit.services.logitech (logiops/solaar) both claim HID++ devices; enable only one";
+    }];
     programs.openlogi = {
       enable = true;
       launchAtLogin = true;

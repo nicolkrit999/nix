@@ -29,6 +29,7 @@ delib.module {
       noctaliaPkg = pkgs.noctalia;
 
       vicinaeEnabled = parent.vicinae.enable or true;
+      swayosdEnabled = parent.swayosd.enable or true;
 
       vicinaeCommand = [ "vicinae" "toggle" ];
 
@@ -70,7 +71,7 @@ delib.module {
       ];
 
       mediaBindsRaw =
-        if noctaliaActiveOnNiri then {
+        if noctaliaActiveOnNiri || !swayosdEnabled then {
           "XF86AudioRaiseVolume".action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%+" ];
           "XF86AudioLowerVolume".action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-" ];
           "XF86AudioMute".action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle" ];

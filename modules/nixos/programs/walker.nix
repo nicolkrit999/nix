@@ -42,28 +42,6 @@ delib.module {
               "Page_Up"
             ];
             resume_last_query = [ "ctrl r" ];
-            accept_type = [ "ctrl ;" ];
-          };
-
-
-          ui = {
-            fullscreen = true;
-            width = 1600;
-            height = 1200;
-            anchors = {
-              top = true;
-              bottom = true;
-              left = true;
-              right = true;
-            };
-          };
-
-          list.max_results = 50;
-          providers = {
-            clipboard.max_results = 50;
-            websearch.prefix = "@";
-            finder.prefix = "/";
-            commands.prefix = ":";
           };
         };
 
@@ -116,9 +94,6 @@ delib.module {
               color: @theme_fg_color;
             }
 
-            .box {
-            }
-
             .search-container {
               border-radius: 10px;
             }
@@ -138,24 +113,8 @@ delib.module {
               color: @theme_fg_color;
             }
 
-            .input:focus,
-            .input:active {
-            }
-
-            .content-container {
-            }
-
-            .placeholder {
-            }
-
-            .scroll {
-            }
-
             .list {
               color: @theme_fg_color;
-            }
-
-            child {
             }
 
             .item-box {
@@ -169,12 +128,8 @@ delib.module {
               padding: 10px;
             }
 
-            /* child:hover .item-box, */
             child:selected .item-box {
               background: alpha(@accent_bg_color, 0.25);
-            }
-
-            .item-text-box {
             }
 
             .item-subtext {
@@ -193,7 +148,6 @@ delib.module {
 
             .preview {
               border: 1px solid alpha(@accent_bg_color, 0.25);
-              /* padding: 10px; */
               border-radius: 10px;
               color: @theme_fg_color;
             }
@@ -210,9 +164,6 @@ delib.module {
 
             .calc .item-text {
               font-size: 24px;
-            }
-
-            .calc .item-subtext {
             }
 
             .symbols .item-image {
@@ -244,15 +195,6 @@ delib.module {
               border-top: 1px solid lighter(@window_bg_color);
               font-size: 12px;
               color: @theme_fg_color;
-            }
-
-            .global-keybinds {
-            }
-
-            .item-keybinds {
-            }
-
-            .keybind {
             }
 
             .keybind-button {
