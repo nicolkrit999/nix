@@ -150,8 +150,8 @@ These modules are always active on NixOS hosts and handle platform integration. 
 
 #### Custom Shells
 
-* **`programs.caelestia`**: A highly customizable visual shell/dashboard overlay designed for Hyprland, with QML2 import paths and environment setup. Enables `programs.gpu-screen-recorder` (capped `gsr-kms-server` wrapper) while active on Hyprland.
-* **`programs.noctalia`**: A highly customizable visual shell environment supporting both Hyprland and Niri, with conditional enablement per compositor. Enables `programs.gpu-screen-recorder` (capped `gsr-kms-server` wrapper) while active on Hyprland, Niri or Mango.
+* **`programs.caelestia`**: A highly customizable visual shell/dashboard overlay for Hyprland (quickshell), started by the `caelestiaqs` wrapper (QML2 import paths and environment setup) through `hyprland.shellExecOnce`. Binds call `caelestiaqs ipc call drawers toggle launcher` / `caelestiaqs ipc call lock lock`. Install-only: `~/.config/caelestia/shell.json` stays a writable file (dotfiles) because the caelestia GUI saves into it. Enables `programs.gpu-screen-recorder` (capped `gsr-kms-server` wrapper) while active on Hyprland.
+* **`programs.noctalia`**: A highly customizable visual shell (noctalia v5, the native C++ rewrite, from nixpkgs `pkgs.noctalia`) on Hyprland, Niri and MangoWM, enabled per compositor and started by the `start-noctalia` wrapper. Binds and the hypridle lock call `noctalia msg panel-toggle launcher` / `noctalia msg session lock`. Config goes through home-manager `programs.noctalia` (`~/.config/noctalia/config.toml`: weather location from `constants.weather`, theme/font/wallpaper from the stylix target); GUI changes are saved to `~/.local/state/noctalia/settings.toml` and override the Nix values (per-setting Reset falls back to them). Enables `programs.gpu-screen-recorder` (capped `gsr-kms-server` wrapper, used by noctalia's optional screen_recorder plugin) while active on Hyprland, Niri or Mango.
 
 #### Programs (`programs.`)
 
@@ -172,7 +172,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`programs.walker`**: Installs the Walker application launcher with optional Hyprland and Waybar integration.
   * **Warning:** Disabling this means missing an app launcher in Hyprland/niri.
 
-* **`programs.waybar-hyprland`, `programs.waybar-mango`, `programs.waybar-niri`**: A powerful, modular status bar for Wayland window managers, configured with workspaces, workspace icons, keyboard layout display, and system tray integrations. There is no generic `programs.waybar` module; each window manager has its own variant.
+* **`programs.waybar-hyprland`, `programs.waybar-mango`, `programs.waybar-niri`**: A powerful, modular status bar for Wayland window managers, configured with workspaces, clock and window title, keyboard layout, weather, Wi-Fi, Bluetooth, audio, microphone, battery and (with swaync) notification modules. None of the bars has a system tray. There is no generic `programs.waybar` module; each window manager has its own variant.
 
 #### Services (`services.`)
 

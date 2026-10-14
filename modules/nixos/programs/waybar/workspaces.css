@@ -1,0 +1,57 @@
+
+
+/* ----------------------------------------------------------------------- */
+/* WORKSPACES                                                               */
+/* ----------------------------------------------------------------------- */
+
+#workspaces {
+  background-color: transparent;
+  margin: 0;
+  padding: 0;
+}
+
+/* Workspace buttons as pill-shaped modules */
+#workspaces button {
+  background-color: @base01;
+  background-image: none;
+  margin: 0 4px;
+  padding: 4px 16px;
+  min-width: 0;
+  border-radius: 100px;
+  color: @fg_pill;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+              color           0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#workspaces button label {
+  padding: 0;
+  min-width: 28px;
+}
+
+#workspaces button:hover label {
+  color: @fg_hover;
+}
+
+/* Active workspace — foreground fill (readable on dark and light schemes),
+   accent kept as a bottom underline */
+#workspaces button.active {
+  background-color: @base05;
+  box-shadow: inset 0 -2px @base0D;
+}
+
+#workspaces button.active label {
+  color: @fg_active;
+}
+
+/* Hover — lift one step */
+#workspaces button:hover {
+  background-color: @base02;
+}
+
+/* Keep the active fill while hovering (same specificity, :hover would win) */
+#workspaces button.active:hover {
+  background-color: @base05;
+}

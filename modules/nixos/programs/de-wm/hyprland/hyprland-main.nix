@@ -13,6 +13,8 @@ delib.module {
         { output = ""; mode = "preferred"; position = "auto"; scale = "auto"; }
       ];
       execOnce = listOfOption str [ ];
+      # Shell autostart only (caelestia/noctalia): specs mkForce execOnce, never this list.
+      shellExecOnce = listOfOption str [ ];
       monitorWorkspaces = listOfOption attrs [ ];
       windowRules = listOfOption attrs [ ];
       extraBinds = listOfOption attrs [ ];
@@ -73,7 +75,7 @@ delib.module {
         # Workaround: a stray ibus-daemon autostart shadows the session input method; remove once no
         # ibus autostart remains (memory: project_ibus_kill_workaround.md).
         "pkill ibus-daemon"
-      ] ++ wallpaperCmds ++ cfg.execOnce;
+      ] ++ wallpaperCmds ++ cfg.execOnce ++ cfg.shellExecOnce;
 
       execOnceFn = mkLuaInline (
         "function()\n"

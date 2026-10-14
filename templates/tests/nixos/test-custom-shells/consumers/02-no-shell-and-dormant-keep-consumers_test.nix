@@ -2,7 +2,7 @@
 let
   H = import ../shared/eval-scenario.nix;
   lib = H.lib;
-  scen = d: let c = H.getConfig d; in { inherit c; hm = H.getHm c; once = c.myconfig.programs.hyprland.execOnce; };
+  scen = d: let c = H.getConfig d; in { inherit c; hm = H.getHm c; once = c.myconfig.programs.hyprland.execOnce ++ c.myconfig.programs.hyprland.shellExecOnce; };
   none = scen ./04-hyprland-no-shell;
   dorm = scen ./05-dormant-both-hyprland;
   has = needle: xs: builtins.any (x: lib.hasInfix needle x) xs;

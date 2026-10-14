@@ -1,10 +1,15 @@
 { delib
-, inputs
 , pkgs
 , lib
 , ...
 }:
-
+let
+  activeOn = cfg: parent: wm:
+    pkgs.stdenv.hostPlatform.isx86_64
+    && cfg.enable
+    && cfg."enableOn${wm}"
+    && parent.${lib.toLower wm}.enable;
+in
 delib.module {
   name = "programs.noctalia";
   options =
@@ -23,87 +28,31 @@ delib.module {
     , ...
     }:
     let
-      activeOnHyprland =
-        pkgs.stdenv.hostPlatform.isx86_64
-        && cfg.enable
-        && cfg.enableOnHyprland
-        && (parent.hyprland.enable or false);
-
-      activeOnNiri =
-        pkgs.stdenv.hostPlatform.isx86_64
-        && cfg.enable
-        && cfg.enableOnNiri
-        && (parent.niri.enable or false);
-
-      activeOnMango =
-        pkgs.stdenv.hostPlatform.isx86_64
-        && cfg.enable
-        && cfg.enableOnMango
-        && (parent.mango.enable or false);
-
+      activeOnHyprland = activeOn cfg parent "Hyprland";
+      activeOnNiri = activeOn cfg parent "Niri";
+      activeOnMango = activeOn cfg parent "Mango";
       active = activeOnHyprland || activeOnNiri || activeOnMango;
 
       caelestiaActiveOnHyprland =
-        (parent.caelestia.enable or false)
-        && (parent.caelestia.enableOnHyprland or false)
-        && (parent.hyprland.enable or false);
+        parent.caelestia.enable
+        && parent.caelestia.enableOnHyprland
+        && parent.hyprland.enable;
 
-      # The flake input is only evaluated on x86_64; other arches get an empty stand-in.
-      noctaliaPkg =
-        if pkgs.stdenv.hostPlatform.isx86_64
-        then inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default
-        else pkgs.emptyDirectory;
-
-      extraQmlPackages = [
-        pkgs.kdePackages.kirigami
-        pkgs.kdePackages.qqc2-desktop-style
-        pkgs.kdePackages.breeze-icons
-      ];
+      noctaliaPkg = pkgs.noctalia;
 
       startNoctalia = pkgs.writeShellScriptBin "start-noctalia" ''
-        # -----------------------------------------------------------
-        # 📝 CONFIG SETUP (Manual Mode)
-        # -----------------------------------------------------------
-        USER_CONFIG_DIR="$HOME/.config/noctalia"
-        USER_CONFIG_FILE="$USER_CONFIG_DIR/config.json"
-
-        # Just ensure the directory exists so the app can write to it
-        mkdir -p "$USER_CONFIG_DIR"
-
-        export NOCTALIA_SETTINGS_FILE="$USER_CONFIG_FILE"
-
-        # -----------------------------------------------------------
-        # 🔧 ENVIRONMENT FIXES
-        # -----------------------------------------------------------
-        if [ "$XDG_CURRENT_DESKTOP" = "Hyprland" ] && [ -z "$HYPRLAND_INSTANCE_SIGNATURE" ] && command -v hyprctl &> /dev/null; then
-            for i in {1..10}; do
-                DETECTED_SIG=$(hyprctl instances | head -n 1 | cut -d " " -f 2 | tr -d ':')
-                if [ -n "$DETECTED_SIG" ]; then
-                    export HYPRLAND_INSTANCE_SIGNATURE="$DETECTED_SIG"
-                    break
-                fi
-                sleep 0.5
-            done
+        if [ "$XDG_CURRENT_DESKTOP" = "Hyprland" ] && [ -z "$HYPRLAND_INSTANCE_SIGNATURE" ] && command -v hyprctl > /dev/null; then
+          for _ in {1..10}; do
+            DETECTED_SIG=$(hyprctl instances | head -n 1 | cut -d " " -f 2 | tr -d ':')
+            if [ -n "$DETECTED_SIG" ]; then
+              export HYPRLAND_INSTANCE_SIGNATURE="$DETECTED_SIG"
+              break
+            fi
+            sleep 0.5
+          done
         fi
 
-        export QML2_IMPORT_PATH=""
-        for pkg in ${builtins.toString extraQmlPackages}; do
-          if [ -d "$pkg/lib/qt-6/qml" ]; then
-            export QML2_IMPORT_PATH="$pkg/lib/qt-6/qml:$QML2_IMPORT_PATH"
-          fi
-        done
-
-        # -----------------------------------------------------------
-        # 🚀 LAUNCH
-        # -----------------------------------------------------------
-        ${noctaliaPkg}/bin/noctalia-shell &
-        PID=$!
-
-        # Sync weather location from Nix variables on boot
-        sleep 5
-        ${noctaliaPkg}/bin/noctalia-shell ipc call location set "${myconfig.constants.weather or "London"}"
-
-        wait $PID
+        exec ${lib.getExe noctaliaPkg}
       '';
     in
     {
@@ -114,16 +63,16 @@ delib.module {
         }
       ];
 
-      home.packages = lib.mkIf active ([
-        noctaliaPkg
-        startNoctalia
+      programs.noctalia = lib.mkIf active {
+        enable = true;
+        package = noctaliaPkg;
+        settings = {
+          location.address = myconfig.constants.weather;
+          weather.enabled = true;
+        };
+      };
 
-        # Runtime dependencies
-        pkgs.wlsunset
-        pkgs.cava
-        pkgs.evolution-data-server
-      ]
-      ++ extraQmlPackages);
+      home.packages = lib.mkIf active [ startNoctalia ];
 
       programs.niri.settings = lib.mkIf activeOnNiri {
         spawn-at-startup = [
@@ -142,28 +91,13 @@ delib.module {
     , ...
     }:
     let
-      activeOnHyprland =
-        pkgs.stdenv.hostPlatform.isx86_64
-        && cfg.enable
-        && cfg.enableOnHyprland
-        && (parent.hyprland.enable or false);
-
-      activeOnNiri =
-        pkgs.stdenv.hostPlatform.isx86_64
-        && cfg.enable
-        && cfg.enableOnNiri
-        && (parent.niri.enable or false);
-
-      activeOnMango =
-        pkgs.stdenv.hostPlatform.isx86_64
-        && cfg.enable
-        && cfg.enableOnMango
-        && (parent.mango.enable or false);
+      activeOnHyprland = activeOn cfg parent "Hyprland";
+      active = activeOnHyprland || activeOn cfg parent "Niri" || activeOn cfg parent "Mango";
     in
     {
-      programs.gpu-screen-recorder.enable = lib.mkIf (activeOnHyprland || activeOnNiri || activeOnMango) true;
+      programs.gpu-screen-recorder.enable = lib.mkIf active true;
 
-      myconfig.programs.hyprland.execOnce = lib.mkIf activeOnHyprland [
+      myconfig.programs.hyprland.shellExecOnce = lib.mkIf activeOnHyprland [
         "start-noctalia"
       ];
     };

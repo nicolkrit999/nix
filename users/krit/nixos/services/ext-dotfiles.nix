@@ -9,9 +9,6 @@ let
     # caelestia-shell
     ".config/caelestia" = "linux/linux-general/shells/quickshell/.config/caelestia";
 
-    # noctalia-shell
-    ".config/noctalia" = "linux/linux-general/shells/quickshell/.config/noctalia";
-
     # general-bash
     ".bashrc_custom" = "general/shells/.bashrc_custom";
 

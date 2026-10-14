@@ -37,6 +37,9 @@ let
     (src + "/modules/nixos/toplevel/gnome.nix")
     (src + "/modules/nixos/toplevel/kde.nix")
 
+    # Bluetooth enable option (the waybar bluetooth pill reads myconfig.bluetooth.enable)
+    (src + "/modules/nixos/toplevel/bluetooth.nix")
+
     # Window manager main modules + binds
     (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix")
     (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-binds.nix")

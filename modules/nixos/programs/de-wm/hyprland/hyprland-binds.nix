@@ -28,14 +28,14 @@ delib.module {
       vicinaeEnabled = parent.vicinae.enable or true;
 
       shellMenu =
-        if caelestiaActiveOnHyprland then "caelestiaQS"
-        else if noctaliaActiveOnHyprland then "noctalia-shell ipc call toggleAppLauncher"
+        if caelestiaActiveOnHyprland then "caelestiaqs ipc call drawers toggle launcher"
+        else if noctaliaActiveOnHyprland then "noctalia msg panel-toggle launcher"
         else if vicinaeEnabled then "vicinae toggle"
         else null;
 
       shellLock =
-        if caelestiaActiveOnHyprland then "caelestiaLogout lock"
-        else if noctaliaActiveOnHyprland then "noctalia-shell ipc call lockScreen lock"
+        if caelestiaActiveOnHyprland then "caelestiaqs ipc call lock lock"
+        else if noctaliaActiveOnHyprland then "noctalia msg session lock"
         else "loginctl lock-session";
 
       shellActiveOnHyprland = caelestiaActiveOnHyprland || noctaliaActiveOnHyprland;

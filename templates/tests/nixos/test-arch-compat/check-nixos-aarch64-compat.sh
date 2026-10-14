@@ -50,7 +50,7 @@ classify_error() {
   local err="$1"
   # Known flake-input module names — error here = direct module issue.
   # Uses --show-trace output so derivation names like 'caelestia-shell-1.0.0' are visible.
-  local flake_modules=("noctalia-shell" "caelestia-shell" "claude-desktop" "vicinae" "antigravity-nix" "nix-doom-emacs")
+  local flake_modules=("caelestia-shell" "claude-desktop" "vicinae" "antigravity-nix" "nix-doom-emacs")
   for m in "${flake_modules[@]}"; do
     if echo "$err" | grep -q "$m"; then
       echo "DIRECT MODULE ($m)"

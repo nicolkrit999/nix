@@ -1,5 +1,4 @@
 { delib
-, inputs
 , pkgs
 , lib
 , ...
@@ -91,7 +90,7 @@ delib.module {
         '';
       };
 
-      noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      noctaliaPkg = pkgs.noctalia;
 
       noctaliaActiveOnMango =
         (parent.noctalia.enable or false)
@@ -101,7 +100,7 @@ delib.module {
 
       shellLauncherBind =
         if noctaliaActiveOnMango then
-          "SUPER+SHIFT,A,spawn,sh -c '${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle'"
+          "SUPER+SHIFT,A,spawn,sh -c '${lib.getExe noctaliaPkg} msg panel-toggle launcher'"
         else if vicinaeEnabled then
           "SUPER+SHIFT,A,spawn,vicinae toggle"
         else
@@ -109,7 +108,7 @@ delib.module {
 
       shellLockBind =
         if noctaliaActiveOnMango then
-          "SUPER,Delete,spawn,sh -c '${noctaliaPkg}/bin/noctalia-shell ipc call lockScreen lock'"
+          "SUPER,Delete,spawn,sh -c '${lib.getExe noctaliaPkg} msg session lock'"
         else
           "SUPER,Delete,spawn,loginctl lock-session";
 

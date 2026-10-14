@@ -1,7 +1,6 @@
 { delib
 , lib
 , pkgs
-, inputs
 , ...
 }:
 delib.module {
@@ -27,7 +26,7 @@ delib.module {
         else
           [ app ];
 
-      noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      noctaliaPkg = pkgs.noctalia;
 
       vicinaeEnabled = parent.vicinae.enable or true;
 
@@ -42,7 +41,7 @@ delib.module {
           [
             "sh"
             "-c"
-            "${noctaliaPkg}/bin/noctalia-shell ipc call launcher toggle"
+            "${lib.getExe noctaliaPkg} msg panel-toggle launcher"
           ]
         else if vicinaeEnabled then
           vicinaeCommand
@@ -54,7 +53,7 @@ delib.module {
           [
             "sh"
             "-c"
-            "${noctaliaPkg}/bin/noctalia-shell ipc call lockScreen lock"
+            "${lib.getExe noctaliaPkg} msg session lock"
           ]
         else
           [ "loginctl" "lock-session" ];

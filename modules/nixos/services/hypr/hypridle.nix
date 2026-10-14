@@ -1,8 +1,6 @@
 { delib
-, inputs
 , pkgs
 , lib
-
 , ...
 }:
 delib.module {
@@ -22,22 +20,26 @@ delib.module {
     , ...
     }:
     let
-      noctaliaPkg = inputs.noctalia-shell.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      noctalia = myconfig.programs.noctalia or { };
+      noctaliaOn = wm: (noctalia."enableOn${wm}" or false) && (myconfig.programs.${lib.toLower wm}.enable or false);
+      noctaliaActive =
+        pkgs.stdenv.hostPlatform.isx86_64
+        && (noctalia.enable or false)
+        && (noctaliaOn "Hyprland" || noctaliaOn "Niri" || noctaliaOn "Mango");
 
-      universalLock = pkgs.writeShellScriptBin "universal-lock" ''
-        if pgrep -f "noctalia-shell" > /dev/null; then
-           ${noctaliaPkg}/bin/noctalia-shell ipc call lockScreen lock
+      universalLock = pkgs.writeShellScriptBin "universal-lock" (lib.optionalString noctaliaActive ''
+        if ${lib.getExe pkgs.noctalia} msg session lock > /dev/null 2>&1; then
            exit 0
         fi
-        if command -v caelestiaLogout > /dev/null; then
-           caelestiaLogout lock
+      '' + ''
+        if pgrep -f caelestia-shell > /dev/null && caelestiaqs ipc call lock lock > /dev/null 2>&1; then
            exit 0
         fi
         if command -v hyprlock > /dev/null; then
            pidof hyprlock || hyprlock
            exit 0
         fi
-      '';
+      '');
 
       isWmEnabled =
         (myconfig.programs.hyprland.enable or false)

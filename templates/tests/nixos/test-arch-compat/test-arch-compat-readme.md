@@ -62,7 +62,7 @@ which programs a host enables.
 |-------|----------|
 | `hostPlatformIsAarch64` | `nixpkgs.hostPlatform` and the HM `activationPackage.system` are `aarch64-linux` (guards against every dry-build being vacuously x86) |
 | `x86OnlyPackageIsRejected` | negative control: an `x86_64-linux`-only package fails `tryEval` on aarch64, proving `meta.platforms` is enforced |
-| `shellsInertOnAarch64` | with caelestia and noctalia enabled, `myconfig.programs.hyprland.execOnce` has no noctalia/caelestia entry (the `isx86_64` gating works) |
+| `shellsInertOnAarch64` | with caelestia and noctalia enabled, `myconfig.programs.hyprland.execOnce ++ shellExecOnce` has no noctalia/caelestia entry (the `isx86_64` gating works) |
 | `specialisationNames` | `deep-focus`, `guest`, `safemode`, `secure-travel` all exist as specialisations (the dry-build attrs rely on these names) |
 
 The former "expected incompatibility" path (`EXPECTED_DIRECT_MODULES`) was dead code and was removed.

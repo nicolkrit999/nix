@@ -10,7 +10,7 @@
 
 - Adaptive host support via denix (per-host modules and constants)
 - Host-specific home-manager modules (`/users` + `/modules`) and manual-import templates (`/templates`)
-- Hybrid declarative + non-declarative modules (shells, caelestia, noctalia)
+- Hybrid declarative + non-declarative modules (shells, caelestia, noctalia GUI overrides)
 - Theming: base16 + optional Catppuccin via stylix
 - Host-specific wallpapers tied to monitor list
 - Multiple desktop environments: Hyprland with waybar, Hyprland with caelestia, Hyprland with noctalia, niri with noctalia, MangoWM with mangowc, KDE, GNOME, Cosmic

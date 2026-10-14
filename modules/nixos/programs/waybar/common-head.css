@@ -1,0 +1,71 @@
+* {
+  border: none;
+  font-family: "JetBrainsMono Nerd Font Propo";
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  min-height: 0;
+  color: @fg_pill;
+}
+
+/* TRANSPARENT BAR BACKGROUND - wallpaper shows through */
+window#waybar {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* Nuclear reset: kill any GTK-theme-drawn artifacts on structural elements */
+window#waybar box,
+window#waybar box box,
+window#waybar menubar,
+window#waybar .background {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  background-image: none;
+  -gtk-icon-shadow: none;
+}
+
+/* Kill GTK separator element */
+window#waybar separator {
+  background: transparent;
+  background-image: none;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  color: transparent;
+  opacity: 0;
+}
+
+/* Reset module-section wrappers */
+window#waybar .modules-left,
+window#waybar .modules-center,
+window#waybar .modules-right,
+window#waybar .modules-center > widget,
+window#waybar .modules-left > widget,
+window#waybar .modules-right > widget {
+  border: none;
+  box-shadow: none;
+  outline: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+/* Nuclear reset: prevent ghost pills from GTK child elements */
+window#waybar .modules-center > widget > box,
+window#waybar .modules-center > widget > menubar,
+window#waybar .modules-left > widget > box,
+window#waybar .modules-right > widget > box {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}

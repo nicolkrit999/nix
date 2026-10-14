@@ -342,7 +342,179 @@ let
         ]
         + lib.concatMapStrings (n: "@define-color fg_${n} ${fg.${n}};\n") [ "pill" "active" "hover" "crit" "tooltip" ];
     };
+
+  mkWaybar = { pkgs, myconfig, colors }:
+    let
+      c = colors;
+      t = mkTheme c;
+      inherit (myconfig.constants) hostname mainLocale user;
+      jq = "${pkgs.jq}/bin/jq";
+      weather = lib.escapeURL myconfig.constants.weather;
+    in
+    {
+      inherit c t jq;
+      userHost = "${user}<span font_family='JetBrainsMono Nerd Font Propo'>󱄅</span>${hostname}";
+      workspacesCss = builtins.readFile ./workspaces.css;
+
+      bar = {
+        layer = "top";
+        position = "top";
+        height = 36;
+        margin-top = 8;
+        margin-bottom = 0;
+        margin-left = 16;
+        margin-right = 16;
+      };
+
+      modulesRight = language:
+        [ language "custom/weather" "custom/wifi" "custom/bluetooth" "pulseaudio" "custom/mic" "battery" ]
+        ++ lib.optional myconfig.services.swaync.enable "custom/notification";
+
+      modules = {
+        "custom/weather" = {
+          format = "{}";
+          exec = "${lib.getExe pkgs.curl} -sf --max-time 10 'wttr.in/${weather}?format=%c%t' | sed 's/ //'";
+          interval = 300;
+          class = "weather";
+          on-click = "${pkgs.xdg-utils}/bin/xdg-open \"https://wttr.in/${weather}\"";
+        };
+
+        "pulseaudio" = {
+          format = "<span color='${t.accent c.base0D}'>{icon}</span> {volume}%";
+          format-bluetooth = "<span color='${t.accent c.base0D}'>{icon}</span> {volume}%";
+          format-muted = "<span color='${t.accent c.base08}'>󰖁</span> Muted";
+          format-icons = {
+            headphones = "󰋋";
+            handsfree = "󰋎";
+            headset = "󰋎";
+            phone = "󰏲";
+            portable = "󰏲";
+            car = "󰄋";
+            default = [ "󰕿" "󰖀" "󰕾" ];
+          };
+          on-click = lib.getExe pkgs.pavucontrol;
+        };
+
+        "custom/mic" = {
+          format = "{}";
+          exec = ''
+            if ! wpctl inspect @DEFAULT_AUDIO_SOURCE@ >/dev/null 2>&1 \
+              || wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null | grep -q MUTED; then
+              echo "<span color='${t.accent c.base08}'>󰍭</span>"
+            else
+              echo "<span color='${t.accent c.base0B}'>󰍬</span>"
+            fi
+          '';
+          interval = 1;
+          on-click = "wpctl inspect @DEFAULT_AUDIO_SOURCE@ >/dev/null 2>&1 && wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
+          tooltip = false;
+        };
+
+        "battery" = {
+          states = { warning = 20; critical = 5; };
+          format = "<span color='${t.accent c.base0A}'>{icon}</span> {capacity}%";
+          format-charging = "<span color='${t.accent c.base0B}'>󰂄</span> {capacity}%";
+          format-critical = "<span color='${t.fg.crit}'>{icon}</span> {capacity}% {time}";
+          format-alt = "{time} <span color='${t.accent c.base0A}'>{icon}</span>";
+          format-icons = [ "󰂎" "󰁻" "󰁾" "󰂀" "󰁹" ];
+        };
+
+        "clock" = {
+          locale = mainLocale;
+          format = "<span color='${t.accent c.base0E}'></span> {:%I:%M %p}";
+          format-alt = "<span color='${t.accent c.base0E}'></span> {:%m/%d/%Y - %I:%M %p}";
+          tooltip-format = "<tt><small>{calendar}</small></tt>";
+          calendar = {
+            mode = "year";
+            mode-mon-col = 3;
+            weeks-pos = "right";
+            on-scroll = 1;
+          };
+        };
+
+        "custom/notification" = {
+          format = "{}";
+          exec = ''
+            swaync-client -swb 2>/dev/null \
+              | ${jq} --unbuffered -r --arg on "<span color='${t.accent c.base09}'>󰂚</span>" \
+                  'if (.text | tonumber) > 0 then "\($on) \(.text)" else "󰂜" end'
+          '';
+          restart-interval = 5;
+          on-click = "swaync-client -t -sw";
+          on-click-right = "swaync-client -C";
+          tooltip = false;
+        };
+
+        "custom/wifi" = {
+          format = "{}";
+          exec = ''
+            wifi_info=$(nmcli -t -f active,ssid dev wifi list --rescan no 2>/dev/null \
+              | sed -n 's/^yes://p' | sed 's/\\:/:/g' | ${jq} -Rr '@html')
+            if [ -n "$wifi_info" ]; then
+              echo "<span color='${t.accent c.base0C}'>󰤨</span> $wifi_info"
+            elif nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -q "ethernet:connected"; then
+              echo "<span color='${t.accent c.base0C}'>󰈀</span> ${hostname}"
+            else
+              echo "<span color='${t.fg.pill}'>󰤭</span> offline"
+            fi
+          '';
+          interval = 5;
+          on-click = "${pkgs.networkmanagerapplet}/bin/nm-connection-editor";
+          tooltip = false;
+        };
+
+        "custom/bluetooth" = {
+          format = "{}";
+          exec = ''
+            if bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then
+              echo "<span color='${t.accent c.base0D}'>󰂯</span>"
+            else
+              echo "<span color='${t.fg.pill}'>󰂲</span>"
+            fi
+          '';
+          interval = 5;
+          tooltip = false;
+        } // lib.optionalAttrs myconfig.bluetooth.enable {
+          on-click = "blueman-manager";
+        };
+      };
+
+      home = { name, title, enable, target, config, css, waybar ? pkgs.waybar }:
+        let dir = "waybar-${name}";
+        in
+        {
+          home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+          fonts.fontconfig.enable = true;
+
+          xdg.configFile."${dir}/config" = lib.mkIf enable {
+            text = builtins.toJSON config;
+          };
+          xdg.configFile."${dir}/style.css" = lib.mkIf enable {
+            text = "${t.cssVariables}\n${builtins.readFile ./common-head.css}${css}${builtins.readFile ./common-tail.css}\n";
+          };
+
+          systemd.user.services.${dir} = lib.mkIf enable {
+            Unit = {
+              Description = "Waybar for ${title}";
+              Documentation = "https://github.com/Alexays/Waybar/wiki";
+              PartOf = [ target ];
+              After = [ target ];
+              ConditionEnvironment = "WAYLAND_DISPLAY";
+            };
+            Service = {
+              ExecStart = "${waybar}/bin/waybar -c %h/.config/${dir}/config -s %h/.config/${dir}/style.css";
+              ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
+              Restart = "on-failure";
+              RestartSec = 1;
+              KillMode = "mixed";
+            };
+            Install = {
+              WantedBy = [ target ];
+            };
+          };
+        };
+    };
 in
 {
-  inherit lum ratio mix readableOn accentOn mkTheme;
+  inherit mkTheme mkWaybar;
 }

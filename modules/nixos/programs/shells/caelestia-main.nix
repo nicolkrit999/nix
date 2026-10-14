@@ -4,6 +4,13 @@
 , lib
 , ...
 }:
+let
+  activeOnHyprland = cfg: parent:
+    pkgs.stdenv.hostPlatform.isx86_64
+    && cfg.enable
+    && cfg.enableOnHyprland
+    && parent.hyprland.enable;
+in
 delib.module {
   name = "programs.caelestia";
 
@@ -14,7 +21,7 @@ delib.module {
       enableOnHyprland = boolOption false;
     };
 
-  # Keep always so activation can depend on parent WM state.
+  # always: the HM `imports` must live in an always block; activation is gated per option below.
   home.always =
     { cfg
     , parent
@@ -22,11 +29,7 @@ delib.module {
     , ...
     }:
     let
-      activeOnHyprland =
-        pkgs.stdenv.hostPlatform.isx86_64
-        && cfg.enable
-        && cfg.enableOnHyprland
-        && (parent.hyprland.enable or false);
+      active = activeOnHyprland cfg parent;
 
       # The flake input is only evaluated on x86_64; other arches get an empty stand-in.
       caelestiaPkg =
@@ -34,70 +37,29 @@ delib.module {
         then inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli
         else pkgs.emptyDirectory;
 
-      caelestiaLogout = pkgs.writeShellScriptBin "caelestia-logout" ''
-        # 1. If UWSM is running, use it (Most graceful)
-        if command -v uwsm >/dev/null && pgrep -u $UID -x uwsm >/dev/null;
-        then
-            exec uwsm stop
-        fi
-
-        # 2. Fallback: If in Hyprland (without UWSM), exit Hyprland directly
-        if [ "$XDG_CURRENT_DESKTOP" = "Hyprland" ];
-        then
-            exec hyprctl dispatch 'hl.dsp.exit()'
-        fi
-
-        # 3. Fallback: If in Niri, exit Niri
-        if [ "$XDG_CURRENT_DESKTOP" = "Niri" ];
-        then
-            exec niri msg action quit
-        fi
-
-        # 4. Nuclear Option: Standard systemd logout
-        exec loginctl terminate-user "$USER"
-      '';
-
       caelestiaQS = pkgs.writeShellScriptBin "caelestiaqs" ''
-        # -----------------------------------------------------------
-        # 📝 CONFIG SETUP
-        # -----------------------------------------------------------
         mkdir -p "$HOME/.config/caelestia"
 
-        # -----------------------------------------------------------
-        # 🔧 ENVIRONMENT & SIGNATURE FIX
-        # -----------------------------------------------------------
-        # 1. ALWAYS get a fresh signature using the absolute path to hyprctl
-        export HYPRLAND_INSTANCE_SIGNATURE="$(${pkgs.hyprland}/bin/hyprctl instances | head -n 1 | cut -d " " -f 2 | tr -d ':')"
-
-        # Fallback: If empty (startup race condition), retry loop
-        if [ -z "$HYPRLAND_INSTANCE_SIGNATURE" ];
-        then
-            for i in {1..10};
-            do
-                export HYPRLAND_INSTANCE_SIGNATURE="$(${pkgs.hyprland}/bin/hyprctl instances | head -n 1 | cut -d " " -f 2 | tr -d ':')"
-                if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ];
-                then break; fi
-                if [ "$#" -eq 0 ];
-                then sleep 0.5; else break; fi
-            done
+        if [ -z "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+          for _ in {1..10}; do
+            HYPRLAND_INSTANCE_SIGNATURE="$(${pkgs.hyprland}/bin/hyprctl instances | head -n 1 | cut -d " " -f 2 | tr -d ':')"
+            if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then break; fi
+            if [ "$#" -eq 0 ]; then sleep 0.5; else break; fi
+          done
+          export HYPRLAND_INSTANCE_SIGNATURE
         fi
 
-        echo "DEBUG: Caelestia connecting to Signature: $HYPRLAND_INSTANCE_SIGNATURE"
-
-        # 2. Ensure socket & display
-        export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-        export WAYLAND_DISPLAY="wayland-1"
+        : "''${XDG_RUNTIME_DIR:=/run/user/$(id -u)}"
+        : "''${WAYLAND_DISPLAY:=wayland-1}"
+        export XDG_RUNTIME_DIR WAYLAND_DISPLAY
 
         set -euo pipefail
 
         HM_PROFILE="/etc/profiles/per-user/${myconfig.constants.user}"
 
-        # 3. Unset conflicting vars
-        unset QT_QUICK_CONTROLS_STYLE
         unset QT_QPA_PLATFORMTHEME
         unset QT_STYLE_OVERRIDE
 
-        # 4. Construct QML paths
         qmlPaths=""
         for d in \
           "${caelestiaPkg}/lib/qt-6/qml" \
@@ -115,39 +77,32 @@ delib.module {
           fi
         done
 
-        # Use shell expansion for the existing variable
         export QML2_IMPORT_PATH="$qmlPaths''${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
 
         export QT_QPA_PLATFORM="wayland"
         export QT_QUICK_CONTROLS_STYLE="Basic"
 
-        # -----------------------------------------------------------
-        # 🚀 EXECUTION MODE
-        # -----------------------------------------------------------
         if [ "$#" -gt 0 ]; then
-           # COMMAND MODE: Forward arguments (e.g. 'ipc call...')
-           exec "${caelestiaPkg}/bin/caelestia-shell" "$@"
+          exec "${caelestiaPkg}/bin/caelestia-shell" "$@"
         else
-           # DAEMON MODE: Start the bar
-           exec "${caelestiaPkg}/bin/caelestia-shell" -d
+          exec "${caelestiaPkg}/bin/caelestia-shell" -d
         fi
       '';
     in
     {
       imports = [ inputs.caelestia-shell.homeManagerModules.default ];
 
-      programs.caelestia = lib.mkIf activeOnHyprland {
+      programs.caelestia = lib.mkIf active {
         enable = true;
+        package = caelestiaPkg;
         cli.enable = true;
         systemd.enable = false;
       };
 
-      fonts.fontconfig.enable = lib.mkIf activeOnHyprland true;
+      fonts.fontconfig.enable = lib.mkIf active true;
 
-      home.packages = lib.mkIf activeOnHyprland [
-        caelestiaPkg
+      home.packages = lib.mkIf active [
         caelestiaQS
-        caelestiaLogout
 
         # Qt Dependencies
         pkgs.qt6.qt5compat
@@ -159,14 +114,8 @@ delib.module {
         pkgs.nerd-fonts.jetbrains-mono
         pkgs.material-symbols
       ];
-
     };
 
-  # Hyprland exec-once is set at the NixOS layer because the parent option
-  # `myconfig.programs.hyprland.execOnce` lives in NixOS scope. hyprland-main.nix's
-  # home.ifEnabled reads it and renders the commands as a Lua function bound to
-  # the `hyprland.start` event. mkAfter preserves end-of-list ordering across
-  # all contributors.
   nixos.always =
     { cfg
     , parent
@@ -174,19 +123,13 @@ delib.module {
     , ...
     }:
     let
-      activeOnHyprland =
-        pkgs.stdenv.hostPlatform.isx86_64
-        && cfg.enable
-        && cfg.enableOnHyprland
-        && (parent.hyprland.enable or false);
+      active = activeOnHyprland cfg parent;
     in
     {
-      programs.gpu-screen-recorder.enable = lib.mkIf activeOnHyprland true;
+      programs.gpu-screen-recorder.enable = lib.mkIf active true;
 
-      myconfig.programs.hyprland.execOnce = lib.mkIf activeOnHyprland (lib.mkAfter [
-        "hyprctl systemd --export HYPRLAND_INSTANCE_SIGNATURE"
-        "dbus-update-activation-environment --systemd XDG_SCREENSHOTS_DIR"
+      myconfig.programs.hyprland.shellExecOnce = lib.mkIf active [
         "sh -lc 'XDG_SCREENSHOTS_DIR=${myconfig.constants.screenshots} caelestiaqs'"
-      ]);
+      ];
     };
 }

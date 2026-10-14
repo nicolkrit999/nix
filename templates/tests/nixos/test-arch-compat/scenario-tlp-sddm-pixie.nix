@@ -205,7 +205,7 @@ in
       else "ok";
     shellsInertOnAarch64 =
       let
-        exec = config.myconfig.programs.hyprland.execOnce;
+        exec = config.myconfig.programs.hyprland.execOnce ++ config.myconfig.programs.hyprland.shellExecOnce;
         bad = builtins.filter (e: builtins.match ".*(noctalia|caelestia).*" e != null) exec;
       in
       if bad == [ ] then "ok" else "FAIL: shell autostart present on aarch64: ${toString bad}";

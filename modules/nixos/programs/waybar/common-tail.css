@@ -1,0 +1,54 @@
+
+/* ----------------------------------------------------------------------- */
+/* ALL STATUS MODULES (pill-shaped)                                         */
+/* ----------------------------------------------------------------------- */
+
+#clock,
+#battery,
+#pulseaudio,
+#custom-mic,
+#language,
+#custom-language,
+#custom-layout,
+#custom-weather,
+#custom-wifi,
+#custom-bluetooth,
+#custom-notification {
+  padding: 4px 16px;
+  margin: 0 4px;
+  background-color: @base01;
+  border-radius: 100px;
+  border: none;
+  color: @fg_pill;
+  transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Clock — slightly elevated prominence */
+#clock {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: @fg_pill;
+}
+
+/* Battery warning/critical states */
+#battery.warning {
+  box-shadow: inset 0 0 0 2px @base09;
+}
+
+/* Charging keeps the normal pill so the green charging icon stays readable */
+#battery.critical:not(.charging) {
+  background-color: @base08;
+  color: @fg_crit;
+}
+
+/* Tooltips — explicit colors so they never fall back to the GTK theme's
+   (possibly opposite-polarity) tooltip background */
+tooltip {
+  background-color: @base00;
+  border: 1px solid @base02;
+  border-radius: 8px;
+}
+
+tooltip label {
+  color: @fg_tooltip;
+}

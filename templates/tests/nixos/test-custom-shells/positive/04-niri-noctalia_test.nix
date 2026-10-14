@@ -15,8 +15,8 @@ nix-tests.runTests {
     "swaync suppressed — noctalia active on niri" =
       helpers.isFalse hm.services.swaync.enable;
     "Mod+Shift+A spawns noctalia launcher IPC" =
-      helpers.isTrue (builtins.any (elem: lib.hasInfix "noctalia-shell ipc call launcher toggle" elem) niriBinds."Mod+Shift+A".action.spawn);
+      helpers.isTrue (builtins.any (elem: lib.hasInfix "noctalia msg panel-toggle launcher" elem) niriBinds."Mod+Shift+A".action.spawn);
     "Mod+Delete spawns noctalia lock IPC" =
-      helpers.isTrue (builtins.any (elem: lib.hasInfix "noctalia-shell ipc call lockScreen lock" elem) niriBinds."Mod+Delete".action.spawn);
+      helpers.isTrue (builtins.any (elem: lib.hasInfix "noctalia msg session lock" elem) niriBinds."Mod+Delete".action.spawn);
   };
 }

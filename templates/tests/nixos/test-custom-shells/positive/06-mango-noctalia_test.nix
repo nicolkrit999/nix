@@ -16,8 +16,8 @@ nix-tests.runTests {
     "swaync suppressed — noctalia active on mango" =
       helpers.isFalse hm.services.swaync.enable;
     "SUPER+SHIFT,A is bound exactly once, to the noctalia launcher IPC" =
-      helpers.isTrue (builtins.length launcher == 1 && lib.hasInfix "noctalia-shell ipc call launcher toggle" (builtins.head launcher));
+      helpers.isTrue (builtins.length launcher == 1 && lib.hasInfix "noctalia msg panel-toggle launcher" (builtins.head launcher));
     "SUPER,Delete is bound exactly once, to the noctalia lock IPC" =
-      helpers.isTrue (builtins.length lock == 1 && lib.hasInfix "noctalia-shell ipc call lockScreen lock" (builtins.head lock));
+      helpers.isTrue (builtins.length lock == 1 && lib.hasInfix "noctalia msg session lock" (builtins.head lock));
   };
 }

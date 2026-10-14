@@ -18,7 +18,7 @@ Currently applies to:
 |------|---------------|--------------------|
 | Shells (zsh, bash, fish) | `modules/common/programs/shells/{zsh,bash,fish}.nix` | `~/.zshrc_custom`, `.bashrc_custom`, `.custom.fish` |
 | Caelestia | `modules/nixos/programs/shells/caelestia-main.nix` | `~/.config/caelestia/shell.json` |
-| Noctalia | `modules/nixos/programs/shells/noctalia-main.nix` | `~/.config/noctalia/config.json` |
+| Noctalia | `modules/nixos/programs/shells/noctalia-main.nix` (writes `~/.config/noctalia/config.toml`) | `~/.local/state/noctalia/settings.toml` (GUI overrides) |
 
 ---
 

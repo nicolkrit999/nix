@@ -20,9 +20,9 @@ nix-tests.runTests {
       helpers.isTrue (lib.hasInfix "hyprland-wallpaperd" controlLua);
     "wallpaper supervisor suppressed while the rest of the startup block remains" =
       helpers.isTrue (lib.hasInfix "pkill ibus-daemon" execLua && !(lib.hasInfix "hyprland-wallpaperd" execLua));
-    "Super+Shift+A bind dispatches to caelestiaQS" =
-      helpers.isTrue (lib.hasInfix "caelestiaQS" (H.hyprBind hm "SUPER+SHIFT + A"));
-    "Super+Delete bind dispatches to caelestiaLogout lock" =
-      helpers.isTrue (lib.hasInfix "caelestiaLogout lock" (H.hyprBind hm "SUPER + Delete"));
+    "Super+Shift+A bind dispatches to the caelestia launcher IPC" =
+      helpers.isTrue (lib.hasInfix "caelestiaqs ipc call drawers toggle launcher" (H.hyprBind hm "SUPER+SHIFT + A"));
+    "Super+Delete bind dispatches to the caelestia lock IPC" =
+      helpers.isTrue (lib.hasInfix "caelestiaqs ipc call lock lock" (H.hyprBind hm "SUPER + Delete"));
   };
 }

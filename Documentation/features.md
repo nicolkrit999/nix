@@ -23,7 +23,8 @@ This enables two scenarios:
 
 Currently applies to:
 - **Shells**: `zsh.nix`, `bash.nix`, `fish.nix` ↔ `~/.zshrc_custom`, `.bashrc_custom`, `.custom.fish`
-- **Caelestia/Noctalia**: `caelestia-main.nix`, `noctalia-main.nix` ↔ `~/.config/caelestia/shell.json`, `~/.config/noctalia/config.json`
+- **Caelestia**: `caelestia-main.nix` ↔ `~/.config/caelestia/shell.json`
+- **Noctalia**: `noctalia-main.nix` writes `~/.config/noctalia/config.toml`; GUI changes go to `~/.local/state/noctalia/settings.toml`, which overrides it
 
 ---
 

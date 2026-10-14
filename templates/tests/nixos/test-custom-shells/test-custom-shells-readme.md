@@ -61,14 +61,14 @@ nix run github:danielefongo/nix-tests -- conflict/01-two-shells-on-hyprland_test
 | Scenario | Expected |
 |----------|----------|
 | no shell (or dormant shell) on hyprland / niri / mango, vicinae on | `SUPER+SHIFT + A` / `Mod+Shift+A` / `SUPER+SHIFT,A` runs `vicinae toggle` (P03, P05, P07, D01-D04) |
-| shell active | the shell's launcher IPC (P01, P02, P04, P06) |
+| shell active | the shell's launcher IPC: `caelestiaqs ipc call drawers toggle launcher` (P01), `noctalia msg panel-toggle launcher` (P02, P04, P06); `SUPER + Delete` / `Mod+Delete` / `SUPER,Delete` run `caelestiaqs ipc call lock lock` / `noctalia msg session lock` |
 | P08: no shell, vicinae disabled, hyprland | `SUPER+SHIFT + A` and `SUPER + A` are not bound; `SUPER + Delete` still is (control) |
 | P08: no shell, vicinae disabled, mango | `SUPER+SHIFT,A` is exactly one bind to `true`; `SUPER,A` unbound; `SUPER,Delete` still bound (control) |
 | P08: no shell, vicinae disabled, niri | `Mod+Shift+A` is `[ "true" ]`; `Mod+A`, `Mod+Period`, `Mod+V` unbound; `Mod+Delete` still bound (control); with vicinae on (P05 host) the same three binds exist and `Mod+Shift+A` is `vicinae toggle` (control) |
 
 ## consumers/ checks
 
-`shared/eval-scenario.nix` additionally loads `swayosd.nix` and `hypridle.nix`.
+`shared/eval-scenario.nix` additionally loads `swayosd.nix` and `hypridle.nix`. "execOnce" below means `hyprland.execOnce ++ hyprland.shellExecOnce` (shells autostart through `shellExecOnce`, which specs never `mkForce`).
 Scenario hosts live in `consumers/NN-*/default.nix`; each `_test.nix` evaluates them.
 
 | Check | Expected |

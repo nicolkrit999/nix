@@ -43,7 +43,7 @@ let
   dirOf' = p: lib.concatStringsSep "/" (lib.init (lib.splitString "/" p));
 
   luaText = hm.xdg.configFile."hypr/hyprland.lua".text or "";
-  execOnce = c.myconfig.programs.hyprland.execOnce or [ ];
+  execOnce = (c.myconfig.programs.hyprland.execOnce or [ ]) ++ (c.myconfig.programs.hyprland.shellExecOnce or [ ]);
   mangoStrings = strings (hm.wayland.windowManager.mango or { });
   spectacle = hm.programs.plasma.configFile.spectaclerc or { };
   spectacleVal = sec: key: (spectacle.${sec}.${key} or { value = null; }).value;

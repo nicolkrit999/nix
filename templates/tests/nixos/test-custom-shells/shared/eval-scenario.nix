@@ -25,7 +25,7 @@ let
 
   # Exact file paths for the modules under test. Including only what the
   # activation-contract tests care about keeps eval fast and avoids pulling
-  # in unrelated modules (librewolf, gnome, kde, cosmic, sops, bluetooth…)
+  # in unrelated modules (librewolf, gnome, kde, cosmic, sops…)
   # that would need extra specialArgs or excludes.
   #
   # Every test recognises all WMs, shells, and waybars so that "wrong WM"
@@ -52,6 +52,9 @@ let
     (src + "/modules/nixos/toplevel/hyprland.nix")
     (src + "/modules/nixos/toplevel/niri.nix")
     (src + "/modules/nixos/toplevel/mango.nix")
+
+    # Bluetooth enable option (the waybar bluetooth pill reads myconfig.bluetooth.enable)
+    (src + "/modules/nixos/toplevel/bluetooth.nix")
 
     # Window manager main modules + binds + extras
     (src + "/modules/nixos/programs/de-wm/hyprland/hyprland-main.nix")
