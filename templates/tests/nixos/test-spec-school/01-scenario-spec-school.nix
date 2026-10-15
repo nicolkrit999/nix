@@ -98,7 +98,7 @@ let
 
     [ "git user.email is school-specific and not the base email" (chk (gitSet.user.email != baseHm.programs.git.settings.user.email && gitSet.user.email != "") "school email equals base email") ]
     [ "git gpg.format == ssh and commit signing on" (chk (gitSet.gpg.format == "ssh" && hm.programs.git.signing.signByDefault && (gitSet.commit.gpgSign or false)) "ssh signing not fully enabled") ]
-    [ "git signByDefault also signs tags" (chk ((gitSet.tag.gpgSign or false) == true) "tag.gpgSign is not true") ]
+    [ "git signByDefault also signs tags" (chk ((hm.programs.git.iniContent.tag.gpgSign or false) == true) "tag.gpgSign is not true") ]
     [ "git signing key is user.signingKey == sops school key" (chk ((gitSet.user.signingKey or "") == idFile) "user.signingKey is '${gitSet.user.signingKey or "unset"}', expected ${idFile}") ]
     [ "no lowercase user.signingkey and no signing.key (single source: git-ssh-signing)" (chk (!(gitSet.user ? signingkey) && hm.programs.git.signing.key == null) "lowercase signingkey or signing.key is set again") ]
     [ "git-ssh-signing options carry the school key and school identity" (chk (c.myconfig.krit.system.git-ssh-signing.signingKey == idFile && c.myconfig.krit.system.git-ssh-signing.allowedSignersEmail == gitSet.user.email && c.myconfig.krit.system.git-ssh-signing.allowedSignersEmail != base.myconfig.krit.system.git-ssh-signing.allowedSignersEmail) "option values differ from the school identity") ]

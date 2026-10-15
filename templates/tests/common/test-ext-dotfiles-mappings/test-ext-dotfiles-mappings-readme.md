@@ -60,7 +60,8 @@ The package tables (`packageLeaves`, `packagesPerHost`, `extraMappingsPerHost`, 
 | sandbox: dir differs | rsynced with `--delete` before the live dir is removed: live-only files copied in, repo-only files removed |
 | sandbox: repo dir missing | live dir kept |
 | sandbox: copy fails (read-only repo) | live file kept |
-| sandbox: rsync fails (file vs non-empty dir) | live dir kept |
+| sandbox: rsync fails (unreadable live file) | live dir kept, nothing copied into the repo (skipped as root) |
+| sandbox: live file replaces non-empty repo dir (type clash) | `--delete` mirrors it: repo path becomes the file, repo-inner files gone, live dir removed |
 
 ### Temporary exemption in function parity (darwin twin lags until batch 13)
 

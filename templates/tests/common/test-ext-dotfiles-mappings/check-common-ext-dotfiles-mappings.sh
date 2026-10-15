@@ -181,10 +181,19 @@ else
   }
   case_dir_rsync_fails() {
     new_sb 8; local repo; repo=$(openlogi_repo)
+    mkdir -p "$repo" "$SB/.config/openlogi"
+    echo new > "$SB/.config/openlogi/unreadable"
+    chmod 000 "$SB/.config/openlogi/unreadable"
+    run_sandbox "$SB"
+    chmod u+r "$SB/.config/openlogi/unreadable"
+    [[ -e "$SB/.config/openlogi/unreadable" && ! -e "$repo/unreadable" ]]
+  }
+  case_dir_type_clash_mirrored() {
+    new_sb 9; local repo; repo=$(openlogi_repo)
     mkdir -p "$repo/clash" "$SB/.config/openlogi"
     echo keep > "$repo/clash/inner"; echo file > "$SB/.config/openlogi/clash"
     run_sandbox "$SB"
-    [[ "$(cat "$SB/.config/openlogi/clash")" == file && -e "$repo/clash/inner" ]]
+    [[ "$(cat "$repo/clash")" == file && ! -e "$repo/clash/inner" && ! -e "$SB/.config/openlogi" ]]
   }
 
   t "live file differs: copied back, then live removed" case_file_copied
@@ -193,11 +202,12 @@ else
   t "repo parent missing: live file kept" case_file_repo_parent_missing
   t "live dir differs: rsynced with --delete, repo-only removed" case_dir_rsynced
   t "repo dir missing: live dir kept" case_dir_repo_missing
+  t "live file replaces non-empty repo dir: mirrored, live removed" case_dir_type_clash_mirrored
   if [[ "$(id -u)" == 0 ]]; then
     echo -e "  ${DIM}skipping read-only failure cases (running as root)${NC}"
   else
     t "copy fails (read-only repo): live file kept" case_file_copy_fails
-    t "rsync fails (file vs non-empty dir clash): live dir kept" case_dir_rsync_fails
+    t "rsync fails (unreadable live file): live dir kept" case_dir_rsync_fails
   fi
 fi
 

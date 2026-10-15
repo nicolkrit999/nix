@@ -37,7 +37,10 @@ let
     modules = [{ myconfig.krit.services.windows-mount.uuid = lib.mkForce ""; }];
   }).config;
   emptySecret = opt: val: (sys.extendModules {
-    modules = [{ myconfig.krit.services.nas.sshfs.enable = lib.mkForce true; myconfig.krit.services.nas.${opt}.${val} = lib.mkForce ""; }];
+    modules = [
+      { myconfig.krit.services.nas.sshfs.enable = lib.mkForce true; }
+      { myconfig.krit.services.nas.${opt}.${val} = lib.mkForce ""; }
+    ];
   }).config;
   nasFailing = needle: c: builtins.filter (a: lib.hasInfix needle a.message) (builtins.filter (a: !a.assertion) c.assertions);
   nasIdentity = my.krit.services.nas;
