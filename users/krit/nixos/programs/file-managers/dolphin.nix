@@ -15,13 +15,22 @@ delib.module {
     let
       homeDir = "/home/${myconfig.constants.user}";
 
-      extraPlaces = [
-        { title = "momentary"; path = "${homeDir}/momentary"; icon = "folder"; }
-        { title = "mnt"; path = "/mnt"; icon = "folder-mount"; }
+      trashHref = "trash:/";
+
+      places = [
+        { title = "Home"; href = "file://${homeDir}"; icon = "user-home"; }
+        { title = "Documents"; href = "file://${homeDir}/Documents"; icon = "folder-documents"; }
+        { title = "Pictures"; href = "file://${homeDir}/Pictures"; icon = "folder-pictures"; }
+        { title = "nix"; href = "file://${homeDir}/${myconfig.constants.flakeDir}"; icon = "folder"; }
+        { title = "Downloads"; href = "file://${homeDir}/Downloads"; icon = "folder-downloads"; }
+        { title = "momentary"; href = "file://${homeDir}/momentary"; icon = "folder"; }
+        { title = "mnt"; href = "file:///mnt"; icon = "folder-mount"; }
+        { title = "Network"; href = "remote:/"; icon = "network-workgroup"; }
+        { title = "Trash"; href = trashHref; icon = "user-trash"; }
       ];
 
-      placeBookmark = { title, path, icon }:
-        ''<bookmark href="file://${path}"><title>${title}</title><info><metadata owner="http://freedesktop.org"><bookmark:icon name="${icon}"/></metadata></info></bookmark>'';
+      placeBookmark = { title, href, icon }:
+        ''<bookmark href="${href}"><title>${title}</title><info><metadata owner="http://freedesktop.org"><bookmark:icon name="${icon}"/></metadata></info></bookmark>'';
 
       placesXml = ''
         <?xml version="1.0" encoding="UTF-8"?>
@@ -36,29 +45,17 @@ delib.module {
               <GroupState-RemovableDevices-IsHidden>false</GroupState-RemovableDevices-IsHidden>
             </metadata>
           </info>
-          <bookmark href="file://${homeDir}">
-            <title>Home</title>
-            <info><metadata owner="http://freedesktop.org"><bookmark:icon name="user-home"/></metadata></info>
-          </bookmark>
-          <bookmark href="file://${homeDir}/Documents">
-            <title>Documents</title>
-            <info><metadata owner="http://freedesktop.org"><bookmark:icon name="folder-documents"/></metadata></info>
-          </bookmark>
-          <bookmark href="file://${homeDir}/Downloads">
-            <title>Downloads</title>
-            <info><metadata owner="http://freedesktop.org"><bookmark:icon name="folder-downloads"/></metadata></info>
-          </bookmark>
-          ${lib.concatMapStringsSep "\n" placeBookmark extraPlaces}
-          <bookmark href="remote:/">
-            <title>Network</title>
-            <info><metadata owner="http://freedesktop.org"><bookmark:icon name="network-workgroup"/></metadata></info>
-          </bookmark>
-          <bookmark href="trash:/">
-            <title>Trash</title>
-            <info><metadata owner="http://freedesktop.org"><bookmark:icon name="user-trash"/></metadata></info>
-          </bookmark>
+          ${lib.concatMapStringsSep "\n  " placeBookmark places}
         </xbel>
       '';
+
+      placesSync = pkgs.writeShellApplication {
+        name = "dolphin-places-sync";
+        runtimeInputs = [ pkgs.python3 ];
+        text = ''
+          exec python3 -I ${./dolphin-places-sync.py} "$@"
+        '';
+      };
 
       placesFile = pkgs.writeText "user-places.xbel" placesXml;
     in
@@ -90,17 +87,8 @@ delib.module {
       home.activation.createDolphinPlaces =
         inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ]
           ''
-            places="${homeDir}/.local/share/user-places.xbel"
-            if [ ! -f "$places" ]; then
-              run install -D -m 644 ${placesFile} "$places"
-            else
-              # existing file: append only the extra places it lacks, keeping Dolphin's own edits
-              ${lib.concatMapStrings (p: ''
-                if ! grep -qF 'href="file://${p.path}"' "$places"; then
-                  run sed -i 's|</xbel>|${placeBookmark p}\n</xbel>|' "$places"
-                fi
-              '') extraPlaces}
-            fi
+            run ${lib.getExe placesSync} ${placesFile} "${homeDir}/.local/share/user-places.xbel" --last ${lib.escapeShellArg trashHref} \
+              || warnEcho "dolphin places not reordered, user-places.xbel left untouched"
           '';
     };
 }

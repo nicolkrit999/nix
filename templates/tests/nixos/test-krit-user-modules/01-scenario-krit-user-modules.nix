@@ -42,7 +42,8 @@ let
   dolphinrc = (hm a).xdg.configFile."dolphinrc".text;
   pluginsLines = text: lib.filter (l: lib.hasPrefix "Plugins=" (lib.trim l)) (lib.splitString "\n" text);
   places = (hm a).home.activation.createDolphinPlaces.data;
-  homeDir = (hm a).home.homeDirectory;
+  placesWired = text: lib.hasInfix "/bin/dolphin-places-sync " text && lib.hasInfix "-user-places.xbel " text
+    && lib.hasInfix "${(hm a).home.homeDirectory}/.local/share/user-places.xbel" text && lib.hasInfix "--last trash:/" text;
 
   pwas = lib.filterAttrs (n: _: lib.hasPrefix "pwa-" n) (hm a).xdg.desktopEntries;
   pwaProblems = entries: lib.concatLists (lib.mapAttrsToList
@@ -71,10 +72,9 @@ let
       "kdegraphics-thumbnailers / ffmpegthumbs missing from the packages";
     check-dolphin-installed-at-most-once = check (count "dolphin" a <= 1)
       "dolphin installed ${toString (count "dolphin" a)} times (dolphin.nix must not add kdePackages.dolphin)";
-    check-dolphin-places-momentary-and-mnt = check
-      (lib.all (p: lib.hasInfix "href=\"file://${p}\"" places) [ "${homeDir}/momentary" "/mnt" ]
-        && lib.hasInfix "<title>momentary</title>" places && lib.hasInfix "grep -qF 'href=\"file:///mnt\"'" places)
-      "createDolphinPlaces lacks the momentary or /mnt bookmark (seed and append-if-missing paths)";
+    check-dolphin-places-sync-wired = check
+      (placesWired places && !(placesWired "run something-else"))
+      "createDolphinPlaces does not run dolphin-places-sync with the seed file, the live user-places.xbel and --last trash:/";
     check-control-plugins-line-detected = check (pluginsLines "[General]\nPlugins=a,b\n" == [ "Plugins=a,b" ])
       "the Plugins= lint does not flag a planted line";
 
