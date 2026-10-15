@@ -18,7 +18,7 @@ bash check-common-ext-dotfiles-mappings.sh
 
 The package tables (`packageLeaves`, `packagesPerHost`, `extraMappingsPerHost`, `syncBack`) are `let`-bound inside the modules. `01-scenario-ext-dotfiles-mappings.nix` extracts that `let` body from the real source files at eval time and re-evaluates it, so no data is duplicated in the test. Each check returns `"ok"` or `"FAIL: ..."` and compares the parsed tables against the real `home.file` / `home.activation` of desktop, laptop (NixOS), `krit@Nicol-NAS` (home-only) and Krits-MacBook-Pro (Darwin). No secrets are involved.
 
-`check-common-ext-dotfiles-mappings.sh` runs `nix eval --raw --impure` per check, then dumps each host's generated activation script, runs `bash -n` on it, and executes the real desktop script in a temporary fake home (the home prefix is substituted and a `run() { "$@"; }` prelude stands in for the home-manager `run` helper; the script uses absolute store paths, so no `PATH` handling is needed). Eval plus seconds, about 1 min. Read-only failure cases are skipped when run as root.
+`check-common-ext-dotfiles-mappings.sh` runs `nix eval --raw --impure` per check, then dumps each host's generated activation script, runs `bash -n` on it, and executes the real desktop script in a temporary fake home (the home prefix is substituted and a `run() { "$@"; }` prelude stands in for the home-manager `run` helper; the script uses absolute store paths, so no `PATH` handling is needed). Before the sandbox runs, every derivation in the desktop script's string context is realised with `nix build --no-link <drv>^<outputs>`: the eval only instantiates `pkgs.rsync`, and a CI runner whose restored store snapshot lacks it would otherwise run the script against a missing binary. A guard then checks that every `/nix/store/...` path in the script text exists; if one is missing it fails and the sandbox cases are skipped, so they cannot pass vacuously. The prelude's `run` also logs each wrapped command's exit code, and the cases that depend on `rsync` or `cp` assert that the real binary ran and exited with the expected code. Eval plus seconds, about 1 min. Read-only failure cases are skipped when run as root.
 
 ## Checks
 
@@ -53,15 +53,16 @@ The package tables (`packageLeaves`, `packagesPerHost`, `extraMappingsPerHost`, 
 | `bash -n` | passes for all four hosts |
 | function parity | `sync_back` body identical on desktop and mac **after a temporary normalisation** (see below) |
 | exemption is real | the desktop function contains an absolute `/nix/store/<hash>-rsync*/bin/rsync -a --delete` call and the script has no `export PATH` (so the normalisation is not hiding a regression of this) |
+| sandbox: store paths realised | every store path the desktop script references exists after realising its context, and one of them is rsync; otherwise FAIL and the sandbox cases below are skipped |
 | sandbox: file differs | copied into repo, live removed |
 | sandbox: file identical | live removed, repo untouched |
 | sandbox: symlink | left alone |
 | sandbox: repo parent missing | live file kept |
-| sandbox: dir differs | rsynced with `--delete` before the live dir is removed: live-only files copied in, repo-only files removed |
+| sandbox: dir differs | rsynced with `--delete` before the live dir is removed: live-only files copied in, repo-only files removed; rsync ran and exited 0 |
 | sandbox: repo dir missing | live dir kept |
-| sandbox: copy fails (read-only repo) | live file kept |
-| sandbox: rsync fails (unreadable live file) | live dir kept, nothing copied into the repo (skipped as root) |
-| sandbox: live file replaces non-empty repo dir (type clash) | `--delete` mirrors it: repo path becomes the file, repo-inner files gone, live dir removed |
+| sandbox: copy fails (read-only repo) | live file kept; `cp` ran and exited 1 |
+| sandbox: rsync fails (unreadable live file) | live dir kept, nothing copied into the repo; rsync ran and exited 23 (a missing binary gives 127 and fails) (skipped as root) |
+| sandbox: live file replaces non-empty repo dir (type clash) | `--delete` mirrors it: repo path becomes the file, repo-inner files gone, live dir removed; rsync ran and exited 0 |
 
 ### Temporary exemption in function parity (darwin twin lags until batch 13)
 

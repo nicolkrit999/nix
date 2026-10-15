@@ -111,13 +111,56 @@ if extract_fn "$WORK/act-desktop.sh" | grep -Eq '/nix/store/[a-z0-9]{32}-rsync[^
 else fail "$label" "desktop activation lacks the absolute rsync --delete call, or still exports PATH"; fi
 
 echo -e "\n${BOLD}sandbox run of the real desktop activation${NC}"
+realise_desktop_refs() {
+  local -a targets
+  mapfile -t targets < <(nix eval --raw --impure --expr "
+    let
+      f = builtins.getFlake \"path:$FLAKE_ROOT\";
+      ctx = builtins.getContext $(activation_expr desktop).activation.syncBackDotfilesPrivate.data;
+      target = n: let c = ctx.\${n}; in
+        if c ? outputs then \"\${n}^\${builtins.concatStringsSep \",\" c.outputs}\"
+        else if c.allOutputs or false then \"\${n}^*\"
+        else n;
+    in builtins.concatStringsSep \"\n\" (map target (builtins.attrNames ctx))")
+  ((${#targets[@]})) || { echo "activation script has no store-path context" >&2; return 1; }
+  nix build --no-link "${targets[@]}"
+}
+store_refs() { grep -oE '/nix/store/[a-z0-9]{32}-[A-Za-z0-9+._?=-]+' "$1" | sort -u; }
+SANDBOX_READY=0
+label="every store path the desktop script references is realised"
+printf "  %-62s " "$label"
+if [[ ! -s "$WORK/act-desktop.sh" ]]; then
+  fail "$label" "desktop activation script was not dumped"
+else
+  realise_desktop_refs >/dev/null 2>"$WORK/realise.err" || true
+  mapfile -t refs < <(store_refs "$WORK/act-desktop.sh")
+  missing=()
+  for p in "${refs[@]}"; do [[ -e $p ]] || missing+=("$p"); done
+  if ((${#missing[@]})); then
+    fail "$label" "missing: ${missing[*]}~$(grep -m2 'error' "$WORK/realise.err" | tr '\n' '~')"
+  elif ! printf '%s\n' "${refs[@]}" | grep -q -- '-rsync-'; then
+    fail "$label" "no rsync store path found in the script (guard would be vacuous)"
+  else
+    pass; SANDBOX_READY=1
+  fi
+fi
+
 run_sandbox() {
   local sb="$1"
-  { echo 'run() { "$@"; }'; sed -e "s#/home/krit#$sb#g" "$WORK/act-desktop.sh"; } > "$WORK/run.sh"
+  {
+    printf 'RUNLOG=%q\n' "$sb.runlog"
+    echo 'run() { local rc=0; "$@" || rc=$?; printf "%s\t%s\n" "$rc" "$1" >> "$RUNLOG"; return "$rc"; }'
+    sed -e "s#/home/krit#$sb#g" "$WORK/act-desktop.sh"
+  } > "$WORK/run.sh"
   bash -eu "$WORK/run.sh"
 }
+ran() {
+  grep -qE "^$1"$'\t'"/nix/store/[a-z0-9]{32}-$2-[^/]+/bin/$3\$" "$SB.runlog" && return 0
+  echo "expected $3 from $2 to exit $1; run log: $(tr '\t\n' ': ' < "$SB.runlog" 2>/dev/null)" >&2
+  return 1
+}
 new_sb() {
-  SB="$WORK/sb$1"; rm -rf "$SB"
+  SB="$WORK/sb$1"; rm -rf "$SB" "$SB.runlog"
   mkdir -p "$SB/.config" "$SB/dotfiles-private/claude/common/.config/x"
   mkdir -p "$SB/dotfiles-private/vicinae" "$SB/dotfiles-private/openlogi"
 }
@@ -126,6 +169,8 @@ openlogi_repo() { echo "$SB/dotfiles-private/$(sed -n "s/^sync_back '\?\.config\
 
 if [[ ! -s "$WORK/act-desktop.sh" ]] || ! grep -q '^sync_back .config/vicinae/settings.json' "$WORK/act-desktop.sh"; then
   fail "sandbox prerequisites" "desktop activation lacks the vicinae sync_back call"
+elif ((SANDBOX_READY == 0)); then
+  echo -e "  ${DIM}skipping sandbox cases: the script references unrealised store paths (see above)${NC}"
 else
   t() { local label="$1"; shift; printf "  %-62s " "$label"; if "$@" 2>"$WORK/err"; then pass; else fail "$label" "$(head -3 "$WORK/err" | tr '\n' '~')"; fi; }
 
@@ -162,7 +207,7 @@ else
     mkdir -p "$repo" "$SB/.config/openlogi"
     echo keep > "$repo/repo-only"; echo new > "$SB/.config/openlogi/live-only"
     run_sandbox "$SB"
-    [[ "$(cat "$repo/live-only")" == new && ! -e "$repo/repo-only" && ! -e "$SB/.config/openlogi" ]]
+    [[ "$(cat "$repo/live-only")" == new && ! -e "$repo/repo-only" && ! -e "$SB/.config/openlogi" ]] && ran 0 rsync rsync
   }
   case_dir_repo_missing() {
     new_sb 6
@@ -177,7 +222,7 @@ else
     chmod a-w "$(dirname "$repo")"
     run_sandbox "$SB"; local rc=$?
     chmod u+w "$(dirname "$repo")"
-    [[ "$(cat "$SB/.config/vicinae/settings.json")" == live && "$(cat "$repo")" == old ]]
+    [[ "$(cat "$SB/.config/vicinae/settings.json")" == live && "$(cat "$repo")" == old ]] && ran 1 coreutils cp
   }
   case_dir_rsync_fails() {
     new_sb 8; local repo; repo=$(openlogi_repo)
@@ -186,14 +231,14 @@ else
     chmod 000 "$SB/.config/openlogi/unreadable"
     run_sandbox "$SB"
     chmod u+r "$SB/.config/openlogi/unreadable"
-    [[ -e "$SB/.config/openlogi/unreadable" && ! -e "$repo/unreadable" ]]
+    [[ -e "$SB/.config/openlogi/unreadable" && ! -e "$repo/unreadable" ]] && ran 23 rsync rsync
   }
   case_dir_type_clash_mirrored() {
     new_sb 9; local repo; repo=$(openlogi_repo)
     mkdir -p "$repo/clash" "$SB/.config/openlogi"
     echo keep > "$repo/clash/inner"; echo file > "$SB/.config/openlogi/clash"
     run_sandbox "$SB"
-    [[ "$(cat "$repo/clash")" == file && ! -e "$repo/clash/inner" && ! -e "$SB/.config/openlogi" ]]
+    [[ "$(cat "$repo/clash")" == file && ! -e "$repo/clash/inner" && ! -e "$SB/.config/openlogi" ]] && ran 0 rsync rsync
   }
 
   t "live file differs: copied back, then live removed" case_file_copied
