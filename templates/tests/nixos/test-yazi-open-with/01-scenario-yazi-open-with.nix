@@ -31,6 +31,20 @@ let
     [ "open" "trash" ]
     [ "open" "reveal" ]
   ];
+  expectedLinux = [
+    [ "open" "open-with" "reveal" ]
+    [ "edit" "open-with" "reveal" ]
+    [ "open" "open-with" "reveal" ]
+    [ "play" "open-with" "reveal" ]
+    [ "extract" "open-with" "reveal" ]
+    [ "edit" "open-with" "reveal" ]
+    [ "edit" "open-with" "reveal" ]
+    [ "edit" "open-with" "reveal" ]
+    "download"
+    [ "edit" "open-with" "reveal" ]
+    [ "open" "open-with" "trash" ]
+    [ "open" "open-with" "reveal" ]
+  ];
   expectedFirst = [ "open" "edit" "open" "play" "extract" "edit" "edit" "edit" "download" "edit" "open" "open" ];
   existingOpeners = [ "download" "edit" "extract" "open" "play" "reveal" "trash" ];
 
@@ -38,10 +52,9 @@ let
   rulesOf = y: y.settings.open.rules;
   uses = y: map (r: r.use) (rulesOf y);
 
-  wantedLinux = map (b: if builtins.isList b then b ++ [ "open-with" ] else b) expectedBefore;
   useProblems = withEntry: rules:
     let
-      want = if withEntry then wantedLinux else expectedBefore;
+      want = if withEntry then expectedLinux else expectedBefore;
       got = map (r: r.use) rules;
     in
     lib.optional (lib.length got != lib.length want) "rule count ${toString (lib.length got)} != ${toString (lib.length want)}"
@@ -64,13 +77,14 @@ let
 
   helperPrefix = "/nix/store/[a-z0-9]{32}-yazi-open-with/bin/yazi-open-with";
   runShape = run: builtins.match "${helperPrefix} %s1" (builtins.unsafeDiscardStringContext run) != null;
-  openWithShape = y:
+  openWithShapeDesc = d: y:
     let o = (openersOf y).open-with or [ ]; in
     lib.length o == 1
-    && (lib.head o).desc == "Open with..."
+    && (lib.head o).desc == d
     && (lib.head o).block == true
     && (lib.head o).for == "linux"
     && runShape (runOf y);
+  openWithShape = openWithShapeDesc "Open with";
   helperPathOf = run: lib.head (lib.splitString " " (builtins.unsafeDiscardStringContext run));
 
   checks = {
@@ -85,7 +99,7 @@ let
     check-linux-existing-openers-identical-to-darwin = check
       (builtins.removeAttrs (openersOf linux) [ "open-with" ] == openersOf darwin)
       "an existing opener differs between linux and darwin, so the open-with change touched it";
-    check-linux-open-rules-end-with-open-with = check (useProblems true (rulesOf linux) == [ ])
+    check-linux-open-rules-have-open-with-second = check (useProblems true (rulesOf linux) == [ ])
       "open.rules use lists: ${show (useProblems true (rulesOf linux))}";
     check-linux-first-opener-unchanged = check (map (r: firstOf r.use) (rulesOf linux) == expectedFirst)
       "first openers ${show (map (r: firstOf r.use) (rulesOf linux))}";
@@ -115,15 +129,22 @@ let
 
     check-control-linux-settings-do-reference-helper = check (lib.any (n: lib.hasInfix "yazi-open-with" n) (linuxRefs linux))
       "the linuxRefs probe finds nothing on linux, so the darwin no-reference check is vacuous";
-    check-control-lint-flags-open-with-in-middle = check
-      (useProblems true (setUse 0 (_: [ "open" "open-with" "reveal" ]) (rulesOf linux)) != [ ])
-      "the use-list lint accepts open-with before reveal";
+    check-control-lint-flags-open-with-last = check
+      (useProblems true (setUse 0 (_: [ "open" "reveal" "open-with" ]) (rulesOf linux)) != [ ])
+      "the use-list lint accepts open-with appended last";
+    check-control-lint-flags-open-with-first = check
+      (useProblems true (setUse 0 (_: [ "open-with" "open" "reveal" ]) (rulesOf linux)) != [ ]
+        && map firstOf (setUse 0 (_: [ "open-with" "open" "reveal" ]) (rulesOf linux)) != expectedFirst)
+      "the lint and the first-opener literal accept open-with as the first opener";
+    check-control-old-desc-rejected = check
+      (openWithShape linux && !(openWithShapeDesc "Open with..." linux))
+      "the desc check cannot tell Open with from the old Open with...";
     check-control-lint-flags-missing-open-with = check
       (useProblems true (setUse 11 (u: lib.remove "open-with" u) (rulesOf linux)) != [ ])
       "the use-list lint accepts a rule without open-with";
     check-control-lint-flags-changed-first-opener = check
-      (useProblems true (setUse 1 (_: [ "reveal" "edit" "open-with" ]) (rulesOf linux)) != [ ]
-        && map firstOf (setUse 1 (_: [ "reveal" "edit" "open-with" ]) (rulesOf linux)) != expectedFirst)
+      (useProblems true (setUse 1 (_: [ "reveal" "open-with" "edit" ]) (rulesOf linux)) != [ ]
+        && map firstOf (setUse 1 (_: [ "reveal" "open-with" "edit" ]) (rulesOf linux)) != expectedFirst)
       "the lint and the first-opener literal accept a swapped first opener";
     check-control-lint-flags-download-rule-touched = check
       (useProblems true (setUse 8 (_: [ "download" "open-with" ]) (rulesOf linux)) != [ ])

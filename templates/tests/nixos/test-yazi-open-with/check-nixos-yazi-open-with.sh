@@ -46,7 +46,7 @@ finish() {
 }
 
 echo ""
-echo -e "${BOLD}=== yazi 'Open with...' entry (eval layer) ===${NC}"
+echo -e "${BOLD}=== yazi 'Open with' entry (eval layer) ===${NC}"
 echo ""
 
 stderr_file="$WORK/eval.err"

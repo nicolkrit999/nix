@@ -96,6 +96,8 @@ delib.module {
         '';
       };
       openWithUse = lib.optional isLinux "open-with";
+      # open-with goes second: the first opener (Enter/o) stays first
+      withOpenWith = use: if use == [ ] then use else [ (lib.head use) ] ++ openWithUse ++ lib.tail use;
     in
     {
       assertions = [
@@ -349,7 +351,7 @@ delib.module {
             open-with = [
               {
                 run = "${lib.getExe yaziOpenWith} %s1";
-                desc = "Open with...";
+                desc = "Open with";
                 block = true;
                 for = "linux";
               }
@@ -359,7 +361,7 @@ delib.module {
           pick.open_title = "Menu";
 
           open = {
-            rules = map (rule: if builtins.isList rule.use then rule // { use = rule.use ++ openWithUse; } else rule) [
+            rules = map (rule: if builtins.isList rule.use then rule // { use = withOpenWith rule.use; } else rule) [
               {
                 url = "*/"; # Directories
                 use = [
