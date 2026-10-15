@@ -258,7 +258,8 @@
     };
 
     auto-cpufreq = {
-      url = "github:AdnanHodzic/auto-cpufreq";
+      # git fetcher on purpose: GitHub tarballs of this repo change over time (.gitattributes export-subst), breaking the locked narHash
+      url = "git+https://github.com/AdnanHodzic/auto-cpufreq?ref=master&rev=35d8015afc1bc2c4b30526828dddde4c53925976";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

@@ -30,15 +30,17 @@
       "locked": {
         "lastModified": 1791097055,
         "narHash": "sha256-sFCBFgqATqOSWSaiZjwEE9G6j+bvaJkvEL+VfwQMIxk=",
-        "owner": "AdnanHodzic",
-        "repo": "auto-cpufreq",
+        "ref": "master",
         "rev": "35d8015afc1bc2c4b30526828dddde4c53925976",
-        "type": "github"
+        "revCount": 611,
+        "type": "git",
+        "url": "https://github.com/AdnanHodzic/auto-cpufreq"
       },
       "original": {
-        "owner": "AdnanHodzic",
-        "repo": "auto-cpufreq",
-        "type": "github"
+        "ref": "master",
+        "rev": "35d8015afc1bc2c4b30526828dddde4c53925976",
+        "type": "git",
+        "url": "https://github.com/AdnanHodzic/auto-cpufreq"
       }
     },
     "base16": {
