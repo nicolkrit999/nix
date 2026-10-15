@@ -2,27 +2,42 @@
 , inputs
 , ...
 }:
+let
+  # Same name -> command map as modules/nixos/toplevel/env.nix (constants.editor accepts
+  # package-style names such as "neovim"/"vscode", which are not command names).
+  editorCommands = {
+    "code" = "code --wait";
+    "gedit" = "gedit --wait";
+    "kate" = "kate --block";
+    "nano" = "nano";
+    "neovim" = "nvim";
+    "nvim" = "nvim";
+    "subl" = "subl --wait";
+    "vim" = "vim";
+    "vscode" = "code --wait";
+  };
+in
 delib.module {
   name = "krit.home.base";
   options = delib.singleEnableOption false;
 
   home.ifEnabled =
     { myconfig, ... }:
+    let
+      editor = myconfig.constants.editor;
+      editorCommand = editorCommands.${editor} or editor;
+    in
     {
       home.stateVersion = "25.11";
-      home.username = myconfig.constants.user;
-      home.homeDirectory = "/Users/${myconfig.constants.user}";
 
       home.sessionVariables = {
-        EDITOR = myconfig.constants.editor;
-        VISUAL = myconfig.constants.editor;
+        EDITOR = editorCommand;
+        VISUAL = editorCommand;
       };
 
       home.activation = {
         createHostDirs = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          mkdir -p $HOME/Pictures/wallpapers || true
-          mkdir -p $HOME/momentary || true
-          mkdir -p $HOME/.config/portainer-mcp || true
+          run mkdir -p "$HOME/Pictures/wallpapers" "$HOME/momentary" "$HOME/.config/portainer-mcp" || true
         '';
       };
     };

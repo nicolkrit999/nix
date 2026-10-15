@@ -1,57 +1,68 @@
 { delib
-, pkgs
 , lib
+, pkgs
 , ...
 }:
+let
+  schoolEmail = "kritpio.nicol@student.supsi.ch";
+  schoolPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs+KkQg8GewHnm66";
+in
 delib.module {
   name = "krit.system.git-ssh-signing";
-  options = delib.singleEnableOption false;
 
-  darwin.ifEnabled =
-    { ... }:
-    {
-      environment.systemPackages = with pkgs; [
-        gnupg
-        pinentry_mac
-      ];
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      signingKey = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = "SSH signing key path; null means ~/.ssh/id_github of the user.";
+      };
+      allowedSignersEmail = strOption "githubgitlabmain.hu5b7@passfwd.com";
+      allowedSignersPubKey = strOption "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO4fJZtoawnvuR2D/CAk7fBrioEyhyagheH4RtTaf8gD";
+      extraAllowedSigners = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ "${schoolEmail} ${schoolPubKey}" ];
+        description = "Additional complete allowed_signers lines (principal and key) appended after the primary one; defaults to the school principal.";
+      };
     };
 
+  # pinentry_mac is not installed on purpose: signing is SSH-format and never reaches
+  # gpg-agent, and nixpkgs' gnupg already hardwires pinentry_mac on darwin. If GPG is ever
+  # used on the Mac, verify on a real Mac that gpg still finds a pinentry.
+  darwin.ifEnabled.environment.systemPackages = [ pkgs.gnupg ];
+
   home.ifEnabled =
-    { myconfig, ... }:
+    { cfg, myconfig, ... }:
     let
-      user = myconfig.constants.user;
-      sshDir = "/Users/${user}/.ssh";
+      sshDir = "/Users/${myconfig.constants.user}/.ssh";
     in
     {
-      programs.gpg.enable = lib.mkForce false;
-      services.gpg-agent.enable = lib.mkForce false;
-
       programs.git = {
-        signing = lib.mkForce {
-          key = "${sshDir}/id_github";
-          signByDefault = true;
-        };
+        enable = true;
+        # signByDefault additionally enables tag.gpgSign
+        signing.signByDefault = true;
         settings = {
-          gpg.format = lib.mkForce "ssh";
-          user.signingKey = lib.mkForce "${sshDir}/id_github";
-          commit.gpgSign = lib.mkForce true;
-          gpg.ssh.allowedSignersFile = lib.mkForce "${sshDir}/allowed_signers";
+          gpg.format = "ssh";
+          user.signingKey = if cfg.signingKey != null then cfg.signingKey else "${sshDir}/id_github";
+          commit.gpgSign = true;
+          gpg.ssh.allowedSignersFile = "${sshDir}/allowed_signers";
         };
         includes = [
           {
             condition = "gitdir:~/school-workspace/**";
-            contents = {
-              user.email = "kritpio.nicol@student.supsi.ch";
-              user.name = "Krit Pio Nicol-University";
-              user.signingkey = "${sshDir}/id_school";
+            contents.user = {
+              email = schoolEmail;
+              name = "Krit Pio Nicol-University";
+              signingkey = "${sshDir}/id_school";
             };
           }
         ];
       };
 
-      home.file.".ssh/allowed_signers".text = ''
-        githubgitlabmain.hu5b7@passfwd.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO4fJZtoawnvuR2D/CAk7fBrioEyhyagheH4RtTaf8gD
-        kritpio.nicol@student.supsi.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs+KkQg8GewHnm66
-      '';
+      home.file.".ssh/allowed_signers".text = lib.concatMapStrings (line: line + "\n") (
+        [ "${cfg.allowedSignersEmail} ${cfg.allowedSignersPubKey}" ] ++ cfg.extraAllowedSigners
+      );
     };
 }

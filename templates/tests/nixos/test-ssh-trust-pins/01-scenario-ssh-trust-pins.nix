@@ -126,8 +126,129 @@ let
         "got ${show l}";
   };
 
+  twin = mods: (sys.extendModules { modules = mods; }).config;
+  borgModule = "Krits-MacBook-Pro-borg-backup";
+  dOn = twin [{
+    myconfig.krit.services.nas.sshfs.enable = lib.mkForce true;
+    myconfig.krit.services.nas.${borgModule}.enable = lib.mkForce true;
+    myconfig.krit.system.git-ssh-signing.enable = lib.mkForce true;
+  }];
+  dHm = c: c.home-manager.users.${user};
+  borgText = c: c.environment.etc."borgmatic/config.yaml".text;
+  sshfsScript = c: c.launchd.user.agents.sshfs-nas.script;
+  pinOf = c: c.programs.ssh.knownHosts."nicol-nas-tailnet" or { hostNames = [ ]; publicKey = ""; };
+  noComments = text: lib.concatStringsSep "\n" (lib.filter (l: !(lib.hasPrefix "#" (lib.trim l))) (lib.splitString "\n" text));
+
+  pinOk = c:
+    let p = pinOf c; in
+    lib.hasPrefix "ssh-ed25519 " p.publicKey && p.publicKey == nas.hostKey
+    && builtins.elem nas.host p.hostNames && builtins.elem nas.tailnetIp p.hostNames;
+  borgTrustOk = c: pin:
+    let
+      b = builtins.fromJSON (borgText c);
+      cmd = b.ssh_command or "";
+      hostOf = path: lib.last (lib.splitString "@" (lib.head (lib.splitString "/" (lib.removePrefix "ssh://" path))));
+    in
+    b.repositories != [ ]
+    && lib.all (r: lib.hasPrefix "ssh://${nas.user}@${nas.host}/" r.path && builtins.elem (hostOf r.path) pin.hostNames) b.repositories
+    && lib.hasInfix "IdentitiesOnly=yes" cmd
+    && !(lib.hasInfix "StrictHostKeyChecking" cmd) && !(lib.hasInfix "accept-new" cmd);
+  sshfsTrustOk = c: pin:
+    let code = noComments (sshfsScript c); in
+    lib.hasInfix "sshfs " code
+    && lib.any (h: lib.hasInfix "@${h}:" code) pin.hostNames
+    && !(lib.hasInfix "StrictHostKeyChecking" code) && !(lib.hasInfix "accept-new" code);
+
+  gitFailures = c:
+    let
+      home = c.users.users.${user}.home;
+      hm = dHm c;
+      ini = hm.programs.git.iniContent;
+      gs = hm.programs.git.settings;
+      school = lib.filter (i: i.condition == "gitdir:~/school-workspace/**") hm.programs.git.includes;
+      su = if school == [ ] then { } else (lib.head school).contents.user;
+      schoolEmail = su.email or "";
+      schoolKey = su.signingKey or su.signingkey or "";
+      baseKey = ini.user.signingKey or "";
+      signerLines = lines ((hm.home.file.".ssh/allowed_signers" or { }).text or "");
+      signerFields = map fields signerLines;
+      principals = map lib.head signerFields;
+      sshDir = "${home}/.ssh/";
+    in
+    lib.optional ((ini.gpg.format or "") != "ssh") "gpg.format is not ssh"
+    ++ lib.optional ((ini.commit.gpgSign or false) != true) "commit.gpgSign is not true"
+    ++ lib.optional ((ini.tag.gpgSign or false) != true) "tag.gpgSign is not true"
+    ++ lib.optional (!(lib.hasPrefix sshDir baseKey)) "user.signingKey '${baseKey}' is not under ${sshDir}"
+    ++ lib.optional ((ini.gpg.ssh.allowedSignersFile or "") != "${sshDir}allowed_signers") "allowedSignersFile is '${ini.gpg.ssh.allowedSignersFile or "unset"}'"
+    ++ lib.optional (builtins.length school != 1) "expected exactly one gitdir:~/school-workspace/** include, got ${toString (builtins.length school)}"
+    ++ lib.optional (schoolEmail == "" || schoolEmail == (ini.user.email or "")) "school include email '${schoolEmail}' empty or equal to the base email"
+    ++ lib.optional (!(lib.hasPrefix sshDir schoolKey) || schoolKey == baseKey) "school include signing key '${schoolKey}' not under ${sshDir} or equal to the base key"
+    ++ lib.optional (signerLines == [ ] || lib.any (f: builtins.length f != 3 || lib.elemAt f 1 != "ssh-ed25519") signerFields) "allowed_signers lines are not '<principal> ssh-ed25519 <key>': ${show signerLines}"
+    ++ lib.optional (principals == [ ] || lib.head principals != (ini.user.email or "")) "first allowed_signers principal is not the git user.email"
+    ++ lib.optional (!(builtins.elem schoolEmail principals)) "school principal missing from allowed_signers"
+    ++ lib.optional (hm.programs.git.signing.key != null || gs.user ? signingkey) "signing.key or lowercase user.signingkey is set (single source: git-ssh-signing)";
+
+  dBroken = twin [{
+    programs.ssh.knownHosts = lib.mkForce { };
+    environment.etc."borgmatic/config.yaml".text = lib.mkForce (builtins.replaceStrings [ "IdentitiesOnly=yes" ] [ "StrictHostKeyChecking=accept-new" ] (borgText dOn));
+    launchd.user.agents.sshfs-nas.script = lib.mkForce (sshfsScript dOn + "\n  -o StrictHostKeyChecking=accept-new\n");
+    myconfig.krit.system.git-ssh-signing.extraAllowedSigners = lib.mkForce [ ];
+    home-manager.users.${user}.programs.git.signing.signByDefault = lib.mkForce false;
+  }];
+
+  dOvr = twin [{
+    home-manager.users.${user}.programs.git = {
+      signing.signByDefault = lib.mkOverride 90 false;
+      settings = {
+        commit.gpgSign = lib.mkOverride 90 false;
+        gpg.format = lib.mkOverride 90 "openpgp";
+        gpg.ssh.allowedSignersFile = lib.mkOverride 90 "/override";
+        user.signingKey = lib.mkOverride 90 "/override";
+        probe.forced = lib.mkMerge [ (lib.mkForce "forced") (lib.mkOverride 90 "over") ];
+        probe.plain = lib.mkMerge [ "plain" (lib.mkOverride 90 "over") ];
+      };
+    };
+  }];
+  ovrIni = (dHm dOvr).programs.git.iniContent;
+  pinOn = pinOf dOn;
+
   darwinChecks = {
     "knownHosts pins at least one host with a literal key" = commonChecks."NixOS knownHosts pins at least one host with a literal key";
+  };
+
+  darwinNasChecks = {
+    "darwin NAS ed25519 key is pinned for both the FQDN and the tailnet IP" =
+      expect "darwin-nas-pin"
+        (pinOk cfg && ((plain hmSettings."nicol-nas").HostName or "") == nas.host)
+        "got ${show (pinOf cfg)} (nas.host=${nas.host} tailnetIp=${nas.tailnetIp}, Host nicol-nas HostName=${show ((plain hmSettings."nicol-nas").HostName or null)})";
+    "darwin borg: FQDN repo of the pinned host, IdentitiesOnly=yes, no host-key override" =
+      expect "darwin-borg" (borgTrustOk dOn pinOn)
+        "repositories=${show (builtins.fromJSON (borgText dOn)).repositories} ssh_command=${show (builtins.fromJSON (borgText dOn)).ssh_command or null}";
+    "darwin sshfs script connects to a pinned host and carries no host-key override" =
+      expect "darwin-sshfs" (sshfsTrustOk dOn pinOn) "script code: ${noComments (sshfsScript dOn)}";
+    "control: darwin pin check fails with the knownHosts emptied" =
+      expect "ctl-pin" (!(pinOk dBroken)) "pinOk accepted a host without the NAS pin";
+    "control: darwin borg check fails with accept-new and no IdentitiesOnly" =
+      expect "ctl-borg" (!(borgTrustOk dBroken pinOn)) "borgTrustOk accepted StrictHostKeyChecking=accept-new";
+    "control: darwin sshfs check fails with accept-new appended" =
+      expect "ctl-sshfs" (!(sshfsTrustOk dBroken pinOn)) "sshfsTrustOk accepted StrictHostKeyChecking=accept-new";
+  };
+
+  darwinGitChecks = {
+    "darwin git signing: ssh format under ~/.ssh, school include, allowed_signers incl. school principal, tag+commit signed (iniContent)" =
+      let f = gitFailures dOn; in expect "darwin-git" (f == [ ]) "failures: ${show f}";
+    "darwin git signing stays overridable at priority 90 (no mkForce on signByDefault, gpgSign, format, key, allowedSignersFile)" =
+      expect "darwin-git-force"
+        (!(dHm dOvr).programs.git.signing.signByDefault && ovrIni.commit.gpgSign == false && ovrIni.gpg.format == "openpgp"
+          && ovrIni.user.signingKey == "/override" && ovrIni.gpg.ssh.allowedSignersFile == "/override")
+        "signByDefault=${show (dHm dOvr).programs.git.signing.signByDefault} ini=${show { c = ovrIni.commit.gpgSign or null; f = ovrIni.gpg.format or null; k = ovrIni.user.signingKey or null; a = ovrIni.gpg.ssh.allowedSignersFile or null; }}";
+    "control: a mkForce'd leaf resists the priority-90 override, a plain one does not" =
+      expect "ctl-force" (ovrIni.probe.forced == "forced" && ovrIni.probe.plain == "over")
+        "forced=${show ovrIni.probe.forced or null} plain=${show ovrIni.probe.plain or null}";
+    "control: git check flags signByDefault forced off (missing tag.gpgSign)" =
+      expect "ctl-tag" (builtins.elem "tag.gpgSign is not true" (gitFailures dBroken)) "got ${show (gitFailures dBroken)}";
+    "control: git check flags a missing school principal in allowed_signers" =
+      expect "ctl-school-signer" (builtins.elem "school principal missing from allowed_signers" (gitFailures dBroken)) "got ${show (gitFailures dBroken)}";
   };
 
   nixosGiteaKey = flake.nixosConfigurations.nixos-desktop.config.programs.ssh.knownHosts."gitea-ssh.nicolkrit.ch".publicKey;
@@ -137,12 +258,12 @@ let
         "darwin=${show (nixosKnown."gitea-ssh.nicolkrit.ch" or null)} nixos=${show nixosGiteaKey}";
   };
 
-  final = if isDarwinHost then darwinChecks // darwinCheck else commonChecks // nixosOnlyChecks;
+  final = if isDarwinHost then darwinChecks // darwinCheck // darwinNasChecks // darwinGitChecks else commonChecks // nixosOnlyChecks;
 in
 {
   report = lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: "${k}\t${v}") final) + "\n";
   nixosPins = lib.concatStringsSep "\n" (lib.mapAttrsToList (h: k: "${h} ${k}") nixosKnown) + "\n";
   nixosMirroredPins = lib.concatStringsSep "\n" (lib.mapAttrsToList (h: k: "${h} ${k}") nixosMirrored) + "\n";
   hmKnownHosts = if isDarwinHost then "" else hmKnownText;
-  allowedSigners = if isDarwinHost then "" else hmNixos.home.file.".ssh/allowed_signers".text;
+  allowedSigners = (if isDarwinHost then dHm dOn else hmNixos).home.file.".ssh/allowed_signers".text;
 }

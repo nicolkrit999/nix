@@ -17,7 +17,7 @@ delib.module {
     let
       addons = pkgs.firefox-addons;
 
-      # ifEnabled cannot read config.home.homeDirectory; mirrors home-base.nix
+      # ifEnabled cannot read config.home.homeDirectory; mirrors the nix-darwin users.users home
       homeDir = "${if moduleSystem == "darwin" then "/Users" else "/home"}/${myconfig.constants.user}";
 
       searchConfig = {

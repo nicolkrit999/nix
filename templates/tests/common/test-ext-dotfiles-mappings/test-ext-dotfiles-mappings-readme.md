@@ -41,6 +41,17 @@ The package tables (`packageLeaves`, `packagesPerHost`, `extraMappingsPerHost`, 
 | no unused package | every package is used by at least one host |
 | school-workspace | NixOS `.school-workspace/`, Darwin `school-workspace/`, NAS none |
 
+### start-actual-mcp launcher (desktop, laptop, mac)
+The bare command `start-actual-mcp` is used by the project-scoped MCP server in `~/momentary/.mcp.json`, so it must resolve from `PATH` wherever it is linked. The effective `PATH` dirs come from the real config: on NixOS `environment.localBinInPath` (`$HOME/.local/bin`, `modules/nixos/toplevel/env.nix`) plus the home-manager `home.sessionPath`; on Darwin `home.sessionPath` (`modules/darwin/toplevel/home-darwin.nix`). The private repo is not read (not available in CI): only the mapping source string is compared.
+
+| Check | Expected |
+|-------|----------|
+| launcher mapping | exactly one mapping has source `claude/common/binaries/start-actual-mcp`, and its key ends in `start-actual-mcp` |
+| launcher on PATH | the home-relative directory of that key is one of the host's effective `PATH` dirs |
+| control: bin/ twin | the same mappings with the key moved to `bin/start-actual-mcp` are flagged |
+| control: PATH lacks dir | the real mappings against an empty `PATH` are flagged |
+| control: wrong source | a twin with another source string is flagged by the mapping check |
+
 ### Controls
 | Check | Expected |
 |-------|----------|
@@ -51,8 +62,12 @@ The package tables (`packageLeaves`, `packagesPerHost`, `extraMappingsPerHost`, 
 | Check | Expected |
 |-------|----------|
 | `bash -n` | passes for all four hosts |
-| function parity | `sync_back` body identical on desktop and mac **after a temporary normalisation** (see below) |
-| exemption is real | the desktop function contains an absolute `/nix/store/<hash>-rsync*/bin/rsync -a --delete` call and the script has no `export PATH` (so the normalisation is not hiding a regression of this) |
+| function parity | `sync_back` body identical on desktop and mac after the permanent per-arch normalisation (see below): home paths unified and `/nix/store/<hash>-<pkg>/bin/` prefixes stripped, nothing else (no `run`, `--delete` or comment exemptions) |
+| desktop absolute paths | the desktop function contains an absolute `/nix/store/<hash>-rsync*/bin/rsync -a --delete` call and the script has no `export PATH` |
+| mac absolute paths | the same for the mac script (it cannot be realised on Linux, so this is checked on the text) |
+| mac store-path commands | the ordered list of `<pkg>-<version>/bin/<cmd>` store-path commands in the mac function equals the desktop's and contains `rsync`, so the prefix strip cannot hide a bare command |
+| control: bare rsync | a mac function with the rsync store prefix removed still passes the stripped parity comparison (proof that the strip hides it) but is rejected by the store-path-commands guard |
+| control: bare rm -rf | a mac function with one `rm -rf` store prefix removed is rejected by the guard |
 | sandbox: store paths realised | every store path the desktop script references exists after realising its context, and one of them is rsync; otherwise FAIL and the sandbox cases below are skipped |
 | sandbox: file differs | copied into repo, live removed |
 | sandbox: file identical | live removed, repo untouched |
@@ -64,6 +79,6 @@ The package tables (`packageLeaves`, `packagesPerHost`, `extraMappingsPerHost`, 
 | sandbox: rsync fails (unreadable live file) | live dir kept, nothing copied into the repo; rsync ran and exited 23 (a missing binary gives 127 and fails) (skipped as root) |
 | sandbox: live file replaces non-empty repo dir (type clash) | `--delete` mirrors it: repo path becomes the file, repo-inner files gone, live dir removed; rsync ran and exited 0 |
 
-### Temporary exemption in function parity (darwin twin lags until batch 13)
+### Per-arch store-path normalisation (permanent)
 
-The desktop script now uses absolute store paths, the HM `run` wrapper and `rsync -a --delete`; the darwin twin still uses `export PATH`, bare commands, no `run` and `rsync -a`. Until the darwin module is brought in line, both function bodies are normalised before comparison by exactly: dropping comment lines, stripping `/nix/store/<hash>-<pkg>/bin/` prefixes, removing the `run ` wrapper word and removing ` --delete`. Remove `parity_norm` in the script once the darwin twin matches.
+The desktop and mac activation scripts are the same text except for the home directory and the store hashes, because the darwin packages (`coreutils`, `diffutils`, `rsync`) have other hashes than the x86_64-linux ones. Before comparing the two `sync_back` bodies the test therefore unifies `/home/krit` and `/Users/krit` and strips `/nix/store/<hash>-<pkg>/bin/`. That strip alone would let a bare command (resolved through `PATH` at activation time) pass, which is what the "mac store-path commands" guard and its two controls exclude: the list of store-path commands must be identical, so a prefix cannot silently disappear.

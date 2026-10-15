@@ -3,7 +3,7 @@ delib.module {
   name = "krit.system.ssh-config";
   options = delib.singleEnableOption false;
 
-  darwin.ifEnabled = { ... }: {
+  darwin.ifEnabled = _: {
     environment.systemPackages = [ pkgs.cloudflared ];
     programs.ssh.knownHosts = {
       "gitea-ssh.nicolkrit.ch" = {
@@ -15,8 +15,8 @@ delib.module {
   home.ifEnabled =
     { myconfig, ... }:
     let
-      user = myconfig.constants.user;
-      sshDir = "/Users/${user}/.ssh";
+      nas = myconfig.krit.services.nas;
+      sshDir = "/Users/${myconfig.constants.user}/.ssh";
     in
     {
       programs.ssh = {
@@ -27,15 +27,15 @@ delib.module {
             IdentityFile = "${sshDir}/id_github";
           };
           "nicol-nas" = {
-            HostName = "nicol-nas.tail9b9ae8.ts.net";
+            HostName = nas.host;
             IdentityFile = "${sshDir}/id_github";
             IdentitiesOnly = true;
-            User = user;
+            User = nas.user;
           };
           "192.168.1.98 ssh.nicolkrit.ch" = {
             IdentityFile = "${sshDir}/id_github";
             IdentitiesOnly = true;
-            User = user;
+            User = nas.user;
           };
           "gitea-ssh.nicolkrit.ch" = {
             IdentityFile = "${sshDir}/id_github";
@@ -43,12 +43,11 @@ delib.module {
             ProxyCommand = "cloudflared access ssh --hostname %h";
           };
           "gitlab-edu.supsi.ch" = {
-            Hostname = "gitlab-edu.supsi.ch";
             IdentityFile = "${sshDir}/id_school";
             IdentitiesOnly = true;
           };
           "github-school" = {
-            Hostname = "github.com";
+            HostName = "github.com";
             IdentityFile = "${sshDir}/id_school";
             IdentitiesOnly = true;
           };

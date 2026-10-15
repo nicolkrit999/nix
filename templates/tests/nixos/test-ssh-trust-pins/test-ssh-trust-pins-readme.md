@@ -1,6 +1,6 @@
 # test-ssh-trust-pins
 
-Guards the SSH host-key pins and Host aliases that the config keeps in two places (NixOS and home-manager), plus the SSH commit-signing wiring. A mis-pasted or truncated key otherwise only shows up as a host-key prompt or a failed `git push`. Eval plus `ssh-keygen`, no builds.
+Guards the SSH host-key pins and Host aliases that the config keeps in two places (NixOS and home-manager), plus the SSH commit-signing wiring on NixOS and on the Darwin host (git signing, NAS pin, no host-key override in the Darwin borg and sshfs paths). A mis-pasted or truncated key otherwise only shows up as a host-key prompt or a failed `git push`. Eval plus `ssh-keygen`, no builds.
 
 ## Run
 
@@ -53,15 +53,32 @@ Per NixOS host (`nixos-desktop`, `nixos-laptop`):
 | tmpfiles | `d /home/<user>/.ssh 0700 <user> users -` |
 | gnupg agent | enabled with SSH support off |
 | git signing | `gpg.format == ssh`, `commit.gpgSign == true`, `allowedSignersFile` set |
-| allowed_signers | one `<email> <type> <key>` line; key parses with `ssh-keygen -lf` |
+| allowed_signers | one `<email> <type> <key>` line; key parses with `ssh-keygen -lf` (the script checks every allowed_signers line, on Darwin two) |
 
-`Krits-MacBook-Pro` (Darwin):
+`Krits-MacBook-Pro` (Darwin). The enable switches of the sshfs, borg and git-ssh-signing modules are forced on in an `extendModules` twin, so the checks do not depend on which of them the host enables:
 
 | Check | Expected |
 |-------|----------|
 | knownHosts pins a literal key | non-empty, `<type> <blob>` |
-| Pins parse | `ssh-keygen -lf` accepts each, type matches blob |
+| Pins parse | `ssh-keygen -lf` accepts each (now including the NAS pin), type matches blob |
 | gitea pin | equals the NixOS gitea pin |
+| NAS pin | `programs.ssh.knownHosts."nicol-nas-tailnet"` is an `ssh-ed25519` key equal to `krit.services.nas.hostKey` for `nas.host` and `nas.tailnetIp`; the HM `Host nicol-nas` `HostName` equals `nas.host` |
+| borg | every repository is `ssh://<nas.user>@<nas.host>/...` with a host in the pin's `hostNames`; `ssh_command` has `IdentitiesOnly=yes` and neither `StrictHostKeyChecking` nor `accept-new` |
+| sshfs | the script (comment lines ignored) connects as `@<host>:` to a pinned host and has neither `StrictHostKeyChecking` nor `accept-new` |
+| git signing (read from `iniContent`) | `gpg.format == ssh`, `commit.gpgSign` and `tag.gpgSign` true, `user.signingKey` and `allowedSignersFile` under `~/.ssh` of `users.users.<user>.home`; exactly one `gitdir:~/school-workspace/**` include with an email different from the base email and a signing key under `~/.ssh` different from the base key; `allowed_signers` lines are `<principal> ssh-ed25519 <key>`, the first principal is the git `user.email`, the school include's email is also a principal; no `signing.key` and no lowercase `user.signingkey` |
+| no mkForce | a twin overriding `signing.signByDefault`, `commit.gpgSign`, `gpg.format`, `user.signingKey` and `gpg.ssh.allowedSignersFile` at priority 90 wins, which a `mkForce` in `git-ssh-signing` would prevent |
+| allowed_signers keys parse | `ssh-keygen -lf` accepts both lines (primary and school) |
+
+Darwin controls (all against one broken twin: knownHosts emptied, borg `IdentitiesOnly=yes` replaced by `StrictHostKeyChecking=accept-new`, sshfs script with an `accept-new` option appended, `extraAllowedSigners` emptied, `signByDefault` forced off):
+
+| Control | Expected |
+|---------|----------|
+| pin | the NAS pin predicate fails on the twin |
+| borg | the borg predicate fails on the twin |
+| sshfs | the sshfs predicate fails on the twin |
+| tag signing | the git predicate reports `tag.gpgSign is not true` (the `signByDefault` lesson from `nixos-spec-school`) |
+| school signer | the git predicate reports the missing school principal |
+| mkForce detector | in the priority-90 twin a `mkForce`d probe leaf keeps its value while a plain one is overridden, so the "no mkForce" check can fail |
 
 Control:
 

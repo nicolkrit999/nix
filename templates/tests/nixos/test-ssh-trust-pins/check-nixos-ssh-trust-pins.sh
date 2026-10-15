@@ -115,8 +115,10 @@ for h in "${HOSTS[@]}"; do
   if [[ -s "$WORK/$h.hmKnownHosts" ]]; then
     check_keys_file "every HM known_hosts line parses with ssh-keygen -lf, type matches blob" "$WORK/$h.hmKnownHosts" 3
     fingerprints_equal "$h"
+  fi
+  if [[ -s "$WORK/$h.allowedSigners" ]]; then
     sed 's/^[^ ]* //' "$WORK/$h.allowedSigners" >"$WORK/signers"
-    check_keys_file "allowed_signers key parses with ssh-keygen -lf, type matches blob" "$WORK/signers" 2
+    check_keys_file "allowed_signers keys parse with ssh-keygen -lf, type matches blob" "$WORK/signers" 2
   fi
 done
 

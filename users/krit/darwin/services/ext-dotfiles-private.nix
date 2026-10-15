@@ -8,13 +8,13 @@
 let
   packageLeaves = {
     "claude/common" = [
+      ".claude/CLAUDE.md"
+      ".claude/RTK.md"
       ".claude/agents"
       ".claude/memory"
       ".claude/notebooklm"
       ".claude/skills"
       ".config/ccstatusline"
-      ".claude/RTK.md"
-      ".claude/CLAUDE.md"
     ];
 
     "claude/mac" = [
@@ -24,6 +24,7 @@ let
       ".claude-mem"
       ".claude/context-mode"
       # Whole projects dir → host. Auto-captures every (future) project; common
+      # projects keep a committed memory symlink → claude/common/ inside the repo.
       ".claude/projects"
     ];
 
@@ -54,7 +55,10 @@ let
   # Maps home-dir path → repo-relative path, for cases where the two differ
   extraMappingsPerHost = {
     Krits-MacBook-Pro = {
-      "bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
+      # ~/.local/bin is on the PATH via home.sessionPath (modules/darwin/toplevel/home-darwin.nix).
+      # That only reaches shells that source hm-session-vars: verify on a real Mac that a
+      # Claude Code launched from a GUI (Dock/Spotlight) still resolves "start-actual-mcp".
+      ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
       # macOS school workspace has NO leading dot (unlike NixOS .school-workspace).
       "momentary/.claude/skills" = "claude/momentary/.claude/skills";
       "momentary/.claude/agents" = "claude/momentary/.claude/agents";
@@ -105,6 +109,9 @@ delib.module {
 
       syncBackEntries = lib.filter (p: mappings ? ${p}) syncBack;
 
+      coreutils = "${pkgs.coreutils}/bin";
+      diffutils = "${pkgs.diffutils}/bin";
+
       syncBackScript = lib.concatMapStringsSep "\n"
         (p: "sync_back ${lib.escapeShellArg p} ${lib.escapeShellArg mappings.${p}}")
         syncBackEntries;
@@ -116,7 +123,6 @@ delib.module {
 
       home.activation.syncBackDotfilesPrivate =
         inputs.home-manager.lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-          export PATH=${lib.makeBinPath [ pkgs.coreutils pkgs.diffutils pkgs.rsync ]}:$PATH
           repo_root="${homeDir}/dotfiles-private"
 
           sync_back() {
@@ -124,20 +130,22 @@ delib.module {
             repo="$repo_root/$2"
             [ -L "$live" ] && return 0
             if [ -f "$live" ]; then
-              [ -d "$(dirname "$repo")" ] || return 0
+              [ -d "$(${coreutils}/dirname "$repo")" ] || return 0
               [ -d "$repo" ] && return 0
-              if ! cmp -s "$live" "$repo"; then
-                cp -f "$live" "$repo.syncback.tmp" \
-                  && mv -f "$repo.syncback.tmp" "$repo" \
-                  || { rm -f "$repo.syncback.tmp"; return 0; }
+              if ! ${diffutils}/cmp -s "$live" "$repo"; then
+                run ${coreutils}/cp -f "$live" "$repo.syncback.tmp" \
+                  && run ${coreutils}/mv -f "$repo.syncback.tmp" "$repo" \
+                  || { run ${coreutils}/rm -f "$repo.syncback.tmp"; return 0; }
               fi
-              rm -f "$live"
+              run ${coreutils}/rm -f "$live"
             elif [ -d "$live" ]; then
               [ -d "$repo" ] && [ ! -L "$repo" ] || return 0
-              if ! diff -rq "$live" "$repo" >/dev/null 2>&1; then
-                rsync -a "$live"/ "$repo"/ || return 0
+              if ! ${diffutils}/diff -rq "$live" "$repo" >/dev/null 2>&1; then
+                # --delete mirrors removals into the repo: a GUI that rewrote only
+                # part of the dir would delete the other tracked files from it.
+                run ${pkgs.rsync}/bin/rsync -a --delete "$live"/ "$repo"/ || return 0
               fi
-              rm -rf "$live"
+              run ${coreutils}/rm -rf "$live"
             fi
           }
 

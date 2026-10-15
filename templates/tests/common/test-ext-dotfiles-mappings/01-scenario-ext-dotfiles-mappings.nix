@@ -32,6 +32,7 @@ let
       hm = c.home-manager.users.krit.home;
       homeDir = "/home/krit";
       schoolPrefix = ".school-workspace/";
+      kind = "nixos";
     };
     laptop = rec {
       data = nixosData;
@@ -39,6 +40,7 @@ let
       hm = c.home-manager.users.krit.home;
       homeDir = "/home/krit";
       schoolPrefix = ".school-workspace/";
+      kind = "nixos";
     };
     nas = rec {
       data = nixosData;
@@ -53,6 +55,7 @@ let
       hm = c.home-manager.users.krit.home;
       homeDir = "/Users/krit";
       schoolPrefix = "school-workspace/";
+      kind = "darwin";
     };
   };
 
@@ -137,6 +140,39 @@ let
     if school == [ ] then fail "no school-workspace link in home.file"
     else verdict (map (k: "wrong school-workspace prefix: ${k}") bad);
 
+  launcher = "start-actual-mcp";
+  launcherSource = "claude/common/binaries/start-actual-mcp";
+  launcherKeys = m: lib.filter (k: m.${k} == launcherSource) (builtins.attrNames m);
+  pathDirsOf = h:
+    (if h.kind == "nixos" then lib.optional h.c.environment.localBinInPath "$HOME/.local/bin" else [ ])
+    ++ h.hm.sessionPath;
+  launcherMappingCheck = m:
+    let keys = launcherKeys m;
+    in
+    if keys == [ ] then fail "no mapping with source ${launcherSource}"
+    else if builtins.length keys > 1 then fail "several mappings for ${launcherSource}: ${builtins.toJSON keys}"
+    else if baseNameOf (builtins.head keys) != launcher then fail "${builtins.head keys} does not end in ${launcher}"
+    else ok;
+  launcherPathCheck = m: pathDirs:
+    let
+      keys = launcherKeys m;
+      onPath = map (lib.removePrefix "$HOME/") pathDirs;
+      dir = dirOf (builtins.head keys);
+    in
+    if keys == [ ] then fail "no mapping with source ${launcherSource}"
+    else if builtins.elem dir onPath then ok
+    else fail "${launcher} is linked into ${dir}, not on PATH (PATH dirs: ${builtins.toJSON pathDirs})";
+  binTwin = m: (removeAttrs m (launcherKeys m)) // { "bin/${launcher}" = launcherSource; };
+  wrongSourceTwin = m: (removeAttrs m (launcherKeys m)) // { ".local/bin/${launcher}" = "claude/common/binaries/other"; };
+  flagged = what: v: if lib.hasPrefix "FAIL: " v then ok else fail "control ${what} was not flagged (got ${v})";
+  launcherChecks = name: h: {
+    "check-${name}-launcher-mapping" = launcherMappingCheck (mappingsOf h);
+    "check-${name}-launcher-on-path" = launcherPathCheck (mappingsOf h) (pathDirsOf h);
+    "check-control-${name}-launcher-bin-dir" = flagged "bin/ twin" (launcherPathCheck (binTwin (mappingsOf h)) (pathDirsOf h));
+    "check-control-${name}-launcher-path-lacks-dir" = flagged "PATH without the dir" (launcherPathCheck (mappingsOf h) [ ]);
+    "check-control-${name}-launcher-wrong-source" = flagged "wrong source" (launcherMappingCheck (wrongSourceTwin (mappingsOf h)));
+  };
+
   allPkgs = hs: map enabledPackages hs;
   nixosHosts = [ hosts.desktop hosts.laptop hosts.nas ];
 
@@ -155,6 +191,9 @@ perHost "desktop" hosts.desktop
 // perHost "laptop" hosts.laptop
 // perHost "nas" hosts.nas
 // perHost "mac" hosts.mac
+// launcherChecks "desktop" hosts.desktop
+// launcherChecks "laptop" hosts.laptop
+// launcherChecks "mac" hosts.mac
   // {
   "check-desktop-syncback-nonempty" = syncBackNonEmpty hosts.desktop;
   "check-laptop-syncback-nonempty" = syncBackNonEmpty hosts.laptop;

@@ -82,6 +82,15 @@ run_check check-laptop-school-dot   "laptop uses .school-workspace"
 run_check check-mac-school-nodot    "mac uses school-workspace (no dot)"
 run_check check-nas-no-school       "NAS has no school-workspace links"
 
+echo -e "\n${BOLD}start-actual-mcp launcher resolves from PATH${NC}"
+for h in desktop laptop mac; do
+  run_check "check-$h-launcher-mapping"   "$h maps start-actual-mcp from claude/common/binaries"
+  run_check "check-$h-launcher-on-path"   "$h link dir is on the effective PATH"
+  run_check "check-control-$h-launcher-bin-dir"        "control: $h bin/ twin is flagged"
+  run_check "check-control-$h-launcher-path-lacks-dir" "control: $h PATH without the dir is flagged"
+  run_check "check-control-$h-launcher-wrong-source"   "control: $h wrong-source twin is flagged"
+done
+
 echo -e "\n${BOLD}controls${NC}"
 run_check check-control-overlap-detected "overlap detector flags a shared leaf"
 run_check check-control-overlap-clean    "overlap detector quiet on disjoint packages"
@@ -96,19 +105,43 @@ for h in desktop laptop nas mac; do
 done
 
 extract_fn() { awk '/^ *sync_back\(\) \{/{p=1} p{print} p&&/^ *\}$/{exit}' "$1" | sed 's/^ *//' ; }
-# Darwin twin lags until batch 13; drop this normalisation then. Exempt exactly: comment lines,
-# absolute /nix/store/<hash>-pkg/bin/ prefixes (per-arch), the HM `run` wrapper, and rsync --delete.
-parity_norm() {
-  sed -E -e '/^#/d' -e 's#/nix/store/[a-z0-9]{32}-[^/]+/bin/##g' -e 's/(^|[^[:alnum:]_])run /\1/g' -e 's/ --delete//g'
+strip_store_prefix() { sed -E 's#/nix/store/[a-z0-9]{32}-[^/]+/bin/##g'; }
+store_cmds() { grep -oE '/nix/store/[a-z0-9]{32}-[^/ ]+/bin/[A-Za-z0-9_.-]+' | sed -E 's#^/nix/store/[a-z0-9]{32}-##'; }
+mac_store_guard() {
+  local mac="$1" desk="$2"
+  [[ -n "$mac" ]] || { echo "no sync_back function"; return 1; }
+  [[ "$(printf '%s\n' "$mac" | store_cmds)" == "$(printf '%s\n' "$desk" | store_cmds)" ]] \
+    || { echo "store-path commands differ from desktop: $(printf '%s\n' "$mac" | store_cmds | tr '\n' ' ')"; return 1; }
+  printf '%s\n' "$mac" | store_cmds | grep -q '^rsync-[^/]*/bin/rsync$' || { echo "no absolute rsync call"; return 1; }
 }
-label="sync_back function identical on desktop and mac (darwin lag exempted)"
+parity_norm() { sed -E -e 's#/home/krit#H#g' -e 's#/Users/krit#H#g' | strip_store_prefix; }
+label="sync_back function identical on desktop and mac (per-arch store prefix stripped)"
 printf "  %-62s " "$label"
-if [[ -s "$WORK/act-desktop.sh" && "$(extract_fn "$WORK/act-desktop.sh" | sed 's#/home/krit#H#g' | parity_norm)" == "$(extract_fn "$WORK/act-mac.sh" | sed 's#/Users/krit#H#g' | parity_norm)" && -n "$(extract_fn "$WORK/act-mac.sh")" ]]; then pass
+if [[ -s "$WORK/act-desktop.sh" && "$(extract_fn "$WORK/act-desktop.sh" | parity_norm)" == "$(extract_fn "$WORK/act-mac.sh" | parity_norm)" && -n "$(extract_fn "$WORK/act-mac.sh")" ]]; then pass
 else fail "$label" "function bodies differ or not found"; fi
-label="desktop sync_back uses absolute store paths and rsync --delete (exemption is real)"
+label="desktop sync_back uses absolute store paths and rsync --delete"
 printf "  %-62s " "$label"
 if extract_fn "$WORK/act-desktop.sh" | grep -Eq '/nix/store/[a-z0-9]{32}-rsync[^ ]*/bin/rsync -a --delete' && ! grep -q '^export PATH=' "$WORK/act-desktop.sh"; then pass
 else fail "$label" "desktop activation lacks the absolute rsync --delete call, or still exports PATH"; fi
+label="mac sync_back uses absolute store paths and rsync --delete"
+printf "  %-62s " "$label"
+if extract_fn "$WORK/act-mac.sh" | grep -Eq '/nix/store/[a-z0-9]{32}-rsync[^ ]*/bin/rsync -a --delete' && ! grep -q '^export PATH=' "$WORK/act-mac.sh"; then pass
+else fail "$label" "mac activation lacks the absolute rsync --delete call, or exports PATH"; fi
+label="mac store-path commands match desktop's, no bare command"
+printf "  %-62s " "$label"
+if err=$(mac_store_guard "$(extract_fn "$WORK/act-mac.sh")" "$(extract_fn "$WORK/act-desktop.sh")"); then pass
+else fail "$label" "$err"; fi
+label="control: mac with a store prefix stripped is flagged by the guard"
+printf "  %-62s " "$label"
+broken=$(extract_fn "$WORK/act-mac.sh" | sed -E '0,/\/nix\/store\/[a-z0-9]{32}-rsync[^ ]*\/bin\/rsync/s##rsync#')
+if [[ "$(printf '%s\n' "$broken" | parity_norm)" == "$(extract_fn "$WORK/act-mac.sh" | parity_norm)" ]] \
+  && ! mac_store_guard "$broken" "$(extract_fn "$WORK/act-desktop.sh")" >/dev/null; then pass
+else fail "$label" "a bare rsync is either not hidden by the strip (control invalid) or not caught by the guard"; fi
+label="control: mac with a bare rm -rf is flagged by the guard"
+printf "  %-62s " "$label"
+broken=$(extract_fn "$WORK/act-mac.sh" | sed -E 's#^( *)run (/nix/store/[a-z0-9]{32}-coreutils[^ ]*/bin/rm -rf)#\1run rm -rf#')
+if ! mac_store_guard "$broken" "$(extract_fn "$WORK/act-desktop.sh")" >/dev/null; then pass
+else fail "$label" "a bare rm -rf was not caught by the guard"; fi
 
 echo -e "\n${BOLD}sandbox run of the real desktop activation${NC}"
 realise_desktop_refs() {
