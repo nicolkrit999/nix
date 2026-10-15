@@ -938,6 +938,7 @@ delib.host {
       };
 
       krit.services.windows-mount.enable = true;
+      krit.services.windows-mount.uuid = "26C47F73C47F43D9"; # 2T NTFS = Windows C:, not the 845M recovery partition
 
       krit.services.network-tools.enable = true;
 
@@ -991,6 +992,7 @@ delib.host {
         git-ssh-signing.enable = true;
         swiss-locale.enable = true;
         ssh-config.enable = true;
+        ssh-config.gatewayAlias = true;
         virtualisation.enable = true;
       };
 

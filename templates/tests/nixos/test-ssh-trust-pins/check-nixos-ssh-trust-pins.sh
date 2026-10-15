@@ -42,7 +42,7 @@ type_label() {
 
 for h in "${HOSTS[@]}"; do
   (
-    for attr in report nixosPins hmKnownHosts allowedSigners; do
+    for attr in report nixosPins nixosMirroredPins hmKnownHosts allowedSigners; do
       HOST=$h nix eval --raw --impure --file "$SCENARIO" "$attr" >"$WORK/$h.$attr" 2>>"$WORK/$h.err" || { echo 1 >"$WORK/$h.rc"; exit 0; }
     done
     echo 0 >"$WORK/$h.rc"
@@ -92,7 +92,7 @@ fingerprints_equal() {
     printf '%s %s\n' "$t" "$other" >"$WORK/b"
     fp2=$(keygen -lf "$WORK/b" 2>&1 | awk '{print $2}')
     if [[ -z $fp1 || $fp1 != "$fp2" ]]; then bad+="[$name $t: nixos=$fp1 hm=${fp2:-<absent>}] "; fi
-  done <"$WORK/$h.nixosPins"
+  done <"$WORK/$h.nixosMirroredPins"
   printf "  %-70s " "ssh-keygen fingerprints: NixOS knownHosts == HM known_hosts"
   if [[ -z $bad ]]; then pass; else fail "$h: fingerprints" "$bad"; fi
 }

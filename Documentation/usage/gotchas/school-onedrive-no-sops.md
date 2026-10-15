@@ -3,7 +3,7 @@
 `school-onedrive` (SUPSI OneDrive Business, mounted via a systemd unit in
 `users/krit/nixos/specializations/school.nix`) is **intentionally** not
 sops-managed, unlike the personal cloud remotes (`pcloud.nix`,
-`onedrive-personal.nix`, `google-drive.nix` under
+`onedrive-personal.nix`, `google-drive.nix`, `proton-drive.nix` under
 `users/krit/nixos/services/cloud/`), which each have a
 `sops.secrets.rclone_<provider>_conf` entry and pass `configFile` into
 `myconfig.services.rcloneMount.mounts`.
@@ -20,9 +20,8 @@ token, forcing recurring interactive re-auth regardless of sops. Re-encrypting
 the sops secret on every break (rerun `rclone config` → grab new conf →
 sops-encrypt → commit → rebuild) is *more* steps than just re-running
 `rclone config` locally - so sops would add overhead without solving the
-actual problem. Same shape of tradeoff as the iCloud rclone remote (30-day
-`trust_token` forcing recurring re-auth): when recurring interactive auth is
-unavoidable, automating the storage isn't worth it.
+actual problem. When recurring interactive auth is unavoidable, automating the storage isn't
+worth it.
 
 If ever revisited, the fix would mirror `pcloud.nix`'s pattern
 (`sops.secrets.rclone_school_onedrive_conf` + `configFile` in

@@ -8,6 +8,7 @@ delib.module {
       sopsFile = ../../../common/sops/krit-common-secrets-sops.yaml;
       owner = myconfig.constants.user;
     };
+    myconfig.services.rcloneMount.enable = true;
     myconfig.services.rcloneMount.mounts = [{
       name = "onedrive-personal";
       remote = "onedrive-personal:";

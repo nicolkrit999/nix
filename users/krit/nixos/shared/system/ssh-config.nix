@@ -1,5 +1,7 @@
 { delib, lib, pkgs, moduleSystem, ... }:
 let
+  giteaHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHCA8VQtkhSH0wg2Xvi5FjIofM4XMo/+PrFVFdVnu/wC";
+
   mkSshSettings = user: {
     "nicol-nas" = {
       HostName = "nicol-nas.tail9b9ae8.ts.net";
@@ -24,9 +26,14 @@ let
 in
 delib.module {
   name = "krit.system.ssh-config";
-  options = delib.singleEnableOption false;
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      gatewayAlias = boolOption false;
+    };
 
-  nixos.ifEnabled = { myconfig, ... }: {
+  nixos.ifEnabled = { cfg, myconfig, ... }: {
     systemd.tmpfiles.rules = [
       "d /home/${myconfig.constants.user}/.ssh 0700 ${myconfig.constants.user} users -"
     ];
@@ -34,7 +41,7 @@ delib.module {
     environment.systemPackages = [ pkgs.cloudflared ];
     programs.ssh.knownHosts = {
       "gitea-ssh.nicolkrit.ch" = {
-        publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHCA8VQtkhSH0wg2Xvi5FjIofM4XMo/+PrFVFdVnu/wC";
+        publicKey = giteaHostKey;
       };
     };
     programs.ssh.extraConfig = ''
@@ -56,7 +63,7 @@ delib.module {
         IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
         IdentitiesOnly yes
         ProxyCommand cloudflared access ssh --hostname %h
-    '' + lib.optionalString (builtins.elem myconfig.constants.hostname [ "nixos-desktop" "nixos-laptop" ]) ''
+    '' + lib.optionalString cfg.gatewayAlias ''
 
       # UniFi Cloud Gateway Fiber console shell - convenience alias so
       # `ssh gateway` works without -i. Key is a manually-generated,
@@ -81,7 +88,7 @@ delib.module {
         enable = true;
         enableDefaultConfig = false;
         settings = mkSshSettings myconfig.constants.user
-          // lib.optionalAttrs (builtins.elem myconfig.constants.hostname [ "nixos-desktop" "nixos-laptop" ]) {
+          // lib.optionalAttrs cfg.gatewayAlias {
           # UniFi Cloud Gateway Fiber console shell - see matching comment on
           # the system-wide extraConfig block above.
           "gateway" = {
@@ -128,7 +135,7 @@ delib.module {
         # `ssh -T git@github.com` before this pin existed, or any other new
         # host) can actually be persisted instead of re-prompting forever.
         home.file.".ssh/known_hosts".text = ''
-          gitea-ssh.nicolkrit.ch ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHCA8VQtkhSH0wg2Xvi5FjIofM4XMo/+PrFVFdVnu/wC
+          gitea-ssh.nicolkrit.ch ${giteaHostKey}
           github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
           github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
           github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=

@@ -31,10 +31,11 @@ delib.module {
   nixos.ifEnabled =
     { cfg, myconfig, ... }:
     let
-      mountPoint = "/mnt/nicol_nas/webdav/opencloud";
-      # I-16: davfs2 accepts names; follow the constant, no numeric uid assumption.
-      uid = myconfig.constants.user;
-      gid = config.users.users.${myconfig.constants.user}.group;
+      nas = myconfig.krit.services.nas;
+      mountPoint = "${nas.mountRoot}/webdav/opencloud";
+      # davfs2 accepts names, so no numeric uid/gid assumption.
+      owner = myconfig.constants.user;
+      group = config.users.users.${owner}.group;
 
       mkOpencloudFileSystem = space: {
         name = "${mountPoint}/${space.path}";
@@ -42,8 +43,8 @@ delib.module {
           device = space.url;
           fsType = "davfs";
           options = [
-            "uid=${uid}"
-            "gid=${gid}"
+            "uid=${owner}"
+            "gid=${group}"
             "file_mode=0664"
             "dir_mode=0775"
             "_netdev"
@@ -55,6 +56,13 @@ delib.module {
       };
     in
     {
+      assertions = [
+        {
+          assertion = cfg.secretsFile != "";
+          message = "krit.services.nas.opencloud-mount.secretsFile is empty: the davfs2 secrets file path is required.";
+        }
+      ];
+
       services.davfs2.enable = true;
       services.davfs2.settings.globalSection = {
         use_locks = "0";
@@ -66,10 +74,10 @@ delib.module {
       fileSystems = lib.listToAttrs (map mkOpencloudFileSystem cfg.spaces);
 
       myconfig.services.tailscale.enable = true;
-      users.users.${myconfig.constants.user}.extraGroups = [ "davfs2" ];
+      users.users.${owner}.extraGroups = [ "davfs2" ];
       systemd.tmpfiles.rules = [
-        "d /mnt/nicol_nas 0700 ${myconfig.constants.user} users -"
-        "d ${mountPoint}/University 0700 ${myconfig.constants.user} users -"
+        "d ${nas.mountRoot} 0700 ${owner} ${group} -"
+        "d ${mountPoint}/University 0700 ${owner} ${group} -"
       ];
     };
 }

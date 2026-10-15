@@ -7,15 +7,15 @@ let
   # chrome.runtime.onInstalled fires once on real install - not on every
   # launch the way --load-extension did.
   extensionSpecs = [
-    { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-twziJd+ehNangagE8EuuM2MAVmBIgszKzDqjt31kkDs="; } # Proton Pass
-    { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-OyDmCxFC732/HVF6n/nuVSe9ltxgg8L9xCPp9RuXPTo="; } # Awesome Screen Recorder & Screenshot
-    { id = "chphlpgkkbolifaimnlloiipkdnihall"; hash = "sha256-jCjPqfSn5su3J7AESK5YD7o3I6X6YStG+PlCmp0Qd2o="; } # OneTab
-    { id = "dphilobhebphkdjbpfohgikllaljmgbn"; hash = "sha256-IgmQYXUjBM0iONHXqTgcvIXihN2ZrXWCZsQZZg1xPxk="; } # SimpleLogin
-    { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; hash = "sha256-VYf+K2qZRhAcoN3nxu/nanVcXuW21uY9/EjH9zbNtP8="; } # SponsorBlock
-    { id = "lnaahdmijnjnmgaalacdgakieangpjgp"; hash = "sha256-xxdOTvjv9gaB1rS0bMsmrudydOGdTDtt73Ri+zRCpNQ="; } # Screenshot YouTube Video
     { id = "cdglnehniifkbagbbombnjghhcihifij"; hash = "sha256-weiUUUiZeeIlz/k/d9VDSKNwcQtmAahwSIHt7Frwh7E="; } # Kagi Search
+    { id = "chphlpgkkbolifaimnlloiipkdnihall"; hash = "sha256-jCjPqfSn5su3J7AESK5YD7o3I6X6YStG+PlCmp0Qd2o="; } # OneTab
     { id = "dpaefegpjhgeplnkomgbcmmlffkijbgp"; hash = "sha256-BnnCPisSxlhTSoQQeZg06Re8MhgwztRKmET9D93ghiw="; } # Kagi Summarizer
+    { id = "dphilobhebphkdjbpfohgikllaljmgbn"; hash = "sha256-IgmQYXUjBM0iONHXqTgcvIXihN2ZrXWCZsQZZg1xPxk="; } # SimpleLogin
+    { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-twziJd+ehNangagE8EuuM2MAVmBIgszKzDqjt31kkDs="; } # Proton Pass
     { id = "ljipkdpcjbmhkdjjmbbaggebcednbbme"; hash = "sha256-wVSUhC4c24i4vpqeq1nZaeKtn32rn3+jorcC3WIaXJM="; } # Behind the Overlay
+    { id = "lnaahdmijnjnmgaalacdgakieangpjgp"; hash = "sha256-xxdOTvjv9gaB1rS0bMsmrudydOGdTDtt73Ri+zRCpNQ="; } # Screenshot YouTube Video
+    { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; hash = "sha256-VYf+K2qZRhAcoN3nxu/nanVcXuW21uY9/EjH9zbNtP8="; } # SponsorBlock
+    { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-OyDmCxFC732/HVF6n/nuVSe9ltxgg8L9xCPp9RuXPTo="; } # Awesome Screen Recorder & Screenshot
   ];
 
   fetchCrx = { id, hash }: pkgs.fetchurl {
@@ -65,6 +65,14 @@ delib.module {
     imports = [ inputs.helium.homeModules.helium ];
   };
 
+  nixos.ifEnabled = { myconfig, ... }: {
+    # helium's managed-policy dir is Chromium's, so its policies would also apply to Chromium
+    assertions = [{
+      assertion = !(myconfig.krit.programs.chromium.enable or false);
+      message = "krit.programs.helium and krit.programs.chromium are mutually exclusive - enable only one in your host config.";
+    }];
+  };
+
   home.ifEnabled = { ... }: {
     programs.helium = {
       enable = true;
@@ -87,10 +95,10 @@ delib.module {
 
         ExtensionSettings = {
           "chphlpgkkbolifaimnlloiipkdnihall".toolbar_pin = "force_pinned"; # OneTab
-          "ljipkdpcjbmhkdjjmbbaggebcednbbme".toolbar_pin = "force_pinned"; # Behind the Overlay
           "dpaefegpjhgeplnkomgbcmmlffkijbgp".toolbar_pin = "force_pinned"; # Kagi Summarizer
-          "ghmbeldphafepmbegfdlkpapadhbakde".toolbar_pin = "force_pinned"; # Proton Pass
           "dphilobhebphkdjbpfohgikllaljmgbn".toolbar_pin = "force_pinned"; # SimpleLogin
+          "ghmbeldphafepmbegfdlkpapadhbakde".toolbar_pin = "force_pinned"; # Proton Pass
+          "ljipkdpcjbmhkdjjmbbaggebcednbbme".toolbar_pin = "force_pinned"; # Behind the Overlay
         };
       };
 

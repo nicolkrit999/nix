@@ -6,12 +6,15 @@ delib.module {
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
     system.stateVersion = "25.11";
     home-manager.users.krit = _: {
-      home = {
-        username = lib.mkForce "krit";
-        homeDirectory = lib.mkForce "/home/krit";
-        stateVersion = lib.trivial.release;
+      options.programs.plasma.resetFilesExclude = lib.mkOption { type = lib.types.listOf lib.types.str; default = [ ]; };
+      config = {
+        home = {
+          username = lib.mkForce "krit";
+          homeDirectory = lib.mkForce "/home/krit";
+          stateVersion = lib.trivial.release;
+        };
+        programs.home-manager.enable = true;
       };
-      programs.home-manager.enable = true;
     };
   };
 }

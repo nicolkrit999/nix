@@ -13,7 +13,6 @@ let
     ".bashrc_custom" = "general/shells/.bashrc_custom";
 
     # general-fish
-    ".config/conf.d" = "general/shells/.config/conf.d";
     ".custom.fish" = "general/shells/.custom.fish";
 
     # general-nvim
@@ -21,7 +20,6 @@ let
 
     # general-zshrc
     ".zshrc_custom" = "general/shells/.zshrc_custom";
-
 
     # profile-picture
     ".face" = "linux/linux-general/profile-picture/.face";

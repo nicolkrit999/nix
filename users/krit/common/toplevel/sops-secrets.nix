@@ -58,8 +58,6 @@ delib.module {
     in
     {
       sops.secrets = mkShared user config.users.users.${user}.home // {
-        nas_ssh_key.sopsFile = commonSecrets;
-        nas-krit-credentials.sopsFile = commonSecrets;
         nas_opencloud_user.sopsFile = commonSecrets;
         nas_opencloud_pass.sopsFile = commonSecrets;
 
@@ -69,9 +67,6 @@ delib.module {
           sopsFile = commonSecrets;
           owner = user;
         };
-
-        borg-passphrase = { };
-        borg-private-key = { };
       } // mkClaudeMcpSecrets user myconfig.programs.claude-code.mcpSecrets;
     };
 

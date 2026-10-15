@@ -200,7 +200,7 @@ environment.persistence."/persist" = {
     # folders to keep across reboots
   ];
   files = [
-    "/etc/logid.cfg"
+    "/etc/machine-id"
   ];
 };
 ```

@@ -37,8 +37,11 @@ Writing to system config level is required because `plasma-manager` (with
 `overrideConfig = true` in `kde-main.nix`) wipes
 `~/.config/kdeglobals` on every rebuild - any `home.activation` script writing
 there directly gets clobbered. `home-nixos.nix` no longer deletes
-`kdeglobals`/`dolphinrc` itself (removed 2026-10-13; dolphinrc is now
-`force = true` in `dolphin.nix`); if a switch aborts with "would be clobbered"
+`kdeglobals`/`dolphinrc` itself (removed 2026-10-13). dolphinrc is an HM
+`xdg.configFile` with `force = true` in `dolphin.nix`, and survives plasma-manager's
+`overrideConfig` only because `dolphin.nix` lists it in
+`programs.plasma.resetFilesExclude` (plasma-manager otherwise deletes every file on
+its reset list that it does not manage); if a switch aborts with "would be clobbered"
 on kdeglobals, see the memory note `project_removed_kde_config_reset`.
 
 ## GTK3 apps / GTK3 portal fallback showing light theme

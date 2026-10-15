@@ -8,10 +8,10 @@ delib.module {
       enable = true;
 
       extensions = [
-        { id = "ghmbeldphafepmbegfdlkpapadhbakde"; } # Proton pass
-        { id = "dphilobhebphkdjbpfohgikllaljmgbn"; } # Simplelogin
         { id = "cdglnehniifkbagbbombnjghhcihifij"; } # Kagi Search
         { id = "dpaefegpjhgeplnkomgbcmmlffkijbgp"; } # Kagi Summarizer
+        { id = "dphilobhebphkdjbpfohgikllaljmgbn"; } # Simplelogin
+        { id = "ghmbeldphafepmbegfdlkpapadhbakde"; } # Proton pass
         { id = "icpgjfneehieebagbmdbhnlpiopdcmna"; } # New Tab Redirect (Custom URL)
       ];
 

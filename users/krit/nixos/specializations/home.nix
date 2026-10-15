@@ -14,6 +14,11 @@ let
     serial = "202NTWGFH113";
   };
 
+  rainWorld = {
+    url = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/1%20rain_world.png";
+    sha256 = "0lmjfz4zng97xzbcnxwx9aqciznxcdhj5n3dnifj7jp40xm2s7qk";
+  };
+
   hyprDesc = m: "desc:${m.make} ${m.model} ${m.serial}";
 
   niriKey = m: "${m.make} ${m.model} ${m.serial}";
@@ -37,8 +42,8 @@ delib.module {
       myconfig.constants.wallpapers = lib.mkForce [
         {
           targetMonitor = "eDP-1";
-          wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/1%20rain_world.png";
-          wallpaperSHA256 = "0lmjfz4zng97xzbcnxwx9aqciznxcdhj5n3dnifj7jp40xm2s7qk";
+          wallpaperURL = rainWorld.url;
+          wallpaperSHA256 = rainWorld.sha256;
         }
         {
           targetMonitor = hyprDesc lg;
@@ -47,8 +52,8 @@ delib.module {
         }
         {
           targetMonitor = hyprDesc asus;
-          wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/1%20rain_world.png";
-          wallpaperSHA256 = "0lmjfz4zng97xzbcnxwx9aqciznxcdhj5n3dnifj7jp40xm2s7qk";
+          wallpaperURL = rainWorld.url;
+          wallpaperSHA256 = rainWorld.sha256;
         }
       ];
 
@@ -94,6 +99,8 @@ delib.module {
         { match.class = "^(brave-browser)$"; workspace = "6 silent"; }
         { match.class = "^(brave-.*\\..*)$"; workspace = "6 silent"; }
         { match.class = "(?i)spotify"; workspace = "6 silent"; }
+        { match.class = "^(sidra)$"; workspace = "6 silent"; }
+        { match.class = "(^de.haeckerfelix.Shortwave)$"; workspace = "6 silent"; }
         { match.class = "^(kitty)$"; workspace = "8 silent"; }
         { match.class = "^(alacritty)$"; workspace = "8 silent"; }
         { match.class = "^(foot)$"; workspace = "8 silent"; }
@@ -160,7 +167,7 @@ delib.module {
             height = 2000;
             refresh = 120.0;
           };
-          # I-17: match hyprland home-spec eDP-1 (scale 1.6 at 4000x560)
+          # match hyprland home-spec eDP-1 (scale 1.6 at 4000x560)
           scale = 1.6;
           position = {
             x = 4000;

@@ -24,7 +24,7 @@ Eval only. Two host evaluations, each with a few `extendModules` controls; the s
 
 `01-scenario-nas-mounts.nix` reads `HOST_UNDER_TEST`, loads the real flake and exposes one string per check (`"ok"` or `"FAIL: ..."`). `check-nixos-nas-mounts.sh` runs `nix eval --json --impure` once per host, prints a per-check PASS/FAIL list and exits non-zero on any failure.
 
-Values are compared against independent sources (sops secret paths, `users.users`, the enabled cloud modules, the opencloud `spaces` list) so no secret or address is hardcoded. Controls: sshfs is disabled on both hosts, so it is checked both disabled (no mount) and enabled via `extendModules`; the windows-mount assertion is proven to fire on an unmapped hostname via `extendModules`. The `$PATH` sweep covers every home-manager user unit of the base system and of every specialisation, plus system units.
+Values are compared against independent sources (sops secret paths, `users.users`, the enabled cloud modules, the opencloud `spaces` list) so no secret or address is hardcoded. Controls: sshfs is disabled on both hosts, so it is checked both disabled (no mount) and enabled via `extendModules`; the windows-mount assertion is proven to fire when `krit.services.windows-mount.uuid` (set per host, empty by default) is forced empty via `extendModules`, and the in-module secret-path assertions (smb `credentialsFile`, sshfs `identityFile`) are proven to fire the same way. The windows UUID is read from that option, not from a map in the test. The `$PATH` sweep covers every home-manager user unit of the base system and of every specialisation, plus system units.
 
 ## Checks
 
@@ -39,13 +39,15 @@ Values are compared against independent sources (sops secret paths, `users.users
 | smb-vers, smb-automount | `vers=3.1.1`, `noauto`, `x-systemd.automount`, `_netdev`, `nofail` |
 | smb-uid-gid | `uid=` equals `constants.user` (the name) and `gid=` equals `users.users.<user>.group` (the group name, not a numeric gid) |
 | smb-fsc-needs-cachefilesd / fsc-used | `fsc` implies cachefilesd enabled; guard that `fsc` is actually used |
-| nas-root-tmpfiles / no-looser-rule | `/mnt/nicol_nas` is 0700 owned by the user, no rule with another mode |
+| nas-root-tmpfiles / no-looser-rule | `/mnt/nicol_nas` is 0700 owned by the user and the user's primary group, no rule with another mode |
+| nas-identity-literals | `krit.services.nas.mountRoot == /mnt/nicol_nas`, `tailnetIp == 100.101.189.91`, cifs devices `//<tailnetIp>/...`, sshfs device `...@<tailnetIp>:/` |
 
 ### sshfs, davfs
 
 | Check | Expected |
 |-------|----------|
 | sshfs-disabled-no-mount | sshfs mount exists only if sshfs is enabled (whether a host enables it is not asserted) |
+| sshfs-no-host-key-bypass | no `StrictHostKeyChecking` option on the sshfs mount (host key pinned in `programs.ssh.knownHosts`) |
 | sshfs-when-enabled / identity / same-host-as-smb | `fuse.sshfs`, automount, `IdentityFile=` is the `nas_ssh_key` sops path, same host as smb |
 | davfs-count-matches-spaces / paths / automount / device-urls | one davfs mount per space under `/mnt/nicol_nas/webdav/opencloud/`, `noauto` + automount, https devices |
 | davfs-secrets-wired / university-0700 | `/etc/davfs2/secrets` sourced from the configured file; University dir 0700 |
@@ -63,9 +65,10 @@ Values are compared against independent sources (sops secret paths, `users.users
 
 | Check | Expected |
 |-------|----------|
-| windows-uuid | `/mnt/windows` device is the mapped by-uuid path for the host, ntfs3 |
+| windows-uuid | `/mnt/windows` device is `/dev/disk/by-uuid/<krit.services.windows-mount.uuid>` (non-empty), ntfs3 |
 | windows-assertion-passes | no failing windows-mount assertion on the real host |
-| windows-assertion-fires-on-unknown-host | assertion fires for an unmapped hostname |
+| windows-assertion-fires-on-empty-uuid | assertion fires when the uuid option is empty |
+| nas-secret-assertions | no `krit.services.nas.*` assertion fails on the real host; empty smb `credentialsFile` and empty sshfs `identityFile` each fire exactly one |
 
 ### rclone
 
@@ -81,4 +84,4 @@ Values are compared against independent sources (sops secret paths, `users.users
 | no-literal-PATH-in-hm-units / system-units | no `Environment` entry contains a literal `$PATH` (base and every specialisation) |
 | sweep-covers-school-unit | the sweep sees `school-onedrive-mount` in the school specialisation |
 
-No synthetic hosts are built beyond minimal `extendModules` overrides (sshfs enabled, unmapped hostname, duplicate rclone name, empty rclone remote); everything else evaluates the real hosts.
+No synthetic hosts are built beyond minimal `extendModules` overrides (sshfs enabled, empty windows uuid, empty smb/sshfs secret path, duplicate rclone name, empty rclone remote); everything else evaluates the real hosts.

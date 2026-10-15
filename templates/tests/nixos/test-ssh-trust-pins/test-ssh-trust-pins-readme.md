@@ -24,7 +24,7 @@ bash check-nixos-ssh-trust-pins.sh
 
 The repo is public and the test hardcodes no keys or fingerprints. It only compares what the config contains against itself and parses it with `ssh-keygen -lf` at test time.
 
-`01-scenario-ssh-trust-pins.nix` reads the real `nixosConfigurations.<HOST>` (or `darwinConfigurations.<HOST>`), the NixOS-nested home-manager config, and the standalone `homeConfigurations."krit@<HOST>"` (the only place `home.file.".ssh/known_hosts"` exists). `report` is `label<TAB>result` lines (`ok` or `FAIL: ...`). `nixosPins`, `hmKnownHosts` and `allowedSigners` expose the raw texts for the script. NixOS `extraConfig` is parsed into per-alias option sets and compared with the home-manager `programs.ssh.settings` entries.
+`01-scenario-ssh-trust-pins.nix` reads the real `nixosConfigurations.<HOST>` (or `darwinConfigurations.<HOST>`), the NixOS-nested home-manager config, and the standalone `homeConfigurations."krit@<HOST>"` (the only place `home.file.".ssh/known_hosts"` exists). `report` is `label<TAB>result` lines (`ok` or `FAIL: ...`). `nixosPins`, `nixosMirroredPins` (all pins minus the NixOS-only `nicol-nas-tailnet`, used for the HM fingerprint comparison), `hmKnownHosts` and `allowedSigners` expose the raw texts for the script. NixOS `extraConfig` is parsed into per-alias option sets and compared with the home-manager `programs.ssh.settings` entries.
 
 The script first runs a parser control: a truncated key must be rejected by `ssh-keygen -lf`, proving the key checks can fail. It then writes each key to a file and runs `ssh-keygen -lf`, checks that the key type field matches the blob type, and compares the fingerprints of the NixOS and HM copies.
 
@@ -37,14 +37,17 @@ Per NixOS host (`nixos-desktop`, `nixos-laptop`):
 | NixOS knownHosts pins a literal key | non-empty, every value is `<type> <blob>` |
 | known_hosts line shape | non-empty, every line has exactly 3 fields |
 | known_hosts duplicates | no repeated (host, key type) pair |
-| NixOS pin appears in HM known_hosts | each NixOS-pinned key is present verbatim for that host |
-| HM-only hosts | every non-`github.com` host in HM known_hosts also has a NixOS pin |
+| NixOS pin appears in HM known_hosts | each NixOS-pinned key is present verbatim for that host; the NixOS-only `nicol-nas-tailnet` pin is exempt on purpose (the standalone-HM `known_hosts` in `ssh-config.nix` does not carry it) |
+| HM-only hosts | every non-`github.com` host in HM known_hosts also has a NixOS pin (the NAS pin is not part of the mirror) |
 | NixOS pins parse | `ssh-keygen -lf` accepts each, key type matches blob |
 | HM known_hosts lines parse | `ssh-keygen -lf` accepts each, key type matches blob |
-| Fingerprints equal | `ssh-keygen` fingerprints of NixOS and HM copies are identical |
+| Fingerprints equal | `ssh-keygen` fingerprints of NixOS and HM copies are identical (mirrored pins only, i.e. without `nicol-nas-tailnet`) |
 | Host alias set | NixOS `extraConfig` aliases equal HM `programs.ssh.settings` aliases |
 | Host option values | per alias, `extraConfig` options equal HM settings |
 | gateway alias | present in `extraConfig` and HM settings |
+| gatewayAlias option | `krit.system.ssh-config.gatewayAlias` option default is `false`, `true` on the real host; a twin with it forced `false` has no `gateway` alias in `extraConfig` or HM settings |
+| NAS pin | `programs.ssh.knownHosts."nicol-nas-tailnet"` is an `ssh-ed25519` key equal to `krit.services.nas.hostKey`, for both `nas.host` and `nas.tailnetIp`; `Host nicol-nas` `HostName` equals `nas.host` |
+| No host-key bypass | no borgmatic `ssh_command` and no sshfs mount option (sshfs enabled via `extendModules`) contains `StrictHostKeyChecking` |
 | Standalone home aliases | aliases (minus `*`) are a subset of the NixOS aliases |
 | Standalone `UserKnownHostsFile` | covers `known_hosts` and `known_hosts.local` |
 | tmpfiles | `d /home/<user>/.ssh 0700 <user> users -` |

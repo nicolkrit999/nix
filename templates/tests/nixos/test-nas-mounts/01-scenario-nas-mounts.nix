@@ -31,11 +31,16 @@ let
   davPrefix = "/mnt/nicol_nas/webdav/opencloud/";
   spaces = my.krit.services.nas.opencloud-mount.spaces;
 
-  uuidByHost = { nixos-desktop = "7E70DDB470DD737F"; nixos-laptop = "26C47F73C47F43D9"; };
+  winUuid = my.krit.services.windows-mount.uuid;
   win = fs."/mnt/windows";
-  badHost = (sys.extendModules {
-    modules = [{ myconfig.constants.hostname = lib.mkForce "no-such-host"; }];
+  noUuid = (sys.extendModules {
+    modules = [{ myconfig.krit.services.windows-mount.uuid = lib.mkForce ""; }];
   }).config;
+  emptySecret = opt: val: (sys.extendModules {
+    modules = [{ myconfig.krit.services.nas.sshfs.enable = lib.mkForce true; myconfig.krit.services.nas.${opt}.${val} = lib.mkForce ""; }];
+  }).config;
+  nasFailing = needle: c: builtins.filter (a: lib.hasInfix needle a.message) (builtins.filter (a: !a.assertion) c.assertions);
+  nasIdentity = my.krit.services.nas;
   winFailing = c: builtins.filter (a: lib.hasInfix "windows-mount" a.message) (builtins.filter (a: !a.assertion) c.assertions);
 
   mounts = my.services.rcloneMount.mounts;
@@ -108,8 +113,13 @@ let
       "fsc mounts present but services.cachefilesd disabled";
     check-smb-fsc-used = check (lib.any (v: has "fsc" v.options) (lib.attrValues smb))
       "no cifs mount uses fsc, so the cachefilesd check is vacuous";
-    check-nas-root-tmpfiles = check (has "d /mnt/nicol_nas 0700 ${user} users -" cfg.systemd.tmpfiles.rules)
-      "tmpfiles lacks d /mnt/nicol_nas 0700 ${user} users -";
+    check-nas-root-tmpfiles = check (has "d /mnt/nicol_nas 0700 ${user} ${userCfg.group} -" cfg.systemd.tmpfiles.rules)
+      "tmpfiles lacks d /mnt/nicol_nas 0700 ${user} ${userCfg.group} -";
+    check-nas-identity-literals = check
+      (nasIdentity.mountRoot == "/mnt/nicol_nas" && nasIdentity.tailnetIp == "100.101.189.91"
+        && lib.all (v: lib.hasPrefix "//100.101.189.91/" v.device) (lib.attrValues smb)
+        && lib.hasSuffix "@100.101.189.91:/" sshfsFs.device)
+      "krit.services.nas mountRoot/tailnetIp changed, or cifs/sshfs devices no longer derive from them (mountRoot=${nasIdentity.mountRoot} tailnetIp=${nasIdentity.tailnetIp})";
     check-nas-root-no-looser-rule = check
       (builtins.all (r: !(lib.hasPrefix "d /mnt/nicol_nas " r) || lib.hasInfix " 0700 " r) cfg.systemd.tmpfiles.rules)
       "a tmpfiles rule creates /mnt/nicol_nas with a mode other than 0700";
@@ -122,6 +132,9 @@ let
     check-sshfs-identity = check
       (optVal "IdentityFile=" sshfsFs.options == withSshfs.sops.secrets.nas_ssh_key.path && optVal "IdentityFile=" sshfsFs.options != "")
       "IdentityFile= empty or not the nas_ssh_key sops path";
+    check-sshfs-no-host-key-bypass = check
+      (!(lib.any (lib.hasInfix "StrictHostKeyChecking") sshfsFs.options))
+      "sshfs options carry a StrictHostKeyChecking override (host key is pinned in programs.ssh.knownHosts)";
     check-sshfs-same-host-as-smb = check
       (builtins.head (lib.splitString ":" (lib.last (lib.splitString "@" sshfsFs.device))) == builtins.head smbDevHosts)
       "sshfs host ${sshfsFs.device} differs from smb host ${builtins.toJSON smbDevHosts}";
@@ -136,15 +149,20 @@ let
     check-davfs-secrets-wired = check
       (my.krit.services.nas.opencloud-mount.secretsFile != "" && cfg.environment.etc."davfs2/secrets".source == my.krit.services.nas.opencloud-mount.secretsFile)
       "davfs2 secrets file empty or not wired to /etc/davfs2/secrets";
-    check-davfs-university-0700 = check (has "d ${lib.removeSuffix "/" davPrefix}/University 0700 ${user} users -" cfg.systemd.tmpfiles.rules)
+    check-davfs-university-0700 = check (has "d ${lib.removeSuffix "/" davPrefix}/University 0700 ${user} ${userCfg.group} -" cfg.systemd.tmpfiles.rules)
       "University dir not 0700";
 
-    check-windows-uuid = check (win.device == "/dev/disk/by-uuid/${uuidByHost.${host}}" && win.fsType == "ntfs3")
+    check-windows-uuid = check (winUuid != "" && win.device == "/dev/disk/by-uuid/${winUuid}" && win.fsType == "ntfs3")
       "windows device=${win.device} fsType=${win.fsType}";
     check-windows-assertion-passes = check (winFailing cfg == [ ])
       "windows-mount assertion failing on the real host";
-    check-windows-assertion-fires-on-unknown-host = check (builtins.length (winFailing badHost) == 1)
-      "windows-mount assertion did not fire for an unmapped hostname";
+    check-windows-assertion-fires-on-empty-uuid = check (builtins.length (winFailing noUuid) == 1)
+      "windows-mount assertion did not fire for an empty windows-mount.uuid";
+    check-nas-secret-assertions = check
+      (nasFailing "krit.services.nas." cfg == [ ]
+        && builtins.length (nasFailing "smb.credentialsFile is empty" (emptySecret "smb" "credentialsFile")) == 1
+        && builtins.length (nasFailing "sshfs.identityFile is empty" (emptySecret "sshfs" "identityFile")) == 1)
+      "real host must pass the nas assertions; empty smb.credentialsFile / sshfs.identityFile must each fire exactly once";
 
     check-rclone-enabled-matches-cloud-modules = check
       (builtins.length mounts == builtins.length cloudEnabled && mounts != [ ])

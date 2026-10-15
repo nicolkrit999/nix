@@ -1,4 +1,4 @@
-{ delib, pkgs, moduleSystem, ... }:
+{ delib, lib, pkgs, moduleSystem, ... }:
 let
   # Shared home-manager half: ssh-format commit signing + allowed_signers.
   # Used by both the NixOS path (nested under home-manager.users.<user>) and
@@ -11,15 +11,16 @@ let
         enable = true;
         settings = {
           gpg.format = "ssh";
-          user.signingKey = cfg.signingKey;
+          user.signingKey =
+            if cfg.signingKey != null then cfg.signingKey else "${homeDir}/.ssh/id_github";
           commit.gpgSign = true;
           gpg.ssh.allowedSignersFile = "${homeDir}/.ssh/allowed_signers";
         };
       };
 
-      home.file.".ssh/allowed_signers".text = ''
-        ${cfg.allowedSignersEmail} ${cfg.allowedSignersPubKey}
-      '';
+      home.file.".ssh/allowed_signers".text = lib.concatMapStrings (line: line + "\n") (
+        [ "${cfg.allowedSignersEmail} ${cfg.allowedSignersPubKey}" ] ++ cfg.extraAllowedSigners
+      );
     };
 in
 delib.module {
@@ -29,9 +30,18 @@ delib.module {
     with delib;
     moduleOptions {
       enable = boolOption false;
-      signingKey = strOption "/home/krit/.ssh/id_github";
+      signingKey = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = "SSH signing key path; null means ~/.ssh/id_github of the user.";
+      };
       allowedSignersEmail = strOption "githubgitlabmain.hu5b7@passfwd.com";
       allowedSignersPubKey = strOption "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO4fJZtoawnvuR2D/CAk7fBrioEyhyagheH4RtTaf8gD";
+      extraAllowedSigners = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = "Additional complete allowed_signers lines (principal and key) appended after the primary one.";
+      };
     };
 
   nixos.ifEnabled =
@@ -45,7 +55,6 @@ delib.module {
       };
 
       environment.systemPackages = with pkgs; [
-        gnupg
         pinentry-qt
         pinentry-curses
       ];

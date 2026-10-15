@@ -17,6 +17,8 @@ let
   hmKnownText = hmHome.home.file.".ssh/known_hosts".text;
   hmKnownLines = lines hmKnownText;
   nixosKnown = lib.mapAttrs (_: v: v.publicKey) cfg.programs.ssh.knownHosts;
+  nixosOnlyPins = [ "nicol-nas-tailnet" ];
+  nixosMirrored = removeAttrs nixosKnown nixosOnlyPins;
 
   keyOf = l: let f = fields l; in "${lib.elemAt f 1} ${lib.elemAt f 2}";
   hmKeysFor = h: map keyOf (lib.filter (l: lib.head (fields l) == h) hmKnownLines);
@@ -54,17 +56,40 @@ let
       let pairs = map (l: "${lib.elemAt (fields l) 0} ${lib.elemAt (fields l) 1}") hmKnownLines; in
       expect "dups" (lib.unique pairs == pairs) "duplicates in ${show pairs}";
     "every NixOS-pinned key appears verbatim in HM known_hosts for that host" =
-      let missing = lib.filter (h: !(builtins.elem nixosKnown.${h} (hmKeysFor h))) (lib.attrNames nixosKnown); in
+      let missing = lib.filter (h: !(builtins.elem nixosMirrored.${h} (hmKeysFor h))) (lib.attrNames nixosMirrored); in
       expect "copies" (missing == [ ]) "NixOS key not in HM known_hosts (or differs) for: ${show missing}";
     "every non-github.com host pinned in HM known_hosts has a NixOS knownHosts entry" =
       let
         hmHosts = lib.unique (map (l: lib.head (fields l)) hmKnownLines);
-        unpinned = lib.filter (h: !(nixosKnown ? ${h}) && !(lib.hasSuffix "github.com" h)) hmHosts;
+        unpinned = lib.filter (h: !(nixosMirrored ? ${h}) && !(lib.hasSuffix "github.com" h)) hmHosts;
       in
       expect "reverse" (unpinned == [ ]) "HM pins hosts with no NixOS pin: ${show unpinned}";
   };
 
+  nas = cfg.myconfig.krit.services.nas;
+  nasPin = cfg.programs.ssh.knownHosts."nicol-nas-tailnet" or { hostNames = [ ]; publicKey = ""; };
+  gatewayOpt = sys.options.myconfig.krit.system.ssh-config.gatewayAlias;
+  noGateway = (sys.extendModules { modules = [{ myconfig.krit.system.ssh-config.gatewayAlias = lib.mkForce false; }]; }).config;
+  withSshfs = (sys.extendModules { modules = [{ myconfig.krit.services.nas.sshfs.enable = lib.mkForce true; }]; }).config;
+  sshfsOptions = withSshfs.fileSystems."${nas.mountRoot}/ssh/system_root".options;
+  borgSshCommands = lib.mapAttrsToList (_: c: c.ssh_command or "") cfg.services.borgmatic.configurations;
+
   nixosOnlyChecks = {
+    "NAS ed25519 key is pinned for both the FQDN and the tailnet IP (NixOS-only pin, exempt from the HM mirror)" =
+      expect "nas-pin"
+        (lib.hasPrefix "ssh-ed25519 " nasPin.publicKey && nasPin.publicKey == nas.hostKey
+          && builtins.elem nas.host nasPin.hostNames && builtins.elem nas.tailnetIp nasPin.hostNames
+          && (extra."nicol-nas".HostName or "") == nas.host)
+        "got ${show nasPin} (nas.host=${nas.host} tailnetIp=${nas.tailnetIp}, Host nicol-nas HostName=${show (extra."nicol-nas".HostName or null)})";
+    "borgmatic ssh_command and the sshfs mount carry no StrictHostKeyChecking override" =
+      let bad = lib.filter (c: lib.hasInfix "StrictHostKeyChecking" c) (borgSshCommands ++ sshfsOptions); in
+      expect "no-strict-off" (borgSshCommands != [ ] && sshfsOptions != [ ] && bad == [ ]) "got ${show bad}";
+    "ssh-config.gatewayAlias exists, defaults to false and is the only switch for the gateway alias" =
+      let noExtra = parseExtra noGateway.programs.ssh.extraConfig; in
+      expect "gateway-opt"
+        (gatewayOpt.default == false && cfg.myconfig.krit.system.ssh-config.gatewayAlias
+          && !(noExtra ? gateway) && !(noGateway.home-manager.users.${user}.programs.ssh.settings ? gateway))
+        "default=${show gatewayOpt.default} real=${show cfg.myconfig.krit.system.ssh-config.gatewayAlias} extraWithout=${show (noExtra ? gateway)}";
     "Host alias set: NixOS extraConfig == HM programs.ssh.settings" =
       expect "aliases" (aliasesOf extra == aliasesOf hmSettings)
         "extraConfig=${show (aliasesOf extra)} hm=${show (aliasesOf hmSettings)}";
@@ -117,6 +142,7 @@ in
 {
   report = lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: "${k}\t${v}") final) + "\n";
   nixosPins = lib.concatStringsSep "\n" (lib.mapAttrsToList (h: k: "${h} ${k}") nixosKnown) + "\n";
+  nixosMirroredPins = lib.concatStringsSep "\n" (lib.mapAttrsToList (h: k: "${h} ${k}") nixosMirrored) + "\n";
   hmKnownHosts = if isDarwinHost then "" else hmKnownText;
   allowedSigners = if isDarwinHost then "" else hmNixos.home.file.".ssh/allowed_signers".text;
 }

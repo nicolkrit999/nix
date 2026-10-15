@@ -1,4 +1,5 @@
 { delib
+, lib
 , pkgs
 , inputs
 , ...
@@ -13,6 +14,14 @@ delib.module {
     }:
     let
       homeDir = "/home/${myconfig.constants.user}";
+
+      extraPlaces = [
+        { title = "momentary"; path = "${homeDir}/momentary"; icon = "folder"; }
+        { title = "mnt"; path = "/mnt"; icon = "folder-mount"; }
+      ];
+
+      placeBookmark = { title, path, icon }:
+        ''<bookmark href="file://${path}"><title>${title}</title><info><metadata owner="http://freedesktop.org"><bookmark:icon name="${icon}"/></metadata></info></bookmark>'';
 
       placesXml = ''
         <?xml version="1.0" encoding="UTF-8"?>
@@ -39,6 +48,7 @@ delib.module {
             <title>Downloads</title>
             <info><metadata owner="http://freedesktop.org"><bookmark:icon name="folder-downloads"/></metadata></info>
           </bookmark>
+          ${lib.concatMapStringsSep "\n" placeBookmark extraPlaces}
           <bookmark href="remote:/">
             <title>Network</title>
             <info><metadata owner="http://freedesktop.org"><bookmark:icon name="network-workgroup"/></metadata></info>
@@ -49,36 +59,47 @@ delib.module {
           </bookmark>
         </xbel>
       '';
+
+      placesFile = pkgs.writeText "user-places.xbel" placesXml;
     in
     {
       home.packages = with pkgs; [
         kdePackages.kio-extras
         kdePackages.kio-fuse
+        kdePackages.kdegraphics-thumbnailers
+        kdePackages.ffmpegthumbs
       ];
 
-      xdg.configFile."dolphinrc".force = true;
+      # plasma-manager resets dolphinrc on every activation when overrideConfig is on
+      programs.plasma.resetFilesExclude = [ "dolphinrc" ];
 
-      xdg.configFile."dolphinrc".text = ''
-        [General]
-        ShowFullPath=true
-        ConfirmDelete=true
-        ViewPropsTimestamp=2025,1,1,12,0,0.000
+      xdg.configFile."dolphinrc" = {
+        force = true;
+        text = ''
+          [General]
+          ShowFullPath=true
+          ConfirmDelete=true
+          ViewPropsTimestamp=2025,1,1,12,0,0.000
 
-        [KFileDialog Settings]
-        PlacesIconsAutoResize=true
-        PlacesIconsStaticSize=22
-
-        [PreviewSettings]
-        Plugins=dolphingitplugin,audiothumbnail,blenderthumbnail,comicbookthumbnail,cursorthumbnail,djvuthumbnail,ebookthumbnail,exrthumbnail,directorythumbnail,fontthumbnail,imagethumbnail,jpegthumbnail,kraorauthmubnail,malthumbnail,mdthumbnail,mobithumbnail,mp3thumbnail,opendocumentthumbnail,palapeli_thumbnailer,pdfthumbnail,rawthumbnail,svgthumbnail,texthumbnail,ffmpegthumbs,videothumbnail,windowsimagethumbnail
-      '';
+          [KFileDialog Settings]
+          PlacesIconsAutoResize=true
+          PlacesIconsStaticSize=22
+        '';
+      };
 
       home.activation.createDolphinPlaces =
         inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ]
           ''
-            if [ ! -f "${homeDir}/.local/share/user-places.xbel" ]; then
-              echo "Creating Dolphin Places file..."
-              mkdir -p "${homeDir}/.local/share"
-              echo '${placesXml}' > "${homeDir}/.local/share/user-places.xbel"
+            places="${homeDir}/.local/share/user-places.xbel"
+            if [ ! -f "$places" ]; then
+              run install -D -m 644 ${placesFile} "$places"
+            else
+              # existing file: append only the extra places it lacks, keeping Dolphin's own edits
+              ${lib.concatMapStrings (p: ''
+                if ! grep -qF 'href="file://${p.path}"' "$places"; then
+                  run sed -i 's|</xbel>|${placeBookmark p}\n</xbel>|' "$places"
+                fi
+              '') extraPlaces}
             fi
           '';
     };

@@ -1072,6 +1072,7 @@ delib.host {
       };
 
       krit.services.windows-mount.enable = true;
+      krit.services.windows-mount.uuid = "7E70DDB470DD737F";
 
       krit.services.network-tools.enable = true;
 
@@ -1127,6 +1128,7 @@ delib.host {
         git-ssh-signing.enable = true;
         swiss-locale.enable = true;
         ssh-config.enable = true;
+        ssh-config.gatewayAlias = true;
         virtualisation.enable = true;
       };
 

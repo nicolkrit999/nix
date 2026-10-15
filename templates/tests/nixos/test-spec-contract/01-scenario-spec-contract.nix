@@ -107,6 +107,7 @@ let
     (src + "/users/krit/nixos/shared/home/home-base.nix")
     (src + "/users/krit/nixos/shared/system/default-user.nix")
     (src + "/users/krit/nixos/shared/system/virtualisation.nix")
+    (src + "/users/krit/nixos/shared/system/git-ssh-signing.nix")
 
     # krit specializations
     (src + "/users/krit/nixos/specializations/entertainment.nix")

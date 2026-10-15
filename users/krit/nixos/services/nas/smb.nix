@@ -1,4 +1,5 @@
 { delib
+, lib
 , pkgs
 , config
 , ...
@@ -14,7 +15,9 @@ delib.module {
   nixos.ifEnabled =
     { cfg, myconfig, ... }:
     let
-      nasIP = "100.101.189.91";
+      nas = myconfig.krit.services.nas;
+      user = myconfig.constants.user;
+      group = config.users.users.${user}.group;
       shares = [
         "Amministrazione-NAS"
         "Default-volume-1"
@@ -32,9 +35,9 @@ delib.module {
           localName = builtins.replaceStrings [ " " ] [ "_" ] shareName;
         in
         {
-          name = "/mnt/nicol_nas/smb/${myconfig.constants.user}/${localName}";
+          name = "${nas.mountRoot}/smb/${user}/${localName}";
           value = {
-            device = "//${nasIP}/${shareName}";
+            device = "//${nas.tailnetIp}/${shareName}";
             fsType = "cifs";
             options = [
               "credentials=${cfg.credentialsFile}"
@@ -43,8 +46,8 @@ delib.module {
               "nounix"
               "forceuid"
               "forcegid"
-              "uid=${myconfig.constants.user}"
-              "gid=${config.users.users.${myconfig.constants.user}.group}"
+              "uid=${user}"
+              "gid=${group}"
               "fsc"
               "actimeo=60"
               "noatime"
@@ -59,6 +62,16 @@ delib.module {
         };
     in
     {
+      assertions = [
+        {
+          assertion = cfg.credentialsFile != "";
+          message = "krit.services.nas.smb.credentialsFile is empty: the SMB credentials secret path is required.";
+        }
+      ];
+
+      sops.secrets.nas-krit-credentials.sopsFile = ../../../common/sops/${user}-common-secrets-sops.yaml;
+      myconfig.krit.services.nas.smb.credentialsFile = lib.mkDefault config.sops.secrets.nas-krit-credentials.path;
+
       environment.systemPackages = [ pkgs.cifs-utils ];
       services.cachefilesd.enable = true;
       fileSystems = builtins.listToAttrs (map mountShare shares);
@@ -66,10 +79,10 @@ delib.module {
       # Lock the parent - share contents stay 0777 (NAS quirk) but only
       # the configured user can traverse to them.
       systemd.tmpfiles.rules = [
-        "d /mnt/nicol_nas 0700 ${myconfig.constants.user} users -"
+        "d ${nas.mountRoot} 0700 ${user} ${group} -"
       ];
 
-      home-manager.users.${myconfig.constants.user}.home.file."Documents/nicol-nas".source =
-        config.home-manager.users.${myconfig.constants.user}.lib.file.mkOutOfStoreSymlink "/mnt/nicol_nas/smb/${myconfig.constants.user}";
+      home-manager.users.${user}.home.file."Documents/nicol-nas".source =
+        config.home-manager.users.${user}.lib.file.mkOutOfStoreSymlink "${nas.mountRoot}/smb/${user}";
     };
 }

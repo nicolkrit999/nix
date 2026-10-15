@@ -3,20 +3,23 @@ delib.module {
   name = "krit.system.swiss-locale";
   options = delib.singleEnableOption false;
 
-  nixos.ifEnabled = {
-    systemd.services.display-manager.environment.LC_TIME = lib.mkDefault "it_CH.UTF-8";
+  nixos.ifEnabled =
+    let
+      locale = "it_CH.UTF-8";
+    in
+    {
+      systemd.services.display-manager.environment.LC_TIME = lib.mkDefault locale;
 
-    # Swiss locale settings for numbers, dates, and measurements
-    i18n.extraLocaleSettings = {
-      LC_ADDRESS = "it_CH.UTF-8"; # Address formatting
-      LC_IDENTIFICATION = "it_CH.UTF-8"; # Identification formatting for files (only metadata)
-      LC_MEASUREMENT = "it_CH.UTF-8"; # Uses Metric system (km, Celsius)
-      LC_MONETARY = "it_CH.UTF-8"; # Uses CHF formatting
-      LC_NAME = "it_CH.UTF-8"; # Personal name formatting (Surname Name)
-      LC_NUMERIC = "it_CH.UTF-8"; # Swiss number separators
-      LC_PAPER = "it_CH.UTF-8"; # Defaults printers to A4
-      LC_TELEPHONE = "it_CH.UTF-8"; # Telephone number formatting (e.g. +41 79 123 45 67)
-      LC_TIME = "it_CH.UTF-8"; # 24-hour clock and DD.MM.YYYY
+      i18n.extraLocaleSettings = {
+        LC_ADDRESS = locale;
+        LC_IDENTIFICATION = locale; # file metadata only
+        LC_MEASUREMENT = locale; # Metric system (km, Celsius)
+        LC_MONETARY = locale; # CHF formatting
+        LC_NAME = locale; # Surname Name
+        LC_NUMERIC = locale; # Swiss number separators
+        LC_PAPER = locale; # A4
+        LC_TELEPHONE = locale; # +41 79 123 45 67
+        LC_TIME = locale; # 24-hour clock and DD.MM.YYYY
+      };
     };
-  };
 }

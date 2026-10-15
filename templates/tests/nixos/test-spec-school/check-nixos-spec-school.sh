@@ -38,6 +38,56 @@ for h in "${HOSTS[@]}"; do
 done
 wait
 
+stub_run_setup() {
+  local h=$1 rc kind argc b64 text d setup bad=0 n=0 found=0
+  d="$WORK/$h.stub"
+  setup="$WORK/$h.d/school-distrobox-setup"
+  mkdir -p "$d/home"
+  cat >"$d/stubs.sh" <<'STUBS'
+distrobox_stub() {
+  local sub=$1
+  shift
+  case $sub in
+    create) touch "$STUB_DIR/c.$2" ;;
+    enter)
+      printf 'enter %s %s\n' "$#" "$(printf %s "${!#}" | base64 -w0)" >>"$STUB_DIR/log"
+      case ${!#} in "command -v"* | "test -x"*) return 1 ;; esac
+      ;;
+  esac
+  return 0
+}
+podman_stub() {
+  case $1 in
+    container) [ -e "$STUB_DIR/c.$3" ] ;;
+    exec) printf 'exec %s %s\n' "$#" "$(printf %s "${!#}" | base64 -w0)" >>"$STUB_DIR/log" ;;
+  esac
+}
+STUBS
+  sed -E 's#/nix/store/[a-z0-9]+-(distrobox|podman)[^/ ]*/bin/(distrobox|podman)#\2_stub#g' "$setup" >"$d/setup.sh"
+  printf "  %-70s " "setup script: no distrobox/podman store path left after stubbing"
+  : >"$d/log"
+  if grep -qE 'bin/(distrobox|podman)' "$d/setup.sh"; then
+    fail "$h: stub substitution" "a real distrobox/podman path remains"
+    rc=99
+  else
+    pass
+    STUB_DIR="$d" HOME="$d/home" bash -c 'source "$1"; source "$2"' _ "$d/stubs.sh" "$d/setup.sh" >"$d/out" 2>&1
+    rc=$?
+  fi
+  printf "  %-70s " "setup script stub-run exits 0 and provisions both containers"
+  if [[ $rc -eq 0 && -e $d/c.school-ubuntu && -e $d/c.school-arch ]]; then pass; else fail "$h: setup stub-run" "rc=$rc; $(tail -3 "$d/out" | tr '\n' ' ')"; fi
+  while read -r kind argc b64; do
+    n=$((n + 1))
+    text=$(printf %s "$b64" | base64 -d)
+    if [[ $kind == enter && $argc -ne 5 ]] || [[ $kind == exec && $argc -ne 7 ]]; then bad=$((bad + 1)); fi
+    if [[ $text == *"sed -i"* && $text == *"grep -q 'SetJavaHome'"* && $argc -eq 5 ]]; then found=1; fi
+  done <"$d/log"
+  printf "  %-70s " "every distrobox enter/podman exec command is exactly one argument"
+  if [[ $n -ge 7 && $bad -eq 0 ]]; then pass; else fail "$h: argument counts" "$bad of $n invocations have a wrong argument count"; fi
+  printf "  %-70s " "sqldeveloper postInstall (sed + grep) is ONE container argument"
+  if [[ $found -eq 1 ]]; then pass; else fail "$h: postInstall quoting" "no single-argument invocation holds both the sed and the grep line"; fi
+}
+
 syntax_check() {
   local h=$1 name=$2 file=$3 out
   printf "  %-70s " "bash -n $name"
@@ -78,9 +128,19 @@ for h in "${HOSTS[@]}"; do
     printf "  %-70s " "$kind check derivation found"
     if [[ $(jq ".$kind | length" "$WORK/$h.drvs") -ge 1 ]]; then pass; else fail "$h: $kind drv" "no derivation in string context"; fi
   done
+
+  stub_run_setup "$h"
 done
 
-printf "\n  %-70s " "control: bash -n rejects a broken script"
+printf "\n  %-70s " "control: an unquoted multi-word command splits into several arguments"
+set -f
+# shellcheck disable=SC2089 # deliberate: the control proves unquoted expansion word-splits under set -f
+text="sudo sed -i 's|a|b|' f && echo x"
+# shellcheck disable=SC2090 # same deliberate unquoted expansion
+set -- enter c -- bash -c $text
+set +f
+if [[ $# -gt 5 ]]; then pass; else fail "control word splitting" "unquoted text stayed one argument"; fi
+printf "  %-70s " "control: bash -n rejects a broken script"
 echo 'if then' >"$WORK/broken.sh"
 if bash -n "$WORK/broken.sh" 2>/dev/null; then fail "control bash -n" "broken script accepted"; else pass; fi
 

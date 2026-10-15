@@ -1,6 +1,6 @@
 # test-borg-backup-config
 
-Evaluates the real `nixos-desktop` and `nixos-laptop` hosts and asserts their borgmatic backup config: exclude-list hygiene, sops wiring of passphrase and SSH key, repository path, persistent timer, service and tailscale. Host choices (e.g. the timer's OnCalendar time) are deliberately not asserted.
+Evaluates the real `nixos-desktop` and `nixos-laptop` hosts and asserts their borgmatic backup config: exclude-list hygiene, sops wiring of passphrase and SSH key, repository path, persistent timer, timer-calendar reset, AC-power condition, persisted borg state, SSH hardening, NAS FQDN, check frequency and the empty-secret-path assertions, service and tailscale. Which hosts enable borgmatic is not asserted; the per-host backup time (`18:00` desktop, `10:00` laptop) is asserted only as the contract of the OnCalendar reset (an empty first entry cancels the packaged `daily`).
 
 ## Run
 
@@ -54,6 +54,15 @@ Each row exists once per host (`desktop-` / `laptop-` prefix).
 | source-is-user-home | `source_directories == [ "/home/<constants.user>" ]` |
 | own-config-only | only this host's configuration key exists (`desktop-data` / `laptop-data`) |
 | timer-persistent | timer is `Persistent` |
+| timer-resets-packaged-calendar | `OnCalendar` head is `""` followed by exactly one non-empty entry (`18:00` desktop / `10:00` laptop) |
+| ac-power-condition | laptop: `systemd.services.borgmatic.unitConfig.ConditionACPower == ""`; desktop: no override |
+| persists-borgmatic-state | `/var/lib/borgmatic` is persisted with impermanence on and absent on an impermanence-off twin |
+| borg-base-directory | borgmatic `borg_base_directory == "/var/lib/borgmatic"` |
+| ssh-identities-only-and-pinned | `ssh_command` has `IdentitiesOnly=yes` and no `StrictHostKeyChecking` option |
+| repo-host-is-nas-fqdn | repository host equals `myconfig.krit.services.nas.host` and contains a dot (not the bare alias) |
+| checks-frequency | every borgmatic check has `frequency = "2 weeks"` |
+| excludes-secrets-and-dotfiles-private | excludes contain `/home/*/.ssh` and `/home/*/dotfiles-private`, not `/home/*/wallpapers-repo` |
+| empty-secret-path-assertions-fire | no borg-backup assertion fails on the real host; forcing `passphraseFile` / `sshKeyPath` to `""` (extendModules) fires exactly one assertion each |
 | service-exists | `services.borgmatic.enable` and `systemd.services.borgmatic` defined |
 | tailscale-enabled | `services.tailscale.enable` |
 

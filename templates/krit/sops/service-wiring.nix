@@ -13,13 +13,7 @@
     mode = "0600";
   };
 
-  # Wire sops secrets to NAS services
-  myconfig.krit.services.nas.sshfs.identityFile = config.sops.secrets.nas_ssh_key.path;
-  myconfig.krit.services.nas.smb.credentialsFile = config.sops.secrets.nas-krit-credentials.path;
-  myconfig.krit.services.nas.desktop-borg-backup.passphraseFile = config.sops.secrets.borg-passphrase.path;
-  myconfig.krit.services.nas.desktop-borg-backup.sshKeyPath = config.sops.secrets.borg-private-key.path;
-  myconfig.krit.services.nas.laptop-borg-backup.passphraseFile = config.sops.secrets.borg-passphrase.path;
-  myconfig.krit.services.nas.laptop-borg-backup.sshKeyPath = config.sops.secrets.borg-private-key.path;
+  # The sshfs/smb/borg modules declare their own secrets and set their own path options.
   myconfig.krit.services.nas.opencloud-mount.secretsFile = config.sops.templates."davfs-secrets".path;
 
   # Wire tailscale auth key

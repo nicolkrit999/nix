@@ -12,13 +12,11 @@ delib.module {
       makeBravePwa = name: url: icon: startupClass: {
         name = "pwa-${builtins.replaceStrings [ " " ] [ "-" ] (lib.toLower name)}";
         value = {
-          name = name;
+          inherit name icon;
           genericName = "Web App";
           comment = "Launch ${name} as a PWA";
 
           exec = "${pkgs.brave}/bin/brave --app=\"${url}\"";
-
-          icon = icon;
 
           settings = {
             StartupWMClass = startupClass;
@@ -26,21 +24,12 @@ delib.module {
 
           terminal = false;
           type = "Application";
-          categories = [
-            "Network"
-            "WebBrowser"
-          ];
-          mimeType = [
-            "x-scheme-handler/https"
-            "x-scheme-handler/http"
-          ];
+          categories = [ "Network" ];
         };
       };
 
-      # Custom icons
-
       # Apple music
-      appleMusicIconFile = pkgs.fetchurl {
+      appleMusicIcon = pkgs.fetchurl {
         url = "https://upload.wikimedia.org/wikipedia/commons/5/5f/Apple_Music_icon.svg";
         sha256 = "0lw10k2x25gnhjykllf0crkwff43a69i9pmsglmhnyhbsmx3qz71";
       };
@@ -56,8 +45,6 @@ delib.module {
         url = "https://upload.wikimedia.org/wikipedia/commons/6/6a/Youtube_Music_icon.svg";
         sha256 = "02wdzksr3viwys3rzz9b10p2fl9vra2izxfnjswpc8b8nzwskyrb";
       };
-
-
     in
     {
       home.packages = [ pkgs.brave ];
@@ -66,7 +53,7 @@ delib.module {
         # Manual Apps
         (makeBravePwa "YouTube" "https://www.youtube.com" "${youtubeIcon}" "brave-www.youtube.com__-Default")
         (makeBravePwa "YouTube Music" "https://music.youtube.com/" "${youtubeMusicIcon}" "brave-music.youtube.com__-Default")
-        (makeBravePwa "Apple Music" "https://music.apple.com/ch/home?l=en" "${appleMusicIconFile}" "brave-music.apple.com__ch_home-Default")
+        (makeBravePwa "Apple Music" "https://music.apple.com/ch/home?l=en" "${appleMusicIcon}" "brave-music.apple.com__ch_home-Default")
 
         # Self-Hosted / Home Lab
         (makeBravePwa "Dashboard-Glance" "https://glance.nicolkrit.ch/" "utilities-system-monitor" "brave-glance.nicolkrit.ch__-Default")

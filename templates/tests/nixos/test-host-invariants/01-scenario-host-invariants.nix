@@ -39,6 +39,9 @@ let
       check-persist-dirs = check
         (lib.all (d: has d persistDirs) [ "/etc/ssh" "/var/lib/nixos" "/var/lib/tailscale" "/var/lib/systemd/timesync" "/var/lib/NetworkManager" ])
         "persisted dirs missing one of /etc/ssh /var/lib/nixos /var/lib/tailscale /var/lib/systemd/timesync /var/lib/NetworkManager";
+      check-borgmatic-state-persisted = check
+        (!cfg.services.borgmatic.enable || has "/var/lib/borgmatic" persistDirs)
+        "borgmatic is enabled but /var/lib/borgmatic is not persisted: the borg cache and security dir would be lost every boot";
       check-random-seed-not-persisted = check (!(has "/var/lib/systemd/random-seed" (map (f: f.file or f) persist.files)))
         "/var/lib/systemd/random-seed must not be persisted: systemd creates it before the persist bind unit runs, so a live switch fails with 'A file already exists' (exit 4)";
       check-resolved-no-global-domains = check (!(has "~." (asList (cfg.services.resolved.settings.Resolve.Domains or [ ]))))

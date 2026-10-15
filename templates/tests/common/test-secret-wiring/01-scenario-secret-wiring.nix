@@ -173,16 +173,53 @@ in
       n = h.config.myconfig.krit.services.nas;
       s = secretsOf h;
       eq = label: actual: expected: lib.optional (actual != expected) "${label}: ${actual} != ${expected}";
+      consumers = [
+        { mod = "sshfs"; opt = "identityFile"; secret = "nas_ssh_key"; }
+        { mod = "smb"; opt = "credentialsFile"; secret = "nas-krit-credentials"; }
+        { mod = "desktop-borg-backup"; opt = "passphraseFile"; secret = "borg-passphrase"; }
+        { mod = "desktop-borg-backup"; opt = "sshKeyPath"; secret = "borg-private-key"; }
+        { mod = "laptop-borg-backup"; opt = "passphraseFile"; secret = "borg-passphrase"; }
+        { mod = "laptop-borg-backup"; opt = "sshKeyPath"; secret = "borg-private-key"; }
+      ];
+      enabled = lib.filter (x: n.${x.mod}.enable) consumers;
+      disabled = lib.filter (x: !n.${x.mod}.enable) consumers;
+      needed = lib.unique (map (x: x.secret) enabled);
+      ownSecrets = lib.unique (map (x: x.secret) consumers);
+      pin = h.config.programs.ssh.knownHosts."nicol-nas-tailnet" or null;
     in
-    eq "sshfs.identityFile" n.sshfs.identityFile s.nas_ssh_key.path
-    ++ eq "sshfs.identityFile path" n.sshfs.identityFile (runSecrets "nas_ssh_key")
-    ++ eq "smb.credentialsFile" n.smb.credentialsFile (runSecrets "nas-krit-credentials")
-    ++ eq "desktop-borg.passphraseFile" n.desktop-borg-backup.passphraseFile (runSecrets "borg-passphrase")
-    ++ eq "desktop-borg.sshKeyPath" n.desktop-borg-backup.sshKeyPath (runSecrets "borg-private-key")
-    ++ eq "laptop-borg.passphraseFile" n.laptop-borg-backup.passphraseFile (runSecrets "borg-passphrase")
-    ++ eq "laptop-borg.sshKeyPath" n.laptop-borg-backup.sshKeyPath (runSecrets "borg-private-key")
+    lib.optional (enabled == [ ]) "no NAS consumer enabled on this host: check would be vacuous"
+    ++ lib.concatMap
+      (x:
+        lib.optional (!(s ? ${x.secret})) "${x.mod}.${x.opt}: enabled but ${x.secret} is not declared"
+        ++ lib.optionals (s ? ${x.secret}) (
+          eq "${x.mod}.${x.opt}" n.${x.mod}.${x.opt} s.${x.secret}.path
+          ++ eq "${x.mod}.${x.opt} run path" n.${x.mod}.${x.opt} (runSecrets x.secret)
+        ))
+      enabled
+    ++ map (x: "${x.mod}.${x.opt} is wired (${n.${x.mod}.${x.opt}}) although ${x.mod} is disabled") (lib.filter (x: n.${x.mod}.${x.opt} != "") disabled)
+    ++ map (name: "${name} is declared but no enabled consumer needs it") (lib.filter (name: s ? ${name} && !(lib.elem name needed)) ownSecrets)
     ++ eq "opencloud-mount.secretsFile" n.opencloud-mount.secretsFile h.config.sops.templates."davfs-secrets".path
-    ++ eq "tailscale.authKeyFile" h.config.services.tailscale.authKeyFile (runSecrets "tailscale_key"));
+    ++ eq "tailscale.authKeyFile" h.config.services.tailscale.authKeyFile (runSecrets "tailscale_key")
+    ++ lib.optional (pin == null) "nicol-nas-tailnet knownHosts pin missing (module nas-identity)"
+    ++ lib.optionals (pin != null) (
+      lib.optional (pin.publicKey != n.hostKey) "knownHosts pin key differs from krit.services.nas.hostKey"
+      ++ lib.optional (!(lib.elem n.host pin.hostNames && lib.elem n.tailnetIp pin.hostNames)) "pin hostNames lack nas.host or nas.tailnetIp: ${builtins.toJSON pin.hostNames}"
+    ));
+
+  check-nas-secret-ownership-bites =
+    let
+      h = nixosHosts.nixos-desktop;
+      off = withModules h [ ({ lib, ... }: { myconfig.krit.services.nas.sshfs.enable = lib.mkForce false; }) ];
+      on = withModules h [ ({ lib, ... }: { myconfig.krit.services.nas.sshfs.enable = lib.mkForce true; }) ];
+    in
+    if !hasNixos then "ok"
+    else
+      failures (
+        lib.optional (secretsOf off ? nas_ssh_key) "sshfs off: nas_ssh_key still declared"
+        ++ lib.optional (off.config.myconfig.krit.services.nas.sshfs.identityFile != "") "sshfs off: identityFile still wired"
+        ++ lib.optional (!(secretsOf on ? nas_ssh_key)) "control: sshfs on did not declare nas_ssh_key"
+        ++ lib.optional (on.config.myconfig.krit.services.nas.sshfs.identityFile != (runSecrets "nas_ssh_key")) "control: sshfs on did not wire identityFile to /run/secrets/nas_ssh_key"
+      );
 
   check-nas-secrets-darwin = perHost darwinHosts (h:
     let
@@ -219,14 +256,26 @@ in
 
   check-ssh-key-paths = perHost allHosts (h:
     let
-      s = secretsOf h;
       user = userOf h;
-      home = if h.pkgs.stdenv.hostPlatform.isDarwin then "/Users/${user}" else "/home/${user}";
-      eq = n: p: lib.optional (!(s ? ${n})) "${n} not declared"
+      isDarwin = h.pkgs.stdenv.hostPlatform.isDarwin;
+      home = if isDarwin then "/Users/${user}" else "/home/${user}";
+      schoolSpec = if isDarwin then null else h.config.specialisation.school.configuration;
+      schoolSecrets = if isDarwin then secretsOf h else (schoolSpec.config or schoolSpec).sops.secrets;
+      eqIn = s: n: p: lib.optional (!(s ? ${n})) "${n} not declared"
         ++ lib.optional (s ? ${n} && s.${n}.path != "${home}/.ssh/${p}") "${n} path ${s.${n}.path or "?"} != ${home}/.ssh/${p}";
+      eq = eqIn (secretsOf h);
+      leakedIn = label: s: map (n: "${n} declared in ${label}") (lib.filter (n: s ? ${n}) [ "school_ssh_key" "school_ssh_pub" ]);
+      otherSpecs = lib.filter (n: h.config.specialisation ? ${n}) [ "guest" "secure-travel" ];
     in
     eq "github_general_ssh_key" "id_github" ++ eq "github_general_ssh_pub" "id_github.pub"
-    ++ eq "school_ssh_key" "id_school" ++ eq "school_ssh_pub" "id_school.pub");
+    ++ eqIn schoolSecrets "school_ssh_key" "id_school" ++ eqIn schoolSecrets "school_ssh_pub" "id_school.pub"
+    ++ lib.optionals (!isDarwin) (
+      leakedIn "the base config" (secretsOf h)
+      ++ lib.concatMap
+        (n: leakedIn "specialisation ${n}" (let sp = h.config.specialisation.${n}.configuration; in (sp.config or sp).sops.secrets))
+        otherSpecs
+      ++ lib.optional (otherSpecs == [ ]) "no guest/secure-travel specialisation found: the leak scan would be vacuous"
+    ));
   check-mcp-nas-launchers =
     let
       cfg = nas.config;

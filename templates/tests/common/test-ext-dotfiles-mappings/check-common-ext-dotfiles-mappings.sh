@@ -96,16 +96,25 @@ for h in desktop laptop nas mac; do
 done
 
 extract_fn() { awk '/^ *sync_back\(\) \{/{p=1} p{print} p&&/^ *\}$/{exit}' "$1" | sed 's/^ *//' ; }
-label="sync_back function identical on desktop and mac"
+# Darwin twin lags until batch 13; drop this normalisation then. Exempt exactly: comment lines,
+# absolute /nix/store/<hash>-pkg/bin/ prefixes (per-arch), the HM `run` wrapper, and rsync --delete.
+parity_norm() {
+  sed -E -e '/^#/d' -e 's#/nix/store/[a-z0-9]{32}-[^/]+/bin/##g' -e 's/(^|[^[:alnum:]_])run /\1/g' -e 's/ --delete//g'
+}
+label="sync_back function identical on desktop and mac (darwin lag exempted)"
 printf "  %-62s " "$label"
-if [[ -s "$WORK/act-desktop.sh" && "$(extract_fn "$WORK/act-desktop.sh" | sed 's#/home/krit#H#g')" == "$(extract_fn "$WORK/act-mac.sh" | sed 's#/Users/krit#H#g')" && -n "$(extract_fn "$WORK/act-mac.sh")" ]]; then pass
+if [[ -s "$WORK/act-desktop.sh" && "$(extract_fn "$WORK/act-desktop.sh" | sed 's#/home/krit#H#g' | parity_norm)" == "$(extract_fn "$WORK/act-mac.sh" | sed 's#/Users/krit#H#g' | parity_norm)" && -n "$(extract_fn "$WORK/act-mac.sh")" ]]; then pass
 else fail "$label" "function bodies differ or not found"; fi
+label="desktop sync_back uses absolute store paths and rsync --delete (exemption is real)"
+printf "  %-62s " "$label"
+if extract_fn "$WORK/act-desktop.sh" | grep -Eq '/nix/store/[a-z0-9]{32}-rsync[^ ]*/bin/rsync -a --delete' && ! grep -q '^export PATH=' "$WORK/act-desktop.sh"; then pass
+else fail "$label" "desktop activation lacks the absolute rsync --delete call, or still exports PATH"; fi
 
 echo -e "\n${BOLD}sandbox run of the real desktop activation${NC}"
 run_sandbox() {
   local sb="$1"
-  sed -e '/^export PATH=/d' -e "s#/home/krit#$sb#g" "$WORK/act-desktop.sh" > "$WORK/run.sh"
-  PATH="$PATH" bash -eu "$WORK/run.sh"
+  { echo 'run() { "$@"; }'; sed -e "s#/home/krit#$sb#g" "$WORK/act-desktop.sh"; } > "$WORK/run.sh"
+  bash -eu "$WORK/run.sh"
 }
 new_sb() {
   SB="$WORK/sb$1"; rm -rf "$SB"
@@ -147,12 +156,13 @@ else
     run_sandbox "$SB"
     [[ "$(cat "$SB/.config/vicinae/settings.json")" == live ]]
   }
+  # rsync -a --delete mirrors the live dir, so a repo-only file must be gone afterwards
   case_dir_rsynced() {
     new_sb 5; local repo; repo=$(openlogi_repo)
     mkdir -p "$repo" "$SB/.config/openlogi"
     echo keep > "$repo/repo-only"; echo new > "$SB/.config/openlogi/live-only"
     run_sandbox "$SB"
-    [[ "$(cat "$repo/live-only")" == new && -e "$repo/repo-only" && ! -e "$SB/.config/openlogi" ]]
+    [[ "$(cat "$repo/live-only")" == new && ! -e "$repo/repo-only" && ! -e "$SB/.config/openlogi" ]]
   }
   case_dir_repo_missing() {
     new_sb 6
@@ -181,7 +191,7 @@ else
   t "live file identical: removed, repo untouched" case_file_identical
   t "live symlink: left alone" case_symlink_untouched
   t "repo parent missing: live file kept" case_file_repo_parent_missing
-  t "live dir differs: rsynced before delete, repo-only kept" case_dir_rsynced
+  t "live dir differs: rsynced with --delete, repo-only removed" case_dir_rsynced
   t "repo dir missing: live dir kept" case_dir_repo_missing
   if [[ "$(id -u)" == 0 ]]; then
     echo -e "  ${DIM}skipping read-only failure cases (running as root)${NC}"

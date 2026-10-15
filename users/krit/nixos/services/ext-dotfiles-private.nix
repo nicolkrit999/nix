@@ -6,50 +6,32 @@
 }:
 
 let
+  claudeHostLeaves = [
+    ".claude.json"
+    ".claude/keybindings.json"
+    ".claude/settings.json"
+    ".claude/plans"
+    ".claude-mem"
+    ".claude/context-mode"
+    # Whole projects dir → host. Auto-captures every (future) project; common
+    # projects keep a committed memory symlink → claude/common/ inside the repo.
+    ".claude/projects"
+  ];
+
   packageLeaves = {
     "claude/common" = [
+      ".claude/CLAUDE.md"
+      ".claude/RTK.md"
       ".claude/agents"
       ".claude/memory"
       ".claude/notebooklm"
       ".claude/skills"
       ".config/ccstatusline"
-      ".claude/RTK.md"
-      ".claude/CLAUDE.md"
     ];
 
-    "claude/nixos-desktop" = [
-      ".claude.json"
-      ".claude/keybindings.json"
-      ".claude/settings.json"
-      ".claude/plans"
-      ".claude-mem"
-      ".claude/context-mode"
-      # Whole projects dir → host. Auto-captures every (future) project; common
-      # projects keep a committed memory symlink → claude/common/ inside the repo.
-      ".claude/projects"
-    ];
-
-    "claude/nixos-laptop" = [
-      ".claude.json"
-      ".claude/keybindings.json"
-      ".claude/settings.json"
-      ".claude/plans"
-      ".claude-mem"
-      ".claude/context-mode"
-      ".claude/projects"
-    ];
-
-    "claude/Nicol-NAS" = [
-      ".claude.json"
-      ".claude/keybindings.json"
-      ".claude/settings.json"
-      ".claude/plans"
-      ".claude-mem"
-      ".claude/context-mode"
-      # Whole projects dir → host. Auto-captures every (future) project; common
-      # projects keep a committed memory symlink → claude/common/ inside the repo.
-      ".claude/projects"
-    ];
+    "claude/nixos-desktop" = claudeHostLeaves;
+    "claude/nixos-laptop" = claudeHostLeaves;
+    "claude/Nicol-NAS" = claudeHostLeaves;
 
     gsd = [
       ".gsd"
@@ -98,30 +80,25 @@ let
     ];
   };
 
+  startActualMcp = {
+    ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
+  };
+
+  # Scoped skills/MCPs load only inside their context dir (symlinks resolve to claude/parked/*)
+  contextScopedClaude = {
+    "momentary/.claude/skills" = "claude/momentary/.claude/skills";
+    "momentary/.claude/agents" = "claude/momentary/.claude/agents";
+    "momentary/.mcp.json" = "claude/momentary/.mcp.json";
+    ".school-workspace/.claude/skills" = "claude/school/.claude/skills";
+    ".school-workspace/.claude/agents" = "claude/school/.claude/agents";
+    ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
+  };
+
   # Maps home-dir path → repo-relative path, for cases where the two differ
   extraMappingsPerHost = {
-    nixos-desktop = {
-      ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
-      # Scoped skills/MCPs load only inside their context dir (symlinks resolve to claude/parked/*)
-      "momentary/.claude/skills" = "claude/momentary/.claude/skills";
-      "momentary/.claude/agents" = "claude/momentary/.claude/agents";
-      "momentary/.mcp.json" = "claude/momentary/.mcp.json";
-      ".school-workspace/.claude/skills" = "claude/school/.claude/skills";
-      ".school-workspace/.claude/agents" = "claude/school/.claude/agents";
-      ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
-    };
-    nixos-laptop = {
-      ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
-      "momentary/.claude/skills" = "claude/momentary/.claude/skills";
-      "momentary/.claude/agents" = "claude/momentary/.claude/agents";
-      "momentary/.mcp.json" = "claude/momentary/.mcp.json";
-      ".school-workspace/.claude/skills" = "claude/school/.claude/skills";
-      ".school-workspace/.claude/agents" = "claude/school/.claude/agents";
-      ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
-    };
-    Nicol-NAS = {
-      ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
-    };
+    nixos-desktop = startActualMcp // contextScopedClaude;
+    nixos-laptop = startActualMcp // contextScopedClaude;
+    Nicol-NAS = startActualMcp;
   };
 
   # Home paths that GUIs rewrite in place (replacing the symlink with a regular
@@ -165,6 +142,9 @@ delib.module {
 
       syncBackEntries = lib.filter (p: mappings ? ${p}) syncBack;
 
+      coreutils = "${pkgs.coreutils}/bin";
+      diffutils = "${pkgs.diffutils}/bin";
+
       syncBackScript = lib.concatMapStringsSep "\n"
         (p: "sync_back ${lib.escapeShellArg p} ${lib.escapeShellArg mappings.${p}}")
         syncBackEntries;
@@ -176,7 +156,6 @@ delib.module {
 
       home.activation.syncBackDotfilesPrivate =
         inputs.home-manager.lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-          export PATH=${lib.makeBinPath [ pkgs.coreutils pkgs.diffutils pkgs.rsync ]}:$PATH
           repo_root="${homeDir}/dotfiles-private"
 
           sync_back() {
@@ -184,20 +163,22 @@ delib.module {
             repo="$repo_root/$2"
             [ -L "$live" ] && return 0
             if [ -f "$live" ]; then
-              [ -d "$(dirname "$repo")" ] || return 0
+              [ -d "$(${coreutils}/dirname "$repo")" ] || return 0
               [ -d "$repo" ] && return 0
-              if ! cmp -s "$live" "$repo"; then
-                cp -f "$live" "$repo.syncback.tmp" \
-                  && mv -f "$repo.syncback.tmp" "$repo" \
-                  || { rm -f "$repo.syncback.tmp"; return 0; }
+              if ! ${diffutils}/cmp -s "$live" "$repo"; then
+                run ${coreutils}/cp -f "$live" "$repo.syncback.tmp" \
+                  && run ${coreutils}/mv -f "$repo.syncback.tmp" "$repo" \
+                  || { run ${coreutils}/rm -f "$repo.syncback.tmp"; return 0; }
               fi
-              rm -f "$live"
+              run ${coreutils}/rm -f "$live"
             elif [ -d "$live" ]; then
               [ -d "$repo" ] && [ ! -L "$repo" ] || return 0
-              if ! diff -rq "$live" "$repo" >/dev/null 2>&1; then
-                rsync -a "$live"/ "$repo"/ || return 0
+              if ! ${diffutils}/diff -rq "$live" "$repo" >/dev/null 2>&1; then
+                # --delete mirrors removals into the repo: a GUI that rewrote only
+                # part of the dir would delete the other tracked files from it.
+                run ${pkgs.rsync}/bin/rsync -a --delete "$live"/ "$repo"/ || return 0
               fi
-              rm -rf "$live"
+              run ${coreutils}/rm -rf "$live"
             fi
           }
 

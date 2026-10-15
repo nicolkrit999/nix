@@ -55,6 +55,18 @@ let
   signers = hm.home.file.".ssh/allowed_signers";
   signerFields = lib.splitString " " (lib.head (lib.splitString "\n" (lib.trim signers.text)));
   idFile = c.sops.secrets.school_ssh_key.path;
+  signerLines = lib.splitString "\n" (lib.trim signers.text);
+  baseSignerLines = lib.splitString "\n" (lib.trim baseHm.home.file.".ssh/allowed_signers".text);
+  principalOf = l: lib.head (lib.splitString " " l);
+
+  entries = hm.xdg.desktopEntries;
+  pwaNames = lib.filter (lib.hasPrefix "school-pwa-") (lib.attrNames entries);
+  pwaOk = e: (e.mimeType or null) == null && (e.categories or null) == [ "Education" ];
+  pwaBad = pred: lib.filter (n: !(pred entries.${n})) pwaNames;
+  onedrive = hm.systemd.user.services.school-onedrive-mount;
+  onedriveUnit = onedrive.Unit;
+  createDirs = hm.home.activation.createSchoolDirs.data;
+  anyHas = needle: lib.any (lib.hasInfix needle);
 
   workspacesOf = line: map lib.head (builtins.filter (m: m != null) (map (builtins.match "\\[workspace ([0-9]+).*") [ line ]));
   execWs = lib.concatMap workspacesOf c.myconfig.programs.hyprland.execOnce;
@@ -86,9 +98,33 @@ let
 
     [ "git user.email is school-specific and not the base email" (chk (gitSet.user.email != baseHm.programs.git.settings.user.email && gitSet.user.email != "") "school email equals base email") ]
     [ "git gpg.format == ssh and commit signing on" (chk (gitSet.gpg.format == "ssh" && hm.programs.git.signing.signByDefault && (gitSet.commit.gpgSign or false)) "ssh signing not fully enabled") ]
-    [ "git signing key is the sops school key" (chk (hm.programs.git.signing.key == idFile && gitSet.user.signingkey == idFile) "signing key differs from ${idFile}") ]
+    [ "git signByDefault also signs tags" (chk ((gitSet.tag.gpgSign or false) == true) "tag.gpgSign is not true") ]
+    [ "git signing key is user.signingKey == sops school key" (chk ((gitSet.user.signingKey or "") == idFile) "user.signingKey is '${gitSet.user.signingKey or "unset"}', expected ${idFile}") ]
+    [ "no lowercase user.signingkey and no signing.key (single source: git-ssh-signing)" (chk (!(gitSet.user ? signingkey) && hm.programs.git.signing.key == null) "lowercase signingkey or signing.key is set again") ]
+    [ "git-ssh-signing options carry the school key and school identity" (chk (c.myconfig.krit.system.git-ssh-signing.signingKey == idFile && c.myconfig.krit.system.git-ssh-signing.allowedSignersEmail == gitSet.user.email && c.myconfig.krit.system.git-ssh-signing.allowedSignersEmail != base.myconfig.krit.system.git-ssh-signing.allowedSignersEmail) "option values differ from the school identity") ]
     [ "allowedSignersFile == path of home.file allowed_signers" (chk (gitSet.gpg.ssh.allowedSignersFile == "${home}/${signers.target}") "${gitSet.gpg.ssh.allowedSignersFile} vs ${home}/${signers.target}") ]
-    [ "allowed_signers principal == git user.email, ed25519 key" (chk (lib.length signerFields >= 3 && lib.elemAt signerFields 0 == gitSet.user.email && lib.elemAt signerFields 1 == "ssh-ed25519") "signers line does not match git identity") ]
+    [ "allowed_signers first line == git user.email, ed25519 key" (chk (lib.length signerFields >= 3 && lib.elemAt signerFields 0 == gitSet.user.email && lib.elemAt signerFields 1 == "ssh-ed25519") "signers line does not match git identity") ]
+    [ "allowed_signers has exactly two lines: school first, then the base (personal) line" (chk (lib.length signerLines == 2 && lib.length baseSignerLines == 1 && lib.elemAt signerLines 1 == lib.head baseSignerLines && principalOf (lib.elemAt signerLines 1) != gitSet.user.email) "lines: ${toString (lib.length signerLines)}; base lines: ${toString (lib.length baseSignerLines)}") ]
+    [ "control: base allowed_signers does not name the school principal" (chk (!(lib.any (l: principalOf l == gitSet.user.email) baseSignerLines)) "base signers already contain the school principal") ]
+
+    [ "school secrets are declared inside the specialisation, ssh pub next to the key" (chk (c.sops.secrets ? school_ssh_key && c.sops.secrets ? school_ssh_pub && c.sops.secrets.school_ssh_pub.path == "${idFile}.pub") "school_ssh_key/school_ssh_pub missing in the spec or pub path differs") ]
+    [ "school secrets are absent from the base config (control)" (chk (!(base.sops.secrets ? school_ssh_key) && !(base.sops.secrets ? school_ssh_pub)) "base config declares the school secrets") ]
+
+    [ "NetworkManager VPN plugins openvpn and openconnect are registered in the spec" (chk (c.environment.etc ? "NetworkManager/VPN/nm-openvpn-service.name" && c.environment.etc ? "NetworkManager/VPN/nm-openconnect-service.name") "nm-openvpn/nm-openconnect service.name missing from environment.etc") ]
+    [ "control: an unrequested NM VPN plugin is not registered (etc probe bites)" (chk (!(c.environment.etc ? "NetworkManager/VPN/nm-nonexistent-service.name")) "etc probe accepts any name") ]
+    [ "wireshark enabled in the spec and the user is in the wireshark group" (chk (c.programs.wireshark.enable && lib.elem "wireshark" c.users.users.${userName}.extraGroups) "wireshark or group membership missing") ]
+
+    [ "school PWA entries exist, have no mimeType and are in category Education" (chk (pwaNames != [ ] && pwaBad pwaOk == [ ]) "bad PWA entries: ${toString (pwaBad pwaOk)} of ${toString pwaNames}") ]
+    [ "control: PWA predicate rejects an entry with a mimeType or another category" (chk (pwaOk entries.${lib.head pwaNames} && !(pwaOk (entries.${lib.head pwaNames} // { mimeType = [ "x-scheme-handler/https" ]; })) && !(pwaOk (entries.${lib.head pwaNames} // { categories = [ "Network" "WebBrowser" ]; }))) "PWA predicate accepts a mimeType or a non-Education category") ]
+
+    [ "OneDrive user unit has StartLimit settings and no network-online.target ordering" (chk ((onedriveUnit ? StartLimitIntervalSec) && (onedriveUnit ? StartLimitBurst) && !(anyHas "network-online.target" ((lib.toList (onedriveUnit.After or [ ])) ++ (lib.toList (onedriveUnit.Wants or [ ]))))) "StartLimit missing or network-online.target ordering is back") ]
+    [ "OneDrive unit restarts on failure" (chk (onedrive.Service.Restart == "on-failure") "Restart is ${onedrive.Service.Restart}") ]
+
+    [ "tkgate and sqldeveloper grant X access only to the local user (si:localuser:), never bare xhost +" (chk (lib.all (n: let t = scriptText n; in lib.hasInfix "xhostEntry=\"si:localuser:" t && lib.hasInfix "\"+$xhostEntry\"" t && lib.hasInfix "\"-$xhostEntry\"" t && !(lib.hasInfix "xhost +" t)) [ "tkgate-school" "sqldeveloper-school" ]) "xhost line is not the narrow localuser form with revoke") ]
+    [ "idea-school exports GIT_CONFIG_GLOBAL to the git config under ~/.config/git" (chk (let t = scriptText "idea-school"; in lib.hasInfix "XDG_CONFIG_HOME=" t && lib.hasInfix "GIT_CONFIG_GLOBAL=\"$HOME/.config/git/config\"" t) "GIT_CONFIG_GLOBAL not exported") ]
+    [ "school year directories are 2nd/3rd, not 2st/3st" (chk (lib.hasInfix "year/2nd/3-semester" createDirs && lib.hasInfix "year/3rd/5-semester" createDirs && !(lib.hasInfix "year/2st" createDirs) && !(lib.hasInfix "year/3st" createDirs)) "year dir names wrong in createSchoolDirs") ]
+    [ "niri and mango autostart nvim in the school workspace" (chk (anyHas "nvim" c.myconfig.programs.niri.execOnce && anyHas "nvim" c.myconfig.programs.mango.execOnce) "nvim missing from niri or mango execOnce") ]
+    [ "guiScale is derived from the monitors, not the 1.0 fallback" (chk (lib.length scales == 1 && scale != 1.0 && lib.hasInfix "uiScale=${scaleStr}\"" (scriptText "sqldeveloper-school")) "scale ${scaleStr}, script uiScale ${toString (uiScaleOf (scriptText "sqldeveloper-school"))}") ]
 
     [ "opencloud spaces are non-empty" (chk (spaces != [ ]) "no spaces to mount") ]
     [ "one school davfs fileSystem per space, davfs type, device == url" (chk (lib.length (lib.attrNames schoolFs) == lib.length spaces && badFs (s: (c.fileSystems.${fsName s} or { }).fsType or "" == "davfs" && c.fileSystems.${fsName s}.device == s.url) == [ ]) "mismatch (fs entries ${toString (lib.length (lib.attrNames schoolFs))} vs spaces ${toString (lib.length spaces)}; bad: ${toString (badFs (s: (c.fileSystems.${fsName s} or { }).fsType or "" == "davfs"))})") ]

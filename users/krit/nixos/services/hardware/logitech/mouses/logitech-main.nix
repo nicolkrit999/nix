@@ -1,4 +1,4 @@
-{ delib, pkgs, lib, ... }:
+{ delib, pkgs, lib, config, ... }:
 delib.module {
   name = "krit.services.logitech";
   options = with delib; moduleOptions {
@@ -96,14 +96,10 @@ delib.module {
         (lib.optional mouses.mx-master-4.enable deviceBlocks.mx-master-4)
       ];
 
-      udevRules = lib.concatStrings [
-        (lib.optionalString mouses.mx-master-3s.enable ''
-          ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c548", ATTR{power/control}="on"
-        '')
-        (lib.optionalString mouses.mx-master-4.enable ''
-          ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c548", ATTR{power/control}="on"
-        '')
-      ];
+      # Both mice use the same receiver id (c548), so one rule covers either.
+      udevRules = lib.optionalString (mouses.mx-master-3s.enable || mouses.mx-master-4.enable) ''
+        ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c548", ATTR{power/control}="on"
+      '';
     in
     {
       hardware.logitech.wireless.enable = true;
@@ -145,6 +141,7 @@ delib.module {
       systemd.services.logid = {
         description = "Logitech Configuration Daemon";
         wantedBy = [ "multi-user.target" ];
+        restartTriggers = [ config.environment.etc."logid.cfg".source ];
         serviceConfig = {
           ExecStart = "${pkgs.logiops}/bin/logid -c /etc/logid.cfg";
           Restart = "always";

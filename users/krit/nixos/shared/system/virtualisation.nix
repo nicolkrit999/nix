@@ -1,4 +1,4 @@
-{ delib, pkgs, lib, ... }:
+{ delib, pkgs, lib, inputs, ... }:
 delib.module {
   name = "krit.system.virtualisation";
   options = delib.singleEnableOption false;
@@ -16,11 +16,15 @@ delib.module {
       distroshelf # Gui manager for distrobox
       boxbuddy # Unofficial GUI for managing your Distroboxes
       openssl_oqs # Used to generate post-quantum certificates
-    ] ++ lib.optionals (pkgs.stdenv.hostPlatform.system == "x86_64-linux") [ pkgs.winboat ];
+    ] ++ lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [ winboat ];
   };
 
-  # Distrobox exports binaries to ~/.distrobox-bin
+  # Nothing exports here automatically; the dir is for manual `distrobox-export --export-path`
   home.ifEnabled = { ... }: {
     home.sessionPath = [ "$HOME/.distrobox-bin" ];
+
+    home.activation.createDistroboxBin = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      run mkdir -p "$HOME/.distrobox-bin" || true
+    '';
   };
 }

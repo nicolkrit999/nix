@@ -18,7 +18,7 @@ bash check-common-ext-dotfiles-mappings.sh
 
 The package tables (`packageLeaves`, `packagesPerHost`, `extraMappingsPerHost`, `syncBack`) are `let`-bound inside the modules. `01-scenario-ext-dotfiles-mappings.nix` extracts that `let` body from the real source files at eval time and re-evaluates it, so no data is duplicated in the test. Each check returns `"ok"` or `"FAIL: ..."` and compares the parsed tables against the real `home.file` / `home.activation` of desktop, laptop (NixOS), `krit@Nicol-NAS` (home-only) and Krits-MacBook-Pro (Darwin). No secrets are involved.
 
-`check-common-ext-dotfiles-mappings.sh` runs `nix eval --raw --impure` per check, then dumps each host's generated activation script, runs `bash -n` on it, and executes the real desktop script in a temporary fake home (the home prefix is substituted, the `export PATH` line dropped). Eval plus seconds, about 1 min. Read-only failure cases are skipped when run as root.
+`check-common-ext-dotfiles-mappings.sh` runs `nix eval --raw --impure` per check, then dumps each host's generated activation script, runs `bash -n` on it, and executes the real desktop script in a temporary fake home (the home prefix is substituted and a `run() { "$@"; }` prelude stands in for the home-manager `run` helper; the script uses absolute store paths, so no `PATH` handling is needed). Eval plus seconds, about 1 min. Read-only failure cases are skipped when run as root.
 
 ## Checks
 
@@ -51,12 +51,17 @@ The package tables (`packageLeaves`, `packagesPerHost`, `extraMappingsPerHost`, 
 | Check | Expected |
 |-------|----------|
 | `bash -n` | passes for all four hosts |
-| function parity | `sync_back` body identical on desktop and mac |
+| function parity | `sync_back` body identical on desktop and mac **after a temporary normalisation** (see below) |
+| exemption is real | the desktop function contains an absolute `/nix/store/<hash>-rsync*/bin/rsync -a --delete` call and the script has no `export PATH` (so the normalisation is not hiding a regression of this) |
 | sandbox: file differs | copied into repo, live removed |
 | sandbox: file identical | live removed, repo untouched |
 | sandbox: symlink | left alone |
 | sandbox: repo parent missing | live file kept |
-| sandbox: dir differs | rsynced before delete, repo-only files kept |
+| sandbox: dir differs | rsynced with `--delete` before the live dir is removed: live-only files copied in, repo-only files removed |
 | sandbox: repo dir missing | live dir kept |
 | sandbox: copy fails (read-only repo) | live file kept |
 | sandbox: rsync fails (file vs non-empty dir) | live dir kept |
+
+### Temporary exemption in function parity (darwin twin lags until batch 13)
+
+The desktop script now uses absolute store paths, the HM `run` wrapper and `rsync -a --delete`; the darwin twin still uses `export PATH`, bare commands, no `run` and `rsync -a`. Until the darwin module is brought in line, both function bodies are normalised before comparison by exactly: dropping comment lines, stripping `/nix/store/<hash>-<pkg>/bin/` prefixes, removing the `run ` wrapper word and removing ` --delete`. Remove `parity_norm` in the script once the darwin twin matches.

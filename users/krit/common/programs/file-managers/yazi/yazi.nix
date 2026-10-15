@@ -17,11 +17,12 @@ delib.module {
     let
       isNixOS = moduleSystem == "nixos";
       isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+      nasRoot = myconfig.krit.services.nas.mountRoot;
       nasCondition =
         if isDarwin then
-          ''cwd:find("^/Volumes/nicol_nas")''
+          ''cwd:find("^${nasRoot}")''
         else
-          ''cwd:find("^/mnt/nicol_nas") or cwd:find("^/home/${myconfig.constants.user}/Documents/nicol%-nas")'';
+          ''cwd:find("^${nasRoot}") or cwd:find("^/home/${myconfig.constants.user}/Documents/nicol%-nas")'';
     in
     {
       assertions = [
