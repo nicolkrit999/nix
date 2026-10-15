@@ -8,9 +8,8 @@ delib.host {
 
   darwin = {
     nixpkgs.hostPlatform = "aarch64-darwin";
-    nixpkgs.config.allowUnfree = true;
-
-    system.primaryUser = "krit";
+    # tied to the original install (stateVersion 4); the nix-darwin default would be 30000
+    ids.gids.nixbld = 350;
 
     imports = [
       inputs.nix-sops.darwinModules.sops

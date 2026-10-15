@@ -65,7 +65,7 @@ for v in "${NAMES[@]}"; do
     jq -r --arg k "$key" '.files[$k]' "$out" >"$dir/$key"
     case "$key" in
       bash) bin=("$BASH_BIN" -n) ;;
-      zsh | sys-zsh) bin=("$ZSH_BIN" -n) ;;
+      zsh) bin=("$ZSH_BIN" -n) ;;
       fish | fishfn-*) bin=("$FISH_BIN" --no-execute) ;;
     esac
     if err=$("${bin[@]}" "$dir/$key" 2>&1); then

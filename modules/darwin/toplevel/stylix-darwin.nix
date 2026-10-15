@@ -1,5 +1,6 @@
 { delib
 , pkgs
+, lib
 , inputs
 , ...
 }:
@@ -23,18 +24,13 @@ delib.module {
     {
       stylix = {
         enable = true;
-        enableReleaseChecks = true;
-        autoEnable = true;
-        polarity = myconfig.constants.theme.polarity or "dark";
+        polarity = myconfig.constants.theme.polarity;
         base16Scheme = "${pkgs.base16-schemes}/share/themes/${
-          myconfig.constants.theme.base16Theme or "nord"
+          myconfig.constants.theme.base16Theme
         }.yaml";
 
         opacity = {
-          applications = 1.0;
           terminal = 0.90;
-          desktop = 1.0;
-          popups = 1.0;
         };
 
         fonts = {
@@ -52,7 +48,6 @@ delib.module {
             name = "JetBrainsMono Nerd Font Propo";
           };
           sizes = {
-            applications = 12;
             terminal = 14;
             desktop = 12;
             popups = 10;
@@ -64,16 +59,19 @@ delib.module {
   home.ifEnabled =
     { cfg, myconfig, ... }:
     let
-      isCatppuccin = myconfig.constants.theme.catppuccin or false;
+      isCatppuccin = myconfig.constants.theme.catppuccin;
     in
     {
-      stylix.targets = {
-        neovim.enable = false;
-        rofi.enable = false;
-        bat.enable = !isCatppuccin;
-        lazygit.enable = !isCatppuccin;
-        starship.enable = !isCatppuccin;
-        gtksourceview.enable = false; # Could cause slow-downs during rebuilds. See "https://github.com/nix-community/stylix/discussions/2232#discussion-9598872"
-      } // cfg.targets;
+      stylix.targets = lib.recursiveUpdate
+        {
+          neovim.enable = false;
+          rofi.enable = false;
+          bat.enable = !isCatppuccin;
+          lazygit.enable = !isCatppuccin;
+          starship.enable = !isCatppuccin;
+          tmux.enable = !isCatppuccin;
+          gtksourceview.enable = false; # Could cause slow-downs during rebuilds. See "https://github.com/nix-community/stylix/discussions/2232#discussion-9598872"
+        }
+        cfg.targets;
     };
 }

@@ -11,44 +11,40 @@ delib.module {
   darwin.ifEnabled =
     { myconfig, ... }:
     let
-      # 🔄 TRANSLATION LAYER
-      translatedEditor =
+      getPkg = name: if builtins.hasAttr name pkgs then pkgs.${name} else null;
+
+      editorName =
         let
-          e = myconfig.constants.editor or "vscode";
+          e = myconfig.constants.editor;
         in
         if e == "nvim" then "neovim" else e;
 
-      fallbackTerm = pkgs.alacritty;
-      fallbackBrowser = pkgs.firefox;
-      fallbackFileManager = pkgs.yazi;
-      fallbackEditor = pkgs.vscode;
+      roles = {
+        terminal = myconfig.constants.terminal.name;
+        browser = myconfig.constants.browser;
+        fileManager = myconfig.constants.fileManager;
+        editor = editorName;
+      };
 
-      getPkg = name: fallback:
-        if builtins.hasAttr name pkgs then pkgs.${name}
-        else fallback;
+      isProgramEnabled = name:
+        lib.attrByPath [ "programs" name "enable" ] false config
+        || lib.attrByPath [ "home-manager" "users" myconfig.constants.user "programs" name "enable" ] false config;
 
-      termName = myconfig.constants.terminal.name or "alacritty";
-      myTermPkg = getPkg termName fallbackTerm;
-
-      browserName = myconfig.constants.browser or "firefox";
-      myBrowserPkg = getPkg browserName fallbackBrowser;
-
-      fileManagerName = myconfig.constants.fileManager or "yazi";
-      myFileManagerPkg = getPkg fileManagerName fallbackFileManager;
-
-      editorName = translatedEditor;
-      myEditorPkg = getPkg editorName fallbackEditor;
+      # browser = "" opts a host out of the browser package (no package, no warning)
+      activeRoles = lib.filterAttrs (role: name: !(role == "browser" && name == "")) roles;
     in
     {
-      environment.systemPackages =
-        let
-          isProgramEnabled = name:
-            lib.attrByPath [ "programs" name "enable" ] false config
-            || lib.attrByPath [ "home-manager" "users" myconfig.constants.user "programs" name "enable" ] false config;
-        in
-        (lib.optional (!isProgramEnabled termName) myTermPkg)
-        ++ (lib.optional (browserName != "" && !isProgramEnabled browserName) myBrowserPkg)
-        ++ (lib.optional (!isProgramEnabled fileManagerName) myFileManagerPkg)
-        ++ (lib.optional (!isProgramEnabled editorName) myEditorPkg);
+      environment.systemPackages = lib.concatMap
+        (name:
+          let
+            pkg = getPkg name;
+          in
+          lib.optional (pkg != null && !isProgramEnabled name) pkg)
+        (lib.attrValues activeRoles);
+
+      warnings = lib.mapAttrsToList
+        (role: name:
+          "home-packages: constants ${role} = \"${name}\" is not a package in pkgs; nothing is installed for it.")
+        (lib.filterAttrs (_: name: getPkg name == null) activeRoles);
     };
 }

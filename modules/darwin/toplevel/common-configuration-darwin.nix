@@ -1,5 +1,7 @@
 { delib
 , pkgs
+, lib
+, config
 , ...
 }:
 delib.module {
@@ -8,62 +10,48 @@ delib.module {
   darwin.always =
     { myconfig, ... }:
     let
-      shell = myconfig.constants.shell or "fish";
-      hostname = myconfig.constants.hostname or "mac";
-      user = myconfig.constants.user or "krit";
-      shellPkg =
-        if shell == "fish" then
-          pkgs.fish
-        else if shell == "zsh" then
-          pkgs.zsh
-        else
-          pkgs.bashInteractive;
+      inherit (myconfig.constants) hostname user darwinStateVersion;
+      inherit (myconfig.constants.theme) polarity;
     in
     {
-      system.defaults = {
-        dock.autohide = true;
-        finder.AppleShowAllExtensions = true;
-        NSGlobalDomain.AppleInterfaceStyle = "Dark";
+      system = {
+        defaults = {
+          dock.autohide = true;
+          finder.AppleShowAllExtensions = true;
+          # null leaves the key unset; it does not switch an existing Mac back to light
+          NSGlobalDomain.AppleInterfaceStyle = if polarity == "dark" then "Dark" else null;
+        };
+        primaryUser = user;
+        stateVersion = darwinStateVersion;
       };
 
-      security.pam.services.sudo_local.touchIdAuth = true;
-      security.pam.services.sudo_local.reattach = true;
+      nixpkgs.config.allowUnfree = true;
 
-      networking.hostName = hostname;
-      networking.computerName = hostname;
-      system.stateVersion = myconfig.constants.darwinStateVersion or 4;
+      security.pam.services.sudo_local = {
+        touchIdAuth = true;
+        reattach = true;
+      };
+
+      networking = {
+        hostName = hostname;
+        computerName = hostname;
+      };
 
       home-manager.backupFileExtension = "hm-backup";
 
-      ids.gids.nixbld = 350;
-
       environment.systemPackages = with pkgs; [
-        nixfmt
-        sops
-        shellPkg
         age
+        nixfmt
         nix-prefetch-scripts
         nodenv
+        sops
       ];
 
-      environment.systemPath = [
-        "/nix/var/nix/profiles/per-user/${user}/profile/bin"
-        "/opt/homebrew/bin"
-      ];
+      environment.systemPath = lib.optional config.homebrew.enable "${config.homebrew.prefix}/bin";
 
-      programs.zsh.enable = true;
-      programs.zsh.interactiveShellInit =
-        if shell == "fish" then
-          ''
-            if [[ $(ps -o command= -p "$PPID" | awk '{print $1}') != 'fish' ]]; then
-              exec ${pkgs.fish}/bin/fish -l
-            fi
-          ''
-        else
-          "";
-
-      programs.fish = {
-        enable = true;
+      programs = {
+        zsh.enable = true;
+        fish.enable = true;
       };
     };
 }

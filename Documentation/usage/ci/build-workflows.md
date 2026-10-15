@@ -958,12 +958,11 @@ Rejected, and why, so it is not re-proposed:
   150, job cap 180, hard GitHub ceiling 360. And run 794 spent **2h11m** emitting
   only `running auto-GC to free 13525108224 bytes` / `deleting garbage…`, i.e.
   the runner was **GC-thrashing under disk pressure**, so more time may not help.
-- *Disable Firefox on the Mac host* - the owner declined, because the only
-  host-level lever that actually works is `home-packages.enable = false`, which
-  disables too much. ⚠️ Note for anyone revisiting: setting
-  `krit.programs.firefox.enable = false` **alone does not work** -
-  `home-packages-darwin.nix` then re-adds `pkgs.firefox` to
-  `environment.systemPackages` via `lib.optional (!isProgramEnabled browserName)`.
+- *Disable Firefox on the Mac host* - the owner declined it as the CI fix.
+  Note for anyone revisiting: setting `krit.programs.firefox.enable = false`
+  **alone does not work** - `home-packages-darwin.nix` then re-adds
+  `pkgs.firefox` to `environment.systemPackages`. The supported opt-out is
+  `myconfig.constants.browser = ""` (no browser package, no warning).
 
 ### 11.4b ✅ FIXED (space) / 🟠 OPEN (silence) - the store-cache save on a full root filesystem
 

@@ -8,22 +8,15 @@ delib.module {
     ];
   };
 
-  darwin.always =
-    { ... }:
-    {
-      imports = [
-        inputs.nix-index-database.darwinModules.nix-index
-      ];
+  darwin.always = {
+    imports = [
+      inputs.nix-index-database.darwinModules.nix-index
+    ];
 
-      nixpkgs.overlays = [
-        inputs.nix-index-database.overlays.nix-index
-      ];
+    nix = {
+      nixPath = [ "nixpkgs=flake:nixpkgs" ];
 
-      nix.enable = true;
-
-      nix.nixPath = [ "nixpkgs=flake:nixpkgs" ];
-
-      nix.settings = {
+      settings = {
         experimental-features = [
           "nix-command"
           "flakes"
@@ -31,6 +24,8 @@ delib.module {
         auto-optimise-store = true;
       };
 
-      nix.gc.automatic = false;
+      # pin: nh owns GC
+      gc.automatic = false;
     };
+  };
 }

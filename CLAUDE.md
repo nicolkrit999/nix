@@ -61,7 +61,7 @@ can be checked mechanically; run it after any workflow edit.
 
 ## ⛔ `stateVersion` is NEVER bumped
 
-`system.stateVersion`, `home.stateVersion`, and the `myconfig.constants.homeStateVersion` / `darwinStateVersion` defaults are **frozen at the release each host was first installed under**. Each host's values are whatever release it was first installed under. **Do not change these values when bumping nixpkgs channels.** No exceptions, no "I'll just bump it on this one host", no search-and-replace.
+`system.stateVersion`, `home.stateVersion`, and the `myconfig.constants.homeStateVersion` / `darwinStateVersion` values (no module default; set per host, and declared in the per-platform constants files) are **frozen at the release each host was first installed under**. Each host's values are whatever release it was first installed under. **Do not change these values when bumping nixpkgs channels.** No exceptions, no "I'll just bump it on this one host", no search-and-replace.
 
 `stateVersion` is *not* a "current channel" marker (that's `config.system.nixos.release`, read-only). It is a backward-compatibility contract that pins the **defaults of stateful modules** to the release at install time. Bumping it silently changes runtime behavior. Concrete hazards:
 

@@ -66,7 +66,6 @@ Darwin variants:
 | darwin-zsh-keychain-homebrew-on-system-path | (zsh) `--apple-use-keychain` present, no `/opt/homebrew` PATH prepend in the zsh init; `/opt/homebrew/bin` comes from nix-darwin `environment.systemPath` |
 | no-homebrew-or-keychain-outside-zsh | (bash, fish) no keychain flag |
 | darwin-bash-no-display-gate | (bash) no `$DISPLAY` test in the init (tmux and splash) |
-| syntax sys-zsh | (fish host) system zsh `exec fish -l` snippet parses |
 
 Bash variants (NixOS and Darwin):
 

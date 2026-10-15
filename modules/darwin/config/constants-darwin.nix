@@ -8,13 +8,13 @@ delib.module {
 
       hostname = strOption "nixdarwin-host";
       user = strOption "nixdarwin";
-      uid = intOption 1000;
+      uid = noDefault (intOption null);
 
       # State versions
-      darwinStateVersion = intOption 4;
+      darwinStateVersion = noDefault (intOption null);
       homeStateVersion = noDefault (strOption null);
 
-      # Set to "" to opt a host out of the forced browser-fallback package
+      # Set to "" to opt a host out of the browser package
       # in home-packages-darwin.nix (e.g. a CI-only host with no browser use).
       browser = strOption "firefox";
       fileManager = strOption "nnn";

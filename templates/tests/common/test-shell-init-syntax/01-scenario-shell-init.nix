@@ -290,8 +290,7 @@ let
         zsh = texts.zsh;
         fish = texts.fish;
       }
-      // lib.mapAttrs' (n: v: lib.nameValuePair "fishfn-${n}" v) fnBodies
-      // lib.optionalAttrs (isDarwin && sh == "fish") { sys-zsh = nc x.config.programs.zsh.interactiveShellInit; };
+      // lib.mapAttrs' (n: v: lib.nameValuePair "fishfn-${n}" v) fnBodies;
       shAliases = lib.filterAttrs (_: v: has "sh -c" v) aliases;
     };
 
