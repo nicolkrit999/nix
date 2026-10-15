@@ -17,12 +17,85 @@ delib.module {
     let
       isNixOS = moduleSystem == "nixos";
       isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+      isLinux = pkgs.stdenv.hostPlatform.isLinux;
       nasRoot = myconfig.krit.services.nas.mountRoot;
       nasCondition =
         if isDarwin then
           ''cwd:find("^${nasRoot}")''
         else
           ''cwd:find("^${nasRoot}") or cwd:find("^/home/${myconfig.constants.user}/Documents/nicol%-nas")'';
+      # gio/gtk-launch are Linux-only: the helper and its opener entry are never evaluated on darwin.
+      yaziOpenWith = pkgs.writeShellApplication {
+        name = "yazi-open-with";
+        runtimeInputs = with pkgs; [
+          coreutils
+          fzf
+          gawk
+          glib # gio
+          gnused
+          gtk3 # gtk-launch
+        ];
+        text = ''
+          if [ $# -lt 1 ] || [ -z "$1" ]; then
+            echo "usage: yazi-open-with <file>" >&2
+            exit 2
+          fi
+
+          if ! file=$(realpath -- "$1" 2>/dev/null); then
+            echo "yazi-open-with: no such file: $1" >&2
+            exit 1
+          fi
+
+          mime=$(gio info --attributes=standard::content-type -- "$file" 2>/dev/null \
+            | awk '/standard::content-type:/ { print $2; exit }') || true
+          if [ -z "$mime" ]; then
+            echo "yazi-open-with: could not determine the MIME type of $file" >&2
+            exit 1
+          fi
+
+          listing=$(LC_ALL=C gio mime "$mime" 2>/dev/null || true)
+          default=$(printf '%s\n' "$listing" | sed -n 's/^Default application for .*: //p' | head -n 1)
+
+          apps=()
+          if [ -n "$default" ]; then
+            apps+=("$default")
+          fi
+          while IFS= read -r id; do
+            [ -n "$id" ] || continue
+            case " ''${apps[*]:-} " in
+              *" $id "*) continue ;;
+            esac
+            apps+=("$id")
+          done < <(printf '%s\n' "$listing" | awk '
+            /^(Registered|Recommended) applications:/ { on = 1; next }
+            /^[^\t]/ { on = 0 }
+            on && /^\t/ { sub(/^\t+/, ""); print }
+          ')
+
+          if [ "''${#apps[@]}" -eq 0 ]; then
+            echo "yazi-open-with: no applications are associated with $mime" >&2
+            exit 1
+          fi
+
+          lines=""
+          for id in "''${apps[@]}"; do
+            if [ "$id" = "$default" ]; then
+              lines+="* $id"$'\n'
+            else
+              lines+="  $id"$'\n'
+            fi
+          done
+
+          choice=$(printf '%s' "$lines" | fzf --no-multi --reverse --height=40% \
+            --prompt="Menu ($mime)> " --header="* = default application") || exit 0
+
+          id=''${choice#??}
+          [ -n "$id" ] || exit 0
+
+          exec gtk-launch "$id" "$file"
+        '';
+      };
+      openWithUse = lib.optional isLinux "open-with";
     in
     {
       assertions = [
@@ -271,10 +344,22 @@ delib.module {
                 desc = "Empty trash bin";
               }
             ];
+          }
+          // lib.optionalAttrs isLinux {
+            open-with = [
+              {
+                run = ''${lib.getExe yaziOpenWith} "$1"'';
+                desc = "Open with...";
+                block = true;
+                for = "linux";
+              }
+            ];
           };
 
+          pick.open_title = "Menu";
+
           open = {
-            rules = [
+            rules = map (rule: if builtins.isList rule.use then rule // { use = rule.use ++ openWithUse; } else rule) [
               {
                 url = "*/"; # Directories
                 use = [
