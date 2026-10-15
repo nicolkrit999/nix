@@ -336,4 +336,281 @@ else
   record "control: an empty runtime PATH is detected" 0 "missing_tools passes with an empty PATH"
 fi
 
+echo ""
+echo -e "${BOLD}=== opener run string, executed the way yazi runs an opener ===${NC}"
+echo ""
+
+SPLAT="$WORK/splat.py"
+cat >"$SPLAT" <<'PY'
+import os, sys
+
+ALLOWED = set(b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_=/,.+")
+
+
+def cue(s):
+    if s and all(c in ALLOWED for c in s):
+        return s
+    out = bytearray(b"'")
+    for c in s:
+        if c in b"'!":
+            out += b"'\\" + bytes([c]) + b"'"
+        else:
+            out.append(c)
+    return bytes(out + b"'")
+
+
+def parent(p):
+    if p in (b"", b"/"):
+        return b""
+    head = p.rstrip(b"/").rpartition(b"/")[0]
+    return b"/" if p.startswith(b"/") and head == b"" else head
+
+
+class Splatter:
+    def __init__(self, files):
+        self.files, self.tab, self.spread = files, 1, False
+
+    def selected(self, idx):
+        if idx is None:
+            self.spread = True
+        if self.tab != 1:
+            return []
+        if idx is None or idx == 0:
+            return list(self.files)
+        return self.files[idx - 1:idx]
+
+    def peek(self):
+        return self.cmd[self.p] if self.p < len(self.cmd) else None
+
+    def next(self):
+        c = self.peek()
+        if c is not None:
+            self.p += 1
+        return c
+
+    def digits(self):
+        n = None
+        while (c := self.peek()) is not None and 48 <= c <= 57:
+            n = (n or 0) * 10 + c - 48
+            self.p += 1
+        return n
+
+    def splat(self, cmd):
+        self.cmd, self.p, buf = cmd, 0, bytearray()
+        while (c := self.next()) is not None:
+            if c == ord("%") and self.peek() is not None:
+                self.visit(buf)
+            else:
+                buf.append(c)
+        return bytes(buf)
+
+    def many(self, buf, items, idx):
+        first = True
+        for item in items:
+            if not first:
+                buf.append(ord(" "))
+            first = False
+            buf += cue(item)
+        if first and idx is not None:
+            buf += cue(b"")
+
+    def visit(self, buf):
+        c = self.peek()
+        ch = chr(c) if c is not None else ""
+        if ch in ("s", "S", "d", "D"):
+            self.next()
+            idx = self.digits()
+            files = self.selected(idx)
+            self.many(buf, files if ch in "sS" else [parent(f) for f in files], idx)
+        elif ch in ("h", "H"):
+            self.next()
+            buf += cue(b"")
+        elif ch in ("y", "Y"):
+            self.next()
+            self.many(buf, [], self.digits())
+        elif ch in ("t", "T"):
+            self.next()
+            old = self.tab
+            self.tab = self.tab + 1 if ch == "t" else max(self.tab - 1, 0)
+            if self.peek() is None:
+                buf.append(ord("%"))
+            else:
+                self.visit(buf)
+            self.tab = old
+        elif ch == "%":
+            buf.append(self.next())
+        else:
+            buf.append(ord("%"))
+            if c is not None:
+                buf.append(self.next())
+
+
+mode, cmd, files = sys.argv[1], os.fsencode(sys.argv[2]), [os.fsencode(f) for f in sys.argv[3:]]
+if mode == "splat":
+    sys.stdout.buffer.write(Splatter(files).splat(cmd))
+elif mode == "open":
+    probe = Splatter([])
+    probe.splat(cmd)
+    size = max(len(files), 1) if probe.spread else 1
+    for i in range(0, max(len(files), 1), size):
+        sys.stdout.buffer.write(Splatter(files[i:i + size]).splat(cmd) + b"\0")
+PY
+
+RUN_STRING="$(jq -r '.openWithRun' <<<"$json")"
+HELPER_BIN="$HELPER_OUT/bin/yazi-open-with"
+RUN_TAIL="${RUN_STRING#"$HELPER_BIN"}"
+
+BIN_YAZI="$WORK/yazi-bin"
+mkdir -p "$BIN_YAZI"
+cat >"$BIN_YAZI/argv-stub" <<'STUB'
+#!/usr/bin/env bash
+{ printf 'ARGV'; printf ' <%s>' "$@"; printf '\n'; } >>"$STUB_DIR/argv.log"
+STUB
+cat >"$BIN_YAZI/real-helper" <<STUB
+#!/usr/bin/env bash
+exec bash "$REAL" "\$@"
+STUB
+chmod +x "$BIN_YAZI/argv-stub" "$BIN_YAZI/real-helper"
+
+FILE_BANG="$FIXDIR/dir with space/it's done! (2).txt"
+touch "$FILE_BANG"
+
+yazi_open() {
+  local run="$1" target="$2" fzf="$3" cmd rc
+  shift 3
+  RUN_N=$((RUN_N + 1))
+  R="$WORK/run.$RUN_N"
+  mkdir -p "$R"
+  printf '%s' "$LISTING_MAIN" >"$R/listing"
+  : >"$R/rcs"
+  run="$target${run#"$HELPER_BIN"}"
+  while IFS= read -r -d '' cmd; do
+    printf '%s\n' "$cmd" >>"$R/cmds"
+    rc=0
+    (
+      cd "$FIXDIR" || exit 97
+      unset LC_ALL
+      PATH="$BIN:$PATH" STUB_DIR="$R" STUB_MIME=text/plain STUB_LISTING="$R/listing" STUB_FZF="$fzf" \
+        sh -c "$cmd" </dev/null >"$R/out" 2>>"$R/err"
+    ) || rc=$?
+    printf '%s\n' "$rc" >>"$R/rcs"
+  done < <(python3 -I "$SPLAT" open "$run" "$@")
+  DETAIL="cmds=$(flat "$R/cmds") rcs=$(flat "$R/rcs") argv=$(flat "$R/argv.log") err=$(flat "$R/err") launch=$(flat "$R/launch.log")"
+  return 0
+}
+
+argv_is() { [[ "$(cat "$R/argv.log" 2>/dev/null)" == "$1" ]]; }
+all_rc_zero() { [[ -s "$R/rcs" ]] && ! grep -qv '^0$' "$R/rcs"; }
+
+o_single_tricky_file() {
+  yazi_open "$1" "$BIN_YAZI/argv-stub" "" "$FILE_SPACES" || return 1
+  all_rc_zero && argv_is "ARGV <$FILE_SPACES>" || return 1
+  yazi_open "$1" "$BIN_YAZI/argv-stub" "" "$FILE_BANG"
+  all_rc_zero && argv_is "ARGV <$FILE_BANG>"
+}
+o_plain_file() {
+  yazi_open "$1" "$BIN_YAZI/argv-stub" "" "$FILE_PLAIN"
+  all_rc_zero && argv_is "ARGV <$FILE_PLAIN>"
+}
+o_two_selected_one_call_each() {
+  yazi_open "$1" "$BIN_YAZI/argv-stub" "" "$FILE_PLAIN" "$FILE_SPACES"
+  all_rc_zero && argv_is "ARGV <$FILE_PLAIN>"$'\n'"ARGV <$FILE_SPACES>"
+}
+o_end_to_end_real_helper() {
+  yazi_open "$1" "$BIN_YAZI/real-helper" pick:3 "$FILE_SPACES"
+  all_rc_zero && launch_is "LAUNCH <org.kde.kate.desktop> <$FILE_SPACES>"
+}
+
+if [[ "$RUN_STRING" == "$HELPER_BIN "* && -x "$HELPER_BIN" ]]; then
+  record "opener: run string starts with the built helper's bin path" 1
+else
+  record "opener: run string starts with the built helper's bin path" 0 "run=$RUN_STRING helper=$HELPER_BIN"
+fi
+
+contract_detail=""
+YAZI_PKG_DRV="$(jq -r '.yaziDrv' <<<"$json")"
+if ! YAZI_PKG=$(nix build --no-link --print-out-paths "${YAZI_PKG_DRV}^out" 2>"$stderr_file" | head -1) || [[ -z "$YAZI_PKG" ]]; then
+  contract_detail="cannot build the configured yazi package: $(grep -E 'error:' "$stderr_file" | head -3 | tr '\n' '~')"
+else
+  YAZI_BIN="$YAZI_PKG/bin/yazi"
+  if ! grep -aq $'\x7fELF' <(head -c 4 "$YAZI_BIN"); then
+    YAZI_BIN="$(sed -n 's/^exec "\(\/nix\/store\/[^"]*\/bin\/yazi\)".*/\1/p' "$YAZI_BIN" | head -1)"
+  fi
+  if [[ -z "$YAZI_BIN" || ! -f "$YAZI_BIN" ]]; then
+    contract_detail="cannot locate the real yazi binary behind $YAZI_PKG/bin/yazi"
+  elif ! grep -aFq 'run = "xdg-open %s1"' "$YAZI_BIN"; then
+    contract_detail="$YAZI_BIN preset no longer contains run = \"xdg-open %s1\": the opener placeholder convention changed"
+  elif grep -aFq 'xdg-open "$1"' "$YAZI_BIN" || grep -aFq 'xdg-open "$@"' "$YAZI_BIN"; then
+    contract_detail="$YAZI_BIN preset uses positional shell args (xdg-open \"\$1\"/\"\$@\")"
+  fi
+fi
+if [[ -z "$contract_detail" ]]; then
+  record "contract: shipped yazi presets use %s1, not \$1/\$@" 1
+else
+  record "contract: shipped yazi presets use %s1, not \$1/\$@" 0 "$contract_detail"
+fi
+
+vector_fail=""
+vector() {
+  local cmd="$1" want="$2" got
+  shift 2
+  got="$(python3 -I "$SPLAT" splat "$cmd" "$@")"
+  [[ "$got" == "$want" ]] || vector_fail+="[$cmd] got <$got> want <$want> "
+}
+vector 'ls %s' "ls 't 2/s 1' 't 2/s 2'" 't 2/s 1' 't 2/s 2'
+vector 'ls %s1 %s3 %s2' "ls 't 2/s 1' '' 't 2/s 2'" 't 2/s 1' 't 2/s 2'
+vector 'cd %d' "cd 't 2' 't 2'" 't 2/s 1' 't 2/s 2'
+vector 'cd %d1 %d3 %d2' "cd 't 2' '' 't 2'" 't 2/s 1' 't 2/s 2'
+vector 'ls %s %s2 %s' 'ls t1/s1 t1/s2 t1/s2 t1/s1 t1/s2' t1/s1 t1/s2
+vector 'echo % %% %s2 %%h %d' 'echo % % t1/s2 %h t1 t1' t1/s1 t1/s2
+vector 'ls %s' 'ls '
+vector 'ls %s1 %s %s2' "ls ''  ''"
+vector 'cd %d %d1' "cd  ''"
+if [[ -z "$vector_fail" ]]; then
+  record "splat model: reproduces upstream splatter.rs unix test vectors" 1
+else
+  record "splat model: reproduces upstream splatter.rs unix test vectors" 0 "$vector_fail"
+fi
+
+roundtrip_fail=""
+for name in "$FILE_SPACES" "$FILE_BANG" "plain-name.txt" "" "a\"b\\c" $'tab\there'; do
+  got="$(sh -c "printf '%s' $(python3 -I "$SPLAT" splat '%s1' "$name")")"
+  [[ "$got" == "$name" ]] || roundtrip_fail+="<$name> -> <$got> "
+done
+if [[ -z "$roundtrip_fail" ]]; then
+  record "splat model: escaped names survive sh -c unchanged" 1
+else
+  record "splat model: escaped names survive sh -c unchanged" 0 "$roundtrip_fail"
+fi
+
+OPENER_CASES=(
+  "hovered file with spaces, quotes, \$ and ! arrives as \$1|o_single_tricky_file"
+  "plain file arrives as \$1|o_plain_file"
+  "two selected files: one helper call per file|o_two_selected_one_call_each"
+  "end to end: real helper launches the pick for the file|o_end_to_end_real_helper"
+)
+for entry in "${OPENER_CASES[@]}"; do
+  IFS='|' read -r label fn <<<"$entry"
+  if "$fn" "$RUN_STRING"; then record "opener: $label" 1; else record "opener: $label" 0 "$DETAIL"; fi
+done
+
+echo ""
+echo -e "${BOLD}controls (each wrong run-string convention must be caught)${NC}"
+
+run_control() {
+  local label="$1" fn="$2" tail="$3"
+  if [[ "$RUN_TAIL" != " %s1" ]]; then
+    record "control: $label" 0 "the shipped run string tail is <$RUN_TAIL>, controls assume ' %s1'"
+  elif "$fn" "$HELPER_BIN $tail"; then
+    record "control: $label" 0 "$fn still passes with run tail <$tail>"
+  else
+    record "control: $label" 1
+  fi
+}
+run_control 'positional "$1" (yazi passes no args) is detected' o_plain_file '"$1"'
+run_control 'positional "$1" breaks the end-to-end run' o_end_to_end_real_helper '"$1"'
+run_control 'positional "$@" is detected' o_plain_file '"$@"'
+run_control 'a double-quoted "%s1" (double escaping) is detected' o_single_tricky_file '"%s1"'
+run_control 'spread %s (all files in one call) is detected' o_two_selected_one_call_each '%s'
+
 finish

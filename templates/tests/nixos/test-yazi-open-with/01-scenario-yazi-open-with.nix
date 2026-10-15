@@ -62,13 +62,16 @@ let
   mgrBindings = km: (km.mgr.prepend_keymap or [ ]) ++ (km.mgr.append_keymap or [ ]) ++ (km.mgr.keymap or [ ]);
   bindsO = km: lib.filter (e: keysOf e != [ ] && builtins.elem (lib.head (keysOf e)) [ "O" "<S-o>" ]) (mgrBindings km);
 
+  helperPrefix = "/nix/store/[a-z0-9]{32}-yazi-open-with/bin/yazi-open-with";
+  runShape = run: builtins.match "${helperPrefix} %s1" (builtins.unsafeDiscardStringContext run) != null;
   openWithShape = y:
     let o = (openersOf y).open-with or [ ]; in
     lib.length o == 1
     && (lib.head o).desc == "Open with..."
     && (lib.head o).block == true
     && (lib.head o).for == "linux"
-    && builtins.match "/nix/store/[a-z0-9]{32}-yazi-open-with/bin/yazi-open-with \"\\$1\"" (builtins.unsafeDiscardStringContext (runOf y)) != null;
+    && runShape (runOf y);
+  helperPathOf = run: lib.head (lib.splitString " " (builtins.unsafeDiscardStringContext run));
 
   checks = {
     check-linux-pick-title-menu = check (linux.settings.pick.open_title == "Menu")
@@ -130,6 +133,10 @@ let
     check-control-unresolved-opener-detected = check
       (unresolved (linux // { settings = linux.settings // { open.rules = setUse 0 (u: u ++ [ "nope" ]) (rulesOf linux); }; }) == [ "nope" ])
       "the unresolved-opener probe does not flag a planted unknown opener";
+    check-control-run-shape-rejects-other-conventions = check
+      (lib.all (s: !(runShape "${helperPathOf (runOf linux)} ${s}")) [ ''"$1"'' "$1" ''"$@"'' ''"%s1"'' "'%s1'" "%s" "%S" "%h" ]
+        && runShape "${helperPathOf (runOf linux)} %s1")
+      "the run-shape check accepts a positional / quoted / spread placeholder, or rejects the real %s1 form";
     check-control-keymap-lint-detects-O = check
       (bindsO { mgr.prepend_keymap = [{ on = [ "O" ]; run = "x"; }]; } != [ ]
         && bindsO { mgr.prepend_keymap = [{ on = [ "O" "x" ]; run = "x"; }]; } != [ ]
@@ -142,4 +149,6 @@ in
 {
   checks = lib.mapAttrs (_: guard) checks;
   helperDrv = lib.head helperDrvs;
+  openWithRun = builtins.unsafeDiscardStringContext (runOf linux);
+  yaziDrv = linux.package.drvPath;
 }

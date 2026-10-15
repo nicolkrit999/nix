@@ -348,7 +348,7 @@ delib.module {
           // lib.optionalAttrs isLinux {
             open-with = [
               {
-                run = ''${lib.getExe yaziOpenWith} "$1"'';
+                run = "${lib.getExe yaziOpenWith} %s1";
                 desc = "Open with...";
                 block = true;
                 for = "linux";
