@@ -50,10 +50,6 @@ let
   varHm = hmOf variant.config;
   homeDir = baseHm.home.homeDirectory;
 
-  lwText = varHm.programs.librewolf.package.text;
-  lwDistLine = lib.findFirst (l: lib.hasInfix "MOZ_APP_DISTRIBUTION=" l) "" (lib.splitString "\n" lwText);
-  lwDist = lib.removeSuffix "\"" (lib.removePrefix "export MOZ_APP_DISTRIBUTION=\"" lwDistLine);
-
   profileSettings = prog: builtins.toJSON (lib.mapAttrs (_: p: p.settings) varHm.programs.${prog}.profiles);
   varUserJs = lib.filterAttrs (n: _: lib.hasSuffix "/user.js" n && (lib.hasPrefix "Library/Application Support/LibreWolf" n || lib.hasPrefix "Library/Application Support/Firefox" n)) (fileTexts variant.config);
 
@@ -63,16 +59,12 @@ let
       dirs = prog: lib.concatMap (s: [ s."browser.download.dir" or "" s."browser.download.lastDir" or "" ]) (builtins.attrValues (settings prog));
       want = "${expectedHome}/Downloads";
       wrongDirs = builtins.filter (d: d != want) (dirs "librewolf" ++ dirs "firefox");
-      wrapper = hm.programs.librewolf.package.text;
-      distLine = lib.findFirst (l: lib.hasInfix "MOZ_APP_DISTRIBUTION=" l) "" (lib.splitString "\n" wrapper);
-      wantRoot = "${expectedHome}/.librewolf-policyroot";
     in
     check "${label}: browser paths follow the platform home (${expectedHome})"
       (hm.home.homeDirectory == expectedHome
         && dirs "librewolf" != [ ] && dirs "firefox" != [ ]
-        && wrongDirs == [ ]
-        && lib.hasInfix "MOZ_APP_DISTRIBUTION=\"${wantRoot}\"" distLine)
-      "home=${hm.home.homeDirectory} wrongDirs=${builtins.toJSON wrongDirs} dist=${distLine}";
+        && wrongDirs == [ ])
+      "home=${hm.home.homeDirectory} wrongDirs=${builtins.toJSON wrongDirs}";
 in
 {
   check-linux-nixos-browser-home = if hasNixos then browserHomeCheck "nixos HM" (hmOf linuxNixos.config) "/home/${user}" else "ok";
@@ -108,7 +100,8 @@ in
         && variant.config.myconfig.krit.programs.firefox.enable
         && varHm.programs.librewolf.enable
         && varHm.programs.firefox.enable
-        && varHm.home.file ? ".librewolf-policyroot/distribution/policies.json"
+        && varHm.programs.librewolf.profiles ? default
+        && varHm.programs.librewolf.profiles ? privacy
         && builtins.length (builtins.attrNames varUserJs) >= 3)
       "variant did not activate the browser modules (userJs=${builtins.toJSON (builtins.attrNames varUserJs)})";
 
@@ -124,9 +117,11 @@ in
   check-variant-firefox-settings =
     check "variant: no ${linuxHome} in programs.firefox profile settings" (!lib.hasInfix linuxHome (profileSettings "firefox")) "found in ${profileSettings "firefox"}";
 
-  check-variant-wrapper-distribution =
-    check "variant: librewolf wrapper MOZ_APP_DISTRIBUTION is under home.homeDirectory"
-      (lwDist != "" && lib.hasPrefix "${varHm.home.homeDirectory}/" lwDist)
-      "MOZ_APP_DISTRIBUTION=${lwDist}, home=${varHm.home.homeDirectory}";
-  check-variant-wrapper-text = check "variant: librewolf wrapper script has no ${linuxHome}" (!lib.hasInfix linuxHome lwText) "wrapper: ${lwText}";
+  check-variant-no-policy-wrapper =
+    check "variant: librewolf is the stock package, no policy root, no policies"
+      (lib.getName varHm.programs.librewolf.package == "librewolf"
+        && !(varHm.programs.librewolf.package ? text)
+        && !(varHm.home.file ? ".librewolf-policyroot/distribution/policies.json")
+        && varHm.programs.librewolf.policies == { })
+      "package=${lib.getName varHm.programs.librewolf.package} files=${builtins.toJSON (builtins.filter (lib.hasInfix "policyroot") (builtins.attrNames varHm.home.file))} policies=${builtins.toJSON varHm.programs.librewolf.policies}";
 }

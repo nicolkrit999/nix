@@ -130,10 +130,10 @@ let
     (src + "/users/krit/common/programs/file-managers/yazi/yazi-keymap.nix")
     (src + "/users/krit/common/programs/file-managers/yazi/yazi.nix")
     (src + "/users/krit/common/programs/file-managers/yazi/yazi-theme.nix")
-    (src + "/users/krit/common/programs/gui-programs/chromium.nix")
+    (src + "/users/krit/nixos/programs/gui-programs/chromium.nix")
     (src + "/users/krit/common/programs/gui-programs/firefox.nix")
     (src + "/users/krit/common/programs/gui-programs/librewolf/librewolf-common.nix")
-    # profiles/librewolf-profile-{default,privacy}.nix excluded: they are { addons, ... } helper
+    # profiles/librewolf-profile-{default,privacy}.nix excluded: they are plain helper
     # functions called by librewolf-common.nix, not standalone denix modules.
     (src + "/users/krit/common/programs/gui-programs/zathura.nix")
     (src + "/users/krit/common/programs/gui-programs/zen-browser/extensions.nix")
@@ -145,6 +145,7 @@ let
     (src + "/users/krit/common/programs/terminal-emulators/alacritty.nix")
     (src + "/users/krit/common/programs/terminal-emulators/kitty.nix")
     (src + "/modules/common/toplevel/attic.nix")
+    (src + "/modules/common/toplevel/firefox-addons.nix")
 
     # users/krit/nixos - NixOS-specific user modules (ext-dotfiles excluded: pure symlinks, no arch risk)
     (src + "/users/krit/nixos/shared/home/home-base.nix")
@@ -155,7 +156,7 @@ let
     (src + "/users/krit/nixos/shared/system/virtualisation.nix")
     (src + "/users/krit/nixos/programs/file-managers/dolphin.nix")
     (src + "/users/krit/nixos/programs/gui-programs/helium.nix")
-    (src + "/users/krit/nixos/programs/gui-programs/zen-browser/spaces.nix")
+    (src + "/users/krit/common/programs/gui-programs/zen-browser/spaces.nix")
     (src + "/users/krit/nixos/programs/progressive-web-apps.nix")
     (src + "/users/krit/nixos/services/hardware/logitech/mouses/logitech-main.nix")
     (src + "/users/krit/nixos/services/nas/borg-backup/borg-backup-desktop.nix")

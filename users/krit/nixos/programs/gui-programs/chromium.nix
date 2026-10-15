@@ -1,0 +1,21 @@
+{ delib, ... }:
+delib.module {
+  name = "krit.programs.chromium";
+  options = delib.singleEnableOption false;
+
+  home.ifEnabled = {
+    programs.chromium = {
+      enable = true;
+
+      extensions = [
+        { id = "ghmbeldphafepmbegfdlkpapadhbakde"; } # Proton pass
+        { id = "dphilobhebphkdjbpfohgikllaljmgbn"; } # Simplelogin
+        { id = "cdglnehniifkbagbbombnjghhcihifij"; } # Kagi Search
+        { id = "dpaefegpjhgeplnkomgbcmmlffkijbgp"; } # Kagi Summarizer
+        { id = "icpgjfneehieebagbmdbhnlpiopdcmna"; } # New Tab Redirect (Custom URL)
+      ];
+
+      commandLineArgs = [ "--password-store=gnome-libsecret" ];
+    };
+  };
+}

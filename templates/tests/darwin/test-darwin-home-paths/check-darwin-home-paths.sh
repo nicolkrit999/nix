@@ -64,10 +64,9 @@ run_check check-variant-sys-activation         "no /home/ in system.activationSc
 run_check check-variant-firefox-user-js        "no /home/ in Firefox/LibreWolf user.js"
 run_check check-variant-librewolf-settings     "no /home/ in programs.librewolf profile settings"
 run_check check-variant-firefox-settings       "no /home/ in programs.firefox profile settings"
-run_check check-variant-wrapper-distribution   "librewolf MOZ_APP_DISTRIBUTION under home.homeDirectory"
-run_check check-variant-wrapper-text           "librewolf wrapper script has no /home/"
+run_check check-variant-no-policy-wrapper     "librewolf is the stock package, no policy root, no policies"
 
-echo -e "${BOLD}browser home regression guard (download dir + policyRoot + wrapper)${NC}"
+echo -e "${BOLD}browser home regression guard (download dir)${NC}"
 run_check check-variant-browser-home           "darwin: browser paths under /Users/<user>"
 run_check check-linux-nixos-browser-home       "nixosConfigurations HM: browser paths under /home/<user>"
 run_check check-linux-standalone-browser-home  "standalone homeConfigurations: browser paths under /home/<user>"

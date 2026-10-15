@@ -1,11 +1,11 @@
-{ delib, ... }:
+{ delib, lib, ... }:
 delib.module {
   name = "krit.programs.yazi";
 
   home.ifEnabled =
-    { ... }:
+    _:
     let
-      customLinemode = ''
+      initLuaText = ''
         -- 1. Custom Metadata Linemode
         function Linemode:custom_metadata()
             local size = self._file:size()
@@ -31,6 +31,6 @@ delib.module {
       '';
     in
     {
-      xdg.configFile."yazi/init.lua".text = customLinemode;
+      programs.yazi.initLua = lib.mkBefore initLuaText;
     };
 }

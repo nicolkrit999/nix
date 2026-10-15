@@ -1,6 +1,20 @@
-{ delib, pkgs, ... }:
+{ delib
+, lib
+, moduleSystem
+, pkgs
+, ...
+}:
 let
-  # Shared shell script wrappers
+  claude = "${pkgs.claude-code}/bin/claude";
+
+  stripEnv = lib.concatMapStringsSep " " (v: "-u ${v}") [
+    "ANTHROPIC_BASE_URL"
+    "ANTHROPIC_AUTH_TOKEN"
+    "ANTHROPIC_MODEL"
+    "ANTHROPIC_API_KEY"
+    "OPENROUTER_API_KEY"
+  ];
+
   caiScript = pkgs.writeShellScriptBin "cai" ''
     # cai is local-only; cloud sessions go through ccai.
     for a in "$@"; do
@@ -32,17 +46,11 @@ let
         rm -f "$TMP"
       fi
     fi
-    exec ${pkgs.claude-code}/bin/claude "$@"
+    exec ${claude} "$@"
   '';
 
   caiSubScript = pkgs.writeShellScriptBin "cai-sub" ''
-    exec env \
-      -u ANTHROPIC_BASE_URL \
-      -u ANTHROPIC_AUTH_TOKEN \
-      -u ANTHROPIC_MODEL \
-      -u ANTHROPIC_API_KEY \
-      -u OPENROUTER_API_KEY \
-      ${pkgs.claude-code}/bin/claude "$@"
+    exec env ${stripEnv} ${claude} "$@"
   '';
 
   # Cloud session on the normal Anthropic route. Cloud sessions run on
@@ -50,6 +58,7 @@ let
   # `claude --cloud` needs a task description: if none was given, ask for it
   # and pass it straight through instead of failing.
   ccaiScript = pkgs.writeShellScriptBin "ccai" ''
+    # Only --environment is known to take a value; any other value-taking flag must be written --flag=value.
     flags=()
     desc=""
     takes_value=0
@@ -77,81 +86,72 @@ let
       done
     fi
 
-    exec env \
-      -u ANTHROPIC_BASE_URL \
-      -u ANTHROPIC_AUTH_TOKEN \
-      -u ANTHROPIC_MODEL \
-      -u ANTHROPIC_API_KEY \
-      -u OPENROUTER_API_KEY \
-      ${pkgs.claude-code}/bin/claude --cloud "$desc" "''${flags[@]}"
+    exec env ${stripEnv} ${claude} --cloud "$desc" "''${flags[@]}"
   '';
 
   caiOpenrouterScript = pkgs.writeShellScriptBin "cai-openrouter" ''
     if [ ! -f /run/secrets/openrouter_api_claude_code ]; then
       echo "Error: /run/secrets/openrouter_api_claude_code not found." >&2
-      echo "Run 'darwin-rebuild switch' or check your SOPS config." >&2
+      echo "Rebuild the system or check your SOPS config." >&2
       exit 1
     fi
 
     CLAUDE_JSON="$HOME/.claude.json"
+    TARGET="$(readlink -f "$CLAUDE_JSON" 2>/dev/null || echo "$CLAUDE_JSON")"
+    TMP="$TARGET.cai-openrouter.tmp"
 
-    if [ -f "$CLAUDE_JSON" ] && ${pkgs.jq}/bin/jq -e '.oauthAccount != null' "$CLAUDE_JSON" >/dev/null 2>&1; then
-      OAUTH_VALUE=$(${pkgs.jq}/bin/jq -c '.oauthAccount' "$CLAUDE_JSON")
-      TMPJSON=$(mktemp)
-      ${pkgs.jq}/bin/jq 'del(.oauthAccount)' "$CLAUDE_JSON" > "$TMPJSON" && mv "$TMPJSON" "$CLAUDE_JSON"
+    if [ -f "$TARGET" ] && ${pkgs.jq}/bin/jq -e '.oauthAccount != null' "$TARGET" >/dev/null 2>&1; then
+      OAUTH_VALUE=$(${pkgs.jq}/bin/jq -c '.oauthAccount' "$TARGET")
+      ${pkgs.jq}/bin/jq 'del(.oauthAccount)' "$TARGET" > "$TMP" && mv "$TMP" "$TARGET" || rm -f "$TMP"
       restore_oauth() {
-        ${pkgs.jq}/bin/jq --argjson v "$OAUTH_VALUE" '.oauthAccount = $v' "$CLAUDE_JSON" \
-          > "$CLAUDE_JSON.tmp" && mv "$CLAUDE_JSON.tmp" "$CLAUDE_JSON"
+        ${pkgs.jq}/bin/jq --argjson v "$OAUTH_VALUE" '.oauthAccount = $v' "$TARGET" \
+          > "$TMP" && mv "$TMP" "$TARGET" || rm -f "$TMP"
       }
       trap restore_oauth EXIT
     fi
 
-    env \
-      ANTHROPIC_API_KEY="" \
-      ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
-      ANTHROPIC_AUTH_TOKEN="$(cat /run/secrets/openrouter_api_claude_code)" \
-      ${pkgs.claude-code}/bin/claude "$@"
+    ANTHROPIC_API_KEY="" \
+    ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
+    ANTHROPIC_AUTH_TOKEN="$(< /run/secrets/openrouter_api_claude_code)" \
+    ${claude} "$@"
   '';
 
-  # Shared Python packages for skills
   pythonWithPackages = pkgs.python313.withPackages (
     ps: with ps; [
+      bibtexparser # citation-management - BibTeX parsing
+      biopython # citation-management - PubMed access
       litellm # perplexity-search, generate-image, infographics
+      markitdown # markitdown skill - file-to-markdown
       matplotlib # matplotlib skill
       networkx # networkx skill
-      pandas # xlsx, data analysis
-      python-docx # docx skill - creation/editing
       openpyxl # xlsx creation/editing
+      pandas # xlsx, data analysis
+      pdfplumber # pdf skill - text/table extraction
       pillow # pptx thumbnail grids, image handling
       pypdf # pdf skill - merge/split/metadata
-      pdfplumber # pdf skill - text/table extraction
+      python-docx # docx skill - creation/editing
       python-pptx # pptx skill - presentation creation
       reportlab # pdf skill - create PDFs
       requests # citation-management, literature-review
-      bibtexparser # citation-management - BibTeX parsing
-      biopython # citation-management - PubMed access
       scholarly # citation-management - Google Scholar
-      markitdown # markitdown skill - file-to-markdown
     ]
     ++ markitdown.optional-dependencies.all # docx/xlsx/xls/pdf/pptx/audio/youtube/outlook converters
     ++ litellm.optional-dependencies.proxy # litellm CLI and proxy server (rich, typer, websockets)
   );
 
-  # Shared CLI tools
   commonCliTools = [
-    pkgs.pandoc # docx/literature-review - text extraction and PDF generation
     pkgs.octave # Matlab skill - numerical computing, plotting, data analysis
+    pkgs.pandoc # docx/literature-review - text extraction and PDF generation
     pkgs.poppler-utils # pdf/pptx/docx - pdftoppm, pdftotext, pdfimages
     pkgs.tesseract # pdf - OCR for scanned documents
     pkgs.uv # fast Python package installer (fallback for non-nix envs)
   ];
 
-  # All shared packages
   sharedPackages = [
+    caiOpenrouterScript
     caiScript
     caiSubScript
     ccaiScript
-    caiOpenrouterScript
     pythonWithPackages
   ] ++ commonCliTools;
 in
@@ -160,16 +160,15 @@ delib.module {
 
   options = delib.singleEnableOption false;
 
-  myconfig.ifEnabled.programs.claude-code.openrouterAliases = true;
+  myconfig.ifEnabled.programs.claude-code.openrouterAliases = moduleSystem != "home";
 
-  nixos.ifEnabled = { ... }: {
+  nixos.ifEnabled = _: {
     environment.systemPackages = sharedPackages ++ [
-      # NixOS-only packages
       pkgs.libreoffice
     ];
   };
 
-  darwin.ifEnabled = { ... }: {
+  darwin.ifEnabled = _: {
     environment.systemPackages = sharedPackages;
     # Note: libreoffice not available on aarch64-darwin - install via Homebrew Cask if needed
   };

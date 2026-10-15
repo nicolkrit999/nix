@@ -8,9 +8,7 @@ delib.module {
   name = "krit.programs.yazi";
   options = delib.singleEnableOption false;
 
-  nixos.ifEnabled = { ... }: {
-    myconfig.stylix.targets.yazi.enable = false;
-  };
+  myconfig.ifEnabled.stylix.targets.yazi.enable = false;
 
   home.ifEnabled =
     { myconfig
@@ -18,40 +16,56 @@ delib.module {
     }:
     let
       isNixOS = moduleSystem == "nixos";
+      isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+      nasCondition =
+        if isDarwin then
+          ''cwd:find("^/Volumes/nicol_nas")''
+        else
+          ''cwd:find("^/mnt/nicol_nas") or cwd:find("^/home/${myconfig.constants.user}/Documents/nicol%-nas")'';
     in
     {
-      home.packages = with pkgs; [
+      assertions = [
+        {
+          assertion = lib.versionAtLeast pkgs.yazi.version "26.8.15";
+          message = "krit.programs.yazi: faster-piper.yazi needs Yazi >= 26.8.15 (th.icon:match / Url.spec.is_search APIs), found ${pkgs.yazi.version}.";
+        }
+      ];
 
-        fzf
-        zoxide
-        ripgrep
-        fd
+      home.packages = with pkgs; [
+        # Archives
+        gnutar
+        ouch
+        p7zip
+        unzip
+        zip
+
+        # Preview tools
+        chafa
+        eza # faster-piper directory-tree previewer
+        exiftool
         ffmpeg
+        glow # faster-piper "*.md" previewer
+        hexyl # faster-piper fallback previewer
+        jq
         mediainfo
         poppler-utils # pdftoppm/pdftotext for the PDF previewer (bare `poppler` ships only libs, and collides with poppler-utils in buildEnv)
-        jq
-        zip
-        unzip
-        p7zip
-        gnutar
-        ueberzugpp
-        chafa
-        xdg-utils
-        exiftool
-        ouch
-        trash-cli
         rich-cli
-        glow # Terminal Markdown renderer, used by the faster-piper "*.md" previewer
-        eza # Used by the faster-piper directory-tree previewer
-        hexyl # Terminal hex viewer, used by the faster-piper fallback previewer
-        sqlite # Provides sqlite3, used by the faster-piper SQLite schema previewer
-      ];
+        sqlite # sqlite3, used by the faster-piper SQLite schema previewer
+        ueberzugpp
+
+        # Search and navigation
+        fd
+        fzf
+        ripgrep
+        zoxide
+
+        # Misc
+        trash-cli
+      ]
+      ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ xdg-utils ];
 
       programs.yazi = {
         enable = true;
-        # faster-piper.yazi requires Yazi >=26.8.15 (uses the th.icon:match /
-        # Url.spec.is_search APIs, missing on older Yazi).
-        package = pkgs.yazi;
         shellWrapperName = "y";
         enableZshIntegration = myconfig.constants.shell == "zsh";
         enableFishIntegration = myconfig.constants.shell == "fish";
@@ -62,7 +76,7 @@ delib.module {
           faster-piper = pkgs.fetchFromGitHub {
             owner = "alberti42";
             repo = "faster-piper.yazi";
-            tag = "v1.1.1"; # NOTE: If a new version is released change it here
+            tag = "v1.1.1";
             hash = "sha256-a7/KTIoIU9idxhYmYFsp6/ezmiBK/mEYfEz9zqZZiEU=";
           };
 
@@ -70,7 +84,7 @@ delib.module {
           ouch = pkgs.fetchFromGitHub {
             owner = "ndtoan96";
             repo = "ouch.yazi";
-            tag = "v0.7.2"; # NOTE: If a new version is released change it here
+            tag = "v0.7.2";
             hash = "sha256-t1kUo4+YODeTG9d5Yq/vxElcmRHIebC5TRv+uDGG88c=";
           };
 
@@ -78,12 +92,13 @@ delib.module {
           recycle-bin = pkgs.fetchFromGitHub {
             owner = "uhs-robert";
             repo = "recycle-bin.yazi";
-            tag = "v1.1.1"; # NOTE: If a new version is released change it here
+            tag = "v1.1.1";
             hash = "sha256-ghmjM4jmXNC4+P2sl70UhI+8Vv5k3PZV7AwV7iBj1I4=";
           };
 
           # nix-prefetch-url --unpack "https://github.com/dedukun/relative-motions.yazi/archive/a603d9ea924dfc0610bcf9d3129e7cba605d4501.tar.gz"
           # NOTE: re-checked 2026-09-16 - a603d9e is still the HEAD of the default branch, no bump needed.
+          # mkForce: replaces the unpatched relative-motions that nix-yazi-plugins also defines
           relative-motions = lib.mkForce (
             let
               src = pkgs.fetchFromGitHub {
@@ -117,7 +132,7 @@ delib.module {
 
             function M:entry()
               local cwd = get_cwd()
-              if cwd:find("^/mnt/nicol_nas") or cwd:find("^/home/${myconfig.constants.user}/Documents/nicol%-nas") then
+              if ${nasCondition} then
                 ya.emit("remove", { permanently = true })
               else
                 ya.emit("remove", {})
@@ -128,9 +143,6 @@ delib.module {
           '';
         };
 
-        # -----------------------------------------------------------------------
-        # ⚙️ YAZI.TOML CONFIGURATION
-        # -----------------------------------------------------------------------
         settings = {
           mgr = {
             ratio = [
@@ -152,11 +164,10 @@ delib.module {
               "scroll" # Allows scrolling through the file list
               "drag" # Allows dragging to select multiple files. Some terminals may not support this.
             ];
-            title_format = "Yazi: {cwd}";
           };
 
           preview = {
-            wrap = "no"; # Whatever a long text should go in multiple lines
+            wrap = "no"; # Whether long text lines wrap onto multiple lines
             tab_size = 2;
             max_width = 1920; # Maximum width for preview images
             max_height = 1080; # Maximum height for preview images
@@ -164,27 +175,6 @@ delib.module {
             image_delay = 20;
             image_filter = "lanczos3"; # Image scaling filter
             image_quality = 90;
-            image_preview_method =
-              if
-                builtins.elem myconfig.constants.terminal.name [
-                  "kitty"
-                  "ghostty"
-                  "konsole"
-                  "wezterm"
-                  "rio"
-                  "iterm2"
-                ]
-              then
-                "kitty"
-              else if
-                builtins.elem myconfig.constants.terminal.name [
-                  "foot"
-                  "blackbox"
-                ]
-              then
-                "sixel"
-              else
-                "ueberzug";
             ueberzug_scale = 0.66;
             ueberzug_offset = [
               0
@@ -197,30 +187,18 @@ delib.module {
           opener = {
             edit = [
               {
-                run = "$EDITOR %s";
+                run = "\${EDITOR:-vi} %s";
                 desc = "Edit";
                 block = true;
                 for = "unix";
               }
-              {
-                run = "code %s";
-                desc = "code";
-                orphan = true;
-                for = "windows";
-              }
-              {
-                run = "code -w %s";
-                desc = "code (block)";
-                block = true;
-                for = "windows";
-              }
             ];
 
-            # Play media files
             play = [
               {
                 run = "xdg-open %s";
                 desc = "Play";
+                orphan = true;
                 for = "linux";
               }
               {
@@ -228,15 +206,8 @@ delib.module {
                 desc = "Play";
                 for = "macos";
               }
-              {
-                run = ''start "" %s1'';
-                desc = "Play";
-                orphan = true;
-                for = "windows";
-              }
             ];
 
-            # Open media files
             open = [
               {
                 run = "xdg-open %s";
@@ -248,15 +219,8 @@ delib.module {
                 desc = "Open";
                 for = "macos";
               }
-              {
-                run = ''start "" %s1'';
-                desc = "Open";
-                orphan = true;
-                for = "windows";
-              }
             ];
 
-            # Open folder in file manager (separate window)
             reveal = [
               {
                 run = "xdg-open %d1";
@@ -269,12 +233,6 @@ delib.module {
                 for = "macos";
               }
               {
-                run = "explorer /select,%s1";
-                desc = "Reveal";
-                orphan = true;
-                for = "windows";
-              }
-              {
                 run = ''clear; exiftool %s1; echo "Press enter to exit"; read _'';
                 desc = "Show EXIF";
                 block = true;
@@ -282,7 +240,6 @@ delib.module {
               }
             ];
 
-            # Extract archives
             extract = [
               {
                 run = "ouch d -y %s";
@@ -291,15 +248,26 @@ delib.module {
               }
             ];
 
-            # Download files if browsing a remove location, so not on the local disk
+            # Download files when browsing a remote location, so not on the local disk
             download = [
               {
-                run = "ya emit download --open %s";
+                run = "ya emit download --open %S";
                 desc = "Download and open";
               }
               {
-                run = "ya emit download %s";
+                run = "ya emit download %S";
                 desc = "Download";
+              }
+            ];
+
+            trash = [
+              {
+                run = "ya pub trash-restore --list %S";
+                desc = "Restore selected files";
+              }
+              {
+                run = "ya pub trash-empty --list %S";
+                desc = "Empty trash bin";
               }
             ];
           };
@@ -373,7 +341,13 @@ delib.module {
                   "reveal"
                 ];
               }
-
+              {
+                mime = "trash/**"; # Items inside the trash
+                use = [
+                  "open"
+                  "trash"
+                ];
+              }
               {
                 url = "*"; # Fallback for all other files
                 use = [
@@ -384,10 +358,14 @@ delib.module {
             ];
           };
 
-          # Performance and background tasks
           tasks = {
-            micro_workers = 30; # The number of threads for small, quick tasks (e.g., reading metadata, simple logic).
-            macro_workers = 24; # The number of threads for heavy, slow tasks (e.g., recursive searching, bulk copying/moving files).
+            # Derived from the old micro_workers 30 / macro_workers 24, i.e. 3x / 2.4x the old defaults
+            # (Yazi 26.9.1 defaults: file 3, plugin 5, fetch 5, preload 2, process 5).
+            file_workers = 7;
+            plugin_workers = 15;
+            fetch_workers = 15;
+            preload_workers = 6;
+            process_workers = 12;
             bizarre_retry = 5; # How many times Yazi retries a task that failed for an unexpected ("bizarre") reason before giving up
             image_alloc = 1073741824; # maximum memory (in bytes) Yazi is allowed to use for decoding images.
 
@@ -399,7 +377,6 @@ delib.module {
           };
 
           plugin = {
-            # Previewers (Mediainfo + Rich-Preview + faster-piper)
             prepend_previewers = [
               # -- Rich Preview -- (rendered Markdown was moved to faster-piper+glow below)
               {
@@ -495,8 +472,7 @@ delib.module {
         };
       };
 
-      # Desktop entry (Linux only)
-      xdg.desktopEntries.yazi = lib.mkIf isNixOS (lib.mkForce {
+      xdg.desktopEntries.yazi = lib.mkIf isNixOS {
         name = "Yazi";
         genericName = "File Manager";
         exec = "${
@@ -515,6 +491,6 @@ delib.module {
           "FileManager"
         ];
         mimeType = [ "inode/directory" ];
-      });
+      };
     };
 }

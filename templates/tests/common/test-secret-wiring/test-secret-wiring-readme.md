@@ -31,14 +31,14 @@ Note: the `claude` wrapper is installed only for `moduleSystem == "home"` (claud
 | Check | Expected |
 |-------|----------|
 | mcp-envvars-unique | `mcpSecrets` envVar values non-empty and unique on all hosts and the NAS |
-| mcp-secrets-declared | every `mcpSecrets[].sopsSecret` is in `sops.secrets` with owner = user, path `/run/secrets/<name>`, common sops file (catches Darwin's static list drifting from the default list) |
+| mcp-secrets-declared | every `mcpSecrets[].sopsSecret` is in `sops.secrets` with owner = user, path `/run/secrets/<name>`, common sops file (catches the Darwin declaration drifting from the `mcpSecrets` list it derives from) |
 | mcp-secrets-in-yaml | each such key exists in the common yaml |
 | mcp-nas-home-wrapper | NAS: `claude` wrapper in `home.packages`, every secret in HM `sops.secrets`, `mcpEnv` non-empty, wrapper exports exactly the `mcpEnv` keys and contains no `$(cat`, `/run/secrets` or declared secret path |
 | mcp-nas-launchers | NAS home: `claude-mcp-context7` and `claude-mcp-github` in `home.packages`; each script reads its HM sops path (`.../.config/sops-nix/...`, equal to `sops.secrets.<name>.path`), has no `/run/secrets` or `--api-key`, and its `exec` line carries neither `$(cat` nor the secret path; the github header is the literal `Authorization:${AUTH_HEADER}`; controls: dropping the context7 secret drops exactly its launcher, and the integrated NixOS home has no `claude-mcp-*` (home-only gate) |
 | cache-token-secrets | cachix/attic `authTokenPath` basename is a declared secret at that path and in its yaml; attic key starts with `<cacheName>:`; cachix key with `<name>.cachix.org-`; `netrc-file` is the `attic-netrc` template embedding the attic placeholder |
 | attic-assertion-bites | control: pointing the token at an undeclared secret makes the attic assertion fail |
 | github-pat-include | `nix.extraOptions` `!include`s the declared PAT secret path; key in yaml |
-| github-pat-mode-consistent | PAT secret mode equal across NixOS and Darwin hosts |
+| github-pat-mode-consistent | PAT secret owner is the main user and mode `0400` on NixOS and Darwin hosts alike |
 | yaml-key-lookup-bites | control: key scanner finds a known key, rejects a bogus one |
 | sopsfiles-and-keys | every declared secret's sopsFile exists and contains its key |
 | davfs-secrets-template | NixOS hosts: template `root`, `0600`, both opencloud placeholders |

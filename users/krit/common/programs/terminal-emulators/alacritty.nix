@@ -1,49 +1,64 @@
 { delib
 , lib
 , config
+, pkgs
 , ...
 }:
 delib.module {
   name = "krit.programs.alacritty";
   options = delib.singleEnableOption false;
 
-  nixos.ifEnabled = { myconfig, ... }: {
-    myconfig.stylix.targets.alacritty.enable = !(myconfig.constants.theme.catppuccin or false);
+  myconfig.ifEnabled = { myconfig, ... }: {
+    stylix.targets.alacritty.enable = !myconfig.constants.theme.catppuccin;
   };
 
   home.ifEnabled =
     { myconfig, ... }:
+    let
+      terminal = myconfig.constants.terminal;
+
+      hasStylixPalette = (builtins.tryEval config.lib.stylix.colors.base00).success;
+      colors =
+        if hasStylixPalette then config.lib.stylix.colors
+        else {
+          base00 = "1e1e2e";
+          base0D = "89b4fa";
+        };
+    in
     {
-      catppuccin.alacritty.enable = myconfig.constants.theme.catppuccin or false;
-      catppuccin.alacritty.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
+      home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+      fonts.fontconfig.enable = true;
+
+      catppuccin.alacritty.enable = myconfig.constants.theme.catppuccin;
+      catppuccin.alacritty.flavor = myconfig.constants.theme.catppuccinFlavor;
 
       programs.alacritty = {
         enable = true;
         settings = {
-          window.opacity = 1.0;
+          window.opacity = lib.mkForce 1.0;
           font = {
             builtin_box_drawing = true;
+            normal.family = lib.mkDefault "JetBrainsMono Nerd Font";
             normal.style = lib.mkForce "Bold";
           };
 
           cursor = {
             style = {
               shape =
-                let cursorStyle = myconfig.constants.terminal.cursorStyle or "block";
-                in if cursorStyle == "block" then "Block"
-                else if cursorStyle == "beam" then "Beam"
+                if terminal.cursorStyle == "block" then "Block"
+                else if terminal.cursorStyle == "beam" then "Beam"
                 else "Underline";
-              blinking = if (myconfig.constants.terminal.cursorBlink or false) then "On" else "Off";
+              blinking = if terminal.cursorBlink then "On" else "Off";
             };
-            thickness = (myconfig.constants.terminal.cursorBeamWidth or 3.0) / 12.0; # Convert pixels to cell fraction (~0.25 for 3px)
+            thickness = terminal.cursorBeamWidth / 12.0; # Convert pixels to cell fraction (~0.25 for 3px)
             vi_mode_style = {
               shape = "Block";
               blinking = "Off";
             };
           };
           colors.cursor = {
-            cursor = lib.mkForce "#${config.lib.stylix.colors.base0D}"; # Accent blue (base0D) — distinct from text (base05) and background (base00)
-            text = lib.mkForce "#${config.lib.stylix.colors.base00}"; # Background color under cursor for contrast
+            cursor = lib.mkForce "#${colors.base0D}"; # Accent (base0D), distinct from text (base05) and background (base00)
+            text = lib.mkForce "#${colors.base00}"; # Background color under cursor for contrast
           };
         };
       };

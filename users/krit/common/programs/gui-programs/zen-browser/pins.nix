@@ -3,7 +3,7 @@
 delib.module {
   name = "programs.zen.browser";
 
-  home.ifEnabled = { ... }: {
+  home.ifEnabled = {
     programs.zen-browser.profiles.default = {
       pinsForce = true;
       pins = {
@@ -161,7 +161,6 @@ delib.module {
         };
         "Hevy" = {
           id = "20000000-0000-4000-8000-000000000016";
-          title = "Hevy";
           url = "https://hevy.com/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
@@ -233,7 +232,7 @@ delib.module {
         "UBS Essential" = {
           id = "20000000-0000-4000-8000-000000000011";
           title = "UBS";
-          url = "https://ebanking-ch1.ubs.com/";
+          url = "https://ebanking-ch2.ubs.com/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           position = 114;
@@ -263,7 +262,7 @@ delib.module {
         "YouTube" = {
           id = "40000000-0000-4000-8000-000000000002";
           url = "https://www.youtube.com/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000001";
           position = 101;
@@ -271,7 +270,7 @@ delib.module {
         "YouTube Music" = {
           id = "40000000-0000-4000-8000-000000000003";
           url = "https://music.youtube.com/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000001";
           position = 102;
@@ -279,7 +278,7 @@ delib.module {
         "Twitch" = {
           id = "40000000-0000-4000-8000-000000000004";
           url = "https://www.twitch.tv/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000001";
           position = 103;
@@ -287,7 +286,7 @@ delib.module {
         "Apple Music" = {
           id = "40000000-0000-4000-8000-000000000005";
           url = "https://music.apple.com/ch/home?l=en";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000001";
           position = 104;
@@ -295,7 +294,7 @@ delib.module {
         "Reddit" = {
           id = "40000000-0000-4000-8000-000000000001";
           url = "https://www.reddit.com/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000001";
           position = 105;
@@ -306,7 +305,7 @@ delib.module {
         "Actual Budget" = {
           id = "40000000-0000-4000-8000-000000000013";
           url = "https://budget.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000002";
           position = 101;
@@ -314,7 +313,7 @@ delib.module {
         "Raiffeisen" = {
           id = "40000000-0000-4000-8000-000000000012";
           url = "https://login.raiffeisen.ch/it";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000002";
           position = 102;
@@ -322,7 +321,7 @@ delib.module {
         "UBS" = {
           id = "40000000-0000-4000-8000-000000000011";
           url = "https://ebanking-ch2.ubs.com/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000002";
           position = 103;
@@ -333,7 +332,7 @@ delib.module {
         "Glance" = {
           id = "40000000-0000-4000-8000-000000000025";
           url = "https://glance.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 101;
@@ -341,7 +340,7 @@ delib.module {
         "NAS" = {
           id = "40000000-0000-4000-8000-000000000021";
           url = "https://ug.link/nicolnas";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 102;
@@ -349,7 +348,7 @@ delib.module {
         "Portainer" = {
           id = "40000000-0000-4000-8000-000000000026";
           url = "https://portainer.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 103;
@@ -357,7 +356,7 @@ delib.module {
         "Grafana" = {
           id = "40000000-0000-4000-8000-000000000038";
           url = "https://grafana.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 104;
@@ -365,7 +364,7 @@ delib.module {
         "Adguard" = {
           id = "40000000-0000-4000-8000-000000000037";
           url = "https://adguard.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 105;
@@ -373,7 +372,7 @@ delib.module {
         "Traefik" = {
           id = "40000000-0000-4000-8000-00000000002e";
           url = "https://traefik.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 106;
@@ -381,7 +380,7 @@ delib.module {
         "Tugtainer" = {
           id = "40000000-0000-4000-8000-000000000027";
           url = "https://tugtainer.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 107;
@@ -389,7 +388,7 @@ delib.module {
         "Beszel" = {
           id = "40000000-0000-4000-8000-000000000024";
           url = "https://beszel.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 108;
@@ -397,7 +396,7 @@ delib.module {
         "Tailscale Admin" = {
           id = "40000000-0000-4000-8000-000000000034";
           url = "https://console.tailscale.com/admin/machines";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 109;
@@ -405,7 +404,7 @@ delib.module {
         "Cloudflare - dashboard" = {
           id = "40000000-0000-4000-8000-000000000035";
           url = "https://dash.cloudflare.com/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 110;
@@ -413,7 +412,7 @@ delib.module {
         "Duplicati" = {
           id = "40000000-0000-4000-8000-000000000028";
           url = "https://duplicati.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 111;
@@ -421,7 +420,7 @@ delib.module {
         "Jellyfin" = {
           id = "40000000-0000-4000-8000-000000000022";
           url = "https://jellyfin.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 112;
@@ -429,7 +428,7 @@ delib.module {
         "qBittorrent" = {
           id = "40000000-0000-4000-8000-00000000002b";
           url = "https://qbit-torrent.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 113;
@@ -437,7 +436,7 @@ delib.module {
         "Foto" = {
           id = "40000000-0000-4000-8000-000000000023";
           url = "https://foto.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 114;
@@ -445,7 +444,7 @@ delib.module {
         "IT Tools" = {
           id = "40000000-0000-4000-8000-000000000030";
           url = "https://it-tools.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 115;
@@ -453,7 +452,7 @@ delib.module {
         "OmniTools" = {
           id = "40000000-0000-4000-8000-000000000032";
           url = "https://omnitools.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 116;
@@ -461,7 +460,7 @@ delib.module {
         "Gitea" = {
           id = "40000000-0000-4000-8000-000000000029";
           url = "https://gitea.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 117;
@@ -469,7 +468,7 @@ delib.module {
         "Linkwarden" = {
           id = "40000000-0000-4000-8000-00000000002c";
           url = "https://linkwarden.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 118;
@@ -477,7 +476,7 @@ delib.module {
         "PrivateBin" = {
           id = "40000000-0000-4000-8000-00000000002a";
           url = "https://privatebin.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 119;
@@ -485,7 +484,7 @@ delib.module {
         "Promemoria" = {
           id = "40000000-0000-4000-8000-000000000033";
           url = "https://promemoria.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 120;
@@ -493,7 +492,7 @@ delib.module {
         "Home Assistant" = {
           id = "40000000-0000-4000-8000-00000000002f";
           url = "https://home-assistant.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 121;
@@ -501,7 +500,7 @@ delib.module {
         "Fitness" = {
           id = "40000000-0000-4000-8000-00000000002d";
           url = "https://sparkyfitness.nicolkrit.ch/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 122;
@@ -512,7 +511,7 @@ delib.module {
         "Unifi Cloud" = {
           id = "40000000-0000-4000-8000-000000000036";
           url = "https://unifi.ui.com/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000004";
           position = 100;
@@ -520,14 +519,13 @@ delib.module {
         "Git Rawify" = {
           id = "40000000-0000-4000-8000-000000000031";
           url = "https://git-rawify.vercel.app/";
-          container = 1;
+          container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000004";
           position = 101;
         };
 
         # ── Pc building ──────────────────────────────────────────────────────
-        # PCPartPicker moved here from essential pins.
 
         "PCPartPicker" = {
           id = "40000000-0000-4000-8000-000000000041";
@@ -649,7 +647,7 @@ delib.module {
         };
         "Mealie" = {
           id = "40000000-0000-4000-8000-000000000094";
-          url = "http://mealie.nicolkrit.ch/";
+          url = "https://ricette.nicolkrit.ch/";
           container = 2; # Secondary
           workspace = "10000000-0000-4000-8000-000000000002";
           folderParentId = "30000000-0000-4000-8000-000000000021";
@@ -749,7 +747,7 @@ delib.module {
         };
         "Viaggi" = {
           id = "40000000-0000-4000-8000-000000000095";
-          url = "http://viaggi.nicolkrit.ch/";
+          url = "https://viaggi.nicolkrit.ch/";
           container = 2; # Secondary
           workspace = "10000000-0000-4000-8000-000000000002";
           folderParentId = "30000000-0000-4000-8000-000000000021";

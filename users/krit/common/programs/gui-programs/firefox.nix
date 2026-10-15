@@ -1,6 +1,5 @@
 { delib
 , pkgs
-, inputs
 , lib
 , moduleSystem
 , ...
@@ -9,8 +8,8 @@ delib.module {
   name = "krit.programs.firefox";
   options = delib.singleEnableOption false;
 
-  nixos.ifEnabled = { myconfig, ... }: {
-    myconfig.stylix.targets.firefox.profileNames = [ myconfig.constants.user ];
+  myconfig.ifEnabled = { myconfig, ... }: {
+    stylix.targets.firefox.profileNames = [ myconfig.constants.user ];
   };
 
   home.ifEnabled =
@@ -18,63 +17,28 @@ delib.module {
     , ...
     }:
     let
-      # I-21: /home is Linux-only; macOS homes live under /Users
       homeDir = "${if moduleSystem == "darwin" then "/Users" else "/home"}/${myconfig.constants.user}";
-      buildFirefoxXpiAddon = lib.makeOverridable (
-        { stdenv ? pkgs.stdenv
-        , fetchurl ? pkgs.fetchurl
-        , pname
-        , version
-        , addonId
-        , url
-        , sha256
-        , meta
-        , ...
-        }:
-        stdenv.mkDerivation {
-          name = "${pname}-${version}";
-          inherit meta;
-          src = fetchurl { inherit url sha256; };
-          preferLocalBuild = true;
-          allowSubstitutes = true;
-          passthru = { inherit addonId; };
-          buildCommand = ''
-            dst="$out/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
-            mkdir -p "$dst"
-            install -v -m644 "$src" "$dst/${addonId}.xpi"
-          '';
-        }
-      );
-
-      addons = pkgs.callPackage inputs.firefox-addons {
-        buildMozillaXpiAddon = buildFirefoxXpiAddon;
-      };
+      addons = pkgs.firefox-addons;
     in
     {
-      # -----------------------------------------------------------------------
-      # 🎨 CATPPUCCIN THEME (official module)
-      # -----------------------------------------------------------------------
-      catppuccin.firefox.enable = myconfig.constants.theme.catppuccin or false;
-      catppuccin.firefox.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
-      catppuccin.firefox.accent = myconfig.constants.theme.catppuccinAccent or "mauve";
-      # -----------------------------------------------------------------------
-
-      # 🔑 Password Manager Integration
-      programs.browserpass.enable = false;
+      catppuccin.firefox = {
+        enable = myconfig.constants.theme.catppuccin;
+        flavor = myconfig.constants.theme.catppuccinFlavor;
+        accent = myconfig.constants.theme.catppuccinAccent;
+      };
 
       programs.firefox = {
         enable = true;
         profiles.${myconfig.constants.user} = {
-          # 🔍 Search Configuration
           search = {
-            force = true; # Enforce custom search engine settings
-            default = "kagi"; # Set Google as the default search engine
-            privateDefault = "kagi"; # Set Kagi as the default for private browsing
+            force = true;
+            default = "kagi";
+            privateDefault = "kagi";
             order = [
               "kagi"
               "google"
               "ddg"
-            ]; # Preferred search engine order
+            ];
             engines = {
               kagi = {
                 name = "kagi";
@@ -82,22 +46,16 @@ delib.module {
                   {
                     template = "https://kagi.com/search?q={searchTerms}";
                   }
-                ]; # Search URL template query parameter
+                ];
                 icon = "https://kagi.com/favicon.ico";
               };
-              bing.metaData.hidden = true; # Hide unwanted search providers
+              bing.metaData.hidden = true;
             };
           };
 
-          # 📑 Bookmarks
-          bookmarks = { };
-
-          # 🧩 Extensions
-          # Declares essential plugins fetched from the nix flake inputs.
-          # The name can be viewed in the url while the extension page in the store is opened
-          # If that does not work search on "https://nur.nix-community.org/repos/rycee/" and use the "name" without version
+          # Attribute names come from https://nur.nix-community.org/repos/rycee/ (name without version)
           extensions = {
-            force = true; # Forced to allow catppuccin to modify the firefox color scheme
+            force = true;
             packages = with addons; [
               ublock-origin # Popular ad and tracker blocker
               proton-pass # Proton Pass password manager integration
@@ -116,17 +74,12 @@ delib.module {
             ];
           };
 
-          # ⚙️ internal Firefox Settings (about:config)
           settings = {
             "browser.startup.homepage" = "https://kagi.com/";
-            # 3= restore previous session | 1= homepage | 0= blank page
             "browser.startup.page" = 1;
 
-            # Disable irritating first-run stuff
             "browser.disableResetPrompt" = true;
             "browser.download.panel.shown" = true;
-            "browser.feeds.showFirstRunUI" = false;
-            "browser.messaging-system.whatsNewPanel.enabled" = false;
             "browser.rights.3.shown" = true;
             "browser.shell.checkDefaultBrowser" = false;
             "browser.shell.defaultBrowserCheckCount" = 1;
@@ -137,18 +90,16 @@ delib.module {
             "browser.bookmarks.restore_default_bookmarks" = false;
             "browser.bookmarks.addedImportButton" = true;
 
-            # 🛡️ SECURE DNS (Quad9)
-            "DnsOverHttpsMode" = "secure";
-            "DnsOverHttpsTemplates" = "https://dns.quad9.net/dns-query";
+            "network.trr.mode" = 2;
+            "network.trr.uri" = "https://dns.quad9.net/dns-query";
 
-            # Don't ask for download dir and force it to Downloads
+            "extensions.autoDisableScopes" = 0;
+
             "browser.download.useDownloadDir" = true;
             "browser.download.folderList" = 2;
             "browser.download.dir" = "${homeDir}/Downloads";
             "browser.download.lastDir" = "${homeDir}/Downloads";
 
-            # Disable crappy home activity stream page
-            # hides the default promoted/suggested tiles on Firefox's new-tab screen from several major websites.
             "browser.newtabpage.activity-stream.feeds.topsites" = false;
             "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
             "browser.newtabpage.activity-stream.improvesearch.topSiteSearchShortcuts" = false;
@@ -168,68 +119,46 @@ delib.module {
             ]
               (_: 1);
 
-            # Disable some telemetry
             "app.shield.optoutstudies.enabled" = false;
             "browser.discovery.enabled" = false;
-            "browser.newtabpage.activity-stream.feeds.telemetry" = false;
             "browser.newtabpage.activity-stream.telemetry" = false;
-            "browser.ping-centre.telemetry" = false;
             "datareporting.healthreport.service.enabled" = false;
             "datareporting.healthreport.uploadEnabled" = false;
             "datareporting.policy.dataSubmissionEnabled" = false;
-            "datareporting.sessions.current.clean" = true;
-            "devtools.onboarding.telemetry.logged" = false;
             "toolkit.telemetry.archive.enabled" = false;
             "toolkit.telemetry.bhrPing.enabled" = false;
             "toolkit.telemetry.enabled" = false;
             "toolkit.telemetry.firstShutdownPing.enabled" = false;
-            "toolkit.telemetry.hybridContent.enabled" = false;
             "toolkit.telemetry.newProfilePing.enabled" = false;
-            "toolkit.telemetry.prompted" = 2;
-            "toolkit.telemetry.rejected" = true;
             "toolkit.telemetry.reportingpolicy.firstRun" = false;
             "toolkit.telemetry.server" = "";
             "toolkit.telemetry.shutdownPingSender.enabled" = false;
             "toolkit.telemetry.unified" = false;
-            "toolkit.telemetry.unifiedIsOptIn" = false;
             "toolkit.telemetry.updatePing.enabled" = false;
 
-            # DRM / Widevine for streaming services
             "media.eme.enabled" = true;
             "media.gmp-widevinecdm.enabled" = true;
             "media.gmp-widevinecdm.visible" = true;
 
-            # Audio normalization
             "accessibility.typeaheadfind.enablesound" = false;
-            "media.getusermedia.screensharing.allow_is_screen_content_sales" = false;
 
-            # Disable fx accounts
             "identity.fxaccounts.enabled" = false;
 
-            # Disable "save password" prompt
             "signon.rememberSignons" = false;
             "signon.autofillForms" = false;
             "extensions.formautofill.addresses.enabled" = false;
             "extensions.formautofill.creditCards.enabled" = false;
 
-            # Harden
             "privacy.trackingprotection.enabled" = true;
             "dom.security.https_only_mode" = true;
 
-            # Remove close button
             "browser.tabs.inTitlebar" = 0;
 
-            # Vertical tabs
             "sidebar.verticalTabs" = true;
             "sidebar.revamp" = true;
-            "sidebar.main.tools" = [
-              "history"
-              "bookmarks"
-            ];
+            "sidebar.main.tools" = "history,bookmarks";
 
             "media.videocontrols.picture-in-picture.enabled" = true;
-            # Toolbar placement: assigns buttons to specific navigation bar slots.
-            # Pin extensions and show buttons
             "browser.uiCustomization.state" = builtins.toJSON {
               placements = {
 
@@ -252,7 +181,6 @@ delib.module {
                   "downloads-button"
                   "_testpilot-containers-browser-action" # Multi Account Containers
                   "reset-pbm-toolbar-button" # Reset private browsing session (only visible in private mode)
-                  # "extension_one-tab_com-browser-action" # OneTab
                   "_c0e1baea-b4cb-4b62-97f0-278392ff8c37_-browser-action" # Behind the Overlay
                   "search_kagi_com-browser-action" # Kagi Search
                   "78272b6fa58f4a1abaac99321d503a20_proton_me-browser-action" # Proton Pass
@@ -267,7 +195,6 @@ delib.module {
                 PersonalToolbar = [ "personal-bookmarks" ];
               };
               seen = [
-                "save-to-pocket-button"
                 "developer-button"
                 "ublock0_raymondhill_net-browser-action"
                 "_testpilot-containers-browser-action"

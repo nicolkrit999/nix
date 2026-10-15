@@ -2,7 +2,7 @@
 delib.module {
   name = "programs.zen.browser";
 
-  home.ifEnabled = { ... }: {
+  home.ifEnabled = {
     programs.zen-browser.profiles.default.mods = [
       "e122b5d9-d385-4bf8-9971-e137809097d0" # No Top Sites
       "d8b79d4a-6cba-4495-9ff6-d6d30b0e94fe" # Better Active Tab

@@ -1,9 +1,45 @@
-{ delib, pkgs, ... }:
+{ delib
+, lib
+, pkgs
+, ...
+}:
+let
+  ordinals = [
+    "first"
+    "second"
+    "third"
+    "fourth"
+    "fifth"
+    "sixth"
+    "seventh"
+    "eighth"
+    "ninth"
+  ];
+
+  # Top-level on purpose: consumed as a vim-style count prefix before a direction key.
+  relativeMotions = lib.genList
+    (i: {
+      on = [ (toString (i + 1)) ];
+      run = "plugin relative-motions ${toString (i + 1)}";
+      desc = "Move in relative steps";
+    })
+    9;
+
+  tabSwitch = lib.genList
+    (i: {
+      on = [ "t" (toString (i + 1)) ];
+      run = "tab_switch ${toString i}";
+      desc = "Switch to ${builtins.elemAt ordinals i} tab";
+    })
+    9;
+
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+in
 delib.module {
   name = "krit.programs.yazi";
 
   home.ifEnabled =
-    { ... }:
+    { myconfig, ... }:
     {
       # `mk` creates its arguments after the shell has brace-expanded them:
       # a trailing "/" makes a directory, anything else a file (parents are
@@ -21,61 +57,9 @@ delib.module {
 
       programs.yazi.keymap = {
         # S = shift, C = control, A = alt
-        mgr.prepend_keymap = [
-          # -----------------------------------------------------------------------
-          # 📦 PLUGIN KEYBINDINGS (Prefix 'u')
-          # -----------------------------------------------------------------------
-          # 1. Relative Motions - counts (top-level, unchanged: consumed as a vim-style
-          #    count prefix before a direction key, so this MUST stay outside the 'u' submenu)
-          {
-            on = [ "1" ];
-            run = "plugin relative-motions 1";
-            desc = "Move in relative steps";
-          }
-          {
-            on = [ "2" ];
-            run = "plugin relative-motions 2";
-            desc = "Move in relative steps";
-          }
-          {
-            on = [ "3" ];
-            run = "plugin relative-motions 3";
-            desc = "Move in relative steps";
-          }
-          {
-            on = [ "4" ];
-            run = "plugin relative-motions 4";
-            desc = "Move in relative steps";
-          }
-          {
-            on = [ "5" ];
-            run = "plugin relative-motions 5";
-            desc = "Move in relative steps";
-          }
-          {
-            on = [ "6" ];
-            run = "plugin relative-motions 6";
-            desc = "Move in relative steps";
-          }
-          {
-            on = [ "7" ];
-            run = "plugin relative-motions 7";
-            desc = "Move in relative steps";
-          }
-          {
-            on = [ "8" ];
-            run = "plugin relative-motions 8";
-            desc = "Move in relative steps";
-          }
-          {
-            on = [ "9" ];
-            run = "plugin relative-motions 9";
-            desc = "Move in relative steps";
-          }
-
-          # 2. Plugins submenu ('u') - ouch, recycle-bin, relative-motions trigger.
-          #    z/Z (fzf/zoxide) and d (smart-remove) stay top-level - see their own
-          #    sections below; two-key latency on those high-frequency actions isn't worth it.
+        mgr.prepend_keymap = relativeMotions ++ [
+          # Plugins submenu ('u'); z/Z (fzf/zoxide) and d (smart-remove) stay
+          # top-level because two-key latency isn't worth it for them.
           {
             on = [
               "u"
@@ -125,9 +109,7 @@ delib.module {
             desc = "Empty Trash older than X days";
           }
 
-          # -----------------------------------------------------------------------
-          # 🖼️ faster-piper preview scrolling (Alt-modified, no conflicts)
-          # -----------------------------------------------------------------------
+          # faster-piper preview scrolling (Alt-modified, no conflicts)
           {
             on = [ "<A-Up>" ];
             run = "seek -1";
@@ -158,10 +140,6 @@ delib.module {
             run = "seek +10000";
             desc = "Scroll preview to the bottom";
           }
-
-          # -----------------------------------------------------------------------
-          # Defaults
-          # -----------------------------------------------------------------------
           {
             on = [ "<Esc>" ];
             run = [
@@ -172,28 +150,6 @@ delib.module {
             desc = "Clear selection, clipboard, and cancel search";
           }
           {
-            on = [ "q" ];
-            run = "quit";
-            desc = "Quit the process";
-          }
-          {
-            on = [ "Q" ];
-            run = "quit --no-cwd-file";
-            desc = "Quit without outputting cwd-file";
-          }
-          {
-            on = [ "<C-c>" ];
-            run = "close";
-            desc = "Close the current tab, or quit if it's last";
-          }
-          {
-            on = [ "<C-z>" ];
-            run = "suspend";
-            desc = "Suspend the process";
-          }
-
-          # Hopping
-          {
             on = [ "k" ];
             run = "arrow prev";
             desc = "Previous file (wrapping)";
@@ -203,7 +159,6 @@ delib.module {
             run = "arrow -5";
             desc = "Move up five files";
           }
-
           {
             on = [ "j" ];
             run = "arrow next";
@@ -211,118 +166,33 @@ delib.module {
           }
           {
             on = [ "J" ];
-            run = "arrow 5 ";
+            run = "arrow 5";
             desc = "Move down five files";
           }
-
           {
             on = [ "<Up>" ];
-            run = "arrow prev ";
+            run = "arrow prev";
             desc = "Previous file (wrapping)";
           }
-
           {
             on = [ "<S-Up>" ];
-            run = "arrow -5 ";
+            run = "arrow -5";
             desc = "Move up five files";
           }
-
           {
             on = [ "<Down>" ];
-            run = "arrow next ";
+            run = "arrow next";
             desc = "Next file (wrapping)";
           }
           {
             on = [ "<S-Down>" ];
-            run = "arrow 5 ";
+            run = "arrow 5";
             desc = "Move down five files";
-          }
-          {
-            on = [
-              "g"
-              "g"
-            ];
-            run = "arrow top";
-            desc = "Go to top";
-          }
-          {
-            on = [ "G" ];
-            run = "arrow bot";
-            desc = "Go to bottom";
-          }
-
-          # Navigation
-          {
-            on = [ "h" ];
-            run = "leave";
-            desc = "Back to the parent directory";
-          }
-          {
-            on = [ "l" ];
-            run = "enter";
-            desc = "Enter the child directory";
-          }
-          {
-            on = [ "H" ];
-            run = "back";
-            desc = "Back to previous directory";
-          }
-          {
-            on = [ "L" ];
-            run = "forward";
-            desc = "Forward to next directory";
-          }
-
-          # Toggle
-          {
-            on = [ "<Space>" ];
-            run = [
-              "toggle"
-              "arrow 1"
-            ];
-            desc = "Toggle the current selection state";
-          }
-          {
-            on = [ "<C-a>" ];
-            run = "toggle_all --state=on";
-            desc = "Select all files";
-          }
-          {
-            on = [ "<C-r>" ];
-            run = "toggle_all";
-            desc = "Invert selection of all files";
-          }
-
-          # Operations
-          {
-            on = [ "o" ];
-            run = "open";
-            desc = "Open selected files";
-          }
-          {
-            on = [ "O" ];
-            run = "open --interactive";
-            desc = "Open selected files interactively";
           }
           {
             on = [ "<Enter>" ];
             run = "open";
             desc = "Enter file or directory";
-          }
-          {
-            on = [ "y" ];
-            run = "yank";
-            desc = "Yank selected files (copy)";
-          }
-          {
-            on = [ "x" ];
-            run = "yank --cut";
-            desc = "Yank selected files (cut)";
-          }
-          {
-            on = [ "p" ];
-            run = "paste";
-            desc = "Paste yanked files";
           }
           {
             on = [ "P" ];
@@ -335,29 +205,9 @@ delib.module {
             desc = "Trash selected files (NAS-aware)";
           }
           {
-            on = [ "D" ];
-            run = "remove --permanently";
-            desc = "Permanently delete selected files";
-          }
-          {
-            on = [ "a" ];
-            run = "create";
-            desc = "Create a file (ends with / for directories)";
-          }
-          {
             on = [ "A" ];
             run = "shell 'mk ' --interactive --cursor=3";
             desc = "Create files/dirs (brace expansion; trailing / = dir)";
-          }
-          {
-            on = [ "r" ];
-            run = "rename --cursor=before_ext";
-            desc = "Rename selected file(s)";
-          }
-          {
-            on = [ "." ];
-            run = "hidden toggle";
-            desc = "Toggle the visibility of hidden files";
           }
           {
             on = [ "s" ];
@@ -368,29 +218,6 @@ delib.module {
             on = [ "S" ];
             run = "search rg";
             desc = "Search files by content via ripgrep";
-          }
-          # -----------------------------------------------------------------------
-          # Built-in Plugins
-          # -----------------------------------------------------------------------
-          {
-            on = [ "z" ];
-            run = "plugin fzf";
-            desc = "Jump to a file/directory via fzf";
-          }
-          {
-            on = [ "Z" ];
-            run = "plugin zoxide";
-            desc = "Jump to a directory via zoxide";
-          }
-
-          # Goto
-          {
-            on = [
-              "g"
-              "h"
-            ];
-            run = "cd ~";
-            desc = "Go home";
           }
           {
             on = [
@@ -421,10 +248,9 @@ delib.module {
               "g"
               "n"
             ];
-            run = "cd ~/nix";
-            desc = "Go ~/nix";
+            run = "cd ~/${myconfig.constants.flakeDir}";
+            desc = "Go ~/${myconfig.constants.flakeDir}";
           }
-
           {
             on = [
               "g"
@@ -438,10 +264,9 @@ delib.module {
               "g"
               "P"
             ];
-            run = "cd ~/nix/hosts/nixos-desktop/optional/dev-environments";
+            run = "cd ~/${myconfig.constants.flakeDir}/templates/krit/dev-environments";
             desc = "Go nix dev-environments";
           }
-
           {
             on = [
               "g"
@@ -463,7 +288,7 @@ delib.module {
               "g"
               "t"
             ];
-            run = "cd ~/.local/share/Trash/files";
+            run = if isDarwin then "plugin trash" else "cd ~/.local/share/Trash/files";
             desc = "Go to Trash";
           }
           {
@@ -471,7 +296,7 @@ delib.module {
               "g"
               "m"
             ];
-            run = "cd /mnt";
+            run = if isDarwin then "cd /Volumes" else "cd /mnt";
             desc = "Go to the mountpoints";
           }
           {
@@ -482,26 +307,14 @@ delib.module {
             run = "cd ~/momentary";
             desc = "Go to the momentary";
           }
-
-          {
-            on = [
-              "g"
-              "<Space>"
-            ];
-            run = "cd --interactive";
-            desc = "Jump interactively";
-          }
-
-          # Tabs
           {
             on = [
               "t"
               "c"
-            ]; # Press 't' then 'c'
+            ];
             run = "tab_create --current";
             desc = "Create a new tab with CWD";
           }
-
           {
             on = [
               "t"
@@ -510,82 +323,9 @@ delib.module {
             run = "tab_close";
             desc = "Close the current tab";
           }
-
-          # 1. Absolute Switching
-          {
-            on = [
-              "t"
-              "1"
-            ];
-            run = "tab_switch 0";
-            desc = "Switch to first tab";
-          }
-          {
-            on = [
-              "t"
-              "2"
-            ];
-            run = "tab_switch 1";
-            desc = "Switch to second tab";
-          }
-          {
-            on = [
-              "t"
-              "3"
-            ];
-            run = "tab_switch 2";
-            desc = "Switch to third tab";
-          }
-          {
-            on = [
-              "t"
-              "4"
-            ];
-            run = "tab_switch 3";
-            desc = "Switch to fourth tab";
-          }
-          {
-            on = [
-              "t"
-              "5"
-            ];
-            run = "tab_switch 4";
-            desc = "Switch to fifth tab";
-          }
-          {
-            on = [
-              "t"
-              "6"
-            ];
-            run = "tab_switch 5";
-            desc = "Switch to sixth tab";
-          }
-          {
-            on = [
-              "t"
-              "7"
-            ];
-            run = "tab_switch 6";
-            desc = "Switch to seventh tab";
-          }
-          {
-            on = [
-              "t"
-              "8"
-            ];
-            run = "tab_switch 7";
-            desc = "Switch to eighth tab";
-          }
-          {
-            on = [
-              "t"
-              "9"
-            ];
-            run = "tab_switch 8";
-            desc = "Switch to ninth tab";
-          }
-
-          # 2. Relative Switching (Left/Right) - Keeping these fast and single-key
+        ]
+          ++ tabSwitch
+          ++ [
           {
             on = [ "[" ];
             run = "tab_switch -1 --relative";
@@ -600,16 +340,6 @@ delib.module {
 
         tasks.prepend_keymap = [
           {
-            on = [ "<Esc>" ];
-            run = "close";
-            desc = "Close task manager";
-          }
-          {
-            on = [ "w" ];
-            run = "close";
-            desc = "Close task manager";
-          }
-          {
             on = [ "k" ];
             run = "arrow -1";
             desc = "Previous task";
@@ -619,34 +349,9 @@ delib.module {
             run = "arrow 1";
             desc = "Next task";
           }
-          {
-            on = [ "<Enter>" ];
-            run = "inspect";
-            desc = "Inspect the task";
-          }
-          {
-            on = [ "x" ];
-            run = "cancel";
-            desc = "Cancel the task";
-          }
         ];
 
         input.prepend_keymap = [
-          {
-            on = [ "<C-c>" ];
-            run = "close";
-            desc = "Cancel input";
-          }
-          {
-            on = [ "<Enter>" ];
-            run = "close --submit";
-            desc = "Submit input";
-          }
-          {
-            on = [ "<Esc>" ];
-            run = "escape";
-            desc = "Back to normal mode, or cancel input";
-          }
           {
             on = [ "<Backspace>" ];
             run = "backspace";

@@ -129,15 +129,6 @@ delib.host {
 
       stylix = {
         enable = true;
-        targets = {
-          yazi.enable = false;
-          kitty.enable = true;
-          alacritty.enable = true;
-          librewolf.profileNames = [
-            "default"
-            "privacy"
-          ];
-        };
       };
 
       nh = {
@@ -157,7 +148,6 @@ delib.host {
         # binary, forcing an uncached from-source build that times out CI.
         firefox.enable = false;
         librewolf.enable = false;
-        chromium.enable = false;
         yazi.enable = true;
         proton-cli.enable = true;
         ranger.enable = false;

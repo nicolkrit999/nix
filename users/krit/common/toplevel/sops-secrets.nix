@@ -1,5 +1,6 @@
 { delib
 , lib
+, config
 , inputs
 , moduleSystem
 , ...
@@ -7,26 +8,38 @@
 let
   commonSecrets = ../sops/krit-common-secrets-sops.yaml;
 
-  mkClaudeMcpSecrets = user: mcpSecrets:
+  mkClaudeMcpSecrets = owner: mcpSecrets:
     lib.listToAttrs (map
       (s: {
         name = s.sopsSecret;
-        value = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
+        value = { sopsFile = commonSecrets; } // lib.optionalAttrs (owner != null) { inherit owner; };
       })
       mcpSecrets);
 
-  mkClaudeMcpSecretsHome = mcpSecrets:
-    lib.listToAttrs (map
-      (s: {
-        name = s.sopsSecret;
-        value = {
-          sopsFile = commonSecrets;
-        };
-      })
-      mcpSecrets);
+  mkShared = user: homeDir: {
+    github_fg_pat_token_nix = {
+      sopsFile = commonSecrets;
+      owner = user;
+    };
+    github_general_ssh_pub = {
+      sopsFile = commonSecrets;
+      owner = user;
+      path = "${homeDir}/.ssh/id_github.pub";
+    };
+    github_general_ssh_key = {
+      sopsFile = commonSecrets;
+      owner = user;
+      path = "${homeDir}/.ssh/id_github";
+    };
+    attic-push-token = {
+      sopsFile = commonSecrets;
+      owner = user;
+    };
+    cachix-push-token = {
+      sopsFile = commonSecrets;
+      owner = user;
+    };
+  };
 in
 delib.module {
   name = "krit.commonSopsSecrets";
@@ -38,33 +51,13 @@ delib.module {
 
   home.always.imports = lib.optionals (moduleSystem == "home") [ inputs.nix-sops.homeManagerModules.sops ];
 
-  # ===========================================================================
-  # NixOS - secrets shared across NixOS hosts (/home paths)
-  # ===========================================================================
   nixos.ifEnabled =
     { myconfig, ... }:
     let
       user = myconfig.constants.user;
     in
     {
-      sops.secrets = {
-        github_fg_pat_token_nix = {
-          sopsFile = commonSecrets;
-          mode = "0444";
-        };
-
-        github_general_ssh_pub = {
-          sopsFile = commonSecrets;
-          owner = user;
-          path = "/home/${user}/.ssh/id_github.pub";
-        };
-
-        github_general_ssh_key = {
-          sopsFile = commonSecrets;
-          owner = user;
-          path = "/home/${user}/.ssh/id_github";
-        };
-
+      sops.secrets = mkShared user config.users.users.${user}.home // {
         nas_ssh_key.sopsFile = commonSecrets;
         nas-krit-credentials.sopsFile = commonSecrets;
         nas_opencloud_user.sopsFile = commonSecrets;
@@ -77,143 +70,43 @@ delib.module {
           owner = user;
         };
 
-        # Push tokens - live in the shared common sops file
-        attic-push-token = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        cachix-push-token = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-
         borg-passphrase = { };
         borg-private-key = { };
       } // mkClaudeMcpSecrets user myconfig.programs.claude-code.mcpSecrets;
     };
 
-  # ===========================================================================
-  # Darwin - secrets for the MacBook (/Users paths, static MCP list)
-  # ===========================================================================
   darwin.ifEnabled =
     { myconfig, ... }:
     let
       user = myconfig.constants.user;
+      homeDir = config.users.users.${user}.home;
     in
     {
-      sops.secrets = {
-        github_fg_pat_token_nix = {
-          sopsFile = commonSecrets;
-          mode = "0444";
-        };
-        github_general_ssh_key = {
-          sopsFile = commonSecrets;
-          owner = user;
-          path = "/Users/${user}/.ssh/id_github";
-          mode = "0600";
-        };
-        github_general_ssh_pub = {
-          sopsFile = commonSecrets;
-          owner = user;
-          path = "/Users/${user}/.ssh/id_github.pub";
-          mode = "0644";
-        };
+      sops.secrets = mkShared user homeDir // {
         school_ssh_key = {
           sopsFile = commonSecrets;
           owner = user;
-          path = "/Users/${user}/.ssh/id_school";
-          mode = "0600";
+          path = "${homeDir}/.ssh/id_school";
         };
         school_ssh_pub = {
           sopsFile = commonSecrets;
           owner = user;
-          path = "/Users/${user}/.ssh/id_school.pub";
-          mode = "0644";
+          path = "${homeDir}/.ssh/id_school.pub";
         };
-        openrouter_api_claude_code = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        claude_mcp_actual_password = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        claude_mcp_actual_sync_id = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        claude_mcp_actual_encryption_password = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        claude_mcp_context7_api_key = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        claude_mcp_openai_api_key = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        claude_mcp_milvus_token = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        claude_mcp_github_token = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        claude_mcp_portainer_token = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        claude_mcp_sparkyfitness_api_key = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        claude_mcp_vikunja_token = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        claude_mcp_beszel_email = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        claude_mcp_beszel_password = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        attic-push-token = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-        cachix-push-token = {
-          sopsFile = commonSecrets;
-          owner = user;
-        };
-      };
+      } // mkClaudeMcpSecrets user myconfig.programs.claude-code.mcpSecrets;
     };
 
   home.ifEnabled =
     { myconfig, ... }:
-    if moduleSystem == "home" then
-      let
-        user = myconfig.constants.user;
-        homeDir = "/home/${user}";
-      in
-      {
-        sops.defaultSopsFile = commonSecrets;
-        sops.age.keyFile = "${homeDir}/.config/sops/age/keys.txt";
+    lib.optionalAttrs (moduleSystem == "home") {
+      sops = {
+        defaultSopsFile = commonSecrets;
+        age.keyFile = "${config.xdg.configHome}/sops/age/keys.txt";
 
-        sops.secrets = {
-          github_fg_pat_token_nix = { };
-          github_general_ssh_pub = {
-            path = "${homeDir}/.ssh/id_github.pub";
-          };
-          github_general_ssh_key = {
-            path = "${homeDir}/.ssh/id_github";
-          };
-        } // mkClaudeMcpSecretsHome myconfig.programs.claude-code.mcpSecrets;
-      }
-    else
-      { };
+        secrets = {
+          github_general_ssh_pub.path = "${config.home.homeDirectory}/.ssh/id_github.pub";
+          github_general_ssh_key.path = "${config.home.homeDirectory}/.ssh/id_github";
+        } // mkClaudeMcpSecrets null myconfig.programs.claude-code.mcpSecrets;
+      };
+    };
 }

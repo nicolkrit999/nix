@@ -8,9 +8,10 @@ delib.module {
   options = delib.singleEnableOption false;
 
   home.ifEnabled =
-    { ... }:
+    _:
     let
       version = "0.4.4";
+      system = pkgs.stdenv.hostPlatform.system;
 
       runtimeLibs = with pkgs; [ libsecret glib ];
 
@@ -51,10 +52,15 @@ delib.module {
           runHook postInstall
         '';
       };
+
+      packages = {
+        x86_64-linux = linuxPackage;
+        aarch64-darwin = darwinPackage;
+      };
     in
     {
       home.packages = [
-        (if pkgs.stdenv.hostPlatform.isLinux then linuxPackage else darwinPackage)
+        (packages.${system} or (throw "proton-cli: no Proton Drive CLI build for ${system} (supported: ${lib.concatStringsSep ", " (builtins.attrNames packages)})"))
       ];
     };
 }

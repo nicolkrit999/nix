@@ -38,6 +38,7 @@ let
   lt = lingerTwin.config;
   ltg = lt.specialisation.guest.configuration;
   patMode = c: c.sops.secrets.github_fg_pat_token_nix.mode;
+  patTwin = sys.extendModules { modules = [{ sops.secrets.github_fg_pat_token_nix.mode = "0444"; }]; };
   kritOffPaths = [
     [ "programs" "claude-code-wrappers" ]
     [ "services" "cloud" "googleDrive" ]
@@ -151,7 +152,7 @@ let
     "guest: welcome autostart still exists" = yes "guest-welcome autostart missing" (g.environment.etc ? "xdg/autostart/guest-welcome.desktop");
     "control: base exposes at least one service the guest turns off" = yes "base enables none of tailscale/localsend/ssh/avahi/docker/podman" (builtins.any (f: f base) exposure);
     "control: twin of the host persisting the linger dir has it in its base" = yes "twin does not persist ${lingerDir}, the guest filter is vacuous" (builtins.elem lingerDir (persistDirs lt));
-    "control: base PAT secret mode differs from the guest" = yes "base PAT mode already ${patMode base}" (patMode base != patMode g);
+    "control: guest PAT mode override beats a world-readable base mode" = yes "twin base ${patMode patTwin.config}, twin guest ${patMode patTwin.config.specialisation.guest.configuration}" (patMode patTwin.config == "0444" && patMode patTwin.config.specialisation.guest.configuration == "0400");
     "control: base allowed-users differs from the guest" = yes "base allowed-users already ${builtins.toJSON base.nix.settings.allowed-users}" (base.nix.settings.allowed-users != g.nix.settings.allowed-users);
     "control: base keeps networkmanager or another group the guest drops" = yes "base user groups already minimal" (builtins.elem "networkmanager" base.users.users.${user}.extraGroups);
     "control: base enables a krit nas/cloud/mount module" = yes "base enables none, the guest krit-off checks are vacuous" (builtins.any (p: kritEnable base p) kritOffPaths);

@@ -1,7 +1,6 @@
 { delib
 , pkgs
 , lib
-, inputs
 , moduleSystem
 , ...
 }:
@@ -9,109 +8,18 @@ delib.module {
   name = "krit.programs.librewolf";
   options = delib.singleEnableOption false;
 
-  nixos.ifEnabled = { ... }: {
-    myconfig.stylix.targets.librewolf.profileNames = [ "default" "privacy" ];
-  };
+  myconfig.ifEnabled.stylix.targets.librewolf.profileNames = [ "default" "privacy" ];
 
   home.ifEnabled =
     { myconfig
     , ...
     }:
     let
-      isNixOS = moduleSystem == "nixos";
-      buildFirefoxXpiAddon = lib.makeOverridable (
-        { stdenv ? pkgs.stdenv
-        , fetchurl ? pkgs.fetchurl
-        , pname
-        , version
-        , addonId
-        , url
-        , sha256
-        , meta
-        , ...
-        }:
-        stdenv.mkDerivation {
-          name = "${pname}-${version}";
-          inherit meta;
-          src = fetchurl { inherit url sha256; };
-          preferLocalBuild = true;
-          allowSubstitutes = true;
-          passthru = { inherit addonId; };
-          buildCommand = ''
-            dst="$out/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
-            mkdir -p "$dst"
-            install -v -m644 "$src" "$dst/${addonId}.xpi"
-          '';
-        }
-      );
+      addons = pkgs.firefox-addons;
 
-      addons = pkgs.callPackage inputs.firefox-addons {
-        buildMozillaXpiAddon = buildFirefoxXpiAddon;
-      };
-
-      # config.home.homeDirectory is not reachable from ifEnabled; mirror home-base.nix (darwin /Users, else /home)
+      # ifEnabled cannot read config.home.homeDirectory; mirrors home-base.nix
       homeDir = "${if moduleSystem == "darwin" then "/Users" else "/home"}/${myconfig.constants.user}";
-      policyRoot = "${homeDir}/.librewolf-policyroot";
 
-      policiesJson = builtins.toJSON {
-        policies = {
-          DisableTelemetry = true;
-          DisableFirefoxStudies = true;
-
-          ExtensionSettings = {
-            "*" = {
-              installation_mode = "allowed";
-            };
-          };
-
-          # Allow cookie permissions for the auth domains
-          Cookies = {
-            Allow = [
-
-              # Authentication domains
-              "https://pocket-id.nicolkrit.ch"
-              "https://nicolkrit.cloudflareaccess.com"
-
-              # Various
-              "https://kagi.com"
-
-              # Proton
-              "https://proton.me"
-              "https://account.proton.me"
-              "https://api.proton.me"
-              "https://auth.proton.me"
-              "https://docs.proton.me"
-              "https://wallet.proton.me"
-              "https://mail.proton.me"
-              "https://calendar.proton.me"
-              "https://drive.proton.me"
-              "https://pass.proton.me"
-              "https://lumo.proton.me"
-              "https://protonmail.com"
-              "https://account.protonmail.com"
-              "https://protonmail.ch"
-              "https://simplelogin.io"
-              "https://app.simplelogin.io"
-              "https://simplelogin.com"
-              "https://auth.simplelogin.com"
-
-              # Personal domain
-              "https://nicolkrit.ch"
-              "https://nas.nicolkrit.ch"
-            ];
-          };
-
-          PopupBlocking = {
-            Default = false;
-            Allow = [
-              "https://pocket-id.nicolkrit.ch"
-              "https://nicolkrit.cloudflareaccess.com"
-            ];
-          };
-        };
-      };
-
-      # SEARCH
       searchConfig = {
         force = true;
         default = "kagi";
@@ -119,8 +27,6 @@ delib.module {
         order = [
           "kagi"
           "ddg"
-          "google"
-          "perplexity"
         ];
         engines = {
           "kagi" = {
@@ -129,27 +35,12 @@ delib.module {
             updateInterval = 24 * 60 * 60 * 1000;
             definedAliases = [ "@k" ];
           };
-          "perplexity" = {
-            urls = [{ template = "https://www.perplexity.ai/search?q={searchTerms}"; }];
-            icon = "https://www.perplexity.ai/favicon.ico";
-            updateInterval = 24 * 60 * 60 * 1000;
-            definedAliases = [ "@p" ];
-          };
-          "google".metaData.hidden = false;
-          "duckduckgo".metaData.hidden = false;
-
-          "bing".metaData.hidden = true;
-          "ebay".metaData.hidden = true;
           "wikipedia".metaData.hidden = true;
-          "wikipedia (en)".metaData.hidden = true;
-          "metager".metaData.hidden = true;
           "mojeek".metaData.hidden = true;
-          "wearx belgium".metaData.hidden = true;
           "startpage".metaData.hidden = true;
         };
       };
 
-      # UI LAYOUT
       toolbarSettings = {
         "browser.uiCustomization.state" = builtins.toJSON {
           currentVersion = 23;
@@ -175,7 +66,6 @@ delib.module {
             vertical-tabs = [ "tabbrowser-tabs" ];
           };
           seen = [
-            "save-to-pocket-button"
             "developer-button"
             "ublock0_raymondhill_net-browser-action"
             "_testpilot-containers-browser-action"
@@ -194,7 +84,6 @@ delib.module {
         };
       };
 
-      # COMMON PREFS (“junk off”)
       commonSettings = toolbarSettings // {
         "browser.startup.homepage" = "https://kagi.com/";
         "browser.compactmode.show" = true;
@@ -207,74 +96,49 @@ delib.module {
         "browser.tabs.warnOnCloseOther" = false;
         "media.videocontrols.picture-in-picture.video-toggle.enabled" = true;
         "browser.display.document_color_use" = 0;
-        "browser.display.use_system_colors" = true;
         "ui.systemUsesDarkTheme" = if myconfig.constants.theme.polarity == "dark" then 1 else 0;
-        "browser.in-content.dark-mode" = myconfig.constants.theme.polarity == "dark";
 
         "browser.download.useDownloadDir" = true;
         "browser.download.folderList" = 2;
         "browser.download.dir" = "${homeDir}/Downloads";
         "browser.download.lastDir" = "${homeDir}/Downloads";
 
-        # Telemetry/junk off
-        "extensions.pocket.enabled" = false;
+        "extensions.autoDisableScopes" = 0;
+
         "identity.fxaccounts.enabled" = false;
         "datareporting.policy.dataSubmissionEnabled" = false;
 
-        # New tab junk off
         "browser.newtabpage.activity-stream.discoverystream.enabled" = false;
         "browser.newtabpage.activity-stream.showSearch" = false;
-        "browser.newtabpage.activity-stream.feeds.snippets" = false;
         "browser.newtabpage.activity-stream.feeds.section.topstories" = false;
-        "browser.newtabpage.activity-stream.section.highlights.includePocket" = false;
         "browser.newtabpage.activity-stream.showSponsored" = false;
         "browser.newtabpage.activity-stream.system.showSponsored" = false;
         "browser.newtabpage.activity-stream.feeds.topsites" = false;
         "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
         "browser.newtabpage.activity-stream.improvesearch.topSiteSearchShortcuts" = false;
 
-        # Password manager off
         "signon.rememberSignons" = false;
         "signon.autofillForms" = false;
         "extensions.formautofill.addresses.enabled" = false;
         "extensions.formautofill.creditCards.enabled" = false;
 
-        # Vertical tabs
         "browser.tabs.inTitlebar" = 0;
         "sidebar.verticalTabs" = true;
         "sidebar.revamp" = true;
+        "sidebar.main.tools" = "history,bookmarks";
 
         "browser.urlbar.suggest.calculator" = true;
 
         "media.videocontrols.picture-in-picture.enabled" = true;
+
+        "browser.contentblocking.category" = "strict";
+
+        "network.trr.mode" = 2;
+        "network.trr.uri" = "https://dns.quad9.net/dns-query";
       };
     in
     {
-      programs.browserpass.enable = false;
-
-      # Desktop entry for the main profile (Linux only)
-      xdg.desktopEntries."librewolf" = lib.mkIf isNixOS {
-        name = "LibreWolf";
-        genericName = "Web Browser";
-        exec = "librewolf %U";
-        icon = "librewolf";
-        terminal = false;
-        categories = [
-          "Network"
-          "WebBrowser"
-        ];
-        mimeType = [
-          "text/html"
-          "application/xhtml+xml"
-          "application/vnd.mozilla.xul+xml"
-          "x-scheme-handler/http"
-          "x-scheme-handler/https"
-        ];
-        comment = "Web Browser";
-      };
-
-      # Desktop entry for the privacy profile (Linux only)
-      xdg.desktopEntries."librewolf-privacy" = lib.mkIf isNixOS {
+      xdg.desktopEntries."librewolf-privacy" = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         name = "LibreWolf Privacy";
         genericName = "Web Browser";
         exec = "librewolf -P Privacy --no-remote";
@@ -287,52 +151,18 @@ delib.module {
         comment = "Launch LibreWolf in Hardened Privacy Mode";
       };
 
-      home.file.".librewolf-policyroot/distribution/policies.json".text = policiesJson;
-
       programs.librewolf = {
         enable = true;
 
-        package = pkgs.lib.makeOverridable
-          (
-            _args:
-            pkgs.writeShellScriptBin "librewolf" ''
-              set -eu
-              export MOZ_APP_DISTRIBUTION="${policyRoot}"
-
-              # fail loudly if policies aren’t there (no silent “nothing”)
-              test -f "${policyRoot}/distribution/policies.json"
-
-              exec ${pkgs.librewolf}/bin/librewolf "$@"
-            ''
-          )
-          { };
-
         profiles = {
-          default = (
-            import ./profiles/librewolf-profile-default.nix {
-              inherit
-                pkgs
-                addons
-                searchConfig
-                commonSettings
-                inputs
-                ;
-            }
-          );
+          default = import ./profiles/librewolf-profile-default.nix {
+            inherit addons searchConfig commonSettings;
+          };
 
-          privacy = (
-            import ./profiles/librewolf-profile-privacy.nix {
-              inherit
-                pkgs
-                addons
-                searchConfig
-                commonSettings
-                inputs
-                ;
-            }
-          );
+          privacy = import ./profiles/librewolf-profile-privacy.nix {
+            inherit pkgs lib addons searchConfig commonSettings;
+          };
         };
-
       };
     };
 }

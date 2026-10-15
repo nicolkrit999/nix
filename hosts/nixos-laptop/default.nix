@@ -919,7 +919,7 @@ delib.host {
         helium.enable = false;
         kitty.enable = true;
         krokiet.enable = false;
-        librewolf.enable = false;
+        librewolf.enable = true;
         neovim.enable = true;
         pwas.enable = true;
         proton-cli.enable = false;

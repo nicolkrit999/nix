@@ -1,12 +1,10 @@
 { addons
 , searchConfig
 , commonSettings
-, ...
 }:
 {
   id = 0;
   name = "Default";
-  isDefault = true;
 
   search = searchConfig;
 
@@ -28,67 +26,26 @@
   ];
 
   settings = commonSettings // {
-    # Disable heavy privacy features that break sites/auth
     "privacy.resistFingerprinting" = false;
-    "privacy.fingerprintingProtection" = false;
-    "privacy.trackingprotection.enabled" = false;
-    "privacy.trackingprotection.fingerprinting.enabled" = false;
-    "privacy.trackingprotection.socialtracking.enabled" = false;
-    "privacy.trackingprotection.cryptomining.enabled" = false;
+    "privacy.trackingprotection.allow_list.convenience.enabled" = true;
 
-    # Cookies & Isolation
-    "privacy.firstparty.isolate" = false;
-    "network.cookie.cookieBehavior" = 0;
-    "network.cookie.cookieBehavior.pbmode" = 0;
-    "network.cookie.lifetimePolicy" = 0;
+    "network.trr.excluded-domains" = "nicolkrit.ch,ts.net,lan,home.arpa,internal,localdomain";
 
-    # Cross site behaviour to allow authentication flows
-    "network.cookie.sameSite.laxByDefault" = false;
-    "network.cookie.sameSite.noneRequiresSecure" = false;
-
-    # Permissive referrers to allow authentication flows
-    "network.http.referer.XOriginPolicy" = 0;
-    "network.http.referer.XOriginTrimmingPolicy" = 0;
-
-    # DNS
-    "network.trr.mode" = 5;
-
-    # Solve WebAuthn/U2F support for authentication domains
     "security.webauth.webauthn" = true;
-    "security.webauth.u2f" = true;
-    "dom.credentialmanagement.enabled" = true;
-    "dom.security.https_only_mode" = false;
-
-    # Allow popups and background services for authentication domains
-    "dom.serviceWorkers.enabled" = true;
     "dom.webnotifications.enabled" = true;
 
-    # Enable FxA (allow authentication providers)
-    "identity.fxaccounts.enabled" = true;
-
-    # Keep everything for daily use
+    # LibreWolf sanitizes on shutdown by default
     "privacy.sanitize.sanitizeOnShutdown" = false;
-    "privacy.clearOnShutdown.cookies" = false;
-    "privacy.clearOnShutdown.history" = false;
-    "privacy.clearOnShutdown.downloads" = false;
-
-    # Session restore
     "browser.startup.page" = 3;
 
-    # DRM
     "media.eme.enabled" = true;
     "media.gmp-widevinecdm.visible" = true;
     "media.gmp-widevinecdm.enabled" = true;
+    "media.gmp-manager.updateEnabled" = true;
 
-    # JetKVM tweaks
+    # JetKVM needs WebRTC with all ICE interfaces
     "media.peerconnection.enabled" = true;
-    "media.webrtc.hw.h264.enabled" = true;
 
-    # UI
-    "sidebar.main.tools" = [
-      "history"
-      "bookmarks"
-    ];
     "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
     "accessibility.typeaheadfind" = false;
   };

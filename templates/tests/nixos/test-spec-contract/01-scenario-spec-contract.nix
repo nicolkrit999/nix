@@ -71,6 +71,7 @@ let
     (src + "/modules/common/programs/codex.nix")
     (src + "/modules/common/programs/headroom.nix")
     (src + "/modules/common/programs/herdr.nix")
+    (src + "/modules/common/programs/zen-browser.nix")
     (src + "/users/krit/common/programs/claude-code-wrappers.nix")
     (src + "/modules/common/programs/fastfetch.nix")
     (src + "/modules/nixos/programs/claude-desktop.nix")
@@ -345,6 +346,11 @@ in
     off "secure-travel" (c: c.home-manager.users.krit.systemd.user.services ? headroom-proxy) "headroom-proxy unit present" false;
   check-securetravel-claude-wrappers-disabled =
     off "secure-travel" (c: c.myconfig.krit.programs.claude-code-wrappers.enable) "claude-code-wrappers.enable" false;
+  check-securetravel-zen-disabled =
+    off "secure-travel" (c: c.myconfig.programs.zen.browser.enable) "zen.browser.enable" false;
+  check-securetravel-browser-constant =
+    if config.myconfig.constants.browser == "librewolf" then "FAIL: base browser already librewolf, check is vacuous"
+    else checkStr "secure-travel.constants.browser" (spec "secure-travel").myconfig.constants.browser "librewolf";
   check-securetravel-gnome-enabled =
     off "secure-travel" (c: c.myconfig.programs.gnome.enable) "gnome.enable" true;
   check-securetravel-exitnode-warn-unit =

@@ -118,6 +118,8 @@ run_check "check-securetravel-herdr-disabled"           "programs.herdr.enable =
 run_check "check-securetravel-headroom-disabled"        "programs.headroom.enable == false"
 run_check "check-securetravel-headroom-unit-absent"     "headroom-proxy user unit absent"
 run_check "check-securetravel-claude-wrappers-disabled" "krit.programs.claude-code-wrappers.enable == false"
+run_check "check-securetravel-zen-disabled"        "programs.zen.browser.enable == false"
+run_check "check-securetravel-browser-constant"    "constants.browser == librewolf"
 run_check "check-securetravel-gnome-enabled"       "programs.gnome.enable == true"
 run_check "check-securetravel-exitnode-warn-unit"  "user service+timer exit node warn"
 run_check "check-securetravel-trayscale-installed" "trayscale in krit home.packages"

@@ -3,7 +3,7 @@
 delib.module {
   name = "programs.zen.browser";
 
-  home.ifEnabled = { ... }: {
+  home.ifEnabled = {
     programs.zen-browser.profiles.default = {
       # ── Containers (cookie isolation, like separate browser profiles) ───────
       # Icons must be predefined Firefox strings, not emoji.

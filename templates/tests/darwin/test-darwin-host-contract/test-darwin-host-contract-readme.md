@@ -59,8 +59,8 @@ Two control checks prove the negative checks can bite: `host.extendModules` forc
 | `sops.age.keyFile` | under the user's home |
 | `sops.age.sshKeyPaths`, `sops.gnupg.sshKeyPaths` | `[]` |
 | `nix.extraOptions` | `!include <github_fg_pat_token_nix path>` |
-| `sops.secrets.github_general_ssh_key` | path `/Users/<user>/.ssh/id_github`, mode `0600` |
-| `programs.claude-code.mcpSecrets[].sopsSecret` | each is a `sops.secrets` key (Darwin uses a static list) |
+| `sops.secrets.github_general_ssh_key` | path `/Users/<user>/.ssh/id_github`, mode `0400` |
+| `programs.claude-code.mcpSecrets[].sopsSecret` | each is a `sops.secrets` key (Darwin derives its declarations from the same list) |
 
 ### homebrew
 

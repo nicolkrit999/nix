@@ -78,7 +78,7 @@ in
       (lib.hasInfix "!include ${pat}" config.nix.extraOptions)
       "extraOptions=${builtins.toJSON config.nix.extraOptions}, path=${pat}";
   check-github-key-path = checkEq "sops.secrets.github_general_ssh_key.path" config.sops.secrets.github_general_ssh_key.path "/Users/${user}/.ssh/id_github";
-  check-github-key-mode = checkEq "sops.secrets.github_general_ssh_key.mode" config.sops.secrets.github_general_ssh_key.mode "0600";
+  check-github-key-mode = checkEq "sops.secrets.github_general_ssh_key.mode" config.sops.secrets.github_general_ssh_key.mode "0400";
 
   check-mas-apps-empty = checkEq "homebrew.masApps (mas 7.0.0 guard)" config.homebrew.masApps { };
   check-brew-no-zap = check "homebrew.onActivation.cleanup != zap" (config.homebrew.onActivation.cleanup != "zap") "cleanup is zap";

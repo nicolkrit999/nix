@@ -144,10 +144,14 @@ in
 
   check-github-pat-mode-consistent =
     let
-      modes = lib.mapAttrs (_: h: (secretsOf h).github_fg_pat_token_nix.mode) allHosts;
-      vals = lib.unique (lib.attrValues modes);
+      perms = lib.mapAttrs
+        (_: h:
+          let t = (secretsOf h).github_fg_pat_token_nix; in
+          { owner = t.owner; inherit (t) mode; })
+        allHosts;
+      expected = lib.mapAttrs (_: h: { owner = userOf h; mode = "0400"; }) allHosts;
     in
-    if lib.length vals == 1 then "ok" else "FAIL: PAT mode differs across hosts: ${builtins.toJSON modes}";
+    if perms == expected then "ok" else "FAIL: PAT owner/mode is not <user>/0400 on every host: ${builtins.toJSON perms}";
 
   check-sopsfiles-and-keys = perHost allHosts (h:
     lib.concatLists (lib.mapAttrsToList

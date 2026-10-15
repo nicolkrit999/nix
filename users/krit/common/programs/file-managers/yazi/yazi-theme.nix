@@ -7,23 +7,29 @@ delib.module {
   name = "krit.programs.yazi";
 
   home.ifEnabled =
-    { ... }:
+    _:
     let
       colors = config.lib.stylix.colors;
     in
     {
       programs.yazi.theme = lib.mkForce {
+        indicator = {
+          parent = {
+            fg = "#${colors.base05}";
+            bg = "#${colors.base02}";
+          };
+          current = {
+            fg = "#${colors.base05}";
+            bg = "#${colors.base02}";
+          };
+          preview = {
+            underline = true;
+          };
+        };
 
         mgr = {
           cwd = {
             fg = "#${colors.base0C}";
-          };
-          hovered = {
-            fg = "#${colors.base05}";
-            bg = "#${colors.base02}";
-          };
-          preview_hovered = {
-            underline = true;
           };
           find_keyword = {
             fg = "#${colors.base0B}";
@@ -79,27 +85,13 @@ delib.module {
         };
 
         status = {
-          separator_open = "";
-          separator_close = "";
-          separator_style = {
-            fg = "#${colors.base02}";
-            bg = "#${colors.base02}";
+          sep_left = {
+            open = "";
+            close = "";
           };
-
-          mode_normal = {
-            fg = "#${colors.base00}";
-            bg = "#${colors.base0D}";
-            bold = true;
-          };
-          mode_select = {
-            fg = "#${colors.base00}";
-            bg = "#${colors.base0C}";
-            bold = true;
-          };
-          mode_unset = {
-            fg = "#${colors.base00}";
-            bg = "#${colors.base0F}";
-            bold = true;
+          sep_right = {
+            open = "";
+            close = "";
           };
 
           progress_label = {

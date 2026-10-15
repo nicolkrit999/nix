@@ -2,7 +2,7 @@
 delib.module {
   name = "programs.zen.browser";
 
-  home.ifEnabled = { ... }: {
+  home.ifEnabled = {
     programs.zen-browser = {
       policies = {
         DisablePocket = true;
@@ -11,8 +11,6 @@ delib.module {
       };
 
       profiles.default.settings = {
-        "zen.view.compact.hide-tabbar" = true;
-
         "zen.view.compact.enable-at-startup" = false;
         "zen.urlbar.behavior" = "float";
 
@@ -42,7 +40,6 @@ delib.module {
               "sponsorblocker_ajay_app-browser-action"
               "ublock0_raymondhill_net-browser-action"
               "jid0-gxjllfbcoax0lcltedfrekqdqpi_jetpack-browser-action"
-              "firefoxcolor_mozilla_com-browser-action"
               "_506e023c-7f2b-40a3-8066-bc5deb40aebe_-browser-action"
               "search_kagi_com-browser-action"
               "_d8b32864-153d-47fb-93ea-c273c4d1ef17_-browser-action"

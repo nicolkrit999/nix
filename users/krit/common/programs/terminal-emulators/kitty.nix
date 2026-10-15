@@ -17,8 +17,8 @@ delib.module {
       };
     };
 
-  nixos.ifEnabled = { myconfig, ... }: {
-    myconfig.stylix.targets.kitty.enable = !(myconfig.constants.theme.catppuccin or false);
+  myconfig.ifEnabled = { myconfig, ... }: {
+    stylix.targets.kitty.enable = !myconfig.constants.theme.catppuccin;
   };
 
   home.ifEnabled =
@@ -26,35 +26,42 @@ delib.module {
     let
       isDarwin = moduleSystem == "darwin";
       cfg = myconfig.krit.programs.kitty;
+      terminal = myconfig.constants.terminal;
+
+      hasStylixPalette = (builtins.tryEval config.lib.stylix.colors.base00).success;
+      colors =
+        if hasStylixPalette then config.lib.stylix.colors
+        else {
+          base00 = "1e1e2e";
+          base0D = "89b4fa";
+        };
+
+      stylixKittyOn = myconfig.stylix.enable && (myconfig.stylix.targets.kitty.enable or true);
     in
     {
       home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
       fonts.fontconfig.enable = true;
 
-      catppuccin.kitty.enable = myconfig.constants.theme.catppuccin or false;
-      catppuccin.kitty.flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
+      catppuccin.kitty.enable = myconfig.constants.theme.catppuccin;
+      catppuccin.kitty.flavor = myconfig.constants.theme.catppuccinFlavor;
 
       programs.kitty = {
         enable = true;
         settings = {
-          font_family = "JetBrainsMono Nerd Font";
+          font_family = lib.mkIf (!stylixKittyOn) "JetBrainsMono Nerd Font";
           background_opacity = lib.mkForce "1.0";
           copy_on_select = "yes";
           window_padding_width = 4;
           confirm_os_window_close = 0;
           enable_audio_bell = false;
           mouse_hide_wait = "3.0";
-          shell_integration = "enabled";
 
-          cursor_shape = myconfig.constants.terminal.cursorStyle or "block";
-          cursor_blink_interval = if (myconfig.constants.terminal.cursorBlink or true) then "0.75 ease-in-out" else "0";
-          cursor = "#${config.lib.stylix.colors.base0D}"; # Accent blue (base0D) — distinct from text (base05) and background (base00)
-          cursor_text_color = "#${config.lib.stylix.colors.base00}"; # Background color under cursor for contrast
-          cursor_beam_thickness = toString (myconfig.constants.terminal.cursorBeamWidth or 3.0);
+          cursor_shape = terminal.cursorStyle;
+          cursor_blink_interval = if terminal.cursorBlink then "0.75 ease-in-out" else "0";
+          cursor_beam_thickness = toString terminal.cursorBeamWidth;
 
           cursor_trail = 200; # Min stationary time in ms before trail triggers
           cursor_trail_decay = "0.15 0.4"; # Slow decay — trail lingers 150-400ms for visible effect
-          cursor_trail_start_threshold = 2; # Min cell-distance to trigger trail (filters micro-moves)
         }
         // lib.optionalAttrs (cfg.fontSize != null) {
           font_size = cfg.fontSize;
@@ -62,6 +69,13 @@ delib.module {
         // lib.optionalAttrs isDarwin {
           macos_option_as_alt = "yes";
         };
+
+        # Accent (base0D) cursor with the background colour (base00) under it. Must come
+        # after the stylix theme include (order 1000), which sets both keys to base05.
+        extraConfig = lib.mkAfter ''
+          cursor #${colors.base0D}
+          cursor_text_color #${colors.base00}
+        '';
       };
     };
 }

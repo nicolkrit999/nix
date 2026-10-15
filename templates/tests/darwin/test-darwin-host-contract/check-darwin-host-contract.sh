@@ -63,7 +63,7 @@ run_check check-sops-key-under-home     "age.keyFile lives under the user's home
 run_check check-sops-no-ssh-paths       "age/gnupg sshKeyPaths empty"
 run_check check-nix-extraoptions-include "nix.extraOptions !include github PAT secret path"
 run_check check-github-key-path         "github_general_ssh_key.path"
-run_check check-github-key-mode         "github_general_ssh_key.mode == 0600"
+run_check check-github-key-mode         "github_general_ssh_key.mode == 0400"
 run_check check-mcp-secrets-declared    "mcpSecrets all declared in sops.secrets"
 
 echo -e "${BOLD}homebrew${NC}"

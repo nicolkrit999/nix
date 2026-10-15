@@ -19,6 +19,7 @@ delib.host {
       codex.enable = true; # guest/secure-travel disable
       herdr.enable = true; # guest/secure-travel disable
       headroom.enable = true; # guest/secure-travel disable
+      zen.browser.enable = true; # secure-travel disables
       fastfetch.enable = true; # safe-mode disables
       hyprland.execOnce = [ "zapzap" ]; # deep-focus replaces
       niri.execOnce = [ "zapzap" ]; # deep-focus replaces

@@ -29,10 +29,6 @@ delib.module {
           myconfig.constants.theme.base16Theme
         }.yaml";
 
-        opacity = {
-          terminal = 0.90;
-        };
-
         fonts = {
           monospace = {
             package = pkgs.nerd-fonts.jetbrains-mono;

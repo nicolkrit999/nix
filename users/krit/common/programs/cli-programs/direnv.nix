@@ -4,12 +4,10 @@ delib.module {
   options = delib.singleEnableOption false;
 
   home.ifEnabled =
+    { myconfig, ... }:
     let
-      isDarwin = moduleSystem == "darwin";
-      devEnvBase =
-        if isDarwin
-        then "/Users/krit/nix/templates/krit/dev-environments"
-        else "/home/krit/nix/templates/krit/dev-environments";
+      homeDir = "${if moduleSystem == "darwin" then "/Users" else "/home"}/${myconfig.constants.user}";
+      devEnvBase = "${homeDir}/${myconfig.constants.flakeDir}/templates/krit/dev-environments";
     in
     {
       programs.direnv = {

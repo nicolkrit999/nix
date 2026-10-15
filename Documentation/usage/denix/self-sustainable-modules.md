@@ -11,6 +11,6 @@ If a module names a font family (CSS `font-family`, hyprlock `font_family`, kitt
 
 The only exception is a module that explicitly depends on another module that is guaranteed to ship the font. The always-on global list in `modules/nixos/toplevel/common-configuration-nixos.nix` counts as a provider on NixOS only; it is not loaded on Darwin or in standalone home builds, so it is not a substitute.
 
-Duplicates across modules are harmless and intended; do not remove a module's own font package because another module also ships it. Modules that follow the stylix fonts (alacritty, KDE, GNOME) need nothing, stylix installs the configured packages.
+Duplicates across modules are harmless and intended; do not remove a module's own font package because another module also ships it. Modules that follow the stylix fonts (KDE, GNOME) need nothing, stylix installs the configured packages. Alacritty follows the stylix fonts too, except in catppuccin mode (stylix target off), where it falls back to its own JetBrainsMono Nerd Font and ships that package itself.
 
 The same principle applies beyond fonts (icon themes, helper binaries, runtime libraries).

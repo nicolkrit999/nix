@@ -18,6 +18,15 @@ let
     ])
     (_: { enable = lib.mkForce false; });
 
+  hasKritProgram = n: options ? myconfig.krit.programs.${n};
+  kritPrograms =
+    lib.genAttrs
+      (lib.filter hasKritProgram [ "pwas" "firefox" "chromium" "helium" ])
+      (_: { enable = lib.mkForce false; })
+    // lib.optionalAttrs (hasKritProgram "librewolf") {
+      librewolf.enable = lib.mkForce true;
+    };
+
   exitNodeWarn = pkgs.writeShellApplication {
     name = "secure-travel-exitnode-warn";
     runtimeInputs = [ pkgs.jq pkgs.libnotify pkgs.tailscale ];
@@ -106,6 +115,9 @@ delib.module {
         programs = {
           # Use GNOME (well-audited, large security team)
           gnome.enable = lib.mkForce true;
+          gnome.pinnedApps = lib.mkForce (map
+            (a: if a == "zen-beta.desktop" then "librewolf-privacy.desktop" else a)
+            config.myconfig.programs.gnome.pinnedApps);
 
           # Disable other DEs/WMs
           caelestia.enable = lib.mkForce false;
@@ -125,7 +137,12 @@ delib.module {
           herdr.enable = lib.mkForce false; # AI agent multiplexer
           nix-alien.enable = lib.mkForce false; # Same concern
           nix-ld.enable = lib.mkForce false; # Allows unpatched binaries
+
+          # LibreWolf (Privacy profile) and Tor Browser are the only browsers here
+          zen.browser.enable = lib.mkForce false;
         };
+
+        constants.browser = lib.mkForce "librewolf";
 
         # ---------------------------------------------------------
         # 3. 🔧 SERVICES
@@ -154,6 +171,9 @@ delib.module {
           {
             myconfig.krit.programs.claude-code-wrappers.enable = lib.mkForce false; # Bundles claude
           }
+        ++ lib.optional (kritPrograms != { }) {
+          myconfig.krit.programs = kritPrograms;
+        }
         ++ lib.optional (nasOff != { }) {
           # I-09: the NAS consumers are tailnet-only and stay off in travel mode.
           myconfig.krit.services.nas = nasOff;
@@ -211,7 +231,14 @@ delib.module {
       # ---------------------------------------------------------
       # 5. 👤 HOME-MANAGER
       # ---------------------------------------------------------
-      home-manager.users.${myUserName} = { pkgs, lib, ... }: {
+      home-manager.users.${myUserName} = { config, pkgs, lib, ... }: {
+        programs.librewolf = lib.mkIf config.programs.librewolf.enable {
+          profiles = {
+            default.isDefault = lib.mkForce false;
+            privacy.isDefault = lib.mkForce true;
+          };
+        };
+
         home.packages = [ pkgs.trayscale ]
           ++ lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [ pkgs.tor-browser ];
 

@@ -57,8 +57,8 @@ delib.module {
           };
         };
       });
-      # Default for every host that does not override it (Nicol-NAS does; the
-      # Darwin sops declarations keep their own static list).
+      # Default for every host that does not override it (Nicol-NAS does); the
+      # sops declarations on all platforms derive from this list.
       default = [
         { sopsSecret = "openrouter_api_claude_code"; envVar = "OPENROUTER_API_KEY"; }
         { sopsSecret = "claude_mcp_actual_password"; envVar = "ACTUAL_PASSWORD"; }

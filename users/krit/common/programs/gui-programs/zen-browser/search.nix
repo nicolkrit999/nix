@@ -2,7 +2,7 @@
 delib.module {
   name = "programs.zen.browser";
 
-  home.ifEnabled = { ... }: {
+  home.ifEnabled = {
     programs.zen-browser.profiles.default.search = {
       force = true;
       default = "kagi";

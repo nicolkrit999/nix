@@ -26,7 +26,7 @@ Needs `nix`, `jq`, `bash`. Eval-only (no builds); both hosts evaluate in paralle
 `check-nixos-spec-real-hosts-security.sh` evaluates `results` once per host, prints a PASS/FAIL line per check
 It exits non-zero on any failure.
 
-The guest persistence checks use an `extendModules` twin that persists the excluded directories (linger, docker, containers, tailscale, flatpak, snapper), so the filter is exercised on both hosts. Guest checks compare independent sources (uid vs gid vs tmpfs `uid=`/`gid=` options vs firewall `--uid-owner` vs slice name; AccountsService session vs `defaultSession`) rather than hardcoded literals. `control:` checks prove the main checks can fail (the base config has no guest user, a DE enabled, a non-locked root, a service the guest turns off, a different PAT mode, `allowed-users` and groups, and the tailscale firewall opened and trusted). For localsend the scenario builds two `extendModules` twins of the real host with `myconfig.services.localsend.enable` forced on and off: the enabled twin must open TCP and UDP 53317 and install `programs.localsend.package` system-wide, the disabled twin must not open 53317. That proves the port the secure-travel `allowed*Ports == []` check removes really comes from the module, without asserting whether a host enables localsend.
+The guest persistence checks use an `extendModules` twin that persists the excluded directories (linger, docker, containers, tailscale, flatpak, snapper), so the filter is exercised on both hosts. Guest checks compare independent sources (uid vs gid vs tmpfs `uid=`/`gid=` options vs firewall `--uid-owner` vs slice name; AccountsService session vs `defaultSession`) rather than hardcoded literals. `control:` checks prove the main checks can fail (the base config has no guest user, a DE enabled, a non-locked root, a service the guest turns off, `allowed-users` and groups, and the tailscale firewall opened and trusted). For localsend the scenario builds two `extendModules` twins of the real host with `myconfig.services.localsend.enable` forced on and off: the enabled twin must open TCP and UDP 53317 and install `programs.localsend.package` system-wide, the disabled twin must not open 53317. That proves the port the secure-travel `allowed*Ports == []` check removes really comes from the module, without asserting whether a host enables localsend.
 
 Scope: only specialisation purpose contracts are asserted (guest isolation, secure-travel hardening and GNOME-only, entertainment). Which specialisations a host declares is a host choice and is not checked. The hosts are the real ones, so no fake host is involved.
 
@@ -56,7 +56,7 @@ secure-travel keeps tailscale on (it is the VPN, an exit node is picked by hand)
 | AccountsService tmpfiles rule | contains escaped `[User]\nSession=xfce\n`, no real newline, session equals `defaultSession` |
 | DEs | hyprland, niri, mango, gnome, kde, cosmic all `false` |
 | stylix, bluetooth | `false` |
-| tags / controls | tags contain `guest`; base has no guest user, a DE enabled, a service the guest turns off, a different PAT mode / `allowed-users`, `networkmanager` in the main user's groups, a krit nas/cloud/mount module on; twin persists linger |
+| tags / controls | tags contain `guest`; base has no guest user, a DE enabled, a service the guest turns off, a world-readable base PAT mode that the guest still forces to `0400` / `allowed-users`, `networkmanager` in the main user's groups, a krit nas/cloud/mount module on; twin persists linger |
 
 ### secure-travel
 | Check | Expected |

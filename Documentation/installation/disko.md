@@ -88,7 +88,7 @@ baseExclude = [
 ./hosts/template-host-minimal/disko-config-btrfs-luks-impermanence.nix
 
 # Opinionated modules exclusion (if you remove the librewolf folder you can remove this exclusion)
-./users/krit/common/programs/gui-programs/librewolf/profiles # `librewolf.nix` already imports them
+./users/krit/common/programs/gui-programs/librewolf/profiles # `librewolf-common.nix` already imports them
 ];
 
 ```

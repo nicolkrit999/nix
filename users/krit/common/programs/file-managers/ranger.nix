@@ -14,6 +14,8 @@ delib.module {
     }:
     let
       isNixOS = moduleSystem == "nixos";
+      terminal = myconfig.constants.terminal.name;
+      opener = if moduleSystem == "darwin" then "open" else "xdg-open";
     in
     {
       home.packages =
@@ -25,16 +27,15 @@ delib.module {
         ];
 
       programs.ranger = {
-        enable = false;
+        enable = true;
         rifle = [
           {
             condition = "flag f";
-            command = ''xdg-open "$1"'';
+            command = ''${opener} "$1"'';
           }
           {
-            # Catch-all for everything else.
             condition = "else";
-            command = ''xdg-open "$1"'';
+            command = ''${opener} "$1"'';
           }
         ];
 
@@ -50,82 +51,90 @@ delib.module {
           preview_images = true; # Enable image previews in terminal
           preview_images_method =
             if
-              builtins.elem myconfig.constants.terminal.name [
+              builtins.elem terminal [
                 "kitty"
                 "ghostty"
                 "konsole"
                 "wezterm"
                 "rio"
-                "iterm2"
               ]
             then
               "kitty"
+            else if terminal == "iterm2" then
+              "iterm2"
             else if
-              builtins.elem myconfig.constants.terminal.name [
+              builtins.elem terminal [
                 "foot"
                 "blackbox"
               ]
             then
               "sixel"
             else
-              "ueberzug"; # Use kitty or ueberzug for image previews
-          wrap_scroll = true; # Enable smooth scrolling
+              "ueberzug"; # kitty protocol, iTerm2 inline images, sixel, or ueberzug as fallback
+          wrap_scroll = true; # Wrap around at the ends of a list
           draw_borders = true; # Draws borders between columns
           w3m_delay = 0; # Instant rendering for w3m previews
         };
 
-        # -----------------------------------------------------
-        # 🎨 THEMING & ICONS
-        # -----------------------------------------------------
         extraConfig = ''
-          # Enables devicons2 to show Nerd Font icons next to filenames
           default_linemode devicons2
         '';
 
-        # -----------------------------------------------------
-        # 🧩 PLUGINS
-        # -----------------------------------------------------
         plugins = [
-          # Standard archive management (zip/tar/7z)
           {
             name = "ranger-archives";
-            src = builtins.fetchGit {
-              url = "https://github.com/maximtrp/ranger-archives";
-              ref = "master";
+            src = pkgs.fetchFromGitHub {
+              owner = "maximtrp";
+              repo = "ranger-archives";
               rev = "b4e136b24fdca7670e0c6105fb496e5df356ef25";
+              hash = "sha256-QJu5G2AYtwcaE355yhiG4wxGFMQvmBWvaPQGLsi5x9Q=";
             };
           }
-
-          # Nerd Font icon integration
           {
             name = "ranger-devicons2";
-            src = builtins.fetchGit {
-              url = "https://github.com/cdump/ranger-devicons2";
-              ref = "master";
+            src = pkgs.fetchFromGitHub {
+              owner = "cdump";
+              repo = "ranger-devicons2";
               rev = "94bdcc19218681debb252475fd9d11cfd274d9b1";
+              hash = "sha256-aJCIoDfzmOnzMLlbOe+dy6129n5Dc4OrefhHnPsgI8k=";
             };
           }
-
-          # Persistence for Tmux sessions
           {
-            name = "ranger_tmux";
-            src = builtins.fetchGit {
-              url = "https://github.com/joouha/ranger_tmux";
-              ref = "master";
+            name = "ranger_tmux"; # tmux integration
+            src = pkgs.fetchFromGitHub {
+              owner = "joouha";
+              repo = "ranger_tmux";
               rev = "05ba5ddf2ce5659a90aa0ada70eb1078470d972a";
+              hash = "sha256-KCBOPwhG4U/k2a/Dp/+fZeetFz/PW9424zi3NlLsDj0=";
+            };
+          }
+          {
+            name = "ranger_udisk_menu"; # imported by commands.py below
+            src = pkgs.fetchFromGitHub {
+              owner = "SL-RU";
+              repo = "ranger_udisk_menu";
+              rev = "d676b7d5406d804ea4ceb894768674a740d95ebb";
+              hash = "sha256-AzuWe6KXXusUfn8UABRq93/tvtiUB1OIlxGiljNuc2g=";
+            };
+          }
+          {
+            name = "fzf-marks"; # provides the fzm command mapped to b
+            src = pkgs.fetchFromGitHub {
+              owner = "laggardkernel";
+              repo = "ranger-fzf-marks";
+              rev = "1d0c42cd4fd01c73bcb02e3cebcec22987b8a46d";
+              hash = "sha256-6Li/vLdtKItCpLwa+wX/C2FO+AW1hWPcKy/sx7KSZrM=";
             };
           }
         ];
       };
 
-      # Custom python command to enable udisk mounting support
       home.file.".config/ranger/commands.py".text = "from plugins.ranger_udisk_menu.mounter import mount";
 
-      # XDG desktop entries only for NixOS (not relevant on macOS)
-      xdg.desktopEntries.ranger = lib.mkIf isNixOS (lib.mkForce {
+      xdg.desktopEntries.ranger = lib.mkIf isNixOS {
         name = "Ranger";
         genericName = "File Manager";
-        exec = "${myconfig.constants.terminal.name} --class ranger -e ranger";
+        exec = "${pkgs.${terminal}}/bin/${terminal} --class ranger -e ${pkgs.ranger}/bin/ranger";
         terminal = false;
         categories = [
           "System"
@@ -133,6 +142,6 @@ delib.module {
           "FileManager"
         ];
         mimeType = [ "inode/directory" ];
-      });
+      };
     };
 }

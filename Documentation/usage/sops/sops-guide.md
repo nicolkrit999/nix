@@ -108,7 +108,9 @@ Common secrets (like WiFi passwords) must be readable by **all** machines. that 
 sops users/krit/common/sops/krit-common-secrets-sops.yaml
 ```
 
-_Note: If you add a NEW host later, you must re-open and save this file so the new host's key is added to the encryption header._ 3. **Use in Nix:** Common secrets are already wired in `users/krit/common/toplevel/sops-secrets.nix` (enabled via `krit.commonSopsSecrets.enable`); for a new one, point to this specific file:
+_Note: If you add a NEW host later, adding its key to `.sops.yaml` is not enough: re-saving the file does not re-encrypt it for new recipients. Run `sops updatekeys users/krit/common/sops/krit-common-secrets-sops.yaml` so the new host's key is added to the encryption header._
+
+3. **Use in Nix:** Common secrets are already wired in `users/krit/common/toplevel/sops-secrets.nix` (enabled via `krit.commonSopsSecrets.enable`); for a new one, point to this specific file:
 
 ```nix
 sops.secrets.wifi_password.sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
