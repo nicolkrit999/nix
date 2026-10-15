@@ -8,6 +8,7 @@
 let
   myUserName = config.myconfig.constants.user;
   hasClaudeWrappers = options ? myconfig.krit.programs.claude-code-wrappers;
+  hasNetworkTools = options ? myconfig.krit.services.network-tools;
   nasOff = lib.genAttrs
     (lib.filter (n: options ? myconfig.krit.services.nas.${n}) [
       "desktop-borg-backup"
@@ -173,6 +174,10 @@ delib.module {
           }
         ++ lib.optional (kritPrograms != { }) {
           myconfig.krit.programs = kritPrograms;
+        }
+        ++ lib.optional hasNetworkTools {
+          # Packet capture and scanning tools (dumpcap wrapper, wireshark group) are attack surface in travel mode.
+          myconfig.krit.services.network-tools.enable = lib.mkForce false;
         }
         ++ lib.optional (nasOff != { }) {
           # I-09: the NAS consumers are tailnet-only and stay off in travel mode.
