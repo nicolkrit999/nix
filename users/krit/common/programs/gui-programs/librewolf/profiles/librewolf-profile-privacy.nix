@@ -7,6 +7,7 @@
 let
   # Origins keeping their data across the shutdown wipe, plus Gecko's built-in default permissions
   # (a defaultsUrl file replaces them). Fields are tab-separated.
+  # LibreWolf blanks defaultsUrl to drop these Mozilla-domain grants; re-granting them here is accepted.
   keepOrigins = [
     "https://nicolkrit.ch"
     "https://nicolkrit.cloudflareaccess.com"

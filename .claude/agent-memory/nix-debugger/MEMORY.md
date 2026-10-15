@@ -28,3 +28,4 @@
 - [CI tests narrow substituters](project_ci_tests_narrow_substituters.md) - test legs trust only 3 caches; krit-nixos eviction (noctalia, openlogi, doom) = silent source build -> timeout
 - [niri stylix-off HM stub](project_niri_stylix_off_hm_stub.md) - niri-flake injects HM stylix module always; niri.nix stubs stylix.enable when stylix off; 2nd declaration collides; kitty leak
 - [polkit_gnome XDG autostart dup](project_polkit_gnome_xdg_autostart_dup.md) - systemPackages polkit_gnome autostarts in every session next to WM spawns; test blind spot; XFCE guest keeps it
+- [LibreWolf pref precedence + Marionette](project_librewolf_pref_precedence_marionette.md) - mozilla.cfg pref() beats user.js; overrides.cfg + profile marker; harness needs remote.prefs.recommended=false

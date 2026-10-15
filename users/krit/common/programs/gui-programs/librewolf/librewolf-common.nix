@@ -136,6 +136,28 @@ delib.module {
         "network.trr.mode" = 2;
         "network.trr.uri" = "https://dns.quad9.net/dns-query";
       };
+
+      profileMarker = "nixcfg.librewolf.profile";
+
+      profiles = lib.mapAttrs (name: p: p // { settings = p.settings // { ${profileMarker} = name; }; }) {
+        default = import ./profiles/librewolf-profile-default.nix {
+          inherit addons searchConfig commonSettings;
+        };
+
+        privacy = import ./profiles/librewolf-profile-privacy.nix {
+          inherit pkgs lib addons searchConfig commonSettings;
+        };
+      };
+
+      # LibreWolf's mozilla.cfg pref() calls beat user.js; this file is evaluated after both.
+      overridesCfg = ''
+        var profile = getPref("${profileMarker}");
+      '' + lib.concatStrings (lib.mapAttrsToList
+        (name: p: ''
+          if (profile === ${builtins.toJSON name}) {
+          ${lib.concatStrings (lib.mapAttrsToList (k: v: "  pref(${builtins.toJSON k}, ${builtins.toJSON v});\n") p.settings)}}
+        '')
+        profiles);
     in
     {
       xdg.desktopEntries."librewolf-privacy" = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
@@ -151,18 +173,11 @@ delib.module {
         comment = "Launch LibreWolf in Hardened Privacy Mode";
       };
 
+      home.file.".librewolf/librewolf.overrides.cfg".text = overridesCfg;
+
       programs.librewolf = {
         enable = true;
-
-        profiles = {
-          default = import ./profiles/librewolf-profile-default.nix {
-            inherit addons searchConfig commonSettings;
-          };
-
-          privacy = import ./profiles/librewolf-profile-privacy.nix {
-            inherit pkgs lib addons searchConfig commonSettings;
-          };
-        };
+        inherit profiles;
       };
     };
 }
