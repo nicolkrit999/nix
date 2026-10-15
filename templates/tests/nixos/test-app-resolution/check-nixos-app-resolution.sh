@@ -25,12 +25,22 @@ for tool in nix jq bash; do
 done
 
 err=$(mktemp)
-json=$(nix eval --impure --json --file "$SCENARIO" results 2>"$err") || {
-  echo -e "  ${RED}✗ eval error${NC}"
+json='{}'
+if groups=$(nix eval --impure --json --file "$SCENARIO" groupNames 2>"$err" | jq -r '.[]'); [[ -n "$groups" ]]; then
+  for group in $groups; do
+    if part=$(GROUP="$group" nix eval --impure --json --file "$SCENARIO" --apply 'f: f (builtins.getEnv "GROUP")' groupResults 2>"$err"); then
+      json=$(jq -c --argjson p "$part" '. + $p' <<<"$json")
+    else
+      echo -e "  ${RED}✗ eval error (group $group)${NC}"
+      ((FAIL++)) || true
+      FAILURES+=("evaluation of group $group|$(grep -E 'error:' "$err" | head -3 | tr '\n' '~')")
+    fi
+  done
+else
+  echo -e "  ${RED}✗ eval error (group list)${NC}"
   ((FAIL++)) || true
-  FAILURES+=("evaluation|$(grep -E 'error:' "$err" | head -3 | tr '\n' '~')")
-  json='{}'
-}
+  FAILURES+=("evaluation of groupNames|$(grep -E 'error:' "$err" | head -3 | tr '\n' '~')")
+fi
 rm -f "$err"
 
 while IFS=$'\t' read -r label result; do

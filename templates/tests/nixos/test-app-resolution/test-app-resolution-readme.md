@@ -18,7 +18,7 @@ Or from inside the directory:
 bash check-nixos-app-resolution.sh
 ```
 
-Needs `nix`, `jq`, `bash`. Eval-only (no builds); about 4 minutes wall, 6 CPU-minutes (about 58 NixOS evaluations).
+Needs `nix`, `jq`, `bash`. Eval-only (no builds); about 2.5 minutes wall, 3 CPU-minutes warm (about 62 NixOS twin evaluations in 12 `nix eval` processes, peak about 5 GB RSS per process).
 
 ## How it works
 
@@ -27,6 +27,8 @@ Needs `nix`, `jq`, `bash`. Eval-only (no builds); about 4 minutes wall, 6 CPU-mi
 Measurements: a package counts as installed once per entry named after it (`lib.getName`) across `environment.systemPackages` plus the user's `home.packages`; launchers are the user's `xdg.desktopEntries` names; MIME defaults come from `xdg.mimeApps.defaultApplications`; warnings are those starting with `home-packages: constants` or `mime: constants`. The fake tree declares `services.flatpak.packages` (normally from nix-flatpak) in `shared/extra.nix` so flatpak-id twins can list apps. Package-provided `.desktop` contents are never asserted, only names the modules control.
 
 Every property is a function from a config to a list of problems. The real twins must give `[]`; each `control(...)` check applies the SAME function to a twin that breaks the property (a second install forced into `systemPackages`, the wrong module state for the MIME expectation, a second unknown role, mime disabled, home-packages disabled) and passes only when a problem is reported. Each check is wrapped in `tryEval`; the script refuses to pass with fewer than 85 checks.
+
+The checks are split into named groups (`groups` in the scenario: vanilla, editor, neovim, dolphin, browser, warnings, media, roles, roleControls, extras, desktopRoles, mime), and the script runs one `nix eval` per group (`groupNames`, then `groupResults "<group>"`), merging the results. Every twin stays reachable from the scenario's `let` for the whole process, so memory grows by about 300 MB per twin: one process for all twins peaked at 22 GB RSS and timed out on the 16 GB CI runner (run 38788879011). A group re-evaluates only the twins its own checks read (vanilla appears in several), so the peak is the biggest group, about 5 GB. `groupNames` throws if a label appears in two groups, and an `abort` in one group fails that group without hiding the others.
 
 Dolphin has no `programs.dolphin.enable` provider: home-packages installs `kdePackages.dolphin`, and the krit dolphin module only adds kio extras, so the scenario asserts a single dolphin and the `org.kde.dolphin.desktop` default.
 
