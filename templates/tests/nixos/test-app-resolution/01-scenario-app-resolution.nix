@@ -48,8 +48,17 @@ let
   entries = c: builtins.attrNames (hm c).xdg.desktopEntries;
   mimeOf = c: k: lib.toList (hm c).xdg.mimeApps.defaultApplications.${k};
   textTypes = [ "text/plain" "text/markdown" "application/x-shellscript" "application/json" "text/x-nix" ];
-  browserTypes = [ "text/html" "x-scheme-handler/http" "x-scheme-handler/https" "x-scheme-handler/about" "x-scheme-handler/unknown" "application/pdf" ];
-  warnsOf = c: builtins.filter (lib.hasPrefix "home-packages: constants ") c.warnings;
+  browserTypes = [ "text/html" "x-scheme-handler/http" "x-scheme-handler/https" "x-scheme-handler/about" "x-scheme-handler/unknown" ];
+  videoTypes = [ "video/mp4" "video/x-m4v" "video/quicktime" "video/x-matroska" "video/webm" "video/vnd.avi" "video/x-msvideo" "video/mp2t" "video/mpeg" "video/3gpp" "video/ogg" "video/x-flv" "application/mxf" ];
+  audioTypes = [ "audio/mpeg" "audio/mp3" "audio/mp4" "audio/x-m4a" "audio/aac" "audio/flac" "audio/ogg" "audio/vorbis" "audio/opus" "audio/x-wav" "audio/webm" "audio/x-ms-wma" "audio/x-aiff" "audio/x-ape" "audio/x-mpegurl" "audio/x-scpls" "application/ogg" ];
+  imageTypes = [ "image/jpeg" "image/png" "image/gif" "image/webp" ];
+  imageExtraTypes = [ "image/avif" "image/bmp" "image/tiff" "image/x-icon" "image/svg+xml" "image/heic" "image/jxl" "image/vnd.adobe.photoshop" "image/x-xcf" "image/x-adobe-dng" "image/x-canon-cr2" "image/x-nikon-nef" "image/x-sony-arw" ];
+  pdfTypes = [ "application/pdf" ];
+  docTypes = [ "application/vnd.openxmlformats-officedocument.wordprocessingml.document" "application/vnd.oasis.opendocument.text" "application/msword" "application/rtf" "text/rtf" ];
+  sheetTypes = [ "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" "application/vnd.oasis.opendocument.spreadsheet" "application/vnd.ms-excel" "text/csv" ];
+  slideTypes = [ "application/vnd.openxmlformats-officedocument.presentationml.presentation" "application/vnd.oasis.opendocument.presentation" "application/vnd.ms-powerpoint" ];
+  archiveTypes = [ "application/zip" "application/x-tar" "application/gzip" "application/x-xz" "application/x-bzip2" "application/zstd" "application/x-compressed-tar" "application/x-7z-compressed" "application/vnd.rar" ];
+  warnsOf = c: builtins.filter (w: lib.hasPrefix "home-packages: constants " w || lib.hasPrefix "mime: constants " w) c.warnings;
 
   ok = "ok";
   failIf = problems: if problems == [ ] then ok else "FAIL: ${builtins.concatStringsSep "; " problems}";
@@ -103,6 +112,33 @@ let
   ];
   unknownBrowser = twin bareSys [ (constants { browser = "no-such-browser-xyz"; }) ];
   unknownTwo = twin bareSys [ (constants { browser = "no-such-browser-xyz"; fileManager = "no-such-fm-xyz"; }) ];
+  flatpakCraft = [{ services.flatpak.packages = [{ appId = "ai.storyteller.wordcraft"; } "ai.storyteller.gridcraft"]; }];
+  docCraft = [ (constants { docEditor = "ai.storyteller.wordcraft"; sheetEditor = "ai.storyteller.gridcraft"; }) ];
+  craftPresent = twin bareSys (docCraft ++ flatpakCraft);
+  craftMissing = twin bareSys docCraft;
+  vlcVideo = twin bareSys [ (constants { videoPlayer = "vlc"; audioPlayer = "vlc"; }) ];
+  unknownVideo = twin bareSys [ (constants { videoPlayer = "no-such-player-xyz"; }) ];
+  officeCraftMods = [
+    (constants { docEditor = "ai.storyteller.wordcraft"; sheetEditor = "ai.storyteller.gridcraft"; slideEditor = "ai.storyteller.deckcraft"; })
+    { services.flatpak.packages = [{ appId = "ai.storyteller.wordcraft"; } "ai.storyteller.gridcraft" "ai.storyteller.deckcraft"]; }
+  ];
+  officeCraft = twin bareSys officeCraftMods;
+  imageCraftWant = constants { imageViewer = "ai.storyteller.photocraft"; };
+  imageCraft = twin bareSys [ imageCraftWant { services.flatpak.packages = [ "ai.storyteller.photocraft" ]; } ];
+  imageCraftMissing = twin bareSys [ imageCraftWant ];
+  pdfOkular = twin bareSys [ (constants { pdfViewer = "okular"; }) ];
+  archiveFileRoller = twin bareSys [ (constants { archiveManager = "file-roller"; }) ];
+  archiveXarchiver = twin bareSys [ (constants { archiveManager = "xarchiver"; }) ];
+  unknownArchive = twin bareSys [ (constants { archiveManager = "no-such-archiver-xyz"; }) ];
+  zathuraHmMod = { home-manager.users.krit.programs.zathura.enable = true; };
+  zathuraHm = twin bareSys [ zathuraHmMod ];
+  playerWrapper = twin bareSys [
+    (constants { videoPlayer = "my-player"; })
+    { home-manager.users.krit.home.packages = [ (pk.writeShellScriptBin "my-player" "true") ]; }
+  ];
+  mpvExplicit = twin bareSys [ (constants { videoPlayer = "mpv"; audioPlayer = "mpv"; }) ];
+  roleNames = [ "videoPlayer" "audioPlayer" "imageViewer" "pdfViewer" "docEditor" "sheetEditor" "slideEditor" "archiveManager" ];
+  allUnknown = twin bareSys [ (constants (lib.genAttrs roleNames (r: "no-such-${r}-xyz"))) ];
   unknownEditor = twin bareSys [ (constants { editor = "no-such-editor-xyz"; }) ];
 
   mailThunderbird = twin bareSys [{ myconfig.programs.thunderbird.enable = true; }];
@@ -114,6 +150,29 @@ let
   mimeOff = twin bareSys [{ myconfig.mime.enable = mk false; }];
   homePkgsOff = twin bareSys [{ myconfig.home-packages.enable = mk false; }];
 
+  extraWarnsOf = c: builtins.filter (lib.hasPrefix "mime: constants extraAppPackages") c.warnings;
+  extraTwin = list: twin bareSys [ (constants { extraAppPackages = list; }) ];
+  extraHello = extraTwin [ "hello" ];
+  extraKate = extraTwin [ "kate" ];
+  extraUnknown = extraTwin [ "no-such-extra-xyz" ];
+  extraMixed = extraTwin [ "hello" "no-such-extra-a" "no-such-extra-b" "hello" ];
+  extraMpv = extraTwin [ "mpv" ];
+  extraZathuraHm = twin bareSys [ zathuraHmMod (constants { extraAppPackages = [ "zathura" ]; }) ];
+  extraWrapper = twin bareSys [
+    (constants { extraAppPackages = [ "my-extra-wrapper" ]; })
+    { home-manager.users.krit.home.packages = [ (pk.writeShellScriptBin "my-extra-wrapper" "true") ]; }
+  ];
+  kateDesktop = "org.kde.kate.desktop";
+  kateRole = twin bareSys [ (constants { docEditor = kateDesktop; extraAppPackages = [ "kate" ]; }) ];
+  kateRoleNoExtra = twin bareSys [ (constants { docEditor = kateDesktop; }) ];
+  kateRoleWrongExtra = twin bareSys [ (constants { docEditor = kateDesktop; extraAppPackages = [ "hello" ]; }) ];
+  craftDesktopMods = [ (constants { docEditor = "ai.storyteller.wordcraft.desktop"; }) ];
+  craftDesktopPresent = twin bareSys (craftDesktopMods ++ flatpakCraft);
+  craftDesktopMissing = twin bareSys craftDesktopMods;
+  rollerDesktop = twin bareSys [ (constants { archiveManager = "org.gnome.FileRoller.desktop"; extraAppPackages = [ "file-roller" ]; }) ];
+  safeEval = v: (builtins.tryEval (builtins.deepSeq v true)).success;
+  mpvName = lib.getName pk.mpv;
+  zathuraName = lib.getName pk.zathura;
   allOnce = c: ns: lib.concatMap (onceProblems c) ns;
   execOf = c: e: (hm c).xdg.desktopEntries.${e}.exec;
   forceOf = c: (hm c).xdg.configFile."mimeapps.list".force or false;
@@ -130,7 +189,7 @@ let
       failIf (mimeProblems vanilla (browserTypes ++ [ "x-scheme-handler/mailto" ]) "chromium-browser.desktop");
     "vanilla: inode/directory -> yazi.desktop, images -> gwenview" =
       failIf (mimeProblems vanilla [ "inode/directory" ] "yazi.desktop"
-        ++ mimeProblems vanilla [ "image/jpeg" "image/png" "image/gif" "image/webp" ] "org.kde.gwenview.desktop");
+        ++ mimeProblems vanilla imageTypes "org.kde.gwenview.desktop");
     "control(once): a second install is detected" =
       detects "two chromium" (onceProblems (dupInstall bareSys [ ] pk.chromium) "chromium");
     "control(once): home-packages disabled installs nothing" =
@@ -212,6 +271,155 @@ let
       detects "extra warning" (loneWarnProblems unknownTwo "browser" "no-such-browser-xyz");
     "control(warnings): the quiet check sees the unknown-name warning" =
       detects "warning" (quietProblems unknownBrowser);
+
+    "vanilla: media defaults (video/audio mpv, pdf zathura, office writer/calc/impress, archives ark), no warning" =
+      failIf (mimeProblems vanilla videoTypes "mpv.desktop" ++ mimeProblems vanilla audioTypes "mpv.desktop"
+        ++ mimeProblems vanilla pdfTypes "org.pwmt.zathura.desktop"
+        ++ mimeProblems vanilla docTypes "writer.desktop" ++ mimeProblems vanilla sheetTypes "calc.desktop"
+        ++ mimeProblems vanilla slideTypes "impress.desktop" ++ mimeProblems vanilla archiveTypes "org.kde.ark.desktop"
+        ++ quietProblems vanilla);
+    "videoPlayer/audioPlayer vlc: vlc installed once, vlc.desktop for video and audio, no warning" =
+      failIf (onceProblems vlcVideo "vlc" ++ mimeProblems vlcVideo (videoTypes ++ audioTypes) "vlc.desktop" ++ quietProblems vlcVideo);
+    "flatpak id present in services.flatpak.packages: used as <id>.desktop, nothing installed for it, no warning" =
+      failIf (mimeProblems craftPresent docTypes "ai.storyteller.wordcraft.desktop" ++ mimeProblems craftPresent sheetTypes "ai.storyteller.gridcraft.desktop"
+        ++ mimeProblems craftPresent slideTypes "impress.desktop" ++ quietProblems craftPresent
+        ++ lib.optional (installs craftPresent "wordcraft" != 0) "wordcraft installed");
+    "flatpak id missing from services.flatpak.packages: falls back to the bare default with one warning per role" =
+      all [
+        (failIf (mimeProblems craftMissing docTypes "writer.desktop" ++ mimeProblems craftMissing sheetTypes "calc.desktop"))
+        (eq "warning count" (builtins.length (warnsOf craftMissing)) 2)
+        (eq "docEditor warned once" (builtins.length (builtins.filter (lib.hasInfix "constants docEditor = \"ai.storyteller.wordcraft\"") (warnsOf craftMissing))) 1)
+      ];
+    "unknown videoPlayer: falls back to mpv.desktop with exactly one warning" =
+      failIf (mimeProblems unknownVideo videoTypes "mpv.desktop" ++ loneWarnProblems unknownVideo "videoPlayer" "no-such-player-xyz");
+    "vanilla: bare role apps (mpv, libreoffice, zathura, ark, gwenview) installed exactly once, shared roles not doubled" =
+      failIf (allOnce vanilla [ mpvName "libreoffice" zathuraName "ark" "gwenview" ]);
+    "vanilla: extra image types (avif bmp tiff svg heic jxl psd xcf dng RAW) -> gwenview" =
+      failIf (mimeProblems vanilla imageExtraTypes "org.kde.gwenview.desktop");
+    "explicit mpv equals the default: no warning, mpv still once" =
+      failIf (onceProblems mpvExplicit mpvName ++ mimeProblems mpvExplicit (videoTypes ++ audioTypes) "mpv.desktop" ++ quietProblems mpvExplicit);
+    "pdfViewer okular (kdePackages): okular once, zathura not installed, org.kde.okular.desktop, no warning" =
+      failIf (onceProblems pdfOkular "okular" ++ mimeProblems pdfOkular pdfTypes "org.kde.okular.desktop" ++ quietProblems pdfOkular
+        ++ lib.optional (installs pdfOkular zathuraName != 0) "zathura still installed");
+    "archiveManager file-roller: file-roller once, ark not installed, org.gnome.FileRoller.desktop, no warning" =
+      failIf (onceProblems archiveFileRoller "file-roller" ++ mimeProblems archiveFileRoller archiveTypes "org.gnome.FileRoller.desktop" ++ quietProblems archiveFileRoller
+        ++ lib.optional (installs archiveFileRoller "ark" != 0) "ark still installed");
+    "archiveManager xarchiver (name without a table entry): xarchiver once, xarchiver.desktop, ark not installed, no warning" =
+      failIf (onceProblems archiveXarchiver "xarchiver" ++ mimeProblems archiveXarchiver archiveTypes "xarchiver.desktop" ++ quietProblems archiveXarchiver
+        ++ lib.optional (installs archiveXarchiver "ark" != 0) "ark still installed");
+    "pdfViewer zathura via home-manager programs.zathura.enable: still exactly one zathura, no warning" =
+      failIf (onceProblems zathuraHm zathuraName ++ mimeProblems zathuraHm pdfTypes "org.pwmt.zathura.desktop" ++ quietProblems zathuraHm);
+    "videoPlayer wrapper in home.packages: <name>.desktop, installed once, no warning, audio keeps mpv" =
+      failIf (onceProblems playerWrapper "my-player" ++ mimeProblems playerWrapper videoTypes "my-player.desktop"
+        ++ mimeProblems playerWrapper audioTypes "mpv.desktop" ++ quietProblems playerWrapper);
+    "all three office roles on present flatpak ids: libreoffice is not installed at all" =
+      failIf (mimeProblems officeCraft slideTypes "ai.storyteller.deckcraft.desktop" ++ mimeProblems officeCraft sheetTypes "ai.storyteller.gridcraft.desktop"
+        ++ mimeProblems officeCraft docTypes "ai.storyteller.wordcraft.desktop" ++ quietProblems officeCraft
+        ++ lib.optional (installs officeCraft "libreoffice" != 0) "libreoffice installed ${toString (installs officeCraft "libreoffice")} times");
+    "imageViewer on a present flatpak id: every image type -> <id>.desktop, gwenview not installed, no warning" =
+      failIf (mimeProblems imageCraft (imageTypes ++ imageExtraTypes) "ai.storyteller.photocraft.desktop" ++ quietProblems imageCraft
+        ++ lib.optional (installs imageCraft "gwenview" != 0) "gwenview still installed");
+    "imageViewer on a missing flatpak id: gwenview for every image type, one warning" =
+      failIf (mimeProblems imageCraftMissing (imageTypes ++ imageExtraTypes) "org.kde.gwenview.desktop" ++ onceProblems imageCraftMissing "gwenview"
+        ++ loneWarnProblems imageCraftMissing "imageViewer" "ai.storyteller.photocraft");
+    "unknown archiveManager: falls back to org.kde.ark.desktop with exactly one warning" =
+      failIf (mimeProblems unknownArchive archiveTypes "org.kde.ark.desktop" ++ onceProblems unknownArchive "ark"
+        ++ loneWarnProblems unknownArchive "archiveManager" "no-such-archiver-xyz");
+    "every role unknown: each falls back to its bare default, exactly one warning per role" =
+      all [
+        (failIf (mimeProblems allUnknown (videoTypes ++ audioTypes) "mpv.desktop" ++ mimeProblems allUnknown (imageTypes ++ imageExtraTypes) "org.kde.gwenview.desktop"
+          ++ mimeProblems allUnknown pdfTypes "org.pwmt.zathura.desktop" ++ mimeProblems allUnknown docTypes "writer.desktop"
+          ++ mimeProblems allUnknown sheetTypes "calc.desktop" ++ mimeProblems allUnknown slideTypes "impress.desktop"
+          ++ mimeProblems allUnknown archiveTypes "org.kde.ark.desktop" ++ allOnce allUnknown [ mpvName "libreoffice" zathuraName "ark" "gwenview" ]))
+        (eq "warning count" (builtins.length (warnsOf allUnknown)) (builtins.length roleNames))
+        (all (map (r: eq "${r} warned once" (builtins.length (builtins.filter (lib.hasInfix "constants ${r} = ") (warnsOf allUnknown))) 1) roleNames))
+      ];
+    "control(media): the vanilla twin does not satisfy the vlc expectation" =
+      detects "vlc on vanilla" (mimeProblems vanilla videoTypes "vlc.desktop");
+    "control(media): the flatpak-missing twin does not satisfy the flatpak-present expectation" =
+      detects "wordcraft on missing" (mimeProblems craftMissing docTypes "ai.storyteller.wordcraft.desktop");
+
+    "control(roles): a second mpv install is detected" =
+      detects "two mpv" (onceProblems (dupInstall bareSys [ ] pk.mpv) mpvName);
+    "control(roles): a second zathura on top of the home-manager module is detected" =
+      detects "two zathura" (onceProblems (dupInstall bareSys [ zathuraHmMod ] pk.zathura) zathuraName);
+    "control(roles): the okular twin does not satisfy the zathura expectation, the vanilla twin not the okular one" =
+      all [ (detects "okular on zathura" (mimeProblems pdfOkular pdfTypes "org.pwmt.zathura.desktop")) (detects "zathura on okular" (mimeProblems vanilla pdfTypes "org.kde.okular.desktop")) ];
+    "control(roles): the photocraft twin does not satisfy the gwenview expectation" =
+      detects "photocraft on gwenview" (mimeProblems imageCraft imageExtraTypes "org.kde.gwenview.desktop");
+    "control(roles): vanilla does install libreoffice (so the flatpak twin's absence is real)" =
+      eq "libreoffice installs" (installs vanilla "libreoffice") 1;
+    "control(roles): the quiet check and the unknown-role count see the all-unknown twin" =
+      all [ (detects "warning" (quietProblems allUnknown)) (detects "warning-count" (lib.optional (builtins.length (warnsOf allUnknown) != 1) "not one")) ];
+
+    "removed option programs.file-roller: reading it throws, yet archiveManager = file-roller still evaluates warnings and packages" =
+      all [
+        (eq "reading the removed option throws" (builtins.tryEval archiveFileRoller.programs.file-roller.enable).success false)
+        (eq "warnings and packages evaluate" (safeEval [ archiveFileRoller.warnings (names archiveFileRoller) ]) true)
+      ];
+    "control(removed option): a declared programs.<n>.enable reads fine, so the throw above is specific to the removed option" =
+      eq "programs.firefox.enable readable" (builtins.tryEval vanilla.programs.firefox.enable).success true;
+
+    "extraAppPackages name in pkgs: installed exactly once, no warning" =
+      failIf (onceProblems extraHello "hello" ++ quietProblems extraHello);
+    "extraAppPackages name only in pkgs.kdePackages (kate): installed exactly once, no warning" =
+      failIf (onceProblems extraKate "kate" ++ quietProblems extraKate);
+    "control(extras): the vanilla twin installs neither hello nor kate" =
+      all [ (eq "hello" (installs vanilla "hello") 0) (eq "kate" (installs vanilla "kate") 0) ];
+    "control(extras): kate is not a top-level pkgs attribute, so the kdePackages fallback is what resolves it" =
+      eq "pkgs ? kate" (pk ? kate) false;
+    "unknown extraAppPackages name: exactly one extraAppPackages warning naming it, nothing installed" =
+      all [
+        (eq "extras warning count" (builtins.length (extraWarnsOf extraUnknown)) 1)
+        (failIf (lib.optional (!(lib.hasInfix "no-such-extra-xyz" (lib.head (extraWarnsOf extraUnknown ++ [ "" ])))) "warning does not name the package"
+          ++ lib.optional (installs extraUnknown "no-such-extra-xyz" != 0) "unknown name installed"
+          ++ lib.optional (builtins.length (warnsOf extraUnknown) != 1) "unrelated warnings: ${builtins.toJSON (warnsOf extraUnknown)}"))
+      ];
+    "control(extras): the vanilla twin has no extraAppPackages warning, and the quiet check sees the unknown-extra warning" =
+      all [ (eq "vanilla extras warnings" (extraWarnsOf vanilla) [ ]) (detects "extra warning" (quietProblems extraUnknown)) ];
+    "mixed extraAppPackages (resolvable, duplicate, two unknown): hello once, one warning listing both unknown names and not hello" =
+      all [
+        (failIf (onceProblems extraMixed "hello"))
+        (eq "extras warning count" (builtins.length (extraWarnsOf extraMixed)) 1)
+        (failIf (lib.optional (!(lib.hasInfix "no-such-extra-a, no-such-extra-b" (lib.head (extraWarnsOf extraMixed ++ [ "" ])))) "warning does not list both unknown names in order"
+          ++ lib.optional (lib.hasInfix "(hello" (lib.head (extraWarnsOf extraMixed ++ [ "" ]))) "warning lists the resolvable name"))
+      ];
+    "extraAppPackages dedupe against the role installs: mpv named as an extra is still installed exactly once, no warning" =
+      failIf (onceProblems extraMpv mpvName ++ quietProblems extraMpv);
+    "extraAppPackages dedupe against a home-manager program: zathura (programs.zathura.enable) named as an extra stays exactly one" =
+      failIf (onceProblems extraZathuraHm zathuraName ++ quietProblems extraZathuraHm);
+    "extraAppPackages name provided by a home.packages wrapper: installed once, no unresolved warning" =
+      failIf (onceProblems extraWrapper "my-extra-wrapper" ++ quietProblems extraWrapper);
+    "control(extras): a forced second mpv on top of the extras twin is detected" =
+      detects "two mpv" (onceProblems (dupInstall bareSys [ (constants { extraAppPackages = [ "mpv" ]; }) ] pk.mpv) mpvName);
+
+    "role = org.kde.kate.desktop with extraAppPackages = [ kate ]: mapped verbatim, kate installed once, libreoffice still once for sheet and slide, no warning" =
+      failIf (mimeProblems kateRole docTypes kateDesktop ++ onceProblems kateRole "kate" ++ onceProblems kateRole "libreoffice"
+        ++ mimeProblems kateRole sheetTypes "calc.desktop" ++ quietProblems kateRole);
+    "role = org.kde.kate.desktop without extraAppPackages: falls back to writer.desktop with exactly one warning, kate not installed" =
+      failIf (mimeProblems kateRoleNoExtra docTypes "writer.desktop" ++ loneWarnProblems kateRoleNoExtra "docEditor" kateDesktop
+        ++ lib.optional (installs kateRoleNoExtra "kate" != 0) "kate installed"
+        ++ lib.optional (!(lib.hasInfix "extraAppPackages" (lib.head (warnsOf kateRoleNoExtra ++ [ "" ])))) "warning does not point at extraAppPackages");
+    "role = org.kde.kate.desktop with an unrelated extra (hello): falls back with exactly one warning, hello installed, kate not" =
+      failIf (mimeProblems kateRoleWrongExtra docTypes "writer.desktop" ++ loneWarnProblems kateRoleWrongExtra "docEditor" kateDesktop
+        ++ onceProblems kateRoleWrongExtra "hello" ++ lib.optional (installs kateRoleWrongExtra "kate" != 0) "kate installed");
+    "role = <flatpak id>.desktop with the id in services.flatpak.packages: mapped verbatim, nothing installed, no warning" =
+      failIf (mimeProblems craftDesktopPresent docTypes "ai.storyteller.wordcraft.desktop" ++ quietProblems craftDesktopPresent
+        ++ lib.optional (installs craftDesktopPresent "wordcraft" != 0) "wordcraft installed");
+    "role = <flatpak id>.desktop with the id missing from services.flatpak.packages: falls back to writer.desktop with one warning" =
+      failIf (mimeProblems craftDesktopMissing docTypes "writer.desktop" ++ loneWarnProblems craftDesktopMissing "docEditor" "ai.storyteller.wordcraft.desktop");
+    "archiveManager = org.gnome.FileRoller.desktop with extraAppPackages = [ file-roller ]: verbatim id, file-roller once (removed program option ignored), ark not installed, no warning" =
+      failIf (mimeProblems rollerDesktop archiveTypes "org.gnome.FileRoller.desktop" ++ onceProblems rollerDesktop "file-roller"
+        ++ lib.optional (installs rollerDesktop "ark" != 0) "ark still installed" ++ quietProblems rollerDesktop);
+    "control(desktop roles): the fallback twin does not satisfy the kate expectation, the kate twin not the writer one, the extras-only twin not the kate one" =
+      all [
+        (detects "kate on no-extra" (mimeProblems kateRoleNoExtra docTypes kateDesktop))
+        (detects "writer on kate" (mimeProblems kateRole docTypes "writer.desktop"))
+        (detects "kate on extras-only" (mimeProblems extraKate docTypes kateDesktop))
+        (detects "wordcraft on missing flatpak" (mimeProblems craftDesktopMissing docTypes "ai.storyteller.wordcraft.desktop"))
+      ];
+    "control(desktop roles): the kate twin warns neither, while the fallback twin trips the quiet check" =
+      all [ (eq "kate quiet" (warnsOf kateRole) [ ]) (detects "fallback warning" (quietProblems kateRoleNoExtra)) ];
 
     "mime: mimeapps.list is forced" = eq "force" (forceOf vanilla) true;
     "control(mime): mime module off does not force mimeapps.list" = eq "force" (forceOf mimeOff != true) true;

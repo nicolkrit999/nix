@@ -19,14 +19,7 @@ delib.module {
         in
         if e == "nvim" then "neovim" else e;
 
-      getPkg =
-        name:
-        if builtins.hasAttr name pkgs then
-          pkgs.${name}
-        else if builtins.hasAttr name pkgs.kdePackages then
-          pkgs.kdePackages.${name}
-        else
-          null;
+      getPkg = name: pkgs.${name} or pkgs.kdePackages.${name} or null;
 
       programAliases = {
         "zen-beta" = [ "zen-browser" ];
@@ -36,12 +29,20 @@ delib.module {
         lib.attrByPath [ "home-manager" "users" user "home" "packages" ] [ ] config
       );
 
+      # nixpkgs-removed options (mkRemovedOptionModule) throw when read; treat them as not enabled
+      readEnable =
+        path:
+        let
+          r = builtins.tryEval (lib.attrByPath path false config);
+        in
+        r.success && r.value == true;
+
       isProgramEnabled =
         name:
         lib.any
           (n:
-          lib.attrByPath [ "programs" n "enable" ] false config
-          || lib.attrByPath [ "home-manager" "users" user "programs" n "enable" ] false config)
+          readEnable [ "programs" n "enable" ]
+          || readEnable [ "home-manager" "users" user "programs" n "enable" ])
           ([ name ] ++ (programAliases.${name} or [ ]));
 
       isProvided = name: isProgramEnabled name || builtins.elem name userPackageNames;
@@ -62,10 +63,7 @@ delib.module {
             in
             lib.optional (pkg != null && !isProgramEnabled name) pkg)
           (lib.attrValues roles)
-        ++ [
-          pkgs.cliphist
-          pkgs.kdePackages.gwenview
-        ];
+        ++ [ pkgs.cliphist ];
 
       warnings = lib.concatLists (lib.mapAttrsToList
         (role: name:

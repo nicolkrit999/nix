@@ -3,6 +3,9 @@ delib.module {
   name = "app-resolution-test-extra";
 
   nixos.always = {
+    imports = [{
+      options.services.flatpak.packages = lib.mkOption { type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs); default = [ ]; };
+    }];
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
     system.stateVersion = "25.11";
     home-manager.users.krit = _: {

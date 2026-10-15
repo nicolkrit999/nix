@@ -117,6 +117,13 @@ delib.host {
         editor = myEditor;
         fileManager = myFileManager;
 
+        videoPlayer = "vlc"; # mp4 mkv webm avi mov
+        audioPlayer = "vlc"; # mp3 flac ogg wav m4a
+        docEditor = "ai.storyteller.wordcraft"; # docx doc odt rtf
+        sheetEditor = "ai.storyteller.gridcraft"; # xlsx xls ods csv
+        slideEditor = "ai.storyteller.deckcraft"; # pptx ppt odp
+        extraAppPackages = [ ]; # package names for role overrides, e.g. docEditor = "org.kde.kate.desktop" + [ "kate" ]
+
         wallpapers = [
 
           {

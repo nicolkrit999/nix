@@ -49,8 +49,8 @@ while IFS=$'\t' read -r label result; do
 done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
 
 echo ""
-if [[ $((PASS + FAIL)) -lt 40 ]]; then
-  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 40); refusing to pass.${NC}"
+if [[ $((PASS + FAIL)) -lt 85 ]]; then
+  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 85); refusing to pass.${NC}"
   exit 1
 fi
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"
