@@ -26,7 +26,13 @@ in
       default = { };
     };
     myconfig = {
-      programs = sinks [ "gnome" "kde" "cosmic" "caelestia" "noctalia" "nix-ld" "nix-alien" "claude-code" "claude-desktop" "google-antigravity" "codex" "herdr" "headroom" ];
+      programs = sinks [ "kde" "cosmic" "caelestia" "noctalia" "nix-ld" "nix-alien" "claude-code" "claude-desktop" "google-antigravity" "codex" "herdr" "headroom" ] // {
+        gnome = {
+          enable = sink;
+          pinnedApps = lib.mkOption { type = lib.types.listOf lib.types.str; default = [ ]; };
+        };
+        zen.browser.enable = sink;
+      };
       services = sinks [ "hyprlock" "swaync" "tailscale" "localsend" ];
       krit.services.nas = sinks [ "smb" "opencloud-mount" "sshfs" "desktop-borg-backup" "laptop-borg-backup" ];
       bluetooth = { enable = sink; autoEnableOnBoot = sink; };
