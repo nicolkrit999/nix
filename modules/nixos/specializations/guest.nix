@@ -113,7 +113,12 @@ delib.module {
         };
         bluetooth.enable = lib.mkForce false;
         stylix.enable = lib.mkForce false;
-        constants.theme.catppuccin = lib.mkForce false;
+        constants = {
+          theme.catppuccin = lib.mkForce false;
+          docEditor = lib.mkForce "libreoffice";
+          sheetEditor = lib.mkForce "libreoffice";
+          slideEditor = lib.mkForce "libreoffice";
+        };
       };
 
       programs.nh.clean.enable = lib.mkForce false;
