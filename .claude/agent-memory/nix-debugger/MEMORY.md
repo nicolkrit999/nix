@@ -30,4 +30,5 @@
 - [polkit_gnome XDG autostart dup](project_polkit_gnome_xdg_autostart_dup.md) - systemPackages polkit_gnome autostarts in every session next to WM spawns; test blind spot; XFCE guest keeps it
 - [LibreWolf pref precedence + Marionette](project_librewolf_pref_precedence_marionette.md) - mozilla.cfg pref() beats user.js; overrides.cfg + profile marker; harness needs remote.prefs.recommended=false
 - [Twin scenario RSS CI OOM](project_twin_scenario_rss_ci_oom.md) - many extendModules twins in one eval = ~300 MB each, never freed; 22 GB on a 16 GB runner = empty-log timeout; split per group
+- [ibus Wayland notification](project_ibus_wayland_notification_uwsm.md) - panel check_wayland fires every login; Hyprland exec_once pkill is dead under uwsm (runs before autostart)
 - [CI store snapshot is not a closure](project_ci_store_snapshot_not_closure.md) - CI-only "store path bin missing": GC-trimmed snapshot; realise getContext drvs in the test
