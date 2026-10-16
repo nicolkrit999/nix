@@ -82,19 +82,6 @@ delib.module {
       cursorTheme = lib.mkIf (config.stylix.cursor != null) config.stylix.cursor.name;
     in
     {
-      # Kills the system-wide ibus autostart in Plasma; under its own name so it does not
-      # shadow /etc/xdg/autostart/ibus-daemon.desktop. Memory: project_ibus_kill_workaround.md
-      xdg.configFile."autostart/kde-ibus-kill.desktop".text = ''
-        [Desktop Entry]
-        Type=Application
-        Name=Kill IBus Daemon
-        Exec=sh -c "pkill ibus-daemon || true"
-        Hidden=false
-        StartupNotify=false
-        OnlyShowIn=KDE;
-        X-KDE-autostart-phase=1
-      '';
-
       # plasma-manager's workspace.wallpaper can't select a non-org.kde.image plugin, so
       # wallpaperCustomPlugin is used instead when skwd-wall owns the wallpaper.
       home.packages =

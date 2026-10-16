@@ -72,9 +72,6 @@ delib.module {
 
       execOnceItems = [
         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
-        # Workaround: a stray ibus-daemon autostart shadows the session input method; remove once no
-        # ibus autostart remains (memory: project_ibus_kill_workaround.md).
-        "pkill ibus-daemon"
       ] ++ wallpaperCmds ++ cfg.execOnce ++ cfg.shellExecOnce;
 
       execOnceFn = mkLuaInline (

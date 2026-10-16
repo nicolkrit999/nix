@@ -19,7 +19,7 @@ nix-tests.runTests {
     "control (no shell) still starts the wallpaper supervisor" =
       helpers.isTrue (lib.hasInfix "hyprland-wallpaperd" controlLua);
     "wallpaper supervisor suppressed while the rest of the startup block remains" =
-      helpers.isTrue (lib.hasInfix "pkill ibus-daemon" execLua && !(lib.hasInfix "hyprland-wallpaperd" execLua));
+      helpers.isTrue (lib.hasInfix "polkit-gnome-authentication-agent-1" execLua && !(lib.hasInfix "hyprland-wallpaperd" execLua));
     "Super+Shift+A bind dispatches to noctalia launcher IPC" =
       helpers.isTrue (lib.hasInfix "noctalia msg panel-toggle launcher" (H.hyprBind hm "SUPER+SHIFT + A"));
     "Super+Delete bind dispatches to noctalia lock IPC" =
