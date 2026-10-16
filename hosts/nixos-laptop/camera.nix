@@ -94,7 +94,6 @@ delib.module {
       systemd.services.v4l2-relayd-ipu7 = {
         after = [ "systemd-modules-load.service" ];
         serviceConfig.RuntimeDirectory = "camera";
-        serviceConfig.RestartSec = "3s";
         # exclusive_caps exposes capture only once the relay opens its writer.
         # Refresh udev's capabilities then, so an existing desktop finds the camera.
         postStart = ''
