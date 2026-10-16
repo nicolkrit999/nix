@@ -105,13 +105,20 @@ let
     && builtins.sort builtins.lessThan (map (b: b.monitor) sp) == builtins.sort builtins.lessThan (map (e: e.monitor) specific)
     && builtins.all (e: builtins.any (b: b.monitor == e.monitor && pathOf b == e.path) sp) specific
     && builtins.all (b: (builtins.head ca).zindex < b.zindex) sp;
+  lookOn = b: b.blur_passes == 0 && b.color == "$base";
+  lookOff = b: b.blur_passes != 0 && (b.color or "") != "$base";
+  srcOf = cfg: (H.getHm cfg).programs.hyprlock.settings.source or [ ];
+  ourConf = cfg: lib.filter (s: lib.hasSuffix "no-background.conf" (builtins.unsafeDiscardStringContext s)) (srcOf cfg);
+  drvText = s: builtins.readFile (builtins.unsafeDiscardStringContext (builtins.head (builtins.attrNames (builtins.getContext s))));
+  stripsBackground = t: lib.hasInfix "# BACKGROUND$/ { skip = 1" t && lib.hasInfix "hyprlock.conf" t && lib.hasInfix "grep -q '^background'" t;
   revertedSingleStar = path: [{ monitor = ""; inherit path; zindex = -1; }];
   desktopExpect = {
     specific = [{ monitor = "DP-1"; path = lockPath "lock-dp1"; } { monitor = "DP-2"; path = lockPath "lock-dp2"; }];
     catchAll = lockPath "lock-star";
   };
   desktopStatics = lib.filter (w: w.wallpaperURL != "") (wallpapersOf "nixos-desktop");
-  desktopCatchAll = lib.findFirst (w: w.targetMonitor == "*") (lib.head desktopStatics) desktopStatics;
+  desktopCatchAll = lib.findFirst (w: w.targetMonitor == "*") null desktopStatics;
+  desktopSpecific = lib.filter (w: w.targetMonitor != "*") desktopStatics;
   desktopHm = H.getHm flake.nixosConfigurations.nixos-desktop.config;
   laptopWs = wallpapersOf "nixos-laptop";
   laptopEdp = lib.findFirst (w: w.targetMonitor == "eDP-1") null laptopWs;
@@ -169,7 +176,7 @@ in
     (bgsOf (lockHost "27-lock-laptop-like")));
   lockStarOnly = guard (lockOk { specific = [ ]; catchAll = lockPath "lock-star"; } (bgsOf (lockHost "28-lock-star-only")));
   lockDescVideo = guard (lockOk
-    { specific = [{ monitor = "desc:Foo Bar 123"; path = lockPath "lock-desc"; }]; catchAll = lockPath "lock-desc"; }
+    { specific = [{ monitor = "desc:Foo Bar 123"; path = lockPath "lock-desc"; }]; catchAll = fallbackPath; }
     (bgsOf (lockHost "29-lock-desc-video")));
   lockNoVideoPaths = guard (
     let j = builtins.unsafeDiscardStringContext (builtins.toJSON (bgsOf (lockHost "29-lock-desc-video")));
@@ -178,12 +185,48 @@ in
   lockRealLaptop = guard (laptopEdp != null && laptopStar != null && lockOk
     { specific = [{ monitor = "eDP-1"; path = fetchPath laptopEdp; }]; catchAll = fetchPath laptopStar; }
     laptopBgs);
-  lockCatppuccinBackground = guard (
+  lockCatppuccinReal = guard (
     desktopStatics != [ ]
     && desktopHm.catppuccin.hyprlock.enable
-    && builtins.unsafeDiscardStringContext (toString desktopHm.xdg.configFile.background.source) == fetchPath desktopCatchAll
+    && lockOk
+      {
+        specific = map (w: { monitor = w.targetMonitor; path = fetchPath w; }) desktopSpecific;
+        catchAll = if desktopCatchAll != null then fetchPath desktopCatchAll else fallbackPath;
+      }
+      desktopHm.programs.hyprlock.settings.background
+    && builtins.all lookOn desktopHm.programs.hyprlock.settings.background
   );
-  lockCatppuccinBackgroundAbsentWhenOff = guard (!((H.getHm emptyWm).xdg.configFile ? background) && !(H.getHm emptyWm).catppuccin.hyprlock.enable);
+  lockCatppuccinDesktop = guard (
+    let c = lockHost "34-lock-catppuccin-desktop"; bgs = bgsOf c;
+    in (H.getHm c).catppuccin.hyprlock.enable && lockOk desktopExpect bgs
+      && builtins.length bgs == 3 && builtins.all lookOn bgs
+  );
+  lockCatppuccinNoOwnBackgroundFile = guard (!((H.getHm (lockHost "34-lock-catppuccin-desktop")).xdg.configFile ? background));
+  lockCatppuccinLookControl = guard (
+    builtins.all lookOff (bgsOf (lockHost "26-lock-desktop-like"))
+    && !builtins.any lookOn (bgsOf (lockHost "26-lock-desktop-like"))
+  );
+  lockCatppuccinOwnConfOnly = guard (
+    let c = lockHost "34-lock-catppuccin-desktop";
+    in !(H.getHm c).catppuccin.hyprlock.useDefaultConfig && builtins.length (srcOf c) == 3 && builtins.length (ourConf c) == 1
+  );
+  lockCatppuccinStripsBackground = guard (stripsBackground (drvText (builtins.head (ourConf (lockHost "34-lock-catppuccin-desktop")))));
+  lockCatppuccinStripControl = guard (!stripsBackground (drvText "${pkgs.runCommand "plain-control" { } "echo x > $out"}"));
+  lockCatppuccinOffNoStrip = guard (ourConf (lockHost "26-lock-desktop-like") == [ ]);
+  lockNoStarOne = guard (lockOk { specific = [{ monitor = "eDP-1"; path = lockPath "lock-edp1"; }]; catchAll = fallbackPath; } (bgsOf (lockHost "32-lock-nostar-one")));
+  lockNoStarThree = guard (lockOk
+    {
+      specific = map (n: { monitor = "DP-${toString n}"; path = lockPath "lock-dp${toString n}"; }) [ 1 2 3 ];
+      catchAll = fallbackPath;
+    }
+    (bgsOf (lockHost "33-lock-nostar-three")));
+  lockNoStarOnlyOneCatchAll = guard (
+    let n = bs: builtins.length (lib.filter (b: b.monitor == "") bs);
+    in n (bgsOf (lockHost "32-lock-nostar-one")) == 1 && n (bgsOf (lockHost "33-lock-nostar-three")) == 1
+  );
+  lockNoStarNotFirstStatic = guard (
+    fallbackPath != lockPath "lock-edp1" && fallbackPath != lockPath "lock-dp1"
+  );
   lockRealLaptopNotStar = guard (fetchPath laptopEdp != fetchPath laptopStar);
   emptyGnome = guard (usesFallback (H.getHm emptyGnomeCfg).dconf.settings);
   emptyKde = deep (H.getHm emptyKdeCfg).programs.plasma.workspace;
@@ -192,7 +235,7 @@ in
   noStarHyprlock = guard (lockOk
     {
       specific = [{ monitor = "DP-1"; path = firstPath; } { monitor = "HDMI-A-1"; path = secondPath; }];
-      catchAll = firstPath;
+      catchAll = fallbackPath;
     }
     (bgsOf noStarWm));
   noStarGnome = guard (picks (H.getHm noStarGnome).dconf.settings);

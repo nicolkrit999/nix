@@ -78,8 +78,8 @@ Practical implication: only add a `videoURL`/`gifURL` to an entry when you actua
 - **Cosmic** - system76's revisited GNOME (currently unstable - expect freezes, black screens on logout, broken keybindings).
 
 ### Caelestia & noctalia shell
-- Caelestia is available on Hyprland
-- Noctalia is available in all WMs
+- Caelestia is available on Hyprland (x86_64 only)
+- Noctalia is available on Hyprland, niri and MangoWM (x86_64 only)
 - Potential incompatibility with waybar, hyprlock and similar is already handled and tested using `nixos-custom-shells`.
 
 ### Portals
@@ -137,7 +137,7 @@ A secure, non-persistent account for visitors, implemented as a **NixOS speciali
 - **Pre-loaded apps**: Firefox, file manager, text editor (Mousepad), screenshot tool and archive manager (File Roller).
 - **Forced DE**: only XFCE is accessible; all other WMs/DEs are disabled by the specialization.
 - **No krit services**: tailscale, sshd, avahi, localsend, docker/podman, the NAS/cloud/Windows mounts, borg backups and the krit user-manager linger are switched off; the guest is not in the `networkmanager` group, is not allowed to use the nix daemon and cannot read the GitHub token secret (mode 0400).
-- **Resource cap**: systemd slice limits the guest to 75%gb of the total RAM available and a lower CPU weight (90%).
+- **Resource cap**: systemd slice limits the guest to 75% of the total RAM available and a lower CPU weight (90%).
 - **Ephemeral home**: the entire home folder is stored in RAM (`tmpfs`) and wiped on every reboot/shutdown.
   - Advantages: protects SSD lifespan, guaranteed privacy (RAM clears on power loss).
   - Disadvantage: uses RAM (can cause freezes on low-RAM systems). The config caps the guest at 25% of system RAM.
@@ -155,6 +155,16 @@ Fully declarative management of user dotfiles and applications via home-manager 
 ## Multiple Shells
 
 Choose a shell per host: `bash`, `zsh`, or `fish`.
+
+---
+
+## Default Applications
+
+The apps opened for each file family are picked per host with constants (NixOS): `terminal`, `browser`, `editor`, `fileManager`, plus `videoPlayer`, `audioPlayer`, `imageViewer`, `pdfViewer`, `docEditor`, `sheetEditor`, `slideEditor` and `archiveManager` (defaults mpv, gwenview, zathura, libreoffice, ark). Each value is a package name, a flatpak app id or a `.desktop` id; the chosen app is installed once and set as the MIME default.
+
+- An app that a dedicated module already provides (e.g. `programs.firefox.enable`, a custom neovim module) is not installed a second time; the MIME default points at that module's desktop entry.
+- An unknown name installs nothing and raises an evaluation warning; a role override that is not present falls back to the role's default with one warning.
+- `extraAppPackages` installs extra packages for overrides given as a desktop id (e.g. `docEditor = "org.kde.kate.desktop"` with `extraAppPackages = [ "kate" ]`).
 
 ---
 

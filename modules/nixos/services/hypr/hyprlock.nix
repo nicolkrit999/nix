@@ -35,12 +35,10 @@ delib.module {
       statics = lib.filter (w: w.wallpaperURL != "") myconfig.constants.wallpapers;
       perMonitor = lib.filter (w: w.targetMonitor != "*") statics;
       catchAll = lib.findFirst (w: w.targetMonitor == "*")
-        (
-          if statics == [ ] then {
-            wallpaperURL = myconfig.constants.fallbackWallpaperURL;
-            wallpaperSHA256 = myconfig.constants.fallbackWallpaperSHA256;
-          } else lib.head statics
-        )
+        {
+          wallpaperURL = myconfig.constants.fallbackWallpaperURL;
+          wallpaperSHA256 = myconfig.constants.fallbackWallpaperSHA256;
+        }
         statics;
       fetchWp = w: "${pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; }}";
       labelBase = {
@@ -54,6 +52,23 @@ delib.module {
         halign = "left";
         valign = "center";
       };
+      # monitor = "" covers every monitor without its own block, whatever the monitor count
+      mkBackgrounds = look:
+        map
+          (w: look // { monitor = w.targetMonitor; path = fetchWp w; zindex = -1; })
+          perMonitor
+        ++ [ (look // { monitor = ""; path = fetchWp catchAll; zindex = -2; }) ];
+      # The theme's own background block points at one image; ours are per monitor
+      catppuccinLockConf = pkgs.runCommand "catppuccin-hyprlock-no-background.conf" { } ''
+        src=${config.catppuccin.sources.hyprlock}/hyprlock.conf
+        awk '
+          /^# BACKGROUND$/ { skip = 1; found = 1; next }
+          skip && /^}/ { skip = 0; next }
+          !skip { print }
+          END { if (!found || skip) exit 1 }
+        ' "$src" > "$out" || { echo "catppuccin hyprlock.conf: BACKGROUND block not found or unterminated, theme layout changed" >&2; exit 1; }
+        if grep -q '^background' "$out"; then echo "background block still present" >&2; exit 1; fi
+      '';
       bgLook = {
         blur_passes = 2;
         blur_size = 4;
@@ -69,14 +84,16 @@ delib.module {
         enable = catppuccinEnabled;
         flavor = myconfig.constants.theme.catppuccinFlavor or "mocha";
         accent = myconfig.constants.theme.catppuccinAccent or "mauve";
-      };
-
-      xdg.configFile.background = lib.mkIf catppuccinEnabled {
-        source = fetchWp catchAll;
+        useDefaultConfig = false;
       };
 
       programs.hyprlock = {
         enable = true;
+      } // lib.optionalAttrs catppuccinEnabled {
+        settings = {
+          source = lib.mkAfter [ "${catppuccinLockConf}" ];
+          background = lib.mkForce (mkBackgrounds { blur_passes = 0; color = "$base"; });
+        };
       } // lib.optionalAttrs (!catppuccinEnabled) {
         settings = {
           general = {
@@ -84,12 +101,7 @@ delib.module {
             fail_timeout = 5000;
           };
 
-          background = lib.mkForce (
-            map
-              (w: bgLook // { monitor = w.targetMonitor; path = fetchWp w; zindex = -1; })
-              perMonitor
-            ++ [ (bgLook // { monitor = ""; path = fetchWp catchAll; zindex = -2; }) ]
-          );
+          background = lib.mkForce (mkBackgrounds bgLook);
 
           image = lib.mkForce [
             {

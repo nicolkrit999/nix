@@ -51,7 +51,7 @@ Per host, per variant:
 | `stylix.targets.kde.useWallpaper` | `false` |
 | plasma wallpapers (KDE hosts) | still declared (list or custom plugin) |
 | `catppuccin.hyprlock.enable` | `== catppuccin` (when a WM is on) |
-| `stylix.targets.hyprlock.enable` | `false` in both theme modes (the hyprlock module builds its own look; catppuccin mode hands the lock wallpaper over via `~/.config/background`) |
+| `stylix.targets.hyprlock.enable` | `false` in both theme modes (the hyprlock module builds its own look; catppuccin mode sources a derived copy of the port's `hyprlock.conf` without its BACKGROUND block and emits its own per-monitor blocks) |
 | `catppuccin.swaync.enable` (swaync hosts, both theme modes) | `false` (the module overrides `services.swaync.style`; the catppuccin target would only install an unused font) |
 | hyprlock `rgba(...)` (base16 mode) | at least one, all 8 lowercase hex digits |
 | hyprlock `foreground="##rrggbbaa"` (base16 mode) | escaped `##` form present, no single `#` |
