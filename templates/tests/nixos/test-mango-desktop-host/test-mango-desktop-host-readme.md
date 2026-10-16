@@ -36,7 +36,7 @@ Which binds, monitors and startup lines the host chooses is deliberately not ass
 
 | Check | Expected |
 |-------|----------|
-| every `--class X` of a `mango-scratch` bind | has a window rule with `app_id:^X$` and `tags:0` (bind and rule are two sources); control: predicate rejects wrong class / missing tag |
+| every `--class X` or `--name X` (Zen scratch browser: its own profile, `--class` is ignored on Wayland) of a `mango-scratch` bind | has a window rule with `app_id:^X$` and `tags:0` (bind and rule are two sources); control: predicate rejects wrong class / missing tag |
 | `window_rule_once` | empty (re-arms on reload) |
 | `exec` | absent or empty (`exec_once` only) |
 | Play/Pause | present in `bindl`/`bindsl`, never in plain `bind` |

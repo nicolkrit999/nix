@@ -76,23 +76,18 @@ sudo btrfs subvolume create /mnt/@
 sudo btrfs subvolume create /mnt/@home
 sudo btrfs subvolume create /mnt/@nix
 sudo btrfs subvolume create /mnt/@persist
-sudo btrfs subvolume create /mnt/@var_log
+sudo btrfs subvolume create /mnt/@log
 sudo btrfs subvolume create /mnt/@swap
-sudo btrfs subvolume create /mnt/@snapshots
-sudo btrfs subvolume create /mnt/@home_snapshots
 sudo umount /mnt
 
 # Mount subvolumes
 sudo mount -o compress=zstd,noatime,subvol=@ /dev/nvme0n1pY /mnt
-sudo mkdir -p /mnt/{home,nix,persist,var/log,swap,boot,.snapshots}
-sudo mkdir -p /mnt/home/.snapshots
+sudo mkdir -p /mnt/{home,nix,persist,var/log,swap,boot}
 
 sudo mount -o compress=zstd,noatime,subvol=@home /dev/nvme0n1pY /mnt/home
 sudo mount -o compress=zstd,noatime,subvol=@nix /dev/nvme0n1pY /mnt/nix
 sudo mount -o compress=zstd,noatime,subvol=@persist /dev/nvme0n1pY /mnt/persist
-sudo mount -o compress=zstd,noatime,subvol=@var_log /dev/nvme0n1pY /mnt/var/log
-sudo mount -o compress=zstd,noatime,subvol=@snapshots /dev/nvme0n1pY /mnt/.snapshots
-sudo mount -o compress=zstd,noatime,subvol=@home_snapshots /dev/nvme0n1pY /mnt/home/.snapshots
+sudo mount -o compress=zstd,noatime,subvol=@log /dev/nvme0n1pY /mnt/var/log
 sudo mount -o noatime,subvol=@swap /dev/nvme0n1pY /mnt/swap
 
 # Swapfile (adjust 64G to match your RAM)

@@ -19,6 +19,8 @@ let
   edgeWs = lib.filter (p: p != lib.trim p);
   quote = l: lib.concatMapStringsSep ", " (p: "\"${p}\"") l;
 
+  persistExcludes = map (p: "/persist/${p}") [ ".snapshots" "var/lib/docker" "var/lib/containers" "var/lib/flatpak" "var/tmp" "var/cache/fscache" ];
+
   selftestList = [ "/home/*/ok" "/home/*/dotfiles " " /home/*/lead" "/home/*/.clouflared" "/dup" "/dup" ];
 
   mk = key:
@@ -70,9 +72,12 @@ let
         chk (lib.hasPrefix "ssh://" repo.path && lib.hasSuffix "/${cfg.networking.hostName}" repo.path)
           "repository '${repo.path}' does not end with /${cfg.networking.hostName}";
       "check-${key}-repo-label" = chk (repo.label == "nas-repo") "repository label is '${repo.label}'";
-      "check-${key}-source-is-user-home" =
-        chk (c.source_directories == [ "/home/${cfg.myconfig.constants.user}" ])
+      "check-${key}-sources-are-user-home-and-persist" =
+        chk (c.source_directories == [ "/home/${cfg.myconfig.constants.user}" "/persist" ])
           "source_directories is ${quote c.source_directories}";
+      "check-${key}-persist-excludes" =
+        chk (lib.all (p: lib.elem p excludes) persistExcludes && lib.elem "/persist" c.source_directories)
+          "excludes lack ${quote (lib.filter (p: !(lib.elem p excludes)) persistExcludes)} (or /persist is not a source directory)";
       "check-${key}-own-config-only" =
         chk (bm ? ${h.conf} && !(bm ? ${h.other})) "configurations are ${quote (lib.attrNames bm)}, expected only ${h.conf}";
       "check-${key}-timer-persistent" =

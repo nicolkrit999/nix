@@ -61,6 +61,9 @@ The niri action lists are parsed at test time from the source of the niri packag
 | `gnome-entries-complete` | each entry has non-empty name, command, binding |
 | `gnome-custom-bindings-unique` | custom binding strings unique |
 | `gnome-all-bindings-unique` | custom bindings do not collide with wm/shell keybindings, screensaver or logout |
+| `gnome-wm-keybindings-merged` | `org/gnome/desktop/wm/keybindings` `close` contains the module's `<Super><Shift>c` plus every host-declared `programs.gnome.wmKeybindings.close` entry, and every other declared key is rendered unchanged |
+| `gnome-thumb-gestures-mapped` | on hosts whose `wmKeybindings` declares `minimize` (desktop): `XF86Launch7` is in declared and rendered `minimize`, not in `close`; `toggle-maximized` holds `<Super>m`; `close` keeps `<Super><Shift>c` (hosts without the map skip it) |
+| `gnome-message-tray-frees-super-m` | `org/gnome/shell/keybindings` `toggle-message-tray` does not contain `<Super>m` |
 | `gnome-native-screenshot-key-freed` | `media-keys.screenshot == []` |
 | `gnome-native-screenshot-custom-print` | a custom `Print` binding exists |
 | `bash -n launch-screenshot` | rendered screenshot script parses |

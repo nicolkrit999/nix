@@ -26,4 +26,14 @@ that could inject `config`/`lib`.
 - Genuinely needing `config` means the code belongs in an `imports`-ed submodule
   inside an `always {}` block - `imports` under `ifEnabled` hits the mkIf trap.
 
+- Proven working (2026-10-16, btrfs autoScrub in common-configuration-nixos.nix):
+  `nixos.always = { myconfig, ... }: { imports = [ ({ config, ... }: { ... }) ]; ... }`.
+  For moduleSystem "nixos" apply.nix passes the block result unchanged into `imports`,
+  so the nested lambda is a real NixOS module and receives `config`.
+- `delib.host` blocks (`myconfig = ...` in hosts/*/default.nix) are wrapped the same way
+  (lib/configurations/host.nix) with only `{ name, cfg, myconfig }`: `config.myconfig.X`
+  there must be `myconfig.X`. Same error text: "function 'myconfig' called without
+  required argument 'config'". Audit batches have introduced both variants at once, so
+  after fixing one, re-eval every host before calling it done.
+
 Related: [[feedback_delib_home_ifenable_patterns]]

@@ -51,7 +51,8 @@ Each row exists once per host (`desktop-` / `laptop-` prefix).
 | secrets-declared | `sops.secrets` has `borg-passphrase` and `borg-private-key` |
 | repo-ends-with-hostname | repository is `ssh://...` and ends with `/<networking.hostName>` |
 | repo-label | label `nas-repo` |
-| source-is-user-home | `source_directories == [ "/home/<constants.user>" ]` |
+| sources-are-user-home-and-persist | `source_directories == [ "/home/<constants.user>" "/persist" ]` |
+| persist-excludes | `/persist` is a source and the six excludes (`/persist/.snapshots`, `var/lib/{docker,containers,flatpak}`, `var/tmp`, `var/cache/fscache` under `/persist`) are all in `exclude_patterns` |
 | own-config-only | only this host's configuration key exists (`desktop-data` / `laptop-data`) |
 | timer-persistent | timer is `Persistent` |
 | timer-resets-packaged-calendar | `OnCalendar` head is `""` followed by exactly one non-empty entry (`18:00` desktop / `10:00` laptop) |

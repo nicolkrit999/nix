@@ -60,22 +60,6 @@
                       "noatime"
                     ];
                   };
-                  # Snapshots (@snapshots)
-                  "@snapshots" = {
-                    mountpoint = "/.snapshots";
-                    mountOptions = [
-                      "compress=zstd"
-                      "noatime"
-                    ];
-                  };
-
-                  "@home_snapshots" = {
-                    mountpoint = "/home/.snapshots";
-                    mountOptions = [
-                      "compress=zstd"
-                      "noatime"
-                    ];
-                  };
                 };
               };
             };

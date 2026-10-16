@@ -176,6 +176,12 @@ The apps opened for each file family are picked per host with constants (NixOS):
 
 ---
 
+## BTRFS Scrub
+
+- Every host with btrfs filesystems gets an automatic monthly scrub of one mount point per btrfs device (set in `common-configuration`, nothing to enable); hosts without btrfs get none.
+
+---
+
 ## Single Secret Service Provider
 
 - gnome-keyring is the only `org.freedesktop.secrets` provider on every host and in every DE/WM session, unlocked at login through PAM (login and sddm). In the guest specialisation the keyring is started but stays locked, since autologin has no password; the guest gets one new-keyring password prompt per boot.

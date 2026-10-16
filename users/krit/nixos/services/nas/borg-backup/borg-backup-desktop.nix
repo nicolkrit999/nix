@@ -44,7 +44,10 @@ delib.module {
       services.borgmatic = {
         enable = true;
         configurations."desktop-data" = {
-          source_directories = [ config.users.users.${myconfig.constants.user}.home ];
+          source_directories = [
+            config.users.users.${myconfig.constants.user}.home
+            "/persist"
+          ];
           repositories = [
             {
               path = "ssh://${nasUser}@${nas.host}${nasPath}";
@@ -123,6 +126,14 @@ delib.module {
             "/home/*/.steam"
             "/home/*/.themes"
             "/home/*/momentary"
+
+            # /persist: snapshots and re-creatable system state stay out of the backup
+            "/persist/.snapshots"
+            "/persist/var/lib/docker"
+            "/persist/var/lib/containers"
+            "/persist/var/lib/flatpak"
+            "/persist/var/tmp"
+            "/persist/var/cache/fscache"
           ];
 
           encryption_passcommand = "cat ${cfg.passphraseFile}";

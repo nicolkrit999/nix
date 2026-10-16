@@ -87,6 +87,7 @@ let
       "xwayland-phantom-rule-settings" = chk xwaylandRule "no window_rule with class ^$ + xwayland + no_focus";
       "xwayland-phantom-rule-rendered" = chk (has ''["class"] = "^$"'' lua && has ''["xwayland"] = true'' lua) "rendered lua lacks the XWayland phantom rule";
       "wrapper-capabilities-empty" = chk (c.security.wrappers.Hyprland.capabilities == "") "capabilities: ${c.security.wrappers.Hyprland.capabilities}";
+      "jetkvm-teardown-gated-no-ls-pipe" = chk (jetkvm == null || ((jetkvm.Service.ExecCondition or "") != "" && !(has "| head" jetkvmText))) "hyprland-jetkvm-teardown lacks ExecCondition or still pipes ls into head";
       "with-uwsm" = chk (c.programs.hyprland.withUWSM) "programs.hyprland.withUWSM is false";
     };
 
@@ -103,6 +104,7 @@ in
   control = {
     "legacy-matcher-flags-bad-text" = chk (builtins.length (legacyDispatch controlBad) == 2) "matcher found ${toString (builtins.length (legacyDispatch controlBad))} legacy uses in control text, expected 2";
     "legacy-matcher-accepts-good-text" = chk (legacyDispatch controlGood == [ ]) "matcher flagged the lua-form control text";
+    "pipe-matcher-flags-ls-head" = chk (has "| head" "ls -1 dir | head -n1" && !(has "| head" "for d in dir/*/; do break; done")) "ls-into-head matcher does not discriminate";
     "variants-cover-both-hosts" = chk (lib.all (h: variants ? ${h}) hostNames) "base hosts missing from variants";
   };
 }

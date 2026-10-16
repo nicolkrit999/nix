@@ -9,6 +9,7 @@ Non-obvious behaviours of mango 0.18.0 that shaped `modules/nixos/programs/de-wm
 - **Rule values of 0 do nothing.** Opacity rule values only apply when above 0 (parse.h:29-31); use `0.01`.
 - **`switch_proportion_preset` needs `next`.** With no argument it steps backwards.
 - **DPMS is "output disabled".** Mango's screen-off disables the output, so tools cannot tell asleep from disabled, and `wlopm --on '*'` re-enables outputs configured with `disable:1` (the JetKVM). hypridle therefore uses `mango-dpms`, which only wakes outputs it turned off itself.
+- **Zen ignores `--class` on Wayland.** The scratch browser therefore runs as a separate instance (`--no-remote`, own profile under `~/.local/share/scratch-browser`, `--name scratch-browser`); `--name` only takes effect with that separate profile, and it is what gives the window its `scratch-browser` app_id for mango's float/size rule. The profile starts blank (log in once).
 - **Pinned windows count as visible on every tag**, so `mango-scratch` filters on `is_global`/`is_unglobal`.
 - **`GDK_SCALE` must be 1 under mango.** Xwayland gets the logical size and the compositor scales X11 clients; `GDK_SCALE=2` would make X11 GTK/Java apps about 3x. The compositor env vars (`QT_QPA_PLATFORM`, `GDK_BACKEND`, `SDL_VIDEODRIVER`, `CLUTTER_BACKEND`, `_JAVA_AWT_WM_NONREPARENTING`) live in mango's `settings.env` and `GDK_SCALE,1` stays in mango's env; Hyprland derives its own `GDK_SCALE` from its monitors, and `home.sessionVariables` no longer exports `GDK_SCALE=2`.
 
@@ -18,4 +19,3 @@ Upstream limits (no repo fix possible):
 - Every handled bind repeats while held (keyboard.c:724).
 - 9 tags only: no SUPER+0, no pinch gesture.
 - The special tag's state is hidden from IPC (ipc.c:543-555); an active but empty special tag is misread until the next arrange.
-- Zen ignores `--class` on Wayland, so the scratch browser cannot have its own float/size rule.

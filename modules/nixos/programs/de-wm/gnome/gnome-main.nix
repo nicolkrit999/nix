@@ -10,6 +10,12 @@ delib.module {
     moduleOptions {
       pinnedApps = listOfOption str [ ];
       extraBinds = listOfOption attrs [ ];
+      wmKeybindings = lib.mkOption {
+        type = lib.types.attrsOf (lib.types.listOf lib.types.str);
+        default = { };
+        description = "Extra org/gnome/desktop/wm/keybindings entries. Each list replaces the schema default for that key, so include the default accelerators you want to keep. `close` is appended to the module's own <Super><Shift>c.";
+        example = { switch-to-workspace-left = [ "<Super>Page_Up" "XF86Tools" ]; };
+      };
     };
 
   home.ifEnabled =

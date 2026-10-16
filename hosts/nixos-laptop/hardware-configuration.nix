@@ -53,13 +53,6 @@
       neededForBoot = true;
     };
 
-  fileSystems."/.snapshots" =
-    {
-      device = "/dev/mapper/cryptroot";
-      fsType = "btrfs";
-      options = [ "subvol=@snapshots" "compress=zstd" "noatime" ];
-    };
-
   fileSystems."/boot" =
     {
       device = "/dev/disk/by-uuid/EA5C-B850";

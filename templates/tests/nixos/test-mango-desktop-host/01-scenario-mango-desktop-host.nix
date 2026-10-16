@@ -64,7 +64,7 @@ in
   check-scratch-binds-have-tag0-rules =
     let
       scratch = lib.filter (b: has "/bin/mango-scratch " b) bind;
-      classes = lib.concatMap (b: map (m: lib.head m) (lib.filter (m: m != null) (map (builtins.match ".*--class ([a-z-]+).*") [ b ]))) scratch;
+      classes = lib.concatMap (b: map (m: lib.elemAt m 1) (lib.filter (m: m != null) (map (builtins.match ".*--(class|name) ([a-z-]+).*") [ b ]))) scratch;
       missing = lib.filter (c: !(hasTag0Rule windowRule c)) classes;
     in
     chk (classes != [ ] && missing == [ ]) "mango-scratch classes without a tags:0 window rule (classes: ${toString classes}, missing: ${toString missing})";

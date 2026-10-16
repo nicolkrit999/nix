@@ -53,12 +53,6 @@
     neededForBoot = true;
   };
 
-  fileSystems."/.snapshots" = {
-    device = "/dev/disk/by-uuid/5eb47d8e-8b29-4fe5-ba2b-13216f46513c";
-    fsType = "btrfs";
-    options = [ "subvol=@snapshots" ];
-  };
-
   fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/2375-F650";
     fsType = "vfat";

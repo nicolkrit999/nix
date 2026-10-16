@@ -20,10 +20,10 @@ let
       pkgs.coreutils
     ];
     text = ''
-      mon=$(mmsg get all-monitors | jq -r '[.monitors[] | select(.active) | .name][0] // empty')
+      mon=$(mmsg get all-monitors | jq -r '[.monitors[] | select(.active) | .name][0] // empty' || true)
       active=$(mmsg get all-clients | jq --arg m "$mon" '[.clients[] | select(.monitor == $m and .is_visible and (.is_global | not) and (.is_unglobal | not) and (.tags | index(0)))] | length' || echo 0)
       if (( ''${active:-0} == 0 )); then
-        mmsg dispatch toggle_special_tag
+        mmsg dispatch toggle_special_tag || true
       fi
       exec "$@"
     '';
@@ -40,7 +40,7 @@ let
       pat=$2
       shift 3
       before=$(mmsg get all-clients | jq -c '[.clients[].id]' || echo '[]')
-      mmsg dispatch "focusmon,$out"
+      mmsg dispatch "focusmon,$out" || true
       "$@" &
       for _ in $(seq 60); do
         sleep 0.5
@@ -57,29 +57,41 @@ let
   };
   myGitUserName = "Krit Pio Nicol";
 
+  # Own profile dir: --name only takes effect on a separate (--no-remote) instance
+  scratchBrowserCmd = "${myBrowser} --no-remote --profile $HOME/.local/share/scratch-browser --name scratch-browser";
+
   # 🌟 HYPRLAND APP WORKSPACES (Keep 1 and 6 free. Keyboard key 0 = 10)
   appWorkspaces = {
-    editor = "2";
-    fileManager = "3";
-    vm = "4";
-    browser-Entertainment = "7";
-    terminal = "8";
     chat = "9";
+    editor = "2";
+    entertainment = "7";
+    fileManager = "3";
     other = "10";
+    terminal = "8";
+    vm = "4";
   };
 
-  # Add more if needed
+  silent = workspace: "${workspace} silent";
+  workspaceRules = workspace: classes: map (class: { match.class = class; inherit workspace; }) classes;
+  scratchRule = class: {
+    match.class = "^(${class})$";
+    float = true;
+    center = true;
+    size = "80% 80%";
+    workspace = "special:magic";
+  };
+
   termApps = [
-    "nvim"
-    "neovim"
-    "vim"
-    "nano"
-    "hx"
     "helix"
-    "yazi"
-    "ranger"
+    "hx"
     "lf"
+    "nano"
+    "neovim"
     "nnn"
+    "nvim"
+    "ranger"
+    "vim"
+    "yazi"
   ];
   smartLaunch =
     app: if builtins.elem app termApps then "${myTerminal} --class ${app} -e ${app}" else app;
@@ -89,7 +101,6 @@ let
     "firefox" = "firefox.desktop";
     "librewolf" = "librewolf.desktop";
     "google-chrome" = "google-chrome.desktop";
-    "chromium" = "chromium-browser.desktop";
     "brave" = "brave-browser.desktop";
     "nvim" = "custom-nvim.desktop";
     "code" = "code.desktop";
@@ -98,7 +109,7 @@ let
     "ranger" = "ranger.desktop";
     "dolphin" = "org.kde.dolphin.desktop";
     "thunar" = "thunar.desktop";
-    "Nautilus" = "org.gnome.Nautilus.desktop";
+    "nautilus" = "org.gnome.Nautilus.desktop";
     "nemo" = "nemo.desktop";
   };
   resolve = name: desktopMap.${name} or "${name}.desktop";
@@ -130,7 +141,7 @@ delib.host {
   homeManagerSystem = "x86_64-linux";
 
   myconfig =
-    { ... }:
+    { myconfig, ... }:
     {
       constants = {
         hostname = "nixos-desktop";
@@ -186,46 +197,36 @@ delib.host {
         ];
 
         theme = {
-          polarity = "dark";
           base16Theme = "catppuccin-mocha";
           catppuccin = true;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "sapphire";
         };
 
-        screenshots = "$HOME/Pictures/Screenshots";
         keyboardLayout = "us,it,de,fr";
         keyboardVariant = "alt-intl,,,";
 
         weather = "Lugano";
-        nixImpure = false;
 
         timeZone = "Europe/Zurich";
 
-        hyprland = {
-          rounding = 10;
-          gap = 5;
-          borderSize = 2;
-          terminalOpacity = 0.9;
-        };
+        hyprland.terminalOpacity = 0.9;
 
-        niri = {
-          gap = 8;
-          rounding = 10;
-        };
-
-        terminal = {
-          name = myTerminal;
-          cursorStyle = "block";
-          cursorBlink = true;
-          cursorBeamWidth = 3.0;
-          animation = true;
-        };
+        terminal.name = myTerminal;
       };
 
       # ---------------------------------------------------------------
       # 🌐 TOP-LEVEL MODULES
       # ---------------------------------------------------------------
+      attic = {
+        enable = true;
+        push = true;
+        serverUrl = "http://${myconfig.krit.services.nas.host}:8081";
+        cacheName = "krit-nix";
+        publicKey = "krit-nix:whY2oqegMU3c1dowH39O7Z7I3aAfwMpB/WZNy0/wykk=";
+        authTokenPath = "/run/secrets/attic-push-token";
+      };
+
       bluetooth = {
         enable = true;
         autoEnableOnBoot = false;
@@ -236,17 +237,6 @@ delib.host {
         push = true;
         authTokenPath = "/run/secrets/cachix-push-token";
       };
-
-      attic = {
-        enable = true;
-        push = true;
-        serverUrl = "http://nicol-nas.tail9b9ae8.ts.net:8081";
-        cacheName = "krit-nix";
-        publicKey = "krit-nix:whY2oqegMU3c1dowH39O7Z7I3aAfwMpB/WZNy0/wykk=";
-        authTokenPath = "/run/secrets/attic-push-token";
-      };
-
-      krit.commonSopsSecrets.enable = true;
 
       home-packages.enable = true;
       mime.enable = true;
@@ -259,40 +249,53 @@ delib.host {
       nix-sweeps.enable = true;
       qt.enable = true;
 
-      zram = {
-        enable = true;
-        zramPercent = 25;
-      };
-
       stylix = {
         enable = true;
         targets = { };
+      };
+
+      zram = {
+        enable = true;
+        zramPercent = 25;
       };
 
       # ---------------------------------------------------------------
       # 🚀 PROGRAMS
       # ---------------------------------------------------------------
       programs = {
+        atuin.enable = true;
         bat.enable = true;
         cava.enable = true;
+        # mcpSecrets / mcpEnv default in modules/common/programs/claude-code.nix (shared across all hosts)
+        claude-code.enable = true;
         claude-desktop.enable = true;
         codex.enable = true;
-        herdr.enable = true;
         comma.enable = true;
         concord.enable = true;
         doom.enable = true;
         eza.enable = true;
-        fzf.enable = true;
-        fzf.nix-search-tv.enable = true;
+        fastfetch.enable = true;
+        fzf = {
+          enable = true;
+          nix-search-tv.enable = true;
+        };
+
+        git = {
+          enable = true;
+          customGitIgnores = [ ];
+        };
+
         google-antigravity.enable = true;
+        headroom.enable = true;
+        herdr.enable = true;
         lazygit.enable = true;
         nix-alien.enable = true;
+        nix-ld.enable = true;
         nltchNur = {
           enable = false;
           packages = [ ];
         };
-        spotifyAdblock.enable = true;
-        nix-ld.enable = true;
+
         npm = {
           enable = true;
           packages = [
@@ -301,25 +304,48 @@ delib.host {
             "claude-token-counter" # Token usage counter for claude code
             "yoinks" # Video downloader
           ];
-          hostPackages = with pkgs; [
-            yt-dlp # claudefm: stream source
-            mpv # claudefm: playback
+          hostPackages = [
+            pkgs.yt-dlp # claudefm: stream source
+            pkgs.mpv # claudefm: playback
           ];
         };
+        openlogi.enable = true;
         prismlauncher.enable = true;
         shell-aliases.enable = true;
         sidra.enable = true;
+        skwdWall.enable = false;
+        spotifyAdblock.enable = true;
         starship.enable = true;
         statix.enable = true;
         swayosd.enable = true;
-        tgt.enable = true;
-        tmux.enable = true;
         television.enable = true;
-        walker.enable = false;
-        skwdWall.enable = false;
-        zoxide.enable = true;
-        atuin.enable = true;
-        zen.browser.enable = true;
+        tgt.enable = true;
+
+        thunderbird = {
+          enable = true;
+          sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
+          accounts = [
+            {
+              name = "gmail";
+              addressLocalSecretName = "thunderbird_gmail_address_local";
+              addressDomainSecretName = "thunderbird_gmail_address_domain";
+              realName = myGitUserName;
+              flavor = "gmail.com";
+              primary = true;
+              authentication = "login";
+              passwordSecretName = "thunderbird_gmail_app_password";
+            }
+            {
+              name = "outlook";
+              addressLocalSecretName = "thunderbird_outlook_address_local";
+              addressDomainSecretName = "thunderbird_outlook_address_domain";
+              realName = myGitUserName;
+              flavor = "outlook.office365.com";
+            }
+          ];
+        };
+
+        tmux.enable = true;
 
         vicinae = {
           enable = true;
@@ -364,6 +390,11 @@ delib.host {
               hash = "sha256-nGTMIrSEgZX+gPpNc0tLme0MprVzA3Ap4gvEnq3n6IU=";
             }
             {
+              name = "google-translate";
+              installName = "translate";
+              hash = "sha256-VhJ9wRnToUPccVIQwp4nxQ2ExkgukZIqqET5tS4RpfI=";
+            }
+            {
               name = "lorem-ipsum";
               hash = "sha256-zMhwb4imj79XByXbbVHqhQxso9Jj87bBuJNbqwEjMxs=";
             }
@@ -376,11 +407,6 @@ delib.host {
               hash = "sha256-i0jPsCbkl9X/Ka2fRYFHxk3COPxP8V+2C3dTdg6118c=";
             }
             {
-              name = "google-translate";
-              installName = "translate";
-              hash = "sha256-VhJ9wRnToUPccVIQwp4nxQ2ExkgukZIqqET5tS4RpfI=";
-            }
-            {
               name = "video-downloader";
               hash = "sha256-/Q9VW59t4xgQROuumw/6DWENAWqada+GHszvMyVrT0w=";
             }
@@ -390,45 +416,15 @@ delib.host {
               hash = "sha256-fhTmPfLoFpU2wuPHlL0WlLqtHBCLJ7/VMKjt3wLewQc=";
             }
           ];
-          extraPackages = with pkgs; [
-            aria2 # Required by aria2-manager extension
+          extraPackages = [
+            pkgs.aria2 # Required by aria2-manager extension
           ];
         };
 
-        headroom.enable = true;
-
-        # mcpSecrets / mcpEnv default in modules/common/programs/claude-code.nix (shared across all hosts)
-        claude-code.enable = true;
         vikunja-desktop.enable = true;
-
-        thunderbird = {
-          enable = true;
-          sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
-          accounts = [
-            {
-              name = "gmail";
-              addressLocalSecretName = "thunderbird_gmail_address_local";
-              addressDomainSecretName = "thunderbird_gmail_address_domain";
-              realName = myGitUserName;
-              flavor = "gmail.com";
-              primary = true;
-              authentication = "login";
-              passwordSecretName = "thunderbird_gmail_app_password";
-            }
-            {
-              name = "outlook";
-              addressLocalSecretName = "thunderbird_outlook_address_local";
-              addressDomainSecretName = "thunderbird_outlook_address_domain";
-              realName = myGitUserName;
-              flavor = "outlook.office365.com";
-            }
-          ];
-        };
-
-        git = {
-          enable = true;
-          customGitIgnores = [ ];
-        };
+        walker.enable = false;
+        zen.browser.enable = true;
+        zoxide.enable = true;
 
         # ---------------------------------------------------------------
         # 🐚 SHELLS
@@ -475,288 +471,83 @@ delib.host {
             }
           ];
           execOnce = [
-            "${myBrowser}"
+            myBrowser
             "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
             "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
             "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
             "uwsm app -- pwa-youtube.desktop"
             "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
           ];
-          monitorWorkspaces = [
-            {
-              workspace = "1";
-              monitor = "DP-1";
-            }
-            {
-              workspace = "2";
-              monitor = "DP-1";
-            }
-            {
-              workspace = "3";
-              monitor = "DP-1";
-            }
-            {
-              workspace = "4";
-              monitor = "DP-1";
-            }
-            {
-              workspace = "5";
-              monitor = "DP-1";
-            }
-            {
-              workspace = "6";
-              monitor = "DP-2";
-            }
-            {
-              workspace = "7";
-              monitor = "DP-2";
-            }
-            {
-              workspace = "8";
-              monitor = "DP-2";
-            }
-            {
-              workspace = "9";
-              monitor = "DP-2";
-            }
-            {
-              workspace = "10";
-              monitor = "DP-2";
-            }
-          ];
+          monitorWorkspaces = map
+            (n: {
+              workspace = toString n;
+              monitor = if n <= 5 then "DP-1" else "DP-2";
+            })
+            (lib.range 1 10);
 
-          windowRules = [
-            {
-              match.class = "^(${myEditor})$";
-              workspace = appWorkspaces.editor;
-            }
-            {
-              match.class = "^(${myFileManager})$";
-              workspace = appWorkspaces.fileManager;
-            }
-            {
-              match.class = "^(${myTerminal})$";
-              workspace = appWorkspaces.terminal;
-            }
-            {
-              match.class = "^(code)$";
-              workspace = "${appWorkspaces.editor} silent";
-            }
-            {
-              match.class = "^(nvim-editor)$";
-              workspace = "${appWorkspaces.editor} silent";
-            }
-            {
-              match.class = "^(org.kde.kate)$";
-              workspace = "${appWorkspaces.editor} silent";
-            }
-            {
-              match.class = "^(jetbrains-pycharm-ce)$";
-              workspace = "${appWorkspaces.editor} silent";
-            }
-            {
-              match.class = "^(jetbrains-Clion)$";
-              workspace = "${appWorkspaces.editor} silent";
-            }
-            {
-              match.class = "^(jetbrains-idea)$";
-              workspace = "${appWorkspaces.editor} silent";
-            }
-            {
-              match.class = "^(org.kde.dolphin)$";
-              workspace = "${appWorkspaces.fileManager} silent";
-            }
-            {
-              match.class = "^(thunar)$";
-              workspace = "${appWorkspaces.fileManager} silent";
-            }
-            {
-              match.class = "^(yazi)$";
-              workspace = "${appWorkspaces.fileManager} silent";
-            }
-            {
-              match.class = "^(ranger)$";
-              workspace = "${appWorkspaces.fileManager} silent";
-            }
-            {
-              match.class = "^(org.gnome.Nautilus)$";
-              workspace = "${appWorkspaces.fileManager} silent";
-            }
-            {
-              match.class = "^(nemo)$";
-              workspace = "${appWorkspaces.fileManager} silent";
-            }
-            {
-              match.class = "^(winboat)$";
-              workspace = "${appWorkspaces.vm} silent";
-            }
-            {
-              match.class = "^(Actual)$";
-              workspace = "${appWorkspaces.other} silent";
-            }
-            {
-              match.class = "^(org.jellyfin.JellyfinDesktop)$";
-              workspace = "${appWorkspaces.browser-Entertainment} silent";
-            }
-            {
-              match.class = "(^de.haeckerfelix.Shortwave)$";
-              workspace = "${appWorkspaces.browser-Entertainment} silent";
-            }
-            {
-              match.class = "^(chromium-browser)$";
-              workspace = "${appWorkspaces.browser-Entertainment} silent";
-            }
-            {
-              match.class = "^(brave-browser)$";
-              workspace = "${appWorkspaces.browser-Entertainment} silent";
-            }
-            {
-              match.class = "^(brave-.*\\..*)$";
-              workspace = "${appWorkspaces.browser-Entertainment} silent";
-            }
-            {
-              match.class = "(?i)spotify";
-              workspace = "${appWorkspaces.browser-Entertainment} silent";
-            }
-            {
-              match.class = "^(sidra)$";
-              workspace = "${appWorkspaces.browser-Entertainment} silent";
-            }
-            {
-              match.class = "^(kitty)$";
-              workspace = "${appWorkspaces.terminal} silent";
-            }
-            {
-              match.class = "^(alacritty)$";
-              workspace = "${appWorkspaces.terminal} silent";
-            }
-            {
-              match.class = "^(foot)$";
-              workspace = "${appWorkspaces.terminal} silent";
-            }
-            {
-              match.class = "^(xfce4-terminal)$";
-              workspace = "${appWorkspaces.terminal} silent";
-            }
-            {
-              match.class = "^(com.system76.CosmicTerm)$";
-              workspace = "${appWorkspaces.terminal} silent";
-            }
-            {
-              match.class = "^(org.kde.konsole)$";
-              workspace = "${appWorkspaces.terminal} silent";
-            }
-            {
-              match.class = "^(gnome-terminal)$";
-              workspace = "${appWorkspaces.terminal} silent";
-            }
-            {
-              match.class = "^(XTerm)$";
-              workspace = "${appWorkspaces.terminal} silent";
-            }
-            {
-              match.class = "^(vesktop)$";
-              workspace = "${appWorkspaces.chat} silent";
-            }
-            {
-              match.class = "^(org.telegram.desktop)$";
-              workspace = "${appWorkspaces.chat} silent";
-            }
-            {
-              match.class = "^(whatsapp-electron)$";
-              workspace = "${appWorkspaces.chat} silent";
-            }
-            {
-              match.class = "^(com.rtosta.zapzap)$";
-              workspace = "${appWorkspaces.chat} silent";
-            }
-            {
-              match.class = "(?i).*zathura.*";
-              workspace = "${appWorkspaces.other}";
-            }
-
-            {
-              match.class = "^(scratch-term)$";
-              float = true;
-            }
-            {
-              match.class = "^(scratch-term)$";
-              center = true;
-            }
-            {
-              match.class = "^(scratch-term)$";
-              size = "80% 80%";
-            }
-            {
-              match.class = "^(scratch-term)$";
-              workspace = "special:magic";
-            }
-            {
-              match.class = "^(scratch-fs)$";
-              float = true;
-            }
-            {
-              match.class = "^(scratch-fs)$";
-              center = true;
-            }
-            {
-              match.class = "^(scratch-fs)$";
-              size = "80% 80%";
-            }
-            {
-              match.class = "^(scratch-fs)$";
-              workspace = "special:magic";
-            }
-            {
-              match.class = "^(scratch-browser)$";
-              float = true;
-            }
-            {
-              match.class = "^(scratch-browser)$";
-              center = true;
-            }
-            {
-              match.class = "^(scratch-browser)$";
-              size = "80% 80%";
-            }
-            {
-              match.class = "^(scratch-browser)$";
-              workspace = "special:magic";
-            }
-
-            {
-              match.class = "^winboat-.*$";
-              workspace = appWorkspaces.vm;
-            }
-            {
-              match.class = "^winboat-.*$";
-              suppress_event = "fullscreen maximize activate activatefocus";
-            }
-            {
-              match.class = "^winboat-.*$";
-              no_initial_focus = true;
-            }
-            {
-              match.class = "^winboat-.*$";
-              no_anim = true;
-            }
-            {
-              match.class = "^winboat-.*$";
-              rounding = 0;
-            }
-            {
-              match.class = "^winboat-.*$";
-              no_shadow = true;
-            }
-            {
-              match.class = "^winboat-.*$";
-              no_blur = true;
-            }
-            {
-              match.class = "^winboat-.*$";
-              opaque = true;
-            }
-          ];
+          windowRules =
+            workspaceRules appWorkspaces.editor [ "^(${myEditor})$" ]
+            ++ workspaceRules (silent appWorkspaces.editor) [
+              "^(code)$"
+              "^(nvim-editor)$"
+              "^(org.kde.kate)$"
+              "^(jetbrains-pycharm-ce)$"
+              "^(jetbrains-Clion)$"
+              "^(jetbrains-idea)$"
+            ]
+            ++ workspaceRules (silent appWorkspaces.fileManager) [
+              "^(org.kde.dolphin)$"
+              "^(thunar)$"
+              "^(${myFileManager})$"
+              "^(ranger)$"
+              "^(org.gnome.Nautilus)$"
+              "^(nemo)$"
+            ]
+            ++ workspaceRules (silent appWorkspaces.vm) [ "^(winboat)$" ]
+            ++ workspaceRules (silent appWorkspaces.other) [ "^(Actual)$" ]
+            ++ workspaceRules (silent appWorkspaces.entertainment) [
+              "^(org.jellyfin.JellyfinDesktop)$"
+              "^(de\\.haeckerfelix\\.Shortwave)$"
+              "^(brave-browser)$"
+              "^(brave-.*\\..*)$"
+              "(?i)spotify"
+              "^(sidra)$"
+            ]
+            ++ workspaceRules (silent appWorkspaces.terminal) [
+              "^(${myTerminal})$"
+              "^(alacritty)$"
+              "^(foot)$"
+              "^(xfce4-terminal)$"
+              "^(com.system76.CosmicTerm)$"
+              "^(org.kde.konsole)$"
+              "^(gnome-terminal)$"
+              "^(XTerm)$"
+            ]
+            ++ workspaceRules (silent appWorkspaces.chat) [
+              "^(vesktop)$"
+              "^(org.telegram.desktop)$"
+              "^(whatsapp-electron)$"
+              "^(com.rtosta.zapzap)$"
+            ]
+            ++ workspaceRules appWorkspaces.other [ "(?i).*zathura.*" ]
+            ++ map scratchRule [
+              "scratch-term"
+              "scratch-fs"
+              "scratch-browser"
+            ]
+            ++ [
+              {
+                match.class = "^winboat-.*$";
+                workspace = appWorkspaces.vm;
+                suppress_event = "fullscreen maximize activate activatefocus";
+                no_initial_focus = true;
+                no_anim = true;
+                rounding = 0;
+                no_shadow = true;
+                no_blur = true;
+                opaque = true;
+              }
+            ];
 
           extraBinds = [
             {
@@ -768,13 +559,13 @@ delib.host {
             {
               _args = [
                 "SUPER + SHIFT + F"
-                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-fs -e yazi")'')
+                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-fs -e ${myFileManager}")'')
               ];
             }
             {
               _args = [
                 "SUPER + SHIFT + B"
-                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myBrowser} --new-window --class scratch-browser")'')
+                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${scratchBrowserCmd}")'')
               ];
             }
 
@@ -821,11 +612,11 @@ delib.host {
             # DP-1
             "sh -c 'sleep 3 && ${myTerminal} --class mango-startup-fileManager -e ${myFileManager}'"
             "sh -c 'sleep 6 && ${myTerminal} --class mango-startup-editor -e ${myEditor}'"
-            "sh -c 'sleep 9 && exec ${lib.getExe mangoPlace} DP-1 ^zen-beta$ -- ${myBrowser}'"
+            "sh -c 'sleep 9 && exec ${lib.getExe mangoPlace} DP-1 ^${myBrowser}$ -- ${myBrowser}'"
 
             # DP-2
             "sh -c 'sleep 12 && ${myTerminal} --class mango-startup-terminal'"
-            "sh -c 'sleep 15 && ${pkgs.gtk3}/bin/gtk-launch pwa-youtube'"
+            "sh -c 'sleep 15 && ${lib.getExe' pkgs.gtk3 "gtk-launch"} pwa-youtube'"
             "sh -c 'sleep 18 && flatpak run com.rtosta.zapzap'"
           ];
           windowRules = [
@@ -836,6 +627,7 @@ delib.host {
             "monitor:^DP-2$,app_id:^com\\.rtosta\\.zapzap$"
             "is_floating:1,width:0.8,height:0.8,tags:0,app_id:^scratch-term$"
             "is_floating:1,width:0.8,height:0.8,tags:0,app_id:^scratch-fs$"
+            "is_floating:1,width:0.8,height:0.8,tags:0,app_id:^scratch-browser$"
           ];
           extraBinds = [
             "NONE,XF86Tools,viewtoleft_have_client,0"
@@ -844,7 +636,7 @@ delib.host {
             "NONE,XF86Launch7,killclient,"
             "SUPER+SHIFT,Return,spawn,${lib.getExe mangoScratch} ${myTerminal} --class scratch-term"
             "SUPER+SHIFT,F,spawn,${lib.getExe mangoScratch} ${myTerminal} --class scratch-fs -e ${myFileManager}"
-            "SUPER+SHIFT,B,spawn,${lib.getExe mangoScratch} ${myBrowser} --new-window"
+            "SUPER+SHIFT,B,spawn,sh -c 'exec ${lib.getExe mangoScratch} ${scratchBrowserCmd}'"
           ];
         };
 
@@ -879,7 +671,7 @@ delib.host {
                 flipped = false;
               };
             };
-            # I-17: niri cannot mirror; HDMI-A-1 is the JetKVM (hyprland/mango mirror it), so disable it
+            # I-17: niri cannot mirror; HDMI-A-1 is the JetKVM (hyprland mirrors it, mango disables it), so disable it
             "HDMI-A-1" = {
               enable = false;
             };
@@ -890,7 +682,6 @@ delib.host {
             "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
             "sh -c 'sleep 11 && ${myTerminal}'"
             "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
-            "sh -c 'sleep 17 && chromium-browser'"
             "sh -c 'sleep 30 && niri msg action focus-column-first'" # Refocus browser after all windows are up
           ];
           extraBinds = {
@@ -937,43 +728,26 @@ delib.host {
         # ---------------------------------------------------------------
         # 🖥️ DESKTOP ENVIRONMENTS
         # ---------------------------------------------------------------
-        cosmic = {
-          enable = true;
-        };
+        cosmic.enable = true;
 
         gnome = {
           enable = true;
-          pinnedApps = pinnedApps;
-          extraBinds = [
-            # 🖱️ LOGITECH MX MASTER Thumb button gesstures
-            {
-              name = "Gesture Left (Prev Workspace)";
-              command = "${pkgs.wtype}/bin/wtype -M super -k Page_Up -m super";
-              binding = "XF86Tools";
-            }
-            {
-              name = "Gesture Right (Next Workspace)";
-              command = "${pkgs.wtype}/bin/wtype -M super -k Page_Down -m super";
-              binding = "XF86Launch5";
-            }
-            {
-              name = "Gesture Up (Maximize)";
-              command = "${pkgs.wtype}/bin/wtype -M super -k Up -m super";
-              binding = "XF86Launch6";
-            }
-            {
-              name = "Gesture Down (Close)";
-              command = "${pkgs.wtype}/bin/wtype -M super -M shift -k c -m shift -m super";
-              binding = "XF86Launch7";
-            }
-          ];
+          inherit pinnedApps;
+          # 🖱️ LOGITECH MX MASTER Thumb gestures: left/right = workspace, up = maximize, down = minimize; <Super>m toggles maximize
+          wmKeybindings = {
+            switch-to-workspace-left = [ "<Super>Page_Up" "<Super>KP_Prior" "<Super><Alt>Left" "<Control><Alt>Left" "XF86Tools" ];
+            switch-to-workspace-right = [ "<Super>Page_Down" "<Super>KP_Next" "<Super><Alt>Right" "<Control><Alt>Right" "XF86Launch5" ];
+            maximize = [ "<Super>Up" "XF86Launch6" ];
+            minimize = [ "<Super>h" "XF86Launch7" ];
+            toggle-maximized = [ "<Super>m" "<Alt>F10" ];
+          };
         };
 
         kde = {
           enable = true;
-          pinnedApps = pinnedApps;
+          inherit pinnedApps;
           extraBinds = {
-            # 🖱️ LOGITECH MX MASTER Thumb button gesstures
+            # 🖱️ LOGITECH MX MASTER Thumb button gestures
             "gesture-left" = {
               key = "XF86Tools";
               command = "qdbus org.kde.KWin /KWin org.kde.KWin.previousDesktop";
@@ -998,17 +772,17 @@ delib.host {
       # ⚙️ SERVICES
       # ---------------------------------------------------------------
       services = {
-        audio = {
-          enable = true;
-        };
-
+        audio.enable = true;
         autotrash.enable = true;
-        external.dotfiles.enable = true;
-        external.dotfiles-private.enable = true;
+        external = {
+          dotfiles.enable = true;
+          dotfiles-private.enable = true;
+        };
         impermanence.enable = true;
         localsend.enable = true;
         rcloneMount.enable = true;
         resolved.enable = true;
+        swaync.enable = true;
         tailscale.enable = true;
 
         hypridle = {
@@ -1021,11 +795,9 @@ delib.host {
         sddm-astronaut = {
           enable = true;
           embeddedTheme = "hyprland_kath";
-          #background = ;
         };
         sddm-pixie = {
           enable = false;
-          #background = ;
           avatar = "face-512.jpg";
         };
 
@@ -1039,79 +811,11 @@ delib.host {
             yearly = "2";
           };
         };
-
-        swaync = {
-          enable = true;
-        };
-      };
-
-      # ---------------------------------------------------------------
-      # 👤 KRIT PROGRAMS
-      # ---------------------------------------------------------------
-
-      krit.programs = {
-        alacritty.enable = false;
-        chromium.enable = false;
-        claude-code-wrappers.enable = true;
-        direnv.enable = true;
-        dolphin.enable = true;
-        firefox.enable = false;
-        helium.enable = true;
-        kitty.enable = true;
-        krokiet.enable = true;
-        librewolf.enable = true;
-        neovim.enable = true;
-        pwas.enable = true;
-        proton-cli.enable = true;
-        ranger.enable = false;
-        yazi.enable = true;
-        zathura.enable = true;
-      };
-
-      # ---------------------------------------------------------------
-      # 👤 KRIT SERVICES
-      # ---------------------------------------------------------------
-      krit.services.desktop = {
-        admin-vlan.enable = false;
-        flatpak.enable = true;
-        local-packages.enable = true;
-        ping-watchdog.enable = true;
-      };
-
-      krit.services.windows-mount.enable = true;
-      krit.services.windows-mount.uuid = "7E70DDB470DD737F";
-
-      krit.services.network-tools.enable = true;
-
-      krit.services.logitech = {
-        enable = false;
-        mouses = {
-          mx-master-3s.enable = true;
-          mx-master-4.enable = true;
-          superlight.enable = true;
-        };
-      };
-
-      programs.openlogi.enable = true;
-      programs.fastfetch.enable = true;
-
-      krit.services.nas = {
-        desktop-borg-backup.enable = true;
-        opencloud-mount.enable = true;
-        smb.enable = true;
-        sshfs.enable = false;
-      };
-
-      krit.services.cloud = {
-        googleDrive.enable = true;
-        onedrivePersonal.enable = true;
-        pcloud.enable = true;
-        protonDrive.enable = true;
       };
 
       # ---------------------------------------------------------------
       # 🎭 SHARED SPECIALIZATIONS
-      # -----------
+      # ---------------------------------------------------------------
       specializations = {
         deep-focus.enable = true;
         guest.enable = true;
@@ -1120,29 +824,86 @@ delib.host {
       };
 
       # ---------------------------------------------------------------
-      # 🎭 KRIT SPECIALIZATIONS
+      # 👤 KRIT
       # ---------------------------------------------------------------
-      krit.specializations = {
-        entertainment.enable = true;
-        school.enable = true;
+      krit = {
+        commonSopsSecrets.enable = true;
+
+        programs = {
+          alacritty.enable = false;
+          chromium.enable = false;
+          claude-code-wrappers.enable = true;
+          direnv.enable = true;
+          dolphin.enable = true;
+          firefox.enable = false;
+          helium.enable = true;
+          kitty.enable = true;
+          krokiet.enable = true;
+          librewolf.enable = true;
+          neovim.enable = true;
+          proton-cli.enable = true;
+          pwas.enable = true;
+          ranger.enable = false;
+          yazi.enable = true;
+          zathura.enable = true;
+        };
+
+        services = {
+          cloud = {
+            googleDrive.enable = true;
+            onedrivePersonal.enable = true;
+            pcloud.enable = true;
+            protonDrive.enable = true;
+          };
+
+          desktop = {
+            flatpak.enable = true;
+            local-packages.enable = true;
+          };
+
+          logitech.enable = false;
+
+          nas = {
+            desktop-borg-backup.enable = true;
+            opencloud-mount.enable = true;
+            smb.enable = true;
+            sshfs.enable = false;
+          };
+
+          network-tools.enable = true;
+
+          windows-mount = {
+            enable = true;
+            uuid = "7E70DDB470DD737F";
+          };
+        };
+
+        # ---------------------------------------------------------------
+        # 🎭 KRIT SPECIALIZATIONS
+        # ---------------------------------------------------------------
+        specializations = {
+          entertainment.enable = true;
+          school.enable = true;
+        };
+
+        # ---------------------------------------------------------------
+        # 🔧 KRIT SYSTEM
+        # ---------------------------------------------------------------
+        system = {
+          default-user.enable = true;
+          git-ssh-signing.enable = true;
+          ssh-config = {
+            enable = true;
+            gatewayAlias = true;
+          };
+          swiss-locale.enable = true;
+          virtualisation.enable = true;
+        };
+
+        # ---------------------------------------------------------------
+        # 🏠 KRIT HOME
+        # ---------------------------------------------------------------
+        home.base.enable = true;
       };
-
-      # ---------------------------------------------------------------
-      # 🔧 KRIT SYSTEM
-      # ---------------------------------------------------------------
-      krit.system = {
-        default-user.enable = true;
-        git-ssh-signing.enable = true;
-        swiss-locale.enable = true;
-        ssh-config.enable = true;
-        ssh-config.gatewayAlias = true;
-        virtualisation.enable = true;
-      };
-
-      # ---------------------------------------------------------------
-      # 🏠 KRIT HOME
-      # ---------------------------------------------------------------
-      krit.home.base.enable = true;
-
     };
 }

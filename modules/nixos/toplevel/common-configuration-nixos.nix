@@ -3,6 +3,14 @@
 , pkgs
 , ...
 }:
+let
+  scrubTargets = config:
+    let
+      btrfsFs = lib.filter (fs: fs.fsType == "btrfs") (lib.attrValues config.fileSystems);
+      byDevice = lib.groupBy (fs: toString fs.device) btrfsFs;
+    in
+    map (group: (lib.head group).mountPoint) (lib.attrValues byDevice);
+in
 delib.module {
   name = "common-configuration";
 
@@ -11,6 +19,18 @@ delib.module {
     , ...
     }:
     {
+      imports = [
+        (
+          { config, ... }:
+          {
+            services.btrfs.autoScrub = lib.mkIf (scrubTargets config != [ ]) {
+              enable = true;
+              fileSystems = scrubTargets config;
+            };
+          }
+        )
+      ];
+
       # ---------------------------------------------------------
       # HOST IDENTITY
       # ---------------------------------------------------------
@@ -20,6 +40,7 @@ delib.module {
       # LOCALE & TIME
       # ---------------------------------------------------------
       time.timeZone = myconfig.constants.timeZone;
+      i18n.defaultLocale = myconfig.constants.mainLocale;
 
       console = {
         useXkbConfig = true;

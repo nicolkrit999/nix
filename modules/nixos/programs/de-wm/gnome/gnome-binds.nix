@@ -94,13 +94,14 @@ delib.module {
           screenshot = [ ];
         };
 
-        "org/gnome/desktop/wm/keybindings" = {
-          close = [ "<Super><Shift>c" ];
+        "org/gnome/desktop/wm/keybindings" = cfg.wmKeybindings // {
+          close = [ "<Super><Shift>c" ] ++ (cfg.wmKeybindings.close or [ ]);
         };
 
         "org/gnome/shell/keybindings" = {
           toggle-overview = [ "<Super>w" ];
           toggle-application-view = [ ];
+          toggle-message-tray = [ ];
         };
       }
       // dconfSettings;

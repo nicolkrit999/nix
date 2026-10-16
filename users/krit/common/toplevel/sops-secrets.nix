@@ -93,7 +93,15 @@ delib.module {
 
   home.ifEnabled =
     { myconfig, ... }:
-    lib.optionalAttrs (moduleSystem == "home") {
+    lib.optionalAttrs (moduleSystem == "nixos")
+      {
+        programs.fish.interactiveShellInit = lib.mkBefore ''
+          if test -r ${config.sops.secrets.hevy_api_key.path}
+            set -gx HEVY_API_KEY (cat ${config.sops.secrets.hevy_api_key.path})
+          end
+        '';
+      }
+    // lib.optionalAttrs (moduleSystem == "home") {
       sops = {
         defaultSopsFile = commonSecrets;
         age.keyFile = "${config.xdg.configHome}/sops/age/keys.txt";

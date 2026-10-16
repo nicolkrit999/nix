@@ -21,6 +21,10 @@ let
   powerMgrs = builtins.filter (n: my.services.${n}.enable or false) [ "auto-cpufreq" "tlp" ];
   tsFw = cfg.networking.firewall;
   hmUser = cfg.home-manager.users.${my.constants.user};
+  scrub = c: c.services.btrfs.autoScrub;
+  noBtrfs = (sys.extendModules { modules = [{ fileSystems = lib.mapAttrs (_: _: { fsType = lib.mkForce "ext4"; }) fs; }]; }).config;
+  btrfsDevices = lib.unique (map (v: toString v.device) (lib.attrValues btrfsFs));
+  localeTwin = (sys.extendModules { modules = [{ myconfig.constants.mainLocale = lib.mkForce "xx_XX.UTF-8"; }]; }).config;
   tsFlags = cfg.services.tailscale.extraUpFlags ++ cfg.services.tailscale.extraSetFlags;
   checks =
     {
@@ -92,6 +96,15 @@ let
         (cfg.sops.secrets ? github_fg_pat_token_nix
           && cfg.sops.secrets.github_fg_pat_token_nix.path == "/run/secrets/github_fg_pat_token_nix")
         "sops secret github_fg_pat_token_nix missing or not at /run/secrets/";
+
+      check-btrfs-autoscrub = check
+        (btrfsFs != { } && (scrub cfg).enable && lib.all (m: btrfsFs ? ${m}) (scrub cfg).fileSystems
+          && lib.length (scrub cfg).fileSystems == lib.length btrfsDevices && !(scrub noBtrfs).enable)
+        "services.btrfs.autoScrub must be on with exactly one mount point per btrfs device (${builtins.toJSON (scrub cfg).fileSystems}) and off on a twin without btrfs filesystems";
+
+      check-default-locale-from-constants = check
+        (cfg.i18n.defaultLocale == my.constants.mainLocale && localeTwin.i18n.defaultLocale == "xx_XX.UTF-8")
+        "i18n.defaultLocale (${cfg.i18n.defaultLocale}) does not follow constants.mainLocale (${my.constants.mainLocale})";
 
       check-one-sddm-theme = check (builtins.length themes == 1) "enabled sddm themes: ${builtins.toJSON themes}";
       check-power-exclusive = check (builtins.length powerMgrs <= 1) "enabled: ${builtins.toJSON powerMgrs}";

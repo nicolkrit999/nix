@@ -95,7 +95,6 @@ delib.module {
         { match.class = "^(winboat)$"; workspace = "7 silent"; }
         { match.class = "^(Actual)$"; workspace = "10 silent"; }
         { match.class = "^(org.jellyfin.JellyfinDesktop)$"; workspace = "6 silent"; }
-        { match.class = "^(chromium-browser)$"; workspace = "6 silent"; }
         { match.class = "^(brave-browser)$"; workspace = "6 silent"; }
         { match.class = "^(brave-.*\\..*)$"; workspace = "6 silent"; }
         { match.class = "(?i)spotify"; workspace = "6 silent"; }

@@ -52,6 +52,8 @@ Per host unless marked.
 | immutable-users | `users.mutableUsers == false` |
 | password-files | krit and root `hashedPasswordFile` = the sops secret path |
 | bootloader | grub on, systemd-boot off, no EFI var writes, removable install, device `nodev` |
+| btrfs-autoscrub | `services.btrfs.autoScrub` is enabled with exactly one existing btrfs mount point per btrfs device; a twin with every filesystem forced to ext4 has it disabled |
+| default-locale-from-constants | `i18n.defaultLocale == constants.mainLocale`; a twin with a different `mainLocale` follows it |
 | nix-pat-include | `nix.extraOptions` includes the PAT file under `/run/secrets` |
 | pat-secret-declared | sops secret exists and resolves to that path |
 | one-sddm-theme | exactly one of sddm-astronaut / sddm-pixie enabled |
