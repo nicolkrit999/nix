@@ -110,6 +110,7 @@ let
   srcOf = cfg: (H.getHm cfg).programs.hyprlock.settings.source or [ ];
   ourConf = cfg: lib.filter (s: lib.hasSuffix "no-background.conf" (builtins.unsafeDiscardStringContext s)) (srcOf cfg);
   drvText = s: builtins.readFile (builtins.unsafeDiscardStringContext (builtins.head (builtins.attrNames (builtins.getContext s))));
+  plainControl = pkgs.runCommand "plain-control" { } "echo x > $out";
   stripsBackground = t: lib.hasInfix "# BACKGROUND$/ { skip = 1" t && lib.hasInfix "hyprlock.conf" t && lib.hasInfix "grep -q '^background'" t;
   revertedSingleStar = path: [{ monitor = ""; inherit path; zindex = -1; }];
   desktopExpect = {
@@ -211,7 +212,8 @@ in
     in !(H.getHm c).catppuccin.hyprlock.useDefaultConfig && builtins.length (srcOf c) == 3 && builtins.length (ourConf c) == 1
   );
   lockCatppuccinStripsBackground = guard (stripsBackground (drvText (builtins.head (ourConf (lockHost "34-lock-catppuccin-desktop")))));
-  lockCatppuccinStripControl = guard (!stripsBackground (drvText "${pkgs.runCommand "plain-control" { } "echo x > $out"}"));
+  lockCatppuccinStripControl = guard (!stripsBackground (drvText "${plainControl}"));
+  lockStripDrvs = pkgs.writeText "lock-strip-drvs" (builtins.head (ourConf (lockHost "34-lock-catppuccin-desktop")) + "${plainControl}");
   lockCatppuccinOffNoStrip = guard (ourConf (lockHost "26-lock-desktop-like") == [ ]);
   lockNoStarOne = guard (lockOk { specific = [{ monitor = "eDP-1"; path = lockPath "lock-edp1"; }]; catchAll = fallbackPath; } (bgsOf (lockHost "32-lock-nostar-one")));
   lockNoStarThree = guard (lockOk

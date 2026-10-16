@@ -18,3 +18,8 @@ harness command (works through `nix run`, flags IFD even when outputs exist); fa
 an inline base16 attrset. Repro on a fresh store: `nix-instantiate --store <dir> --eval ...`.
 Separate class: `readFile (unsafeDiscardStringContext drvOut)` is not IFD and the guard misses it.
 Related: [[flake-check-misses-build-failures]].
+
+Also (2026-10-16, run 38879489567): CI runs Determinate Nix 3.23 whose plain `nix eval --impure`
+does NOT write .drv files either, so `readFile` of a drvPath (test-nixos-wallpapers `drvText`)
+fails on CI ("path ...-plain-control.drv does not exist") unless the drv is already in the restored
+snapshot. Fix pattern: `nix-instantiate "$SCEN" -A <writeText anchor carrying the strings>` first.

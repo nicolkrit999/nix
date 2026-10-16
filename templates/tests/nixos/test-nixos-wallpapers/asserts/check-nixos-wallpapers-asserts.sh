@@ -106,6 +106,7 @@ expect_ok lockCatppuccinDesktop      "catppuccin on, 3-monitor fixture: per-moni
 expect_ok lockCatppuccinNoOwnBackgroundFile "catppuccin on: ~/.config/background is no longer written"
 expect_ok lockCatppuccinLookControl  "control: catppuccin off keeps blur and no \$base color on every block"
 expect_ok lockCatppuccinOwnConfOnly  "catppuccin on: useDefaultConfig off, sources are flavor + accent + the derived conf (default conf not sourced)"
+nix-instantiate "$SCEN" -A lockStripDrvs >/dev/null 2>"$ERR" || echo "WARN  could not write the strip-predicate .drv files: $(grep -m1 -E 'error: .+' "$ERR" | cut -c1-160)"
 expect_ok lockCatppuccinStripsBackground "catppuccin on: derived hyprlock.conf script strips the # BACKGROUND block and fails if one remains"
 expect_ok lockCatppuccinStripControl "control: an unrelated derivation does not satisfy the strip predicate"
 expect_ok lockCatppuccinOffNoStrip   "control: catppuccin off sources no derived conf"
