@@ -1,6 +1,6 @@
 ---
 name: laptop-ipu7-hal-cvs-patches
-description: nixos-laptop IPU7 camera HAL now pinned to specific upstream commits + 2 CVS-bridge patches, ported from gossamer reference config; build-verified, not yet reboot-verified
+description: nixos-laptop IPU7 camera HAL now pinned to specific upstream commits + 2 CVS-bridge patches, ported from gossamer reference config; runtime tested: link setup fixed, frames still black (open upstream issue)
 metadata:
   type: project
 ---
@@ -9,7 +9,7 @@ metadata:
 `ipu7-camera-bins` and `ipu75xa-camera-hal` to specific upstream commits
 (`intel/ipu7-camera-bins@403c67db6b279dd02752f11db6a34552f31a3ac5`,
 `intel/ipu7-camera-hal@b1f6ebef12111fb5da0133b144d69dd9b001836c`, both via
-`.overrideAttrs { src = final.fetchFromGitHub {...}; }` inside the overlay)
+`.overrideAttrs (_old: { src = prev.fetchFromGitHub {...}; })` inside the overlay)
 instead of whatever revision `nixpkgs-unstable` currently ships, and applies
 two patches on top of the HAL (`omarchyPatch` helper, `pkgs.fetchurl` from
 `raw.githubusercontent.com/omacom/omarchy-pkgs/59732a3e6fc5f158360b480ad38f479faf1f3677/pkgbuilds/intel-ipu7-camera/000{5,6}-...patch`).
@@ -25,16 +25,17 @@ failed:-38`). Ported from a reference config for the identical laptop model
 `/home/krit/Downloads/nixos-config-master/` - treat any future re-port from
 that source as needing re-fetch, not assumed-cached).
 
+**Runtime status (checked 2026-10-17):** booted and tested. The two CVS
+patches fix the link setup (the `failed to setup Link` / `stream on failed:-38`
+errors are gone), but captured frames are still black. That remaining failure
+is an open upstream issue, not something this overlay can fix. The intel_cvs
+wake-irq kernel patch is still needed on 7.3-rc7 (recheck thesofproject/linux#5940
+at the next kernel bump). Camera overlay pins are still ahead of nixpkgs.
+
 **How to apply:** the source-fetch hashes and patch-fetchurl hashes are
-final/confirmed (independently re-resolved via `nurl`/`nix flake prefetch`
-this session, matched what the task already specified). Real (non-dry) build
-of `ipu75xa-camera-hal` via
+final/confirmed (re-resolved via `nurl`/`nix flake prefetch`). A real build of
+`ipu75xa-camera-hal` via
 `nix build .#nixosConfigurations.nixos-laptop.pkgs.ipu75xa-camera-hal --no-link`
-succeeded 2026-09-25 - both patches applied cleanly against the pinned
-commit, no hunk failures. **This only proves patch-application + compile,
-not runtime camera behavior (black-frame vs. real image) - that still needs
-a physical reboot to confirm**, not yet done as of this write. See
-`~/.claude memory "nixos-laptop-panther-lake-hardware-issues"` (main
-session's project memory, not this agent's) for the full hardware
-background/symptom history - update that file's webcam section once a real
-reboot confirms working (or still-broken) capture.
+succeeded 2026-09-25, both patches apply cleanly against the pinned commit.
+See the main session's project memory `project_laptop_panther_lake_issues.md`
+for the full hardware background and symptom history.

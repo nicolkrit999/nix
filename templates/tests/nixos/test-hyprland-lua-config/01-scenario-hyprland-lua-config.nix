@@ -35,7 +35,26 @@ let
   execStrings = svc:
     lib.concatMap (k: let v = svc.Service.${k} or [ ]; in lib.toList v) [ "ExecStart" "ExecStop" "ExecStartPre" "ExecStartPost" "ExecReload" ];
 
-  perVariant = _name: c:
+  scratchBindClasses = text:
+    lib.concatMap
+      (l:
+        let m = builtins.match ".*[[]workspace special:magic[]][^\"]*(--class|--name) ([^ \"]+).*" l;
+        in lib.optional (m != null) (builtins.elemAt m 1))
+      (lib.splitString "\n" text);
+  scratchRuleClasses = text:
+    lib.concatMap
+      (b:
+        let
+          ms = map (l: builtins.match ''.*[[]"class"[]] = "\^\(([^)]*)\)\$".*'' l) (lib.splitString "\n" b);
+          found = lib.filter (m: m != null) ms;
+        in
+        lib.optional (has ''["workspace"] = "special:magic"'' b && found != [ ]) (builtins.head (builtins.head found)))
+      (lib.splitString "hl.window_rule({" text);
+  scratchUnmatched = text:
+    let rules = scratchRuleClasses text; in
+    lib.filter (cls: !(lib.any (r: builtins.match r cls != null) rules)) (scratchBindClasses text);
+
+  perVariant = name: c:
     let
       hm = hmOf c;
       lua = hm.xdg.configFile."hypr/hyprland.lua".text;
@@ -88,11 +107,30 @@ let
       "xwayland-phantom-rule-rendered" = chk (has ''["class"] = "^$"'' lua && has ''["xwayland"] = true'' lua) "rendered lua lacks the XWayland phantom rule";
       "wrapper-capabilities-empty" = chk (c.security.wrappers.Hyprland.capabilities == "") "capabilities: ${c.security.wrappers.Hyprland.capabilities}";
       "jetkvm-teardown-gated-no-ls-pipe" = chk (jetkvm == null || ((jetkvm.Service.ExecCondition or "") != "" && !(has "| head" jetkvmText))) "hyprland-jetkvm-teardown lacks ExecCondition or still pipes ls into head";
+      "scratch-binds-have-window-rules" =
+        let
+          binds = scratchBindClasses lua;
+          bad = scratchUnmatched lua;
+          isHost = !(has "+" name);
+        in
+        chk ((!isHost || builtins.length binds >= 3) && bad == [ ]) (if bad != [ ] then "scratch bind class without special:magic window rule: ${toString bad}" else "expected >= 3 scratch binds, found ${toString (builtins.length binds)}");
       "with-uwsm" = chk (c.programs.hyprland.withUWSM) "programs.hyprland.withUWSM is false";
     };
 
   results = lib.mapAttrs perVariant variants;
 
+  ctlBinds = ''
+    hl.bind("a", (hl.dsp.exec_cmd("[workspace special:magic] kitty --class scratch-term")))
+    hl.bind("b", (hl.dsp.exec_cmd("[workspace special:magic] zen --no-remote --name scratch-browser")))
+  '';
+  ctlRule = cls: ''
+    hl.window_rule({
+      ["match"] = {
+        ["class"] = "^(${cls})$"
+      },
+      ["workspace"] = "special:magic"
+    })
+  '';
   controlBad = "hyprctl dispatch workspace 1\nhyprctl dispatch 'hl.dsp.exit()'\nhyprctl   dispatch dpms off";
   controlGood = "hyprctl dispatch 'hl.dsp.exit()' && hyprctl reload";
 in
@@ -105,6 +143,10 @@ in
     "legacy-matcher-flags-bad-text" = chk (builtins.length (legacyDispatch controlBad) == 2) "matcher found ${toString (builtins.length (legacyDispatch controlBad))} legacy uses in control text, expected 2";
     "legacy-matcher-accepts-good-text" = chk (legacyDispatch controlGood == [ ]) "matcher flagged the lua-form control text";
     "pipe-matcher-flags-ls-head" = chk (has "| head" "ls -1 dir | head -n1" && !(has "| head" "for d in dir/*/; do break; done")) "ls-into-head matcher does not discriminate";
+    "scratch-matcher-extracts-class-and-name" = chk (scratchBindClasses ctlBinds == [ "scratch-term" "scratch-browser" ]) "extracted ${toString (scratchBindClasses ctlBinds)}";
+    "scratch-matcher-flags-missing-rule" = chk (scratchUnmatched (ctlBinds + ctlRule "scratch-term") == [ "scratch-browser" ]) "got ${toString (scratchUnmatched (ctlBinds + ctlRule "scratch-term"))}";
+    "scratch-matcher-accepts-full-rules" = chk (scratchUnmatched (ctlBinds + ctlRule "scratch-term" + ctlRule "scratch-browser") == [ ]) "flagged despite rules";
+    "scratch-matcher-flags-wrong-class" = chk (scratchUnmatched (ctlBinds + ctlRule "scratch-term" + ctlRule "scratch-browse") == [ "scratch-browser" ]) "near-miss class accepted";
     "variants-cover-both-hosts" = chk (lib.all (h: variants ? ${h}) hostNames) "base hosts missing from variants";
   };
 }

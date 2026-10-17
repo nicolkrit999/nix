@@ -267,3 +267,5 @@ sudo chown -R $USER:users ~/nix
 
 - `local-packages.nix`: add packages installed only on this host.
 - `flatpak.nix`: add flatpak packages installed only on this host.
+
+Host-dir modules load on every NixOS host: gate them behind a host-unique `krit.services.<host>.*` enable; their `nixos.always` parts apply everywhere.

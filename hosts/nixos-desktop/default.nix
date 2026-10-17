@@ -418,6 +418,7 @@ delib.host {
           ];
           extraPackages = [
             pkgs.aria2 # Required by aria2-manager extension
+            pkgs.pulseaudio # pactl, required by the pulseaudio extension
           ];
         };
 

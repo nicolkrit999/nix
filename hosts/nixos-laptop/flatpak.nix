@@ -12,7 +12,10 @@ delib.module {
   };
 
   nixos.ifEnabled =
+    { myconfig, ... }:
     let
+      tz = myconfig.constants.timeZone;
+
       # nix-flatpak passes `bundle` to `flatpak install --bundle`, which needs a local file:
       # fetchurl downloads it (and enforces the hash); sha256 also triggers the reinstall on change.
       craftBundle = name: version: hash: rec {
@@ -25,6 +28,13 @@ delib.module {
       };
     in
     {
+      assertions = [
+        {
+          assertion = pkgs.stdenv.hostPlatform.isx86_64;
+          message = "krit.services.laptop.flatpak: the Craft bundles are linux-x86_64 only";
+        }
+      ];
+
       services.flatpak = {
         enable = true;
         packages = [
@@ -37,14 +47,13 @@ delib.module {
 
           "dev.mariinkys.StarryDex" # Pokedex
 
+          "io.github.AshBuk.FingerGo" # Typing trainer
+          "io.github.iionel.Visu" # Algorithm visualizer
+          "io.github.lluciocc.Vish" # Gui bash script editor
           "io.github.philippkosarev.bmi" # Bmi calculator
           "io.github.shonebinu.Brief" # Brief, command lines cheatsheet application
-          "io.github.AshBuk.FingerGo" # Typing trainer
-          "io.github.lluciocc.Vish" # Gui bash script editor
-          "io.github.iionel.Visu" # Algorithm visualizer
 
           "lol.siembra.tuxtypeplus" # Typing test games
-
           "me.iepure.devtoolbox" # DevToolbox, a collection of tools for developers
 
           # storytold "Craft" apps (github.com/storytold/<name>): not on Flathub, installed from the
@@ -61,7 +70,6 @@ delib.module {
           (craftBundle "designcraft" "0.8.0" "sha256-ikORGqIJnokdkJhyHkdQSqZFnlGW1zBOFSRfOen3MvU=") # InDesign-like page layout (magazines, books, print)
           (craftBundle "effectcraft" "0.10.0" "sha256-4cGt2ysUMhXyBkhShGRfmngQ6VKmWYkS+dyU267goVI=") # After Effects-like motion graphics / VFX compositor
         ];
-        update.onActivation = false;
         remotes = [
           {
             name = "flathub";
@@ -73,17 +81,21 @@ delib.module {
           onCalendar = "weekly";
         };
         overrides = {
-          "com.rtosta.zapzap".Context.filesystems = [ "home" ]; # Download/save WhatsApp files
-          "com.rtosta.zapzap".Environment.TZ = "Europe/Zurich"; # /etc is reserved by Flatpak (can't bind-mount /etc/localtime), so set TZ directly to stop Electron falling back to UTC
+          "com.rtosta.zapzap" = {
+            Context.filesystems = [ "home" ]; # Download/save WhatsApp files
+            Environment.TZ = tz; # /etc is reserved by Flatpak (can't bind-mount /etc/localtime), so set TZ directly to stop Electron falling back to UTC
+          };
           "com.github.unrud.VideoDownloader".Context.filesystems = [ "xdg-download" ]; # Save downloaded videos
-          "com.actualbudget.actual".Context.filesystems = [ "home" ]; # Import/export budget files
-          "com.actualbudget.actual".Environment.TZ = "Europe/Zurich"; # /etc is reserved by Flatpak (can't bind-mount /etc/localtime), so set TZ directly to stop Electron falling back to UTC
+          "com.actualbudget.actual" = {
+            Context.filesystems = [ "home" ]; # Import/export budget files
+            Environment.TZ = tz; # /etc is reserved by Flatpak (can't bind-mount /etc/localtime), so set TZ directly to stop Electron falling back to UTC
+          };
           "me.iepure.devtoolbox".Context.filesystems = [ "home" ]; # Open/save files for conversion tools
           # storytold Craft apps: extra grants on top of each bundle's own finish-args (checked against the pinned tags)
           "ai.storyteller.vectorcraft".Context.filesystems = [ "home" ]; # Linked images next to the document + default export folder ($HOME/Desktop)
           "ai.storyteller.photocraft".Context.filesystems = [ "xdg-download" ]; # Open/save in Downloads by path (bundle grants only Pictures/Documents)
           "ai.storyteller.lightcraft".Context.filesystems = [ "/run/media" ]; # Import from cards/USB drives (scans /run/media/$USER)
-          "ai.storyteller.pdfcraft".Environment.TZ = "Europe/Zurich"; # Stamps/signing dates use chrono::Local; /etc/localtime isn't visible in Flatpak, so it would fall back to UTC
+          "ai.storyteller.pdfcraft".Environment.TZ = tz; # Stamps/signing dates use chrono::Local; /etc/localtime isn't visible in Flatpak, so it would fall back to UTC
           "ai.storyteller.gridcraft".Context.filesystems = [ "xdg-pictures:ro" ]; # Insert Picture by typed path
         };
       };

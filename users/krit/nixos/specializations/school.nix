@@ -10,6 +10,13 @@ let
   commonSecrets = ../../common/sops/krit-common-secrets-sops.yaml;
   c = config.myconfig.constants;
   term = c.terminal.name;
+  scratchRule = class: {
+    match.class = "^(${class})$";
+    float = true;
+    center = true;
+    size = "80% 80%";
+    workspace = "special:magic";
+  };
   homeDir = config.users.users.${myUserName}.home;
   schoolKey = "${homeDir}/.ssh/id_school";
   schoolEmail = "kritpio.nicol@student.supsi.ch";
@@ -190,7 +197,12 @@ delib.module {
           else
             [ ]
         );
-        programs.hyprland.windowRules = lib.mkForce [ ];
+        # Workspace rules stay cleared; only the scratch rules (same as scratchRule in hosts/*/default.nix) are kept.
+        programs.hyprland.windowRules = lib.mkForce (map scratchRule [
+          "scratch-term"
+          "scratch-fs"
+          "scratch-browser"
+        ]);
 
         programs.niri.execOnce = lib.mkForce [
           "brave-school --app=https://www.icorsi.ch/"

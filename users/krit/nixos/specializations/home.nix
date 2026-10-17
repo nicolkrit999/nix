@@ -22,6 +22,16 @@ let
   hyprDesc = m: "desc:${m.make} ${m.model} ${m.serial}";
 
   niriKey = m: "${m.make} ${m.model} ${m.serial}";
+
+  silent = workspace: "${workspace} silent";
+  workspaceRules = workspace: classes: map (class: { match.class = class; inherit workspace; }) classes;
+  scratchRule = class: {
+    match.class = "^(${class})$";
+    float = true;
+    center = true;
+    size = "80% 80%";
+    workspace = "special:magic";
+  };
 in
 delib.module {
   name = "krit.specializations.home";
@@ -76,65 +86,69 @@ delib.module {
         { workspace = "10"; monitor = hyprDesc lg; }
       ];
 
-      myconfig.programs.hyprland.windowRules = lib.mkForce [
-        { match.class = "^(nvim)$"; workspace = "2"; }
-        { match.class = "^(yazi)$"; workspace = "3"; }
-        { match.class = "^(kitty)$"; workspace = "8"; }
-        { match.class = "^(code)$"; workspace = "2 silent"; }
-        { match.class = "^(nvim-editor)$"; workspace = "2 silent"; }
-        { match.class = "^(org.kde.kate)$"; workspace = "2 silent"; }
-        { match.class = "^(jetbrains-pycharm-ce)$"; workspace = "2 silent"; }
-        { match.class = "^(jetbrains-Clion)$"; workspace = "2 silent"; }
-        { match.class = "^(jetbrains-idea)$"; workspace = "2 silent"; }
-        { match.class = "^(org.kde.dolphin)$"; workspace = "3 silent"; }
-        { match.class = "^(thunar)$"; workspace = "3 silent"; }
-        { match.class = "^(yazi)$"; workspace = "3 silent"; }
-        { match.class = "^(ranger)$"; workspace = "3 silent"; }
-        { match.class = "^(org.gnome.Nautilus)$"; workspace = "3 silent"; }
-        { match.class = "^(nemo)$"; workspace = "3 silent"; }
-        { match.class = "^(winboat)$"; workspace = "7 silent"; }
-        { match.class = "^(Actual)$"; workspace = "10 silent"; }
-        { match.class = "^(org.jellyfin.JellyfinDesktop)$"; workspace = "6 silent"; }
-        { match.class = "^(brave-browser)$"; workspace = "6 silent"; }
-        { match.class = "^(brave-.*\\..*)$"; workspace = "6 silent"; }
-        { match.class = "(?i)spotify"; workspace = "6 silent"; }
-        { match.class = "^(sidra)$"; workspace = "6 silent"; }
-        { match.class = "(^de.haeckerfelix.Shortwave)$"; workspace = "6 silent"; }
-        { match.class = "^(kitty)$"; workspace = "8 silent"; }
-        { match.class = "^(alacritty)$"; workspace = "8 silent"; }
-        { match.class = "^(foot)$"; workspace = "8 silent"; }
-        { match.class = "^(xfce4-terminal)$"; workspace = "8 silent"; }
-        { match.class = "^(com.system76.CosmicTerm)$"; workspace = "8 silent"; }
-        { match.class = "^(org.kde.konsole)$"; workspace = "8 silent"; }
-        { match.class = "^(gnome-terminal)$"; workspace = "8 silent"; }
-        { match.class = "^(XTerm)$"; workspace = "8 silent"; }
-        { match.class = "^(vesktop)$"; workspace = "9 silent"; }
-        { match.class = "^(org.telegram.desktop)$"; workspace = "9 silent"; }
-        { match.class = "^(whatsapp-electron)$"; workspace = "9 silent"; }
-        { match.class = "^(com.rtosta.zapzap)$"; workspace = "9 silent"; }
-
-        { match.class = "^(scratch-term)$"; float = true; }
-        { match.class = "^(scratch-term)$"; center = true; }
-        { match.class = "^(scratch-term)$"; size = "80% 80%"; }
-        { match.class = "^(scratch-term)$"; workspace = "special:magic"; }
-        { match.class = "^(scratch-fs)$"; float = true; }
-        { match.class = "^(scratch-fs)$"; center = true; }
-        { match.class = "^(scratch-fs)$"; size = "80% 80%"; }
-        { match.class = "^(scratch-fs)$"; workspace = "special:magic"; }
-        { match.class = "^(scratch-browser)$"; float = true; }
-        { match.class = "^(scratch-browser)$"; center = true; }
-        { match.class = "^(scratch-browser)$"; size = "80% 80%"; }
-        { match.class = "^(scratch-browser)$"; workspace = "special:magic"; }
-
-        { match.class = "^winboat-.*$"; workspace = "7"; }
-        { match.class = "^winboat-.*$"; suppress_event = "fullscreen maximize activate activatefocus"; }
-        { match.class = "^winboat-.*$"; no_initial_focus = true; }
-        { match.class = "^winboat-.*$"; no_anim = true; }
-        { match.class = "^winboat-.*$"; rounding = 0; }
-        { match.class = "^winboat-.*$"; no_shadow = true; }
-        { match.class = "^winboat-.*$"; no_blur = true; }
-        { match.class = "^winboat-.*$"; opaque = true; }
-      ];
+      myconfig.programs.hyprland.windowRules = lib.mkForce (
+        workspaceRules "2" [ "^(nvim)$" ]
+        ++ workspaceRules (silent "2") [
+          "^(code)$"
+          "^(nvim-editor)$"
+          "^(org.kde.kate)$"
+          "^(jetbrains-pycharm-ce)$"
+          "^(jetbrains-Clion)$"
+          "^(jetbrains-idea)$"
+        ]
+        ++ workspaceRules (silent "3") [
+          "^(org.kde.dolphin)$"
+          "^(thunar)$"
+          "^(yazi)$"
+          "^(ranger)$"
+          "^(org.gnome.Nautilus)$"
+          "^(nemo)$"
+        ]
+        ++ workspaceRules (silent "7") [ "^(winboat)$" ]
+        ++ workspaceRules (silent "10") [ "^(Actual)$" ]
+        ++ workspaceRules (silent "6") [
+          "^(org.jellyfin.JellyfinDesktop)$"
+          "^(brave-browser)$"
+          "^(brave-.*\\..*)$"
+          "(?i)spotify"
+          "^(sidra)$"
+          "^(de\\.haeckerfelix\\.Shortwave)$"
+        ]
+        ++ workspaceRules (silent "8") [
+          "^(kitty)$"
+          "^(alacritty)$"
+          "^(foot)$"
+          "^(xfce4-terminal)$"
+          "^(com.system76.CosmicTerm)$"
+          "^(org.kde.konsole)$"
+          "^(gnome-terminal)$"
+          "^(XTerm)$"
+        ]
+        ++ workspaceRules (silent "9") [
+          "^(vesktop)$"
+          "^(org.telegram.desktop)$"
+          "^(whatsapp-electron)$"
+          "^(com.rtosta.zapzap)$"
+        ]
+        ++ map scratchRule [
+          "scratch-term"
+          "scratch-fs"
+          "scratch-browser"
+        ]
+        ++ [
+          {
+            match.class = "^winboat-.*$";
+            workspace = "7";
+            suppress_event = "fullscreen maximize activate activatefocus";
+            no_initial_focus = true;
+            no_anim = true;
+            rounding = 0;
+            no_shadow = true;
+            no_blur = true;
+            opaque = true;
+          }
+        ]
+      );
 
       myconfig.programs.hyprland.execOnce = lib.mkForce [
         "hyprctl dispatch 'hl.dsp.focus({ workspace = \"1\" })'"

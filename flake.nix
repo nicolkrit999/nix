@@ -250,7 +250,10 @@
       url = "github:vicinaehq/vicinae";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    vicinae-extensions.url = "github:vicinaehq/extensions";
+    vicinae-extensions = {
+      url = "github:vicinaehq/extensions";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     sidra = {
       url = "github:wimpysworld/sidra";

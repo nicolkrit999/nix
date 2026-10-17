@@ -25,6 +25,8 @@ delib.module {
         "/var/lib/nixos"
         "/var/lib/sddm"
         "/var/lib/snapper"
+        "/var/lib/systemd/backlight"
+        "/var/lib/systemd/rfkill"
         "/var/lib/systemd/timers"
         "/var/lib/systemd/timesync"
         "/var/lib/tailscale"

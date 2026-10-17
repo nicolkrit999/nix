@@ -43,6 +43,7 @@ The legacy-dispatch scan covers the rendered lua, `hypridle.conf`, the waybar co
 | `waybar-control-stock-unpatched` | stock waybar does not contain the patch |
 | `xwayland-phantom-rule-*` | `class ^$` + xwayland + `no_focus` rule in settings and rendered lua |
 | `jetkvm-teardown-gated-no-ls-pipe` | when a variant has `hyprland-jetkvm-teardown`: `Service.ExecCondition` is set (acts only in a Hyprland session) and the teardown script has no `\| head` (glob over `$XDG_RUNTIME_DIR/hypr/*` instead of `ls`) |
+| `scratch-binds-have-window-rules` | every `[workspace special:magic]` bind in hyprland.lua launches a `--class`/`--name` that fully matches the class of a `special:magic` window rule in the same file; the two real hosts must have at least 3 such binds (non-vacuous). Guards the `scratch-browser` class regression |
 | `wrapper-capabilities-empty`, `with-uwsm` | `security.wrappers.Hyprland.capabilities == ""`, `withUWSM` |
 
 ### Script-level
@@ -51,4 +52,4 @@ The legacy-dispatch scan covers the rendered lua, `hypridle.conf`, the waybar co
 | `luac -p hyprland.lua` per variant | exit 0 |
 | `bash -n universal-lock` per variant | exit 0 |
 | source grep for `hyprctl dispatch` without `'hl.` | no matches |
-| controls | matchers flag bad text, the `\| head` matcher discriminates, accept good text, variants cover both hosts (specialisations are tested when they enable Hyprland, none required) |
+| controls | matchers flag bad text, the `\| head` matcher discriminates, accept good text, the scratch matcher extracts `--class`/`--name`, flags a bind without rule and a near-miss class (`scratch-browse`) and accepts complete rules, variants cover both hosts (specialisations are tested when they enable Hyprland, none required) |

@@ -3,8 +3,8 @@
 # overlay below only pins the HAL/bins sources and applies the Intel CVS
 # bridge patches that the packaged revisions don't carry yet.
 #
-# See ~/.claude memory "nixos-laptop-panther-lake-hardware-issues" for the
-# full hardware background (camera IPU at PCI 0000:00:05.0, sensor ov08x40).
+# See memory project_laptop_panther_lake_issues.md for the full hardware
+# background (camera IPU at PCI 0000:00:05.0, sensor ov08x40).
 { delib
 , pkgs
 , lib
@@ -15,7 +15,6 @@ delib.module {
   options = delib.singleEnableOption false;
 
   nixos.ifEnabled =
-    { ... }:
     let
       # Patches fetched from the gossamer reference config's upstream source
       # (Omarchy's packaging tree), not vendored locally - same pattern
@@ -44,16 +43,12 @@ delib.module {
             };
           });
 
-          # Pinned to a specific upstream commit, with two patches applied on
-          # top, rather than the packaged revision - ported from the gossamer
-          # reference config (same laptop model). Linux 7.2 inserts Intel CVS
-          # (Synaptics SVP7500 bridge) between the sensor and the IPU7; the
-          # HAL must route through that bridge and configure both of its
-          # pads, which the packaged HAL revision doesn't do yet. Without
-          # these, capture opens but every frame is solid black (confirmed on
-          # real hardware 2026-09-25 - see project memory for the exact
-          # symptom). The gstreamer icamerasrc plugin picks this HAL up
-          # through the package set.
+          # Pinned to a specific upstream commit plus two Intel CVS bridge patches,
+          # ported from the gossamer reference config (same laptop model). Linux 7.2
+          # inserts the CVS bridge (Synaptics SVP7500) between sensor and IPU7; the
+          # packaged HAL does not route through it. The patches fix the link setup
+          # (stream-on -38); frames are still black, an open upstream issue (see
+          # project_laptop_panther_lake_issues.md).
           ipu75xa-camera-hal = prev.ipu75xa-camera-hal.overrideAttrs (old: {
             src = prev.fetchFromGitHub {
               owner = "intel";
@@ -76,69 +71,73 @@ delib.module {
         platform = "ipu75xa";
       };
 
-      # Tuning ported from another config for the same laptop/sensor
-      # (ov08x40-uf). hardware.ipu7's own module already wires
-      # services.v4l2-relayd.instances.ipu7 with generic defaults; override
-      # the pipeline/label/resolution for this specific sensor.
-      services.v4l2-relayd.instances.ipu7 = {
-        cardLabel = "Built-in Front Camera (Intel ISP)";
-        input = {
-          pipeline = lib.mkForce "icamerasrc device-name=ov08x40-uf sharpness=80 ev=-1 saturation=10";
-          width = 3840;
-          height = 2160;
-          framerate = 30;
+      services = {
+        # Tuning ported from another config for the same laptop/sensor
+        # (ov08x40-uf). hardware.ipu7's own module already wires
+        # services.v4l2-relayd.instances.ipu7 with generic defaults; override
+        # the pipeline/label/resolution for this specific sensor.
+        v4l2-relayd.instances.ipu7 = {
+          cardLabel = "Built-in Front Camera (Intel ISP)";
+          input = {
+            pipeline = lib.mkForce "icamerasrc device-name=ov08x40-uf sharpness=80 ev=-1 saturation=10";
+            width = 3840;
+            height = 2160;
+            framerate = 30;
+          };
+          output.format = "NV12";
         };
-        output.format = "NV12";
+
+        # Avoid two camera stacks competing for the same sensor. Browsers see
+        # the processed V4L2 loopback feed; USB cameras remain available
+        # through V4L2.
+        pipewire.wireplumber.extraConfig."10-camera" = {
+          "wireplumber.profiles".main."monitor.libcamera" = "disabled";
+        };
+
+        # Hide unprocessed Bayer capture nodes from desktop applications. The
+        # root relay can still access them. Do not use WirePlumber's
+        # device.disabled rule: it can deadlock audio discovery in some
+        # WirePlumber versions.
+        udev.packages = [
+          (pkgs.writeTextDir "lib/udev/rules.d/71-ipu7-hide-isys.rules" ''
+            SUBSYSTEM=="video4linux", ATTR{name}=="Intel IPU7 ISYS Capture *", TAG-="uaccess", TAG-="seat", MODE="0600", GROUP="root"
+          '')
+        ];
       };
 
-      systemd.services.v4l2-relayd-ipu7 = {
-        after = [ "systemd-modules-load.service" ];
-        serviceConfig.RuntimeDirectory = "camera";
-        # exclusive_caps exposes capture only once the relay opens its writer.
-        # Refresh udev's capabilities then, so an existing desktop finds the camera.
-        postStart = ''
-          device=$(cat "$V4L2_DEVICE_FILE")
-          for attempt in $(seq 1 50); do
-            if ${pkgs.v4l-utils}/bin/v4l2-ctl -d "$device" --get-fmt-video >/dev/null 2>&1; then
-              ${pkgs.systemd}/bin/udevadm trigger --action=change "/sys/class/video4linux/$(basename "$device")"
-              exit 0
-            fi
-            sleep 0.1
-          done
-          echo "Camera relay did not expose a capture format" >&2
-          exit 1
-        '';
-      };
+      systemd.services = {
+        v4l2-relayd-ipu7 = {
+          after = [ "systemd-modules-load.service" ];
+          serviceConfig.RuntimeDirectory = "camera";
+          # exclusive_caps exposes capture only once the relay opens its writer.
+          # Refresh udev's capabilities then, so an existing desktop finds the camera.
+          postStart = ''
+            device=$(cat "$V4L2_DEVICE_FILE")
+            for _ in $(seq 1 50); do
+              if ${pkgs.v4l-utils}/bin/v4l2-ctl -d "$device" --get-fmt-video >/dev/null 2>&1; then
+                ${pkgs.systemd}/bin/udevadm trigger --action=change "/sys/class/video4linux/$(basename "$device")"
+                exit 0
+              fi
+              sleep 0.1
+            done
+            echo "Camera relay did not expose a capture format" >&2
+            exit 1
+          '';
+        };
 
-      # Release the HAL before suspend and reopen it after resume, without
-      # unloading the CVS driver or disrupting the sensor's media graph.
-      systemd.services.camera-sleep = {
-        wantedBy = [ "sleep.target" ];
-        before = [ "sleep.target" ];
-        unitConfig.StopWhenUnneeded = true;
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          ExecStart = "${pkgs.systemd}/bin/systemctl stop v4l2-relayd-ipu7.service";
-          ExecStop = "${pkgs.systemd}/bin/systemctl --no-block start v4l2-relayd-ipu7.service";
+        # Release the HAL before suspend and reopen it after resume, without
+        # unloading the CVS driver or disrupting the sensor's media graph.
+        camera-sleep = {
+          wantedBy = [ "sleep.target" ];
+          before = [ "sleep.target" ];
+          unitConfig.StopWhenUnneeded = true;
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+            ExecStart = "${pkgs.systemd}/bin/systemctl stop v4l2-relayd-ipu7.service";
+            ExecStop = "${pkgs.systemd}/bin/systemctl --no-block start v4l2-relayd-ipu7.service";
+          };
         };
       };
-
-      # Avoid two camera stacks competing for the same sensor. Browsers see
-      # the processed V4L2 loopback feed; USB cameras remain available
-      # through V4L2.
-      services.pipewire.wireplumber.extraConfig."10-camera" = {
-        "wireplumber.profiles".main."monitor.libcamera" = "disabled";
-      };
-
-      # Hide unprocessed Bayer capture nodes from desktop applications. The
-      # root relay can still access them. Do not use WirePlumber's
-      # device.disabled rule: it can deadlock audio discovery in some
-      # WirePlumber versions.
-      services.udev.packages = [
-        (pkgs.writeTextDir "lib/udev/rules.d/71-ipu7-hide-isys.rules" ''
-          SUBSYSTEM=="video4linux", ATTR{name}=="Intel IPU7 ISYS Capture *", TAG-="uaccess", TAG-="seat", MODE="0600", GROUP="root"
-        '')
-      ];
     };
 }

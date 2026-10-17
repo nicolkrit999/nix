@@ -6,14 +6,12 @@ delib.module {
   name = "krit.services.desktop.local-packages";
   options = delib.singleEnableOption false;
 
-  nixos.always = {
-    # Ventoy: precompiled blobs, insecure pin (nixpkgs#404663); update on bump, drop when knownVulnerabilities clears
-    nixpkgs.config.permittedInsecurePackages = [ "ventoy-qt5-1.1.17" ];
-  };
-
   nixos.ifEnabled =
     { myconfig, ... }:
     {
+      # Ventoy: precompiled blobs, insecure pin (nixpkgs#404663); update on bump, drop when knownVulnerabilities clears
+      nixpkgs.config.permittedInsecurePackages = [ "ventoy-qt5-1.1.17" ];
+
       users.users.${myconfig.constants.user}.packages = with pkgs; [
         # Desktop applications
         censor # PDF document redaction for the GNOME desktop
