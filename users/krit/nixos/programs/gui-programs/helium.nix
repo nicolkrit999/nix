@@ -8,10 +8,10 @@ let
   # launch the way --load-extension did.
   extensionSpecs = [
     { id = "cdglnehniifkbagbbombnjghhcihifij"; hash = "sha256-weiUUUiZeeIlz/k/d9VDSKNwcQtmAahwSIHt7Frwh7E="; } # Kagi Search
-    { id = "chphlpgkkbolifaimnlloiipkdnihall"; hash = "sha256-jCjPqfSn5su3J7AESK5YD7o3I6X6YStG+PlCmp0Qd2o="; } # OneTab
+    { id = "chphlpgkkbolifaimnlloiipkdnihall"; hash = "sha256-e9tguLeVyjXBAgZFFDrrjbCLdaAVa5WOzwDDXftOVVE="; } # OneTab
     { id = "dpaefegpjhgeplnkomgbcmmlffkijbgp"; hash = "sha256-BnnCPisSxlhTSoQQeZg06Re8MhgwztRKmET9D93ghiw="; } # Kagi Summarizer
     { id = "dphilobhebphkdjbpfohgikllaljmgbn"; hash = "sha256-IgmQYXUjBM0iONHXqTgcvIXihN2ZrXWCZsQZZg1xPxk="; } # SimpleLogin
-    { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-twziJd+ehNangagE8EuuM2MAVmBIgszKzDqjt31kkDs="; } # Proton Pass
+    { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-bt+LtIygXRhPADo/p4oqUQWduxvV+F1We/o9iHqdPxI="; } # Proton Pass
     { id = "ljipkdpcjbmhkdjjmbbaggebcednbbme"; hash = "sha256-wVSUhC4c24i4vpqeq1nZaeKtn32rn3+jorcC3WIaXJM="; } # Behind the Overlay
     { id = "lnaahdmijnjnmgaalacdgakieangpjgp"; hash = "sha256-xxdOTvjv9gaB1rS0bMsmrudydOGdTDtt73Ri+zRCpNQ="; } # Screenshot YouTube Video
     { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; hash = "sha256-VYf+K2qZRhAcoN3nxu/nanVcXuW21uY9/EjH9zbNtP8="; } # SponsorBlock

@@ -80,8 +80,8 @@ delib.module {
           "Mod+BracketLeft".action.spawn = [ "brightnessctl" "set" "5%-" ];
           "XF86MonBrightnessUp".action.spawn = [ "brightnessctl" "set" "5%+" ];
           "XF86MonBrightnessDown".action.spawn = [ "brightnessctl" "set" "5%-" ];
-          "XF86KbdBrightnessUp".action.spawn = [ "brightnessctl" "--device=*::kbd_backlight" "set" "+10%" ];
-          "XF86KbdBrightnessDown".action.spawn = [ "brightnessctl" "--device=*::kbd_backlight" "set" "10%-" ];
+          "XF86KbdBrightnessUp".action.spawn = [ "brightnessctl" "--device=*::kbd_backlight" "set" "+1" ];
+          "XF86KbdBrightnessDown".action.spawn = [ "brightnessctl" "--device=*::kbd_backlight" "set" "1-" ];
           "XF86AudioPlay".action.spawn = [ "playerctl" "play-pause" ];
           "XF86AudioPause".action.spawn = [ "playerctl" "play-pause" ];
           "XF86AudioNext".action.spawn = [ "playerctl" "next" ];
@@ -96,8 +96,8 @@ delib.module {
           "Mod+BracketLeft".action.spawn = [ "swayosd-client" "--brightness" "lower" ];
           "XF86MonBrightnessUp".action.spawn = [ "swayosd-client" "--brightness" "raise" ];
           "XF86MonBrightnessDown".action.spawn = [ "swayosd-client" "--brightness" "lower" ];
-          "XF86KbdBrightnessUp".action.spawn = [ "swayosd-client" "--keyboard-brightness" "raise" ];
-          "XF86KbdBrightnessDown".action.spawn = [ "swayosd-client" "--keyboard-brightness" "lower" ];
+          "XF86KbdBrightnessUp".action.spawn = [ "brightnessctl" "--device=*::kbd_backlight" "set" "+1" ];
+          "XF86KbdBrightnessDown".action.spawn = [ "brightnessctl" "--device=*::kbd_backlight" "set" "1-" ];
           "XF86AudioPlay".action.spawn = [ "swayosd-client" "--playerctl" "play-pause" ];
           "XF86AudioPause".action.spawn = [ "swayosd-client" "--playerctl" "play-pause" ];
           "XF86AudioNext".action.spawn = [ "swayosd-client" "--playerctl" "next" ];

@@ -85,8 +85,8 @@ delib.module {
           { key = "XF86MonBrightnessDown"; cmd = "brightnessctl set 5%-"; }
           { mods = mod; key = "bracketright"; cmd = "brightnessctl set 5%+"; }
           { mods = mod; key = "bracketleft"; cmd = "brightnessctl set 5%-"; }
-          { key = "XF86KbdBrightnessUp"; cmd = "brightnessctl --device='*::kbd_backlight' set +10%"; }
-          { key = "XF86KbdBrightnessDown"; cmd = "brightnessctl --device='*::kbd_backlight' set 10%-"; }
+          { key = "XF86KbdBrightnessUp"; cmd = "brightnessctl --device='*::kbd_backlight' set +1"; }
+          { key = "XF86KbdBrightnessDown"; cmd = "brightnessctl --device='*::kbd_backlight' set 1-"; }
         ] else [
           { key = "XF86AudioRaiseVolume"; cmd = "swayosd-client --output-volume raise"; }
           { key = "XF86AudioLowerVolume"; cmd = "swayosd-client --output-volume lower"; }
@@ -96,8 +96,8 @@ delib.module {
           { key = "XF86MonBrightnessDown"; cmd = "swayosd-client --brightness lower"; }
           { mods = mod; key = "bracketright"; cmd = "swayosd-client --brightness raise"; }
           { mods = mod; key = "bracketleft"; cmd = "swayosd-client --brightness lower"; }
-          { key = "XF86KbdBrightnessUp"; cmd = "swayosd-client --keyboard-brightness raise"; }
-          { key = "XF86KbdBrightnessDown"; cmd = "swayosd-client --keyboard-brightness lower"; }
+          { key = "XF86KbdBrightnessUp"; cmd = "brightnessctl --device='*::kbd_backlight' set +1"; }
+          { key = "XF86KbdBrightnessDown"; cmd = "brightnessctl --device='*::kbd_backlight' set 1-"; }
         ]
       );
 
