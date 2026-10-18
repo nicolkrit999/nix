@@ -231,7 +231,7 @@ fresh darwin-delete
 git -C "$S" rm -rqf templates/tests/darwin/test-darwin-home-paths
 L="$(line_of "$WF" '^\| `darwin` ')"
 guard
-if [[ $RC -ne 0 ]] && grep -q "count sentence says .* 3 darwin" <<<"$OUT" \
+if [[ $RC -ne 0 ]] && grep -q "count sentence says .* 6 darwin" <<<"$OUT" \
    && grep -q "row for \`darwin-home-paths\`, which discovery does not know" <<<"$OUT" \
    && grep -q "$WF:$L: row \`darwin\` names \`darwin-home-paths\`, which is no discovered test" <<<"$OUT"; then
   ok "darwin test deleted, no docs: count sentence, overview row and §12.2 darwin row all flagged"
