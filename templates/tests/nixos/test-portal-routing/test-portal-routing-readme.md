@@ -20,7 +20,7 @@ bash check-nixos-portal-routing.sh
 ```
 
 Builds `system-path` and the home-manager `home-path` per host/specialisation (mostly cached); no VM,
-no session switch. The `home-path` is built without its bin-only script wrappers (see `03-homepath.nix`) and the `system-path` without the heavy portal-less packages listed in `04-systempath.nix` (openlogi, a ~25 min Rust build). Cold about 12 min, warm about 6 min (`test.conf`: group `heavy-c`, timeout 30; CI run 38099944203 measured 14m34s).
+no session switch. The `home-path` is built without its bin-only script wrappers (see `03-homepath.nix`) and the `system-path` without the heavy portal-less packages listed in `04-systempath.nix` (openlogi, a ~25 min Rust build). Cold about 12 min, warm about 6 min (`test.conf`: group `heavy-c`, timeout 45; CI warm median ~16 min, max pass 29 min; run 38099944203 measured 14m34s).
 
 ## How it works
 
