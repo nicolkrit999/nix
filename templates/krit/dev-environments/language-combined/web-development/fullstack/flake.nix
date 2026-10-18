@@ -37,6 +37,7 @@
               nodejs_latest # Includes 'node' and 'npm'
               corepack # Includes 'pnpm' and 'yarn'
               typescript
+              prettier # JS/TS/CSS/HTML/JSON formatter
               vscode-langservers-extracted # Language servers for HTML/CSS/JSON
               typescript-language-server # TypeScript/JavaScript language server
 
@@ -90,76 +91,90 @@
               sqlite # SQLite3
             ];
 
+            # Entry banner: tool versions + overall verdict (never aborts the shell)
             shellHook = ''
-              # --- Helper Function for Clean Checks ---
-              check() {
-                local name="$1"
-                local cmd="$2"
-                # Skip tools that are not installed, then capture the first output line
-                local version=""
-                if command -v "''${cmd%% *}" >/dev/null 2>&1; then
-                  version=$(eval "$cmd" 2>&1 | head -n 1)
+                            # --- dev-env status banner (self-contained; removes itself in check_done) ---
+              check_begin() { # check_begin <env name> <system>
+                __de_ok=0 __de_total=0 __de_missing="" __de_g="" __de_r="" __de_y="" __de_b="" __de_n=""
+                if [ -t 1 ] && [ -z "''${NO_COLOR:-}" ]; then
+                  __de_g='\033[0;32m' __de_r='\033[0;31m' __de_y='\033[0;33m' __de_b='\033[1m' __de_n='\033[0m'
                 fi
-
-                if [ -n "$version" ]; then
-                   printf "%-20s \033[0;32m✅ %s\033[0m\n" "$name" "$version"
+                __de_name="$1"
+                printf '\n%b🚀 %s%b  (%s)\n' "$__de_b" "$1" "$__de_n" "$2"
+                printf -- '------------------------------------------------------------\n'
+              }
+              check() { # check <label> "<version cmd>" ["<alternate cmd>" ...]
+                local label="$1" cmd out ver rc
+                shift
+                __de_total=$((__de_total + 1))
+                for cmd in "$@"; do
+                  command -v "''${cmd%% *}" >/dev/null 2>&1 || continue
+                  out=$(eval "$cmd" 2>/dev/null </dev/null); rc=$?
+                  ver=$(printf '%s\n' "$out" | head -n 3 | grep -oE '[0-9]+(\.[0-9]+)+' | head -n 1)
+                  if [ -z "$out" ]; then # stdout empty: the version may be on stderr (java -version)
+                    out=$(eval "$cmd" 2>&1 </dev/null)
+                    ver=$(printf '%s\n' "$out" | head -n 3 | grep -oE '[0-9]+(\.[0-9]+)+' | head -n 1)
+                  fi
+                  __de_ok=$((__de_ok + 1))
+                  if [ -n "$ver" ]; then
+                    printf "  %b✅ %-20s%b %s\n" "$__de_g" "$label" "$__de_n" "$ver"
+                  elif [ "$rc" -eq 0 ]; then
+                    printf "  %b✅ %-20s%b %s\n" "$__de_g" "$label" "$__de_n" "installed"
+                  else
+                    printf "  %b⚠️  %-20s%b %s\n" "$__de_y" "$label" "$__de_n" "installed (version unknown)"
+                  fi
+                  return 0
+                done
+                __de_missing="$__de_missing''${__de_missing:+, }$label"
+                printf "  %b❌ %-20s%b %s\n" "$__de_r" "$label" "$__de_n" "not found"
+                return 0
+              }
+              check_section() { printf '%b%s%b\n' "$__de_b" "$1" "$__de_n"; }
+              check_done() {
+                printf -- '------------------------------------------------------------\n'
+                if [ -z "$__de_missing" ]; then
+                  printf "%b✅ %s ready: %s/%s tools%b\n\n" "$__de_g" "$__de_name" "$__de_ok" "$__de_total" "$__de_n"
                 else
-                   printf "%-20s \033[0;31m❌ Not Found\033[0m\n" "$name"
+                  printf "%b⚠️  %s incomplete (%s/%s): missing %s%b\n\n" "$__de_y" "$__de_name" "$__de_ok" "$__de_total" "$__de_missing" "$__de_n"
                 fi
+                unset -f check_begin check check_section check_done
+                unset __de_ok __de_total __de_missing __de_name __de_g __de_r __de_y __de_b __de_n
               }
 
-              echo ""
-              echo "------------------------------------------------------------------"
-              echo "🚀 Mega-Flake: Fullstack Environment Loaded"
-              echo "------------------------------------------------------------------"
-              echo "--- 📦 JavaScript / Node ---"
-              check "Node.js"     "node --version"
-              check "npm"         "npm --version"
-              check "pnpm"        "pnpm --version"
-              check "yarn"        "yarn --version"
-              check "TypeScript"  "tsc --version | awk '{print \$2}'"
-              check "HTML/CSS LS" "command -v vscode-html-language-server >/dev/null && echo installed"
-
-              echo ""
-              echo "--- 🐍 Python ---"
-              check "Python"      "python --version | awk '{print \$2}'"
-              check "Pip"         "pip --version | awk '{print \$2}'"
-              check "Django"      "python -m django --version"
-              check "Black"       "black --version | awk '{print \$3}'"
-
-              echo ""
-              echo "--- ☕ JVM (Java/Kotlin) ---"
-              # Java outputs to stderr, so we redirect
-              check "Java (JDK)"  "java -version 2>&1 | awk -F '\"' '/version/ {print \$2}'"
-              check "Kotlin"      "kotlin -version | awk '{print \$3}'"
-              check "Spring Boot" "spring --version"
-              check "Maven"       "mvn -version | awk '{print \$3}'"
-              check "Gradle"      "gradle --version | awk '/^Gradle /{print \$2; exit}'"
-
-              echo ""
-              echo "--- 🐘 PHP ---"
-              check "PHP"         "php --version | head -n 1 | awk '{print \$2}'"
-              check "Composer"    "composer --version | awk '{print \$3}'"
-
-              echo ""
-              echo "--- 💎 Ruby ---"
-              check "Ruby"        "ruby --version | awk '{print \$2}'"
-
-              echo ""
-              echo "--- 🔷 C# / .NET ---"
-              check ".NET SDK"    "dotnet --version"
-
-              echo ""
-              echo "--- 🐹 Golang ---"
-              check "Go"          "go version | awk '{print \$3}'"
-
-              echo ""
-              echo "--- 🗄️ Databases ---"
-              check "PostgreSQL"  "psql --version | awk '{print \$3}'"
-              check "MySQL"       "mysql --version | awk '{print \$3, \$5}'"
-              check "MongoDB"     "mongosh --version"
-              check "SQLite"      "sqlite3 --version | awk '{print \$1}'"
-              echo "------------------------------------------------------------------"
+                            check_begin "Fullstack" "${pkgs.stdenv.hostPlatform.system}"
+                            check_section "--- JavaScript / Node ---"
+                            check "Node.js" "node --version"
+                            check "npm" "npm --version"
+                            check "Corepack (pnpm/yarn)" "corepack --version"
+                            check "TypeScript" "tsc --version | awk '{print \$2}'"
+                            check "Prettier" "prettier --version"
+                            check "TS language server" "typescript-language-server --version"
+                            check "HTML/CSS LS" "command -v vscode-html-language-server >/dev/null && echo installed"
+                            check_section "--- Python ---"
+                            check "Python" "python3 --version" "python --version"
+                            check "Pip" "pip --version"
+                            check "Django" "python3 -m django --version"
+                            check "Black" "black --version"
+                            check "Ruff" "ruff --version"
+                            check_section "--- JVM ---"
+                            check "Java (JDK)" "java -version 2>&1 | awk -F'\"' '/version/ {v=\$2; if (v !~ /[.]/) v=v \".0\"; print v; exit}'"
+                            check "Kotlin" "kotlin -version"
+                            check "Spring Boot" "spring --version"
+                            check "Maven" "mvn -version"
+                            check "Gradle" "gradle --version | grep -m 1 '^Gradle'"
+                            check_section "--- PHP / Ruby / .NET / Go ---"
+                            check "PHP" "php --version"
+                            check "Composer" "composer --version"
+                            check "Ruby" "ruby --version"
+                            check ".NET SDK" "dotnet --version"
+                            check "Go" "go version"
+                            check "gopls" "gopls version"
+                            check_section "--- Databases ---"
+                            check "PostgreSQL" "psql --version"
+                            check "MySQL" "mysql --version"
+                            check "MongoDB" "mongosh --version"
+                            check "SQLite" "sqlite3 --version"
+                            check_done
             '';
           };
         }

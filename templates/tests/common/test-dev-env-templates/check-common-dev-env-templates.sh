@@ -58,22 +58,22 @@ DEFAULT_URL="https://flakehub.com/f/NixOS/nixpkgs/0.1"
 declare -A EXPECT_PKGS=(
   [language-combined/cs-cheat-sheets]="typst typstyle tinymist tectonic-wrapped pandoc-cli pandoc-crossref poppler-utils imagemagick qpdf graphviz gnuplot python3"
   [language-combined/cs-notes]="typst typstyle tinymist tectonic-wrapped pandoc-cli pandoc-crossref graphviz plantuml gnuplot poppler-utils python3"
-  [language-combined/sql]="python3 sqlite postgresql litecli pgcli usql sqlfluff csvkit jq"
-  [language-combined/web-development/fullstack]="nodejs typescript python3 openjdk|zulu-ca-jdk kotlin maven gradle composer ruby dotnet-sdk go gopls postgresql mongosh sqlite"
-  [language-specific/c-cpp]="clang-tools cmake cppcheck doxygen gtest lcov vcpkg"
-  [language-specific/go]="go gopls gotools golangci-lint"
-  [language-specific/haskell]="cabal-install ghc haskell-language-server ormolu"
-  [language-specific/java]="openjdk|zulu-ca-jdk gradle maven lombok jdt-language-server"
-  [language-specific/jupyter]="poetry python3 ruff ipykernel pip venv-shell-hook"
-  [language-specific/latex]="latex2html pandoc-cli texlive texlab tectonic-wrapped"
-  [language-specific/nix]="nixd nixfmt statix nix-tests"
-  [language-specific/node]="eslint nodejs pnpm prettier typescript typescript-language-server yarn"
-  [language-specific/php]="php-with-extensions composer phpactor"
-  [language-specific/python]="python3 black flake8 isort pip numpy venv-shell-hook pyright ruff"
+  [language-combined/sql]="python3 sqlite postgresql litecli pgcli usql sqlfluff csvkit jq duckdb dbmate pspg"
+  [language-combined/web-development/fullstack]="nodejs typescript python3 openjdk|zulu-ca-jdk kotlin maven gradle composer ruby dotnet-sdk go gopls postgresql mongosh sqlite prettier"
+  [language-specific/c-cpp]="clang-tools cmake cppcheck doxygen gtest lcov vcpkg ninja"
+  [language-specific/go]="go gopls gotools golangci-lint delve"
+  [language-specific/haskell]="cabal-install ghc haskell-language-server ormolu hlint"
+  [language-specific/java]="openjdk|zulu-ca-jdk gradle maven lombok jdt-language-server google-java-format"
+  [language-specific/jupyter]="poetry python3 ruff ipykernel pip venv-shell-hook nbstripout"
+  [language-specific/latex]="pandoc-cli texlive texlab tectonic-wrapped"
+  [language-specific/nix]="nixd nixfmt statix nix-tests deadnix"
+  [language-specific/node]="eslint nodejs pnpm prettier typescript typescript-language-server"
+  [language-specific/php]="php-with-extensions composer phpactor phpstan"
+  [language-specific/python]="python3 pip numpy venv-shell-hook pyright ruff pytest"
   [language-specific/r]="R pandoc-cli texlive"
-  [language-specific/rust]="rust-mixed openssl pkg-config-wrapper cargo-deny cargo-edit cargo-watch rust-analyzer"
-  [language-specific/shell]="ShellCheck shfmt bash-language-server"
-  [language-specific/swift]="swift sourcekit-lsp"
+  [language-specific/rust]="rust-mixed openssl pkg-config-wrapper cargo-deny cargo-nextest cargo-watch rust-analyzer"
+  [language-specific/shell]="ShellCheck shfmt bash-language-server bats"
+  [language-specific/swift]="swift swiftpm sourcekit-lsp swiftlint"
   [language-specific/typst]="typst typstyle typstwriter tinymist prettypst utpm"
 )
 
@@ -244,6 +244,15 @@ for t in language-specific/c-cpp language-specific/rust; do
   jq -e '.["aarch64-linux"].default.pkgs.v | index("gdb")' "$j" > /dev/null || detail="$detail gdb missing on aarch64-linux"
   record "$t" "$detail"
 done
+j="$(json_of language-specific/c-cpp)"
+if [[ -f "$j" ]]; then
+  detail=""
+  jq -e '.["aarch64-darwin"].default.pkgs.v | index("valgrind") | not' "$j" > /dev/null || detail="valgrind present on aarch64-darwin"
+  for sys in x86_64-linux aarch64-linux; do
+    jq -e --arg s "$sys" '.[$s].default.pkgs.v | index("valgrind")' "$j" > /dev/null || detail="$detail valgrind missing on $sys"
+  done
+  record "language-specific/c-cpp valgrind is Linux-only" "$detail"
+fi
 
 echo -e "\n${BOLD}go${NC}"
 gj="$(json_of language-specific/go)"

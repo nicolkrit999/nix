@@ -53,6 +53,7 @@ All 19 templates are covered. `web-development/fullstack` is expected to use `gi
 | python versions | default 3.15, py-stable 3.13, py-lts 3.12 (from the hook text); no py311 shell exists |
 | sql | python env with pandas is the first package; litecli/pgcli still follow it |
 | c-cpp, rust | gdb absent on aarch64-darwin, present on x86_64-linux and aarch64-linux |
+| c-cpp | valgrind absent on aarch64-darwin, present on x86_64-linux and aarch64-linux |
 | go | go version 1.26.* on all three systems |
 | java | `JAVA_HOME == jdk25.home` (from nixpkgs); `JAVA_TOOL_OPTIONS` is `-javaagent:<lombok in packages>/share/java/lombok.jar` |
 | rust | `RUST_SRC_PATH` ends in `/lib/rustlib/src/rust/library` |

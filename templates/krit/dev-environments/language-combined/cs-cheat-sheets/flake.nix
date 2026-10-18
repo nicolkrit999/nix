@@ -92,38 +92,81 @@
               ]))
             ];
 
+            # Entry banner: tool versions + overall verdict (never aborts the shell)
             shellHook = ''
-              check() {
-                local name="$1"
-                local cmd="$2"
-                local version=""
-                if command -v "''${cmd%% *}" >/dev/null 2>&1; then
-                  version=$(eval "$cmd" 2>&1 | head -n 1)
+                            # --- dev-env status banner (self-contained; removes itself in check_done) ---
+              check_begin() { # check_begin <env name> <system>
+                __de_ok=0 __de_total=0 __de_missing="" __de_g="" __de_r="" __de_y="" __de_b="" __de_n=""
+                if [ -t 1 ] && [ -z "''${NO_COLOR:-}" ]; then
+                  __de_g='\033[0;32m' __de_r='\033[0;31m' __de_y='\033[0;33m' __de_b='\033[1m' __de_n='\033[0m'
                 fi
-                if [ -n "$version" ]; then
-                  printf "%-12s \033[0;32m✅ %s\033[0m\n" "$name" "$version"
-                else
-                  printf "%-12s \033[0;31m❌ Not Found\033[0m\n" "$name"
-                fi
+                __de_name="$1"
+                printf '\n%b🚀 %s%b  (%s)\n' "$__de_b" "$1" "$__de_n" "$2"
+                printf -- '------------------------------------------------------------\n'
               }
-              echo ""
-              echo "------------------------------------------------------------------"
-              echo "🗜️  cs-cheat-sheets: max-density A4 sheets + hard page-cap fitting"
-              echo "------------------------------------------------------------------"
-              check "Typst"    "typst --version"
-              check "Tectonic" "tectonic --version"
-              check "Pandoc"   "pandoc --version | head -n 1"
-              check "pdfinfo"  "pdfinfo -v"
-              check "pdftoppm" "pdftoppm -v"
-              check "magick"   "magick --version | head -n 1"
-              check "Graphviz" "dot -V"
-              check "Gnuplot"  "gnuplot --version"
-              check "Python"   "python3 --version"
-              echo ""
-              echo "Page-cap fit: pdfinfo cheatsheet.pdf | grep Pages   (count)"
-              echo "Last-page full?  pdftoppm -png -f N -l N -r 100 ... | magick ... fx:1-mean"
-              echo "Missing a tool? nix shell nixpkgs#<pkg> --command <cmd>, then ask to add it here."
-              echo "------------------------------------------------------------------"
+              check() { # check <label> "<version cmd>" ["<alternate cmd>" ...]
+                local label="$1" cmd out ver rc
+                shift
+                __de_total=$((__de_total + 1))
+                for cmd in "$@"; do
+                  command -v "''${cmd%% *}" >/dev/null 2>&1 || continue
+                  out=$(eval "$cmd" 2>/dev/null </dev/null); rc=$?
+                  ver=$(printf '%s\n' "$out" | head -n 3 | grep -oE '[0-9]+(\.[0-9]+)+' | head -n 1)
+                  if [ -z "$out" ]; then # stdout empty: the version may be on stderr (java -version)
+                    out=$(eval "$cmd" 2>&1 </dev/null)
+                    ver=$(printf '%s\n' "$out" | head -n 3 | grep -oE '[0-9]+(\.[0-9]+)+' | head -n 1)
+                  fi
+                  __de_ok=$((__de_ok + 1))
+                  if [ -n "$ver" ]; then
+                    printf "  %b✅ %-20s%b %s\n" "$__de_g" "$label" "$__de_n" "$ver"
+                  elif [ "$rc" -eq 0 ]; then
+                    printf "  %b✅ %-20s%b %s\n" "$__de_g" "$label" "$__de_n" "installed"
+                  else
+                    printf "  %b⚠️  %-20s%b %s\n" "$__de_y" "$label" "$__de_n" "installed (version unknown)"
+                  fi
+                  return 0
+                done
+                __de_missing="$__de_missing''${__de_missing:+, }$label"
+                printf "  %b❌ %-20s%b %s\n" "$__de_r" "$label" "$__de_n" "not found"
+                return 0
+              }
+              check_section() { printf '%b%s%b\n' "$__de_b" "$1" "$__de_n"; }
+              check_done() {
+                printf -- '------------------------------------------------------------\n'
+                if [ -z "$__de_missing" ]; then
+                  printf "%b✅ %s ready: %s/%s tools%b\n\n" "$__de_g" "$__de_name" "$__de_ok" "$__de_total" "$__de_n"
+                else
+                  printf "%b⚠️  %s incomplete (%s/%s): missing %s%b\n\n" "$__de_y" "$__de_name" "$__de_ok" "$__de_total" "$__de_missing" "$__de_n"
+                fi
+                unset -f check_begin check check_section check_done
+                unset __de_ok __de_total __de_missing __de_name __de_g __de_r __de_y __de_b __de_n
+              }
+
+                            check_begin "cs-cheat-sheets" "${pkgs.stdenv.hostPlatform.system}"
+                            check_section "--- Documents ---"
+                            check "Typst" "typst --version"
+                            check "Typstyle" "typstyle --version"
+                            check "Tinymist" "command -v tinymist >/dev/null && echo installed"
+                            check "Tectonic" "tectonic --version"
+                            check "Pandoc" "pandoc --version"
+                            check "pandoc-crossref" "pandoc-crossref --version"
+                            check_section "--- PDF / images ---"
+                            check "pdfinfo" "pdfinfo -v"
+                            check "pdftoppm" "pdftoppm -v"
+                            check "ImageMagick" "magick --version"
+                            check "Ghostscript" "gs --version"
+                            check "qpdf" "qpdf --version"
+                            check "rsvg-convert" "rsvg-convert --version"
+                            check "Inkscape" "inkscape --version"
+                            check_section "--- Diagrams / plots ---"
+                            check "Graphviz" "dot -V"
+                            check "D2" "d2 --version"
+                            check "Gnuplot" "gnuplot --version"
+                            check_section "--- Misc ---"
+                            check "jq" "jq --version"
+                            check "Hunspell" "hunspell --version | grep -o 'Hunspell [0-9.]*'"
+                            check "Python" "python3 --version" "python --version"
+                            check_done
             '';
           };
         }
