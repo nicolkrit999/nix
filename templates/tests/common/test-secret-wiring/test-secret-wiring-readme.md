@@ -30,7 +30,6 @@ Note: the `claude` wrapper is installed only for `moduleSystem == "home"` (claud
 
 | Check | Expected |
 |-------|----------|
-| mcp-envvars-unique | `mcpSecrets` envVar values non-empty and unique on all hosts and the NAS |
 | mcp-secrets-declared | every `mcpSecrets[].sopsSecret` is in `sops.secrets` with owner = user, path `/run/secrets/<name>`, common sops file (catches the Darwin declaration drifting from the `mcpSecrets` list it derives from) |
 | mcp-secrets-in-yaml | each such key exists in the common yaml |
 | mcp-nas-home-wrapper | NAS: `claude` wrapper in `home.packages`, every secret in HM `sops.secrets`, `mcpEnv` non-empty, wrapper exports exactly the `mcpEnv` keys and contains no `$(cat`, `/run/secrets` or declared secret path |

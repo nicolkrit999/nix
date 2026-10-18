@@ -7,28 +7,33 @@ delib.module {
   options = delib.singleEnableOption false;
 
   home.ifEnabled =
-    { ... }:
+    _:
     {
       home.packages = with pkgs; [
-        htop # Interactive process viewer
-        btop # Resource monitor (CPU/mem/disk/net)
-        ncdu # Disk usage analyzer (ncurses)
-        duf # Disk usage/free utility
-        dust # Intuitive disk usage (du alternative)
-        ripgrep # Fast recursive grep
-        fd # Fast, user-friendly find alternative
-        tree # Directory tree viewer
-        jq # JSON processor
-        unzip # Zip archive extraction
-        zip # Zip archive creation
-        rsync # File sync/transfer tool
-        wget # File downloader
-        fastfetch # System info fetch tool
-        tealdeer # tldr client (concise man pages)
-        neovim # Text editor
-        sops # edit/decrypt repo secrets on the NAS - makes the sops-host alias work
-        age # key tooling for sops
-        iperf3 # Network bandwidth testing tool
+        # Disk and system monitoring
+        btop
+        duf
+        dust
+        htop
+        ncdu
+        fastfetch
+        # Search and files
+        fd
+        jq
+        ripgrep
+        tree
+        unzip
+        zip
+        # Transfer and network
+        iperf3
+        rsync
+        wget
+        # Editing and docs
+        neovim
+        tealdeer
+        # Secrets tooling (makes the sops-host alias work on the NAS)
+        age
+        sops
       ];
     };
 }

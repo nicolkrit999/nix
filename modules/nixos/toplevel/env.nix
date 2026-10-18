@@ -17,10 +17,12 @@ let
       editor = myconfig.constants.editor;
     in
     {
-      BROWSER = myconfig.constants.browser;
-      TERMINAL = myconfig.constants.terminal.name;
       EDITOR = editorFlags.${editor} or editor;
       XDG_BIN_HOME = "$HOME/.local/bin";
+    }
+    // lib.optionalAttrs (!myconfig.host.isServer) {
+      BROWSER = myconfig.constants.browser;
+      TERMINAL = myconfig.constants.terminal.name;
     };
 in
 delib.module {

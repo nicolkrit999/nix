@@ -72,12 +72,6 @@ in
       ++ lib.optional (lib.length keys < 10) "yaml parser found suspiciously few keys"
     );
 
-  check-mcp-envvars-unique = perHost (allHosts // { Nicol-NAS = { config = { myconfig = nas.config.myconfig; }; }; }) (h:
-    let vars = map (m: m.envVar) h.config.myconfig.programs.claude-code.mcpSecrets;
-    in lib.optional (vars == [ ]) "empty mcpSecrets"
-      ++ lib.optional (lib.length vars != lib.length (lib.unique vars)) "duplicate envVar in ${builtins.toJSON vars}"
-      ++ lib.optional (lib.any (v: v == "") vars) "empty envVar");
-
   check-mcp-secrets-in-yaml = perHost allHosts (h:
     let keys = yamlKeys commonYaml; in
     map (m: "${m.sopsSecret} missing from common yaml") (lib.filter (m: !(lib.elem m.sopsSecret keys)) (mcpOf h)));

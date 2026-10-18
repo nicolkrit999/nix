@@ -52,7 +52,7 @@ let
     config.testProbe = { inherit (pkgs) claude-code codex hello; };
   };
 
-  mcpSecretsFake = [{ sopsSecret = "test_mcp_secret"; envVar = "TEST_MCP_SECRET_VAR"; }];
+  mcpSecretsFake = [{ sopsSecret = "test_mcp_secret"; }];
 
   progs = on: nas.extendModules {
     modules = [

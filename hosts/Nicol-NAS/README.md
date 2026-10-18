@@ -74,7 +74,8 @@ regenerations across multiple rebuilds.
 ## 4. (Optional) linger for user services
 
 Linger defaults to "no" - without it, user-level systemd services (e.g.
-`sops-nix.service`) stop when the SSH session ends.
+`sops-nix.service`, the `nh-clean` timer and `headroom-proxy`) stop when the
+SSH session ends.
 
 ```bash
 sudo loginctl enable-linger krit
@@ -122,7 +123,7 @@ ssh krit@nicol-nas
 
 systemctl --user status sops-nix.service
 
-ls ~/.ssh   # expect: id_github  id_github.pub  config  allowed_signers
+ls ~/.ssh   # expect: id_github  id_github.pub  config  allowed_signers  known_hosts (store symlink)
 
 git remote set-url origin <ssh-url>   # switch the clone over to SSH
 ```
@@ -138,11 +139,8 @@ sw                 # home-manager switch -b hm-backup (repo alias)
 tmux new -A -s main
 ```
 
-Panes inside tmux use a non-login shell on this host
-(`set -g default-command "$SHELL"`, gated to home builds) - Debian's
-`/etc/profile` resets `PATH` on login shells, and the hm-session-vars guard
-prevents re-sourcing it in a nested login shell, so a login-shell pane would
-lose the Nix-managed `PATH`.
+Panes inside tmux use a non-login shell on this host; the rationale is in
+the memory note `project_tmux_login_shell_rationale.md`.
 
 A tmux **server** started before an activation carries the old environment
 forever - it does not pick up changes from a later `sw`. If a big
@@ -181,9 +179,10 @@ sops-host   # alias for: sops hosts/Nicol-NAS/Nicol-NAS-secrets-sops.yaml
 sops hosts/Nicol-NAS/Nicol-NAS-secrets-sops.yaml
 ```
 
-Then declare it in the `users/krit/common/toplevel/sops-secrets.nix` home
-block with `sopsFile = nicolNasSecrets;` so it's wired up like the other
-per-host secrets files.
+Then declare it in a home block with
+`sops.secrets.<name>.sopsFile` pointing at that yaml
+(no module wires this file today, and `users/krit/common/toplevel/sops-secrets.nix`
+defines no per-host file variable).
 
 Verify the file is still decryptable (e.g. after rotating keys):
 

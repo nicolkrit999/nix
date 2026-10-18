@@ -48,7 +48,6 @@ echo -e "${DIM}Secret names, paths, owners, sops files and their consumers on ev
 echo ""
 
 echo -e "${BOLD}claude-code MCP secrets${NC}"
-run_check "check-mcp-envvars-unique"      "mcp envVars are unique and non-empty (hosts + NAS)"
 run_check "check-mcp-secrets-declared"    "every mcpSecret is a sops secret (owner, /run/secrets path, file)"
 run_check "check-mcp-secrets-in-yaml"     "every mcpSecret key exists in the common sops yaml"
 run_check "check-mcp-nas-home-wrapper"    "NAS home build: claude wrapper exports mcpEnv only, no secret"

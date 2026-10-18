@@ -17,24 +17,20 @@ delib.host {
   homeManagerSystem = "x86_64-linux";
 
   myconfig =
-    { ... }:
+    _:
     {
       constants = {
         hostname = "Nicol-NAS";
         user = "krit";
-        mainLocale = "en_US.UTF-8";
 
         gitUserName = "Krit Pio Nicol";
         gitUserEmail = "githubgitlabmain.hu5b7@passfwd.com";
 
-        shell = "bash";
         editor = "nvim";
         fileManager = "yazi";
 
         theme = {
-          polarity = "dark";
           base16Theme = "gruvbox-material-dark-hard";
-          catppuccin = false;
           catppuccinFlavor = "macchiato";
           catppuccinAccent = "sapphire";
         };
@@ -45,8 +41,6 @@ delib.host {
       # ---------------------------------------------------------------
       # 🌐 TOP-LEVEL MODULES
       # ---------------------------------------------------------------
-      krit.commonSopsSecrets.enable = true;
-
       nix-sweeps.enable = true;
       nh.enable = true; # home-manager nh + nh-clean user timer: the scheduled GC of this home-only build (nix-sweeps only adds the CLI and presets)
 
@@ -74,51 +68,38 @@ delib.host {
 
         git = {
           enable = true;
-          customGitIgnores = [ ];
         };
 
         claude-code = {
           enable = true;
           mcpSecrets = [
-            { sopsSecret = "openrouter_api_claude_code"; envVar = "OPENROUTER_API_KEY"; }
-            { sopsSecret = "claude_mcp_actual_password"; envVar = "ACTUAL_PASSWORD"; }
-            { sopsSecret = "claude_mcp_actual_sync_id"; envVar = "ACTUAL_SYNC_ID"; }
-            { sopsSecret = "claude_mcp_actual_encryption_password"; envVar = "ACTUAL_BUDGET_ENCRYPTION_PASSWORD"; }
-            { sopsSecret = "claude_mcp_context7_api_key"; envVar = "CONTEXT7_API_KEY"; }
-            { sopsSecret = "claude_mcp_openai_api_key"; envVar = "OPENAI_API_KEY"; }
-            { sopsSecret = "claude_mcp_milvus_token"; envVar = "MILVUS_TOKEN"; }
-            { sopsSecret = "claude_mcp_github_token"; envVar = "GITHUB_TOKEN"; }
-            { sopsSecret = "claude_mcp_portainer_token"; envVar = "PORTAINER_TOKEN"; }
-            { sopsSecret = "claude_mcp_sparkyfitness_api_key"; envVar = "SPARKYFITNESS_API_KEY"; }
-            #{ sopsSecret = "claude_mcp_kagi_api_key"; envVar = "KAGI_API_KEY"; }
+            { sopsSecret = "claude_mcp_context7_api_key"; }
+            { sopsSecret = "claude_mcp_github_token"; }
           ];
-          mcpEnv = {
-            ACTUAL_SERVER_URL = "https://budget.nicolkrit.ch";
-          };
         };
       };
 
       # ---------------------------------------------------------------
-      # 👤 KRIT PROGRAMS
+      # 👤 KRIT
       # ---------------------------------------------------------------
-      krit.programs.yazi.enable = true;
+      krit = {
+        commonSopsSecrets.enable = true;
+        programs.yazi.enable = true;
+        services.nicol-nas.local-packages.enable = true;
+        system = {
+          git-ssh-signing.enable = true;
+          ssh-config.enable = true;
+        };
+      };
 
       # ---------------------------------------------------------------
       # 🧰 SERVICES
       # ---------------------------------------------------------------
-      services.external.dotfiles-private.enable = true;
-
-      # ---------------------------------------------------------------
-      # 👤 KRIT SERVICES
-      # ---------------------------------------------------------------
-      krit.services.nicol-nas.local-packages.enable = true;
-
-      # ---------------------------------------------------------------
-      # 🔧 KRIT SYSTEM
-      # ---------------------------------------------------------------
-      krit.system = {
-        git-ssh-signing.enable = true;
-        ssh-config.enable = true;
+      services = {
+        external.dotfiles-private.enable = true;
+        hypridle.enable = false; # idle daemon, Wayland-only
+        swaync.enable = false; # notification center, Wayland-only
+        audio.enable = false; # NixOS-only module (no home block), disabled anyway; the NAS has no sound hardware
       };
 
       # ---------------------------------------------------------------
@@ -132,10 +113,6 @@ delib.host {
       programs.waybar-niri.enable = false; # status bar, gated on niri (already off) but disabled explicitly anyway
       programs.waybar-mango.enable = false; # status bar, gated on mango (already off) but disabled explicitly anyway
 
-      # 🧰 Services
-      services.hypridle.enable = false; # idle daemon, Wayland-only
-      services.swaync.enable = false; # notification center, Wayland-only
-      services.audio.enable = false; # pipewire/pulse/alsa - this NAS has no sound hardware
       qt.enable = false; # Qt/KDE theming packages (qt5ct, qt6ct, papirus-icon-theme, breeze, ...)
       mime.enable = false; # xdg.mimeApps/.desktop-entry noise - nothing ever reads these headless
       home-packages.enable = false; # NixOS-only terminal/browser/editor package translation - not applicable, no home.* block today, disabled anyway

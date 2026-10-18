@@ -107,7 +107,7 @@ cd my-computer
 nano default.nix
 ```
 
-Remove `inputs.disko.nixosModules.disko` and any disko-config references from the `imports` list (we partitioned manually).
+Remove `inputs.disko.nixosModules.disko` and any disko-config references from the `imports` list (we partitioned manually). Then delete the now unused `, inputs` line from the file header.
 
 Also open `~/nix/flake.nix` and remove any `.disko-config` paths from the `exclude` block.
 
@@ -117,9 +117,9 @@ Also open `~/nix/flake.nix` and remove any `.disko-config` paths from the `exclu
 nano default.nix
 ```
 
-- **`user`**: Change `"template-user"` to your real username.
+- **`user`**: The template ships `user = "krit"`; it must equal `homeManagerUser` in `flake.nix`. Set it now — do not rename later.
 - **`homeManagerSystem`**: `x86_64-linux` for Intel/AMD, `aarch64-linux` for ARM.
-- **Keyboard**: Set `keyboardLayout` and `keyboardVariant`.
+- **Keyboard** (optional): Uncomment and set `keyboardLayout` and `keyboardVariant` in the constants block.
 
 ### Generate Hardware Config & Install
 
@@ -225,13 +225,12 @@ baseExclude = [
 Import it in your host's `default.nix` (keep `inputs.disko.nixosModules.disko`):
 ```nix
 nixos =
-  { ... }:
+  _:
   {
     nixpkgs.hostPlatform = "x86_64-linux";
     system.stateVersion = "XX.YY"; # the release you first install under; never change it afterwards
     imports = [
       inputs.disko.nixosModules.disko
-      inputs.nix-sops.nixosModules.sops
       ./hardware-configuration.nix
       ./disko-config-btrfs-luks-impermanence.nix
     ];
@@ -242,9 +241,9 @@ nixos =
 
 ### Configure Critical Variables
 
-- **`user`**: Change `"template-user"` to your real username.
+- **`user`**: The template ships `user = "krit"`; it must equal `homeManagerUser` in `flake.nix`. Set it now — do not rename later.
 - **`homeManagerSystem`**: `x86_64-linux` for Intel/AMD, `aarch64-linux` for ARM.
-- **Keyboard**: Set `keyboardLayout` and `keyboardVariant`.
+- **Keyboard** (optional): Uncomment and set `keyboardLayout` and `keyboardVariant` in the constants block.
 
 ### Generate Hardware Config & Install
 

@@ -57,12 +57,12 @@ Edit `default.nix` and uncomment the disko import that matches your chosen optio
 
 ```nix
 nixos =
-  { ... }:
+  _:
   {
     nixpkgs.hostPlatform = "x86_64-linux";
     system.stateVersion = "XX.YY"; # the release you first install under; never change it afterwards
     imports = [
-      inputs.nix-sops.nixosModules.sops
+      inputs.disko.nixosModules.disko
       ./hardware-configuration.nix
 
       #./disko-config-btrfs.nix                      # Option A — no encryption
@@ -113,9 +113,9 @@ baseExclude = [
 nano default.nix
 ```
 
-- **`user`**: Change `"template-user"` to your real username (set this now — do not rename later).
+- **`user`**: The template ships `user = "krit"`; it must equal `homeManagerUser` in `flake.nix` (the one you changed in the prerequisite). Set it now — do not rename later.
 - **`homeManagerSystem`**: `x86_64-linux` for Intel/AMD, `aarch64-linux` for ARM.
-- **Keyboard**: Set `keyboardLayout` and `keyboardVariant` to avoid layout issues at login.
+- **Keyboard** (optional): Uncomment and set `keyboardLayout` and `keyboardVariant` in the constants block to avoid layout issues at login.
 
 ### Enable your favorite Modules
 

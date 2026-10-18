@@ -98,7 +98,6 @@ let
   extraMappingsPerHost = {
     nixos-desktop = startActualMcp // contextScopedClaude;
     nixos-laptop = startActualMcp // contextScopedClaude;
-    Nicol-NAS = startActualMcp;
   };
 
   # Home paths that GUIs rewrite in place (replacing the symlink with a regular

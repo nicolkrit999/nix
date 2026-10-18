@@ -1,9 +1,10 @@
 # TEMPLATE-HOST MINIMAL CONFIGURATION
-# THIS IS A TEMPLATE THAT SHOW A MINIMAL CONFIGURATION OF THE CURRENT SETUP ALLOW
-# It is as barebone as possible, allowing the user to customize it for it's liking
-# Note that some important features for theming and functionality are not enabled here. Meaning the actual configuration would build but be "broken"
+# This template shows a minimal configuration of the current setup.
+# It is as barebone as possible, allowing the user to customize it to their liking.
+# Note that some important features for theming and functionality are not enabled here, so the configuration builds but is "broken".
 
 { delib
+, inputs
 , ...
 }:
 delib.host {
@@ -13,13 +14,21 @@ delib.host {
   homeManagerSystem = "x86_64-linux";
 
   myconfig =
-    { ... }:
+    _:
     {
       # ---------------------------------------------------------------
       # 📦 CONSTANTS BLOCK (Data Bucket)
       # ---------------------------------------------------------------
       constants = {
-        user = "krit"; # ⚠️ This is put because flake.nix hardcode the name and it can't be a variable since it's the first thing it's evaluated. Change as needed
+        # Must equal homeManagerUser in flake.nix, which is hardcoded there because it is evaluated first.
+        user = "krit";
+
+        # Optional examples:
+        # hostname = "my-computer";
+        # gitUserName = "Your Name";
+        # gitUserEmail = "you@example.com";
+        # keyboardLayout = "us";
+        # keyboardVariant = "";
 
         homeStateVersion = "26.05";
       };
@@ -29,12 +38,14 @@ delib.host {
   # ⚙️ SYSTEM-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
   nixos =
-    { ... }:
+    _:
     {
       nixpkgs.hostPlatform = "x86_64-linux";
       system.stateVersion = "25.11";
       imports = [
+        inputs.disko.nixosModules.disko
         ./hardware-configuration.nix
+        # Uncomment exactly one disko config (it is the switch; also remove it from baseExclude in flake.nix)
         #./disko-config-btrfs.nix
         #./disko-config-btrfs-luks-impermanence.nix
       ];
@@ -44,11 +55,6 @@ delib.host {
   # ---------------------------------------------------------------
   # 🏠 USER-LEVEL CONFIGURATIONS
   # ---------------------------------------------------------------
-  # home.stateVersion is now supplied by constants.homeStateVersion above via
-  # modules/nixos/toplevel/home-nixos.nix - not repeated here to avoid a
-  # double-definition of the same option.
-  home = { ... }: {
-    home.username = "krit";
-    home.homeDirectory = "/home/krit";
-  };
+  # home.username, home.homeDirectory and home.stateVersion come from
+  # constants.user / constants.homeStateVersion via modules/nixos/toplevel/home-nixos.nix.
 }

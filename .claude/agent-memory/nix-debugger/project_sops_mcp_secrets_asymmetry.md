@@ -1,29 +1,18 @@
 ---
 name: sops-mcp-secrets-asymmetry
-description: claude_mcp_* sops secrets are wired asymmetrically - NixOS derives them from the mcpSecrets option list, Darwin hardcodes them; editing the darwin block is a no-op on Linux
+description: claude_mcp_* sops secrets on all three platforms derive from the mcpSecrets option list; the NAS overrides it on purpose with only the secrets its launchers use
 metadata:
   type: project
 ---
 
-`users/krit/common/toplevel/sops-secrets.nix` wires `claude_mcp_*` secrets **two different ways**, and the blocks look interchangeable but are not:
+`users/krit/common/toplevel/sops-secrets.nix` generates `claude_mcp_*` secrets on **every** platform (`nixos.ifEnabled`, `home.ifEnabled` and `darwin.ifEnabled`) from
+`myconfig.programs.claude-code.mcpSecrets`. The old darwin hardcoded list is gone.
 
-- `nixos.ifEnabled` and `home.ifEnabled` generate them programmatically from
-  `myconfig.programs.claude-code.mcpSecrets` (via `mkClaudeMcpSecrets` / `mkClaudeMcpSecretsHome`).
-- `darwin.ifEnabled` has a **hardcoded static list** of the same secret names.
+A new `claude_mcp_*` secret therefore goes into the `mcpSecrets` **default list** in
+`modules/common/programs/claude-code.nix` (entries are `{ sopsSecret = "..."; }`, the former `envVar` field was removed because nothing read it), plus the key in the common sops yaml.
 
-So a new `claude_mcp_*` secret must be added to the `mcpSecrets` **default list** in
-`modules/common/programs/claude-code.nix` - that is the single source of truth for Linux hosts.
-Adding it only to the `darwin.ifEnabled` attrset is a silent no-op on NixOS: it evaluates
-fine, `nix-instantiate --parse` passes, and the secret simply never appears in `/run/secrets/`.
+`hosts/Nicol-NAS/default.nix` **overrides** `mcpSecrets` with just the two secrets its home-only launchers use (context7, github), so it does not pick up additions to the default - intentional, don't "fix" it.
 
-Also note `hosts/Nicol-NAS/default.nix` **overrides** `mcpSecrets` with its own list, so it does
-not pick up additions to the default - intentional, don't "fix" it.
+**Why:** the option list is the single source of truth; the NAS needs fewer secrets and decrypting unused ones there is pointless.
 
-**Why:** the darwin block predates the option-driven refactor and was never converted; the two
-lists having near-identical contents makes the wrong one an easy target when adding a secret.
-
-**How to apply:** when a sops secret "doesn't show up in /run/secrets" on a NixOS host, first check
-whether it was declared in a Darwin-only block, and whether its name is in the `mcpSecrets` default
-list. Verify with `nix eval .#nixosConfigurations.<host>.config.sops.secrets.<name>.path` rather
-than a parse check - see [[flake-check-misses-build-failures]] for the general "parse/check is not
-evaluation" lesson. Making the secret actually materialize still needs a real rebuild.
+**How to apply:** when a sops secret "doesn't show up in /run/secrets" on a host, check its name is in the `mcpSecrets` list that host actually uses (default vs NAS override). Verify with `nix eval .#nixosConfigurations.<host>.config.sops.secrets.<name>.path` rather than a parse check - see [[flake-check-misses-build-failures]]. Making the secret materialize still needs a real rebuild.
