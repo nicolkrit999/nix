@@ -104,7 +104,11 @@ A checks-only edit is NOT "folder only": the overview row describes the checks.
 4. **`Documentation/usage/ci/build-workflows.md` §12.2:** the leg table (which
    tests are in which leg, per-leg test counts) and, when a group or timeout
    changed, the per-group `step_budget` figures. After a group/timeout change also
-   run `python3 .github/scripts/check-workflow-invariants.py`.
+   run `python3 .github/scripts/check-workflow-invariants.py`. A NEW test also adds
+   its cap (default 10 min) to its group's CI step budget, and headroom is about zero
+   (Linux ~4 min, macOS 0): give every new test a tight `timeout` in `test.conf` or put
+   it in a group with room, and run the invariants script for every added test, not
+   only after a group/timeout change.
 5. **Anything else naming the test:** on a rename or delete,
    `grep -rn '<old-folder>\|<old-run-name>' Documentation .claude CLAUDE.md .github templates/tests`
    (features.md, gotcha docs, other agents and readmes cite tests by name).

@@ -160,7 +160,7 @@ sudo rsync -a /var/lib/snapper /persist/var/lib/ || true
 **`/var/lib/systemd/backlight`**: Remembers the screen brightness across reboots.
 
 
-**`/var/lib/systemd/rfkill`**: Remembers the airplane-mode / radio kill-switch state across reboots.
+**`/var/lib/systemd/rfkill`**: Remembers the radio kill-switch state across reboots (restored by `systemd-rfkill` early in boot). Wi-Fi/WWAN are owned by NetworkManager: it re-syncs rfkill to its own `WirelessEnabled` flag (persisted in `/var/lib/NetworkManager`) at start, so `airplane` uses `nmcli radio`, and Wi-Fi coming back after a raw `rfkill block` is NetworkManager behaviour, not a broken mount. Both rfkill and backlight paths live in this shared module by user decision.
 
 
 **`/var/lib/systemd/linger`** (`nixos-desktop` only, set in its `system.nix`): Keeps the `loginctl enable-linger` state of users. `nixos-laptop` deliberately does not persist it, so linger enabled by coffee mode lasts for one boot only.

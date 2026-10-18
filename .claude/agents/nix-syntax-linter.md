@@ -16,7 +16,7 @@ You do cheap static checks - parse + format + convention grep. No `nix build`/`f
 ### Repo/denix anti-pattern checklist (grep + read)
 - `imports` at module top level instead of inside an `always {}` block → **rebuild will fail** (denix trap).
 - Hardcoded hostnames / usernames / paths / `/home/krit` / timezone / keyboard layout that should reference `myconfig.constants.<name>`.
-- A `stateVersion` literal in any file other than the frozen per-host ones → ⛔ flag loudly (see `../../CLAUDE.md` - never bump).
+- A `stateVersion` literal in any file other than the frozen per-host ones, `users/krit/{nixos,darwin}/home/home-base.nix` (deliberate freeze tripwire, parsed by `common-state-version-freeze`) and test fixtures under `templates/tests/` (they pin "25.11" on purpose) → ⛔ flag loudly (see `../../CLAUDE.md` - never bump, never re-centralise behind a `myconfig.constants.stateVersion or ...` fallback).
 - `enable` option declared on a module that's always-on with no `.ifEnabled` block (unnecessary).
 - A newly added constant with no fallback in the module and/or `modules/config/constants.nix`.
 - Redeclaring the module name as an option; grouping flat constants under `submodule` (should be flat siblings).

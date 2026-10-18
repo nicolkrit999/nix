@@ -18,6 +18,8 @@ You mechanically verify the config and report results. No fixing, no authoring.
 2. `nix build .#nixosConfigurations.nixos-desktop.config.system.build.toplevel --dry-run` (or `nh os test --dry --ask`).
 3. `nix build .#darwinConfigurations.Krits-MacBook-Pro.system --dry-run` (cross-platform validation from Linux).
 
+`nix flake check` does not evaluate specialisations: the toplevel dry-run/build of EACH NixOS host (desktop and laptop) is the only gate for them, so never report a specialisation-touching change green from flake check alone.
+
 ### On macOS (nix-darwin) — run all:
 1. `nix flake check --impure` — **`--impure` is REQUIRED**; without it `builtins.currentSystem` is unavailable, the IFD guard can't hide Linux-only outputs, and catppuccin-nix IFD fails. Never run plain `nix flake check` on Darwin.
 2. `nix build .#darwinConfigurations.Krits-MacBook-Pro.system --dry-run`.
