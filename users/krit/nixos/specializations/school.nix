@@ -179,49 +179,53 @@ delib.module {
         };
 
         # Replace the default profile autostart
-        programs.hyprland.execOnce = lib.mkForce (
-          if c.hostname == "nixos-desktop" then
-            [
-              "[workspace 2 silent] ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
-              "[workspace 3 silent] ${term} --class yazi -d $HOME/.school-workspace -e yazi"
-              "[workspace 7 silent] brave-school --app=https://www.icorsi.ch/"
-              "[workspace 8 silent] ${term} -d $HOME/.school-workspace"
-            ]
-          else if c.hostname == "nixos-laptop" then
-            [
-              "[workspace 2 silent] ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
-              "[workspace 3 silent] ${term} --class yazi -d $HOME/.school-workspace -e yazi"
-              "[workspace 4 silent] ${term} -d $HOME/.school-workspace"
-              "[workspace 5 silent] brave-school --app=https://www.icorsi.ch/"
-            ]
-          else
-            [ ]
-        );
-        # Workspace rules stay cleared; only the scratch rules (same as scratchRule in hosts/*/default.nix) are kept.
-        programs.hyprland.windowRules = lib.mkForce (map scratchRule [
-          "scratch-term"
-          "scratch-fs"
-          "scratch-browser"
-        ]);
+        programs = {
+          hyprland.execOnce = lib.mkForce (
+            if c.hostname == "nixos-desktop" then
+              [
+                "[workspace 2 silent] ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
+                "[workspace 3 silent] ${term} --class yazi -d $HOME/.school-workspace -e yazi"
+                "[workspace 7 silent] brave-school --app=https://www.icorsi.ch/"
+                "[workspace 8 silent] ${term} -d $HOME/.school-workspace"
+              ]
+            else if c.hostname == "nixos-laptop" then
+              [
+                "[workspace 2 silent] ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
+                "[workspace 3 silent] ${term} --class yazi -d $HOME/.school-workspace -e yazi"
+                "[workspace 4 silent] ${term} -d $HOME/.school-workspace"
+                "[workspace 5 silent] brave-school --app=https://www.icorsi.ch/"
+              ]
+            else
+              [ ]
+          );
+          # Workspace rules stay cleared; only the scratch rules (same as scratchRule in hosts/*/default.nix) are kept.
+          hyprland.windowRules = lib.mkForce (map scratchRule [
+            "scratch-term"
+            "scratch-fs"
+            "scratch-browser"
+          ]);
 
-        programs.niri.execOnce = lib.mkForce [
-          "brave-school --app=https://www.icorsi.ch/"
-          "sleep 2 && ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
-          "sleep 4 && ${term} --class yazi -d $HOME/.school-workspace -e yazi"
-          "sleep 6 && ${term} -d $HOME/.school-workspace"
-        ];
+          niri.execOnce = lib.mkForce [
+            "brave-school --app=https://www.icorsi.ch/"
+            "sleep 2 && ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
+            "sleep 4 && ${term} --class yazi -d $HOME/.school-workspace -e yazi"
+            "sleep 6 && ${term} -d $HOME/.school-workspace"
+          ];
 
-        programs.mango.execOnce = lib.mkForce [
-          "sh -c 'sleep 1 && brave-school --app=https://www.icorsi.ch/'"
-          "sh -c 'sleep 2 && ${term} --class nvim-school -d $HOME/.school-workspace -e nvim'"
-          "sh -c 'sleep 4 && ${term} --class yazi -d $HOME/.school-workspace -e yazi'"
-          "sh -c 'sleep 6 && ${term} -d $HOME/.school-workspace'"
-        ];
+          mango.execOnce = lib.mkForce [
+            "sh -c 'sleep 1 && brave-school --app=https://www.icorsi.ch/'"
+            "sh -c 'sleep 2 && ${term} --class nvim-school -d $HOME/.school-workspace -e nvim'"
+            "sh -c 'sleep 4 && ${term} --class yazi -d $HOME/.school-workspace -e yazi'"
+            "sh -c 'sleep 6 && ${term} -d $HOME/.school-workspace'"
+          ];
+        };
 
         # Override host-default constants for school specialization
-        constants.browser = lib.mkForce "brave-school";
-        constants.editor = lib.mkForce "nvim";
-        constants.shell = lib.mkForce "bash";
+        constants = {
+          browser = lib.mkForce "brave-school";
+          editor = lib.mkForce "nvim";
+          shell = lib.mkForce "bash";
+        };
 
         # OpenCloud is only reachable over the tailnet - force the full
         # myconfig.services.tailscale wrapper (--operator, firewall trust/rpfilter,
@@ -597,42 +601,44 @@ delib.module {
 
         # Signing key and allowed_signers come from krit.system.git-ssh-signing (set above);
         # signByDefault additionally enables tag.gpgSign.
-        programs.git = {
-          settings = {
-            user.email = lib.mkForce schoolEmail;
-            user.name = lib.mkForce "Krit Pio Nicol-University";
-            commit.gpgSign = lib.mkForce true;
+        programs = {
+          git = {
+            settings = {
+              user.email = lib.mkForce schoolEmail;
+              user.name = lib.mkForce "Krit Pio Nicol-University";
+              commit.gpgSign = lib.mkForce true;
+            };
+            signing.signByDefault = true;
           };
-          signing.signByDefault = true;
-        };
 
-        # SSH: the school identity for the git hosts used at school
-        programs.ssh = {
-          enableDefaultConfig = lib.mkForce false;
-          settings = {
-            "github.com" = lib.mkForce {
-              Hostname = "github.com";
-              IdentityFile = schoolKey;
-              IdentitiesOnly = "yes";
-            };
+          # SSH: the school identity for the git hosts used at school
+          ssh = {
+            enableDefaultConfig = lib.mkForce false;
+            settings = {
+              "github.com" = lib.mkForce {
+                Hostname = "github.com";
+                IdentityFile = schoolKey;
+                IdentitiesOnly = "yes";
+              };
 
-            "gitlab.com" = lib.mkForce {
-              Hostname = "gitlab.com";
-              IdentityFile = schoolKey;
-              IdentitiesOnly = "yes";
-            };
-            "gitlab-edu.supsi.ch" = lib.mkForce {
-              Hostname = "gitlab-edu.supsi.ch";
-              IdentityFile = schoolKey;
-              IdentitiesOnly = "yes";
+              "gitlab.com" = lib.mkForce {
+                Hostname = "gitlab.com";
+                IdentityFile = schoolKey;
+                IdentitiesOnly = "yes";
+              };
+              "gitlab-edu.supsi.ch" = lib.mkForce {
+                Hostname = "gitlab-edu.supsi.ch";
+                IdentityFile = schoolKey;
+                IdentitiesOnly = "yes";
+              };
             };
           };
-        };
 
-        # On interactive shell start, check if distrobox tools are present
-        programs.bash.initExtra = ''
-          ${distroboxStartupCheck} 2>/dev/null
-        '';
+          # On interactive shell start, check if distrobox tools are present
+          bash.initExtra = ''
+            ${distroboxStartupCheck} 2>/dev/null
+          '';
+        };
 
         # Mounts the rclone remote "school-onedrive" (configured manually); stops retrying after repeated failures.
         systemd.user.services.school-onedrive-mount = {

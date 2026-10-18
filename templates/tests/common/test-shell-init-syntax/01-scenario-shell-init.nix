@@ -19,10 +19,14 @@ let
       x = hosts.${host}.extendModules {
         modules = [
           ({ lib, ... }: lib.mkMerge [{
-            myconfig.programs.atuin.enable = true;
-            myconfig.programs.eza.enable = true;
-            myconfig.programs.zoxide.enable = true;
-            myconfig.services.tailscale.enable = true;
+            myconfig = {
+              programs = {
+                atuin.enable = true;
+                eza.enable = true;
+                zoxide.enable = true;
+              };
+              services.tailscale.enable = true;
+            };
           }
             (lib.optionalAttrs (shell != null) {
               myconfig.constants.shell = lib.mkForce shell;
@@ -286,9 +290,7 @@ let
     {
       checks = checks // aliasChecks;
       files = {
-        bash = texts.bash;
-        zsh = texts.zsh;
-        fish = texts.fish;
+        inherit (texts) bash zsh fish;
       }
       // lib.mapAttrs' (n: v: lib.nameValuePair "fishfn-${n}" v) fnBodies;
       shAliases = lib.filterAttrs (_: v: has "sh -c" v) aliases;

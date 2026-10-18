@@ -251,5 +251,5 @@ in
   dollarParen = force (build [ (still // { targetMonitor = "$(hostname)"; }) ]);
   backtick = force (build [ (still // { targetMonitor = "`id`"; }) ]);
   control = force (build [ (still // { targetMonitor = "DP-1"; }) (still // { targetMonitor = "desc:Foo Bar 123"; }) (still // { targetMonitor = "*"; }) ]);
-  real = lib.genAttrs hosts (h: realFor h);
+  real = lib.genAttrs hosts realFor;
 }

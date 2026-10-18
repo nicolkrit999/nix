@@ -24,41 +24,45 @@ let
   wms = spec.wms or [ "hyprland" "niri" "mango" ];
   has = wm: !minimal || builtins.elem wm wms;
   full = {
-    programs.skwdWall.enable = spec.skwdWall or false;
+    programs = {
+      skwdWall.enable = spec.skwdWall or false;
 
-    programs.caelestia = {
-      enable = caelestia.enable or false;
-      enableOnHyprland = caelestia.enableOnHyprland or false;
+      caelestia = {
+        enable = caelestia.enable or false;
+        enableOnHyprland = caelestia.enableOnHyprland or false;
+      };
+
+      noctalia = {
+        enable = noctalia.enable or false;
+        enableOnHyprland = noctalia.enableOnHyprland or false;
+        enableOnNiri = noctalia.enableOnNiri or false;
+        enableOnMango = noctalia.enableOnMango or false;
+      };
+
+      waybar-hyprland.enable = false;
+      waybar-niri.enable = false;
+      waybar-mango.enable = false;
     };
-
-    programs.noctalia = {
-      enable = noctalia.enable or false;
-      enableOnHyprland = noctalia.enableOnHyprland or false;
-      enableOnNiri = noctalia.enableOnNiri or false;
-      enableOnMango = noctalia.enableOnMango or false;
-    };
-
-    programs.waybar-hyprland.enable = false;
-    programs.waybar-niri.enable = false;
-    programs.waybar-mango.enable = false;
 
     services.swaync.enable = false;
   };
 in
 delib.host {
-  name = spec.name;
+  inherit (spec) name;
   type = "desktop";
   homeManagerSystem = system;
 
   myconfig = _: lib.recursiveUpdate
     {
-      constants = spec.constants;
+      inherit (spec) constants;
 
-      programs.hyprland.enable = has "hyprland";
-      programs.niri.enable = has "niri";
-      programs.mango.enable = has "mango";
-      programs.gnome.enable = spec.gnome or true;
-      programs.kde.enable = spec.kde or true;
+      programs = {
+        hyprland.enable = has "hyprland";
+        niri.enable = has "niri";
+        mango.enable = has "mango";
+        gnome.enable = spec.gnome or true;
+        kde.enable = spec.kde or true;
+      };
     }
     (if minimal then { } else full);
 }

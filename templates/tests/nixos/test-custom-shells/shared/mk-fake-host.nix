@@ -20,7 +20,7 @@ let
   noctalia = shells.noctalia or { };
 in
 delib.host {
-  name = spec.name;
+  inherit (spec) name;
   type = "desktop";
   homeManagerSystem = "x86_64-linux";
 

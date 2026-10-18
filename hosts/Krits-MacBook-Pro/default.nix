@@ -57,8 +57,6 @@ delib.host {
         authTokenPath = "/run/secrets/attic-push-token";
       };
 
-      krit.commonSopsSecrets.enable = true;
-
       programs = {
         bat.enable = true;
         eza.enable = true;
@@ -134,34 +132,6 @@ delib.host {
 
       home-packages.enable = true;
 
-      krit.programs = {
-        direnv.enable = false;
-        neovim.enable = true;
-        # Disabled: see the constants.browser note above.
-        firefox.enable = false;
-        librewolf.enable = false;
-        yazi.enable = true;
-        proton-cli.enable = true;
-        ranger.enable = false;
-        claude-code-wrappers.enable = true;
-        alacritty.enable = false;
-
-        kitty.enable = true;
-      };
-
-      krit.services.nas = {
-        Krits-MacBook-Pro-borg-backup.enable = true;
-        opencloud.enable = false;
-        smb.enable = true;
-        sshfs.enable = false;
-      };
-
-      krit.services.Krits-MacBook-Pro = {
-        local-packages.enable = true;
-      };
-
-      krit.services.network-tools.enable = true;
-
       darwin.services.external = {
         dotfiles.enable = true;
         dotfiles-private.enable = true;
@@ -171,11 +141,45 @@ delib.host {
       # ---------------------------------------------------------------
       # 🍎 DARWIN-ONLY MODULES
       # ---------------------------------------------------------------
-      krit.home.base.enable = true;
+      krit = {
+        commonSopsSecrets.enable = true;
 
-      krit.system = {
-        git-ssh-signing.enable = true;
-        ssh-config.enable = true;
+        programs = {
+          direnv.enable = false;
+          neovim.enable = true;
+          # Disabled: see the constants.browser note above.
+          firefox.enable = false;
+          librewolf.enable = false;
+          yazi.enable = true;
+          proton-cli.enable = true;
+          ranger.enable = false;
+          claude-code-wrappers.enable = true;
+          alacritty.enable = false;
+
+          kitty.enable = true;
+        };
+
+        services = {
+          nas = {
+            Krits-MacBook-Pro-borg-backup.enable = true;
+            opencloud.enable = false;
+            smb.enable = true;
+            sshfs.enable = false;
+          };
+
+          Krits-MacBook-Pro = {
+            local-packages.enable = true;
+          };
+
+          network-tools.enable = true;
+        };
+
+        home.base.enable = true;
+
+        system = {
+          git-ssh-signing.enable = true;
+          ssh-config.enable = true;
+        };
       };
     };
 }

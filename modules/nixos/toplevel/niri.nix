@@ -18,7 +18,7 @@ delib.module {
     niri-flake.cache.enable = false;
   };
 
-  home.always = { ... }: lib.optionalAttrs (moduleSystem == "home") {
+  home.always = _: lib.optionalAttrs (moduleSystem == "home") {
     imports = [
       inputs.niri.homeModules.niri
     ];

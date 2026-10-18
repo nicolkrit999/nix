@@ -77,7 +77,7 @@ let
       "hyprland-ws-follow-1-to-0" = chk (followF == [ ]) "SUPER+ALT+N missing or wrong workspace for N in ${toString followF}";
     } // waybarBindChecks "hyprland" (hyprWaybarCmds args);
 
-  upperChars = lib.upperChars;
+  inherit (lib) upperChars;
   kebab = n: lib.removePrefix "-" (builtins.replaceStrings upperChars (map (u: "-" + lib.toLower u) upperChars) n);
   enumVariants = { text, honourSkip }:
     let

@@ -3,7 +3,7 @@
 { nix-tests }:
 let
   H = import ../shared/eval-scenario.nix;
-  lib = H.lib;
+  inherit (H) lib;
   hyprConfig = H.getConfig ./08-hyprland-no-shell-no-vicinae;
   hypr = H.getHm hyprConfig;
   mangoConfig = H.getConfig ./09-mango-no-shell-no-vicinae;

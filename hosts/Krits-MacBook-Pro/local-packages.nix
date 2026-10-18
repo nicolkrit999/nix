@@ -6,7 +6,7 @@ delib.module {
   name = "krit.services.Krits-MacBook-Pro.local-packages";
   options = delib.singleEnableOption false;
   darwin.ifEnabled =
-    { ... }:
+    _:
     {
       environment.systemPackages = with pkgs; [
         # CLI tools

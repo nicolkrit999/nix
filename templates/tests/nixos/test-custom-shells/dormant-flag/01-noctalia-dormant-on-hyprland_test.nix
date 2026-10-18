@@ -3,7 +3,7 @@
 { nix-tests }:
 let
   H = import ../shared/eval-scenario.nix;
-  lib = H.lib;
+  inherit (H) lib;
   config = H.getConfig ./01-noctalia-dormant-on-hyprland;
   hm = H.getHm config;
   control = H.getHm (H.getConfig ../positive/03-hyprland-no-shell);

@@ -168,7 +168,7 @@ let
   nixosOnly = name: cfg: {
     "check-${name}-cachix-pairing-and-priority" =
       let
-        s = (nixSettings cfg);
+        s = nixSettings cfg;
         c = cfg.config.myconfig.cachix;
         want = "https://${c.name}.cachix.org?priority=20";
       in
@@ -200,8 +200,8 @@ let
   };
 
   pushOn = attic: cachix: withModules desktop [{
-    myconfig.attic = forced { enable = attic.enable; push = attic.push; };
-    myconfig.cachix = forced { enable = cachix.enable; push = cachix.push; };
+    myconfig.attic = forced { inherit (attic) enable push; };
+    myconfig.cachix = forced { inherit (cachix) enable push; };
   }];
   pushFlags = enable: push: { inherit enable push; };
   dropSweep = pkgs: builtins.filter (p: !(isSweep p)) pkgs;

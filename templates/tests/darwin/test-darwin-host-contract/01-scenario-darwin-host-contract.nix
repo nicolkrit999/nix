@@ -4,11 +4,10 @@ let
   lib = flake.inputs.nixpkgs.lib;
 
   host = flake.darwinConfigurations.Krits-MacBook-Pro;
-  config = host.config;
-  pkgs = host.pkgs;
+  inherit (host) config pkgs;
   my = config.myconfig;
   c = my.constants;
-  user = c.user;
+  inherit (c) user;
   hm = config.home-manager.users.${user};
 
   pnames = cfg: map (p: p.pname or (builtins.parseDrvName p.name).name) cfg.environment.systemPackages;

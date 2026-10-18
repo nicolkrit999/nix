@@ -15,7 +15,7 @@ delib.module {
     ];
   };
 
-  darwin.always = { ... }: {
+  darwin.always = _: {
     home-manager.sharedModules = [
       inputs.catppuccin.homeModules.catppuccin
     ];

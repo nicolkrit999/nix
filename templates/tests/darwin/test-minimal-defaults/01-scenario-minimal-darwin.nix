@@ -28,7 +28,7 @@ let
     (src + "/modules/darwin/toplevel/home-packages-darwin.nix")
   ];
 
-  configs = (denix.lib.configurations {
+  configs = denix.lib.configurations {
     moduleSystem = "darwin";
     homeManagerUser = "krit";
     extensions = with denix.lib.extensions; [
@@ -39,7 +39,7 @@ let
       })
     ];
     specialArgs = {
-      inputs = flake.inputs;
+      inherit (flake) inputs;
       moduleSystem = "darwin";
     };
     paths = [
@@ -47,7 +47,7 @@ let
       (src + "/templates/tests/darwin/test-minimal-defaults/shared/host-nobrowser-darwin.nix")
     ] ++ darwinPaths;
     exclude = [ ];
-  });
+  };
 
   config = configs.minimal-darwin.config;
   c = config.myconfig.constants;

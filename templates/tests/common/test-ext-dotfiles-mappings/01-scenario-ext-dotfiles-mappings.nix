@@ -133,7 +133,7 @@ let
 
   schoolCheck = h:
     let
-      keys = builtins.attrNames (h.hm.file);
+      keys = builtins.attrNames h.hm.file;
       school = lib.filter (k: lib.hasInfix "school-workspace" k) keys;
       bad = lib.filter (k: !(lib.hasPrefix h.schoolPrefix k)) school;
     in

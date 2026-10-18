@@ -18,7 +18,7 @@ delib.module {
       pinnedApps = listOfOption str [ ];
     };
 
-  nixos.always = { ... }: {
+  nixos.always = _: {
     home-manager.sharedModules = [
       inputs.plasma-manager.homeModules.plasma-manager
     ];

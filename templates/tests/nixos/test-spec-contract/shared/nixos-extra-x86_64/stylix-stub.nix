@@ -24,7 +24,7 @@ delib.module {
     });
   };
 
-  nixos.ifEnabled = { ... }: {
+  nixos.ifEnabled = _: {
     stylix = {
       enable = true;
       polarity = "dark";

@@ -1,7 +1,7 @@
 { nix-tests }:
 let
   H = import ../test-nixos-wallpapers/shared/eval-scenario.nix;
-  lib = H.lib;
+  inherit (H) lib;
   config = H.getConfig ./01-mango-option-names H.nixosExtraX86;
   settings = (H.getHm config).wayland.windowManager.mango.settings;
 

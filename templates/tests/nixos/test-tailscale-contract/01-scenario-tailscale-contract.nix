@@ -1,5 +1,5 @@
-let host = builtins.getEnv "HOST_UNDER_TEST"; in
 let
+  host = builtins.getEnv "HOST_UNDER_TEST";
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;

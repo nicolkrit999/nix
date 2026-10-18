@@ -3,7 +3,7 @@
 { nix-tests }:
 let
   H = import ../shared/eval-scenario.nix;
-  lib = H.lib;
+  inherit (H) lib;
   config = H.getConfig ./06-mango-noctalia;
   hm = H.getHm config;
   launcher = H.mangoBinds hm "SUPER+SHIFT,A,spawn,";

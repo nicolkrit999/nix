@@ -36,7 +36,7 @@ let
       }
     );
     goVersion = tryS (map (p: p.version) (named s "go"));
-    lombokOut = tryS (map (p: toString p) (named s "lombok"));
+    lombokOut = tryS (map toString (named s "lombok"));
     shellHook = tryS (s.shellHook or "");
     postShellHook = tryS (s.postShellHook or "");
     javaHome = tryS (s.JAVA_HOME or "");

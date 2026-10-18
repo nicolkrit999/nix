@@ -31,7 +31,7 @@ let
         })
       ];
       specialArgs = {
-        inputs = flake.inputs;
+        inherit (flake) inputs;
         moduleSystem = "nixos";
       };
       paths = [ scenarioDir ] ++ nixosPaths;
@@ -50,7 +50,7 @@ let
   hasFailingAssertion = msgSubstr: config:
     let
       matches = builtins.filter
-        (a: !(a.assertion) && lib.hasInfix msgSubstr a.message)
+        (a: !a.assertion && lib.hasInfix msgSubstr a.message)
         (getAssertions config);
     in
     builtins.length matches > 0;
@@ -60,7 +60,7 @@ let
 
   failingCount = msgSubstr: config:
     builtins.length (builtins.filter
-      (a: !(a.assertion) && lib.hasInfix msgSubstr a.message)
+      (a: !a.assertion && lib.hasInfix msgSubstr a.message)
       (getAssertions config));
 
 in

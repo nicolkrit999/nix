@@ -34,7 +34,7 @@ delib.module {
   name = "programs.spotifyAdblock";
   options = delib.singleEnableOption false;
 
-  nixos.ifEnabled = { ... }: {
+  nixos.ifEnabled = _: {
     environment.systemPackages = [ spotifyWithAdblock ];
   };
 }

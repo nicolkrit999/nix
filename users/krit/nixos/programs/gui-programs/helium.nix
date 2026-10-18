@@ -73,7 +73,7 @@ delib.module {
     }];
   };
 
-  home.ifEnabled = { ... }: {
+  home.ifEnabled = _: {
     programs.helium = {
       enable = true;
       defaultBrowser = false;

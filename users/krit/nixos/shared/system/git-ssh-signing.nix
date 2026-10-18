@@ -60,7 +60,7 @@ delib.module {
       ];
 
       home-manager.users.${myconfig.constants.user} =
-        { ... }:
+        _:
         mkGitSigningHM {
           inherit cfg;
           homeDir = "/home/${myconfig.constants.user}";

@@ -23,11 +23,9 @@ let
 
   tryHm = v:
     (builtins.tryEval (builtins.deepSeq
-      (
-        ((nixosCfg "nixos-desktop").extendModules {
-          modules = [{ myconfig.constants.homeStateVersion = lib.mkForce v; }];
-        }).config.home-manager.users.krit.home.stateVersion
-      ) 1)).success;
+      ((nixosCfg "nixos-desktop").extendModules {
+        modules = [{ myconfig.constants.homeStateVersion = lib.mkForce v; }];
+      }).config.home-manager.users.krit.home.stateVersion 1)).success;
 
   hostChecks = name: {
     "check-${name}-system" = eq "${name} system.stateVersion" (nixosCfg name).config.system.stateVersion "25.11";

@@ -182,7 +182,7 @@ let
       })
     ];
     specialArgs = {
-      inputs = flake.inputs;
+      inherit (flake) inputs;
       moduleSystem = "nixos";
     };
     paths = [

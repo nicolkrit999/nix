@@ -39,9 +39,11 @@ let
   tbSopsFile = flake.nixosConfigurations.nixos-desktop.config.myconfig.programs.thunderbird.sopsFile;
   tbForced = host: withModules host [
     ({ lib, ... }: {
-      myconfig.programs.thunderbird.enable = lib.mkForce true;
-      myconfig.programs.thunderbird.sopsFile = lib.mkForce tbSopsFile;
-      myconfig.programs.thunderbird.accounts = lib.mkForce tbAccounts;
+      myconfig.programs.thunderbird = {
+        enable = lib.mkForce true;
+        sopsFile = lib.mkForce tbSopsFile;
+        accounts = lib.mkForce tbAccounts;
+      };
     })
   ];
   tbExpectedPath = host: user:
@@ -141,7 +143,7 @@ in
       perms = lib.mapAttrs
         (_: h:
           let t = (secretsOf h).github_fg_pat_token_nix; in
-          { owner = t.owner; inherit (t) mode; })
+          { inherit (t) owner mode; })
         allHosts;
       expected = lib.mapAttrs (_: h: { owner = userOf h; mode = "0400"; }) allHosts;
     in

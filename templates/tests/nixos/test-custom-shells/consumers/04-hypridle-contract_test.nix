@@ -1,7 +1,7 @@
 { nix-tests }:
 let
   H = import ../shared/eval-scenario.nix;
-  lib = H.lib;
+  inherit (H) lib;
   hypr = H.getConfig ./04-hyprland-no-shell;
   multi = H.getConfig ./06-multi-wm-shell-on-niri;
   nowm = H.getConfig ./07-no-wm;

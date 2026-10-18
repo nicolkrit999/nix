@@ -11,7 +11,7 @@ delib.module {
     imports = [ inputs.skwd-wall.nixosModules.default ];
   };
 
-  nixos.ifEnabled = { ... }: {
+  nixos.ifEnabled = _: {
     assertions = [{
       assertion = pkgs.stdenv.hostPlatform.isx86_64;
       message = "programs.skwdWall: skwd-wall only ships x86_64-linux binaries";
@@ -19,7 +19,7 @@ delib.module {
     services.skwd-deck.enable = true;
   };
 
-  home.ifEnabled = { ... }: {
+  home.ifEnabled = _: {
     # skwd-walld owns outputs.json/monitors.json/last-applied.json at runtime, so they are
     # never generated here; only restoreOnStartup is seeded, and only when it is missing.
     home.activation.skwdWallConfigSeed = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''

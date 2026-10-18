@@ -26,7 +26,7 @@ let
     in
     {
       startup = map (s: s.command) settings.spawn-at-startup;
-      environment = settings.environment;
+      inherit (settings) environment;
       xwaylandSatellite = settings.xwayland-satellite;
       niriFlakePolkit = sysUnits.niri-flake-polkit.enable;
       otherPolkitUnits = lib.filter (n: n != "niri-flake-polkit" && lib.hasInfix "polkit" (lib.toLower n) && sysUnits.${n}.enable) (builtins.attrNames sysUnits);

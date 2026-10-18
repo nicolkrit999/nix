@@ -114,7 +114,7 @@ let
           isHost = !(has "+" name);
         in
         chk ((!isHost || builtins.length binds >= 3) && bad == [ ]) (if bad != [ ] then "scratch bind class without special:magic window rule: ${toString bad}" else "expected >= 3 scratch binds, found ${toString (builtins.length binds)}");
-      "with-uwsm" = chk (c.programs.hyprland.withUWSM) "programs.hyprland.withUWSM is false";
+      "with-uwsm" = chk c.programs.hyprland.withUWSM "programs.hyprland.withUWSM is false";
     };
 
   results = lib.mapAttrs perVariant variants;
@@ -136,7 +136,7 @@ let
 in
 {
   variants = builtins.attrNames variants;
-  results = results;
+  inherit results;
   lua-texts = lib.mapAttrs (_: c: (hmOf c).xdg.configFile."hypr/hyprland.lua".text) variants;
   lock-texts = lib.mapAttrs (_: c: lockTextOf (lockPkgOf c)) variants;
   control = {

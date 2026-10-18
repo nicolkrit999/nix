@@ -3,7 +3,7 @@
 { nix-tests }:
 let
   H = import ../shared/eval-scenario.nix;
-  lib = H.lib;
+  inherit (H) lib;
   config = H.getConfig ./03-hyprland-no-shell;
   hm = H.getHm config;
 in

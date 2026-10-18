@@ -83,7 +83,7 @@ delib.module {
     # Without this, the school spec's ~/.ssh/config symlink persists in the
     # default profile because home-manager only cleans up files it previously
     # owned in the same activation chain.
-    home-manager.users.${myconfig.constants.user} = { ... }: {
+    home-manager.users.${myconfig.constants.user} = _: {
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;

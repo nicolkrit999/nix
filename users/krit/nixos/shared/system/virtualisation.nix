@@ -4,11 +4,13 @@ delib.module {
   options = delib.singleEnableOption false;
 
   nixos.ifEnabled = {
-    virtualisation.docker.enable = true;
-    virtualisation.docker.daemon.settings."mtu" = 1450;
-    virtualisation.podman = {
-      enable = true;
-      dockerCompat = false;
+    virtualisation = {
+      docker.enable = true;
+      docker.daemon.settings."mtu" = 1450;
+      podman = {
+        enable = true;
+        dockerCompat = false;
+      };
     };
 
     environment.systemPackages = with pkgs; [
@@ -20,7 +22,7 @@ delib.module {
   };
 
   # Nothing exports here automatically; the dir is for manual `distrobox-export --export-path`
-  home.ifEnabled = { ... }: {
+  home.ifEnabled = _: {
     home.sessionPath = [ "$HOME/.distrobox-bin" ];
 
     home.activation.createDistroboxBin = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''

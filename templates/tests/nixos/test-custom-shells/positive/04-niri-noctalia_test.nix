@@ -3,7 +3,7 @@
 { nix-tests }:
 let
   H = import ../shared/eval-scenario.nix;
-  lib = H.lib;
+  inherit (H) lib;
   config = H.getConfig ./04-niri-noctalia;
   hm = H.getHm config;
   niriBinds = hm.programs.niri.settings.binds;

@@ -13,8 +13,7 @@ delib.module {
   };
 
   home.ifEnabled =
-    { ...
-    }:
+    _:
     {
       home.packages = with pkgs; [
         xdg-utils

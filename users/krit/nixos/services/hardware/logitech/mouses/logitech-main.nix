@@ -13,7 +13,7 @@ delib.module {
   nixos.ifEnabled =
     { cfg, ... }:
     let
-      mouses = cfg.mouses;
+      inherit (cfg) mouses;
 
       deviceBlocks = {
         mx-master-3s = ''
@@ -117,16 +117,18 @@ delib.module {
         "uinput"
       ];
 
-      services.udev.extraRules = udevRules;
+      services = {
+        udev.extraRules = udevRules;
 
-      services.keyd.enable = lib.mkIf mouses.superlight.enable true;
-      services.keyd.keyboards = lib.mkIf mouses.superlight.enable {
-        superlight = {
-          ids = [ "046d:c54d" ];
-          settings = {
-            main = {
-              mouse1 = "C-c";
-              mouse2 = "C-v";
+        keyd.enable = lib.mkIf mouses.superlight.enable true;
+        keyd.keyboards = lib.mkIf mouses.superlight.enable {
+          superlight = {
+            ids = [ "046d:c54d" ];
+            settings = {
+              main = {
+                mouse1 = "C-c";
+                mouse2 = "C-v";
+              };
             };
           };
         };

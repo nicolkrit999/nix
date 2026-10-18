@@ -17,7 +17,7 @@ delib.module {
     ];
   };
 
-  home.always = { ... }: lib.optionalAttrs (moduleSystem == "home") {
+  home.always = _: lib.optionalAttrs (moduleSystem == "home") {
     imports = [
       inputs.mango.hmModules.mango
     ];

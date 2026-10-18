@@ -21,9 +21,11 @@ let
       x = host.extendModules {
         modules = [
           ({ pkgs, pkgsStable, pkgsStableFor, ... }: {
-            environment.etc."probe-system".text = pkgs.stdenv.hostPlatform.system;
-            environment.etc."probe-has-entry".text = lib.boolToString (pkgsStableFor ? ${pkgs.stdenv.hostPlatform.system});
-            environment.etc."probe-version".text = toString pkgsStable.path;
+            environment.etc = {
+              "probe-system".text = pkgs.stdenv.hostPlatform.system;
+              "probe-has-entry".text = lib.boolToString (pkgsStableFor ? ${pkgs.stdenv.hostPlatform.system});
+              "probe-version".text = toString pkgsStable.path;
+            };
           })
         ];
       };

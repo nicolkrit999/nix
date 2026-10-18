@@ -15,12 +15,16 @@ delib.module {
     specialisation.entertainment.configuration = {
       system.nixos.tags = [ "entertainment" ];
 
-      myconfig.programs.kde.enable = lib.mkForce true;
-      myconfig.programs.hyprland.enable = lib.mkForce false;
-      myconfig.programs.niri.enable = lib.mkForce false;
-      myconfig.programs.gnome.enable = lib.mkForce false;
-      myconfig.programs.cosmic.enable = lib.mkForce false;
-      myconfig.programs.mango.enable = lib.mkForce false;
+      myconfig = {
+        programs = {
+          kde.enable = lib.mkForce true;
+          hyprland.enable = lib.mkForce false;
+          niri.enable = lib.mkForce false;
+          gnome.enable = lib.mkForce false;
+          cosmic.enable = lib.mkForce false;
+          mango.enable = lib.mkForce false;
+        };
+      };
       services.xserver.desktopManager.xfce.enable = lib.mkForce false;
 
       environment.etc."xdg/autostart/entertainment-apps.desktop".text = ''
@@ -37,7 +41,7 @@ delib.module {
       '';
 
       home-manager.users.${myUserName} =
-        { ... }:
+        _:
         {
           # Force an empty session to avoid relaunching default apps
           programs.plasma.configFile."ksmserverrc"."General"."loginMode" = "emptySession";

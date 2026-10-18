@@ -30,7 +30,7 @@ let
       })
     ];
     specialArgs = {
-      inputs = flake.inputs;
+      inherit (flake) inputs;
       moduleSystem = "nixos";
     };
     paths = [ (src + "/templates/tests/nixos/test-coffee/shared/host-coffee.nix") ] ++ nixosPaths;

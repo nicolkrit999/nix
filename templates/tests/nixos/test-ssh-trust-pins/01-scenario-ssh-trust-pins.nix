@@ -95,7 +95,7 @@ let
         "extraConfig=${show (aliasesOf extra)} hm=${show (aliasesOf hmSettings)}";
     "Host option values: NixOS extraConfig == HM settings, per alias" =
       let
-        norm = s: lib.mapAttrs (_: v: toString v) (plain s);
+        norm = s: lib.mapAttrs (_: toString) (plain s);
         bad = lib.filter (a: norm (extra.${a} or { }) != norm (hmSettings.${a} or { })) (aliasesOf hmSettings);
       in
       expect "values" (bad == [ ]) "differ for ${show bad}: extra=${show (lib.genAttrs bad (a: extra.${a} or null))} hm=${show (lib.genAttrs bad (a: plain hmSettings.${a}))}";
@@ -129,9 +129,11 @@ let
   twin = mods: (sys.extendModules { modules = mods; }).config;
   borgModule = "Krits-MacBook-Pro-borg-backup";
   dOn = twin [{
-    myconfig.krit.services.nas.sshfs.enable = lib.mkForce true;
-    myconfig.krit.services.nas.${borgModule}.enable = lib.mkForce true;
-    myconfig.krit.system.git-ssh-signing.enable = lib.mkForce true;
+    myconfig.krit = {
+      services.nas.sshfs.enable = lib.mkForce true;
+      services.nas.${borgModule}.enable = lib.mkForce true;
+      system.git-ssh-signing.enable = lib.mkForce true;
+    };
   }];
   dHm = c: c.home-manager.users.${user};
   borgText = c: c.environment.etc."borgmatic/config.yaml".text;

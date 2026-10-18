@@ -21,7 +21,7 @@ delib.module {
   nixos.always = { cfg, ... }: {
     imports = [ inputs.vicinae.nixosModules.default ];
     programs.vicinae.input-server = {
-      enable = cfg.enable;
+      inherit (cfg) enable;
       package = vicinaePackage;
     };
   };
@@ -39,7 +39,7 @@ delib.module {
     imports = [ inputs.vicinae.homeManagerModules.default ];
   };
 
-  myconfig.ifEnabled = { ... }: {
+  myconfig.ifEnabled = _: {
     stylix.targets.vicinae.fonts.enable = false;
   };
 

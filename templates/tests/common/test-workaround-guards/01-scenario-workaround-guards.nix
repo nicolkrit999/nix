@@ -7,7 +7,7 @@ let
   desktop = flake.nixosConfigurations.nixos-desktop;
   darwinHost = flake.darwinConfigurations.Krits-MacBook-Pro;
   sys = "x86_64-linux";
-  pkgs = desktop.pkgs;
+  inherit (desktop) pkgs;
 
   guard = body: if hasNixos then body else "ok";
 

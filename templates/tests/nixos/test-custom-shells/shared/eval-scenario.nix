@@ -99,7 +99,7 @@ let
         })
       ];
       specialArgs = {
-        inputs = flake.inputs;
+        inherit (flake) inputs;
         moduleSystem = "nixos";
       };
       paths = [ scenarioDir ] ++ nixosPaths;
@@ -171,7 +171,7 @@ let
     let
       all = getAllAssertions config;
       matches = builtins.filter
-        (a: !(a.assertion) && lib.hasInfix msgSubstr a.message)
+        (a: !a.assertion && lib.hasInfix msgSubstr a.message)
         all;
     in
     builtins.length matches > 0;

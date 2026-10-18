@@ -3,7 +3,7 @@ delib.module {
   name = "programs.cava";
   options = delib.singleEnableOption false;
 
-  home.ifEnabled = { ... }:
+  home.ifEnabled = _:
     {
       programs.cava = {
         enable = true;
