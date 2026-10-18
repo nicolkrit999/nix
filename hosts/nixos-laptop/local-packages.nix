@@ -17,6 +17,7 @@ delib.module {
         censor # PDF document redaction for the GNOME desktop
         concessio # File permission viewer/calculator
         cryptomator # Client side encryptions for cloud drives
+        czkawka # Find duplicates, empty folders, similar images etc.
         drawio # Diagramming application
         gallery-dl # Command-line program to download image-galleries and -collections from several image hosting sites
         google-chrome # Freeware web browser developed by Google

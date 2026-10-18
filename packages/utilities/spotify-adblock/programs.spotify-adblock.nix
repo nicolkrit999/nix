@@ -6,9 +6,9 @@ let
     version = "unstable";
     src = inputs.spotify-adblock-src;
     cargoLock.lockFile = "${inputs.spotify-adblock-src}/Cargo.lock";
-    patchPhase = ''
+    postPatch = ''
       substituteInPlace src/config.rs \
-        --replace 'config.toml' $out/etc/spotify-adblock/config.toml
+        --replace-fail 'config.toml' $out/etc/spotify-adblock/config.toml
     '';
     buildPhase = "make";
     installPhase = ''

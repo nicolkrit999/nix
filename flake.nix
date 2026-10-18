@@ -30,12 +30,12 @@
       # Common exclusions for all module systems
       baseExclude = [
 
-        # Any `hardware-configuration.nix must be excluded`
+        # `hardware-configuration.nix` files must be excluded
         ./hosts/nixos-desktop/hardware-configuration.nix
         ./hosts/template-host-minimal/hardware-configuration.nix
         ./hosts/nixos-laptop/hardware-configuration.nix
 
-        # Any `disko` must be excluded
+        # disko configs of the template host must be excluded
         ./hosts/template-host-minimal/disko-config-btrfs.nix
         ./hosts/template-host-minimal/disko-config-btrfs-luks-impermanence.nix
 
@@ -118,7 +118,7 @@
         (if isDarwin then [ "aarch64-darwin" ] else [ "x86_64-linux" "aarch64-linux" ])
         (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
     } // (if isDarwin then { } else {
-      topology = forAllSystems (system: import inputs.nix-topology {
+      topology = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (system: import inputs.nix-topology {
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ inputs.nix-topology.overlays.default ];
@@ -130,22 +130,22 @@
     });
 
   inputs = {
+    # Core
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    # Permanent second nixpkgs input for future per-package pins (pkgsStable); currently unused.
+    # Permanent second nixpkgs input for per-package pins (pkgsStable); currently unused.
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-26.05";
-    nix-flatpak.url = "github:gmodena/nix-flatpak";
-    impermanence.url = "github:nix-community/impermanence";
-    nix-alien.url = "github:thiagokokada/nix-alien";
-    nix-topology.url = "github:oddlama/nix-topology";
-    claude-code.url = "github:sadjow/claude-code-nix";
-    claude-desktop = {
-      url = "github:aaddrick/claude-desktop-debian";
-      inputs.nixpkgs.follows = "nixpkgs";
+
+    denix = {
+      url = "github:yunfachi/denix";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+        nix-darwin.follows = "nix-darwin";
+      };
     };
-    claude-cowork-service.url = "github:patrickjaja/claude-cowork-service";
-    codex-cli-nix.url = "github:sadjow/codex-cli-nix";
-    herdr = {
-      url = "github:ogulcancelik/herdr/master";
+
+    home-manager = {
+      url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -154,79 +154,74 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    denix = {
-      url = "github:yunfachi/denix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
-      inputs.nix-darwin.follows = "nix-darwin";
-    };
-
-    home-manager = {
-      url = "github:nix-community/home-manager/master";
+    # AI tools
+    antigravity-nix = {
+      url = "github:jacopone/antigravity-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    stylix = {
-      url = "github:danth/stylix/master";
+    claude-code = {
+      url = "github:sadjow/claude-code-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    firefox-addons = {
-      url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
+    claude-cowork-service = {
+      url = "github:patrickjaja/claude-cowork-service";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Full NUR for nltch repo packages
-    nur = {
-      url = "github:nix-community/NUR";
+    claude-desktop = {
+      url = "github:aaddrick/claude-desktop-debian";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Pinned upstream for spotify-adblock; flake.lock tracks the commit automatically
-    spotify-adblock-src = {
-      url = "github:abba23/spotify-adblock";
-      flake = false;
-    };
-
-    catppuccin = {
-      url = "github:catppuccin/nix/main";
+    codex-cli-nix = {
+      url = "github:sadjow/codex-cli-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # nix-community plasma manager
-    plasma-manager = {
-      url = "github:nix-community/plasma-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
-    };
-
-    quickshell = {
-      url = "git+https://git.outfoxxed.me/quickshell/quickshell";
+    herdr = {
+      url = "github:ogulcancelik/herdr/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Desktop shells and launchers
     caelestia-shell = {
       url = "github:caelestia-dots/shell";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        quickshell.follows = "quickshell";
+      };
     };
 
-    nix-sops = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    openlogi = {
-      url = "github:AprilNEA/OpenLogi";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    niri = {
-      url = "github:sodiboo/niri-flake";
+    elephant = {
+      url = "github:abenz1267/elephant";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     mango = {
       url = "github:mangowm/mango";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    niri = {
+      url = "github:sodiboo/niri-flake";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-stable.follows = "nixpkgs-stable";
+      };
+    };
+
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+      };
+    };
+
+    quickshell = {
+      url = "git+https://git.outfoxxed.me/quickshell/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -236,33 +231,44 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    elephant = {
-      url = "github:abenz1267/elephant";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    walker = {
-      url = "github:abenz1267/walker";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.elephant.follows = "elephant";
-    };
-
     vicinae = {
       url = "github:vicinaehq/vicinae";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     vicinae-extensions = {
       url = "github:vicinaehq/extensions";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    sidra = {
-      url = "github:wimpysworld/sidra";
+    walker = {
+      url = "github:abenz1267/walker";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        elephant.follows = "elephant";
+      };
+    };
+
+    # Theming
+    catppuccin = {
+      url = "github:catppuccin/nix/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    firefox-addons = {
+      url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    stylix = {
+      url = "github:danth/stylix/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # System
     auto-cpufreq = {
-      # git fetcher on purpose: GitHub tarballs of this repo change over time (.gitattributes export-subst), breaking the locked narHash
-      url = "git+https://github.com/AdnanHodzic/auto-cpufreq?ref=master&rev=35d8015afc1bc2c4b30526828dddde4c53925976";
+      # git fetcher, unpinned: GitHub tarball narHash drifts (export-subst)
+      url = "git+https://github.com/AdnanHodzic/auto-cpufreq?ref=master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -271,8 +277,42 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    impermanence = {
+      url = "github:nix-community/impermanence";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+      };
+    };
+
+    nix-alien = {
+      url = "github:thiagokokada/nix-alien";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nix-index-database.follows = "nix-index-database";
+      };
+    };
+
+    nix-flatpak.url = "github:gmodena/nix-flatpak";
+
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix-sops = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix-topology = {
+      url = "github:oddlama/nix-topology";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Apps
+    concord = {
+      url = "github:chojs23/concord";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -281,8 +321,35 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # README explicitly states: "Neither the module nor the overlay uses this
+    # input. To download less, set nix-doom-emacs-unstraightened.inputs.nixpkgs.follows = '';"
+    nix-doom-emacs-unstraightened = {
+      url = "github:marienz/nix-doom-emacs-unstraightened";
+      inputs.nixpkgs.follows = "";
+    };
+
     nix-yazi-plugins = {
       url = "github:lordkekz/nix-yazi-plugins";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    openlogi = {
+      url = "github:AprilNEA/OpenLogi";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    sidra = {
+      url = "github:wimpysworld/sidra";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    spotify-adblock-src = {
+      url = "github:abba23/spotify-adblock";
+      flake = false;
+    };
+
+    tgt = {
+      url = "github:FedericoBruzzone/tgt";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -292,25 +359,6 @@
         nixpkgs.follows = "nixpkgs";
         home-manager.follows = "home-manager";
       };
-    };
-
-    antigravity-nix = {
-      url = "github:jacopone/antigravity-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    concord = {
-      url = "github:chojs23/concord";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    tgt.url = "github:FedericoBruzzone/tgt";
-
-    # README explicitly states: "Neither the module nor the overlay uses this
-    # input. To download less, set nix-doom-emacs-unstraightened.inputs.nixpkgs.follows = '';"
-    nix-doom-emacs-unstraightened = {
-      url = "github:marienz/nix-doom-emacs-unstraightened";
-      inputs.nixpkgs.follows = "";
     };
   };
 

@@ -18,6 +18,7 @@ delib.module {
         concessio # File permission viewer/calculator
         cpu-x # Hardware information visualizer application
         cryptomator # Client side encryptions for cloud drives
+        czkawka # Find duplicates, empty folders, similar images etc.
         drawio # Diagramming application
         fresh-editor # Terminal-based text editor with LSP support and TypeScript plugins
         gallery-dl # Command-line program to download image-galleries and -collections from several image hosting sites

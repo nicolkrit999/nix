@@ -839,7 +839,6 @@ delib.host {
           firefox.enable = false;
           helium.enable = true;
           kitty.enable = true;
-          krokiet.enable = true;
           librewolf.enable = true;
           neovim.enable = true;
           proton-cli.enable = true;
