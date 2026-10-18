@@ -106,7 +106,6 @@ delib.module {
         # --- UNBIND DEFAULTS ---
         "plasmashell"."manage activities" = "none";
         "kwin"."Show Activity Switcher" = "none";
-        "kwin"."Switch to Next Keyboard Layout" = "none";
 
         "org.kde.spectacle.desktop" = {
           "ActiveWindowScreenShot" = "none";
