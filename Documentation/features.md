@@ -168,6 +168,12 @@ The apps opened for each file family are picked per host with constants (NixOS):
 
 ---
 
+## Airplane Mode
+
+On NixOS hosts with NetworkManager, `airplane` turns off only Wi-Fi or every radio (Wi-Fi, WWAN, Bluetooth and the rest) and confirms the result by reading each radio back. Run it with no argument for a menu, or use `airplane-on` / `airplane-off`. On waybar a pill shows the state: left click toggles with the last chosen scope, right click picks the scope.
+
+---
+
 ## Optional BTRFS Snapshots
 
 - Enable snapshots with a host-specific retention policy.

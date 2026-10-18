@@ -82,6 +82,7 @@ let
     # Services whose enable options specs override
     (src + "/modules/nixos/services/hypr/hypridle.nix")
     (src + "/modules/nixos/services/power/coffee.nix")
+    (src + "/modules/nixos/services/airplane.nix")
     (src + "/modules/nixos/services/swaync.nix")
     (src + "/modules/common/services/tailscale.nix")
     (src + "/modules/nixos/toplevel/bluetooth.nix")

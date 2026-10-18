@@ -15,7 +15,7 @@ Two parts:
 
 Not covered here:
 
-- The waybar pill (placement right after `battery`, signal 8, `coffee.service` probe, always shown with an `off` class, left-click = `coffee-toggle` by store path) is covered by `test-waybar-configs`; its `off`/`active` contrast by `test-waybar-contrast`.
+- The waybar pill (placement right after `custom/mic`, signal 8, `coffee.service` probe, always shown with an `off` class, left-click = `coffee-toggle` by store path) is covered by `test-waybar-configs`; its `off`/`active` contrast by `test-waybar-contrast`.
 - The guest/secure-travel `services.coffee.enable == false` flag (with a base-host control) is covered by `test-spec-contract`.
 - The "no WM => no coffee" case on a defaults-only host is covered by `test-minimal-defaults`.
 

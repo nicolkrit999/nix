@@ -44,7 +44,7 @@ white until they reach 3:1. A red result is a finding about the waybar styling. 
    - derives the elements from the bar config (every module listed in `modules-left/center/right`),
      expanding workspace states (default, hover, active, active+hover, urgent, focused) and battery
      states (normal, each `states` key, charging, critical+charging) and coffee states (`off`, `active`: the pill is always shown, both classes and both icon spans, the
-     `base0F` cup and the `base08` struck cup from `exec`, are checked);
+     `base0F` cup and the `base08` struck cup from `exec`, are checked) and airplane states (`online`, `wifi-off`, `airplane`: for each state the matching `format-icons` span, `base0C` / `base0A` / `base08`, is checked);
    - for each element checks the cascaded foreground against the effective background (nearest
      opaque `background-color` up the chain) as **text, >= 4.5:1**, and every pango
      `<span color=..>` in `format*`, `exec`, `rewrite` and `tooltip-format*` strings as an
@@ -65,8 +65,9 @@ background; workspace text is the `label` inside `button`.
 
 | Check | Expected |
 |-------|----------|
-| text contrast (workspace states, clock, window, language, weather, wifi, bluetooth, pulseaudio, mic, battery states, coffee states, notification, tags, tooltip) | >= 4.5:1 for every scenario and the mocha control |
-| span / icon accent contrast | >= 3:1 |
+| text contrast (workspace states, clock, window, language, weather, wifi, bluetooth, pulseaudio, mic, battery states, coffee states, airplane states, notification, tags, tooltip) | >= 4.5:1 for every scenario and the mocha control |
+| span / icon accent contrast (including each `custom/airplane` state icon in `format-icons`) | >= 3:1 |
+| control: a synthetic `custom/airplane` icon span at 1:1 fails and at 21:1 passes | the `format-icons` extraction really judges the airplane icons |
 | `@define-color baseXX` equals the scheme palette | override really reached the generated CSS |
 | `stylix.polarity` (system and home-manager) equals the scenario polarity | override took effect |
 | each WM yields >= 12 elements from >= 5 modules | extraction is not vacuous |

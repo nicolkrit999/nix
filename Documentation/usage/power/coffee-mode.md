@@ -61,7 +61,7 @@ Still working while coffee is on (deliberate actions and emergencies):
 
 ## Waybar
 
-`custom/coffee` sits right after `battery` in all three waybars and is always shown. It is drawn
+`custom/coffee` sits right after `custom/mic` in all three waybars and is always shown. It is drawn
 like the microphone pill (`custom/mic`): a plain pill with one coloured icon, no ring and no level
 bar.
 

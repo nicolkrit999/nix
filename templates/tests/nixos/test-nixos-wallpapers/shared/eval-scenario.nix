@@ -70,6 +70,9 @@ let
     # coffee (the waybar coffee pill reads services.coffee.enable)
     (src + "/modules/nixos/services/power/coffee.nix")
 
+    # airplane (the waybar airplane pill reads services.airplane.*)
+    (src + "/modules/nixos/services/airplane.nix")
+
     (src + "/modules/nixos/services/hypr/hyprlock.nix")
   ];
 

@@ -32,10 +32,15 @@ Runs in the `nixos-b` CI group (`test.conf`); 63 s inside the full parallel suit
 | config is non-empty JSON | at least one bar with `layer` and `modules-right` |
 | every listed module is defined | each name in `modules-left/center/right` is a key of the bar |
 | custom/notification iff swaync enabled | presence matches `myconfig.services.swaync.enable` |
-| custom/coffee iff coffee enabled, right after battery | presence matches `myconfig.services.coffee.enable`; the module directly follows `battery` in `modules-right` |
+| custom/coffee iff coffee enabled, right after custom/mic | presence matches `myconfig.services.coffee.enable`; the module directly follows `custom/mic` in `modules-right` |
 | custom/coffee refreshes on signal 8 | `signal == 8` (the scripts send `RTMIN+8`), `return-type == "json"`, exec tests `coffee.service` |
 | custom/coffee left-click runs the installed coffee-toggle by store path, no right-click | `on-click` == `${myconfig.services.coffee.togglePackage}/bin/coffee-toggle` (works without the coffee bins on waybar's `PATH`), that package is in HM `home.packages`, no `on-click-right` / `on-click-middle` |
 | custom/coffee is always shown and re-polls every <= 10 s | every `exec` line printing `"class":"off"` prints `"text":"%s"` with a `<span color='#rrggbb'>glyph</span>` argument (never the old empty, hidden pill); `0 < interval <= 10` |
+| custom/airplane iff airplane enabled, right after battery | presence matches `myconfig.services.airplane.enable`; the module directly follows `battery` in `modules-right` |
+| custom/airplane signal equals the script's RTMIN signal and is unique on the bar | `signal` == the `AIRPLANE_SIGNAL=` value parsed from `airplane.sh`, differs from every other module's `signal`, `return-type == "json"`, `interval > 0` |
+| custom/airplane exec/left/right click run the installed airplane by store path (status/toggle/pick) | `exec` / `on-click` / `on-click-right` == `${myconfig.services.airplane.package}/bin/airplane status` / `toggle` / `pick`; that package is in HM `home.packages` |
+| custom/airplane format-icons cover exactly the alt values the script prints | `format-icons` keys == the `echo online`, `echo wifi-off`, `echo airplane` mode names in `airplane.sh` |
+| style.css pill list styles #custom-airplane | the generated `style.css` contains `#custom-airplane` |
 | style.css has 16 palette defines | 16 `@define-color base0X #rrggbb;` lines equal to the home-manager stylix palette |
 | style.css has rules beyond the defines | file is not just the defines |
 | ExecStart points at the generated config and css | `-c %h/.config/waybar-<wm>/config -s .../style.css` |
@@ -76,7 +81,7 @@ Runs in the `nixos-b` CI group (`test.conf`); 63 s inside the full parallel suit
 ### Cross-WM drift (desktop variants)
 | Check | Expected |
 |-------|----------|
-| weather, wifi, bluetooth, mic, coffee, notification, pulseaudio, battery, clock identical | niri and mango copies equal the hyprland copy |
+| weather, wifi, bluetooth, mic, coffee, airplane, notification, pulseaudio, battery, clock identical | niri and mango copies equal the hyprland copy |
 
 ### custom/coffee exec output
 Every generated `custom/coffee.exec` is run with its `systemctl` store path swapped for a stub (`is-active` exits 0, then 3).
@@ -93,4 +98,4 @@ Every generated `custom/coffee.exec` is run with its `systemctl` store path swap
 |-------|----------|
 | jq parses each generated config | valid object or array; the corpus has at least 5 config files |
 | all snippets pass bash -n | every `exec` / `on-click*` string of every bar (at least 50 collected) |
-| controls | monitor-name parser, `afterBattery` helper, undefined-module detector, snippet collector, no-monitors variant effective, `waybarLayout` non-empty on desktop, jq rejects truncated JSON, bash -n rejects an unterminated `if`, the always-shown detector rejects an empty off text and accepts an off line with a glyph span |
+| controls | monitor-name parser, `afterBattery` / `after` helpers, airplane signal and mode parsers, some variant renders the airplane pill (so the airplane checks are not vacuous), undefined-module detector, snippet collector, no-monitors variant effective, `waybarLayout` non-empty on desktop, jq rejects truncated JSON, bash -n rejects an unterminated `if`, the always-shown detector rejects an empty off text and accepts an off line with a glyph span |

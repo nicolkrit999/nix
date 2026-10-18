@@ -61,10 +61,19 @@ let
   coffeeOn = c: c.myconfig.services.coffee.enable or false;
   toggleCmd = c: "${builtins.unsafeDiscardStringContext c.myconfig.services.coffee.togglePackage.outPath}/bin/coffee-toggle";
   toggleInstalled = c: lib.any (p: (p.outPath or null) == c.myconfig.services.coffee.togglePackage.outPath) (hmOf c).home.packages;
+  airplaneOn = c: c.myconfig.services.airplane.enable or false;
+  airplaneBin = c: "${builtins.unsafeDiscardStringContext c.myconfig.services.airplane.package.outPath}/bin/airplane";
+  airplaneInstalled = c: lib.any (p: (p.outPath or null) == c.myconfig.services.airplane.package.outPath) (hmOf c).home.packages;
+  airplaneSrc = builtins.readFile ../../../../modules/nixos/services/airplane/airplane.sh;
+  scriptSignal = text:
+    let l = lib.filter (lib.hasPrefix "AIRPLANE_SIGNAL=") (lib.splitString "\n" text);
+    in if l == [ ] then null else lib.toInt (lib.removePrefix "AIRPLANE_SIGNAL=" (lib.head l));
+  scriptModes = text: lib.filter (m: has "echo ${m}\n" (text + "\n")) [ "online" "wifi-off" "airplane" ];
   offShown = exec:
     let offLines = lib.filter (has ''"class":"off"'') (lib.splitString "\n" exec);
     in offLines != [ ] && lib.all (l: has ''"text":"%s"'' l && builtins.match ''.*"<span color='#[0-9a-f]{6}'>[^<]+</span>".*'' l != null) offLines;
-  afterBattery = mods: let i = lib.lists.findFirstIndex (m: m == "battery") null mods; in if i == null || i + 1 >= lib.length mods then null else lib.elemAt mods (i + 1);
+  after = k: mods: let i = lib.lists.findFirstIndex (m: m == k) null mods; in if i == null || i + 1 >= lib.length mods then null else lib.elemAt mods (i + 1);
+  afterBattery = after "battery";
 
   barCommon = c: wm: bars:
     let
@@ -77,15 +86,23 @@ let
       notifPresent = lib.elem "custom/notification" bar0.modules-right;
       coffeePresent = lib.elem "custom/coffee" bar0.modules-right;
       coffee = bar0."custom/coffee" or { };
+      airplanePresent = lib.elem "custom/airplane" bar0.modules-right;
+      airplane = bar0."custom/airplane" or { };
+      otherSignals = lib.concatMap (m: lib.optional (builtins.isAttrs bar0.${m} && bar0.${m} ? signal) bar0.${m}.signal) (lib.filter (m: m != "custom/airplane") (modulesOf bar0));
     in
     {
       "${wm}: config is non-empty JSON" = chk (bars != [ ] && lib.all (b: b ? layer && b ? modules-right) bars) "no bar with layer/modules-right";
       "${wm}: every listed module is defined" = allOk (lib.concatMap undefinedModules bars) "undefined modules";
       "${wm}: custom/notification iff swaync enabled" = chk (notifPresent == swayncOn c && (!notifPresent || bar0 ? "custom/notification")) "notification module ${toString notifPresent} vs swaync ${toString (swayncOn c)}";
-      "${wm}: custom/coffee iff coffee enabled, right after battery" = chk (coffeePresent == coffeeOn c && (!coffeePresent || afterBattery bar0.modules-right == "custom/coffee")) "coffee module ${toString coffeePresent} vs coffee ${toString (coffeeOn c)}, after battery: ${toString (afterBattery bar0.modules-right)}";
+      "${wm}: custom/coffee iff coffee enabled, right after custom/mic" = chk (coffeePresent == coffeeOn c && (!coffeePresent || after "custom/mic" bar0.modules-right == "custom/coffee")) "coffee module ${toString coffeePresent} vs coffee ${toString (coffeeOn c)}, after mic: ${toString (after "custom/mic" bar0.modules-right)}";
       "${wm}: custom/coffee refreshes on signal 8 and tests coffee.service" = chk (!coffeePresent || (coffee.signal or null == 8 && coffee.return-type or "" == "json" && has "is-active --quiet coffee.service" (coffee.exec or ""))) "signal ${toString (coffee.signal or "none")}, return-type ${coffee.return-type or "none"}";
       "${wm}: custom/coffee left-click runs the installed coffee-toggle by store path, no right-click" = chk (!coffeePresent || (coffee.on-click or "" == toggleCmd c && toggleInstalled c && !(coffee ? on-click-right) && !(coffee ? on-click-middle))) "on-click ${coffee.on-click or "none"} vs ${toggleCmd c}, installed ${toString (toggleInstalled c)}";
       "${wm}: custom/coffee is always shown (off prints class off with a glyph) and re-polls every <= 10 s" = chk (!coffeePresent || (offShown (coffee.exec or "") && (coffee.interval or 0) > 0 && coffee.interval <= 10)) "interval ${toString (coffee.interval or "none")}, off branch shown ${toString (offShown (coffee.exec or ""))}";
+      "${wm}: custom/airplane iff airplane enabled, right after battery" = chk (airplanePresent == airplaneOn c && (!airplanePresent || afterBattery bar0.modules-right == "custom/airplane")) "airplane module ${toString airplanePresent} vs airplane ${toString (airplaneOn c)}";
+      "${wm}: custom/airplane signal equals the script's RTMIN signal and is unique on the bar" = chk (!airplanePresent || (airplane.signal or null == scriptSignal airplaneSrc && scriptSignal airplaneSrc != null && !(lib.elem airplane.signal otherSignals) && airplane.return-type or "" == "json" && (airplane.interval or 0) > 0)) "signal ${toString (airplane.signal or "none")}, script ${toString (scriptSignal airplaneSrc)}, others ${toString otherSignals}";
+      "${wm}: custom/airplane exec/left/right click run the installed airplane by store path (status/toggle/pick)" = chk (!airplanePresent || (airplane.exec or "" == "${airplaneBin c} status" && airplane.on-click or "" == "${airplaneBin c} toggle" && airplane.on-click-right or "" == "${airplaneBin c} pick" && airplaneInstalled c)) "exec ${airplane.exec or "none"}, on-click ${airplane.on-click or "none"}, right ${airplane.on-click-right or "none"}, installed ${toString (airplaneInstalled c)}";
+      "${wm}: custom/airplane format-icons cover exactly the alt values the script prints" = chk (!airplanePresent || (lib.sort (a: b: a < b) (builtins.attrNames (airplane.format-icons or { })) == lib.sort (a: b: a < b) (scriptModes airplaneSrc) && scriptModes airplaneSrc != [ ])) "icons ${toString (builtins.attrNames (airplane.format-icons or { }))}, script modes ${toString (scriptModes airplaneSrc)}";
+      "${wm}: style.css pill list styles #custom-airplane" = chk (!airplanePresent || has "#custom-airplane" css) "no #custom-airplane rule in style.css";
       "${wm}: style.css has 16 palette defines" = chk (lib.length (lib.filter (x: x != "") (colorLines css)) == 16 && missingColors == [ ]) "missing/mismatched palette: ${toString missingColors}";
       "${wm}: style.css has rules beyond the defines" = chk (lib.stringLength css > 1500) "style.css suspiciously short";
       "${wm}: ExecStart points at the generated config and css" = chk (svc != null && has "-c %h/.config/waybar-${wm}/config" (toString exec) && has "-s %h/.config/waybar-${wm}/style.css" (toString exec)) "ExecStart: ${toString exec}";
@@ -155,7 +172,7 @@ let
       "niri: unit bound to niri.service" = chk (svc.Install.WantedBy == [ "niri.service" ] && svc.Unit.PartOf == [ "niri.service" ] && svc.Unit.After == [ "niri.service" ]) "WantedBy ${toString svc.Install.WantedBy}";
     };
 
-  sharedModules = [ "custom/weather" "custom/wifi" "custom/bluetooth" "custom/mic" "custom/coffee" "custom/notification" "pulseaudio" "battery" "clock" ];
+  sharedModules = [ "custom/weather" "custom/wifi" "custom/bluetooth" "custom/mic" "custom/coffee" "custom/airplane" "custom/notification" "pulseaudio" "battery" "clock" ];
   driftChecks = c:
     let
       hyp = lib.head (barsOf c "hyprland");
@@ -192,6 +209,10 @@ let
   control = {
     "monitor name parser strips anchors" = chk (monitorNames sample == [ "DP-9" "eDP-1" ]) "got ${toString (monitorNames sample)}";
     "afterBattery finds the next module" = chk (afterBattery [ "a" "battery" "custom/coffee" "z" ] == "custom/coffee" && afterBattery [ "battery" ] == null) "afterBattery mismatch";
+    "airplane checks are not vacuous: some variant renders the pill" = chk (lib.any (c: lib.elem "custom/airplane" (lib.head (barsOf c "hyprland")).modules-right) (lib.attrValues variants)) "no variant renders custom/airplane, every airplane check passes vacuously";
+    "after helper finds the module following any key" = chk (after "custom/coffee" [ "battery" "custom/coffee" "custom/airplane" ] == "custom/airplane" && after "custom/coffee" [ "custom/coffee" ] == null) "after mismatch";
+    "script signal parser reads AIRPLANE_SIGNAL" = chk (scriptSignal "a=1\nAIRPLANE_SIGNAL=9\nb=2" == 9 && scriptSignal "x=1" == null) "parser mismatch";
+    "script mode parser reads the echoed alt values" = chk (scriptModes "case x in\n a) echo online ;;\n *) echo airplane\n" == [ "airplane" ]) "mode parser mismatch";
     "always-shown detector rejects the old hidden-when-off exec" = chk (!offShown "if x; then\n  printf 'a'\nelse\n  printf '{\"text\":\"\",\"class\":\"off\"}\\n'\nfi\n") "accepted an empty off text";
     "always-shown detector accepts an off line with a glyph span" = chk (offShown "  printf '{\"text\":\"%s\",\"class\":\"off\"}\\n' \"<span color='#aabbcc'>x</span>\"\n") "rejected a valid off line";
     "undefined-module detector bites" = chk (undefinedModules { modules-left = [ "custom/x" ]; } == [ "custom/x" ]) "detector missed an undefined module";

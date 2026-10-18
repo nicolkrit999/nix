@@ -291,6 +291,8 @@ def states_for(name, cfg):
         return out
     if name == "custom/coffee":
         return [("off", ("off",), ()), ("active", ("active",), ())]
+    if name == "custom/airplane":
+        return [("online", ("online",), ()), ("wifi-off", ("wifi-off",), ()), ("airplane", ("airplane",), ())]
     return [("normal", (), ())]
 
 
@@ -327,9 +329,12 @@ def module_rows(css, name, cfg, slots):
         keys = format_keys(cfg, list(classes), states) if classes or name == "battery" else format_keys(cfg, [], states)
         if not name.endswith("/workspaces"):
             keys = keys + [k for k in cfg if k in ("exec", "rewrite")]
+        if name == "custom/airplane":
+            keys = keys + ["format-icons"]
         seen = set()
         for k in keys:
-            for s in strings(cfg[k]):
+            src = cfg[k].get(label, "") if k == "format-icons" and isinstance(cfg[k], dict) else cfg[k]
+            for s in strings(src):
                 for sp in spans_in(s):
                     if "fg" not in sp:
                         continue
@@ -408,6 +413,13 @@ def synth(text_fg, span_fg, bg="#ffffff"):
     return pick("text"), pick("span")
 
 
+def synth_airplane(span_fg, state="airplane", bg="#ffffff"):
+    css = f"@define-color pill {bg};\nwindow#waybar {{ background-color: transparent; color: #000000; }}\n#custom-airplane {{ background-color: @pill; color: #000000; }}\ntooltip {{ background-color: #ffffff; color: #000000; }}"
+    cfg = json.dumps({"modules-right": ["custom/airplane"], "custom/airplane": {"format": "{icon}", "format-icons": {"online": "<span color='#000000'>a</span>", "wifi-off": "<span color='#000000'>b</span>", state: f"<span color='{span_fg}'>c</span>"}}})
+    _, rows, _ = analyse(css, cfg, {})
+    return [r[0] for r in rows if r[1].startswith(f"custom/airplane[{state}]") and r[2] == "span"]
+
+
 def controls():
     res = []
 
@@ -437,6 +449,10 @@ def controls():
         ("span at 2.9:1 fails", synth("#000000", "#979797")[1], ["FAIL"]),
         ("span at 3.1:1 passes", synth("#000000", "#929292")[1], ["PASS"]),
         ("span at 4.4:1 passes (icon threshold is 3:1)", synth("#000000", "#787878")[1], ["PASS"]),
+    ]
+    cases += [
+        ("airplane format-icons span at 1:1 fails", synth_airplane("#ffffff"), ["FAIL"]),
+        ("airplane format-icons span at 21:1 passes", synth_airplane("#000000"), ["PASS"]),
     ]
     for name, got, want in cases:
         chk(f"synthetic css/config through analyse(): {name}", got == want, f"got {got}")

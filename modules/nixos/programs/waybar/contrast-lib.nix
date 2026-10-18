@@ -367,7 +367,9 @@ let
       };
 
       modulesRight = language:
-        [ language "custom/weather" "custom/wifi" "custom/bluetooth" "pulseaudio" "custom/mic" "battery" ]
+        [ language "custom/weather" "pulseaudio" "custom/wifi" "battery" ]
+        ++ lib.optional myconfig.services.airplane.enable "custom/airplane"
+        ++ [ "custom/bluetooth" "custom/mic" ]
         ++ lib.optional myconfig.services.coffee.enable "custom/coffee"
         ++ lib.optional myconfig.services.swaync.enable "custom/notification";
 
@@ -418,6 +420,21 @@ let
           format-critical = "<span color='${t.fg.crit}'>{icon}</span> {capacity}% {time}";
           format-alt = "{time} <span color='${t.accent c.base0A}'>{icon}</span>";
           format-icons = [ "󰂎" "󰁻" "󰁾" "󰂀" "󰁹" ];
+        };
+
+        "custom/airplane" = {
+          format = "{icon}";
+          return-type = "json";
+          format-icons = {
+            online = "<span color='${t.accent c.base0C}'>󰀞</span>";
+            wifi-off = "<span color='${t.accent c.base0A}'>󰤮</span>";
+            airplane = "<span color='${t.accent c.base08}'>󰀝</span>";
+          };
+          exec = "${myconfig.services.airplane.package}/bin/airplane status";
+          on-click = "${myconfig.services.airplane.package}/bin/airplane toggle";
+          on-click-right = "${myconfig.services.airplane.package}/bin/airplane pick";
+          signal = 9;
+          interval = 30;
         };
 
         "custom/coffee" = {
