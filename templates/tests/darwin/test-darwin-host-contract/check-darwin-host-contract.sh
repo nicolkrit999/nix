@@ -80,6 +80,23 @@ run_check check-resolved-pkgs-exist   "term/fileManager/editor resolve to real p
 run_check check-network-tools-enabled "control: network-tools active (tcpdump present)"
 run_check check-no-linux-only-tools   "no Linux-only network tools"
 
+echo -e "${BOLD}dock / finder${NC}"
+run_check check-dock-no-dangling-nix-apps "persistent-apps Nix/HM app paths match installed packages"
+run_check check-dock-no-disabled-hm-apps  "no dock entry in HM Firefox/VS Code dirs while disabled"
+run_check check-dock-control-bites        "control: dangling HM entries are flagged"
+run_check check-dock-autohide             "dock.autohide == true"
+run_check check-finder-extensions         "finder.AppleShowAllExtensions == true"
+
+echo -e "${BOLD}tailscale${NC}"
+run_check check-tailscale-cask-present    "homebrew.casks has tailscale-app"
+run_check check-tailscale-daemon-off      "nix-darwin services.tailscale.enable == false"
+run_check check-tailscale-flag-consistent "darwinCaskPresent == true"
+run_check check-tailscale-control-bites   "control: no cask -> darwinCaskPresent false"
+
+echo -e "${BOLD}terminal${NC}"
+run_check check-terminal-hm-enabled       "terminal.name -> enabled krit.programs.<name>"
+run_check check-terminal-control-bites    "control: disabled terminal name is flagged"
+
 echo -e "${BOLD}home-manager${NC}"
 run_check check-kitty-option-as-alt   "kitty macos_option_as_alt == yes"
 

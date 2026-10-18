@@ -9,8 +9,10 @@ delib.module {
     { ... }:
     {
       environment.systemPackages = with pkgs; [
-        notion-app
+        # CLI tools
+        asciinema
         carbon-now-cli
+        cbonsai
         cloudflared
         fd
         ffmpeg
@@ -20,29 +22,32 @@ delib.module {
         inetutils
         lsof
         mediainfo
-        mars-mips
+        neo-cowsay
         nix-search-cli
         ntfs3g
         pay-respects
         ripgrep
         stow
-        upterm
         tree
         unzip
-        vscode
+        upterm
         wakeonlan
-        xcodegen
         yt-dlp
         zip
         zlib
+
+        # Development
+        mars-mips
+        vscode
+        xcodegen
         (pkgs.python313.withPackages (
           ps: with ps; [
             faker
           ]
         ))
-        asciinema
-        cbonsai
-        neo-cowsay
+
+        # Apps
+        notion-app
       ];
 
       homebrew = {
@@ -53,35 +58,34 @@ delib.module {
           cleanup = "none";
         };
 
-        taps = [ ];
-
         brews = [
+          "direnv"
           "node"
           "pipes-sh"
-          "direnv"
-          "yt-dlp"
         ];
 
         casks = [
-          "macfuse"
+          # Apps
           "claude"
-          "pycharm-ce"
-          "alacritty"
+          "dash"
           "discord"
+          "github"
           "iterm2"
-          "pearcleaner"
-          "only-switch"
-          "font-jetbrains-mono-nerd-font"
+          "microsoft-teams"
           "obs"
-          "utm"
+          "openlogi"
+          "only-switch"
+          "pearcleaner"
+          "pycharm"
+          "signal"
           "tailscale-app"
           "telegram"
-          "microsoft-teams"
-          "signal"
+          "utm"
           "vlc"
-          "github"
-          "dash"
-          "openlogi"
+
+          # System
+          "font-jetbrains-mono-nerd-font"
+          "macfuse"
         ];
       };
     };

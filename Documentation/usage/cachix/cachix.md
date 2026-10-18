@@ -62,7 +62,7 @@ We define a strict hierarchy of trust and power to optimize resources.
 ### 🍎 Tier 3b: The MacBook (`Krits-MacBook-Pro`)
 
 - **Role:** Consumer, with its own cloud builder.
-- **Configuration:** Pull **and** push enabled, same token (`hosts/Krits-MacBook-Pro/default.nix`).
+- **Configuration:** Pull **and** push enabled, same token (`hosts/Krits-MacBook-Pro/default.nix`). The host also sets the local `attic` cache (see the attic note below), derived from `myconfig.krit.services.nas.host`.
 - **Its factory** is `build-darwin.yml`, not `build.yml` — a separate workflow on a `macos-15` runner. `build.yml` never builds anything for macOS.
 
 ### 📦 A note on `attic` — local only, and deliberately not in CI

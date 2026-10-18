@@ -1,8 +1,11 @@
 { delib
-, inputs
 , config
 , ...
 }:
+let
+  home = config.users.users.${config.myconfig.constants.user}.home;
+  ageKeyFile = "${home}/.config/sops/age/keys.txt";
+in
 delib.host {
   name = "Krits-MacBook-Pro";
 
@@ -11,27 +14,25 @@ delib.host {
     # tied to the original install (stateVersion 4); the nix-darwin default would be 30000
     ids.gids.nixbld = 350;
 
-    imports = [
-      inputs.nix-sops.darwinModules.sops
-    ];
-
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # 🔐 SOPS CONFIGURATION
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    environment.variables = {
-      SOPS_AGE_KEY_FILE = "/Users/krit/.config/sops/age/keys.txt";
+    environment.variables.SOPS_AGE_KEY_FILE = ageKeyFile;
+
+    sops = {
+      defaultSopsFile = ./Krits-MacBook-Pro-secrets-sops.yaml;
+      defaultSopsFormat = "yaml";
+      age = {
+        keyFile = ageKeyFile;
+        sshKeyPaths = [ ];
+      };
+      gnupg.sshKeyPaths = [ ];
+      environment.SOPS_AGE_KEY_FILE = ageKeyFile;
     };
 
-    sops.defaultSopsFile = ./Krits-MacBook-Pro-secrets-sops.yaml;
-    sops.defaultSopsFormat = "yaml";
-    sops.age.keyFile = "/Users/krit/.config/sops/age/keys.txt";
-    sops.environment.SOPS_AGE_KEY_FILE = "/Users/krit/.config/sops/age/keys.txt";
-    sops.age.sshKeyPaths = [ ];
-    sops.gnupg.sshKeyPaths = [ ];
-
     # Common sops secrets live in users/krit/common/toplevel/sops-secrets.nix
-    # (enabled via this host's default.nix). Host-specific secrets, if any,
-    # would go here.
+    # (enabled via this host's default.nix). The host yaml holds borg-passphrase
+    # and borg-private-key, resolved through defaultSopsFile.
 
     nix.extraOptions = ''
       !include ${config.sops.secrets.github_fg_pat_token_nix.path}
@@ -40,9 +41,8 @@ delib.host {
     # -----------------------------------------------------------------------
     # 🍎 MAC APP STORE APPS
     # -----------------------------------------------------------------------
-    # Disabled: mas 7.0.0 broke `brew bundle`'s App Store support, which aborts
-    # activation. These apps are already installed and the App Store updates them.
-    # Re-enable once homebrew-bundle is compatible with mas 7.x again.
+    # Disabled: mas 7.0.0 breaks `brew bundle` (see memory project_masapps_mas7_disabled).
+    # Re-enable once homebrew-bundle supports mas 7.x.
     # homebrew.masApps = {
     #   #"HP Print" = 1474276998;
     #   "DaVinci Resolve" = 571213070;
@@ -56,7 +56,6 @@ delib.host {
     # -----------------------------------------------------------------------
     system.defaults = {
       dock = {
-        autohide = true;
         launchanim = true;
         static-only = false;
         show-recents = false;
@@ -68,16 +67,15 @@ delib.host {
         persistent-apps = [
           "/System/Applications/Apps.app"
           "/Applications/Comet.app"
-          "/Users/krit/Applications/Home Manager Apps/Firefox.app"
-          "/Users/krit/Applications/Home Manager Apps/kitty.app"
+          "${home}/Applications/Home Manager Apps/kitty.app"
           "/Applications/WhatsApp.app"
           "/System/Applications/Music.app"
           "/Applications/UGREEN NAS.app"
           "/Applications/Proton Pass.app"
           "/Applications/Discord.app"
-          "/Users/krit/Applications/Home Manager Apps/Visual Studio Code.app"
+          "/Applications/Nix Apps/Visual Studio Code.app"
           "/Applications/GitHub Desktop.app"
-          "/Users/krit/Applications/JetKVM.app"
+          "${home}/Applications/JetKVM.app"
           "/System/Applications/Calendar.app"
         ];
       };
@@ -90,7 +88,6 @@ delib.host {
         _FXSortFoldersFirst = true;
         FXDefaultSearchScope = "SCcf";
         NewWindowTarget = "Desktop";
-        AppleShowAllExtensions = true;
         FXEnableExtensionChangeWarning = true;
         ShowStatusBar = true;
         ShowPathbar = true;
@@ -113,6 +110,21 @@ delib.host {
         NSAutomaticSpellingCorrectionEnabled = false;
       };
 
+      ActivityMonitor = {
+        OpenMainWindow = true;
+        IconType = 5;
+        SortColumn = "CPUUsage";
+        SortDirection = 0;
+      };
+
+      # System-domain key needs the full path; not verifiable without a Mac.
+      CustomSystemPreferences."/Library/Preferences/com.apple.SoftwareUpdate" = {
+        AutomaticCheckEnabled = true;
+        ScheduleFrequency = 1;
+        AutomaticDownload = 1;
+        CriticalUpdateInstall = 1;
+      };
+
       CustomUserPreferences = {
         "com.apple.finder" = {
           WarnOnEmptyTrash = true;
@@ -124,20 +136,8 @@ delib.host {
         "com.apple.dock" = {
           enable-window-tool = false;
         };
-        "com.apple.ActivityMonitor" = {
-          OpenMainWindow = true;
-          IconType = 5;
-          SortColumn = "CPUUsage";
-          SortDirection = 0;
-        };
         "com.apple.AdLib" = {
           allowApplePersonalizedAdvertising = false;
-        };
-        "com.apple.SoftwareUpdate" = {
-          AutomaticCheckEnabled = true;
-          ScheduleFrequency = 1;
-          AutomaticDownload = 1;
-          CriticalUpdateInstall = 1;
         };
       };
     };

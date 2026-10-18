@@ -37,6 +37,31 @@ let
   mcpNames = map (s: s.sopsSecret) my.programs.claude-code.mcpSecrets;
   missingMcp = builtins.filter (n: !(config.sops.secrets ? ${n})) mcpNames;
 
+  withoutCask = host.extendModules {
+    modules = [ ({ lib, ... }: { homebrew.casks = lib.mkForce [ ]; }) ];
+  };
+  withAlacrittyTerminal = host.extendModules {
+    modules = [ ({ lib, ... }: { myconfig.constants.terminal.name = lib.mkForce "alacritty"; }) ];
+  };
+
+  nixAppsDir = "/Applications/Nix Apps/";
+  hmAppsDir = "${config.users.users.${user}.home}/Applications/Home Manager Apps/";
+  appBase = dir: e: lib.removeSuffix ".app" (lib.removePrefix dir e);
+  appNames = pkg: map lib.toLower (builtins.filter (x: x != null) [ (pkg.longName or null) (pkg.pname or null) ]);
+  nixAppNames = cfg: lib.concatMap appNames cfg.environment.systemPackages;
+  hmAppNames = cfg: lib.concatMap appNames cfg.home-manager.users.${user}.home.packages;
+  danglingDock = cfg: entries:
+    builtins.filter
+      (e:
+        (lib.hasPrefix nixAppsDir e && !(builtins.elem (lib.toLower (appBase nixAppsDir e)) (nixAppNames cfg)))
+        || (lib.hasPrefix hmAppsDir e && !(builtins.elem (lib.toLower (appBase hmAppsDir e)) (hmAppNames cfg))))
+      entries;
+  dock = map (e: if builtins.isString e then e else e.tile-data.file-data._CFURLString) config.system.defaults.dock.persistent-apps;
+  fakeEntries = dock ++ [ "${hmAppsDir}Firefox.app" "${hmAppsDir}Visual Studio Code.app" ];
+
+  termName = cfg: cfg.myconfig.constants.terminal.name;
+  termEnabled = cfg: cfg.myconfig.krit.programs.${termName cfg}.enable or false;
+
   browserPnames = [ "firefox" "librewolf" "chromium" ];
   browserHits = builtins.filter (n: builtins.elem n sysNames) browserPnames;
 in
@@ -108,4 +133,39 @@ in
   check-assertions =
     let failed = map (a: a.message) (builtins.filter (a: !a.assertion) config.assertions); in
     check "no failing assertions" (failed == [ ]) (builtins.toJSON failed);
+
+  check-dock-no-dangling-nix-apps =
+    let bad = danglingDock config dock; in
+    check "persistent-apps under Nix Apps / Home Manager Apps match an installed package" (dock != [ ] && bad == [ ])
+      "dangling ${builtins.toJSON bad}";
+  check-dock-no-disabled-hm-apps =
+    let
+      disabled = lib.optional (!hm.programs.firefox.enable) "${hmAppsDir}Firefox.app"
+        ++ lib.optional (!hm.programs.vscode.enable) "${hmAppsDir}Visual Studio Code.app";
+      hits = builtins.filter (e: builtins.elem e dock) disabled;
+    in
+    check "no persistent-apps entry points at the HM Firefox/VS Code dirs while those programs are disabled" (disabled != [ ] && hits == [ ])
+      "entries ${builtins.toJSON hits}";
+  check-dock-control-bites =
+    let bad = danglingDock config fakeEntries; in
+    check "control: dangling HM Firefox/VS Code entries are flagged" (builtins.length bad == 2)
+      "flagged ${builtins.toJSON bad}";
+  check-dock-autohide = checkEq "system.defaults.dock.autohide" config.system.defaults.dock.autohide true;
+  check-finder-extensions = checkEq "system.defaults.finder.AppleShowAllExtensions" config.system.defaults.finder.AppleShowAllExtensions true;
+
+  check-tailscale-cask-present =
+    checkHas "homebrew.casks contains tailscale-app" (map (x: if builtins.isString x then x else x.name) config.homebrew.casks) "tailscale-app";
+  check-tailscale-daemon-off = checkEq "services.tailscale.enable (nix-darwin daemon)" config.services.tailscale.enable false;
+  check-tailscale-flag-consistent =
+    check "myconfig.services.tailscale.darwinCaskPresent is true"
+      my.services.tailscale.darwinCaskPresent "false although the cask is installed";
+  check-tailscale-control-bites =
+    checkEq "control: without the cask darwinCaskPresent is false" withoutCask.config.myconfig.services.tailscale.darwinCaskPresent false;
+
+  check-terminal-hm-enabled =
+    check "constants.terminal.name resolves to an enabled krit.programs.<name>" (termEnabled config)
+      "krit.programs.${termName config}.enable is not true";
+  check-terminal-control-bites =
+    check "control: terminal.name = alacritty (disabled on this host) is flagged" (!(termEnabled withAlacrittyTerminal.config))
+      "alacritty counted as enabled";
 }

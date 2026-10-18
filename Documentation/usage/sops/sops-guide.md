@@ -9,7 +9,7 @@ This repository uses **SOPS** (Secrets OPerationS) to manage sensitive data (pas
 We use two types of keys:
 
 1. **User Key (Age):** A private key on your personal computer (`~/.config/sops/age/keys.txt`). This allows **YOU** to edit/view any secret in the repo.
-2. **Host Keys (SSH):** The standard SSH private key (`/etc/ssh/ssh_host_ed25519_key`) generated when a Linux machine is installed. This allows the **MACHINE** (Desktop, Laptop) to decrypt secrets at boot time.
+2. **Host Keys (SSH):** The standard SSH private key (`/etc/ssh/ssh_host_ed25519_key`) generated when a Linux machine is installed. This allows the **MACHINE** (Desktop, Laptop) to decrypt secrets at boot time. The MacBook has no SSH host-key decryption: it decrypts with the user age key (`keys.txt`, via `sops.age.keyFile`).
 
 - If you use `impermanence` make sure to persist the host ssh key and use the persist path inside the host folder. For guidance see [impermanence guide](../impermanence/impermanence.md)
 
@@ -31,7 +31,7 @@ We use two types of keys:
 | -------------------------------------------------------- | ------------------------------------------------ |
 | `hosts/nixos-desktop/.*secrets-sops.yaml`                | User + Desktop Host Key                          |
 | `hosts/nixos-laptop/.*secrets-sops.yaml`                 | User + Laptop Host Key                           |
-| `hosts/Krits-MacBook-Pro/.*secrets-sops.yaml`            | User + MacBook Host Key                          |
+| `hosts/Krits-MacBook-Pro/.*secrets-sops.yaml`            | User age key (MacBook decrypts with it)                        |
 | `hosts/Nicol-NAS/.*secrets-sops.yaml`                    | User key only (home-manager-only host, no host key) |
 | `users/krit/common/sops/krit-common-secrets-sops.yaml`   | User + Desktop + Laptop + MacBook keys           |
 

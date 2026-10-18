@@ -9,17 +9,17 @@ delib.host {
   homeManagerSystem = "aarch64-darwin";
 
   myconfig =
-    { ... }:
+    { myconfig, ... }:
     {
       constants = {
         hostname = "Krits-MacBook-Pro";
         user = "krit";
         uid = 501;
 
-        terminal.name = "alacritty";
+        terminal.name = "kitty";
         shell = "fish";
-        # No browser wanted: this host is CI-only (the physical MacBook Pro
-        # no longer exists), and firefox-unwrapped currently has no cached
+        # No browser: this host is CI-only (the physical MacBook Pro no longer
+        # exists) and firefox-unwrapped currently has no cached
         # aarch64-darwin binary, forcing a from-source build that times out
         # CI. "" opts out of the forced browser fallback in
         # home-packages-darwin.nix.
@@ -51,7 +51,7 @@ delib.host {
       attic = {
         enable = true;
         push = true;
-        serverUrl = "http://nicol-nas.tail9b9ae8.ts.net:8081";
+        serverUrl = "http://${myconfig.krit.services.nas.host}:8081";
         cacheName = "krit-nix";
         publicKey = "krit-nix:whY2oqegMU3c1dowH39O7Z7I3aAfwMpB/WZNy0/wykk=";
         authTokenPath = "/run/secrets/attic-push-token";
@@ -60,12 +60,6 @@ delib.host {
       krit.commonSopsSecrets.enable = true;
 
       programs = {
-        nltchNur = {
-          enable = true;
-          packages = [ ];
-          permittedInsecurePackages = [ ];
-        };
-
         bat.enable = true;
         eza.enable = true;
         fastfetch.enable = true;
@@ -143,9 +137,7 @@ delib.host {
       krit.programs = {
         direnv.enable = false;
         neovim.enable = true;
-        # Disabled: CI-only host (physical MacBook Pro no longer exists),
-        # and firefox-unwrapped currently has no cached aarch64-darwin
-        # binary, forcing an uncached from-source build that times out CI.
+        # Disabled: see the constants.browser note above.
         firefox.enable = false;
         librewolf.enable = false;
         yazi.enable = true;
@@ -154,10 +146,7 @@ delib.host {
         claude-code-wrappers.enable = true;
         alacritty.enable = false;
 
-        kitty = {
-          enable = true;
-          fontSize = 14;
-        };
+        kitty.enable = true;
       };
 
       krit.services.nas = {

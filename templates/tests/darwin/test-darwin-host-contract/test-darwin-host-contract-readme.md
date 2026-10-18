@@ -1,6 +1,6 @@
 # test-darwin-host-contract
 
-Eval-only contract test for the REAL `darwinConfigurations.Krits-MacBook-Pro` (aarch64-darwin, evaluated from Linux). The Mac is CI-only and never built locally, so these invariants are the guard that the host still evaluates with the intended identity, sops wiring, homebrew guards and browser opt-out.
+Eval-only contract test for the REAL `darwinConfigurations.Krits-MacBook-Pro` (aarch64-darwin, evaluated from Linux). The Mac is CI-only and never built locally, so these invariants are the guard that the host still evaluates with the intended identity, sops wiring, homebrew guards, browser opt-out, dock paths, the tailscale cask/daemon split and the terminal choice.
 
 ## Run
 
@@ -76,6 +76,31 @@ Two control checks prove the negative checks can bite: `host.extendModules` forc
 |-------|----------|
 | `environment.systemPackages` | no firefox / librewolf / chromium |
 | control | browser forced to `firefox` adds firefox |
+
+### dock / finder
+
+| Check | Expected |
+|-------|----------|
+| `dock.persistent-apps` | every `/Applications/Nix Apps/<X>.app` / `~/Applications/Home Manager Apps/<X>.app` entry matches an installed package (`longName`/`pname` of `systemPackages` resp. HM `home.packages`) |
+| `dock.persistent-apps` | no entry in the HM Firefox / VS Code dirs while those HM programs are disabled |
+| control | injected dangling HM Firefox + VS Code entries are both flagged |
+| `dock.autohide`, `finder.AppleShowAllExtensions` | `true` |
+
+### tailscale
+
+| Check | Expected |
+|-------|----------|
+| `homebrew.casks` | contains `tailscale-app` |
+| `services.tailscale.enable` (nix-darwin daemon) | `false` |
+| `myconfig.services.tailscale.darwinCaskPresent` | `true` |
+| control | with `homebrew.casks = []`, `darwinCaskPresent` is `false` |
+
+### terminal
+
+| Check | Expected |
+|-------|----------|
+| `constants.terminal.name` | `myconfig.krit.programs.<name>.enable` is true |
+| control | `terminal.name = "alacritty"` (disabled on the host) is flagged |
 
 ### packages and home-manager
 
