@@ -109,10 +109,9 @@ stock `pkgs`, so there `patchPortalPkg` is applied to the package directly.
 
 - `xdg-portal.nix` (toplevel) - primary implementation.
 - `home-manager.nix` (nixos toplevel, `nixos.always` block) - sets
-  `useGlobalPkgs = false` / `useUserPackages = true`. The first means
-  home-manager's own `pkgs` does not carry the system overlay, which is why
-  `home.always` takes the package from the outer module `pkgs` instead; the
-  second triggers the `pathsToLink` assertion above. Don't flip either without
+  `useGlobalPkgs = true` / `useUserPackages = true`. The first shares the
+  system `pkgs` (with its overlays) with home-manager; the second triggers the
+  `pathsToLink` assertion above. Don't flip `useUserPackages` without
   verifying.
 - `stylix-nixos.nix` / `qt.nix` - own dialog *rendering* (theme/dark-mode),
   orthogonal to whether the portal loads at all - see
@@ -198,7 +197,7 @@ stock `pkgs`, so there `patchPortalPkg` is applied to the package directly.
 
 New WM added without a `portalConfig` key; xdg-desktop-portal or home-manager
 version bumps that change config lookup or the `UseIn=` fallback semantics;
-`useGlobalPkgs`/`useUserPackages` flipped; a new portal-using app fails the
+`useUserPackages` flipped; a new portal-using app fails the
 `busctl` check after a refactor; `test-portal-routing` needs a new expectation.
 
 ## `portalConfig` keys must be lowercase

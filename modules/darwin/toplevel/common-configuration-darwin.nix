@@ -37,7 +37,10 @@ delib.module {
         computerName = hostname;
       };
 
-      home-manager.backupFileExtension = "hm-backup";
+      home-manager = {
+        useGlobalPkgs = true;
+        backupFileExtension = "hm-backup";
+      };
 
       environment.systemPackages = with pkgs; [
         age

@@ -61,7 +61,7 @@ Per host unless marked.
 | tailscale-trusted / reverse-path | `tailscale0` trusted, `checkReversePath == "loose"` |
 | tailscale-operator | `--operator=<user>` in up/set flags |
 | tailscale-authkey-sops | `services.tailscale.authKeyFile` is the path of the sops secret `tailscale_key`, owned by root (`owner = "root"`, or `owner = null` with `uid = 0`) with mode `0400` (login runs through upstream `tailscaled-autoconnect`) |
-| hm-use-global-pkgs-pinned | `home-manager.useGlobalPkgs == false` (deliberate pin, see the xdg-desktop-portal gotcha doc) |
+| hm-use-global-pkgs-enabled | `home-manager.useGlobalPkgs == true` |
 | hm-use-user-packages | `home-manager.useUserPackages == true` |
 | hm-plasma-manager-loaded | `home-manager.users.<user>.programs.plasma` is declared (plasma-manager reaches HM on NixOS; Darwin's HM lacks it, so the probe discriminates) |
 | no-failing-assertions | `config.assertions` has no failing entry |

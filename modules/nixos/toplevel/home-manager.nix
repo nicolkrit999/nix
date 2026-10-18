@@ -4,8 +4,8 @@ delib.module {
 
   nixos.always = {
     home-manager = {
-      # Deliberate pin, see Documentation/usage/gotchas/xdg-desktop-portal-nixos.md
-      useGlobalPkgs = false;
+      # One shared nixpkgs: HM modules see the system overlays/config; nixpkgs.* inside HM then asserts
+      useGlobalPkgs = true;
       useUserPackages = true;
       backupFileExtension = "hm-backup";
     };

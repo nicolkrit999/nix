@@ -313,9 +313,6 @@ delib.module {
 
       # School user environment: workspace, git/ssh identity, tools, OneDrive mount, web apps
       home-manager.users.${myUserName} = { pkgs, lib, ... }: {
-        # home-manager runs with its own pkgs (useGlobalPkgs = false), so the system allowUnfree does not apply here
-        nixpkgs.config.allowUnfree = true;
-
         home = {
           # "|| true": under set -eu a stale rclone FUSE mountpoint (oneDrive) would otherwise abort the activation
           activation.createSchoolDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

@@ -122,8 +122,8 @@ let
           && cfg.sops.secrets.tailscale_key.mode == "0400")
         "services.tailscale.authKeyFile is not the root-only (0400) sops secret tailscale_key";
 
-      check-hm-use-global-pkgs-pinned = check (cfg.home-manager.useGlobalPkgs == false)
-        "home-manager.useGlobalPkgs is not false (deliberate pin)";
+      check-hm-use-global-pkgs-enabled = check (cfg.home-manager.useGlobalPkgs == true)
+        "home-manager.useGlobalPkgs is not true";
       check-hm-use-user-packages = check (cfg.home-manager.useUserPackages == true)
         "home-manager.useUserPackages is not true";
       check-hm-plasma-manager-loaded = check (hmUser.programs ? plasma && hmUser.programs.plasma ? enable)

@@ -1,4 +1,4 @@
-{ delib, ... }:
+{ delib, lib, moduleSystem, ... }:
 let
   flag = "--password-store=gnome-libsecret";
 
@@ -57,5 +57,7 @@ delib.module {
   name = "password-store";
 
   nixos.always.nixpkgs.overlays = [ passwordStoreOverlay ];
-  home.always.nixpkgs.overlays = [ passwordStoreOverlay ];
+  home.always = lib.optionalAttrs (moduleSystem == "home") {
+    nixpkgs.overlays = [ passwordStoreOverlay ];
+  };
 }
