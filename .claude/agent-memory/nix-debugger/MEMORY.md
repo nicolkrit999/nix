@@ -33,3 +33,6 @@
 - [ibus Wayland notification](project_ibus_wayland_notification_uwsm.md) - panel check_wayland fires every login; Hyprland exec_once pkill is dead under uwsm (runs before autostart)
 - [CI store snapshot is not a closure](project_ci_store_snapshot_not_closure.md) - CI-only "store path bin missing": GC-trimmed snapshot; realise getContext drvs in the test
 - [gitea assets CI 403 = cachix eviction](project_gitea_assets_ci_403_cachix_eviction.md) - Cloudflare 403s runner IPs; CI only ever got wallpaper media from cachix; evicted 10-16/17 -> exposed
+- [Plasma kglobalaccel semantics](project_plasma_kglobalaccel_semantics.md) - legacy .desktop groups auto-migrate; shared key = lowest serial wins; layout switcher not in kwin; no kxkbrc Options by decision
+- [findmnt two-arg probe trap](project_findmnt_two_args_probe_trap.md) - `findmnt A B` = source+target, prints nothing; impermanence = systemd.mounts not fileSystems
+- [Portal test cache-listing design](project_portal_test_cache_listing_design.md) - portal-routing = fake hosts + cache.nixos.org NAR listings + dry-run guard; structuredAttrs hide src in drv show
