@@ -45,7 +45,6 @@
               # ---------------------------------------------------------
               (python313.withPackages (ps: [
                 ps.pip
-                ps.venvShellHook
                 ps.django # Django Framework included directly
                 ps.black # Formatter
               ]))
@@ -64,7 +63,7 @@
               # 🐘 PHP
               # ---------------------------------------------------------
               php
-              php83Packages.composer
+              phpPackages.composer
 
               # ---------------------------------------------------------
               # 💎 Ruby
@@ -96,8 +95,11 @@
               check() {
                 local name="$1"
                 local cmd="$2"
-                # Run command, capture stdout/stderr, get first line
-                local version=$(eval "$cmd" 2>&1 | head -n 1)
+                # Skip tools that are not installed, then capture the first output line
+                local version=""
+                if command -v "''${cmd%% *}" >/dev/null 2>&1; then
+                  version=$(eval "$cmd" 2>&1 | head -n 1)
+                fi
 
                 if [ -n "$version" ]; then
                    printf "%-20s \033[0;32m✅ %s\033[0m\n" "$name" "$version"
@@ -116,7 +118,7 @@
               check "pnpm"        "pnpm --version"
               check "yarn"        "yarn --version"
               check "TypeScript"  "tsc --version | awk '{print \$2}'"
-              check "HTML/CSS LS" "vscode-html-language-server --version"
+              check "HTML/CSS LS" "command -v vscode-html-language-server >/dev/null && echo installed"
 
               echo ""
               echo "--- 🐍 Python ---"
@@ -132,7 +134,7 @@
               check "Kotlin"      "kotlin -version | awk '{print \$3}'"
               check "Spring Boot" "spring --version"
               check "Maven"       "mvn -version | awk '{print \$3}'"
-              check "Gradle"      "gradle --version | grep 'Gradle' | awk '{print \$2}'"
+              check "Gradle"      "gradle --version | awk '/^Gradle /{print \$2; exit}'"
 
               echo ""
               echo "--- 🐘 PHP ---"

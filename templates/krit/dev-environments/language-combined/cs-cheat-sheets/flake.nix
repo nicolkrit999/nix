@@ -96,7 +96,10 @@
               check() {
                 local name="$1"
                 local cmd="$2"
-                local version=$(eval "$cmd" 2>&1 | head -n 1)
+                local version=""
+                if command -v "''${cmd%% *}" >/dev/null 2>&1; then
+                  version=$(eval "$cmd" 2>&1 | head -n 1)
+                fi
                 if [ -n "$version" ]; then
                   printf "%-12s \033[0;32m✅ %s\033[0m\n" "$name" "$version"
                 else
@@ -112,7 +115,7 @@
               check "Pandoc"   "pandoc --version | head -n 1"
               check "pdfinfo"  "pdfinfo -v"
               check "pdftoppm" "pdftoppm -v"
-              check "magick"   "magick --version | head -n 1 || convert --version | head -n 1"
+              check "magick"   "magick --version | head -n 1"
               check "Graphviz" "dot -V"
               check "Gnuplot"  "gnuplot --version"
               check "Python"   "python3 --version"

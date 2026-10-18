@@ -41,13 +41,7 @@
                     clang-tools
                     cmake
                     codespell
-
-                    (conan.overrideAttrs (_oldAttrs: {
-                      doCheck = false;
-                      checkPhase = "true";
-                      pytestCheckPhase = "true";
-                    }))
-
+                    conan
                     cppcheck
                     doxygen
                     gtest
@@ -55,7 +49,6 @@
                     lcov
                     vcpkg
                     vcpkg-tool
-
                   ]
                   ++ (if stdenv.hostPlatform.system == "aarch64-darwin" then [ ] else [ gdb ]);
               };

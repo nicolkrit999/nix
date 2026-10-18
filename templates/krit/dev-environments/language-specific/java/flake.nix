@@ -37,7 +37,8 @@
         {
           inherit jdk;
           maven = prev.maven.override { jdk_headless = jdk; };
-          gradle = prev.gradle.override { java = jdk; };
+          # JDK 25 needs Gradle 9+ (default gradle is 8.x)
+          gradle = prev.gradle_9.override { java = jdk; };
           lombok = prev.lombok.override { inherit jdk; };
         };
 

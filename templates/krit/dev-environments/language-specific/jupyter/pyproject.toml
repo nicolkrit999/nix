@@ -3,10 +3,9 @@ name = "sample-project"
 version = "0.1.0"
 description = ""
 authors = ["user <user@mail.com>"]
-readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.13"
 
 
 [build-system]

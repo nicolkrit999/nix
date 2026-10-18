@@ -1,5 +1,5 @@
-# Wires sops secrets to krit services
-# Import this in host system.nix imports block (after sops module)
+# Wires krit sops secrets to services (davfs2 secrets template for the opencloud mount, tailscale auth key).
+# Imported by hosts/nixos-{desktop,laptop}/system.nix; needs myconfig.krit.commonSopsSecrets enabled (declares nas_opencloud_user/pass and tailscale_key).
 { config, lib, ... }:
 {
   # davfs-secrets template for opencloud: one "<url> <user> <pass>" line per

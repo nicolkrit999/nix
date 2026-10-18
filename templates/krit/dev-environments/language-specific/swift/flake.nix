@@ -28,6 +28,7 @@
           default = pkgs.mkShellNoCC {
             packages = with pkgs; [
               swift
+              swiftpm
               sourcekit-lsp
             ];
           };
