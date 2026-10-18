@@ -17,7 +17,13 @@ declare -a FAILURES=()
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-REV="$(jq -r '.nodes.nixpkgs.locked.rev' "$ROOT/flake.lock")"
+REV="$(jq -r '. as $l | $l.nodes.root.inputs.nixpkgs
+  | if type == "array" then reduce .[] as $k ("root"; $l.nodes[.].inputs[$k]) else . end
+  | $l.nodes[.].locked.rev // empty' "$ROOT/flake.lock")"
+if [[ -z "$REV" || "$REV" == "null" ]]; then
+  echo "FAIL: cannot resolve the root nixpkgs input rev from flake.lock" >&2
+  exit 1
+fi
 NIXPKGS="github:NixOS/nixpkgs/$REV"
 SUMMARY_EXPR="$(cat "$DIR/01-scenario-dev-env-templates.nix")"
 SUPPORTED=(x86_64-linux aarch64-linux aarch64-darwin)
