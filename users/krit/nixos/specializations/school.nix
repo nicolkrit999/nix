@@ -23,6 +23,7 @@ let
   schoolEmail = "kritpio.nicol@student.supsi.ch";
   schoolPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBRKQLjixO72qgAc64gzJwsmOdoNQs+KkQg8GewHnm66";
   signing = config.myconfig.krit.system.git-ssh-signing;
+  isLaptop = c.hostname == "nixos-laptop";
 
   # HiDPI scale for the distrobox-launched X11/Java tools below (tkgate,
   # SQL Developer): the scale of the first enabled, non-mirrored Hyprland
@@ -189,7 +190,7 @@ delib.module {
                 "[workspace 7 silent] brave-school --app=https://www.icorsi.ch/"
                 "[workspace 8 silent] ${term} -d $HOME/.school-workspace"
               ]
-            else if c.hostname == "nixos-laptop" then
+            else if isLaptop then
               [
                 "[workspace 2 silent] ${term} --class nvim-school -d $HOME/.school-workspace -e nvim"
                 "[workspace 3 silent] ${term} --class yazi -d $HOME/.school-workspace -e yazi"
@@ -298,41 +299,44 @@ delib.module {
       # generic PostScript driver is used. ensurePrinters cannot read a secret, hence the
       # oneshot builds the device URI from the sops password at runtime (lpadmin takes it in
       # argv, briefly visible in /proc) and makes DTI_PRINTERS the default (only printer).
-      sops.secrets.school_supsi_password = {
-        sopsFile = commonSecrets;
-        owner = "root";
-        mode = "0400";
-      };
-      services.printing.enable = true;
-      environment.etc."samba/smb.conf".text = ''
-        [global]
-        client min protocol = SMB2
-      '';
-      systemd.services.supsi-printer-setup = {
-        description = "Register the SUPSI Follow Me printer queue";
-        wantedBy = [ "multi-user.target" ];
-        after = [ "cups.service" ];
-        requires = [ "cups.service" ];
-        restartTriggers = [ config.environment.etc."samba/smb.conf".source ];
-        path = [ config.services.printing.package ];
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          PrivateTmp = true;
-          ExecStart = pkgs.writeShellScript "supsi-printer-setup" ''
-            uri=$(${pkgs.python3}/bin/python3 -I -c '
-            import sys, urllib.parse as u
-            q = lambda s: u.quote(s, safe="")
-            pw = open(sys.argv[1]).read().rstrip("\n")
-            print("smb://" + q(sys.argv[2]) + ":" + q(pw) + "@printers.supsi.ch/DTI_PRINTERS")
-            ' ${config.sops.secrets.school_supsi_password.path} ${lib.escapeShellArg supsiPrinterUser})
-            lpadmin -p DTI_PRINTERS -E -v "$uri" \
-              -m drv:///sample.drv/generic.ppd -o printer-is-shared=false
-            exec lpadmin -d DTI_PRINTERS
+      imports = [
+        (lib.mkIf isLaptop {
+          sops.secrets.school_supsi_password = {
+            sopsFile = commonSecrets;
+            owner = "root";
+            mode = "0400";
+          };
+          services.printing.enable = true;
+          environment.etc."samba/smb.conf".text = ''
+            [global]
+            client min protocol = SMB2
           '';
-        };
-      };
-
+          systemd.services.supsi-printer-setup = {
+            description = "Register the SUPSI Follow Me printer queue";
+            wantedBy = [ "multi-user.target" ];
+            after = [ "cups.service" ];
+            requires = [ "cups.service" ];
+            restartTriggers = [ config.environment.etc."samba/smb.conf".source ];
+            path = [ config.services.printing.package ];
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+              PrivateTmp = true;
+              ExecStart = pkgs.writeShellScript "supsi-printer-setup" ''
+                uri=$(${pkgs.python3}/bin/python3 -I -c '
+                import sys, urllib.parse as u
+                q = lambda s: u.quote(s, safe="")
+                pw = open(sys.argv[1]).read().rstrip("\n")
+                print("smb://" + q(sys.argv[2]) + ":" + q(pw) + "@printers.supsi.ch/DTI_PRINTERS")
+                ' ${config.sops.secrets.school_supsi_password.path} ${lib.escapeShellArg supsiPrinterUser})
+                lpadmin -p DTI_PRINTERS -E -v "$uri" \
+                  -m drv:///sample.drv/generic.ppd -o printer-is-shared=false
+                exec lpadmin -d DTI_PRINTERS
+              '';
+            };
+          };
+        })
+      ];
       environment.systemPackages = [
         pkgs.distrobox
         (pkgs.opencloud-desktop.overrideAttrs (old: {
