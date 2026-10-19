@@ -190,8 +190,7 @@ delib.module {
       ];
 
       staticGestures = [
-        { fingers = 3; direction = "right"; action = "workspace"; }
-        { fingers = 3; direction = "left"; action = "workspace"; }
+        { fingers = 3; direction = "horizontal"; action = "workspace"; }
         { fingers = 3; direction = "up"; action = "fullscreen"; }
         { fingers = 3; direction = "down"; action = "close"; }
       ]

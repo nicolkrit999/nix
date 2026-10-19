@@ -62,9 +62,11 @@ let
     let
       legacy = legacyDesktopGroups shortcuts;
       doubled = lib.filter (g: shortcuts ? "services/${g}") legacy;
-      commaKeys = lib.filter (
-        g: lib.any (v: lib.any (k: lib.hasInfix "," k) (keyList v)) (lib.attrValues shortcuts.${g})
-      ) legacy;
+      commaKeys = lib.filter
+        (
+          g: lib.any (v: lib.any (k: lib.hasInfix "," k) (keyList v)) (lib.attrValues shortcuts.${g})
+        )
+        legacy;
     in
     lib.unique (doubled ++ commaKeys);
 
@@ -133,18 +135,24 @@ let
       vs = lib.filterAttrs (_: kdeOn) (variantsOf flake.nixosConfigurations.${h});
     in
     lib.concatLists (
-      lib.mapAttrsToList (
-        n: c:
-        lib.mapAttrsToList (k: v: {
-          label = "${h}/${n}: ${k}";
-          result = v;
-        }) (checksOf c)
-      ) vs
+      lib.mapAttrsToList
+        (
+          n: c:
+          lib.mapAttrsToList
+            (k: v: {
+              label = "${h}/${n}: ${k}";
+              result = v;
+            })
+            (checksOf c)
+        )
+        vs
     );
 
-  kdeVariants = lib.concatMap (
-    h: lib.attrNames (lib.filterAttrs (_: kdeOn) (variantsOf flake.nixosConfigurations.${h}))
-  ) hostNames;
+  kdeVariants = lib.concatMap
+    (
+      h: lib.attrNames (lib.filterAttrs (_: kdeOn) (variantsOf flake.nixosConfigurations.${h}))
+    )
+    hostNames;
 
   ctl = flake.nixosConfigurations.nixos-desktop;
   ctlUser = ctl.config.myconfig.constants.user;
@@ -157,9 +165,11 @@ let
       ];
     }).config;
 
-  renamed = lib.mapAttrs' (
-    g: v: lib.nameValuePair (if lib.hasSuffix ".desktop" g then "services/${g}" else g) v
-  ) ctlShortcuts;
+  renamed = lib.mapAttrs'
+    (
+      g: v: lib.nameValuePair (if lib.hasSuffix ".desktop" g then "services/${g}" else g) v
+    )
+    ctlShortcuts;
   released = renamed // {
     plasmashell = (renamed.plasmashell or { }) // {
       show-on-mouse-pos = "none";
@@ -201,10 +211,11 @@ let
       label = "control: same desktop id in legacy and services/ form is flagged";
       result =
         if
-          groupProblems {
-            "org.kde.spectacle.desktop"._launch = "none";
-            "services/org.kde.spectacle.desktop"._launch = "Print";
-          } == [ "org.kde.spectacle.desktop" ]
+          groupProblems
+            {
+              "org.kde.spectacle.desktop"._launch = "none";
+              "services/org.kde.spectacle.desktop"._launch = "Print";
+            } == [ "org.kde.spectacle.desktop" ]
         then
           "ok"
         else

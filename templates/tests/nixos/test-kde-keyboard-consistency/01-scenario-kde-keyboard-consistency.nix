@@ -22,7 +22,7 @@ let
     let
       layout = (hmOf c).programs.plasma.configFile.kxkbrc.Layout or { };
     in
-    layout.${key}.value or null;
+      layout.${key}.value or null;
 
   same =
     what: got: want:
@@ -52,17 +52,21 @@ let
       vs = lib.filterAttrs (_: kdeOn) (variantsOf flake.nixosConfigurations.${h});
     in
     lib.concatLists (
-      lib.mapAttrsToList (
-        n: c: lib.mapAttrsToList (k: v: { label = "${h}/${n}: ${k}"; result = v; }) (checksOf c)
-      ) vs
+      lib.mapAttrsToList
+        (
+          n: c: lib.mapAttrsToList (k: v: { label = "${h}/${n}: ${k}"; result = v; }) (checksOf c)
+        )
+        vs
     );
 
-  kdeVariants = lib.concatMap (
-    h: lib.attrNames (lib.filterAttrs (_: kdeOn) (variantsOf flake.nixosConfigurations.${h}))
-  ) hostNames;
+  kdeVariants = lib.concatMap
+    (
+      h: lib.attrNames (lib.filterAttrs (_: kdeOn) (variantsOf flake.nixosConfigurations.${h}))
+    )
+    hostNames;
 
   ctl = flake.nixosConfigurations.nixos-desktop;
-  twin = constants: (ctl.extendModules { modules = [ { myconfig.constants = constants; } ]; }).config;
+  twin = constants: (ctl.extendModules { modules = [{ myconfig.constants = constants; }]; }).config;
   force = lib.mkForce;
 
   twinFollows =
@@ -77,14 +81,16 @@ let
     };
 
   controls = [
-    (twinFollows "control: LayoutList follows constants.keyboardLayout" {
-      keyboardLayout = force "us,de";
-      keyboardVariant = force ",";
-    } "LayoutList" "us,de")
-    (twinFollows "control: VariantList follows constants.keyboardVariant" {
-      keyboardLayout = force "us,de";
-      keyboardVariant = force "intl,";
-    } "VariantList" "intl,")
+    (twinFollows "control: LayoutList follows constants.keyboardLayout"
+      {
+        keyboardLayout = force "us,de";
+        keyboardVariant = force ",";
+      } "LayoutList" "us,de")
+    (twinFollows "control: VariantList follows constants.keyboardVariant"
+      {
+        keyboardLayout = force "us,de";
+        keyboardVariant = force "intl,";
+      } "VariantList" "intl,")
     {
       label = "control: comparator rejects a mismatch";
       result = if same "Options" "grp:alt_shift_toggle" "grp:ctrl_alt_toggle" == "ok" then "FAIL: mismatch accepted" else "ok";

@@ -70,15 +70,17 @@ in
   check-source-home = checkEq "borgmatic source_directories" borg.source_directories [ home ];
 
   check-excludes-secrets =
-    let must = [ "${home}/.ssh" "${home}/.config/sops" "${home}/dotfiles-private" ];
-        missing = builtins.filter (e: !(builtins.elem e borg.exclude_patterns)) must;
+    let
+      must = [ "${home}/.ssh" "${home}/.config/sops" "${home}/dotfiles-private" ];
+      missing = builtins.filter (e: !(builtins.elem e borg.exclude_patterns)) must;
     in
     check "exclude_patterns hold .ssh, .config/sops, dotfiles-private" (missing == [ ])
       "missing ${builtins.toJSON missing}";
   check-excludes-control =
-    let must = [ "${home}/.ssh" "${home}/.config/sops" "${home}/dotfiles-private" ];
-        trimmed = builtins.filter (e: e != "${home}/.ssh") borg.exclude_patterns;
-        missing = builtins.filter (e: !(builtins.elem e trimmed)) must;
+    let
+      must = [ "${home}/.ssh" "${home}/.config/sops" "${home}/dotfiles-private" ];
+      trimmed = builtins.filter (e: e != "${home}/.ssh") borg.exclude_patterns;
+      missing = builtins.filter (e: !(builtins.elem e trimmed)) must;
     in
     check "control: dropping .ssh from the list is detected" (missing == [ "${home}/.ssh" ])
       "missing ${builtins.toJSON missing}";

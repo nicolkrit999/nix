@@ -47,19 +47,21 @@ let
 
   roleChecks =
     label: c:
-    lib.mapAttrsToList (
-      bindName: constant:
-      let
-        app = c.myconfig.constants.${constant};
-        want = expectedOf c app;
-        got = commandOf c bindName;
-      in
-      {
-        label = "${label}: ${bindName} (${constant}=${app})";
-        result =
-          if got == want then "ok" else "FAIL: command is ${toString got}, expected ${want}";
-      }
-    ) roles;
+    lib.mapAttrsToList
+      (
+        bindName: constant:
+        let
+          app = c.myconfig.constants.${constant};
+          want = expectedOf c app;
+          got = commandOf c bindName;
+        in
+        {
+          label = "${label}: ${bindName} (${constant}=${app})";
+          result =
+            if got == want then "ok" else "FAIL: command is ${toString got}, expected ${want}";
+        }
+      )
+      roles;
 
   hostReport =
     h:
@@ -70,14 +72,16 @@ let
       lib.mapAttrsToList (n: c: lib.optionals (gnomeOn c) (roleChecks "${h}/${n}" c)) vs
     );
 
-  gnomeVariants = lib.concatMap (
-    h: lib.attrNames (lib.filterAttrs (_: gnomeOn) (variantsOf flake.nixosConfigurations.${h}))
-  ) hostNames;
+  gnomeVariants = lib.concatMap
+    (
+      h: lib.attrNames (lib.filterAttrs (_: gnomeOn) (variantsOf flake.nixosConfigurations.${h}))
+    )
+    hostNames;
 
   ctlHost = "nixos-desktop";
   ctl = flake.nixosConfigurations.${ctlHost};
   ctlTerminal = ctl.config.myconfig.constants.terminal.name;
-  twin = constants: (ctl.extendModules { modules = [ { myconfig.constants = constants; } ]; }).config;
+  twin = constants: (ctl.extendModules { modules = [{ myconfig.constants = constants; }]; }).config;
   force = lib.mkForce;
 
   twinCheck =
@@ -105,14 +109,16 @@ let
   controls = [
     (twinCheck "control: GUI file manager is launched bare" { fileManager = force "nautilus"; } "Launch File Manager" "nautilus")
     (twinCheck "control: TUI editor is wrapped in the terminal" { editor = force "hx"; } "Launch editor" "${ctlTerminal} -e hx")
-    (twinCheck "control: TUI role is launched bare once it leaves terminalApps" {
-      fileManager = force "yazi";
-      terminalApps = force [ ];
-    } "Launch File Manager" "yazi")
-    (twinCheck "control: wrapper uses constants.terminal.name" {
-      terminal.name = force "wezterm";
-      fileManager = force "yazi";
-    } "Launch File Manager" "wezterm -e yazi")
+    (twinCheck "control: TUI role is launched bare once it leaves terminalApps"
+      {
+        fileManager = force "yazi";
+        terminalApps = force [ ];
+      } "Launch File Manager" "yazi")
+    (twinCheck "control: wrapper uses constants.terminal.name"
+      {
+        terminal.name = force "wezterm";
+        fileManager = force "yazi";
+      } "Launch File Manager" "wezterm -e yazi")
     {
       label = "control: expectation rejects a bare TUI command";
       result = if planted "yazi" == "yazi" then "FAIL: planted bare yazi accepted" else "ok";

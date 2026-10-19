@@ -126,10 +126,12 @@ let
 in
 {
   rows = lines (tvChecks on // vkChecks on // offCheck);
-  control = lib.concatMapStrings (
-    n:
-    "control: broken twin is rejected by '${n}'\t${
+  control = lib.concatMapStrings
+    (
+      n:
+      "control: broken twin is rejected by '${n}'\t${
       if lib.hasPrefix "FAIL" brokenChecks.${n} then "ok" else "FAIL: check passed on a broken twin"
     }\n"
-  ) mustFail;
+    )
+    mustFail;
 }

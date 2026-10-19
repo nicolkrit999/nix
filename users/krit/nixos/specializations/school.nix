@@ -17,6 +17,7 @@ let
     size = "80% 80%";
     workspace = "special:magic";
   };
+  supsiPrinterUser = "SUPSI\\kritpio.nicol";
   homeDir = config.users.users.${myUserName}.home;
   schoolKey = "${homeDir}/.ssh/id_school";
   schoolEmail = "kritpio.nicol@student.supsi.ch";
@@ -289,6 +290,47 @@ delib.module {
       programs.wireshark = {
         enable = true;
         package = lib.mkDefault pkgs.wireshark;
+      };
+
+      # SUPSI Follow Me printing. smbspool (CUPS smb backend, linked in by services.printing)
+      # refuses to run without /etc/samba/smb.conf and needs SMB2. The login is
+      # SUPSI\<user> without @supsi.ch. No Sharp MX-4110FN PPD exists in nixpkgs, so the
+      # generic PostScript driver is used. ensurePrinters cannot read a secret, hence the
+      # oneshot builds the device URI from the sops password at runtime (lpadmin takes it in
+      # argv, briefly visible in /proc) and makes DTI_PRINTERS the default (only printer).
+      sops.secrets.school_supsi_password = {
+        sopsFile = commonSecrets;
+        owner = "root";
+        mode = "0400";
+      };
+      services.printing.enable = true;
+      environment.etc."samba/smb.conf".text = ''
+        [global]
+        client min protocol = SMB2
+      '';
+      systemd.services.supsi-printer-setup = {
+        description = "Register the SUPSI Follow Me printer queue";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "cups.service" ];
+        requires = [ "cups.service" ];
+        restartTriggers = [ config.environment.etc."samba/smb.conf".source ];
+        path = [ config.services.printing.package ];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          PrivateTmp = true;
+          ExecStart = pkgs.writeShellScript "supsi-printer-setup" ''
+            uri=$(${pkgs.python3}/bin/python3 -I -c '
+            import sys, urllib.parse as u
+            q = lambda s: u.quote(s, safe="")
+            pw = open(sys.argv[1]).read().rstrip("\n")
+            print("smb://" + q(sys.argv[2]) + ":" + q(pw) + "@printers.supsi.ch/DTI_PRINTERS")
+            ' ${config.sops.secrets.school_supsi_password.path} ${lib.escapeShellArg supsiPrinterUser})
+            lpadmin -p DTI_PRINTERS -E -v "$uri" \
+              -m drv:///sample.drv/generic.ppd -o printer-is-shared=false
+            exec lpadmin -d DTI_PRINTERS
+          '';
+        };
       };
 
       environment.systemPackages = [
