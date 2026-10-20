@@ -91,6 +91,21 @@ for h in desktop laptop mac; do
   run_check "check-control-$h-launcher-wrong-source"   "control: $h wrong-source twin is flagged"
 done
 
+echo -e "\n${BOLD}Claude home.file removals and activation links${NC}"
+for h in desktop laptop nas mac; do
+  run_check "check-$h-no-claude-home-file"         "$h home.file lacks .claude projects/plans/settings.json"
+  run_check "check-$h-memory-script"               "$h link_memory lines: encoded names, dirs"
+  run_check "check-$h-settings-script"             "$h settings.json src/dst outside /nix/store"
+  run_check "check-$h-claude-activation-order"     "$h both steps run after linkGeneration"
+done
+run_check check-control-claude-home-file-projects  "control: .claude/projects mapping is flagged"
+run_check check-control-claude-home-file-settings  "control: .claude/settings.json mapping is flagged"
+run_check check-control-memory-wrong-platform-name "control: linux encoded name on mac is flagged"
+run_check check-control-memory-missing-nas-project "control: missing NAS project line is flagged"
+run_check check-control-memory-nas-project-on-mac  "control: NAS project line on mac is flagged"
+run_check check-control-settings-store-dst         "control: settings dst in /nix/store is flagged"
+run_check check-control-settings-wrong-src         "control: wrong settings src is flagged"
+
 echo -e "\n${BOLD}controls${NC}"
 run_check check-control-overlap-detected "overlap detector flags a shared leaf"
 run_check check-control-overlap-clean    "overlap detector quiet on disjoint packages"

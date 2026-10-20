@@ -9,13 +9,8 @@ let
   claudeHostLeaves = [
     ".claude.json"
     ".claude/keybindings.json"
-    ".claude/settings.json"
-    ".claude/plans"
     ".claude-mem"
     ".claude/context-mode"
-    # Whole projects dir → host. Auto-captures every (future) project; common
-    # projects keep a committed memory symlink → claude/common/ inside the repo.
-    ".claude/projects"
   ];
 
   packageLeaves = {
@@ -100,6 +95,22 @@ let
     nixos-laptop = startActualMcp // contextScopedClaude;
   };
 
+  # Per-project memory shared across hosts. ~/.claude/projects stays a real local
+  # dir (transcripts etc. are host-specific); only <encoded-cwd>/memory is linked
+  # to claude/common/.claude/projects/<name>/memory. Key = dir name in the repo,
+  # value = absolute cwd of the project on this platform.
+  projectMemories = homeDir: {
+    nix = "${homeDir}/nix";
+    dotfiles-private = "${homeDir}/dotfiles-private";
+    dotfiles = "${homeDir}/dotfiles";
+    github-repos-personal-portainer-templates = "${homeDir}/github-repos/personal/portainer-templates";
+    momentary-gym-claude-skill = "${homeDir}/momentary/gym-claude-skill";
+    nicol-nas-webdav-owncloud-University = "/mnt/nicol-nas/webdav/owncloud/University";
+  };
+
+  # Claude Code names a project dir after its cwd with every non-alphanumeric char as "-"
+  encodeProjectDir = lib.stringAsChars (c: if builtins.match "[A-Za-z0-9]" c != null then c else "-");
+
   # Home paths that GUIs rewrite in place (replacing the symlink with a regular
   # file/dir); their live content is copied back into the repo before HM relinks.
   syncBack = [
@@ -147,6 +158,9 @@ delib.module {
       syncBackScript = lib.concatMapStringsSep "\n"
         (p: "sync_back ${lib.escapeShellArg p} ${lib.escapeShellArg mappings.${p}}")
         syncBackEntries;
+      linkProjectMemoryScript = lib.concatStringsSep "\n" (lib.mapAttrsToList
+        (name: cwd: "link_memory ${lib.escapeShellArg (encodeProjectDir cwd)} ${lib.escapeShellArg name}")
+        (projectMemories homeDir));
     in
     {
       home.file = builtins.mapAttrs
@@ -183,6 +197,44 @@ delib.module {
 
           ${syncBackScript}
           true
+        '';
+
+      # Runs after linkGeneration so a stale ~/.claude/projects symlink is already gone.
+      home.activation.linkClaudeProjectMemory =
+        inputs.home-manager.lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+          repo_root="${homeDir}/dotfiles-private"
+
+          link_memory() {
+            src="$repo_root/claude/common/.claude/projects/$2/memory"
+            dir="${homeDir}/.claude/projects/$1"
+            [ -d "$src" ] || return 0
+            run ${coreutils}/mkdir -p "$dir"
+            if [ -L "$dir/memory" ] || [ ! -e "$dir/memory" ]; then
+              run ${coreutils}/ln -sfn "$src" "$dir/memory"
+            else
+              warnEcho "$dir/memory is a real directory; not replacing it with the shared memory link"
+            fi
+          }
+
+          ${linkProjectMemoryScript}
+          true
+        '';
+
+      # settings.json is linked straight into the repo, not through /nix/store: Claude
+      # Code rewrites it (/effort etc.) and a store hop in the chain makes that fail
+      # with EROFS. Skipped while the shared file does not exist yet.
+      home.activation.linkClaudeSettings =
+        inputs.home-manager.lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+          src="${homeDir}/dotfiles-private/claude/common/.claude/settings.json"
+          dst="${homeDir}/.claude/settings.json"
+          if [ -f "$src" ]; then
+            run ${coreutils}/mkdir -p "${homeDir}/.claude"
+            if [ -L "$dst" ] || [ ! -e "$dst" ]; then
+              run ${coreutils}/ln -sfn "$src" "$dst"
+            else
+              warnEcho "$dst is a real file; not replacing it with the shared settings link"
+            fi
+          fi
         '';
     };
 }

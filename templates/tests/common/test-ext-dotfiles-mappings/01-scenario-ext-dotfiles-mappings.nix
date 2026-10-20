@@ -13,10 +13,11 @@ let
       body = builtins.head (lib.splitString "\nin\n" afterLet);
     in
     import (builtins.toFile "ext-dotfiles-data.nix" ''
+      { lib }:
       let
       ${body}
       in { inherit packageLeaves packagesPerHost extraMappingsPerHost syncBack; }
-    '');
+    '') { inherit lib; };
 
   nixosData = loadData nixosFile;
   darwinData = loadData darwinFile;
@@ -173,6 +174,62 @@ let
     "check-control-${name}-launcher-wrong-source" = flagged "wrong source" (launcherMappingCheck (wrongSourceTwin (mappingsOf h)));
   };
 
+  forbiddenClaudeLinks = [ ".claude/projects" ".claude/plans" ".claude/settings.json" ];
+  noClaudeLinksCheck = files:
+    verdict (map (k: "home.file still maps ${k}") (lib.filter (k: files ? ${k}) forbiddenClaudeLinks));
+
+  encodeCwd = lib.replaceStrings [ "/" "." ] [ "-" "-" ];
+  isDarwinHost = h: (h.kind or "nixos") == "darwin";
+  sharedProjects = {
+    nix = "nix";
+    dotfiles-private = "dotfiles-private";
+    dotfiles = "dotfiles";
+    github-repos-personal-portainer-templates = "github-repos/personal/portainer-templates";
+    momentary-gym-claude-skill = "momentary/gym-claude-skill";
+  };
+  nasProjectCwd = "/mnt/nicol-nas/webdav/owncloud/University";
+  nasProjectName = "nicol-nas-webdav-owncloud-University";
+  expectedMemoryLines = h:
+    lib.mapAttrsToList (n: rel: "link_memory ${encodeCwd "${h.homeDir}/${rel}"} ${n}") sharedProjects
+    ++ lib.optional (!isDarwinHost h) "link_memory ${encodeCwd nasProjectCwd} ${nasProjectName}";
+  memoryLinesOf = text: lib.filter (l: lib.hasPrefix "link_memory " l) (lib.splitString "\n" text);
+  memoryCheck = h: text:
+    let
+      got = memoryLinesOf text;
+      want = expectedMemoryLines h;
+      okPrefix = l:
+        lib.hasPrefix "link_memory ${encodeCwd h.homeDir}-" l
+        || (!isDarwinHost h && lib.hasPrefix "link_memory ${encodeCwd nasProjectCwd} " l);
+    in
+    verdict (
+      map (l: "missing line: ${l}") (lib.filter (l: !(builtins.elem l got)) want)
+      ++ map (l: "unexpected prefix on this platform: ${l}") (lib.filter (l: !(okPrefix l)) got)
+      ++ lib.optional (!(lib.hasInfix "dir=\"${h.homeDir}/.claude/projects/$1\"" text)) "link_memory dir is not ${h.homeDir}/.claude/projects/$1"
+      ++ lib.optional (!(lib.hasInfix "repo_root=\"${h.homeDir}/dotfiles-private\"" text)) "repo_root is not ${h.homeDir}/dotfiles-private"
+    );
+  settingsCheck = h: text:
+    let
+      src = "${h.homeDir}/dotfiles-private/claude/common/.claude/settings.json";
+      dst = "${h.homeDir}/.claude/settings.json";
+    in
+    verdict (
+      lib.optional (!(lib.hasInfix "src=\"${src}\"\n" text)) "src is not ${src}"
+      ++ lib.optional (!(lib.hasInfix "dst=\"${dst}\"\n" text)) "dst is not ${dst}"
+      ++ lib.optional (!(lib.hasInfix "ln -sfn \"$src\" \"$dst\"" text)) "no ln -sfn \"$src\" \"$dst\""
+      ++ lib.optional (lib.hasInfix "/nix/store/" (lib.concatStringsSep "\n" (lib.filter (l: lib.hasPrefix "src=" l || lib.hasPrefix "dst=" l) (lib.splitString "\n" text)))) "src/dst route through /nix/store"
+    );
+  afterLinkGeneration = h: name:
+    eq "${name} ordering" h.hm.activation.${name}.after [ "linkGeneration" ];
+  claudeActivation = name: h: {
+    "check-${name}-no-claude-home-file" = noClaudeLinksCheck h.hm.file;
+    "check-${name}-memory-script" = memoryCheck h h.hm.activation.linkClaudeProjectMemory.data;
+    "check-${name}-settings-script" = settingsCheck h h.hm.activation.linkClaudeSettings.data;
+    "check-${name}-claude-activation-order" = verdict (lib.filter (r: r != ok) [
+      (afterLinkGeneration h "linkClaudeProjectMemory")
+      (afterLinkGeneration h "linkClaudeSettings")
+    ]);
+  };
+
   allPkgs = hs: map enabledPackages hs;
   nixosHosts = [ hosts.desktop hosts.laptop hosts.nas ];
 
@@ -191,6 +248,10 @@ perHost "desktop" hosts.desktop
 // perHost "laptop" hosts.laptop
 // perHost "nas" hosts.nas
 // perHost "mac" hosts.mac
+// claudeActivation "desktop" hosts.desktop
+// claudeActivation "laptop" hosts.laptop
+// claudeActivation "nas" hosts.nas
+// claudeActivation "mac" hosts.mac
 // launcherChecks "desktop" hosts.desktop
 // launcherChecks "laptop" hosts.laptop
 // launcherChecks "mac" hosts.mac
@@ -212,6 +273,21 @@ perHost "desktop" hosts.desktop
   "check-laptop-school-dot" = schoolCheck hosts.laptop;
   "check-mac-school-nodot" = schoolCheck hosts.mac;
   "check-nas-no-school" = verdict (map (k: "unexpected ${k}") (lib.filter (k: lib.hasInfix "school-workspace" k) (builtins.attrNames hosts.nas.hm.file)));
+
+  "check-control-claude-home-file-projects" =
+    flagged "projects mapping" (noClaudeLinksCheck (hosts.desktop.hm.file // { ".claude/projects" = { }; }));
+  "check-control-claude-home-file-settings" =
+    flagged "settings.json mapping" (noClaudeLinksCheck (hosts.mac.hm.file // { ".claude/settings.json" = { }; }));
+  "check-control-memory-wrong-platform-name" =
+    flagged "linux encoded name on mac" (memoryCheck hosts.mac (lib.replaceStrings [ "-Users-krit-nix" ] [ "-home-krit-nix" ] hosts.mac.hm.activation.linkClaudeProjectMemory.data));
+  "check-control-memory-missing-nas-project" =
+    flagged "NAS project dropped on desktop" (memoryCheck hosts.desktop (lib.replaceStrings [ "-mnt-nicol-nas-webdav-owncloud-University" ] [ "-mnt-other" ] hosts.desktop.hm.activation.linkClaudeProjectMemory.data));
+  "check-control-memory-nas-project-on-mac" =
+    flagged "NAS project on mac" (memoryCheck hosts.mac (hosts.mac.hm.activation.linkClaudeProjectMemory.data + "\nlink_memory -mnt-nicol-nas-webdav-owncloud-University x"));
+  "check-control-settings-store-dst" =
+    flagged "settings dst in /nix/store" (settingsCheck hosts.desktop (lib.replaceStrings [ "dst=\"/home/krit/.claude" ] [ "dst=\"/nix/store/x-home/.claude" ] hosts.desktop.hm.activation.linkClaudeSettings.data));
+  "check-control-settings-wrong-src" =
+    flagged "settings src on wrong path" (settingsCheck hosts.laptop (lib.replaceStrings [ "common/.claude/settings.json" ] [ "mac/.claude/settings.json" ] hosts.laptop.hm.activation.linkClaudeSettings.data));
 
   "check-control-overlap-detected" = eq "overlap detector" (packageOverlap fake [ "a" "b" ]) [ "y in a+b" ];
   "check-control-overlap-clean" = eq "overlap detector on disjoint" (packageOverlap fake [ "a" ]) [ ];

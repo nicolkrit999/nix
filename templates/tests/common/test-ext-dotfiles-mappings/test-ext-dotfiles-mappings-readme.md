@@ -16,7 +16,7 @@ bash check-common-ext-dotfiles-mappings.sh
 
 ## How it works
 
-The package tables (`packageLeaves`, `packagesPerHost`, `extraMappingsPerHost`, `syncBack`) are `let`-bound inside the modules. `01-scenario-ext-dotfiles-mappings.nix` extracts that `let` body from the real source files at eval time and re-evaluates it, so no data is duplicated in the test. Each check returns `"ok"` or `"FAIL: ..."` and compares the parsed tables against the real `home.file` / `home.activation` of desktop, laptop (NixOS), `krit@Nicol-NAS` (home-only) and Krits-MacBook-Pro (Darwin). No secrets are involved.
+The package tables (`packageLeaves`, `packagesPerHost`, `extraMappingsPerHost`, `syncBack`) are `let`-bound inside the modules. `01-scenario-ext-dotfiles-mappings.nix` extracts that `let` body from the real source files at eval time and re-evaluates it with the flake's nixpkgs `lib` in scope (the module's own `lib` argument), so no data is duplicated in the test. Each check returns `"ok"` or `"FAIL: ..."` and compares the parsed tables against the real `home.file` / `home.activation` of desktop, laptop (NixOS), `krit@Nicol-NAS` (home-only) and Krits-MacBook-Pro (Darwin). No secrets are involved.
 
 `check-common-ext-dotfiles-mappings.sh` runs `nix eval --raw --impure` per check, then dumps each host's generated activation script, runs `bash -n` on it, and executes the real desktop script in a temporary fake home (the home prefix is substituted and a `run() { "$@"; }` prelude stands in for the home-manager `run` helper; the script uses absolute store paths, so no `PATH` handling is needed). Before the sandbox runs, every derivation in the desktop script's string context is realised with `nix build --no-link <drv>^<outputs>`: the eval only instantiates `pkgs.rsync`, and a CI runner whose restored store snapshot lacks it would otherwise run the script against a missing binary. A guard then checks that every `/nix/store/...` path in the script text exists; if one is missing it fails and the sandbox cases are skipped, so they cannot pass vacuously. The prelude's `run` also logs each wrapped command's exit code, and the cases that depend on `rsync` or `cp` assert that the real binary ran and exited with the expected code. Eval plus seconds, about 1 min. Read-only failure cases are skipped when run as root.
 
@@ -51,6 +51,22 @@ The bare command `start-actual-mcp` is used by the project-scoped MCP server in 
 | control: bin/ twin | the same mappings with the key moved to `bin/start-actual-mcp` are flagged |
 | control: PATH lacks dir | the real mappings against an empty `PATH` are flagged |
 | control: wrong source | a twin with another source string is flagged by the mapping check |
+
+### Claude home.file removals and activation links (desktop, laptop, nas, mac)
+`.claude/projects`, `.claude/plans` and `.claude/settings.json` are no longer `home.file` mappings; two activation steps replace them. Expected encodings are computed in the scenario by an independent `/` and `.` to `-` replacement (not the module's own function), so a regression in the module's encoder is caught.
+
+| Check | Expected |
+|-------|----------|
+| no claude home.file | `home.file` contains none of `.claude/projects`, `.claude/plans`, `.claude/settings.json` |
+| memory script | `linkClaudeProjectMemory` has a `link_memory <encoded cwd> <repo name>` line for every shared project (`-home-krit-nix` on NixOS/NAS, `-Users-krit-nix` on mac, plus `-mnt-nicol-nas-webdav-owncloud-University` on non-Darwin only), no line with another platform's prefix, and `repo_root` / `dir` under the host's home |
+| settings script | `linkClaudeSettings` has `src="<home>/dotfiles-private/claude/common/.claude/settings.json"`, `dst="<home>/.claude/settings.json"`, `ln -sfn "$src" "$dst"`, and neither path goes through `/nix/store` |
+| activation order | both steps are ordered after `linkGeneration` |
+| control: projects / settings mapping | a `home.file` twin with `.claude/projects` or `.claude/settings.json` added is flagged |
+| control: wrong platform name | the mac script with `-Users-krit-nix` replaced by `-home-krit-nix` is flagged |
+| control: missing NAS project | the desktop script with the NAS encoded name altered is flagged |
+| control: NAS project on mac | the mac script with an extra `-mnt-nicol-nas-...` line is flagged |
+| control: store dst | the desktop settings script with `dst` pointing into `/nix/store` is flagged |
+| control: wrong src | the laptop settings script with `src` pointing at `mac/` is flagged |
 
 ### Controls
 | Check | Expected |
