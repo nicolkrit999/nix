@@ -2,6 +2,31 @@
 let
   giteaHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHCA8VQtkhSH0wg2Xvi5FjIofM4XMo/+PrFVFdVnu/wC";
 
+  mkPeers = myconfig:
+    lib.filter (n: n != myconfig.constants.hostname) (lib.attrNames (lib.filterAttrs
+      (_: h: h.nixos != { } && (h.myconfig.krit.system.ssh-config.enable or false) == true)
+      myconfig.hosts));
+
+  mkPeerSettings = user: peers:
+    lib.genAttrs peers (p: {
+      HostName = p;
+      IdentityFile = "/home/${user}/.ssh/id_github";
+      IdentitiesOnly = "yes";
+      User = user;
+    });
+
+  mkPeerExtra = user: peers:
+    lib.concatMapStrings
+      (p: ''
+        Host ${p}
+          HostName ${p}
+          IdentityFile /home/${user}/.ssh/id_github
+          IdentitiesOnly yes
+          User ${user}
+
+      '')
+      peers;
+
   mkSshSettings = user: {
     "nicol-nas" = {
       HostName = "nicol-nas.tail9b9ae8.ts.net";
@@ -33,37 +58,56 @@ delib.module {
       gatewayAlias = boolOption false;
     };
 
-  nixos.ifEnabled = { cfg, myconfig, ... }: {
-    systemd.tmpfiles.rules = [
-      "d /home/${myconfig.constants.user}/.ssh 0700 ${myconfig.constants.user} users -"
-    ];
+  nixos.ifEnabled = { cfg, myconfig, ... }:
+    let
+      user = myconfig.constants.user;
+      peers = mkPeers myconfig;
+      hostType = n: myconfig.hosts.${n}.type;
+      builders = lib.filter (n: hostType n == "desktop") peers;
+      flakeDir = "~/${myconfig.constants.flakeDir}";
+      remoteBuild = verb: "nh os ${verb} ${flakeDir} --hostname ${myconfig.constants.hostname} --build-host ${user}@${lib.head builders}";
+      buildAliases = lib.optionalAttrs
+        (hostType myconfig.constants.hostname == "laptop" && builders != [ ] && myconfig.nh.enable)
+        {
+          sw-laptop-with-desktop = remoteBuild "switch";
+          build-laptop-with-desktop = remoteBuild "build";
+        };
+    in
+    {
+      services.openssh.authorizedKeysFiles = [
+        "%h/.ssh/id_github.pub"
+      ];
 
-    environment.systemPackages = [ pkgs.cloudflared ];
-    programs.ssh.knownHosts = {
-      "gitea-ssh.nicolkrit.ch" = {
-        publicKey = giteaHostKey;
+      systemd.tmpfiles.rules = [
+        "d /home/${myconfig.constants.user}/.ssh 0700 ${myconfig.constants.user} users -"
+      ];
+
+      environment.systemPackages = [ pkgs.cloudflared ];
+      programs.ssh.knownHosts = {
+        "gitea-ssh.nicolkrit.ch" = {
+          publicKey = giteaHostKey;
+        };
       };
-    };
-    programs.ssh.extraConfig = ''
-      Host nicol-nas
-        HostName nicol-nas.tail9b9ae8.ts.net
-        IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
-        IdentitiesOnly yes
-        User krit
+      programs.ssh.extraConfig = ''
+        Host nicol-nas
+          HostName nicol-nas.tail9b9ae8.ts.net
+          IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
+          IdentitiesOnly yes
+          User krit
 
-      Host 192.168.1.98 ssh.nicolkrit.ch
-        IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
-        IdentitiesOnly yes
-        User krit
+        Host 192.168.1.98 ssh.nicolkrit.ch
+          IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
+          IdentitiesOnly yes
+          User krit
 
-      Host github.com
-        IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
+        Host github.com
+          IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
 
-      Host gitea-ssh.nicolkrit.ch
-        IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
-        IdentitiesOnly yes
-        ProxyCommand cloudflared access ssh --hostname %h
-    '' + lib.optionalString cfg.gatewayAlias ''
+        Host gitea-ssh.nicolkrit.ch
+          IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
+          IdentitiesOnly yes
+          ProxyCommand cloudflared access ssh --hostname %h
+      '' + "\n" + mkPeerExtra user peers + lib.optionalString cfg.gatewayAlias ''
 
       # UniFi Cloud Gateway Fiber console shell - convenience alias so
       # `ssh gateway` works without -i. Key is a manually-generated,
@@ -78,29 +122,33 @@ delib.module {
         IdentitiesOnly yes
     '';
 
-    # Manage ~/.ssh/config via home-manager so switching away from the school
-    # specialization (which also sets programs.ssh) properly rewrites the file.
-    # Without this, the school spec's ~/.ssh/config symlink persists in the
-    # default profile because home-manager only cleans up files it previously
-    # owned in the same activation chain.
-    home-manager.users.${myconfig.constants.user} = _: {
-      programs.ssh = {
-        enable = true;
-        enableDefaultConfig = false;
-        settings = mkSshSettings myconfig.constants.user
-          // lib.optionalAttrs cfg.gatewayAlias {
-          # UniFi Cloud Gateway Fiber console shell - see matching comment on
-          # the system-wide extraConfig block above.
-          "gateway" = {
-            HostName = "192.168.1.1";
-            User = "root";
-            IdentityFile = "/home/${myconfig.constants.user}/.ssh/id_gateway_wol";
-            IdentitiesOnly = "yes";
+      # Manage ~/.ssh/config via home-manager so switching away from the school
+      # specialization (which also sets programs.ssh) properly rewrites the file.
+      # Without this, the school spec's ~/.ssh/config symlink persists in the
+      # default profile because home-manager only cleans up files it previously
+      # owned in the same activation chain.
+      home-manager.users.${myconfig.constants.user} = _: {
+        home.shellAliases =
+          lib.listToAttrs (map (p: lib.nameValuePair "ssh-${p}" "ssh ${p}") peers)
+          // buildAliases;
+        programs.ssh = {
+          enable = true;
+          enableDefaultConfig = false;
+          settings = mkSshSettings myconfig.constants.user
+            // mkPeerSettings myconfig.constants.user peers
+            // lib.optionalAttrs cfg.gatewayAlias {
+            # UniFi Cloud Gateway Fiber console shell - see matching comment on
+            # the system-wide extraConfig block above.
+            "gateway" = {
+              HostName = "192.168.1.1";
+              User = "root";
+              IdentityFile = "/home/${myconfig.constants.user}/.ssh/id_gateway_wol";
+              IdentitiesOnly = "yes";
+            };
           };
         };
       };
     };
-  };
 
   # Standalone home-manager builds (e.g. Nicol-NAS) have no NixOS system layer
   # to hold `programs.ssh.knownHosts` / the system-wide `programs.ssh.extraConfig`

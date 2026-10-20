@@ -1,4 +1,5 @@
 { delib
+, pkgs
 , ...
 }:
 delib.host {
@@ -51,5 +52,7 @@ delib.host {
       kernelParams = [ "video=DP-3:d" ];
     };
     hardware.graphics.enable = true;
+
+    environment.systemPackages = [ pkgs.lm_sensors ];
   };
 }

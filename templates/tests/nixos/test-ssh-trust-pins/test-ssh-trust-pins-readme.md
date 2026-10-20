@@ -46,6 +46,10 @@ Per NixOS host (`nixos-desktop`, `nixos-laptop`):
 | Host option values | per alias, `extraConfig` options equal HM settings |
 | gateway alias | present in `extraConfig` and HM settings |
 | gatewayAlias option | `krit.system.ssh-config.gatewayAlias` option default is `false`, `true` on the real host; a twin with it forced `false` has no `gateway` alias in `extraConfig` or HM settings |
+| peer Host entry | the other NixOS host (derived from the host list, never the host itself) has a Host entry in `extraConfig` and HM settings with `HostName` = its tailnet name, `User`, `IdentitiesOnly yes`, `IdentityFile ~/.ssh/id_github` |
+| sshd authorized keys | `services.openssh.authorizedKeysFiles` has `%h/.ssh/id_github.pub` (the sops secret path) next to the default files; `authorizedKeys.keys` and `keyFiles` are empty, so no key literal lives in the repo |
+| ssh-<peer> alias | `ssh-<peer>` shell alias is `ssh <peer>`, absent for the host itself |
+| remote-build aliases | `sw-laptop-with-desktop` and `build-laptop-with-desktop` (`nh os switch/build <flake> --hostname nixos-laptop --build-host krit@nixos-desktop`) exist on the laptop only |
 | NAS pin | `programs.ssh.knownHosts."nicol-nas-tailnet"` is an `ssh-ed25519` key equal to `krit.services.nas.hostKey`, for both `nas.host` and `nas.tailnetIp`; `Host nicol-nas` `HostName` equals `nas.host` |
 | No host-key bypass | no borgmatic `ssh_command` and no sshfs mount option (sshfs enabled via `extendModules`) contains `StrictHostKeyChecking` |
 | Standalone home aliases | aliases (minus `*`) are a subset of the NixOS aliases |

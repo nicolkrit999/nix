@@ -68,6 +68,7 @@ let
     (src + "/modules/common/programs/claude-code.nix")
     (src + "/modules/common/programs/codex.nix")
     (src + "/modules/common/programs/fastfetch.nix")
+    (src + "/modules/common/programs/agent-reach.nix")
     (src + "/modules/common/programs/headroom.nix")
     (src + "/modules/common/programs/herdr.nix")
     (src + "/modules/common/programs/comma.nix")

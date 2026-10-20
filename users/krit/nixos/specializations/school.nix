@@ -410,7 +410,9 @@ delib.module {
               buildInputs = (old.buildInputs or [ ]) ++ [ qt6.qtwayland ];
               dependencies = old.dependencies ++ [ python3Packages.pyside6 ];
               dontWrapQtApps = true;
-              makeWrapperArgs = [ "\${qtWrapperArgs[@]}" ];
+              preFixup = (old.preFixup or "") + ''
+                makeWrapperArgs+=("''${qtWrapperArgs[@]}")
+              '';
             }))
             (makeDesktopItem {
               name = "moodle-dl-gui";

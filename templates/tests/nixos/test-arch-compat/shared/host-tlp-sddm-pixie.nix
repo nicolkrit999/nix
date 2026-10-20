@@ -47,6 +47,10 @@ delib.host {
       # source to be in the Nix store - only works in the full flake context, not here.
       doom.enable = false;
       nltchNur.enable = true;
+      agent-reach = {
+        enable = true;
+        browserChannels = true;
+      };
       headroom.enable = true;
       herdr.enable = true;
       statix.enable = true;

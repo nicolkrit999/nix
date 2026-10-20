@@ -12,12 +12,14 @@ let
       afterLet = lib.concatStringsSep "\nlet\n" (builtins.tail (lib.splitString "\nlet\n" text));
       body = builtins.head (lib.splitString "\nin\n" afterLet);
     in
-    import (builtins.toFile "ext-dotfiles-data.nix" ''
-      { lib }:
-      let
-      ${body}
-      in { inherit packageLeaves packagesPerHost extraMappingsPerHost syncBack; }
-    '') { inherit lib; };
+    import
+      (builtins.toFile "ext-dotfiles-data.nix" ''
+        { lib }:
+        let
+        ${body}
+        in { inherit packageLeaves packagesPerHost extraMappingsPerHost syncBack; }
+      '')
+      { inherit lib; };
 
   nixosData = loadData nixosFile;
   darwinData = loadData darwinFile;

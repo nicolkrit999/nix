@@ -64,6 +64,11 @@ delib.module {
           python3Packages.pylatexenc
           ripgrep
           universal-ctags
+
+          # --- Build toolchain (whatsapp.nvim builds its Go bridge via cgo: make + go + cc) ---
+          gcc
+          gnumake
+          go
         ]
         # wl-clipboard and xdg-utils are Linux-only
         ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [

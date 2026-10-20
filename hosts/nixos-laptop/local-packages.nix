@@ -10,7 +10,7 @@ delib.module {
     { myconfig, ... }:
     {
       # Ventoy: precompiled blobs, insecure pin (nixpkgs#404663); update on bump, drop when knownVulnerabilities clears
-      nixpkgs.config.permittedInsecurePackages = [ "ventoy-qt5-1.1.17" ];
+      nixpkgs.config.permittedInsecurePackages = [ "ventoy-qt5-1.1.18" ];
 
       users.users.${myconfig.constants.user}.packages = with pkgs; [
         # Desktop applications

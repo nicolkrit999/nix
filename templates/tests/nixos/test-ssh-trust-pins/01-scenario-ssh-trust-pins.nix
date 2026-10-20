@@ -74,7 +74,45 @@ let
   sshfsOptions = withSshfs.fileSystems."${nas.mountRoot}/ssh/system_root".options;
   borgSshCommands = lib.mapAttrsToList (_: c: c.ssh_command or "") cfg.services.borgmatic.configurations;
 
+  peer = lib.head (lib.filter (n: n != host) [ "nixos-desktop" "nixos-laptop" ]);
+  hmAliases = hmNixos.home.shellAliases;
+  isLaptop = host == "nixos-laptop";
+  peerOpts = plain (hmSettings.${peer} or { });
+  authFiles = cfg.services.openssh.authorizedKeysFiles;
+
   nixosOnlyChecks = {
+    "peer Host entry exists in NixOS extraConfig and HM settings, with the tailnet name, user and identity, and never for the host itself" =
+      let
+        norm = s: lib.mapAttrs (_: toString) s;
+        want = { HostName = peer; User = user; IdentitiesOnly = "yes"; IdentityFile = "/home/${user}/.ssh/id_github"; };
+      in
+      expect "peer-host"
+        (norm (extra.${peer} or { }) == want && norm peerOpts == want && !(extra ? ${host}) && !(hmSettings ? ${host}))
+        "peer=${peer} extra=${show (extra.${peer} or null)} hm=${show peerOpts} selfInExtra=${show (extra ? ${host})} selfInHm=${show (hmSettings ? ${host})}";
+    "sshd reads the runtime-provisioned id_github.pub (sops path) and keeps the default authorized_keys files; no key literal in the config" =
+      expect "authorized-keys"
+        (builtins.elem "%h/.ssh/id_github.pub" authFiles && builtins.elem "%h/.ssh/authorized_keys" authFiles
+          && lib.all (f: lib.hasPrefix "/" f || lib.hasPrefix "%" f) authFiles
+          && cfg.users.users.${user}.openssh.authorizedKeys.keys == [ ]
+          && cfg.users.users.${user}.openssh.authorizedKeys.keyFiles == [ ]
+          && cfg.sops.secrets.github_general_ssh_pub.path == "${cfg.users.users.${user}.home}/.ssh/id_github.pub"
+          && cfg.sops.secrets.github_general_ssh_pub.owner == user)
+        "authorizedKeysFiles=${show authFiles} keys=${show cfg.users.users.${user}.openssh.authorizedKeys.keys}";
+    "ssh-<peer> alias exists for the peer only, never for the host itself" =
+      expect "ssh-alias"
+        (hmAliases."ssh-${peer}" or "" == "ssh ${peer}" && !(hmAliases ? "ssh-${host}"))
+        "aliases=${show (lib.filterAttrs (n: _: lib.hasPrefix "ssh-" n) hmAliases)}";
+    "remote-build aliases (sw-/build-laptop-with-desktop) exist only on the laptop and use the nixos-desktop Host entry" =
+      let
+        sw = hmAliases.sw-laptop-with-desktop or "";
+        bd = hmAliases.build-laptop-with-desktop or "";
+        flags = "--hostname nixos-laptop --build-host ${user}@nixos-desktop";
+      in
+      expect "remote-build"
+        (if isLaptop
+        then lib.hasPrefix "nh os switch " sw && lib.hasSuffix flags sw && lib.hasPrefix "nh os build " bd && lib.hasSuffix flags bd
+        else sw == "" && bd == "")
+        "sw=${show sw} build=${show bd}";
     "NAS ed25519 key is pinned for both the FQDN and the tailnet IP (NixOS-only pin, exempt from the HM mirror)" =
       expect "nas-pin"
         (lib.hasPrefix "ssh-ed25519 " nasPin.publicKey && nasPin.publicKey == nas.hostKey

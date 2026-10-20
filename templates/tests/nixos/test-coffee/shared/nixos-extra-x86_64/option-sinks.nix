@@ -26,7 +26,7 @@ in
       default = { };
     };
     myconfig = {
-      programs = sinks [ "kde" "cosmic" "caelestia" "noctalia" "nix-ld" "nix-alien" "claude-code" "claude-desktop" "google-antigravity" "codex" "herdr" "headroom" ] // {
+      programs = sinks [ "kde" "cosmic" "caelestia" "noctalia" "nix-ld" "nix-alien" "claude-code" "claude-desktop" "google-antigravity" "codex" "herdr" "headroom" "agent-reach" ] // {
         gnome = {
           enable = sink;
           pinnedApps = lib.mkOption { type = lib.types.listOf lib.types.str; default = [ ]; };

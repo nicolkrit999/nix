@@ -4,13 +4,23 @@ delib.module {
   options = delib.singleEnableOption false;
 
   nixos.always = {
-    imports = [ inputs.auto-cpufreq.nixosModules.default ];
+    imports = [
+      (import "${inputs.auto-cpufreq}/nix/module.nix" {
+        self.packages = lib.mapAttrs
+          (_: p: {
+            default = p.default.overridePythonAttrs (old: {
+              pythonRelaxDeps = (old.pythonRelaxDeps or [ ]) ++ [ "urwid" ];
+            });
+          })
+          inputs.auto-cpufreq.packages;
+      })
+    ];
   };
 
   nixos.ifEnabled = { myconfig, ... }: {
     assertions = [{
       assertion = !(myconfig.services.tlp.enable or false);
-      message = "services.auto-cpufreq and services.tlp are mutually exclusive — enable only one in your host config.";
+      message = "services.auto-cpufreq and services.tlp are mutually exclusive - enable only one in your host config.";
     }];
 
     services.power-profiles-daemon.enable = lib.mkForce false;

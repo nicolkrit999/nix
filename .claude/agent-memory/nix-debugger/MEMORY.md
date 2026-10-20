@@ -36,3 +36,7 @@
 - [Plasma kglobalaccel semantics](project_plasma_kglobalaccel_semantics.md) - legacy .desktop groups auto-migrate; shared key = lowest serial wins; layout switcher not in kwin; no kxkbrc Options by decision
 - [findmnt two-arg probe trap](project_findmnt_two_args_probe_trap.md) - `findmnt A B` = source+target, prints nothing; impermanence = systemd.mounts not fileSystems
 - [Portal test cache-listing design](project_portal_test_cache_listing_design.md) - portal-routing = fake hosts + cache.nixos.org NAR listings + dry-run guard; structuredAttrs hide src in drv show
+- [Python structuredAttrs default](project_python_structuredattrs_default.md) - buildPython* now structuredAttrs: `makeWrapperArgs=["${qtWrapperArgs[@]}"]` passed literally; use preFixup +=; env -u PYTHONPATH
+- [auto-cpufreq module hardcoded package](project_auto_cpufreq_module_hardcoded_package.md) - upstream module uses inputs.self.packages only; patch via re-import of nix/module.nix with fake self (urwid relax)
+- [Spec mkForce needs harness decl](project_spec_mkforce_needs_harness_decl.md) - new option set in guest/secure-travel breaks arch-compat/spec-contract/coffee hand-listed harnesses; FLAKE_ROOT for worktrees
+- [kernel.dev System.map -> depmod collision](project_kernel_dev_systemmap_depmod.md) - since nixpkgs #571170 out-of-tree modules_install runs depmod; modules.dep buildEnv clash (v4l2loopback DEPMOD=true)
