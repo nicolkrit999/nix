@@ -1,4 +1,5 @@
 { delib
+, lib
 , pkgs
 , ...
 }:
@@ -11,6 +12,19 @@ delib.module {
     {
       # Ventoy: precompiled blobs, insecure pin (nixpkgs#404663); update on bump, drop when knownVulnerabilities clears
       nixpkgs.config.permittedInsecurePackages = [ "ventoy-qt5-1.1.18" ];
+
+      nixpkgs.overlays = [
+        (_final: prev: {
+          gearlever = prev.gearlever.overrideAttrs (old: {
+            makeWrapperArgs = lib.concatMap (lib.splitString " ") (
+              lib.remove "\${gappsWrapperArgs[@]}" old.makeWrapperArgs
+            );
+            preFixup = (old.preFixup or "") + ''
+              makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
+            '';
+          });
+        })
+      ];
 
       users.users.${myconfig.constants.user}.packages = with pkgs; [
         # Desktop applications

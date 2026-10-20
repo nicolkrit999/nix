@@ -53,6 +53,17 @@ delib.module {
         };
       };
     };
+    systemd.user =
+      let
+        notSystemUser.unitConfig.ConditionUser = "!@system";
+      in
+      {
+        sockets.pipewire = notSystemUser;
+        sockets.pipewire-pulse = notSystemUser;
+        services.pipewire = notSystemUser;
+        services.pipewire-pulse = notSystemUser;
+        services.wireplumber = notSystemUser;
+      };
     environment.systemPackages = [ pkgs.wiremix ];
   };
 }

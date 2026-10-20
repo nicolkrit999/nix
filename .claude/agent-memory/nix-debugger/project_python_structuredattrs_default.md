@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-mk-python-derivation.nix now has `__structuredAttrs ? true` (absent at lock 26f4107e). makeWrapperArgs becomes a real bash array, so wrap.sh passes `"${qtWrapperArgs[@]}"` literally -> makeCWrapper `#error Unknown argument ${qtWrapperArgs[@]}` (wrapQtAppsHook pulls makeBinaryWrapper). Hit by school.nix moodle-dl override 2026-10-20.
+mk-python-derivation.nix now has `__structuredAttrs ? true` (absent at lock 26f4107e). makeWrapperArgs becomes a real bash array, so wrap.sh passes `"${qtWrapperArgs[@]}"` literally -> makeCWrapper `#error Unknown argument ${qtWrapperArgs[@]}` (wrapQtAppsHook pulls makeBinaryWrapper). Hit by school.nix moodle-dl override 2026-10-20. Also hits UNMODIFIED nixpkgs pkgs (gearlever 3.4.7, still broken on master 2026-10-20: `"\${gappsWrapperArgs[@]}"` + one-string `"--prefix PATH : ..."` - the latter is a 2nd error since structuredAttrs elements are argv words, not split). Fixed via overlay in hosts/nixos-desktop/local-packages.nix.
 
 **Why:** any override/local python pkg using `makeWrapperArgs = [ "\${var}" ]` or `"--prefix X : $foo"` strings breaks the same way.
 
