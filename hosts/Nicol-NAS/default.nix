@@ -65,6 +65,10 @@ delib.host {
         tmux.enable = true;
         zoxide.enable = true;
         headroom.enable = true;
+        agent-reach = {
+          enable = true;
+          browserChannels = false;
+        };
 
         git = {
           enable = true;

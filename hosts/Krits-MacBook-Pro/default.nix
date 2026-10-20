@@ -72,6 +72,10 @@ delib.host {
         television.enable = true;
         zoxide.enable = true;
         headroom.enable = true;
+        agent-reach = {
+          enable = true;
+          browserChannels = false;
+        };
         # mcpSecrets / mcpEnv default in modules/common/programs/claude-code.nix (shared across all hosts)
         claude-code.enable = true;
         vikunja-desktop.enable = true;

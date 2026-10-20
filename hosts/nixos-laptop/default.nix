@@ -238,6 +238,10 @@ delib.host {
 
         google-antigravity.enable = false;
         headroom.enable = false;
+        agent-reach = {
+          enable = true;
+          browserChannels = true;
+        };
         herdr.enable = true;
         lazygit.enable = true;
         nix-alien.enable = false;

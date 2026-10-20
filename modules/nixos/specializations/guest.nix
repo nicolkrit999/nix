@@ -88,6 +88,7 @@ delib.module {
       myconfig = {
         programs = {
           caelestia.enable = lib.mkForce false;
+          agent-reach.enable = lib.mkForce false;
           claude-code.enable = lib.mkForce false;
           claude-desktop.enable = lib.mkForce false;
           codex.enable = lib.mkForce false;

@@ -130,6 +130,7 @@ delib.module {
           noctalia.enable = lib.mkForce false;
 
           # Disable attack surface programs
+          agent-reach.enable = lib.mkForce false;
           claude-code.enable = lib.mkForce false; # External API calls
           claude-desktop.enable = lib.mkForce false; # External API calls
           codex.enable = lib.mkForce false; # External API calls
