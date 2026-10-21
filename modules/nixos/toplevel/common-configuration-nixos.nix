@@ -50,6 +50,9 @@ delib.module {
       # Allow unfree packages globally (needed for drivers, code, etc.)
       nixpkgs.config.allowUnfree = true;
 
+      # Root shells (sudo -s) get root's own HOME instead of inheriting the invoking user's dotfiles.
+      security.sudo.extraConfig = "Defaults always_set_home";
+
       # ---------------------------------------------------------
       # SYSTEM PACKAGES & ENVIRONMENT
       # ---------------------------------------------------------

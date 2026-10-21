@@ -10,7 +10,7 @@
 - [denix ifEnabled arg set](project_denix_ifenabled_arg_set.md) - block AND delib.host lambdas get only {name,myconfig,cfg,parent}; need config -> nested imports module
 - [home.packages buildEnv collisions](project_home_packages_buildenv_collisions.md) - two python envs collide via bin/idle, poppler vs poppler-utils; only the SPECIALISATION home-manager-path catches it
 - [Dell XPS16 firmware knobs](project_dell_xps16_firmware_knobs.md) - laptop rejects als_enabled (EINVAL) + sysman writes (EOPNOTSUPP, BIOS admin pw); set in BIOS setup instead
-- [laptop haptic touchpad unobservable](project_laptop_haptic_touchpad_unobservable.md) - 06CB:D01A haptics run in its firmware (feature rpt 0x37 intensity); journals identical working vs broken
+- [laptop haptic touchpad unobservable](project_laptop_haptic_touchpad_unobservable.md) - 06CB:D01A haptics run in its firmware (feature rpt 0x37 intensity); journals identical working vs broken (2x: 10-07, 10-21); kdump boots in list-boots
 - [specialisation outer config binding](project_specialisation_outer_config_binding.md) - file-level `c = config...` inside specialisation sees PARENT values (school.nix shell hook dropped); + distrobox containers die when their store path is GC'd
 - [catppuccin global enable gate](project_catppuccin_global_enable_gate.md) - catppuccin main needs catppuccin.enable=true for ANY port; unset = all ports silently no-op (looks like a mere autoEnable warning)
 - [test stylix stub targets](project_test_stylix_stub_targets.md) - arch-compat + spec-contract stylix-stub.nix must `// cfg.targets` or myconfig.stylix.targets.* are dropped in tests only (vicinae arch-compat, not eval cache)

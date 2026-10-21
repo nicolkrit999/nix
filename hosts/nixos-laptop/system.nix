@@ -45,6 +45,22 @@ let
     '';
   };
 
+  touchpadRebind = pkgs.writeShellApplication {
+    name = "touchpad-haptics-rebind";
+    text = ''
+      drv=/sys/bus/i2c/drivers/i2c_hid_acpi
+      dev=i2c-VEN_06CB:00
+      for _ in $(seq 1 30); do
+        [ -e "$drv/$dev" ] && break
+        sleep 1
+      done
+      [ -e "$drv/$dev" ] || exit 0
+      echo "$dev" > "$drv/unbind" || true
+      sleep 1
+      echo "$dev" > "$drv/bind" || true
+    '';
+  };
+
   kbdIdleConfig = pkgs.writeText "hypridle-kbd-backlight.conf" ''
     listener {
       timeout = 50
@@ -133,6 +149,20 @@ delib.host {
           serviceConfig = {
             Type = "oneshot";
             ExecStart = "${kbdTriggers}/bin/kbd-backlight-triggers";
+          };
+        };
+
+        # The touchpad firmware haptic engine intermittently stays off after power-on; a driver rebind re-enables it.
+        # Temporary: remove once Dell/touchpad firmware or the kernel initialises haptics reliably.
+        touchpad-haptics-rebind = {
+          description = "Rebind the touchpad i2c-hid device to re-enable firmware haptics";
+          wantedBy = [ "multi-user.target" "suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target" ];
+          after = [ "multi-user.target" "suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target" ];
+          serviceConfig = {
+            Type = "oneshot";
+            TimeoutStartSec = "45s";
+            ExecStart = "${touchpadRebind}/bin/touchpad-haptics-rebind";
+            SuccessExitStatus = "0 1";
           };
         };
 
