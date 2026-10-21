@@ -1,4 +1,4 @@
-{ delib, lib, pkgs, ... }:
+{ delib, lib, ... }:
 delib.module {
   name = "programs.neovim";
 
@@ -12,9 +12,6 @@ delib.module {
   home.ifEnabled = { cfg, ... }: {
     programs.neovim = {
       enable = true;
-      package = pkgs.neovim-unwrapped;
-      viAlias = true;
-      vimAlias = true;
       inherit (cfg) extraPackages extraWrapperArgs;
       plugins = cfg.extraPlugins;
     };

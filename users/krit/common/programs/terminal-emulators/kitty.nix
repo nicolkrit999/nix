@@ -1,5 +1,6 @@
 { delib
 , lib
+, pkgs
 , config
 , moduleSystem
 , ...
@@ -11,9 +12,10 @@ delib.module {
   myconfig.ifEnabled.programs.kitty.enable = true;
 
   home.ifEnabled =
-    _:
+    { myconfig, ... }:
     let
       isDarwin = moduleSystem == "darwin";
+      stylixKittyOn = myconfig.stylix.enable && (myconfig.stylix.targets.kitty.enable or true);
 
       hasStylixPalette = (builtins.tryEval config.lib.stylix.colors.base00).success;
       colors =
@@ -24,8 +26,12 @@ delib.module {
         };
     in
     {
+      home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+      fonts.fontconfig.enable = true;
+
       programs.kitty = {
         settings = {
+          font_family = lib.mkIf (!stylixKittyOn) "JetBrainsMono Nerd Font";
           background_opacity = lib.mkForce "1.0";
           copy_on_select = "yes";
           window_padding_width = 4;

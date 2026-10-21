@@ -20,7 +20,11 @@ delib.module {
       opener = if moduleSystem == "darwin" then "open" else "xdg-open";
     in
     {
-      home.packages = [ pkgs.fzf ];
+      home.packages = with pkgs; [
+        ffmpegthumbnailer
+        ueberzugpp
+        fzf
+      ];
 
       programs.ranger = {
         rifle = [
@@ -43,6 +47,29 @@ delib.module {
         };
 
         settings = {
+          preview_images = true;
+          preview_images_method =
+            if
+              builtins.elem terminal [
+                "kitty"
+                "ghostty"
+                "konsole"
+                "wezterm"
+                "rio"
+              ]
+            then
+              "kitty"
+            else if terminal == "iterm2" then
+              "iterm2"
+            else if
+              builtins.elem terminal [
+                "foot"
+                "blackbox"
+              ]
+            then
+              "sixel"
+            else
+              "ueberzug"; # kitty protocol, iTerm2 inline images, sixel, or ueberzug as fallback
           wrap_scroll = true; # Wrap around at the ends of a list
           draw_borders = true; # Draws borders between columns
           w3m_delay = 0; # Instant rendering for w3m previews

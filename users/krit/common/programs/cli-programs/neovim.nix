@@ -217,6 +217,8 @@ delib.module {
       };
 
       programs.neovim = {
+        viAlias = true;
+        vimAlias = true;
         withRuby = false;
         withPython3 = true; # builds python env + pynvim; wired via sideloadInitLua
 

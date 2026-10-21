@@ -1,8 +1,4 @@
-{ delib
-, lib
-, pkgs
-, ...
-}:
+{ delib, ... }:
 delib.module {
   name = "programs.alacritty";
   options = delib.singleEnableOption false;
@@ -17,17 +13,12 @@ delib.module {
       terminal = myconfig.constants.terminal;
     in
     {
-      home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
-      fonts.fontconfig.enable = true;
-
       catppuccin.alacritty.enable = myconfig.constants.theme.catppuccin;
       catppuccin.alacritty.flavor = myconfig.constants.theme.catppuccinFlavor;
 
       programs.alacritty = {
         enable = true;
         settings = {
-          font.normal.family = lib.mkDefault "JetBrainsMono Nerd Font";
-
           cursor = {
             style = {
               shape =

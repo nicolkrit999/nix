@@ -1,5 +1,6 @@
 { delib
 , lib
+, pkgs
 , config
 , ...
 }:
@@ -21,10 +22,14 @@ delib.module {
         };
     in
     {
+      home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+      fonts.fontconfig.enable = true;
+
       programs.alacritty.settings = {
         window.opacity = lib.mkForce 1.0;
         font = {
           builtin_box_drawing = true;
+          normal.family = lib.mkDefault "JetBrainsMono Nerd Font";
           normal.style = lib.mkForce "Bold";
         };
 
