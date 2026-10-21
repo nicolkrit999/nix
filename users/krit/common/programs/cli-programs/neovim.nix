@@ -11,6 +11,40 @@ delib.module {
     { myconfig
     , ...
     }:
+    let
+      # ifEnabled cannot read config.xdg.*; default XDG dirs under the platform home
+      # (identical relative to ~ on Linux and macOS, nothing here sets XDG vars)
+      homeDir =
+        if pkgs.stdenv.hostPlatform.isDarwin then
+          "/Users/${myconfig.constants.user}"
+        else
+          "/home/${myconfig.constants.user}";
+      dataDir = "${homeDir}/.local/share";
+      stateDir = "${homeDir}/.local/state";
+      cacheDir = "${homeDir}/.cache";
+
+      # dir/age pairs shared by the tmpfiles rules (Linux) and the launchd cleanup (macOS)
+      cleanupDirs = [
+        { dir = "${dataDir}/nvim/whatsapp/media"; age = 60; } # whatsapp.nvim attachment cache, re-downloadable
+        { dir = "${dataDir}/nvim/backup"; age = 90; } # backupdir copies
+        { dir = "${stateDir}/nvim/undo"; age = 180; } # persistent undo history
+        { dir = "${cacheDir}/nvim/whatsapp/images"; age = 60; } # rendered from the media files, regenerable cache
+      ];
+
+      # Same semantics as tmpfiles `e`: a file expires only when atime, mtime and
+      # ctime are all older than the age. Missing dirs (e.g. no whatsapp bridge
+      # on this machine) are skipped; empty subdirs are pruned, never the top dir.
+      cleanupScript = pkgs.writeShellApplication {
+        name = "nvim-cache-cleanup";
+        text = ''
+          clean() {
+            [ -d "$1" ] || return 0
+            /usr/bin/find "$1" -type f -mtime "+$2" -atime "+$2" -ctime "+$2" -delete
+            /usr/bin/find "$1" -mindepth 1 -type d -empty -delete
+          }
+        '' + lib.concatMapStrings (e: "clean ${lib.escapeShellArg e.dir} ${toString e.age}\n") cleanupDirs;
+      };
+    in
     {
       xdg.desktopEntries.custom-nvim = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         name = "Neovim";
@@ -38,6 +72,30 @@ delib.module {
         nodejs_latest # nvim :run on .js/.ts and markdown-preview.nvim build
         neovide # GUI frontend; must be in the profile, extraPackages only reaches nvim's own PATH
       ];
+
+      # Age cleanup via the user systemd-tmpfiles-clean timer; `e` only adjusts
+      # existing dirs. Age = newest atime/mtime/ctime of an entry, so an undo
+      # file only expires 180d after its last edit.
+      systemd.user.tmpfiles.rules = lib.mkIf pkgs.stdenv.hostPlatform.isLinux (
+        map (e: "e ${e.dir} - - - ${toString e.age}d") cleanupDirs
+      );
+
+      # macOS has no tmpfiles; HM's launchd module is Darwin-only. Daily with
+      # RunAtLoad so a Mac that is mostly asleep still cleans after login.
+      launchd.agents.nvim-cache-cleanup = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+        enable = true;
+        config = {
+          Label = "com.krit.nvim-cache-cleanup";
+          ProgramArguments = [ "${cleanupScript}/bin/nvim-cache-cleanup" ];
+          StartInterval = 86400;
+          RunAtLoad = true;
+          ProcessType = "Background";
+          LowPriorityIO = true;
+          Nice = 10;
+          StandardOutPath = "${homeDir}/Library/Logs/nvim-cache-cleanup.log";
+          StandardErrorPath = "${homeDir}/Library/Logs/nvim-cache-cleanup.log";
+        };
+      };
 
       programs.neovim = {
         enable = true;
