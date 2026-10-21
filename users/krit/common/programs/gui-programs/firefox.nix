@@ -9,7 +9,10 @@ delib.module {
   options = delib.singleEnableOption false;
 
   myconfig.ifEnabled = { myconfig, ... }: {
-    stylix.targets.firefox.profileNames = [ myconfig.constants.user ];
+    programs.firefox = {
+      enable = true;
+      profileName = lib.mkDefault myconfig.constants.user;
+    };
   };
 
   home.ifEnabled =
@@ -19,6 +22,7 @@ delib.module {
     let
       homeDir = "${if moduleSystem == "darwin" then "/Users" else "/home"}/${myconfig.constants.user}";
       addons = pkgs.firefox-addons;
+      profile = myconfig.programs.firefox.profileName;
     in
     {
       catppuccin.firefox = {
@@ -28,8 +32,7 @@ delib.module {
       };
 
       programs.firefox = {
-        enable = true;
-        profiles.${myconfig.constants.user} = {
+        profiles.${profile} = {
           search = {
             force = true;
             default = "kagi";

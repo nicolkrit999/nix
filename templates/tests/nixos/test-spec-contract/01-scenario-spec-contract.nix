@@ -73,7 +73,7 @@ let
     (src + "/modules/common/programs/headroom.nix")
     (src + "/modules/common/programs/herdr.nix")
     (src + "/modules/common/programs/zen-browser.nix")
-    (src + "/users/krit/common/programs/claude-code-wrappers.nix")
+    (src + "/users/krit/common/programs/claude-code/claude-code-wrappers.nix")
     (src + "/modules/common/programs/fastfetch.nix")
     (src + "/modules/nixos/programs/claude-desktop.nix")
     (src + "/modules/nixos/programs/google-antigravity.nix")

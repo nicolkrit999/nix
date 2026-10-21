@@ -1,3 +1,4 @@
 - [SDDM greeter QML check](reference_sddm_greeter_qml_check.md) - test-mode hides QML errors; use QT_FORCE_STDERR_LOGGING=1 and grep, control-test first
 - [Closure diff pitfalls](reference_nix_closure_diff_pitfalls.md) - readlink -f specialisation paths, union closures, sub-KiB hiding, HM generation lookup
 - [Derivation diff recipe](reference_nix_derivation_show_and_nix_diff.md) - nix-diff via nix run; derivation show keyed under "derivations"; diff structuredAttrs text
+- [Darwin tests on Linux](reference_darwin_tests_run_on_linux.md) - darwin-* tests are not skipped here; eval-only pass, not a darwin build

@@ -79,6 +79,10 @@ let
     (src + "/modules/common/programs/claude-code.nix")
     (src + "/modules/common/programs/neovim.nix")
     (src + "/modules/common/programs/yazi.nix")
+    (src + "/modules/common/programs/firefox.nix")
+    (src + "/modules/common/programs/ranger.nix")
+    (src + "/modules/common/programs/kitty.nix")
+    (src + "/modules/common/programs/alacritty.nix")
     (src + "/modules/common/programs/codex.nix")
     (src + "/modules/common/programs/fastfetch.nix")
     (src + "/modules/common/programs/agent-reach.nix")
@@ -141,8 +145,8 @@ let
     (src + "/modules/nixos/specializations/secure-travel.nix")
 
     # users/krit/common - cross-platform user modules
-    (src + "/users/krit/common/programs/claude-code-personal.nix")
-    (src + "/users/krit/common/programs/claude-code-wrappers.nix")
+    (src + "/users/krit/common/programs/claude-code/claude-code-personal.nix")
+    (src + "/users/krit/common/programs/claude-code/claude-code-wrappers.nix")
     (src + "/users/krit/common/programs/cli-programs/direnv.nix")
     (src + "/users/krit/common/programs/cli-programs/neovim.nix")
     (src + "/users/krit/common/programs/file-managers/ranger.nix")
@@ -165,7 +169,6 @@ let
     (src + "/users/krit/common/programs/terminal-emulators/alacritty.nix")
     (src + "/users/krit/common/programs/terminal-emulators/kitty.nix")
     (src + "/modules/common/toplevel/attic.nix")
-    (src + "/modules/common/toplevel/firefox-addons.nix")
     (src + "/users/krit/common/toplevel/nas-identity.nix")
 
     # users/krit/nixos - NixOS-specific user modules (ext-dotfiles excluded: pure symlinks, no arch risk)

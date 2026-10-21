@@ -9,7 +9,7 @@ metadata:
 `myconfig.krit.programs.claude-code-personal.mcpSecrets`, and **only while `krit.programs.claude-code-personal.enable` is true** (a host without the personal layer declares/decrypts none of them). The old darwin hardcoded list is gone.
 
 A new `claude_mcp_*` secret therefore goes into the `mcpSecrets` **default list** in
-`users/krit/common/programs/claude-code-personal.nix` (entries are `{ sopsSecret = "..."; }`, the former `envVar` field was removed because nothing read it), plus the key in the common sops yaml.
+`users/krit/common/programs/claude-code/claude-code-personal.nix` (entries are `{ sopsSecret = "..."; }`, the former `envVar` field was removed because nothing read it), plus the key in the common sops yaml.
 
 `hosts/Nicol-NAS/default.nix` **overrides** `mcpSecrets` with just the two secrets its home-only launchers use (context7, github), so it does not pick up additions to the default - intentional, don't "fix" it.
 

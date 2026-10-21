@@ -76,7 +76,7 @@ delib.host {
           enable = true;
           browserChannels = false;
         };
-        # mcpSecrets / mcpEnv default in users/krit/common/programs/claude-code-personal.nix
+        # mcpSecrets / mcpEnv default in users/krit/common/programs/claude-code/claude-code-personal.nix
         claude-code.enable = true;
         vikunja-desktop.enable = true;
 
