@@ -23,6 +23,7 @@ delib.module {
         "/var/lib/docker"
         "/var/lib/flatpak"
         "/var/lib/nixos"
+        "/var/lib/power-profiles-daemon"
         "/var/lib/sddm"
         "/var/lib/snapper"
         "/var/lib/systemd/backlight"
