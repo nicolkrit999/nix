@@ -761,7 +761,7 @@ delib.host {
           };
 
           laptop = {
-            camera.enable = true;
+            camera.enable = false; # 2026-10-21: disabled, ipu7 psys module caused a boot kernel panic
             flatpak.enable = true;
             local-packages.enable = true;
           };

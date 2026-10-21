@@ -50,6 +50,8 @@ let
     text = ''
       drv=/sys/bus/i2c/drivers/i2c_hid_acpi
       dev=i2c-VEN_06CB:00
+      up=$(cut -d. -f1 /proc/uptime)
+      if [ "$up" -lt 180 ]; then sleep 20; else sleep 3; fi
       for _ in $(seq 1 30); do
         [ -e "$drv/$dev" ] && break
         sleep 1
@@ -153,14 +155,14 @@ delib.host {
         };
 
         # The touchpad firmware haptic engine intermittently stays off after power-on; a driver rebind re-enables it.
-        # Temporary: remove once Dell/touchpad firmware or the kernel initialises haptics reliably.
+        # Runs after graphical.target plus a settle delay (rebinding at ~10 s of boot was too early). Temporary: remove once firmware/kernel init haptics reliably.
         touchpad-haptics-rebind = {
           description = "Rebind the touchpad i2c-hid device to re-enable firmware haptics";
-          wantedBy = [ "multi-user.target" "suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target" ];
-          after = [ "multi-user.target" "suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target" ];
+          wantedBy = [ "graphical.target" "suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target" ];
+          after = [ "graphical.target" "suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target" ];
           serviceConfig = {
             Type = "oneshot";
-            TimeoutStartSec = "45s";
+            TimeoutStartSec = "90s";
             ExecStart = "${touchpadRebind}/bin/touchpad-haptics-rebind";
             SuccessExitStatus = "0 1";
           };
