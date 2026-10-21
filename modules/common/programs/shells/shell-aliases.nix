@@ -154,6 +154,7 @@ delib.module {
       };
 
       nixosAliases = {
+        su = "su -l";
         swboot = "cd ${flakeDir} && git add -A && ${nixosBootWrapped}";
         swtest = "cd ${flakeDir} && git add -A && ${nixosTestCmd}";
         swdry = "cd ${flakeDir} && git add -A && ${nixosDryCmd}";
