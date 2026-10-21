@@ -1,6 +1,6 @@
 { delib, pkgs, ... }:
 delib.module {
-  name = "programs.zen.browser";
+  name = "krit.programs.zen-browser";
 
   home.ifEnabled = {
     programs.zen-browser.profiles.default.extensions.packages = with pkgs.firefox-addons; [

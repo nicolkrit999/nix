@@ -40,7 +40,7 @@
         ./hosts/template-host-minimal/disko-config-btrfs-luks-impermanence.nix
 
         # Opinionated modules exclusion
-        ./users/krit/common/programs/gui-programs/librewolf/profiles # `librewolf.nix` already imports them
+        ./users/krit/common/programs/gui-programs/librewolf/profiles # `librewolf-common.nix` already imports them
         ./modules/nixos/programs/de-wm/wallpaperd # plain function + script imported by the WM modules
         ./modules/nixos/programs/waybar/contrast-lib.nix # plain function shared by the three waybar modules
       ];

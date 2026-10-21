@@ -26,19 +26,7 @@ delib.module {
         DontCheckDefaultBrowser = true;
       };
 
-      profiles.default = {
-        # ⚠ CLOSE ZEN BEFORE REBUILD when modifying keyboardShortcuts.
-        keyboardShortcuts = [
-          {
-            id = "zen-compact-mode-toggle";
-            key = "m";
-            modifiers = {
-              alt = true;
-              shift = true;
-            };
-          }
-        ];
-      };
+      profiles.default = { };
     } // lib.optionalAttrs (moduleSystem == "darwin") {
       darwinDefaultsId = "app.zen-browser.zen";
     };

@@ -2,7 +2,7 @@
 
 Eval-level contract of the LibreWolf two-profile setup (`users/krit/common/programs/gui-programs/librewolf/`, batch 11 of the codebase audit) on the REAL `nixos-desktop` and `nixos-laptop` configurations: profile layout, the prefs written to each `user.js`, the Privacy exit-wipe wiring, search engines, extensions, and the secure-travel specialisation that makes Privacy the default profile.
 
-This test only proves what the generated `user.js` and `librewolf.overrides.cfg` SAY. LibreWolf's `mozilla.cfg` `pref()` calls run after `user.js`, so the module re-asserts each profile's prefs in `~/.librewolf/librewolf.overrides.cfg` (evaluated last, selected per profile by the `nixcfg.librewolf.profile` marker pref in `user.js`); whether they TAKE EFFECT is proven by `test-librewolf-runtime`.
+This test only proves what the generated `user.js` and `librewolf.overrides.cfg` SAY. LibreWolf's `mozilla.cfg` `pref()` calls run after `user.js`, so the generic `programs.librewolf` module (`modules/common/programs/librewolf.nix`, fed by `krit.programs.librewolf` through `profileSettings`) re-asserts each profile's prefs in `~/.librewolf/librewolf.overrides.cfg` (evaluated last, selected per profile by the `nixcfg.librewolf.profile` marker pref in `user.js`); whether they TAKE EFFECT is proven by `test-librewolf-runtime`.
 
 ## Run
 

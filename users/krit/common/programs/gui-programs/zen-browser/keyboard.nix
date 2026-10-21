@@ -1,9 +1,18 @@
 { delib, ... }:
+# ⚠ CLOSE ZEN BEFORE REBUILD when modifying keyboardShortcuts.
 delib.module {
-  name = "programs.zen.browser";
+  name = "krit.programs.zen-browser";
 
   home.ifEnabled = {
-    # Placeholder: extra shortcuts go here
-    programs.zen-browser.profiles.default.keyboardShortcuts = [ ];
+    programs.zen-browser.profiles.default.keyboardShortcuts = [
+      {
+        id = "zen-compact-mode-toggle";
+        key = "m";
+        modifiers = {
+          alt = true;
+          shift = true;
+        };
+      }
+    ];
   };
 }

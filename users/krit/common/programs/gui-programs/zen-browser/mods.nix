@@ -1,6 +1,6 @@
 { delib, ... }:
 delib.module {
-  name = "programs.zen.browser";
+  name = "krit.programs.zen-browser";
 
   home.ifEnabled = {
     programs.zen-browser.profiles.default.mods = [

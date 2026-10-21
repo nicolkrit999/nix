@@ -55,7 +55,6 @@ delib.host {
       herdr.enable = true;
       statix.enable = true;
       television.enable = true;
-      zen.browser.enable = true;
       fzf.nix-search-tv.enable = true;
 
       # NixOS programs
@@ -111,6 +110,7 @@ delib.host {
         firefox.enable = true;
         librewolf.enable = true;
         zathura.enable = true;
+        zen-browser.enable = true;
         claude-code-wrappers.enable = true;
 
         # users/krit/nixos programs

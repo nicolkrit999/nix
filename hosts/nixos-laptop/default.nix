@@ -377,7 +377,6 @@ delib.host {
 
         vikunja-desktop.enable = true;
         walker.enable = false;
-        zen.browser.enable = true;
         zoxide.enable = true;
 
         # ---------------------------------------------------------------
@@ -751,6 +750,7 @@ delib.host {
           ranger.enable = false;
           yazi.enable = true;
           zathura.enable = true;
+          zen-browser.enable = true;
         };
 
         services = {

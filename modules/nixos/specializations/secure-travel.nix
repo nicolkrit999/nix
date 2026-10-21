@@ -22,7 +22,7 @@ let
   hasKritProgram = n: options ? myconfig.krit.programs.${n};
   kritPrograms =
     lib.genAttrs
-      (lib.filter hasKritProgram [ "pwas" "firefox" "chromium" "helium" ])
+      (lib.filter hasKritProgram [ "pwas" "firefox" "chromium" "helium" "zen-browser" ])
       (_: { enable = lib.mkForce false; })
     // lib.optionalAttrs (hasKritProgram "librewolf") {
       librewolf.enable = lib.mkForce true;
