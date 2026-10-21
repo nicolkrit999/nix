@@ -76,7 +76,7 @@ delib.host {
           enable = true;
           browserChannels = false;
         };
-        # mcpSecrets / mcpEnv default in modules/common/programs/claude-code.nix (shared across all hosts)
+        # mcpSecrets / mcpEnv default in users/krit/common/programs/claude-code-personal.nix
         claude-code.enable = true;
         vikunja-desktop.enable = true;
 
@@ -157,6 +157,7 @@ delib.host {
           yazi.enable = true;
           proton-cli.enable = true;
           ranger.enable = false;
+          claude-code-personal.enable = true;
           claude-code-wrappers.enable = true;
           alacritty.enable = false;
 

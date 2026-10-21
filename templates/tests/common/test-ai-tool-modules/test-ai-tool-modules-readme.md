@@ -1,6 +1,6 @@
 # test-ai-tool-modules
 
-Wiring contracts of the AI tool modules in `modules/common/programs/`: the headroom proxy (`headroom.nix`), the claude-code `cowork` toggle and `openrouterAliases` option (`claude-code.nix`) and the codex overlay (`codex.nix`). It does not test whether a host enables any of them: every variant forces its own toggles on `template-host-minimal`.
+Wiring contracts of the AI tool modules in `modules/common/programs/`: the headroom proxy (`headroom.nix`), the claude-code `cowork` toggle (`claude-code.nix`), the `krit.programs.claude-code-wrappers` `openrouterAliases` option and the `claude-code-personal` aliases and the codex overlay (`codex.nix`). It does not test whether a host enables any of them: every variant forces its own toggles on `template-host-minimal`.
 
 Why: headroom's address is spelled in two places (unit `ExecStart` and the `headroom-claude` script) and drifts silently; a `python3.withPackages` env would put a second `bin/python` into `home.packages` (collision with the school specialisation's python env); a user unit `After=network.target` is a no-op. `cowork` must stay opt-in, `claude-code.nix` must evaluate without the `users/krit` tree (it reads only its own `openrouterAliases` option, set by `claude-code-wrappers.nix`, never `myconfig.krit.*`), and `pkgs.codex` must come from the `codex-cli-nix` overlay rather than a second nixpkgs import.
 
@@ -53,15 +53,16 @@ bash check-common-ai-tool-modules.sh
 | check-cowork-drives-service | `cowork = true`: service enabled and the user unit exists |
 | check-cowork-needs-claude-code | claude-code off with `cowork = true`: service off, no unit |
 
-### claude-code openrouterAliases
+### claude-code aliases (krit layers)
 
 | Check | Expected |
 |-------|----------|
-| check-option-default-off | declared default of `myconfig.programs.claude-code.openrouterAliases` is `false` |
+| check-option-default-follows-platform | declared default of `myconfig.krit.programs.claude-code-wrappers.openrouterAliases` is `true` on NixOS (`moduleSystem != "home"`) |
 | check-bare-tree-has-no-krit-options | the bare host really has no `myconfig.krit` (the scenario is the no-krit-tree case) |
-| check-bare-no-openrouter-aliases | bare host, claude-code on: evaluates, no `cai-openrouter-*` alias, `caitempplugins` present (control) |
-| check-option-alone-drives-aliases | bare host with the option forced true: `cai-openrouter-opus` and more appear |
-| check-krit-wrappers-keep-aliases | `template-host-minimal` with `krit.programs.claude-code-wrappers` on: option true and `cai-openrouter-opus` present; with it off (default): option false |
+| check-bare-no-personal-aliases | bare host, claude-code on: evaluates (`CLAUDE_BINARY` present as control), no `cai-openrouter-*` and no `caitemp*` alias |
+| check-wrappers-add-aliases | `template-host-minimal` with `krit.programs.claude-code-wrappers` on: option true and `cai-openrouter-opus` present; with it off (default): no `cai-openrouter-*` alias |
+| check-option-alone-drives-aliases | wrappers on with `openrouterAliases = false`: no `cai-openrouter-*` alias |
+| check-personal-template-aliases | `krit.programs.claude-code-personal` on: `caitempplugins` present, no `cai-openrouter-*`; off: no `caitemp*` |
 
 ### codex overlay
 

@@ -59,11 +59,7 @@ let
       probe
       ({ lib, pkgs, ... }: {
         myconfig.programs = {
-          claude-code = {
-            enable = lib.mkForce true;
-            mcpSecrets = lib.mkForce mcpSecretsFake;
-            mcpEnv = lib.mkForce { TEST_STATIC_MARKER = "static"; };
-          };
+          claude-code.enable = lib.mkForce true;
           codex.enable = lib.mkForce on;
           herdr.enable = lib.mkForce on;
           nltchNur = {
@@ -81,6 +77,11 @@ let
           };
         };
         myconfig.krit.programs.claude-code-wrappers.enable = lib.mkForce false;
+        myconfig.krit.programs.claude-code-personal = {
+          enable = lib.mkForce true;
+          mcpSecrets = lib.mkForce mcpSecretsFake;
+          mcpEnv = lib.mkForce { TEST_STATIC_MARKER = "static"; };
+        };
       })
     ];
   };

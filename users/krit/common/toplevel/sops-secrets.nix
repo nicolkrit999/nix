@@ -8,13 +8,13 @@
 let
   commonSecrets = ../sops/krit-common-secrets-sops.yaml;
 
-  mkClaudeMcpSecrets = owner: mcpSecrets:
-    lib.listToAttrs (map
+  mkClaudeMcpSecrets = owner: personal:
+    lib.optionalAttrs personal.enable (lib.listToAttrs (map
       (s: {
         name = s.sopsSecret;
         value = { sopsFile = commonSecrets; } // lib.optionalAttrs (owner != null) { inherit owner; };
       })
-      mcpSecrets);
+      personal.mcpSecrets));
 
   mkShared = user: homeDir: {
     github_fg_pat_token_nix = {
@@ -67,7 +67,7 @@ delib.module {
           sopsFile = commonSecrets;
           owner = user;
         };
-      } // mkClaudeMcpSecrets user myconfig.programs.claude-code.mcpSecrets;
+      } // mkClaudeMcpSecrets user myconfig.krit.programs.claude-code-personal;
     };
 
   darwin.ifEnabled =
@@ -88,7 +88,7 @@ delib.module {
           owner = user;
           path = "${homeDir}/.ssh/id_school.pub";
         };
-      } // mkClaudeMcpSecrets user myconfig.programs.claude-code.mcpSecrets;
+      } // mkClaudeMcpSecrets user myconfig.krit.programs.claude-code-personal;
     };
 
   home.ifEnabled =
@@ -109,7 +109,7 @@ delib.module {
         secrets = {
           github_general_ssh_pub.path = "${config.home.homeDirectory}/.ssh/id_github.pub";
           github_general_ssh_key.path = "${config.home.homeDirectory}/.ssh/id_github";
-        } // mkClaudeMcpSecrets null myconfig.programs.claude-code.mcpSecrets;
+        } // mkClaudeMcpSecrets null myconfig.krit.programs.claude-code-personal;
       };
     };
 }

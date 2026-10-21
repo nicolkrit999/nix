@@ -10,3 +10,5 @@ mk-python-derivation.nix now has `__structuredAttrs ? true` (absent at lock 26f4
 **Why:** any override/local python pkg using `makeWrapperArgs = [ "\${var}" ]` or `"--prefix X : $foo"` strings breaks the same way.
 
 **How to apply:** use `preFixup = ''makeWrapperArgs+=("''${qtWrapperArgs[@]}")'';` (nixpkgs pattern, e.g. androguard). Sweep: `grep -rn 'makeWrapperArgs.*\\\$' --include=*.nix`. Side trap: agent shells may carry a stale python3.13 PYTHONPATH (vulnix) - smoke-test python binaries with `env -u PYTHONPATH`, else bogus cffi version-mismatch tracebacks.
+
+Eval side effect: structuredAttrs python drvs now carry an `env` attrset (`{ LANG }`), so `p ? env` no longer identifies a python env. Broke the test-ai-tool-modules `isPyEnv` heuristic (`... || p ? pythonPath && p ? env`) -> false "headroom adds python env(s): headroom-ai-*" (pre-existing on HEAD 336d2452, 2026-10-21). Real `python3.withPackages` envs have NO `pythonPath`; the name regex alone identifies them.

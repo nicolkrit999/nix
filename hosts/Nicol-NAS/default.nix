@@ -74,13 +74,7 @@ delib.host {
           enable = true;
         };
 
-        claude-code = {
-          enable = true;
-          mcpSecrets = [
-            { sopsSecret = "claude_mcp_context7_api_key"; }
-            { sopsSecret = "claude_mcp_github_token"; }
-          ];
-        };
+        claude-code.enable = true;
       };
 
       # ---------------------------------------------------------------
@@ -88,7 +82,16 @@ delib.host {
       # ---------------------------------------------------------------
       krit = {
         commonSopsSecrets.enable = true;
-        programs.yazi.enable = true;
+        programs = {
+          claude-code-personal = {
+            enable = true;
+            mcpSecrets = [
+              { sopsSecret = "claude_mcp_context7_api_key"; }
+              { sopsSecret = "claude_mcp_github_token"; }
+            ];
+          };
+          yazi.enable = true;
+        };
         services.nicol-nas.local-packages.enable = true;
         system = {
           git-ssh-signing.enable = true;

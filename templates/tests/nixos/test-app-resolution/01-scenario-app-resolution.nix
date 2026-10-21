@@ -30,6 +30,7 @@ let
         (src + "/modules/nixos/toplevel/mime.nix")
         (src + "/modules/common/programs/zen-browser.nix")
       ] ++ lib.optionals withKrit [
+        (src + "/modules/common/programs/neovim.nix")
         (src + "/users/krit/common/programs/cli-programs/neovim.nix")
         (src + "/users/krit/nixos/programs/file-managers/dolphin.nix")
       ];

@@ -22,7 +22,7 @@ let
 
   userOf = h: h.config.myconfig.constants.user;
   secretsOf = h: h.config.sops.secrets;
-  mcpOf = h: h.config.myconfig.programs.claude-code.mcpSecrets;
+  mcpOf = h: h.config.myconfig.krit.programs.claude-code-personal.mcpSecrets;
 
   yamlKeys = file:
     map (l: lib.head (lib.splitString ":" l))
@@ -66,6 +66,17 @@ in
           ++ lib.optional (toString s.${m.sopsSecret}.sopsFile != toString commonYaml) "${m.sopsSecret} sopsFile not the common yaml")
       (mcpOf h));
 
+  check-mcp-secrets-gated-on-personal = perHost allHosts (h:
+    let
+      names = map (m: m.sopsSecret) (mcpOf h);
+      personal = value: withModules h [ ({ lib, ... }: { myconfig.krit.programs.claude-code-personal.enable = lib.mkForce value; }) ];
+      off = secretsOf (personal false);
+      on = secretsOf (personal true);
+    in
+    lib.optional (names == [ ]) "mcpSecrets empty: check would be vacuous"
+    ++ map (n: "personal off: ${n} still declared") (lib.filter (n: off ? ${n}) names)
+    ++ map (n: "personal on: ${n} not declared") (lib.filter (n: !(on ? ${n})) names));
+
   check-yaml-key-lookup-bites =
     let keys = yamlKeys commonYaml; in
     failures (
@@ -82,8 +93,8 @@ in
     let
       cfg = nas.config;
       s = cfg.sops.secrets;
-      mcp = cfg.myconfig.programs.claude-code.mcpSecrets;
-      env = cfg.myconfig.programs.claude-code.mcpEnv;
+      mcp = cfg.myconfig.krit.programs.claude-code-personal.mcpSecrets;
+      env = cfg.myconfig.krit.programs.claude-code-personal.mcpEnv;
       wrapper = lib.filter (p: (p.name or "") == "claude") cfg.home.packages;
       text = if wrapper == [ ] then "" else builtins.unsafeDiscardStringContext ((lib.head wrapper).text or "");
       exported = lib.concatMap
@@ -296,8 +307,8 @@ in
       withoutCtx = nas.extendModules {
         modules = [
           ({ lib, ... }: {
-            myconfig.programs.claude-code.mcpSecrets = lib.mkForce
-              (lib.filter (m: m.sopsSecret != "claude_mcp_context7_api_key") cfg.myconfig.programs.claude-code.mcpSecrets);
+            myconfig.krit.programs.claude-code-personal.mcpSecrets = lib.mkForce
+              (lib.filter (m: m.sopsSecret != "claude_mcp_context7_api_key") cfg.myconfig.krit.programs.claude-code-personal.mcpSecrets);
           })
         ];
       };

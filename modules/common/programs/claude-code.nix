@@ -1,31 +1,5 @@
-{ delib, inputs, pkgs, lib, config, moduleSystem, ... }:
+{ delib, inputs, pkgs, lib, moduleSystem, ... }:
 let
-  # Deliberately unpinned `@latest`: a manual escape hatch, not a managed tool.
-  templateAliases = {
-    caitempplugins = "npx claude-code-templates@latest --plugins";
-    caitemphealt = "npx claude-code-templates@latest --health-check";
-    caitempchat = "npx claude-code-templates@latest --chats";
-    caitempanalytics = "npx claude-code-templates@latest --analytics";
-  };
-  openrouterAliases = {
-    cai-openrouter-geminipro = "cai-openrouter --model google/gemini-3.1-pro-preview[1m]";
-    cai-openrouter-geminiflash = "cai-openrouter --model google/gemini-3.1-flash-lite-preview[1m]";
-    cai-openrouter-gptpro = "cai-openrouter --model openai/gpt-5.5-pro[1m]";
-    cai-openrouter-gptmini = "cai-openrouter --model openai/gpt-5.5-mini[1m]"; # In reality support 400k but it does not recognize "k" nor "m" with decimals
-    cai-openrouter-opus = "cai-openrouter --model anthropic/claude-opus-4.7[1m]";
-    cai-openrouter-sonnet = "cai-openrouter --model anthropic/claude-sonnet-4.7[1m]";
-    cai-openrouter-maverick = "cai-openrouter --model meta-llama/llama-4-maverick[1m]";
-    cai-openrouter-scout = "cai-openrouter --model meta-llama/llama-4-scout[1m]";
-    cai-openrouter-glmturbo = "cai-openrouter --model z-ai/glm-5-turbo";
-    cai-openrouter-grokbeta = "cai-openrouter --model x-ai/grok-4.20-beta[1m]";
-    cai-openrouter-grokmulti = "cai-openrouter --model x-ai/grok-4.20-multi-agent-beta[1m]"; # In reality support 2M but it does not allow anything more than 1m
-    cai-openrouter-free-step = "cai-openrouter --model stepfun/step-3.5-flash:free";
-    cai-openrouter-free-hunter = "cai-openrouter --model openrouter/hunter-alpha[1m]";
-    cai-openrouter-mistralsmall = "cai-openrouter --model mistralai/mistral-small-2603";
-    cai-openrouter-kimi = "cai-openrouter --model moonshotai/kimi-k2.5";
-    cai-openrouter-qwen = "cai-openrouter --model qwen/qwen3.5-397b-a17b";
-    cai-openrouter-minimax = "cai-openrouter --model minimax/minimax-m2.5";
-  };
   overlays = [ inputs.claude-code.overlays.default ];
   claudeCodeTools = [
     pkgs.bun
@@ -43,55 +17,24 @@ delib.module {
   options = delib.moduleOptions {
     enable = delib.boolOption false;
     cowork = delib.boolOption false;
-    openrouterAliases = delib.boolOption false;
-    mcpSecrets = lib.mkOption {
-      type = lib.types.listOf (lib.types.submodule {
-        options = {
-          sopsSecret = lib.mkOption {
-            type = lib.types.str;
-            description = "The sops secret name (key in sops.secrets).";
-          };
-        };
-      });
-      # Default for every host that does not override it (Nicol-NAS does); the
-      # sops declarations on all platforms derive from this list.
-      default = [
-        { sopsSecret = "openrouter_api_claude_code"; }
-        { sopsSecret = "claude_mcp_actual_password"; }
-        { sopsSecret = "claude_mcp_actual_sync_id"; }
-        { sopsSecret = "claude_mcp_actual_encryption_password"; }
-        { sopsSecret = "claude_mcp_context7_api_key"; }
-        { sopsSecret = "claude_mcp_openai_api_key"; }
-        { sopsSecret = "claude_mcp_milvus_token"; }
-        { sopsSecret = "claude_mcp_github_token"; }
-        { sopsSecret = "claude_mcp_portainer_token"; }
-        { sopsSecret = "claude_mcp_sparkyfitness_api_key"; }
-        { sopsSecret = "claude_mcp_vikunja_token"; }
-        { sopsSecret = "claude_mcp_beszel_email"; }
-        { sopsSecret = "claude_mcp_beszel_password"; }
-      ];
-      description = "Names of the MCP secrets; the sops declarations are generated from this list elsewhere, MCP launchers read the secret files themselves.";
-    };
-    mcpEnv = lib.mkOption {
+    extraEnv = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      # Default unless a host overrides it; only the home-build wrapper exports it.
-      default = {
-        ACTUAL_SERVER_URL = "https://budget.nicolkrit.ch";
-      };
-      description = "Static environment variables exported by the home-build `claude` wrapper.";
+      default = { };
+      description = "Static environment variables exported by the `claude` wrapper of home-only builds; with none set, plain pkgs.claude-code is installed.";
+    };
+    extraPackages = delib.listOfOption lib.types.package [ ];
+    extraGitIgnores = delib.listOfOption lib.types.str [ ];
+    extraShellAliases = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      description = "Aliases (fish abbreviations for fish) added to the shell selected by myconfig.constants.shell.";
     };
   };
 
-  # ===========================================================================
-  # DARWIN CONFIGURATION
-  # ===========================================================================
   darwin.always.nixpkgs.overlays = overlays;
 
   darwin.ifEnabled = sharedIfEnabled;
 
-  # ===========================================================================
-  # NIXOS CONFIGURATION
-  # ===========================================================================
   nixos.always = {
     imports = [ inputs.claude-cowork-service.nixosModules.default ];
     nixpkgs.overlays = overlays;
@@ -107,51 +50,27 @@ delib.module {
 
   home.ifEnabled = { cfg, myconfig, ... }:
     let
-      shellAliases = templateAliases
-        // lib.optionalAttrs cfg.openrouterAliases openrouterAliases;
-
-      hasSecret = name: lib.any (s: s.sopsSecret == name) cfg.mcpSecrets;
-      secretPath = name: config.sops.secrets.${name}.path;
-
-      # Standalone home reads the HM sops path; the key stays in env, off argv.
-      mcpLaunchers = lib.optionals (moduleSystem == "home") (
-        lib.optional (hasSecret "claude_mcp_context7_api_key")
-          (pkgs.writeShellScriptBin "claude-mcp-context7" ''
-            CONTEXT7_API_KEY="$(cat ${lib.escapeShellArg (secretPath "claude_mcp_context7_api_key")})"
-            export CONTEXT7_API_KEY
-            PATH=${pkgs.nodejs_latest}/bin:$PATH exec npx -y @upstash/context7-mcp
-          '')
-        ++ lib.optional (hasSecret "claude_mcp_github_token")
-          (pkgs.writeShellScriptBin "claude-mcp-github" ''
-            AUTH_HEADER="Bearer $(cat ${lib.escapeShellArg (secretPath "claude_mcp_github_token")})"
-            export AUTH_HEADER
-            PATH=${pkgs.nodejs_latest}/bin:$PATH exec npx mcp-remote https://api.githubcopilot.com/mcp --header 'Authorization:''${AUTH_HEADER}'
-          '')
-      );
-
-      mcpStaticExports = lib.mapAttrsToList
+      exports = lib.mapAttrsToList
         (name: value: "export ${name}=${lib.escapeShellArg value}")
-        cfg.mcpEnv;
+        cfg.extraEnv;
 
       claudeHomeWrapper = pkgs.writeShellScriptBin "claude" ''
-        ${lib.concatStringsSep "\n" mcpStaticExports}
+        ${lib.concatStringsSep "\n" exports}
         exec ${pkgs.claude-code}/bin/claude "$@"
       '';
+
+      claudeHome = if cfg.extraEnv == { } then pkgs.claude-code else claudeHomeWrapper;
     in
     {
       home.sessionVariables.CLAUDE_BINARY = "${pkgs.claude-code}/bin/.claude-unwrapped";
 
+      home.packages = lib.optionals (moduleSystem == "home") ([ claudeHome ] ++ claudeCodeTools ++ cfg.extraPackages);
+
       programs = {
-        git.ignores = [
-          "credentials.json"
-          "security_warnings_*.json"
-        ];
-
-        fish.shellAbbrs = lib.mkIf (myconfig.constants.shell == "fish") shellAliases;
-        zsh.shellAliases = lib.mkIf (myconfig.constants.shell == "zsh") shellAliases;
-        bash.shellAliases = lib.mkIf (myconfig.constants.shell == "bash") shellAliases;
+        git.ignores = cfg.extraGitIgnores;
+        fish.shellAbbrs = lib.mkIf (myconfig.constants.shell == "fish") cfg.extraShellAliases;
+        zsh.shellAliases = lib.mkIf (myconfig.constants.shell == "zsh") cfg.extraShellAliases;
+        bash.shellAliases = lib.mkIf (myconfig.constants.shell == "bash") cfg.extraShellAliases;
       };
-
-      home.packages = lib.optionals (moduleSystem == "home") ([ claudeHomeWrapper ] ++ claudeCodeTools ++ mcpLaunchers);
     };
 }

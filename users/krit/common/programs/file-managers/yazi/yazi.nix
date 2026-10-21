@@ -10,6 +10,42 @@ delib.module {
 
   myconfig.ifEnabled.stylix.targets.yazi.enable = false;
 
+  myconfig.ifEnabled.programs.yazi = {
+    enable = true;
+    extraPackages = with pkgs; [
+      # Archives
+      gnutar
+      ouch
+      p7zip
+      unzip
+      zip
+
+      # Preview tools
+      chafa
+      eza # faster-piper directory-tree previewer
+      exiftool
+      ffmpeg
+      glow # faster-piper "*.md" previewer
+      hexyl # faster-piper fallback previewer
+      jq
+      mediainfo
+      poppler-utils # pdftoppm/pdftotext for the PDF previewer (bare `poppler` ships only libs, and collides with poppler-utils in buildEnv)
+      rich-cli
+      sqlite # sqlite3, used by the faster-piper SQLite schema previewer
+      ueberzugpp
+
+      # Search and navigation
+      fd
+      fzf
+      ripgrep
+      zoxide
+
+      # Misc
+      trash-cli
+    ]
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ xdg-utils ];
+  };
+
   home.ifEnabled =
     { myconfig
     , ...
@@ -107,45 +143,8 @@ delib.module {
         }
       ];
 
-      home.packages = with pkgs; [
-        # Archives
-        gnutar
-        ouch
-        p7zip
-        unzip
-        zip
-
-        # Preview tools
-        chafa
-        eza # faster-piper directory-tree previewer
-        exiftool
-        ffmpeg
-        glow # faster-piper "*.md" previewer
-        hexyl # faster-piper fallback previewer
-        jq
-        mediainfo
-        poppler-utils # pdftoppm/pdftotext for the PDF previewer (bare `poppler` ships only libs, and collides with poppler-utils in buildEnv)
-        rich-cli
-        sqlite # sqlite3, used by the faster-piper SQLite schema previewer
-        ueberzugpp
-
-        # Search and navigation
-        fd
-        fzf
-        ripgrep
-        zoxide
-
-        # Misc
-        trash-cli
-      ]
-      ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ xdg-utils ];
-
       programs.yazi = {
-        enable = true;
         shellWrapperName = "y";
-        enableZshIntegration = myconfig.constants.shell == "zsh";
-        enableFishIntegration = myconfig.constants.shell == "fish";
-        enableBashIntegration = myconfig.constants.shell == "bash";
 
         plugins = {
           # nurl https://github.com/alberti42/faster-piper.yazi v1.1.1

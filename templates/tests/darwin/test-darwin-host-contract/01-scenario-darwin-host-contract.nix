@@ -33,7 +33,7 @@ let
   resolvedNames = [ c.terminal.name c.fileManager translatedEditor ];
   missingPkgs = builtins.filter (n: !(builtins.hasAttr n pkgs)) resolvedNames;
 
-  mcpNames = map (s: s.sopsSecret) my.programs.claude-code.mcpSecrets;
+  mcpNames = map (s: s.sopsSecret) my.krit.programs.claude-code-personal.mcpSecrets;
   missingMcp = builtins.filter (n: !(config.sops.secrets ? ${n})) mcpNames;
 
   withoutCask = host.extendModules {

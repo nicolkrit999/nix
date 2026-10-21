@@ -77,6 +77,8 @@ let
     (src + "/modules/common/programs/shells/zoxide.nix")
     (src + "/modules/common/programs/shells/nix-search-tv/nst-home.nix")
     (src + "/modules/common/programs/claude-code.nix")
+    (src + "/modules/common/programs/neovim.nix")
+    (src + "/modules/common/programs/yazi.nix")
     (src + "/modules/common/programs/codex.nix")
     (src + "/modules/common/programs/fastfetch.nix")
     (src + "/modules/common/programs/agent-reach.nix")
@@ -139,6 +141,7 @@ let
     (src + "/modules/nixos/specializations/secure-travel.nix")
 
     # users/krit/common - cross-platform user modules
+    (src + "/users/krit/common/programs/claude-code-personal.nix")
     (src + "/users/krit/common/programs/claude-code-wrappers.nix")
     (src + "/users/krit/common/programs/cli-programs/direnv.nix")
     (src + "/users/krit/common/programs/cli-programs/neovim.nix")

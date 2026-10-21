@@ -217,7 +217,7 @@ delib.host {
         atuin.enable = true;
         bat.enable = true;
         cava.enable = false;
-        # mcpSecrets / mcpEnv default in modules/common/programs/claude-code.nix (shared across all hosts)
+        # mcpSecrets / mcpEnv default in users/krit/common/programs/claude-code-personal.nix
         claude-code.enable = true;
         claude-desktop.enable = true;
         codex.enable = false;
@@ -737,6 +737,7 @@ delib.host {
         programs = {
           alacritty.enable = false;
           chromium.enable = false;
+          claude-code-personal.enable = true;
           claude-code-wrappers.enable = true;
           direnv.enable = true;
           dolphin.enable = true;

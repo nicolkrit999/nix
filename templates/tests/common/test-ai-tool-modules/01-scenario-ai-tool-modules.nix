@@ -153,41 +153,51 @@ let
     exclude = [ ];
   };
   bare = bareHosts.cc-bare;
-  bareForced = bare.extendModules {
-    modules = [{ myconfig.programs.claude-code.openrouterAliases = true; }];
-  };
   wrappersOn = mk [{
     myconfig.programs.claude-code.enable = true;
     myconfig.krit.programs.claude-code-wrappers.enable = true;
+  }];
+  wrappersNoAliases = mk [{
+    myconfig.programs.claude-code.enable = true;
+    myconfig.krit.programs.claude-code-wrappers = { enable = true; openrouterAliases = false; };
+  }];
+  personalOn = mk [{
+    myconfig.programs.claude-code.enable = true;
+    myconfig.krit.programs.claude-code-personal.enable = true;
   }];
   aliasKeys = x:
     let p = (hmOf x).programs;
     in lib.concatMap builtins.attrNames [ (p.fish.shellAbbrs or { }) (p.zsh.shellAliases or { }) (p.bash.shellAliases or { }) ];
   openrouterKeys = x: lib.filter (lib.hasPrefix "cai-openrouter-") (aliasKeys x);
+  templateKeys = x: lib.filter (lib.hasPrefix "caitemp") (aliasKeys x);
 
   openrouter = {
-    check-option-default-off = expect "claude-code.openrouterAliases declared default"
-      (ccOn.options.myconfig.programs.claude-code.openrouterAliases.default or null)
-      false;
+    check-option-default-follows-platform = expect "krit claude-code-wrappers.openrouterAliases declared default (NixOS)"
+      (wrappersOn.options.myconfig.krit.programs.claude-code-wrappers.openrouterAliases.default or null)
+      true;
 
     check-bare-tree-has-no-krit-options = expect "bare host (no users/krit tree) has myconfig.krit"
       (bare.config.myconfig ? krit)
       false;
 
-    check-bare-no-openrouter-aliases = all [
-      (expect "bare claude-code-enabled host: cai-openrouter-* aliases" (openrouterKeys bare) [ ])
-      (if builtins.elem "caitempplugins" (aliasKeys bare) then "ok" else "FAIL: caitempplugins missing on bare host (control: aliases are readable)")
+    check-bare-no-personal-aliases = all [
+      (expect "bare claude-code-enabled host: cai-openrouter-* and caitemp* aliases" (openrouterKeys bare ++ templateKeys bare) [ ])
+      (expect "bare host: CLAUDE_BINARY (generic module still active)" ((hmOf bare).home.sessionVariables ? CLAUDE_BINARY) true)
     ];
 
-    check-option-alone-drives-aliases = all [
-      (if builtins.elem "cai-openrouter-opus" (openrouterKeys bareForced) then "ok" else "FAIL: openrouterAliases = true on the bare host adds no cai-openrouter-opus")
-      (expect "bare host, option true: alias count" (builtins.length (openrouterKeys bareForced) > 1) true)
-    ];
-
-    check-krit-wrappers-keep-aliases = all [
-      (expect "wrappers on: option value" wrappersOn.config.myconfig.programs.claude-code.openrouterAliases true)
+    check-wrappers-add-aliases = all [
+      (expect "wrappers on: option value" wrappersOn.config.myconfig.krit.programs.claude-code-wrappers.openrouterAliases true)
       (if builtins.elem "cai-openrouter-opus" (openrouterKeys wrappersOn) then "ok" else "FAIL: wrappers on but cai-openrouter-opus alias missing")
-      (expect "template-host-minimal (wrappers default off): option value" ccOn.config.myconfig.programs.claude-code.openrouterAliases false)
+      (expect "template-host-minimal (wrappers default off): cai-openrouter-* aliases" (openrouterKeys ccOn) [ ])
+    ];
+
+    check-option-alone-drives-aliases = expect "wrappers on, openrouterAliases = false: cai-openrouter-* aliases"
+      (openrouterKeys wrappersNoAliases) [ ];
+
+    check-personal-template-aliases = all [
+      (if builtins.elem "caitempplugins" (templateKeys personalOn) then "ok" else "FAIL: personal on but caitempplugins alias missing")
+      (expect "personal on: cai-openrouter-* aliases (belong to the wrappers module)" (openrouterKeys personalOn) [ ])
+      (expect "personal off: caitemp* aliases" (templateKeys ccOn) [ ])
     ];
   };
 
