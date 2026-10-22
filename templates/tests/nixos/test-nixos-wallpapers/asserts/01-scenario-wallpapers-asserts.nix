@@ -186,16 +186,24 @@ in
   lockRealLaptop = guard (laptopEdp != null && laptopStar != null && lockOk
     { specific = [{ monitor = "eDP-1"; path = fetchPath laptopEdp; }]; catchAll = fetchPath laptopStar; }
     laptopBgs);
-  lockCatppuccinReal = guard (
+  lockReal = guard (
+    let
+      dcfg = flake.nixosConfigurations.nixos-desktop.config;
+      catppuccinOn = dcfg.myconfig.constants.theme.catppuccin;
+      dbgs = desktopHm.programs.hyprlock.settings.background;
+    in
     desktopStatics != [ ]
-    && desktopHm.catppuccin.hyprlock.enable
     && lockOk
       {
         specific = map (w: { monitor = w.targetMonitor; path = fetchPath w; }) desktopSpecific;
         catchAll = if desktopCatchAll != null then fetchPath desktopCatchAll else fallbackPath;
       }
-      desktopHm.programs.hyprlock.settings.background
-    && builtins.all lookOn desktopHm.programs.hyprlock.settings.background
+      dbgs
+    && (
+      if catppuccinOn
+      then desktopHm.catppuccin.hyprlock.enable && builtins.all lookOn dbgs
+      else !desktopHm.catppuccin.hyprlock.enable && builtins.all lookOff dbgs && ourConf dcfg == [ ]
+    )
   );
   lockCatppuccinDesktop = guard (
     let c = lockHost "34-lock-catppuccin-desktop"; bgs = bgsOf c;

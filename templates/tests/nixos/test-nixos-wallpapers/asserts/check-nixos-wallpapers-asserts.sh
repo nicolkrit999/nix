@@ -101,7 +101,7 @@ expect_ok lockDescVideo              "desc: monitor passes through; video-only e
 expect_ok lockNoVideoPaths           "video-only entries never reach hyprlock"
 expect_ok lockRealLaptop             "real nixos-laptop: eDP-1 background uses its own wallpaper, catch-all uses *"
 expect_ok lockRealLaptopNotStar      "real nixos-laptop: eDP-1 wallpaper differs from * (control for the above)"
-expect_ok lockCatppuccinReal         "real nixos-desktop (catppuccin on): per-monitor blocks plus catch-all from its wallpapers, all blur_passes 0 / color \$base"
+expect_ok lockReal                   "real nixos-desktop: per-monitor blocks plus catch-all from its wallpapers, look matches its catppuccin setting"
 expect_ok lockCatppuccinDesktop      "catppuccin on, 3-monitor fixture: per-monitor blocks plus catch-all, exactly 3 blocks, blur_passes 0 / color \$base"
 expect_ok lockCatppuccinNoOwnBackgroundFile "catppuccin on: ~/.config/background is no longer written"
 expect_ok lockCatppuccinLookControl  "control: catppuccin off keeps blur and no \$base color on every block"
