@@ -726,7 +726,7 @@ delib.host {
 
         sddm-astronaut = {
           enable = true;
-          embeddedTheme = "purple_leaves";
+          embeddedTheme = "japanese-aesthetic";
           background = "nordic-blue.jpg";
         };
         sddm-pixie = {
