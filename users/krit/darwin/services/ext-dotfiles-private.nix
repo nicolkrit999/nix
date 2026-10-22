@@ -54,6 +54,7 @@ let
       # That only reaches shells that source hm-session-vars: verify on a real Mac that a
       # Claude Code launched from a GUI (Dock/Spotlight) still resolves "start-actual-mcp".
       ".local/bin/start-actual-mcp" = "claude/common/binaries/start-actual-mcp";
+      ".local/bin/learn-faster" = "claude/common/binaries/learn-faster";
       # macOS school workspace has NO leading dot (unlike NixOS .school-workspace).
       "momentary/.claude/skills" = "claude/momentary/.claude/skills";
       "momentary/.claude/agents" = "claude/momentary/.claude/agents";
@@ -61,6 +62,10 @@ let
       "school-workspace/.claude/skills" = "claude/school/.claude/skills";
       "school-workspace/.claude/agents" = "claude/school/.claude/agents";
       "school-workspace/.mcp.json" = "claude/school/.mcp.json";
+      "momentary/.claude/commands" = "claude/momentary/.claude/commands";
+      "momentary/.learning" = "claude/momentary/.learning";
+      "school-workspace/.claude/commands" = "claude/school/.claude/commands";
+      "school-workspace/.learning" = "claude/school/.learning";
     };
   };
 

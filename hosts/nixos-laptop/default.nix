@@ -29,7 +29,14 @@ let
   };
 
   silent = workspace: "${workspace} silent";
-  workspaceRules = workspace: classes: map (class: { match.class = class; inherit workspace; }) classes;
+  workspaceRules =
+    workspace: classes:
+    map
+      (class: {
+        match.class = class;
+        inherit workspace;
+      })
+      classes;
   scratchRule = class: {
     match.class = "^(${class})$";
     float = true;
@@ -137,16 +144,21 @@ delib.host {
 
           {
             targetMonitor = "eDP-1";
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/anime/komeiji-koishi.png";
-            wallpaperSHA256 = "1mi1qvfl03f227cdhq6bcavqhypsfa95zynma0nlll8pbrzwn68l";
 
-            gifURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Pixel%20Dream/may_chill.gif";
-            gifSHA256 = "1v3h995fifxcdvrizr5n99h0bmja7khzi89bh33d869psrjc4ssp";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/fr0st-xyz/wallz/wallz-main/Nordic%20Blue/02.%20Nordic%20Blue.jpg";
+            wallpaperSHA256 = "0w7699lvxsvflxzb0xzml3cph6fgnl8pn707822jrdsh8h8lnpxa";
+
+            videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/landscape/girl-desk-working.MP4";
+            videoSHA256 = "0q6asqgcq0n5va8210v5jhqlqw7nzw1i5wdr8cn8bccj316fnfgy";
           }
           {
             targetMonitor = "*";
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/switch_swirl.jpg";
-            wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
+
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/fr0st-xyz/wallz/wallz-main/Nordic%20Blue/03.%20Nordic%20Blue.jpg";
+            wallpaperSHA256 = "1p55hqqmwrvr8xbsxk2z3brb5x3y7ywsckyvlcl431i7w37j15c3";
+
+            videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/portrait/purple-car.mp4";
+            videoSHA256 = "0g1gxwhwbg7brglwxg069ivacs33p7hmy4mn7gkz9zh4xlwrmag4";
           }
         ];
 
@@ -154,8 +166,7 @@ delib.host {
         # 🎨 THEMING
         # ---------------------------------------------------------------
         theme = {
-          base16Theme = "gruvbox-dark";
-
+          base16Theme = "tokyo-night-dark";
           catppuccin = false;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "sapphire";
@@ -258,14 +269,9 @@ delib.host {
           enable = true;
           packages = [
             "@actual-app/cli" # Actual Budget CLI
-            "claudefm" # terminal music player
-            "claude-token-counter" # Token usage counter for claude code
             "yoinks" # Video downloader
           ];
-          hostPackages = [
-            pkgs.yt-dlp # claudefm: stream source
-            pkgs.mpv # claudefm: playback
-          ];
+          hostPackages = [ ];
         };
         prismlauncher.enable = true;
         shell-aliases.enable = true;
@@ -635,11 +641,32 @@ delib.host {
           inherit pinnedApps;
           # 🖱️ LOGITECH MX MASTER Thumb gestures: left/right = workspace, up = maximize, down = minimize; <Super>m toggles maximize
           wmKeybindings = {
-            switch-to-workspace-left = [ "<Super>Page_Up" "<Super>KP_Prior" "<Super><Alt>Left" "<Control><Alt>Left" "XF86Tools" ];
-            switch-to-workspace-right = [ "<Super>Page_Down" "<Super>KP_Next" "<Super><Alt>Right" "<Control><Alt>Right" "XF86Launch5" ];
-            maximize = [ "<Super>Up" "XF86Launch6" ];
-            minimize = [ "<Super>h" "XF86Launch7" ];
-            toggle-maximized = [ "<Super>m" "<Alt>F10" ];
+            switch-to-workspace-left = [
+              "<Super>Page_Up"
+              "<Super>KP_Prior"
+              "<Super><Alt>Left"
+              "<Control><Alt>Left"
+              "XF86Tools"
+            ];
+            switch-to-workspace-right = [
+              "<Super>Page_Down"
+              "<Super>KP_Next"
+              "<Super><Alt>Right"
+              "<Control><Alt>Right"
+              "XF86Launch5"
+            ];
+            maximize = [
+              "<Super>Up"
+              "XF86Launch6"
+            ];
+            minimize = [
+              "<Super>h"
+              "XF86Launch7"
+            ];
+            toggle-maximized = [
+              "<Super>m"
+              "<Alt>F10"
+            ];
           };
         };
 
@@ -698,12 +725,12 @@ delib.host {
         };
 
         sddm-astronaut = {
-          enable = false;
-          embeddedTheme = "pixel_sakura";
-          background = "imgur_japan_33.jpg";
+          enable = true;
+          embeddedTheme = "purple_leaves";
+          background = "nordic-blue.jpg";
         };
         sddm-pixie = {
-          enable = true;
+          enable = false;
           background = "koi-fish.png";
           avatar = "face-512.jpg";
         };

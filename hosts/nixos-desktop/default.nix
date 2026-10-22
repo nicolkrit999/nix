@@ -72,7 +72,14 @@ let
   };
 
   silent = workspace: "${workspace} silent";
-  workspaceRules = workspace: classes: map (class: { match.class = class; inherit workspace; }) classes;
+  workspaceRules =
+    workspace: classes:
+    map
+      (class: {
+        match.class = class;
+        inherit workspace;
+      })
+      classes;
   scratchRule = class: {
     match.class = "^(${class})$";
     float = true;
@@ -171,34 +178,33 @@ delib.host {
         wallpapers = [
           {
             targetMonitor = "DP-1";
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/1%20rain_world.png";
-            wallpaperSHA256 = "0lmjfz4zng97xzbcnxwx9aqciznxcdhj5n3dnifj7jp40xm2s7qk";
+
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/fr0st-xyz/wallz/wallz-main/Nordic%20Blue/02.%20Nordic%20Blue.jpg";
+            wallpaperSHA256 = "0w7699lvxsvflxzb0xzml3cph6fgnl8pn707822jrdsh8h8lnpxa";
 
             videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/landscape/girl-desk-working.MP4";
             videoSHA256 = "0q6asqgcq0n5va8210v5jhqlqw7nzw1i5wdr8cn8bccj316fnfgy";
           }
           {
             targetMonitor = "DP-2";
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/switch_swirl.jpg";
-            wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
+
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/fr0st-xyz/wallz/wallz-main/Nordic%20Blue/03.%20Nordic%20Blue.jpg";
+            wallpaperSHA256 = "1p55hqqmwrvr8xbsxk2z3brb5x3y7ywsckyvlcl431i7w37j15c3";
 
             videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/portrait/purple-car.mp4";
             videoSHA256 = "0g1gxwhwbg7brglwxg069ivacs33p7hmy4mn7gkz9zh4xlwrmag4";
           }
-
           {
             targetMonitor = "*";
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Catppuccin%20Mocha/switch_swirl.jpg";
-            wallpaperSHA256 = "1zhg5cx0x6b691jbbn15ggyqrxnvzvfsv3r89f6hg7rpwvnvhbcl";
 
-            videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/landscape/Delorean-Hyperspeed.mp4";
-            videoSHA256 = "02x9d9yh6fc8q967yx7s70fqhrlcpsllkqhw65k6qk79vg9kp7mx";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/fr0st-xyz/wallz/wallz-main/Nordic%20Blue/01.%20Nordic%20Blue.jpg";
+            wallpaperSHA256 = "0q4simvbyvjwrzh1nv0skxygz5rdr2gfrbhmbiixj3q04k8dqfxh";
           }
         ];
 
         theme = {
-          base16Theme = "catppuccin-mocha";
-          catppuccin = true;
+          base16Theme = "tokyo-night-dark";
+          catppuccin = false;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "sapphire";
         };
@@ -304,14 +310,9 @@ delib.host {
           enable = true;
           packages = [
             "@actual-app/cli" # Actual Budget CLI
-            "claudefm" # terminal music player
-            "claude-token-counter" # Token usage counter for claude code
             "yoinks" # Video downloader
           ];
-          hostPackages = [
-            pkgs.yt-dlp # claudefm: stream source
-            pkgs.mpv # claudefm: playback
-          ];
+          hostPackages = [ ];
         };
         openlogi.enable = true;
         prismlauncher.enable = true;
@@ -739,11 +740,32 @@ delib.host {
           inherit pinnedApps;
           # 🖱️ LOGITECH MX MASTER Thumb gestures: left/right = workspace, up = maximize, down = minimize; <Super>m toggles maximize
           wmKeybindings = {
-            switch-to-workspace-left = [ "<Super>Page_Up" "<Super>KP_Prior" "<Super><Alt>Left" "<Control><Alt>Left" "XF86Tools" ];
-            switch-to-workspace-right = [ "<Super>Page_Down" "<Super>KP_Next" "<Super><Alt>Right" "<Control><Alt>Right" "XF86Launch5" ];
-            maximize = [ "<Super>Up" "XF86Launch6" ];
-            minimize = [ "<Super>h" "XF86Launch7" ];
-            toggle-maximized = [ "<Super>m" "<Alt>F10" ];
+            switch-to-workspace-left = [
+              "<Super>Page_Up"
+              "<Super>KP_Prior"
+              "<Super><Alt>Left"
+              "<Control><Alt>Left"
+              "XF86Tools"
+            ];
+            switch-to-workspace-right = [
+              "<Super>Page_Down"
+              "<Super>KP_Next"
+              "<Super><Alt>Right"
+              "<Control><Alt>Right"
+              "XF86Launch5"
+            ];
+            maximize = [
+              "<Super>Up"
+              "XF86Launch6"
+            ];
+            minimize = [
+              "<Super>h"
+              "XF86Launch7"
+            ];
+            toggle-maximized = [
+              "<Super>m"
+              "<Alt>F10"
+            ];
           };
         };
 
@@ -798,10 +820,12 @@ delib.host {
 
         sddm-astronaut = {
           enable = true;
-          embeddedTheme = "hyprland_kath";
+          embeddedTheme = "purple_leaves";
+          background = "nordic-blue.jpg";
         };
         sddm-pixie = {
           enable = false;
+          background = "koi-fish.png";
           avatar = "face-512.jpg";
         };
 

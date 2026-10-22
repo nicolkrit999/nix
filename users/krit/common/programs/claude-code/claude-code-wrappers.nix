@@ -167,6 +167,15 @@ let
     pkgs.uv # fast Python package installer (fallback for non-nix envs)
   ];
 
+  # Claude Code companion CLIs installed through the generic programs.npm
+  # module; only declared while this module is enabled, so a host without the
+  # krit claude setup keeps its own programs.npm list free of them.
+  npmPackages = [
+    "claude-token-counter" # Token usage counter for claude code
+    "claudefm" # terminal music player
+    "ui-ux-pro-max-cli" # UI/UX design skill installer (uipro)
+  ];
+
   sharedPackages = [
     caiOpenrouterScript
     caiScript
@@ -184,6 +193,14 @@ delib.module {
   };
 
   myconfig.ifEnabled = { cfg, ... }: {
+    programs.npm = {
+      enable = lib.mkDefault true;
+      packages = npmPackages;
+      hostPackages = [
+        pkgs.mpv # claudefm: playback
+        pkgs.yt-dlp # claudefm: stream source
+      ];
+    };
     programs.claude-code.extraShellAliases = lib.optionalAttrs cfg.openrouterAliases openrouterAliases;
   };
 

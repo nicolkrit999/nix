@@ -1,4 +1,4 @@
-{ delib, pkgs, ... }:
+{ delib, ... }:
 let
   myGitUserName = "Krit Pio Nicol";
 in
@@ -109,14 +109,9 @@ delib.host {
         npm = {
           enable = true;
           packages = [
-            "claudefm"
-            "claude-token-counter"
             "@actual-app/cli" # Actual Budget CLI
           ];
-          hostPackages = with pkgs; [
-            yt-dlp
-            mpv
-          ];
+          hostPackages = [ ];
         };
         prismlauncher.enable = true;
         shell-aliases.enable = true;
