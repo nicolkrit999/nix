@@ -122,13 +122,29 @@ delib.module {
         ${indent}}
       '';
 
+      # What the greeter really renders (user themeConfig overrides included), so measuring matches it.
+      fgAccent = effectiveThemeConfig.accentColor;
+      fgText = effectiveThemeConfig.textColor;
+      fgBack = effectiveThemeConfig.backgroundColor;
+
+      # Same surface as the login card (backgroundColor at 0.88), so the header text has the card's contrast on any wallpaper.
+      backing = indent: target: ''
+        ${indent}Rectangle {
+        ${indent}    z: 99
+        ${indent}    radius: 16
+        ${indent}    color: Qt.rgba(container.baseColor.r, container.baseColor.g, container.baseColor.b, 0.88)
+        ${indent}    anchors { fill: ${target}; leftMargin: -18; rightMargin: -18; topMargin: -10; bottomMargin: -10 }
+        ${indent}    opacity: container.uiReady ? 1 : 0
+        ${indent}}
+      '';
+
       # Build-time check of the wallpaper under the theme's dim, then QML patches. Never fails the build.
       measureAndPatch = ''
         theme=$out/share/sddm/themes/pixie
         img=$theme/assets/${bgFilename}
         work=$(mktemp -d)
-        LOCK_DIM=0.7
-        LOGIN_DIM=0.8
+        LOCK_DIM=0.9
+        LOGIN_DIM=0.8  # login card and header carry their own backing, nothing on the wallpaper to measure
 
         lum() {
           awk -v h="''${1#\#}" '
@@ -162,18 +178,20 @@ delib.module {
           echo "sddm-pixie: $var: no step passed, using strongest"
         }
 
+        # The header text sits on the backing, so only theme colours matter: the accent if it clears 4.5:1 against the backing, else the text colour
+        HEADER_FG=container.extractedAccent
+        if awk -v a="$(lum "${fgAccent}")" -v b="$(lum "${fgBack}")" 'BEGIN { hi = a > b ? a : b; lo = a > b ? b : a; exit !((hi + 0.05) / (lo + 0.05) < 4.5) }'; then
+          HEADER_FG=config.textColor
+        fi
+
         if magick "''${img}[0]" -resize 1920x1080^ -gravity center -extent 1920x1080 +repage -alpha off "$work/base.png" 2>/dev/null \
-          && magick "$work/base.png" -blur 0x5 "$work/lock.png" \
-          && magick "$work/base.png" -blur 0x10 "$work/login.png"; then
-          pick LOCK_DIM "$work/lock.png" "0.4 0.5 0.6 0.7" \
-            "420x50+55+45|${pal.accent}|4.5" "360x50+1520+20|${pal.accent}|4.5" \
-            "300x420+810+330|${pal.accent}|3" "420x40+750+940|${pal.text}|4.5" || true
-          pick LOGIN_DIM "$work/login.png" "0.7 0.8" \
-            "420x50+55+45|${pal.accent}|4.5" "360x50+1520+20|${pal.accent}|4.5" || true
+          && magick "$work/base.png" -blur 0x5 "$work/lock.png"; then
+          pick LOCK_DIM "$work/lock.png" "0.4 0.5 0.6 0.7 0.8 0.9" \
+            "300x420+810+330|${fgAccent}|3" "420x40+750+940|${fgText}|4.5" || true
         else
           echo "sddm-pixie: background measurement failed, using strongest dim"
         fi
-        echo "sddm-pixie: lock dim=$LOCK_DIM login dim=$LOGIN_DIM"
+        echo "sddm-pixie: lock dim=$LOCK_DIM login dim=$LOGIN_DIM header fg=$HEADER_FG"
 
         substituteInPlace $theme/Main.qml \
           --replace-fail 'loginState.visible ? 0.6 : 0.4' "loginState.visible ? $LOGIN_DIM : $LOCK_DIM" \
@@ -185,15 +203,33 @@ delib.module {
         ${shadow "        "}' \
           --replace-fail '        textColor: container.extractedAccent
                 z: 100
-        ' '        textColor: container.extractedAccent
+        ' '        textColor: @HEADER_FG@
                 z: 100
         ${shadow "        "}' \
+          --replace-fail '        color: container.extractedAccent
+                font.pixelSize: 22' '        color: @HEADER_FG@
+                z: 100
+                font.pixelSize: 22' \
+          --replace-fail '    PowerBar {' '    // Header backing: the login card surface behind the date and the power bar
+        ${backing "    " "dateText"}
+        ${backing "    " "headerPower"}
+            PowerBar {
+                id: headerPower' \
+          --replace-fail '                colorExtractor.processed = false;
+                        colorDelay.start();' '                colorExtractor.processed = false;
+                        if (config.autoColor === "true") colorDelay.start();' \
+          --replace-fail '        onPaint: {
+                    var ctx = getContext("2d");
+                    var res = 60;' '        onPaint: {
+                    if (config.autoColor !== "true") return;
+                    var ctx = getContext("2d");
+                    var res = 60;' \
           --replace-fail 'bottomMargin: 100
                     }
                     opacity: 0.5
         ' 'bottomMargin: 100
                     }
-                    opacity: 0.85
+                    opacity: 1.0
         ${shadow "            "}' \
           --replace-fail 'color: loginState.isError ? "#442222" : baseColor
                     opacity: 0.7' 'color: loginState.isError ? Qt.rgba(0.27, 0.13, 0.13, 0.88) : Qt.rgba(baseColor.r, baseColor.g, baseColor.b, 0.88)
@@ -201,6 +237,8 @@ delib.module {
           --replace-fail 'text: container.isLoggingIn ? "⋯" : "→"
                                 color: "white"' 'text: container.isLoggingIn ? "⋯" : "→"
                                 color: container.isLoggingIn ? config.textColor : container.baseColor'
+
+        substituteInPlace $theme/Main.qml --replace-fail '@HEADER_FG@' "$HEADER_FG"
 
         substituteInPlace $theme/components/Clock.qml \
           --replace-fail 'import QtQuick

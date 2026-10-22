@@ -203,6 +203,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
   * An assertion fails the build when `services.sddm-astronaut` and `services.sddm-pixie` are both enabled.
 * **`services.sddm-pixie`**: Configures the SDDM login manager with the Pixie theme and customizable styling options.
   * **Warning (sddm):** Without a display manager there would be no graphical login, forcing use of a TTY.
+  * With a custom `background`, the theme colours come from the stylix palette and stay readable on any theme/wallpaper pair: the date and power bar sit on a login-card-style backing (text colour: the accent, or the palette text colour when the accent lacks 4.5:1 against the backing), and the lock-screen dim is raised only as far as the clock and hint need.
   * Only enable one sddm at any moment
 
 * **`services.snapshots`**: A BTRFS snapshot retention automation system using Snapper to back up the filesystem on a configurable timeline (hourly, daily, weekly, monthly, yearly).
