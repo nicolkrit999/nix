@@ -98,6 +98,7 @@ let
     (src + "/modules/common/programs/shells/bash.nix")
     (src + "/modules/common/programs/shells/fish.nix")
     (src + "/modules/common/programs/shells/zsh.nix")
+    (src + "/modules/common/programs/shells/npm.nix")
 
     # Global specializations
     (src + "/modules/nixos/specializations/deep-focus.nix")
