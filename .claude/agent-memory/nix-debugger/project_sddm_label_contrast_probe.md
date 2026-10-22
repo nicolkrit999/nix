@@ -13,3 +13,5 @@ Probe on 2026-10-10 (read-only), for making SDDM labels readable on a custom `ba
 - Mean luminance is unreliable on high-variance images (pixie default sd=0.31: dark text fails 3:1 on 65% of pixels, light text on 34%). Use the fraction of failing pixels, and account for pixie's own 0.4/0.6 black overlay.
 
 **How to apply:** start from these findings when implementing smart SDDM label colours. Don't re-probe.
+
+Update 2026-10-22: the pixie readability test's controls patch the BUILT QML with regexes, so any module value change (hint 0.85 -> 1.0) silently breaks a control ("mutation pattern not found"); controls now edit inside the anchored block instead. Trap seen while extending the measure step: in awk `printf "%f", x > y ? a : b` is an OUTPUT REDIRECT to a file named y - parenthesise the ternary. Remaining known low-contrast spots (not fixed, design call): session/user popups on catppuccin-latte (its darkest neutral #4c4f69 is mid-tone, upstream Qt.lighter surfaces lose contrast) and the current user's initial (baseColor on accent) for light/low-contrast accents.

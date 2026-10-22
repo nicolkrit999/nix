@@ -24,7 +24,7 @@ Needs network on a cold cache (fenix and nix-tests are fetched per the templates
 
 `check-common-dev-env-templates.sh` evaluates each template once with `nix eval --override-input nixpkgs github:NixOS/nixpkgs/<rev of the root `nixpkgs` input in flake.lock> --no-write-lock-file` (no FlakeHub fetch of nixpkgs, no lock file written) and asserts with `jq`. Hooks are written to a file and checked with `bash -n` plus an explicit heredoc-terminator scan; two controls prove the lint rejects an indented `EOF` and accepts a column-0 one. Every `[pkg] present` check can fail: a missing name is reported per system. The registry check fails if a flake appears on disk that the table does not list.
 
-All 19 templates are covered. `web-development/fullstack` is expected to use `github:nixos/nixpkgs/nixos-unstable`, all others the FlakeHub `NixOS/nixpkgs/0.1` url. No exclusions.
+All 19 templates are covered. `web-development/fullstack` is expected to use `github:nixos/nixpkgs/nixos-unstable`, all others the FlakeHub `NixOS/nixpkgs/0.1` url. Every template must provide exactly x86_64-linux, aarch64-linux and aarch64-darwin, except the ones in `EXPECT_SYSTEMS`: `swift` provides only x86_64-linux and aarch64-darwin, because nixpkgs marks `swiftc` `meta.broken` on aarch64-linux (gold link failure, upstream TODO to drop it with Swift 6.4.0). A separate check fails as soon as that flag goes away, so the system gets re-added.
 
 ## Checks
 
@@ -40,9 +40,9 @@ All 19 templates are covered. `web-development/fullstack` is expected to use `gi
 
 | Check | Expected |
 |-------|----------|
-| devShells instantiate (per template) | every shell on x86_64-linux, aarch64-linux, aarch64-darwin has a drvPath |
+| devShells instantiate (per template) | every shell on the template's expected systems (default x86_64-linux, aarch64-linux, aarch64-darwin; `EXPECT_SYSTEMS` overrides) has a drvPath, and no other system is advertised |
 | x86_64-darwin | no template advertises it (flake.nix text or devShells output) |
-| expected tools present (per template) | key package names present on the three supported systems |
+| expected tools present (per template) | key package names present on the template's expected systems |
 | shellHook / postShellHook (per template) | pass `bash -n`, heredocs closed (python fails: terminator indented by Nix stripping) |
 | lint controls | bad heredoc flagged, good heredoc accepted |
 
@@ -57,3 +57,5 @@ All 19 templates are covered. `web-development/fullstack` is expected to use `gi
 | go | go version 1.26.* on all three systems |
 | java | `JAVA_HOME == jdk25.home` (from nixpkgs); `JAVA_TOOL_OPTIONS` is `-javaagent:<lombok in packages>/share/java/lombok.jar` |
 | rust | `RUST_SRC_PATH` ends in `/lib/rustlib/src/rust/library` |
+| swift | aarch64-linux stays omitted only while `swiftPackages.swiftc.meta.broken` is `true` on aarch64-linux in the locked nixpkgs |
+| swift probe control | the same probe reads `false` on x86_64-linux |

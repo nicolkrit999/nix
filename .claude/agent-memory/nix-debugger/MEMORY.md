@@ -23,7 +23,7 @@
 - [uwsm black screen = graphical.target wait](project_uwsm_graphical_target_flatpak_block.md) - uwsm waits for graphical.target; held by nix-flatpak oneshot, or by a stuck multi-user oneshot (historical: repo tailscale-autoconnect, removed 2026-10-12)
 - [mango config value 255 truncation](project_mango_config_value_255_truncation.md) - mango silently cuts values >255 chars; long exec_once -> broken sh -c, never runs, mango -p passes
 - [base16 base07 not brightest](project_base16_base07_not_brightest.md) - rose-pine-moon base07 is dark; over-wallpaper text contrast is set by the wallpaper, not the scheme (hyprlock 1.5:1)
-- [SDDM label contrast probe](project_sddm_label_contrast_probe.md) - pixie conf rewrite drops autoColor/textColor; build-time magick luma ~0.5s no IFD; mean luma misleads, use fail-fraction
+- [SDDM label contrast probe](project_sddm_label_contrast_probe.md) - pixie conf rewrite; build-time magick luma; test controls regex the built QML; awk printf `>` redirect trap; latte popups still low
 - [nix-tests read-only IFD](project_nix_tests_readonly_ifd.md) - harness = `nix-instantiate --eval` (read-only): IFD fails on fresh CI store, passes locally; guard via NIX_CONFIG IFD=false
 - [CI tests narrow substituters](project_ci_tests_narrow_substituters.md) - test legs trust only 3 caches; krit-nixos eviction (noctalia, openlogi, doom) = silent source build -> timeout
 - [niri stylix-off HM stub](project_niri_stylix_off_hm_stub.md) - niri-flake injects HM stylix module always; niri.nix stubs stylix.enable when stylix off; 2nd declaration collides; kitty leak

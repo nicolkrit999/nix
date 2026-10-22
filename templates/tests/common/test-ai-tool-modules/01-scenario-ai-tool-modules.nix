@@ -47,7 +47,7 @@ let
       pkg = lib.filter (p: nc p.outPath == pkgPath) h.home.packages;
       offNames = map (p: nc p.outPath) (hmOf headroomOff).home.packages;
       added = lib.filter (p: !(builtins.elem (nc p.outPath) offNames)) h.home.packages;
-      isPyEnv = p: builtins.match "python3?-[0-9.]+-env" (p.name or "") != null || p ? pythonPath && p ? env;
+      isPyEnv = p: builtins.match "python3?-[0-9.]+-env" (p.name or "") != null || lib.isDerivation (p.env or null);
       after = if unit == null then [ ] else lib.toList (unit.Unit.After or [ ]);
     in
     {

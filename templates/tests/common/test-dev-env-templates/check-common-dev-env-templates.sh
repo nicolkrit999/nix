@@ -55,6 +55,11 @@ declare -A EXPECT_URL=(
 )
 DEFAULT_URL="https://flakehub.com/f/NixOS/nixpkgs/0.1"
 
+declare -A EXPECT_SYSTEMS=(
+  [language-specific/swift]="x86_64-linux aarch64-darwin"
+)
+systems_of() { echo "${EXPECT_SYSTEMS[$1]:-${SUPPORTED[*]}}"; }
+
 declare -A EXPECT_PKGS=(
   [language-combined/cs-cheat-sheets]="typst typstyle tinymist tectonic-wrapped pandoc-cli pandoc-crossref poppler-utils imagemagick qpdf graphviz gnuplot python3"
   [language-combined/cs-notes]="typst typstyle tinymist tectonic-wrapped pandoc-cli pandoc-crossref graphviz plantuml gnuplot poppler-utils python3"
@@ -113,7 +118,7 @@ eval_template() {
 json_of() { echo "$WORK/$(echo "$1" | tr '/' '_').json"; }
 err_of() { echo "$WORK/$(echo "$1" | tr '/' '_').err"; }
 
-sys_json() { printf '%s\n' "${SUPPORTED[@]}" | jq -R . | jq -sc .; }
+sys_json() { systems_of "$1" | tr ' ' '\n' | jq -R . | jq -sc .; }
 
 echo ""
 echo -e "${BOLD}=== dev-environment template flakes (nixpkgs ${REV:0:12}) ===${NC}"
@@ -151,11 +156,13 @@ for t in "${TEMPLATES[@]}"; do
     record "$t" "template eval error: $(grep -E 'error:' "$(err_of "$t")" | head -2 | tr '\n' ' ')"
     continue
   fi
-  bad="$(jq -r --argjson s "$(sys_json)" '. as $r | $s[] as $sys | ($r[$sys] // {}) | to_entries[] | select(.value.drv.ok | not) | "\($sys)/\(.key)"' "$j" | tr '\n' ' ')"
-  empty="$(jq -r --argjson s "$(sys_json)" '. as $r | $s[] | select(($r[.] // {}) == {})' "$j" | tr '\n' ' ')"
+  bad="$(jq -r --argjson s "$(sys_json "$t")" '. as $r | $s[] as $sys | ($r[$sys] // {}) | to_entries[] | select(.value.drv.ok | not) | "\($sys)/\(.key)"' "$j" | tr '\n' ' ')"
+  empty="$(jq -r --argjson s "$(sys_json "$t")" '. as $r | $s[] | select(($r[.] // {}) == {})' "$j" | tr '\n' ' ')"
+  extra="$(jq -r --argjson s "$(sys_json "$t")" 'keys[] | select(. as $k | $s | index($k) | not)' "$j" | tr '\n' ' ')"
   detail=""
   [[ -n "$bad" ]] && detail="not instantiable: $bad"
   [[ -n "$empty" ]] && detail="$detail no devShells for: $empty"
+  [[ -n "$extra" ]] && detail="$detail unexpected systems: $extra"
   record "$t" "$detail"
 done
 
@@ -173,7 +180,7 @@ echo -e "\n${BOLD}expected tools present (x86_64-linux, aarch64-linux, aarch64-d
 for t in "${TEMPLATES[@]}"; do
   j="$(json_of "$t")"
   [[ -f "$j" ]] || { record "$t" "template eval error"; continue; }
-  missing="$(jq -r --arg want "${EXPECT_PKGS[$t]}" --argjson s "$(sys_json)" '
+  missing="$(jq -r --arg want "${EXPECT_PKGS[$t]}" --argjson s "$(sys_json "$t")" '
     . as $r | ($want | split(" ")) as $w
     | $s[] as $sys
     | ($r[$sys].default.pkgs.v // []) as $have
@@ -303,6 +310,17 @@ record "fenix input follows nixpkgs (lock)" "$detail"
 detail=""
 jq -e '.nodes."nix-tests".inputs.nixpkgs | type == "array"' "$TPL/language-specific/nix/flake.lock" > /dev/null 2>&1 || detail="nix-tests does not follow the template's nixpkgs in flake.lock"
 record "nix template: nix-tests input follows nixpkgs (lock)" "$detail"
+
+echo -e "\n${BOLD}swift${NC}"
+swiftc_broken() { nix eval --json --no-write-lock-file "$NIXPKGS#legacyPackages.$1.swiftPackages.swiftc.meta.broken" 2>/dev/null; }
+broken="$(swiftc_broken aarch64-linux)"
+detail=""
+[[ "$broken" == "true" ]] || detail="swiftc meta.broken on aarch64-linux is '$broken': re-add aarch64-linux to the swift template and drop its EXPECT_SYSTEMS entry"
+record "swift omits aarch64-linux only while swiftc is broken there" "$detail"
+control="$(swiftc_broken x86_64-linux)"
+detail=""
+[[ "$control" == "false" ]] || detail="probe control: swiftc meta.broken on x86_64-linux is '$control', expected false"
+record "swiftc broken probe reads false on x86_64-linux (control)" "$detail"
 
 echo ""
 if [[ $FAIL -eq 0 ]]; then

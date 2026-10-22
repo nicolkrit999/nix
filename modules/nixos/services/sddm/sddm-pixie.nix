@@ -111,6 +111,68 @@ delib.module {
         lib.mapAttrsToList (k: v: "setKey ${k} ${lib.escapeShellArg v}") effectiveThemeConfig
       );
 
+      textFixable = !(cfg.themeConfig ? textColor);
+      accentFixable = !(cfg.themeConfig ? accentColor);
+
+      paletteAwk = pkgs.writeText "sddm-pixie-palette.awk" ''
+        function lin(x) { return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ^ 2.4 }
+        function parse(h,  s) { s = h; sub(/^#/, "", s); return (strtonum("0x" substr(s, 1, 2)) / 255) " " (strtonum("0x" substr(s, 3, 2)) / 255) " " (strtonum("0x" substr(s, 5, 2)) / 255) }
+        function chan(c, i,  a) { split(c, a, " "); return a[i] + 0 }
+        function lum(c) { return 0.2126 * lin(chan(c, 1)) + 0.7152 * lin(chan(c, 2)) + 0.0722 * lin(chan(c, 3)) }
+        function cr(c1, c2,  x, y) { x = lum(c1); y = lum(c2); return x > y ? (x + 0.05) / (y + 0.05) : (y + 0.05) / (x + 0.05) }
+        function mix(c1, c2, t) { return ((1 - t) * chan(c1, 1) + t * chan(c2, 1)) " " ((1 - t) * chan(c1, 2) + t * chan(c2, 2)) " " ((1 - t) * chan(c1, 3) + t * chan(c2, 3)) }
+        function hex(c,  i, v, s) { s = "#"; for (i = 1; i <= 3; i++) { v = int(chan(c, i) * 255 + 0.5); if (v < 0) v = 0; if (v > 255) v = 255; s = s sprintf("%02x", v) } return s }
+        function q(c) { return parse(hex(c)) }
+        function grey(w) { return w " " w " " w }
+        # login card: backgroundColor at 0.88 over the dimmed wallpaper (login dim 0.8 leaves at most 0.2, the header backing on the lock screen at most 0.6)
+        function cardok(F, base,  i, n, W) {
+          n = split("0 0.2 0.6", W, " ")
+          for (i = 1; i <= n; i++) if (cr(F, mix(base, grey(W[i]), 0.12)) < MIN) return 0
+          return 1
+        }
+        function solid(F, base, s1, s2) {
+          return cr(F, base) >= MIN && cr(F, s1) >= MIN && cr(F, s2) >= MIN && cardok(F, base)
+        }
+        BEGIN {
+          MIN = 4.6
+          T = parse(TEXT); A = parse(ACC)
+          white = "1 1 1"; black = "0 0 0"
+          if (MODE == "lock") {
+            w = grey(0.1)
+            t2 = (FIXTEXT == 1 && cr(T, w) < MIN) ? "#f0f0f0" : TEXT
+            a2 = (FIXACC == 1 && cr(A, w) < 3.3) ? t2 : ACC
+            printf "TEXT=%c%s%c ACC=%c%s%c\n", 39, t2, 39, 39, a2, 39
+            exit
+          }
+          B = parse(BACK)
+          cand[1] = T; cand[2] = white; cand[3] = black
+          best = 9
+          for (i = 1; i <= 3; i++) {
+            F = cand[i]; K = lum(F) >= 0.18 ? black : white
+            tt[i] = 9
+            for (n = 0; n <= 50; n++) {
+              t = n / 50; b = q(mix(B, K, t)); s1 = q(mix(b, F, 0.10)); s2 = q(mix(b, F, 0.22))
+              if (solid(F, b, s1, s2)) { tt[i] = t; fb[i] = b; fs1[i] = s1; fs2[i] = s2; break }
+            }
+            if (tt[i] < best) best = tt[i]
+          }
+          for (i = 1; i <= 3; i++) if (tt[i] <= best + 0.1) { pick = i; break }
+          F = cand[pick]; base = fb[pick]; s1 = fs1[pick]; s2 = fs2[pick]
+          if (cr(A, base) >= MIN && cr(A, s1) >= MIN && cr(A, s2) >= MIN) { sa = A; sname = "accent" } else { sa = F; sname = "text" }
+          ona = cr(white, sa) >= cr(black, sa) ? white : black
+          press = ona == white ? "darker" : "lighter"
+          if (cardok(A, base)) { h = A; hname = "container.extractedAccent" } else { h = F; hname = "container.fgColor" }
+          err = base
+          for (k = 7; k >= 0; k--) {
+            e = q(mix(base, "0.8 0.2 0.2", k * 0.05))
+            if (cardok(F, e) && cardok(h, e)) { err = e; break }
+          }
+          pa = "1.0"
+          for (a = 0.6; a < 1.0; a += 0.1) if (cr(mix(s1, F, a), s1) >= MIN) { pa = sprintf("%.1f", a); break }
+          printf "BASE=%s S1=%s S2=%s FG=%s SURFACE_ACCENT=%s SURFACE_NAME=%s TEXT_ON_ACCENT=%s PRESS_FN=%s HEADER_FG=%s ERROR_CARD=%s PLACEHOLDER_ALPHA=%s\n", hex(base), hex(s1), hex(s2), hex(F), hex(sa), sname, hex(ona), press, hname, hex(err), pa
+        }
+      '';
+
       shadow = indent: ''
         ${indent}layer.enabled: true
         ${indent}layer.effect: MultiEffect {
@@ -178,20 +240,26 @@ delib.module {
           echo "sddm-pixie: $var: no step passed, using strongest"
         }
 
-        # The header text sits on the backing, so only theme colours matter: the accent if it clears 4.5:1 against the backing, else the text colour
-        HEADER_FG=container.extractedAccent
-        if awk -v a="$(lum "${fgAccent}")" -v b="$(lum "${fgBack}")" 'BEGIN { hi = a > b ? a : b; lo = a > b ? b : a; exit !((hi + 0.05) / (lo + 0.05) < 4.5) }'; then
-          HEADER_FG=config.textColor
-        fi
+        TEXT="${fgText}"
+        ACC="${fgAccent}"
+        BACK="${fgBack}"
+
+        # The lock screen dims with black (at most 0.9), so a scheme text/accent too dark for the brightest wallpaper under that dim falls back
+        eval "$(awk -f ${paletteAwk} -v MODE=lock -v TEXT="$TEXT" -v ACC="$ACC" -v FIXTEXT=${if textFixable then "1" else "0"} -v FIXACC=${if accentFixable then "1" else "0"})"
+        if [ "$TEXT" != "${fgText}" ]; then setKey textColor "$TEXT"; fi
+        if [ "$ACC" != "${fgAccent}" ]; then setKey accentColor "$ACC"; fi
+
+        # Card, field and row surfaces plus every foreground on them, solved so each state reaches 4.5:1 for any scheme
+        eval "$(awk -f ${paletteAwk} -v MODE=card -v TEXT="$TEXT" -v ACC="$ACC" -v BACK="$BACK")"
 
         if magick "''${img}[0]" -resize 1920x1080^ -gravity center -extent 1920x1080 +repage -alpha off "$work/base.png" 2>/dev/null \
           && magick "$work/base.png" -blur 0x5 "$work/lock.png"; then
           pick LOCK_DIM "$work/lock.png" "0.4 0.5 0.6 0.7 0.8 0.9" \
-            "300x420+810+330|${fgAccent}|3" "420x40+750+940|${fgText}|4.5" || true
+            "300x420+810+330|$ACC|3" "420x40+750+940|$TEXT|4.5" || true
         else
           echo "sddm-pixie: background measurement failed, using strongest dim"
         fi
-        echo "sddm-pixie: lock dim=$LOCK_DIM login dim=$LOGIN_DIM header fg=$HEADER_FG"
+        echo "sddm-pixie: lock dim=$LOCK_DIM login dim=$LOGIN_DIM header fg=$HEADER_FG surface fg=$SURFACE_NAME placeholder alpha=$PLACEHOLDER_ALPHA text=$FG base=$BASE"
 
         substituteInPlace $theme/Main.qml \
           --replace-fail 'loginState.visible ? 0.6 : 0.4' "loginState.visible ? $LOGIN_DIM : $LOCK_DIM" \
@@ -232,11 +300,47 @@ delib.module {
                     opacity: 1.0
         ${shadow "            "}' \
           --replace-fail 'color: loginState.isError ? "#442222" : baseColor
-                    opacity: 0.7' 'color: loginState.isError ? Qt.rgba(0.27, 0.13, 0.13, 0.88) : Qt.rgba(baseColor.r, baseColor.g, baseColor.b, 0.88)
+                    opacity: 0.7' 'color: Qt.rgba(container.cardColor.r, container.cardColor.g, container.cardColor.b, 0.88)
                     opacity: 1.0' \
           --replace-fail 'text: container.isLoggingIn ? "⋯" : "→"
                                 color: "white"' 'text: container.isLoggingIn ? "⋯" : "→"
-                                color: container.isLoggingIn ? config.textColor : container.baseColor'
+                                color: container.isLoggingIn ? container.fgColor : container.textOnAccent' \
+          --replace-fail 'color: container.isLoggingIn ? surfaceVariantColor : (loginButton.pressed ? Qt.darker(container.extractedAccent, 1.1) : container.extractedAccent)' "color: container.isLoggingIn ? surfaceVariantColor : (loginButton.pressed ? Qt.$PRESS_FN(container.surfaceAccent, 1.1) : container.surfaceAccent)" \
+          --replace-fail 'text: "Num Lock is on"
+                            color: container.extractedAccent' 'text: "Num Lock is on"
+                            color: @HEADER_FG@' \
+          --replace-fail 'color: container.extractedAccent
+                                    font.pixelSize: 48' 'color: container.surfaceAccent
+                                    font.pixelSize: 48' \
+          --replace-fail 'text: "󰟀"
+                                    color: container.extractedAccent' 'text: "󰟀"
+                                    color: container.surfaceAccent' \
+          --replace-fail 'text: "Enter Password"
+                                color: "gray"' 'text: "Enter Password"
+                                color: container.fgColor' \
+          --replace-fail 'anchors.centerIn: parent
+                                opacity: 0.5' "anchors.centerIn: parent
+                                opacity: $PLACEHOLDER_ALPHA" \
+          --replace-fail 'border.color: container.extractedAccent' 'border.color: container.surfaceAccent' \
+          --replace-fail '? container.extractedAccent : surfaceVariantColor' '? container.surfaceAccent : surfaceVariantColor' \
+          --replace-fail 'color: isCurrent ? baseColor : "white"' 'color: isCurrent ? container.textOnAccent : container.fgColor' \
+          --replace-fail 'color: isCurrent ? "white" : (hovered ? "#DDDDDD" : "#AAAAAA")' 'color: container.fgColor' \
+          --replace-fail 'color: isCurrent ? "white" : "#AAAAAA"' 'color: container.fgColor' \
+          --replace-fail 'color: isCurrent ? container.extractedAccent : "gray"' 'color: isCurrent ? container.surfaceAccent : container.fgColor' \
+          --replace-fail 'radius: 24
+                    opacity: 0.95' 'radius: 24
+                    opacity: 1.0' \
+          --replace-fail 'property color baseColor: config.backgroundColor' "property color baseColor: \"$BASE\"" \
+          --replace-fail 'property color surfaceColor: Qt.lighter(baseColor, 1.3)' "property color surfaceColor: \"$S1\"" \
+          --replace-fail 'property color surfaceVariantColor: Qt.lighter(baseColor, 1.6)' "property color surfaceVariantColor: \"$S2\"
+            property color fgColor: \"$FG\"
+            property color surfaceAccent: \"$SURFACE_ACCENT\"
+            property color textOnAccent: \"$TEXT_ON_ACCENT\"
+            property color errorCardColor: \"$ERROR_CARD\"
+            property color cardColor: loginState.isError ? errorCardColor : baseColor"
+
+        sed -i -e '/width: 4$/,/radius: 2/ s/container\.extractedAccent/container.surfaceAccent/' -e 's/color: "white"/color: container.fgColor/' $theme/Main.qml
+        if grep -nE '"(white|gray|#AAAAAA|#DDDDDD)"' $theme/Main.qml; then echo "sddm-pixie: hardcoded greys left in Main.qml"; exit 1; fi
 
         substituteInPlace $theme/Main.qml --replace-fail '@HEADER_FG@' "$HEADER_FG"
 
