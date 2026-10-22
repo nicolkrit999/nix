@@ -79,6 +79,31 @@ let
   sshHosts = [ "github.com" "gitlab.com" "gitlab-edu.supsi.ch" ];
   sshBad = pred: lib.filter (h: !(pred (sshOf hm h))) sshHosts;
 
+  isLaptop = c.myconfig.constants.hostname == "nixos-laptop";
+
+  printingProbe = cfg: names: lib.concatLists [
+    (lib.optional (cfg.services.printing.enable or false) "cups")
+    (lib.optional (cfg.environment.etc ? ${names.etc}) "etc")
+    (lib.optional (cfg.systemd.services ? ${names.service}) "service")
+    (lib.optional (cfg.sops.secrets ? ${names.secret}) "secret")
+  ];
+  printingNames = { etc = "samba/smb.conf"; service = "supsi-printer-setup"; secret = "school_supsi_password"; };
+  knownNames = { etc = "davfs2/secrets"; service = "tailscaled-autoconnect"; secret = "school_ssh_key"; };
+
+  printingChecks =
+    [
+      [ "control: myconfig.constants.hostname equals the evaluated host, so the laptop gate cannot misclassify a host" (chk (c.myconfig.constants.hostname == host && isLaptop == (host == "nixos-laptop")) "constants.hostname is ${c.myconfig.constants.hostname}, evaluated host is ${host}") ]
+      [ "control: the printing probe reports etc, service and secret names that exist in the spec (probe bites)" (chk ((c.services.printing ? enable) && lib.subtractLists [ "cups" ] (printingProbe c knownNames) == [ "etc" "service" "secret" ]) "probe misses names that exist: ${toString (printingProbe c knownNames)}") ]
+    ]
+    ++ lib.optionals isLaptop [
+      [ "SUPSI printing: cups on, smb.conf has SMB2" (chk (c.services.printing.enable && lib.hasInfix "client min protocol = SMB2" c.environment.etc."samba/smb.conf".text) "printing off or smb.conf lacks SMB2") ]
+      [ "SUPSI printing: oneshot after cups, ExecStart is a store script without embedded credentials" (chk (c.services.printing.enable && (c.systemd.services ? supsi-printer-setup) && c.systemd.services.supsi-printer-setup.serviceConfig.Type == "oneshot" && lib.elem "cups.service" c.systemd.services.supsi-printer-setup.after && lib.hasPrefix "/nix/store/" (toString c.systemd.services.supsi-printer-setup.serviceConfig.ExecStart) && !(lib.hasInfix "smb://" (toString c.systemd.services.supsi-printer-setup.serviceConfig.ExecStart))) "printing service missing, not a oneshot after cups, or ExecStart not a plain store script") ]
+      [ "SUPSI printing: smb.conf has client min protocol = SMB2, password secret is root 0400 and school-only" (chk (lib.hasInfix "client min protocol = SMB2" c.environment.etc."samba/smb.conf".text && (c.sops.secrets.school_supsi_password.mode == "0400" && c.sops.secrets.school_supsi_password.owner == "root") && !(base.sops.secrets ? school_supsi_password) && !(base.systemd.services ? supsi-printer-setup)) "smb.conf lacks SMB2, secret mode/owner differs, or the printing wiring leaks into the base config") ]
+    ]
+    ++ lib.optionals (!isLaptop) [
+      [ "SUPSI printing is laptop-only: the spec has no cups, smb.conf, supsi-printer-setup or school_supsi_password, and the base has no school printing service or secret" (chk (printingProbe c printingNames == [ ] && !(base.systemd.services ? supsi-printer-setup) && !(base.sops.secrets ? school_supsi_password)) "printing wiring present on a non-laptop host: ${toString (printingProbe c printingNames)}") ]
+    ];
+
   checks = [
     [ "specialisation.school evaluates for ${host}" (chk (base.specialisation ? school && c.system.nixos.tags == [ "school" ]) "specialisation.school missing or tags differ") ]
     [ "constants.shell == bash" (chk (c.myconfig.constants.shell == "bash") "shell is ${c.myconfig.constants.shell}") ]
@@ -112,9 +137,7 @@ let
 
     [ "NetworkManager VPN plugins openvpn and openconnect are registered in the spec" (chk (c.environment.etc ? "NetworkManager/VPN/nm-openvpn-service.name" && c.environment.etc ? "NetworkManager/VPN/nm-openconnect-service.name") "nm-openvpn/nm-openconnect service.name missing from environment.etc") ]
     [ "control: an unrequested NM VPN plugin is not registered (etc probe bites)" (chk (!(c.environment.etc ? "NetworkManager/VPN/nm-nonexistent-service.name")) "etc probe accepts any name") ]
-    [ "SUPSI printing: cups on, smb.conf has SMB2" (chk (c.services.printing.enable && lib.hasInfix "client min protocol = SMB2" c.environment.etc."samba/smb.conf".text) "printing off or smb.conf lacks SMB2") ]
-    [ "SUPSI printing: oneshot after cups, ExecStart is a store script without embedded credentials" (chk (c.services.printing.enable && (c.systemd.services ? supsi-printer-setup) && c.systemd.services.supsi-printer-setup.serviceConfig.Type == "oneshot" && lib.elem "cups.service" c.systemd.services.supsi-printer-setup.after && lib.hasPrefix "/nix/store/" (toString c.systemd.services.supsi-printer-setup.serviceConfig.ExecStart) && !(lib.hasInfix "smb://" (toString c.systemd.services.supsi-printer-setup.serviceConfig.ExecStart))) "printing service missing, not a oneshot after cups, or ExecStart not a plain store script") ]
-    [ "SUPSI printing: smb.conf has client min protocol = SMB2, password secret is root 0400 and school-only" (chk (lib.hasInfix "client min protocol = SMB2" c.environment.etc."samba/smb.conf".text && (c.sops.secrets.school_supsi_password.mode == "0400" && c.sops.secrets.school_supsi_password.owner == "root") && !(base.sops.secrets ? school_supsi_password) && !(base.systemd.services ? supsi-printer-setup)) "smb.conf lacks SMB2, secret mode/owner differs, or the printing wiring leaks into the base config") ]
+  ] ++ printingChecks ++ [
     [ "wireshark enabled in the spec and the user is in the wireshark group" (chk (c.programs.wireshark.enable && lib.elem "wireshark" c.users.users.${userName}.extraGroups) "wireshark or group membership missing") ]
 
     [ "school PWA entries exist, have no mimeType and are in category Education" (chk (pwaNames != [ ] && pwaBad pwaOk == [ ]) "bad PWA entries: ${toString (pwaBad pwaOk)} of ${toString pwaNames}") ]

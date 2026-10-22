@@ -24,6 +24,20 @@ delib.module {
           base00 = "1e1e2e";
           base0D = "89b4fa";
         };
+
+      # Terminal background pushed away from the text colour (darker on dark schemes, lighter on
+      # light ones) by a fixed fraction of the scheme's own base00, so any theme gets the same
+      # relative contrast boost and keeps its hue. 0.20 equals Catppuccin Mantle on mocha.
+      bgPush = 0.20;
+      darkScheme = myconfig.constants.theme.polarity == "dark";
+      pushBg = hex:
+        let
+          ch = i: lib.fromHexString (builtins.substring i 2 hex);
+          shift = c: builtins.floor ((if darkScheme then c * (1.0 - bgPush) else c + (255 - c) * bgPush) + 0.5);
+          h = n: lib.fixedWidthString 2 "0" (lib.toHexString n);
+        in
+        h (shift (ch 0)) + h (shift (ch 2)) + h (shift (ch 4));
+      termBg = pushBg colors.base00;
     in
     {
       home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
@@ -46,11 +60,12 @@ delib.module {
           macos_option_as_alt = "yes";
         };
 
-        # Accent (base0D) cursor with the background colour (base00) under it. Must come
-        # after the stylix theme include (order 1000), which sets both keys to base05.
+        # Pushed background, plus an accent (base0D) cursor with that background under it. Must
+        # come after the stylix theme include (order 1000), which sets the cursor keys to base05.
         extraConfig = lib.mkAfter ''
+          background #${termBg}
           cursor #${colors.base0D}
-          cursor_text_color #${colors.base00}
+          cursor_text_color #${termBg}
         '';
       };
     };

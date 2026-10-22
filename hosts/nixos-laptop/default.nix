@@ -137,8 +137,11 @@ delib.host {
 
           {
             targetMonitor = "eDP-1";
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-websites/imgur/imgur_japan_2.jpg";
-            wallpaperSHA256 = "1pkk3glmqjl2h2cgrx9jcwp069xh73d14nxhs6sijqh73vhj7wrg";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/AngelJumbo/gruvbox-wallpapers/gruvbox-wallpapers-main/wallpapers/anime/komeiji-koishi.png";
+            wallpaperSHA256 = "1mi1qvfl03f227cdhq6bcavqhypsfa95zynma0nlll8pbrzwn68l";
+
+            gifURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Pixel%20Dream/may_chill.gif";
+            gifSHA256 = "1v3h995fifxcdvrizr5n99h0bmja7khzi89bh33d869psrjc4ssp";
           }
           {
             targetMonitor = "*";
@@ -151,7 +154,7 @@ delib.host {
         # 🎨 THEMING
         # ---------------------------------------------------------------
         theme = {
-          base16Theme = "rose-pine-moon";
+          base16Theme = "gruvbox-dark";
 
           catppuccin = false;
           catppuccinFlavor = "mocha";
@@ -701,7 +704,7 @@ delib.host {
         };
         sddm-pixie = {
           enable = true;
-          background = "imgur_japan_33.jpg";
+          background = "koi-fish.png";
           avatar = "face-512.jpg";
         };
 

@@ -28,7 +28,7 @@ The script writes each script to a temp dir and runs `bash -n` on it. For the tw
 
 ## Checks
 
-Per host (scenario report):
+Per host (scenario report). Printing is intentionally laptop-only (`isLaptop` in `school.nix`), so the printing rows differ per host:
 
 | Check | Expected |
 |-------|----------|
@@ -48,7 +48,10 @@ Per host (scenario report):
 | OneDrive unit | `StartLimitIntervalSec` and `StartLimitBurst` set, no `network-online.target` in `After`/`Wants`, `Restart = on-failure` |
 | launchers | tkgate and sqldeveloper use the narrow `si:localuser:` xhost entry with grant and revoke, never `xhost +`; `idea-school` exports `GIT_CONFIG_GLOBAL` to `$HOME/.config/git/config`; year directories use `2nd`/`3rd` (no `2st`/`3st`); niri and mango autostart `nvim` |
 | davfs | spaces non-empty; one fileSystem per space with `fsType davfs` and `device == url`; options `noauto nofail x-systemd.automount _netdev`; `uid=` equals `myconfig.constants.user` and `gid=` equals the user's primary group name (davfs2 resolves names); davfs2 enabled, secrets linked, user in `davfs2` group; no space path equals `University` |
-| printing | SUPSI Follow Me: `services.printing` on, `supsi-printer-setup` oneshot after cups whose ExecStart is a plain store script (no `smb://` credentials), `/etc/samba/smb.conf` with `client min protocol = SMB2`, `school_supsi_password` sops secret root 0400, none of it in the base config |
+| printing (laptop) | `nixos-laptop` only: SUPSI Follow Me: `services.printing` on, `supsi-printer-setup` oneshot after cups whose ExecStart is a plain store script (no `smb://` credentials), `/etc/samba/smb.conf` with `client min protocol = SMB2`, `school_supsi_password` sops secret root 0400, none of it in the base config |
+| printing (other hosts) | every host that is not `nixos-laptop` (the config gates the wiring on `hostname == "nixos-laptop"`): the spec has `services.printing` off, no `samba/smb.conf` in `environment.etc`, no `supsi-printer-setup` service, no `school_supsi_password` secret, and the base has no `supsi-printer-setup` or `school_supsi_password` either; probed with `?`/`or`, so the check can only report FAIL, never an eval error |
+| printing gate control | all hosts: `myconfig.constants.hostname` (the value `school.nix`'s `isLaptop` reads) equals the evaluated host name, so a wrong gate path or a renamed host cannot silently put the laptop on the desktop branch |
+| printing control | all hosts: the probe reports `etc`, `service` and `secret` for names that do exist in the spec (`davfs2/secrets`, `tailscaled-autoconnect`, `school_ssh_key`) and `services.printing.enable` is a declared option, so a probe that always returns nothing fails this control instead of passing the desktop check vacuously |
 | scale | `sqldeveloper-school` `uiScale` equals the hyprland monitor scale (exact string and float) and is not the 1.0 fallback (the scale is derived from the enabled monitors); control parser rejects another scale; tkgate `Xft.dpi` is `floor(96 * scale)` |
 | scripts | eight school scripts exist; setup creates `school-ubuntu` and `school-arch`; clear names both; launchers enter the matching container; both `check` strings are single-quote-safe in setup |
 | workspaces | every `[workspace N` in hyprland `execOnce` is in `monitorWorkspaces` |
