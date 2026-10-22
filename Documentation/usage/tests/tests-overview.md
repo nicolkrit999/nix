@@ -15,7 +15,8 @@ bash templates/tests/run-tests.sh [--parallel] [--fast] [--only NAME[,NAME...]] 
 | Flag | Effect |
 |------|--------|
 | (none) | run every test sequentially |
-| `--parallel` | run all tests concurrently. Faster, but noisy if `nicol-nas` is unreachable (every nix process prints a "could not resolve nicol-nas" retry warning) |
+| `--parallel` | run tests concurrently. Faster, but noisy if `nicol-nas` is unreachable (every nix process prints a "could not resolve nicol-nas" retry warning). How many run at once is chosen from the RAM available right now (see `--jobs` and "Memory needed for `--parallel`" below); a hardware banner at the start says what was chosen |
+| `--jobs X` | with `--parallel`: `auto` (default), `max` (never cap) or a number. Also `NIX_TESTS_JOBS`; `NIX_TESTS_UNCAPPED_GB` (52), `NIX_TESTS_JOB_GB` (8) and `NIX_TESTS_RESERVE_GB` (3) tune the auto rule |
 | `--fast` | pass each test's `fast_args` from its `test.conf` (today only `nixos-arch-compat`: `--fast`, which skips the specialisation batches) |
 | `--only X` | run only these tests. `X` is a test name from `--list`, a folder name, or an unambiguous suffix (`--only arch-compat` works). Comma-separated for several |
 | `--list` | print every discovered test (name, CI group, timeout cap in minutes, platforms, CI yes/no, kind, folder) and exit |
@@ -43,6 +44,58 @@ This is outside the repo and not in `/tmp` (a tmpfs here), so it survives a rebo
 | `NIX_TESTS_MAX_MB` | 500 | delete runs until all runs total at most this |
 
 `0` disables a limit. Only `<timestamp>-<sha>` directories that the script created are deleted, and never the run `latest` points to. This is covered by `common-test-infra`.
+
+### Memory needed for `--parallel`
+
+`run-tests.sh --parallel` sizes itself to the machine. It reads the available RAM when it starts (`/proc/meminfo` `MemAvailable`, lowered by a cgroup `memory.max`/`memory.high` on its own unit if there is one; macOS assumes 60 % of RAM is free) and prints a **hardware banner** first, for example `Tuning    parallel, 2 at a time  [(22 GB free - 3 GB reserve) / 8 GB per host eval, at least 1]`. The rule (`--jobs auto`):
+
+| Available RAM | Tests at once |
+|---------------|---------------|
+| at least 52 GB (the measured peak of the whole suite) | all of them, no cap (the 64 GB desktop at idle) |
+| less | (available - 3 GB) / 8 GB, at least 1; the longest tests of the previous run start first |
+
+The rule uses what is free *now*, so an open browser or agents lower the job count by themselves, and a 128 GB machine is never capped. `--jobs max` never caps, `--jobs N` forces N. The banner also appears without `--parallel` and says what auto would pick. On Linux the results summary ends with the machine's RAM and swap use over the run (min / average / max, whole system, sampled every 2 s into `memory-samples.tsv` in the log directory), which is how the figures below were checked. The 52 / 8 / 3 GB figures come from the one measurement below and are tunable with `NIX_TESTS_UNCAPPED_GB`, `NIX_TESTS_JOB_GB` and `NIX_TESTS_RESERVE_GB`; the capped job counts are estimates that nobody has measured yet.
+
+Before this existed `run_parallel()` started every discovered test at once, with no cap. Nearly every test is a `nix eval` of whole hosts, and evaluations share no memory, so peak RAM is roughly the number of overlapping heavy evaluations times about 8 GB (one laptop-toplevel eval: 7.8 GB peak RSS).
+
+**Measured once, 2026-10-22, `nixos-desktop` (64 GB DDR5, 32 threads, 69 tests, uncapped):**
+
+| Value | Result |
+|-------|--------|
+| wall time | 4 min 58 s (the sequential run takes about 44 min) |
+| cgroup memory peak (`systemd-run` unit) | 51.9 GB, plus 1.4 GB swap |
+| system-wide peak | 59.0 GB used, 3.6 GB left available, 3.7 GB swap used |
+| `nix` processes at once | up to about 150 (about 54 GB RSS in total at the worst sample) |
+| memory pressure (PSI, `full`) | up to 7.3 % for about 20 samples (5 s each) |
+| OOM kill | none, but it was close |
+| `/` (4 GB tmpfs) | up to 266 MB used |
+
+**Rule: a full `--parallel` run needs at least 64 GB of RAM plus swap, and 96 GB or more to be comfortable** (measured peak 52-59 GB, plus 25-50 % safety margin, plus the desktop session). At 64 GB it passes today but leaves about 3 GB free and swaps, so nothing else (browser, agents, a second build) may run next to it. Below 64 GB, never run it uncapped.
+
+Per-test peak memory was **not** measured (only the whole run). The tests most likely to be heavy, ranked by duration and by how many host evaluations their scripts start (inference, not measurement): `nixos-portal-routing` (297 s), `nixos-wallpapers` (277 s), `nixos-arch-compat` (265 s, 56 eval/build references, specialisation batches), `common-dev-env-templates` (255 s, builds dev shells), `nixos-app-resolution` (247 s), `common-ext-dotfiles-mappings` (201 s), `nixos-env-shell-wiring`, `darwin-home-paths`, `nixos-custom-shells`, `nixos-spec-contract` (180-195 s each).
+
+#### What to do per RAM size
+
+The table is what the auto rule gives with the machine otherwise idle (`--jobs N` is implemented; the `systemd-run` limits are still only a suggestion, see the changes list underneath). The job counts are estimates from the 7.8 GB per heavy eval figure, not measured. Verify any value with the measuring scripts (baseline, 5 s sampler of `free`/PSI, `systemd-run` "Memory peak") before relying on it.
+
+| RAM | Verdict | Recommendation |
+|-----|---------|----------------|
+| 8 GB | **Do not run the suite.** | One host eval alone peaks at about 7.8 GB, so even a sequential run swaps or gets OOM-killed. Run only light `--only` tests (`--list` shows them) or leave it to CI. |
+| 16 GB | **Sequential only, nothing else open.** | `--parallel` is a bad idea (two heavy evals already fill it). Heavy tests (`arch-compat`, `portal-routing`, `wallpapers`) may still swap; run them one `--only` at a time. With the `--jobs` cap: `--jobs 1`. |
+| 32 GB | **Sequential, or a capped run.** | Full `--parallel` will OOM (peak is 50+ GB). With the cap: `--jobs 2`, at most 3 with the desktop session closed. Add `MemoryHigh=24G` so the kernel throttles instead of killing the session. |
+| 64 GB | **Works uncapped (measured) but tight.** | Prefer a cap: `--jobs 12` (estimate) keeps about 15 GB free. Uncapped leaves about 3 GB and swaps; close everything else and use `MemoryMax` so the kernel kills a test, not the session. |
+| 128 GB | **Comfortable uncapped.** | Measured peak is under half of it. No change needed; the cap only matters if you run agents or builds alongside. |
+
+#### Further changes that would reduce the pressure
+
+1. **Done:** the `--jobs` cap and longest-first start order (see above). Not yet done: a measured calibration of the 8 GB per-job figure on a small machine.
+2. **A memory limit on the run itself.** Launch the suite as `systemd-run --user --wait --collect -p MemoryAccounting=yes -p MemoryHigh=<RAM minus 8G> -p MemoryMax=<RAM minus 4G> --setenv=PATH="$PATH" --working-directory=<repo> bash templates/tests/run-tests.sh --parallel`. `MemoryHigh` throttles (slower, but nothing dies), `MemoryMax` makes the kernel kill inside the scope, not the tmux session. The explicit `--setenv=PATH` is required: a bare `systemd-run --user bash ...` failed with exit 127 because the user manager has no PATH.
+3. **Fewer repeated evaluations.** About 150 `nix` processes evaluate the same few hosts again and again. Evaluating each host's toplevel (and its specialisations) once, and letting the tests read the cached result, would cut the peak by a large factor. It is the real fix but a structural change to the test harness.
+4. **More swap/zram headroom** on small machines only as a safety net: compressed zram is still RAM and does not help a 50 GB peak.
+
+#### Failures that are not memory
+
+The same parallel run had 7 failures that look like a concurrency race, not an OOM: `darwin-home-paths`, `darwin-nas-borg`, `darwin-host-contract`, `darwin-headroom-launchd`, `darwin-module-defaults`, `darwin-minimal-defaults` and `common-secret-wiring` all died with `libgit2 error ... object not found` / `failed to insert entry: invalid object` while nix snapshotted the dirty tree. The object it asked for does not exist in the repository, which fits a temporary object that another concurrent nix process replaced (inference). Re-run them alone with `--only` before treating them as real. The other three red tests (`common-ai-tool-modules`, `common-dev-env-templates`, `nixos-sddm-pixie-readability`) fail for their own reasons, not memory.
 
 ## CI
 
