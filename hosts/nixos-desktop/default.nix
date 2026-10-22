@@ -820,8 +820,7 @@ delib.host {
 
         sddm-astronaut = {
           enable = true;
-          embeddedTheme = "japanese-aesthetic";
-          background = "nordic-blue.jpg";
+          embeddedTheme = "hyprland_kath";
         };
         sddm-pixie = {
           enable = false;
