@@ -203,8 +203,8 @@ delib.host {
         ];
 
         theme = {
-          base16Theme = "tokyo-night-dark";
-          catppuccin = false;
+          base16Theme = "catppuccin-mocha";
+          catppuccin = true;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "sapphire";
         };
