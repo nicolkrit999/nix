@@ -16,6 +16,7 @@ let
   data = s: s.data or s;
   sshOf = h: n: data (h.programs.ssh.settings.${n} or { });
 
+  hasPkgInfix = s: pkgs: lib.any (p: lib.hasInfix s (p.name or "")) pkgs;
   pkgByName = n: lib.findFirst (p: (p.name or "") == n) null hm.home.packages;
   scriptText = n: let p = pkgByName n; in if p == null then "" else p.text;
   scriptNames = [
@@ -158,6 +159,8 @@ let
     [ "davfs uid= option equals constants.user" (chk (spaces != [ ] && badFs (s: optEquals "uid" userName (optsOf s)) == [ ]) "uid= is not ${userName} for: ${toString (badFs (s: optEquals "uid" userName (optsOf s)))}; options: ${toString (optsOf (lib.head spaces))}") ]
     [ "davfs gid= option equals the user's primary group name" (chk (spaces != [ ] && badFs (s: optEquals "gid" c.users.users.${userName}.group (optsOf s)) == [ ]) "gid= is not ${c.users.users.${userName}.group} for: ${toString (badFs (s: optEquals "gid" c.users.users.${userName}.group (optsOf s)))}") ]
     [ "davfs2 enabled, secrets file linked, krit in davfs2 group" (chk (c.services.davfs2.enable && c.environment.etc ? "davfs2/secrets" && lib.elem "davfs2" c.users.users.krit.extraGroups) "davfs2 wiring incomplete") ]
+    [ "no opencloud-desktop sync client next to the davfs mounts (spec and school user)" (chk (!(hasPkgInfix "opencloud-desktop" c.environment.systemPackages) && !(hasPkgInfix "opencloud-desktop" hm.home.packages)) "opencloud-desktop is installed in the school specialisation") ]
+    [ "control: the package-name probe finds distrobox in the spec systemPackages and a school script in the user packages" (chk (hasPkgInfix "distrobox" c.environment.systemPackages && hasPkgInfix "brave-school" hm.home.packages) "probe cannot see known packages, so the opencloud-desktop absence check is vacuous") ]
     [ "no opencloud space path is exactly University" (chk (!(lib.any (s: s.path == "University") spaces)) "a space path collides with the University tmpfiles directory") ]
 
     [ "sqldeveloper uiScale == hyprland monitor scale, exact render" (chk (lib.length scales == 1 && lib.hasInfix "-Dsun.java2d.uiScale=${scaleStr}\"" (scriptText "sqldeveloper-school")) "monitor scales ${toString scales}; script uiScale ${toString (uiScaleOf (scriptText "sqldeveloper-school"))}") ]

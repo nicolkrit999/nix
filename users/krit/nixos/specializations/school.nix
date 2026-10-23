@@ -337,25 +337,10 @@ delib.module {
           };
         })
       ];
-      environment.systemPackages = [
-        pkgs.distrobox
-        (pkgs.opencloud-desktop.overrideAttrs (old: {
-          qtWrapperArgs = (old.qtWrapperArgs or [ ]) ++ [
-            "--prefix"
-            "NIXPKGS_QT6_QML_IMPORT_PATH"
-            ":"
-            "${pkgs.kdePackages.kirigami.unwrapped}/lib/qt-6/qml"
-            "--prefix"
-            "NIXPKGS_QT6_QML_IMPORT_PATH"
-            ":"
-            "${pkgs.kdePackages.qqc2-desktop-style}/lib/qt-6/qml"
-            "--prefix"
-            "NIXPKGS_QT6_QML_IMPORT_PATH"
-            ":"
-            "${pkgs.kdePackages.qqc2-breeze-style}/lib/qt-6/qml"
-          ];
-        }))
-      ];
+      # No opencloud-desktop sync client on purpose: the spaces are already mounted over
+      # davfs2 above, and a second writer (own sync folder, own credentials) on the same
+      # spaces risks conflicting uploads and deletions. The web UI stays as a PWA.
+      environment.systemPackages = [ pkgs.distrobox ];
 
       # School user environment: workspace, git/ssh identity, tools, OneDrive mount, web apps
       home-manager.users.${myUserName} = { pkgs, lib, ... }: {

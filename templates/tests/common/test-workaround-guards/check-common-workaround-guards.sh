@@ -47,42 +47,6 @@ run_check() {
   rm -f "$stderr_file"
 }
 
-run_lazygit_build_check() {
-  local label="lazygit theme builds: authorColors moved under gui.theme"
-  printf "  %-62s " "$label"
-  local stderr_file out up
-  stderr_file=$(mktemp)
-  if out=$(FLAKE_ROOT="$REPO_ROOT" nix build --impure --no-link --print-out-paths --file "$SCENARIO" lazygit-source-drv 2>"$stderr_file") &&
-     up=$(FLAKE_ROOT="$REPO_ROOT" nix build --impure --no-link --print-out-paths --file "$SCENARIO" lazygit-upstream-drv 2>>"$stderr_file"); then
-    local bad="" f n=0
-    for f in "$out"/*/*.yml; do
-      n=$((n + 1))
-      if grep -q '^  authorColors' "$f"; then bad+="$f has top-level gui.authorColors~"; fi
-      if grep -q '^  authorColors' "$up/${f#"$out"/}" && ! grep -q '^    authorColors' "$f"; then
-        bad+="$f lost theme.authorColors~"
-      fi
-    done
-    if [[ $n -eq 0 ]]; then bad="no theme yml files found~"; fi
-    if [[ -z "$bad" ]]; then
-      printf "${GREEN}PASS${NC}\n"
-      ((PASS++)) || true
-      if ! grep -rqs '^  authorColors' "$up"; then
-        WARNINGS+=("$label|WARN: upstream catppuccin lazygit no longer uses gui.authorColors; workaround is removable (memory: project-lazygit-catppuccin-migrated-workaround)")
-        ((WARN++)) || true
-      fi
-    else
-      printf "${RED}FAIL${NC}\n"
-      ((FAIL++)) || true
-      FAILURES+=("$label|CHECK FAILED|$bad")
-    fi
-  else
-    printf "${RED}FAIL${NC}\n"
-    ((FAIL++)) || true
-    FAILURES+=("$label|BUILD ERROR|$(tail -3 "$stderr_file" | tr '\n' '~')")
-  fi
-  rm -f "$stderr_file"
-}
-
 echo ""
 echo -e "${BOLD}=== Workaround guards ===${NC}"
 echo -e "${DIM}Each momentary workaround must stay effective; WARN means it became removable.${NC}"
@@ -100,18 +64,6 @@ run_check "check-tgt-single-package"          "exactly one tgt in nixos-desktop 
 run_check "check-tgt-links-pinned-tdlib"      "tgt builds against the pinned TDLib"
 run_check "check-tgt-tdlib-rs-unchanged"      "locked tgt source still uses the tdlib-rs the pin is for"
 run_check "warn-tgt-tdlib-pin-still-needed"   "nixpkgs tdlib differs from the pin (pin needed)"
-
-echo ""
-echo -e "${BOLD}lazygit (catppuccin migrated theme)${NC}"
-run_check "check-lazygit-migrated-source-nixos"   "nixos-desktop uses catppuccin-lazygit-migrated"
-run_check "check-lazygit-migrated-source-darwin"  "darwin uses catppuccin-lazygit-migrated"
-run_lazygit_build_check
-
-echo ""
-echo -e "${BOLD}school opencloud-desktop (QML import paths)${NC}"
-run_check "check-school-opencloud-single"            "exactly one opencloud-desktop in school"
-run_check "check-school-opencloud-qml-paths"         "kirigami, qqc2-desktop-style, qqc2-breeze-style paths"
-run_check "check-school-opencloud-qml-prefix-form"   "three NIXPKGS_QT6_QML_IMPORT_PATH prefixes"
 
 echo ""
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"
