@@ -3,6 +3,7 @@
 , config
 , inputs
 , moduleSystem
+, pkgs
 , ...
 }:
 let
@@ -15,6 +16,12 @@ let
         value = { sopsFile = commonSecrets; } // lib.optionalAttrs (owner != null) { inherit owner; };
       })
       personal.mcpSecrets));
+
+  cfImageSecretNames = [ "cf_account_id" "cf_api_token" ];
+
+  mkCfImageSecrets = owner: personal:
+    lib.optionalAttrs personal.enable (lib.genAttrs cfImageSecretNames (_:
+      { sopsFile = commonSecrets; } // lib.optionalAttrs (owner != null) { inherit owner; }));
 
   mkShared = user: homeDir: {
     github_fg_pat_token_nix = {
@@ -67,7 +74,8 @@ delib.module {
           sopsFile = commonSecrets;
           owner = user;
         };
-      } // mkClaudeMcpSecrets user myconfig.krit.programs.claude-code-personal;
+      } // mkClaudeMcpSecrets user myconfig.krit.programs.claude-code-personal
+        // mkCfImageSecrets user myconfig.krit.programs.claude-code-personal;
     };
 
   darwin.ifEnabled =
@@ -88,28 +96,41 @@ delib.module {
           owner = user;
           path = "${homeDir}/.ssh/id_school.pub";
         };
-      } // mkClaudeMcpSecrets user myconfig.krit.programs.claude-code-personal;
+      } // mkClaudeMcpSecrets user myconfig.krit.programs.claude-code-personal
+        // mkCfImageSecrets user myconfig.krit.programs.claude-code-personal;
     };
 
   home.ifEnabled =
     { myconfig, ... }:
-    lib.optionalAttrs (moduleSystem == "nixos")
-      {
-        programs.fish.interactiveShellInit = lib.mkBefore ''
-          if test -r ${config.sops.secrets.hevy_api_key.path}
-            set -gx HEVY_API_KEY (cat ${config.sops.secrets.hevy_api_key.path})
-          end
-        '';
-      }
-    // lib.optionalAttrs (moduleSystem == "home") {
-      sops = {
-        defaultSopsFile = commonSecrets;
-        age.keyFile = "${config.xdg.configHome}/sops/age/keys.txt";
+    lib.mkMerge [
+      (lib.mkIf myconfig.krit.programs.claude-code-personal.enable {
+        home.packages = lib.optionals
+          (moduleSystem == "home" || !myconfig.krit.programs.claude-code-wrappers.enable)
+          [ (lib.lowPrio pkgs.python3) ];
+        home.sessionVariables = {
+          CF_ACCOUNT_ID_FILE = config.sops.secrets.cf_account_id.path;
+          CF_API_TOKEN_FILE = config.sops.secrets.cf_api_token.path;
+        };
+      })
+      (lib.optionalAttrs (moduleSystem == "nixos")
+        {
+          programs.fish.interactiveShellInit = lib.mkBefore ''
+            if test -r ${config.sops.secrets.hevy_api_key.path}
+              set -gx HEVY_API_KEY (cat ${config.sops.secrets.hevy_api_key.path})
+            end
+          '';
+        })
+      (lib.optionalAttrs (moduleSystem == "home") {
+        sops = {
+          defaultSopsFile = commonSecrets;
+          age.keyFile = "${config.xdg.configHome}/sops/age/keys.txt";
 
-        secrets = {
-          github_general_ssh_pub.path = "${config.home.homeDirectory}/.ssh/id_github.pub";
-          github_general_ssh_key.path = "${config.home.homeDirectory}/.ssh/id_github";
-        } // mkClaudeMcpSecrets null myconfig.krit.programs.claude-code-personal;
-      };
-    };
+          secrets = {
+            github_general_ssh_pub.path = "${config.home.homeDirectory}/.ssh/id_github.pub";
+            github_general_ssh_key.path = "${config.home.homeDirectory}/.ssh/id_github";
+          } // mkClaudeMcpSecrets null myconfig.krit.programs.claude-code-personal
+          // mkCfImageSecrets null myconfig.krit.programs.claude-code-personal;
+        };
+      })
+    ];
 }
