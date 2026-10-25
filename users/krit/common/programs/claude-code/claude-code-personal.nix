@@ -20,14 +20,16 @@ delib.module {
   options = delib.moduleOptions {
     enable = delib.boolOption false;
     mcpSecrets = lib.mkOption {
-      type = lib.types.listOf (lib.types.submodule {
-        options = {
-          sopsSecret = lib.mkOption {
-            type = lib.types.str;
-            description = "The sops secret name (key in sops.secrets).";
+      type = lib.types.listOf (
+        lib.types.submodule {
+          options = {
+            sopsSecret = lib.mkOption {
+              type = lib.types.str;
+              description = "The sops secret name (key in sops.secrets).";
+            };
           };
-        };
-      });
+        }
+      );
       # Default for every host that does not override it (Nicol-NAS does); the
       # sops declarations on all platforms derive from this list.
       default = [
@@ -56,7 +58,8 @@ delib.module {
     };
   };
 
-  myconfig.ifEnabled = { cfg, ... }:
+  myconfig.ifEnabled =
+    { cfg, ... }:
     let
       hasSecret = name: lib.any (s: s.sopsSecret == name) cfg.mcpSecrets;
       secretPath = name: config.sops.secrets.${name}.path;
@@ -64,17 +67,20 @@ delib.module {
       # Standalone home reads the HM sops path; the key stays in env, off argv.
       mcpLaunchers = lib.optionals (moduleSystem == "home") (
         lib.optional (hasSecret "claude_mcp_context7_api_key")
-          (pkgs.writeShellScriptBin "claude-mcp-context7" ''
-            CONTEXT7_API_KEY="$(cat ${lib.escapeShellArg (secretPath "claude_mcp_context7_api_key")})"
-            export CONTEXT7_API_KEY
-            PATH=${pkgs.nodejs_latest}/bin:$PATH exec npx -y @upstash/context7-mcp
-          '')
-        ++ lib.optional (hasSecret "claude_mcp_github_token")
-          (pkgs.writeShellScriptBin "claude-mcp-github" ''
+          (
+            pkgs.writeShellScriptBin "claude-mcp-context7" ''
+              CONTEXT7_API_KEY="$(cat ${lib.escapeShellArg (secretPath "claude_mcp_context7_api_key")})"
+              export CONTEXT7_API_KEY
+              PATH=${pkgs.nodejs_latest}/bin:$PATH exec npx -y @upstash/context7-mcp
+            ''
+          )
+        ++ lib.optional (hasSecret "claude_mcp_github_token") (
+          pkgs.writeShellScriptBin "claude-mcp-github" ''
             AUTH_HEADER="Bearer $(cat ${lib.escapeShellArg (secretPath "claude_mcp_github_token")})"
             export AUTH_HEADER
             PATH=${pkgs.nodejs_latest}/bin:$PATH exec npx mcp-remote https://api.githubcopilot.com/mcp --header 'Authorization:''${AUTH_HEADER}'
-          '')
+          ''
+        )
       );
     in
     {
@@ -84,6 +90,7 @@ delib.module {
         extraGitIgnores = [
           "credentials.json"
           "security_warnings_*.json"
+          "claude-mem.db"
         ];
         extraShellAliases = templateAliases;
       };
