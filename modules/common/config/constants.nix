@@ -16,6 +16,7 @@ delib.module {
         cursorStyle = strOption "block"; # block, beam, underline
         cursorBlink = boolOption true; # Blinking cursor (true = better UX for locating cursor)
         cursorBeamWidth = floatOption 3.0; # Beam cursor width in pixels (converted per terminal)
+        fontSize = floatOption 11.0; # Font size in pt, shared by kitty and alacritty (per-program fontSize overrides it)
         animation = boolOption true; # Enable transient prompt animation on command execution
       };
 

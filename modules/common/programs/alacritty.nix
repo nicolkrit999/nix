@@ -1,14 +1,23 @@
-{ delib, ... }:
+{ delib, lib, ... }:
 delib.module {
   name = "programs.alacritty";
-  options = delib.singleEnableOption false;
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      fontSize = lib.mkOption {
+        type = lib.types.nullOr lib.types.number;
+        default = null;
+        description = "Terminal font size; null uses constants.terminal.fontSize.";
+      };
+    };
 
   myconfig.ifEnabled = { myconfig, ... }: {
     stylix.targets.alacritty.enable = !myconfig.constants.theme.catppuccin;
   };
 
   home.ifEnabled =
-    { myconfig, ... }:
+    { cfg, myconfig, ... }:
     let
       terminal = myconfig.constants.terminal;
     in
@@ -29,6 +38,7 @@ delib.module {
             };
             thickness = terminal.cursorBeamWidth / 12.0; # Convert pixels to cell fraction (~0.25 for 3px)
           };
+          font.size = if cfg.fontSize != null then cfg.fontSize else terminal.fontSize;
         };
       };
     };

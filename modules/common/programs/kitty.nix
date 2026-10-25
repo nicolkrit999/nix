@@ -11,7 +11,7 @@ delib.module {
       fontSize = lib.mkOption {
         type = lib.types.nullOr lib.types.number;
         default = null;
-        description = "Terminal font size; null keeps the kitty (or stylix) default.";
+        description = "Terminal font size; null uses constants.terminal.fontSize.";
       };
     };
 
@@ -35,8 +35,8 @@ delib.module {
           cursor_blink_interval = if terminal.cursorBlink then "0.75 ease-in-out" else "0";
           cursor_beam_thickness = toString terminal.cursorBeamWidth;
         }
-        // lib.optionalAttrs (cfg.fontSize != null) {
-          font_size = cfg.fontSize;
+        // {
+          font_size = if cfg.fontSize != null then cfg.fontSize else terminal.fontSize;
         };
       };
     };
