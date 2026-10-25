@@ -45,6 +45,8 @@ slow test its own group so a cold run cannot starve cheap tests. A CI leg's step
 timeout is derived from its group (sum of caps plus overhead), so only raise
 `timeout` when the test genuinely needs it.
 
+Calibrate a cap on CI durations (`duration_s` in the CI `*.meta.json`), never as a multiple of the local warm time: CI runs 3-5x slower than a desktop (`nixos-env-shell-wiring`, 82 s local, hit its 7 min cap in CI, see build-workflows.md §12.2). `run-test.py` prints a `::warning` for a passing test above 60 % of its cap.
+
 ## Useful commands
 
 ```bash

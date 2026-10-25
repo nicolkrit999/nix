@@ -14,14 +14,19 @@ import sys
 
 sys.dont_write_bytecode = True
 
+import contextlib  # noqa: E402
+import datetime  # noqa: E402
 import importlib.util  # noqa: E402
+import io  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
 import random  # noqa: E402
 import subprocess  # noqa: E402
 import tempfile  # noqa: E402
 import unittest  # noqa: E402
+import warnings  # noqa: E402
 from pathlib import Path  # noqa: E402
+from unittest import mock  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -30,6 +35,9 @@ import testlog_common as tc  # noqa: E402
 _spec = importlib.util.spec_from_file_location("test_report", HERE / "test-report.py")
 tr = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(tr)
+_spec_rt = importlib.util.spec_from_file_location("run_test", HERE / "run-test.py")
+rt = importlib.util.module_from_spec(_spec_rt)
+_spec_rt.loader.exec_module(rt)
 discover = tc.discover
 
 CTX = {"repo": "o/r", "sha": "a" * 40, "tested_sha": "a" * 40, "subject": "subj", "ref": "develop",
@@ -352,6 +360,38 @@ class RunTestCase(unittest.TestCase):
         self.assertEqual(r.returncode, 124)
         self.assertEqual(json.loads((d / "t.meta.json").read_text())["status"], "timeout")
 
+
+    def _run_in_process(self, cmd, duration_s, timeout_min, gha):
+        """run_one in-process with a fake clock: the test 'takes' duration_s without sleeping."""
+        t0 = tc.now()
+        out = io.StringIO()
+        with mock.patch.object(tc, "IN_GHA", gha), \
+             mock.patch.object(tc, "now", side_effect=[t0, t0 + datetime.timedelta(seconds=duration_s)]), \
+             contextlib.redirect_stdout(out), warnings.catch_warnings():
+            warnings.simplefilter("ignore", ResourceWarning)  # run_one never closes the child's pipe
+            rc = rt.run_one("nc", [cmd], timeout_min, Path(tempfile.mkdtemp(prefix="near-cap-")), {}, echo=False)
+        return rc, out.getvalue()
+
+    def test_near_cap_pass_warns_only_in_gha(self):
+        # Early warning: a PASS above 60% of its cap annotates in GitHub Actions. The 300 s run is the
+        # control; every negative case below changes exactly one thing against it.
+        warn = ("::warning title=test nc: used 71%25 of its 7 min cap::300 s of 420 s - raise the cap in "
+                "test.conf or make the test cheaper before it flakes")
+        rc, out = self._run_in_process("true", 300, 7, gha=True)
+        self.assertEqual(rc, 0)
+        self.assertEqual([l for l in out.splitlines() if l.startswith("::")], [warn])
+        for what, cmd, secs, gha in (("fast pass", "true", 200, True),
+                                     ("exactly 60% of the cap", "true", 252, True),
+                                     ("outside GitHub Actions", "true", 300, False)):
+            rc, out = self._run_in_process(cmd, secs, 7, gha=gha)
+            self.assertEqual(rc, 0, what)
+            self.assertNotIn("::warning", out, what)
+        rc, out = self._run_in_process("true", 253, 7, gha=True)  # one second past 60% flips it
+        self.assertIn("::warning title=test nc: used 60%25 of its 7 min cap::253 s of 420 s", out)
+        rc, out = self._run_in_process("echo boom; exit 1", 400, 7, gha=True)
+        self.assertEqual(rc, 1)
+        self.assertIn("::error title=test nc: fail (exit 1)", out)
+        self.assertNotIn("::warning", out)
 
     def test_multiline_pem_is_redacted(self):
         # The pump redacts line by line, so the re.S PEM pattern never matched

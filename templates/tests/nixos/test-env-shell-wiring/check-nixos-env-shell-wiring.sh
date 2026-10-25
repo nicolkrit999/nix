@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Constants to env/shell/hm/hardware wiring checker (real hosts + twins).
+# Constants to env/shell/hm/hardware wiring checker (real-host checks on both hosts, twins on the laptop).
 #
 # Usage:
 #   bash check-nixos-env-shell-wiring.sh
@@ -25,10 +25,13 @@ for tool in nix jq bash; do
 done
 
 for host in nixos-desktop nixos-laptop; do
+  # twins are host-independent; the desktop's GNOME makes them ~3x slower (readme)
+  twins=true; min_checks=45
+  [[ "$host" == nixos-desktop ]] && { twins=false; min_checks=10; }
   echo ""
   echo -e "${BOLD}=== $host ===${NC}"
   err=$(mktemp)
-  json=$(nix eval --impure --json --file "$SCENARIO" --argstr host "$host" results 2>"$err") || {
+  json=$(nix eval --impure --json --file "$SCENARIO" --argstr host "$host" --arg twins "$twins" results 2>"$err") || {
     echo -e "  ${RED}✗ eval error${NC}"
     ((FAIL++)) || true
     FAILURES+=("$host evaluation|$(grep -E 'error:' "$err" | head -3 | tr '\n' '~')")
@@ -37,7 +40,9 @@ for host in nixos-desktop nixos-laptop; do
   }
   rm -f "$err"
 
+  host_n=0
   while IFS=$'\t' read -r label result; do
+    ((host_n++)) || true
     printf "  %-70s " "$label"
     if [[ "$result" == "ok" ]]; then
       printf "${GREEN}✓ ok${NC}\n"
@@ -46,11 +51,16 @@ for host in nixos-desktop nixos-laptop; do
       printf "${RED}✗ fail${NC}\n"
       ((FAIL++)) || true
       if [[ "$result" == "FAIL: eval error" ]]; then
-        result="$result~$(CHECK_LABEL="$label" nix eval --impure --raw --file "$SCENARIO" --argstr host "$host" --apply 'cs: builtins.deepSeq cs.${builtins.getEnv "CHECK_LABEL"} "x"' checks 2>&1 | grep -E 'error:' | head -3 | tr '\n' '~')"
+        result="$result~$(CHECK_LABEL="$label" nix eval --impure --raw --file "$SCENARIO" --argstr host "$host" --arg twins "$twins" --apply 'cs: builtins.deepSeq cs.${builtins.getEnv "CHECK_LABEL"} "x"' checks 2>&1 | grep -E 'error:' | head -3 | tr '\n' '~')"
       fi
       FAILURES+=("$host: $label|$result")
     fi
   done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
+  if [[ $host_n -lt $min_checks ]]; then
+    echo -e "  ${RED}✗ only $host_n checks ran (expected at least $min_checks)${NC}"
+    ((FAIL++)) || true
+    FAILURES+=("$host: check count|only $host_n checks ran, expected at least $min_checks (twins=$twins)")
+  fi
 done
 
 echo ""

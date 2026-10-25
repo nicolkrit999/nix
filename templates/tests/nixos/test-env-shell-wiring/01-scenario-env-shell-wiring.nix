@@ -1,4 +1,4 @@
-{ host }:
+{ host, twins ? true }:
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else throw "FLAKE_ROOT is not set";
   flake = builtins.getFlake "path:${flakeRoot}";
@@ -61,6 +61,9 @@ let
     vscode = "code --wait";
     some-unlisted-editor = "some-unlisted-editor";
   };
+  baseEditor = baseCfg.myconfig.constants.editor;
+  wantEditor = editors.${baseEditor} or baseEditor;
+  editorIs = want: (envOf baseCfg).EDITOR == want;
   editorChecks = lib.mapAttrs'
     (e: flag: lib.nameValuePair "editor ${e}: EDITOR is ${flag}"
       (eq "EDITOR" (envOf (twin [{ myconfig.constants.editor = ov e; }])).EDITOR flag))
@@ -86,14 +89,18 @@ let
     "env: server host exports no BROWSER" = yes "BROWSER set on a server" (!(envOf serverTwin ? BROWSER));
     "env: server host exports no TERMINAL" = yes "TERMINAL set on a server" (!(envOf serverTwin ? TERMINAL));
     "env: server host still exports EDITOR" = yes "EDITOR missing on a server" (envOf serverTwin ? EDITOR);
-    "env: XDG_BIN_HOME is exported" = eq "XDG_BIN_HOME" (envOf baseCfg).XDG_BIN_HOME "$HOME/.local/bin";
-    "env: ~/.local/bin is on PATH" = eq "localBinInPath" baseCfg.environment.localBinInPath true;
     "control: role twin differs from the real host values" =
       yes "twin equals base" (!(roleTwin.environment.sessionVariables ? BROWSER) || roleTwin.environment.sessionVariables.BROWSER != baseCfg.myconfig.constants.browser);
+  };
+  envChecks = {
+    "env: XDG_BIN_HOME is exported" = eq "XDG_BIN_HOME" (envOf baseCfg).XDG_BIN_HOME "$HOME/.local/bin";
+    "env: ~/.local/bin is on PATH" = eq "localBinInPath" baseCfg.environment.localBinInPath true;
     "real host: BROWSER/TERMINAL, when exported, equal the constants" =
       yes "session vars diverge from constants"
         ((!(envOf baseCfg ? BROWSER) || (envOf baseCfg).BROWSER == baseCfg.myconfig.constants.browser)
           && (!(envOf baseCfg ? TERMINAL) || (envOf baseCfg).TERMINAL == baseCfg.myconfig.constants.terminal.name));
+    "real host: EDITOR is the mapping of constants.editor" = eq "EDITOR" (envOf baseCfg).EDITOR wantEditor;
+    "control: the EDITOR predicate rejects a wrong value" = eq "editorIs (wrong value)" (editorIs "${wantEditor}-wrong") false;
   };
 
   hmOf = c: c.home-manager.users.${user};
@@ -107,6 +114,8 @@ let
       yes "before = ${builtins.toJSON (removeEntry baseCfg).before}" (builtins.elem "checkLinkTargets" (removeEntry baseCfg).before);
     "home-manager: removeExistingConfigs deletes the backup of the configured extension" =
       yes "script does not mention mimeapps.list.${ext baseCfg}" (backupCoherent baseCfg);
+  };
+  hmTwinChecks = {
     "control: a different backup extension breaks the coherence predicate" =
       eq "backupCoherent (twin)" (backupCoherent extTwin) false;
   };
@@ -124,8 +133,10 @@ let
     "control: disabled zram module leaves zramSwap off" = eq "zramSwap.enable" (zrTwin false 37).zramSwap.enable false;
   };
 
-  checks = shellChecks // baseChecks // editorChecks // roleChecks // hmChecks // hwChecks
+  realHostChecks = baseChecks // envChecks // hmChecks
     // { "control: check helper detects mismatch" = yes "helper broken" (lib.hasPrefix "FAIL" (eq "x" 1 2)); };
+  twinChecks = shellChecks // editorChecks // roleChecks // hmTwinChecks // hwChecks;
+  checks = realHostChecks // lib.optionalAttrs twins twinChecks;
 
   safe = v: let t = builtins.tryEval (builtins.deepSeq v v); in if t.success then t.value else "FAIL: eval error";
 in

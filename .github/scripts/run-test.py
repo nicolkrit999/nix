@@ -57,6 +57,7 @@ import testlog_common as tc  # noqa: E402
 EVIDENCE_FILE_CAP = 2 * 1024 * 1024  # per kept file; head + tail beyond this
 KILL_GRACE_S = 5
 RUNNER_ERROR_RC = 70  # EX_SOFTWARE: the runner itself failed while handling this test
+NEAR_CAP_FRACTION = 0.6  # a pass slower than this share of its timeout earns a warning annotation
 
 _stop = {"sig": None, "proc": None, "resume": ""}
 
@@ -90,6 +91,16 @@ def _annotate(name, rc, status, text):
     msg = tc.excerpt(text, 3000) or f"exit {rc}"
     msg = msg.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
     print(f"::error title=test {name}: {status} (exit {rc})::{msg}", flush=True)
+
+
+def _warn_near_cap(name, duration_s, timeout_min):
+    cap_s = timeout_min * 60
+    if not tc.IN_GHA or duration_s <= NEAR_CAP_FRACTION * cap_s:
+        return
+    msg = f"{duration_s} s of {cap_s:g} s - raise the cap in test.conf or make the test cheaper before it flakes"
+    msg = msg.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    print(f"::warning title=test {name}: used {round(100 * duration_s / cap_s)}%25 of its {timeout_min:g} min cap::{msg}",
+          flush=True)
 
 
 def _merge_evidence(ev_dir: Path, f, errors: list):
@@ -304,6 +315,8 @@ def run_one(name, commands, timeout_min, log_dir: Path, ctx, echo=True, extra_me
     meta_p.write_text(json.dumps(meta, indent=1))
     if status != "pass":
         _annotate(name, rc, status, log.read_text(errors="replace"))
+    else:
+        _warn_near_cap(name, meta["duration_s"], timeout_min)
     return rc
 
 

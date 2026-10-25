@@ -505,6 +505,7 @@ what it changed.
 | **1115** (pre-warm) | Auth fix validated: `outcome=success`, `pushed=0`, notifier silent on all 8 legs | - |
 | **761** (darwin, on `main`) | Build step hit its own `timeout-minutes: 300` at 300.23 min and failed. The job then ran post-steps normally for 3.3 min - GitHub did not kill it. **`Push to Cachix` was `skipped`**, because `main`'s gate is `if: steps.build.outcome == 'success'` with no `always()`. Five hours of building, nothing cached | The `always()` push gate, fixed on `develop`. `main` still has the old gate |
 | **1115** (build) | Cancelled by the concurrency group after 27 min. `always()` push step **skipped**, job over in <1s. Log shows 38 `copying path`, **zero** `building` lines, last output at 11:12 then silence - it was still *evaluating*, with repeated `builtins.derivation … options.json` (IFD) warnings | §6.3 rewritten: `always()` is not reliable on cancellation |
+| 2026-10-20..23 (`tests-nixos.yml`) | `nixos-env-shell-wiring` (281-420 s in CI, cap 420 s) hit its cap in 10 of the last 60 runs; the `nixos` leg went red at the gate with every assertion green. 25 host-independent twins were evaluated on both hosts and the desktop's GNOME made them ~3x slower | Twins now run on the laptop only (~30 s local, ~100-150 s CI estimated); lesson: calibrate caps on CI durations, not local warm times; `run-test.py` warns on passes above 60 % of the cap (§12.2, §12.3) |
 
 ### `main` lags `develop` on purpose
 
@@ -912,7 +913,13 @@ with a `Failure excerpts (log tail)` step. ⚠️ **Unverified:** whether a clou
 session can download the `test-logs-*` artifacts at all. The downloads redirect
 to the same Actions results/blob storage family as the blocked log ZIP, so assume
 they are blocked until someone tries once and records the result here. A local
-`gh run download` works.
+`gh run download` works. Locally (a session on the user's machine, not a cloud
+session) `gh api --allow-escape-sequences repos/<repo>/actions/jobs/<job_id>/logs`
+returns the FULL job log, with no 5000-line cap; without the flag `gh` refuses the
+ANSI output and prints nothing. The GitHub MCP server in such a session may expose no
+Actions tools at all (only PR check runs, commits and file contents), so `gh api`
+is then the route to runs, jobs and step timelines
+(`actions/runs/<id>/jobs`, `actions/runs/<id>/attempts/<n>/jobs`).
 
 ### 11.4 ✅ RESOLVED - Darwin was red until Firefox 154.0 reached `cache.nixos.org`
 
@@ -1366,7 +1373,7 @@ there is no cold-cache data point yet.
 | `heavy-a` | `nixos-arch-compat` (QEMU, cap 30), `common-dev-env-templates` (cap 15), `nixos-portal-routing` (cap 15) | 182 s (+ ~188 s `nixos-portal-routing`, 2026-10-18, not re-measured as a leg) | ~8 min | ~12 min | longest test; dev-env templates fetch their *own* nixpkgs pins, which are not in the store cache; `nixos-portal-routing` needs cache.nixos.org (NAR listings) and builds only trivial derivations |
 | `heavy-b` | `nixos-wallpaperd-runtime`, `nixos-mango-desktop-host`, `nixos-librewolf-runtime`, `nixos-app-resolution` (cap 20 each), `nixos-sddm-pixie-readability` | 193 s (+ ~13 s `nixos-librewolf-runtime`, warm, 2026-10-15, not re-measured as a leg; `nixos-app-resolution` ~149 s local warm was moved here on 2026-10-18 to keep the `nixos` leg inside the job cap budget, also not re-measured as a leg; ~70 s `nixos-sddm-pixie-readability`, warm, 2026-10-22, not re-measured as a leg) | ~8 min | ~13 min (+ the LibreWolf closure download on an empty store, not measured) | real builds |
 | `harness` | every folder with `*_test.nix` (conflicting-modules, custom-shells, wallpapers, mango-option-names) | 82 s (+ ~1 min wallpapers asserts) | ~6 min | ~8 min | builds the nix-tests harness once per runner |
-| `nixos` | default for `nixos/` (18 tests) | 259 s (+26 s `nixos-coffee`, 2026-10-14) | ~10 min | ~16 min | real-host evals; the new `nixos-de-capability-wrappers`, `nixos-env-shell-wiring` and `nixos-idle-lock-wiring` measured 72 s / 82 s / 38 s local warm and carry caps 5 / 7 / 5 in their `test.conf`. `nixos-app-resolution` hit its 20 min cap in run 38788879011 (the other 14 tests took 469 s together): its single `nix eval` held all ~62 twins at once, 22 GB RSS against the runner's 16 GB. Since 2026-10-15 it runs one eval per check group (peak ~5 GB, 149 s local warm) |
+| `nixos` | default for `nixos/` (18 tests) | 259 s (+26 s `nixos-coffee`, 2026-10-14; `nixos-env-shell-wiring` fell from 82 s to ~30 s on 2026-10-25, not re-measured as a leg) | ~10 min | ~16 min | real-host evals; the new `nixos-de-capability-wrappers`, `nixos-env-shell-wiring` and `nixos-idle-lock-wiring` measured 72 s / 82 s / 38 s local warm and carry caps 5 / 7 / 5 in their `test.conf`. `nixos-env-shell-wiring` took 281-420 s in CI (see "Caps must be calibrated on CI durations" below); since 2026-10-25 its host-independent twins run on the laptop only, which should bring it to ~2 min in CI (estimated, not yet measured as a leg). `nixos-app-resolution` hit its 20 min cap in run 38788879011 (the other 14 tests took 469 s together): its single `nix eval` held all ~62 twins at once, 22 GB RSS against the runner's 16 GB. Since 2026-10-15 it runs one eval per check group (peak ~5 GB, 149 s local warm) |
 | `nixos-b` | secret-service, nas-mounts, hyprland-lua-config, keybind-conflicts, waybar-configs, waybar-contrast, ssh-trust-pins, borg-backup-config, wm-session-services, krit-user-modules, librewolf-profiles, yazi-open-with, mime-resolution (cap 15), ibus-autostart-hidden (cap 5), flatpak-craft-arch (cap 5), gnome-binds-terminal-wrap (cap 5), kde-keyboard-consistency (cap 5), mango-screenshot-fields (cap 5), plasma-shortcut-groups (cap 5) (19 tests; the first 8 measured, the other eleven not measured) | 538 s inside a full parallel run (2026-10-11) (+ ~12 s `nixos-librewolf-profiles`, warm, 2026-10-15, not re-measured as a leg) | 615 s for the 7 tests that finished in run 38136950163 (hyprland-lua-config timed out there, since fixed) | not measured | split from `nixos` by `test.conf` |
 | `common` | default for `common/` (14 tests) | 270 s (2026-10-10, before `common-ai-tool-modules`, `common-npu-npm-parsing` and the home-standalone program checks: ~+70 s local, not re-measured) | ~12 min | ~19 min | scenario evals; the new `common-constants-terminal-mapping` (~2 s local warm) and `common-television-vikunja-wiring` (~8 s) have cap 5 each |
 | `darwin` (macOS) | darwin-minimal-defaults, darwin-host-contract, darwin-home-paths, darwin-headroom-launchd (cap 5, ~14 s local), darwin-module-defaults (cap 5, ~26 s), darwin-nas-borg (cap 5, ~27 s) | 115 s | ~4-5 min | ~7 min | separate workflow |
@@ -1384,6 +1391,20 @@ built (see `templates/tests/nixos/test-portal-routing/test-portal-routing-readme
 warm, cap 15, moved to `heavy-a`. **Why:** filtering heavy packages out of the profiles one
 incident at a time never ended; a test whose build set is not structurally bounded will time out
 again on the next uncached package.
+
+**Caps must be calibrated on CI durations, not on local warm times (2026-10-25).** In the last 60
+runs of `tests-nixos.yml` (2026-10-20..23) `nixos-env-shell-wiring` hit its 7 min cap (exit 124) 10
+times and turned the `nixos` leg red at the gate although every assertion passed; its CI duration was
+281-420 s, and the same commit passed on `develop` (361 s) and timed out on `main`. Root cause: the
+scenario evaluated 25 host-independent twins (editor, role, shell, backup extension, bluetooth, zram)
+on BOTH hosts, and the desktop enables GNOME, whose `NAUTILUS_4_EXTENSION_DIR` session variable
+references `config.system.path`, so every twin read forced the whole `system.path` buildEnv (~52 s on
+the desktop against ~18 s on the laptop). Local warm was 82 s, CI ran it 3.4-5.2x slower (4 vCPU),
+and the cap had been set at "~4x local warm". Fix: the twins run on the laptop only, the desktop keeps
+the 14 real-host checks (whole test ~30 s local, ~100-150 s in CI, estimated), cap unchanged. **Lesson:** a
+`test.conf` cap derived as a multiple of the local warm time is wrong for CI; calibrate on `duration_s`
+from CI artifacts (the `*.meta.json` above). To make this visible before a test flakes, `run-test.py`
+now annotates every PASSING test that used more than 60 % of its cap (§12.3).
 
 **The test step's cap is computed per group** (since 2026-10-11). `discover.py
 --matrix --github-output` also writes `step_timeouts={group: minutes}`, and the
@@ -1482,6 +1503,14 @@ log (or to `<name>.runner-error.log` if that cannot be opened), writes the meta
 as status `fail`, exit **70** (EX_SOFTWARE), and moves on to the next test. An
 output-pump error keeps draining the pipe, so the child never blocks. Both paths
 are unit-tested (`test_test_report.py`).
+
+**Near-cap warning** (since 2026-10-25). In Actions, a test that PASSES but took more than 60 % of its
+`timeout` gets one `::warning title=test <name>: used N% of its M min cap::...` annotation after its
+output (`NEAR_CAP_FRACTION` in run-test.py). It changes no status, exit code or gate behaviour, and
+failing tests keep their `::error`. It exists because `nixos-env-shell-wiring` flaked to red at 100 % of
+its cap before anything flagged it (§12.2); raise the cap in `test.conf` or make the test cheaper when
+it shows up. Unit-tested in `test_test_report.py` (`test_near_cap_pass_warns_only_in_gha`, with a fake
+clock and a control for each negative case).
 
 Why the runner is Python and not `bash | tee`:
 - The tee pipe exit-code trap of §9 does not apply.
