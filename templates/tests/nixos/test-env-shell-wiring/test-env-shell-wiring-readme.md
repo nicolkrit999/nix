@@ -18,7 +18,7 @@ Or from inside the directory:
 bash check-nixos-env-shell-wiring.sh
 ```
 
-Needs `nix`, `jq`, `bash`. Eval-only (no builds); about 30 s warm locally (desktop ~10 s, laptop ~20 s, evaluated one after the other). Estimated 100-150 s on the CI runner, which runs this test 3.4-5x slower than a desktop; the cap is 7 min.
+Needs `nix`, `jq`, `bash`. Eval-only (no builds); about 30 s warm locally (desktop ~10 s, laptop ~20 s, evaluated one after the other). 54 s on the CI runner (run 40212860316, 2026-10-25; it took 281-420 s before the twins moved to the laptop); the cap is 7 min.
 
 ## How it works
 
