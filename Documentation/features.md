@@ -168,6 +168,10 @@ The apps opened for each file family are picked per host with constants (NixOS):
 
 ---
 
+## Discord with Vencord (Nixcord)
+
+The official Discord client is installed and configured declaratively through the Nixcord flake (`programs.discord`, personal plugin set in `krit.programs.discord`). Vencord and its plugin settings come from the Nix configuration on all hosts, so the plugin list is the same everywhere; Vesktop stays a separate install.
+
 ## Airplane Mode
 
 On NixOS hosts with NetworkManager, `airplane` turns off only Wi-Fi or every radio (Wi-Fi, WWAN, Bluetooth and the rest) and confirms the result by reading each radio back. Run it with no argument for a menu, or use `airplane-on` / `airplane-off`. On waybar a pill shows the state: left click toggles with the last chosen scope, right click picks the scope.

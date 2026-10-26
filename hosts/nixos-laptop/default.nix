@@ -770,6 +770,7 @@ delib.host {
           claude-code-personal.enable = true;
           claude-code-wrappers.enable = true;
           direnv.enable = true;
+          discord.enable = true;
           dolphin.enable = true;
           firefox.enable = false;
           helium.enable = false;

@@ -379,6 +379,17 @@
       flake = false;
     };
 
+    nixcord = {
+      url = "github:4evy/nixcord";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-packages.follows = "nixpkgs";
+        nixpkgs-ci.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+        nix-darwin.follows = "nix-darwin";
+      };
+    };
+
     tgt = {
       url = "github:FedericoBruzzone/tgt";
       inputs.nixpkgs.follows = "nixpkgs";

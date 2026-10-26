@@ -1,0 +1,63 @@
+{ delib, ... }:
+delib.module {
+  name = "krit.programs.discord";
+
+  home.ifEnabled.programs.nixcord = {
+    config.plugins = {
+      accountPanelServerProfile.enable = true;
+      alwaysAnimate.enable = true;
+      alwaysExpandRoles.enable = true;
+      alwaysTrust.enable = true;
+      betterFolders.enable = true;
+      betterGifAltText.enable = true;
+      betterGifPicker.enable = true;
+      betterRoleContext.enable = true;
+      betterSessions.enable = true;
+      betterSettings.enable = true;
+      betterUploadButton.enable = true;
+      biggerStreamPreview.enable = true;
+      clientTheme.enable = true;
+      crashHandler.enable = true;
+      disableCallIdle.enable = true;
+      fakeNitro.enable = true;
+      favoriteEmojiFirst.enable = true;
+      fixImagesQuality.enable = true;
+      fixSpotifyEmbeds.enable = true;
+      friendInvites.enable = true;
+      imageZoom.enable = true;
+      messageLogger = {
+        enable = true;
+        ignoreBots = false;
+      };
+      newGuildSettings.enable = true;
+      noTrack.enable = true;
+      oneko.enable = true;
+      permissionsViewer.enable = true;
+      pictureInPicture.enable = true;
+      # userBasedCategoryList (personal IDs) is kept out of the public repo
+      pinDms.enable = true;
+      plainFolderIcon.enable = true;
+      readAllNotificationsButton.enable = true;
+      reviewDb.enable = true;
+      sendTimestamps.enable = true;
+      settings.enable = true;
+      silentTyping.enable = true;
+      spotifyControls.enable = true;
+      spotifyCrack.enable = true;
+      spotifyShareCommands.enable = true;
+      supportHelper.enable = true;
+      translate.enable = true;
+      unindent.enable = true;
+      validUser.enable = true;
+      vencordToolbox.enable = true;
+      voiceDownload.enable = true;
+      voiceMessages.enable = true;
+      youtubeAdblock.enable = true;
+    };
+
+    extraConfig.plugins.BetterNotesBox = {
+      enable = true;
+      hide = false;
+    };
+  };
+}

@@ -72,7 +72,7 @@ delib.host {
           "/System/Applications/Music.app"
           "/Applications/UGREEN NAS.app"
           "/Applications/Proton Pass.app"
-          "/Applications/Discord.app"
+          "${home}/Applications/Home Manager Apps/Discord.app"
           "/Applications/Nix Apps/Visual Studio Code.app"
           "/Applications/GitHub Desktop.app"
           "${home}/Applications/JetKVM.app"

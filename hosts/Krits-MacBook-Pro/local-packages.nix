@@ -68,7 +68,6 @@ delib.module {
           # Apps
           "claude"
           "dash"
-          "discord"
           "github"
           "iterm2"
           "microsoft-teams"

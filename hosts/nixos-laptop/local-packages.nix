@@ -33,7 +33,6 @@ delib.module {
         tor-browser # Privacy-focused web browser
         ventoy-full-qt # New Bootable USB Solution with GUI support
         vesktop # Discord client
-        discord # Official Discord client
         vlc # Media player
         vscode # Microsoft visual studio code IDE
 

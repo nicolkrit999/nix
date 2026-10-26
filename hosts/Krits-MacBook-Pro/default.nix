@@ -145,6 +145,7 @@ delib.host {
 
         programs = {
           direnv.enable = false;
+          discord.enable = true;
           neovim.enable = true;
           # Disabled: see the constants.browser note above.
           firefox.enable = false;
