@@ -5,9 +5,14 @@ delib.module {
   home.ifEnabled.programs.nixcord = {
     config.plugins = {
       accountPanelServerProfile.enable = true;
+      addAttachments.enable = true;
       alwaysAnimate.enable = true;
       alwaysExpandRoles.enable = true;
       alwaysTrust.enable = true;
+      autoDndWhilePlaying = {
+        enable = true;
+        statusToSet = "dnd";
+      };
       betterFolders.enable = true;
       betterGifAltText.enable = true;
       betterGifPicker.enable = true;
@@ -16,20 +21,40 @@ delib.module {
       betterSettings.enable = true;
       betterUploadButton.enable = true;
       biggerStreamPreview.enable = true;
+      characterCounter = {
+        enable = true;
+        colorEffects = true;
+      };
+      clearUrls.enable = true;
       clientTheme.enable = true;
+      copyEmojiMarkdown = {
+        enable = true;
+        copyUnicode = true;
+      };
+      copyFileContents.enable = true;
+      copyUserUrls.enable = true;
       crashHandler.enable = true;
+      directFileDownload.enable = true;
       disableCallIdle.enable = true;
       fakeNitro.enable = true;
       favoriteEmojiFirst.enable = true;
       fixImagesQuality.enable = true;
       fixSpotifyEmbeds.enable = true;
       friendInvites.enable = true;
+      fullSearchContext.enable = true;
       imageZoom.enable = true;
+      memberCount = {
+        enable = true;
+        toolTip = true;
+        memberList = false;
+        voiceActivity = true;
+      };
       messageLogger = {
         enable = true;
         ignoreBots = false;
       };
       newGuildSettings.enable = true;
+      noOnboardingDelay.enable = true;
       noTrack.enable = true;
       oneko.enable = true;
       permissionsViewer.enable = true;
@@ -37,7 +62,9 @@ delib.module {
       # userBasedCategoryList (personal IDs) is kept out of the public repo
       pinDms.enable = true;
       plainFolderIcon.enable = true;
+      previewMessage.enable = true;
       readAllNotificationsButton.enable = true;
+      reverseImageSearch.enable = true;
       reviewDb.enable = true;
       sendTimestamps.enable = true;
       settings.enable = true;
