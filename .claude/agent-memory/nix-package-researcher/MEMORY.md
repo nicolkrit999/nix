@@ -3,3 +3,4 @@
 - [Secret Service upstream facts](project_secret_service_upstream_facts.md) - kwallet 3 switches, Plasma pull-in, portal Secret routing, xdp 1.22 UseIn is fallback-only; the 2026-10-09 gaps are now closed in the repo
 - [noctalia v5 upstream facts](noctalia_v5_upstream_facts.md) - bin `noctalia`, `noctalia msg` IPC, toml config stack, HM built-in + stylix target, pkgs.noctalia cached; input is 66 commits past tag; caelestia GUI breaks on store shell.json
 - [hyprlock lock background sources](project_hyprlock_lock_background_sources.md) - laptop shows * fallback, desktop uses catppuccin bg (module inert); hyprlock per-monitor stacking/zindex rules
+- [Discord safeStorage token](reference_discord_safestorage_token.md) - official Discord keeps token via Electron safeStorage; backend switch can log out; pin with commandLineArgs

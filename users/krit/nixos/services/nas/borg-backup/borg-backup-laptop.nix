@@ -83,6 +83,10 @@ delib.module {
             "/home/*/.wine/" # Wine Prefixes (re-create as needed)
             "/home/*/.local/share/Steam" # Steam games (re-downloadable)
             "/home/*/.config/whatsapp-electron" # WhatsApp cache
+            "/home/*/.config/discord/Cache" # Discord cache
+            "/home/*/.config/discord/DawnGraphiteCache"
+            "/home/*/.config/discord/discord_asset_cache"
+            "/home/*/.config/discord/Service Worker"
 
             # Browsers (heavy, synced via their cloud accounts)
             "/home/*/.mozilla"

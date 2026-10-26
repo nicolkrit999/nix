@@ -531,6 +531,7 @@ delib.host {
             ]
             ++ workspaceRules (silent appWorkspaces.chat) [
               "^(vesktop)$"
+              "^(discord)$"
               "^(org.telegram.desktop)$"
               "^(whatsapp-electron)$"
               "^(com.rtosta.zapzap)$"

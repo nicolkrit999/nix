@@ -41,6 +41,7 @@ let
       chromium = prev.chromium.override { commandLineArgs = flag; };
       google-chrome = prev.google-chrome.override { commandLineArgs = flag; };
       vscode = prev.vscode.override { commandLineArgs = flag; };
+      discord = prev.discord.override { commandLineArgs = flag; };
 
       signal-desktop = wrap prev.signal-desktop;
       vesktop = wrap prev.vesktop;

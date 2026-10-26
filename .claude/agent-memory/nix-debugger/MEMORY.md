@@ -41,3 +41,4 @@
 - [Spec mkForce needs harness decl](project_spec_mkforce_needs_harness_decl.md) - new option set in guest/secure-travel breaks arch-compat/spec-contract/coffee hand-listed harnesses; FLAKE_ROOT for worktrees
 - [kernel.dev System.map -> depmod collision](project_kernel_dev_systemmap_depmod.md) - since nixpkgs #571170 out-of-tree modules_install runs depmod; modules.dep buildEnv clash (v4l2loopback DEPMOD=true)
 - [Greeter pipewire USB audio race](project_greeter_pipewire_usb_audio_race.md) - desktop onboard audio is USB ALC4080 (optical=hw:Audio,3); sddm pipewire holds PCMs -> EBUSY, no sinks
+- [xdph journal silent after init](project_xdph_journal_buffered_silent.md) - no "[screencopy] New session" != no share; use dbus-monitor + pw-dump live; desktop dual AMD GPU, renderD128 primary

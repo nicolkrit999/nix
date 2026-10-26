@@ -128,6 +128,7 @@ delib.module {
               ]
               ++ workspaceRules (silent "9") [
                 "^(vesktop)$"
+                "^(discord)$"
                 "^(org.telegram.desktop)$"
                 "^(whatsapp-electron)$"
                 "^(com.rtosta.zapzap)$"
