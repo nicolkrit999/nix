@@ -176,7 +176,23 @@ let
     "ui-ux-pro-max-cli" # UI/UX design skill installer (uipro)
   ];
 
+  # Not published to npm (and a git install lacks the built dist/), so it is
+  # built from a pinned rev. Hooks in the Claude settings call `agent-floor hook claude`.
+  agentFloor = pkgs.buildNpmPackage {
+    pname = "agent-floor";
+    version = "0.1.0";
+    src = pkgs.fetchFromGitHub {
+      owner = "develop212";
+      repo = "agent-floor";
+      rev = "c5422bbea7d6d7c814dd8ef60737ccaebef8e6e8";
+      hash = "sha256-risyQl67TFFbkzTl6n8RP3SyNS9CkwQxjr+h3LwA/o0=";
+    };
+    npmDepsHash = "sha256-wznN+Vr/HWL4TTQJO34VMAUYRG3SAELVyABF1YwBXwU=";
+    meta.mainProgram = "agent-floor";
+  };
+
   sharedPackages = [
+    agentFloor
     caiOpenrouterScript
     caiScript
     caiSubScript
