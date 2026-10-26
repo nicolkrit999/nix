@@ -12,20 +12,26 @@
 
       forAllSystems = nixpkgs.lib.genAttrs allSystems;
 
-      pkgsStableFor = forAllSystems (system: import inputs.nixpkgs-stable {
-        inherit system;
-        config.allowUnfree = true;
-      });
+      pkgsStableFor = forAllSystems (
+        system:
+        import inputs.nixpkgs-stable {
+          inherit system;
+          config.allowUnfree = true;
+        }
+      );
 
       pkgsStableArg = { pkgs, ... }: {
         _module.args.pkgsStable = pkgsStableFor.${pkgs.stdenv.hostPlatform.system};
       };
 
-      pkgsStableModule = { moduleSystem, ... }: {
-        imports = [ pkgsStableArg ];
-      } // nixpkgs.lib.optionalAttrs (moduleSystem != "home") {
-        home-manager.sharedModules = [ pkgsStableArg ];
-      };
+      pkgsStableModule =
+        { moduleSystem, ... }:
+        {
+          imports = [ pkgsStableArg ];
+        }
+        // nixpkgs.lib.optionalAttrs (moduleSystem != "home") {
+          home-manager.sharedModules = [ pkgsStableArg ];
+        };
 
       # Common exclusions for all module systems
       baseExclude = [
@@ -61,29 +67,34 @@
         moduleSystem:
         let
           platformExclude =
-            if moduleSystem == "nixos" then darwinHosts ++ homeOnlyHosts
-            else if moduleSystem == "darwin" then [ ]
-            else darwinHosts; # home-manager builds exclude darwin hosts (keep homeOnlyHosts)
+            if moduleSystem == "nixos" then
+              darwinHosts ++ homeOnlyHosts
+            else if moduleSystem == "darwin" then
+              [ ]
+            else
+              darwinHosts; # home-manager builds exclude darwin hosts (keep homeOnlyHosts)
 
           # 3-way split: common modules shared, platform-specific separate
           # Darwin: common + darwin modules/users
           # NixOS: common + nixos modules/users
           platformPaths =
-            if moduleSystem == "darwin" then [
-              ./hosts/Krits-MacBook-Pro
-              ./modules/common
-              ./modules/darwin
-              ./users/krit/common
-              ./users/krit/darwin
-            ]
-            else [
-              ./hosts
-              ./modules/common
-              ./modules/nixos
-              ./packages
-              ./users/krit/common
-              ./users/krit/nixos
-            ];
+            if moduleSystem == "darwin" then
+              [
+                ./hosts/Krits-MacBook-Pro
+                ./modules/common
+                ./modules/darwin
+                ./users/krit/common
+                ./users/krit/darwin
+              ]
+            else
+              [
+                ./hosts
+                ./modules/common
+                ./modules/nixos
+                ./packages
+                ./users/krit/common
+                ./users/krit/nixos
+              ];
         in
         denix.lib.configurations {
           inherit moduleSystem;
@@ -108,26 +119,46 @@
         };
       generatedNixosConfigs = mkConfigurations "nixos";
 
-      isDarwin = builtins.elem (builtins.currentSystem or "not-darwin") [ "aarch64-darwin" "x86_64-darwin" ];
+      isDarwin = builtins.elem (builtins.currentSystem or "not-darwin") [
+        "aarch64-darwin"
+        "x86_64-darwin"
+      ];
     in
     {
       nixosConfigurations = if isDarwin then { } else generatedNixosConfigs;
       homeConfigurations = if isDarwin then { } else mkConfigurations "home";
       darwinConfigurations = mkConfigurations "darwin";
       formatter = nixpkgs.lib.genAttrs
-        (if isDarwin then [ "aarch64-darwin" ] else [ "x86_64-linux" "aarch64-linux" ])
+        (
+          if isDarwin then
+            [ "aarch64-darwin" ]
+          else
+            [
+              "x86_64-linux"
+              "aarch64-linux"
+            ]
+        )
         (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
-    } // (if isDarwin then { } else {
-      topology = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (system: import inputs.nix-topology {
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ inputs.nix-topology.overlays.default ];
-        };
-        modules = [
-          { nixosConfigurations = generatedNixosConfigs; }
-        ];
-      });
-    });
+    }
+    // (
+      if isDarwin then
+        { }
+      else
+        {
+          topology = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (
+            system:
+            import inputs.nix-topology {
+              pkgs = import nixpkgs {
+                inherit system;
+                overlays = [ inputs.nix-topology.overlays.default ];
+              };
+              modules = [
+                { nixosConfigurations = generatedNixosConfigs; }
+              ];
+            }
+          );
+        }
+    );
 
   inputs = {
     # Core
@@ -334,7 +365,7 @@
     };
 
     openlogi = {
-      url = "github:AprilNEA/OpenLogi";
+      url = "github:AprilNEA/OpenLogi?dir=packaging";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

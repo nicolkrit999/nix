@@ -1386,41 +1386,23 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "openlogi": "openlogi_2"
+        "rust-overlay": "rust-overlay_3"
       },
       "locked": {
-        "lastModified": 1792744544,
-        "narHash": "sha256-0IztfpY40W1PB4CzrpWEbJweiZxpEbUd+yXyWUJc/Vo=",
+        "dir": "packaging",
+        "lastModified": 1793030560,
+        "narHash": "sha256-7F132UlYr+IX2wWvZM2+JvaKHKC80CLOZxd8daLauwo=",
         "owner": "AprilNEA",
         "repo": "OpenLogi",
-        "rev": "f57700677de7cefe4e4cd34a3a4776506a7e273c",
+        "rev": "afc3276dba901a5bd76e88ab63184d0c0539dfef",
         "type": "github"
       },
       "original": {
+        "dir": "packaging",
         "owner": "AprilNEA",
         "repo": "OpenLogi",
         "type": "github"
       }
-    },
-    "openlogi_2": {
-      "inputs": {
-        "nixpkgs": [
-          "openlogi",
-          "nixpkgs"
-        ],
-        "rust-overlay": "rust-overlay_3"
-      },
-      "locked": {
-        "path": "./packaging",
-        "type": "path"
-      },
-      "original": {
-        "path": "./packaging",
-        "type": "path"
-      },
-      "parent": [
-        "openlogi"
-      ]
     },
     "plasma-manager": {
       "inputs": {
@@ -1575,7 +1557,6 @@
     "rust-overlay_3": {
       "inputs": {
         "nixpkgs": [
-          "openlogi",
           "openlogi",
           "nixpkgs"
         ]
