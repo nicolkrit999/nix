@@ -83,10 +83,10 @@ delib.module {
       extraPolicies = {
         BookmarkBarEnabled = false;
 
-        HomepageLocation = "https://kagi.com";
+        HomepageLocation = "https://duckduckgo.com";
         HomepageIsNewTabPage = false;
         ShowHomeButton = true;
-        NewTabPageLocation = "https://kagi.com";
+        NewTabPageLocation = "https://duckduckgo.com";
 
         ExtensionInstallForcelist =
           map (e: "${e.id};file://${e.drv}/updates.xml") builtExtensions;

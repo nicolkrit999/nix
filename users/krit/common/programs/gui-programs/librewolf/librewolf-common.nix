@@ -9,11 +9,11 @@ let
 
   searchConfig = {
     force = true;
-    default = "kagi";
-    privateDefault = "kagi";
+    default = "ddg";
+    privateDefault = "ddg";
     order = [
-      "kagi"
       "ddg"
+      "kagi"
     ];
     engines = {
       "kagi" = {
@@ -22,6 +22,7 @@ let
         updateInterval = 24 * 60 * 60 * 1000;
         definedAliases = [ "@k" ];
       };
+      "ddg".metaData.alias = "@d";
       "wikipedia".metaData.hidden = true;
       "mojeek".metaData.hidden = true;
       "startpage".metaData.hidden = true;
@@ -77,7 +78,7 @@ let
       homeDir = "${if moduleSystem == "darwin" then "/Users" else "/home"}/${myconfig.constants.user}";
     in
     toolbarSettings // {
-      "browser.startup.homepage" = "https://kagi.com/";
+      "browser.startup.homepage" = "https://duckduckgo.com/";
       "browser.compactmode.show" = true;
       "browser.uidensity" = 0;
       "browser.shell.checkDefaultBrowser" = false;

@@ -29,7 +29,7 @@ let
                 "privacy.clearOnShutdown.cookies" = lib.mkOverride 10 true;
                 "network.cookie.lifetimePolicy" = lib.mkOverride 10 2;
               };
-              search.default = lib.mkOverride 10 "ddg";
+              search.default = lib.mkOverride 10 "kagi";
               extensions.packages = lib.mkOverride 10 [ ];
               id = lib.mkOverride 10 5;
             };
@@ -149,14 +149,15 @@ let
         (eq "exec" hm.xdg.desktopEntries."librewolf-privacy".exec "librewolf -P ${profs.privacy.name} --no-remote")
       ];
 
-      "search: kagi default in both profiles, kagi + ddg only" = allOk (map
+      "search: ddg default in both profiles, ddg + kagi only" = allOk (map
         (n:
           let sr = profs.${n}.search; in allOk [
-            (eq "${n} default" sr.default "kagi")
-            (eq "${n} privateDefault" sr.privateDefault "kagi")
-            (eq "${n} order" sr.order [ "kagi" "ddg" ])
+            (eq "${n} default" sr.default "ddg")
+            (eq "${n} privateDefault" sr.privateDefault "ddg")
+            (eq "${n} order" sr.order [ "ddg" "kagi" ])
             (yes "${n} no perplexity/google engine" (!(sr.engines ? perplexity) && !(sr.engines ? google) && !(sr.engines ? Google)))
             (yes "${n} kagi alias @k" (sr.engines.kagi.definedAliases == [ "@k" ]))
+            (eq "${n} ddg alias" (sr.engines.ddg.metaData.alias or "<unset>") "@d")
           ])
         [ "default" "privacy" ]);
       "search: wikipedia, mojeek, startpage hidden" = allOk (map
@@ -188,6 +189,7 @@ let
           "network.trr.mode" = 2;
           "network.trr.uri" = "https://dns.quad9.net/dns-query";
           "privacy.resistFingerprinting" = false;
+          "browser.startup.homepage" = "https://duckduckgo.com/";
         }) [ D P ]);
 
       "default: no exit wipe, restores session, LibreWolf sanitize default overridden" = allIs D {
@@ -295,7 +297,7 @@ let
     "base (non-spec) default profile stays Default"
     "stylix profileNames == HM profile names"
     "desktop entry launches the Privacy profile by its HM name"
-    "search: kagi default in both profiles, kagi + ddg only"
+    "search: ddg default in both profiles, ddg + kagi only"
     "search: wikipedia, mojeek, startpage hidden"
     "extensions: 14 in default, 6 in privacy, privacy subset of default"
     "both: shared prefs (autoDisableScopes, FxA off, no password manager/autofill, no new-tab junk, strict, sidebar)"

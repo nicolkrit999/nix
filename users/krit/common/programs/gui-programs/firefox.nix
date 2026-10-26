@@ -35,12 +35,12 @@ delib.module {
         profiles.${profile} = {
           search = {
             force = true;
-            default = "kagi";
-            privateDefault = "kagi";
+            default = "ddg";
+            privateDefault = "ddg";
             order = [
-              "kagi"
-              "google"
               "ddg"
+              "google"
+              "kagi"
             ];
             engines = {
               kagi = {
@@ -52,6 +52,8 @@ delib.module {
                 ];
                 icon = "https://kagi.com/favicon.ico";
               };
+              ddg.metaData.alias = "@d";
+              google.metaData.alias = "@g";
               bing.metaData.hidden = true;
             };
           };
@@ -78,7 +80,7 @@ delib.module {
           };
 
           settings = {
-            "browser.startup.homepage" = "https://kagi.com/";
+            "browser.startup.homepage" = "https://duckduckgo.com/";
             "browser.startup.page" = 1;
 
             "browser.disableResetPrompt" = true;

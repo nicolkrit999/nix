@@ -43,13 +43,13 @@ Evaluated once per host (desktop and laptop), 46 results each.
 | no policies / wrapper | `programs.librewolf.policies == { }`, stock `librewolf` package, no `policyroot` file, no `MOZ_APP_DISTRIBUTION` session variable |
 | stylix | `stylix.targets.librewolf.profileNames` equals the HM profile names |
 | desktop entry | `librewolf-privacy` exists and runs `librewolf -P <Privacy profile name> --no-remote` |
-| search | both profiles: default and privateDefault `kagi`, order `kagi`, `ddg`, no perplexity/google engine, alias `@k`; wikipedia, mojeek, startpage hidden |
+| search | both profiles: default and privateDefault `ddg`, order `ddg`, `kagi`, no perplexity/google engine, Kagi alias `@k`, DuckDuckGo alias `@d`; wikipedia, mojeek, startpage hidden |
 | extensions | 14 in Default, 6 in Privacy, Privacy a subset of Default, no empty names |
 
 ### Prefs of both profiles
 | Check | Expected |
 |-------|----------|
-| shared prefs | `autoDisableScopes` 0, FxA off, no password manager or autofill, new-tab junk off, category `strict`, `sidebar.main.tools` `history,bookmarks`, DoH mode 2 with the Quad9 URI, RFP false |
+| shared prefs | `autoDisableScopes` 0, FxA off, no password manager or autofill, new-tab junk off, category `strict`, `sidebar.main.tools` `history,bookmarks`, DoH mode 2 with the Quad9 URI, RFP false, startup homepage `https://duckduckgo.com/` |
 
 ### Default profile
 | Check | Expected |

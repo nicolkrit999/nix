@@ -5,8 +5,10 @@ delib.module {
   home.ifEnabled = {
     programs.zen-browser.profiles.default.search = {
       force = true;
-      default = "kagi";
+      default = "ddg";
       engines = {
+        "ddg".metaData.alias = "@d";
+        "google".metaData.alias = "@g";
         "kagi" = {
           urls = [{ template = "https://kagi.com/search?q={searchTerms}"; }];
           updateInterval = 24 * 60 * 60 * 1000;
