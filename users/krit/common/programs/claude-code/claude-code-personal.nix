@@ -88,9 +88,15 @@ delib.module {
         extraEnv = cfg.mcpEnv;
         extraPackages = mcpLaunchers;
         extraGitIgnores = [
+          ".worker-clean-shutdown"
+          "claude-mem.db*"
+          "chroma-sync-state.json"
+          "backfill.json"
+          "telemetry.json"
+          "hook-failures.json"
           "credentials.json"
           "security_warnings_*.json"
-          "claude-mem.db"
+
         ];
         extraShellAliases = templateAliases;
       };
