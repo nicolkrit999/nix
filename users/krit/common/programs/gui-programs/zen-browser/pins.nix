@@ -39,6 +39,13 @@ delib.module {
           workspace = "10000000-0000-4000-8000-000000000001";
           position = 500;
         };
+        "AI" = {
+          id = "30000000-0000-4000-8000-000000000005";
+          isGroup = true;
+          folderIcon = "🤖";
+          workspace = "10000000-0000-4000-8000-000000000001";
+          position = 600;
+        };
 
         # Secondary workspace
         "Family" = {
@@ -523,6 +530,113 @@ delib.module {
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000004";
           position = 101;
+        };
+        "DownGit" = {
+          id = "40000000-0000-4000-8000-0000000000b0";
+          url = "https://downgit.github.io";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000004";
+          position = 102;
+        };
+
+        # ── AI ───────────────────────────────────────────────────────────────
+
+        "Claude AI" = {
+          id = "40000000-0000-4000-8000-0000000000b1";
+          url = "https://claude.ai/new";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 101;
+        };
+        "Claude Console" = {
+          id = "40000000-0000-4000-8000-0000000000b2";
+          url = "https://platform.claude.com/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 102;
+        };
+        "Copilot" = {
+          id = "40000000-0000-4000-8000-0000000000b3";
+          url = "https://github.com/copilot";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 103;
+        };
+        "ChatGPT" = {
+          id = "40000000-0000-4000-8000-0000000000b4";
+          url = "https://chatgpt.com/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 104;
+        };
+        "Gemini" = {
+          id = "40000000-0000-4000-8000-0000000000b5";
+          url = "https://gemini.google.com/app";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 105;
+        };
+        "Grok" = {
+          id = "40000000-0000-4000-8000-0000000000b6";
+          url = "https://grok.com/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 106;
+        };
+        "Perplexity" = {
+          id = "40000000-0000-4000-8000-0000000000b7";
+          url = "https://www.perplexity.ai";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 107;
+        };
+        "Mistral" = {
+          id = "40000000-0000-4000-8000-0000000000b8";
+          url = "https://chat.mistral.ai/chat";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 108;
+        };
+        "Deepseek" = {
+          id = "40000000-0000-4000-8000-0000000000b9";
+          url = "https://www.deepseek.com/en/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 109;
+        };
+        "GLM" = {
+          id = "40000000-0000-4000-8000-0000000000ba";
+          url = "https://chat.z.ai/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 110;
+        };
+        "Kimi" = {
+          id = "40000000-0000-4000-8000-0000000000bb";
+          url = "https://www.kimi.com/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 111;
+        };
+        "Openrouter" = {
+          id = "40000000-0000-4000-8000-0000000000bc";
+          url = "https://openrouter.ai/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 112;
         };
 
         # ── Pc building ──────────────────────────────────────────────────────
