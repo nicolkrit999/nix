@@ -33,13 +33,19 @@ let
 in
 delib.module {
   name = "programs.discord";
-  options = delib.singleEnableOption false;
+  options = with delib; moduleOptions {
+    enable = boolOption false;
+    mod = enumOption [ "vencord" "equicord" ] "vencord";
+  };
 
   home.always.imports = [ inputs.nixcord.homeModules.nixcord ];
 
-  home.ifEnabled.programs.nixcord = {
-    enable = true;
-    discord.vencord.enable = true;
-    discord.package = lib.mkIf pkgs.stdenv.hostPlatform.isLinux nixpkgsDiscord;
+  home.ifEnabled = { cfg, ... }: {
+    programs.nixcord = {
+      enable = true;
+      discord.vencord.enable = cfg.mod == "vencord";
+      discord.equicord.enable = cfg.mod == "equicord";
+      discord.package = lib.mkIf pkgs.stdenv.hostPlatform.isLinux nixpkgsDiscord;
+    };
   };
 }

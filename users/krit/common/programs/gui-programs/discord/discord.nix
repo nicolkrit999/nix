@@ -3,5 +3,8 @@ delib.module {
   name = "krit.programs.discord";
   options = delib.singleEnableOption false;
 
-  myconfig.ifEnabled.programs.discord.enable = true;
+  myconfig.ifEnabled.programs.discord = {
+    enable = true;
+    mod = "equicord";
+  };
 }

@@ -100,6 +100,7 @@ delib.module {
         "${home}/.config/Code"
         "${home}/.config/Cursor"
         "${home}/.config/Vencord"
+        "${home}/.config/Equicord"
 
         # Shell and misc dotfiles
         "${home}/.terminfo"

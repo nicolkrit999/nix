@@ -168,9 +168,9 @@ The apps opened for each file family are picked per host with constants (NixOS):
 
 ---
 
-## Discord with Vencord (Nixcord)
+## Discord with Equicord (Nixcord)
 
-The official Discord client is installed and configured declaratively through the Nixcord flake (`programs.discord`, personal plugin set in `krit.programs.discord`). Vencord and its plugin settings come from the Nix configuration on all hosts, so the plugin list is the same everywhere; Vesktop stays a separate install.
+The official Discord client is installed and configured declaratively through the Nixcord flake (`programs.discord`, personal plugin set in `krit.programs.discord`). Equicord and its plugin settings come from the Nix configuration on all hosts, so the plugin list is the same everywhere; Vesktop stays a separate install.
 
 ## Airplane Mode
 
