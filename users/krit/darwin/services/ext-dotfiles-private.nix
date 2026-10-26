@@ -23,10 +23,6 @@ let
       ".claude/context-mode"
     ];
 
-    gsd = [
-      ".gsd"
-    ];
-
     # devdocs.nvim offline docs, shared so every host sees the same installed set
     devdocs = [
       ".local/share/nvim/devdocs"
@@ -41,7 +37,6 @@ let
     Krits-MacBook-Pro = [
       "claude/common"
       "claude/mac"
-      "gsd"
       "devdocs"
       "openlogi/Krits-MacBook-Pro"
     ];

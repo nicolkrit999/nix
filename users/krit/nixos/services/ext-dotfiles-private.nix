@@ -28,10 +28,6 @@ let
     "claude/nixos-laptop" = claudeHostLeaves;
     "claude/Nicol-NAS" = claudeHostLeaves;
 
-    gsd = [
-      ".gsd"
-    ];
-
     # devdocs.nvim offline docs, shared so every host sees the same installed set
     devdocs = [
       ".local/share/nvim/devdocs"
@@ -56,7 +52,6 @@ let
     nixos-desktop = [
       "claude/common"
       "claude/nixos-desktop"
-      "gsd"
       "devdocs"
       "vicinae/common"
       "openlogi/nixos-desktop"
@@ -64,7 +59,6 @@ let
     nixos-laptop = [
       "claude/common"
       "claude/nixos-laptop"
-      "gsd"
       "devdocs"
       "vicinae/common"
       "openlogi/nixos-laptop"
