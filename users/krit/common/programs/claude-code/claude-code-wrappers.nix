@@ -220,6 +220,30 @@ delib.module {
     programs.claude-code.extraShellAliases = lib.optionalAttrs cfg.openrouterAliases openrouterAliases;
   };
 
+  # Floor server always up on 127.0.0.1:4317 (no window); open the page by hand.
+  # Hooks never open a window either (AGENT_FLOOR_AUTOLAUNCH=0 in the Claude settings env).
+  home.ifEnabled = _: {
+    systemd.user.services.agent-floor = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
+      Unit.Description = "Agent Floor server";
+      Service = {
+        ExecStart = "${agentFloor}/bin/agent-floor start";
+        Restart = "on-failure";
+        RestartSec = "5s";
+      };
+      Install.WantedBy = [ "default.target" ];
+    };
+
+    launchd.agents.agent-floor = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+      enable = true;
+      config = {
+        Label = "com.agentfloor.server";
+        ProgramArguments = [ "${agentFloor}/bin/agent-floor" "start" ];
+        RunAtLoad = true;
+        KeepAlive = true;
+      };
+    };
+  };
+
   nixos.ifEnabled = _: {
     environment.systemPackages = sharedPackages ++ [
       pkgs.libreoffice
