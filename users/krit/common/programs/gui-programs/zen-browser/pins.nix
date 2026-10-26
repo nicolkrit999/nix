@@ -558,13 +558,45 @@ delib.module {
           folderParentId = "30000000-0000-4000-8000-000000000005";
           position = 102;
         };
+        "Claude agent floor" = {
+          id = "40000000-0000-4000-8000-0000000000bd";
+          url = "http://localhost:4317/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 103;
+        };
+        "Claude mem" = {
+          id = "40000000-0000-4000-8000-0000000000be";
+          url = "http://localhost:37700/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 104;
+        };
+        "Claude headroom" = {
+          id = "40000000-0000-4000-8000-0000000000bf";
+          url = "http://localhost:8787/dashboard";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 105;
+        };
+        "Claude context 7" = {
+          id = "40000000-0000-4000-8000-0000000000c0";
+          url = "http://localhost:4747/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000005";
+          position = 106;
+        };
         "Copilot" = {
           id = "40000000-0000-4000-8000-0000000000b3";
           url = "https://github.com/copilot";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000005";
-          position = 103;
+          position = 107;
         };
         "ChatGPT" = {
           id = "40000000-0000-4000-8000-0000000000b4";
@@ -572,7 +604,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000005";
-          position = 104;
+          position = 108;
         };
         "Gemini" = {
           id = "40000000-0000-4000-8000-0000000000b5";
@@ -580,7 +612,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000005";
-          position = 105;
+          position = 109;
         };
         "Grok" = {
           id = "40000000-0000-4000-8000-0000000000b6";
@@ -588,7 +620,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000005";
-          position = 106;
+          position = 110;
         };
         "Perplexity" = {
           id = "40000000-0000-4000-8000-0000000000b7";
@@ -596,7 +628,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000005";
-          position = 107;
+          position = 111;
         };
         "Mistral" = {
           id = "40000000-0000-4000-8000-0000000000b8";
@@ -604,7 +636,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000005";
-          position = 108;
+          position = 112;
         };
         "Deepseek" = {
           id = "40000000-0000-4000-8000-0000000000b9";
@@ -612,7 +644,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000005";
-          position = 109;
+          position = 113;
         };
         "GLM" = {
           id = "40000000-0000-4000-8000-0000000000ba";
@@ -620,7 +652,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000005";
-          position = 110;
+          position = 114;
         };
         "Kimi" = {
           id = "40000000-0000-4000-8000-0000000000bb";
@@ -628,7 +660,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000005";
-          position = 111;
+          position = 115;
         };
         "Openrouter" = {
           id = "40000000-0000-4000-8000-0000000000bc";
@@ -636,7 +668,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000005";
-          position = 112;
+          position = 116;
         };
 
         # ── Pc building ──────────────────────────────────────────────────────

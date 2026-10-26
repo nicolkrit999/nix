@@ -45,6 +45,12 @@ delib.module {
         url = "https://upload.wikimedia.org/wikipedia/commons/6/6a/Youtube_Music_icon.svg";
         sha256 = "02wdzksr3viwys3rzz9b10p2fl9vra2izxfnjswpc8b8nzwskyrb";
       };
+
+      # Twitch
+      twitchIcon = pkgs.fetchurl {
+        url = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Twitch_Glitch_Logo_Purple.svg";
+        sha256 = "sha256-fRisDEuDaFX5E9UeiOl8s88uDeq+iyHvXHRKXb5A4Hg=";
+      };
     in
     {
       home.packages = [ pkgs.brave ];
@@ -53,6 +59,7 @@ delib.module {
         # Manual Apps
         (makeBravePwa "YouTube" "https://www.youtube.com" "${youtubeIcon}" "brave-www.youtube.com__-Default")
         (makeBravePwa "YouTube Music" "https://music.youtube.com/" "${youtubeMusicIcon}" "brave-music.youtube.com__-Default")
+        (makeBravePwa "Twitch" "https://www.twitch.tv/" "${twitchIcon}" "brave-www.twitch.tv__-Default")
         (makeBravePwa "Apple Music" "https://music.apple.com/ch/home?l=en" "${appleMusicIcon}" "brave-music.apple.com__ch_home-Default")
 
         # Self-Hosted / Home Lab
