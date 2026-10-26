@@ -50,8 +50,7 @@ let
     text = ''
       drv=/sys/bus/i2c/drivers/i2c_hid_acpi
       dev=i2c-VEN_06CB:00
-      up=$(cut -d. -f1 /proc/uptime)
-      if [ "$up" -lt 180 ]; then sleep 20; else sleep 3; fi
+      sleep 3
       for _ in $(seq 1 30); do
         [ -e "$drv/$dev" ] && break
         sleep 1
@@ -60,6 +59,16 @@ let
       echo "$dev" > "$drv/unbind" || true
       sleep 1
       echo "$dev" > "$drv/bind" || true
+    '';
+  };
+
+  touchpadRebindTrigger = pkgs.writeShellApplication {
+    name = "touchpad-haptics-rebind-trigger";
+    runtimeInputs = [ pkgs.systemd pkgs.coreutils ];
+    text = ''
+      sleep 15
+      systemctl start touchpad-haptics-rebind.service
+      touch "$XDG_RUNTIME_DIR/touchpad-haptics-rebound"
     '';
   };
 
@@ -90,6 +99,17 @@ delib.host {
 
           users.users.${config.myconfig.constants.user}.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
           users.users.root.hashedPasswordFile = config.sops.secrets.krit-local-password.path;
+
+          security.polkit.extraConfig = ''
+            polkit.addRule(function (action, subject) {
+              if (action.id == "org.freedesktop.systemd1.manage-units" &&
+                  action.lookup("unit") == "touchpad-haptics-rebind.service" &&
+                  action.lookup("verb") == "start" &&
+                  subject.user == "${config.myconfig.constants.user}") {
+                return polkit.Result.YES;
+              }
+            });
+          '';
 
           # GitHub PAT for nix
           nix.extraOptions = ''
@@ -155,14 +175,15 @@ delib.host {
         };
 
         # The touchpad firmware haptic engine intermittently stays off after power-on; a driver rebind re-enables it.
-        # Runs after graphical.target plus a settle delay (rebinding at ~10 s of boot was too early). Temporary: remove once firmware/kernel init haptics reliably.
+        # Boot rebinds are triggered from the user session (touchpad-haptics-rebind-boot): rebinding before login did not restore haptics, the same rebind in-session did (2026-10-26). Resume stays system-triggered.
+        # Temporary: remove once firmware/kernel init haptics reliably.
         touchpad-haptics-rebind = {
           description = "Rebind the touchpad i2c-hid device to re-enable firmware haptics";
-          wantedBy = [ "graphical.target" "suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target" ];
-          after = [ "graphical.target" "suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target" ];
+          wantedBy = [ "suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target" ];
+          after = [ "suspend.target" "hibernate.target" "hybrid-sleep.target" "suspend-then-hibernate.target" ];
           serviceConfig = {
             Type = "oneshot";
-            TimeoutStartSec = "90s";
+            TimeoutStartSec = "60s";
             ExecStart = "${touchpadRebind}/bin/touchpad-haptics-rebind";
             SuccessExitStatus = "0 1";
           };
@@ -182,6 +203,17 @@ delib.host {
         description = "Restore keyboard backlight after Dell EC auto-off";
         wantedBy = [ "timers.target" ];
         timerConfig.OnBootSec = "15s";
+      };
+
+      user.services.touchpad-haptics-rebind-boot = {
+        description = "Trigger the touchpad haptics rebind once per login";
+        wantedBy = [ "graphical-session.target" ];
+        after = [ "graphical-session.target" ];
+        unitConfig.ConditionPathExists = "!%t/touchpad-haptics-rebound";
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${touchpadRebindTrigger}/bin/touchpad-haptics-rebind-trigger";
+        };
       };
 
       user.services.kbd-backlight-relight = {

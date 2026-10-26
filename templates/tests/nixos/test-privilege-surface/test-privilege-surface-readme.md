@@ -40,7 +40,7 @@ Drift guard: the module's declared set is `nix.settings.extra-substituters` / `e
 | cache | no substituter or key mentions niri, no duplicates, every substituter has a key with the matching prefix (cachix host, cache.nixos.org, attic cache name) |
 | drift: build.yml | each `extra-substituters` / `extra-trusted-public-keys` line equals the module's set; at least one such line exists |
 | drift: build-darwin.yml | non-empty subset of the module's set, substituters paired with keys |
-| polkit | RealtimeKit high-priority and real-time clauses present; no `action.lookup(`, `gpu-screen-recorder`, `gsr-kms-server` or `org.freedesktop.policykit.exec` in the rules |
+| polkit | RealtimeKit high-priority and real-time clauses present; no `action.lookup(` (except the exact `action.lookup("unit")` and `action.lookup("verb")` of the laptop's pinned haptics-rebind rule), `gpu-screen-recorder`, `gsr-kms-server` or `org.freedesktop.policykit.exec` in the rules |
 | wrappers, shells off | no `gpu-screen-recorder` and no `gsr-kms-server` in `security.wrappers` |
 | wrappers, noctalia on / caelestia on | `gsr-kms-server` wrapped with `cap_sys_admin+ep`, `gpu-screen-recorder` main binary not wrapped |
 | ssh | `services.openssh.enable`, `openFirewall` false, 22 not in `allowedTCPPorts` or any range, `tailscale0` in `trustedInterfaces` |
@@ -53,7 +53,7 @@ Drift guard: the module's declared set is `nix.settings.extra-substituters` / `e
 | platforms | stray `riscv64-linux` flagged; duplicate platform flagged |
 | cache | niri substituter and key flagged; substituter without key flagged |
 | drift | substituter swapped in CI text flagged; key swapped flagged; text without the lines flagged; darwin CI with a foreign substituter flagged |
-| polkit | gpu-screen-recorder substring rule flagged; missing RealtimeKit clause flagged |
+| polkit | gpu-screen-recorder substring rule flagged; `action.lookup("program")` flagged even next to the allowed unit/verb lookups; the unit/verb lookups alone not flagged; missing RealtimeKit clause flagged |
 | wrappers | a recorder-enabled twin fails the shells-off check; an extra main-binary wrapper fails the shells-on check; the shells-off config fails the shells-on check |
 | ssh | `openFirewall`, port 22 open, untrusted `tailscale0`, sshd disabled, each flagged |
 | crashdump | disabled crashDump flagged; 128M reservation flagged |

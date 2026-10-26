@@ -107,6 +107,11 @@ let
     ++ lib.concatMap (k: map (_: "darwin CI key not declared by the module") (builtins.filter (x: !(builtins.elem x (modKeys cfg))) k)) keysRuns
     ++ lib.concatMap (s: lib.concatMap (k: pairingProblems cfg s k) keysRuns) subsRuns;
 
+  allowedLookups = [ ''action.lookup("unit")'' ''action.lookup("verb")'' ];
+  forbiddenFragments = text:
+    let t = builtins.replaceStrings allowedLookups (map (_: "") allowedLookups) text; in
+    builtins.filter (s: lib.hasInfix s t) [ "action.lookup(" "gpu-screen-recorder" "gsr-kms-server" "org.freedesktop.policykit.exec" ];
+
   polkitProblems = cfg:
     let t = cfg.security.polkit.extraConfig; in
     (map (a: "RealtimeKit clause missing: ${a}")
@@ -114,8 +119,7 @@ let
         "org.freedesktop.RealtimeKit1.acquire-high-priority"
         "org.freedesktop.RealtimeKit1.acquire-real-time"
       ]))
-    ++ (map (s: "forbidden polkit rule fragment ${s}")
-      (builtins.filter (s: lib.hasInfix s t) [ "action.lookup(" "gpu-screen-recorder" "gsr-kms-server" "org.freedesktop.policykit.exec" ]));
+    ++ (map (s: "forbidden polkit rule fragment ${s}") (forbiddenFragments t));
 
   gsrNames = [ "gpu-screen-recorder" "gsr-kms-server" ];
   wrappersOffProblems = cfg:
@@ -196,6 +200,10 @@ let
           });
         '';
       }]));
+    "control(polkit): program lookup next to the allowed unit/verb lookups is detected" =
+      detects "program lookup" (forbiddenFragments ''${builtins.concatStringsSep " " allowedLookups} action.lookup("program") == "/bin/x"'');
+    "control(polkit): only the allowed unit/verb lookups are not flagged" =
+      failIf (map (s: "flagged ${s}") (forbiddenFragments ''action.lookup("unit") == "x.service" && action.lookup("verb") == "start"''));
     "control(polkit): missing RealtimeKit clause is detected" =
       detects "no rtkit clause" (polkitProblems (twin [{ security.polkit.extraConfig = mk ""; }]));
     "control(wrappers): enabled recorder is flagged by the shells-off check" =
