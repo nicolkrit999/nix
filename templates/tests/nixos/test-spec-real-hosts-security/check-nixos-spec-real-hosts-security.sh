@@ -12,6 +12,7 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"
 SCENARIO="$DIR/01-scenario-spec-real-hosts-security.nix"
+FIXTURE_SCENARIO="$DIR/02-scenario-spec-fixture-controls.nix"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
@@ -24,11 +25,17 @@ for tool in nix jq bash; do
   command -v "$tool" >/dev/null || { echo "missing tool: $tool"; exit 2; }
 done
 
-for host in nixos-desktop nixos-laptop; do
+for host in nixos-desktop nixos-laptop fixture; do
   echo ""
   echo -e "${BOLD}=== $host ===${NC}"
   err=$(mktemp)
-  json=$(nix eval --impure --json --file "$SCENARIO" --argstr host "$host" results 2>"$err") || {
+  scenario="$SCENARIO"
+  hostargs=(--argstr host "$host")
+  if [[ "$host" == fixture ]]; then
+    scenario="$FIXTURE_SCENARIO"
+    hostargs=()
+  fi
+  json=$(nix eval --impure --json --file "$scenario" "${hostargs[@]}" results 2>"$err") || {
     echo -e "  ${RED}✗ eval error${NC}"
     ((FAIL++)) || true
     FAILURES+=("$host evaluation|$(grep -E 'error:' "$err" | head -3 | tr '\n' '~')")
@@ -46,7 +53,7 @@ for host in nixos-desktop nixos-laptop; do
       printf "${RED}✗ fail${NC}\n"
       ((FAIL++)) || true
       if [[ "$result" == "FAIL: eval error" ]]; then
-        result="$result~$(CHECK_LABEL="$label" nix eval --impure --raw --file "$SCENARIO" --argstr host "$host" --apply 'cs: builtins.deepSeq cs.${builtins.getEnv "CHECK_LABEL"} "x"' checks 2>&1 | grep -E 'error:' | head -3 | tr '\n' '~')"
+        result="$result~$(CHECK_LABEL="$label" nix eval --impure --raw --file "$scenario" "${hostargs[@]}" --apply 'cs: builtins.deepSeq cs.${builtins.getEnv "CHECK_LABEL"} "x"' checks 2>&1 | grep -E 'error:' | head -3 | tr '\n' '~')"
       fi
       FAILURES+=("$host: $label|$result")
     fi
@@ -54,8 +61,8 @@ for host in nixos-desktop nixos-laptop; do
 done
 
 echo ""
-if [[ $((PASS + FAIL)) -lt 20 ]]; then
-  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 20); refusing to pass.${NC}"
+if [[ $((PASS + FAIL)) -lt 200 ]]; then
+  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 200); refusing to pass.${NC}"
   exit 1
 fi
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"

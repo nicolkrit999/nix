@@ -8,35 +8,29 @@ REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
-HOSTS=(nixos-desktop nixos-laptop)
 PASS=0; FAIL=0
 declare -a FAILURES=()
 
 echo ""
-echo -e "${BOLD}=== krit user modules (dolphin, helium vs chromium, PWAs, rclone, logid) ===${NC}"
+echo -e "${BOLD}=== krit user modules (dolphin, helium vs chromium, PWAs, rclone, logid; minimal fixtures) ===${NC}"
 
-for host in "${HOSTS[@]}"; do
-  echo ""
-  echo -e "${BOLD}${host}${NC}"
-  stderr_file=$(mktemp)
-  if ! json=$(HOST_UNDER_TEST="$host" nix eval --json --impure --file "$DIR/01-scenario-krit-user-modules.nix" 2>"$stderr_file"); then
-    printf "  ${RED}✗ eval error${NC}\n"
-    ((FAIL++)) || true
-    FAILURES+=("$host: whole-host evaluation|$(grep -E 'error:' "$stderr_file" | head -3)")
-    rm -f "$stderr_file"
-    continue
-  fi
-  rm -f "$stderr_file"
+stderr_file=$(mktemp)
+if ! json=$(nix eval --json --impure --file "$DIR/01-scenario-krit-user-modules.nix" 2>"$stderr_file"); then
+  printf "  ${RED}✗ eval error${NC}\n"
+  ((FAIL++)) || true
+  FAILURES+=("module fixtures: evaluation|$(grep -E 'error:' "$stderr_file" | head -3)")
+else
   while IFS=$'\t' read -r name result; do
-    printf "  %-48s " "$name"
+    printf "  %-60s " "$name"
     if [[ "$result" == "ok" ]]; then
       printf "${GREEN}✓ PASS${NC}\n"; ((PASS++)) || true
     else
       printf "${RED}✗ FAIL${NC}\n"; ((FAIL++)) || true
-      FAILURES+=("$host: $name|$result")
+      FAILURES+=("$name|$result")
     fi
   done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
-done
+fi
+rm -f "$stderr_file"
 
 # --- cloud modules on a minimal fixture (positive case and control) ---
 echo ""

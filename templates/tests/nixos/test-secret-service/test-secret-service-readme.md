@@ -22,6 +22,8 @@ bash check-nixos-secret-service.sh
 
 ## How it works
 
+Browser pinning positive cases and controls do not depend on what the real hosts install: `02-scenario-fixture-browsers.nix` builds minimal fixture hosts (`templates/tests/lib/fixture-host.nix`, on `template-host-minimal`) that each enable only what is needed (brave/chromium/google-chrome/vscode packages, `krit.programs.chromium`, `krit.programs.helium`, `programs.claude-desktop`, `programs.google-antigravity`). The real hosts keep only the rule-1 invariant that whatever browser or Electron app they do carry is pinned (never throws, passes vacuously with none).
+
 `01-scenario-secret-service.nix` reads the real `nixosConfigurations.<HOST>` (`HOST` env var) and evaluates every check on the base config and on each `specialisation.*` config, so a regression in any session is caught. The `report` attribute is one `label<TAB>result` line per check; the result is `ok` or `FAIL: <config>: <detail>; ...` naming each failing config. `configs` lists what was covered.
 
 The script runs it for `nixos-desktop` and `nixos-laptop` (the laptop is cheap and CI runs it) and prints one line per check and host. An eval error fails the whole host. PAM rules are followed through `include`/`substack`, because `sddm` and `sddm-autologin` only include `login`. The kwalletrc text is parsed as INI. Package pinning is detected by looking for the flag in the derivation attributes, so dropping it from an overlay fails the check.
@@ -44,7 +46,7 @@ Per config (base and every specialisation):
 | one SSH agent | gcr-ssh-agent on; `programs.gnupg.agent.enableSSHSupport`, `programs.ssh.startAgent`, HM gpg-agent SSH support and HM ssh-agent all off; `SSH_AUTH_SOCK` fallback to `gcr/ssh` in `extraInit` |
 | Secret portal (system and HM) | every `xdg.portal.config.*` key has `org.freedesktop.impl.portal.Secret = gnome-keyring` exactly once |
 | portal manifest | `gnome-keyring-portal-manifest` in system and HM `extraPortals` |
-| installed browsers | every package whose name contains brave/chromium/google-chrome/vscode (excluding `*-school` launcher scripts that exec the pinned package) carries `--password-store=gnome-libsecret`; the set must be non-empty on the base config |
+| installed browsers | every package whose name contains brave/chromium/google-chrome/vscode (excluding `*-school` launcher scripts that exec the pinned package) carries `--password-store=gnome-libsecret`; vacuously true if a host has none (positive case and control live on the fixture, below) |
 | FHS-wrapped apps | packages whose name contains claude-desktop or antigravity (substring match, so a `-fhs` rename cannot slip out of the set), when installed, carry the flag |
 | HM chromium / helium | pinned when enabled |
 | portal keys lowercase | every top-level key of system and HM `xdg.portal.config` equals its lowercase form (xdg-desktop-portal lowercases `XDG_CURRENT_DESKTOP`) |
@@ -58,6 +60,21 @@ Per config (base and every specialisation):
 | self-test | `carries`, `includes`, `ini` and `secretRoute` accept good samples and reject bad ones (guards the helpers against silently passing everything) |
 | portal entry per enabled WM | `xdg.portal.config` has a lowercase key for every WM the config enables (a deleted desktop entry is noticed; which WMs are enabled is not asserted) |
 | duplicate HM gnome-keyring unit | `services.gnome-keyring` off, no `gnome-keyring*` HM user service, no `myconfig.programs.gnome-keyring` option |
+
+Fixtures (`02-scenario-fixture-browsers.nix`, evaluated once):
+
+| Check | Expected |
+|-------|----------|
+| fixture: each browser family is installed | brave, chromium, google-chrome, vscode all present in `systemPackages` (non-vacuity) |
+| fixture: every installed browser carries gnome-libsecret | all four carry the flag |
+| control: unflagged browser | `brave.override { commandLineArgs = ""; }` is not matched by `carries` |
+| fixture: FHS-wrapped Electron apps are installed | claude-desktop and antigravity present when their modules are enabled |
+| fixture: FHS-wrapped Electron apps carry gnome-libsecret | both carry the flag |
+| control: unwrapped claude-desktop-fhs / antigravity | the raw packages are not matched by `carries` (two checks) |
+| fixture: HM chromium is pinned | `krit.programs.chromium` on: flag in `commandLineArgs` |
+| control: HM chromium without args | args forced empty and package unflagged: predicate rejects it |
+| fixture: HM helium is pinned | `krit.programs.helium` on: flag in `extraFlags` |
+| control: HM helium without extraFlags | flags forced empty: predicate rejects it |
 
 Per host:
 

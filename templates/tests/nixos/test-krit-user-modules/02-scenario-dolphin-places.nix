@@ -1,10 +1,10 @@
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else throw "FLAKE_ROOT is not set";
   flake = builtins.getFlake "path:${flakeRoot}";
-  lib = flake.inputs.nixpkgs.lib;
-  sys = flake.nixosConfigurations.nixos-desktop;
-  twin = sys.extendModules { modules = [{ myconfig.krit.programs.dolphin.enable = lib.mkForce true; }]; };
-  hm = twin.config.home-manager.users.${twin.config.myconfig.constants.user};
+  inherit (flake.inputs.nixpkgs) lib;
+  fx = import ../../lib/fixture-host.nix flake;
+  twin = fx.mkNixos [{ myconfig.krit.programs.dolphin.enable = true; }];
+  hm = fx.hmOf twin;
   data = hm.home.activation.createDolphinPlaces.data;
 
   drvOf = infix: lib.findFirst (lib.hasInfix infix) ""

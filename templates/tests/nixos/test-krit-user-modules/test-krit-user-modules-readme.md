@@ -1,6 +1,6 @@
 # test-krit-user-modules
 
-Eval-only guard for contracts of several `users/krit/nixos` modules that no other test covers: Dolphin (plasma-manager reset exclusion, thumbnailers, the declared places order and the script that applies it to an existing `user-places.xbel`), the helium-vs-chromium exclusion assertion, PWA desktop entries, rcloneMount being enabled by the cloud modules, and the logitech `logid` restart trigger and udev rule.
+Eval-only guard for contracts of several `users/krit/nixos` modules that no other test covers: Dolphin (plasma-manager reset exclusion, thumbnailers, the declared places order and the script that applies it to an existing `user-places.xbel`), the helium-vs-chromium exclusion assertion, PWA desktop entries, rcloneMount being enabled by the cloud modules (minimal fixture), and the logitech `logid` restart trigger and udev rule.
 
 ## Run
 
@@ -18,23 +18,23 @@ From inside the directory:
 bash check-nixos-krit-user-modules.sh
 ```
 
-Eval of four `extendModules` twins per host (`nixos-desktop`, `nixos-laptop`), plus one small build (the `dolphin-places-sync` wrapper and the seed xbel, python3 from the cache) for the places-sync section.
+Eval of several fresh `template-host-minimal` fixtures (one eval, no real host), plus one small build (the `dolphin-places-sync` wrapper and the seed xbel, python3 from the cache) for the places-sync section.
 
 ## How it works
 
-`01-scenario-krit-user-modules.nix` reads `HOST_UNDER_TEST`, loads the real flake and exposes one string per check (`"ok"` or `"FAIL: ..."`). The script runs `nix eval --json --impure` once per host and prints a per-check PASS/FAIL list.
+`01-scenario-krit-user-modules.nix` builds fresh `template-host-minimal` hosts (`lib/fixture-host.nix`), each enabling only the module under test, and exposes one string per check (`"ok"` or `"FAIL: ..."`). The script runs `nix eval --json --impure` once and prints a per-check PASS/FAIL list. No real host is involved: which modules a real host enables is never asserted, and none of these contracts depends on the host.
 
-Which modules a host enables is never asserted: the twins force the modules under test on or off with `mkForce`, so every check runs the same way on both hosts. Twin `a` has dolphin, pwas, helium and logitech (both MX Master mice) on and chromium off; `both` adds chromium; `only4` turns the MX Master 3S off; `noMice` turns both off.
+Fixtures: `none` (no module), `dolphin`, `pwa`, `heliumOnly`, `both` (helium + chromium), `logid` (both MX Master mice), `only4` (MX Master 3S off) and `noMice` (logitech on, both mice off).
 
-The rcloneMount check reads `options.myconfig.services.rcloneMount.enable.definitionsWithLocations` of the real host (a host with no cloud module enabled passes; the positive case and the control run on a minimal fixture, see below): one `true` definition must come from each enabled `services/cloud/*` module, so a cloud module can no longer be enabled without turning rcloneMount on (the host's own `rcloneMount.enable` is a separate definition and is not counted). If a failure shows an empty file list, the module-system `file` of a denix module no longer contains the module path and the filter needs adapting.
+The rcloneMount contract is checked only on minimal fixtures (see below).
 
-`02-scenario-dolphin-places.nix` (desktop only, dolphin forced on) exposes the store paths and derivations of `dolphin-places-sync` and the seed xbel, parsed from the `createDolphinPlaces` activation text. The script then runs on fixture files in a temp dir: an old Dolphin file (pre-change order, Dolphin `Recent *` entries with KDE `<ID>` attributes, a user bookmark, `~/momentary` and `/mnt` appended at the end), a missing file, a malformed file and a file with a `<separator/>`. Home and flake directory come from the config (`home.homeDirectory`, `myconfig.constants.flakeDir`), nothing is hardcoded.
+`02-scenario-dolphin-places.nix` (a fresh `template-host-minimal` fixture with only dolphin enabled) exposes the store paths and derivations of `dolphin-places-sync` and the seed xbel, parsed from the `createDolphinPlaces` activation text. The script then runs on fixture files in a temp dir: an old Dolphin file (pre-change order, Dolphin `Recent *` entries with KDE `<ID>` attributes, a user bookmark, `~/momentary` and `/mnt` appended at the end), a missing file, a malformed file and a file with a `<separator/>`. Home and flake directory come from the config (`home.homeDirectory`, `myconfig.constants.flakeDir`), nothing is hardcoded.
 
-Controls: a planted `Plugins=` line and planted bad PWA entries must be flagged by the lints; the udev count must drop to 0 with both mice off, so the "exactly once" count is not vacuous; the fixture must start out of order, the order comparison must reject it and a swapped expectation.
+Controls: the `none` fixture must lack every module effect (dolphin exclusion and places activation, `pwa-*` entries, the logid service and udev rule); a planted `Plugins=` line and planted bad PWA entries must be flagged by the lints; the udev count must drop to 0 with both mice off, so the "exactly once" count is not vacuous; the fixture must start out of order, the order comparison must reject it and a swapped expectation.
 
 ## Checks
 
-Per host.
+One eval on the fixtures above.
 
 | Check | Expected |
 |-------|----------|
@@ -44,11 +44,13 @@ Per host.
 | dolphin-installed-at-most-once | package name `dolphin` appears at most once (the module adds no `kdePackages.dolphin`) |
 | dolphin-places-sync-wired | `createDolphinPlaces` runs `dolphin-places-sync` with the seed xbel, the live `~/.local/share/user-places.xbel` and `--last trash:/` (a planted unrelated command is rejected) |
 | control-plugins-line-detected | the `Plugins=` lint flags a planted line |
+| control-no-dolphin-no-contract | the `none` fixture has no `dolphinrc` exclusion and no `createDolphinPlaces` activation |
 | helium-chromium-assertion-fires | helium + chromium together raise exactly one "mutually exclusive" assertion |
 | helium-alone-no-assertion | helium with chromium off raises none |
 | pwa-entries-plain-network | at least one `pwa-*` desktop entry; none has a `mimeType`, all have `categories == [ "Network" ]` |
 | control-pwa-lint-detects | the PWA lint flags planted bad entries |
-| cloud-modules-enable-rclone-mount | real host invariant: each enabled cloud module defines `rcloneMount.enable = true` (definition count equals enabled cloud modules; a host with none enabled passes, the positive case is the fixture below) |
+| control-no-pwa-entries-without-module | the `none` fixture has no `pwa-*` desktop entry |
+| control-no-logid-service-without-module | the `none` fixture has no `logid` service and no `c548` udev rule |
 | logid-restart-trigger | `systemd.services.logid.restartTriggers` contains the `logid.cfg` source |
 | logid-trigger-follows-config | with one mouse off the `logid.cfg` source and the trigger change with it |
 | logid-udev-rule-once | the `c548` receiver udev rule appears exactly once with both mice and with one mouse |
@@ -66,7 +68,7 @@ Runs once. `03-scenario-cloud-fixture.nix` builds fresh `template-host-minimal` 
 
 ## Dolphin places sync (real script, fixture files)
 
-Runs once (desktop). Not part of the per-host JSON; each line prints PASS/FAIL.
+Runs once (fixture host). Not part of the per-host JSON; each line prints PASS/FAIL.
 
 | Check | Expected |
 |-------|----------|

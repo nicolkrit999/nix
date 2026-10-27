@@ -6,13 +6,6 @@ let
 
   sys = flake.nixosConfigurations.${host};
   base = sys.config;
-  withLocalsend = on: (sys.extendModules { modules = [{ myconfig.services.localsend.enable = lib.mkForce on; }]; }).config;
-  lsOn = withLocalsend true;
-  lsOff = withLocalsend false;
-  lsPort = 53317;
-  lsPkgIn = c: builtins.elem c.programs.localsend.package.pname (pkgNames c.environment.systemPackages);
-  lsWired = c: c.programs.localsend.enable && builtins.elem lsPort c.networking.firewall.allowedTCPPorts
-    && builtins.elem lsPort c.networking.firewall.allowedUDPPorts && lsPkgIn c;
   has = name: base.specialisation ? ${name};
   spec = name: base.specialisation.${name}.configuration;
 
@@ -30,15 +23,10 @@ let
   fsOpts = g.fileSystems."/home/guest".options;
   optVal = key: lib.findFirst (o: lib.hasPrefix "${key}=" o) null fsOpts;
   user = base.myconfig.constants.user;
-  lingerDir = "/var/lib/systemd/linger";
-  excludedDirs = [ lingerDir "/var/lib/containers" "/var/lib/docker" "/var/lib/flatpak" "/var/lib/snapper" "/var/lib/tailscale" ];
+  excludedDirs = [ "/var/lib/systemd/linger" "/var/lib/containers" "/var/lib/docker" "/var/lib/flatpak" "/var/lib/snapper" "/var/lib/tailscale" ];
   offUnits = [ "flatpak-managed-install" "nh-clean" "snapperd" "snapper-timeline" "snapper-cleanup" "cleanup-trash" ];
   persistDirs = c: map (d: d.directory) c.environment.persistence."/persist".directories;
-  lingerTwin = sys.extendModules { modules = [{ environment.persistence."/persist".directories = excludedDirs; }]; };
-  lt = lingerTwin.config;
-  ltg = lt.specialisation.guest.configuration;
   patMode = c: c.sops.secrets.github_fg_pat_token_nix.mode;
-  patTwin = sys.extendModules { modules = [{ sops.secrets.github_fg_pat_token_nix.mode = "0444"; }]; };
   kritOffPaths = [
     [ "programs" "claude-code-wrappers" ]
     [ "services" "cloud" "googleDrive" ]
@@ -53,39 +41,6 @@ let
     [ "services" "windows-mount" ]
   ];
   kritEnable = c: p: lib.attrByPath ([ "myconfig" "krit" ] ++ p ++ [ "enable" ]) false c;
-  exposure = [
-    (c: c.myconfig.services.tailscale.enable)
-    (c: c.myconfig.services.localsend.enable)
-    (c: c.services.openssh.enable)
-    (c: c.services.avahi.enable)
-    (c: c.virtualisation.docker.enable)
-    (c: c.virtualisation.podman.enable)
-  ];
-  kritTwinPaths = lib.filter (p: lib.hasAttrByPath ([ "myconfig" "krit" ] ++ p) sys.options) kritOffPaths;
-  w = lib.mkOverride 75;
-  on = path: lib.setAttrByPath (path ++ [ "enable" ]) (w true);
-  exposureTwin = sys.extendModules {
-    modules =
-      map (p: on ([ "myconfig" "krit" ] ++ p)) kritTwinPaths
-      ++ map (d: on [ "myconfig" "programs" d ]) des
-      ++ map on [
-        [ "myconfig" "programs" "openlogi" ]
-        [ "myconfig" "programs" "thunderbird" ]
-        [ "myconfig" "services" "tailscale" ]
-        [ "myconfig" "services" "localsend" ]
-        [ "services" "openssh" ]
-        [ "services" "avahi" ]
-        [ "virtualisation" "docker" ]
-        [ "virtualisation" "podman" ]
-      ]
-      ++ [{
-        services.tailscale.openFirewall = w true;
-        networking.firewall.trustedInterfaces = w [ "tailscale0" ];
-      }];
-  };
-  xb = exposureTwin.config;
-  xg = xb.specialisation.guest.configuration;
-  xs = xb.specialisation.secure-travel.configuration;
   tmpRule = lib.findFirst (r: lib.hasInfix "AccountsService/users/guest" r && lib.hasPrefix "f " r) "" g.systemd.tmpfiles.rules;
 
   s = spec "secure-travel";
@@ -162,29 +117,14 @@ let
     "guest: nix allowed-users is only the main user" = eq "allowed-users" g.nix.settings.allowed-users [ user ];
     "guest: github PAT secret mode is 0400" = eq "PAT mode" (patMode g) "0400";
     "guest: /persist does not persist linger, docker, containers, tailscale, flatpak, snapper" =
-      yes "guest persists ${toString (lib.filter (d: builtins.elem d (persistDirs g) || builtins.elem d (persistDirs ltg)) excludedDirs)}" (lib.all (d: !(builtins.elem d (persistDirs g)) && !(builtins.elem d (persistDirs ltg))) excludedDirs);
+      yes "guest persists ${toString (lib.filter (d: builtins.elem d (persistDirs g)) excludedDirs)}" (lib.all (d: !(builtins.elem d (persistDirs g))) excludedDirs);
     "guest: flatpak install, nh clean, snapper and autotrash units are gone" =
       yes "guest still has units ${toString (lib.filter (n: g.systemd.services ? ${n} || g.systemd.timers ? ${n}) offUnits)}" (lib.all (n: !(g.systemd.services ? ${n}) && !(g.systemd.timers ? ${n})) offUnits);
     "guest: openlogi and thunderbird modules are off" =
       eq "openlogi/thunderbird" [ g.myconfig.programs.openlogi.enable g.myconfig.programs.thunderbird.enable ] [ false false ];
-    "control: base has the nh clean and snapper units" =
-      yes "base lacks the units, guest absence check is vacuous" (base.systemd.services ? nh-clean && base.systemd.services ? snapperd);
-    "guest: /persist keeps the other persisted directories" =
-      yes "guest persist list ${builtins.toJSON (persistDirs ltg)} lost entries of ${builtins.toJSON (persistDirs lt)}"
-        (lib.subtractLists excludedDirs (persistDirs lt) == persistDirs ltg && persistDirs ltg != [ ]);
     "guest: extraGroups are audio and video only" = eq "extraGroups" (lib.sort lib.lessThan g.users.users.guest.extraGroups) [ "audio" "video" ];
     "guest: no zenity in systemPackages" = yes "zenity installed system-wide" (!(builtins.elem "zenity" (pkgNames g.environment.systemPackages)));
     "guest: welcome autostart still exists" = yes "guest-welcome autostart missing" (g.environment.etc ? "xdg/autostart/guest-welcome.desktop");
-    "control: twin base exposes every service the guest must turn off" = yes "twin base lacks some of tailscale/localsend/ssh/avahi/docker/podman" (builtins.all (f: f xb) exposure);
-    "guest (twin): every exposure service the base turns on is off" = yes "still on in guest: ${toString (lib.imap0 (i: f: if f xg then toString i else "") exposure)}" (!(builtins.any (f: f xg) exposure));
-    "control: twin base has openlogi and thunderbird on" = eq "twin base openlogi/thunderbird" [ xb.myconfig.programs.openlogi.enable xb.myconfig.programs.thunderbird.enable ] [ true true ];
-    "guest (twin): openlogi and thunderbird modules are off" = eq "twin guest openlogi/thunderbird" [ xg.myconfig.programs.openlogi.enable xg.myconfig.programs.thunderbird.enable ] [ false false ];
-    "control: twin of the host persisting the linger dir has it in its base" = yes "twin does not persist ${lingerDir}, the guest filter is vacuous" (builtins.elem lingerDir (persistDirs lt));
-    "control: guest PAT mode override beats a world-readable base mode" = yes "twin base ${patMode patTwin.config}, twin guest ${patMode patTwin.config.specialisation.guest.configuration}" (patMode patTwin.config == "0444" && patMode patTwin.config.specialisation.guest.configuration == "0400");
-    "control: base allowed-users differs from the guest" = yes "base allowed-users already ${builtins.toJSON base.nix.settings.allowed-users}" (base.nix.settings.allowed-users != g.nix.settings.allowed-users);
-    "control: base keeps networkmanager or another group the guest drops" = yes "base user groups already minimal" (builtins.elem "networkmanager" base.users.users.${user}.extraGroups);
-    "control: twin base enables every krit nas/cloud/mount module" = yes "twin base lacks ${toString (map (lib.concatStringsSep ".") (lib.filter (p: !(kritEnable xb p)) kritTwinPaths))}" (kritTwinPaths != [ ] && builtins.all (p: kritEnable xb p) kritTwinPaths);
-    "guest (twin): every krit nas/cloud/mount module is off" = yes "still on in guest: ${toString (map (lib.concatStringsSep ".") (lib.filter (p: kritEnable xg p) kritTwinPaths))}" (!(builtins.any (p: kritEnable xg p) kritTwinPaths));
     "guest: autoLogin enabled for guest" = eq "autoLogin" [ g.services.displayManager.autoLogin.enable g.services.displayManager.autoLogin.user ] [ true "guest" ];
     "guest: autoLogin user exists in users.users" = yes "autoLogin user missing" (g.users.users ? ${g.services.displayManager.autoLogin.user});
     "guest: defaultSession == xfce" = eq "defaultSession" g.services.displayManager.defaultSession "xfce";
@@ -198,8 +138,6 @@ let
     "guest: bluetooth disabled" = eq "bluetooth" g.myconfig.bluetooth.enable false;
     "guest: tags contain guest" = yes "tags" (builtins.elem "guest" g.system.nixos.tags);
     "control: base config has no guest user" = yes "guest leaked into base" (!(base.users.users ? guest));
-    "control: twin base has every DE enabled" = yes "twin base DE flags ${builtins.toJSON (map (d: xb.myconfig.programs.${d}.enable) des)}" (builtins.all (d: xb.myconfig.programs.${d}.enable) des);
-    "guest (twin): no DE of the twin base stays enabled" = yes "guest DE flags ${builtins.toJSON (map (d: xg.myconfig.programs.${d}.enable) des)}" (!(builtins.any (d: xg.myconfig.programs.${d}.enable) des));
   } // lib.listToAttrs (map
     (d: lib.nameValuePair "guest: myconfig.programs.${d} disabled" (eq d g.myconfig.programs.${d}.enable false))
     des)
@@ -238,11 +176,6 @@ let
     "control: proton vpn detector matches vpn names only" = yes "detector wrong" (isProton "proton-vpn-gtk" && isProton "protonvpn.desktop" && isProton "ProtonVPN" && !(isProton "proton-drive") && !(isProton "tor-browser"));
     "control: guest spec autostart detector sees entries" = yes "etc autostart detector finds nothing in guest" (autostartNames g != [ ]);
     "control: base secure-travel has no exit node warn unit" = yes "base already has the warn unit" (!(base.home-manager.users.${user}.systemd.user.services ? secure-travel-exitnode-warn));
-    "control: twin base trusts tailscale0 (secure-travel [ lo ] is an override)" = yes "twin base trustedInterfaces ${builtins.toJSON xb.networking.firewall.trustedInterfaces}" (builtins.elem "tailscale0" xb.networking.firewall.trustedInterfaces);
-    "control: twin base opens the tailscale firewall (secure-travel false is an override)" = eq "twin base openFirewall" xb.services.tailscale.openFirewall true;
-    "secure-travel (twin): tailscale firewall closed and only lo trusted" = eq "twin secure-travel firewall" [ xs.services.tailscale.openFirewall xs.networking.firewall.trustedInterfaces ] [ false [ "lo" ] ];
-    "secure-travel (twin): docker and localsend off while the twin base has them on" = eq "twin secure-travel docker/localsend" [ xb.virtualisation.docker.enable xs.virtualisation.docker.enable xb.myconfig.services.localsend.enable xs.myconfig.services.localsend.enable ] [ true false true false ];
-    "secure-travel (twin): gnome is the only DE while the twin base has all" = eq "twin secure-travel DE flags" (map (d: xs.myconfig.programs.${d}.enable) des) (map (d: d == "gnome") des);
     "secure-travel: tailscale0 not a trusted interface" =
       yes "tailscale0 trusted" (!(builtins.elem "tailscale0" s.networking.firewall.trustedInterfaces));
     "secure-travel: gnome is the only DE" =
@@ -257,13 +190,7 @@ let
     "secure-travel: gnome-user-share disabled" = eq "gus" s.services.gnome.gnome-user-share.enable false;
     "secure-travel: myconfig.services.localsend.enable == false" = eq "myconfig localsend" s.myconfig.services.localsend.enable false;
     "secure-travel: programs.localsend.enable == false" = eq "programs.localsend" s.programs.localsend.enable false;
-    "localsend: enabled module sets programs.localsend.enable" = eq "programs.localsend" lsOn.programs.localsend.enable true;
-    "localsend: enabled module opens TCP 53317" = yes "tcp ${toString lsPort} not open: ${builtins.toJSON lsOn.networking.firewall.allowedTCPPorts}" (builtins.elem lsPort lsOn.networking.firewall.allowedTCPPorts);
-    "localsend: enabled module opens UDP 53317" = yes "udp ${toString lsPort} not open: ${builtins.toJSON lsOn.networking.firewall.allowedUDPPorts}" (builtins.elem lsPort lsOn.networking.firewall.allowedUDPPorts);
-    "localsend: enabled module installs the localsend package system-wide" = yes "programs.localsend.package not in environment.systemPackages" (lsPkgIn lsOn);
-    "control: localsend disabled leaves 53317 closed and the program off" = yes "localsend wiring present with the module off" (!(lsWired lsOff) && !(builtins.elem lsPort lsOff.networking.firewall.allowedTCPPorts) && !(builtins.elem lsPort lsOff.networking.firewall.allowedUDPPorts));
     "secure-travel: tags contain secure-travel" = yes "tags" (builtins.elem "secure-travel" s.system.nixos.tags);
-    "control: base root account differs from secure-travel" = yes "base already locked" (base.users.users.root.hashedPassword != "!" || base.users.users.root.hashedPasswordFile != null);
     "control: check helper detects mismatch" = yes "helper broken" (lib.hasPrefix "FAIL" (eq "x" 1 2));
   };
 
