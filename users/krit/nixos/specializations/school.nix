@@ -374,6 +374,7 @@ delib.module {
             geogebra6 # Dynamic mathematics software with graphics, algebra and spreadsheets
 
             # CS Tools (useful)
+            anki
             dbeaver-bin
             filezilla
             insomnia
