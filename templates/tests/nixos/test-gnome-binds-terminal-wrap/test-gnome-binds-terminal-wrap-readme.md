@@ -22,19 +22,23 @@ Eval only, no builds. `nixos-b` CI group, 5 minute cap (`test.conf`).
 
 ## How it works
 
-`01-scenario-gnome-binds-terminal-wrap.nix` reads `nixosConfigurations.nixos-desktop` / `nixos-laptop` (base plus every specialisation), and for each variant with GNOME enabled reads the rendered `dconf.settings` custom keybinding entries "Launch File Manager" and "Launch editor". The expected command is derived from the same constants at test time (`terminalApps`, `terminal.name`, `fileManager`, `editor`), so the test does not depend on which apps a host picks. The module has no `terminal.exec` constant; the wrap is the `terminal.name -e <app>` string.
+`01-scenario-gnome-binds-terminal-wrap.nix` has two parts.
 
-`control` builds twins of the desktop through `extendModules` with forced constants (GUI file manager, TUI editor, `terminalApps = []`, another terminal name) and checks the rendered command follows them; planted wrong expectations must be rejected.
+- Fixture (`mkNixos` on `template-host-minimal`, see `templates/tests/lib/fixture-host.nix`): only `programs.gnome.enable = true` plus fixed constants (`terminal.name = kitty`, `fileManager = yazi`, `editor = gedit`, `terminalApps = [ yazi hx ]`). The rendered `dconf.settings` custom keybinding entries "Launch File Manager" and "Launch editor" must follow them. The positive checks and every control are built here, so they never depend on which DE a real host enables. Controls are twins of the fixture (`extendModules`) with forced constants (GUI file manager, TUI editor, `terminalApps = []`, another terminal name); each twin also fails if GNOME is not on.
+- Real hosts (`nixos-desktop`, `nixos-laptop`, base plus every specialisation): for each variant that has GNOME enabled, the same two commands must equal the expectation derived from that host's own constants at test time (cross-file consistency). A host or variant without GNOME contributes no checks and that is not an error; non-vacuity is provided by the fixture.
+
+The module has no `terminal.exec` constant; the wrap is the `terminal.name -e <app>` string. Planted wrong expectations must be rejected.
 
 ## Checks
 
 | Check | Expected |
 |-------|----------|
-| `<host>/<variant>: Launch File Manager (fileManager=...)` | for every GNOME variant: command is `<terminal> -e <app>` when the app is in `terminalApps`, else the bare app |
+| `fixture: TUI file manager is wrapped in the terminal` | `kitty -e yazi` |
+| `fixture: GUI editor is launched bare` | `gedit` |
+| `<host>/<variant>: Launch File Manager (fileManager=...)` | for every real GNOME variant: command is `<terminal> -e <app>` when the app is in `terminalApps`, else the bare app |
 | `<host>/<variant>: Launch editor (editor=...)` | same for the editor role |
-| at least one GNOME variant evaluated | non-vacuity of the positive checks |
-| control: GUI file manager is launched bare | twin with `fileManager = "nautilus"`: command `nautilus` |
-| control: TUI editor is wrapped in the terminal | twin with `editor = "hx"`: command `<terminal> -e hx` |
+| control: GUI file manager is launched bare | fixture twin with `fileManager = "nautilus"`: command `nautilus` |
+| control: TUI editor is wrapped in the terminal | twin with `editor = "hx"`: `kitty -e hx` |
 | control: TUI role is launched bare once it leaves terminalApps | twin with `terminalApps = []`: `yazi` unwrapped |
 | control: wrapper uses constants.terminal.name | twin with `terminal.name = "wezterm"`: `wezterm -e yazi` |
 | control: expectation rejects a bare TUI command | planted expectation differs from a bare `yazi` |

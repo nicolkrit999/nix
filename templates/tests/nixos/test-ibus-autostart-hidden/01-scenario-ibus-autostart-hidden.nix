@@ -74,47 +74,38 @@ let
         }, expected ${lib.boolToString want}";
   };
 
+  fx = import ../../lib/fixture-host.nix flake;
+  fixture = mods: (fx.mkNixos mods).config;
+
   hostReport =
     h:
-    let
-      vs = variantsOf flake.nixosConfigurations.${h};
-      gnomeVs = lib.filterAttrs (_: gnomeOn) vs;
-      perVariant =
+    lib.concatLists (
+      lib.mapAttrsToList (
         n: c:
-        lib.mapAttrsToList
-          (k: v: {
-            label = "${h}/${n}: ${k}";
-            result = v;
-          })
-          (anyChecks c // lib.optionalAttrs (gnomeOn c) (gnomeChecks c));
-    in
-    lib.concatLists (lib.mapAttrsToList perVariant vs)
-    ++ [
-      {
-        label = "${h}: at least one GNOME variant evaluated";
-        result =
-          if gnomeVs != { } then
-            "ok"
-          else
-            "FAIL: no variant enables GNOME, every positive check would be vacuous";
-      }
-    ];
+        lib.mapAttrsToList (k: v: {
+          label = "${h}/${n}: ${k}";
+          result = v;
+        }) (anyChecks c)
+      ) (variantsOf flake.nixosConfigurations.${h})
+    );
 
-  gnomeSpecOf =
-    h:
-    lib.head (lib.attrNames (lib.filterAttrs (_: gnomeOn) (variantsOf flake.nixosConfigurations.${h})));
-  ctlHost = "nixos-desktop";
-  ctlSpec = gnomeSpecOf ctlHost;
-  twin =
-    mod:
-    (flake.nixosConfigurations.${ctlHost}.extendModules {
-      modules = [{ specialisation.${ctlSpec}.configuration = mod; }];
-    }).config.specialisation.${ctlSpec}.configuration;
+  gnomeFixture = fixture [ { myconfig.programs.gnome.enable = true; } ];
+
+  positives = lib.mapAttrsToList (k: v: {
+    label = "fixture GNOME: ${k}";
+    result = v;
+  }) (gnomeChecks gnomeFixture // anyChecks gnomeFixture);
+
+  twin = mod: fixture [ { myconfig.programs.gnome.enable = true; } mod ];
 
   absentIf =
     what: c: if !(files c ? ${entry}) then "ok" else "FAIL: override still defined with ${what}";
 
   controls = [
+    {
+      label = "control: fixture without GNOME has no override";
+      result = absentIf "GNOME off" (fixture [ ]);
+    }
     {
       label = "control: ibus disabled drops the override";
       result = absentIf "ibus disabled" (twin {
@@ -131,11 +122,11 @@ let
       label = "control: GNOME forced off (ibus forced on) drops the override";
       result =
         let
-          c = twin {
+          c = fixture [{
             myconfig.programs.gnome.enable = lib.mkForce false;
             i18n.inputMethod.enable = lib.mkForce true;
             i18n.inputMethod.type = lib.mkForce "ibus";
-          };
+          }];
         in
         if gnomeOn c then
           "FAIL: twin still has GNOME on, control is vacuous"
@@ -162,6 +153,6 @@ let
   render = rs: lib.concatMapStrings (r: "${r.label}\t${r.result}\n") rs;
 in
 {
-  report = render (lib.concatMap hostReport hostNames);
+  report = render (positives ++ lib.concatMap hostReport hostNames);
   control = render controls;
 }

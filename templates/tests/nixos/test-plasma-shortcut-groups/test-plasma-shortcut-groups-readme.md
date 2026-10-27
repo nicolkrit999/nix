@@ -30,23 +30,26 @@ Eval only, no builds. `nixos-b` CI group, 5 minute cap (`test.conf`).
 
 ## How it works
 
-`01-scenario-plasma-shortcut-groups.nix` reads `nixosConfigurations.nixos-desktop` / `nixos-laptop` (base plus every specialisation) and, for each variant with KDE enabled, the evaluated `programs.plasma.shortcuts` and `programs.plasma.hotkeys.commands` of the home-manager user.
+`01-scenario-plasma-shortcut-groups.nix` builds a fixture (`lib/fixture-host.nix`, `template-host-minimal` with only `myconfig.programs.kde.enable = true`; vicinae stays on by its default, which supplies the `Meta+V` / `Meta+.` hotkeys) and runs the three checks on its `programs.plasma.shortcuts` / `programs.plasma.hotkeys.commands`. The checks do not depend on what the real hosts enable. As a cross-file consistency pass, the same checks also run on every `nixos-desktop` / `nixos-laptop` variant (base plus specialisations) that happens to have KDE on; with none, that pass reports nothing.
 
-`control` builds a desktop twin (`extendModules`, `mkOverride 10` on `programs.plasma.shortcuts`) that adds the `services/` prefix and releases the two default owners; the checks must pass there. Planted group sets prove the group predicate accepts a legacy-only group and rejects a doubled id and a comma key, and that a layout switcher filed under `kwin` is flagged.
+`control` builds fixture twins (`extendModules`, `mkOverride 10` on `programs.plasma.shortcuts`): one adds the `services/` prefix and releases the two default owners (the unreleased fixture must collide without the allow-list, the twin must not), one plants a doubled legacy/`services/` group and one plants a `kwin` layout switcher entry; the fixture checks must flag the last two. Planted group sets prove the group predicate accepts a legacy-only group and rejects a doubled id and a comma key.
 
 ## Checks
 
 | Check | Expected |
 |-------|----------|
-| `<host>/<variant>: legacy .desktop groups migrate cleanly into services/` | no `<id>.desktop` group is also set as `services/<id>.desktop`, and no legacy group key contains a comma |
-| `<host>/<variant>: Switch to Next Keyboard Layout is not filed under kwin` | the action is not set under `kwin` (it belongs to the `KDE Keyboard Layout Switcher` component) |
-| `<host>/<variant>: custom hotkeys do not shadow an unreleased Plasma default` | a hotkey on `Meta+V` / `Meta+.` only exists when its default owner is set to `none`, except the allow-listed `Meta+V` (`plasmashell.show-on-mouse-pos`) and `Meta+.` (`services/org.kde.plasma.emojier.desktop._launch`) (table from the pinned sources, not live-verified) |
-| at least one KDE variant evaluated | non-vacuity of the positive checks |
-| control: services/-prefixed groups pass | twin with prefixed groups: no problem groups, KDE still on |
+| `fixture: legacy .desktop groups migrate cleanly into services/` | no `<id>.desktop` group is also set as `services/<id>.desktop`, and no legacy group key contains a comma |
+| `fixture: Switch to Next Keyboard Layout is not filed under kwin` | the action is not set under `kwin` (it belongs to the `KDE Keyboard Layout Switcher` component) |
+| `fixture: custom hotkeys do not shadow an unreleased Plasma default` | a hotkey on `Meta+V` / `Meta+.` only exists when its default owner is set to `none`, except the allow-listed `Meta+V` (`plasmashell.show-on-mouse-pos`) and `Meta+.` (`services/org.kde.plasma.emojier.desktop._launch`) (table from the pinned sources, not live-verified) |
+| fixture: KDE enabled with shortcuts and Meta+V / Meta+. hotkeys | non-vacuity of the positive checks |
+| `<host>/<variant>: <each of the three checks above>` | same three checks on each real KDE variant (none required) |
+| control: services/-prefixed groups pass | twin with prefixed groups: no problem groups, KDE still on, shortcuts non-empty |
+| control: twin with a doubled legacy and services/ group fails the group check | the fixture check is not `ok` |
+| control: twin with the layout switcher under kwin fails the kwin check | the fixture check is not `ok` |
 | control: legacy-only .desktop group is accepted | planted `org.kde.spectacle.desktop` alone is not reported |
 | control: same desktop id in legacy and services/ form is flagged | planted pair is reported |
 | control: comma key in a legacy .desktop group is flagged | planted `Meta+,` in `org.kde.krunner.desktop` is reported |
-| control: released defaults pass the collision check | twin with the two defaults set to `none`: no collisions |
+| control: released defaults pass the collision check | fixture without allow-list collides on Meta+V / Meta+.; twin with the two defaults set to `none`: no collisions |
 | control: collision check sees Meta+V and Meta+. when not allow-listed or released | empty allow-list, planted hotkeys, empty shortcuts report both keys |
 | control: allow-listed Meta+V and Meta+. pass | real allow-list, same planted hotkeys: no collisions |
 | control: allow-list entry no longer applies when the default owner differs | owner table with a changed action: Meta+V is reported again |

@@ -6,6 +6,7 @@ let
     if r != "" then r else "/home/krit/nix";
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
+  fx = import ../../lib/fixture-host.nix flake;
 
   hostNames = [
     "nixos-desktop"
@@ -72,19 +73,24 @@ let
       lib.mapAttrsToList (n: c: lib.optionals (gnomeOn c) (roleChecks "${h}/${n}" c)) vs
     );
 
-  gnomeVariants = lib.concatMap
-    (
-      h: lib.attrNames (lib.filterAttrs (_: gnomeOn) (variantsOf flake.nixosConfigurations.${h}))
-    )
-    hostNames;
-
-  ctlHost = "nixos-desktop";
-  ctl = flake.nixosConfigurations.${ctlHost};
-  ctlTerminal = ctl.config.myconfig.constants.terminal.name;
-  twin = constants: (ctl.extendModules { modules = [{ myconfig.constants = constants; }]; }).config;
   force = lib.mkForce;
+  fixture = fx.mkNixos [
+    {
+      myconfig.programs.gnome.enable = true;
+      myconfig.constants = {
+        terminal.name = "kitty";
+        fileManager = "yazi";
+        editor = "gedit";
+        terminalApps = [
+          "yazi"
+          "hx"
+        ];
+      };
+    }
+  ];
+  twin = constants: (fixture.extendModules { modules = [{ myconfig.constants = constants; }]; }).config;
 
-  twinCheck =
+  fixtureCheck =
     label: constants: bindName: want:
     let
       c = twin constants;
@@ -94,7 +100,7 @@ let
       inherit label;
       result =
         if !(gnomeOn c) then
-          "FAIL: twin lost GNOME, control is vacuous"
+          "FAIL: fixture lost GNOME, check is vacuous"
         else if got == want then
           "ok"
         else
@@ -107,14 +113,14 @@ let
   };
 
   controls = [
-    (twinCheck "control: GUI file manager is launched bare" { fileManager = force "nautilus"; } "Launch File Manager" "nautilus")
-    (twinCheck "control: TUI editor is wrapped in the terminal" { editor = force "hx"; } "Launch editor" "${ctlTerminal} -e hx")
-    (twinCheck "control: TUI role is launched bare once it leaves terminalApps"
+    (fixtureCheck "control: GUI file manager is launched bare" { fileManager = force "nautilus"; } "Launch File Manager" "nautilus")
+    (fixtureCheck "control: TUI editor is wrapped in the terminal" { editor = force "hx"; } "Launch editor" "kitty -e hx")
+    (fixtureCheck "control: TUI role is launched bare once it leaves terminalApps"
       {
         fileManager = force "yazi";
         terminalApps = force [ ];
       } "Launch File Manager" "yazi")
-    (twinCheck "control: wrapper uses constants.terminal.name"
+    (fixtureCheck "control: wrapper uses constants.terminal.name"
       {
         terminal.name = force "wezterm";
         fileManager = force "yazi";
@@ -133,17 +139,11 @@ let
 in
 {
   report = render (
-    lib.concatMap hostReport hostNames
-    ++ [
-      {
-        label = "at least one GNOME variant evaluated";
-        result =
-          if gnomeVariants != [ ] then
-            "ok"
-          else
-            "FAIL: no variant enables GNOME, every positive check would be vacuous";
-      }
+    [
+      (fixtureCheck "fixture: TUI file manager is wrapped in the terminal" { } "Launch File Manager" "kitty -e yazi")
+      (fixtureCheck "fixture: GUI editor is launched bare" { } "Launch editor" "gedit")
     ]
+    ++ lib.concatMap hostReport hostNames
   );
   control = render controls;
 }

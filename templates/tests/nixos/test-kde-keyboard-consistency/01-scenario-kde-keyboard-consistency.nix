@@ -65,28 +65,36 @@ let
     )
     hostNames;
 
-  ctl = flake.nixosConfigurations.nixos-desktop;
-  twin = constants: (ctl.extendModules { modules = [{ myconfig.constants = constants; }]; }).config;
+  fx = import ../../lib/fixture-host.nix flake;
   force = lib.mkForce;
+  kdeFixture = constants: (fx.mkNixos [{
+    myconfig.programs.kde.enable = force true;
+    myconfig.constants = lib.mapAttrs (_: force) constants;
+  }]).config;
 
-  twinFollows =
+  fixtureFollows =
     label: constants: key: want:
     let
-      c = twin constants;
+      c = kdeFixture constants;
     in
     {
       inherit label;
       result =
-        if !(kdeOn c) then "FAIL: twin lost KDE, control is vacuous" else same key (kxkbValue c key) want;
+        if !(kdeOn c) then "FAIL: fixture lost KDE, control is vacuous" else same key (kxkbValue c key) want;
     };
 
+  fixtureBase = kdeFixture { };
+  fixtureBaseChecks = lib.mapAttrsToList
+    (k: v: { label = "fixture (module defaults): ${k}"; result = if kdeOn fixtureBase then v else "FAIL: fixture lost KDE, check is vacuous"; })
+    (checksOf fixtureBase);
+
   controls = [
-    (twinFollows "control: LayoutList follows constants.keyboardLayout"
+    (fixtureFollows "control: LayoutList follows constants.keyboardLayout"
       {
         keyboardLayout = force "us,de";
         keyboardVariant = force ",";
       } "LayoutList" "us,de")
-    (twinFollows "control: VariantList follows constants.keyboardVariant"
+    (fixtureFollows "control: VariantList follows constants.keyboardVariant"
       {
         keyboardLayout = force "us,de";
         keyboardVariant = force "intl,";
@@ -109,17 +117,16 @@ let
     }
   ];
 
+  realCount = {
+    label = "real hosts: KDE variants checked (${toString (builtins.length kdeVariants)})";
+    result = "ok";
+  };
+
   render = rs: lib.concatMapStrings (r: "${r.label}\t${r.result}\n") rs;
 in
 {
   report = render (
-    lib.concatMap report hostNames
-    ++ [
-      {
-        label = "at least one KDE variant evaluated";
-        result = if kdeVariants != [ ] then "ok" else "FAIL: no variant enables KDE, every positive check would be vacuous";
-      }
-    ]
+    lib.concatMap report hostNames ++ [ realCount ]
   );
-  control = render controls;
+  control = render (fixtureBaseChecks ++ controls);
 }

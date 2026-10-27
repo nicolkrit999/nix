@@ -24,15 +24,17 @@ Eval only, no builds. Runs in the `nixos-b` CI group with a 5 minute cap (`test.
 
 ## How it works
 
-`01-scenario-ibus-autostart-hidden.nix` reads the real `nixosConfigurations.nixos-desktop` and `nixos-laptop` (base plus every specialisation) and exposes `label<TAB>result` lines (`ok` or `FAIL: ...`) as `report` and `control`. Which variants enable GNOME is not asserted; the checks only follow the contract: wherever GNOME is on, the override must exist. The positive checks need at least one GNOME variant per host, otherwise they would be vacuous and the test fails.
+`01-scenario-ibus-autostart-hidden.nix` exposes `label<TAB>result` lines (`ok` or `FAIL: ...`) as `report` and `control`.
 
-`control` builds twins of the desktop's GNOME specialisation through `extendModules` with ibus disabled (`enable = false`), with another input method type (`fcitx5`), and with GNOME forced off (`myconfig.programs.gnome.enable = false`) while ibus is forced on; none may define the override. The GNOME-off twin first asserts its own premises (GNOME off, ibus on) so it cannot pass vacuously. The `Hidden=true` parser is also fed planted wrong texts that it must reject.
+The positive checks run on a minimal fixture host (`lib/fixture-host.nix` `mkNixos`, i.e. `template-host-minimal`) that enables only `myconfig.programs.gnome`, so they do not depend on which desktops the real hosts choose. The real `nixos-desktop` and `nixos-laptop` (base plus every specialisation) are kept only for the two cross-file invariants (no `kde-ibus-kill` autostart; the override exists exactly when GNOME and ibus are on); no real host is required to enable GNOME.
+
+`control` builds fixture variants: no GNOME, GNOME with ibus disabled (`enable = false`), GNOME with another input method type (`fcitx5`), and GNOME forced off with ibus forced on; none may define the override. The GNOME-off variant first asserts its own premises (GNOME off, ibus on) so it cannot pass vacuously. The `Hidden=true` parser is also fed planted wrong texts that it must reject.
 
 The check script additionally greps the Hyprland, KDE and GNOME module sources (this repo's other source-pattern checks do the same) for `pkill`/`killall` of ibus and `kde-ibus-kill`, with a planted line proving the regex matches.
 
 ## Checks
 
-Per host variant with GNOME enabled:
+Fixture host with GNOME enabled (label prefix `fixture GNOME:`):
 
 | Check | Expected |
 |-------|----------|
@@ -41,26 +43,21 @@ Per host variant with GNOME enabled:
 | override has Hidden=true | text has the `[Desktop Entry]` header and a `Hidden=true` line, no `Hidden=false` |
 | only the exact ibus-daemon.desktop name is defined | the only configFile name containing `ibus` is `autostart/ibus-daemon.desktop` |
 
-Per host variant (any):
+Fixture GNOME host and every real-host variant (any):
 
 | Check | Expected |
 |-------|----------|
 | no kde-ibus-kill autostart | no configFile name contains `kde-ibus-kill` |
 | override only with GNOME and ibus | the override exists exactly when GNOME and ibus are both on |
 
-Per host:
-
-| Check | Expected |
-|-------|----------|
-| at least one GNOME variant evaluated | non-vacuity of the positive checks |
-
 Controls and source guards:
 
 | Check | Expected |
 |-------|----------|
-| control: ibus disabled drops the override | GNOME specialisation twin with `i18n.inputMethod.enable = false`: file absent |
-| control: non-ibus input method drops the override | twin with `type = "fcitx5"`: file absent |
-| control: GNOME forced off (ibus forced on) drops the override | twin with `myconfig.programs.gnome.enable = false` and ibus forced on: premises hold (GNOME off, ibus on) and file absent |
+| control: fixture without GNOME has no override | fixture without GNOME: file absent |
+| control: ibus disabled drops the override | GNOME fixture with `i18n.inputMethod.enable = false`: file absent |
+| control: non-ibus input method drops the override | GNOME fixture with `type = "fcitx5"`: file absent |
+| control: GNOME forced off (ibus forced on) drops the override | fixture with `myconfig.programs.gnome.enable = false` and ibus forced on: premises hold (GNOME off, ibus on) and file absent |
 | control: Hidden=false text is rejected | parser rejects planted `Hidden=false` |
 | control: text without Hidden is rejected | parser rejects a text with no `Hidden` line |
 | hyprland-main.nix has no ibus kill | no `pkill`/`killall` of ibus, no `kde-ibus-kill` |

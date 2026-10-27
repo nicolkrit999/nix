@@ -31,7 +31,7 @@ WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 
 echo ""
-echo -e "${BOLD}=== ibus autostart override (real hosts + specialisations) ===${NC}"
+echo -e "${BOLD}=== ibus autostart override (GNOME fixture + real-host invariants) ===${NC}"
 echo ""
 
 for attr in report control; do

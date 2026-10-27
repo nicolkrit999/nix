@@ -148,20 +148,16 @@ let
         vs
     );
 
-  kdeVariants = lib.concatMap
-    (
-      h: lib.attrNames (lib.filterAttrs (_: kdeOn) (variantsOf flake.nixosConfigurations.${h}))
-    )
-    hostNames;
-
-  ctl = flake.nixosConfigurations.nixos-desktop;
-  ctlUser = ctl.config.myconfig.constants.user;
-  ctlShortcuts = (hmOf ctl.config).programs.plasma.shortcuts;
+  fx = import ../../lib/fixture-host.nix flake;
+  fixture = fx.mkNixos [ { myconfig.programs.kde.enable = true; } ];
+  fixtureUser = fixture.config.myconfig.constants.user;
+  fixtureShortcuts = (hmOf fixture.config).programs.plasma.shortcuts;
+  fixtureCommands = (hmOf fixture.config).programs.plasma.hotkeys.commands;
   twinShortcuts =
     shortcuts:
-    (ctl.extendModules {
+    (fixture.extendModules {
       modules = [
-        { home-manager.users.${ctlUser}.programs.plasma.shortcuts = lib.mkOverride 10 shortcuts; }
+        { home-manager.users.${fixtureUser}.programs.plasma.shortcuts = lib.mkOverride 10 shortcuts; }
       ];
     }).config;
 
@@ -169,7 +165,7 @@ let
     (
       g: v: lib.nameValuePair (if lib.hasSuffix ".desktop" g then "services/${g}" else g) v
     )
-    ctlShortcuts;
+    fixtureShortcuts;
   released = renamed // {
     plasmashell = (renamed.plasmashell or { }) // {
       show-on-mouse-pos = "none";
@@ -181,6 +177,22 @@ let
   fixed = twinShortcuts released;
   fixedSc = (hmOf fixed).programs.plasma.shortcuts;
   fixedCmds = (hmOf fixed).programs.plasma.hotkeys.commands;
+
+  plantedTwin = twinShortcuts (
+    fixtureShortcuts
+    // {
+      kwin = (fixtureShortcuts.kwin or { }) // {
+        ${layoutSwitcherAction} = "none";
+      };
+    }
+  );
+  doubledTwin = twinShortcuts (
+    fixtureShortcuts
+    // {
+      "org.kde.spectacle.desktop"._launch = "none";
+      "services/org.kde.spectacle.desktop"._launch = "Print";
+    }
+  );
 
   planted = {
     kwin = {
@@ -194,10 +206,28 @@ let
       result =
         if !(kdeOn fixed) then
           "FAIL: twin lost KDE, control is vacuous"
+        else if fixedSc == { } then
+          "FAIL: twin has no shortcuts, control is vacuous"
         else if groupProblems fixedSc == [ ] then
           "ok"
         else
           "FAIL: prefixed twin still flagged: ${toString (groupProblems fixedSc)}";
+    }
+    {
+      label = "control: twin with a doubled legacy and services/ group fails the group check";
+      result =
+        if (checksOf doubledTwin)."legacy .desktop groups migrate cleanly into services/" == "ok" then
+          "FAIL: planted doubled group passed the fixture check"
+        else
+          "ok";
+    }
+    {
+      label = "control: twin with the layout switcher under kwin fails the kwin check";
+      result =
+        if (checksOf plantedTwin)."${layoutSwitcherAction} is not filed under kwin" == "ok" then
+          "FAIL: planted kwin switcher entry passed the fixture check"
+        else
+          "ok";
     }
     {
       label = "control: legacy-only .desktop group is accepted";
@@ -234,10 +264,16 @@ let
     {
       label = "control: released defaults pass the collision check";
       result =
-        if collisions fixedSc fixedCmds == [ ] then
+        let
+          bare = collisionsWith defaultOwners [ ] fixtureShortcuts fixtureCommands;
+          rel = collisionsWith defaultOwners [ ] fixedSc fixedCmds;
+        in
+        if bare == [ ] then
+          "FAIL: fixture hotkeys do not use Meta+V / Meta+., release control is vacuous"
+        else if rel == [ ] then
           "ok"
         else
-          "FAIL: twin with released defaults still collides: ${toString (collisions fixedSc fixedCmds)}";
+          "FAIL: twin with released defaults still collides: ${toString rel}";
     }
     {
       label = "control: collision check sees Meta+V and Meta+. when not allow-listed or released";
@@ -342,17 +378,28 @@ let
 in
 {
   report = render (
-    lib.concatMap report hostNames
+    lib.mapAttrsToList (k: v: {
+      label = "fixture: ${k}";
+      result = v;
+    }) (checksOf fixture.config)
     ++ [
       {
-        label = "at least one KDE variant evaluated";
+        label = "fixture: KDE enabled with shortcuts and Meta+V / Meta+. hotkeys";
         result =
-          if kdeVariants != [ ] then
-            "ok"
+          if !(kdeOn fixture.config) then
+            "FAIL: fixture lost KDE, every positive check would be vacuous"
+          else if fixtureShortcuts == { } then
+            "FAIL: fixture has no plasma shortcuts"
+          else if
+            !(lib.any (c: lib.toLower (c.key or "") == "meta+v") (lib.attrValues fixtureCommands))
+            || !(lib.any (c: lib.toLower (c.key or "") == "meta+.") (lib.attrValues fixtureCommands))
+          then
+            "FAIL: fixture has no hotkey on Meta+V / Meta+., the collision check would be vacuous"
           else
-            "FAIL: no variant enables KDE, every positive check would be vacuous";
+            "ok";
       }
     ]
+    ++ lib.concatMap report hostNames
   );
   control = render controls;
 }
