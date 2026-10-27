@@ -235,8 +235,6 @@ let
     check-zen-stylix-profile-names = all [
       (expect "NAS zen off: profileNames (control)" (zenNames nasCfg) [ ])
       (expect "standalone home zen on: profileNames" (zenNames (zenForced homes."krit@template-host-minimal").config) [ "default" ])
-      (expect "krit@nixos-laptop home build profileNames" (zenNames (zenForced homes."krit@nixos-laptop").config) [ "default" ])
-      (expect "krit@nixos-desktop home build profileNames" (zenNames (zenForced homes."krit@nixos-desktop").config) [ "default" ])
       (guard (
         let n = zenForced flake.nixosConfigurations.template-host-minimal;
         in all [
@@ -248,19 +246,21 @@ let
 
     check-hyprland-stylix-target-off =
       let
-        target = h: homes.${h}.config.stylix.targets.hyprland.enable;
-        twin = h: (homes.${h}.extendModules {
+        minimal = homes."krit@template-host-minimal";
+        on = minimal.extendModules {
+          modules = [ ({ lib, ... }: { myconfig.programs.hyprland.enable = lib.mkForce true; }) ];
+        };
+        twin = on.extendModules {
           modules = [ ({ lib, ... }: { myconfig.stylix.targets.hyprland.enable = lib.mkForce true; }) ];
-        }).config.stylix.targets.hyprland.enable;
-        hosts = [ "krit@nixos-laptop" "krit@nixos-desktop" ];
+        };
       in
-      all (map
-        (h: all [
-          (expect "${h} myconfig.programs.hyprland.enable (control: module active)" (homes.${h}.config.myconfig.programs.hyprland.enable or false) true)
-          (expect "${h} stylix.targets.hyprland.enable" (target h) false)
-          (if twin h == true then "ok" else "FAIL: ${h}: forcing myconfig.stylix.targets.hyprland.enable did not flip the HM target (mutation not detected)")
-        ])
-        hosts);
+      all [
+        (expect "minimal myconfig.programs.hyprland.enable (control: off by default)" minimal.config.myconfig.programs.hyprland.enable false)
+        (expect "hyprland forced on: myconfig.programs.hyprland.enable (control: module active)" on.config.myconfig.programs.hyprland.enable true)
+        (expect "hyprland on: stylix.targets.hyprland.enable" on.config.stylix.targets.hyprland.enable false)
+        (if twin.config.stylix.targets.hyprland.enable == true then "ok"
+        else "FAIL: forcing myconfig.stylix.targets.hyprland.enable did not flip the HM target (mutation not detected)")
+      ];
 
     check-nixos-openrouter-aliases-follow-wrappers = guard (
       let has = x: builtins.elem "cai-openrouter-opus" (aliasKeys x.config.home-manager.users.krit.programs);

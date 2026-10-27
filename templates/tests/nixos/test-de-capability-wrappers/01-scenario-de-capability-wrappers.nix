@@ -1,11 +1,10 @@
-{ host }:
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else throw "FLAKE_ROOT is not set";
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
 
-  sys = flake.nixosConfigurations.${host};
-  twin = modules: (sys.extendModules { inherit modules; }).config;
+  fx = import ../../lib/fixture-host.nix flake;
+  twin = modules: (fx.mkNixos modules).config;
   mk = lib.mkForce;
   over = lib.mkOverride 10;
 

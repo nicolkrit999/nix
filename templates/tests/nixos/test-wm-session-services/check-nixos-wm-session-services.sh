@@ -35,13 +35,13 @@ WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 
 echo ""
-echo -e "${BOLD}=== WM session services (both hosts + specialisations) ===${NC}"
+echo -e "${BOLD}=== WM session services (niri fixture + real hosts + specialisations) ===${NC}"
 echo ""
 
 if ! nix eval --json --impure --file "$SCENARIO" results >"$WORK/results.json" 2>"$WORK/err"; then
   report "evaluate results" "EVAL ERROR: $(grep -E 'error:' "$WORK/err" | head -3 | tr '\n' ' ')"
 else
-  [[ $(jq 'length' "$WORK/results.json") -gt 0 ]] || report "niri variants evaluated" "no variant with niri enabled, every check would be vacuous"
+  [[ $(jq 'has("fixture-niri")' "$WORK/results.json") == true ]] || report "niri fixture evaluated" "fixture-niri missing, every check would be vacuous"
   while IFS=$'\t' read -r variant check value; do
     report "[$variant] $check" "$value"
   done < <(jq -r 'to_entries[] | .key as $v | .value | to_entries[] | [$v, .key, .value] | @tsv' "$WORK/results.json")

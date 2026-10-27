@@ -1,12 +1,12 @@
-{ host ? "nixos-desktop" }:
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else throw "FLAKE_ROOT is not set";
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
 
-  sys = flake.nixosConfigurations.${host};
+  fx = import ../../lib/fixture-host.nix flake;
+  sys = fx.mkNixos [{ myconfig.krit.programs.librewolf.enable = true; }];
   user = sys.config.myconfig.constants.user;
-  lw = (sys.extendModules { modules = [{ myconfig.krit.programs.librewolf.enable = lib.mkOverride 10 true; }]; }).config;
+  lw = sys.config;
   hm = lw.home-manager.users.${user};
   profs = hm.programs.librewolf.profiles;
   userJs = n: hm.home.file."${hm.programs.librewolf.configPath}/${profs.${n}.path}/user.js".text;

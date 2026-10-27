@@ -3,11 +3,38 @@ let
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
 
+  fxd = import ../../lib/fixture-host-darwin.nix flake;
+  darwinPaths = map (f: fxd.src + "/modules/common/${f}") [
+    "programs/shells/bash.nix"
+    "programs/shells/zsh.nix"
+    "programs/shells/fish.nix"
+    "programs/shells/atuin.nix"
+    "programs/shells/eza.nix"
+    "programs/shells/fzf.nix"
+    "programs/shells/zoxide.nix"
+    "programs/shells/starship.nix"
+    "programs/shells/tmux.nix"
+    "programs/shells/git.nix"
+    "programs/shells/shell-aliases.nix"
+    "programs/yazi.nix"
+    "programs/fastfetch.nix"
+    "services/tailscale.nix"
+    "toplevel/nh.nix"
+    "toplevel/cachix.nix"
+    "toplevel/attic.nix"
+    "toplevel/nix-sweeps.nix"
+  ] ++ [ (fxd.src + "/modules/darwin/toplevel/stylix-darwin.nix") ];
+
   hasNixos = flake.nixosConfigurations != { };
   hosts = {
     minimal = flake.nixosConfigurations.template-host-minimal;
-    desktop = flake.nixosConfigurations.nixos-desktop;
-    darwin = flake.darwinConfigurations.Krits-MacBook-Pro;
+    darwin = fxd.mkDarwin {
+      paths = darwinPaths;
+      modules = [{
+        homebrew.enable = true;
+        myconfig.programs.yazi.enable = true;
+      }];
+    };
   };
 
   shells = [ "bash" "zsh" "fish" ];
@@ -310,8 +337,8 @@ let
       "nixos-bash-impure-nhoff" = { host = "minimal"; shell = "bash"; impure = true; nh = false; };
       "nixos-bash-pure" = { host = "minimal"; shell = "bash"; impure = false; };
       "nixos-git-wiring" = { host = "minimal"; shell = "bash"; gitWiring = true; };
-      "nixos-desktop-real" = { host = "desktop"; };
-      "darwin-real" = { host = "darwin"; };
+      "darwin-default" = { host = "darwin"; };
+      "darwin-fish" = { host = "darwin"; shell = "fish"; };
       "darwin-zsh-ffon" = { host = "darwin"; shell = "zsh"; fastfetch = true; };
       "darwin-bash-ffon" = { host = "darwin"; shell = "bash"; fastfetch = true; impure = false; };
       "darwin-impure" = { host = "darwin"; impure = true; };
@@ -320,7 +347,7 @@ let
 
   mkHome = impure:
     let
-      x = flake.homeConfigurations."krit@Nicol-NAS".extendModules {
+      x = flake.homeConfigurations."krit@template-host-minimal".extendModules {
         modules = [{ myconfig.constants.nixImpure = lib.mkForce impure; }];
       };
       aliases = lib.mapAttrs (_: builtins.unsafeDiscardStringContext) x.config.home.shellAliases;

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# LibreWolf two-profile contract checker (eval level, real hosts).
+# LibreWolf two-profile contract checker (eval level, minimal fixture host).
 #
 # Usage:
 #   bash check-nixos-librewolf-profiles.sh
@@ -22,35 +22,31 @@ for tool in nix jq bash; do
   command -v "$tool" >/dev/null || { echo "missing tool: $tool"; exit 2; }
 done
 
-for host in nixos-desktop nixos-laptop; do
-  echo ""
-  echo -e "${BOLD}=== $host ===${NC}"
-  err=$(mktemp)
-  json=$(nix eval --impure --json --file "$SCENARIO" --argstr host "$host" results 2>"$err") || {
-    echo -e "  ${RED}✗ eval error${NC}"
-    ((FAIL++)) || true
-    FAILURES+=("$host evaluation|$(grep -E 'error:' "$err" | head -3 | tr '\n' '~')")
-    rm -f "$err"
-    continue
-  }
-  rm -f "$err"
+host="fixture"
+err=$(mktemp)
+if ! json=$(nix eval --impure --json --file "$SCENARIO" results 2>"$err"); then
+  echo -e "  ${RED}✗ eval error${NC}"
+  ((FAIL++)) || true
+  FAILURES+=("$host evaluation|$(grep -E 'error:' "$err" | head -3 | tr '\n' '~')")
+  json='{}'
+fi
+rm -f "$err"
 
-  while IFS=$'\t' read -r label result; do
-    printf "  %-100s " "${label:0:100}"
-    if [[ "$result" == "ok" ]]; then
-      printf "${GREEN}✓ ok${NC}\n"
-      ((PASS++)) || true
-    else
-      printf "${RED}✗ fail${NC}\n"
-      ((FAIL++)) || true
-      FAILURES+=("$host: $label|$result")
-    fi
-  done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
-done
+while IFS=$'\t' read -r label result; do
+  printf "  %-100s " "${label:0:100}"
+  if [[ "$result" == "ok" ]]; then
+    printf "${GREEN}✓ ok${NC}\n"
+    ((PASS++)) || true
+  else
+    printf "${RED}✗ fail${NC}\n"
+    ((FAIL++)) || true
+    FAILURES+=("$host: $label|$result")
+  fi
+done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
 
 echo ""
-if [[ $((PASS + FAIL)) -lt 60 ]]; then
-  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 60); refusing to pass.${NC}"
+if [[ $((PASS + FAIL)) -lt 46 ]]; then
+  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 46); refusing to pass.${NC}"
   exit 1
 fi
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"

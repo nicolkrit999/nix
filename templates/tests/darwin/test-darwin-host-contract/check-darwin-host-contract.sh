@@ -37,7 +37,7 @@ run_check() {
 }
 
 echo ""
-echo -e "${BOLD}=== Darwin host contract (Krits-MacBook-Pro, eval-only) ===${NC}"
+echo -e "${BOLD}=== Darwin host contract (real Krits-MacBook-Pro, eval-only) ===${NC}"
 echo ""
 
 echo -e "${BOLD}users${NC}"
@@ -64,41 +64,53 @@ run_check check-sops-no-ssh-paths       "age/gnupg sshKeyPaths empty"
 run_check check-nix-extraoptions-include "nix.extraOptions !include github PAT secret path"
 run_check check-github-key-path         "github_general_ssh_key.path"
 run_check check-github-key-mode         "github_general_ssh_key.mode == 0400"
-run_check check-mcp-secrets-declared    "mcpSecrets all declared in sops.secrets"
 
 echo -e "${BOLD}homebrew${NC}"
 run_check check-mas-apps-empty        "homebrew.masApps == {} (mas 7.0.0 guard)"
 run_check check-brew-no-zap           "onActivation.cleanup != zap"
 run_check check-brew-no-upgrade       "onActivation.upgrade == false"
 
-echo -e "${BOLD}browser opt-out${NC}"
-run_check check-browser-no-pkgs       "no browser package in systemPackages"
-run_check check-browser-control-bites "control: browser=firefox adds firefox package"
-
-echo -e "${BOLD}packages${NC}"
+echo -e "${BOLD}packages (real host)${NC}"
 run_check check-resolved-pkgs-exist   "term/fileManager/editor resolve to real pkgs attrs"
-run_check check-network-tools-enabled "control: network-tools active (tcpdump present)"
-run_check check-no-linux-only-tools   "no Linux-only network tools"
 
 echo -e "${BOLD}dock / finder${NC}"
 run_check check-dock-no-dangling-nix-apps "persistent-apps Nix/HM app paths match installed packages"
-run_check check-dock-no-disabled-hm-apps  "no dock entry in HM Firefox/VS Code dirs while disabled"
-run_check check-dock-control-bites        "control: dangling HM entries are flagged"
+run_check check-dock-control-bites        "control: dangling HM/Nix Apps entries are flagged"
 run_check check-dock-autohide             "dock.autohide == true"
 run_check check-finder-extensions         "finder.AppleShowAllExtensions == true"
 
-echo -e "${BOLD}tailscale${NC}"
-run_check check-tailscale-cask-present    "homebrew.casks has tailscale-app"
-run_check check-tailscale-daemon-off      "nix-darwin services.tailscale.enable == false"
-run_check check-tailscale-flag-consistent "darwinCaskPresent == true"
-run_check check-tailscale-control-bites   "control: no cask -> darwinCaskPresent false"
+echo -e "${BOLD}tailscale (real host)${NC}"
+run_check check-tailscale-no-double-provider     "not both tailscale cask and nix-darwin daemon"
+run_check check-tailscale-double-provider-control "control: cask + daemon is flagged"
 
-echo -e "${BOLD}terminal${NC}"
+echo -e "${BOLD}terminal (real host)${NC}"
 run_check check-terminal-hm-enabled       "terminal.name -> enabled krit.programs.<name>"
-run_check check-terminal-control-bites    "control: disabled terminal name is flagged"
+run_check check-terminal-control-bites    "control: unknown terminal name is flagged"
 
-echo -e "${BOLD}home-manager${NC}"
-run_check check-kitty-option-as-alt   "kitty macos_option_as_alt == yes"
+echo ""
+echo -e "${BOLD}=== Module checks on the minimal-darwin fixture ===${NC}"
+echo ""
+
+echo -e "${BOLD}home-packages browser opt-out${NC}"
+run_check check-browser-optout-no-pkgs "browser = \"\" -> no browser package"
+run_check check-browser-control-bites  "control: default browser adds firefox"
+
+echo -e "${BOLD}network-tools${NC}"
+run_check check-network-tools-enabled "control: network-tools active (tcpdump present)"
+run_check check-no-linux-only-tools   "no Linux-only network tools"
+
+echo -e "${BOLD}claude-code mcp secrets${NC}"
+run_check check-mcp-secrets-declared    "mcpSecrets all declared in sops.secrets"
+run_check check-mcp-secrets-follow-list "control: overriding mcpSecrets replaces declarations"
+run_check check-mcp-secrets-off-control "control: personal disabled -> no mcp secret"
+
+echo -e "${BOLD}tailscale flag${NC}"
+run_check check-tailscale-flag-cask    "darwinCaskPresent true with the cask"
+run_check check-tailscale-flag-no-cask "control: no cask -> darwinCaskPresent false"
+
+echo -e "${BOLD}kitty${NC}"
+run_check check-kitty-option-as-alt         "kitty macos_option_as_alt == yes"
+run_check check-kitty-option-as-alt-control "control: kitty disabled -> not set"
 
 echo ""
 if [[ $FAIL -eq 0 ]]; then

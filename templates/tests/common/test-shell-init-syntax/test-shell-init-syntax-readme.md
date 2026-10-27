@@ -18,11 +18,11 @@ bash check-common-shell-init.sh
 
 ## How it works
 
-`01-scenario-shell-init.nix` loads the real flake and, per variant, builds `host.extendModules` with atuin, eza, zoxide and tailscale forced on (plus optional `constants.shell`, `fastfetch.enable`, `nixImpure`, `nh.enable` and cachix push overrides). Each variant yields `checks` (`"ok"` / `"FAIL: ..."`), `files` (rendered HM shell text) and `shAliases` (aliases containing `sh -c`).
+`01-scenario-shell-init.nix` loads the flake (Darwin variants run on `lib/fixture-host-darwin.nix` with only the shell, fastfetch, tailscale, nh, cachix, attic, nix-sweeps, yazi, git and stylix module files added, and `homebrew.enable` on so `environment.systemPath` gets `/opt/homebrew/bin`; no real host is used) and, per variant, builds `extendModules` with atuin, eza, zoxide and tailscale forced on (plus optional `constants.shell`, `fastfetch.enable`, `nixImpure`, `nh.enable` and cachix push overrides). Each variant yields `checks` (`"ok"` / `"FAIL: ..."`), `files` (rendered HM shell text) and `shAliases` (aliases containing `sh -c`).
 
 `check-common-shell-init.sh` evaluates each variant once, prints one PASS/FAIL line per check, then writes the rendered text to files and runs `bash -n`, `zsh -n` (pinned nixpkgs) and `fish --no-execute` on them. Exits 1 on any failure.
 
-Variants: NixOS minimal host x {bash, zsh, fish} x fastfetch {on, off}; minimal bash with nixImpure true (+ cachix push), true with nh off, and false; minimal bash with git wiring twins; real nixos-desktop; real Darwin host (fish); Darwin forced zsh with fastfetch; Darwin forced bash with fastfetch and nixImpure false; Darwin nixImpure true with nh on and off; standalone home (`krit@Nicol-NAS` via `homeConfigurations`, `nixImpure` forced true and false; skipped without `nixosConfigurations`).
+Variants: NixOS minimal host x {bash, zsh, fish} x fastfetch {on, off}; minimal bash with nixImpure true (+ cachix push), true with nh off, and false; minimal bash with git wiring twins; Darwin fixture host with the constants default shell and with fish forced; Darwin forced zsh with fastfetch; Darwin forced bash with fastfetch and nixImpure false; Darwin nixImpure true with nh on and off; standalone home (`krit@template-host-minimal` via `homeConfigurations`, `nixImpure` forced true and false; skipped without `nixosConfigurations`).
 
 The `--apple-use-keychain` check applies only to the forced-zsh Darwin variant (it exists only in zsh.nix; the Mac shell is fish), so Darwin bash and fish must not carry it. `tpm-reenroll` is a package, not an alias.
 

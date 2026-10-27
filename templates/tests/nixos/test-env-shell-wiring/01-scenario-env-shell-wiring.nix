@@ -1,10 +1,15 @@
-{ host, twins ? true }:
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else throw "FLAKE_ROOT is not set";
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
 
-  sys = flake.nixosConfigurations.${host};
+  fx = import ../../lib/fixture-host.nix flake;
+  sys = fx.mkNixos [{
+    myconfig.constants.shell = "zsh";
+    myconfig.constants.editor = "kate";
+    myconfig.constants.browser = "fixture-browser";
+    myconfig.constants.terminal.name = "fixture-terminal";
+  }];
   baseCfg = sys.config;
   user = baseCfg.myconfig.constants.user;
   twin = mods: (sys.extendModules { modules = mods; }).config;
@@ -36,13 +41,13 @@ let
 
   baseShell = baseCfg.myconfig.constants.shell;
   baseChecks = {
-    "real host: user shell is the default user shell" =
+    "fixture: user shell is the default user shell" =
       eq "shell drv" baseCfg.users.users.${user}.shell.outPath baseCfg.users.defaultUserShell.outPath;
-    "real host: shell package matches constants.shell" =
+    "fixture: shell package matches constants.shell" =
       eq "pname" baseCfg.users.defaultUserShell.pname shells.${baseShell};
-    "real host: programs.zsh.enable matches constants.shell" =
+    "fixture: programs.zsh.enable matches constants.shell" =
       eq "programs.zsh.enable" baseCfg.programs.zsh.enable (baseShell == "zsh");
-    "real host: programs.fish.enable matches constants.shell" =
+    "fixture: programs.fish.enable matches constants.shell" =
       eq "programs.fish.enable" baseCfg.programs.fish.enable (baseShell == "fish");
     "control: the three shells map to three distinct packages" =
       eq "distinct pnames" (lib.unique (lib.attrValues shells)) (lib.attrValues shells);
@@ -89,17 +94,17 @@ let
     "env: server host exports no BROWSER" = yes "BROWSER set on a server" (!(envOf serverTwin ? BROWSER));
     "env: server host exports no TERMINAL" = yes "TERMINAL set on a server" (!(envOf serverTwin ? TERMINAL));
     "env: server host still exports EDITOR" = yes "EDITOR missing on a server" (envOf serverTwin ? EDITOR);
-    "control: role twin differs from the real host values" =
+    "control: role twin differs from the fixture values" =
       yes "twin equals base" (!(roleTwin.environment.sessionVariables ? BROWSER) || roleTwin.environment.sessionVariables.BROWSER != baseCfg.myconfig.constants.browser);
   };
   envChecks = {
     "env: XDG_BIN_HOME is exported" = eq "XDG_BIN_HOME" (envOf baseCfg).XDG_BIN_HOME "$HOME/.local/bin";
     "env: ~/.local/bin is on PATH" = eq "localBinInPath" baseCfg.environment.localBinInPath true;
-    "real host: BROWSER/TERMINAL, when exported, equal the constants" =
+    "fixture: BROWSER/TERMINAL, when exported, equal the constants" =
       yes "session vars diverge from constants"
         ((!(envOf baseCfg ? BROWSER) || (envOf baseCfg).BROWSER == baseCfg.myconfig.constants.browser)
           && (!(envOf baseCfg ? TERMINAL) || (envOf baseCfg).TERMINAL == baseCfg.myconfig.constants.terminal.name));
-    "real host: EDITOR is the mapping of constants.editor" = eq "EDITOR" (envOf baseCfg).EDITOR wantEditor;
+    "fixture: EDITOR is the mapping of constants.editor" = eq "EDITOR" (envOf baseCfg).EDITOR wantEditor;
     "control: the EDITOR predicate rejects a wrong value" = eq "editorIs (wrong value)" (editorIs "${wantEditor}-wrong") false;
   };
 
@@ -133,10 +138,10 @@ let
     "control: disabled zram module leaves zramSwap off" = eq "zramSwap.enable" (zrTwin false 37).zramSwap.enable false;
   };
 
-  realHostChecks = baseChecks // envChecks // hmChecks
+  fixtureChecks = baseChecks // envChecks // hmChecks
     // { "control: check helper detects mismatch" = yes "helper broken" (lib.hasPrefix "FAIL" (eq "x" 1 2)); };
   twinChecks = shellChecks // editorChecks // roleChecks // hmTwinChecks // hwChecks;
-  checks = realHostChecks // lib.optionalAttrs twins twinChecks;
+  checks = fixtureChecks // twinChecks;
 
   safe = v: let t = builtins.tryEval (builtins.deepSeq v v); in if t.success then t.value else "FAIL: eval error";
 in

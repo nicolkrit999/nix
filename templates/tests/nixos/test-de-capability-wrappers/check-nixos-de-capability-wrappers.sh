@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# DE capability-wrapper and package-exclusion checker (twins of the real hosts).
+# DE capability-wrapper and package-exclusion checker (twins of the minimal fixture host).
 #
 # Usage:
 #   bash check-nixos-de-capability-wrappers.sh
@@ -24,19 +24,15 @@ for tool in nix jq bash; do
   command -v "$tool" >/dev/null || { echo "missing tool: $tool"; exit 2; }
 done
 
-for host in nixos-desktop nixos-laptop; do
-  echo ""
-  echo -e "${BOLD}=== $host ===${NC}"
-  err=$(mktemp)
-  json=$(nix eval --impure --json --file "$SCENARIO" --argstr host "$host" results 2>"$err") || {
-    echo -e "  ${RED}✗ eval error${NC}"
-    ((FAIL++)) || true
-    FAILURES+=("$host evaluation|$(grep -E 'error:' "$err" | head -3 | tr '\n' '~')")
-    rm -f "$err"
-    continue
-  }
-  rm -f "$err"
+err=$(mktemp)
+json=$(nix eval --impure --json --file "$SCENARIO" results 2>"$err") || {
+  echo -e "  ${RED}✗ eval error${NC}"
+  ((FAIL++)) || true
+  FAILURES+=("fixture evaluation|$(grep -E 'error:' "$err" | head -3 | tr '\n' '~')")
+}
+rm -f "$err"
 
+if [[ -n "${json:-}" ]]; then
   while IFS=$'\t' read -r label result; do
     printf "  %-70s " "$label"
     if [[ "$result" == "ok" ]]; then
@@ -46,12 +42,12 @@ for host in nixos-desktop nixos-laptop; do
       printf "${RED}✗ fail${NC}\n"
       ((FAIL++)) || true
       if [[ "$result" == "FAIL: eval error" ]]; then
-        result="$result~$(CHECK_LABEL="$label" nix eval --impure --raw --file "$SCENARIO" --argstr host "$host" --apply 'cs: builtins.deepSeq cs.${builtins.getEnv "CHECK_LABEL"} "x"' checks 2>&1 | grep -E 'error:' | head -3 | tr '\n' '~')"
+        result="$result~$(CHECK_LABEL="$label" nix eval --impure --raw --file "$SCENARIO" --apply 'cs: builtins.deepSeq cs.${builtins.getEnv "CHECK_LABEL"} "x"' checks 2>&1 | grep -E 'error:' | head -3 | tr '\n' '~')"
       fi
-      FAILURES+=("$host: $label|$result")
+      FAILURES+=("$label|$result")
     fi
   done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
-done
+fi
 
 echo ""
 if [[ $((PASS + FAIL)) -lt 10 ]]; then

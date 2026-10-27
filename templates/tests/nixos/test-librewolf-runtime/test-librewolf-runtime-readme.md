@@ -22,7 +22,7 @@ Needs `nix`, `jq`, `python3`, `bash`, Linux. Builds (or fetches from the cache) 
 
 ## How it works
 
-`01-scenario-librewolf-runtime.nix` exposes, for the real desktop config with LibreWolf forced on, the package (`finalPackage`), the allow-list file referenced by `permissions.manager.defaultsUrl` (copied through a derivation so it is built, no IFD) and both generated `user.js` texts, and the layout: every generated `home.file` ending in `/librewolf.overrides.cfg` (path and text) and each profile's directory relative to HOME. `check-nixos-librewolf-runtime.sh` builds them and calls `lw_runtime_checks.py` (stdlib only).
+`01-scenario-librewolf-runtime.nix` exposes, for a minimal fixture host (`template-host-minimal` via `templates/tests/lib/fixture-host.nix`) with only LibreWolf enabled, the package (`finalPackage`), the allow-list file referenced by `permissions.manager.defaultsUrl` (copied through a derivation so it is built, no IFD) and both generated `user.js` texts, and the layout: every generated `home.file` ending in `/librewolf.overrides.cfg` (path and text) and each profile's directory relative to HOME. `check-nixos-librewolf-runtime.sh` builds them and calls `lw_runtime_checks.py` (stdlib only).
 
 The Python harness starts `bin/librewolf --headless --no-remote --marionette --remote-allow-system-access` with the home-manager layout rebuilt under the throwaway HOME (profile at `HOME/<configPath>/<profile path>`, overrides file at its `home.file` path), the generated `user.js` (plus a free Marionette port, a dead proxy and `remote.prefs.recommended=false`: Marionette's recommended prefs write `network.captive-portal-service.enabled=false` into any pref without a user value, and the overrides file's `true` equals Firefox's default so it leaves none), talks to it over the Marionette socket in chrome context, and per session: reads every `user.js` pref back as the effective value and whether it has a default in the build, reads `Services.perms`, reads Gecko's shipped `resource://app/defaults/permissions`, seeds cookies (for every allow-listed origin and a subdomain of it, plus two unlisted hosts) and history, then quits like Ctrl+Q (`eAttemptQuit`). The cookie and history stores are read from the profile's sqlite files afterwards, so the shutdown wipe itself is what is measured. Four sessions: Default, Privacy, a control, and Privacy without the overrides file.
 
@@ -33,6 +33,8 @@ Pref validity: a pref in `user.js` that has no default branch value in the build
 `browser.uiCustomization.state` is excluded from the parity comparison because the browser rewrites it.
 
 ## Checks
+
+The table rows expand to 22 results (the per-profile rows run once for `default` and once for `privacy`: 2 static `mozilla.cfg` rows, 2 effective-prefs rows, 2 pref-exists rows); the `check-*.sh` refuses to pass with fewer than 22.
 
 | Check | Expected |
 |-------|----------|

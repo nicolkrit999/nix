@@ -37,7 +37,7 @@ run_check() {
 }
 
 echo ""
-echo -e "${BOLD}=== Darwin headroom launchd agent (Krits-MacBook-Pro, eval-only) ===${NC}"
+echo -e "${BOLD}=== Darwin headroom launchd agent (minimal darwin fixture, eval-only) ===${NC}"
 echo ""
 
 echo -e "${BOLD}launchd agent${NC}"
@@ -54,7 +54,7 @@ run_check check-no-systemd-unit                    "no systemd headroom-proxy un
 run_check check-wheel-is-darwin                    "the headroom-ai package src is the macosx arm64 wheel"
 
 echo -e "${BOLD}controls${NC}"
-run_check check-control-disabled                   "control: with programs.headroom disabled the agent and wrapper vanish"
+run_check check-control-disabled                   "control: with programs.headroom left off the agent and wrapper vanish"
 run_check check-control-port-regex                 "control: the port regex does not match a non-loopback probe"
 
 echo ""

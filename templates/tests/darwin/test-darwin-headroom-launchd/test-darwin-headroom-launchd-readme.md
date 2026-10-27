@@ -1,6 +1,6 @@
 # test-darwin-headroom-launchd
 
-Eval-only test of the darwin branch of `modules/common/programs/headroom.nix` on the REAL `Krits-MacBook-Pro`: the home-manager launchd agent, its port, the `headroom-claude` wrapper and the platform split (no systemd unit, macOS wheel).
+Eval-only test of the darwin branch of `modules/common/programs/headroom.nix` on a minimal darwin fixture host with headroom enabled explicitly: the home-manager launchd agent, its port, the `headroom-claude` wrapper and the platform split (no systemd unit, macOS wheel).
 
 Covers gap #7. Linux coverage lives in `test-ai-tool-modules`. NOT covered: that the proxy really listens on `127.0.0.1:8787` (eval cannot start it). The proxy's bind address is not set by the agent, so the loopback claim is checked on the wrapper side only (it probes and targets `127.0.0.1:<agent port>`).
 
@@ -24,9 +24,9 @@ Runtime is well under a minute (lazy eval, no builds).
 
 ## How it works
 
-`01-scenario-darwin-headroom-launchd.nix` loads the real flake (`FLAKE_ROOT`, default `/home/krit/nix`) and reads `darwinConfigurations.Krits-MacBook-Pro`, so config fixes are verified without a rebuild. Each `check-*` attribute is `"ok"` or `"FAIL: ..."`. `check-darwin-headroom-launchd.sh` runs `nix eval --raw --impure` per check and exits non-zero on any failure.
+`01-scenario-darwin-headroom-launchd.nix` loads the flake (`FLAKE_ROOT`, default `/home/krit/nix`) only for its source and inputs, and builds the `minimal-darwin` fixture through `templates/tests/lib/fixture-host-darwin.nix` (base darwin files plus `headroom.nix`, headroom enabled in an extra module). The real Mac is not read, so its enablement choices cannot affect the test. Each `check-*` attribute is `"ok"` or `"FAIL: ..."`. `check-darwin-headroom-launchd.sh` runs `nix eval --raw --impure` per check and exits non-zero on any failure.
 
-The wrapper script text is read from the derivation's `text` attribute (no build). The agent is looked up by name in the HM `launchd.agents`. A control disables `programs.headroom` and requires agent and wrapper to vanish.
+The wrapper script text is read from the derivation's `text` attribute (no build). The agent is looked up by name in the HM `launchd.agents`. The control is the same fixture without the enabling module (default off), and requires agent and wrapper to vanish.
 
 ## Checks
 
@@ -53,5 +53,5 @@ The wrapper script text is read from the derivation's `text` attribute (no build
 
 | Check | Expected |
 |-------|----------|
-| `check-control-disabled` | control: with programs.headroom disabled the agent and wrapper vanish |
+| `check-control-disabled` | control: with programs.headroom left off the agent and wrapper vanish |
 | `check-control-port-regex` | control: the port regex does not match a non-loopback probe |

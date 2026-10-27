@@ -18,7 +18,7 @@ bash check-nixos-keybind-conflicts.sh
 
 ## How it works
 
-`01-scenario-keybind-conflicts.nix` evaluates the real flake (`nixosConfigurations.nixos-desktop` / `nixos-laptop`) plus every specialisation of each, and for every variant where a desktop module is enabled reads the final home-manager values. Bind strings are normalised (lowercased, modifiers sorted, `Mod`/`Meta`/`Win` aliased to `super`) before comparing, so reordered or differently-cased duplicates are caught. Checks are exposed as `"ok"` / `"FAIL: ..."` strings under `results`; `control` holds matcher self-tests on synthetic inputs, and `gnome-scripts` holds the GNOME screenshot script text, taken from the `.drv` (its `__json` `text` field, context kept) so the script is never built or realised.
+`01-scenario-keybind-conflicts.nix` evaluates the real flake (`nixosConfigurations.nixos-desktop` / `nixos-laptop`) plus every specialisation of each, and for every variant where a desktop module is enabled reads the final home-manager values. Bind strings are normalised (lowercased, modifiers sorted, `Mod`/`Meta`/`Win` aliased to `super`) before comparing, so reordered or differently-cased duplicates are caught. Checks are exposed as `"ok"` / `"FAIL: ..."` strings under `results`; `control` holds matcher self-tests on synthetic inputs (the niri/mango/Hyprland mutation controls use small literal bind sets, only the niri action lists are parsed from the real niri package source), and `gnome-scripts` holds the GNOME screenshot script text, taken from the `.drv` (its `__json` `text` field, context kept) so the script is never built or realised.
 
 The niri action lists are parsed at test time from the source of the niri package the host actually uses (`programs.niri.package.src`): `niri-config/src/binds.rs` `enum Action` minus the `#[knuffel(skip)]` variants is what a `config.kdl` bind node may name (IPC-only actions like `load-config-file` are skipped there and rejected by `niri validate`), `niri-ipc/src/lib.rs` `enum Action` is what `niri msg action X` accepts. Names are converted from CamelCase to kebab-case. Nothing is hardcoded except the contract itself (the 8 `allow-when-locked` keys).
 
@@ -84,12 +84,14 @@ The niri action lists are parsed at test time from the source of the niri packag
 | `gnome-detects-order-and-case` / `gnome-distinguishes-plain-key` | same for GNOME `<Super>` syntax |
 | `kde-detects-hotkey-vs-shortcut` | case-variant hotkey/shortcut collision is found |
 | `niri-action-lists-parsed` | parsed lists contain `close-window`/`spawn`, IPC list has `load-config-file` and `focus-column-first`, bindable list lacks `load-config-file`, nobody has `reload-config` |
-| `niri-mutation-reload-config-spawn-fails` | real binds with `Mod+Shift+R` = `niri msg action reload-config`: `niri-msg-actions-exist` and the reload check fail |
+| `niri-synthetic-baseline-passes` | the synthetic niri bind set (8 locked media keys, playback keys, `Mod+Delete`, `Mod+Shift+R` = `load-config-file`) passes every mutated check, so the mutations below start clean |
+| `waybar-synthetic-baseline-passes` | the synthetic mango and Hyprland waybar binds pass both waybar checks |
+| `niri-mutation-reload-config-spawn-fails` | synthetic binds with `Mod+Shift+R` = `niri msg action reload-config`: `niri-msg-actions-exist` and the reload check fail |
 | `niri-mutation-load-config-file-spawn-passes` | same bind as `niri msg action load-config-file`: all three pass (acceptance) |
 | `niri-mutation-bare-ipc-action-node-fails` / `niri-mutation-unknown-action-node-fails` | action node `load-config-file` / `reload-config` fails `niri-bind-actions-bindable` |
 | `niri-mutation-startup-bogus-action-fails` | a `niri msg action no-such-action` in `spawn-at-startup` is flagged |
 | `niri-mutation-unlocked-media-key-fails` / `-locked-playback-key-fails` / `-missing-media-key-fails` | removing `allow-when-locked` from a media key, adding it to a playback key, or dropping a playback key fails the media-key check |
 | `waybar-cmd-matcher` | accepts `pkill -SIGUSR1 waybar`; rejects `-x`, `-fx`, `--exact`, `.waybar-wrapped`, `killall`, wrong signal |
-| `waybar-mutation-mango-x-flag-fails` / `-mango-missing-bind-fails` / `-hyprland-x-flag-fails` | real mango/Hyprland binds mutated with `-x` or a removed bind fail the matching waybar check, the untouched sibling bind stays ok |
+| `waybar-mutation-mango-x-flag-fails` / `-mango-missing-bind-fails` / `-hyprland-x-flag-fails` | synthetic mango/Hyprland binds mutated with `-x` or a removed bind fail the matching waybar check, the untouched sibling bind stays ok |
 | `dups-ignores-unique` | duplicate helper returns only real duplicates |
 | `bash -n rejects broken script` | the syntax check can fail |

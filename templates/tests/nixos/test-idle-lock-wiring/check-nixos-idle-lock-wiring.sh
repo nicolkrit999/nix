@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Idle-lock wiring checker (real hosts and twins).
+# Idle-lock wiring checker (real hosts and twins, plus a coffee+impermanence fixture).
 #
 # Usage:
 #   bash check-nixos-idle-lock-wiring.sh
@@ -12,6 +12,7 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"
 SCENARIO="$DIR/01-scenario-idle-lock-wiring.nix"
+LINGER_SCENARIO="$DIR/02-scenario-coffee-linger.nix"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'
 BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
@@ -54,8 +55,30 @@ for host in nixos-desktop nixos-laptop; do
 done
 
 echo ""
-if [[ $((PASS + FAIL)) -lt 15 ]]; then
-  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 15); refusing to pass.${NC}"
+echo -e "${BOLD}=== coffee linger fixture ===${NC}"
+err=$(mktemp)
+if json=$(nix eval --impure --json --file "$LINGER_SCENARIO" results 2>"$err"); then
+  while IFS=$'\t' read -r label result; do
+    printf "  %-70s " "$label"
+    if [[ "$result" == "ok" ]]; then
+      printf "${GREEN}✓ ok${NC}\n"
+      ((PASS++)) || true
+    else
+      printf "${RED}✗ fail${NC}\n"
+      ((FAIL++)) || true
+      FAILURES+=("coffee linger fixture: $label|$result")
+    fi
+  done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
+else
+  echo -e "  ${RED}✗ eval error${NC}"
+  ((FAIL++)) || true
+  FAILURES+=("coffee linger fixture evaluation|$(grep -E 'error:' "$err" | head -3 | tr '\n' '~')")
+fi
+rm -f "$err"
+
+echo ""
+if [[ $((PASS + FAIL)) -lt 33 ]]; then
+  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 33); refusing to pass.${NC}"
   exit 1
 fi
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"

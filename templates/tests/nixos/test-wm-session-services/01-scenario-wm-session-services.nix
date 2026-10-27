@@ -3,6 +3,9 @@ let
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
 
+  fx = import ../../lib/fixture-host.nix flake;
+  niriFixture = (fx.mkNixos [{ myconfig.programs.niri.enable = lib.mkForce true; }]).config;
+
   hostNames = [ "nixos-desktop" "nixos-laptop" ];
   hmOf = c: c.home-manager.users.krit;
   enabled = c: n: c.myconfig.programs.${n}.enable or false;
@@ -68,10 +71,11 @@ let
         "DISPLAY is set in: ${toString displaySet}";
     };
 
-  results = lib.filterAttrs (_: v: v != { })
+  realResults = lib.filterAttrs (_: v: v != { })
     (lib.mapAttrs (_: c: lib.optionalAttrs (enabled c "niri") (sessionChecks (niriFacts c))) variants);
+  results = { fixture-niri = sessionChecks (niriFacts niriFixture); } // realResults;
 
-  real = niriFacts variants."nixos-laptop";
+  real = niriFacts niriFixture;
   mut = f: sessionChecks (real // f);
   withoutAgentSpawn = lib.filter (cmd: !(isAgentSpawn cmd)) real.startup;
   agentCmd = [ "/nix/store/x-polkit-gnome/libexec/polkit-gnome-authentication-agent-1" ];
@@ -80,8 +84,8 @@ in
   inherit results;
 
   control = {
-    "baseline-real-host-has-one-agent" =
-      chk ((mut { })."niri-exactly-one-polkit-agent" == "ok") "unmutated real niri facts no longer show exactly one agent";
+    "baseline-fixture-has-one-agent" =
+      chk ((mut { })."niri-exactly-one-polkit-agent" == "ok") "unmutated fixture niri facts no longer show exactly one agent";
     "polkit-two-agents-fails" =
       chk (isFail (mut { niriFlakePolkit = true; startup = withoutAgentSpawn ++ [ agentCmd ]; })."niri-exactly-one-polkit-agent") "niri-flake unit + spawned agent not flagged";
     "polkit-unit-plus-spawn-pair-fails" =

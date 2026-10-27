@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Constants to env/shell/hm/hardware wiring checker (real-host checks on both hosts, twins on the laptop).
+# Constants to env/shell/hm/hardware wiring checker (minimal fixture host).
 #
 # Usage:
 #   bash check-nixos-env-shell-wiring.sh
@@ -24,48 +24,45 @@ for tool in nix jq bash; do
   command -v "$tool" >/dev/null || { echo "missing tool: $tool"; exit 2; }
 done
 
-for host in nixos-desktop nixos-laptop; do
-  # twins are host-independent; the desktop's GNOME makes them ~3x slower (readme)
-  twins=true; min_checks=45
-  [[ "$host" == nixos-desktop ]] && { twins=false; min_checks=10; }
-  echo ""
-  echo -e "${BOLD}=== $host ===${NC}"
-  err=$(mktemp)
-  json=$(nix eval --impure --json --file "$SCENARIO" --argstr host "$host" --arg twins "$twins" results 2>"$err") || {
-    echo -e "  ${RED}✗ eval error${NC}"
-    ((FAIL++)) || true
-    FAILURES+=("$host evaluation|$(grep -E 'error:' "$err" | head -3 | tr '\n' '~')")
-    rm -f "$err"
-    continue
-  }
-  rm -f "$err"
+MIN_CHECKS=54
+host=template-host-minimal
+echo ""
+echo -e "${BOLD}=== $host (fixture) ===${NC}"
+err=$(mktemp)
+json=$(nix eval --impure --json --file "$SCENARIO" results 2>"$err") || {
+  echo -e "  ${RED}✗ eval error${NC}"
+  ((FAIL++)) || true
+  FAILURES+=("$host evaluation|$(grep -E 'error:' "$err" | head -3 | tr '\n' '~')")
+}
+rm -f "$err"
+json="${json:-}"
+[[ -n "$json" ]] || json='{}'
 
-  host_n=0
-  while IFS=$'\t' read -r label result; do
-    ((host_n++)) || true
-    printf "  %-70s " "$label"
-    if [[ "$result" == "ok" ]]; then
-      printf "${GREEN}✓ ok${NC}\n"
-      ((PASS++)) || true
-    else
-      printf "${RED}✗ fail${NC}\n"
-      ((FAIL++)) || true
-      if [[ "$result" == "FAIL: eval error" ]]; then
-        result="$result~$(CHECK_LABEL="$label" nix eval --impure --raw --file "$SCENARIO" --argstr host "$host" --arg twins "$twins" --apply 'cs: builtins.deepSeq cs.${builtins.getEnv "CHECK_LABEL"} "x"' checks 2>&1 | grep -E 'error:' | head -3 | tr '\n' '~')"
-      fi
-      FAILURES+=("$host: $label|$result")
-    fi
-  done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
-  if [[ $host_n -lt $min_checks ]]; then
-    echo -e "  ${RED}✗ only $host_n checks ran (expected at least $min_checks)${NC}"
+host_n=0
+while IFS=$'\t' read -r label result; do
+  ((host_n++)) || true
+  printf "  %-70s " "$label"
+  if [[ "$result" == "ok" ]]; then
+    printf "${GREEN}✓ ok${NC}\n"
+    ((PASS++)) || true
+  else
+    printf "${RED}✗ fail${NC}\n"
     ((FAIL++)) || true
-    FAILURES+=("$host: check count|only $host_n checks ran, expected at least $min_checks (twins=$twins)")
+    if [[ "$result" == "FAIL: eval error" ]]; then
+      result="$result~$(CHECK_LABEL="$label" nix eval --impure --raw --file "$SCENARIO" --apply 'cs: builtins.deepSeq cs.${builtins.getEnv "CHECK_LABEL"} "x"' checks 2>&1 | grep -E 'error:' | head -3 | tr '\n' '~')"
+    fi
+    FAILURES+=("$label|$result")
   fi
-done
+done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
+if [[ $host_n -lt $MIN_CHECKS ]]; then
+  echo -e "  ${RED}✗ only $host_n checks ran (expected at least $MIN_CHECKS)${NC}"
+  ((FAIL++)) || true
+  FAILURES+=("check count|only $host_n checks ran, expected at least $MIN_CHECKS")
+fi
 
 echo ""
-if [[ $((PASS + FAIL)) -lt 30 ]]; then
-  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 30); refusing to pass.${NC}"
+if [[ $((PASS + FAIL)) -lt 54 ]]; then
+  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 54); refusing to pass.${NC}"
   exit 1
 fi
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"

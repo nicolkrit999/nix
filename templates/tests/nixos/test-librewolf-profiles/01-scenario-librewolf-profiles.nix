@@ -1,14 +1,18 @@
-{ host }:
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else throw "FLAKE_ROOT is not set";
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
 
-  sys = flake.nixosConfigurations.${host};
+  fx = import ../../lib/fixture-host.nix flake;
+  sys = fx.mkNixos [ ];
   user = sys.config.myconfig.constants.user;
-  withLw = on: extra: (sys.extendModules {
-    modules = [{ myconfig.krit.programs.librewolf.enable = lib.mkOverride 10 on; }] ++ extra;
-  }).config;
+  withLw = on: extra: (fx.mkNixos ([
+    {
+      myconfig.krit.programs.librewolf.enable = on;
+      myconfig.specializations.secure-travel.enable = true;
+      myconfig.programs.gnome.pinnedApps = [ "zen-beta.desktop" "fixture-other.desktop" ];
+    }
+  ] ++ extra)).config;
 
   hmOf = c: c.home-manager.users.${user};
   mutant = withLw true [
@@ -275,6 +279,8 @@ let
       "secure-travel: GNOME pin points at the Privacy entry that exists, Zen pin gone" = allOk [
         (yes "pinned privacy" (builtins.elem "librewolf-privacy.desktop" s.myconfig.programs.gnome.pinnedApps))
         (yes "no zen pin" (!(builtins.elem "zen-beta.desktop" s.myconfig.programs.gnome.pinnedApps)))
+        (yes "control: base still pins zen" (builtins.elem "zen-beta.desktop" c.myconfig.programs.gnome.pinnedApps))
+        (yes "other pins kept" (builtins.elem "fixture-other.desktop" s.myconfig.programs.gnome.pinnedApps))
         (yes "entry exists in spec HM" (shm.xdg.desktopEntries ? "librewolf-privacy"))
       ];
       "base (non-spec) default profile stays Default" = allOk [

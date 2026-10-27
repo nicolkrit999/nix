@@ -3,9 +3,13 @@ let
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
 
-  host = flake.darwinConfigurations.Krits-MacBook-Pro;
-  user = host.config.myconfig.constants.user;
-  hmOf = cfg: cfg.home-manager.users.${user};
+  fx = import ../../lib/fixture-host-darwin.nix flake;
+  inherit (fx) hmOf;
+
+  host = fx.mkDarwin {
+    paths = [ (fx.src + "/modules/common/programs/headroom.nix") ];
+    modules = [ { myconfig.programs.headroom.enable = true; } ];
+  };
   hm = hmOf host.config;
 
   agent = hm.launchd.agents.headroom-proxy;
@@ -17,8 +21,8 @@ let
   portArg = lib.last args;
   portFromWrapper = builtins.match ".*/dev/tcp/127\\.0\\.0\\.1/([0-9]+).*" wrapper.text;
 
-  withoutHeadroom = host.extendModules {
-    modules = [ ({ lib, ... }: { myconfig.programs.headroom.enable = lib.mkForce false; }) ];
+  withoutHeadroom = fx.mkDarwin {
+    paths = [ (fx.src + "/modules/common/programs/headroom.nix") ];
   };
 
   check = name: cond: detail:
@@ -58,7 +62,7 @@ in
       (proxyPkg != null && lib.hasInfix "macosx" proxyPkg.src.name && lib.hasInfix "arm64" proxyPkg.src.name)
       "src=${if proxyPkg == null then "no package" else proxyPkg.src.name}";
   check-control-disabled =
-    check "control: with programs.headroom disabled the agent and wrapper vanish"
+    check "control: with programs.headroom left off the agent and wrapper vanish"
       (!((hmOf withoutHeadroom.config).launchd.agents ? headroom-proxy)
         && pkgByName withoutHeadroom.config (p: (p.name or "") == "headroom-claude") == null)
       "agent or wrapper survived disabling the module";

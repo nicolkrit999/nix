@@ -2,6 +2,7 @@ let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
+  fxDarwin = import ../../lib/fixture-host-darwin.nix flake;
 
   mk = lib.mkForce;
   enable = { myconfig.krit.programs.yazi.enable = mk true; };
@@ -9,13 +10,24 @@ let
   check = cond: detail: if cond then "ok" else "FAIL: ${detail}";
 
   linuxSys = flake.nixosConfigurations.template-host-minimal.extendModules { modules = [ enable ]; };
-  darwinSys = flake.darwinConfigurations.Krits-MacBook-Pro.extendModules { modules = [ enable ]; };
-  nasHome = flake.homeConfigurations."krit@Nicol-NAS".extendModules { modules = [ enable ]; };
+  darwinSys = fxDarwin.mkDarwin {
+    paths = map (p: fxDarwin.src + p) [
+      "/modules/common/programs/yazi.nix"
+      "/modules/darwin/toplevel/stylix-darwin.nix"
+      "/users/krit/common/toplevel/nas-identity.nix"
+      "/users/krit/common/programs/file-managers/yazi/yazi.nix"
+      "/users/krit/common/programs/file-managers/yazi/yazi-keymap.nix"
+      "/users/krit/common/programs/file-managers/yazi/yazi-theme.nix"
+      "/users/krit/common/programs/file-managers/yazi/init-lua.nix"
+    ];
+    modules = [ enable ];
+  };
+  standaloneHome = flake.homeConfigurations."krit@template-host-minimal".extendModules { modules = [ enable ]; };
 
   hmOf = sys: sys.config.home-manager.users.${sys.config.myconfig.constants.user};
   linux = (hmOf linuxSys).programs.yazi;
-  darwin = (hmOf darwinSys).programs.yazi;
-  nas = nasHome.config.programs.yazi;
+  darwin = (fxDarwin.hmOf darwinSys.config).programs.yazi;
+  nas = standaloneHome.config.programs.yazi;
 
   expectedBefore = [
     [ "open" "reveal" ]

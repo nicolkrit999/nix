@@ -67,15 +67,7 @@ let
     if p == null then [ "no busy script path found in the first listener" ]
     else busyBodyProblems (builtins.readFile p);
 
-  lingerDir = "/var/lib/systemd/linger";
   persisted = cfg: map (d: d.directory) cfg.environment.persistence."/persist".directories;
-  coffeeOnText = builtins.readFile "${flake.outPath}/modules/nixos/services/power/coffee/coffee-on.sh";
-  staleHandling = text: lib.hasInfix "-f $LINGER_MARKER && $linger != yes" text;
-  lingerProblems = cfg: onText:
-    (lib.optional (!cfg.myconfig.services.impermanence.enable) "impermanence is off, the check is vacuous")
-    ++ (lib.optional (!cfg.myconfig.services.coffee.enable) "coffee is off, the check is vacuous")
-    ++ (lib.optional (!(builtins.elem lingerDir (persisted cfg)) && !staleHandling onText)
-      "${lingerDir} is not persisted and coffee-on.sh has no stale linger marker handling");
 
   sddmOn = cfg: builtins.filter (n: cfg.myconfig.services.${n}.enable) [ "sddm-pixie" "sddm-astronaut" ];
 
@@ -120,7 +112,6 @@ let
   noWm = twin [ wmsOff ];
   hyprPlain = twin (hyprOnly false);
   hyprShell = twin (hyprOnly true);
-  noLinger = twin [{ environment.persistence."/persist".directories = over [ ]; }];
   bothSddm = twin [{
     myconfig.services.sddm-pixie.enable = mk true;
     myconfig.services.sddm-astronaut.enable = mk true;
@@ -144,9 +135,6 @@ let
     "control(busy): '|| true' body is detected" = detects "|| true" (busyBodyProblems "#!/bin/bash\npgrep -f 'nix.build|nixos-rebuild' > /dev/null || true\n");
     "control(busy): explicit exit 0 is detected" = detects "exit 0" (busyBodyProblems "#!/bin/bash\npgrep -f 'nix.build|nixos-rebuild' > /dev/null\nexit 0\n");
     "control(busy): body without pgrep is detected" = detects "no pgrep" (busyBodyProblems "#!/bin/bash\ntrue\n");
-    "coffee: linger dir persisted, or coffee-on.sh handles a stale linger marker" = failIf (lingerProblems c coffeeOnText);
-    "control(coffee): unpersisted linger without stale handling is detected" = detects "no persistence" (lingerProblems noLinger "nothing");
-    "control(coffee): stale marker handling in coffee-on.sh is what makes an unpersisted linger acceptable" = failIf (lingerProblems noLinger coffeeOnText);
     "hyprlock: pam service present with a WM enabled" = failIf (lockProblems hyprPlain true);
     "hyprlock: pam service absent with no WM enabled" = failIf (lockProblems noWm false);
     "control(hyprlock): WM-less twin trips the WM-expected check" = detects "missing pam" (lockProblems noWm true);

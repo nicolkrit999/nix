@@ -268,14 +268,28 @@ let
     variants);
   isFail = lib.hasPrefix "FAIL";
   laptop = variants."nixos-laptop";
-  realNiri = {
-    binds = (hmOf laptop).programs.niri.settings.binds;
-    startup = map (s: s.command) (hmOf laptop).programs.niri.settings.spawn-at-startup;
+  synthMedia = k: { action.spawn = [ "true" ]; } // lib.optionalAttrs (lib.elem k lockedMediaKeys) { allow-when-locked = true; };
+  synthNiri = {
+    binds =
+      lib.genAttrs (lockedMediaKeys ++ unlockedMediaKeys) synthMedia
+      // {
+        "Mod+Return".action.spawn = [ "foot" ];
+        "Mod+Shift+R".action.spawn = [ "niri" "msg" "action" "load-config-file" ];
+      };
+    startup = [ [ "foot" ] ];
     actions = niriActionSets laptop;
   };
-  niriMut = f: niriBindChecks (realNiri // { binds = f realNiri.binds; });
-  realMangoBinds = (hmOf variants."nixos-desktop").wayland.windowManager.mango.settings.bind;
-  realHyprArgs = map (b: b._args) (hmOf laptop).wayland.windowManager.hyprland.settings.bind;
+  niriMut = f: niriBindChecks (synthNiri // { binds = f synthNiri.binds; });
+  synthMangoBinds = [
+    "SUPER,Return,spawn,foot"
+    "SUPER+SHIFT,W,spawn,pkill -SIGUSR1 waybar"
+    "SUPER+ALT,W,spawn,pkill -SIGUSR2 waybar"
+  ];
+  synthHyprArgs = [
+    [ "SUPER + Return" { expr = "hl.dsp.exec_cmd(\"foot\")"; } ]
+    [ "SUPER+SHIFT + W" { expr = "hl.dsp.exec_cmd(\"pkill -SIGUSR1 waybar\")"; } ]
+    [ "SUPER+ALT + W" { expr = "hl.dsp.exec_cmd(\"pkill -SIGUSR2 waybar\")"; } ]
+  ];
 in
 {
   results = lib.filterAttrs (_: v: v != { }) (lib.mapAttrs perVariant variants);
@@ -298,6 +312,15 @@ in
       let a = niriActionSets laptop; in
       chk (lib.elem "close-window" a.bindable && lib.elem "spawn" a.bindable && !(lib.elem "load-config-file" a.bindable) && lib.elem "load-config-file" a.ipc && lib.elem "focus-column-first" a.ipc && !(lib.elem "reload-config" a.ipc) && builtins.length a.bindable > 100)
         "niri action lists wrong: bindable ${toString (builtins.length a.bindable)}, ipc ${toString (builtins.length a.ipc)}";
+    "niri-synthetic-baseline-passes" =
+      let r = niriMut (b: b); in
+      chk (lib.all (k: r.${k} == "ok") [ "niri-spawn-nonempty-strings" "niri-bind-actions-bindable" "niri-msg-actions-exist" "niri-reload-bind-is-load-config-file" "niri-media-keys-allow-when-locked" ]) "synthetic niri baseline not clean";
+    "waybar-synthetic-baseline-passes" =
+      let
+        m = waybarBindChecks "mango" (mangoWaybarCmds synthMangoBinds);
+        h = waybarBindChecks "hyprland" (hyprWaybarCmds synthHyprArgs);
+      in
+      chk (lib.all (v: v == "ok") (lib.attrValues m ++ lib.attrValues h)) "synthetic mango/hyprland waybar baseline not clean";
     "niri-mutation-reload-config-spawn-fails" =
       let r = niriMut (b: b // { "Mod+Shift+R".action.spawn = [ "niri" "msg" "action" "reload-config" ]; }); in
       chk (isFail r."niri-msg-actions-exist" && isFail r."niri-reload-bind-is-load-config-file") "reload-config spawn not flagged";
@@ -311,7 +334,7 @@ in
       let r = niriMut (b: b // { "Mod+Shift+R".action.reload-config = [ ]; }); in
       chk (isFail r."niri-bind-actions-bindable" && isFail r."niri-reload-bind-is-load-config-file") "unknown action node not flagged";
     "niri-mutation-startup-bogus-action-fails" =
-      let r = niriBindChecks (realNiri // { startup = realNiri.startup ++ [ [ "bash" "-c" "sleep 1 && niri msg action no-such-action" ] ]; }); in
+      let r = niriBindChecks (synthNiri // { startup = synthNiri.startup ++ [ [ "bash" "-c" "sleep 1 && niri msg action no-such-action" ] ]; }); in
       chk (isFail r."niri-msg-actions-exist") "bogus niri msg action in spawn-at-startup not flagged";
     "niri-mutation-unlocked-media-key-fails" =
       let r = niriMut (b: b // { XF86AudioMute = removeAttrs b.XF86AudioMute [ "allow-when-locked" ]; }); in
@@ -333,10 +356,10 @@ in
           && !(waybarCmdOk "-SIGUSR1" "pkill -SIGUSR2 waybar"))
         "waybarCmdOk accepts/rejects the wrong commands";
     "waybar-mutation-mango-x-flag-fails" =
-      let r = waybarBindChecks "mango" (mangoWaybarCmds (map (builtins.replaceStrings [ "pkill -SIGUSR1" ] [ "pkill -x -SIGUSR1" ]) realMangoBinds)); in
+      let r = waybarBindChecks "mango" (mangoWaybarCmds (map (builtins.replaceStrings [ "pkill -SIGUSR1" ] [ "pkill -x -SIGUSR1" ]) synthMangoBinds)); in
       chk (isFail r."mango-waybar-toggle-bind" && r."mango-waybar-reload-bind" == "ok") "-x on the mango toggle bind not flagged (or reload bind affected)";
     "waybar-mutation-mango-missing-bind-fails" =
-      let r = waybarBindChecks "mango" (mangoWaybarCmds (lib.filter (b: !(lib.hasPrefix "SUPER+ALT,W," b)) realMangoBinds)); in
+      let r = waybarBindChecks "mango" (mangoWaybarCmds (lib.filter (b: !(lib.hasPrefix "SUPER+ALT,W," b)) synthMangoBinds)); in
       chk (isFail r."mango-waybar-reload-bind") "removed mango reload bind not flagged";
     "waybar-mutation-hyprland-x-flag-fails" =
       let
@@ -344,7 +367,7 @@ in
           if builtins.length a >= 2 && builtins.isAttrs (builtins.elemAt a 1)
           then [ (builtins.head a) ((builtins.elemAt a 1) // { expr = builtins.replaceStrings [ "pkill -SIGUSR1" ] [ "pkill -x -SIGUSR1" ] ((builtins.elemAt a 1).expr or ""); }) ]
           else a;
-        r = waybarBindChecks "hyprland" (hyprWaybarCmds (map mutate realHyprArgs));
+        r = waybarBindChecks "hyprland" (hyprWaybarCmds (map mutate synthHyprArgs));
       in
       chk (isFail r."hyprland-waybar-toggle-bind" && r."hyprland-waybar-reload-bind" == "ok") "-x on the hyprland toggle bind not flagged (or reload bind affected)";
     "dups-ignores-unique" = chk (dups [ "a" "b" ] == [ ] && dups [ "a" "a" "b" ] == [ "a" ]) "dups helper broken";

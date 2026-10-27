@@ -57,8 +57,8 @@ while IFS=$'\t' read -r label result; do
 done <"$work/results.tsv"
 
 echo ""
-if [[ $((PASS + FAIL)) -lt 19 ]]; then
-  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 19); refusing to pass.${NC}"
+if [[ $((PASS + FAIL)) -lt 22 ]]; then
+  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 22); refusing to pass.${NC}"
   exit 1
 fi
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"

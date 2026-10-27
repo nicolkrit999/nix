@@ -1,6 +1,6 @@
 # test-librewolf-profiles
 
-Eval-level contract of the LibreWolf two-profile setup (`users/krit/common/programs/gui-programs/librewolf/`, batch 11 of the codebase audit) on the REAL `nixos-desktop` and `nixos-laptop` configurations: profile layout, the prefs written to each `user.js`, the Privacy exit-wipe wiring, search engines, extensions, and the secure-travel specialisation that makes Privacy the default profile.
+Eval-level contract of the LibreWolf two-profile setup (`users/krit/common/programs/gui-programs/librewolf/`, batch 11 of the codebase audit) on a minimal fixture host (`template-host-minimal` via `templates/tests/lib/fixture-host.nix`, only LibreWolf and the secure-travel specialisation enabled): profile layout, the prefs written to each `user.js`, the Privacy exit-wipe wiring, search engines, extensions, and the secure-travel specialisation that makes Privacy the default profile.
 
 This test only proves what the generated `user.js` and `librewolf.overrides.cfg` SAY. LibreWolf's `mozilla.cfg` `pref()` calls run after `user.js`, so the generic `programs.librewolf` module (`modules/common/programs/librewolf.nix`, fed by `krit.programs.librewolf` through `profileSettings`) re-asserts each profile's prefs in `~/.librewolf/librewolf.overrides.cfg` (evaluated last, selected per profile by the `nixcfg.librewolf.profile` marker pref in `user.js`); whether they TAKE EFFECT is proven by `test-librewolf-runtime`.
 
@@ -20,19 +20,19 @@ Or from inside the directory:
 bash check-nixos-librewolf-profiles.sh
 ```
 
-Needs `nix`, `jq`, `bash`. Eval-only (no builds), about 12 s for both hosts.
+Needs `nix`, `jq`, `bash`. Eval-only (no builds), about 6 s.
 
 ## How it works
 
-`01-scenario-librewolf-profiles.nix` takes `{ host }`, loads `flake.nixosConfigurations.<host>` via `builtins.getFlake` (`FLAKE_ROOT` from the runner) and layers an `extendModules` twin that forces `krit.programs.librewolf.enable` on, so the result does not depend on which host enables the module. It parses the generated `.librewolf/<profile>/user.js` text back into an attribute set (the artifact LibreWolf reads, including the stylix additions) and asserts on it, on `profiles.ini`, on the HM `programs.librewolf` options and on the secure-travel specialisation config.
+`01-scenario-librewolf-profiles.nix` loads the flake via `builtins.getFlake` (`FLAKE_ROOT` from the runner) and builds fixture hosts with `mkNixos`: LibreWolf on, `specializations.secure-travel` on, and a fake `gnome.pinnedApps` list that contains `zen-beta.desktop`, so the result does not depend on any real host. It parses the generated `.librewolf/<profile>/user.js` text back into an attribute set (the artifact LibreWolf reads, including the stylix additions) and asserts on it, on `profiles.ini`, on the HM `programs.librewolf` options and on the secure-travel specialisation config.
 
-A second twin ("mutant") breaks the config on purpose (Privacy wipe/WebGL/FPP/allow-list prefs reverted, `librewolf.overrides.cfg` emptied, dead v1 prefs and `lifetimePolicy` re-added, Default wipe on, DoH exclusions emptied, a `Cookies` policy added, search default, extension list, profile id, desktop entry and stylix profile names changed, secure-travel with Zen and PWAs on and Privacy no longer default). Every check that has a mutation listed in `mustFail` must report FAIL on the mutant while passing on the real config, so none can pass vacuously. The `check-*.sh` refuses to pass with fewer than 60 checks.
+A second twin ("mutant") breaks the config on purpose (Privacy wipe/WebGL/FPP/allow-list prefs reverted, `librewolf.overrides.cfg` emptied, dead v1 prefs and `lifetimePolicy` re-added, Default wipe on, DoH exclusions emptied, a `Cookies` policy added, search default, extension list, profile id, desktop entry and stylix profile names changed, secure-travel with Zen and PWAs on and Privacy no longer default). Every check that has a mutation listed in `mustFail` must report FAIL on the mutant while passing on the unmutated fixture, so none can pass vacuously. The `check-*.sh` refuses to pass with fewer than 46 checks.
 
-Which hosts enable LibreWolf is a host choice and is not asserted.
+Which real hosts enable LibreWolf is a host choice and is not asserted.
 
 ## Checks
 
-Evaluated once per host (desktop and laptop), 46 results each.
+Evaluated once on the fixture host, 46 results.
 
 ### Layout and consistency
 | Check | Expected |
@@ -76,10 +76,10 @@ Evaluated once per host (desktop and laptop), 46 results each.
 |-------|----------|
 | default profile | HM `privacy.isDefault` true, `default.isDefault` false, `profiles.ini` has one `Default=1` and it is Privacy |
 | other browsers | Zen, PWAs, stock Firefox, Chromium and Helium all off |
-| GNOME pin | the pinned apps contain `librewolf-privacy.desktop`, not `zen-beta.desktop`, and that entry exists in the spec's HM config |
+| GNOME pin | the fixture base pins `zen-beta.desktop` (control); the spec's pinned apps contain `librewolf-privacy.desktop`, not `zen-beta.desktop`, keep the other fixture pin, and that entry exists in the spec's HM config |
 
 ### Controls
 | Check | Expected |
 |-------|----------|
 | disabled module | with the module forced off there is no Privacy `user.js` (the enabled twin has it) |
-| mutant fails X | for each of the 20 checks that have a mutation, the mutant makes it FAIL while it passes on the real config |
+| mutant fails X | for each of the 20 checks that have a mutation, the mutant makes it FAIL while it passes on the unmutated fixture |

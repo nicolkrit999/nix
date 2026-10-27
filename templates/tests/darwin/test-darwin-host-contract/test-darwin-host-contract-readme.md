@@ -1,6 +1,6 @@
 # test-darwin-host-contract
 
-Eval-only contract test for the REAL `darwinConfigurations.Krits-MacBook-Pro` (aarch64-darwin, evaluated from Linux). The Mac is CI-only and never built locally, so these invariants are the guard that the host still evaluates with the intended identity, sops wiring, homebrew guards, browser opt-out, dock paths, the tailscale cask/daemon split and the terminal choice.
+Eval-only test with two parts. (1) Genuine host contract of the REAL `darwinConfigurations.Krits-MacBook-Pro` (aarch64-darwin, evaluated from Linux): identity, sops wiring, homebrew guards, dock path consistency, no double Tailscale provider, terminal constant resolving to an enabled program. The Mac is CI-only and never built locally, so these invariants guard that it still evaluates with the intended safety values. (2) Module checks (browser opt-out, network-tools, claude-code mcp secrets, tailscale flag, kitty) on a minimal `minimal-darwin` fixture that enables only the module under test, so they do not depend on which programs or packages the Mac installs.
 
 ## Run
 
@@ -20,11 +20,11 @@ Runtime is about 30 s (lazy eval, no builds).
 
 ## How it works
 
-`01-scenario-darwin-host-contract.nix` loads the real flake (`FLAKE_ROOT`, default `/home/krit/nix`) and reads `darwinConfigurations.Krits-MacBook-Pro` directly, so config fixes are verified without a rebuild. Each `check-*` attribute is `"ok"` or `"FAIL: ..."`. Values are compared against each other (e.g. `uid` vs `constants.uid`, HM home vs `users.users.<user>.home`) wherever possible.
+`01-scenario-darwin-host-contract.nix` loads the real flake (`FLAKE_ROOT`, default `/home/krit/nix`). Real-host checks read `darwinConfigurations.Krits-MacBook-Pro` directly; values are compared against each other (e.g. `uid` vs `constants.uid`) wherever possible. Fixture checks use `templates/tests/lib/fixture-host-darwin.nix` (`fx.mkDarwin { paths; modules; }`, modules off unless enabled). Each `check-*` attribute is `"ok"` or `"FAIL: ..."`.
 
-`check-darwin-host-contract.sh` runs `nix eval --raw --impure` per check, prints a PASS/FAIL line each, and exits non-zero on any failure.
+`check-darwin-host-contract.sh` runs `nix eval --raw --impure` per check, prints PASS/FAIL, and exits non-zero on any failure.
 
-Two control checks prove the negative checks can bite: `host.extendModules` forces `constants.browser = "firefox"` and asserts firefox then lands in `systemPackages`; `tcpdump` must be present, proving `network-tools` is active before the Linux-only absence check. The `home-packages` name translation (`nvim` -> `neovim`) is mirrored in the scenario.
+Controls: real-host variants via `host.extendModules` (cask plus daemon forced on, unknown terminal name) and injected dangling dock entries with invented app names; fixture variants (default browser, `mcpSecrets` overridden, personal module disabled, tailscale cask present/absent, kitty disabled). None of the controls relies on what the Mac enables.
 
 ## Checks
 
@@ -51,7 +51,7 @@ Two control checks prove the negative checks can bite: `host.extendModules` forc
 | `nixpkgs.hostPlatform.system` | `aarch64-darwin` |
 | `config.assertions` | none failing |
 
-### sops
+### sops (real host)
 
 | Check | Expected |
 |-------|----------|
@@ -60,9 +60,8 @@ Two control checks prove the negative checks can bite: `host.extendModules` forc
 | `sops.age.sshKeyPaths`, `sops.gnupg.sshKeyPaths` | `[]` |
 | `nix.extraOptions` | `!include <github_fg_pat_token_nix path>` |
 | `sops.secrets.github_general_ssh_key` | path `/Users/<user>/.ssh/id_github`, mode `0400` |
-| `krit.programs.claude-code-personal.mcpSecrets[].sopsSecret` | each is a `sops.secrets` key (Darwin derives its declarations from the same list) |
 
-### homebrew
+### homebrew (real host)
 
 | Check | Expected |
 |-------|----------|
@@ -70,43 +69,66 @@ Two control checks prove the negative checks can bite: `host.extendModules` forc
 | `homebrew.onActivation.cleanup` | not `zap` |
 | `homebrew.onActivation.upgrade` | `false` |
 
-### browser opt-out (mechanism only; which programs the host enables is not asserted)
-
-| Check | Expected |
-|-------|----------|
-| `environment.systemPackages` | no firefox / librewolf / chromium |
-| control | browser forced to `firefox` adds firefox |
-
-### dock / finder
-
-| Check | Expected |
-|-------|----------|
-| `dock.persistent-apps` | every `/Applications/Nix Apps/<X>.app` / `~/Applications/Home Manager Apps/<X>.app` entry matches an installed package (`longName`/`pname` of `systemPackages` resp. HM `home.packages`) |
-| `dock.persistent-apps` | no entry in the HM Firefox / VS Code dirs while those HM programs are disabled |
-| control | injected dangling HM Firefox + VS Code entries are both flagged |
-| `dock.autohide`, `finder.AppleShowAllExtensions` | `true` |
-
-### tailscale
-
-| Check | Expected |
-|-------|----------|
-| `homebrew.casks` | contains `tailscale-app` |
-| `services.tailscale.enable` (nix-darwin daemon) | `false` |
-| `myconfig.services.tailscale.darwinCaskPresent` | `true` |
-| control | with `homebrew.casks = []`, `darwinCaskPresent` is `false` |
-
-### terminal
-
-| Check | Expected |
-|-------|----------|
-| `constants.terminal.name` | `myconfig.krit.programs.<name>.enable` is true |
-| control | `terminal.name = "alacritty"` (disabled on the host) is flagged |
-
-### packages and home-manager
+### packages (real host)
 
 | Check | Expected |
 |-------|----------|
 | terminal, fileManager, editor names | real `pkgs` attrs (no silent fallback) |
+
+### dock / finder (real host)
+
+| Check | Expected |
+|-------|----------|
+| `dock.persistent-apps` | every `/Applications/Nix Apps/<X>.app` / `~/Applications/Home Manager Apps/<X>.app` entry matches an installed package (`longName`/`pname` of `systemPackages` resp. HM `home.packages`) |
+| control | injected dangling HM and Nix Apps entries (invented app name) are both flagged |
+| `dock.autohide`, `finder.AppleShowAllExtensions` | `true` |
+
+### tailscale (real host)
+
+| Check | Expected |
+|-------|----------|
+| `darwinCaskPresent` and `services.tailscale.enable` | never both true (one provider) |
+| control | cask forced plus daemon enabled is flagged |
+
+### terminal (real host)
+
+| Check | Expected |
+|-------|----------|
+| `constants.terminal.name` | `myconfig.krit.programs.<name>.enable` is true |
+| control | `terminal.name = "no-such-terminal-xyz"` is flagged |
+
+### home-packages browser opt-out (fixture)
+
+| Check | Expected |
+|-------|----------|
+| `constants.browser = ""` | no firefox / librewolf / chromium in `systemPackages` |
+| control | default `constants.browser` adds firefox |
+
+### network-tools (fixture)
+
+| Check | Expected |
+|-------|----------|
 | control | `tcpdump` in `systemPackages` |
 | Linux-only tools (ethtool, iw, ntopng, suricata, ptcpdump, rsyslog, wavemon, sane-airscan, traceroute, wireless-tools) | absent from `systemPackages` |
+
+### claude-code mcp secrets (fixture)
+
+| Check | Expected |
+|-------|----------|
+| `claude-code-personal.mcpSecrets[].sopsSecret` | list non-empty (module default), each is a `sops.secrets` key |
+| control | overriding `mcpSecrets` replaces the declared secrets |
+| control | personal module disabled declares no mcp secret |
+
+### tailscale flag (fixture)
+
+| Check | Expected |
+|-------|----------|
+| `darwinCaskPresent` | `true` with the `tailscale-app` cask |
+| control | without the cask it is `false` |
+
+### kitty (fixture)
+
+| Check | Expected |
+|-------|----------|
 | kitty `macos_option_as_alt` | `yes` |
+| control | kitty disabled: not set |

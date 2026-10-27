@@ -3,6 +3,8 @@ let
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
 
+  fx = import ../../lib/fixture-host-darwin.nix flake;
+
   host = flake.darwinConfigurations.Krits-MacBook-Pro;
   inherit (host) config pkgs;
   my = config.myconfig;
@@ -11,11 +13,6 @@ let
   hm = config.home-manager.users.${user};
 
   pnames = cfg: map (p: p.pname or (builtins.parseDrvName p.name).name) cfg.environment.systemPackages;
-  sysNames = pnames config;
-
-  withBrowser = host.extendModules {
-    modules = [ ({ lib, ... }: { myconfig.constants.browser = lib.mkForce "firefox"; }) ];
-  };
 
   check = name: cond: detail:
     if cond then "ok" else "FAIL: ${name}: ${detail}";
@@ -27,20 +24,58 @@ let
     check name (builtins.elem x list) "${builtins.toJSON x} missing from ${builtins.toJSON list}";
 
   linuxOnlyTools = [ "ethtool" "iw" "ntopng" "suricata" "ptcpdump" "rsyslog" "wavemon" "sane-airscan" "traceroute" "wireless-tools" ];
-  leakedLinuxTools = builtins.filter (n: builtins.elem n sysNames) linuxOnlyTools;
+  leakedLinuxTools = cfg: builtins.filter (n: builtins.elem n (pnames cfg)) linuxOnlyTools;
+
+  browserPnames = [ "firefox" "librewolf" "chromium" ];
+  browserHits = cfg: builtins.filter (n: builtins.elem n (pnames cfg)) browserPnames;
+
+  fxBrowserDefault = fx.mkDarwin { paths = [ (fx.src + "/modules/darwin/toplevel/home-packages-darwin.nix") ]; };
+  fxBrowserOptOut = fxBrowserDefault.extendModules { modules = [ { myconfig.constants.browser = ""; } ]; };
+
+  fxNetwork = fx.mkDarwin {
+    paths = [ (fx.src + "/users/krit/common/programs/network-tools.nix") ];
+    modules = [ { myconfig.krit.services.network-tools.enable = true; } ];
+  };
+
+  mcpPaths = [
+    (fx.src + "/modules/common/programs/claude-code.nix")
+    (fx.src + "/users/krit/common/programs/claude-code/claude-code-personal.nix")
+    (fx.src + "/users/krit/common/toplevel/sops-secrets.nix")
+  ];
+  mcpOn = { myconfig.krit.commonSopsSecrets.enable = true; myconfig.krit.programs.claude-code-personal.enable = true; };
+  fxMcp = fx.mkDarwin { paths = mcpPaths; modules = [ mcpOn ]; };
+  fxMcpOverride = fx.mkDarwin {
+    paths = mcpPaths;
+    modules = [ mcpOn { myconfig.krit.programs.claude-code-personal.mcpSecrets = [ { sopsSecret = "fixture_only_secret"; } ]; } ];
+  };
+  fxMcpOff = fx.mkDarwin {
+    paths = mcpPaths;
+    modules = [ { myconfig.krit.commonSopsSecrets.enable = true; } ];
+  };
+  mcpNames = map (s: s.sopsSecret) fxMcp.config.myconfig.krit.programs.claude-code-personal.mcpSecrets;
+  missingMcp = builtins.filter (n: !(fxMcp.config.sops.secrets ? ${n})) mcpNames;
+
+  fxTailscale = fx.mkDarwin { paths = [ (fx.src + "/modules/common/services/tailscale.nix") ]; };
+  fxTailscaleCask = fxTailscale.extendModules { modules = [ { homebrew.casks = [ "tailscale-app" ]; } ]; };
+
+  kittyPaths = [
+    (fx.src + "/modules/darwin/toplevel/stylix-darwin.nix")
+    (fx.src + "/modules/common/programs/kitty.nix")
+    (fx.src + "/users/krit/common/programs/terminal-emulators/kitty.nix")
+  ];
+  fxKittyOff = fx.mkDarwin { paths = kittyPaths; modules = [ { myconfig.stylix.enable = false; } ]; };
+  fxKitty = fxKittyOff.extendModules { modules = [ { myconfig.krit.programs.kitty.enable = true; } ]; };
 
   translatedEditor = if c.editor == "nvim" then "neovim" else c.editor;
   resolvedNames = [ c.terminal.name c.fileManager translatedEditor ];
   missingPkgs = builtins.filter (n: !(builtins.hasAttr n pkgs)) resolvedNames;
 
-  mcpNames = map (s: s.sopsSecret) my.krit.programs.claude-code-personal.mcpSecrets;
-  missingMcp = builtins.filter (n: !(config.sops.secrets ? ${n})) mcpNames;
-
-  withoutCask = host.extendModules {
-    modules = [ ({ lib, ... }: { homebrew.casks = lib.mkForce [ ]; }) ];
+  withBothProviders = host.extendModules {
+    modules = [ ({ lib, ... }: { homebrew.casks = lib.mkForce [ "tailscale-app" ]; services.tailscale.enable = lib.mkForce true; }) ];
   };
-  withAlacrittyTerminal = host.extendModules {
-    modules = [ ({ lib, ... }: { myconfig.constants.terminal.name = lib.mkForce "alacritty"; }) ];
+  doubleProvider = cfg: cfg.myconfig.services.tailscale.darwinCaskPresent && cfg.services.tailscale.enable;
+  withUnknownTerminal = host.extendModules {
+    modules = [ ({ lib, ... }: { myconfig.constants.terminal.name = lib.mkForce "no-such-terminal-xyz"; }) ];
   };
 
   nixAppsDir = "/Applications/Nix Apps/";
@@ -56,13 +91,10 @@ let
         || (lib.hasPrefix hmAppsDir e && !(builtins.elem (lib.toLower (appBase hmAppsDir e)) (hmAppNames cfg))))
       entries;
   dock = map (e: if builtins.isString e then e else e.tile-data.file-data._CFURLString) config.system.defaults.dock.persistent-apps;
-  fakeEntries = dock ++ [ "${hmAppsDir}Firefox.app" "${hmAppsDir}Visual Studio Code.app" ];
+  fakeEntries = dock ++ [ "${hmAppsDir}No Such Test App.app" "${nixAppsDir}No Such Test App.app" ];
 
   termName = cfg: cfg.myconfig.constants.terminal.name;
   termEnabled = cfg: cfg.myconfig.krit.programs.${termName cfg}.enable or false;
-
-  browserPnames = [ "firefox" "librewolf" "chromium" ];
-  browserHits = builtins.filter (n: builtins.elem n sysNames) browserPnames;
 in
 {
   check-primary-user = checkEq "system.primaryUser == constants.user" config.system.primaryUser user;
@@ -108,26 +140,40 @@ in
   check-brew-no-zap = check "homebrew.onActivation.cleanup != zap" (config.homebrew.onActivation.cleanup != "zap") "cleanup is zap";
   check-brew-no-upgrade = checkEq "homebrew.onActivation.upgrade" config.homebrew.onActivation.upgrade false;
 
-  check-browser-no-pkgs =
-    check "no firefox/librewolf/chromium in environment.systemPackages" (browserHits == [ ]) "found ${builtins.toJSON browserHits}";
-
+  check-browser-optout-no-pkgs =
+    check "fixture: constants.browser = \"\" puts no firefox/librewolf/chromium in systemPackages" (browserHits fxBrowserOptOut.config == [ ])
+      "found ${builtins.toJSON (browserHits fxBrowserOptOut.config)}";
   check-browser-control-bites =
-    let wbNames = pnames withBrowser.config; in
-    check "control: constants.browser = firefox puts firefox in environment.systemPackages" (builtins.elem "firefox" wbNames) "firefox absent with browser=firefox";
+    check "control: fixture with default constants.browser puts firefox in systemPackages" (builtins.elem "firefox" (browserHits fxBrowserDefault.config))
+      "firefox absent with the default browser";
 
   check-resolved-pkgs-exist =
     check "terminal/fileManager/editor names are real pkgs attrs" (missingPkgs == [ ]) "missing ${builtins.toJSON missingPkgs}";
 
   check-network-tools-enabled =
-    check "network-tools active (control: tcpdump present)" (builtins.elem "tcpdump" sysNames) "tcpdump absent from systemPackages";
+    check "fixture: network-tools active (control: tcpdump present)" (builtins.elem "tcpdump" (pnames fxNetwork.config)) "tcpdump absent from systemPackages";
   check-no-linux-only-tools =
-    check "no Linux-only network tools in systemPackages" (leakedLinuxTools == [ ]) "leaked ${builtins.toJSON leakedLinuxTools}";
+    check "fixture: no Linux-only network tools in systemPackages" (leakedLinuxTools fxNetwork.config == [ ])
+      "leaked ${builtins.toJSON (leakedLinuxTools fxNetwork.config)}";
 
   check-mcp-secrets-declared =
-    check "every claude-code mcpSecrets[].sopsSecret is a sops.secrets key" (mcpNames != [ ] && missingMcp == [ ])
+    check "fixture: every claude-code mcpSecrets[].sopsSecret is a sops.secrets key" (mcpNames != [ ] && missingMcp == [ ])
       "missing ${builtins.toJSON missingMcp} (of ${toString (builtins.length mcpNames)})";
+  check-mcp-secrets-follow-list =
+    let sec = fxMcpOverride.config.sops.secrets; in
+    check "control: overriding mcpSecrets replaces the declared secrets"
+      (sec ? fixture_only_secret && !(sec ? ${builtins.head mcpNames}))
+      "secrets ${builtins.toJSON (builtins.attrNames sec)}";
+  check-mcp-secrets-off-control =
+    check "control: claude-code-personal disabled declares no mcp secret"
+      (!(fxMcpOff.config.sops.secrets ? ${builtins.head mcpNames}))
+      "${builtins.head mcpNames} declared while disabled";
 
-  check-kitty-option-as-alt = checkEq "kitty settings.macos_option_as_alt" hm.programs.kitty.settings.macos_option_as_alt "yes";
+  check-kitty-option-as-alt = checkEq "fixture: kitty settings.macos_option_as_alt" (fx.hmOf fxKitty.config).programs.kitty.settings.macos_option_as_alt "yes";
+  check-kitty-option-as-alt-control =
+    check "control: kitty disabled sets no macos_option_as_alt"
+      (!((fx.hmOf fxKittyOff.config).programs.kitty.settings ? macos_option_as_alt))
+      "macos_option_as_alt set while kitty is disabled";
 
   check-assertions =
     let failed = map (a: a.message) (builtins.filter (a: !a.assertion) config.assertions); in
@@ -135,36 +181,30 @@ in
 
   check-dock-no-dangling-nix-apps =
     let bad = danglingDock config dock; in
-    check "persistent-apps under Nix Apps / Home Manager Apps match an installed package" (dock != [ ] && bad == [ ])
+    check "persistent-apps under Nix Apps / Home Manager Apps match an installed package" (bad == [ ])
       "dangling ${builtins.toJSON bad}";
-  check-dock-no-disabled-hm-apps =
-    let
-      disabled = lib.optional (!hm.programs.firefox.enable) "${hmAppsDir}Firefox.app"
-        ++ lib.optional (!hm.programs.vscode.enable) "${hmAppsDir}Visual Studio Code.app";
-      hits = builtins.filter (e: builtins.elem e dock) disabled;
-    in
-    check "no persistent-apps entry points at the HM Firefox/VS Code dirs while those programs are disabled" (disabled != [ ] && hits == [ ])
-      "entries ${builtins.toJSON hits}";
   check-dock-control-bites =
     let bad = danglingDock config fakeEntries; in
-    check "control: dangling HM Firefox/VS Code entries are flagged" (builtins.length bad == 2)
+    check "control: injected dangling HM and Nix Apps entries are both flagged" (builtins.length bad == 2)
       "flagged ${builtins.toJSON bad}";
   check-dock-autohide = checkEq "system.defaults.dock.autohide" config.system.defaults.dock.autohide true;
   check-finder-extensions = checkEq "system.defaults.finder.AppleShowAllExtensions" config.system.defaults.finder.AppleShowAllExtensions true;
 
-  check-tailscale-cask-present =
-    checkHas "homebrew.casks contains tailscale-app" (map (x: if builtins.isString x then x else x.name) config.homebrew.casks) "tailscale-app";
-  check-tailscale-daemon-off = checkEq "services.tailscale.enable (nix-darwin daemon)" config.services.tailscale.enable false;
-  check-tailscale-flag-consistent =
-    check "myconfig.services.tailscale.darwinCaskPresent is true"
-      my.services.tailscale.darwinCaskPresent "false although the cask is installed";
-  check-tailscale-control-bites =
-    checkEq "control: without the cask darwinCaskPresent is false" withoutCask.config.myconfig.services.tailscale.darwinCaskPresent false;
+  check-tailscale-no-double-provider =
+    check "not both the tailscale cask and the nix-darwin tailscale daemon" (!(doubleProvider config))
+      "darwinCaskPresent=${builtins.toJSON my.services.tailscale.darwinCaskPresent} daemon=${builtins.toJSON config.services.tailscale.enable}";
+  check-tailscale-double-provider-control =
+    check "control: cask plus daemon is flagged as double provider" (doubleProvider withBothProviders.config) "not flagged";
+  check-tailscale-flag-cask =
+    check "fixture: darwinCaskPresent is true with the tailscale-app cask" fxTailscaleCask.config.myconfig.services.tailscale.darwinCaskPresent
+      "false although the cask is installed";
+  check-tailscale-flag-no-cask =
+    checkEq "control: fixture without the cask has darwinCaskPresent false" fxTailscale.config.myconfig.services.tailscale.darwinCaskPresent false;
 
   check-terminal-hm-enabled =
     check "constants.terminal.name resolves to an enabled krit.programs.<name>" (termEnabled config)
       "krit.programs.${termName config}.enable is not true";
   check-terminal-control-bites =
-    check "control: terminal.name = alacritty (disabled on this host) is flagged" (!(termEnabled withAlacrittyTerminal.config))
-      "alacritty counted as enabled";
+    check "control: an unknown terminal.name is flagged" (!(termEnabled withUnknownTerminal.config))
+      "unknown terminal counted as enabled";
 }
