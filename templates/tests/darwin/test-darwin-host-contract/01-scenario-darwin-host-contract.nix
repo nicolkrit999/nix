@@ -30,11 +30,11 @@ let
   browserHits = cfg: builtins.filter (n: builtins.elem n (pnames cfg)) browserPnames;
 
   fxBrowserDefault = fx.mkDarwin { paths = [ (fx.src + "/modules/darwin/toplevel/home-packages-darwin.nix") ]; };
-  fxBrowserOptOut = fxBrowserDefault.extendModules { modules = [ { myconfig.constants.browser = ""; } ]; };
+  fxBrowserOptOut = fxBrowserDefault.extendModules { modules = [{ myconfig.constants.browser = ""; }]; };
 
   fxNetwork = fx.mkDarwin {
     paths = [ (fx.src + "/users/krit/common/programs/network-tools.nix") ];
-    modules = [ { myconfig.krit.services.network-tools.enable = true; } ];
+    modules = [{ myconfig.krit.services.network-tools.enable = true; }];
   };
 
   mcpPaths = [
@@ -46,25 +46,25 @@ let
   fxMcp = fx.mkDarwin { paths = mcpPaths; modules = [ mcpOn ]; };
   fxMcpOverride = fx.mkDarwin {
     paths = mcpPaths;
-    modules = [ mcpOn { myconfig.krit.programs.claude-code-personal.mcpSecrets = [ { sopsSecret = "fixture_only_secret"; } ]; } ];
+    modules = [ mcpOn { myconfig.krit.programs.claude-code-personal.mcpSecrets = [{ sopsSecret = "fixture_only_secret"; }]; } ];
   };
   fxMcpOff = fx.mkDarwin {
     paths = mcpPaths;
-    modules = [ { myconfig.krit.commonSopsSecrets.enable = true; } ];
+    modules = [{ myconfig.krit.commonSopsSecrets.enable = true; }];
   };
   mcpNames = map (s: s.sopsSecret) fxMcp.config.myconfig.krit.programs.claude-code-personal.mcpSecrets;
   missingMcp = builtins.filter (n: !(fxMcp.config.sops.secrets ? ${n})) mcpNames;
 
   fxTailscale = fx.mkDarwin { paths = [ (fx.src + "/modules/common/services/tailscale.nix") ]; };
-  fxTailscaleCask = fxTailscale.extendModules { modules = [ { homebrew.casks = [ "tailscale-app" ]; } ]; };
+  fxTailscaleCask = fxTailscale.extendModules { modules = [{ homebrew.casks = [ "tailscale-app" ]; }]; };
 
   kittyPaths = [
     (fx.src + "/modules/darwin/toplevel/stylix-darwin.nix")
     (fx.src + "/modules/common/programs/kitty.nix")
     (fx.src + "/users/krit/common/programs/terminal-emulators/kitty.nix")
   ];
-  fxKittyOff = fx.mkDarwin { paths = kittyPaths; modules = [ { myconfig.stylix.enable = false; } ]; };
-  fxKitty = fxKittyOff.extendModules { modules = [ { myconfig.krit.programs.kitty.enable = true; } ]; };
+  fxKittyOff = fx.mkDarwin { paths = kittyPaths; modules = [{ myconfig.stylix.enable = false; }]; };
+  fxKitty = fxKittyOff.extendModules { modules = [{ myconfig.krit.programs.kitty.enable = true; }]; };
 
   translatedEditor = if c.editor == "nvim" then "neovim" else c.editor;
   resolvedNames = [ c.terminal.name c.fileManager translatedEditor ];

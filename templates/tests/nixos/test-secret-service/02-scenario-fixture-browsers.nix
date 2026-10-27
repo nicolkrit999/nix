@@ -28,7 +28,7 @@ let
   heliumHm = fx.hmOf (fx.mkNixos [ heliumOn ]);
   heliumUnpinned = fx.hmOf (fx.mkNixos [ heliumOn { home-manager.users.krit.programs.helium.extraFlags = lib.mkForce [ ]; } ]);
 
-  fhsHost = fx.mkNixos [ { nixpkgs.config.allowUnfree = true; myconfig.programs.claude-desktop.enable = true; myconfig.programs.google-antigravity.enable = true; } ];
+  fhsHost = fx.mkNixos [{ nixpkgs.config.allowUnfree = true; myconfig.programs.claude-desktop.enable = true; myconfig.programs.google-antigravity.enable = true; }];
   fhsInstalled = fhsHost.config.environment.systemPackages;
   fhsByInfix = s: lib.filter (p: has s (p.name or "")) fhsInstalled;
   fhsApps = [ "claude-desktop" "antigravity" ];

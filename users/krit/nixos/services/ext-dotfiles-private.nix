@@ -21,7 +21,7 @@ let
       ".claude/memory"
       ".claude/notebooklm"
       ".claude/skills"
-      ".config/ccstatusline"
+      ".claude/yas.toml"
     ];
 
     "claude/nixos-desktop" = claudeHostLeaves;

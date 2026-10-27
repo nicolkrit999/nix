@@ -80,23 +80,29 @@ let
   hostReport =
     h:
     lib.concatLists (
-      lib.mapAttrsToList (
-        n: c:
-        lib.mapAttrsToList (k: v: {
-          label = "${h}/${n}: ${k}";
-          result = v;
-        }) (anyChecks c)
-      ) (variantsOf flake.nixosConfigurations.${h})
+      lib.mapAttrsToList
+        (
+          n: c:
+          lib.mapAttrsToList
+            (k: v: {
+              label = "${h}/${n}: ${k}";
+              result = v;
+            })
+            (anyChecks c)
+        )
+        (variantsOf flake.nixosConfigurations.${h})
     );
 
-  gnomeFixture = fixture [ { myconfig.programs.gnome.enable = true; } ];
+  gnomeFixture = fixture [{ myconfig.programs.gnome.enable = true; }];
 
-  positives = lib.mapAttrsToList (k: v: {
-    label = "fixture GNOME: ${k}";
-    result = v;
-  }) (gnomeChecks gnomeFixture // anyChecks gnomeFixture);
+  positives = lib.mapAttrsToList
+    (k: v: {
+      label = "fixture GNOME: ${k}";
+      result = v;
+    })
+    (gnomeChecks gnomeFixture // anyChecks gnomeFixture);
 
-  twin = mod: fixture [ { myconfig.programs.gnome.enable = true; } mod ];
+  twin = mod: fixture [{ myconfig.programs.gnome.enable = true; } mod];
 
   absentIf =
     what: c: if !(files c ? ${entry}) then "ok" else "FAIL: override still defined with ${what}";

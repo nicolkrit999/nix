@@ -8,7 +8,7 @@ let
 
   host = fx.mkDarwin {
     paths = [ (fx.src + "/modules/common/programs/headroom.nix") ];
-    modules = [ { myconfig.programs.headroom.enable = true; } ];
+    modules = [{ myconfig.programs.headroom.enable = true; }];
   };
   hm = hmOf host.config;
 

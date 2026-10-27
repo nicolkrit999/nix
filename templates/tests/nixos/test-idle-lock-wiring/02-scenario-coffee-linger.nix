@@ -23,8 +23,9 @@ let
     in
     if !impOn then [ "impermanence is off, the check is vacuous" ]
     else if !coffeeOn then [ "coffee is off, the check is vacuous" ]
-    else lib.optional (!(builtins.elem lingerDir (persisted cfg)) && !staleHandling onText)
-      "${lingerDir} is not persisted and coffee-on.sh has no stale linger marker handling";
+    else
+      lib.optional (!(builtins.elem lingerDir (persisted cfg)) && !staleHandling onText)
+        "${lingerDir} is not persisted and coffee-on.sh has no stale linger marker handling";
 
   base = { myconfig.services.coffee.enable = mk true; myconfig.services.impermanence.enable = mk true; };
   fixture = (fx.mkNixos [ base ]).config;

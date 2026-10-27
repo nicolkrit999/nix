@@ -149,7 +149,7 @@ let
     );
 
   fx = import ../../lib/fixture-host.nix flake;
-  fixture = fx.mkNixos [ { myconfig.programs.kde.enable = true; } ];
+  fixture = fx.mkNixos [{ myconfig.programs.kde.enable = true; }];
   fixtureUser = fixture.config.myconfig.constants.user;
   fixtureShortcuts = (hmOf fixture.config).programs.plasma.shortcuts;
   fixtureCommands = (hmOf fixture.config).programs.plasma.hotkeys.commands;
@@ -378,10 +378,12 @@ let
 in
 {
   report = render (
-    lib.mapAttrsToList (k: v: {
-      label = "fixture: ${k}";
-      result = v;
-    }) (checksOf fixture.config)
+    lib.mapAttrsToList
+      (k: v: {
+        label = "fixture: ${k}";
+        result = v;
+      })
+      (checksOf fixture.config)
     ++ [
       {
         label = "fixture: KDE enabled with shortcuts and Meta+V / Meta+. hotkeys";
