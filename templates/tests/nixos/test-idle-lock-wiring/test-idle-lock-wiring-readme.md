@@ -22,7 +22,7 @@ Needs `nix`, `jq`, `bash`. Eval plus one tiny build (the `nix-busy` script is re
 
 ## How it works
 
-`01-scenario-idle-lock-wiring.nix` takes `{ host }`, loads `flake.nixosConfigurations.<host>` via `builtins.getFlake` (`FLAKE_ROOT` is exported by the runner) and exposes `results`, an attrset of `label -> "ok" | "FAIL: ..."`. Every property is a function from a config to a list of problems; the real config must give `[]`. A `control(...)` check applies the SAME function to a broken `extendModules` twin (or a literal bad input) and passes only when a problem is reported. `02-scenario-coffee-linger.nix` takes no host: it builds `template-host-minimal` through `lib/fixture-host.nix` with only coffee and impermanence forced on. `check-nixos-idle-lock-wiring.sh` runs the first scenario per host and the second once, and refuses to pass with fewer than 33 checks (14 per host x 2 + 5).
+`01-scenario-idle-lock-wiring.nix` takes `{ host }`, loads `flake.nixosConfigurations.<host>` via `builtins.getFlake` (`FLAKE_ROOT` is exported by the runner) and exposes `results`, an attrset of `label -> "ok" | "FAIL: ..."`. Every property is a function from a config to a list of problems; the real config must give `[]`. A `control(...)` check applies the SAME function to a broken `extendModules` twin (or a literal bad input) and passes only when a problem is reported. `02-scenario-coffee-linger.nix` takes no host: it builds `template-host-minimal` through `lib/fixture-host.nix` with only coffee and impermanence forced on. `check-nixos-idle-lock-wiring.sh` runs the first scenario per host and the second once, and refuses to pass with fewer than 33 checks (14 per host x 2 + 5). Results go through `builtins.tryEval`, which turns a module-system throw (e.g. conflicting `mkForce` definitions in a twin) into `FAIL: eval error`; for such a check the script re-evaluates that one check without `tryEval` and prints the `error:` lines and their `at` locations.
 
 Busy guard: each hypridle `on-timeout` has the form `<store>-nix-busy && exit 0; <command>`. When nix is busy the guard exits 0 and the command is skipped; otherwise `pgrep` fails and the command runs. The test pins that shape (`&&`, then `;`, a real command after it) and reads the `nix-busy` script body at eval time: it must contain `pgrep` for nix build / nixos-rebuild and must not swallow the status (`|| true`, `exit N`, `set -e`), because that would make the guard skip every on-timeout or none. This is the nearest eval-only stand-in for "on-timeout runs when not busy"; a real idle run (a compositor, hypridle and a busy nix process) is NOT covered.
 
@@ -52,7 +52,7 @@ SDDM: the exclusivity check is split from the wiring check because enabling both
 | unguarded listeners twin | hypridle check reports a problem |
 | bodies with `\|\| true`, `exit 0`, no pgrep | busy-body check reports each |
 | linger list emptied, stale text replaced | linger check reports; with the real `coffee-on.sh` text the emptied twin is accepted |
-| impermanence off / coffee off fixture twin | linger check reports the vacuity |
+| impermanence off / coffee off fixture twin (`mkOverride 10 false` over the fixture's `mkForce true`) | linger check reports the vacuity |
 | WM-less twin vs WM-expected | hyprlock check reports |
 | shell twin vs swaync-expected | swaync check reports |
 | both / no sddm module | exclusivity check reports |

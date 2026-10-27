@@ -29,8 +29,8 @@ let
   base = { myconfig.services.coffee.enable = mk true; myconfig.services.impermanence.enable = mk true; };
   fixture = (fx.mkNixos [ base ]).config;
   noLinger = (fx.mkNixos [ base { environment.persistence."/persist".directories = over [ ]; } ]).config;
-  noImpermanence = (fx.mkNixos [ base { myconfig.services.impermanence.enable = mk false; } ]).config;
-  noCoffee = (fx.mkNixos [ base { myconfig.services.coffee.enable = mk false; } ]).config;
+  noImpermanence = (fx.mkNixos [ base { myconfig.services.impermanence.enable = over false; } ]).config;
+  noCoffee = (fx.mkNixos [ base { myconfig.services.coffee.enable = over false; } ]).config;
 
   checks = {
     "coffee: linger dir persisted, or coffee-on.sh handles a stale linger marker" = failIf (lingerProblems fixture coffeeOnText);

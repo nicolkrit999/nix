@@ -52,7 +52,13 @@ for v in "${NAMES[@]}"; do
   echo -e "${BOLD}$v${NC}"
   out="$WORK/$v.json"
   if ! nixeval "variant.$v" >"$out" 2>"$WORK/$v.err"; then
-    record "$v: evaluation" 0 "$(grep -E 'error:' "$WORK/$v.err" | head -3 | tr '\n' '~')"
+    nixeval --show-trace "variant.$v" >/dev/null 2>"$WORK/$v.trace" || true
+    keep_evidence "shell-init-$v" "$WORK/$v.trace"
+    record "$v: evaluation" 0 "$({
+      grep -E -A1 'error:' "$WORK/$v.err" | head -6
+      echo "innermost frames (--show-trace):"
+      grep -E -B1 '^[[:space:]]+at ' "$WORK/$v.trace" | grep -v '^--$' | tail -12
+    } | tr '\n' '~')"
     continue
   fi
 

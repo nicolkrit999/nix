@@ -47,7 +47,7 @@ for host in nixos-desktop nixos-laptop; do
       printf "${RED}✗ fail${NC}\n"
       ((FAIL++)) || true
       if [[ "$result" == "FAIL: eval error" ]]; then
-        result="$result~$(CHECK_LABEL="$label" nix eval --impure --raw --file "$SCENARIO" --argstr host "$host" --apply 'cs: builtins.deepSeq cs.${builtins.getEnv "CHECK_LABEL"} "x"' checks 2>&1 | grep -E 'error:' | head -3 | tr '\n' '~')"
+        result="$result~$(CHECK_LABEL="$label" nix eval --impure --raw --file "$SCENARIO" --argstr host "$host" --apply 'cs: builtins.deepSeq cs.${builtins.getEnv "CHECK_LABEL"} "x"' checks 2>&1 | grep -E 'error:|^ *at ' | head -6 | tr '\n' '~')"
       fi
       FAILURES+=("$host: $label|$result")
     fi
@@ -66,6 +66,9 @@ if json=$(nix eval --impure --json --file "$LINGER_SCENARIO" results 2>"$err"); 
     else
       printf "${RED}✗ fail${NC}\n"
       ((FAIL++)) || true
+      if [[ "$result" == "FAIL: eval error" ]]; then
+        result="$result~$(CHECK_LABEL="$label" nix eval --impure --raw --file "$LINGER_SCENARIO" --apply 'cs: builtins.deepSeq cs.${builtins.getEnv "CHECK_LABEL"} "x"' checks 2>&1 | grep -E 'error:|^ *at ' | head -6 | tr '\n' '~')"
+      fi
       FAILURES+=("coffee linger fixture: $label|$result")
     fi
   done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
