@@ -44,10 +44,16 @@ delib.module {
 
       environment.systemPackages = with pkgs; [
         age
+        fd
+        killall
         nixfmt
         nix-prefetch-scripts
         nodenv
+        tree
         sops
+        unzip
+        zip
+        zlib
       ];
 
       environment.systemPath = lib.optional config.homebrew.enable "${config.homebrew.prefix}/bin";

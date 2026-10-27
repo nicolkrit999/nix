@@ -209,7 +209,7 @@ let
     in
     {
       "gnome-wm-keybindings-merged" = chk (lib.elem "<Super><Shift>c" (unwrap wm.close) && mergeBad == [ ]) "wm/keybindings lost the module close binding or a declared wmKeybindings key (bad: ${toString mergeBad})";
-      "gnome-thumb-gestures-mapped" = chk (!(declared ? minimize) || (lib.elem "XF86Launch7" declared.minimize && !(declared ? close && lib.elem "XF86Launch7" declared.close) && lib.elem "XF86Launch7" (unwrap wm.minimize) && !(lib.elem "XF86Launch7" (unwrap wm.close)) && lib.elem "<Super>m" (unwrap wm.toggle-maximized) && lib.elem "<Super><Shift>c" (unwrap wm.close))) "thumb-gesture mapping broken: minimize must hold XF86Launch7, close must not, toggle-maximized must hold <Super>m";
+      "gnome-minimize-maximize-mapped" = chk (!(declared ? minimize) || (declared.minimize != [ ] && lib.all (k: lib.elem k (unwrap wm.minimize) && !(lib.elem k (unwrap wm.close))) declared.minimize && lib.elem "<Super>m" (unwrap wm.toggle-maximized) && lib.elem "<Super><Shift>c" (unwrap wm.close))) "minimize/maximize mapping broken: declared minimize keys must render in minimize and not in close, toggle-maximized must hold <Super>m";
       "gnome-message-tray-frees-super-m" = chk (!(lib.elem "<Super>m" (unwrap ds."org/gnome/shell/keybindings".toggle-message-tray))) "toggle-message-tray still holds <Super>m";
       "gnome-custom-entries-present" = chk (customNames != [ ]) "no custom<i> entries";
       "gnome-custom-list-matches-entries" = chk (builtins.length listed == builtins.length customNames && lib.sort (a: b: a < b) listed == lib.sort (a: b: a < b) expectedList) "custom-keybindings list (${toString (builtins.length listed)}) != custom<i> entries (${toString (builtins.length customNames)})";

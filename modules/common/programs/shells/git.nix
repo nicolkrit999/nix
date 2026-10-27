@@ -1,4 +1,9 @@
-{ delib, inputs, pkgs, lib, ... }:
+{ delib
+, inputs
+, pkgs
+, lib
+, ...
+}:
 delib.module {
   name = "programs.git";
   options =
@@ -16,6 +21,7 @@ delib.module {
           run ${pkgs.git}/bin/git -C "$HOME/${myconfig.constants.flakeDir}" config core.hooksPath .githooks
         fi
       '';
+      home.packages = [ pkgs.gh ] ++ lib.optional pkgs.stdenv.hostPlatform.isLinux pkgs.github-desktop;
 
       programs.git = {
         enable = true;

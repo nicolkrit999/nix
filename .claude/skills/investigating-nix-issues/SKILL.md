@@ -10,6 +10,14 @@ CLAUDE.md mandates delegating research, verification, and fixes to agents -
 the orchestrator (this chat) only frames the issue, dispatches agents, and
 loops; agents cannot call each other.
 
+## Step R - RESOURCE CHECK (first, main loop, before any heavy dispatch)
+
+Run `bash .claude/skills/_shared/resource-check.sh` and apply its output as
+described in `.claude/skills/_shared/resource-check.md` (hardware-based, never
+hostname-based): cap parallel heavy agents at `max_parallel_agents`, pass
+`nix_flags` into every build brief, and use `--parallel` tests only when
+`run_tests_parallel=yes`. If the user reports lag, drop a tier first.
+
 ## The loop
 
 **Step -1 - CHECK WHICH GENERATION IS ACTUALLY ACTIVE (main loop, mandatory,
@@ -62,7 +70,7 @@ unknown (a generic "debug X" with no recent verification), dispatch
 the symptom later surfaces a failing build/eval, stop and switch loops.
 
 **1. INVESTIGATE - gather evidence with the matching read-only agent(s).**
-Pick per evidence type (dispatch several in parallel when independent):
+Pick per evidence type (dispatch several in parallel when independent, heavy ones capped by Step R):
 - **Repo archaeology** (is this module referenced anywhere? which modules
   set this option? where does a value actually come from?) - dispatch
   `Explore`. It's the read-only sweep agent; dead-code hunting and

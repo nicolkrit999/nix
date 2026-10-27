@@ -45,10 +45,8 @@ delib.module {
           "com.github.unrud.VideoDownloader" # Video Downloader, a tool for downloading videos from various platforms
           "com.rtosta.zapzap" # Whatsapp client for Linux
 
-          "io.github.AshBuk.FingerGo" # Typing trainer
           "io.github.iionel.Visu" # Algorithm visualizer
           "io.github.lluciocc.Vish" # Gui bash script editor
-          "io.github.philippkosarev.bmi" # Bmi calculator
           "io.github.shonebinu.Brief" # Brief, command lines cheatsheet application
 
           "lol.siembra.tuxtypeplus" # Typing test games

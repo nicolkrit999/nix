@@ -4,7 +4,8 @@
 , ...
 }:
 let
-  scrubTargets = config:
+  scrubTargets =
+    config:
     let
       btrfsFs = lib.filter (fs: fs.fsType == "btrfs") (lib.attrValues config.fileSystems);
       byDevice = lib.groupBy (fs: toString fs.device) btrfsFs;
@@ -47,6 +48,20 @@ delib.module {
         font = "Lat2-Terminus16";
       };
 
+      # gearlever makeWrapperArgs breaks under structuredAttrs; remove when nixpkgs fixes it
+      nixpkgs.overlays = [
+        (_final: prev: {
+          gearlever = prev.gearlever.overrideAttrs (old: {
+            makeWrapperArgs = lib.concatMap (lib.splitString " ") (
+              lib.remove "\${gappsWrapperArgs[@]}" old.makeWrapperArgs
+            );
+            preFixup = (old.preFixup or "") + ''
+              makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
+            '';
+          });
+        })
+      ];
+
       # Allow unfree packages globally (needed for drivers, code, etc.)
       nixpkgs.config.allowUnfree = true;
 
@@ -61,7 +76,9 @@ delib.module {
           with pkgs;
           [
             # --- CLI UTILITIES ---
+            age
             dix
+            efibootmgr
             git
             git-lfs # Needed by GitHub Desktop and other GUI clients
             nixfmt
@@ -72,10 +89,16 @@ delib.module {
             wget
             curl
             nodenv
+            tree
+            unzip
+            zip
+            zlib
 
             # --- SYSTEM TOOLS ---
-            foot # Tiny, zero-config terminal (Rescue tool)
+            fd
             gsettings-desktop-schemas
+            htop
+            killall
             libnotify # Used by most de/wm modules
             libsecret
             seahorse

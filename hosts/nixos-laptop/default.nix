@@ -14,9 +14,6 @@ let
   myLocale = "en_US.UTF-8";
   myGitUserName = "Krit Pio Nicol";
 
-  # Own profile dir: --name only takes effect on a separate (--no-remote) instance
-  scratchBrowserCmd = "${myBrowser} --no-remote --profile $HOME/.local/share/scratch-browser --name scratch-browser";
-
   # 🌟 HYPRLAND APP WORKSPACES
   appWorkspaces = {
     chat = "5";
@@ -37,13 +34,6 @@ let
         inherit workspace;
       })
       classes;
-  scratchRule = class: {
-    match.class = "^(${class})$";
-    float = true;
-    center = true;
-    size = "80% 80%";
-    workspace = "special:magic";
-  };
 
   termApps = [
     "helix"
@@ -92,7 +82,6 @@ let
     "github-desktop.desktop"
     "LocalSend.desktop"
     "proton-pass.desktop"
-    "vesktop.desktop"
     "com.actualbudget.actual.desktop"
     "com.rtosta.zapzap.desktop"
   ];
@@ -211,7 +200,7 @@ delib.host {
         gcd = "15d";
         gcn = "5";
       };
-      nix-sweeps.enable = true;
+      nix-sweeps.enable = false;
       qt.enable = true;
 
       stylix = {
@@ -256,11 +245,11 @@ delib.host {
           enable = true;
           browserChannels = true;
         };
-        herdr.enable = true;
+        herdr.enable = false;
         kitty.fontSize = 12;
         lazygit.enable = true;
         nix-alien.enable = false;
-        nix-ld.enable = false;
+        nix-ld.enable = true;
         nltchNur = {
           enable = false;
           packages = [ ];
@@ -274,6 +263,7 @@ delib.host {
           ];
           hostPackages = [ ];
         };
+        openlogi.enable = true;
         prismlauncher.enable = true;
         shell-aliases.enable = true;
         sidra.enable = true;
@@ -282,8 +272,8 @@ delib.host {
         starship.enable = true;
         statix.enable = false;
         swayosd.enable = true;
-        television.enable = true;
-        tgt.enable = true;
+        television.enable = false;
+        tgt.enable = false;
 
         thunderbird = {
           enable = false;
@@ -324,7 +314,6 @@ delib.host {
             github
             gnome-settings
             it-tools
-            kde-system-settings
             nerdfont-search
             niri
             number-converter
@@ -478,16 +467,10 @@ delib.host {
               "^(XTerm)$"
             ]
             ++ workspaceRules (silent appWorkspaces.chat) [
-              "^(vesktop)$"
               "^(discord)$"
               "^(org.telegram.desktop)$"
               "^(whatsapp-electron)$"
               "^(com.rtosta.zapzap)$"
-            ]
-            ++ map scratchRule [
-              "scratch-term"
-              "scratch-fs"
-              "scratch-browser"
             ]
             ++ [
               {
@@ -502,52 +485,6 @@ delib.host {
                 opaque = true;
               }
             ];
-
-          extraBinds = [
-            {
-              _args = [
-                "SUPER + SHIFT + return"
-                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-term")'')
-              ];
-            }
-            {
-              _args = [
-                "SUPER + SHIFT + F"
-                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-fs -e ${myFileManager}")'')
-              ];
-            }
-            {
-              _args = [
-                "SUPER + SHIFT + B"
-                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${scratchBrowserCmd}")'')
-              ];
-            }
-
-            {
-              _args = [
-                "XF86Tools"
-                (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m-1" })'')
-              ];
-            }
-            {
-              _args = [
-                "XF86Launch5"
-                (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m+1" })'')
-              ];
-            }
-            {
-              _args = [
-                "XF86Launch6"
-                (lib.generators.mkLuaInline "hl.dsp.window.fullscreen()")
-              ];
-            }
-            {
-              _args = [
-                "XF86Launch7"
-                (lib.generators.mkLuaInline "hl.dsp.window.close()")
-              ];
-            }
-          ];
         };
 
         mango = {
@@ -564,12 +501,6 @@ delib.host {
             "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
             "sh -c 'sleep 11 && ${myTerminal}'"
             "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
-          ];
-          extraBinds = [
-            "NONE,XF86Tools,viewtoleft_have_client,0"
-            "NONE,XF86Launch5,viewtoright_have_client,0"
-            "NONE,XF86Launch6,togglefullscreen,"
-            "NONE,XF86Launch7,killclient,"
           ];
         };
 
@@ -593,13 +524,6 @@ delib.host {
             "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
             "sh -c 'sleep 27 && niri msg action focus-column-first'" # Refocus browser after all windows are up
           ];
-          extraBinds = {
-            # 🖱️ LOGITECH MX MASTER Thumb button gestures
-            "XF86Tools".action.focus-workspace-up = [ ]; # Swipe Left: Previous workspace
-            "XF86Launch5".action.focus-workspace-down = [ ]; # Swipe Right: Next workspace
-            "XF86Launch6".action.maximize-column = [ ]; # Swipe Up: Maximize column
-            "XF86Launch7".action.close-window = [ ]; # Swipe Down: Close window
-          };
         };
 
         # ---------------------------------------------------------------
@@ -641,29 +565,24 @@ delib.host {
         gnome = {
           enable = false;
           inherit pinnedApps;
-          # 🖱️ LOGITECH MX MASTER Thumb gestures: left/right = workspace, up = maximize, down = minimize; <Super>m toggles maximize
           wmKeybindings = {
             switch-to-workspace-left = [
               "<Super>Page_Up"
               "<Super>KP_Prior"
               "<Super><Alt>Left"
               "<Control><Alt>Left"
-              "XF86Tools"
             ];
             switch-to-workspace-right = [
               "<Super>Page_Down"
               "<Super>KP_Next"
               "<Super><Alt>Right"
               "<Control><Alt>Right"
-              "XF86Launch5"
             ];
             maximize = [
               "<Super>Up"
-              "XF86Launch6"
             ];
             minimize = [
               "<Super>h"
-              "XF86Launch7"
             ];
             toggle-maximized = [
               "<Super>m"
@@ -675,25 +594,6 @@ delib.host {
         kde = {
           enable = true;
           inherit pinnedApps;
-          extraBinds = {
-            # 🖱️ LOGITECH MX MASTER Thumb button gestures
-            "gesture-left" = {
-              key = "XF86Tools";
-              command = "qdbus org.kde.KWin /KWin org.kde.KWin.previousDesktop";
-            };
-            "gesture-right" = {
-              key = "XF86Launch5";
-              command = "qdbus org.kde.KWin /KWin org.kde.KWin.nextDesktop";
-            };
-            "gesture-up" = {
-              key = "XF86Launch6";
-              command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Maximize\"";
-            };
-            "gesture-down" = {
-              key = "XF86Launch7";
-              command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Close\"";
-            };
-          };
         };
       };
 
@@ -775,7 +675,7 @@ delib.host {
           firefox.enable = false;
           helium.enable = false;
           kitty.enable = true;
-          librewolf.enable = true;
+          librewolf.enable = false;
           neovim.enable = true;
           proton-cli.enable = false;
           pwas.enable = true;
@@ -800,7 +700,7 @@ delib.host {
           };
 
           logitech = {
-            enable = true;
+            enable = false;
             mouses = {
               mx-master-3s.enable = true;
               mx-master-4.enable = true;

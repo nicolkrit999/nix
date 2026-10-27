@@ -43,7 +43,7 @@ The legacy-dispatch scan covers the rendered lua, `hypridle.conf`, the waybar co
 | `waybar-control-stock-unpatched` | stock waybar does not contain the patch |
 | `xwayland-phantom-rule-*` | `class ^$` + xwayland + `no_focus` rule in settings and rendered lua |
 | `jetkvm-teardown-gated-no-ls-pipe` | when a variant has `hyprland-jetkvm-teardown`: `Service.ExecCondition` is set (acts only in a Hyprland session) and the teardown script has no `\| head` (glob over `$XDG_RUNTIME_DIR/hypr/*` instead of `ls`) |
-| `scratch-binds-have-window-rules` | every `[workspace special:magic]` bind in hyprland.lua launches a `--class`/`--name` that fully matches the class of a `special:magic` window rule in the same file; the two real hosts must have at least 3 such binds (non-vacuous). Guards the `scratch-browser` class regression |
+| `scratch-binds-have-window-rules` | every `[workspace special:magic]` bind in hyprland.lua launches a `--class`/`--name` that fully matches the class of a `special:magic` window rule in the same file (hosts may have none; the matcher controls below keep it non-vacuous). Guards the `scratch-browser` class regression |
 | `wrapper-capabilities-empty`, `with-uwsm` | `security.wrappers.Hyprland.capabilities == ""`, `withUWSM` |
 
 ### Script-level

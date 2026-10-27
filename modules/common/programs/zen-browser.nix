@@ -16,6 +16,11 @@ delib.module {
   home.ifEnabled = {
     home.sessionVariables = lib.mkIf (moduleSystem != "darwin") { MOZ_ENABLE_WAYLAND = "1"; };
 
+    # The shipped zen-beta.desktop omits application/pdf (pdf.js renders it); no derivable desktop-id attr exists
+    xdg.mimeApps.associations.added = lib.mkIf (moduleSystem != "darwin") {
+      "application/pdf" = [ "zen-beta.desktop" ];
+    };
+
     programs.zen-browser = {
       enable = true;
       setAsDefaultBrowser = false; # pinned on purpose, equals the upstream default

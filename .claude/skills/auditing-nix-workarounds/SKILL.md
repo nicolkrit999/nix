@@ -14,6 +14,14 @@ Details live in two supporting files:
 - [./revert-and-verify-procedure.md](./revert-and-verify-procedure.md) - Step 4 (revert, verify, restore on failure)
 - [./memory-bookkeeping-and-report.md](./memory-bookkeeping-and-report.md) - Steps 5-7 (memory edits, user confirmation, final report buckets)
 
+## Step R - RESOURCE CHECK (first, main loop, before any heavy dispatch)
+
+Run `bash .claude/skills/_shared/resource-check.sh` and apply its output as
+described in `.claude/skills/_shared/resource-check.md` (hardware-based, never
+hostname-based): cap parallel heavy agents at `max_parallel_agents`, pass
+`nix_flags` into every build brief, and use `--parallel` tests only when
+`run_tests_parallel=yes`. If the user reports lag, drop a tier first.
+
 ## Step 0 - DISCOVER (main loop)
 
 Read **every** file in `/home/krit/.claude/projects/-home-krit-nix/memory/`,
@@ -34,7 +42,7 @@ candidates already gone or changed in shape - never act on stale memory.
 
 ## Step 2 - RESEARCH each live candidate
 
-Dispatch independent candidates in parallel.
+Dispatch independent candidates in parallel, up to `max_parallel_agents` heavy ones at a time (read-only researchers are light and may fan out; Step R).
 
 - **Package/attribute/option/channel status** -> `nix-package-researcher`. It
   checks unstable and, where the commit matters, the revision locked in

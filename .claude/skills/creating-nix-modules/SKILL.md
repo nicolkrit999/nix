@@ -9,6 +9,14 @@ The repo CLAUDE.md mandates delegating authoring, linting, and verification
 to agents - never do this work directly in the main loop. The orchestrator
 (this chat) dispatches each stage and loops; agents cannot call each other.
 
+## Step R - RESOURCE CHECK (first, main loop, before any heavy dispatch)
+
+Run `bash .claude/skills/_shared/resource-check.sh` and apply its output as
+described in `.claude/skills/_shared/resource-check.md` (hardware-based, never
+hostname-based): cap parallel heavy agents at `max_parallel_agents`, pass
+`nix_flags` into every build brief, and use `--parallel` tests only when
+`run_tests_parallel=yes`. If the user reports lag, drop a tier first.
+
 ## The pipeline
 
 **1. RESEARCH - dispatch `nix-package-researcher`** to confirm exact

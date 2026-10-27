@@ -12,6 +12,14 @@ auto-discovered, nothing is registered anywhere. But every test change has a
 mandatory **docs sync** (section below): the folder readme, the overview page and
 the CI group table are hand-written and go stale otherwise.
 
+## Step R - RESOURCE CHECK (first, main loop, before any heavy dispatch)
+
+Run `bash .claude/skills/_shared/resource-check.sh` and apply its output as
+described in `.claude/skills/_shared/resource-check.md` (hardware-based, never
+hostname-based): cap parallel heavy agents at `max_parallel_agents`, pass
+`nix_flags` into every build brief, and use `--parallel` tests only when
+`run_tests_parallel=yes`. If the user reports lag, drop a tier first.
+
 ## Rules every test must follow (user rules)
 
 1. Never test which programs / WMs / DEs / kernels a host chooses to enable.
@@ -56,15 +64,15 @@ Hand it the rules above. Deliverables:
 The author does a quick self-run of its own folder, nothing more.
 
 **2. RUN - dispatch ONE `nix-checker` per test folder**, in parallel when several
-tests changed. Each agent runs `bash templates/tests/run-tests.sh --only <name>`
+tests changed (at most `max_parallel_agents` at once, rest queued; Step R). Each agent runs `bash templates/tests/run-tests.sh --only <name>`
 (names: `bash templates/tests/run-tests.sh --list`) or the folder's `check-*.sh`.
 Never hand one agent several folders. Add one more checker for the docs-sync
 guard (`--only common-test-infra`) whenever any test was added, renamed, deleted
 or had its checks or `test.conf` changed. For a FULL-suite verification (e.g. when the
 new test touches shared `lib/` or `test.conf` semantics) do not split per folder:
-run the whole suite with ONE `bash templates/tests/run-tests.sh --parallel`
+run the whole suite with ONE `bash templates/tests/run-tests.sh --parallel` (only if Step R says `run_tests_parallel=yes`; otherwise one `--only` folder at a time)
 (fast, ~1-4 min) in a single nix-checker, and run the builds (flake check, each
-host toplevel, darwin dry, home dry) as separate parallel nix-checker agents. The
+host toplevel, darwin dry, home dry) as separate nix-checker agents, parallel only within the Step R cap. The
 one-agent-per-folder pattern stays for targeted runs and triage of specific tests.
 
 **3. TRIAGE failures - diagnose first.** Dispatch `nix-debugger` read-only (tell it

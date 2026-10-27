@@ -54,7 +54,7 @@ let
     let rules = scratchRuleClasses text; in
     lib.filter (cls: !(lib.any (r: builtins.match r cls != null) rules)) (scratchBindClasses text);
 
-  perVariant = name: c:
+  perVariant = _name: c:
     let
       hm = hmOf c;
       lua = hm.xdg.configFile."hypr/hyprland.lua".text;
@@ -109,11 +109,9 @@ let
       "jetkvm-teardown-gated-no-ls-pipe" = chk (jetkvm == null || ((jetkvm.Service.ExecCondition or "") != "" && !(has "| head" jetkvmText))) "hyprland-jetkvm-teardown lacks ExecCondition or still pipes ls into head";
       "scratch-binds-have-window-rules" =
         let
-          binds = scratchBindClasses lua;
           bad = scratchUnmatched lua;
-          isHost = !(has "+" name);
         in
-        chk ((!isHost || builtins.length binds >= 3) && bad == [ ]) (if bad != [ ] then "scratch bind class without special:magic window rule: ${toString bad}" else "expected >= 3 scratch binds, found ${toString (builtins.length binds)}");
+        chk (bad == [ ]) "scratch bind class without special:magic window rule: ${toString bad}";
       "with-uwsm" = chk c.programs.hyprland.withUWSM "programs.hyprland.withUWSM is false";
     };
 

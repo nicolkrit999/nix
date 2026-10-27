@@ -80,13 +80,6 @@ let
         inherit workspace;
       })
       classes;
-  scratchRule = class: {
-    match.class = "^(${class})$";
-    float = true;
-    center = true;
-    size = "80% 80%";
-    workspace = "special:magic";
-  };
 
   termApps = [
     "helix"
@@ -135,7 +128,6 @@ let
     "github-desktop.desktop"
     "LocalSend.desktop"
     "proton-pass.desktop"
-    "vesktop.desktop"
     "com.actualbudget.actual.desktop"
     "com.rtosta.zapzap.desktop"
   ];
@@ -252,7 +244,7 @@ delib.host {
         gcd = "30d";
         gcn = "3";
       };
-      nix-sweeps.enable = true;
+      nix-sweeps.enable = false;
       qt.enable = true;
 
       stylix = {
@@ -275,15 +267,15 @@ delib.host {
         # mcpSecrets / mcpEnv default in users/krit/common/programs/claude-code/claude-code-personal.nix
         claude-code.enable = true;
         claude-desktop.enable = true;
-        codex.enable = true;
+        codex.enable = false;
         comma.enable = true;
         concord.enable = true;
-        doom.enable = true;
+        doom.enable = false;
         eza.enable = true;
         fastfetch.enable = true;
         fzf = {
           enable = true;
-          nix-search-tv.enable = true;
+          nix-search-tv.enable = false;
         };
 
         git = {
@@ -291,8 +283,8 @@ delib.host {
           customGitIgnores = [ ];
         };
 
-        google-antigravity.enable = true;
-        headroom.enable = true;
+        google-antigravity.enable = false;
+        headroom.enable = false;
         agent-reach = {
           enable = true;
           browserChannels = true;
@@ -324,11 +316,11 @@ delib.host {
         starship.enable = true;
         statix.enable = true;
         swayosd.enable = true;
-        television.enable = true;
-        tgt.enable = true;
+        television.enable = false;
+        tgt.enable = false;
 
         thunderbird = {
-          enable = true;
+          enable = false;
           sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
           accounts = [
             {
@@ -364,9 +356,7 @@ delib.host {
             color-converter
             fuzzy-files
             github
-            gnome-settings
             it-tools
-            kde-system-settings
             nerdfont-search
             niri
             number-converter
@@ -530,18 +520,12 @@ delib.host {
               "^(XTerm)$"
             ]
             ++ workspaceRules (silent appWorkspaces.chat) [
-              "^(vesktop)$"
               "^(discord)$"
               "^(org.telegram.desktop)$"
               "^(whatsapp-electron)$"
               "^(com.rtosta.zapzap)$"
             ]
             ++ workspaceRules appWorkspaces.other [ "(?i).*zathura.*" ]
-            ++ map scratchRule [
-              "scratch-term"
-              "scratch-fs"
-              "scratch-browser"
-            ]
             ++ [
               {
                 match.class = "^winboat-.*$";
@@ -555,52 +539,6 @@ delib.host {
                 opaque = true;
               }
             ];
-
-          extraBinds = [
-            {
-              _args = [
-                "SUPER + SHIFT + return"
-                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-term")'')
-              ];
-            }
-            {
-              _args = [
-                "SUPER + SHIFT + F"
-                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${myTerminal} --class scratch-fs -e ${myFileManager}")'')
-              ];
-            }
-            {
-              _args = [
-                "SUPER + SHIFT + B"
-                (lib.generators.mkLuaInline ''hl.dsp.exec_cmd("[workspace special:magic] ${scratchBrowserCmd}")'')
-              ];
-            }
-
-            {
-              _args = [
-                "XF86Tools"
-                (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m-1" })'')
-              ];
-            }
-            {
-              _args = [
-                "XF86Launch5"
-                (lib.generators.mkLuaInline ''hl.dsp.focus({ workspace = "m+1" })'')
-              ];
-            }
-            {
-              _args = [
-                "XF86Launch6"
-                (lib.generators.mkLuaInline "hl.dsp.window.fullscreen()")
-              ];
-            }
-            {
-              _args = [
-                "XF86Launch7"
-                (lib.generators.mkLuaInline "hl.dsp.window.close()")
-              ];
-            }
-          ];
         };
 
         mango = {
@@ -637,10 +575,6 @@ delib.host {
             "is_floating:1,width:0.8,height:0.8,tags:0,app_id:^scratch-browser$"
           ];
           extraBinds = [
-            "NONE,XF86Tools,viewtoleft_have_client,0"
-            "NONE,XF86Launch5,viewtoright_have_client,0"
-            "NONE,XF86Launch6,togglefullscreen,"
-            "NONE,XF86Launch7,killclient,"
             "SUPER+SHIFT,Return,spawn,${lib.getExe mangoScratch} ${myTerminal} --class scratch-term"
             "SUPER+SHIFT,F,spawn,${lib.getExe mangoScratch} ${myTerminal} --class scratch-fs -e ${myFileManager}"
             "SUPER+SHIFT,B,spawn,sh -c 'exec ${lib.getExe mangoScratch} ${scratchBrowserCmd}'"
@@ -691,13 +625,6 @@ delib.host {
             "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
             "sh -c 'sleep 30 && niri msg action focus-column-first'" # Refocus browser after all windows are up
           ];
-          extraBinds = {
-            # 🖱️ LOGITECH MX MASTER Thumb button gestures
-            "XF86Tools".action.focus-column-left = [ ]; # Swipe Left: Focus previous column
-            "XF86Launch5".action.focus-column-right = [ ]; # Swipe Right: Focus next column
-            "XF86Launch6".action.maximize-column = [ ]; # Swipe Up: Maximize column
-            "XF86Launch7".action.close-window = [ ]; # Swipe Down: Close window
-          };
         };
 
         # ---------------------------------------------------------------
@@ -740,29 +667,24 @@ delib.host {
         gnome = {
           enable = true;
           inherit pinnedApps;
-          # 🖱️ LOGITECH MX MASTER Thumb gestures: left/right = workspace, up = maximize, down = minimize; <Super>m toggles maximize
           wmKeybindings = {
             switch-to-workspace-left = [
               "<Super>Page_Up"
               "<Super>KP_Prior"
               "<Super><Alt>Left"
               "<Control><Alt>Left"
-              "XF86Tools"
             ];
             switch-to-workspace-right = [
               "<Super>Page_Down"
               "<Super>KP_Next"
               "<Super><Alt>Right"
               "<Control><Alt>Right"
-              "XF86Launch5"
             ];
             maximize = [
               "<Super>Up"
-              "XF86Launch6"
             ];
             minimize = [
               "<Super>h"
-              "XF86Launch7"
             ];
             toggle-maximized = [
               "<Super>m"
@@ -774,25 +696,6 @@ delib.host {
         kde = {
           enable = true;
           inherit pinnedApps;
-          extraBinds = {
-            # 🖱️ LOGITECH MX MASTER Thumb button gestures
-            "gesture-left" = {
-              key = "XF86Tools";
-              command = "qdbus org.kde.KWin /KWin org.kde.KWin.previousDesktop";
-            };
-            "gesture-right" = {
-              key = "XF86Launch5";
-              command = "qdbus org.kde.KWin /KWin org.kde.KWin.nextDesktop";
-            };
-            "gesture-up" = {
-              key = "XF86Launch6";
-              command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Maximize\"";
-            };
-            "gesture-down" = {
-              key = "XF86Launch7";
-              command = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut \"Window Close\"";
-            };
-          };
         };
       };
 
@@ -867,9 +770,9 @@ delib.host {
           discord.enable = true;
           dolphin.enable = true;
           firefox.enable = false;
-          helium.enable = true;
+          helium.enable = false;
           kitty.enable = true;
-          librewolf.enable = true;
+          librewolf.enable = false;
           neovim.enable = true;
           proton-cli.enable = true;
           pwas.enable = true;
@@ -898,7 +801,7 @@ delib.host {
             desktop-borg-backup.enable = true;
             opencloud-mount.enable = true;
             smb.enable = true;
-            sshfs.enable = false;
+            sshfs.enable = true;
           };
 
           network-tools.enable = true;
