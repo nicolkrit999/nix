@@ -23,14 +23,17 @@ let
     "toplevel/cachix.nix"
     "toplevel/attic.nix"
     "toplevel/nix-sweeps.nix"
-  ] ++ [ (fxd.src + "/modules/darwin/toplevel/stylix-darwin.nix") ];
+  ] ++ [
+    (fxd.src + "/modules/darwin/toplevel/stylix-darwin.nix")
+    (fxd.src + "/users/krit/common/toplevel/sops-secrets.nix")
+  ];
 
   hasNixos = flake.nixosConfigurations != { };
   hosts = {
     minimal = flake.nixosConfigurations.template-host-minimal;
     darwin = fxd.mkDarwin {
       paths = darwinPaths;
-      modules = [ flake.inputs.nix-sops.darwinModules.sops {
+      modules = [{
         homebrew.enable = true;
         myconfig.programs.yazi.enable = true;
       }];
