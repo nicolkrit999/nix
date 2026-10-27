@@ -26,7 +26,21 @@ hostname-based): cap parallel heavy agents at `max_parallel_agents`, pass
    Test only: conflicting modules, specialisation purpose contracts, host safety
    values (boot, impermanence, sops, stateVersion), and cross-file consistency.
 2. Fake hosts enable ONLY what that test needs. Sole exception: `test-arch-compat`
-   deliberately enables every module.
+   deliberately enables every module. A fake host is a NEW host built from
+   scratch that turns on just the modules under test (e.g. a wallpaper test: the
+   DE/WM and the wallpapers, nothing else). Never derive it from a real host
+   (`nixos-desktop.extendModules`, a real host plus `mkForce false` on everything
+   else, reading a real host's `systemPackages` to reach a module's package):
+   that couples the test to whatever the user enables on their machines and
+   costs a full host eval. Read real hosts only for the rule-1 categories.
+   Reasoning: if the minimal fake host passes, any real host with the same
+   modules passes too - extra modules don't matter unless they conflict, and
+   conflicts are a rule-1 test of their own. So minimal fixtures lose no
+   coverage and avoid slow evals, extra code, fragile duplication and
+   dependence on host choices.
+   If a module's package or file is only reachable through an enabled config,
+   expose it (e.g. a `package` option) instead of enabling the module just to
+   read it.
 3. Every check must be able to fail. No vacuous checks: add a control / negative
    scenario (see `./writing-non-vacuous-checks.md`).
 4. Never hardcode keys, fingerprints or tokens (public repo). Compare config

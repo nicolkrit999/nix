@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Single Secret Service design on the real nixos-desktop and nixos-laptop (base + every specialisation), eval only.
+# Plus minimal-fixture positive cases and controls for browser pinning.
 #
 # Usage:
 #   bash check-nixos-secret-service.sh
@@ -12,6 +13,7 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"
 SCENARIO="$DIR/01-scenario-secret-service.nix"
+FIXTURE="$DIR/02-scenario-fixture-browsers.nix"
 HOSTS=(nixos-desktop nixos-laptop)
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
@@ -34,6 +36,7 @@ for h in "${HOSTS[@]}"; do
     echo $? >"$WORK/$h.rc"
   ) &
 done
+(FLAKE_ROOT="$FLAKE_ROOT" nix eval --raw --impure --file "$FIXTURE" report >"$WORK/fixture.report" 2>"$WORK/fixture.err"; echo $? >"$WORK/fixture.rc") &
 wait
 
 echo ""
@@ -56,6 +59,19 @@ for h in "${HOSTS[@]}"; do
     if [[ $result == ok ]]; then pass; else fail "$h: $label" "$result"; fi
   done <"$WORK/$h.report"
 done
+
+echo ""
+echo -e "${BOLD}minimal fixtures (browser pinning positive cases and controls)${NC}"
+if [[ $(cat "$WORK/fixture.rc") -ne 0 ]]; then
+  printf "  %-70s " "evaluate fixtures"
+  fail "fixtures: evaluate" "EVAL ERROR: $(grep -E 'error:' "$WORK/fixture.err" | head -3 | tr '\n' ' ')"
+else
+  while IFS=$'\t' read -r label result; do
+    [[ -z $label ]] && continue
+    printf "  %-70s " "$label"
+    if [[ $result == ok ]]; then pass; else fail "fixtures: $label" "$result"; fi
+  done <"$WORK/fixture.report"
+fi
 
 echo ""
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"

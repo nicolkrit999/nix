@@ -20,7 +20,7 @@ bash check-common-nix-cache-settings.sh
 
 `01-scenario-nix-cache-settings.nix` loads the real flake (`FLAKE_ROOT`, default `/home/krit/nix`) and exposes one `check-*` attr per check, each `"ok"` or `"FAIL: ..."`. The runner evaluates the whole attrset once (`builtins.toJSON`), prints a PASS/FAIL line per check and exits 1 on any failure. Eval only, no builds, about 20 s.
 
-Hosts: `nixos-desktop`, `nixos-laptop`, `Krits-MacBook-Pro` (darwin), plus every `homeConfigurations.*` for the nix-sweep install checks (empty on Darwin, where those checks report `ok`). Nothing secret is hardcoded: keys, URLs and hosts are read from the config and compared against each other. TOML is parsed with `builtins.fromTOML`. Controls use `extendModules` to prove each check can fail. Push gating compares the `sw`/`upd` alias text (presence of `attic push ` / `cachix push `) and the `attic-push`/`cachix-push` aliases against each cache's `enable && push`; the push controls force each combination on the desktop so both directions of the gate are exercised regardless of what the hosts set. Token-on-argv: no alias may contain `attic login` or `env CACHIX_AUTH_TOKEN=`; with cachix push and an `authTokenPath`, every `cachix push ` must be preceded by `CACHIX_AUTH_TOKEN="$(cat <authTokenPath>)"` (a shell assignment prefix, never an argument); the HM `attic/config.toml` exists iff attic `enable && push` and its `servers.nas-push` holds only `endpoint` (= `serverUrl`) and `token-file` (= `authTokenPath`), read from the `pkgs.formats.toml` derivation's `value` attr without building it. nix-sweep is matched by `lib.getName`. A `fromTOML` error is not catchable by `tryEval`, so the TOML control uses a quoted `gcn` (parses fine, wrong type).
+Hosts: `nixos-desktop`, `nixos-laptop`, `Krits-MacBook-Pro` (darwin), plus every `homeConfigurations.*` for the nix-sweep install checks (empty on Darwin, where those checks report `ok`). Nothing secret is hardcoded: keys, URLs and hosts are read from the config and compared against each other. TOML is parsed with `builtins.fromTOML`. Controls use `extendModules` to prove each check can fail. Push gating compares the `sw`/`upd` alias text (presence of `attic push ` / `cachix push `) and the `attic-push`/`cachix-push` aliases against each cache's `enable && push`; the push controls force each combination on the desktop so both directions of the gate are exercised regardless of what the hosts set. Token-on-argv: no alias may contain `attic login` or `env CACHIX_AUTH_TOKEN=`; with cachix push and an `authTokenPath`, every `cachix push ` must be preceded by `CACHIX_AUTH_TOKEN="$(cat <authTokenPath>)"` (a shell assignment prefix, never an argument); the HM `attic/config.toml` exists iff attic `enable && push` and its `servers.nas-push` holds only `endpoint` (= `serverUrl`) and `token-file` (= `authTokenPath`), read from the `pkgs.formats.toml` derivation's `value` attr without building it. nix-sweep is matched by `lib.getName`. The nix-sweeps module checks and controls run on fresh fixtures from `template-host-minimal` (`templates/tests/lib/fixture-host.nix`) with `myconfig.nix-sweeps.enable` forced on (or off for the disabled check) and, for the homes control, on `homeConfigurations."krit@template-host-minimal"` with it forced on, so they do not depend on what the real hosts enable. A `fromTOML` error is not catchable by `tryEval`, so the TOML control uses a quoted `gcn` (parses fine, wrong type).
 
 ## Checks
 
@@ -35,10 +35,16 @@ Hosts: `nixos-desktop`, `nixos-laptop`, `Krits-MacBook-Pro` (darwin), plus every
 | attic-key-prefix | attic `publicKey` starts with `<cacheName>:` |
 | attic-netrc-host | `attic-netrc` has `machine nicol-nas.tail9b9ae8.ts.net password` (port stripped) |
 | attic-netrc-file-set | `nix.settings.netrc-file` == the sops template path |
-| nix-sweeps-toml | `keep-min` is an int equal to `gcn`; `remove-older` == `gcd`; default non-interactive, ask interactive |
 | push-alias-gating | `sw` and `upd` contain the attic/cachix push command iff that cache's `enable && push`; `attic-push`/`cachix-push` aliases exist iff the same |
 | push-token-off-argv | no alias has `attic login` or `env CACHIX_AUTH_TOKEN=`; each `cachix push ` has the `CACHIX_AUTH_TOKEN="$(cat <authTokenPath>)"` prefix; `attic/config.toml` present iff attic `enable && push`, `nas-push` = only `endpoint` + `token-file` matching the options |
-| nix-sweep-installed | if HM generates `nix-sweep/presets.toml`, `nix-sweep` is in `environment.systemPackages` or HM `home.packages` |
+
+### nix-sweeps module (minimal fixture)
+
+| Check | Expected |
+|-------|----------|
+| sweeps-toml | `keep-min` is an int equal to `gcn`; `remove-older` == `gcd`; default non-interactive, ask interactive |
+| sweeps-nix-sweep-installed | `nix-sweep/presets.toml` is generated and `nix-sweep` is in `environment.systemPackages` or HM `home.packages` |
+| sweeps-disabled-no-presets | with nix-sweeps off: no `presets.toml` and no `nix-sweep` in `environment.systemPackages` |
 
 ### NixOS hosts only
 
@@ -60,9 +66,9 @@ Hosts: `nixos-desktop`, `nixos-laptop`, `Krits-MacBook-Pro` (darwin), plus every
 | Check | Expected |
 |-------|----------|
 | homes-nix-sweep-installed | every home config that generates `nix-sweep/presets.toml` has `nix-sweep` in `home.packages` |
-| homes-presets-nonempty | presets exist on at least one system host and (where `nixosConfigurations` exist) at least one home config, so the install checks do not run over nothing |
+| homes-presets-nonempty | the `krit@template-host-minimal` home with nix-sweeps forced on generates presets, so the homes install check and its control do not run over nothing |
 
-### Controls (desktop via `extendModules`)
+### Controls (desktop via `extendModules`, sweeps ones on the minimal fixture)
 
 | Check | Expected |
 |-------|----------|
@@ -81,5 +87,5 @@ Hosts: `nixos-desktop`, `nixos-laptop`, `Krits-MacBook-Pro` (darwin), plus every
 | push-both-off | both `push = false`: gating and token-off-argv hold, `sw` equals `sw` with both caches disabled |
 | token-argv-detected | mutant aliases (`attic login ...`, `env CACHIX_AUTH_TOKEN=...`, bare `cachix push`) are each reported by push-token-off-argv |
 | attic-config-token-detected | a mutant `attic/config.toml` with an inline `token` and no `token-file` is reported (extra key, token-file mismatch) |
-| nix-sweep-missing-detected | dropping `nix-sweep` from desktop `environment.systemPackages` makes nix-sweep-installed report a problem |
-| home-nix-sweep-missing-detected | dropping `nix-sweep` from a home config's `home.packages` makes homes-nix-sweep-installed report a problem |
+| nix-sweep-missing-detected | dropping `nix-sweep` from the fixture's `environment.systemPackages` makes the system install check report a problem |
+| home-nix-sweep-missing-detected | dropping `nix-sweep` from the minimal home's `home.packages` makes homes-nix-sweep-installed report a problem |

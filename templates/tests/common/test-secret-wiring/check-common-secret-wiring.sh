@@ -69,10 +69,11 @@ run_check "check-sopsfiles-and-keys"      "every secret's sopsFile exists and ho
 echo ""
 echo -e "${BOLD}consumers${NC}"
 run_check "check-davfs-secrets-template"  "davfs-secrets template root:0600 with placeholders"
-run_check "check-nas-wiring-nixos"        "enabled NAS consumers declare+wire their secrets, disabled ones none"
+run_check "check-nas-wiring-nixos"        "real hosts: enabled NAS consumers declare+wire their secrets, disabled ones none"
+run_check "check-nas-wiring-fixture"      "minimal host with every NAS consumer on: wired; control: miswiring detected"
 run_check "check-nas-secret-ownership-bites" "control: sshfs on/off toggles nas_ssh_key declaration and wiring"
 run_check "check-nas-secrets-darwin"      "Darwin NAS modules have their secrets declared"
-run_check "check-thunderbird-forced"      "thunderbird template/secrets owners, files, keys"
+run_check "check-thunderbird-forced"      "thunderbird (fake accounts) template/secrets owners, files, keys"
 run_check "check-thunderbird-profile-dirs" "thunderbird profile dirs: NixOS install -d, darwin mkdir/chown/chmod"
 run_check "check-ssh-key-paths"           "github keys in base, school keys only in the school spec"
 

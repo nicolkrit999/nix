@@ -3,9 +3,9 @@ let
   flake = builtins.getFlake "path:${flakeRoot}";
 
   hasNixos = flake.nixosConfigurations != { };
-  desktop = flake.nixosConfigurations.nixos-desktop;
+  fx = import ../../lib/fixture-host.nix flake;
   sys = "x86_64-linux";
-  inherit (desktop) pkgs;
+  inherit (flake.inputs.nixpkgs) lib;
 
   guard = body: if hasNixos then body else "ok";
 
@@ -13,16 +13,19 @@ let
     if actual == expected then "ok"
     else "FAIL: ${name}: expected ${builtins.toJSON expected}, got ${builtins.toJSON actual}";
 
-  hm = desktop.config.home-manager.users.krit;
+  vicHost = fx.mkNixos [{ myconfig.programs.vicinae.enable = lib.mkForce true; }];
+  tgtHost = fx.mkNixos [{ myconfig.programs.tgt.enable = lib.mkForce true; }];
+  inherit (vicHost) pkgs;
   vicRaw = flake.inputs.vicinae.packages.${sys}.default;
-  vicHm = hm.programs.vicinae.package;
-  vicSys = desktop.config.programs.vicinae.input-server.package;
+  vicHm = (fx.hmOf vicHost).programs.vicinae.package;
+  vicSys = vicHost.config.programs.vicinae.input-server.package;
   ccv = p: p.stdenv.cc.version;
 
   tgtPinnedTdlib = "1.8.61";
   tgtPinnedTdlibRs = "1.4.0";
-  tgtPkgs = builtins.filter (p: (p.pname or "") == "tgt") desktop.config.environment.systemPackages;
-  tgtTdlibs = builtins.filter (p: (p.pname or "") == "tdlib") (builtins.head tgtPkgs).buildInputs;
+  tgtPackage = (fx.mkNixos [ ]).config.myconfig.programs.tgt.package;
+  tgtPkgs = builtins.filter (p: (p.pname or "") == "tgt") tgtHost.config.environment.systemPackages;
+  tgtTdlibs = builtins.filter (p: (p.pname or "") == "tdlib") tgtPackage.buildInputs;
   tgtLock = builtins.fromTOML (builtins.readFile "${flake.inputs.tgt}/Cargo.lock");
   tgtTdlibRs = map (p: p.version) (builtins.filter (p: p.name == "tdlib-rs") tgtLock.package);
 in
@@ -43,10 +46,17 @@ in
   );
 
   check-tgt-single-package = guard (
-    expect "tgt package count (nixos-desktop)" (builtins.length tgtPkgs) 1);
+    expect "tgt package count (minimal fixture, only tgt enabled)" (builtins.length tgtPkgs) 1);
+
+  check-tgt-absent-when-disabled = guard (
+    expect "tgt package count (minimal fixture, tgt disabled)"
+      (builtins.length (builtins.filter (p: (p.pname or "") == "tgt") (fx.mkNixos [ ]).config.environment.systemPackages)) 0);
 
   check-tgt-links-pinned-tdlib = guard (
-    expect "tgt tdlib buildInputs versions" (map (p: p.version) tgtTdlibs) [ tgtPinnedTdlib ]);
+    expect "tgt tdlib buildInputs versions (tgt not enabled)" (map (p: p.version) tgtTdlibs) [ tgtPinnedTdlib ]);
+
+  check-tgt-package-option-is-installed-package = guard (
+    expect "installed tgt drvPath vs myconfig.programs.tgt.package" (map (p: p.drvPath) tgtPkgs) [ tgtPackage.drvPath ]);
 
   check-tgt-tdlib-rs-unchanged = guard (
     if tgtTdlibRs == [ tgtPinnedTdlibRs ] then "ok"

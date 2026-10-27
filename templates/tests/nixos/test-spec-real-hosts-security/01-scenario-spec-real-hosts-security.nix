@@ -61,6 +61,31 @@ let
     (c: c.virtualisation.docker.enable)
     (c: c.virtualisation.podman.enable)
   ];
+  kritTwinPaths = lib.filter (p: lib.hasAttrByPath ([ "myconfig" "krit" ] ++ p) sys.options) kritOffPaths;
+  w = lib.mkOverride 75;
+  on = path: lib.setAttrByPath (path ++ [ "enable" ]) (w true);
+  exposureTwin = sys.extendModules {
+    modules =
+      map (p: on ([ "myconfig" "krit" ] ++ p)) kritTwinPaths
+      ++ map (d: on [ "myconfig" "programs" d ]) des
+      ++ map on [
+        [ "myconfig" "programs" "openlogi" ]
+        [ "myconfig" "programs" "thunderbird" ]
+        [ "myconfig" "services" "tailscale" ]
+        [ "myconfig" "services" "localsend" ]
+        [ "services" "openssh" ]
+        [ "services" "avahi" ]
+        [ "virtualisation" "docker" ]
+        [ "virtualisation" "podman" ]
+      ]
+      ++ [{
+        services.tailscale.openFirewall = w true;
+        networking.firewall.trustedInterfaces = w [ "tailscale0" ];
+      }];
+  };
+  xb = exposureTwin.config;
+  xg = xb.specialisation.guest.configuration;
+  xs = xb.specialisation.secure-travel.configuration;
   tmpRule = lib.findFirst (r: lib.hasInfix "AccountsService/users/guest" r && lib.hasPrefix "f " r) "" g.systemd.tmpfiles.rules;
 
   s = spec "secure-travel";
@@ -150,12 +175,16 @@ let
     "guest: extraGroups are audio and video only" = eq "extraGroups" (lib.sort lib.lessThan g.users.users.guest.extraGroups) [ "audio" "video" ];
     "guest: no zenity in systemPackages" = yes "zenity installed system-wide" (!(builtins.elem "zenity" (pkgNames g.environment.systemPackages)));
     "guest: welcome autostart still exists" = yes "guest-welcome autostart missing" (g.environment.etc ? "xdg/autostart/guest-welcome.desktop");
-    "control: base exposes at least one service the guest turns off" = yes "base enables none of tailscale/localsend/ssh/avahi/docker/podman" (builtins.any (f: f base) exposure);
+    "control: twin base exposes every service the guest must turn off" = yes "twin base lacks some of tailscale/localsend/ssh/avahi/docker/podman" (builtins.all (f: f xb) exposure);
+    "guest (twin): every exposure service the base turns on is off" = yes "still on in guest: ${toString (lib.imap0 (i: f: if f xg then toString i else "") exposure)}" (!(builtins.any (f: f xg) exposure));
+    "control: twin base has openlogi and thunderbird on" = eq "twin base openlogi/thunderbird" [ xb.myconfig.programs.openlogi.enable xb.myconfig.programs.thunderbird.enable ] [ true true ];
+    "guest (twin): openlogi and thunderbird modules are off" = eq "twin guest openlogi/thunderbird" [ xg.myconfig.programs.openlogi.enable xg.myconfig.programs.thunderbird.enable ] [ false false ];
     "control: twin of the host persisting the linger dir has it in its base" = yes "twin does not persist ${lingerDir}, the guest filter is vacuous" (builtins.elem lingerDir (persistDirs lt));
     "control: guest PAT mode override beats a world-readable base mode" = yes "twin base ${patMode patTwin.config}, twin guest ${patMode patTwin.config.specialisation.guest.configuration}" (patMode patTwin.config == "0444" && patMode patTwin.config.specialisation.guest.configuration == "0400");
     "control: base allowed-users differs from the guest" = yes "base allowed-users already ${builtins.toJSON base.nix.settings.allowed-users}" (base.nix.settings.allowed-users != g.nix.settings.allowed-users);
     "control: base keeps networkmanager or another group the guest drops" = yes "base user groups already minimal" (builtins.elem "networkmanager" base.users.users.${user}.extraGroups);
-    "control: base enables a krit nas/cloud/mount module" = yes "base enables none, the guest krit-off checks are vacuous" (builtins.any (p: kritEnable base p) kritOffPaths);
+    "control: twin base enables every krit nas/cloud/mount module" = yes "twin base lacks ${toString (map (lib.concatStringsSep ".") (lib.filter (p: !(kritEnable xb p)) kritTwinPaths))}" (kritTwinPaths != [ ] && builtins.all (p: kritEnable xb p) kritTwinPaths);
+    "guest (twin): every krit nas/cloud/mount module is off" = yes "still on in guest: ${toString (map (lib.concatStringsSep ".") (lib.filter (p: kritEnable xg p) kritTwinPaths))}" (!(builtins.any (p: kritEnable xg p) kritTwinPaths));
     "guest: autoLogin enabled for guest" = eq "autoLogin" [ g.services.displayManager.autoLogin.enable g.services.displayManager.autoLogin.user ] [ true "guest" ];
     "guest: autoLogin user exists in users.users" = yes "autoLogin user missing" (g.users.users ? ${g.services.displayManager.autoLogin.user});
     "guest: defaultSession == xfce" = eq "defaultSession" g.services.displayManager.defaultSession "xfce";
@@ -169,7 +198,8 @@ let
     "guest: bluetooth disabled" = eq "bluetooth" g.myconfig.bluetooth.enable false;
     "guest: tags contain guest" = yes "tags" (builtins.elem "guest" g.system.nixos.tags);
     "control: base config has no guest user" = yes "guest leaked into base" (!(base.users.users ? guest));
-    "control: base config has a DE enabled" = yes "no DE in base" (builtins.any (d: base.myconfig.programs.${d}.enable) des);
+    "control: twin base has every DE enabled" = yes "twin base DE flags ${builtins.toJSON (map (d: xb.myconfig.programs.${d}.enable) des)}" (builtins.all (d: xb.myconfig.programs.${d}.enable) des);
+    "guest (twin): no DE of the twin base stays enabled" = yes "guest DE flags ${builtins.toJSON (map (d: xg.myconfig.programs.${d}.enable) des)}" (!(builtins.any (d: xg.myconfig.programs.${d}.enable) des));
   } // lib.listToAttrs (map
     (d: lib.nameValuePair "guest: myconfig.programs.${d} disabled" (eq d g.myconfig.programs.${d}.enable false))
     des)
@@ -208,8 +238,11 @@ let
     "control: proton vpn detector matches vpn names only" = yes "detector wrong" (isProton "proton-vpn-gtk" && isProton "protonvpn.desktop" && isProton "ProtonVPN" && !(isProton "proton-drive") && !(isProton "tor-browser"));
     "control: guest spec autostart detector sees entries" = yes "etc autostart detector finds nothing in guest" (autostartNames g != [ ]);
     "control: base secure-travel has no exit node warn unit" = yes "base already has the warn unit" (!(base.home-manager.users.${user}.systemd.user.services ? secure-travel-exitnode-warn));
-    "control: base trusts tailscale0 (secure-travel [ lo ] is an override)" = yes "base trustedInterfaces ${builtins.toJSON base.networking.firewall.trustedInterfaces}" (builtins.elem "tailscale0" base.networking.firewall.trustedInterfaces);
-    "control: base opens the tailscale firewall (secure-travel false is an override)" = eq "base openFirewall" base.services.tailscale.openFirewall true;
+    "control: twin base trusts tailscale0 (secure-travel [ lo ] is an override)" = yes "twin base trustedInterfaces ${builtins.toJSON xb.networking.firewall.trustedInterfaces}" (builtins.elem "tailscale0" xb.networking.firewall.trustedInterfaces);
+    "control: twin base opens the tailscale firewall (secure-travel false is an override)" = eq "twin base openFirewall" xb.services.tailscale.openFirewall true;
+    "secure-travel (twin): tailscale firewall closed and only lo trusted" = eq "twin secure-travel firewall" [ xs.services.tailscale.openFirewall xs.networking.firewall.trustedInterfaces ] [ false [ "lo" ] ];
+    "secure-travel (twin): docker and localsend off while the twin base has them on" = eq "twin secure-travel docker/localsend" [ xb.virtualisation.docker.enable xs.virtualisation.docker.enable xb.myconfig.services.localsend.enable xs.myconfig.services.localsend.enable ] [ true false true false ];
+    "secure-travel (twin): gnome is the only DE while the twin base has all" = eq "twin secure-travel DE flags" (map (d: xs.myconfig.programs.${d}.enable) des) (map (d: d == "gnome") des);
     "secure-travel: tailscale0 not a trusted interface" =
       yes "tailscale0 trusted" (!(builtins.elem "tailscale0" s.networking.firewall.trustedInterfaces));
     "secure-travel: gnome is the only DE" =

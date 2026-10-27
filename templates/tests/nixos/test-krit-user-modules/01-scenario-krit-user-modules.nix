@@ -90,7 +90,7 @@ let
       "the PWA lint does not flag a planted mimeType or extra category";
 
     check-cloud-modules-enable-rclone-mount = check
-      (cloudEnabled != [ ] && lib.length cloudDefs == lib.length cloudEnabled && lib.all (d: d.value == true) cloudDefs)
+      (lib.length cloudDefs == lib.length cloudEnabled && lib.all (d: d.value == true) cloudDefs)
       "rcloneMount.enable definitions from services/cloud modules: ${show (map (d: toString d.file) cloudDefs)}, enabled cloud modules: ${show cloudEnabled}";
 
     check-logid-restart-trigger = check (lib.elem (logidSrc a) (logidTriggers a))

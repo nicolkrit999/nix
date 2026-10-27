@@ -38,6 +38,27 @@ for host in "${HOSTS[@]}"; do
   done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
 done
 
+# --- cloud modules on a minimal fixture (positive case and control) ---
+echo ""
+echo -e "${BOLD}cloud modules (minimal fixture)${NC}"
+stderr_file=$(mktemp)
+if ! json=$(nix eval --json --impure --file "$DIR/03-scenario-cloud-fixture.nix" 2>"$stderr_file"); then
+  printf "  ${RED}✗ eval error${NC}\n"
+  ((FAIL++)) || true
+  FAILURES+=("cloud fixture: evaluation|$(grep -E 'error:' "$stderr_file" | head -3)")
+else
+  while IFS=$'\t' read -r name result; do
+    printf "  %-60s " "$name"
+    if [[ "$result" == "ok" ]]; then
+      printf "${GREEN}✓ PASS${NC}\n"; ((PASS++)) || true
+    else
+      printf "${RED}✗ FAIL${NC}\n"; ((FAIL++)) || true
+      FAILURES+=("cloud fixture: $name|$result")
+    fi
+  done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
+fi
+rm -f "$stderr_file"
+
 # --- Dolphin places: the real dolphin-places-sync of nixos-desktop on fixture xbel files ---
 echo ""
 echo -e "${BOLD}dolphin places sync (real script, fixture files)${NC}"

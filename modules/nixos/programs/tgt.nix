@@ -56,9 +56,17 @@ let
 in
 delib.module {
   name = "programs.tgt";
-  options = delib.singleEnableOption false;
+  options = delib.moduleOptions {
+    enable = delib.boolOption false;
+    # Exposed so tests can inspect the pinned build without enabling the module.
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = tgt;
+      description = "tgt build (TDLib pinned for tdlib-rs).";
+    };
+  };
 
-  nixos.ifEnabled = {
-    environment.systemPackages = [ tgt ];
+  nixos.ifEnabled = { cfg, ... }: {
+    environment.systemPackages = [ cfg.package ];
   };
 }

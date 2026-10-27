@@ -60,8 +60,10 @@ run_check "warn-vicinae-override-still-needed"                  "upstream gcc15 
 
 echo ""
 echo -e "${BOLD}tgt (TDLib pinned to the tdlib-rs version)${NC}"
-run_check "check-tgt-single-package"          "exactly one tgt in nixos-desktop systemPackages"
-run_check "check-tgt-links-pinned-tdlib"      "tgt builds against the pinned TDLib"
+run_check "check-tgt-single-package"          "exactly one tgt in systemPackages (minimal fixture, tgt on)"
+run_check "check-tgt-absent-when-disabled"    "no tgt in systemPackages when disabled (control)"
+run_check "check-tgt-package-option-is-installed-package" "installed tgt is myconfig.programs.tgt.package"
+run_check "check-tgt-links-pinned-tdlib"      "tgt package option builds against the pinned TDLib"
 run_check "check-tgt-tdlib-rs-unchanged"      "locked tgt source still uses the tdlib-rs the pin is for"
 run_check "warn-tgt-tdlib-pin-still-needed"   "nixpkgs tdlib differs from the pin (pin needed)"
 

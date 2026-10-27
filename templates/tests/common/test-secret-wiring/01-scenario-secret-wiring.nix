@@ -4,6 +4,7 @@ let
   lib = flake.inputs.nixpkgs.lib;
 
   hasNixos = flake.nixosConfigurations != { };
+  fx = import ../../lib/fixture-host.nix flake;
   nixosHosts =
     if hasNixos then {
       nixos-desktop = flake.nixosConfigurations.nixos-desktop;
@@ -35,17 +36,35 @@ let
 
   failedAssertions = h: map (a: a.message) (lib.filter (a: !a.assertion) h.config.assertions);
 
-  tbAccounts = flake.nixosConfigurations.nixos-desktop.config.myconfig.programs.thunderbird.accounts;
-  tbSopsFile = flake.nixosConfigurations.nixos-desktop.config.myconfig.programs.thunderbird.sopsFile;
-  tbForced = host: withModules host [
-    ({ lib, ... }: {
-      myconfig.programs.thunderbird = {
-        enable = lib.mkForce true;
-        sopsFile = lib.mkForce tbSopsFile;
-        accounts = lib.mkForce tbAccounts;
-      };
-    })
+  tbSopsFile = "${flake.outPath}/templates/tests/common/test-secret-wiring/fake-thunderbird-sops.yaml";
+  tbAccounts = [
+    {
+      name = "fakemail";
+      addressLocalSecretName = "fake_tb_one_local";
+      addressDomainSecretName = "fake_tb_one_domain";
+      realName = "Fake One";
+      primary = true;
+      authentication = "login";
+      passwordSecretName = "fake_tb_one_password";
+    }
+    {
+      name = "fakeoauth";
+      addressLocalSecretName = "fake_tb_two_local";
+      addressDomainSecretName = "fake_tb_two_domain";
+      realName = "Fake Two";
+      primary = false;
+      passwordSecretName = null;
+    }
   ];
+  tbModule = {
+    myconfig.programs.thunderbird = {
+      enable = true;
+      sopsFile = tbSopsFile;
+      accounts = tbAccounts;
+    };
+  };
+  tbForced = host: withModules host [ ({ lib, ... }: { myconfig.programs.thunderbird = { enable = lib.mkForce true; sopsFile = lib.mkForce tbSopsFile; accounts = lib.mkForce tbAccounts; }; }) ];
+  tbOnHosts = (if hasNixos then { template-host-minimal = fx.mkNixos [ tbModule ]; } else { }) // lib.mapAttrs (_: tbForced) darwinHosts;
   tbExpectedPath = host: user:
     if host.pkgs.stdenv.hostPlatform.isDarwin
     then "/Users/${user}/Library/Thunderbird/Profiles/default/user.js"
@@ -53,6 +72,50 @@ let
   tbSecretNames = lib.unique (lib.concatMap
     (a: [ a.addressLocalSecretName a.addressDomainSecretName ] ++ lib.optional (a.passwordSecretName != null) a.passwordSecretName)
     tbAccounts);
+  nasWiring = h:
+    let
+      n = h.config.myconfig.krit.services.nas;
+      s = secretsOf h;
+      eq = label: actual: expected: lib.optional (actual != expected) "${label}: ${actual} != ${expected}";
+      consumers = [
+        { mod = "sshfs"; opt = "identityFile"; secret = "nas_ssh_key"; }
+        { mod = "smb"; opt = "credentialsFile"; secret = "nas-krit-credentials"; }
+        { mod = "desktop-borg-backup"; opt = "passphraseFile"; secret = "borg-passphrase"; }
+        { mod = "desktop-borg-backup"; opt = "sshKeyPath"; secret = "borg-private-key"; }
+        { mod = "laptop-borg-backup"; opt = "passphraseFile"; secret = "borg-passphrase"; }
+        { mod = "laptop-borg-backup"; opt = "sshKeyPath"; secret = "borg-private-key"; }
+      ];
+      enabled = lib.filter (x: n.${x.mod}.enable) consumers;
+      disabled = lib.filter (x: !n.${x.mod}.enable) consumers;
+      needed = lib.unique (map (x: x.secret) enabled);
+      ownSecrets = lib.unique (map (x: x.secret) consumers);
+      pin = h.config.programs.ssh.knownHosts."nicol-nas-tailnet" or null;
+    in
+    lib.concatMap
+      (x:
+        lib.optional (!(s ? ${x.secret})) "${x.mod}.${x.opt}: enabled but ${x.secret} is not declared"
+        ++ lib.optionals (s ? ${x.secret}) (
+          eq "${x.mod}.${x.opt}" n.${x.mod}.${x.opt} s.${x.secret}.path
+          ++ eq "${x.mod}.${x.opt} run path" n.${x.mod}.${x.opt} (runSecrets x.secret)
+        ))
+      enabled
+    ++ map (x: "${x.mod}.${x.opt} is wired (${n.${x.mod}.${x.opt}}) although ${x.mod} is disabled") (lib.filter (x: n.${x.mod}.${x.opt} != "") disabled)
+    ++ map (name: "${name} is declared but no enabled consumer needs it") (lib.filter (name: s ? ${name} && !(lib.elem name needed)) ownSecrets)
+    ++ lib.optionals n.opencloud-mount.enable (eq "opencloud-mount.secretsFile" n.opencloud-mount.secretsFile h.config.sops.templates."davfs-secrets".path)
+    ++ lib.optional (pin == null) "nicol-nas-tailnet knownHosts pin missing (module nas-identity)"
+    ++ lib.optionals (pin != null) (
+      lib.optional (pin.publicKey != n.hostKey) "knownHosts pin key differs from krit.services.nas.hostKey"
+      ++ lib.optional (!(lib.elem n.host pin.hostNames && lib.elem n.tailnetIp pin.hostNames)) "pin hostNames lack nas.host or nas.tailnetIp: ${builtins.toJSON pin.hostNames}"
+    );
+
+  nasAllOn = {
+    myconfig.krit.services.nas = {
+      sshfs.enable = true;
+      smb.enable = true;
+      desktop-borg-backup.enable = true;
+      laptop-borg-backup.enable = true;
+    };
+  };
 in
 {
   check-mcp-secrets-declared = perHost allHosts (h:
@@ -176,48 +239,28 @@ in
     ++ lib.optional (!lib.hasInfix h.config.sops.placeholder.nas_opencloud_pass t.content) "no pass placeholder");
 
   check-nas-wiring-nixos = perHost nixosHosts (h:
+    nasWiring h
+    ++ lib.optional (h.config.services.tailscale.authKeyFile != runSecrets "tailscale_key") "tailscale.authKeyFile: ${toString h.config.services.tailscale.authKeyFile} != ${runSecrets "tailscale_key"}");
+
+  check-nas-wiring-fixture =
     let
-      n = h.config.myconfig.krit.services.nas;
-      s = secretsOf h;
-      eq = label: actual: expected: lib.optional (actual != expected) "${label}: ${actual} != ${expected}";
-      consumers = [
-        { mod = "sshfs"; opt = "identityFile"; secret = "nas_ssh_key"; }
-        { mod = "smb"; opt = "credentialsFile"; secret = "nas-krit-credentials"; }
-        { mod = "desktop-borg-backup"; opt = "passphraseFile"; secret = "borg-passphrase"; }
-        { mod = "desktop-borg-backup"; opt = "sshKeyPath"; secret = "borg-private-key"; }
-        { mod = "laptop-borg-backup"; opt = "passphraseFile"; secret = "borg-passphrase"; }
-        { mod = "laptop-borg-backup"; opt = "sshKeyPath"; secret = "borg-private-key"; }
-      ];
-      enabled = lib.filter (x: n.${x.mod}.enable) consumers;
-      disabled = lib.filter (x: !n.${x.mod}.enable) consumers;
-      needed = lib.unique (map (x: x.secret) enabled);
-      ownSecrets = lib.unique (map (x: x.secret) consumers);
-      pin = h.config.programs.ssh.knownHosts."nicol-nas-tailnet" or null;
+      on = fx.mkNixos [ nasAllOn ];
+      broken = fx.mkNixos [ nasAllOn { myconfig.krit.services.nas.sshfs.identityFile = lib.mkForce "/wrong/path"; } ];
+      nOn = on.config.myconfig.krit.services.nas;
     in
-    lib.optional (enabled == [ ]) "no NAS consumer enabled on this host: check would be vacuous"
-    ++ lib.concatMap
-      (x:
-        lib.optional (!(s ? ${x.secret})) "${x.mod}.${x.opt}: enabled but ${x.secret} is not declared"
-        ++ lib.optionals (s ? ${x.secret}) (
-          eq "${x.mod}.${x.opt}" n.${x.mod}.${x.opt} s.${x.secret}.path
-          ++ eq "${x.mod}.${x.opt} run path" n.${x.mod}.${x.opt} (runSecrets x.secret)
-        ))
-      enabled
-    ++ map (x: "${x.mod}.${x.opt} is wired (${n.${x.mod}.${x.opt}}) although ${x.mod} is disabled") (lib.filter (x: n.${x.mod}.${x.opt} != "") disabled)
-    ++ map (name: "${name} is declared but no enabled consumer needs it") (lib.filter (name: s ? ${name} && !(lib.elem name needed)) ownSecrets)
-    ++ eq "opencloud-mount.secretsFile" n.opencloud-mount.secretsFile h.config.sops.templates."davfs-secrets".path
-    ++ eq "tailscale.authKeyFile" h.config.services.tailscale.authKeyFile (runSecrets "tailscale_key")
-    ++ lib.optional (pin == null) "nicol-nas-tailnet knownHosts pin missing (module nas-identity)"
-    ++ lib.optionals (pin != null) (
-      lib.optional (pin.publicKey != n.hostKey) "knownHosts pin key differs from krit.services.nas.hostKey"
-      ++ lib.optional (!(lib.elem n.host pin.hostNames && lib.elem n.tailnetIp pin.hostNames)) "pin hostNames lack nas.host or nas.tailnetIp: ${builtins.toJSON pin.hostNames}"
-    ));
+    if !hasNixos then "ok"
+    else
+      failures (
+        map (m: "fixture: ${m}") (nasWiring on)
+        ++ lib.optional (!(nOn.sshfs.enable && nOn.smb.enable && nOn.desktop-borg-backup.enable && nOn.laptop-borg-backup.enable)) "fixture: not every NAS consumer is enabled"
+        ++ lib.optional (nasWiring broken == [ ]) "control: a mis-wired sshfs.identityFile was not detected"
+        ++ map (m: "control: minimal host without NAS consumers: ${m}") (nasWiring (fx.mkNixos [ ]))
+      );
 
   check-nas-secret-ownership-bites =
     let
-      h = nixosHosts.nixos-desktop;
-      off = withModules h [ ({ lib, ... }: { myconfig.krit.services.nas.sshfs.enable = lib.mkForce false; }) ];
-      on = withModules h [ ({ lib, ... }: { myconfig.krit.services.nas.sshfs.enable = lib.mkForce true; }) ];
+      off = fx.mkNixos [ ];
+      on = fx.mkNixos [{ myconfig.krit.services.nas.sshfs.enable = true; }];
     in
     if !hasNixos then "ok"
     else
@@ -238,13 +281,11 @@ in
         ++ lib.optionals (nasCfg.opencloud.enable or false) [ "nas_opencloud_user" "nas_opencloud_pass" ]
         ++ lib.optionals (nasCfg.Krits-MacBook-Pro-borg-backup.enable or false) [ "borg-passphrase" "borg-private-key" ];
     in
-    lib.optional (enabledNeeds == [ ]) "no NAS module enabled on this host: check would be vacuous"
-    ++ map (n: "${n} used by an enabled NAS module but not declared") (lib.filter (n: !(s ? ${n})) enabledNeeds)
+    map (n: "${n} used by an enabled NAS module but not declared") (lib.filter (n: !(s ? ${n})) enabledNeeds)
     ++ map (n: "${n} not in its yaml") (lib.filter (n: s ? ${n} && !(lib.elem n (yamlKeys (fileOf h s.${n})))) need));
 
-  check-thunderbird-forced = perHost allHosts (h0:
+  check-thunderbird-forced = perHost tbOnHosts (h:
     let
-      h = tbForced h0;
       user = userOf h;
       t = h.config.sops.templates."tb-user-js";
       s = secretsOf h;
@@ -259,7 +300,12 @@ in
         else lib.optional (s.${n}.owner != user) "${n} owner ${s.${n}.owner}"
         ++ lib.optional (toString s.${n}.sopsFile != toString tbSopsFile) "${n} sopsFile differs"
         ++ lib.optional (!lib.elem n (yamlKeys tbSopsFile)) "${n} missing from yaml")
-      tbSecretNames);
+      tbSecretNames
+    ++ lib.optionals (h.pkgs.stdenv.hostPlatform.isDarwin == false) (
+      let off = fx.mkNixos [ ]; in
+      lib.optional (off.config.sops.templates ? "tb-user-js") "control: tb-user-js template present with thunderbird disabled"
+      ++ map (n: "control: ${n} declared with thunderbird disabled") (lib.filter (n: off.config.sops.secrets ? ${n}) tbSecretNames)
+    ));
 
   check-ssh-key-paths = perHost allHosts (h:
     let
@@ -325,15 +371,14 @@ in
 
   check-thunderbird-profile-dirs =
     let
-      off = h: withModules h [ ({ lib, ... }: { myconfig.programs.thunderbird.enable = lib.mkForce false; }) ];
-      nixosOne = h0:
+      offDarwin = h: withModules h [ ({ lib, ... }: { myconfig.programs.thunderbird.enable = lib.mkForce false; }) ];
+      nixosOne = h:
         let
-          h = tbForced h0;
           user = userOf h;
           grp = h.config.users.users.${user}.group;
           a = h.config.system.activationScripts.thunderbirdProfileDirs or null;
           t = if a == null then "" else a.text;
-          offH = off h0;
+          offH = fx.mkNixos [ ];
         in
         lib.optional (a == null) "thunderbirdProfileDirs activation script missing"
         ++ lib.optionals (a != null) (
@@ -351,7 +396,7 @@ in
           base = "/Users/${user}/Library/Thunderbird";
           dirs = [ base "${base}/Profiles" "${base}/Profiles/default" ];
           tLines = map (l: lib.removeSuffix " \\" (lib.trim l)) (lib.splitString "\n" t);
-          offT = (off h0).config.system.activationScripts.preActivation.text or "";
+          offT = (offDarwin h0).config.system.activationScripts.preActivation.text or "";
         in
         lib.optional (!lib.hasInfix "mkdir -p ${base}/Profiles/default" t) "mkdir -p profile dir missing"
         ++ lib.optional (!lib.hasInfix "chown ${user}:staff" t) "chown ${user}:staff missing"
@@ -360,7 +405,7 @@ in
         ++ lib.optional (lib.hasInfix "Library/Thunderbird" offT) "control: preActivation still mentions Thunderbird with thunderbird disabled";
     in
     failures (
-      lib.concatLists (lib.mapAttrsToList (n: h: map (m: "${n}: ${m}") (nixosOne h)) nixosHosts)
+      lib.concatLists (lib.mapAttrsToList (n: h: map (m: "${n}: ${m}") (nixosOne h)) (lib.optionalAttrs hasNixos { inherit (tbOnHosts) template-host-minimal; }))
       ++ lib.concatLists (lib.mapAttrsToList (n: h: map (m: "${n}: ${m}") (darwinOne h)) darwinHosts)
     );
 }

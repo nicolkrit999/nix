@@ -49,7 +49,7 @@ let
   realNames = [ "org.kde.kwalletd6" "org.kde.kwalletd5" "org.freedesktop.secrets" ];
   secretRoute = v: lib.toList v == [ "gnome-keyring" ];
 
-  checks = cfgName: c:
+  checks = _cfgName: c:
     let
       hm = c.home-manager.users.krit;
       plasma = c.services.desktopManager.plasma6.enable;
@@ -161,7 +161,7 @@ let
         chk (lib.elem "gnome-keyring-portal-manifest" portalNames && lib.elem "gnome-keyring-portal-manifest" hmPortalNames)
           "manifest-only gnome-keyring.portal missing from extraPortals";
       "Chromium/Electron browsers installed carry gnome-libsecret" =
-        chk ((browsers != [ ] || cfgName != "base") && lib.all carries browsers) "without the flag: ${toString (map (p: p.name) (lib.filter (p: !(carries p)) browsers))}";
+        chk (lib.all carries browsers) "without the flag: ${toString (map (p: p.name) (lib.filter (p: !(carries p)) browsers))}";
       "FHS-wrapped Electron apps carry gnome-libsecret" =
         chk (lib.all carries wrapped) "without the flag: ${toString (map (p: p.name) (lib.filter (p: !(carries p)) wrapped))}";
       "self-test: helpers accept good samples and reject bad ones" = chk selfTest "carries/includes/ini/secretRoute helper is broken";

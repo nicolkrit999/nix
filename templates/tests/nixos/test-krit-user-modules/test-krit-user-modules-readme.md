@@ -26,7 +26,7 @@ Eval of four `extendModules` twins per host (`nixos-desktop`, `nixos-laptop`), p
 
 Which modules a host enables is never asserted: the twins force the modules under test on or off with `mkForce`, so every check runs the same way on both hosts. Twin `a` has dolphin, pwas, helium and logitech (both MX Master mice) on and chromium off; `both` adds chromium; `only4` turns the MX Master 3S off; `noMice` turns both off.
 
-The rcloneMount check reads `options.myconfig.services.rcloneMount.enable.definitionsWithLocations` of the real host: one `true` definition must come from each enabled `services/cloud/*` module, so a cloud module can no longer be enabled without turning rcloneMount on (the host's own `rcloneMount.enable` is a separate definition and is not counted). If a failure shows an empty file list, the module-system `file` of a denix module no longer contains the module path and the filter needs adapting.
+The rcloneMount check reads `options.myconfig.services.rcloneMount.enable.definitionsWithLocations` of the real host (a host with no cloud module enabled passes; the positive case and the control run on a minimal fixture, see below): one `true` definition must come from each enabled `services/cloud/*` module, so a cloud module can no longer be enabled without turning rcloneMount on (the host's own `rcloneMount.enable` is a separate definition and is not counted). If a failure shows an empty file list, the module-system `file` of a denix module no longer contains the module path and the filter needs adapting.
 
 `02-scenario-dolphin-places.nix` (desktop only, dolphin forced on) exposes the store paths and derivations of `dolphin-places-sync` and the seed xbel, parsed from the `createDolphinPlaces` activation text. The script then runs on fixture files in a temp dir: an old Dolphin file (pre-change order, Dolphin `Recent *` entries with KDE `<ID>` attributes, a user bookmark, `~/momentary` and `/mnt` appended at the end), a missing file, a malformed file and a file with a `<separator/>`. Home and flake directory come from the config (`home.homeDirectory`, `myconfig.constants.flakeDir`), nothing is hardcoded.
 
@@ -48,11 +48,21 @@ Per host.
 | helium-alone-no-assertion | helium with chromium off raises none |
 | pwa-entries-plain-network | at least one `pwa-*` desktop entry; none has a `mimeType`, all have `categories == [ "Network" ]` |
 | control-pwa-lint-detects | the PWA lint flags planted bad entries |
-| cloud-modules-enable-rclone-mount | each enabled cloud module defines `rcloneMount.enable = true` (definition count equals enabled cloud modules) |
+| cloud-modules-enable-rclone-mount | real host invariant: each enabled cloud module defines `rcloneMount.enable = true` (definition count equals enabled cloud modules; a host with none enabled passes, the positive case is the fixture below) |
 | logid-restart-trigger | `systemd.services.logid.restartTriggers` contains the `logid.cfg` source |
 | logid-trigger-follows-config | with one mouse off the `logid.cfg` source and the trigger change with it |
 | logid-udev-rule-once | the `c548` receiver udev rule appears exactly once with both mice and with one mouse |
 | control-logid-udev-rule-absent-without-mice | the rule is gone with both mice off |
+
+## Cloud modules (minimal fixture)
+
+Runs once. `03-scenario-cloud-fixture.nix` builds fresh `template-host-minimal` hosts (`lib/fixture-host.nix`) that enable only the cloud module(s) under test.
+
+| Check | Expected |
+|-------|----------|
+| each-cloud-module-enables-rclone-mount | with only one of google-drive, onedrive-personal, pcloud, proton-drive on: exactly one `rcloneMount.enable` definition comes from that module's file, it is `true`, and `rcloneMount.enable` evaluates true |
+| all-cloud-modules-one-definition-each | with all four on: four definitions from `services/cloud/`, all `true` |
+| control-no-cloud-module-no-definition | with none on: no definition from `services/cloud/` and `rcloneMount.enable` is false (the definition filter does not match everything) |
 
 ## Dolphin places sync (real script, fixture files)
 

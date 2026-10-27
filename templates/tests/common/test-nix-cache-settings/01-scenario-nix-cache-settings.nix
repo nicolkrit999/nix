@@ -2,6 +2,7 @@ let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
   flake = builtins.getFlake "path:${flakeRoot}";
   lib = flake.inputs.nixpkgs.lib;
+  fx = import ../../lib/fixture-host.nix flake;
 
   nixosCfg = name: flake.nixosConfigurations.${name};
   darwinCfg = flake.darwinConfigurations.Krits-MacBook-Pro;
@@ -57,7 +58,8 @@ let
 
   netrcOf = cfg: cfg.config.sops.templates."attic-netrc".content;
 
-  sweepsToml = cfg: cfg.config.home-manager.users.krit.xdg.configFile."nix-sweep/presets.toml".text;
+  sweepsOn = modules: fx.mkNixos ([{ myconfig.nix-sweeps.enable = lib.mkForce true; }] ++ modules);
+  sweepsToml = cfg: (fx.hmOf cfg).xdg.configFile."nix-sweep/presets.toml".text;
   sweepsParsed = cfg: builtins.fromTOML (sweepsToml cfg);
 
   userOf = cfg: cfg.config.myconfig.constants.user;
@@ -126,13 +128,39 @@ let
   homeSweepProblems = name: home: sweepInstalledProblems name home.config [ ];
 
   homes = flake.homeConfigurations;
-  hostPresetCount = builtins.length (builtins.filter (c: (hmOf c).xdg.configFile ? ${presetsFile}) (builtins.attrValues hosts));
-  homePresetCount = builtins.length (builtins.filter (h: h.config.xdg.configFile ? ${presetsFile}) (builtins.attrValues homes));
+  sweepsHome = homes."krit@template-host-minimal".extendModules { modules = [{ myconfig.nix-sweeps.enable = lib.mkForce true; }]; };
+
+  sweepsChecks =
+    let
+      fxOn = sweepsOn [ ];
+      fxOff = fx.mkNixos [{ myconfig.nix-sweeps.enable = lib.mkForce false; }];
+      t = sweepsParsed fxOn;
+      gcn = fxOn.config.myconfig.nix-sweeps.gcn;
+      gcd = fxOn.config.myconfig.nix-sweeps.gcd;
+    in
+    {
+      "check-sweeps-toml" = failIf (
+        (lib.optional (!builtins.isInt t.default.keep-min) "default.keep-min is not an int")
+        ++ (lib.optional (!builtins.isInt t.ask.keep-min) "ask.keep-min is not an int")
+        ++ (lib.optional (toString t.default.keep-min != gcn) "default.keep-min != gcn (${gcn})")
+        ++ (lib.optional (t.default.interactive != false) "default.interactive must be false")
+        ++ (lib.optional (t.ask.interactive != true) "ask.interactive must be true")
+        ++ (lib.optional (t.default.remove-older != gcd) "default.remove-older != gcd")
+        ++ (lib.optional (t.ask.remove-older != gcd) "ask.remove-older != gcd")
+      );
+      "check-sweeps-nix-sweep-installed" = failIf (
+        (if (fx.hmOf fxOn).xdg.configFile ? ${presetsFile} then [ ] else [ "${presetsFile} not generated with nix-sweeps enabled" ])
+        ++ systemSweepProblems "sweeps-fixture" fxOn
+      );
+      "check-sweeps-disabled-no-presets" =
+        if (fx.hmOf fxOff).xdg.configFile ? ${presetsFile} then "FAIL: ${presetsFile} generated with nix-sweeps disabled"
+        else if builtins.any isSweep fxOff.config.environment.systemPackages then "FAIL: nix-sweep installed with nix-sweeps disabled"
+        else ok;
+    };
 
   perHost = name: cfg: {
     "check-${name}-push-alias-gating" = failIf (pushGatingProblems cfg);
     "check-${name}-push-token-off-argv" = failIf (tokenArgvProblems cfg);
-    "check-${name}-nix-sweep-installed" = failIf (systemSweepProblems name cfg);
     "check-${name}-substituter-key-pairing" = failIf (pairingProblems cfg);
     "check-${name}-substituter-nonempty" =
       if builtins.length (substituters cfg) >= 2 then ok
@@ -152,17 +180,6 @@ let
       else "FAIL: netrc content unexpected (host with port stripped expected): ${builtins.head (lib.splitString "password" c)}";
     "check-${name}-attic-netrc-file-set" =
       eq "nix.settings.netrc-file" (nixSettings cfg).netrc-file cfg.config.sops.templates."attic-netrc".path;
-    "check-${name}-nix-sweeps-toml" =
-      let t = sweepsParsed cfg; gcn = cfg.config.myconfig.nix-sweeps.gcn; in
-      failIf (
-        (lib.optional (!builtins.isInt t.default.keep-min) "default.keep-min is not an int")
-        ++ (lib.optional (!builtins.isInt t.ask.keep-min) "ask.keep-min is not an int")
-        ++ (lib.optional (toString t.default.keep-min != gcn) "default.keep-min != gcn (${gcn})")
-        ++ (lib.optional (t.default.interactive != false) "default.interactive must be false")
-        ++ (lib.optional (t.ask.interactive != true) "ask.interactive must be true")
-        ++ (lib.optional (t.default.remove-older != cfg.config.myconfig.nix-sweeps.gcd) "default.remove-older != gcd")
-        ++ (lib.optional (t.ask.remove-older != cfg.config.myconfig.nix-sweeps.gcd) "ask.remove-older != gcd")
-      );
   };
 
   nixosOnly = name: cfg: {
@@ -195,8 +212,9 @@ let
   homeChecks = {
     "check-homes-nix-sweep-installed" = failIf (lib.concatLists (lib.mapAttrsToList homeSweepProblems homes));
     "check-homes-presets-nonempty" =
-      if hostPresetCount >= 1 && (flake.nixosConfigurations == { } || homePresetCount >= 1) then ok
-      else "FAIL: ${presetsFile} generated on ${toString hostPresetCount} system hosts and ${toString homePresetCount} homeConfigurations, the install checks would run over nothing";
+      if homes == { } then ok
+      else if sweepsHome.config.xdg.configFile ? ${presetsFile} then ok
+      else "FAIL: ${presetsFile} not generated by a standalone home with nix-sweeps on, the homes install check would run over nothing";
   };
 
   pushOn = attic: cachix: withModules desktop [{
@@ -205,7 +223,6 @@ let
   }];
   pushFlags = enable: push: { inherit enable push; };
   dropSweep = pkgs: builtins.filter (p: !(isSweep p)) pkgs;
-  someHome = builtins.head (builtins.attrValues homes);
 
   controls = {
     "check-control-push-both-on" =
@@ -250,12 +267,15 @@ let
       if builtins.length (atticConfigProblems c) == 2 then ok
       else "FAIL: inline attic token not detected: ${builtins.toJSON (atticConfigProblems c)}";
     "check-control-nix-sweep-missing-detected" =
-      let c = withModules desktop [{ environment.systemPackages = lib.mkForce (dropSweep desktop.config.environment.systemPackages); }];
-      in if systemSweepProblems "desktop-mutant" c != [ ] then ok else "FAIL: removing nix-sweep from systemPackages was not detected";
+      let
+        base = sweepsOn [ ];
+        c = sweepsOn [{ environment.systemPackages = lib.mkForce (dropSweep base.config.environment.systemPackages); }];
+      in
+      if systemSweepProblems "fixture-mutant" c != [ ] then ok else "FAIL: removing nix-sweep from systemPackages was not detected";
     "check-control-home-nix-sweep-missing-detected" =
       if homes == { } then ok
       else
-        let h = someHome.extendModules { modules = [{ home.packages = lib.mkForce (dropSweep someHome.config.home.packages); }]; };
+        let h = sweepsHome.extendModules { modules = [{ home.packages = lib.mkForce (dropSweep sweepsHome.config.home.packages); }]; };
         in if homeSweepProblems "home-mutant" h != [ ] then ok else "FAIL: removing nix-sweep from home.packages was not detected";
     "check-control-wrong-key-detected" =
       let c = withModules desktop [{ myconfig.cachix.publicKey = lib.mkForce "someone-else.cachix.org-1:AAAA="; myconfig.attic.publicKey = lib.mkForce "wrong:AAAA="; }];
@@ -287,14 +307,14 @@ let
       in
       if !(anyMsg "attic" m) then ok else "FAIL: attic assertions fail on real hosts: ${builtins.toJSON m}";
     "check-control-sweeps-quoted-gcn-not-int" =
-      let c = withModules desktop [{ myconfig.nix-sweeps.gcn = lib.mkForce "\"3\""; }];
+      let c = sweepsOn [{ myconfig.nix-sweeps.gcn = lib.mkForce "\"3\""; }];
       in eq "keep-min isInt when gcn is quoted" (builtins.isInt (sweepsParsed c).default.keep-min) false;
     "check-control-sweeps-gcn-tracks-option" =
-      let c = withModules desktop [{ myconfig.nix-sweeps.gcn = lib.mkForce "7"; }];
+      let c = sweepsOn [{ myconfig.nix-sweeps.gcn = lib.mkForce "7"; }];
       in eq "default.keep-min with gcn=7" (sweepsParsed c).default.keep-min 7;
   };
 in
 lib.foldl' (a: b: a // b) { } (
   lib.mapAttrsToList perHost hosts
-  ++ [ (nixosOnly "nixos-desktop" hosts.nixos-desktop) (nixosOnly "nixos-laptop" hosts.nixos-laptop) darwinOnly homeChecks controls ]
+  ++ [ sweepsChecks (nixosOnly "nixos-desktop" hosts.nixos-desktop) (nixosOnly "nixos-laptop" hosts.nixos-laptop) darwinOnly homeChecks controls ]
 )
