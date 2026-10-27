@@ -91,13 +91,13 @@ let
   controls = [
     (fixtureFollows "control: LayoutList follows constants.keyboardLayout"
       {
-        keyboardLayout = force "us,de";
-        keyboardVariant = force ",";
+        keyboardLayout = "us,de";
+        keyboardVariant = ",";
       } "LayoutList" "us,de")
     (fixtureFollows "control: VariantList follows constants.keyboardVariant"
       {
-        keyboardLayout = force "us,de";
-        keyboardVariant = force "intl,";
+        keyboardLayout = "us,de";
+        keyboardVariant = "intl,";
       } "VariantList" "intl,")
     {
       label = "control: comparator rejects a mismatch";

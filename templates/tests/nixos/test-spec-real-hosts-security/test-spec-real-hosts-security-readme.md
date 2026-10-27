@@ -94,7 +94,7 @@ secure-travel keeps tailscale on (it is the VPN, an exit node is picked by hand)
 | allowed-users | control: base differs from `[ user ]`; guest equals `[ user ]` |
 | PAT mode | control: base `0444`; guest `0400` |
 | root | control: base root not locked; secure-travel `hashedPassword == "!"` |
-| tailscale firewall | control: base `openFirewall` true and `tailscale0` trusted; secure-travel closed with only `lo` trusted |
+| tailscale firewall | control: base `openFirewall` true and `tailscale0` in `trustedInterfaces`; secure-travel closed with `tailscale0` not in `trustedInterfaces` |
 | secure-travel off-switches | docker, localsend, openssh, avahi on in the base and off in secure-travel; gnome the only DE while the base has all |
 | localsend | enabled fixture sets `programs.localsend.enable`, opens TCP and UDP 53317 and installs the package; control: disabled fixture has 53317 closed and the program off |
 

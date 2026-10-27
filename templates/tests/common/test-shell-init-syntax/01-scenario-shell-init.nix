@@ -30,7 +30,7 @@ let
     minimal = flake.nixosConfigurations.template-host-minimal;
     darwin = fxd.mkDarwin {
       paths = darwinPaths;
-      modules = [{
+      modules = [ flake.inputs.nix-sops.darwinModules.sops {
         homebrew.enable = true;
         myconfig.programs.yazi.enable = true;
       }];

@@ -17,10 +17,14 @@ let
   coffeeOnText = builtins.readFile "${flake.outPath}/modules/nixos/services/power/coffee/coffee-on.sh";
   staleHandling = text: lib.hasInfix "-f $LINGER_MARKER && $linger != yes" text;
   lingerProblems = cfg: onText:
-    (lib.optional (!cfg.myconfig.services.impermanence.enable) "impermanence is off, the check is vacuous")
-    ++ (lib.optional (!cfg.myconfig.services.coffee.enable) "coffee is off, the check is vacuous")
-    ++ (lib.optional (!(builtins.elem lingerDir (persisted cfg)) && !staleHandling onText)
-      "${lingerDir} is not persisted and coffee-on.sh has no stale linger marker handling");
+    let
+      impOn = cfg.myconfig.services.impermanence.enable;
+      coffeeOn = cfg.myconfig.services.coffee.enable;
+    in
+    if !impOn then [ "impermanence is off, the check is vacuous" ]
+    else if !coffeeOn then [ "coffee is off, the check is vacuous" ]
+    else lib.optional (!(builtins.elem lingerDir (persisted cfg)) && !staleHandling onText)
+      "${lingerDir} is not persisted and coffee-on.sh has no stale linger marker handling";
 
   base = { myconfig.services.coffee.enable = mk true; myconfig.services.impermanence.enable = mk true; };
   fixture = (fx.mkNixos [ base ]).config;

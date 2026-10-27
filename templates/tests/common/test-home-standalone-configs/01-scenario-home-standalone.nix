@@ -247,17 +247,20 @@ let
     check-hyprland-stylix-target-off =
       let
         minimal = homes."krit@template-host-minimal";
-        on = minimal.extendModules {
-          modules = [ ({ lib, ... }: { myconfig.programs.hyprland.enable = lib.mkForce true; }) ];
+        setHypr = v: minimal.extendModules {
+          modules = [ ({ lib, ... }: { myconfig.programs.hyprland.enable = lib.mkForce v; }) ];
         };
+        off = setHypr false;
+        on = setHypr true;
         twin = on.extendModules {
           modules = [ ({ lib, ... }: { myconfig.stylix.targets.hyprland.enable = lib.mkForce true; }) ];
         };
       in
       all [
-        (expect "minimal myconfig.programs.hyprland.enable (control: off by default)" minimal.config.myconfig.programs.hyprland.enable false)
+        (expect "hyprland forced off: myconfig.programs.hyprland.enable (control)" off.config.myconfig.programs.hyprland.enable false)
         (expect "hyprland forced on: myconfig.programs.hyprland.enable (control: module active)" on.config.myconfig.programs.hyprland.enable true)
         (expect "hyprland on: stylix.targets.hyprland.enable" on.config.stylix.targets.hyprland.enable false)
+        (expect "stylix.targets.hyprland.enable differs [off, on] (control: override only when module on)" (off.config.stylix.targets.hyprland.enable != on.config.stylix.targets.hyprland.enable) true)
         (if twin.config.stylix.targets.hyprland.enable == true then "ok"
         else "FAIL: forcing myconfig.stylix.targets.hyprland.enable did not flip the HM target (mutation not detected)")
       ];

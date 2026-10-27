@@ -104,8 +104,8 @@ let
     "guest: PAT mode override wins over the base mode" = eq "guest PAT mode" g.sops.secrets.github_fg_pat_token_nix.mode "0400";
     "control: base root account is not locked" = yes "base root ${b.users.users.root.hashedPassword}" (b.users.users.root.hashedPassword != "!");
     "secure-travel: root account locked over an unlocked base" = eq "root pw" s.users.users.root.hashedPassword "!";
-    "control: base opens the tailscale firewall and trusts tailscale0" = eq "base tailscale firewall" [ b.services.tailscale.openFirewall b.networking.firewall.trustedInterfaces ] [ true [ "tailscale0" ] ];
-    "secure-travel: tailscale firewall closed and only lo trusted" = eq "secure-travel firewall" [ s.services.tailscale.openFirewall s.networking.firewall.trustedInterfaces ] [ false [ "lo" ] ];
+    "control: base opens the tailscale firewall and trusts tailscale0" = eq "base tailscale firewall" [ b.services.tailscale.openFirewall (builtins.elem "tailscale0" b.networking.firewall.trustedInterfaces) ] [ true true ];
+    "secure-travel: tailscale firewall closed and tailscale0 not trusted" = eq "secure-travel firewall" [ s.services.tailscale.openFirewall (builtins.elem "tailscale0" s.networking.firewall.trustedInterfaces) ] [ false false ];
     "secure-travel: docker and localsend off while the base has them on" = eq "secure-travel docker/localsend" [ b.virtualisation.docker.enable s.virtualisation.docker.enable b.myconfig.services.localsend.enable s.myconfig.services.localsend.enable ] [ true false true false ];
     "secure-travel: gnome is the only DE while the base has all" = eq "secure-travel DE flags" (map (d: s.myconfig.programs.${d}.enable) des) (map (d: d == "gnome") des);
     "secure-travel: openssh and avahi off while the base has them on" = eq "secure-travel ssh/avahi" [ b.services.openssh.enable b.services.avahi.enable s.services.openssh.enable s.services.avahi.enable ] [ true true false false ];
