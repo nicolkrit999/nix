@@ -44,7 +44,28 @@ delib.module {
             email = lib.mkIf (myconfig.constants.gitUserEmail != "") myconfig.constants.gitUserEmail;
           };
           init.defaultBranch = "main";
-          pull.ff = "only";
+          pull.rebase = true;
+          rebase = {
+            autoStash = true;
+            autoSquash = true;
+            updateRefs = true;
+          };
+          fetch = {
+            prune = true;
+            pruneTags = true;
+          };
+          push.autoSetupRemote = true;
+          merge.conflictStyle = "zdiff3";
+          rerere.enabled = true;
+          diff = {
+            algorithm = "histogram";
+            colorMoved = "default";
+          };
+          help.autocorrect = "prompt";
+          status = {
+            short = true;
+            branch = true;
+          };
         };
 
         # GitHub Desktop needs the PATH git-lfs; HM's store-path default breaks it (8d8b312f)
@@ -61,8 +82,11 @@ delib.module {
         enableGitIntegration = true;
         options = {
           navigate = true;
-          light = false;
+          detect-dark-light = "auto";
           side-by-side = true;
+          line-numbers = true;
+          hyperlinks = true;
+          file-decoration-style = "blue box";
         };
       };
     };
