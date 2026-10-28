@@ -111,6 +111,16 @@ expect_ok lockCatppuccinStripsBackground "catppuccin on: derived hyprlock.conf s
 expect_ok lockCatppuccinStripControl "control: an unrelated derivation does not satisfy the strip predicate"
 expect_ok lockCatppuccinOffNoStrip   "control: catppuccin off sources no derived conf"
 
+echo "=== hyprlock size constants (theme.lock*) ==="
+expect_ok lockSizesDefaultsReproduceTheme "catppuccin on, default lock* constants: every section of the derived conf equals the theme's own (only BACKGROUND gone)"
+expect_ok lockSizesDefaultsAreThemeNumbers "default constants give 90 / 25 / date -30,-150 / avatar 100 at 0,75 / input 300, 60"
+expect_ok lockSizesCustomApplied "avatar 160 -> size 160 at 0,105; clock 120, date 30 at -30,-180; input 350, 70"
+expect_ok lockSizesCustomOtherLinesUntouched "custom sizes leave GENERAL/LAYOUT/FINGERPRINT and the other lines of the four sections as in the theme"
+expect_ok lockSizesCustomControlDiffers "control: custom conf differs from the default one and the fixture really sets lockAvatarSize 160"
+expect_ok lockSizesStillStripBackground "custom sizes still drop the BACKGROUND block"
+expect_ok lockSizesIgnoredWithoutCatppuccin "catppuccin off: non-default lock* constants leave hyprlock image/label/input-field unchanged and source no derived conf"
+expect_ok lockSizesOffControlDetectsChange "control: the settings comparison sees a real difference (catppuccin off vs on)"
+
 echo "=== hyprlock without a \"*\" entry ==="
 expect_ok lockNoStarOne              "1 monitor, no *: own block plus one catch-all with the fallback"
 expect_ok lockNoStarThree            "3 monitors, no *: three own blocks plus one catch-all with the fallback"

@@ -159,6 +159,12 @@ delib.host {
           catppuccin = true;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "sapphire";
+          # hyprlock (catppuccin): 3200x2000 @ 1.6 = 2000x1250 logical px, so ~1.35x the theme's sizes
+          lockAvatarSize = 190;
+          lockClockFontSize = 120;
+          lockDateFontSize = 34;
+          lockInputWidth = 400;
+          lockInputHeight = 80;
         };
 
         keyboardLayout = "us,it,de,fr";

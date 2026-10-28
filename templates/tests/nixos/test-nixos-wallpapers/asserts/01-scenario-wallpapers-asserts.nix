@@ -112,6 +112,22 @@ let
   drvText = s: builtins.readFile (builtins.unsafeDiscardStringContext (builtins.head (builtins.attrNames (builtins.getContext s))));
   plainControl = pkgs.runCommand "plain-control" { } "echo x > $out";
   stripsBackground = t: lib.hasInfix "# BACKGROUND$/ { skip = 1" t && lib.hasInfix "hyprlock.conf" t && lib.hasInfix "grep -q '^background'" t;
+  confOf = c: builtins.readFile (builtins.head (ourConf c));
+  rawConf = c: builtins.readFile "${(H.getHm c).catppuccin.sources.hyprlock}/hyprlock.conf";
+  secLines = text: sec:
+    let
+      ls = lib.splitString "\n" text;
+      start = lib.lists.findFirstIndex (l: l == "# ${sec}") null ls;
+      after = if start == null then [ ] else lib.drop (start + 1) ls;
+    in
+    lib.filter (l: l != "") (lib.take (let i = lib.lists.findFirstIndex (l: lib.hasPrefix "# " l) null after; in if i == null then builtins.length after else i) after);
+  secVal = text: sec: key:
+    let m = lib.filter (x: x != null) (map (l: builtins.match "  ${key} = (.*)" l) (secLines text sec));
+    in if builtins.length m == 1 then builtins.head (builtins.head m) else "MISSING";
+  untouchedSecs = [ "GENERAL" "LAYOUT" "FINGERPRINT" ];
+  touchedSecs = [ "TIME" "DATE" "USER AVATAR" "INPUT FIELD" ];
+  secsEqual = secs: a: b: builtins.all (s: secLines a s == secLines b s) secs;
+  hlSettings = c: builtins.unsafeDiscardStringContext (builtins.toJSON (lib.filterAttrs (n: _: builtins.elem n [ "background" "image" "label" "input-field" ]) (H.getHm c).programs.hyprlock.settings));
   revertedSingleStar = path: [{ monitor = ""; inherit path; zindex = -1; }];
   desktopExpect = {
     specific = [{ monitor = "DP-1"; path = lockPath "lock-dp1"; } { monitor = "DP-2"; path = lockPath "lock-dp2"; }];
@@ -222,6 +238,47 @@ in
   lockCatppuccinStripsBackground = guard (stripsBackground (drvText (builtins.head (ourConf (lockHost "34-lock-catppuccin-desktop")))));
   lockCatppuccinStripControl = guard (!stripsBackground (drvText "${plainControl}"));
   lockStripDrvs = pkgs.writeText "lock-strip-drvs" (builtins.head (ourConf (lockHost "34-lock-catppuccin-desktop")) + "${plainControl}");
+  lockSizesDefaultsReproduceTheme = guard (
+    let c = lockHost "34-lock-catppuccin-desktop"; g = confOf c; r = rawConf c;
+    in builtins.all (s: secLines g s != [ ] && secLines g s == secLines r s) (untouchedSecs ++ touchedSecs)
+  );
+  lockSizesDefaultsAreThemeNumbers = guard (
+    let g = confOf (lockHost "34-lock-catppuccin-desktop");
+    in secVal g "TIME" "font_size" == "90" && secVal g "DATE" "font_size" == "25"
+      && secVal g "DATE" "position" == "-30, -150" && secVal g "USER AVATAR" "size" == "100"
+      && secVal g "USER AVATAR" "position" == "0, 75" && secVal g "INPUT FIELD" "size" == "300, 60"
+  );
+  lockSizesCustomApplied = guard (
+    let g = confOf (lockHost "35-lock-catppuccin-sizes");
+    in secVal g "USER AVATAR" "size" == "160" && secVal g "USER AVATAR" "position" == "0, 105"
+      && secVal g "TIME" "font_size" == "120" && secVal g "DATE" "font_size" == "30"
+      && secVal g "DATE" "position" == "-30, -180" && secVal g "INPUT FIELD" "size" == "350, 70"
+  );
+  lockSizesCustomOtherLinesUntouched = guard (
+    let c = lockHost "35-lock-catppuccin-sizes"; g = confOf c; r = rawConf c;
+    in secsEqual untouchedSecs g r
+      && secVal g "TIME" "position" == secVal r "TIME" "position"
+      && secVal g "DATE" "color" == secVal r "DATE" "color"
+      && secVal g "USER AVATAR" "border_color" == secVal r "USER AVATAR" "border_color"
+      && secVal g "INPUT FIELD" "position" == secVal r "INPUT FIELD" "position"
+  );
+  lockSizesCustomControlDiffers = guard (
+    let g = confOf (lockHost "35-lock-catppuccin-sizes");
+    in !secsEqual touchedSecs g (confOf (lockHost "34-lock-catppuccin-desktop"))
+      && (lockHost "35-lock-catppuccin-sizes").myconfig.constants.theme.lockAvatarSize == 160
+  );
+  lockSizesStillStripBackground = guard (
+    let g = confOf (lockHost "35-lock-catppuccin-sizes");
+    in !lib.hasInfix "# BACKGROUND" g && !lib.hasInfix "\nbackground" g
+  );
+  lockSizesIgnoredWithoutCatppuccin = guard (
+    let off = lockHost "36-lock-sizes-catppuccin-off";
+    in off.myconfig.constants.theme.lockAvatarSize == 160 && !off.myconfig.constants.theme.catppuccin
+      && ourConf off == [ ]
+      && hlSettings off == hlSettings (lockHost "26-lock-desktop-like")
+      && !lib.hasInfix "160" (hlSettings off) && !lib.hasInfix "350" (hlSettings off)
+  );
+  lockSizesOffControlDetectsChange = guard (hlSettings (lockHost "36-lock-sizes-catppuccin-off") != hlSettings (lockHost "34-lock-catppuccin-desktop"));
   lockCatppuccinOffNoStrip = guard (ourConf (lockHost "26-lock-desktop-like") == [ ]);
   lockNoStarOne = guard (lockOk { specific = [{ monitor = "eDP-1"; path = lockPath "lock-edp1"; }]; catchAll = fallbackPath; } (bgsOf (lockHost "32-lock-nostar-one")));
   lockNoStarThree = guard (lockOk

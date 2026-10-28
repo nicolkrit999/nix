@@ -199,6 +199,12 @@ delib.host {
           catppuccin = true;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "sapphire";
+          # hyprlock (catppuccin): 3840x2160 @ 1.5 = 2560x1440 logical px, the laptop's sizes (2000x1250 logical) x1.15
+          lockAvatarSize = 220;
+          lockClockFontSize = 138;
+          lockDateFontSize = 39;
+          lockInputWidth = 460;
+          lockInputHeight = 92;
         };
 
         keyboardLayout = "us,it,de,fr";

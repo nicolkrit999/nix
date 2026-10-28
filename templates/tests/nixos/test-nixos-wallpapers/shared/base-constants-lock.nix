@@ -21,12 +21,15 @@ let
   };
   with' = ws: base // { wallpapers = ws; };
 in
-{
+rec {
   desktop = with' [ (entry "lock-dp1" "DP-1") (entry "lock-dp2" "DP-2") (entry "lock-star" "*") ];
   laptop = with' [ (entry "lock-edp1" "eDP-1") (entry "lock-star" "*") ];
   desktopCatppuccin = (with' [ (entry "lock-dp1" "DP-1") (entry "lock-dp2" "DP-2") (entry "lock-star" "*") ]) // {
     inherit (import ./base-constants-static.nix) theme;
   };
+  lockSizes = { lockAvatarSize = 160; lockClockFontSize = 120; lockDateFontSize = 30; lockInputWidth = 350; lockInputHeight = 70; };
+  desktopCatppuccinSizes = desktopCatppuccin // { theme = desktopCatppuccin.theme // lockSizes; };
+  desktopSizes = desktop // { theme = desktop.theme // lockSizes; };
   noStarOne = with' [ (entry "lock-edp1" "eDP-1") ];
   noStarThree = with' [ (entry "lock-dp1" "DP-1") (entry "lock-dp2" "DP-2") (entry "lock-dp3" "DP-3") ];
   starOnly = with' [ (entry "lock-star" "*") ];

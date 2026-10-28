@@ -1,6 +1,12 @@
-{ delib, lib, config, pkgs, ... }:
+{ delib
+, lib
+, config
+, pkgs
+, ...
+}:
 let
-  anyWmEnabled = myconfig:
+  anyWmEnabled =
+    myconfig:
     (myconfig.programs.hyprland.enable or false)
     || (myconfig.programs.niri.enable or false)
     || (myconfig.programs.mango.enable or false);
@@ -22,12 +28,20 @@ delib.module {
       c = config.lib.stylix.colors;
 
       # Perceptual luma (0..255000) of a base16 hex colour, pure Nix.
-      luma = hex:
-        let ch = i: lib.fromHexString (builtins.substring i 2 hex);
-        in 2126 * ch 0 + 7152 * ch 2 + 722 * ch 4;
+      luma =
+        hex:
+        let
+          ch = i: lib.fromHexString (builtins.substring i 2 hex);
+        in
+        2126 * ch 0 + 7152 * ch 2 + 722 * ch 4;
       bgLuma = luma c.base00;
       isDarkScheme = bgLuma < luma c.base05;
-      dist = hex: let d = luma hex - bgLuma; in if d < 0 then -d else d;
+      dist =
+        hex:
+        let
+          d = luma hex - bgLuma;
+        in
+        if d < 0 then -d else d;
       # Text colour with the largest luma gap to base00 (base07 is not always the brightest)
       fg = if dist c.base07 > dist c.base05 then c.base07 else c.base05;
       shadowColor = c.base00;
@@ -40,7 +54,12 @@ delib.module {
           wallpaperSHA256 = myconfig.constants.fallbackWallpaperSHA256;
         }
         statics;
-      fetchWp = w: "${pkgs.fetchurl { url = w.wallpaperURL; sha256 = w.wallpaperSHA256; }}";
+      fetchWp =
+        w:
+        "${pkgs.fetchurl {
+          url = w.wallpaperURL;
+          sha256 = w.wallpaperSHA256;
+        }}";
       labelBase = {
         monitor = "";
         color = "rgba(${fg}ff)";
@@ -53,20 +72,54 @@ delib.module {
         valign = "center";
       };
       # monitor = "" covers every monitor without its own block, whatever the monitor count
-      mkBackgrounds = look:
+      mkBackgrounds =
+        look:
         map
-          (w: look // { monitor = w.targetMonitor; path = fetchWp w; zindex = -1; })
+          (
+            w:
+            look
+            // {
+              monitor = w.targetMonitor;
+              path = fetchWp w;
+              zindex = -1;
+            }
+          )
           perMonitor
-        ++ [ (look // { monitor = ""; path = fetchWp catchAll; zindex = -2; }) ];
-      # The theme's own background block points at one image; ours are per monitor
+        ++ [
+          (
+            look
+            // {
+              monitor = "";
+              path = fetchWp catchAll;
+              zindex = -2;
+            }
+          )
+        ];
+      theme = myconfig.constants.theme;
+      # Theme geometry the sizes below are relative to: avatar at y=75 for size 100, date 60 px under a 90 px clock
+      avatarY = 75 + (theme.lockAvatarSize - 100) / 2;
+      dateY = -(60 + theme.lockClockFontSize);
+      # The theme's own background block points at one image; ours are per monitor.
+      # The size/position lines of the clock, date, avatar and input field are rewritten from the lock* constants.
       catppuccinLockConf = pkgs.runCommand "catppuccin-hyprlock-no-background.conf" { } ''
         src=${config.catppuccin.sources.hyprlock}/hyprlock.conf
-        awk '
+        awk \
+          -v avatar=${toString theme.lockAvatarSize} -v avatarY=${toString avatarY} \
+          -v clock=${toString theme.lockClockFontSize} -v date=${toString theme.lockDateFontSize} \
+          -v dateY=${toString dateY} -v inW=${toString theme.lockInputWidth} -v inH=${toString theme.lockInputHeight} '
           /^# BACKGROUND$/ { skip = 1; found = 1; next }
           skip && /^}/ { skip = 0; next }
-          !skip { print }
-          END { if (!found || skip) exit 1 }
-        ' "$src" > "$out" || { echo "catppuccin hyprlock.conf: BACKGROUND block not found or unterminated, theme layout changed" >&2; exit 1; }
+          skip { next }
+          /^# / { sec = $0 }
+          sec == "# TIME" && /^  font_size = / { print "  font_size = " clock; hit++; next }
+          sec == "# DATE" && /^  font_size = / { print "  font_size = " date; hit++; next }
+          sec == "# DATE" && /^  position = / { print "  position = -30, " dateY; hit++; next }
+          sec == "# USER AVATAR" && /^  size = / { print "  size = " avatar; hit++; next }
+          sec == "# USER AVATAR" && /^  position = / { print "  position = 0, " avatarY; hit++; next }
+          sec == "# INPUT FIELD" && /^  size = / { print "  size = " inW ", " inH; hit++; next }
+          { print }
+          END { if (!found || skip) exit 1; if (hit != 6) exit 2 }
+        ' "$src" > "$out" || { echo "catppuccin hyprlock.conf: BACKGROUND block or a size/position line not found, theme layout changed" >&2; exit 1; }
         if grep -q '^background' "$out"; then echo "background block still present" >&2; exit 1; fi
       '';
       bgLook = {
@@ -89,12 +142,17 @@ delib.module {
 
       programs.hyprlock = {
         enable = true;
-      } // lib.optionalAttrs catppuccinEnabled {
+      }
+      // lib.optionalAttrs catppuccinEnabled {
         settings = {
           source = lib.mkAfter [ "${catppuccinLockConf}" ];
-          background = lib.mkForce (mkBackgrounds { blur_passes = 0; color = "$base"; });
+          background = lib.mkForce (mkBackgrounds {
+            blur_passes = 0;
+            color = "$base";
+          });
         };
-      } // lib.optionalAttrs (!catppuccinEnabled) {
+      }
+      // lib.optionalAttrs (!catppuccinEnabled) {
         settings = {
           general = {
             hide_cursor = true;
@@ -136,26 +194,38 @@ delib.module {
           ];
 
           label = lib.mkForce [
-            (labelBase // {
-              text = "Welcome!";
-              font_size = 75;
-              position = "165, 450";
-            })
-            (labelBase // {
-              text = ''cmd[update:1000] echo "<span>$(date +"%I:%M")</span>"'';
-              font_size = 55;
-              position = "255, 335";
-            })
-            (labelBase // {
-              text = ''cmd[update:60000] echo "$(date +'%A, %B %d')"'';
-              font_size = 28;
-              position = "180, 240";
-            })
-            (labelBase // {
-              text = " $USER";
-              font_size = 20;
-              position = "310, -205";
-            })
+            (
+              labelBase
+                // {
+                text = "Welcome!";
+                font_size = 75;
+                position = "165, 450";
+              }
+            )
+            (
+              labelBase
+                // {
+                text = ''cmd[update:1000] echo "<span>$(date +"%I:%M")</span>"'';
+                font_size = 55;
+                position = "255, 335";
+              }
+            )
+            (
+              labelBase
+                // {
+                text = ''cmd[update:60000] echo "$(date +'%A, %B %d')"'';
+                font_size = 28;
+                position = "180, 240";
+              }
+            )
+            (
+              labelBase
+                // {
+                text = " $USER";
+                font_size = 20;
+                position = "310, -205";
+              }
+            )
           ];
 
           input-field = lib.mkForce [

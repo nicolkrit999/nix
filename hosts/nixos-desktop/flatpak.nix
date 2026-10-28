@@ -55,19 +55,19 @@ delib.module {
           # storytold "Craft" apps (github.com/storytold/<name>): not on Flathub, installed from the
           # release's linux-x86_64 .flatpak bundle (runtime comes from the flathub remote). update.auto does
           # not touch bundles - to update, bump the version and hash (hash = release SHA256SUMS.txt in SRI form).
-          (craftBundle "vectorcraft" "0.17.0" "sha256-NCPJjbzpovfmf6F7aFLF9vo3Opml8Kh3H8MY9C2FOYw=") # Illustrator-like vector editor
-          (craftBundle "photocraft" "0.16.0" "sha256-uLhEpJUfaHci/Mrn5E82C72v3xEpER2NEB6JNJTqMgI=") # Photoshop-like image editor
-          (craftBundle "lightcraft" "0.14.0" "sha256-lRRe71IzbTaIE1wvRc4NSkltA+IsE8Jr5A98LUcTWUQ=") # Lightroom-like photo editor
-          (craftBundle "pdfcraft" "0.14.0" "sha256-fuS/VUufGFTa3wcRdPe2FuoFBdHbi5roUFLgtmPxj+U=") # Acrobat-like PDF editor
-          (craftBundle "deckcraft" "0.11.1" "sha256-C/JmyIWsgPK8ad4Wo89BXbmneGmS3Y4IgzlLJnWBdtY=") # PowerPoint-like presentations
-          (craftBundle "gridcraft" "0.12.1" "sha256-CGHCWpDKtIrZsgaJ3dJBe3+nFabGJfr1gAGolAnJ4ZA=") # Excel-like spreadsheet
-          (craftBundle "wordcraft" "0.11.0" "sha256-Xsog5wzr5QJWYOrjUMOz50rp/DbvspPSY1d+I2lvsZM=") # Word-like word processor
-          (craftBundle "filmcraft" "0.13.0" "sha256-yabHY7v2v06maiBPVkU5LOo5/punTwiLDAgUnEltoaA=") # Premiere-like video editor
-          (craftBundle "designcraft" "0.13.0" "sha256-qyzf586+oBwOvqxQeJzQ1LBE6QuyP/uOSWE0Vr35xD8=") # InDesign-like page layout (magazines, books, print)
-          (craftBundle "effectcraft" "0.17.0" "sha256-URuqEJ9sBshbQvYJC2QNvv6+B6eFzQCBwlnG4a4g3LA=") # After Effects-like motion graphics / VFX compositor
-          (craftBundle "figcraft" "0.11.2" "sha256-+FseY+1e9rVJmE1XX3jjbI2GsSbUldwoYLJob1we+uk=") # Figma-like UI design
-          (craftBundle "soundcraft" "0.13.1" "sha256-J/IgfRl25PfbtZ5EL+DMCdUIOFcV34e1ZJStKQlYxDk=") # Audio editor / DAW-like
-          (craftBundle "cadcraft" "0.13.0" "sha256-otchecKAd5MDx9Lt6/jVwsh7/fTFpWkk8O3wInZsWk0=") # CAD / DXF drawing editor
+          (craftBundle "vectorcraft" "0.18.0" "sha256-RYFIizM+A751of8OaPLekQLgCwY6DX25k/jsKpQUbdY=") # Illustrator-like vector editor
+          (craftBundle "photocraft" "0.17.0" "sha256-yW3AzBDLHbJp2sog1KJUm/aVDFFL59aLjcJtVXRAFjc=") # Photoshop-like image editor
+          (craftBundle "lightcraft" "0.15.0" "sha256-hE73O5DO3PDFjo9szAOXlVAByF33mKdcUuG/LLvlnPA=") # Lightroom-like photo editor
+          (craftBundle "pdfcraft" "0.15.0" "sha256-RvKBx9t8mkIjUD7UmwE3G9Ls7W+cyXycFRfcQdBQKeY=") # Acrobat-like PDF editor
+          (craftBundle "deckcraft" "0.12.0" "sha256-T0+4EViLy1H9IPKydfeVdHhEe+ln/7I4q5D3pvc90QQ=") # PowerPoint-like presentations
+          (craftBundle "gridcraft" "0.13.0" "sha256-9AQS1bxPOcV30qeyAqxXB+BkgVDwGWl2SdQDHU2wLbg=") # Excel-like spreadsheet
+          (craftBundle "wordcraft" "0.12.0" "sha256-Gaft0AT63sjuCF5rmduZI4x6wWBOmPAik+BLHs0461E=") # Word-like word processor
+          (craftBundle "filmcraft" "0.14.0" "sha256-fHZDD4vNZlwcPzXdZOtsOiMuooXcxiaNilylilVNVtw=") # Premiere-like video editor
+          (craftBundle "designcraft" "0.14.0" "sha256-5QAo/b4j3X7IQGwHA2Gm0cM/1szr2k4RaDcCG9tDvQM=") # InDesign-like page layout (magazines, books, print)
+          (craftBundle "effectcraft" "0.18.0" "sha256-baceeHWfAqpcl7BHKJc+szTNYHDNPJYdV2/6hmTcxF4=") # After Effects-like motion graphics / VFX compositor
+          (craftBundle "figcraft" "0.12.1" "sha256-z+3U7iqHh5FyGGQGP/qvC1DVEpj8YuMt4W/G2qzDtIs=") # Figma-like UI design
+          (craftBundle "soundcraft" "0.14.0" "sha256-nTHsWX/KjmRmJVOy43ioRP3jVLSdLonKYa2h5ypSWXs=") # Audio editor / DAW-like
+          (craftBundle "cadcraft" "0.14.0" "sha256-iWP+u4VXHz1EmoK5GJCmwB3sKkw7gJ9fuu1D/GnZza0=") # CAD / DXF drawing editor
         ];
         remotes = [
           {
