@@ -662,7 +662,15 @@ delib.host {
         # ---------------------------------------------------------------
         # 🖥️ DESKTOP ENVIRONMENTS
         # ---------------------------------------------------------------
-        cosmic.enable = true;
+        cosmic = {
+          enable = true;
+          monitors = [
+            { output = "DP-1"; width = 3840; height = 2160; refresh = 240; scale = 1.5; x = 1440; y = 560; }
+            { output = "DP-2"; width = 3840; height = 2160; refresh = 144; scale = 1.5; x = 0; y = 0; transform = 90; }
+            { output = "HDMI-A-1"; enable = false; }
+            { output = "*"; }
+          ];
+        };
 
         gnome = {
           enable = true;

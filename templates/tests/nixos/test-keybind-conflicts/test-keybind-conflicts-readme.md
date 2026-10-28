@@ -1,6 +1,6 @@
 # test-keybind-conflicts
 
-Verifies that the per-compositor keybinding modules (Hyprland, Niri, GNOME, KDE, plus the mango waybar binds) render collision-free, well-formed binds on the real hosts, that every niri bind names a real action and that the waybar toggle binds hit the running bar.
+Verifies that the per-compositor keybinding modules (Hyprland, Niri, GNOME, KDE, COSMIC, plus the mango waybar binds) render collision-free, well-formed binds on the real hosts, that every niri bind names a real action and that the waybar toggle binds hit the running bar.
 
 ## Run
 
@@ -76,6 +76,15 @@ The niri action lists are parsed at test time from the source of the niri packag
 | `kde-hotkeys-unique` | hotkey keys unique after normalisation |
 | `kde-hotkeys-vs-shortcuts` | no hotkey key equals a non-`none` `plasma.shortcuts` value |
 
+### COSMIC (per variant with cosmic enabled)
+| Check | Expected |
+|-------|----------|
+| `cosmic-shadows-only-defaults` | every `Disable` entry is a bare `{ __type = "enum"; variant = "Disable"; }` without description on one of the five shadow keys (`Super+Escape`, `Super+Shift+Escape`, `Super+q`, `Super+F11`, `Super+t`) |
+| `cosmic-shadows-unique-and-separate` | the `Disable` shadows are unique and collide with no active bind |
+| `cosmic-binds-present` | more than 3 active (non-`Disable`) shortcuts |
+| `cosmic-binds-unique` | active keys unique after normalisation (lowercased, modifiers sorted) |
+| `cosmic-binds-spawn-shape` | every action is an enum `Spawn` with exactly one non-empty command string, a plain value-less `Close`/`Minimize`/`Fullscreen`/`Maximize` window action, or a `System` action wrapping exactly one value-less `LockScreen`/`LogOut` enum |
+
 ### Controls
 | Check | Expected |
 |-------|----------|
@@ -93,5 +102,14 @@ The niri action lists are parsed at test time from the source of the niri packag
 | `niri-mutation-unlocked-media-key-fails` / `-locked-playback-key-fails` / `-missing-media-key-fails` | removing `allow-when-locked` from a media key, adding it to a playback key, or dropping a playback key fails the media-key check |
 | `waybar-cmd-matcher` | accepts `pkill -SIGUSR1 waybar`; rejects `-x`, `-fx`, `--exact`, `.waybar-wrapped`, `killall`, wrong signal |
 | `waybar-mutation-mango-x-flag-fails` / `-mango-missing-bind-fails` / `-hyprland-x-flag-fails` | synthetic mango/Hyprland binds mutated with `-x` or a removed bind fail the matching waybar check, the untouched sibling bind stays ok |
+| `cosmic-synthetic-baseline-passes` | the synthetic COSMIC bind set (including a command with arguments and the three window actions) passes all COSMIC checks (it includes the Super+M/Super+Alt+A window binds and two `Disable` shadows) |
+| `cosmic-mutation-duplicate-key-fails` / `-reordered-modifier-duplicate-fails` | a case-variant or modifier-reordered duplicate key fails `cosmic-binds-unique` |
+| `cosmic-mutation-non-spawn-fails` / `-two-command-spawn-fails` | a non-`Spawn` action (`Terminate`) or a `Spawn` with two strings fails the shape check (uniqueness stays ok for the first) |
+| `cosmic-mutation-system-wrong-variant-fails` | a `System` action with another variant (`PowerOff`) fails the shape check |
+| `cosmic-mutation-system-flat-fails` | a `System` action without its nested value fails the shape check |
+| `cosmic-mutation-window-action-with-value-fails` | a `Close` action carrying a value fails the shape check |
+| `cosmic-mutation-disable-on-active-key-fails` | a `Disable` on an active bind key fails both shadow checks |
+| `cosmic-mutation-disable-unknown-key-fails` / `-disable-with-description-fails` | a `Disable` outside the shadow set, or one carrying a description, fails `cosmic-shadows-only-defaults` |
+| `cosmic-mutation-empty-list-fails` | an empty bind list fails `cosmic-binds-present` |
 | `dups-ignores-unique` | duplicate helper returns only real duplicates |
 | `bash -n rejects broken script` | the syntax check can fail |

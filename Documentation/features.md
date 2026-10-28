@@ -43,7 +43,7 @@ A base16 colorscheme is chosen per host. The user can also enable Catppuccin (wh
 
 ## Wallpapers (video and gif included in window managers)
 
-Wallpapers are host-specific and tied to the monitor list. They apply automatically in all desktop environments and windows managers (except cosmic, currently not working).
+Wallpapers are host-specific and tied to the monitor list. They apply automatically in all desktop environments and windows managers (on COSMIC they are written declaratively through cosmic-manager, static images only).
 
 - First monitor → first wallpaper, second monitor → second wallpaper, etc
 - An entry targeted at `*` is a fallback: it applies only to outputs without their own entry, including monitors hot-plugged later that the host file does not declare. It never stacks under a declared monitor, and mirrored or disabled outputs get no wallpaper.
@@ -51,6 +51,7 @@ Wallpapers are host-specific and tied to the monitor list. They apply automatica
 - The supervisor is not a denix module and has no enable toggle. It lives in `modules/nixos/programs/de-wm/wallpaperd/` (`mk-wallpaperd.nix` turns the `wallpapers` list into per-output `OUTPUT=video|image:/nix/store/...` arguments and packages `wallpaperd.sh` with only the tools it needs). That folder is excluded from denix auto-discovery in `flake.nix`; `hyprland-main.nix`, `niri-main.nix` and `mango-main.nix` import it directly, so it runs whenever one of those WMs is enabled. It starts nothing when `skwdWall` is enabled, when a shell owns the wallpaper (caelestia/noctalia on Hyprland, noctalia on niri/MangoWM), or when the `wallpapers` list is empty.
 - In KDE Plasma the wallpapers are written by plasma-manager (`programs.plasma.workspace.wallpaper`) and the "primary" monitor takes the first wallpaper - if you change the primary monitor in System Settings, it will get the first wallpaper. On hosts without catppuccin the stylix KDE target owns the colours only (`useWallpaper = false`), so it never re-applies its own wallpaper over these.
 - GNOME always uses one static image (the primary wallpaper entry, or the fallback wallpaper when that entry has no `wallpaperURL`) shown on every monitor, regardless of the `skwdWall` toggle below - Mutter has no wlr-layer-shell support, so skwd-wall cannot render there.
+- COSMIC writes the wallpapers through cosmic-manager (`wayland.desktopManager.cosmic.wallpapers`, `cosmic-wallpaper.nix`), static images only (`videoURL`/`gifURL` are ignored; an entry with only those uses the fallback wallpaper), independent of the `skwdWall` toggle (skwd-wall does not support COSMIC). Every `targetMonitor` that is a COSMIC output name (letters, digits, `_ . : -`) gets its own entry; `desc:` targets and unsafe names are skipped with a warning. cosmic-manager does not allow an `all` entry next to per-output ones, so the `*` fallback applies only when no named target exists (then as the single wallpaper on every output); with named targets, outputs without their own entry keep COSMIC's default.
 - Enabling `programs.skwdWall` installs and enables [skwd-wall](https://github.com/liixini/skwd-wall)/skwd-deck, a GUI-driven wallpaper daemon supporting per-monitor wallpaper types (static/gif/video/Wallpaper Engine scenes, mixed across monitors) with live hotplug persistence. When enabled, it takes over Hyprland, niri, MangoWM, and KDE Plasma completely - the declarative `wallpapers` setup below is fully disabled on those four, and whatever is chosen in skwd-wall's UI applies unconditionally to any present and future window manager among them. skwd-wall is x86_64-linux only; its per-monitor state (`outputs.json`, `monitors.json`, etc.) is owned entirely by its own daemon and is never touched by Nix.
 
 ### Static vs. gif vs. video: two engines, one priority order
@@ -75,7 +76,11 @@ Practical implication: only add a `videoURL`/`gifURL` to an entry when you actua
 - **MangoWM + mangowc** - Tiling window manager supporting a vast choices of tiling layouts.
 - **KDE Plasma** - highly configurable, Windows-like launcher.
 - **GNOME** - simple, macOS-like launcher; familiar to Ubuntu/Mint users.
-- **Cosmic** - system76's revisited GNOME (currently unstable - expect freezes, black screens on logout, broken keybindings).
+- **Cosmic** - system76's revisited GNOME (currently unstable - expect freezes and black screens on logout). Declarative through cosmic-manager:
+  - Keybinds use the same constants as the KDE binds, with Super as modifier: terminal (Super+Return), browser, editor, file manager and the Vicinae launcher/clipboard/emoji binds. Super+M and Super+Shift+F toggle fullscreen, Super+Alt+A toggles maximize, Super+Shift+C closes, Super+Shift+M minimizes, Super+Delete locks the session and Super+Shift+Delete logs out (as on KDE). Super+Ctrl+3 takes a full-screen screenshot into the screenshots folder (grim) and Super+Ctrl+4 opens the interactive cosmic-screenshot overlay (Print keeps the COSMIC default). More binds go into `programs.cosmic.extraBinds`.
+  - COSMIC's own default binds that duplicate ours (Super+Escape lock, Super+Shift+Escape logout, Super+q close, Super+F11 fullscreen, Super+t terminal) are unbound through `programs.cosmic.disabledDefaults`; an assertion rejects entries that would disable one of our own binds. The custom shortcut file is rewritten on every activation.
+  - The monitor layout is declarative too (`programs.cosmic.monitors`: resolution, refresh rate, scale, position, rotation and enabled/disabled per output, with a `"*"` fallback entry that is ignored), applied with cosmic-randr at the start of each COSMIC session; invalid layouts (duplicate outputs, missing mode, unsafe names) fail the build.
+  - Wallpapers follow the wallpaper rules above.
 
 ### Caelestia & noctalia shell
 - Caelestia is available on Hyprland (x86_64 only)

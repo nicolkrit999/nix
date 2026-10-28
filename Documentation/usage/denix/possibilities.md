@@ -151,7 +151,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 
 #### Desktop Environments & Window Managers
 
-* **`programs.cosmic`**: The Rust-based COSMIC desktop environment built by System76.
+* **`programs.cosmic`**: The COSMIC desktop (System76), configured declaratively through cosmic-manager. Covers keybinds (`extraBinds` for custom ones, `disabledDefaults` to unbind COSMIC defaults), `monitors` (per-output mode, scale, position, rotation and enable/disable with a `"*"` fallback, applied at login via cosmic-randr) and wallpapers taken from `constants.wallpapers`.
 * **`programs.gnome`**: The GNOME desktop environment, with optional extra app pinning and keyboard shortcut configurations: `extraBinds` for custom shortcuts and `wmKeybindings` for extra native window-manager shortcuts (`org/gnome/desktop/wm/keybindings`, e.g. workspace switching, maximize or minimize on extra mouse buttons; a list replaces the schema default of that key, so default accelerators are re-listed, and `close` is appended to the module's own `<Super><Shift>c`). The module frees `<Super>m` (the notification-list toggle `toggle-message-tray` now has no shortcut) so hosts can use it for `toggle-maximized`.
 * **`programs.hyprland`**: A highly customizable, dynamic tiling Wayland compositor. The config is written in Lua (`configType = "lua"`), so `windowRules`, `monitorWorkspaces` and `extraBinds` entries are Lua-shaped attrsets. Includes monitor config, exec-on-start rules, workspace-to-monitor assignments, window rules, wallpaperd wallpaper management (mpvpaper for video/gif, awww for stills; see `Documentation/features.md`), and optional extra keybinds.
   * **Warning:** Enabled to have at least one WM.

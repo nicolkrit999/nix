@@ -243,6 +243,14 @@
       };
     };
 
+    cosmic-manager = {
+      url = "github:HeitorAugustoLN/cosmic-manager";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+      };
+    };
+
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs = {

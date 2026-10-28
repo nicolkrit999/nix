@@ -240,12 +240,49 @@ let
       "kde-hotkeys-vs-shortcuts" = chk (collide == [ ]) "hotkeys colliding with plasma.shortcuts: ${lib.concatStringsSep ", " collide}";
     };
 
+  cosmicShadowKeys = [ "super+escape" "shift+super+escape" "super+q" "super+f11" "super+t" ];
+  cosmicBindChecks = all:
+    let
+      isDisable = x: (x.action.variant or "") == "Disable";
+      shadows = lib.filter isDisable all;
+      shortcuts = lib.filter (x: !(isDisable x)) all;
+      normed = map (x: plusNorm x.key) shortcuts;
+      shadowOk = x:
+        x.action == { __type = "enum"; variant = "Disable"; }
+        && (x.description or null) == null
+        && builtins.elem (plusNorm x.key) cosmicShadowKeys;
+      shadowNormed = map (x: plusNorm x.key) shadows;
+      spawnOk = x:
+        (x.action.__type or "") == "enum" && (x.action.variant or "") == "Spawn"
+        && builtins.isList x.action.value && builtins.length x.action.value == 1
+        && builtins.isString (lib.head x.action.value) && lib.head x.action.value != "";
+      windowOk = x:
+        x.action == { __type = "enum"; variant = x.action.variant or "?"; }
+        && builtins.elem (x.action.variant or "") [ "Close" "Minimize" "Fullscreen" "Maximize" ];
+      systemOk = x:
+        (x.action.__type or "") == "enum" && (x.action.variant or "") == "System"
+        && builtins.attrNames x.action == [ "__type" "value" "variant" ]
+        && builtins.isList x.action.value && builtins.length x.action.value == 1
+        && lib.head x.action.value == { __type = "enum"; variant = (lib.head x.action.value).variant or "?"; }
+        && builtins.elem ((lib.head x.action.value).variant or "") [ "LockScreen" "LogOut" ];
+    in
+    {
+      "cosmic-shadows-only-defaults" = chk (lib.all shadowOk shadows) "Disable entry outside the intended shadow set or with a non-minimal shape (only ${lib.concatStringsSep ", " cosmicShadowKeys} as bare Disable allowed)";
+      "cosmic-shadows-unique-and-separate" = chk (dups shadowNormed == [ ] && lib.all (k: !(builtins.elem k normed)) shadowNormed) "Disable shadow duplicated or colliding with an active bind";
+      "cosmic-binds-present" = chk (builtins.length shortcuts > 3) "only ${toString (builtins.length shortcuts)} binds";
+      "cosmic-binds-unique" = chk (dups normed == [ ]) "duplicate keys: ${lib.concatStringsSep ", " (dups normed)}";
+      "cosmic-binds-spawn-shape" = chk (lib.all (x: spawnOk x || windowOk x || systemOk x) shortcuts) "bind whose action is neither one non-empty Spawn string, a plain Close/Minimize/Fullscreen/Maximize window action nor a System action wrapping one value-less LockScreen/LogOut enum";
+    };
+
+  cosmicChecks = c: cosmicBindChecks (hmOf c).wayland.desktopManager.cosmic.shortcuts;
+
   perVariant = _name: c:
     lib.optionalAttrs (enabled c "hyprland") (hyprChecks c)
     // lib.optionalAttrs (enabled c "mango") (mangoChecks c)
     // lib.optionalAttrs (enabled c "niri") (niriChecks c)
     // lib.optionalAttrs (enabled c "gnome") (gnomeChecks c)
-    // lib.optionalAttrs (enabled c "kde") (kdeChecks c);
+    // lib.optionalAttrs (enabled c "kde") (kdeChecks c)
+    // lib.optionalAttrs (enabled c "cosmic") (cosmicChecks c);
 
   readDrv = d: builtins.readFile (builtins.appendContext d { ${d} = { path = true; }; });
   scriptTextOf = cmd:
@@ -280,6 +317,21 @@ let
     actions = niriActionSets laptop;
   };
   niriMut = f: niriBindChecks (synthNiri // { binds = f synthNiri.binds; });
+  synthCosmic = [
+    { key = "Super+Return"; action = { __type = "enum"; variant = "Spawn"; value = [ "foot" ]; }; }
+    { key = "Super+B"; action = { __type = "enum"; variant = "Spawn"; value = [ "chromium" ]; }; }
+    { key = "Super+period"; action = { __type = "enum"; variant = "Spawn"; value = [ "vicinae vicinae://launch/core/search-emojis" ]; }; }
+    { key = "Super+Shift+X"; action = { __type = "enum"; variant = "Spawn"; value = [ "foo --bar \"baz\"" ]; }; }
+    { key = "Super+Shift+C"; action = { __type = "enum"; variant = "Close"; }; }
+    { key = "Super+Shift+M"; action = { __type = "enum"; variant = "Minimize"; }; }
+    { key = "Super+Shift+F"; action = { __type = "enum"; variant = "Fullscreen"; }; }
+    { key = "Super+M"; action = { __type = "enum"; variant = "Fullscreen"; }; }
+    { key = "Super+Alt+A"; action = { __type = "enum"; variant = "Maximize"; }; }
+    { key = "Super+Delete"; action = { __type = "enum"; variant = "System"; value = [{ __type = "enum"; variant = "LockScreen"; }]; }; }
+    { key = "Super+Shift+Delete"; action = { __type = "enum"; variant = "System"; value = [{ __type = "enum"; variant = "LogOut"; }]; }; }
+    { key = "Super+Escape"; description = null; action = { __type = "enum"; variant = "Disable"; }; }
+    { key = "Super+F11"; description = null; action = { __type = "enum"; variant = "Disable"; }; }
+  ];
   synthMangoBinds = [
     "SUPER,Return,spawn,foot"
     "SUPER+SHIFT,W,spawn,pkill -SIGUSR1 waybar"
@@ -370,6 +422,42 @@ in
         r = waybarBindChecks "hyprland" (hyprWaybarCmds (map mutate synthHyprArgs));
       in
       chk (isFail r."hyprland-waybar-toggle-bind" && r."hyprland-waybar-reload-bind" == "ok") "-x on the hyprland toggle bind not flagged (or reload bind affected)";
+    "cosmic-synthetic-baseline-passes" =
+      let r = cosmicBindChecks synthCosmic; in
+      chk (lib.all (v: v == "ok") (lib.attrValues r)) "synthetic cosmic baseline not clean";
+    "cosmic-mutation-duplicate-key-fails" =
+      let r = cosmicBindChecks (synthCosmic ++ [{ key = "super+b"; action = (lib.elemAt synthCosmic 1).action; }]); in
+      chk (isFail r."cosmic-binds-unique") "case-variant duplicate cosmic key not flagged";
+    "cosmic-mutation-reordered-modifier-duplicate-fails" =
+      let r = cosmicBindChecks (synthCosmic ++ [{ key = "Shift+Super+X"; action = (lib.elemAt synthCosmic 1).action; }]); in
+      chk (isFail r."cosmic-binds-unique") "reordered-modifier duplicate cosmic key not flagged";
+    "cosmic-mutation-non-spawn-fails" =
+      let r = cosmicBindChecks (synthCosmic ++ [{ key = "Super+Z"; action = { __type = "enum"; variant = "Terminate"; value = [ ]; }; }]); in
+      chk (isFail r."cosmic-binds-spawn-shape" && r."cosmic-binds-unique" == "ok") "non-Spawn cosmic action not flagged (or uniqueness affected)";
+    "cosmic-mutation-window-action-with-value-fails" =
+      let r = cosmicBindChecks (synthCosmic ++ [{ key = "Super+Q"; action = { __type = "enum"; variant = "Close"; value = [ "x" ]; }; }]); in
+      chk (isFail r."cosmic-binds-spawn-shape") "window action carrying a value not flagged";
+    "cosmic-mutation-two-command-spawn-fails" =
+      let r = cosmicBindChecks (synthCosmic ++ [{ key = "Super+Q"; action = { __type = "enum"; variant = "Spawn"; value = [ "a" "b" ]; }; }]); in
+      chk (isFail r."cosmic-binds-spawn-shape") "Spawn with two strings not flagged";
+    "cosmic-mutation-system-wrong-variant-fails" =
+      let r = cosmicBindChecks (synthCosmic ++ [{ key = "Super+Q"; action = { __type = "enum"; variant = "System"; value = [{ __type = "enum"; variant = "PowerOff"; }]; }; }]); in
+      chk (isFail r."cosmic-binds-spawn-shape" && r."cosmic-binds-unique" == "ok") "System action with a variant outside LockScreen/LogOut not flagged";
+    "cosmic-mutation-system-flat-fails" =
+      let r = cosmicBindChecks (synthCosmic ++ [{ key = "Super+Q"; action = { __type = "enum"; variant = "System"; }; }]); in
+      chk (isFail r."cosmic-binds-spawn-shape") "System action without its nested value not flagged";
+    "cosmic-mutation-disable-on-active-key-fails" =
+      let r = cosmicBindChecks (synthCosmic ++ [{ key = "Super+B"; action = { __type = "enum"; variant = "Disable"; }; }]); in
+      chk (isFail r."cosmic-shadows-only-defaults" && isFail r."cosmic-shadows-unique-and-separate") "Disable on an active bind key not flagged";
+    "cosmic-mutation-disable-unknown-key-fails" =
+      let r = cosmicBindChecks (synthCosmic ++ [{ key = "Super+Z"; action = { __type = "enum"; variant = "Disable"; }; }]); in
+      chk (isFail r."cosmic-shadows-only-defaults") "Disable outside the shadow set not flagged";
+    "cosmic-mutation-disable-with-description-fails" =
+      let r = cosmicBindChecks (synthCosmic ++ [{ key = "Super+q"; description = { __type = "optional"; value = "x"; }; action = { __type = "enum"; variant = "Disable"; }; }]); in
+      chk (isFail r."cosmic-shadows-only-defaults") "Disable shadow with a description not flagged";
+    "cosmic-mutation-empty-list-fails" =
+      let r = cosmicBindChecks [ ]; in
+      chk (isFail r."cosmic-binds-present") "empty cosmic bind list not flagged";
     "dups-ignores-unique" = chk (dups [ "a" "b" ] == [ ] && dups [ "a" "a" "b" ] == [ "a" ]) "dups helper broken";
   };
 }

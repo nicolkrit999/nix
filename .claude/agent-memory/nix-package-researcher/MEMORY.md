@@ -4,3 +4,5 @@
 - [noctalia v5 upstream facts](noctalia_v5_upstream_facts.md) - bin `noctalia`, `noctalia msg` IPC, toml config stack, HM built-in + stylix target, pkgs.noctalia cached; input is 66 commits past tag; caelestia GUI breaks on store shell.json
 - [hyprlock lock background sources](project_hyprlock_lock_background_sources.md) - laptop shows * fallback, desktop uses catppuccin bg (module inert); hyprlock per-monitor stacking/zindex rules
 - [Discord safeStorage token](reference_discord_safestorage_token.md) - official Discord keeps token via Electron safeStorage; backend switch can log out; pin with commandLineArgs
+- [COSMIC outputs.ron format](reference_cosmic_outputs_ron_format.md) - per-connected-set key in ~/.local/state/cosmic-comp/outputs.ron; no cosmic-manager outputs option; cosmic-randr 1.11.0 apply path
+- [KDE/GNOME display config persistence](reference_kde_gnome_display_config.md) - no declarative outputs option on either DE; kwinoutputconfig.json + monitors.xml schemas, kscreen-doctor syntax, Mutter 50.5 flags

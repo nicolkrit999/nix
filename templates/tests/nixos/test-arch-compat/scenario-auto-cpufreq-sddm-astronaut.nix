@@ -50,6 +50,8 @@ let
     (src + "/modules/nixos/programs/de-wm/kde/kde-kscreenlocker.nix")
     (src + "/modules/nixos/programs/de-wm/kde/kde-panels.nix")
     (src + "/modules/nixos/programs/de-wm/cosmic/cosmic-main.nix")
+    (src + "/modules/nixos/programs/de-wm/cosmic/cosmic-binds.nix")
+    (src + "/modules/nixos/programs/de-wm/cosmic/cosmic-monitors.nix")
 
     # Custom shells
     (src + "/modules/nixos/programs/shells/caelestia-main.nix")

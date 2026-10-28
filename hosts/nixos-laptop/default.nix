@@ -561,7 +561,13 @@ delib.host {
         # ---------------------------------------------------------------
         # 🖥️ DESKTOP ENVIRONMENTS
         # ---------------------------------------------------------------
-        cosmic.enable = false;
+        cosmic = {
+          enable = false;
+          monitors = [
+            { output = "eDP-1"; width = 3200; height = 2000; refresh = 120; scale = 1.0; x = 0; y = 0; }
+            { output = "*"; }
+          ];
+        };
 
         gnome = {
           enable = false;
