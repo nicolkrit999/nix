@@ -25,7 +25,7 @@
       devShells = forEachSupportedSystem (
         { pkgs }:
         {
-          default = pkgs.mkShellNoCC {
+          default = pkgs.mkShellNoCC ({
             venvDir = ".venv";
 
             # status banner on entry (postShellHook runs after the venv is activated)
@@ -91,6 +91,10 @@
             packages =
               with pkgs;
               [
+                chafa # nvjup terminal image fallback
+                ffmpeg # matplotlib animations in nvjup
+                imagemagick # nvjup LaTeX in markdown cells
+                librsvg # rsvg-convert for nvjup
                 nbstripout
                 poetry
                 python313
@@ -101,7 +105,11 @@
                 pip
                 venvShellHook
               ]);
-          };
+          }
+          // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+            # nvjup interactive plotly/bokeh; playwright's own downloaded browsers do not run on NixOS
+            NVJUP_CHROMIUM = "${pkgs.chromium}/bin/chromium";
+          });
         }
       );
     };

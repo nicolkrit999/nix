@@ -143,7 +143,7 @@ for cid in "${OKCASES[@]}"; do
   # from trivial derivations. Dry run against an empty store that sees only cache.nixos.org.
   printf "    %-68s " "guard: no compile or fetch outside cache.nixos.org"
   PLAN=$(BUILD=$BUILD PORTAL_CASE=$(cat "$WORK/$cid.case") nix eval --json --impure --file "$FAKE" \
-    --apply 'f: { drvs = map (d: d.drvPath) (f.realise ++ [ f.xdp f.dbus ]); xdp = f.xdp.outPath; dbus = f.dbus.outPath; }' 2>"$WORK/$cid.drv.err")
+    --apply 'f: { drvs = map (d: d.drvPath) (f.realise ++ [ f.xdp f.dbus ]); outs = map (d: d.outPath) (f.realise ++ [ f.xdp f.dbus ]); xdp = f.xdp.outPath; dbus = f.dbus.outPath; }' 2>"$WORK/$cid.drv.err")
   mapfile -t DL < <(py 'import json,sys; print("\n".join(json.loads(sys.argv[1])["drvs"]))' "${PLAN:-{\}}" 2>/dev/null)
   if [[ ${#DL[@]} -eq 0 ]]; then fail "$cid: guard" "EVAL ERROR: $(err "$WORK/$cid.drv.err")"; continue; fi
   if ! nix copy --no-check-sigs --derivation --to "local?root=$WORK/empty-store" "${DL[@]}" 2>"$WORK/$cid.copy.err" ||
@@ -156,10 +156,16 @@ for cid in "${OKCASES[@]}"; do
   pass
 
   printf "    %-68s " "build stand-ins, trivial entries, xdp and dbus"
-  nix build --no-link "${DL[@]/%/^*}" 2>"$WORK/$cid.build.err"
+  mkdir -p "$WORK/$cid.roots"
+  if ! nix build --keep-going --out-link "$WORK/$cid.roots/r" "${DL[@]/%/^*}" 2>"$WORK/$cid.build.err"; then
+    e=$(err "$WORK/$cid.build.err"); [[ -n $e ]] || e=$(tail -3 "$WORK/$cid.build.err" | tr '\n' ' ')
+    fail "$cid: build" "nix build failed: $e"; continue
+  fi
+  missing=$(py 'import json,os,sys; print(" ".join(p for p in json.loads(sys.argv[1])["outs"] if not os.path.exists(p)))' "$PLAN")
+  if [[ -n $missing ]]; then fail "$cid: build" "nix build exited 0 but these outputs are missing: $missing"; continue; fi
   XDP=$(py 'import json,sys; print(json.loads(sys.argv[1])["xdp"])' "$PLAN")/libexec/xdg-desktop-portal
   DBUS=$(py 'import json,sys; print(json.loads(sys.argv[1])["dbus"])' "$PLAN")/bin
-  if [[ ! -x $XDP || ! -x $DBUS/dbus-run-session ]]; then fail "$cid: build" "xdp=$XDP dbus=$DBUS; $(err "$WORK/$cid.build.err")"; continue; fi
+  if [[ ! -x $XDP || ! -x $DBUS/dbus-run-session ]]; then fail "$cid: build" "xdp=$XDP dbus=$DBUS: binaries missing"; continue; fi
   pass
 
   printf "    %-68s " "assemble system, home-manager and session data dirs"

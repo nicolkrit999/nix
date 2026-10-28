@@ -11,5 +11,7 @@ Final cause of the heavy-c timeouts: real profiles are ~1600 drvs each against c
 
 Trap: for `__structuredAttrs` derivations `nix derivation show` puts the attrs under top-level `structuredAttrs`; `env` holds only outputs. A "has src?" trivial-check that reads only `env` passes gtksourceview as trivial.
 
+2026-10-28 (run 40659334671): first case failed assemble "nixos-version was neither cached, a stand-in nor built" although `nix build` exited 0 (the artifact had no nix-stderr evidence file, and evidence.sh keeps one for every non-zero nix) and the next case found the path. The fake nixos-version (ylsz...) is test-only, so it is never in the CI snapshot. The cause is unproven (outputs unrooted under --no-link, so a daemon GC is the suspect). The build step now roots its outputs (--out-link in $WORK), uses --keep-going, fails on non-zero exit and checks that every output exists. If it comes back, the build-step message now says which of these happened.
+
 **Why:** per-incident package filters (noctalia, openlogi) never ended the timeouts.
 **How to apply:** if this test fails "uncached heavy entry" or "guard", add a stand-in in portal-common.nix or fix the fake host; never go back to building system.path/home.path. See [[ci-tests-narrow-substituters]].

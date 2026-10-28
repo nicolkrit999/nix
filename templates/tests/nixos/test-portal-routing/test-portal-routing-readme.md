@@ -83,6 +83,7 @@ build and a 30/45 min timeout (runs 38135221346, 38275067935, 39159226790). Now:
 | fake reproduces real | config, portal package names, session names, xdp path equal per real spec |
 | uncached entries | stand-in or trivial |
 | guard | empty-store dry run against cache.nixos.org builds nothing non-trivial |
+| build | `nix build` of the build set exits 0 and every output exists; outputs are GC-rooted under the test's work dir until it exits |
 | real portal files present | cached real entries' portal files all exist in the fake case |
 | zero deprecated UseIn fallbacks | no `Choosing ... via the deprecated UseIn key` line in any desktop |
 | FileChooser | resolved to the expected installed backend (kde in KDE, gnome in GNOME, cosmic in COSMIC, gtk elsewhere) |
