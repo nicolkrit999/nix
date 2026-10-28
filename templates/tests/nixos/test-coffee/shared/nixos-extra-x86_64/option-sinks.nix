@@ -37,6 +37,7 @@ in
       krit.services.nas = sinks [ "smb" "opencloud-mount" "sshfs" "desktop-borg-backup" "laptop-borg-backup" ];
       bluetooth = { enable = sink; autoEnableOnBoot = sink; };
       stylix.enable = sink;
+      mime = lib.genAttrs [ "docEditor" "sheetEditor" "slideEditor" ] (_: lib.mkOption { type = lib.types.str; default = "libreoffice"; });
     };
     stylix = {
       enable = sink;

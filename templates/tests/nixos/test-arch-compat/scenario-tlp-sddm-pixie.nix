@@ -124,6 +124,7 @@ let
     (src + "/modules/nixos/toplevel/net.nix")
     (src + "/modules/nixos/toplevel/qt.nix")
     (src + "/modules/nixos/toplevel/xdg-portal.nix")
+    (src + "/modules/nixos/toplevel/mime.nix")
 
     (src + "/modules/nixos/specializations/deep-focus.nix")
     (src + "/modules/nixos/specializations/guest.nix")
