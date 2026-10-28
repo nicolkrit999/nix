@@ -224,7 +224,9 @@ let
     doCheck = false;
   };
 
-  linkedin-mcp = py.toPythonApplication (py.buildPythonPackage rec {
+  pyMcp1 = py.overrideScope (final: _: { mcp = final.mcp_1; });
+
+  linkedin-mcp = pyMcp1.toPythonApplication (pyMcp1.buildPythonPackage rec {
     pname = "mcp-server-linkedin";
     version = "4.25.1";
     pyproject = true;
@@ -236,9 +238,9 @@ let
       hash = "sha256-jmXQEsUDDnachGTulHkpapDXibYrYku4euNeIQlwEnU=";
     };
 
-    build-system = [ py.setuptools ];
+    build-system = [ pyMcp1.setuptools ];
 
-    dependencies = with py; [
+    dependencies = with pyMcp1; [
       anyio
       cryptography
       fastmcp

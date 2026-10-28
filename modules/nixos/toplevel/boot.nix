@@ -17,10 +17,7 @@ delib.module {
           "pause_on_oops=300"
           "quiet"
         ];
-        initrd.systemd = {
-          enable = true;
-          emergencyAccess = myconfig.constants.emergencyAccess;
-        };
+        initrd.systemd.emergencyAccess = myconfig.constants.emergencyAccess;
         crashDump = {
           enable = true;
           reservedMemory = "512M";
