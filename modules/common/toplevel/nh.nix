@@ -1,4 +1,9 @@
-{ delib, lib, config, moduleSystem, ... }:
+{ delib
+, lib
+, config
+, moduleSystem
+, ...
+}:
 delib.module {
   name = "nh";
   options =
@@ -42,7 +47,12 @@ delib.module {
       home-manager.users.${myconfig.constants.user}.programs.nh = {
         enable = true;
         clean.enable = true;
-        clean.extraArgs = [ "--keep-since" cfg.gcd "--keep" cfg.gcn ];
+        clean.extraArgs = [
+          "--keep-since"
+          cfg.gcd
+          "--keep"
+          cfg.gcn
+        ];
         flake = "/Users/${myconfig.constants.user}/${myconfig.constants.flakeDir}";
       };
     };
@@ -53,7 +63,12 @@ delib.module {
       programs.nh = {
         enable = true;
         clean.enable = true;
-        clean.extraArgs = [ "--keep-since" cfg.gcd "--keep" cfg.gcn ];
+        clean.extraArgs = [
+          "--keep-since"
+          cfg.gcd
+          "--keep"
+          cfg.gcn
+        ];
         flake = "${config.home.homeDirectory}/${myconfig.constants.flakeDir}";
       };
     };

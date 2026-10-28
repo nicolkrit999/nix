@@ -46,7 +46,6 @@
     rounding = 10;
     gap = 5;
     borderSize = 2;
-    terminalOpacity = 0.9;
   };
   niri = {
     gap = 8;

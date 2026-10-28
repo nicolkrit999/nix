@@ -265,7 +265,7 @@ in
   lockSizesCustomControlDiffers = guard (
     let g = confOf (lockHost "35-lock-catppuccin-sizes");
     in !secsEqual touchedSecs g (confOf (lockHost "34-lock-catppuccin-desktop"))
-      && (lockHost "35-lock-catppuccin-sizes").myconfig.constants.theme.lockAvatarSize == 160
+      && (lockHost "35-lock-catppuccin-sizes").myconfig.services.hyprlock.avatarSize == 160
   );
   lockSizesStillStripBackground = guard (
     let g = confOf (lockHost "35-lock-catppuccin-sizes");
@@ -273,7 +273,7 @@ in
   );
   lockSizesIgnoredWithoutCatppuccin = guard (
     let off = lockHost "36-lock-sizes-catppuccin-off";
-    in off.myconfig.constants.theme.lockAvatarSize == 160 && !off.myconfig.constants.theme.catppuccin
+    in off.myconfig.services.hyprlock.avatarSize == 160 && !off.myconfig.constants.theme.catppuccin
       && ourConf off == [ ]
       && hlSettings off == hlSettings (lockHost "26-lock-desktop-like")
       && !lib.hasInfix "160" (hlSettings off) && !lib.hasInfix "350" (hlSettings off)

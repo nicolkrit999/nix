@@ -116,6 +116,8 @@ delib.module {
         stylix.enable = lib.mkForce false;
         constants = {
           theme.catppuccin = lib.mkForce false;
+        };
+        mime = {
           docEditor = lib.mkForce "libreoffice";
           sheetEditor = lib.mkForce "libreoffice";
           slideEditor = lib.mkForce "libreoffice";

@@ -23,23 +23,6 @@ delib.module {
       browser = strOption "chromium";
       fileManager = strOption "dolphin";
 
-      # Default apps per file family (see mime.nix): a package name, a flatpak app id, or a desktop id.
-      # A value ending in .desktop (e.g. "org.kde.kate.desktop") is used verbatim as the desktop id; it counts as present
-      # when its package is listed in extraAppPackages (and resolves) or its flatpak id is in services.flatpak.packages,
-      # otherwise the role falls back to its default with a warning.
-      videoPlayer = strOption "mpv"; # mp4 mkv webm avi mov
-      audioPlayer = strOption "mpv"; # mp3 flac ogg wav m4a
-      imageViewer = strOption "gwenview"; # jpg png gif webp avif svg
-      pdfViewer = strOption "zathura"; # pdf
-      docEditor = strOption "libreoffice"; # docx doc odt rtf
-      sheetEditor = strOption "libreoffice"; # xlsx xls ods csv
-      slideEditor = strOption "libreoffice"; # pptx ppt odp
-      archiveManager = strOption "ark"; # zip tar gz 7z rar
-
-      # Package names (pkgs, then pkgs.kdePackages) installed once into systemPackages for role overrides whose package
-      # is not otherwise installed, e.g. docEditor = "org.kde.kate.desktop"; extraAppPackages = [ "kate" ]
-      extraAppPackages = listOfOption lib.types.str [ ];
-
       # Apps that need to be launched inside a terminal (used by smartLaunch helpers)
       terminalApps = listOfOption lib.types.str [
         "nvim"
@@ -97,7 +80,6 @@ delib.module {
         rounding = intOption 10;
         gap = intOption 5;
         borderSize = intOption 2;
-        terminalOpacity = floatOption 1.0;
       };
 
       niri = {

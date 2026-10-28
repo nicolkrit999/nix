@@ -10,7 +10,7 @@ let
   hm = c: c.home-manager.users.${user};
   defaults = c: (hm c).xdg.mimeApps.defaultApplications;
   mimeOf = c: t: lib.toList ((defaults c).${t} or [ ]);
-  constantOf = c: role: c.myconfig.constants.${role};
+  constantOf = c: role: c.myconfig.mime.${role};
 
   types = {
     videoPlayer = [ "video/mp4" "video/x-m4v" "video/quicktime" "video/x-matroska" "video/webm" "video/vnd.avi" "video/x-msvideo" "video/mp2t" "video/mpeg" "video/3gpp" "video/ogg" "video/x-flv" "application/mxf" ];
@@ -60,9 +60,9 @@ let
     in
     lib.concatMap (t: lib.optional (mimeOf c t != want) "${t} -> ${builtins.toJSON (mimeOf c t)}, expected ${builtins.toJSON want}") keys;
   craftProblems = c: ts: lib.concatMap (t: lib.optional (lib.any (lib.hasPrefix craftPrefix) (mimeOf c t)) "${t} -> ${builtins.toJSON (mimeOf c t)}") ts;
-  warnsOf = c: builtins.filter (w: lib.hasPrefix "mime: constants " w || lib.hasPrefix "home-packages: constants " w) c.warnings;
+  warnsOf = c: builtins.filter (w: lib.hasPrefix "mime: " w || lib.hasPrefix "home-packages: constants " w) c.warnings;
 
-  unknownVideo = (sys.extendModules { modules = [{ myconfig.constants.videoPlayer = lib.mkForce "no-such-player-xyz"; }]; }).config;
+  unknownVideo = (sys.extendModules { modules = [{ myconfig.mime.videoPlayer = lib.mkForce "no-such-player-xyz"; }]; }).config;
   filmcraftMp4 = (sys.extendModules {
     modules = [{ home-manager.users.${user}.xdg.mimeApps.defaultApplications."video/mp4" = lib.mkForce "ai.storyteller.filmcraft.desktop"; }];
   }).config;

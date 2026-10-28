@@ -38,7 +38,7 @@ Per host (`nixos-desktop`, `nixos-laptop`), eval layer (`results`):
 
 | Check | Expected |
 |-------|----------|
-| no role fell back | no `mime: constants` or `home-packages: constants` warning on the real host |
+| no role fell back | no `mime:` or `home-packages: constants` warning on the real host |
 | control: unknown videoPlayer | a twin with an unknown `videoPlayer` produces the fallback warning and `video/mp4` -> `mpv.desktop` |
 | video/mp4 is never a Craft app | `video/mp4` does not resolve to an `ai.storyteller.*` id |
 | control: Filmcraft | a twin with `video/mp4` forced to Filmcraft is flagged by that check |

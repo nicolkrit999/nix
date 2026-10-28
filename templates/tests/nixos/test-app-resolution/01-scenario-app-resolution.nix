@@ -42,6 +42,7 @@ let
   twin = sys: modules: (sys.extendModules { inherit modules; }).config;
   mk = lib.mkForce;
   constants = c: { myconfig.constants = lib.mapAttrs (_: mk) c; };
+  mimeOpts = c: { myconfig.mime = lib.mapAttrs (_: mk) c; };
 
   hm = c: c.home-manager.users.krit;
   names = c: map lib.getName (c.environment.systemPackages ++ (hm c).home.packages);
@@ -59,7 +60,7 @@ let
   sheetTypes = [ "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" "application/vnd.oasis.opendocument.spreadsheet" "application/vnd.ms-excel" "text/csv" ];
   slideTypes = [ "application/vnd.openxmlformats-officedocument.presentationml.presentation" "application/vnd.oasis.opendocument.presentation" "application/vnd.ms-powerpoint" ];
   archiveTypes = [ "application/zip" "application/x-tar" "application/gzip" "application/x-xz" "application/x-bzip2" "application/zstd" "application/x-compressed-tar" "application/x-7z-compressed" "application/vnd.rar" ];
-  warnsOf = c: builtins.filter (w: lib.hasPrefix "home-packages: constants " w || lib.hasPrefix "mime: constants " w) c.warnings;
+  warnsOf = c: builtins.filter (w: lib.hasPrefix "home-packages: constants " w || lib.hasPrefix "mime: " w) c.warnings;
 
   ok = "ok";
   failIf = problems: if problems == [ ] then ok else "FAIL: ${builtins.concatStringsSep "; " problems}";
@@ -78,7 +79,7 @@ let
   loneWarnProblems = c: role: name:
     let
       ws = warnsOf c;
-      mine = builtins.filter (lib.hasInfix "constants ${role} = \"${name}\"") ws;
+      mine = builtins.filter (w: lib.hasInfix "mime: ${role} = \"${name}\"" w || lib.hasInfix "constants ${role} = \"${name}\"" w) ws;
     in
     lib.optional (builtins.length mine != 1) "expected exactly 1 warning for ${role} = ${name}, got ${toString (builtins.length mine)}"
     ++ lib.optional (builtins.length ws != builtins.length mine) "unrelated warnings: ${builtins.toJSON ws}";
@@ -114,32 +115,32 @@ let
   unknownBrowser = twin bareSys [ (constants { browser = "no-such-browser-xyz"; }) ];
   unknownTwo = twin bareSys [ (constants { browser = "no-such-browser-xyz"; fileManager = "no-such-fm-xyz"; }) ];
   flatpakCraft = [{ services.flatpak.packages = [{ appId = "ai.storyteller.wordcraft"; } "ai.storyteller.gridcraft"]; }];
-  docCraft = [ (constants { docEditor = "ai.storyteller.wordcraft"; sheetEditor = "ai.storyteller.gridcraft"; }) ];
+  docCraft = [ (mimeOpts { docEditor = "ai.storyteller.wordcraft"; sheetEditor = "ai.storyteller.gridcraft"; }) ];
   craftPresent = twin bareSys (docCraft ++ flatpakCraft);
   craftMissing = twin bareSys docCraft;
-  vlcVideo = twin bareSys [ (constants { videoPlayer = "vlc"; audioPlayer = "vlc"; }) ];
-  unknownVideo = twin bareSys [ (constants { videoPlayer = "no-such-player-xyz"; }) ];
+  vlcVideo = twin bareSys [ (mimeOpts { videoPlayer = "vlc"; audioPlayer = "vlc"; }) ];
+  unknownVideo = twin bareSys [ (mimeOpts { videoPlayer = "no-such-player-xyz"; }) ];
   officeCraftMods = [
-    (constants { docEditor = "ai.storyteller.wordcraft"; sheetEditor = "ai.storyteller.gridcraft"; slideEditor = "ai.storyteller.deckcraft"; })
+    (mimeOpts { docEditor = "ai.storyteller.wordcraft"; sheetEditor = "ai.storyteller.gridcraft"; slideEditor = "ai.storyteller.deckcraft"; })
     { services.flatpak.packages = [{ appId = "ai.storyteller.wordcraft"; } "ai.storyteller.gridcraft" "ai.storyteller.deckcraft"]; }
   ];
   officeCraft = twin bareSys officeCraftMods;
-  imageCraftWant = constants { imageViewer = "ai.storyteller.photocraft"; };
+  imageCraftWant = mimeOpts { imageViewer = "ai.storyteller.photocraft"; };
   imageCraft = twin bareSys [ imageCraftWant { services.flatpak.packages = [ "ai.storyteller.photocraft" ]; } ];
   imageCraftMissing = twin bareSys [ imageCraftWant ];
-  pdfOkular = twin bareSys [ (constants { pdfViewer = "okular"; }) ];
-  archiveFileRoller = twin bareSys [ (constants { archiveManager = "file-roller"; }) ];
-  archiveXarchiver = twin bareSys [ (constants { archiveManager = "xarchiver"; }) ];
-  unknownArchive = twin bareSys [ (constants { archiveManager = "no-such-archiver-xyz"; }) ];
+  pdfOkular = twin bareSys [ (mimeOpts { pdfViewer = "okular"; }) ];
+  archiveFileRoller = twin bareSys [ (mimeOpts { archiveManager = "file-roller"; }) ];
+  archiveXarchiver = twin bareSys [ (mimeOpts { archiveManager = "xarchiver"; }) ];
+  unknownArchive = twin bareSys [ (mimeOpts { archiveManager = "no-such-archiver-xyz"; }) ];
   zathuraHmMod = { home-manager.users.krit.programs.zathura.enable = true; };
   zathuraHm = twin bareSys [ zathuraHmMod ];
   playerWrapper = twin bareSys [
-    (constants { videoPlayer = "my-player"; })
+    (mimeOpts { videoPlayer = "my-player"; })
     { home-manager.users.krit.home.packages = [ (pk.writeShellScriptBin "my-player" "true") ]; }
   ];
-  mpvExplicit = twin bareSys [ (constants { videoPlayer = "mpv"; audioPlayer = "mpv"; }) ];
+  mpvExplicit = twin bareSys [ (mimeOpts { videoPlayer = "mpv"; audioPlayer = "mpv"; }) ];
   roleNames = [ "videoPlayer" "audioPlayer" "imageViewer" "pdfViewer" "docEditor" "sheetEditor" "slideEditor" "archiveManager" ];
-  allUnknown = twin bareSys [ (constants (lib.genAttrs roleNames (r: "no-such-${r}-xyz"))) ];
+  allUnknown = twin bareSys [ (mimeOpts (lib.genAttrs roleNames (r: "no-such-${r}-xyz"))) ];
   unknownEditor = twin bareSys [ (constants { editor = "no-such-editor-xyz"; }) ];
 
   mailThunderbird = twin bareSys [{ myconfig.programs.thunderbird.enable = true; }];
@@ -151,26 +152,26 @@ let
   mimeOff = twin bareSys [{ myconfig.mime.enable = mk false; }];
   homePkgsOff = twin bareSys [{ myconfig.home-packages.enable = mk false; }];
 
-  extraWarnsOf = c: builtins.filter (lib.hasPrefix "mime: constants extraAppPackages") c.warnings;
-  extraTwin = list: twin bareSys [ (constants { extraAppPackages = list; }) ];
+  extraWarnsOf = c: builtins.filter (lib.hasPrefix "mime: extraAppPackages") c.warnings;
+  extraTwin = list: twin bareSys [ (mimeOpts { extraAppPackages = list; }) ];
   extraHello = extraTwin [ "hello" ];
   extraKate = extraTwin [ "kate" ];
   extraUnknown = extraTwin [ "no-such-extra-xyz" ];
   extraMixed = extraTwin [ "hello" "no-such-extra-a" "no-such-extra-b" "hello" ];
   extraMpv = extraTwin [ "mpv" ];
-  extraZathuraHm = twin bareSys [ zathuraHmMod (constants { extraAppPackages = [ "zathura" ]; }) ];
+  extraZathuraHm = twin bareSys [ zathuraHmMod (mimeOpts { extraAppPackages = [ "zathura" ]; }) ];
   extraWrapper = twin bareSys [
-    (constants { extraAppPackages = [ "my-extra-wrapper" ]; })
+    (mimeOpts { extraAppPackages = [ "my-extra-wrapper" ]; })
     { home-manager.users.krit.home.packages = [ (pk.writeShellScriptBin "my-extra-wrapper" "true") ]; }
   ];
   kateDesktop = "org.kde.kate.desktop";
-  kateRole = twin bareSys [ (constants { docEditor = kateDesktop; extraAppPackages = [ "kate" ]; }) ];
-  kateRoleNoExtra = twin bareSys [ (constants { docEditor = kateDesktop; }) ];
-  kateRoleWrongExtra = twin bareSys [ (constants { docEditor = kateDesktop; extraAppPackages = [ "hello" ]; }) ];
-  craftDesktopMods = [ (constants { docEditor = "ai.storyteller.wordcraft.desktop"; }) ];
+  kateRole = twin bareSys [ (mimeOpts { docEditor = kateDesktop; extraAppPackages = [ "kate" ]; }) ];
+  kateRoleNoExtra = twin bareSys [ (mimeOpts { docEditor = kateDesktop; }) ];
+  kateRoleWrongExtra = twin bareSys [ (mimeOpts { docEditor = kateDesktop; extraAppPackages = [ "hello" ]; }) ];
+  craftDesktopMods = [ (mimeOpts { docEditor = "ai.storyteller.wordcraft.desktop"; }) ];
   craftDesktopPresent = twin bareSys (craftDesktopMods ++ flatpakCraft);
   craftDesktopMissing = twin bareSys craftDesktopMods;
-  rollerDesktop = twin bareSys [ (constants { archiveManager = "org.gnome.FileRoller.desktop"; extraAppPackages = [ "file-roller" ]; }) ];
+  rollerDesktop = twin bareSys [ (mimeOpts { archiveManager = "org.gnome.FileRoller.desktop"; extraAppPackages = [ "file-roller" ]; }) ];
   safeEval = v: (builtins.tryEval (builtins.deepSeq v true)).success;
   mpvName = lib.getName pk.mpv;
   zathuraName = lib.getName pk.zathura;
@@ -296,7 +297,7 @@ let
         all [
           (failIf (mimeProblems craftMissing docTypes "writer.desktop" ++ mimeProblems craftMissing sheetTypes "calc.desktop"))
           (eq "warning count" (builtins.length (warnsOf craftMissing)) 2)
-          (eq "docEditor warned once" (builtins.length (builtins.filter (lib.hasInfix "constants docEditor = \"ai.storyteller.wordcraft\"") (warnsOf craftMissing))) 1)
+          (eq "docEditor warned once" (builtins.length (builtins.filter (lib.hasInfix "mime: docEditor = \"ai.storyteller.wordcraft\"") (warnsOf craftMissing))) 1)
         ];
       "unknown videoPlayer: falls back to mpv.desktop with exactly one warning" =
         failIf (mimeProblems unknownVideo videoTypes "mpv.desktop" ++ loneWarnProblems unknownVideo "videoPlayer" "no-such-player-xyz");
@@ -346,7 +347,7 @@ let
             ++ mimeProblems allUnknown sheetTypes "calc.desktop" ++ mimeProblems allUnknown slideTypes "impress.desktop"
             ++ mimeProblems allUnknown archiveTypes "org.kde.ark.desktop" ++ allOnce allUnknown [ mpvName "libreoffice" zathuraName "ark" "gwenview" ]))
           (eq "warning count" (builtins.length (warnsOf allUnknown)) (builtins.length roleNames))
-          (all (map (r: eq "${r} warned once" (builtins.length (builtins.filter (lib.hasInfix "constants ${r} = ") (warnsOf allUnknown))) 1) roleNames))
+          (all (map (r: eq "${r} warned once" (builtins.length (builtins.filter (lib.hasInfix "mime: ${r} = ") (warnsOf allUnknown))) 1) roleNames))
         ];
     };
     roleControls = {
@@ -403,7 +404,7 @@ let
       "extraAppPackages name provided by a home.packages wrapper: installed once, no unresolved warning" =
         failIf (onceProblems extraWrapper "my-extra-wrapper" ++ quietProblems extraWrapper);
       "control(extras): a forced second mpv on top of the extras twin is detected" =
-        detects "two mpv" (onceProblems (dupInstall bareSys [ (constants { extraAppPackages = [ "mpv" ]; }) ] pk.mpv) mpvName);
+        detects "two mpv" (onceProblems (dupInstall bareSys [ (mimeOpts { extraAppPackages = [ "mpv" ]; }) ] pk.mpv) mpvName);
     };
     desktopRoles = {
       "role = org.kde.kate.desktop with extraAppPackages = [ kate ]: mapped verbatim, kate installed once, libreoffice still once for sheet and slide, no warning" =

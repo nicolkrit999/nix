@@ -115,7 +115,7 @@ Dolphin has no `programs.dolphin.enable` provider: home-packages installs `kdePa
 |-------|----------|
 | name in pkgs (hello) | installed exactly once, no warning |
 | name only in `pkgs.kdePackages` (kate) | installed exactly once, no warning |
-| unknown name | exactly one `mime: constants extraAppPackages` warning naming it, nothing installed, no other warning |
+| unknown name | exactly one `mime: extraAppPackages` warning naming it, nothing installed, no other warning |
 | mixed list (hello twice, two unknown) | hello once, one warning listing both unknown names in order and not hello |
 | dedupe against role installs | mpv named as an extra while the video/audio roles install it: still once, no warning |
 | dedupe against a module | zathura named as an extra while `programs.zathura.enable` (home-manager) provides it: still once, no warning |

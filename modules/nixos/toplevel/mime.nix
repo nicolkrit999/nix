@@ -229,7 +229,7 @@ let
           pkg = getPkg name;
           ok = getPkg name != null || p.isProvided name;
         })
-        (lib.unique myconfig.constants.extraAppPackages);
+        (lib.unique myconfig.mime.extraAppPackages);
     in
     {
       install = lib.concatMap
@@ -273,7 +273,7 @@ let
       (
         role: spec:
         let
-          want = myconfig.constants.${role};
+          want = myconfig.mime.${role};
           usable = want == spec.default || isPresent want;
           name = if usable then want else spec.default;
           external = isFlatpakId name || isDesktopId name;
@@ -293,7 +293,26 @@ let
 in
 delib.module {
   name = "mime";
-  options = delib.singleEnableOption true;
+  options = with delib; moduleOptions {
+    enable = boolOption true;
+
+    # Default apps per file family: a package name, a flatpak app id, or a desktop id.
+    # A value ending in .desktop (e.g. "org.kde.kate.desktop") is used verbatim as the desktop id; it counts as present
+    # when its package is listed in extraAppPackages (and resolves) or its flatpak id is in services.flatpak.packages,
+    # otherwise the role falls back to its default with a warning.
+    videoPlayer = strOption "mpv"; # mp4 mkv webm avi mov
+    audioPlayer = strOption "mpv"; # mp3 flac ogg wav m4a
+    imageViewer = strOption "gwenview"; # jpg png gif webp avif svg
+    pdfViewer = strOption "zathura"; # pdf
+    docEditor = strOption "libreoffice"; # docx doc odt rtf
+    sheetEditor = strOption "libreoffice"; # xlsx xls ods csv
+    slideEditor = strOption "libreoffice"; # pptx ppt odp
+    archiveManager = strOption "ark"; # zip tar gz 7z rar
+
+    # Package names (pkgs, then pkgs.kdePackages) installed once into systemPackages for role overrides whose package
+    # is not otherwise installed, e.g. docEditor = "org.kde.kate.desktop"; extraAppPackages = [ "kate" ]
+    extraAppPackages = listOfOption str [ ];
+  };
 
   nixos.ifEnabled =
     { myconfig, ... }:
@@ -310,14 +329,14 @@ delib.module {
         lib.concatMap
           (e:
             lib.optional e.fellBack
-              "mime: constants ${e.role} = \"${e.want}\" is ${
-                if isDesktopId e.want then "neither provided by constants extraAppPackages nor a flatpak id in services.flatpak.packages"
+              "mime: ${e.role} = \"${e.want}\" is ${
+                if isDesktopId e.want then "neither provided by mime.extraAppPackages nor a flatpak id in services.flatpak.packages"
                 else if isFlatpakId e.want then "not in services.flatpak.packages"
                 else "neither a package in pkgs/pkgs.kdePackages nor provided by an enabled module"
               }; using the default \"${e.name}\" instead.")
           media
         ++ lib.optional (extras.unresolved != [ ])
-          "mime: constants extraAppPackages has names that are neither a package in pkgs/pkgs.kdePackages nor provided by an enabled module (${lib.concatStringsSep ", " extras.unresolved}); nothing is installed for them.";
+          "mime: extraAppPackages has names that are neither a package in pkgs/pkgs.kdePackages nor provided by an enabled module (${lib.concatStringsSep ", " extras.unresolved}); nothing is installed for them.";
     };
 
   home.ifEnabled =

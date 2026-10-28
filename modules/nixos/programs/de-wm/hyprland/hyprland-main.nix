@@ -19,6 +19,7 @@ delib.module {
       windowRules = listOfOption attrs [ ];
       extraBinds = listOfOption attrs [ ];
       noHardwareCursors = boolOption false;
+      terminalOpacity = floatOption 1.0; # Terminal window opacity (1.0 = no rule)
     };
 
   myconfig.ifEnabled = {
@@ -149,10 +150,10 @@ delib.module {
         }
       ]
       ++ lib.optional
-        (myconfig.constants.hyprland.terminalOpacity < 1.0)
+        (cfg.terminalOpacity < 1.0)
         {
           match.class = "^(${term})$";
-          opacity = "${toString myconfig.constants.hyprland.terminalOpacity} override";
+          opacity = "${toString cfg.terminalOpacity} override";
         };
 
       staticWorkspaceRules = [

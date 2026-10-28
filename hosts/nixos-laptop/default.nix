@@ -122,13 +122,6 @@ delib.host {
         editor = myEditor;
         fileManager = myFileManager;
 
-        videoPlayer = "vlc"; # mp4 mkv webm avi mov
-        audioPlayer = "vlc"; # mp3 flac ogg wav m4a
-        docEditor = "ai.storyteller.wordcraft"; # docx doc odt rtf
-        sheetEditor = "ai.storyteller.gridcraft"; # xlsx xls ods csv
-        slideEditor = "ai.storyteller.deckcraft"; # pptx ppt odp
-        extraAppPackages = [ ]; # package names for role overrides, e.g. docEditor = "org.kde.kate.desktop" + [ "kate" ]
-
         wallpapers = [
 
           {
@@ -159,12 +152,6 @@ delib.host {
           catppuccin = true;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "sapphire";
-          # hyprlock (catppuccin): 3200x2000 @ 1.6 = 2000x1250 logical px, so ~1.35x the theme's sizes
-          lockAvatarSize = 190;
-          lockClockFontSize = 120;
-          lockDateFontSize = 34;
-          lockInputWidth = 400;
-          lockInputHeight = 80;
         };
 
         keyboardLayout = "us,it,de,fr";
@@ -199,7 +186,15 @@ delib.host {
       };
 
       home-packages.enable = true;
-      mime.enable = true;
+      mime = {
+        enable = true;
+        videoPlayer = "vlc"; # mp4 mkv webm avi mov
+        audioPlayer = "vlc"; # mp3 flac ogg wav m4a
+        docEditor = "ai.storyteller.wordcraft"; # docx doc odt rtf
+        sheetEditor = "ai.storyteller.gridcraft"; # xlsx xls ods csv
+        slideEditor = "ai.storyteller.deckcraft"; # pptx ppt odp
+        extraAppPackages = [ ]; # package names for role overrides, e.g. docEditor = "org.kde.kate.desktop" + [ "kate" ]
+      };
 
       nh = {
         enable = true;
@@ -624,6 +619,14 @@ delib.host {
         auto-cpufreq.enable = true;
         tlp.enable = false;
         thermald.enable = false;
+
+        hyprlock = {
+          avatarSize = 190;
+          clockFontSize = 120;
+          dateFontSize = 34;
+          inputWidth = 400;
+          inputHeight = 80;
+        };
 
         hypridle = {
           enable = true;

@@ -14,6 +14,15 @@ in
 delib.module {
   name = "services.hyprlock";
 
+  options = with delib; moduleOptions {
+    # Sizes apply only when catppuccin = true (defaults = the catppuccin theme's own values)
+    avatarSize = intOption 100; # Profile picture edge in px; its position shifts to keep the gap to the input field
+    clockFontSize = intOption 90; # Time label font size; the date label moves to keep the gap below it
+    dateFontSize = intOption 25;
+    inputWidth = intOption 300;
+    inputHeight = intOption 60;
+  };
+
   nixos.always =
     { myconfig, ... }:
     lib.mkIf (anyWmEnabled myconfig) {
@@ -95,18 +104,18 @@ delib.module {
             }
           )
         ];
-      theme = myconfig.constants.theme;
+      lock = myconfig.services.hyprlock;
       # Theme geometry the sizes below are relative to: avatar at y=75 for size 100, date 60 px under a 90 px clock
-      avatarY = 75 + (theme.lockAvatarSize - 100) / 2;
-      dateY = -(60 + theme.lockClockFontSize);
+      avatarY = 75 + (lock.avatarSize - 100) / 2;
+      dateY = -(60 + lock.clockFontSize);
       # The theme's own background block points at one image; ours are per monitor.
-      # The size/position lines of the clock, date, avatar and input field are rewritten from the lock* constants.
+      # The size/position lines of the clock, date, avatar and input field are rewritten from the services.hyprlock sizes.
       catppuccinLockConf = pkgs.runCommand "catppuccin-hyprlock-no-background.conf" { } ''
         src=${config.catppuccin.sources.hyprlock}/hyprlock.conf
         awk \
-          -v avatar=${toString theme.lockAvatarSize} -v avatarY=${toString avatarY} \
-          -v clock=${toString theme.lockClockFontSize} -v date=${toString theme.lockDateFontSize} \
-          -v dateY=${toString dateY} -v inW=${toString theme.lockInputWidth} -v inH=${toString theme.lockInputHeight} '
+          -v avatar=${toString lock.avatarSize} -v avatarY=${toString avatarY} \
+          -v clock=${toString lock.clockFontSize} -v date=${toString lock.dateFontSize} \
+          -v dateY=${toString dateY} -v inW=${toString lock.inputWidth} -v inH=${toString lock.inputHeight} '
           /^# BACKGROUND$/ { skip = 1; found = 1; next }
           skip && /^}/ { skip = 0; next }
           skip { next }

@@ -160,7 +160,7 @@ Choose a shell per host: `bash`, `zsh`, or `fish`.
 
 ## Default Applications
 
-The apps opened for each file family are picked per host with constants (NixOS): `terminal`, `browser`, `editor`, `fileManager`, plus `videoPlayer`, `audioPlayer`, `imageViewer`, `pdfViewer`, `docEditor`, `sheetEditor`, `slideEditor` and `archiveManager` (defaults mpv, gwenview, zathura, libreoffice, ark). Each value is a package name, a flatpak app id or a `.desktop` id; the chosen app is installed once and set as the MIME default.
+The apps opened for each file family are picked per host: the constants `terminal`, `browser`, `editor`, `fileManager`, plus the `mime` options `videoPlayer`, `audioPlayer`, `imageViewer`, `pdfViewer`, `docEditor`, `sheetEditor`, `slideEditor` and `archiveManager` (defaults mpv, gwenview, zathura, libreoffice, ark). Each value is a package name, a flatpak app id or a `.desktop` id; the chosen app is installed once and set as the MIME default.
 
 - An app that a dedicated module already provides (e.g. `programs.firefox.enable`, a custom neovim module) is not installed a second time; the MIME default points at that module's desktop entry.
 - An unknown name installs nothing and raises an evaluation warning; a role override that is not present falls back to the role's default with one warning.

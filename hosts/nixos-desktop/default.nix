@@ -160,13 +160,6 @@ delib.host {
         editor = myEditor;
         fileManager = myFileManager;
 
-        videoPlayer = "vlc"; # mp4 mkv webm avi mov
-        audioPlayer = "vlc"; # mp3 flac ogg wav m4a
-        docEditor = "ai.storyteller.wordcraft"; # docx doc odt rtf
-        sheetEditor = "ai.storyteller.gridcraft"; # xlsx xls ods csv
-        slideEditor = "ai.storyteller.deckcraft"; # pptx ppt odp
-        extraAppPackages = [ ]; # package names for role overrides, e.g. docEditor = "org.kde.kate.desktop" + [ "kate" ]
-
         wallpapers = [
           {
             targetMonitor = "DP-1";
@@ -199,12 +192,6 @@ delib.host {
           catppuccin = true;
           catppuccinFlavor = "mocha";
           catppuccinAccent = "sapphire";
-          # hyprlock (catppuccin): 3840x2160 @ 1.5 = 2560x1440 logical px, the laptop's sizes (2000x1250 logical) x1.15
-          lockAvatarSize = 220;
-          lockClockFontSize = 138;
-          lockDateFontSize = 39;
-          lockInputWidth = 460;
-          lockInputHeight = 92;
         };
 
         keyboardLayout = "us,it,de,fr";
@@ -213,8 +200,6 @@ delib.host {
         weather = "Lugano";
 
         timeZone = "Europe/Zurich";
-
-        hyprland.terminalOpacity = 0.9;
 
         terminal.name = myTerminal;
       };
@@ -243,7 +228,15 @@ delib.host {
       };
 
       home-packages.enable = true;
-      mime.enable = true;
+      mime = {
+        enable = true;
+        videoPlayer = "vlc"; # mp4 mkv webm avi mov
+        audioPlayer = "vlc"; # mp3 flac ogg wav m4a
+        docEditor = "ai.storyteller.wordcraft"; # docx doc odt rtf
+        sheetEditor = "ai.storyteller.gridcraft"; # xlsx xls ods csv
+        slideEditor = "ai.storyteller.deckcraft"; # pptx ppt odp
+        extraAppPackages = [ ]; # package names for role overrides, e.g. docEditor = "org.kde.kate.desktop" + [ "kate" ]
+      };
 
       nh = {
         enable = true;
@@ -448,6 +441,7 @@ delib.host {
         # ---------------------------------------------------------------
         hyprland = {
           enable = true;
+          terminalOpacity = 0.9;
           monitors = [
             {
               output = "DP-1";
@@ -721,6 +715,14 @@ delib.host {
         resolved.enable = true;
         swaync.enable = true;
         tailscale.enable = true;
+
+        hyprlock = {
+          avatarSize = 220;
+          clockFontSize = 138;
+          dateFontSize = 39;
+          inputWidth = 460;
+          inputHeight = 92;
+        };
 
         hypridle = {
           enable = true;

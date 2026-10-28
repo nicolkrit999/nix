@@ -7,6 +7,7 @@
 #   skwdWall        bool       - whether programs.skwdWall is enabled (default false)
 #   gnome, kde      bool       - enable GNOME / KDE (default true)
 #   shells          attrset    - caelestia/noctalia enable flags (default all off)
+#   hyprlock        attrset    - services.hyprlock size options (default none)
 #   minimal         bool       - enable ONLY hyprland/niri/mango (per `wms`), gnome, kde as
 #                                flagged; no shell/waybar/swaync lines (default false)
 #   wms             [string]   - WMs enabled when minimal (default all three)
@@ -54,6 +55,8 @@ delib.host {
 
   myconfig = _: lib.recursiveUpdate
     {
+      services = lib.optionalAttrs (spec ? hyprlock) { hyprlock = spec.hyprlock; };
+
       inherit (spec) constants;
 
       programs = {

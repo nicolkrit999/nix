@@ -26,12 +26,6 @@ delib.module {
         catppuccin = boolOption false;
         catppuccinFlavor = strOption "mocha";
         catppuccinAccent = strOption "mauve";
-        # hyprlock sizes, applied only when catppuccin = true (defaults = the catppuccin theme's own values)
-        lockAvatarSize = intOption 100; # Profile picture edge in px; its position shifts to keep the gap to the input field
-        lockClockFontSize = intOption 90; # Time label font size; the date label moves to keep the gap below it
-        lockDateFontSize = intOption 25;
-        lockInputWidth = intOption 300;
-        lockInputHeight = intOption 60;
       };
 
       nixImpure = boolOption false; # NixOS/Darwin rebuild aliases use nixos-rebuild/darwin-rebuild --impure instead of nh; home aliases append --impure (home-manager, nix flake check)
