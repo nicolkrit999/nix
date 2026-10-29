@@ -51,6 +51,7 @@ Hosts: `nixos-desktop`, `nixos-laptop`, `Krits-MacBook-Pro` (darwin), plus every
 | Check | Expected |
 |-------|----------|
 | cachix-pairing-and-priority | `https://<name>.cachix.org?priority=20` in `substituters`, `publicKey` trusted and prefixed `<name>.cachix.org-1:` |
+| no-cosmic-cachix | neither a `cosmic.cachix.org` substituter nor a trusted key in `nix.settings` (substituters and extra-substituters) |
 | nh-flake | `programs.nh.flake == /home/krit/nix` |
 | gc-exclusive-with-nh-clean | `nix.gc.automatic == false` while `programs.nh.clean.enable == true` |
 
@@ -72,6 +73,9 @@ Hosts: `nixos-desktop`, `nixos-laptop`, `Krits-MacBook-Pro` (darwin), plus every
 
 | Check | Expected |
 |-------|----------|
+| no-cosmic-cachix-in-sources | `nix-nixos.nix` and `build.yml` do not mention `cosmic.cachix.org` (a global check, not per host) |
+| cosmic-cachix-sources-readable | both files contain `hyprland.cachix.org`, so the source scan above is not vacuous |
+| cosmic-cachix-detected | a mutant desktop with a cosmic substituter and key is reported (2 problems) |
 | wrong-key-detected | mismatched cachix/attic keys make the pairing check report problems |
 | attic-netrc-port-stripped | `https://attic.example:8443` -> `machine attic.example`, no `8443` |
 | attic-netrc-path-stripped | `https://attic.example/sub/path` -> `machine attic.example` |

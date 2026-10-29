@@ -18,7 +18,7 @@ Or from inside the directory:
 bash check-nixos-cosmic-binds.sh
 ```
 
-Needs `nix`, `jq`, `bash`. About 25 s warm (eval only, both scenarios); the cap is 4 min (`test.conf`, group `nixos-b`, which has no room for a 5 min cap in its CI step budget).
+Needs `nix`, `jq`, `bash`. About 25 s warm (eval only, all four scenarios); the cap is 4 min (`test.conf`, group `nixos-b`, which has no room for a 5 min cap in its CI step budget).
 
 ## How it works
 
@@ -107,12 +107,10 @@ Twins: defaults (editor in `terminalApps`, fileManager not), alternate constants
 | `XDG_SCREENSHOTS_DIR` | equals `constants.screenshots` with cosmic on |
 | `COSMIC_DATA_CONTROL_ENABLED` | `1` with cosmic on |
 | control: cosmic off | neither session variable set, no shortcuts generated even with `extraBinds` declared |
-| idle (`cosmic-idle.nix`) | `screen_off_time` = hypridle `screenOffTimeout` * 1000 as an optional, `suspend_on_ac_time` and `suspend_on_battery_time` = optional null (None) |
-| control: cosmic off | no idle config |
 
 ## Monitor layout (`02-scenario-cosmic-monitors.nix`)
 
-`check-nixos-cosmic-binds.sh` runs `01-scenario-cosmic-binds.nix`, `02-scenario-cosmic-monitors.nix` and `03-scenario-cosmic-input.nix` in turn (same `results` shape) and needs at least 80 checks in total. The second scenario covers the `programs.cosmic.monitors` option and `cosmic-monitors.nix`, which turns it into a plan file (`~/.config/cosmic-monitors/plan`, one `cosmic-randr` argument line per output) and a user oneshot service that applies it inside a COSMIC session; it also reads the two real hosts' declared monitor values.
+`check-nixos-cosmic-binds.sh` runs `01-scenario-cosmic-binds.nix`, `02-scenario-cosmic-monitors.nix`, `03-scenario-cosmic-input.nix` and `04-scenario-cosmic-idle.nix` in turn (same `results` shape) and needs at least 80 checks in total. The second scenario covers the `programs.cosmic.monitors` option and `cosmic-monitors.nix`, which turns it into a plan file (`~/.config/cosmic-monitors/plan`, one `cosmic-randr` argument line per output) and a user oneshot service that applies it inside a COSMIC session; it also reads the two real hosts' declared monitor values.
 
 The scenario exposes `results` (`label -> "ok" | "FAIL: ..."`, each check wrapped in `tryEval`).
 
@@ -184,3 +182,19 @@ Covers `cosmic-input.nix` and the flat nullable `programs.cosmic` options `keybo
 | unset fields | stay None (libinput default) |
 | control: cosmic off | no compositor config |
 | control: wrong expectation | flagged |
+
+## Idle timers (`04-scenario-cosmic-idle.nix`)
+
+Covers `cosmic-idle.nix`: COSMIC's idle manager follows the hypridle screen-off timeout so the screen behaves the same on every desktop, and never suspends on its own (suspend is the user's explicit action). Values are read from the home-manager config of minimal-fixture twins (default, `screenOffTimeout` 123, cosmic off with a timeout set) and from the real desktop; both real hosts' timeouts are checked for being usable.
+
+| Check | Expected |
+|-------|----------|
+| default twin | `screen_off_time` = `screenOffTimeout * 1000` as an optional, `suspend_on_ac_time` and `suspend_on_battery_time` = optional null, exactly those three keys |
+| custom timeout | 123 s gives `Some(123000)`, suspend timers stay None; the default and custom values differ (conversion is derived, not hardcoded) |
+| u32 | the default screen-off value in ms fits COSMIC's u32 |
+| configFile | `com.system76.CosmicIdle` holds the idle settings as `entries`, version 1 |
+| coffee consistency | `COSMIC_IDLE_KEYS` in `coffee-lib.sh` are exactly the emitted keys and its directory is `com.system76.CosmicIdle/v1` |
+| cosmic off | no idle settings and no `CosmicIdle` configFile even with a timeout set |
+| real desktop | its own `screenOffTimeout` in ms, suspend timers None |
+| real hosts | desktop and laptop `screenOffTimeout` are positive ints whose ms value fits u32 |
+| control: seconds instead of ms / a set suspend timer / an extra key | each flagged by the idle checker |

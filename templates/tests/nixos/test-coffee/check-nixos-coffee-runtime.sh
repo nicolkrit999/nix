@@ -8,8 +8,8 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 SRC="${COFFEE_SRC:-$REPO_ROOT/modules/nixos/services/power/coffee}"
 
-if ! command -v script >/dev/null || ! command -v grep >/dev/null; then
-  exec nix shell --inputs-from "$REPO_ROOT" nixpkgs#util-linux nixpkgs#coreutils nixpkgs#gnugrep -c bash "$0" "$@"
+if ! command -v script >/dev/null || ! command -v grep >/dev/null || ! command -v pgrep >/dev/null; then
+  exec nix shell --inputs-from "$REPO_ROOT" nixpkgs#util-linux nixpkgs#coreutils nixpkgs#gnugrep nixpkgs#procps -c bash "$0" "$@"
 fi
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
@@ -583,6 +583,56 @@ DESK= run on on
 check "hypridle process alone selects the Hyprland/niri/mango branch without any variable" line_has "[ OK ] desktop: hypridle" "detected from running process hypridle"
 check "no forbidden command, expected arguments" clean_calls
 unset EXTRA_ENV
+
+section "desktop detection: the lib's real pgrep pattern against real processes"
+REAL="$WORK/real"
+mkdir -p "$REAL/bin" "$REAL/proc"
+printf '#!/usr/bin/env bash\nexit 1\n' >"$REAL/bin/systemctl"
+chmod +x "$REAL/bin/systemctl"
+printf '#!/usr/bin/env bash\nexec %q -P %q "$@"\n' "$(command -v pgrep)" "$$" >"$REAL/bin/pgrep"
+chmod +x "$REAL/bin/pgrep"
+{ echo 'set -euo pipefail'; cat "$SRC/coffee-lib.sh"; echo 'detect_desktop; printf "%s|%s\n" "$DESK_NAME" "$DESK_HOW"'; } >"$REAL/detect.sh"
+HOLD_BIN=$(readlink -f "$BASH")
+mkfifo "$REAL/hold"
+REAL_PIDS=()
+SPAWNED=
+spawn_named() {
+  local name=$1 pid i
+  SPAWNED=
+  ln -sf "$HOLD_BIN" "$REAL/proc/$name"
+  "$REAL/proc/$name" -c 'exec 3<>"$1"; read -rt 60 -u 3 || :' _ "$REAL/hold" &
+  pid=$!
+  REAL_PIDS+=("$pid")
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    [[ $(cat "/proc/$pid/comm" 2>/dev/null) == "$name" ]] && { SPAWNED=$pid; return 0; }
+    sleep 0.2
+  done
+  return 1
+}
+reap_real() { kill "${REAL_PIDS[@]}" 2>/dev/null || true; REAL_PIDS=(); }
+trap 'reap_real; rm -rf "$WORK"' EXIT
+printf '#!/usr/bin/env bash\nexec env -u XDG_CURRENT_DESKTOP COFFEE_STATE_DIR=%q PATH=%q bash %q\n' "$REAL/state" "$REAL/bin:$PATH" "$REAL/detect.sh" >"$REAL/detect"
+chmod +x "$REAL/detect"
+uid=$(id -u)
+is_cosmic() { [[ $("$REAL/detect") == "COSMIC|running process cosmic-idle" ]]; }
+BASELINE=$("$REAL/detect")
+check "setup: with no throwaway process the baseline is not COSMIC (pgrep sees only this test's children)" bash -c '[[ $1 != COSMIC\|* ]]' _ "$BASELINE"
+
+spawn_named .cosmic-idle-wr
+wrapped=$SPAWNED
+check "setup: the throwaway process really has comm .cosmic-idle-wr" test "$(cat "/proc/$wrapped/comm" 2>/dev/null)" = .cosmic-idle-wr
+check "control: the old exact match 'pgrep -x cosmic-idle' misses the wrapped name (the original bug)" bash -c '! pgrep -u "$1" -x cosmic-idle | grep -qx "$2"' _ "$uid" "$wrapped"
+check "real pgrep + detect_desktop: .cosmic-idle-wr is detected as COSMIC from the running process" is_cosmic
+reap_real
+check "setup: the throwaway process really has comm cosmic-idle" spawn_named cosmic-idle
+check "real pgrep + detect_desktop: a plain cosmic-idle is detected as COSMIC" is_cosmic
+reap_real
+check "setup: the throwaway process really has comm cosmic-idler" spawn_named cosmic-idler
+check "control: a name that merely starts with cosmic-idle (cosmic-idler) changes nothing" test "$("$REAL/detect")" = "$BASELINE"
+reap_real
+check "setup: the throwaway process really has comm x.cosmic-idle" spawn_named x.cosmic-idle
+check "control: a name with a foreign prefix before .cosmic-idle (x.cosmic-idle) changes nothing" test "$("$REAL/detect")" = "$BASELINE"
+reap_real
 
 section "WARN: coffee-off with the lid closed"
 new_state lid

@@ -192,10 +192,33 @@ let
       if builtins.elem want s.substituters && builtins.elem c.publicKey s.trusted-public-keys
         && lib.hasPrefix "${c.name}.cachix.org-1:" c.publicKey then ok
       else "FAIL: cachix settings: substituters=${builtins.toJSON s.substituters} trusted-public-keys=${builtins.toJSON s.trusted-public-keys}";
+    "check-${name}-no-cosmic-cachix" = failIf (cosmicCacheProblems cfg);
     "check-${name}-nh-flake" = eq "programs.nh.flake" cfg.config.programs.nh.flake "/home/krit/nix";
     "check-${name}-gc-exclusive-with-nh-clean" =
       let r = { nixGc = cfg.config.nix.gc.automatic; nhClean = cfg.config.programs.nh.clean.enable; }; in
       eq "nix.gc.automatic / nh.clean.enable" r { nixGc = false; nhClean = true; };
+  };
+
+  cosmicCacheHost = "cosmic.cachix.org";
+  cosmicCacheProblems = cfg:
+    map (u: "substituter ${u}") (builtins.filter (u: urlHost u == cosmicCacheHost) (substituters cfg))
+    ++ map (k: "trusted key ${builtins.substring 0 20 k}") (builtins.filter (k: lib.hasPrefix "${cosmicCacheHost}-" k) (trustedKeys cfg));
+  srcText = rel: builtins.readFile "${flake.outPath}/${rel}";
+  cosmicCacheSources = [ "modules/nixos/toplevel/nix-nixos.nix" ".github/workflows/build.yml" ];
+  cosmicCacheChecks = {
+    "check-no-cosmic-cachix-in-sources" =
+      failIf (map (f: "${f} mentions ${cosmicCacheHost}") (builtins.filter (f: lib.hasInfix cosmicCacheHost (srcText f)) cosmicCacheSources));
+    "check-control-cosmic-cachix-sources-readable" =
+      failIf (map (f: "${f} has no cachix substituter lines, the source scan would be vacuous") (builtins.filter (f: !(lib.hasInfix "hyprland.cachix.org" (srcText f))) cosmicCacheSources));
+    "check-control-cosmic-cachix-detected" =
+      let
+        c = withModules desktop [{
+          nix.settings.extra-substituters = [ "https://${cosmicCacheHost}" ];
+          nix.settings.extra-trusted-public-keys = [ "${cosmicCacheHost}-1:AAAA=" ];
+        }];
+      in
+      if builtins.length (cosmicCacheProblems c) == 2 then ok
+      else "FAIL: mutant cosmic cache not detected: ${builtins.toJSON (cosmicCacheProblems c)}";
   };
 
   darwinOnly = {
@@ -316,5 +339,5 @@ let
 in
 lib.foldl' (a: b: a // b) { } (
   lib.mapAttrsToList perHost hosts
-  ++ [ sweepsChecks (nixosOnly "nixos-desktop" hosts.nixos-desktop) (nixosOnly "nixos-laptop" hosts.nixos-laptop) darwinOnly homeChecks controls ]
+  ++ [ sweepsChecks (nixosOnly "nixos-desktop" hosts.nixos-desktop) (nixosOnly "nixos-laptop" hosts.nixos-laptop) darwinOnly homeChecks cosmicCacheChecks controls ]
 )
