@@ -74,7 +74,7 @@ Practical implication: only add a `videoURL`/`gifURL` to an entry when you actua
 - **Hyprland** - default tiling window manager.
 - **niri** - scroll-based tiling windows manager.
 - **MangoWM + mangowc** - Tiling window manager supporting a vast choices of tiling layouts.
-- **KDE Plasma** - highly configurable, Windows-like launcher.
+- **KDE Plasma** - highly configurable, Windows-like launcher. The panel (bottom, auto-hide, pinned apps from `programs.kde.pinnedApps`) is created once per connected screen (plasma-manager `screen = "all"`), identical on every monitor.
 - **GNOME** - simple, macOS-like launcher; familiar to Ubuntu/Mint users.
 - **Cosmic** - system76's revisited GNOME (currently unstable - expect freezes and black screens on logout). Declarative through cosmic-manager:
   - Keybinds use the same constants as the KDE binds, with Super as modifier: terminal (Super+Return), browser, editor, file manager and the Vicinae launcher/clipboard/emoji binds. Super+M and Super+Shift+F toggle fullscreen, Super+Alt+A toggles maximize, Super+Shift+C closes, Super+Shift+M minimizes, Super+Delete locks the session and Super+Shift+Delete logs out (as on KDE). Super+Ctrl+3 takes a full-screen screenshot into the screenshots folder (grim) and Super+Ctrl+4 opens the interactive cosmic-screenshot overlay (Print keeps the COSMIC default). More binds go into `programs.cosmic.extraBinds`.

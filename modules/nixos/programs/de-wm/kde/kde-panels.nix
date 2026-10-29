@@ -11,40 +11,42 @@ delib.module {
     }:
     let
       pinnedLaunchers = builtins.map (app: "applications:${app}") cfg.pinnedApps;
+
+      widgets = [
+        {
+          name = "org.kde.plasma.kickoff";
+          config = {
+            General = {
+              icon = "nix-snowflake-white";
+              alphaSort = true;
+            };
+          };
+        }
+        {
+          name = "org.kde.plasma.icontasks";
+          config = lib.mkIf (cfg.pinnedApps != [ ]) {
+            General = {
+              launchers = pinnedLaunchers;
+            };
+          };
+        }
+        "org.kde.plasma.pager"
+        "org.kde.plasma.panelspacer"
+        "org.kde.plasma.systemtray"
+        "org.kde.plasma.digitalclock"
+        "org.kde.plasma.showdesktop"
+      ];
     in
     {
       programs.plasma.panels = [
         {
-          screen = 0;
+          screen = "all";
           location = "bottom";
           height = 44;
           floating = false;
           hiding = "autohide";
 
-          widgets = [
-            {
-              name = "org.kde.plasma.kickoff";
-              config = {
-                General = {
-                  icon = "nix-snowflake-white";
-                  alphaSort = true;
-                };
-              };
-            }
-            {
-              name = "org.kde.plasma.icontasks";
-              config = lib.mkIf (cfg.pinnedApps != [ ]) {
-                General = {
-                  launchers = pinnedLaunchers;
-                };
-              };
-            }
-            "org.kde.plasma.pager"
-            "org.kde.plasma.panelspacer"
-            "org.kde.plasma.systemtray"
-            "org.kde.plasma.digitalclock"
-            "org.kde.plasma.showdesktop"
-          ];
+          inherit widgets;
         }
       ];
     };
