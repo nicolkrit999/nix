@@ -220,14 +220,15 @@ Covers `cosmic-theme.nix`: the COSMIC theme is derived from the host's base16 sc
 
 ## Panels and dock (`06-scenario-cosmic-panels.nix`)
 
-Covers `cosmic-panels.nix`: `wayland.desktopManager.cosmic.panels` reproduces COSMIC's default Panel (top, XS) and Dock (bottom, L), both on output `All`, and `programs.cosmic.pinnedApps` feeds the app-list favorites. The expected values are written out literally in the test (they were read from the live COSMIC 1.11 files); `autohide` is the one live key that is not written because the locked cosmic-manager option only accepts the old optional-struct shape.
+Covers `cosmic-panels.nix`: `wayland.desktopManager.cosmic.panels` reproduces COSMIC's default Panel (top, XS) and Dock (bottom, L), both on output `All`, and `programs.cosmic.pinnedApps` feeds the app-list favorites. The expected values are written out literally in the test (they were read from the live COSMIC 1.11 files); `autohide` is an enum in COSMIC 1.11 (`Never`, `OnOverlap`, `Always`) that the cosmic-manager `panels` option cannot express, so it is written through `configFile` from `programs.cosmic.panelAutohide` (default `Never`) and `dockAutohide` (default `OnOverlap`), merged into the same component files as the panel entries with `mkForce` (the unset `panels` option contributes `autohide = null` to those entries, and `null` next to an enum is a type conflict).
 
 | Check | Expected |
 |-------|----------|
 | panel set | exactly `Panel`, `Dock` in that order; `CosmicPanel` entries list equal; one `CosmicPanel.<name>` file each (version 1) |
 | defaults | anchors, sizes, output `All` (never `Name [Virtual-1]`), background, expand/exclusive flags, margin, padding, spacing, border radius, opacity all equal the reproduced values |
 | plugins | center and wing lists equal the default lists; the Dock has empty wings and the app list in its center |
-| key set | each panel restates the 24 live keys (autohide excluded), autohide_behavior numbers, floats, hover delay, layer, keyboard interactivity, `None` size overrides |
+| key set | each panel restates the 24 live keys (autohide excluded, written via `configFile`), autohide_behavior numbers, floats, hover delay, layer, keyboard interactivity, `None` size overrides |
+| autohide | defaults Panel `Never` / Dock `OnOverlap` in the component files; changed options propagate to their own component only; merge with the panel entries keeps version 1, `name` and `autohide_behavior`; only the three legal variants are accepted; cosmic off writes no panel files; the `panels` option itself leaves `autohide` unset |
 | restart | the `restartCosmicPanel` activation exists with panels declared |
 | pinned apps | favorites = `pinnedApps` with `.desktop` stripped, order kept, duplicates dropped; they reach the `CosmicAppList` file; an empty list writes neither favorites nor the file |
 | real hosts | desktop favorites derive from its `pinnedApps` (equal to the gnome and kde lists); the laptop declares the same list |

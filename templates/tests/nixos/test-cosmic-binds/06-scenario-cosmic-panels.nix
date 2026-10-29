@@ -14,6 +14,8 @@ let
   twin = extra: fx.mkNixos [{ myconfig.programs.cosmic.enable = mk true; } extra];
   plain = twin { };
   pinned = twin { myconfig.programs.cosmic.pinnedApps = mk [ "zen-beta.desktop" "org.kde.dolphin.desktop" "plainid" "zen-beta.desktop" ]; };
+  hidden = twin { myconfig.programs.cosmic.panelAutohide = mk "Always"; myconfig.programs.cosmic.dockAutohide = mk "Never"; };
+  swapped = twin { myconfig.programs.cosmic.panelAutohide = mk "OnOverlap"; myconfig.programs.cosmic.dockAutohide = mk "Always"; };
   off = fx.mkNixos [{ myconfig.programs.cosmic.enable = mk false; myconfig.programs.cosmic.pinnedApps = mk [ "a.desktop" ]; }];
 
   desktop = flake.nixosConfigurations.nixos-desktop;
@@ -23,6 +25,7 @@ let
   panelsOf = t: (cosmicOf t).panels;
   byName = t: n: lib.findFirst (x: x.name == n) null (panelsOf t);
   hasFile = t: k: (cosmicOf t).configFile ? ${k};
+  autohideOf = t: n: (cosmicOf t).configFile."com.system76.CosmicPanel.${n}".entries.autohide;
   favoritesOf = t: (cosmicOf t).applets.app-list.settings.favorites;
 
   en = v: { __type = "enum"; variant = v; };
@@ -67,7 +70,7 @@ let
     };
   };
 
-  # Every key of the live COSMIC 1.11 files except `autohide` (enum there, not writable via cosmic-manager)
+  # Every key of the live COSMIC 1.11 files except `autohide` (enum, written separately through configFile)
   writtenKeys = [
     "anchor"
     "anchor_gap"
@@ -133,8 +136,36 @@ in
       failIf (lib.concatMap
         (n: lib.optional (nonNullKeys (byName plain n) != lib.sort (x: y: x < y) writtenKeys) "${n} keys ${builtins.toJSON (nonNullKeys (byName plain n))}")
         [ "Panel" "Dock" ]);
-    "panels: autohide is not written (unrepresentable: COSMIC enum vs the locked option's optional struct)" =
+    "panels: the panels option leaves autohide unset (the enum goes through configFile)" =
       failIf (lib.concatMap (n: lib.optional ((byName plain n).autohide != null) "${n} autohide set") [ "Panel" "Dock" ]);
+    "autohide: defaults equal the live enums (Panel Never, Dock OnOverlap) in the component files" =
+      failIf (lib.concatMap
+        (x: lib.optional (autohideOf plain x.n != en x.v) "${x.n} autohide is ${builtins.toJSON (autohideOf plain x.n)}")
+        [{ n = "Panel"; v = "Never"; } { n = "Dock"; v = "OnOverlap"; }]);
+    "autohide: changed options propagate, each only to its own component" =
+      failIf (
+        lib.optional (autohideOf hidden "Panel" != en "Always") "panelAutohide not propagated"
+        ++ lib.optional (autohideOf hidden "Dock" != en "Never") "dockAutohide not propagated"
+        ++ lib.optional (autohideOf swapped "Panel" != en "OnOverlap" || autohideOf swapped "Dock" != en "Always") "options leak into the wrong component"
+      );
+    "autohide: merges with the panels module's own entries (same files, version 1, all keys kept)" =
+      failIf (lib.concatMap
+        (n:
+          let f = (cosmicOf plain).configFile."com.system76.CosmicPanel.${n}"; in
+          lib.optional (f.version != 1) "${n} version ${toString f.version}"
+          ++ lib.optional (f.entries.name != n) "${n} panel entries lost"
+          ++ lib.optional (f.entries.autohide_behavior != { wait_time = 1000; transition_time = 200; handle_size = 4; unhide_delay = 200; }) "${n} autohide_behavior lost"
+          ++ lib.optional (!(f.entries ? autohide)) "${n} autohide missing")
+        [ "Panel" "Dock" ]);
+    "autohide: options accept only Never, OnOverlap and Always" =
+      let
+        tryVal = v: (builtins.tryEval (builtins.deepSeq (twin { myconfig.programs.cosmic.dockAutohide = mk v; }).config.myconfig.programs.cosmic.dockAutohide true)).success;
+      in
+      failIf (lib.optional (!tryVal "Always") "Always rejected" ++ lib.optional (tryVal "Sometimes") "bogus variant accepted");
+    "autohide: cosmic off writes no panel component files at all" =
+      failIf (lib.concatMap (n: lib.optional (hasFile off "com.system76.CosmicPanel.${n}") "${n} file with cosmic off") [ "Panel" "Dock" ]);
+    "autohide: control, a wrong variant is detected" =
+      detects "wrong autohide" (lib.optional (autohideOf plain "Dock" != en "Always") "Dock");
     "panels: autohide_behavior carries the live numbers" =
       failIf (lib.concatMap
         (n: lib.optional ((byName plain n).autohide_behavior != { wait_time = 1000; transition_time = 200; handle_size = 4; unhide_delay = 200; }) "${n} behavior")

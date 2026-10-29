@@ -43,6 +43,8 @@ delib.module {
       followTheme = boolOption true;
       themeAccent = lib.mkOption { type = lib.types.nullOr (lib.types.enum [ "base08" "base09" "base0A" "base0B" "base0C" "base0D" "base0E" "base0F" ]); default = null; description = "Base16 slot used as the COSMIC accent colour; null uses base0D (or the catppuccin accent when catppuccin is on)."; };
       pinnedApps = listOfOption str [ ];
+      panelAutohide = enumOption [ "Never" "OnOverlap" "Always" ] "Never";
+      dockAutohide = enumOption [ "Never" "OnOverlap" "Always" ] "OnOverlap";
     };
 
   nixos.always = _: {

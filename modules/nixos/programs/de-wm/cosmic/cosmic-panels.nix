@@ -22,8 +22,8 @@ delib.module {
       };
 
       # Keys shared by both panels, restated because setting `panels` replaces the whole list.
-      # `autohide` is left out on purpose: COSMIC 1.11 stores an enum there (Never / OnOverlap) but the
-      # locked cosmic-manager only accepts the old Some(struct) shape, so it cannot be written.
+      # `autohide` is not set here: COSMIC 1.11 stores an enum there, which the `panels` option cannot express;
+      # it is written through `configFile` below instead.
       common = {
         anchor_gap = false;
         autohide_behavior = autohideBehavior;
@@ -96,11 +96,20 @@ delib.module {
         };
       };
 
+      autohideFile = value: {
+        version = 1;
+        entries.autohide = lib.mkForce (enum value);
+      };
+
       favorites = lib.unique (lib.filter (id: id != "") (map (lib.removeSuffix ".desktop") cfg.pinnedApps));
     in
     {
       wayland.desktopManager.cosmic = {
         panels = [ panel dock ];
+        configFile = {
+          "com.system76.CosmicPanel.Panel" = autohideFile cfg.panelAutohide;
+          "com.system76.CosmicPanel.Dock" = autohideFile cfg.dockAutohide;
+        };
         applets.app-list.settings.favorites = lib.mkIf (favorites != [ ]) favorites;
       };
     };
