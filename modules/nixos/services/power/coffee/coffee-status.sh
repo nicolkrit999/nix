@@ -26,7 +26,15 @@ fi
 printf '%scoffee: %s%s%s\n' "$C_BOLD" "$colour" "$state" "$C_RESET"
 printf '  unit %s: %s\n' "$COFFEE_UNIT" "${unit_state:-unknown}"
 printf '  linger: %s%s\n' "${linger:-unknown}" "$linger_by"
+detect_desktop
+printf '  desktop: %s (%s)\n' "${DESK_NAME:-none}" "${DESK_HOW:-no graphical session detected}"
+if ((DESK_STALE)); then
+  printf '  note: XDG_CURRENT_DESKTOP of this shell (%s) is stale\n' "${XDG_CURRENT_DESKTOP:-}"
+fi
 printf '  hypridle: %s (before coffee-on: %s)\n' "${hypridle:-unknown}" "$(cat "$HYPRIDLE_RECORD" 2>/dev/null || echo "not recorded")"
+if cosmic_idle_recorded; then
+  printf '  cosmic-idle: timers held at None, originals in %s\n' "$COSMIC_IDLE_RECORD"
+fi
 if [[ $state == ON ]]; then
   printf '  blocked: automatic sleep (block-weak), idle dim/lock/screen-off and the lid action (block)\n'
   printf '  still works: manual suspend, suspend/hibernate keys, power button, shutdown, reboot\n'

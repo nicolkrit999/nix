@@ -7,27 +7,32 @@ if coffee_active && inhibitor_present; then
   already_on=1
 fi
 
-desk=${XDG_CURRENT_DESKTOP:-}
-case ${desk,,} in
-  *hyprland* | *niri* | *mango* | *wlroots*)
-    ok "desktop: $desk (idle, dim, lock and screen-off come from hypridle, which honours the idle lock)"
+detect_desktop
+desk=$DESK_NAME
+how="detected from $DESK_HOW"
+case $DESK_FAMILY in
+  wlroots)
+    ok "desktop: $desk (idle, dim, lock and screen-off come from hypridle, which honours the idle lock; $how)"
     ;;
-  *kde* | *plasma*)
-    warn "desktop: KDE Plasma runs its own power manager, coffee does not change its settings" "kcmshell6 kcm_powerdevilprofilesconfig"
+  kde)
+    warn "desktop: KDE Plasma runs its own power manager, coffee does not change its settings ($how)" "kcmshell6 kcm_powerdevilprofilesconfig"
     ;;
-  *gnome*)
-    warn "desktop: GNOME runs its own power manager, coffee does not change its settings" "gnome-control-center power"
+  gnome)
+    warn "desktop: GNOME runs its own power manager, coffee does not change its settings ($how)" "gnome-control-center power"
     ;;
-  *cosmic*)
-    warn "desktop: COSMIC runs its own power manager, coffee does not change its settings" "cosmic-settings power"
+  cosmic)
+    ok "desktop: $desk (cosmic-idle ignores logind locks, coffee sets its screen-off and suspend timers to never; COSMIC has no idle dim or lock; $how)"
     ;;
-  "")
+  none)
     warn "desktop: no graphical session in this shell (SSH or TTY?), the lock needs an active local session" "coffee-on"
     ;;
   *)
-    warn "desktop: $desk is not Hyprland/niri/mango, its own power settings may still act" "systemd-inhibit --list"
+    warn "desktop: $desk is not Hyprland/niri/mango, its own power settings may still act ($how)" "systemd-inhibit --list"
     ;;
 esac
+if ((DESK_STALE)); then
+  ok "desktop: XDG_CURRENT_DESKTOP of this shell (${XDG_CURRENT_DESKTOP:-}) is stale, the running session is $desk (old tmux/kitty server?); coffee follows the running session"
+fi
 
 if mkdir -p "$COFFEE_STATE_DIR" 2>/dev/null; then
   ok "state: $COFFEE_STATE_DIR"
@@ -105,6 +110,14 @@ if ((lock_ok)); then
       warn "linger: cannot read the linger state from logind, coffee may stop at logout" "loginctl enable-linger $COFFEE_USER"
       ;;
   esac
+fi
+
+if ((lock_ok)) && [[ $DESK_FAMILY == cosmic ]]; then
+  if cosmic_idle_hold; then
+    ok "cosmic-idle: screen_off_time, suspend_on_ac_time and suspend_on_battery_time are None, originals kept in $COSMIC_IDLE_RECORD"
+  else
+    fail "cosmic-idle: could not write $COSMIC_IDLE_DIR" "coffee-off"
+  fi
 fi
 
 refresh_waybar

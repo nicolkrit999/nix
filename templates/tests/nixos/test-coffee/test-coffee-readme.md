@@ -184,9 +184,16 @@ On failure the script outputs are saved as evidence (`keep_evidence`).
 | `systemd-run` refuses | exit != 0; `[FAIL] inhibitor: systemd-run could not start ...  fix: systemctl --user reset-failed coffee.service`; every WARN/FAIL has `fix:`; `coffee-on: FAILED, coffee is OFF`; no unit, no lock; no linger change, no notification; FAIL in journal at `err` |
 | lock refused (SSH: no desktop, locks never appear) | exit != 0; `[WARN] desktop: no graphical session ...  fix: coffee-on`; `[FAIL] inhibitor: logind refused the lock ...  fix: coffee-on`; the half-started unit is stopped, none left; no linger change, no notification |
 | KDE + `enable-linger` and `notify-send` fail | exit 0; WARN desktop (`fix: kcmshell6 kcm_powerdevilprofilesconfig`), WARN linger (`fix: loginctl enable-linger tester`), WARN notification (`fix: notify-send 'Coffee mode on'`); `done with warnings, coffee is ON (4 ok, 3 warn, 0 fail)`; 3 journal lines at `warning`; no marker; the later `coffee-off` never calls `disable-linger` |
+| COSMIC session (`COFFEE_COSMIC_IDLE_DIR` temp dir with a content file, a `None` file and a dangling symlink) | exit 0, no WARN/FAIL; `[ OK ] desktop: COSMIC`, `[ OK ] cosmic-idle: ... are None`; the three files read `None` (symlink replaced), originals recorded under `cosmic-idle-before` (content, content, `.link`), `coffee-status` shows the hold, a second `coffee-on` keeps the first originals; `coffee-off`: `3 timer(s) restored`, content and symlink back, record removed |
+| COSMIC, timer rewritten during coffee (activation) | `coffee-off` keeps the newer value, reports `1 rewritten meanwhile`, record removed |
+| COSMIC controls | files absent before are removed again by `coffee-off`; on Hyprland the cosmic-idle files and record are never touched |
+| Desktop detection: stale shell environment (`XDG_CURRENT_DESKTOP=Hyprland`, `pgrep` stub reports `cosmic-idle`, user manager says COSMIC) | `[ OK ] desktop: COSMIC ... detected from running process cosmic-idle`, plus an `[ OK ]` note that the shell variable (Hyprland) is stale; cosmic-idle hold ran; a second `coffee-on` keeps the recorded original; `coffee-status` prints `desktop: COSMIC (running process cosmic-idle)` and the note; `coffee-off` restores from the record |
+| Desktop detection fallbacks | no process marker: the user manager environment (`systemctl --user show-environment` stub) beats the shell variable; neither: the shell variable is used without a stale note; only `hypridle` running with an empty variable selects the Hyprland/niri/mango branch |
 | `coffee-off` with the lid closed | exit 0; `[WARN] lid: closed ...  fix: coffee-on`; lock still released; `done with warnings, coffee is OFF` |
 | `coffee-off` cannot stop the unit | exit != 0; `[FAIL] inhibitor unit: could not stop ...  fix: systemctl --user stop coffee.service`; `[FAIL] verify: a coffee lock is still listed  fix: pkill -f -- '--who=coffee'`; `coffee-off: FAILED, coffee is STILL ON` |
 | hypridle stopped during coffee | `coffee-off` runs `systemctl --user start hypridle.service`, "started again and verified active" |
+| record `active`, hypridle stopped, no owning session (`hyprland-session.target`, `niri.service`, `mango-session.target` all inactive; stub files `sess-*`) | not started by `coffee-off`; `[ OK ] hypridle: not started, the Hyprland/niri/mango session that owned it is gone`; no WARN/FAIL; record removed |
+| record `active`, hypridle stopped, `niri.service` active | started again and verified, as for Hyprland |
 | control: hypridle not running before `coffee-on` (no graphical session) | not started by `coffee-off` |
 | no forbidden command (per section) | clean call log |
 
@@ -209,3 +216,5 @@ On failure the script outputs are saved as evidence (`keep_evidence`).
 | the clean-call-log check fails on that log | true |
 | a `[WARN]` without `fix:` / a non-step line | rejected by the fix-hint and format checks |
 | a full (non-weak) sleep lock / an added `shutdown` lock in the `systemd-run` argv | rejected by the argv check |
+
+The harness stubs `pgrep` (marker list in `$S/procs`, argument form `-u <uid> -x -- <name>` enforced) and `systemctl --user show-environment` (`$S/uenv`); without the pgrep stub the real processes of the tester would decide the branch.

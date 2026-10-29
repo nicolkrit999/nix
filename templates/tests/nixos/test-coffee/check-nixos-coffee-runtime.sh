@@ -72,6 +72,9 @@ case $1 in
       coffee.service) [[ $(coffee_state) == active ]] ;;
       hypridle.service) [[ $(hyp) == active ]] ;;
       graphical-session.target) [[ -f $CF_S/graphical ]] ;;
+      hyprland-session.target) [[ -f $CF_S/sess-hyprland ]] ;;
+      niri.service) [[ -f $CF_S/sess-niri ]] ;;
+      mango-session.target) [[ -f $CF_S/sess-mango ]] ;;
       *) bad "$@" ;;
     esac ;;
   is-failed)
@@ -89,6 +92,10 @@ case $1 in
     [[ $(coffee_state) == failed ]] && rm -f "$CF_S/unit"
     [[ $(coffee_state) == none ]] && exit 1
     exit 0 ;;
+  show-environment)
+    [[ $# -eq 1 ]] || bad "$@"
+    echo "PATH=/usr/bin"
+    [[ ! -s $CF_S/uenv ]] || echo "XDG_CURRENT_DESKTOP=$(cat "$CF_S/uenv")" ;;
   start)
     [[ $# -eq 2 && $2 == hypridle.service ]] || bad "$@"
     echo active >"$CF_S/hypridle" ;;
@@ -185,6 +192,16 @@ echo "pkill $*" >>"$CF_S/calls"
 [[ $(cat "$CF_S/waybar") == running ]]
 STUB
 
+cat >"$STUBS/pgrep" <<'STUB'
+#!/usr/bin/env bash
+echo "pgrep $*" >>"$CF_S/calls"
+[[ $# -eq 4 && $1 == -u && $2 == "$(id -u)" && $3 == -- && $4 == '^[.]?'*'(-wr.*)$' ]] ||
+  { echo "bad-args pgrep $*" >>"$CF_S/calls"; exit 64; }
+name=${4#'^[.]?'}
+name=${name%'(-wr.*)$'}
+grep -Fxq -- "$name" "$CF_S/procs"
+STUB
+
 for n in on off; do
   printf '#!/usr/bin/env bash\necho "exec coffee-%s" >>"$CF_S/calls"\nexec bash %q "$@"\n' "$n" "$WORK/coffee-$n.sh" >"$STUBS/coffee-$n"
 done
@@ -208,7 +225,9 @@ new_state() {
   echo active >"$S/hypridle"
   echo running >"$S/waybar"
   echo "b false" >"$S/lid"
-  touch "$S/graphical"
+  : >"$S/procs"
+  : >"$S/uenv"
+  touch "$S/graphical" "$S/sess-hyprland"
   for k in run-mode stop-mode notify-mode linger-mode; do echo ok >"$S/$k"; done
 }
 
@@ -490,6 +509,81 @@ run off off
 check "coffee-off then never calls disable-linger" bash -c '[[ $1 -eq 0 ]] && ! grep -q disable-linger "$2/calls"' _ "$RC" "$S"
 check "no forbidden command, expected arguments" clean_calls
 
+section "COSMIC: cosmic-idle timers held at None and restored"
+new_state cosmic
+idle="$S/idle"
+mkdir -p "$idle"
+printf 'Some(3600000)' >"$idle/screen_off_time"
+printf 'None' >"$idle/suspend_on_ac_time"
+ln -s /nonexistent-store/suspend_on_battery_time "$idle/suspend_on_battery_time"
+EXTRA_ENV="COFFEE_COSMIC_IDLE_DIR=$idle"
+DESK=COSMIC run on on
+check "coffee-on exits 0 with no WARN and no FAIL" bash -c '[[ $1 -eq 0 ]] && ! grep -qE "^\[(WARN|FAIL)\]" "$2"' _ "$RC" "$OUT"
+check "[ OK ] desktop: COSMIC names cosmic-idle and the missing dim and lock" line_has "[ OK ] desktop: COSMIC" "no idle dim or lock"
+check "[ OK ] cosmic-idle: all three timers are None" has "[ OK ] cosmic-idle: screen_off_time, suspend_on_ac_time and suspend_on_battery_time are None"
+check "the three timer files read None and the symlink is now a regular file" bash -c '[[ $(cat "$1/screen_off_time") == None && $(cat "$1/suspend_on_ac_time") == None && $(cat "$1/suspend_on_battery_time") == None && ! -L $1/suspend_on_battery_time ]]' _ "$idle"
+check "originals recorded: content, content, symlink target" bash -c 'r=$1/state/cosmic-idle-before; [[ $(cat "$r/screen_off_time") == "Some(3600000)" && $(cat "$r/suspend_on_ac_time") == None && $(cat "$r/suspend_on_battery_time.link") == /nonexistent-store/suspend_on_battery_time ]]' _ "$S"
+run status status-cosmic
+check "coffee-status mentions the held cosmic-idle timers" has "cosmic-idle: timers held at None"
+run on on
+check "second coffee-on keeps the first originals" bash -c '[[ $(cat "$1/state/cosmic-idle-before/screen_off_time") == "Some(3600000)" ]]' _ "$S"
+run off off
+check "coffee-off exits 0 and reports 3 restored timers" bash -c '[[ $1 -eq 0 ]]' _ "$RC"
+check "[ OK ] cosmic-idle: 3 timer(s) restored" has "[ OK ] cosmic-idle: 3 timer(s) restored"
+check "original content, content and symlink are back, record removed" bash -c '[[ $(cat "$1/screen_off_time") == "Some(3600000)" && $(cat "$1/suspend_on_ac_time") == None && -L $1/suspend_on_battery_time && $(readlink "$1/suspend_on_battery_time") == /nonexistent-store/suspend_on_battery_time && ! -e $2/state/cosmic-idle-before ]]' _ "$idle" "$S"
+check "no forbidden command, expected arguments" clean_calls
+run on on
+printf 'Some(900000)' >"$idle/screen_off_time"
+run off off
+check "a timer rewritten during coffee (activation) keeps its newer value and is reported" bash -c '[[ $(cat "$1/screen_off_time") == "Some(900000)" && ! -e $2/state/cosmic-idle-before ]]' _ "$idle" "$S"
+check "[ OK ] cosmic-idle: 2 restored, 1 rewritten meanwhile" has "[ OK ] cosmic-idle: 2 timer(s) restored, 1 rewritten meanwhile"
+new_state cosmic-absent
+idle="$S/idle"
+EXTRA_ENV="COFFEE_COSMIC_IDLE_DIR=$idle"
+DESK=COSMIC run on on
+run off off
+check "control: files that did not exist are removed again by coffee-off" bash -c '[[ $1 -eq 0 ]] && [[ ! -e $2/screen_off_time && ! -e $2/suspend_on_ac_time && ! -e $2/suspend_on_battery_time ]]' _ "$RC" "$idle"
+new_state cosmic-hypr
+EXTRA_ENV="COFFEE_COSMIC_IDLE_DIR=$S/idle"
+run on on
+check "control: on Hyprland the cosmic-idle files are never touched" bash -c '[[ ! -e $1/idle && ! -e $1/state/cosmic-idle-before ]]' _ "$S"
+unset EXTRA_ENV
+
+section "desktop detection: running processes beat a stale shell environment"
+new_state stale
+idle="$S/idle"
+EXTRA_ENV="COFFEE_COSMIC_IDLE_DIR=$idle"
+mkdir -p "$idle"
+printf 'Some(3600000)' >"$idle/screen_off_time"
+echo cosmic-idle >"$S/procs"
+echo COSMIC >"$S/uenv"
+DESK=Hyprland run on on
+check "coffee-on exits 0 with no WARN and no FAIL" bash -c '[[ $1 -eq 0 ]] && ! grep -qE "^\[(WARN|FAIL)\]" "$2"' _ "$RC" "$OUT"
+check "[ OK ] desktop: COSMIC, detected from the running process cosmic-idle" line_has "[ OK ] desktop: COSMIC" "detected from running process cosmic-idle"
+check "[ OK ] note that the shell XDG_CURRENT_DESKTOP (Hyprland) is stale" line_has "[ OK ] desktop: XDG_CURRENT_DESKTOP of this shell (Hyprland) is stale" "the running session is COSMIC"
+check "the cosmic-idle hold ran despite the stale variable" bash -c '[[ $(cat "$1/screen_off_time") == None && $(cat "$2/state/cosmic-idle-before/screen_off_time") == "Some(3600000)" ]]' _ "$idle" "$S"
+run on on
+check "coffee-on again (already on): hold re-runs, the recorded original is not overwritten with None" bash -c '[[ $(cat "$1/state/cosmic-idle-before/screen_off_time") == "Some(3600000)" ]]' _ "$S"
+check "already on: the stale-environment note is printed again" has "is stale"
+DESK=Hyprland run status status-stale
+check "coffee-status shows the detected desktop and the stale note" bash -c 'grep -Fq "desktop: COSMIC (running process cosmic-idle)" "$1" && grep -Fq "is stale" "$1"' _ "$OUT"
+DESK=Hyprland run off off
+check "coffee-off restores from the record regardless of the stale variable" bash -c '[[ $(cat "$1/screen_off_time") == "Some(3600000)" && ! -e $2/state/cosmic-idle-before ]]' _ "$idle" "$S"
+check "no forbidden command, expected arguments" clean_calls
+new_state fallback-uenv
+echo KDE >"$S/uenv"
+DESK=Hyprland run on on
+check "no marker: the user manager environment (KDE) wins over the shell variable" line_has "[WARN] desktop: KDE Plasma" "detected from systemd user manager environment"
+new_state fallback-shell
+DESK=GNOME run on on
+check "no marker and no user manager value: the shell variable is used, no stale note" bash -c 'grep -Fq "detected from XDG_CURRENT_DESKTOP of this shell" "$1" && ! grep -Fq "is stale" "$1"' _ "$OUT"
+new_state marker-hypridle
+echo hypridle >"$S/procs"
+DESK= run on on
+check "hypridle process alone selects the Hyprland/niri/mango branch without any variable" line_has "[ OK ] desktop: hypridle" "detected from running process hypridle"
+check "no forbidden command, expected arguments" clean_calls
+unset EXTRA_ENV
+
 section "WARN: coffee-off with the lid closed"
 new_state lid
 run on on
@@ -525,6 +619,19 @@ rm -f "$S/graphical"
 run on on
 run off off
 check "control: hypridle that was not running before coffee-on is not started" bash -c '[[ $1 -eq 0 ]] && ! grep -q "start hypridle" "$2/calls" && grep -Fq "not running before coffee-on either" "$3"' _ "$RC" "$S" "$OUT"
+new_state hypridle-session-gone
+run on on
+echo inactive >"$S/hypridle"
+rm -f "$S/sess-hyprland" "$S/sess-niri" "$S/sess-mango"
+run off off
+check "record active but the owning session is gone: hypridle not started, ok line, record removed" bash -c '[[ $1 -eq 0 ]] && ! grep -q "start hypridle" "$2/calls" && grep -Fq "[ OK ] hypridle: not started, the Hyprland/niri/mango session that owned it is gone" "$3" && ! grep -qE "^\[(WARN|FAIL)\]" "$3" && [[ ! -f $2/state/hypridle-before ]]' _ "$RC" "$S" "$OUT"
+new_state hypridle-niri-session
+run on on
+echo inactive >"$S/hypridle"
+rm -f "$S/sess-hyprland"
+touch "$S/sess-niri"
+run off off
+check "record active and niri.service active: hypridle started as before" bash -c '[[ $1 -eq 0 ]] && grep -q "^systemctl --user start hypridle.service$" "$2/calls" && grep -Fq "started again and verified active" "$3"' _ "$RC" "$S" "$OUT"
 check "no forbidden command, expected arguments" clean_calls
 
 section "colour only on a TTY"

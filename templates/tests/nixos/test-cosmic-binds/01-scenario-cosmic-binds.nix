@@ -441,6 +441,17 @@ let
     "unchanged: control, cosmic off sets neither session variable" =
       let v = sessionVars off; in
       if !(v ? XDG_SCREENSHOTS_DIR) && !(v ? COSMIC_DATA_CONTROL_ENABLED) then ok else "FAIL: cosmic session variables leak with cosmic off";
+    "idle: screen_off_time is hypridle screenOffTimeout in ms, both suspend timers are None" =
+      let
+        i = (cosmicOf base).idle;
+        secs = base.config.myconfig.services.hypridle.screenOffTimeout;
+      in
+      if i.screen_off_time == { __type = "optional"; value = secs * 1000; }
+        && i.suspend_on_ac_time == { __type = "optional"; value = null; }
+        && i.suspend_on_battery_time == { __type = "optional"; value = null; }
+      then ok else "FAIL: idle is ${builtins.toJSON i}";
+    "idle: control, cosmic off sets no idle config" =
+      if (cosmicOf off).idle == null then ok else "FAIL: idle set with cosmic off";
     "unchanged: control, cosmic off generates no shortcuts even with extraBinds declared" =
       if (everyShortcutOf off == null || everyShortcutOf off == [ ]) && (cosmicOf off).enable == false then ok else "FAIL: shortcuts generated with cosmic off";
   };

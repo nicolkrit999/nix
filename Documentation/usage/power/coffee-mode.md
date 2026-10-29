@@ -48,12 +48,40 @@ Still working while coffee is on (deliberate actions and emergencies):
 - the upower critical-battery action (it falls back to power-off here) and the kernel thermal
   shutdown.
 
+## Desktop detection
+
+`coffee-on` and `coffee-status` pick the idle-manager branch from what actually runs, not from the
+calling shell's `$XDG_CURRENT_DESKTOP` (a tmux or kitty server started under another session keeps a
+stale value). Order: running processes of the current user (`pgrep -u <uid> -x`: `cosmic-idle`,
+`gnome-shell`, `plasmashell`/`kwin_wayland`, `Hyprland`, `niri`, `mango`, `hypridle`; first match wins),
+then `XDG_CURRENT_DESKTOP` of the systemd user manager, then the shell's variable, then the
+`no graphical session` warning. The desktop line says how it was detected; if the shell's variable
+names a different desktop, an extra `[ OK ]` line reports it as stale. `coffee-off` needs no
+detection: it restores from the recorded state.
+
 ## Limits
 
 - Start it from a terminal in the local graphical session. Over SSH with nobody logged in
   locally, logind refuses the lid lock: `coffee-on` reports `[FAIL]` and removes the unit again.
-- KDE, GNOME and COSMIC have their own power managers. `coffee-on` still runs there, but prints a
+- KDE and GNOME have their own power managers. `coffee-on` still runs there, but prints a
   `[WARN]` with the command that opens that desktop's power settings.
+- COSMIC: `cosmic-idle` uses the Wayland idle-notify protocol and ignores the logind locks, so
+  `coffee-on` writes `None` (never) into its three timer files
+  (`~/.config/cosmic/com.system76.CosmicIdle/v1/{screen_off_time,suspend_on_ac_time,suspend_on_battery_time}`)
+  and records the originals in `$COFFEE_STATE_DIR/cosmic-idle-before`; `coffee-off` puts them back
+  and `coffee-status` shows the hold. COSMIC has no idle dim or idle lock, so there is nothing
+  more to hold off. Edge: a home-manager activation while coffee is on rewrites the files with the
+  declared values (cosmic-manager applies them with `cosmic-ctl`), which ends the protection until
+  the next `coffee-on`; `coffee-off` notices that the files no longer read `None`, keeps those
+  newer values and just drops the record. Whether `cosmic-idle` picks up the file change without a
+  restart (it watches its config with inotify) is not live-verified; if the screen still turns
+  off, run `pkill -x cosmic-idle` (the session respawns it) after `coffee-on`.
+- hypridle is only started again by `coffee-off` while a session that owns it is running
+  (`hyprland-session.target`, `niri.service` or `mango-session.target` active). If you log out
+  of Hyprland/niri/mango while coffee is on and run `coffee-off` in another desktop (COSMIC,
+  GNOME, KDE), the recorded hypridle state is dropped with an `[ OK ]` note instead of starting
+  hypridle next to that desktop's own idle manager. `coffee-off` never stops a hypridle that is
+  already running.
 - Surviving logout keeps the machine and the user manager alive. Jobs in a plain terminal window
   still die with the compositor; run long jobs inside tmux. Open live check: confirm once that a
   tmux pane survives `coffee-on`, logout, login.

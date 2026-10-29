@@ -58,7 +58,9 @@ before=$(cat "$HYPRIDLE_RECORD" 2>/dev/null || echo unknown)
 if unit_loaded hypridle.service; then
   if hypridle_active; then
     ok "hypridle: active, idle dim/lock/screen-off work again"
-  elif [[ $before == active ]] || unit_active graphical-session.target; then
+  elif [[ $before == active ]] && ! wm_session_active; then
+    ok "hypridle: not started, the Hyprland/niri/mango session that owned it is gone (other desktop now)"
+  elif [[ $before == active ]] || { unit_active graphical-session.target && wm_session_active; }; then
     if systemctl --user start hypridle.service 2>/dev/null && wait_until hypridle_active; then
       ok "hypridle: was not running, started again and verified active"
     else
@@ -73,6 +75,17 @@ else
   ok "hypridle: not installed for this user"
 fi
 rm -f "$HYPRIDLE_RECORD"
+
+if cosmic_idle_recorded; then
+  cosmic_idle_release
+  if ((COSMIC_FAILED > 0)); then
+    fail "cosmic-idle: could not restore $COSMIC_FAILED timer file(s) in $COSMIC_IDLE_DIR, the record in $COSMIC_IDLE_RECORD is kept" "coffee-off"
+  elif ((COSMIC_KEPT > 0)); then
+    ok "cosmic-idle: $COSMIC_RESTORED timer(s) restored, $COSMIC_KEPT rewritten meanwhile (home-manager activation) and kept as they are"
+  else
+    ok "cosmic-idle: $COSMIC_RESTORED timer(s) restored to their values from before coffee-on"
+  fi
+fi
 
 refresh_waybar
 

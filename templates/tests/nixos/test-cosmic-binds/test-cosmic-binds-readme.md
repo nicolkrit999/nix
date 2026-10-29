@@ -107,6 +107,8 @@ Twins: defaults (editor in `terminalApps`, fileManager not), alternate constants
 | `XDG_SCREENSHOTS_DIR` | equals `constants.screenshots` with cosmic on |
 | `COSMIC_DATA_CONTROL_ENABLED` | `1` with cosmic on |
 | control: cosmic off | neither session variable set, no shortcuts generated even with `extraBinds` declared |
+| idle (`cosmic-idle.nix`) | `screen_off_time` = hypridle `screenOffTimeout` * 1000 as an optional, `suspend_on_ac_time` and `suspend_on_battery_time` = optional null (None) |
+| control: cosmic off | no idle config |
 
 ## Monitor layout (`02-scenario-cosmic-monitors.nix`)
 
