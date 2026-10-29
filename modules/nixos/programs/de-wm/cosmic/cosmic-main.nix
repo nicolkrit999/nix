@@ -40,6 +40,9 @@ delib.module {
       mouseNaturalScroll = lib.mkOption { type = lib.types.nullOr lib.types.bool; default = null; description = "Natural scrolling on mice."; };
       mouseAccelProfile = lib.mkOption { type = lib.types.nullOr (lib.types.enum [ "Adaptive" "Flat" ]); default = null; description = "Mouse pointer acceleration profile."; };
       mouseSpeed = lib.mkOption { type = lib.types.nullOr (lib.types.numbers.between (-1.0) 1.0); default = null; description = "Mouse pointer speed, -1.0 to 1.0."; };
+      followTheme = boolOption true;
+      themeAccent = lib.mkOption { type = lib.types.nullOr (lib.types.enum [ "base08" "base09" "base0A" "base0B" "base0C" "base0D" "base0E" "base0F" ]); default = null; description = "Base16 slot used as the COSMIC accent colour; null uses base0D (or the catppuccin accent when catppuccin is on)."; };
+      pinnedApps = listOfOption str [ ];
     };
 
   nixos.always = _: {

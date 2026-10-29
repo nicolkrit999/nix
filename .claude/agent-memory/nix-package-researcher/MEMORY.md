@@ -6,3 +6,5 @@
 - [Discord safeStorage token](reference_discord_safestorage_token.md) - official Discord keeps token via Electron safeStorage; backend switch can log out; pin with commandLineArgs
 - [COSMIC outputs.ron format](reference_cosmic_outputs_ron_format.md) - per-connected-set key in ~/.local/state/cosmic-comp/outputs.ron; no cosmic-manager outputs option; cosmic-randr 1.11.0 apply path
 - [KDE/GNOME display config persistence](reference_kde_gnome_display_config.md) - no declarative outputs option on either DE; kwinoutputconfig.json + monitors.xml schemas, kscreen-doctor syntax, Mutter 50.5 flags
+- [cosmic-manager panels/applets](reference_cosmic_manager_panels_applets.md) - panel options, app-list favorites, overwrite-on-activation, Virtual-1 output default, no dock option
+- [cosmic-manager theme palette schema](reference_cosmic_theme_palette_schema.md) - appearance.theme/toolkit tree, fixed palette slot names, Builder->cosmic-ctl build-theme, no catppuccin/stylix cosmic target

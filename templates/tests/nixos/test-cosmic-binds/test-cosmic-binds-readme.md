@@ -18,7 +18,7 @@ Or from inside the directory:
 bash check-nixos-cosmic-binds.sh
 ```
 
-Needs `nix`, `jq`, `bash`. About 25 s warm (eval only, all four scenarios); the cap is 4 min (`test.conf`, group `nixos-b`, which has no room for a 5 min cap in its CI step budget).
+Needs `nix`, `jq`, `bash`. About 25 s warm before the theme and panels scenarios (eval only, all six scenarios now; not re-measured); the cap is 4 min (`test.conf`, group `nixos-b`, which has no room for a 5 min cap in its CI step budget).
 
 ## How it works
 
@@ -110,7 +110,7 @@ Twins: defaults (editor in `terminalApps`, fileManager not), alternate constants
 
 ## Monitor layout (`02-scenario-cosmic-monitors.nix`)
 
-`check-nixos-cosmic-binds.sh` runs `01-scenario-cosmic-binds.nix`, `02-scenario-cosmic-monitors.nix`, `03-scenario-cosmic-input.nix` and `04-scenario-cosmic-idle.nix` in turn (same `results` shape) and needs at least 80 checks in total. The second scenario covers the `programs.cosmic.monitors` option and `cosmic-monitors.nix`, which turns it into a plan file (`~/.config/cosmic-monitors/plan`, one `cosmic-randr` argument line per output) and a user oneshot service that applies it inside a COSMIC session; it also reads the two real hosts' declared monitor values.
+`check-nixos-cosmic-binds.sh` runs `01-scenario-cosmic-binds.nix`, `02-scenario-cosmic-monitors.nix`, `03-scenario-cosmic-input.nix`, `04-scenario-cosmic-idle.nix`, `05-scenario-cosmic-theme.nix` and `06-scenario-cosmic-panels.nix` in turn (same `results` shape) and needs at least 80 checks in total. The second scenario covers the `programs.cosmic.monitors` option and `cosmic-monitors.nix`, which turns it into a plan file (`~/.config/cosmic-monitors/plan`, one `cosmic-randr` argument line per output) and a user oneshot service that applies it inside a COSMIC session; it also reads the two real hosts' declared monitor values.
 
 The scenario exposes `results` (`label -> "ok" | "FAIL: ..."`, each check wrapped in `tryEval`).
 
@@ -198,3 +198,38 @@ Covers `cosmic-idle.nix`: COSMIC's idle manager follows the hypridle screen-off 
 | real desktop | its own `screenOffTimeout` in ms, suspend timers None |
 | real hosts | desktop and laptop `screenOffTimeout` are positive ints whose ms value fits u32 |
 | control: seconds instead of ms / a set suspend timer / an extra key | each flagged by the idle checker |
+
+## Theme (`05-scenario-cosmic-theme.nix`)
+
+Covers `cosmic-theme.nix`: the COSMIC theme is derived from the host's base16 scheme (stylix colours), so it works for any scheme. Minimal-fixture twins replace `stylix.base16Scheme` (Dark Violet, Windows NT Light, Catppuccin Mocha) and the theme constants; the real desktop is read once (catppuccin mocha, sapphire). Colours only: toolkit (fonts, icons, density), corner radii, spacing, gaps and container backgrounds are never written.
+
+| Check | Expected |
+|-------|----------|
+| mode and fill | `polarity = dark` gives `mode = dark` and a filled `theme.dark` with `theme.light` null; `light` the reverse; the `CosmicTheme.Mode` file has `is_dark` accordingly; only the active Builder file is written (version 2) |
+| mode independence | the accent, catppuccin flavor and `themeAccent` never change the mode |
+| palette shape | variant `Dark` or `Light` wrapping one palette; exactly the 32 legal slot names plus `name`; every channel in 0..1, alpha 1.0 |
+| grey ramp | `gray_1`/`neutral_1` = base00, `gray_2`/`neutral_2` = base01, `neutral_3` = base02, `neutral_10` = base07, interpolated steps lie between their neighbours (same direction for light schemes) |
+| hue slots | red/orange/yellow/green/blue/purple/warm grey = base08/09/0A/0B/0D/0E/0F, `ext_blue` = base0C, indigo and pink lie between their neighbours; destructive/success/warning = base08/0B/0A |
+| float precision | every colour channel and alpha (palette, accent, destructive, success, warning; dark, light, accent override, catppuccin, real desktop) satisfies `x == fromJSON (toString x)`, the `lib.strings.floatToString` predicate, so cosmic-manager emits no "Imprecise conversion" warning; an unrounded `236/255.0` is flagged |
+| second scheme | the light NT scheme gives its own ramp ends, hues and accent; the two palettes differ |
+| accent | default base0D (catppuccin off); `themeAccent = base0E` overrides it, also over catppuccin on; catppuccin on uses the palette colour (latte blue `1e66f5`) |
+| opt-out | `followTheme = false` and cosmic off write no theme, no Mode file, no Builder file; `followTheme` defaults to true |
+| scope | no `toolkit`, no `CosmicTk` file, no radii/spacing/gaps/`active_hint`/background overrides |
+| real desktop | dark mode, accent = catppuccin mocha sapphire `74c7ec`, `gray_1` = base00 |
+| controls | illegal slot, missing slot, out-of-range channel, translucent slot, imprecise float and indistinguishable accents are each flagged |
+
+## Panels and dock (`06-scenario-cosmic-panels.nix`)
+
+Covers `cosmic-panels.nix`: `wayland.desktopManager.cosmic.panels` reproduces COSMIC's default Panel (top, XS) and Dock (bottom, L), both on output `All`, and `programs.cosmic.pinnedApps` feeds the app-list favorites. The expected values are written out literally in the test (they were read from the live COSMIC 1.11 files); `autohide` is the one live key that is not written because the locked cosmic-manager option only accepts the old optional-struct shape.
+
+| Check | Expected |
+|-------|----------|
+| panel set | exactly `Panel`, `Dock` in that order; `CosmicPanel` entries list equal; one `CosmicPanel.<name>` file each (version 1) |
+| defaults | anchors, sizes, output `All` (never `Name [Virtual-1]`), background, expand/exclusive flags, margin, padding, spacing, border radius, opacity all equal the reproduced values |
+| plugins | center and wing lists equal the default lists; the Dock has empty wings and the app list in its center |
+| key set | each panel restates the 24 live keys (autohide excluded), autohide_behavior numbers, floats, hover delay, layer, keyboard interactivity, `None` size overrides |
+| restart | the `restartCosmicPanel` activation exists with panels declared |
+| pinned apps | favorites = `pinnedApps` with `.desktop` stripped, order kept, duplicates dropped; they reach the `CosmicAppList` file; an empty list writes neither favorites nor the file |
+| real hosts | desktop favorites derive from its `pinnedApps` (equal to the gnome and kde lists); the laptop declares the same list |
+| cosmic off | no panels, no panel files, no app-list file, no restart activation |
+| controls | module-default output, wrong anchor, dropped applet and missing panel are each flagged |

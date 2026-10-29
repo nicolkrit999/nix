@@ -148,6 +148,7 @@ delib.host {
         # 🎨 THEMING
         # ---------------------------------------------------------------
         theme = {
+          polarity = "dark";
           base16Theme = "catppuccin-mocha";
           catppuccin = true;
           catppuccinFlavor = "mocha";
@@ -565,6 +566,7 @@ delib.host {
         # ---------------------------------------------------------------
         cosmic = {
           enable = false;
+          inherit pinnedApps;
           monitors = [
             { output = "eDP-1"; width = 3200; height = 2000; refresh = 120; scale = 1.0; x = 0; y = 0; }
             { output = "*"; }
