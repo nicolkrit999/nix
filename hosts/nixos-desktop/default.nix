@@ -678,6 +678,7 @@ delib.host {
           touchpadNaturalScroll = false;
           touchpadDisableWhileTyping = true;
           mouseNaturalScroll = false;
+          dockAutohide = "Always";
         };
 
         gnome = {
