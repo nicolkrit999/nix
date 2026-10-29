@@ -59,7 +59,7 @@ delib.host {
 
       programs = {
         bat.enable = true;
-        direnv.enable = false;
+        direnv.enable = true;
         eza.enable = true;
         fastfetch.enable = true;
         statix.enable = true;
