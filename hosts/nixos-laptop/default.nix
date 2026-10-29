@@ -569,6 +569,10 @@ delib.host {
             { output = "eDP-1"; width = 3200; height = 2000; refresh = 120; scale = 1.0; x = 0; y = 0; }
             { output = "*"; }
           ];
+          touchpadTapToClick = true;
+          touchpadNaturalScroll = false;
+          touchpadDisableWhileTyping = true;
+          mouseNaturalScroll = false;
         };
 
         gnome = {

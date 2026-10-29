@@ -672,6 +672,10 @@ delib.host {
             { output = "HDMI-A-1"; enable = false; }
             { output = "*"; }
           ];
+          touchpadTapToClick = true;
+          touchpadNaturalScroll = false;
+          touchpadDisableWhileTyping = true;
+          mouseNaturalScroll = false;
         };
 
         gnome = {

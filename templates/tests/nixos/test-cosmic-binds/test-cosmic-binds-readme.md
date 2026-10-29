@@ -112,7 +112,7 @@ Twins: defaults (editor in `terminalApps`, fileManager not), alternate constants
 
 ## Monitor layout (`02-scenario-cosmic-monitors.nix`)
 
-`check-nixos-cosmic-binds.sh` runs `01-scenario-cosmic-binds.nix` and `02-scenario-cosmic-monitors.nix` in turn (same `results` shape) and needs at least 80 checks in total. The second scenario covers the `programs.cosmic.monitors` option and `cosmic-monitors.nix`, which turns it into a plan file (`~/.config/cosmic-monitors/plan`, one `cosmic-randr` argument line per output) and a user oneshot service that applies it inside a COSMIC session; it also reads the two real hosts' declared monitor values.
+`check-nixos-cosmic-binds.sh` runs `01-scenario-cosmic-binds.nix`, `02-scenario-cosmic-monitors.nix` and `03-scenario-cosmic-input.nix` in turn (same `results` shape) and needs at least 80 checks in total. The second scenario covers the `programs.cosmic.monitors` option and `cosmic-monitors.nix`, which turns it into a plan file (`~/.config/cosmic-monitors/plan`, one `cosmic-randr` argument line per output) and a user oneshot service that applies it inside a COSMIC session; it also reads the two real hosts' declared monitor values.
 
 The scenario exposes `results` (`label -> "ok" | "FAIL: ..."`, each check wrapped in `tryEval`).
 
@@ -166,3 +166,21 @@ Twins: mixed list (two enabled, one rotated, one disabled, fallback), fallback o
 | laptop fallback, plan | one `"*"` entry, two entries; predicted plan is the single eDP-1 line |
 | output names | every declared name matches the name rule |
 | control: expectation helper | flags a wrong value and a missing output |
+
+## Input settings (`03-scenario-cosmic-input.nix`)
+
+Covers `cosmic-input.nix` and the flat nullable `programs.cosmic` options `keyboardRepeatDelay`, `keyboardRepeatRate`, `touchpad*` and `mouse*`. Values are read from `wayland.desktopManager.cosmic.compositor` of the home-manager config of minimal-fixture twins (plain, touchpad set, mouse set, repeat set, cosmic off).
+
+| Check | Expected |
+|-------|----------|
+| xkb | `layout`, `variant` and `options` equal `constants.keyboardLayout` / `keyboardVariant` / `keyboardOptions` (empty gives None); rules `""`, model `pc104`, repeat 600/25 unless declared |
+| explicit false | `touchpadNaturalScroll`/`touchpadDisableWhileTyping` false are emitted as Some(false), not None |
+| real hosts | desktop evaluates xkb from constants, numlock BootOn, touchpad tap on / natural scroll off / disable-while-typing on, mouse natural scroll off; laptop declares the same options (cosmic off there) |
+| repeat twin | declared delay and rate are used |
+| numlock | `keyboard_config.numlock_state` is the `BootOn` enum |
+| nothing set | neither `input_touchpad` nor `input_default` exists |
+| touchpad twin | tap enabled, natural scroll, disable-while-typing, `Flat` profile, speed 0.5 in `input_touchpad`; no `input_default` |
+| mouse twin | natural scroll false, `Adaptive`, speed -0.25 in `input_default`, tap config None; no `input_touchpad` |
+| unset fields | stay None (libinput default) |
+| control: cosmic off | no compositor config |
+| control: wrong expectation | flagged |

@@ -195,10 +195,10 @@ STUB
 cat >"$STUBS/pgrep" <<'STUB'
 #!/usr/bin/env bash
 echo "pgrep $*" >>"$CF_S/calls"
-[[ $# -eq 4 && $1 == -u && $2 == "$(id -u)" && $3 == -- && $4 == '^[.]?'*'(-wr.*)$' ]] ||
+[[ $# -eq 4 && $1 == -u && $2 == "$(id -u)" && $3 == -- && $4 == '^[.]?'*'(-wr.*)?$' ]] ||
   { echo "bad-args pgrep $*" >>"$CF_S/calls"; exit 64; }
 name=${4#'^[.]?'}
-name=${name%'(-wr.*)$'}
+name=${name%'(-wr.*)?$'}
 grep -Fxq -- "$name" "$CF_S/procs"
 STUB
 
@@ -532,7 +532,7 @@ check "coffee-off exits 0 and reports 3 restored timers" bash -c '[[ $1 -eq 0 ]]
 check "[ OK ] cosmic-idle: 3 timer(s) restored" has "[ OK ] cosmic-idle: 3 timer(s) restored"
 check "original content, content and symlink are back, record removed" bash -c '[[ $(cat "$1/screen_off_time") == "Some(3600000)" && $(cat "$1/suspend_on_ac_time") == None && -L $1/suspend_on_battery_time && $(readlink "$1/suspend_on_battery_time") == /nonexistent-store/suspend_on_battery_time && ! -e $2/state/cosmic-idle-before ]]' _ "$idle" "$S"
 check "no forbidden command, expected arguments" clean_calls
-run on on
+DESK=COSMIC run on on
 printf 'Some(900000)' >"$idle/screen_off_time"
 run off off
 check "a timer rewritten during coffee (activation) keeps its newer value and is reported" bash -c '[[ $(cat "$1/screen_off_time") == "Some(900000)" && ! -e $2/state/cosmic-idle-before ]]' _ "$idle" "$S"

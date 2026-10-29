@@ -11,7 +11,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/../../lib/evidence.sh"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"
-SCENARIOS=("$DIR/01-scenario-cosmic-binds.nix" "$DIR/02-scenario-cosmic-monitors.nix")
+SCENARIOS=("$DIR/01-scenario-cosmic-binds.nix" "$DIR/02-scenario-cosmic-monitors.nix" "$DIR/03-scenario-cosmic-input.nix")
 
 RED='\033[0;31m'; GREEN='\033[0;32m'
 BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'

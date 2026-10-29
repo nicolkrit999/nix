@@ -42,5 +42,5 @@
 - [kernel.dev System.map -> depmod collision](project_kernel_dev_systemmap_depmod.md) - since nixpkgs #571170 out-of-tree modules_install runs depmod; modules.dep buildEnv clash (v4l2loopback DEPMOD=true)
 - [Greeter pipewire USB audio race](project_greeter_pipewire_usb_audio_race.md) - desktop onboard audio is USB ALC4080 (optical=hw:Audio,3); sddm pipewire holds PCMs -> EBUSY, no sinks
 - [xdph journal silent after init](project_xdph_journal_buffered_silent.md) - no "[screencopy] New session" != no share; use dbus-monitor + pw-dump live; desktop dual AMD GPU, renderD128 primary
-- [cosmic-manager shortcut shape](project_cosmic_manager_shortcut_shape.md) - evaluated shortcuts carry description=null; test-cosmic-binds normKey sorts modifiers (ctrl+super+3)
+- [cosmic-manager null-default keys](project_cosmic_manager_shortcut_shape.md) - evaluated shortcuts carry description=null, compositor input_* = null: test == null not hasAttr; normKey sorts modifiers
 - [glibc bare locale names](project_glibc_locale_bare_name_supported.md) - en_IN/hi_IN are `xx_YY/UTF-8` in SUPPORTED: extraLocaleSettings needs bare `en_IN`; all spellings resolve; Python getlocale quirk

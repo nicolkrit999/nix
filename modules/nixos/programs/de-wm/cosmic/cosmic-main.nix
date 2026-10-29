@@ -29,6 +29,17 @@ delib.module {
           };
         })
         [{ output = "*"; }];
+      # Input options: null means "not declared"; a device kind (touchpad, mouse) is only written when at least one of its options is set
+      keyboardRepeatDelay = lib.mkOption { type = lib.types.nullOr lib.types.ints.unsigned; default = null; description = "Key repeat delay in ms; null keeps COSMIC's 600."; };
+      keyboardRepeatRate = lib.mkOption { type = lib.types.nullOr lib.types.ints.unsigned; default = null; description = "Key repeat rate in repeats per second; null keeps COSMIC's 25."; };
+      touchpadTapToClick = lib.mkOption { type = lib.types.nullOr lib.types.bool; default = null; description = "Tap to click on the touchpad."; };
+      touchpadNaturalScroll = lib.mkOption { type = lib.types.nullOr lib.types.bool; default = null; description = "Natural scrolling on the touchpad."; };
+      touchpadDisableWhileTyping = lib.mkOption { type = lib.types.nullOr lib.types.bool; default = null; description = "Disable the touchpad while typing."; };
+      touchpadAccelProfile = lib.mkOption { type = lib.types.nullOr (lib.types.enum [ "Adaptive" "Flat" ]); default = null; description = "Touchpad pointer acceleration profile."; };
+      touchpadSpeed = lib.mkOption { type = lib.types.nullOr (lib.types.numbers.between (-1.0) 1.0); default = null; description = "Touchpad pointer speed, -1.0 to 1.0."; };
+      mouseNaturalScroll = lib.mkOption { type = lib.types.nullOr lib.types.bool; default = null; description = "Natural scrolling on mice."; };
+      mouseAccelProfile = lib.mkOption { type = lib.types.nullOr (lib.types.enum [ "Adaptive" "Flat" ]); default = null; description = "Mouse pointer acceleration profile."; };
+      mouseSpeed = lib.mkOption { type = lib.types.nullOr (lib.types.numbers.between (-1.0) 1.0); default = null; description = "Mouse pointer speed, -1.0 to 1.0."; };
     };
 
   nixos.always = _: {
