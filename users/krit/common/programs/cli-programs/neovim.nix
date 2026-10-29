@@ -20,6 +20,7 @@ delib.module {
       curl
       fd
       fzf
+      gh # gist integration
       git
       python3Packages.pylatexenc
       ripgrep
@@ -191,6 +192,7 @@ delib.module {
       };
 
       home.packages = with pkgs; [
+        charm-freeze # code screenshots; global so it is available outside nvim too
         nodejs_latest # nvim :run on .js/.ts
         neovide # GUI frontend; must be in the profile, extraPackages only reaches nvim's own PATH
       ];
