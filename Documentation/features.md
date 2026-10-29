@@ -173,6 +173,16 @@ The apps opened for each file family are picked per host: the constants `termina
 
 ---
 
+## Clock and Date Format
+
+A host picks its clock and date format independently of the language of its numbers and units. `services.locale` sets each glibc locale category on its own (every category defaults to `en_US.UTF-8`); the hosts keep the Italian-Swiss numbers, currency, units and paper, and set the time category (`LC_TIME`) to `en_IN`, which gives a 12-hour clock with AM/PM and day-month-year dates with English names. One locale carries the clock and the date order together, so they cannot be split.
+
+- The SDDM themes (`services.sddm-astronaut`, `services.sddm-pixie`) and the lock screen (`services.hyprlock`) draw their own clock and ignore `LC_TIME`, so each has a `use24HourClock` option (default `false` = 12-hour). The options are independent: the login screen can be 24-hour while the lock screen is 12-hour, and the other way round.
+- Both hyprlock variants (catppuccin and plain) share one clock and one date definition, so they always show the same format.
+- Tests pin the defaults, an explicit value equal to the default, a different value and the mixed cases on the real generated files, and they guard the `en_IN` spelling that the glibc build needs.
+
+---
+
 ## Discord with Equicord (Nixcord)
 
 The official Discord client is installed and configured declaratively through the Nixcord flake (`programs.discord`, personal plugin set in `krit.programs.discord`). Equicord and its plugin settings come from the Nix configuration on all hosts, so the plugin list is the same everywhere; Vesktop stays a separate install.

@@ -20,7 +20,7 @@ bash check-nixos-host-invariants.sh
 
 `01-scenario-host-invariants.nix` loads the real flake (`builtins.getFlake`, root overridable with `FLAKE_ROOT`) and reads `nixosConfigurations.$HOST_UNDER_TEST.config`. It returns an attrset of checks, each `"ok"` or `"FAIL: <detail>"`; every check is wrapped in `tryEval`, so a missing option becomes a FAIL instead of aborting.
 
-`check-nixos-host-invariants.sh` runs one `nix eval --json --impure` per host, prints a PASS/FAIL line per check and exits non-zero on any failure. Eval only, no builds. No secret values are embedded: checks compare config values against each other (e.g. the sops key dir against persisted directories).
+`check-nixos-host-invariants.sh` runs one `nix eval --json --impure` per host, prints a PASS/FAIL line per check and exits non-zero on any failure. Eval plus one small build per host (`i18n.glibcLocales`, taken from the same eval as a `drvPath`, no second host evaluation). No secret values are embedded: checks compare config values against each other (e.g. the sops key dir against persisted directories).
 
 Scope: only safety contracts and cross-file consistency are asserted; host choices (kernel flavour, kernel patches, which power daemon a laptop picks) are deliberately not tested. No fake host is used.
 
@@ -54,6 +54,12 @@ Per host unless marked.
 | bootloader | grub on, systemd-boot off, no EFI var writes, removable install, device `nodev` |
 | btrfs-autoscrub | `services.btrfs.autoScrub` is enabled with exactly one existing btrfs mount point per btrfs device; a twin with every filesystem forced to ext4 has it disabled |
 | default-locale-from-constants | `i18n.defaultLocale == constants.mainLocale`; a twin with a different `mainLocale` follows it |
+| locale-categories | `i18n.extraLocaleSettings`: `LC_ADDRESS`, `LC_IDENTIFICATION`, `LC_MEASUREMENT`, `LC_MONETARY`, `LC_NAME`, `LC_NUMERIC`, `LC_PAPER`, `LC_TELEPHONE` are `it_CH.UTF-8` and `LC_TIME` is the bare `en_IN` (the `services.locale` host values; the bare spelling is the one glibc accepts, nixpkgs#256688) |
+| locale-default | `i18n.defaultLocale == "en_US.UTF-8"` (language and messages) |
+| locale-display-manager-time | `systemd.services.display-manager.environment.LC_TIME == "en_IN"` |
+| locale-time-consistent | `services.locale` is enabled and `services.locale.time`, `extraLocaleSettings.LC_TIME` and the display-manager `LC_TIME` are one value |
+| clock-24h-off | `services.sddm-astronaut.use24HourClock` and `services.hyprlock.use24HourClock` are `false` (12-hour greeter and lock clock, matching the 12-hour `en_IN` `LC_TIME`; both modules ignore `LC_TIME`) |
+| glibc-locales-builds | the host's `i18n.glibcLocales` derivation (path taken from the same eval) really builds, about 20 s the first time and shared by both hosts; a locale spelled the way glibc does not list it (`en_IN.UTF-8`) fails here with "unsupported locales detected" (the spelling trap itself is pinned in `nixos-locale`) |
 | nix-pat-include | `nix.extraOptions` includes the PAT file under `/run/secrets` |
 | pat-secret-declared | sops secret exists and resolves to that path |
 | one-sddm-theme | exactly one of sddm-astronaut / sddm-pixie enabled |

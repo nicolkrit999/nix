@@ -15,6 +15,8 @@ delib.module {
   name = "services.hyprlock";
 
   options = with delib; moduleOptions {
+    # false = 12-hour clock with AM/PM, true = 24-hour; both lock variants, independent of LC_TIME
+    use24HourClock = boolOption false;
     # Sizes apply only when catppuccin = true (defaults = the catppuccin theme's own values)
     avatarSize = intOption 100; # Profile picture edge in px; its position shifts to keep the gap to the input field
     clockFontSize = intOption 90; # Time label font size; the date label moves to keep the gap below it
@@ -108,11 +110,16 @@ delib.module {
       # Theme geometry the sizes below are relative to: avatar at y=75 for size 100, date 60 px under a 90 px clock
       avatarY = 75 + (lock.avatarSize - 100) / 2;
       dateY = -(60 + lock.clockFontSize);
+      # One clock and one date for both lock variants. $TIME and $TIME12 are fixed hyprlock formats ("09:05" / "09:05 PM"), not LC_TIME.
+      clockVar = if lock.use24HourClock then "$TIME" else "$TIME12";
+      dateFmt = "%A, %d %B %Y";
       # The theme's own background block points at one image; ours are per monitor.
       # The size/position lines of the clock, date, avatar and input field are rewritten from the services.hyprlock sizes.
+      # The clock text is rewritten to clockVar, the same value the plain variant uses.
       catppuccinLockConf = pkgs.runCommand "catppuccin-hyprlock-no-background.conf" { } ''
         src=${config.catppuccin.sources.hyprlock}/hyprlock.conf
         awk \
+          -v clockVar='${clockVar}' \
           -v avatar=${toString lock.avatarSize} -v avatarY=${toString avatarY} \
           -v clock=${toString lock.clockFontSize} -v date=${toString lock.dateFontSize} \
           -v dateY=${toString dateY} -v inW=${toString lock.inputWidth} -v inH=${toString lock.inputHeight} '
@@ -120,6 +127,7 @@ delib.module {
           skip && /^}/ { skip = 0; next }
           skip { next }
           /^# / { sec = $0 }
+          sec == "# TIME" && /^  text = / { print "  text = " clockVar; hit++; next }
           sec == "# TIME" && /^  font_size = / { print "  font_size = " clock; hit++; next }
           sec == "# DATE" && /^  font_size = / { print "  font_size = " date; hit++; next }
           sec == "# DATE" && /^  position = / { print "  position = -30, " dateY; hit++; next }
@@ -127,7 +135,7 @@ delib.module {
           sec == "# USER AVATAR" && /^  position = / { print "  position = 0, " avatarY; hit++; next }
           sec == "# INPUT FIELD" && /^  size = / { print "  size = " inW ", " inH; hit++; next }
           { print }
-          END { if (!found || skip) exit 1; if (hit != 6) exit 2 }
+          END { if (!found || skip) exit 1; if (hit != 7) exit 2 }
         ' "$src" > "$out" || { echo "catppuccin hyprlock.conf: BACKGROUND block or a size/position line not found, theme layout changed" >&2; exit 1; }
         if grep -q '^background' "$out"; then echo "background block still present" >&2; exit 1; fi
       '';
@@ -214,7 +222,7 @@ delib.module {
             (
               labelBase
                 // {
-                text = ''cmd[update:1000] echo "<span>$(date +"%I:%M")</span>"'';
+                text = clockVar;
                 font_size = 55;
                 position = "255, 335";
               }
@@ -222,7 +230,7 @@ delib.module {
             (
               labelBase
                 // {
-                text = ''cmd[update:60000] echo "$(date +'%A, %B %d')"'';
+                text = ''cmd[update:60000] echo "$(date +'${dateFmt}')"'';
                 font_size = 28;
                 position = "180, 240";
               }

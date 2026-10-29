@@ -95,7 +95,7 @@ Every scenario calls the real entry point, `run-tests.sh --prune-only`, which ca
 | `nixos-arch-compat` row duplicated | "has 2 rows" |
 | `timeout = 15` for `nixos-spec-school` | its Runtime cell "states cap none" |
 | `cap 30 min` changed to `cap 25 min` | stale cap at that line |
-| §12.2 `heavy-b` row says `cap 25 each` | "states caps [25]" |
+| §12.2 `heavy-b` row says `cap 25 each` | "states caps [...]" with 25 in the list (other members' caps may sit beside it) |
 | `fast_args` added for `nixos-spec-school` | "`--fast` row names" mismatch |
 | `heavy-b` dropped from the CI legs sentence | "CI legs listed as" mismatch |
 | §12.2 row for a group `ghost` | "lists group `ghost`" |

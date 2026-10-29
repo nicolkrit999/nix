@@ -3,6 +3,8 @@ delib.module {
   name = "krit.programs.direnv";
   options = delib.singleEnableOption false;
 
+  myconfig.ifEnabled.programs.direnv.enable = true;
+
   home.ifEnabled =
     { myconfig, ... }:
     let
@@ -10,17 +12,13 @@ delib.module {
       devEnvBase = "${homeDir}/${myconfig.constants.flakeDir}/templates/krit/dev-environments";
     in
     {
-      programs.direnv = {
-        enable = true;
-        nix-direnv.enable = true;
-        stdlib = ''
-          use_dev_env() {
-            use flake ${devEnvBase}/language-specific/$1
-          }
-          use_combined_env() {
-            use flake ${devEnvBase}/language-combined/$1
-          }
-        '';
-      };
+      programs.direnv.stdlib = ''
+        use_dev_env() {
+          use flake ${devEnvBase}/language-specific/$1
+        }
+        use_combined_env() {
+          use flake ${devEnvBase}/language-combined/$1
+        }
+      '';
     };
 }

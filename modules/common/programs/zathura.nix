@@ -1,6 +1,6 @@
 { delib, pkgs, ... }:
 delib.module {
-  name = "krit.programs.zathura";
+  name = "programs.zathura";
   options = delib.singleEnableOption false;
 
   myconfig.ifEnabled = { myconfig, ... }: {

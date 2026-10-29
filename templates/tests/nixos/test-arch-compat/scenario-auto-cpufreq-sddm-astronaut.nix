@@ -98,6 +98,8 @@ let
     (src + "/modules/common/programs/statix.nix")
     (src + "/modules/common/programs/television.nix")
     (src + "/modules/common/programs/zen-browser.nix")
+    (src + "/modules/common/programs/zathura.nix")
+    (src + "/modules/common/programs/direnv.nix")
     (src + "/modules/nixos/services/localsend.nix")
     (src + "/modules/common/services/tailscale.nix")
     (src + "/modules/common/toplevel/cachix.nix")
@@ -125,6 +127,7 @@ let
     (src + "/modules/nixos/services/airplane.nix")
     (src + "/modules/nixos/services/hypr/hyprlock.nix")
     (src + "/modules/nixos/services/impermanence.nix")
+    (src + "/modules/nixos/services/locale.nix")
     (src + "/modules/nixos/services/power/auto-cpufreq.nix")
     (src + "/modules/nixos/services/power/thermald.nix")
     (src + "/modules/nixos/services/power/tlp.nix")
@@ -163,7 +166,6 @@ let
     (src + "/users/krit/common/programs/gui-programs/librewolf/librewolf-common.nix")
     # profiles/librewolf-profile-{default,privacy}.nix excluded: they are plain helper
     # functions called by librewolf-common.nix, not standalone denix modules.
-    (src + "/users/krit/common/programs/gui-programs/zathura.nix")
     (src + "/users/krit/common/programs/gui-programs/zen-browser/extensions.nix")
     (src + "/users/krit/common/programs/gui-programs/zen-browser/keyboard.nix")
     (src + "/users/krit/common/programs/gui-programs/zen-browser/mods.nix")
@@ -181,7 +183,6 @@ let
     (src + "/users/krit/nixos/shared/system/default-user.nix")
     (src + "/users/krit/nixos/shared/system/git-ssh-signing.nix")
     (src + "/users/krit/nixos/shared/system/ssh-config.nix")
-    (src + "/users/krit/nixos/shared/system/swiss-locale.nix")
     (src + "/users/krit/nixos/shared/system/virtualisation.nix")
     (src + "/users/krit/nixos/programs/file-managers/dolphin.nix")
     (src + "/users/krit/nixos/programs/gui-programs/helium.nix")

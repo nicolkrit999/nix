@@ -38,6 +38,8 @@ delib.host {
       eza.enable = true;
       yazi.plugins.enable = true;
       zoxide.enable = true;
+      zathura.enable = true;
+      direnv.enable = true;
       npm.enable = true;
       claude-code.enable = true;
       codex.enable = true;
@@ -109,7 +111,6 @@ delib.host {
         chromium.enable = true;
         firefox.enable = true;
         librewolf.enable = true;
-        zathura.enable = true;
         zen-browser.enable = true;
         claude-code-wrappers.enable = true;
 

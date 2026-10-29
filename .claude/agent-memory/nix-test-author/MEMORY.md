@@ -1,2 +1,3 @@
 - [Wallpaper test eval-scenario pattern](feedback_wallpaper_test_eval_scenario.md) - gnome/kde fetchurl eval-safety + nixosPaths setup; fetchurl store path suffix = URL basename not sha256; 2026-09-21 waypaper→skwdWall rename, aarch64/KDE pkg bug FIXED (06 is its regression guard), no "we" schema field yet
 - [Eval twins + mutation harness](feedback_eval_twins_and_mutation_harness.md) - mkOverride 10 twins; no `base` let name; leaked-WM spec twin; option sinks; MUT harness
+- [Scenario eval + locale probe traps](feedback_scenario_eval_and_locale_probe_traps.md) - host.pkgs, mkMerge wrap, tryEval limits, drv names, link-farm single eval, LOCALE_ARCHIVE probe recipe

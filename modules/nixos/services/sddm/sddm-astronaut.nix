@@ -24,6 +24,20 @@ delib.module {
         '';
       };
 
+      use24HourClock = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Greeter clock format. false (default) = 12-hour with AM/PM
+          ("hh:mm AP", same look as hyprlock's $TIME12), true = keep the
+          embedded theme's own 24-hour "HH:mm".
+          The theme renders HourFormat as an explicit Qt format string and
+          builds its Qt locale from `Locale=""`, which is the C locale, so
+          this is independent of LC_TIME.
+          `themeConfig.HourFormat` wins for a fully custom format.
+        '';
+      };
+
       stylixIntegration = lib.mkOption {
         type = lib.types.nullOr lib.types.bool;
         default = null;
@@ -230,6 +244,7 @@ delib.module {
 
       effectiveThemeConfig =
         { Font = "JetBrainsMono Nerd Font"; }
+        // lib.optionalAttrs (!cfg.use24HourClock) { HourFormat = "hh:mm AP"; }
         // backgroundConfig
         // stylixThemeConfig
         // cfg.themeConfig;
@@ -317,6 +332,12 @@ delib.module {
           ''}
 
           ${lib.concatStringsSep "\n" (lib.mapAttrsToList patchLine effectiveThemeConfig)}
+
+          # sed is a silent no-op when a key is missing; a clock that quietly stays 24h must fail the build instead.
+          ${lib.optionalString (effectiveThemeConfig ? HourFormat) ''
+            grep -qxF ${lib.escapeShellArg ''HourFormat="${effectiveThemeConfig.HourFormat}"''} ${confPath} \
+              || { echo "sddm-astronaut: HourFormat not applied, the theme conf layout changed" >&2; exit 1; }
+          ''}
 
           ${lib.optionalString hasBg ''
             ${measureScript}
@@ -419,8 +440,6 @@ delib.module {
       systemd.services.display-manager.environment = {
         QT_IM_MODULE = "qtvirtualkeyboard";
         QT_VIRTUALKEYBOARD_DESKTOP_DISABLE = "1";
-      } // lib.optionalAttrs (myconfig.constants.lcTime != "") {
-        LC_TIME = myconfig.constants.lcTime;
       };
 
       fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];

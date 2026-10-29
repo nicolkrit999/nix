@@ -19,6 +19,15 @@ delib.module {
         };
         description = "Attribute set of theme.conf options to override";
       };
+      use24HourClock = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Greeter clock format. false (default) = 12-hour, true = 24-hour.
+          The theme computes the hours itself from this key, so it is
+          independent of LC_TIME. `themeConfig.use24HourClock` wins.
+        '';
+      };
       background = lib.mkOption {
         type = lib.types.nullOr (lib.types.either lib.types.path lib.types.str);
         default = null;
@@ -98,6 +107,7 @@ delib.module {
         { background = "assets/background.jpg"; }  # Default fallback (upstream asset)
         // { inherit accentColor; }  # Base16 accent from stylix
         // { inherit fontFamily; }
+        // { use24HourClock = lib.boolToString cfg.use24HourClock; }
         // (lib.optionalAttrs hasBg {
           autoColor = "false";
           accentColor = pal.accent;
@@ -395,6 +405,10 @@ delib.module {
             ${measureAndPatch}
           ''}
 
+          # The date line is hardcoded month-before-day ("Thursday, October 29"); day-month order like the rest of the system
+          substituteInPlace $out/share/sddm/themes/pixie/Main.qml \
+            --replace-fail '"dddd, MMMM d"' '"dddd, d MMMM"'
+
           # Layout bug independent of the background: long session names overflow the fixed 180px pill
           substituteInPlace $out/share/sddm/themes/pixie/Main.qml \
             --replace-fail 'Layout.preferredWidth: 180' 'Layout.preferredWidth: Math.min(340, Math.max(180, sessionRow.implicitWidth + 32))' \
@@ -448,10 +462,5 @@ delib.module {
       environment.systemPackages = [
         sddm-pixie
       ];
-
-      systemd.services.display-manager.environment =
-        lib.optionalAttrs (myconfig.constants.lcTime != "") {
-          LC_TIME = myconfig.constants.lcTime;
-        };
     };
 }

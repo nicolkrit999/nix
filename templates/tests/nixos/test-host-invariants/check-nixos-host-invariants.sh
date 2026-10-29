@@ -33,7 +33,19 @@ for host in "${HOSTS[@]}"; do
       printf "${RED}✗ FAIL${NC}\n"; ((FAIL++)) || true
       FAILURES+=("$host: $name|$result")
     fi
-  done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' <<<"$json")
+  done < <(jq -r 'to_entries[] | select(.key | startswith("info-") | not) | [.key, .value] | @tsv' <<<"$json")
+
+  name="check-glibc-locales-builds"
+  printf "  %-48s " "$name"
+  drv=$(jq -r '.["info-glibc-locales-drv"] // empty' <<<"$json")
+  build_err=$(mktemp)
+  if [[ -n "$drv" ]] && nix build "${drv}^out" --no-link --option log-lines 2000 2>"$build_err"; then
+    printf "${GREEN}✓ PASS${NC}\n"; ((PASS++)) || true
+  else
+    printf "${RED}✗ FAIL${NC}\n"; ((FAIL++)) || true
+    FAILURES+=("$host: $name|$(grep -m3 -E 'unsupported|error' "$build_err" | tr '\n' ' ') (i18n.glibcLocales of the host does not build: a locale value is spelled in a way glibc does not list, see services.locale)")
+  fi
+  rm -f "$build_err"
 done
 
 echo ""

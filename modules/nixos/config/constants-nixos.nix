@@ -16,7 +16,6 @@ delib.module {
       user = strOption "nixos";
       hostname = strOption "nixos-host";
       mainLocale = strOption "en_US.UTF-8";
-      lcTime = strOption "";
 
       homeStateVersion = noDefault (strOption null);
 

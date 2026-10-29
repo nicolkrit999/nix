@@ -26,6 +26,9 @@ let
   btrfsDevices = lib.unique (map (v: toString v.device) (lib.attrValues btrfsFs));
   localeTwin = (sys.extendModules { modules = [{ myconfig.constants.mainLocale = lib.mkForce "xx_XX.UTF-8"; }]; }).config;
   tsFlags = cfg.services.tailscale.extraUpFlags ++ cfg.services.tailscale.extraSetFlags;
+  lc = cfg.i18n.extraLocaleSettings;
+  dmTime = cfg.systemd.services.display-manager.environment.LC_TIME or null;
+  swissKeys = [ "LC_ADDRESS" "LC_IDENTIFICATION" "LC_MEASUREMENT" "LC_MONETARY" "LC_NAME" "LC_NUMERIC" "LC_PAPER" "LC_TELEPHONE" ];
   checks =
     {
       check-hostname = check (cfg.networking.hostName == my.constants.hostname && my.constants.hostname == host)
@@ -106,6 +109,20 @@ let
         (cfg.i18n.defaultLocale == my.constants.mainLocale && localeTwin.i18n.defaultLocale == "xx_XX.UTF-8")
         "i18n.defaultLocale (${cfg.i18n.defaultLocale}) does not follow constants.mainLocale (${my.constants.mainLocale})";
 
+      check-locale-categories = check
+        (lib.all (k: lc.${k} or null == "it_CH.UTF-8") swissKeys && lc.LC_TIME or null == "en_IN")
+        "extraLocaleSettings=${builtins.toJSON lc} (eight categories it_CH.UTF-8, LC_TIME the bare en_IN)";
+      check-locale-default = check (cfg.i18n.defaultLocale == "en_US.UTF-8")
+        "i18n.defaultLocale=${cfg.i18n.defaultLocale} (language and messages stay en_US.UTF-8)";
+      check-locale-display-manager-time = check (dmTime == "en_IN")
+        "display-manager LC_TIME=${toString dmTime} (the greeter session needs the host's LC_TIME)";
+      check-locale-time-consistent = check
+        (my.services.locale.enable && my.services.locale.time == lc.LC_TIME or null && dmTime == my.services.locale.time)
+        "services.locale.time=${my.services.locale.time} extraLocaleSettings.LC_TIME=${lc.LC_TIME or "unset"} display-manager LC_TIME=${toString dmTime} (must be one value)";
+      check-clock-24h-off = check
+        (my.services.sddm-astronaut.use24HourClock == false && my.services.hyprlock.use24HourClock == false)
+        "sddm-astronaut.use24HourClock=${lib.boolToString my.services.sddm-astronaut.use24HourClock} hyprlock.use24HourClock=${lib.boolToString my.services.hyprlock.use24HourClock} (12-hour greeter and lock clock, matching the en_IN LC_TIME)";
+
       check-one-sddm-theme = check (builtins.length themes == 1) "enabled sddm themes: ${builtins.toJSON themes}";
       check-power-exclusive = check (builtins.length powerMgrs <= 1) "enabled: ${builtins.toJSON powerMgrs}";
 
@@ -134,4 +151,6 @@ let
     };
   guard = v: let r = builtins.tryEval (builtins.deepSeq v v); in if r.success then r.value else "FAIL: eval error (option missing or throw)";
 in
-lib.mapAttrs (_: guard) checks
+lib.mapAttrs (_: guard) checks // {
+  info-glibc-locales-drv = builtins.unsafeDiscardStringContext cfg.i18n.glibcLocales.drvPath;
+}

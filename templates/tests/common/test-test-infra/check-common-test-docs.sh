@@ -195,7 +195,7 @@ expect_fail "overview Runtime cell states a stale cap" "$OV:$L: \`nixos-arch-com
 fresh wf-stale-cap
 L="$(line_of "$WF" '^\| `heavy-b` ')"
 sed -i "${L}s/cap 20 each/cap 25 each/" "$S/$WF"
-expect_fail "§12.2: a stale timeout cap in a group row" "$WF:$L: row \`heavy-b\` states caps \[25\]"
+expect_fail "§12.2: a stale timeout cap in a group row" "$WF:$L: row \`heavy-b\` states caps \[([0-9]+, )*25(, [0-9]+)*\]"
 
 fresh fast-args
 printf 'fast_args = --fast\n' >"$S/templates/tests/nixos/test-spec-school/test.conf"; git -C "$S" add -A

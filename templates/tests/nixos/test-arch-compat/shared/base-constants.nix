@@ -1,7 +1,6 @@
 {
   hostname = "arch-compat-test";
   mainLocale = "en_US.UTF-8";
-  lcTime = "";
   user = "krit";
   # Required since constants-nixos.nix removed the default: home-nixos.nix
   # reads this with no `or` fallback, so any host config (including this

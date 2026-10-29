@@ -1,7 +1,6 @@
 {
   hostname = "spec-contract-test";
   mainLocale = "en_US.UTF-8";
-  lcTime = "";
   user = "krit";
   gitUserName = "Test User";
   gitUserEmail = "test@example.com";

@@ -227,6 +227,7 @@ delib.host {
         codex.enable = false;
         comma.enable = true;
         concord.enable = true;
+        direnv.enable = true;
         doom.enable = false;
         eza.enable = true;
         fastfetch.enable = true;
@@ -377,6 +378,7 @@ delib.host {
 
         vikunja-desktop.enable = true;
         walker.enable = false;
+        zathura.enable = true;
         zoxide.enable = true;
 
         # ---------------------------------------------------------------
@@ -626,7 +628,22 @@ delib.host {
         tlp.enable = false;
         thermald.enable = false;
 
+        locale = {
+          enable = true;
+          address = "it_CH.UTF-8";
+          identification = "it_CH.UTF-8";
+          measurement = "it_CH.UTF-8";
+          monetary = "it_CH.UTF-8";
+          name = "it_CH.UTF-8";
+          numeric = "it_CH.UTF-8";
+          paper = "it_CH.UTF-8";
+          telephone = "it_CH.UTF-8";
+          # 12h AM/PM, day-month-year, English names, Sunday week start; bare name on purpose (see the option docs)
+          time = "en_IN";
+        };
+
         hyprlock = {
+          use24HourClock = false; # 12h lock clock
           avatarSize = 190;
           clockFontSize = 120;
           dateFontSize = 34;
@@ -644,9 +661,11 @@ delib.host {
         sddm-astronaut = {
           enable = true;
           embeddedTheme = "hyprland_kath";
+          use24HourClock = false; # 12h greeter clock
         };
         sddm-pixie = {
           enable = false;
+          use24HourClock = false;
           background = "koi-fish.png";
           avatar = "face-512.jpg";
         };
@@ -696,7 +715,6 @@ delib.host {
           pwas.enable = true;
           ranger.enable = false;
           yazi.enable = true;
-          zathura.enable = true;
           zen-browser.enable = true;
         };
 
@@ -757,7 +775,6 @@ delib.host {
             enable = true;
             gatewayAlias = true;
           };
-          swiss-locale.enable = true;
           virtualisation.enable = true;
         };
 

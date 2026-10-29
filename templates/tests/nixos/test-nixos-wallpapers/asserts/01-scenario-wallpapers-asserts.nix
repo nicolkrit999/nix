@@ -239,8 +239,14 @@ in
   lockCatppuccinStripControl = guard (!stripsBackground (drvText "${plainControl}"));
   lockStripDrvs = pkgs.writeText "lock-strip-drvs" (builtins.head (ourConf (lockHost "34-lock-catppuccin-desktop")) + "${plainControl}");
   lockSizesDefaultsReproduceTheme = guard (
-    let c = lockHost "34-lock-catppuccin-desktop"; g = confOf c; r = rawConf c;
-    in builtins.all (s: secLines g s != [ ] && secLines g s == secLines r s) (untouchedSecs ++ touchedSecs)
+    let
+      c = lockHost "34-lock-catppuccin-desktop";
+      g = confOf c;
+      r = rawConf c;
+      twelveHour = lib.replaceStrings [ "  text = $TIME12" ] [ "  text = $TIME" ] g;
+    in
+    builtins.all (s: secLines twelveHour s != [ ] && secLines twelveHour s == secLines r s) (untouchedSecs ++ touchedSecs)
+    && secVal g "TIME" "text" == "$TIME12" && secVal r "TIME" "text" == "$TIME"
   );
   lockSizesDefaultsAreThemeNumbers = guard (
     let g = confOf (lockHost "34-lock-catppuccin-desktop");
