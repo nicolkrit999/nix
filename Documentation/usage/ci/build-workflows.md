@@ -283,8 +283,8 @@ produced nothing for five hours until the step timeout killed it.
 
 ### Substituters
 
-CI configures the same six extra substituters the machines trust
-(`modules/nixos/toplevel/nix-nixos.nix`): hyprland, cosmic, walker, claude-code,
+CI configures the same five extra substituters the machines trust
+(`modules/nixos/toplevel/nix-nixos.nix`): hyprland, walker, claude-code,
 vicinae, catppuccin. Darwin gets only claude-code and catppuccin - the rest are
 Linux-only and each extra substituter costs a narinfo round-trip per path.
 
