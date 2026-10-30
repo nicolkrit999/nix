@@ -8,6 +8,11 @@ delib.module {
         DisablePocket = true;
         OfferToSaveLogins = false;
         PasswordManagerEnabled = false;
+        Homepage = {
+          URL = "https://glance.nicolkrit.ch";
+          StartPage = "homepage";
+          Locked = false;
+        };
       };
 
       profiles.default.settings = {
