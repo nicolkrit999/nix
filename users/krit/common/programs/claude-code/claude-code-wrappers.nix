@@ -52,7 +52,7 @@ let
       # Write through the resolved path so the dotfiles symlink is preserved.
       TMP="$TARGET.cai-policy.tmp"
       if ${pkgs.jq}/bin/jq --arg cwd "$PWD" '
-        (.claudeAiMcpEverConnected // []) as $conns
+        ((.claudeAiMcpEverConnected // []) | map(select(. != "claude.ai Google Calendar"))) as $conns
         | .disabledMcpServers = $conns
         | .projects //= {}
         | .projects[$cwd] //= {}
