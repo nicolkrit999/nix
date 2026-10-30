@@ -11,7 +11,8 @@ delib.module {
         Homepage = {
           URL = "https://glance.nicolkrit.ch";
           StartPage = "homepage";
-          Locked = false;
+          # Locked: a homepage saved in the profile (prefs.js) would otherwise override the policy default.
+          Locked = true;
         };
       };
 
@@ -25,16 +26,16 @@ delib.module {
 
         "extensions.autoDisableScopes" = 0;
 
-        # Don't restore session after pkill/crash — that overrides startup page.
+        # Don't restore session after pkill/crash - that overrides startup page.
         "browser.sessionstore.resume_from_crash" = false;
 
-        # Disable built-in password manager — Proton Pass handles credentials.
+        # Disable built-in password manager - Proton Pass handles credentials.
         "signon.rememberSignons" = false;
         "signon.autofillForms" = false;
         "signon.generation.enabled" = false;
         "signon.management.page.breach-alerts.enabled" = false;
 
-        # Reset to auto-detect — lets the Wayland compositor (via MOZ_ENABLE_WAYLAND)
+        # Reset to auto-detect - lets the Wayland compositor (via MOZ_ENABLE_WAYLAND)
         # supply the correct fractional scale. Clears any stale hardcoded value in prefs.js.
         "layout.css.devPixelsPerPx" = "-1";
 
