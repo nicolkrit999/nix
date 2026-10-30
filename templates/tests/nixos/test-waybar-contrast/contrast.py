@@ -364,11 +364,12 @@ def tooltip_chain():
 
 def tag_rows(css, el, script, layers, slots):
     v = {k: val.lower() for k, val in re.findall(r"-v\s+(\w+)='(#[0-9a-fA-F]{6})'", script)}
-    need = ("active_bg", "active_fg", "occupied", "empty")
+    need = ("active_bg", "active_fg", "active_ring", "occupied", "empty")
     if any(k not in v for k in need):
         return [("FAIL", f"{el} tags-awk", "text", None, None, None, "cannot parse awk -v colors: " + ",".join(sorted(v)))]
     return [
         judged(f"{el} tag-active", "text", parse_color(v["active_fg"]), [parse_color(v["active_bg"])], TEXT_MIN, slots),
+        judged(f"{el} tag-active-underline", "span", parse_color(v["active_ring"]), [parse_color(v["active_bg"])], ICON_MIN, slots),
         judged(f"{el} tag-occupied", "text", parse_color(v["occupied"]), layers, TEXT_MIN, slots),
         judged(f"{el} tag-empty", "text", parse_color(v["empty"]), layers, TEXT_MIN, slots),
     ]

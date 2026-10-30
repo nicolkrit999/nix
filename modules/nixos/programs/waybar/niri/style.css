@@ -1,14 +1,2 @@
 
-/* ----------------------------------------------------------------------- */
-/* CENTER MODULE (Window Title - custom module)                             */
-/* ----------------------------------------------------------------------- */
-
-#custom-window {
-  padding: 4px 16px;
-  margin: 0 4px;
-  background-color: @base01;
-  border-radius: 100px;
-  border: none;
-  outline: none;
-  color: @fg_pill;
-}
+/* The window-title pill (#custom-window) is styled in common-tail.css. */

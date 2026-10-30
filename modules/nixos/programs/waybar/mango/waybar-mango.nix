@@ -43,12 +43,12 @@ delib.module {
         "custom/tags" = {
           exec = ''
             ${watchMonitors sel ''[.tags[] | if .is_active then "A\(.index)" elif (.client_count // 0) > 0 then "O\(.index)" else empty end] | join(" ")''} \
-              | awk -v active_bg='${c.base05}' -v active_fg='${t.fg.active}' -v occupied='${t.fg.pill}' -v empty='${t.fg.tagEmpty}' '
+              | awk -v active_bg='${c.base05}' -v active_fg='${t.fg.active}' -v active_ring='${t.ring.active}' -v occupied='${t.fg.pill}' -v empty='${t.fg.tagEmpty}' '
                   {
                     out = ""
                     for (i = 1; i <= NF; i++) {
                       n = substr($i, 2)
-                      if (substr($i, 1, 1) == "A") out = out "<span background=\"" active_bg "\" foreground=\"" active_fg "\" weight=\"bold\">  " n "  </span>"
+                      if (substr($i, 1, 1) == "A") out = out "<span background=\"" active_bg "\" foreground=\"" active_fg "\" underline=\"double\" underline_color=\"" active_ring "\" weight=\"bold\">  " n "  </span>"
                       else out = out "<span color=\"" occupied "\">  " n "  </span>"
                     }
                     if (out == "") out = "<span color=\"" empty "\">  -  </span>"

@@ -50,7 +50,7 @@ white until they reach 3:1. A red result is a finding about the waybar styling. 
      `<span color=..>` in `format*`, `exec`, `rewrite` and `tooltip-format*` strings as an
      **icon/accent, >= 3:1** (battery picks `format-critical` / `format-charging` like waybar does;
      spans with their own `background=` use it). Mango's tag line is a shell/awk script, so its
-     `-v active_bg/active_fg/occupied/empty` colors are parsed out (a parse failure is a FAIL);
+     `-v active_bg/active_fg/active_ring/occupied/empty` colors are parsed out (the active tag underline is judged as an accent, >= 3:1 on the active fill) (a parse failure is a FAIL);
    - translucent backgrounds are composited over white and over black and the worse ratio is used;
    - an element with no opaque background (drawn on the wallpaper) is a `WARN` line, not a failure
      (none exist today: every module has a `base01` pill; invisible `opacity: 0` nodes are skipped).

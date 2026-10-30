@@ -317,9 +317,15 @@ let
         tooltip = text c.base00 c.base05;
         tagEmpty = text c.base01 c.base04;
       };
+      # non-text rings/underlines, each >= 3:1 on the surface it is drawn on
+      ring = {
+        active = accentOn c.base05 3 c.base0D;
+        warn = accentOn c.base01 3 c.base09;
+        visible = accentOn c.base01 3 c.base0D;
+      };
     in
     {
-      inherit fg;
+      inherit fg ring;
       accent = accentOn c.base01 3;
       cssVariables =
         lib.concatMapStrings (n: "@define-color ${n} ${c.${n}};\n") [
@@ -340,7 +346,8 @@ let
           "base0E"
           "base0F"
         ]
-        + lib.concatMapStrings (n: "@define-color fg_${n} ${fg.${n}};\n") [ "pill" "active" "hover" "crit" "tooltip" ];
+        + lib.concatMapStrings (n: "@define-color fg_${n} ${fg.${n}};\n") [ "pill" "active" "hover" "crit" "tooltip" "tagEmpty" ]
+        + lib.concatMapStrings (n: "@define-color ring_${n} ${ring.${n}};\n") [ "active" "warn" "visible" ];
     };
 
   mkWaybar = { pkgs, myconfig, colors }:
@@ -359,7 +366,7 @@ let
       bar = {
         layer = "top";
         position = "top";
-        height = 36;
+        height = 40;
         margin-top = 8;
         margin-bottom = 0;
         margin-left = 16;

@@ -1,28 +1,3 @@
 
-
-/* ----------------------------------------------------------------------- */
-/* TAGS (Mango — dwl-style tags rendered via pango in custom/tags)          */
-/* The active tag is filled inline via <span background=...>; the module  */
-/* itself is the shared pill.                                              */
-/* ----------------------------------------------------------------------- */
-
-#custom-tags {
-  padding: 4px 16px;
-  margin: 0 4px;
-  background-color: @base01;
-  border-radius: 100px;
-  border: none;
-  box-shadow: none;
-  color: @fg_pill;
-}
-
-
-#custom-window {
-  padding: 4px 16px;
-  margin: 0 4px;
-  background-color: @base01;
-  border-radius: 100px;
-  border: none;
-  outline: none;
-  color: @fg_pill;
-}
+/* Tags (#custom-tags, pango spans from the awk script, active tag filled inline)
+   and the window title (#custom-window) use the shared pill from common-tail.css. */

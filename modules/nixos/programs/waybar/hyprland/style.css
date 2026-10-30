@@ -1,17 +1,8 @@
 
 /* ----------------------------------------------------------------------- */
 /* CENTER MODULE (Window Title)                                             */
+/* The pill itself (`window#waybar #window`) is styled in common-tail.css.  */
 /* ----------------------------------------------------------------------- */
-
-window#waybar #window {
-  padding: 4px 16px;
-  margin: 0 4px;
-  background-color: @base01;
-  border-radius: 100px;
-  border: none;
-  outline: none;
-  color: @fg_pill;
-}
 
 #window label {
   padding: 0;
