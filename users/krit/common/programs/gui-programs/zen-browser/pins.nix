@@ -722,6 +722,14 @@ delib.module {
           folderParentId = "30000000-0000-4000-8000-000000000041";
           position = 102;
         };
+        "Outlook Mail" = {
+          id = "40000000-0000-4000-8000-000000000073";
+          url = "https://outlook.office.com/mail/";
+          container = 4; # University
+          workspace = "10000000-0000-4000-8000-000000000004";
+          folderParentId = "30000000-0000-4000-8000-000000000041";
+          position = 103;
+        };
 
         # ── Family ───────────────────────────────────────────────────────────
 
