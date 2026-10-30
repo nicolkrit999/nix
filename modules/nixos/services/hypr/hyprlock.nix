@@ -53,6 +53,8 @@ delib.module {
           d = luma hex - bgLuma;
         in
         if d < 0 then -d else d;
+      # Light text on a dark scheme wants the wallpaper pulled down, dark text on a light scheme wants it lifted
+      scrimBrightness = if isDarkScheme then 0.6 else 1.25;
       # Text colour with the largest luma gap to base00 (base07 is not always the brightest)
       fg = if dist c.base07 > dist c.base05 then c.base07 else c.base05;
       shadowColor = c.base00;
@@ -107,8 +109,9 @@ delib.module {
           )
         ];
       lock = myconfig.services.hyprlock;
-      # Theme geometry the sizes below are relative to: avatar at y=75 for size 100, date 60 px under a 90 px clock
-      avatarY = 75 + (lock.avatarSize - 100) / 2;
+      # Theme geometry the sizes below are relative to: the input field centred 47 px below the middle, a 42 px gap between its top
+      # edge and the avatar's bottom edge (so avatar y = 75 at size 100 / input height 60), the date 60 px under a 90 px clock
+      avatarY = (lock.avatarSize + lock.inputHeight) / 2 - 5;
       dateY = -(60 + lock.clockFontSize);
       # One clock and one date for both lock variants. $TIME and $TIME12 are fixed hyprlock formats ("09:05" / "09:05 PM"), not LC_TIME.
       clockVar = if lock.use24HourClock then "$TIME" else "$TIME12";
@@ -142,7 +145,7 @@ delib.module {
       bgLook = {
         blur_passes = 2;
         blur_size = 4;
-        brightness = if isDarkScheme then 0.6 else 1.25;
+        inherit scrimBrightness;
         contrast = 1.0;
       };
     in

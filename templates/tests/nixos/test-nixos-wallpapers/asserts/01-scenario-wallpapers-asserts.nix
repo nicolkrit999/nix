@@ -256,7 +256,7 @@ in
   );
   lockSizesCustomApplied = guard (
     let g = confOf (lockHost "35-lock-catppuccin-sizes");
-    in secVal g "USER AVATAR" "size" == "160" && secVal g "USER AVATAR" "position" == "0, 105"
+    in secVal g "USER AVATAR" "size" == "160" && secVal g "USER AVATAR" "position" == "0, 110"
       && secVal g "TIME" "font_size" == "120" && secVal g "DATE" "font_size" == "30"
       && secVal g "DATE" "position" == "-30, -180" && secVal g "INPUT FIELD" "size" == "350, 70"
   );

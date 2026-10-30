@@ -9,7 +9,8 @@ initial, marker bar in the idle, hovered, selected and selected+hovered row stat
 whatever the scheme and the wallpaper. The module patches the upstream theme at build time (colour
 extractor guard, backing rectangles behind the header, a solved card/field/popup surface palette with
 one foreground colour, accent-on-surface and on-accent colours, placeholder opacity, wallpaper-dependent
-lock dim), so only a real build shows whether the patches landed and whether the result is readable.
+lock dim, a scrim that follows the scheme polarity, the theme laid out on a 1080-high canvas scaled to the
+screen), so only a real build shows whether the patches landed and whether the result is readable.
 
 | Theme (`myconfig.constants.theme.base16Theme`) | Polarity | Wallpapers |
 |---|---|---|
@@ -54,21 +55,24 @@ theme): do not loosen the thresholds. About 1 min warm (33 NixOS evaluations, 33
 3. `assert_output.py` reads only the **built files** (`theme.conf`, `Main.qml`, `components/Clock.qml`)
    plus the known wallpaper colour. It parses the QML (block structure, top-level properties, positions of
    assignments) and computes WCAG contrast itself from the hex values; the module's `magick`/`awk`
-   measurement is not reused. Qt blends in sRGB space, so the dim, the 0.88 backing and the hint and
+   measurement is not reused. Qt blends in sRGB space, so the scrim (`wallpaper * (1 - dim) + scrim * dim`, black
+   scrim for a dark scheme, white for a light one, with base00 lighter than base05 meaning light), the 0.88 backing and the hint and
    placeholder opacities are applied in sRGB and the result is converted to linear luminance. The solved surface palette is read
    from the `property color baseColor/surfaceColor/surfaceVariantColor/fgColor/surfaceAccent/textOnAccent/errorCardColor`
    literals in `Main.qml`; every element colour is a QML expression (nested ternaries over `isCurrent`, `hovered`,
    `pressed`, `isLoggingIn`, `Qt.darker/lighter`) that the script evaluates per state, so an upstream colour the module
    left unpatched (a literal grey or white) is measured as it really renders.
-4. Controls: the script copies one passing build, applies 27 mutations (28 when qmllint is available), each aimed at one property, and requires
-   the named check to flip from pass to fail; two more controls feed the cross-scenario check with
-   non-monotonic dims. A checker that cannot fail would turn this test red.
+4. Controls: the script copies one passing build, applies 30 mutations (31 when qmllint is available), each aimed at one property, and requires
+   the named check to flip from pass to fail; four more controls feed the cross-scenario check with
+   dims in the wrong order for their scrim. A checker that cannot fail would turn this test red.
 5. `qmllint` (Qt) is used only when `pkgs.kdePackages.qtdeclarative` is already in the store (it is a
    ~700 MB closure, so it is never fetched); otherwise the syntax lint is skipped with a message. The build
    log is skipped the same way when none is retained (`nix log`).
 
 Modelling assumptions: the wallpapers are uniform, so blur and crop do not change the backdrop; the header
-backing is composited over the dimmed wallpaper (it is drawn above the dim overlay); the lock clock colour is
+backing is composited over the scrimmed wallpaper (it is drawn above the scrim overlay); the worst wallpaper
+levels are the black and the white wallpaper under the login dim 0.8 and the weakest lock dim 0.4 (black
+scrim 0 / 0.2 / 0.6, white scrim 1 / 0.8 / 0.4); the lock clock colour is
 checked as the accent (`Clock.qml` derives a brighter colour from it).
 
 ## Checks
@@ -81,7 +85,7 @@ Per scenario (33 scenarios):
 | `autoColor-off` | `theme.conf` has `autoColor=false` |
 | `conf-colors-hex` | `accentColor`, `textColor`, `backgroundColor` are `#rrggbb` |
 | `background-is-wallpaper` | `assets/background.*` is byte-identical to the wallpaper under test |
-| `palette-from-scheme` (matrix and extreme scenarios) | `backgroundColor` is a base00-base07 colour and `textColor` too, except that `#f0f0f0` is allowed exactly when the scheme's lightest neutral has < 4.6:1 on the brightest wallpaper under the strongest lock dim (the pure-black scheme); `accentColor` is a palette colour or equals the text colour (the same fallback for an accent too dark for the lock clock) |
+| `palette-from-scheme` (matrix and extreme scenarios) | dark scheme: `textColor` is the lightest and `backgroundColor` the darkest base00-base07 neutral, except that text `#f0f0f0` is allowed exactly when the lightest neutral has < 4.6:1 on grey 0.1 (brightest wallpaper under the strongest black scrim; the pure-black scheme); light scheme: text the darkest and back the lightest neutral, fallback `#101010` exactly when the darkest neutral has < 4.6:1 on grey 0.9 (the mid-half-luminance scheme); `accentColor` is a palette colour or equals the text colour |
 | `override-applied` (override scenario) | `theme.conf` carries the `themeConfig` override |
 | `no-placeholders` | no `@` left in `Main.qml`, `Clock.qml`, `PowerBar.qml`, `theme.conf` (an unsubstituted `@HEADER_FG@`) |
 | `extractor-guard` | the first statement of the colour extractor canvas' `onPaint` (not the avatar canvas) is `if (config.autoColor !== "true") return;` and every `container.extractedAccent =` assignment lies after it, inside that canvas, and at least one exists |
@@ -93,8 +97,10 @@ Per scenario (33 scenarios):
 | `header-backings` | exactly one backing `Rectangle` fills `dateText` and one fills `headerPower`, both `Qt.rgba(baseColor..., 0.88)`, each with a `z` below its target (`z: 100`) |
 | `header-token` | `dateText` `color:` and `PowerBar` `textColor:` are the same token, `container.extractedAccent` or `container.fgColor` |
 | `header-contrast` | that token resolved has >= 4.5:1 against the solved card colour |
-| `header-selection-rule` | the accent is required when it has >= 4.6:1 on the card over every wallpaper level (0, 0.2, 0.6 and the real one) and forbidden below 4.5:1, else the foreground colour |
-| `dim-values` | the black overlay's login dim is 0.8 and the lock dim is one of 0.4-0.9 |
+| `header-selection-rule` | the accent is required when it has >= 4.6:1 on the card over every worst wallpaper level and the real one and forbidden below 4.5:1, else the foreground colour |
+| `scrim-polarity` | `property color scrimColor` is `#000000` for a dark scheme and `#ffffff` for a light one; it flips only when a `themeConfig` text (4.6:1) or accent (3.3:1) colour is unreadable on the worst wallpaper under the scheme's scrim at 0.9 and readable under the other one (`accent-override-latte-yellow` gets the black scrim) |
+| `dim-values` | the overlay is `color: container.scrimColor`, its login dim is 0.8 and the lock dim is one of 0.4-0.9 |
+| `canvas-wrapper` | the root is `Item { id: viewRoot }` with `uiScale` = `height / 1080`, and `Rectangle { id: container }` sits directly inside it with `width: viewRoot.width / viewRoot.uiScale`, `height: 1080`, `scale: viewRoot.uiScale`, `transformOrigin: Item.TopLeft` |
 | `header-on-backing` | header colour vs the 0.88 backing composited over the dimmed wallpaper (lock and login dim) >= 4.5:1 |
 | `clock-accent-binding`, `clock-readable` | the clock is bound to `container.extractedAccent`; its accent has >= 3:1 against the wallpaper under the lock dim |
 | `hint-readable` | the "Press any key" text (`config.textColor` at its `opacity:`) has >= 4.5:1 against the wallpaper under the lock dim |
@@ -104,14 +110,14 @@ Per scenario (33 scenarios):
 | `placeholder-readable` | the "Enter Password" placeholder colour, at its `opacity:`, has >= 4.5:1 against the field surface |
 | `numlock-readable` | the "Num Lock is on" notice uses the header token and has >= 4.5:1 against the login card (0.88 backing over the wallpaper under the login dim) |
 | `effects-imported` | `Clock.qml` imports `QtQuick.Effects` when it uses `MultiEffect`, and so does `Main.qml` |
-| `build-log` | the build log's `lock dim=`, `header fg=`, `surface fg=`, `placeholder alpha=`, `text=` and `base=` equal the built files and there is no `no step passed` line (skipped when no log is retained) |
+| `build-log` | the build log's `lock dim=`, `header fg=`, `surface fg=`, `placeholder alpha=`, `text=`, `base=` and `scrim=` equal the built files and there is no `no step passed` line (skipped when no log is retained) |
 | `qmllint-syntax` | `Main.qml` and `Clock.qml` have no qmllint `syntax` diagnostic (skipped when qmllint is not in the store) |
 
 Across scenarios:
 
 | Check | Expected |
 |-------|----------|
-| lock dim per theme | black wallpaper ends at the weakest step 0.4, black <= grey <= white, and white is strictly above black |
+| lock dim per theme | black scrim: the black wallpaper ends at the weakest step 0.4, black <= grey <= white, white strictly above black; white scrim: the same with white and black swapped |
 | matrix coverage | at least one light and one dark scheme whose base00 vs base05 luminance matches the polarity label (the four stock schemes) |
 | header branches | both header colours (`container.extractedAccent` and `container.fgColor`) occur in the matrix |
 | worst case per element | the minimum over all 33 scenarios of every measured element (header, clock, hint, card text, field, placeholder, arrow, Num Lock, error card, popup states) is printed with its scenario and must reach its floor |
@@ -145,5 +151,8 @@ Controls (on the first passing dark scheme on the white wallpaper, `catppuccin-m
 | card colour moved off the scheme ray | `surfaces-solved` |
 | surface accent set equal to the selected fill | `surface-fg` |
 | Num Lock notice set to `container.baseColor` | `numlock-readable` |
+| `scrimColor` set to the other polarity | `scrim-polarity` |
+| scrim overlay colour replaced by a fixed colour | `dim-values` |
+| `scale: viewRoot.uiScale` dropped from the container | `canvas-wrapper` |
 | a brace added to `Main.qml` (only when qmllint is available) | `qmllint-syntax` |
-| dims white = black, or black above the weakest step | lock dim per theme |
+| black scrim: dims white = black, black above the weakest step, or the light-scheme order; white scrim: white dimmed harder than black | lock dim per theme |

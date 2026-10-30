@@ -15,7 +15,8 @@ LOCK_STEPS = ("0.4", "0.5", "0.6", "0.7", "0.8", "0.9")
 LOGIN_DIM = 0.8
 BACKING_ALPHA = 0.88
 NAMED = {"white": "#ffffff", "black": "#000000", "gray": "#808080", "grey": "#808080"}
-WORST_WALLS = (0.0, 0.2, 0.6)
+WALL_DIMS = (LOGIN_DIM, 0.4)
+CANVAS_HEIGHT = 1080
 MIN_ICON = 3.0
 PROPS = ("baseColor", "surfaceColor", "surfaceVariantColor", "fgColor", "surfaceAccent", "textOnAccent", "errorCardColor")
 MIN_TEXT = 4.5
@@ -54,8 +55,12 @@ def lighter(c, factor):
     return colorsys.hsv_to_rgb(h, s, v)
 
 
-def dimmed(wall, dim):
-    return tuple(x * (1 - dim) for x in wall)
+def dimmed(wall, dim, scrim):
+    return tuple(x * (1 - dim) + s * dim for x, s in zip(wall, scrim))
+
+
+def worst_walls(scrim):
+    return sorted({dimmed(grey(w), d, scrim) for w in (0.0, 1.0) for d in WALL_DIMS})
 
 
 def strip_strings(line):
@@ -239,13 +244,25 @@ class Out:
         self.c = self.conf["General"]
 
 
-def lock_ok(c, floor):
-    return contrast(c, grey(0.1)) >= floor
+def lock_ok(c, floor, light):
+    return contrast(c, grey(0.9 if light else 0.1)) >= floor
+
+
+def is_light(palette):
+    return lum(rgb(palette["base00"])) > lum(rgb(palette["base05"]))
+
+
+def scrim_light(meta):
+    light = is_light(meta["palette"])
+    own, other = grey(0.9 if light else 0.1), grey(0.1 if light else 0.9)
+    forced = [(rgb(meta["themeConfig"][k]), f) for k, f in (("textColor", 4.6), ("accentColor", 3.3)) if k in meta["themeConfig"]]
+    flip = any(contrast(x, own) < f for x, f in forced) and all(contrast(x, other) >= f for x, f in forced)
+    return light != flip
 
 
 def check_scenario(meta, root, log, qmllint):
     res = []
-    info = {"lock": None, "token": None, "ratios": {}}
+    info = {"lock": None, "token": None, "ratios": {}, "light": is_light(meta["palette"])}
 
     def add(name, ok, detail=""):
         res.append((name, bool(ok), "" if ok else detail))
@@ -262,6 +279,8 @@ def check_scenario(meta, root, log, qmllint):
         return [("outputs-readable", False, repr(e))], info
     m, c = o.main, o.c
     wall = rgb(meta["wallpaperHex"])
+    light = info["light"]
+    want_scrim = "#ffffff" if scrim_light(meta) else "#000000"
 
     add("autoColor-off", c.get("autoColor") == "false", f"autoColor={c.get('autoColor')!r}")
     colors_ok = all(HEX.match(c.get(k, "")) for k in ("accentColor", "textColor", "backgroundColor"))
@@ -277,12 +296,14 @@ def check_scenario(meta, root, log, qmllint):
     pal = {v.lower() for k, v in meta["palette"].items()}
     neutrals = {meta["palette"][f"base0{i}"].lower() for i in range(8)}
     if meta["role"] in ("matrix", "extreme"):
-        lightest = max(neutrals, key=lambda h: lum(rgb(h)))
-        text_ok = c["textColor"][1:].lower() in neutrals or (c["textColor"].lower() == "#f0f0f0" and not lock_ok(rgb(lightest), 4.6))
+        by_lum = sorted(neutrals, key=lambda h: lum(rgb(h)))
+        ink, paper = (by_lum[0], by_lum[-1]) if light else (by_lum[-1], by_lum[0])
+        fallback = "#101010" if light else "#f0f0f0"
+        text_ok = c["textColor"][1:].lower() == ink or (c["textColor"].lower() == fallback and not lock_ok(rgb(ink), 4.6, light))
         accent_ok = c["accentColor"][1:].lower() in pal or c["accentColor"].lower() == c["textColor"].lower()
         add("palette-from-scheme",
-            text_ok and c["backgroundColor"][1:].lower() in neutrals and accent_ok,
-            f"text/back/accent {c['textColor']}/{c['backgroundColor']}/{c['accentColor']} not drawn from scheme {meta['theme']} (text may fall back to #f0f0f0 only when the lightest neutral {lightest} is unreadable on the strongest-dimmed wallpaper)")
+            text_ok and c["backgroundColor"][1:].lower() == paper and accent_ok,
+            f"text/back/accent {c['textColor']}/{c['backgroundColor']}/{c['accentColor']} not drawn from {'light' if light else 'dark'} scheme {meta['theme']}: text must be the {'darkest' if light else 'lightest'} neutral #{ink} (or {fallback} only when that is unreadable on the strongest-scrimmed wallpaper), back the {'lightest' if light else 'darkest'} neutral #{paper}")
     else:
         add("override-applied", all(c.get(k, "").lower() == v.lower() for k, v in meta["themeConfig"].items()),
             f"theme.conf lacks the override {meta['themeConfig']}")
@@ -358,18 +379,39 @@ def check_scenario(meta, root, log, qmllint):
                   and z_date and z_power and all(v[0][0] and int(v[0][0]) < int(z) for v, z in ((backings.get("dateText", [(0, 0)]), z_date), (backings.get("headerPower", [(0, 0)]), z_power))))
     add("header-backings", backing_ok, f"backings {backings}, dateText z={z_date}, headerPower z={z_power}")
 
-    ov = re.search(r'color:\s*"black"\s*\n\s*opacity:\s*loginState\.visible\s*\?\s*([\d.]+)\s*:\s*([\d.]+)', m)
+    scrim_hex = P.hex("scrimColor") if "scrimColor" in P.q else None
+    scrim = P.q.get("scrimColor", rgb(want_scrim))
+    add("scrim-polarity", scrim_hex == want_scrim,
+        f"property scrimColor {scrim_hex}, need {want_scrim} for a {'light' if light else 'dark'} scheme with themeConfig {meta['themeConfig']}")
+
+    ov = re.search(r'color:\s*container\.scrimColor\s*\n\s*opacity:\s*loginState\.visible\s*\?\s*([\d.]+)\s*:\s*([\d.]+)', m)
     lock = login = None
     if ov:
         login, lock = float(ov.group(1)), float(ov.group(2))
         info["lock"] = lock
     add("dim-values", ov and login == LOGIN_DIM and ov.group(2) in LOCK_STEPS,
-        f"overlay opacity login/lock = {ov.groups() if ov else None}")
+        f"scrim overlay (color: container.scrimColor) opacity login/lock = {ov.groups() if ov else None}")
+
+    canvas_ok, detail = False, "id: viewRoot or id: container missing"
+    vr, ct = re.search(r"id:\s*viewRoot\b", m), re.search(r"id:\s*container\b", m)
+    if vr and ct:
+        vs, ve = enclosing_block(m, vr.start())
+        cs, ce = enclosing_block(m, ct.start())
+        vp, cp = top_props(m[vs:ve]), top_props(m[cs:ce])
+        parent_s, _ = enclosing_block(m, cs - 1)
+        canvas_ok = (type_of(m, vs) == "Item" and parent_s == vs and type_of(m, cs) == "Rectangle"
+                     and m[ve:].strip() == ""
+                     and cp.get("scale") == "viewRoot.uiScale" and cp.get("height") == str(CANVAS_HEIGHT)
+                     and cp.get("width") == "viewRoot.width / viewRoot.uiScale" and cp.get("transformOrigin") == "Item.TopLeft"
+                     and re.search(r"readonly property real uiScale:.*height\s*/\s*" + str(CANVAS_HEIGHT), m[vs:ve]) is not None)
+        detail = (f"viewRoot is {type_of(m, vs)!r} (root: {m[ve:].strip() == ''}), container is {type_of(m, cs)!r} directly inside it: {parent_s == vs}; "
+                  f"container scale/height/width/transformOrigin = {cp.get('scale')}/{cp.get('height')}/{cp.get('width')}/{cp.get('transformOrigin')}")
+    add("canvas-wrapper", canvas_ok, detail)
 
     def cards(key="baseColor", with_error=False):
-        walls = list(WORST_WALLS) + ([dimmed(wall, d)[0] for d in (lock, login)] if ov else [])
+        walls = worst_walls(scrim) + ([dimmed(wall, d, scrim) for d in (lock, login)] if ov else [])
         keys = [key] + (["errorCardColor"] if with_error else [])
-        return [over(P.q[k], grey(w), BACKING_ALPHA) for k in keys for w in walls]
+        return [over(P.q[k], w, BACKING_ALPHA) for k in keys for w in walls]
 
     token_ok = tok_date in HEADER_TOKENS and tok_date == tok_power
     info["token"] = tok_date if token_ok else None
@@ -386,14 +428,14 @@ def check_scenario(meta, root, log, qmllint):
         hfg = None
 
     if hfg is not None and ov:
-        worst = min(contrast(hfg, over(back, dimmed(wall, d), BACKING_ALPHA)) for d in (lock, login))
+        worst = min(contrast(hfg, over(back, dimmed(wall, d, scrim), BACKING_ALPHA)) for d in (lock, login))
         rec("header text on its backing", worst, MIN_TEXT)
-        add("header-on-backing", worst >= MIN_TEXT, f"{worst:.2f}:1 over the dimmed wallpaper, need {MIN_TEXT}")
+        add("header-on-backing", worst >= MIN_TEXT, f"{worst:.2f}:1 over the scrimmed wallpaper, need {MIN_TEXT}")
     else:
         add("header-on-backing", False, "needs header token and dim values")
 
     if ov:
-        bgl = dimmed(wall, lock)
+        bgl = dimmed(wall, lock, scrim)
         bind = re.search(r"baseAccent:\s*([\w.]+)", m)
         add("clock-accent-binding", bind and bind.group(1) == "container.extractedAccent", f"baseAccent bound to {bind.group(1) if bind else None}")
         r = contrast(accent, bgl)
@@ -536,7 +578,7 @@ def check_scenario(meta, root, log, qmllint):
         nl_ok = token_ok and ntok == tok_date
         detail = f"numLockIndicator colour {ntok!r}, header token {tok_date!r}"
         if nl_ok and ov:
-            nr = contrast(hfg, over(back, dimmed(wall, login), BACKING_ALPHA))
+            nr = contrast(hfg, over(back, dimmed(wall, login, scrim), BACKING_ALPHA))
             nl_ok = nr >= MIN_TEXT
             detail = f"{ntok} on the login card {nr:.2f}:1, need {MIN_TEXT}"
     add("numlock-readable", nl_ok, detail)
@@ -569,11 +611,11 @@ def check_scenario(meta, root, log, qmllint):
     if log is None:
         res.append(("build-log", None, "no build log retained"))
     else:
-        dl = re.search(r"sddm-pixie: lock dim=([\d.]+) login dim=([\d.]+) header fg=(\S+) surface fg=(\S+) placeholder alpha=([\d.]+) text=(#\w+) base=(#\w+)", log)
+        dl = re.search(r"sddm-pixie: lock dim=([\d.]+) login dim=([\d.]+) header fg=(\S+) surface fg=(\S+) placeholder alpha=([\d.]+) text=(#\w+) base=(#\w+) scrim=(#\w+)", log)
         okl = (bool(dl) and "no step passed" not in log and lock is not None and float(dl.group(1)) == lock and dl.group(3) == tok_date
                and (accent == fg or (dl.group(4) == "accent") == (P.q["surfaceAccent"] == accent))
-               and dl.group(5) == ph_alpha and dl.group(6) == P.hex("fgColor") and dl.group(7) == P.hex("baseColor"))
-        add("build-log", okl, f"log lock dim/login dim/header fg/surface fg/placeholder alpha/text/base = {dl.groups() if dl else None}; 'no step passed' present: {'no step passed' in log}")
+               and dl.group(5) == ph_alpha and dl.group(6) == P.hex("fgColor") and dl.group(7) == P.hex("baseColor") and dl.group(8) == scrim_hex)
+        add("build-log", okl, f"log lock dim/login dim/header fg/surface fg/placeholder alpha/text/base/scrim = {dl.groups() if dl else None}; 'no step passed' present: {'no step passed' in log}")
 
     if qmllint:
         syn = lint_syntax(qmllint, o.theme)
@@ -602,11 +644,12 @@ def lint_syntax(qmllint, theme):
 def check_monotonic(dims):
     res = []
     for theme, d in sorted(dims.items()):
-        if not all(k in d for k in ("white", "grey", "black")):
+        if not all(k in d for k in ("white", "grey", "black", "light")):
             res.append((theme, False, f"missing wallpapers: {sorted(d)}"))
             continue
-        ok = d["black"] <= d["grey"] <= d["white"] and d["white"] > d["black"] and d["black"] == 0.4
-        res.append((theme, ok, f"lock dim black/grey/white = {d['black']}/{d['grey']}/{d['white']}, need black=0.4 <= grey <= white and white > black"))
+        near, far = ("white", "black") if d["light"] else ("black", "white")
+        ok = d[near] <= d["grey"] <= d[far] and d[far] > d[near] and d[near] == 0.4
+        res.append((theme, ok, f"lock dim black/grey/white = {d['black']}/{d['grey']}/{d['white']} under a {'white' if d['light'] else 'black'} scrim, need {near}=0.4 <= grey <= {far} and {far} > {near}"))
     return res
 
 
@@ -656,7 +699,7 @@ def controls(meta, root, log, qmllint):
         ("header token outside the allowed pair", lambda t: edit(t + "/Main.qml", r"color:\s*container\.extractedAccent(\s*z: 100)", r'color: "white"\1'), "header-token"),
         ("accent unreadable on the backing", lambda t: edit(t + "/theme.conf", r"accentColor=#[0-9a-fA-F]{6}", "accentColor=" + open(t + "/theme.conf").read().split("backgroundColor=")[1].split()[0]), "header-contrast"),
         ("lock dim under-dimmed", lambda t: edit(t + "/Main.qml", r"(loginState\.visible \? [\d.]+ : )[\d.]+(\s*\n\s*Behavior on opacity \{ NumberAnimation \{ duration: 400 \} \})", r"\g<1>0.4\2"), "clock-readable"),
-        ("login dim changed", lambda t: edit(t + "/Main.qml", r"(color: \"black\"\s*\n\s*opacity: loginState\.visible \? )[\d.]+", r"\g<1>0.7"), "dim-values"),
+        ("login dim changed", lambda t: edit(t + "/Main.qml", r"(color: container\.scrimColor\s*\n\s*opacity: loginState\.visible \? )[\d.]+", r"\g<1>0.7"), "dim-values"),
         ("Effects import dropped", lambda t: edit(t + "/components/Clock.qml", r"import QtQuick\.Effects", ""), "effects-imported"),
     ]
     def prop(t, name):
@@ -681,6 +724,9 @@ def controls(meta, root, log, qmllint):
         ("session pill text hidden while the popup is open", lambda t: edit_in_block(t + "/Main.qml", r"id:\s*sessionPill\b", r"color: container\.fgColor(\s*font\.pixelSize: 13)", r"color: sessionPopup.opened ? surfaceVariantColor : container.fgColor\1"), "card-text"),
         ("card colour off the scheme", set_prop("baseColor", lambda t: "#335577"), "surfaces-solved"),
         ("surface accent equal to the selected fill", set_prop("surfaceAccent", lambda t: prop(t, "surfaceVariantColor")), "surface-fg"),
+        ("scrim colour of the other polarity", set_prop("scrimColor", lambda t: "#000000" if prop(t, "scrimColor").lower() == "#ffffff" else "#ffffff"), "scrim-polarity"),
+        ("dim overlay back to a fixed black", lambda t: edit(t + "/Main.qml", r"color: container\.scrimColor(\s*\n\s*opacity: loginState)", r'color: baseColor\1'), "dim-values"),
+        ("canvas no longer scaled to the screen", lambda t: edit_in_block(t + "/Main.qml", r"id:\s*container\b", r"\n\s*scale:\s*viewRoot\.uiScale", ""), "canvas-wrapper"),
     ]
     if qmllint:
         wanted.append(("syntax broken", lambda t: edit(t + "/Main.qml", r"layer\.enabled: true", "layer.enabled: true }"), "qmllint-syntax"))
@@ -694,10 +740,14 @@ def controls(meta, root, log, qmllint):
                 out.append((label, trip, base.get(trip) is not False and got.get(trip) is False, got.get(trip)))
             except Exception as e:
                 out.append((label, trip, False, f"mutation failed: {e}"))
-        d = {"x": {"white": 0.4, "grey": 0.4, "black": 0.4}}
+        d = {"x": {"white": 0.4, "grey": 0.4, "black": 0.4, "light": False}}
         out.append(("white not dimmed harder than black", "monotonic", check_monotonic(d)[0][1] is False, None))
-        d = {"x": {"white": 0.7, "grey": 0.4, "black": 0.5}}
+        d = {"x": {"white": 0.7, "grey": 0.4, "black": 0.5, "light": False}}
         out.append(("black dimmed more than needed", "monotonic", check_monotonic(d)[0][1] is False, None))
+        d = {"x": {"white": 0.4, "grey": 0.5, "black": 0.7, "light": False}}
+        out.append(("light-scheme order judged under a black scrim", "monotonic", check_monotonic(d)[0][1] is False, None))
+        d = {"x": {"white": 0.7, "grey": 0.5, "black": 0.4, "light": True}}
+        out.append(("white scrim: white wallpaper dimmed harder than black", "monotonic", check_monotonic(d)[0][1] is False, None))
     return out
 
 
@@ -747,7 +797,7 @@ def main():
             if k not in worst or v < worst[k][0]:
                 worst[k] = (v, n, sid)
         if meta["role"] in ("matrix", "extreme") and info["lock"] is not None:
-            dims.setdefault(meta["theme"], {})[meta["wallpaper"]] = info["lock"]
+            dims.setdefault(meta["theme"], {"light": scrim_light(meta)})[meta["wallpaper"]] = info["lock"]
         print(f"{'FAIL' if bad else 'PASS'} {sid}: {len(checks) - len(bad) - len(skip)}/{len(checks)} checks, lock dim {info['lock']}, header {info['token']}")
         for n, _, d in bad:
             print(f"     FAIL {n}: {d}")

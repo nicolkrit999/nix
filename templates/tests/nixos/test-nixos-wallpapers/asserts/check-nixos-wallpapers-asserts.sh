@@ -114,7 +114,7 @@ expect_ok lockCatppuccinOffNoStrip   "control: catppuccin off sources no derived
 echo "=== hyprlock size options (services.hyprlock) ==="
 expect_ok lockSizesDefaultsReproduceTheme "catppuccin on, default hyprlock sizes: every section of the derived conf equals the theme's own except the clock text (\$TIME12 by default, the theme has \$TIME) and BACKGROUND gone"
 expect_ok lockSizesDefaultsAreThemeNumbers "default sizes give 90 / 25 / date -30,-150 / avatar 100 at 0,75 / input 300, 60"
-expect_ok lockSizesCustomApplied "avatar 160 -> size 160 at 0,105; clock 120, date 30 at -30,-180; input 350, 70"
+expect_ok lockSizesCustomApplied "avatar 160 -> size 160 at 0,110; clock 120, date 30 at -30,-180; input 350, 70"
 expect_ok lockSizesCustomOtherLinesUntouched "custom sizes leave GENERAL/LAYOUT/FINGERPRINT and the other lines of the four sections as in the theme"
 expect_ok lockSizesCustomControlDiffers "control: custom conf differs from the default one and the fixture really sets avatarSize 160"
 expect_ok lockSizesStillStripBackground "custom sizes still drop the BACKGROUND block"

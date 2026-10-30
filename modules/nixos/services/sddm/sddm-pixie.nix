@@ -86,22 +86,29 @@ delib.module {
       lightestOf = lib.foldl' (a: b: if luma b > luma a then b else a);
       darkestOf = lib.foldl' (a: b: if luma b < luma a then b else a);
 
-      # The theme always dims with black, so text is the lightest and backing the darkest neutral.
+      # Scheme polarity from the scheme itself (base00 against base05), never from a setting.
+      # Dark scheme: black scrim over the wallpaper, lightest neutral as text, darkest as card.
+      # Light scheme: white scrim, darkest neutral as text, lightest as card.
+      isLight =
+        stylixOn && luma config.lib.stylix.colors.base00 > luma config.lib.stylix.colors.base05;
       pal =
         if hasBg && stylixOn then
           let
             c = config.lib.stylix.colors;
             neutrals = [ c.base00 c.base01 c.base02 c.base03 c.base04 c.base05 c.base06 c.base07 ];
             vivid = builtins.filter (h: sat h >= 0.15) [ c.base08 c.base09 c.base0A c.base0B c.base0C c.base0D c.base0E c.base0F ];
-            light = lightestOf c.base00 neutrals;
+            ink = if isLight then darkestOf c.base00 neutrals else lightestOf c.base00 neutrals;
+            paper = if isLight then lightestOf c.base00 neutrals else darkestOf c.base00 neutrals;
+            vividPick = if isLight then darkestOf else lightestOf;
           in
           {
-            text = "#${light}";
-            bk = "#${darkestOf c.base00 neutrals}";
-            accent = "#${if vivid == [ ] then light else lightestOf (builtins.head vivid) vivid}";
+            text = "#${ink}";
+            bk = "#${paper}";
+            accent = "#${if vivid == [ ] then ink else vividPick (builtins.head vivid) vivid}";
           }
         else
           { text = "#f0f0f0"; bk = "#101010"; accent = "#f0f0f0"; };
+      scrimLevel = if isLight then "1" else "0";
 
       effectiveThemeConfig =
         { background = "assets/background.jpg"; }  # Default fallback (upstream asset)
@@ -134,9 +141,10 @@ delib.module {
         function hex(c,  i, v, s) { s = "#"; for (i = 1; i <= 3; i++) { v = int(chan(c, i) * 255 + 0.5); if (v < 0) v = 0; if (v > 255) v = 255; s = s sprintf("%02x", v) } return s }
         function q(c) { return parse(hex(c)) }
         function grey(w) { return w " " w " " w }
-        # login card: backgroundColor at 0.88 over the dimmed wallpaper (login dim 0.8 leaves at most 0.2, the header backing on the lock screen at most 0.6)
+        # login card: backgroundColor at 0.88 over the scrimmed wallpaper (login dim 0.8, the header backing on the lock screen 0.4):
+        # black scrim leaves the wallpaper at 0..0.2 / 0..0.6, white scrim at 0.8..1 / 0.4..1
         function cardok(F, base,  i, n, W) {
-          n = split("0 0.2 0.6", W, " ")
+          n = split(LIGHT == 1 ? "1 0.8 0.4" : "0 0.2 0.6", W, " ")
           for (i = 1; i <= n; i++) if (cr(F, mix(base, grey(W[i]), 0.12)) < MIN) return 0
           return 1
         }
@@ -147,9 +155,16 @@ delib.module {
           MIN = 4.6
           T = parse(TEXT); A = parse(ACC)
           white = "1 1 1"; black = "0 0 0"
+          if (MODE == "scrim") {
+            ow = grey(LIGHT == 1 ? 0.9 : 0.1); aw = grey(LIGHT == 1 ? 0.1 : 0.9)
+            stuck = (FIXTEXT == 0 && cr(T, ow) < MIN) || (FIXACC == 0 && cr(A, ow) < 3.3)
+            freed = (FIXTEXT == 1 || cr(T, aw) >= MIN) && (FIXACC == 1 || cr(A, aw) >= 3.3)
+            print (stuck && freed) ? 1 - LIGHT : LIGHT
+            exit
+          }
           if (MODE == "lock") {
-            w = grey(0.1)
-            t2 = (FIXTEXT == 1 && cr(T, w) < MIN) ? "#f0f0f0" : TEXT
+            w = grey(LIGHT == 1 ? 0.9 : 0.1)
+            t2 = (FIXTEXT == 1 && cr(T, w) < MIN) ? (LIGHT == 1 ? "#101010" : "#f0f0f0") : TEXT
             a2 = (FIXACC == 1 && cr(A, w) < 3.3) ? t2 : ACC
             printf "TEXT=%c%s%c ACC=%c%s%c\n", 39, t2, 39, 39, a2, 39
             exit
@@ -224,12 +239,23 @@ delib.module {
             BEGIN { print 0.2126 * lin(strtonum("0x" substr(h, 1, 2))) + 0.7152 * lin(strtonum("0x" substr(h, 3, 2))) + 0.0722 * lin(strtonum("0x" substr(h, 5, 2))) }'
         }
 
-        # failshare <png> <geometry> <fg hex> <ratio> <dim>: share of pixels below the ratio
+        TEXT="${fgText}"
+        ACC="${fgAccent}"
+        BACK="${fgBack}"
+
+        # The scrim follows the scheme, unless a themeConfig colour the module may not replace is unreadable under it and readable under the other one
+        SCRIM_LIGHT=$(awk -f ${paletteAwk} -v MODE=scrim -v TEXT="$TEXT" -v ACC="$ACC" -v LIGHT=${scrimLevel} -v FIXTEXT=${if textFixable then "1" else "0"} -v FIXACC=${if accentFixable then "1" else "0"})
+        if [ "$SCRIM_LIGHT" = 1 ]; then SCRIM_HEX="#ffffff"; else SCRIM_HEX="#000000"; fi
+
+        # failshare <png> <geometry> <fg hex> <ratio> <dim>: share of pixels below the ratio.
+        # Black scrim (dark scheme, light text): fail = backdrop too bright. White scrim (light scheme, dark text): fail = backdrop too dark.
         failshare() {
           local t s
-          t=$(awk -v l="$(lum "$3")" -v r="$4" 'BEGIN { t = (l + 0.05) / r - 0.05; if (t < 0) t = 0; printf "%.4f", t * 100 }') || t=0
+          t=$(awk -v l="$(lum "$3")" -v r="$4" -v light="$SCRIM_LIGHT" 'BEGIN { t = light ? r * (l + 0.05) - 0.05 : (l + 0.05) / r - 0.05; if (t < 0) t = 0; if (t > 1) t = 1; printf "%.4f", t * 100 }') || t=0
           s=$(magick "$1" -crop "$2" +repage -alpha off -evaluate Multiply "$(awk -v a="$5" 'BEGIN { print 1 - a }')" \
+            -evaluate Add "$(awk -v a="$5" -v light="$SCRIM_LIGHT" 'BEGIN { printf "%.2f%%", light ? a * 100 : 0 }')" \
             -colorspace RGB -grayscale Rec709Luminance -threshold "$t%" -format '%[fx:mean]' info: 2>/dev/null) || s=1
+          if [ "$SCRIM_LIGHT" = 1 ]; then s=$(awk -v m="''${s:-1}" 'BEGIN { print 1 - m }'); fi
           echo "''${s:-1}"
         }
 
@@ -250,17 +276,13 @@ delib.module {
           echo "sddm-pixie: $var: no step passed, using strongest"
         }
 
-        TEXT="${fgText}"
-        ACC="${fgAccent}"
-        BACK="${fgBack}"
-
-        # The lock screen dims with black (at most 0.9), so a scheme text/accent too dark for the brightest wallpaper under that dim falls back
-        eval "$(awk -f ${paletteAwk} -v MODE=lock -v TEXT="$TEXT" -v ACC="$ACC" -v FIXTEXT=${if textFixable then "1" else "0"} -v FIXACC=${if accentFixable then "1" else "0"})"
+        # The lock screen scrim is at most 0.9, so a scheme text/accent unreadable on the worst wallpaper under it falls back
+        eval "$(awk -f ${paletteAwk} -v MODE=lock -v TEXT="$TEXT" -v ACC="$ACC" -v LIGHT="$SCRIM_LIGHT" -v FIXTEXT=${if textFixable then "1" else "0"} -v FIXACC=${if accentFixable then "1" else "0"})"
         if [ "$TEXT" != "${fgText}" ]; then setKey textColor "$TEXT"; fi
         if [ "$ACC" != "${fgAccent}" ]; then setKey accentColor "$ACC"; fi
 
         # Card, field and row surfaces plus every foreground on them, solved so each state reaches 4.5:1 for any scheme
-        eval "$(awk -f ${paletteAwk} -v MODE=card -v TEXT="$TEXT" -v ACC="$ACC" -v BACK="$BACK")"
+        eval "$(awk -f ${paletteAwk} -v MODE=card -v LIGHT="$SCRIM_LIGHT" -v TEXT="$TEXT" -v ACC="$ACC" -v BACK="$BACK")"
 
         if magick "''${img}[0]" -resize 1920x1080^ -gravity center -extent 1920x1080 +repage -alpha off "$work/base.png" 2>/dev/null \
           && magick "$work/base.png" -blur 0x5 "$work/lock.png"; then
@@ -269,10 +291,12 @@ delib.module {
         else
           echo "sddm-pixie: background measurement failed, using strongest dim"
         fi
-        echo "sddm-pixie: lock dim=$LOCK_DIM login dim=$LOGIN_DIM header fg=$HEADER_FG surface fg=$SURFACE_NAME placeholder alpha=$PLACEHOLDER_ALPHA text=$FG base=$BASE"
+        echo "sddm-pixie: lock dim=$LOCK_DIM login dim=$LOGIN_DIM header fg=$HEADER_FG surface fg=$SURFACE_NAME placeholder alpha=$PLACEHOLDER_ALPHA text=$FG base=$BASE scrim=$SCRIM_HEX"
 
         substituteInPlace $theme/Main.qml \
-          --replace-fail 'loginState.visible ? 0.6 : 0.4' "loginState.visible ? $LOGIN_DIM : $LOCK_DIM" \
+          --replace-fail 'color: "black"
+                opacity: loginState.visible ? 0.6 : 0.4' "color: container.scrimColor
+                opacity: loginState.visible ? $LOGIN_DIM : $LOCK_DIM" \
           --replace-fail 'blur: loginState.visible ? 1.0 : 0.0
                 opacity: loginState.visible ? 1.0 : 0.0' 'blur: loginState.visible ? 1.0 : 0.5
                 opacity: 1.0' \
@@ -343,6 +367,7 @@ delib.module {
           --replace-fail 'property color baseColor: config.backgroundColor' "property color baseColor: \"$BASE\"" \
           --replace-fail 'property color surfaceColor: Qt.lighter(baseColor, 1.3)' "property color surfaceColor: \"$S1\"" \
           --replace-fail 'property color surfaceVariantColor: Qt.lighter(baseColor, 1.6)' "property color surfaceVariantColor: \"$S2\"
+            property color scrimColor: \"$SCRIM_HEX\"
             property color fgColor: \"$FG\"
             property color surfaceAccent: \"$SURFACE_ACCENT\"
             property color textOnAccent: \"$TEXT_ON_ACCENT\"
@@ -408,6 +433,25 @@ delib.module {
           # The date line is hardcoded month-before-day ("Thursday, October 29"); day-month order like the rest of the system
           substituteInPlace $out/share/sddm/themes/pixie/Main.qml \
             --replace-fail '"dddd, MMMM d"' '"dddd, d MMMM"'
+
+          # Every size in the theme is a pixel value drawn for 1080p, and SDDM resizes the root to the screen, so on a 2000 px high panel the
+          # login card shrinks to half its designed share of the screen. Lay the whole theme out on a canvas that is 1080 high and as wide as
+          # the aspect needs, then scale that canvas to the screen, so every ratio holds at any resolution.
+          substituteInPlace $out/share/sddm/themes/pixie/Main.qml \
+            --replace-fail 'Rectangle {
+              id: container
+              width: 1920
+              height: 1080' 'Item {
+              id: viewRoot
+              readonly property real uiScale: Math.max(0.25, height / 1080)
+
+              Rectangle {
+              id: container
+              width: viewRoot.width / viewRoot.uiScale
+              height: 1080
+              scale: viewRoot.uiScale
+              transformOrigin: Item.TopLeft'
+          printf '}\n' >> $out/share/sddm/themes/pixie/Main.qml
 
           # Layout bug independent of the background: long session names overflow the fixed 180px pill
           substituteInPlace $out/share/sddm/themes/pixie/Main.qml \

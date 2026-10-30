@@ -149,6 +149,14 @@ delib.module {
       fieldSelBg = mixHex bk fg 24;
       fieldBorder = mixHex bk fg 55;
 
+      pairColors = config.lib.stylix.colors.withHashtag;
+      pairBk = if hasBg then bk else pairColors.base00;
+      pairFg = if hasBg then fg else pairColors.base05;
+      pairField = if hasBg then fieldBg else pairColors.base01;
+      pairAcc = pairColors.base0D;
+      pairWarn = pairColors.base08;
+      pairPh = if hasBg then pairColors.base04 else pairColors.base03;
+
       dimUser = cfg.themeConfig ? DimBackground;
       dimBase = cfg.themeConfig.DimBackground or "0.35";
 
@@ -243,7 +251,11 @@ delib.module {
           });
 
       effectiveThemeConfig =
-        { Font = "JetBrainsMono Nerd Font"; }
+        {
+          Font = "JetBrainsMono Nerd Font";
+          # Empty = the theme derives it from the screen height (patched to height / 90, the upstream 12 at 1080), so every size in the theme scales with the screen
+          FontSize = "";
+        }
         // lib.optionalAttrs (!cfg.use24HourClock) { HourFormat = "hh:mm AP"; }
         // backgroundConfig
         // stylixThemeConfig
@@ -313,6 +325,39 @@ delib.module {
         echo "sddm-astronaut: FORM_OPACITY=$FORM_OPACITY DIM=$DIM"
       '';
 
+      # Accent pairs the upstream theme hardcodes as accent-on-form and text-on-accent, solved for any scheme and polarity:
+      # an accent used as a mark must reach 3:1 on the form, else it becomes the text colour; the text on a filled accent,
+      # the warning and the placeholder must reach 4.5:1 on what they sit on.
+      pairsAwk = pkgs.writeText "sddm-astronaut-pairs.awk" ''
+        function lin(x) { return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ^ 2.4 }
+        function parse(h,  s) { s = h; sub(/^#/, "", s); return (strtonum("0x" substr(s, 1, 2)) / 255) " " (strtonum("0x" substr(s, 3, 2)) / 255) " " (strtonum("0x" substr(s, 5, 2)) / 255) }
+        function chan(c, i,  a) { split(c, a, " "); return a[i] + 0 }
+        function lum(c) { return 0.2126 * lin(chan(c, 1)) + 0.7152 * lin(chan(c, 2)) + 0.0722 * lin(chan(c, 3)) }
+        function cr(c1, c2,  x, y) { x = lum(c1); y = lum(c2); return x > y ? (x + 0.05) / (y + 0.05) : (y + 0.05) / (x + 0.05) }
+        function mix(c1, c2, t) { return ((1 - t) * chan(c1, 1) + t * chan(c2, 1)) " " ((1 - t) * chan(c1, 2) + t * chan(c2, 2)) " " ((1 - t) * chan(c1, 3) + t * chan(c2, 3)) }
+        function hex(c,  i, v, s) { s = "#"; for (i = 1; i <= 3; i++) { v = int(chan(c, i) * 255 + 0.5); if (v < 0) v = 0; if (v > 255) v = 255; s = s sprintf("%02x", v) } return s }
+        # first of the scheme's own colours (form, text) that reads on c, else black or white, whichever reads better
+        function on(c) {
+          if (cr(bk, c) >= 4.5) return bk
+          if (cr(fg, c) >= 4.5) return fg
+          return cr("1 1 1", c) >= cr("0 0 0", c) ? "1 1 1" : "0 0 0"
+        }
+        # c pulled towards the text colour until it reaches 4.5:1 on bg
+        function pull(c, bg,  t, x) {
+          for (t = 0; t <= 1.0001; t += 0.05) { x = mix(c, fg, t); if (cr(x, bg) >= 4.5) return x }
+          return fg
+        }
+        BEGIN {
+          bk = parse(BK); fg = parse(FG); acc = parse(ACC); field = parse(FIELD)
+          mark = cr(acc, bk) >= 3 ? acc : fg
+          btn = mix(bk, acc, BTNA)
+          printf "HoverUserIconColor=%s\nHoverPasswordIconColor=%s\nHoverSystemButtonsIconsColor=%s\nHoverSessionButtonTextColor=%s\nHoverVirtualKeyboardButtonTextColor=%s\n", hex(mark), hex(mark), hex(mark), hex(mark), hex(mark)
+          printf "HighlightBackgroundColor=%s\nHighlightTextColor=%s\n", hex(acc), hex(on(acc))
+          printf "LoginButtonBackgroundColor=%s\nLoginButtonTextColor=%s\n", hex(acc), hex(on(btn))
+          printf "WarningColor=%s\nPlaceholderTextColor=%s\n", hex(pull(parse(WARN), bk)), hex(pull(parse(PH), field))
+        }
+      '';
+
       sddmTheme =
         pkgs.runCommandLocal "sddm-astronaut-patched"
           {
@@ -332,6 +377,29 @@ delib.module {
           ''}
 
           ${lib.concatStringsSep "\n" (lib.mapAttrsToList patchLine effectiveThemeConfig)}
+
+          ${lib.optionalString stylixEnabled ''
+            # Solved accent pairs; a key the host sets in themeConfig keeps the host's value
+            awk -f ${pairsAwk} -v BK='${pairBk}' -v FG='${pairFg}' -v ACC='${pairAcc}' -v FIELD='${pairField}' -v WARN='${pairWarn}' -v PH='${pairPh}' -v BTNA=${if hasBg then "0.6" else "0.2"} \
+              | while IFS== read -r k v; do
+                  case " ${lib.concatStringsSep " " (builtins.attrNames cfg.themeConfig)} " in *" $k "*) continue ;; esac
+                  sed -i "s|^$k=\"[^\"]*\"|$k=\"$v\"|" ${confPath}
+                done
+          ''}
+
+          # Sizes: the theme's layout is proportional to its font size, and the font size is a fixed 12pt unless the config is emptied;
+          # the corner radius is a fixed 20 px. Tie both to the same screen-derived font size so the form keeps its proportions at any resolution.
+          ${lib.optionalString (!(cfg.themeConfig ? FontSize)) ''
+            if [ -f ${themePath}/Main.qml ]; then
+              substituteInPlace ${themePath}/Main.qml --replace-fail 'parseInt(height / 80)' 'parseInt(height / 90)'
+            fi
+          ''}
+          ${lib.optionalString (!(cfg.themeConfig ? RoundCorners)) ''
+            if [ -f ${themePath}/Components/Input.qml ]; then
+              substituteInPlace ${themePath}/Components/Input.qml ${themePath}/Components/SessionButton.qml \
+                --replace-fail 'config.RoundCorners' '(root.font.pointSize * 5 / 3)'
+            fi
+          ''}
 
           # sed is a silent no-op when a key is missing; a clock that quietly stays 24h must fail the build instead.
           ${lib.optionalString (effectiveThemeConfig ? HourFormat) ''
