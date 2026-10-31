@@ -379,7 +379,10 @@ delib.host {
 
         vikunja-desktop.enable = true;
         walker.enable = false;
-        zathura.enable = true;
+        zathura = {
+          enable = true;
+          defaultMode = "light";
+        };
         zoxide.enable = true;
 
         # ---------------------------------------------------------------

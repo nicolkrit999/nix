@@ -36,6 +36,9 @@ delib.module {
         settings = {
           add_newline = true;
 
+          # Default is 30 ms; slow/network mounts (e.g. synced workspaces) exceed it.
+          scan_timeout = 500;
+
           hostname = {
             ssh_only = false;
             format = "[$ssh_symbol$hostname]($style) ";

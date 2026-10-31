@@ -1,14 +1,20 @@
 { delib, pkgs, ... }:
 delib.module {
   name = "programs.zathura";
-  options = delib.singleEnableOption false;
+  options = delib.moduleOptions {
+    enable = delib.boolOption false;
+    # "dark" opens documents recolored (inverted) by default, "light" shows them
+    # as authored. Toggle at runtime with the recolor key (Ctrl+R).
+    defaultMode = delib.enumOption [ "dark" "light" ] "dark";
+  };
 
   myconfig.ifEnabled = { myconfig, ... }: {
     stylix.targets.zathura.enable = !myconfig.constants.theme.catppuccin;
   };
 
   home.ifEnabled =
-    { myconfig
+    { cfg
+    , myconfig
     , ...
     }:
     {
@@ -44,6 +50,9 @@ delib.module {
 
         options = {
           font = "JetBrainsMono Nerd Font Bold 16";
+
+          recolor = cfg.defaultMode == "dark";
+          adjust-open = "width";
 
           selection-clipboard = "clipboard";
           scroll-page-aware = "true";
