@@ -24,6 +24,7 @@ delib.module {
         "Famiglia"
         "Krit SD 512"
         "Momentary-volume-1"
+        "Momentary-volume-2"
         "personal_folder"
       ];
 
@@ -109,7 +110,9 @@ delib.module {
             || echo "Mounting $share failed" >&2
         }
 
-        ${lib.concatMapStringsSep "\n" (s: "do_mount ${lib.escapeShellArg s} ${lib.escapeShellArg (localName s)}") shares}
+        ${lib.concatMapStringsSep "\n" (
+          s: "do_mount ${lib.escapeShellArg s} ${lib.escapeShellArg (localName s)}"
+        ) shares}
       '';
 
     in

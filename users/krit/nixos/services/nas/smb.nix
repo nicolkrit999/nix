@@ -7,10 +7,12 @@
 delib.module {
   name = "krit.services.nas.smb";
 
-  options = with delib; moduleOptions {
-    enable = boolOption false;
-    credentialsFile = strOption "";
-  };
+  options =
+    with delib;
+    moduleOptions {
+      enable = boolOption false;
+      credentialsFile = strOption "";
+    };
 
   nixos.ifEnabled =
     { cfg, myconfig, ... }:
@@ -26,6 +28,7 @@ delib.module {
         "Famiglia"
         "Krit SD 512"
         "Momentary-volume-1"
+        "Momentary-volume-2"
         "personal_folder"
       ];
 
@@ -70,7 +73,8 @@ delib.module {
       ];
 
       sops.secrets.nas-krit-credentials.sopsFile = ../../../common/sops/${user}-common-secrets-sops.yaml;
-      myconfig.krit.services.nas.smb.credentialsFile = lib.mkDefault config.sops.secrets.nas-krit-credentials.path;
+      myconfig.krit.services.nas.smb.credentialsFile =
+        lib.mkDefault config.sops.secrets.nas-krit-credentials.path;
 
       environment.systemPackages = [ pkgs.cifs-utils ];
       services.cachefilesd.enable = true;
@@ -83,6 +87,7 @@ delib.module {
       ];
 
       home-manager.users.${user}.home.file."Documents/nicol-nas".source =
-        config.home-manager.users.${user}.lib.file.mkOutOfStoreSymlink "${nas.mountRoot}/smb/${user}";
+        config.home-manager.users.${user}.lib.file.mkOutOfStoreSymlink
+          "${nas.mountRoot}/smb/${user}";
     };
 }
