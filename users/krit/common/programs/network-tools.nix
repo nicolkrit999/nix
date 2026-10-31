@@ -33,6 +33,7 @@ let
   };
 
   sharedPackages = with pkgs; [
+    android-tools # Android SDK platform tools (adb, fastboot)
     arping # ARP broadcast utility (may need sudo/capabilities for raw-socket access to actually send ARP requests)
     bandwhich # CLI utility for displaying current network utilization
     dig # DNS lookup client
