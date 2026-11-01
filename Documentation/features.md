@@ -191,6 +191,10 @@ A host picks its clock and date format independently of the language of its numb
 
 The official Discord client is installed and configured declaratively through the Nixcord flake (`programs.discord`, personal plugin set in `krit.programs.discord`). Equicord and its plugin settings come from the Nix configuration on all hosts, so the plugin list is the same everywhere; Vesktop stays a separate install.
 
+## Network Printing
+
+`krit.services.printing` declares driverless (IPP Everywhere) CUPS queues for the printers listed per host in `printing.printers` (name, address, ppdOptions): the HP OfficeJet Pro 8120e (A4, duplex) and the EPSON SC-P600 (A4, one-sided only), both on another VLAN, so mDNS discovery and cups-browsed are deliberately off. The HP is the default. Queues are registered by a non-fatal `krit-printers` oneshot (at boot and once per NetworkManager `up` / `connectivity-change` event, ignoring connectivity NONE; no timer, no loop), not by `hardware.printers.ensurePrinters`, so an unreachable printer (away from home, printer off) never fails `cups.service` and queues appear on the next network event once the printer answers. The module stays active in the school specialisation (it is also booted at home). On the laptop's school spec (`fallbackPrinter = DTI_PRINTERS`) the default is re-picked once per such event (2 s bound, DNS included, HP fallback on any failure, `lpadmin -d` only on change): the SUPSI queue if `printers.supsi.ch` answers on port 445 within 2 s, otherwise the HP, whether or not the HP is powered on. Scanning is not wired; `network-tools` has the SANE/eSCL CLIs.
+
 ## Airplane Mode
 
 On NixOS hosts with NetworkManager, `airplane` turns off only Wi-Fi or every radio (Wi-Fi, WWAN, Bluetooth and the rest) and confirms the result by reading each radio back. Run it with no argument for a menu, or use `airplane-on` / `airplane-off`. On waybar a pill shows the state: left click toggles with the last chosen scope, right click picks the scope.

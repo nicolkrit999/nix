@@ -102,7 +102,7 @@ let
       [ "SUPSI printing: smb.conf has client min protocol = SMB2, password secret is root 0400 and school-only" (chk (lib.hasInfix "client min protocol = SMB2" c.environment.etc."samba/smb.conf".text && (c.sops.secrets.school_supsi_password.mode == "0400" && c.sops.secrets.school_supsi_password.owner == "root") && !(base.sops.secrets ? school_supsi_password) && !(base.systemd.services ? supsi-printer-setup)) "smb.conf lacks SMB2, secret mode/owner differs, or the printing wiring leaks into the base config") ]
     ]
     ++ lib.optionals (!isLaptop) [
-      [ "SUPSI printing is laptop-only: the spec has no cups, smb.conf, supsi-printer-setup or school_supsi_password, and the base has no school printing service or secret" (chk (printingProbe c printingNames == [ ] && !(base.systemd.services ? supsi-printer-setup) && !(base.sops.secrets ? school_supsi_password)) "printing wiring present on a non-laptop host: ${toString (printingProbe c printingNames)}") ]
+      [ "SUPSI printing is laptop-only: the spec adds no cups of its own (inherited from the base is fine), smb.conf, supsi-printer-setup or school_supsi_password, and the base has no school printing service or secret" (chk (lib.subtractLists (lib.optional (base.services.printing.enable or false) "cups") (printingProbe c printingNames) == [ ] && !(base.systemd.services ? supsi-printer-setup) && !(base.sops.secrets ? school_supsi_password)) "printing wiring present on a non-laptop host: ${toString (printingProbe c printingNames)}") ]
     ];
 
   checks = [

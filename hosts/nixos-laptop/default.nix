@@ -759,6 +759,28 @@ delib.host {
 
           network-tools.enable = true;
 
+          printing = {
+            enable = true;
+            defaultPrinter = "HP_OfficeJet_Pro_8120e";
+            printers = [
+              {
+                name = "HP_OfficeJet_Pro_8120e";
+                description = "HP OfficeJet Pro 8120e";
+                address = "192.168.10.21";
+                ppdOptions = {
+                  media = "iso_a4_210x297mm";
+                  sides = "two-sided-long-edge";
+                };
+              }
+              {
+                name = "EPSON_SC-P600";
+                description = "EPSON SC-P600";
+                address = "192.168.10.20";
+                ppdOptions.media = "iso_a4_210x297mm";
+              }
+            ];
+          };
+
           windows-mount = {
             enable = true;
             uuid = "26C47F73C47F43D9"; # 2T NTFS = Windows C:, not the 845M recovery partition

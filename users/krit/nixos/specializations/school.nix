@@ -298,7 +298,7 @@ delib.module {
       # SUPSI\<user> without @supsi.ch. No Sharp MX-4110FN PPD exists in nixpkgs, so the
       # generic PostScript driver is used. ensurePrinters cannot read a secret, hence the
       # oneshot builds the device URI from the sops password at runtime (lpadmin takes it in
-      # argv, briefly visible in /proc) and makes DTI_PRINTERS the default (only printer).
+      # argv, briefly visible in /proc) and krit-printer-default picks the default (DTI_PRINTERS while printers.supsi.ch answers on 445, else the home printer).
       imports = [
         (lib.mkIf isLaptop {
           sops.secrets.school_supsi_password = {
@@ -307,6 +307,10 @@ delib.module {
             mode = "0400";
           };
           services.printing.enable = true;
+          myconfig.krit.services.printing = {
+            fallbackPrinter = "DTI_PRINTERS";
+            fallbackProbeHost = "printers.supsi.ch";
+          };
           environment.etc."samba/smb.conf".text = ''
             [global]
             client min protocol = SMB2
@@ -331,7 +335,7 @@ delib.module {
                 ' ${config.sops.secrets.school_supsi_password.path} ${lib.escapeShellArg supsiPrinterUser})
                 lpadmin -p DTI_PRINTERS -E -v "$uri" \
                   -m drv:///sample.drv/generic.ppd -o printer-is-shared=false
-                exec lpadmin -d DTI_PRINTERS
+                ${config.systemd.package}/bin/systemctl start --no-block krit-printer-default.service || true
               '';
             };
           };

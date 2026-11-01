@@ -94,6 +94,7 @@ let
     (src + "/users/krit/nixos/services/nas/ssh.nix")
     (src + "/users/krit/nixos/services/nas/borg-backup/borg-backup-desktop.nix")
     (src + "/users/krit/nixos/services/nas/borg-backup/borg-backup-laptop.nix")
+    (src + "/users/krit/nixos/services/printing.nix")
 
     # Shell modules (used by safe-mode to force bash and by school initExtra)
     (src + "/modules/common/programs/shells/bash.nix")
