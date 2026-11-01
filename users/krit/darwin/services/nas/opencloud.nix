@@ -69,12 +69,9 @@ delib.module {
 
               export ${remoteEnvPrefix}_TYPE=webdav
               export ${remoteEnvPrefix}_URL=${lib.escapeShellArg space.url}
-              # OpenCloud descends from ownCloud Infinite Scale and rclone has no "opencloud"
-              # vendor; vendor=owncloud is kept. rclone also has a dedicated "infinitescale"
-              # vendor that may fit better; switching it is untested (no Mac, module disabled).
-              # On a real Mac, try VENDOR=infinitescale and compare directory listings and
-              # write/rename behaviour before adopting it.
-              export ${remoteEnvPrefix}_VENDOR=owncloud
+              # rclone has no "opencloud" vendor; "infinitescale" is the one for OpenCloud/OCIS.
+              # Untested on a real Mac (module disabled).
+              export ${remoteEnvPrefix}_VENDOR=infinitescale
               export ${remoteEnvPrefix}_USER="$OC_USER"
               export ${remoteEnvPrefix}_PASS="$OC_PASS_OBSCURED"
 

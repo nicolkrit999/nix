@@ -58,7 +58,7 @@ The bare command `start-actual-mcp` is used by the project-scoped MCP server in 
 | Check | Expected |
 |-------|----------|
 | no claude home.file | `home.file` contains none of `.claude/projects`, `.claude/plans`, `.claude/settings.json` |
-| memory script | `linkClaudeProjectMemory` has a `link_memory <encoded cwd> <repo name>` line for every shared project (`-home-krit-nix` on NixOS/NAS, `-Users-krit-nix` on mac, plus `-mnt-nicol-nas-webdav-owncloud-University` on non-Darwin only), no line with another platform's prefix, and `repo_root` / `dir` under the host's home |
+| memory script | `linkClaudeProjectMemory` has a `link_memory <encoded cwd> <repo name>` line for every shared project (`-home-krit-nix` on NixOS/NAS, `-Users-krit-nix` on mac, plus `-mnt-nicol-nas-webdav-opencloud-University` on non-Darwin only), no line with another platform's prefix, and `repo_root` / `dir` under the host's home |
 | settings script | `linkClaudeSettings` has `src="<home>/dotfiles-private/claude/common/.claude/settings.json"`, `dst="<home>/.claude/settings.json"`, `ln -sfn "$src" "$dst"`, and neither path goes through `/nix/store` |
 | activation order | both steps are ordered after `linkGeneration` |
 | control: projects / settings mapping | a `home.file` twin with `.claude/projects` or `.claude/settings.json` added is flagged |

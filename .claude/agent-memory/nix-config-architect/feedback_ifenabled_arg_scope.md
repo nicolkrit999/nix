@@ -27,7 +27,7 @@ the module's *top-level* function args instead - i.e. add it to
 `{ delib, pkgs, lib, config, ... }:` at the top of the file (before
 `delib.module { ... }`), then just reference it by name inside the ifEnabled
 body without redeclaring it in the ifEnabled lambda's own arg pattern. This is
-the pattern already used correctly in `users/krit/nixos/services/nas/opencloud.nix` (renamed from `owncloud.nix` 2026-09-17)
+the pattern already used correctly in `users/krit/nixos/services/nas/opencloud.nix`
 and `modules/nixos/services/autotrash.nix`/`snapshots.nix`. When writing a new
 module, copy one of those files' arg-scoping shape rather than assuming denix
 merges module args + ifEnabled args together.

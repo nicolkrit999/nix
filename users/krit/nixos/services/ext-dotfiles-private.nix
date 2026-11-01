@@ -104,7 +104,7 @@ let
     dotfiles = "${homeDir}/dotfiles";
     github-repos-personal-portainer-templates = "${homeDir}/github-repos/personal/portainer-templates";
     momentary-gym-claude-skill = "${homeDir}/momentary/gym-claude-skill";
-    nicol-nas-webdav-owncloud-University = "/mnt/nicol-nas/webdav/owncloud/University";
+    nicol-nas-webdav-opencloud-University = "/mnt/nicol_nas/webdav/opencloud/University";
   };
 
   # Claude Code names a project dir after its cwd with every non-alphanumeric char as "-"

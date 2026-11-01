@@ -180,7 +180,8 @@ let
   noClaudeLinksCheck = files:
     verdict (map (k: "home.file still maps ${k}") (lib.filter (k: files ? ${k}) forbiddenClaudeLinks));
 
-  encodeCwd = lib.replaceStrings [ "/" "." ] [ "-" "-" ];
+  # Same rule as encodeProjectDir in ext-dotfiles-private.nix: every non-alphanumeric char becomes "-"
+  encodeCwd = lib.stringAsChars (c: if builtins.match "[A-Za-z0-9]" c != null then c else "-");
   isDarwinHost = h: (h.kind or "nixos") == "darwin";
   sharedProjects = {
     nix = "nix";
@@ -189,8 +190,8 @@ let
     github-repos-personal-portainer-templates = "github-repos/personal/portainer-templates";
     momentary-gym-claude-skill = "momentary/gym-claude-skill";
   };
-  nasProjectCwd = "/mnt/nicol-nas/webdav/owncloud/University";
-  nasProjectName = "nicol-nas-webdav-owncloud-University";
+  nasProjectCwd = "/mnt/nicol_nas/webdav/opencloud/University";
+  nasProjectName = "nicol-nas-webdav-opencloud-University";
   expectedMemoryLines = h:
     lib.mapAttrsToList (n: rel: "link_memory ${encodeCwd "${h.homeDir}/${rel}"} ${n}") sharedProjects
     ++ lib.optional (!isDarwinHost h) "link_memory ${encodeCwd nasProjectCwd} ${nasProjectName}";
@@ -283,9 +284,9 @@ perHost "desktop" hosts.desktop
   "check-control-memory-wrong-platform-name" =
     flagged "linux encoded name on mac" (memoryCheck hosts.mac (lib.replaceStrings [ "-Users-krit-nix" ] [ "-home-krit-nix" ] hosts.mac.hm.activation.linkClaudeProjectMemory.data));
   "check-control-memory-missing-nas-project" =
-    flagged "NAS project dropped on desktop" (memoryCheck hosts.desktop (lib.replaceStrings [ "-mnt-nicol-nas-webdav-owncloud-University" ] [ "-mnt-other" ] hosts.desktop.hm.activation.linkClaudeProjectMemory.data));
+    flagged "NAS project dropped on desktop" (memoryCheck hosts.desktop (lib.replaceStrings [ "-mnt-nicol-nas-webdav-opencloud-University" ] [ "-mnt-other" ] hosts.desktop.hm.activation.linkClaudeProjectMemory.data));
   "check-control-memory-nas-project-on-mac" =
-    flagged "NAS project on mac" (memoryCheck hosts.mac (hosts.mac.hm.activation.linkClaudeProjectMemory.data + "\nlink_memory -mnt-nicol-nas-webdav-owncloud-University x"));
+    flagged "NAS project on mac" (memoryCheck hosts.mac (hosts.mac.hm.activation.linkClaudeProjectMemory.data + "\nlink_memory -mnt-nicol-nas-webdav-opencloud-University x"));
   "check-control-settings-store-dst" =
     flagged "settings dst in /nix/store" (settingsCheck hosts.desktop (lib.replaceStrings [ "dst=\"/home/krit/.claude" ] [ "dst=\"/nix/store/x-home/.claude" ] hosts.desktop.hm.activation.linkClaudeSettings.data));
   "check-control-settings-wrong-src" =
