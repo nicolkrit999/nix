@@ -35,6 +35,17 @@ let
     "OPENROUTER_API_KEY"
   ];
 
+  # Per-connector allowlists (home-relative); a connector is enabled in a
+  # project at or below one of its paths and disabled everywhere else.
+  schoolWorkspace = if pkgs.stdenv.hostPlatform.isDarwin then "school-workspace" else ".school-workspace";
+  connectorAllowJq = ''
+    {
+      "claude.ai Google Calendar": [$h + "/${schoolWorkspace}", $h + "/momentary", $h + "/dotfiles-private"],
+      "claude.ai Gmail": [$h + "/${schoolWorkspace}", $h + "/momentary", $h + "/dotfiles-private"],
+      "claude.ai Higgsfield": [$h + "/momentary"],
+      "claude.ai Google Drive": [$h + "/momentary"]
+    }'';
+
   caiScript = pkgs.writeShellScriptBin "cai" ''
     # cai is local-only; cloud sessions go through ccai.
     for a in "$@"; do
@@ -51,14 +62,31 @@ let
     if [ -f "$TARGET" ]; then
       # Write through the resolved path so the dotfiles symlink is preserved.
       TMP="$TARGET.cai-policy.tmp"
-      if ${pkgs.jq}/bin/jq --arg cwd "$PWD" '
-        ((.claudeAiMcpEverConnected // []) | map(select(. != "claude.ai Google Calendar"))) as $conns
+      # Per-project connector policy (claude.ai connectors):
+      #   gated  - enabled only under that connector's allowlisted paths, disabled elsewhere
+      #   always - never disabled anywhere
+      #   stale  - connectors no longer connected on claude.ai; purged from every list
+      #   rest   - any other connector in claudeAiMcpEverConnected, disabled everywhere
+      ALLOW=$(${pkgs.jq}/bin/jq -n --arg h "$HOME" '${connectorAllowJq}')
+      if ${pkgs.jq}/bin/jq --arg cwd "$PWD" --argjson allow "$ALLOW" \
+        --argjson always '["claude.ai Notion", "claude.ai Claude Docs"]' \
+        --argjson stale '["claude.ai Slack", "claude.ai PubMed", "claude.ai Jotform", "claude.ai bgpt", "claude.ai PayPal", "claude.ai Context7"]' '
+        ($allow | keys) as $gated
+        | ($gated + $always + $stale) as $managed
+        | ((.claudeAiMcpEverConnected // []) | map(select(IN($stale[]) | not))) as $ever
+        | ($ever | map(select(IN($managed[]) | not))) as $conns
+        | (if has("claudeAiMcpEverConnected") then .claudeAiMcpEverConnected = $ever else . end)
         | .disabledMcpServers = $conns
         | .projects //= {}
         | .projects[$cwd] //= {}
         | .projects |= with_entries(
-            .value.disabledMcpServers =
-              (((.value.disabledMcpServers // []) + $conns) | unique)
+            .key as $k
+            | ($gated | map(select(
+                . as $c | $allow[$c] | any(. as $a | $k == $a or ($k | startswith($a + "/"))) | not
+              ))) as $off
+            | .value.disabledMcpServers =
+                ((((.value.disabledMcpServers // []) + $conns) | unique | map(select(IN($managed[]) | not)))
+                  + $off | unique)
           )
       ' "$TARGET" > "$TMP" 2>/dev/null; then
         mv "$TMP" "$TARGET"
