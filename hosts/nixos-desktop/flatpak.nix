@@ -55,19 +55,21 @@ delib.module {
           # storytold "Craft" apps (github.com/storytold/<name>): not on Flathub, installed from the
           # release's linux-x86_64 .flatpak bundle (runtime comes from the flathub remote). update.auto does
           # not touch bundles - to update, bump the version and hash (hash = release SHA256SUMS.txt in SRI form).
-          (craftBundle "vectorcraft" "0.18.0" "sha256-RYFIizM+A751of8OaPLekQLgCwY6DX25k/jsKpQUbdY=") # Illustrator-like vector editor
-          (craftBundle "photocraft" "0.17.0" "sha256-yW3AzBDLHbJp2sog1KJUm/aVDFFL59aLjcJtVXRAFjc=") # Photoshop-like image editor
-          (craftBundle "lightcraft" "0.15.0" "sha256-hE73O5DO3PDFjo9szAOXlVAByF33mKdcUuG/LLvlnPA=") # Lightroom-like photo editor
-          (craftBundle "pdfcraft" "0.15.0" "sha256-RvKBx9t8mkIjUD7UmwE3G9Ls7W+cyXycFRfcQdBQKeY=") # Acrobat-like PDF editor
-          (craftBundle "deckcraft" "0.12.0" "sha256-T0+4EViLy1H9IPKydfeVdHhEe+ln/7I4q5D3pvc90QQ=") # PowerPoint-like presentations
-          (craftBundle "gridcraft" "0.13.0" "sha256-9AQS1bxPOcV30qeyAqxXB+BkgVDwGWl2SdQDHU2wLbg=") # Excel-like spreadsheet
-          (craftBundle "wordcraft" "0.12.0" "sha256-Gaft0AT63sjuCF5rmduZI4x6wWBOmPAik+BLHs0461E=") # Word-like word processor
-          (craftBundle "filmcraft" "0.14.0" "sha256-fHZDD4vNZlwcPzXdZOtsOiMuooXcxiaNilylilVNVtw=") # Premiere-like video editor
-          (craftBundle "designcraft" "0.14.0" "sha256-5QAo/b4j3X7IQGwHA2Gm0cM/1szr2k4RaDcCG9tDvQM=") # InDesign-like page layout (magazines, books, print)
-          (craftBundle "effectcraft" "0.18.0" "sha256-baceeHWfAqpcl7BHKJc+szTNYHDNPJYdV2/6hmTcxF4=") # After Effects-like motion graphics / VFX compositor
-          (craftBundle "figcraft" "0.12.1" "sha256-z+3U7iqHh5FyGGQGP/qvC1DVEpj8YuMt4W/G2qzDtIs=") # Figma-like UI design
-          (craftBundle "soundcraft" "0.14.0" "sha256-nTHsWX/KjmRmJVOy43ioRP3jVLSdLonKYa2h5ypSWXs=") # Audio editor / DAW-like
-          (craftBundle "cadcraft" "0.14.0" "sha256-iWP+u4VXHz1EmoK5GJCmwB3sKkw7gJ9fuu1D/GnZza0=") # CAD / DXF drawing editor
+          (craftBundle "cadcraft" "0.16.0" "sha256-LLen1eRgEj0Zz55e5Br5uI3+2Jdis80pD+r+aTvX5YE=") # CAD / DXF drawing editor
+          (craftBundle "craft-anything" "0.2.0" "sha256-SulvOUfvM+UOpZTckj3KvT+658l+oIAK5s2spsFAsFA=") # Understand how any software works, and craft your own
+          (craftBundle "deckcraft" "0.14.1" "sha256-pSY1phJuxKAOJb6kbZFs9FG+f3O7F/VjgZ54leNdI5M=") # PowerPoint-like presentations
+          (craftBundle "designcraft" "0.16.0" "sha256-HgBH7Mc10nfauCMmMM9/uqEAQUWMGvMS3qx6aiK93pY=") # InDesign-like page layout (magazines, books, print)
+          (craftBundle "effectcraft" "0.20.0" "sha256-6wMhLneWOCgs2YYQoQepPLZqDTwzEcI0zmD/EpR55T4=") # After Effects-like motion graphics / VFX compositor
+          (craftBundle "figcraft" "0.14.0" "sha256-1EB6Ep9xZfWW82SRA5alj44mGxz+9C0hvzL+XGBUq58=") # Figma-like UI design
+          (craftBundle "filmcraft" "0.16.0" "sha256-+h+HxtdUfPPne2EeAL7HXIbcXlb1bIW1JvPal9TaM3k=") # Premiere-like video editor
+          (craftBundle "gridcraft" "0.15.0" "sha256-XqRmO5u5KzIoB9YsmIBB1poxVcf8CpCO8c7Fsy8iEhg=") # Excel-like spreadsheet
+          (craftBundle "lightcraft" "0.17.0" "sha256-p7JjyErn5tOOq4Dse8Ea+aTq11De/zGMALRPaEUPRfU=") # Lightroom-like photo editor
+          (craftBundle "pdfcraft" "0.17.0" "sha256-duLUkbNVTIfm5CCzKQNwQ/m5QaRZZa6PwWpqQur49Ws=") # Acrobat-like PDF editor
+          (craftBundle "photocraft" "0.19.0" "sha256-cGXkEBDzdQxM9bYS/wJJ5vSl67UFAbdv2ViRISGG6QE=") # Photoshop-like image editor
+          (craftBundle "soundcraft" "0.16.0" "sha256-46uikU2aeFVmIvQvJORucEtt2sK6suWIYuyeBXnUPpQ=") # Audio editor / DAW-like
+          (craftBundle "texturecraft" "0.2.0" "sha256-pRzkMPE6wXk8JAlefIOkHpi/Y0HLghe3H4HFlk5l3eY=") # 3D texture painting
+          (craftBundle "vectorcraft" "0.20.0" "sha256-6LOXo4iScGmZWDIQ9tGb/io8Nx3J42/v8sQNjEq1YRQ=") # Illustrator-like vector editor
+          (craftBundle "wordcraft" "0.14.0" "sha256-yAyvbTYsPfEscgmu/TVibcPd+/4XT21SdAqewoHE8yc=") # Word-like word processor
         ];
         remotes = [
           {
