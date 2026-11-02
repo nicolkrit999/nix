@@ -29,6 +29,22 @@ let
   lc = cfg.i18n.extraLocaleSettings;
   dmTime = cfg.systemd.services.display-manager.environment.LC_TIME or null;
   swissKeys = [ "LC_ADDRESS" "LC_IDENTIFICATION" "LC_MEASUREMENT" "LC_MONETARY" "LC_NAME" "LC_NUMERIC" "LC_PAPER" "LC_TELEPHONE" ];
+  specCfg = n: let s = cfg.specialisation.${n}.configuration; in s.config or s;
+  specNames = builtins.attrNames cfg.specialisation;
+  normalUsers = c: builtins.attrNames (lib.filterAttrs (_: u: u.isNormalUser) c.users.users);
+  extraUsers = c: builtins.filter (u: u != my.constants.user) (normalUsers c);
+  separateHome = f: f ? "/home" && f."/home".fsType != "tmpfs";
+  homeRule = f: !(separateHome f) || f."/home".neededForBoot;
+  tmpfsRootRule = f: extras: !(f."/".fsType == "tmpfs" && separateHome f && extras != [ ]) || f."/home".neededForBoot;
+  specsWithExtraUsers = builtins.filter (n: extraUsers (specCfg n) != [ ]) specNames;
+  homeFs = {
+    "/" = { fsType = "tmpfs"; neededForBoot = false; };
+    "/home/guest" = { fsType = "tmpfs"; neededForBoot = false; };
+  };
+  btrfsHome = nfb: homeFs // { "/home" = { fsType = "btrfs"; neededForBoot = nfb; }; };
+  homeTwin = (sys.extendModules { modules = [{ fileSystems."/home".neededForBoot = lib.mkForce false; }]; }).config;
+  homeTwinSpec = builtins.head specsWithExtraUsers;
+  homeTwinSpecCfg = (homeTwin.specialisation.${homeTwinSpec}.configuration).config or homeTwin.specialisation.${homeTwinSpec}.configuration;
   checks =
     {
       check-hostname = check (cfg.networking.hostName == my.constants.hostname && my.constants.hostname == host)
@@ -43,6 +59,23 @@ let
       check-root-tmpfs = check (fs."/".fsType == "tmpfs") "/ fsType=${fs."/".fsType}";
       check-persist-needed-for-boot = check fs."/persist".neededForBoot "/persist not neededForBoot";
       check-varlog-needed-for-boot = check fs."/var/log".neededForBoot "/var/log not neededForBoot";
+      check-home-needed-for-boot-base = check
+        (separateHome fs && fs."/home".neededForBoot)
+        "/home is not a separate non-tmpfs mount with neededForBoot = true in the base config (user setup would create home directories on the throwaway root before /home is mounted over them)";
+      check-home-needed-for-boot-specialisations = check
+        (specNames != [ ] && lib.all (n: let f = (specCfg n).fileSystems; in separateHome f && homeRule f) specNames)
+        "a specialisation mounts /home separately without neededForBoot = true, or has no separate /home entry: ${builtins.toJSON (builtins.filter (n: let f = (specCfg n).fileSystems; in !(separateHome f && homeRule f)) specNames)}";
+      check-home-needed-for-boot-extra-users = check
+        (specsWithExtraUsers != [ ]
+          && lib.all (n: let c = specCfg n; in tmpfsRootRule c.fileSystems (extraUsers c)) specsWithExtraUsers
+          && tmpfsRootRule fs (extraUsers cfg))
+        "with / on tmpfs and a separate /home, a config with a second normal user needs /home neededForBoot (specs with extra users: ${builtins.toJSON specsWithExtraUsers})";
+      check-home-needed-for-boot-control = check
+        (!(homeRule homeTwin.fileSystems) && !(homeRule homeTwinSpecCfg.fileSystems)
+          && !(tmpfsRootRule homeTwinSpecCfg.fileSystems (extraUsers homeTwinSpecCfg))
+          && tmpfsRootRule (btrfsHome false) [ ] && !(tmpfsRootRule (btrfsHome false) [ "x" ]) && tmpfsRootRule (btrfsHome true) [ "x" ]
+          && homeRule homeFs && tmpfsRootRule homeFs [ "x" ])
+        "control broken: the rules must fail on a twin with /home neededForBoot = false (base and spec ${homeTwinSpec}) and on synthetic inputs, and a tmpfs /home/guest alone must not trigger them";
       check-persist-dirs = check
         (lib.all (d: has d persistDirs) [ "/etc/ssh" "/var/lib/nixos" "/var/lib/tailscale" "/var/lib/systemd/timesync" "/var/lib/NetworkManager" ])
         "persisted dirs missing one of /etc/ssh /var/lib/nixos /var/lib/tailscale /var/lib/systemd/timesync /var/lib/NetworkManager";

@@ -74,6 +74,7 @@ let
     (src + "/modules/common/programs/headroom.nix")
     (src + "/modules/common/programs/herdr.nix")
     (src + "/modules/common/programs/zen-browser.nix")
+    (src + "/users/krit/common/programs/gui-programs/zen-browser/zen-browser.nix")
     (src + "/users/krit/common/programs/claude-code/claude-code-wrappers.nix")
     (src + "/modules/common/programs/fastfetch.nix")
     (src + "/modules/nixos/programs/claude-desktop.nix")
@@ -114,6 +115,14 @@ let
     (src + "/users/krit/nixos/shared/system/virtualisation.nix")
     (src + "/users/krit/nixos/shared/system/git-ssh-signing.nix")
 
+    # Options the school specialisation sets (own user, secrets split, assets, wallpapers link, OneDrive mount, yazi go-to keys)
+    (src + "/users/krit/common/toplevel/sops-secrets.nix")
+    (src + "/users/krit/nixos/services/ext-dotfiles.nix")
+    (src + "/modules/nixos/services/sddm/sddm-astronaut.nix")
+    (src + "/modules/nixos/services/sddm/sddm-pixie.nix")
+    (src + "/modules/nixos/services/rclone-mount.nix")
+    (src + "/users/krit/common/programs/file-managers/yazi/yazi-keymap.nix")
+
     # krit specializations
     (src + "/users/krit/nixos/specializations/entertainment.nix")
     (src + "/users/krit/nixos/specializations/home.nix")
@@ -144,8 +153,8 @@ let
 
   # spec name → full NixOS config with that specialization applied
   spec = name: config.specialisation.${name}.configuration;
-  # specHm name → home-manager krit config within that specialization
-  specHm = name: (spec name).home-manager.users.krit;
+  # specHm name → home-manager config of the specialization's own constants.user
+  specHm = name: (spec name).home-manager.users.${(spec name).myconfig.constants.user};
 
   checkOverride = name: baseVal: specVal: expected:
     if baseVal == expected then "FAIL: ${name}: base host already ${lib.boolToString expected}, override is vacuous"
@@ -388,8 +397,11 @@ in
 
   # ── school ────────────────────────────────────────────────────────────────────
   check-school-browser-constant =
-    if config.myconfig.constants.browser == "brave-school" then "FAIL: base browser already brave-school, check is vacuous"
-    else checkStr "school.constants.browser" (spec "school").myconfig.constants.browser "brave-school";
+    if config.myconfig.constants.browser == "zen-beta" then "FAIL: base browser already zen-beta, check is vacuous"
+    else checkStr "school.constants.browser" (spec "school").myconfig.constants.browser "zen-beta";
+  check-school-user-constant =
+    if config.myconfig.constants.user == "krit-school" then "FAIL: base user already krit-school, check is vacuous"
+    else checkStr "school.constants.user" (spec "school").myconfig.constants.user "krit-school";
   check-school-editor-constant =
     if config.myconfig.constants.editor == "nvim" then "FAIL: base editor already nvim, check is vacuous"
     else checkStr "school.constants.editor" (spec "school").myconfig.constants.editor "nvim";

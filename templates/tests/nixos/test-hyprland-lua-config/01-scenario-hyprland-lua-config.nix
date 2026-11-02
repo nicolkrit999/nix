@@ -4,7 +4,7 @@ let
   lib = flake.inputs.nixpkgs.lib;
 
   hostNames = [ "nixos-desktop" "nixos-laptop" ];
-  hmOf = c: c.home-manager.users.krit;
+  hmOf = c: c.home-manager.users.${c.myconfig.constants.user};
   hyprOn = c: (hmOf c).wayland.windowManager.hyprland.enable;
 
   variants = lib.listToAttrs (lib.concatMap
@@ -31,6 +31,11 @@ let
     in
     lib.filter (s: !(lib.hasPrefix "'hl." s)) (lib.tail parts);
   snippet = s: builtins.substring 0 50 s;
+
+  ecosystemBlock = text:
+    let parts = lib.splitString ''["ecosystem"] = {'' text;
+    in if lib.length parts != 2 then "" else lib.head (lib.splitString "}" (lib.elemAt parts 1));
+  newsDisabled = text: has ''["no_update_news"] = true'' (ecosystemBlock text);
 
   execStrings = svc:
     lib.concatMap (k: let v = svc.Service.${k} or [ ]; in lib.toList v) [ "ExecStart" "ExecStop" "ExecStartPre" "ExecStartPost" "ExecReload" ];
@@ -105,6 +110,7 @@ let
       "waybar-control-stock-unpatched" = chk (!(has "waybar-hyprland-lua-dispatch.patch" (builtins.readFile flake.inputs.nixpkgs.legacyPackages.x86_64-linux.waybar.drvPath))) "stock waybar already carries the patch (check cannot bite)";
       "xwayland-phantom-rule-settings" = chk xwaylandRule "no window_rule with class ^$ + xwayland + no_focus";
       "xwayland-phantom-rule-rendered" = chk (has ''["class"] = "^$"'' lua && has ''["xwayland"] = true'' lua) "rendered lua lacks the XWayland phantom rule";
+      "update-news-disabled" = chk (newsDisabled lua && hm.wayland.windowManager.hyprland.settings.config.ecosystem.no_update_news == true) "ecosystem.no_update_news is not true in the settings or in the rendered hyprland.lua (block: ${ecosystemBlock lua})";
       "wrapper-capabilities-empty" = chk (c.security.wrappers.Hyprland.capabilities == "") "capabilities: ${c.security.wrappers.Hyprland.capabilities}";
       "jetkvm-teardown-gated-no-ls-pipe" = chk (jetkvm == null || ((jetkvm.Service.ExecCondition or "") != "" && !(has "| head" jetkvmText))) "hyprland-jetkvm-teardown lacks ExecCondition or still pipes ls into head";
       "scratch-binds-have-window-rules" =
@@ -129,6 +135,30 @@ let
       ["workspace"] = "special:magic"
     })
   '';
+  ctlEcoTrue = ''
+    hl.config({
+      ["ecosystem"] = {
+        ["no_update_news"] = true
+      }
+    })
+  '';
+  ctlEcoFalse = ''
+    hl.config({
+      ["ecosystem"] = {
+        ["no_update_news"] = false
+      }
+    })
+  '';
+  ctlEcoElsewhere = ''
+    hl.config({
+      ["ecosystem"] = {
+        ["no_donation_nag"] = true
+      },
+      ["misc"] = {
+        ["no_update_news"] = true
+      }
+    })
+  '';
   controlBad = "hyprctl dispatch workspace 1\nhyprctl dispatch 'hl.dsp.exit()'\nhyprctl   dispatch dpms off";
   controlGood = "hyprctl dispatch 'hl.dsp.exit()' && hyprctl reload";
 in
@@ -145,6 +175,7 @@ in
     "scratch-matcher-flags-missing-rule" = chk (scratchUnmatched (ctlBinds + ctlRule "scratch-term") == [ "scratch-browser" ]) "got ${toString (scratchUnmatched (ctlBinds + ctlRule "scratch-term"))}";
     "scratch-matcher-accepts-full-rules" = chk (scratchUnmatched (ctlBinds + ctlRule "scratch-term" + ctlRule "scratch-browser") == [ ]) "flagged despite rules";
     "scratch-matcher-flags-wrong-class" = chk (scratchUnmatched (ctlBinds + ctlRule "scratch-term" + ctlRule "scratch-browse") == [ "scratch-browser" ]) "near-miss class accepted";
+    "update-news-matcher-flags-false-and-foreign-block" = chk (!(newsDisabled ctlEcoFalse) && !(newsDisabled ctlEcoElsewhere) && newsDisabled ctlEcoTrue) "matcher accepts false / a no_update_news outside the ecosystem block, or rejects the true form";
     "variants-cover-both-hosts" = chk (lib.all (h: variants ? ${h}) hostNames) "base hosts missing from variants";
   };
 }

@@ -116,6 +116,18 @@ let
       laptop-borg-backup.enable = true;
     };
   };
+  cfgOfSpec = sp: sp.config or sp;
+  specCfgs = h: lib.mapAttrs (_: sp: cfgOfSpec sp.configuration) (h.config.specialisation or { });
+  secretProblems = label: cfg:
+    lib.concatLists (lib.mapAttrsToList
+      (n: s:
+        let f = fileOf { config = cfg; } s; in
+        if !(builtins.pathExists f) then [ "${label}${n}: sopsFile ${toString f} does not exist" ]
+        else lib.optional (!(lib.elem (s.key or n) (yamlKeys f))) "${label}${n}: key missing from ${baseNameOf (toString f)}")
+      cfg.sops.secrets);
+  hostSecretProblems = h:
+    secretProblems "" h.config
+    ++ lib.concatLists (lib.mapAttrsToList (sn: sc: secretProblems "specialisation ${sn}: " sc) (specCfgs h));
 in
 {
   check-mcp-secrets-declared = perHost allHosts (h:
@@ -223,13 +235,24 @@ in
     in
     if perms == expected then "ok" else "FAIL: PAT owner/mode is not <user>/0400 on every host: ${builtins.toJSON perms}";
 
-  check-sopsfiles-and-keys = perHost allHosts (h:
-    lib.concatLists (lib.mapAttrsToList
-      (n: s:
-        let f = fileOf h s; in
-        if !(builtins.pathExists f) then [ "${n}: sopsFile ${toString f} does not exist" ]
-        else lib.optional (!(lib.elem (s.key or n) (yamlKeys f))) "${n}: key missing from ${baseNameOf (toString f)}")
-      (secretsOf h)));
+  check-sopsfiles-and-keys = perHost allHosts hostSecretProblems;
+
+  check-sopsfiles-spec-walk-bites = perHost nixosHosts (h:
+    let
+      walked = lib.concatMap (sc: lib.attrNames sc.sops.secrets) (lib.attrValues (specCfgs h));
+      mutated = withModules h [{
+        specialisation.school.configuration.sops.secrets = {
+          zz_bogus_missing_key.sopsFile = commonYaml;
+          zz_bogus_missing_file.sopsFile = /. + "/nonexistent-sops-control.yaml";
+        };
+      }];
+      problems = hostSecretProblems mutated;
+    in
+    map (n: "the spec walk does not examine ${n}") (lib.filter (n: !(lib.elem n walked)) [ "school_ssh_key" "school_ssh_pub" "rclone_school_onedrive_conf" ])
+    ++ lib.optional (!(specCfgs h ? school)) "no school specialisation: the walk would be vacuous"
+    ++ lib.optional (hostSecretProblems h != [ ]) "control baseline is not clean: ${builtins.toJSON (hostSecretProblems h)}"
+    ++ lib.optional (!(lib.any (lib.hasInfix "specialisation school: zz_bogus_missing_key: key missing") problems)) "control: a spec secret with a key absent from its yaml is not reported"
+    ++ lib.optional (!(lib.any (lib.hasInfix "specialisation school: zz_bogus_missing_file: sopsFile") problems)) "control: a spec secret with a missing sopsFile is not reported");
 
   check-davfs-secrets-template = perHost nixosHosts (h:
     let t = h.config.sops.templates."davfs-secrets"; in
@@ -313,22 +336,74 @@ in
       isDarwin = h.pkgs.stdenv.hostPlatform.isDarwin;
       home = if isDarwin then "/Users/${user}" else "/home/${user}";
       schoolSpec = if isDarwin then null else h.config.specialisation.school.configuration;
-      schoolSecrets = if isDarwin then secretsOf h else (schoolSpec.config or schoolSpec).sops.secrets;
-      eqIn = s: n: p: lib.optional (!(s ? ${n})) "${n} not declared"
-        ++ lib.optional (s ? ${n} && s.${n}.path != "${home}/.ssh/${p}") "${n} path ${s.${n}.path or "?"} != ${home}/.ssh/${p}";
-      eq = eqIn (secretsOf h);
+      schoolCfg = if isDarwin then h.config else (schoolSpec.config or schoolSpec);
+      schoolSecrets = schoolCfg.sops.secrets;
+      schoolUser = schoolCfg.myconfig.constants.user;
+      schoolHome = if isDarwin then home else "/home/${schoolUser}";
+      eqIn = homeDir: s: n: p: lib.optional (!(s ? ${n})) "${n} not declared"
+        ++ lib.optional (s ? ${n} && s.${n}.path != "${homeDir}/.ssh/${p}") "${n} path ${s.${n}.path or "?"} != ${homeDir}/.ssh/${p}";
+      eq = eqIn home (secretsOf h);
       leakedIn = label: s: map (n: "${n} declared in ${label}") (lib.filter (n: s ? ${n}) [ "school_ssh_key" "school_ssh_pub" ]);
       otherSpecs = lib.filter (n: h.config.specialisation ? ${n}) [ "guest" "secure-travel" ];
     in
     eq "github_general_ssh_key" "id_github" ++ eq "github_general_ssh_pub" "id_github.pub"
-    ++ eqIn schoolSecrets "school_ssh_key" "id_school" ++ eqIn schoolSecrets "school_ssh_pub" "id_school.pub"
+    ++ eqIn schoolHome schoolSecrets "school_ssh_key" "id_school" ++ eqIn schoolHome schoolSecrets "school_ssh_pub" "id_school.pub"
     ++ lib.optionals (!isDarwin) (
+      lib.optional (schoolUser == user) "school specialisation user ${schoolUser} equals the base user: the home path check would be vacuous"
+      ++ lib.concatMap
+        (n: lib.optional (schoolSecrets ? ${n} && schoolSecrets.${n}.owner != schoolUser) "${n} owner ${schoolSecrets.${n}.owner} != ${schoolUser}")
+        [ "school_ssh_key" "school_ssh_pub" ]
+      ++
       leakedIn "the base config" (secretsOf h)
       ++ lib.concatMap
         (n: leakedIn "specialisation ${n}" (let sp = h.config.specialisation.${n}.configuration; in (sp.config or sp).sops.secrets))
         otherSpecs
       ++ lib.optional (otherSpecs == [ ]) "no guest/secure-travel specialisation found: the leak scan would be vacuous"
     ));
+  check-school-claude-secrets = perHost nixosHosts (h:
+    let
+      sc = cfgOfSpec h.config.specialisation.school.configuration;
+      s = sc.sops.secrets;
+      baseUser = userOf h;
+      schoolUser = sc.myconfig.constants.user;
+      names = map (m: m.sopsSecret) sc.myconfig.krit.programs.claude-code-personal.mcpSecrets ++ [ "cf_account_id" "cf_api_token" ];
+      keys = yamlKeys commonYaml;
+      one = n:
+        if !(s ? ${n}) then [ "${n} not declared in the school spec" ]
+        else
+          lib.optional (s.${n}.owner != schoolUser) "${n} owner ${s.${n}.owner} != ${schoolUser}"
+          ++ lib.optional (s.${n}.path != runSecrets n) "${n} path ${s.${n}.path} != ${runSecrets n}"
+          ++ lib.optional (toString s.${n}.sopsFile != toString commonYaml) "${n} sopsFile is not the common yaml"
+          ++ lib.optional (!(lib.elem n keys)) "${n} missing from the common yaml";
+      personalOnly = [ "github_general_ssh_key" "github_general_ssh_pub" "hevy_api_key" ];
+    in
+    lib.optional (schoolUser == baseUser) "school user equals the base user: the ownership check would be vacuous"
+    ++ lib.optional (!sc.myconfig.krit.programs.claude-code-personal.enable) "claude-code-personal is off in the school spec"
+    ++ lib.optional (lib.length names < 15) "only ${toString (lib.length names)} claude secrets probed (13 MCP keys + 2 Cloudflare expected)"
+    ++ lib.concatMap one names
+    ++ map (n: "${n} must stay absent from the school spec") (lib.filter (n: s ? ${n}) personalOnly)
+    ++ map (n: "control: the base config does not declare ${n} owned by ${baseUser}, so the school ownership check cannot tell the users apart") (lib.filter (n: !(secretsOf h ? ${n}) || (secretsOf h).${n}.owner != baseUser) (names ++ personalOnly))
+    ++ map (n: "${n} in the school spec is owned by the base user ${baseUser}") (lib.filter (n: (s.${n}.owner or null) == baseUser) (lib.attrNames s)));
+
+  check-personal-secrets-option =
+    let
+      on = fx.mkNixos [{ myconfig.krit.commonSopsSecrets.enable = true; }];
+      off = fx.mkNixos [{ myconfig.krit.commonSopsSecrets = { enable = true; personalSecrets = false; }; }];
+      user = userOf on;
+      personalNames = [ "github_general_ssh_key" "github_general_ssh_pub" "hevy_api_key" ];
+      rootNames = [ "github_fg_pat_token_nix" "attic-push-token" "cachix-push-token" ];
+      ownedBy = cfg: u: lib.attrNames (lib.filterAttrs (_: v: (v.owner or null) == u) cfg.config.sops.secrets);
+      underHome = cfg: lib.attrNames (lib.filterAttrs (_: v: lib.hasPrefix "/home/${user}/" (v.path or "")) cfg.config.sops.secrets);
+    in
+    failures (
+      map (n: "control: personalSecrets default does not declare ${n}") (lib.filter (n: !(secretsOf on ? ${n})) personalNames)
+      ++ map (n: "control: personalSecrets default does not give ${n} to ${user}") (lib.filter (n: (secretsOf on).${n}.owner or null != user) rootNames)
+      ++ map (n: "personalSecrets=false still declares ${n}") (lib.filter (n: secretsOf off ? ${n}) personalNames)
+      ++ map (n: "personalSecrets=false: ${n} not owned by root") (lib.filter (n: (secretsOf off).${n}.owner or null != "root") rootNames)
+      ++ map (n: "personalSecrets=false: ${n} still owned by ${user}") (ownedBy off user)
+      ++ map (n: "personalSecrets=false: ${n} still placed under /home/${user}/") (underHome off)
+      ++ lib.optional (!(secretsOf off ? tailscale_key)) "personalSecrets=false dropped the non-personal tailscale_key"
+    );
   check-mcp-nas-launchers =
     let
       cfg = nas.config;

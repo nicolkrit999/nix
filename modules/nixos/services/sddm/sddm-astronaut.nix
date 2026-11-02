@@ -73,6 +73,15 @@ delib.module {
         '';
       };
 
+      assetsDir = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = ''
+          Directory that plain filenames of background/avatar are resolved in.
+          null means users/<user>/src/sddm/ (user = constants.user).
+        '';
+      };
+
       background = lib.mkOption {
         type = lib.types.nullOr (lib.types.either lib.types.path lib.types.str);
         default = null;
@@ -91,7 +100,9 @@ delib.module {
     , ...
     }:
     let
-      sddmDir = ../../../../users + "/${myconfig.constants.user}/src/sddm";
+      sddmDir =
+        if cfg.assetsDir != null then cfg.assetsDir
+        else ../../../../users + "/${myconfig.constants.user}/src/sddm";
       resolveImg = name:
         if name == null || builtins.isPath name || lib.hasPrefix builtins.storeDir name then name
         else if lib.hasPrefix "/" name then

@@ -82,6 +82,6 @@ Values are compared against independent sources (sops secret paths, `users.users
 | rclone-assertions-pass-on-real-host / fires-on-duplicate-name / fires-on-empty-field | the module's assertions pass on the real host; a duplicated name and an empty remote (via `extendModules`) each fail exactly one `services.rcloneMount` assertion |
 | rclone-sops-secret-declared / sops-file-has-key | configFile is a declared `rclone_*` secret owned by the user; its sopsFile exists and contains the key |
 | no-literal-PATH-in-hm-units / system-units | no `Environment` entry contains a literal `$PATH` (base and every specialisation) |
-| sweep-covers-school-unit | the sweep sees `school-onedrive-mount` in the school specialisation |
+| sweep-covers-school-unit | the sweep sees `rclone-mount-school-onedrive` in the school specialisation (each set is read under that configuration's own `constants.user`, so the school user's units are swept too) |
 
 No synthetic hosts are built beyond minimal `extendModules` overrides (sshfs enabled, empty windows uuid, empty smb/sshfs secret path, duplicate rclone name, empty rclone remote); everything else evaluates the real hosts.

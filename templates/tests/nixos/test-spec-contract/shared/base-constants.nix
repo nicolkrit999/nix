@@ -5,7 +5,7 @@
   gitUserName = "Test User";
   gitUserEmail = "test@example.com";
   shell = "fish";
-  browser = "zen-beta";
+  browser = "firefox";
   editor = "code";
   fileManager = "yazi";
   terminal = {

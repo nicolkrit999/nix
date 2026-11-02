@@ -39,7 +39,8 @@ The package tables (`packageLeaves`, `packagesPerHost`, `extraMappingsPerHost`, 
 | syncBack known | each `syncBack` path is a leaf of some package |
 | host keys real | `packagesPerHost` / `extraMappingsPerHost` keys are real hostnames |
 | no unused package | every package is used by at least one host |
-| school-workspace | NixOS `.school-workspace/`, Darwin `school-workspace/`, NAS none |
+| school-workspace | desktop and laptop (NixOS) have no `school-workspace` link in `home.file` (the school specialisation is a dedicated user with its own home, so the base user no longer links `.school-workspace/`); Darwin keeps `school-workspace/` (no dot); NAS none |
+| control: school links flagged | a twin of the desktop `home.file` with a `.school-workspace/` key is flagged, and the detector flags the real mac `school-workspace/` links, so an empty result is not vacuous |
 
 ### start-actual-mcp launcher (desktop, laptop, mac)
 The bare command `start-actual-mcp` is used by the project-scoped MCP server in `~/momentary/.mcp.json`, so it must resolve from `PATH` wherever it is linked. The effective `PATH` dirs come from the real config: on NixOS `environment.localBinInPath` (`$HOME/.local/bin`, `modules/nixos/toplevel/env.nix`) plus the home-manager `home.sessionPath`; on Darwin `home.sessionPath` (`modules/darwin/toplevel/home-darwin.nix`). The private repo is not read (not available in CI): only the mapping source string is compared.

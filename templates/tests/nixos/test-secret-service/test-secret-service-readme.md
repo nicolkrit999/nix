@@ -46,7 +46,7 @@ Per config (base and every specialisation):
 | one SSH agent | gcr-ssh-agent on; `programs.gnupg.agent.enableSSHSupport`, `programs.ssh.startAgent`, HM gpg-agent SSH support and HM ssh-agent all off; `SSH_AUTH_SOCK` fallback to `gcr/ssh` in `extraInit` |
 | Secret portal (system and HM) | every `xdg.portal.config.*` key has `org.freedesktop.impl.portal.Secret = gnome-keyring` exactly once |
 | portal manifest | `gnome-keyring-portal-manifest` in system and HM `extraPortals` |
-| installed browsers | every package whose name contains brave/chromium/google-chrome/vscode (excluding `*-school` launcher scripts that exec the pinned package) carries `--password-store=gnome-libsecret`; vacuously true if a host has none (positive case and control live on the fixture, below) |
+| installed browsers | every package whose name contains brave/chromium/google-chrome/vscode carries `--password-store=gnome-libsecret` (the school specialisation installs the plain, overlay-pinned `brave` and `vscode`, no launcher wrappers, so it is covered like every other config); vacuously true if a host has none (positive case and control live on the fixture, below) |
 | FHS-wrapped apps | packages whose name contains claude-desktop or antigravity (substring match, so a `-fhs` rename cannot slip out of the set), when installed, carry the flag |
 | HM chromium / helium | pinned when enabled |
 | portal keys lowercase | every top-level key of system and HM `xdg.portal.config` equals its lowercase form (xdg-desktop-portal lowercases `XDG_CURRENT_DESKTOP`) |

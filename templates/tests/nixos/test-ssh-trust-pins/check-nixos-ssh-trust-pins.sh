@@ -42,7 +42,7 @@ type_label() {
 
 for h in "${HOSTS[@]}"; do
   (
-    for attr in report nixosPins nixosMirroredPins hmKnownHosts allowedSigners; do
+    for attr in report nixosPins nixosMirroredPins hmKnownHosts schoolPins allowedSigners; do
       HOST=$h nix eval --raw --impure --file "$SCENARIO" "$attr" >"$WORK/$h.$attr" 2>>"$WORK/$h.err" || { echo 1 >"$WORK/$h.rc"; exit 0; }
     done
     echo 0 >"$WORK/$h.rc"
@@ -112,6 +112,9 @@ for h in "${HOSTS[@]}"; do
   done <"$WORK/$h.report"
 
   check_keys_file "every NixOS-pinned key parses with ssh-keygen -lf, type matches blob" "$WORK/$h.nixosPins" 3
+  if [[ -s "$WORK/$h.schoolPins" && $(wc -c <"$WORK/$h.schoolPins") -gt 1 ]]; then
+    check_keys_file "school specialisation system-wide pins parse with ssh-keygen -lf, type matches blob" "$WORK/$h.schoolPins" 3
+  fi
   if [[ -s "$WORK/$h.hmKnownHosts" ]]; then
     check_keys_file "every HM known_hosts line parses with ssh-keygen -lf, type matches blob" "$WORK/$h.hmKnownHosts" 3
     fingerprints_equal "$h"

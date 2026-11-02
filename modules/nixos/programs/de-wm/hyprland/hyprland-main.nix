@@ -314,6 +314,8 @@ delib.module {
               background_color = "rgb(${colors.base00})";
             };
 
+            ecosystem.no_update_news = true;
+
             xwayland = {
               force_zero_scaling = true;
             };

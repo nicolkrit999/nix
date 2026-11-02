@@ -74,18 +74,14 @@ let
     ".local/bin/learn-faster" = "claude/common/binaries/learn-faster";
   };
 
-  # Scoped skills/MCPs load only inside their context dir (symlinks resolve to claude/parked/*)
+  # Scoped skills/MCPs load only inside their context dir (symlinks resolve to claude/parked/*).
+  # The school context lives in the school user's home (school-claude-sync in the school specialisation).
   contextScopedClaude = {
     "momentary/.claude/skills" = "claude/momentary/.claude/skills";
     "momentary/.claude/agents" = "claude/momentary/.claude/agents";
     "momentary/.mcp.json" = "claude/momentary/.mcp.json";
-    ".school-workspace/.claude/skills" = "claude/school/.claude/skills";
-    ".school-workspace/.claude/agents" = "claude/school/.claude/agents";
-    ".school-workspace/.mcp.json" = "claude/school/.mcp.json";
     "momentary/.claude/commands" = "claude/momentary/.claude/commands";
     "momentary/.learning" = "claude/momentary/.learning";
-    ".school-workspace/.claude/commands" = "claude/school/.claude/commands";
-    ".school-workspace/.learning" = "claude/school/.learning";
   };
 
   # Maps home-dir path → repo-relative path, for cases where the two differ

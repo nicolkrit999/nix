@@ -51,7 +51,7 @@ let
 
   checks = _cfgName: c:
     let
-      hm = c.home-manager.users.krit;
+      hm = c.home-manager.users.${c.myconfig.constants.user};
       plasma = c.services.desktopManager.plasma6.enable;
       kwalletPkg = lib.any (n: has "kwallet" n) (pkgNames c.services.dbus.packages);
       rc = ini (c.environment.etc."xdg/kwalletrc".text or "");
@@ -62,7 +62,7 @@ let
       portalNames = pkgNames c.xdg.portal.extraPortals;
       hmPortalNames = pkgNames hm.xdg.portal.extraPortals;
       allPkgs = c.environment.systemPackages ++ hm.home.packages;
-      byInfix = subs: lib.filter (p: !(has "-school" (p.name or "")) && lib.any (s: has s (p.name or "")) subs) allPkgs; # school launchers exec the pinned pkgs.brave/vscode
+      byInfix = subs: lib.filter (p: lib.any (s: has s (p.name or "")) subs) allPkgs;
       browsers = byInfix [ "brave" "chromium" "google-chrome" "vscode" ];
       wrapped = byInfix [ "claude-desktop" "antigravity" ];
       portalCfgs = lib.attrNames c.xdg.portal.config;

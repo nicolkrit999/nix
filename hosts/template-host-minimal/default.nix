@@ -20,7 +20,7 @@ delib.host {
       # 📦 CONSTANTS BLOCK (Data Bucket)
       # ---------------------------------------------------------------
       constants = {
-        # Must equal homeManagerUser in flake.nix, which is hardcoded there because it is evaluated first.
+        # Must equal homeManagerUser in flake.nix for the base configuration (specialisations may override it, see Documentation/usage/denix/home-user-follows-constants.md).
         user = "krit";
 
         # Optional examples:

@@ -29,9 +29,13 @@ in
 delib.module {
   name = "services.external.dotfiles";
 
-  options = delib.singleEnableOption false;
+  options = with delib; moduleOptions {
+    enable = boolOption false;
+    # false: skip the Pictures/wallpapers link into the private wallpapers repo checkout
+    wallpapersLink = boolOption true;
+  };
 
-  home.ifEnabled = { myconfig, ... }:
+  home.ifEnabled = { cfg, myconfig, ... }:
     let
       homeDir = "/home/${myconfig.constants.user}";
       mkLink = relPath:
@@ -46,7 +50,8 @@ delib.module {
           "ln -s ${lib.escapeShellArg absPath} $out";
     in
     {
-      home.file = builtins.mapAttrs (_: relPath: { source = mkLink relPath; force = true; }) mappings // {
+      home.file = builtins.mapAttrs (_: relPath: { source = mkLink relPath; force = true; }) mappings
+        // lib.optionalAttrs cfg.wallpapersLink {
         # wallpapers repo (landscape / portrait / various directly inside)
         "Pictures/wallpapers" = { source = mkAbsLink "${homeDir}/github-repos/personal/wallpapers-repo"; force = true; };
       };

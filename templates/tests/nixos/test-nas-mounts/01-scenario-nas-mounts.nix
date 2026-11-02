@@ -51,7 +51,7 @@ let
   cloudEnabled = builtins.filter (n: cloudModules.${n}.enable) (builtins.attrNames cloudModules);
   rcloneSecretFor = m: lib.findFirst (n: cfg.sops.secrets.${n}.path == m.configFile) null
     (builtins.filter (lib.hasPrefix "rclone_") (builtins.attrNames cfg.sops.secrets));
-  hm = c: c.home-manager.users.${user}.systemd.user.services;
+  hm = c: c.home-manager.users.${c.myconfig.constants.user}.systemd.user.services;
   rcloneUnit = m: (hm cfg)."rclone-mount-${m.name}";
   one = v: if builtins.isList v then builtins.concatStringsSep " " v else v;
   execOf = m: one (rcloneUnit m).Service.ExecStart;
@@ -211,8 +211,8 @@ let
     check-no-literal-PATH-in-system-units = check (sysLiteralPath == [ ])
       "offending system units: ${builtins.toJSON sysLiteralPath}";
     check-sweep-covers-school-unit = check
-      (lib.any (set: set.label == "spec:school" && set.units ? school-onedrive-mount) hmUnitSets)
-      "unit sweep does not see school-onedrive-mount, so the PATH sweep is incomplete";
+      (lib.any (set: set.label == "spec:school" && set.units ? rclone-mount-school-onedrive) hmUnitSets)
+      "unit sweep does not see rclone-mount-school-onedrive, so the PATH sweep is incomplete";
   };
   guard = v: let r = builtins.tryEval (builtins.deepSeq v v); in if r.success then r.value else "FAIL: eval error (option missing or throw)";
 in

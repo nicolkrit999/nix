@@ -24,10 +24,16 @@ let
   };
   standaloneHome = flake.homeConfigurations."krit@template-host-minimal".extendModules { modules = [ enable ]; };
 
+  extraGo = { on = [ "g" "o" ]; run = "cd ~/opencloud"; desc = "Go ~/opencloud"; };
+  goTwinSys = linuxSys.extendModules {
+    modules = [{ myconfig.krit.programs.yazi = { goToExclude = [ "n" "P" "m" ]; goToExtra = [ extraGo ]; }; }];
+  };
+
   hmOf = sys: sys.config.home-manager.users.${sys.config.myconfig.constants.user};
   linux = (hmOf linuxSys).programs.yazi;
   darwin = (fxDarwin.hmOf darwinSys.config).programs.yazi;
   nas = standaloneHome.config.programs.yazi;
+  goTwin = (hmOf goTwinSys).programs.yazi;
 
   expectedBefore = [
     [ "open" "reveal" ]
@@ -87,6 +93,26 @@ let
   mgrBindings = km: (km.mgr.prepend_keymap or [ ]) ++ (km.mgr.append_keymap or [ ]) ++ (km.mgr.keymap or [ ]);
   bindsO = km: lib.filter (e: keysOf e != [ ] && builtins.elem (lib.head (keysOf e)) [ "O" "<S-o>" ]) (mgrBindings km);
 
+  isGo = e: let k = keysOf e; in lib.length k == 2 && lib.head k == "g";
+  goChords = km: map (e: [ (lib.elemAt (keysOf e) 1) e.run ]) (lib.filter isGo (mgrBindings km));
+  nonGo = km: lib.filter (e: !(isGo e)) (mgrBindings km);
+  flakeDirOf = sys: sys.config.myconfig.constants.flakeDir;
+  goDefaults = { flakeDir, trash, mounts }: [
+    [ "c" "cd ~/.config" ]
+    [ "d" "cd ~/Downloads" ]
+    [ "D" "cd ~/Documents" ]
+    [ "n" "cd ~/${flakeDir}" ]
+    [ "p" "cd ~/Pictures" ]
+    [ "P" "cd ~/${flakeDir}/templates/krit/dev-environments" ]
+    [ "v" "cd ~/Videos" ]
+    [ "." "cd ~/dotfiles" ]
+    [ "t" trash ]
+    [ "m" mounts ]
+    [ "M" "cd ~/momentary" ]
+  ];
+  goLinux = sys: goDefaults { flakeDir = flakeDirOf sys; trash = "cd ~/.local/share/Trash/files"; mounts = "cd /mnt"; };
+  goDarwin = sys: goDefaults { flakeDir = flakeDirOf sys; trash = "plugin trash"; mounts = "cd /Volumes"; };
+
   helperPrefix = "/nix/store/[a-z0-9]{32}-yazi-open-with/bin/yazi-open-with";
   runShape = run: builtins.match "${helperPrefix} %s1" (builtins.unsafeDiscardStringContext run) != null;
   openWithShapeDesc = d: y:
@@ -121,6 +147,24 @@ let
       "open rules use undefined openers ${show (unresolved linux)}";
     check-linux-keymap-leaves-O-alone = check (mgrBindings linux.keymap != [ ] && bindsO linux.keymap == [ ])
       "mgr keymap binds O (${show (bindsO linux.keymap)}) or is empty (${toString (lib.length (mgrBindings linux.keymap))} entries)";
+
+    check-linux-goto-chords-unchanged-by-default = check (goChords linux.keymap == goLinux linuxSys)
+      "linux g-chords with no exclusions/extras: ${show (goChords linux.keymap)}";
+    check-standalone-home-goto-chords-unchanged-by-default = check (goChords nas.keymap == goLinux standaloneHome)
+      "standalone home g-chords with no exclusions/extras: ${show (goChords nas.keymap)}";
+    check-darwin-goto-chords-unchanged-by-default = check (goChords darwin.keymap == goDarwin darwinSys)
+      "darwin g-chords with no exclusions/extras: ${show (goChords darwin.keymap)}";
+    check-goto-exclude-and-extra-apply = check
+      (goChords goTwin.keymap == (lib.filter (c: !(builtins.elem (lib.head c) [ "n" "P" "m" ])) (goLinux linuxSys)) ++ [ [ "o" "cd ~/opencloud" ] ]
+        && nonGo goTwin.keymap == nonGo linux.keymap)
+      "twin g-chords ${show (goChords goTwin.keymap)}; non-g keymap equal to the default: ${show (nonGo goTwin.keymap == nonGo linux.keymap)}";
+    check-control-goto-twin-differs-from-default = check
+      (goChords goTwin.keymap != goChords linux.keymap && lib.length (goChords linux.keymap) == 11 && lib.length (goChords goTwin.keymap) == 9)
+      "the exclusion/extra twin reads like the default, so the unchanged-by-default checks cannot discriminate";
+    check-control-goto-extractor-flags-a-changed-run = check
+      (goChords { mgr.prepend_keymap = [{ on = [ "g" "c" ]; run = "cd /elsewhere"; } { on = "x"; run = "y"; }]; } == [ [ "c" "cd /elsewhere" ] ]
+        && goChords { mgr.prepend_keymap = [{ on = [ "g" "c" ]; run = "cd /elsewhere"; }]; } != [ (lib.head (goLinux linuxSys)) ])
+      "the g-chord extractor mis-reads a planted chord or ignores a changed run string";
 
     check-standalone-home-has-open-with = check
       (openWithShape nas && useProblems true (rulesOf nas) == [ ] && nas.settings.pick.open_title == "Menu")

@@ -132,7 +132,8 @@ run_check "check-entertainment-hyprland-disabled"  "programs.hyprland.enable == 
 
 echo ""
 echo -e "${BOLD}school${NC}"
-run_check "check-school-browser-constant"  "constants.browser == 'brave-school'"
+run_check "check-school-browser-constant"  "constants.browser == 'zen-beta'"
+run_check "check-school-user-constant"     "constants.user == 'krit-school' (own account)"
 run_check "check-school-editor-constant"   "constants.editor == 'nvim'"
 run_check "check-school-setup-script"      "school-distrobox-setup in home.packages"
 run_check "check-school-check-script"      "school-distrobox-check in home.packages"

@@ -77,10 +77,12 @@ run_check check-nixos-no-unused-package   "nixos packages all used"
 run_check check-darwin-no-unused-package  "darwin packages all used"
 
 echo -e "\n${BOLD}school-workspace naming${NC}"
-run_check check-desktop-school-dot  "desktop uses .school-workspace"
-run_check check-laptop-school-dot   "laptop uses .school-workspace"
+run_check check-desktop-no-school-links "desktop has no school-workspace links (school user owns its home)"
+run_check check-laptop-no-school-links  "laptop has no school-workspace links (school user owns its home)"
 run_check check-mac-school-nodot    "mac uses school-workspace (no dot)"
 run_check check-nas-no-school       "NAS has no school-workspace links"
+run_check check-control-school-links-detected         "control: a school-workspace link on a NixOS host is flagged"
+run_check check-control-school-links-detected-on-mac  "control: the detector flags the mac school-workspace links"
 
 echo -e "\n${BOLD}start-actual-mcp launcher resolves from PATH${NC}"
 for h in desktop laptop mac; do

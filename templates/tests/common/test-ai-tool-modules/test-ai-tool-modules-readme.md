@@ -1,6 +1,6 @@
 # test-ai-tool-modules
 
-Wiring contracts of the AI tool modules in `modules/common/programs/`: the headroom proxy (`headroom.nix`), the claude-code `cowork` toggle (`claude-code.nix`), the `krit.programs.claude-code-wrappers` `openrouterAliases` option and the `claude-code-personal` aliases and the codex overlay (`codex.nix`). It does not test whether a host enables any of them: every variant forces its own toggles on `template-host-minimal`.
+Wiring contracts of the AI tool modules in `modules/common/programs/`: the headroom proxy (`headroom.nix`), the claude-code `cowork` toggle (`claude-code.nix`), the `krit.programs.claude-code-wrappers` `openrouterAliases` and `connectorWorkspaces` options, the `claude-code-personal` aliases and the codex overlay (`codex.nix`). It does not test whether a host enables any of them: every variant forces its own toggles on `template-host-minimal`.
 
 Why: headroom's address is spelled in two places (unit `ExecStart` and the `headroom-claude` script) and drifts silently; a `python3.withPackages` env would put a second `bin/python` into `home.packages` (collision with the school specialisation's python env); a user unit `After=network.target` is a no-op. `cowork` must stay opt-in, `claude-code.nix` must evaluate without the `users/krit` tree (it reads only its own `openrouterAliases` option, set by `claude-code-wrappers.nix`, never `myconfig.krit.*`), and `pkgs.codex` must come from the `codex-cli-nix` overlay rather than a second nixpkgs import.
 
@@ -26,7 +26,7 @@ bash check-common-ai-tool-modules.sh
 
 `01-scenario-ai-tool-modules.nix` loads the real flake (`FLAKE_ROOT`, default `/home/krit/nix`) and builds `template-host-minimal.extendModules` twins, each with only the toggles a check needs (headroom on/off; claude-code on, on with `cowork = true`, off with `cowork = true`; codex on/off). A fifth variant (`shared/`) is a krit-tree-free host built with `denix.lib.configurations` from only the fake host `cc-bare`, `home-manager.nix`, the constants modules and `claude-code.nix`, once as is and once with `openrouterAliases = true`. A probe module exposes the host's final `pkgs.codex`. Results are attrsets of `"ok"` / `"FAIL: ..."` per group.
 
-`check-common-ai-tool-modules.sh` evaluates each group (`headroom`, `cowork`, `codex`, `openrouter`) with one `nix eval --json --impure` and prints a PASS/FAIL line per check. Nothing is built: the headroom package is identified by the store path in `ExecStart` and checked through its `pythonModule` passthru (`toPythonApplication` sets it to `false`); the overlay origin is read from `meta.position`. Runtime about 15 s warm. On Darwin (no `nixosConfigurations`) every check reports `ok`.
+`connectorWorkspaces` is checked on the text of the generated `cai` script (the `jq` allow-list lines per connector) for the NixOS default, an explicit `[ "" ]` (the school value: the home directory itself), named workspaces and a Darwin fixture (`templates/tests/lib/fixture-host-darwin.nix`, option default only). `check-common-ai-tool-modules.sh` evaluates each group (`headroom`, `cowork`, `codex`, `openrouter`, `connectors`) with one `nix eval --json --impure` and prints a PASS/FAIL line per check. Nothing is built: the headroom package is identified by the store path in `ExecStart` and checked through its `pythonModule` passthru (`toPythonApplication` sets it to `false`); the overlay origin is read from `meta.position`. Runtime about 15 s warm. On Darwin (no `nixosConfigurations`) every check reports `ok`.
 
 ## Checks
 
@@ -63,6 +63,16 @@ bash check-common-ai-tool-modules.sh
 | check-wrappers-add-aliases | `template-host-minimal` with `krit.programs.claude-code-wrappers` on: option true and `cai-openrouter-opus` present; with it off (default): no `cai-openrouter-*` alias |
 | check-option-alone-drives-aliases | wrappers on with `openrouterAliases = false`: no `cai-openrouter-*` alias |
 | check-personal-template-aliases | `krit.programs.claude-code-personal` on: `caitempplugins` present, no `cai-openrouter-*`; off: no `caitemp*` |
+
+### claude-code connector workspaces
+
+| Check | Expected |
+|-------|----------|
+| check-nixos-default-is-empty | NixOS: declared default and value of `claude-code-wrappers.connectorWorkspaces` are `[ ]`; the `cai` script's Google Calendar and Gmail lines allow only `$h + "/momentary"` and `$h + "/dotfiles-private"`; Higgsfield and Google Drive allow only `$h + "/momentary"` |
+| check-darwin-default-is-school-workspace | Darwin fixture: declared default is `[ "school-workspace" ]` |
+| check-school-value-is-home-directory | `connectorWorkspaces = [ "" ]` (the school specialisation's value): Calendar and Gmail lines start with `$h, ` (the home directory itself); Higgsfield and Drive are not widened |
+| check-named-workspaces-keep-their-path | `[ "school-workspace" "x/y" ]` renders `$h + "/school-workspace", $h + "/x/y", ` before `$h + "/momentary"` in the Calendar and Gmail lines |
+| check-control-value-changes-the-script | the `cai` text differs between `[ ]` and `[ "" ]` and is non-empty (the line checks are not vacuous) |
 
 ### codex overlay
 

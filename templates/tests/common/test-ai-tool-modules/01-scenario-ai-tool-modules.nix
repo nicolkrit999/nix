@@ -201,6 +201,54 @@ let
     ];
   };
 
+  fxDarwin = import ../../lib/fixture-host-darwin.nix flake;
+  wrappersWs = ws: mk [{
+    myconfig.programs.claude-code.enable = true;
+    myconfig.krit.programs.claude-code-wrappers = { enable = true; connectorWorkspaces = ws; };
+  }];
+  caiText = x:
+    let p = lib.findFirst (p: (p.name or "") == "cai") null x.config.environment.systemPackages;
+    in if p == null then "" else nc (p.text or "");
+  connectorLine = name: text:
+    let ls = lib.filter (l: lib.hasInfix "\"${name}\"" l) (lib.splitString "\n" text);
+    in if ls == [ ] then "<missing line for ${name}>" else lib.trim (lib.head ls);
+  wsPrefix = ws: lib.concatMapStrings (w: if w == "" then "$h, " else "$h + \"/${w}\", ") ws;
+  calendarWant = ws: "\"claude.ai Google Calendar\": [${wsPrefix ws}$h + \"/momentary\", $h + \"/dotfiles-private\"],";
+  gmailWant = ws: "\"claude.ai Gmail\": [${wsPrefix ws}$h + \"/momentary\", $h + \"/dotfiles-private\"],";
+  higgsWant = "\"claude.ai Higgsfield\": [$h + \"/momentary\"],";
+  driveWant = "\"claude.ai Google Drive\": [$h + \"/momentary\"]";
+  linesOk = ws: x:
+    let t = caiText x; in
+    [
+      (expect "Calendar line for ${builtins.toJSON ws}" (connectorLine "claude.ai Google Calendar" t) (calendarWant ws))
+      (expect "Gmail line for ${builtins.toJSON ws}" (connectorLine "claude.ai Gmail" t) (gmailWant ws))
+      (expect "Higgsfield line for ${builtins.toJSON ws} (never widened)" (connectorLine "claude.ai Higgsfield" t) higgsWant)
+      (expect "Google Drive line for ${builtins.toJSON ws} (never widened)" (connectorLine "claude.ai Google Drive" t) driveWant)
+    ];
+  optDefault = x: x.options.myconfig.krit.programs.claude-code-wrappers.connectorWorkspaces.default or "<no default>";
+
+  connectors = {
+    check-nixos-default-is-empty = all ([
+      (expect "NixOS connectorWorkspaces declared default" (optDefault wrappersOn) [ ])
+      (expect "NixOS connectorWorkspaces value with the option unset" wrappersOn.config.myconfig.krit.programs.claude-code-wrappers.connectorWorkspaces [ ])
+    ] ++ linesOk [ ] wrappersOn);
+
+    check-darwin-default-is-school-workspace =
+      let d = fxDarwin.mkDarwin { paths = map (f: fxDarwin.src + f) [ "/users/krit/common/programs/claude-code/claude-code-wrappers.nix" "/modules/common/programs/claude-code.nix" "/modules/common/programs/shells/npm.nix" ]; };
+      in expect "darwin connectorWorkspaces declared default" (optDefault d) [ "school-workspace" ];
+
+    check-school-value-is-home-directory = all (linesOk [ "" ] (wrappersWs [ "" ]) ++ [
+      (expect "school value as evaluated" (wrappersWs [ "" ]).config.myconfig.krit.programs.claude-code-wrappers.connectorWorkspaces [ "" ])
+    ]);
+
+    check-named-workspaces-keep-their-path = all (linesOk [ "school-workspace" "x/y" ] (wrappersWs [ "school-workspace" "x/y" ]));
+
+    check-control-value-changes-the-script = all [
+      (if caiText wrappersOn != "" && caiText wrappersOn != caiText (wrappersWs [ "" ]) then "ok" else "FAIL: the cai script text does not depend on connectorWorkspaces (or is empty), so the line checks are vacuous")
+      (if connectorLine "claude.ai Gmail" (caiText wrappersOn) != connectorLine "claude.ai Gmail" (caiText (wrappersWs [ "" ])) then "ok" else "FAIL: Gmail line equal for [ ] and [ \"\" ]")
+    ];
+  };
+
   codexOn = mk [{ myconfig.programs.codex.enable = true; }];
   codexOff = mk [{ myconfig.programs.codex.enable = false; }];
   codexSrc = nc inputs.codex-cli-nix.outPath;
@@ -234,4 +282,5 @@ in
   cowork = lib.mapAttrs (_: guard) cowork;
   codex = lib.mapAttrs (_: guard) codex;
   openrouter = lib.mapAttrs (_: guard) openrouter;
+  connectors = lib.mapAttrs (_: guard) connectors;
 }

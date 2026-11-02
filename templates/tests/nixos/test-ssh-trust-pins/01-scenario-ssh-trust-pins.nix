@@ -80,6 +80,10 @@ let
   peerOpts = plain (hmSettings.${peer} or { });
   authFiles = cfg.services.openssh.authorizedKeysFiles;
 
+  schoolSpec = cfg.specialisation.school.configuration;
+  schoolKnown = if isDarwinHost then { } else (schoolSpec.config or schoolSpec).programs.ssh.knownHosts;
+  schoolGithubPin = (schoolKnown."github.com" or { publicKey = ""; }).publicKey;
+
   nixosOnlyChecks = {
     "peer Host entry exists in NixOS extraConfig and HM settings, with the tailnet name, user and identity, and never for the host itself" =
       let
@@ -113,6 +117,15 @@ let
         then lib.hasPrefix "nh os switch " sw && lib.hasSuffix flags sw && lib.hasPrefix "nh os build " bd && lib.hasSuffix flags bd
         else sw == "" && bd == "")
         "sw=${show sw} build=${show bd}";
+    "school specialisation pins github.com system-wide with the same ed25519 key as the standalone-home known_hosts; the base config has no such pin" =
+      expect "school-github-pin"
+        (lib.hasPrefix "ssh-ed25519 " schoolGithubPin && builtins.length (fields schoolGithubPin) == 2
+          && builtins.elem schoolGithubPin (hmKeysFor "github.com") && !(nixosKnown ? "github.com"))
+        "school pin=${show schoolGithubPin} hm github keys=${show (hmKeysFor "github.com")} base pins github=${show (nixosKnown ? "github.com")}";
+    "control: the school pin comparison fails for a wrong key (the equality can fail)" =
+      expect "ctl-school-github-pin"
+        (!(builtins.elem "ssh-ed25519 AAAAnot-the-github-key" (hmKeysFor "github.com")) && builtins.elem schoolGithubPin (hmKeysFor "github.com"))
+        "the HM key list accepts an arbitrary key or lacks the school pin: ${show (hmKeysFor "github.com")}";
     "NAS ed25519 key is pinned for both the FQDN and the tailnet IP (NixOS-only pin, exempt from the HM mirror)" =
       expect "nas-pin"
         (lib.hasPrefix "ssh-ed25519 " nasPin.publicKey && nasPin.publicKey == nas.hostKey
@@ -305,5 +318,6 @@ in
   nixosPins = lib.concatStringsSep "\n" (lib.mapAttrsToList (h: k: "${h} ${k}") nixosKnown) + "\n";
   nixosMirroredPins = lib.concatStringsSep "\n" (lib.mapAttrsToList (h: k: "${h} ${k}") nixosMirrored) + "\n";
   hmKnownHosts = if isDarwinHost then "" else hmKnownText;
+  schoolPins = if isDarwinHost then "" else lib.concatStringsSep "\n" (lib.mapAttrsToList (h: k: "${h} ${k.publicKey}") (lib.filterAttrs (n: _: n == "github.com") schoolKnown)) + "\n";
   allowedSigners = (if isDarwinHost then dHm dOn else hmNixos).home.file.".ssh/allowed_signers".text;
 }

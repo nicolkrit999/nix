@@ -87,13 +87,15 @@ delib.host {
     system.stateVersion = "25.11";
     time.hardwareClockInLocalTime = true;
 
+    fileSystems."/home".neededForBoot = true;
+
     imports = [
       ./hardware-configuration.nix
 
       # Host-specific sops secrets (common ones live in
       # users/krit/common/toplevel/sops-secrets.nix, enabled via default.nix)
       (
-        { config, ... }:
+        { config, lib, ... }:
         {
           sops.secrets."krit-local-password".neededForUsers = true;
 
@@ -112,7 +114,7 @@ delib.host {
           '';
 
           # GitHub PAT for nix
-          nix.extraOptions = ''
+          nix.extraOptions = lib.mkIf config.myconfig.krit.commonSopsSecrets.personalSecrets ''
             !include ${config.sops.secrets.github_fg_pat_token_nix.path}
           '';
         }

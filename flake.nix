@@ -74,6 +74,38 @@
             else
               darwinHosts; # home-manager builds exclude darwin hosts (keep homeOnlyHosts)
 
+          # homeManagerUser is evaluated before any config exists, so every
+          # home.* block would land on the fixed user below. This follows the
+          # constants.user of the evaluating (specialisation) config instead,
+          # via a module function; for constants.user = homeManagerUser,
+          # as in every base configuration, nothing changes.
+          homeUserFollowsConstants = denix.lib.extension {
+            name = "home-user-follows-constants";
+            libExtension = _config: _final: prev:
+              let
+                args = prev._callLibArgs;
+                orig = args.apply;
+                home = _home:
+                  if moduleSystem == "home" || !args.useHomeManagerModule then
+                    orig.home _home
+                  else
+                    { config, ... }: { home-manager.users.${config.${args.myconfigName}.constants.user} = _home; };
+              in
+              {
+                _callLibArgs = args // {
+                  apply = orig // {
+                    inherit home;
+                    listOfEverything = _myconfig: _nixos: _home: _darwin: [
+                      (orig.myconfig _myconfig)
+                      (orig.nixos _nixos)
+                      (home _home)
+                      (orig.darwin _darwin)
+                    ];
+                  };
+                };
+              };
+          };
+
           # 3-way split: common modules shared, platform-specific separate
           # Darwin: common + darwin modules/users
           # NixOS: common + nixos modules/users
@@ -106,6 +138,7 @@
               args.enable = true;
               rices.enable = false;
             })
+            homeUserFollowsConstants
           ];
 
           extraModules = [ pkgsStableModule ];

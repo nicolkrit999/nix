@@ -51,6 +51,7 @@ Per NixOS host (`nixos-desktop`, `nixos-laptop`):
 | ssh-<peer> alias | `ssh-<peer>` shell alias is `ssh <peer>`, absent for the host itself |
 | remote-build aliases | `sw-laptop-with-desktop` and `build-laptop-with-desktop` (`nh os switch/build <flake> --hostname nixos-laptop --build-host krit@nixos-desktop`) exist on the laptop only |
 | NAS pin | `programs.ssh.knownHosts."nicol-nas-tailnet"` is an `ssh-ed25519` key equal to `krit.services.nas.hostKey`, for both `nas.host` and `nas.tailnetIp`; `Host nicol-nas` `HostName` equals `nas.host` |
+| school github.com pin | `specialisation.school.configuration` pins `github.com` system-wide (`programs.ssh.knownHosts`) with an `ssh-ed25519` key (two fields) that appears verbatim among the `github.com` keys of the standalone-home `known_hosts`; the base config has no `github.com` NixOS pin (it is spec-only); control: the key list rejects an arbitrary key. The script also feeds that pin to `ssh-keygen -lf` (type matches blob) |
 | No host-key bypass | no borgmatic `ssh_command` and no sshfs mount option (sshfs enabled via `extendModules`) contains `StrictHostKeyChecking` |
 | Standalone home aliases | aliases (minus `*`) are a subset of the NixOS aliases |
 | Standalone `UserKnownHostsFile` | covers `known_hosts` and `known_hosts.local` |

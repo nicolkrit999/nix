@@ -1,12 +1,12 @@
-{ delib, ... }:
+{ delib, lib, ... }:
 # ⚠ CLOSE ZEN BEFORE REBUILD when modifying this file.
 delib.module {
   name = "krit.programs.zen-browser";
 
-  home.ifEnabled = {
+  home.ifEnabled = { cfg, ... }: {
     programs.zen-browser.profiles.default = {
       pinsForce = true;
-      pins = {
+      pins = lib.filterAttrs (_: pin: !cfg.universityOnly || (pin.workspace or null) == "10000000-0000-4000-8000-000000000004") {
 
         # ── Folders ─────────────────────────────────────────────────────────
 

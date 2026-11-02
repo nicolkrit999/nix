@@ -64,7 +64,8 @@ run_check "check-github-pat-mode-consistent" "PAT secret mode equal on NixOS and
 echo ""
 echo -e "${BOLD}sops files and keys${NC}"
 run_check "check-yaml-key-lookup-bites"   "control: yaml key lookup finds/rejects keys"
-run_check "check-sopsfiles-and-keys"      "every secret's sopsFile exists and holds its key"
+run_check "check-sopsfiles-and-keys"      "every secret (base and every specialisation) has an existing sopsFile holding its key"
+run_check "check-sopsfiles-spec-walk-bites" "control: spec walk covers the school secrets and reports a bogus key and a missing file"
 
 echo ""
 echo -e "${BOLD}consumers${NC}"
@@ -76,6 +77,8 @@ run_check "check-nas-secrets-darwin"      "Darwin NAS modules have their secrets
 run_check "check-thunderbird-forced"      "thunderbird (fake accounts) template/secrets owners, files, keys"
 run_check "check-thunderbird-profile-dirs" "thunderbird profile dirs: NixOS install -d, darwin mkdir/chown/chmod"
 run_check "check-ssh-key-paths"           "github keys in base, school keys only in the school spec"
+run_check "check-school-claude-secrets"   "school spec: claude-code-personal secrets owned by the school user, github/hevy keys absent"
+run_check "check-personal-secrets-option" "personalSecrets=false: no ssh/api keys, tokens root-owned, nothing under the user"
 
 echo ""
 echo -e "${BOLD}=== Summary ===${NC}"

@@ -39,6 +39,10 @@ Per host unless marked.
 | impermanence-enabled | `myconfig.services.impermanence.enable` |
 | root-tmpfs | `fileSystems."/".fsType == "tmpfs"` |
 | persist / var-log needed-for-boot | both `neededForBoot` |
+| home-needed-for-boot-base | `/home` is a separate non-tmpfs mount and `neededForBoot` (else user setup creates `/home/<user>` on the throwaway tmpfs root before the real `/home` is mounted over it, and a newly added user ends up with a root-owned home) |
+| home-needed-for-boot-specialisations | every specialisation of the host (all of `config.specialisation`, via `configuration.config or configuration`) has a separate `/home` with `neededForBoot` |
+| home-needed-for-boot-extra-users | tmpfs `/`, separate `/home` and a normal user besides `constants.user` (specialisation school/guest) requires `/home` `neededForBoot`; at least one specialisation with an extra normal user must exist (not vacuous) |
+| home-needed-for-boot-control | the same rules fail on an `extendModules` twin with `/home` `neededForBoot = mkForce false` (base and a specialisation with an extra user) and on synthetic inputs; a tmpfs `/home/guest` alone never triggers them |
 | persist-dirs | `/etc/ssh`, `/var/lib/nixos`, `/var/lib/tailscale`, `/var/lib/systemd/timesync`, `/var/lib/NetworkManager` persisted |
 | borgmatic-state-persisted | if `services.borgmatic` is enabled, `/var/lib/borgmatic` is a persisted directory (whether a host enables borgmatic is not asserted; `test-borg-backup-config` also checks the impermanence-off twin) |
 | persist-machine-id / random-seed-not-persisted | `/etc/machine-id` persisted file; `/var/lib/systemd/random-seed` must NOT be persisted (live switch fails: file already exists) |

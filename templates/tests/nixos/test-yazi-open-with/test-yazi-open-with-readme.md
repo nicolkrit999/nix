@@ -1,6 +1,6 @@
 # test-yazi-open-with
 
-Guards the yazi "Open with" entry in `users/krit/common/programs/file-managers/yazi/yazi.nix`: the `O` (`open --interactive`) menu gets one extra opener that hands the hovered file to an application picked from the ones the system associates with its MIME type (Flatpak apps included), and the menu title is "Menu". Three layers: an eval layer over the yazi settings, a behaviour layer that runs the real, shipped `yazi-open-with` helper against stubbed `gio`, `fzf` and `gtk-launch`, and an opener layer that executes the configured `run` string exactly the way yazi executes an opener.
+Guards the yazi "Open with" entry in `users/krit/common/programs/file-managers/yazi/yazi.nix` (and, in the eval layer, the default `g` go-to chords of `yazi-keymap.nix` together with its `goToExclude` / `goToExtra` options): the `O` (`open --interactive`) menu gets one extra opener that hands the hovered file to an application picked from the ones the system associates with its MIME type (Flatpak apps included), and the menu title is "Menu". Three layers: an eval layer over the yazi settings, a behaviour layer that runs the real, shipped `yazi-open-with` helper against stubbed `gio`, `fzf` and `gtk-launch`, and an opener layer that executes the configured `run` string exactly the way yazi executes an opener.
 
 ## Run
 
@@ -62,6 +62,12 @@ Controls: eval side, a planted `open-with` appended last or placed first, the ol
 | check-linux-catch-all-rule-last | the last rule is the `*` catch-all |
 | check-linux-every-used-opener-resolves | every name in any `use` is a defined opener |
 | check-linux-keymap-leaves-O-alone | mgr keymap is non-empty and no binding starts with `O` / `<S-o>` |
+| check-linux-goto-chords-unchanged-by-default | with no `goToExclude` / `goToExtra` the Linux `g` chords are exactly `gc gd gD gn gp gP gv g. gt gm gM`, in that order, with their literal `cd` commands (`gn` and `gP` derive from `constants.flakeDir`, `gt` is `cd ~/.local/share/Trash/files`, `gm` is `cd /mnt`) |
+| check-standalone-home-goto-chords-unchanged-by-default | the standalone home (Linux) has the same default chords |
+| check-darwin-goto-chords-unchanged-by-default | Darwin has the same chords with `gt` = `plugin trash` and `gm` = `cd /Volumes` |
+| check-goto-exclude-and-extra-apply | a twin with `goToExclude = [ "n" "P" "m" ]` and one `goToExtra` chord (`go`) has the nine remaining defaults followed by the extra, and its non-`g` keymap is identical to the default one |
+| check-control-goto-twin-differs-from-default | the twin really differs from the default (11 vs 9 chords), so the unchanged-by-default checks can fail |
+| check-control-goto-extractor-flags-a-changed-run | the chord extractor reads a planted `gc` with another command and ignores non-`g` bindings |
 | check-standalone-home-has-open-with | standalone home (Linux): opener shape, use lists and the "Menu" title |
 | check-darwin-pick-title-menu | `pick.open_title == "Menu"` on Darwin |
 | check-darwin-no-open-with-opener | Darwin opener names are exactly the seven existing ones |

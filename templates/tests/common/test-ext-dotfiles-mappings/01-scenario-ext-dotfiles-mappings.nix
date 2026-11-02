@@ -34,7 +34,6 @@ let
       c = nixosCfg "nixos-desktop";
       hm = c.home-manager.users.krit.home;
       homeDir = "/home/krit";
-      schoolPrefix = ".school-workspace/";
       kind = "nixos";
     };
     laptop = rec {
@@ -42,7 +41,6 @@ let
       c = nixosCfg "nixos-laptop";
       hm = c.home-manager.users.krit.home;
       homeDir = "/home/krit";
-      schoolPrefix = ".school-workspace/";
       kind = "nixos";
     };
     nas = rec {
@@ -50,7 +48,6 @@ let
       c = nasCfg;
       hm = c.home;
       homeDir = "/home/krit";
-      schoolPrefix = null;
     };
     mac = rec {
       data = darwinData;
@@ -134,10 +131,11 @@ let
     let used = lib.unique (lib.concatLists pkgsLists);
     in verdict (map (p: "package ${p} defined but used by no host") (lib.filter (p: !(builtins.elem p used)) (builtins.attrNames data.packageLeaves)));
 
+  schoolKeys = h: lib.filter (k: lib.hasInfix "school-workspace" k) (builtins.attrNames h.hm.file);
+  noSchoolCheck = h: verdict (map (k: "unexpected school-workspace link ${k}") (schoolKeys h));
   schoolCheck = h:
     let
-      keys = builtins.attrNames h.hm.file;
-      school = lib.filter (k: lib.hasInfix "school-workspace" k) keys;
+      school = schoolKeys h;
       bad = lib.filter (k: !(lib.hasPrefix h.schoolPrefix k)) school;
     in
     if school == [ ] then fail "no school-workspace link in home.file"
@@ -272,10 +270,14 @@ perHost "desktop" hosts.desktop
   "check-nixos-no-unused-package" = unusedCheck nixosData (allPkgs nixosHosts);
   "check-darwin-no-unused-package" = unusedCheck darwinData (allPkgs [ hosts.mac ]);
 
-  "check-desktop-school-dot" = schoolCheck hosts.desktop;
-  "check-laptop-school-dot" = schoolCheck hosts.laptop;
+  "check-desktop-no-school-links" = noSchoolCheck hosts.desktop;
+  "check-laptop-no-school-links" = noSchoolCheck hosts.laptop;
   "check-mac-school-nodot" = schoolCheck hosts.mac;
-  "check-nas-no-school" = verdict (map (k: "unexpected ${k}") (lib.filter (k: lib.hasInfix "school-workspace" k) (builtins.attrNames hosts.nas.hm.file)));
+  "check-nas-no-school" = noSchoolCheck hosts.nas;
+  "check-control-school-links-detected" =
+    flagged "school-workspace link on a NixOS host" (noSchoolCheck (hosts.desktop // { hm = hosts.desktop.hm // { file = hosts.desktop.hm.file // { ".school-workspace/.mcp.json" = { }; }; }; }));
+  "check-control-school-links-detected-on-mac" =
+    flagged "the mac school-workspace links" (noSchoolCheck hosts.mac);
 
   "check-control-claude-home-file-projects" =
     flagged "projects mapping" (noClaudeLinksCheck (hosts.desktop.hm.file // { ".claude/projects" = { }; }));

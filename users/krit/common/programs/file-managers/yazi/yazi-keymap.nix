@@ -38,8 +38,116 @@ in
 delib.module {
   name = "krit.programs.yazi";
 
+  options = delib.moduleOptions {
+    goToExclude = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "Second keys of the default `g` go-to bindings to drop (for example `m` removes `gm`).";
+    };
+    goToExtra = lib.mkOption {
+      type = lib.types.listOf lib.types.attrs;
+      default = [ ];
+      description = "Additional `g` go-to chords (attrs with on, run, desc) appended after the default go-to bindings.";
+    };
+  };
+
   home.ifEnabled =
-    { myconfig, ... }:
+    { myconfig, cfg, ... }:
+    let
+      goToDefaults = [
+        {
+          on = [
+            "g"
+            "c"
+          ];
+          run = "cd ~/.config";
+          desc = "Go ~/.config";
+        }
+        {
+          on = [
+            "g"
+            "d"
+          ];
+          run = "cd ~/Downloads";
+          desc = "Go ~/Downloads";
+        }
+        {
+          on = [
+            "g"
+            "D"
+          ];
+          run = "cd ~/Documents";
+          desc = "Go ~/Documents";
+        }
+        {
+          on = [
+            "g"
+            "n"
+          ];
+          run = "cd ~/${myconfig.constants.flakeDir}";
+          desc = "Go ~/${myconfig.constants.flakeDir}";
+        }
+        {
+          on = [
+            "g"
+            "p"
+          ];
+          run = "cd ~/Pictures";
+          desc = "Go ~/Pictures";
+        }
+        {
+          on = [
+            "g"
+            "P"
+          ];
+          run = "cd ~/${myconfig.constants.flakeDir}/templates/krit/dev-environments";
+          desc = "Go nix dev-environments";
+        }
+        {
+          on = [
+            "g"
+            "v"
+          ];
+          run = "cd ~/Videos";
+          desc = "Go ~/Videos";
+        }
+        {
+          on = [
+            "g"
+            "."
+          ];
+          run = "cd ~/dotfiles";
+          desc = "Go ~/dotfiles";
+        }
+        {
+          on = [
+            "g"
+            "t"
+          ];
+          run = if isDarwin then "plugin trash" else "cd ~/.local/share/Trash/files";
+          desc = "Go to Trash";
+        }
+        {
+          on = [
+            "g"
+            "m"
+          ];
+          run = if isDarwin then "cd /Volumes" else "cd /mnt";
+          desc = "Go to the mountpoints";
+        }
+        {
+          on = [
+            "g"
+            "M"
+          ];
+          run = "cd ~/momentary";
+          desc = "Go to the momentary";
+        }
+      ];
+      goToKeymap =
+        lib.filter (chord: !(lib.elem (lib.elemAt chord.on 1) cfg.goToExclude)) goToDefaults
+        ++ cfg.goToExtra;
+    in
     {
       # `mk` creates its arguments after the shell has brace-expanded them:
       # a trailing "/" makes a directory, anything else a file (parents are
@@ -219,94 +327,7 @@ delib.module {
             run = "search rg";
             desc = "Search files by content via ripgrep";
           }
-          {
-            on = [
-              "g"
-              "c"
-            ];
-            run = "cd ~/.config";
-            desc = "Go ~/.config";
-          }
-          {
-            on = [
-              "g"
-              "d"
-            ];
-            run = "cd ~/Downloads";
-            desc = "Go ~/Downloads";
-          }
-          {
-            on = [
-              "g"
-              "D"
-            ];
-            run = "cd ~/Documents";
-            desc = "Go ~/Documents";
-          }
-          {
-            on = [
-              "g"
-              "n"
-            ];
-            run = "cd ~/${myconfig.constants.flakeDir}";
-            desc = "Go ~/${myconfig.constants.flakeDir}";
-          }
-          {
-            on = [
-              "g"
-              "p"
-            ];
-            run = "cd ~/Pictures";
-            desc = "Go ~/Pictures";
-          }
-          {
-            on = [
-              "g"
-              "P"
-            ];
-            run = "cd ~/${myconfig.constants.flakeDir}/templates/krit/dev-environments";
-            desc = "Go nix dev-environments";
-          }
-          {
-            on = [
-              "g"
-              "v"
-            ];
-            run = "cd ~/Videos";
-            desc = "Go ~/Videos";
-          }
-          {
-            on = [
-              "g"
-              "."
-            ];
-            run = "cd ~/dotfiles";
-            desc = "Go ~/dotfiles";
-          }
-          {
-            on = [
-              "g"
-              "t"
-            ];
-            run = if isDarwin then "plugin trash" else "cd ~/.local/share/Trash/files";
-            desc = "Go to Trash";
-          }
-          {
-            on = [
-              "g"
-              "m"
-            ];
-            run = if isDarwin then "cd /Volumes" else "cd /mnt";
-            desc = "Go to the mountpoints";
-          }
-          {
-            on = [
-              "g"
-              "M"
-            ];
-            run = "cd ~/momentary";
-            desc = "Go to the momentary";
-          }
+        ] ++ goToKeymap ++ [
           {
             on = [
               "t"

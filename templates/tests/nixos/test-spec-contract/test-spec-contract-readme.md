@@ -20,7 +20,7 @@ bash check-nixos-spec-contract.sh
 
 ## How it works
 
-`01-scenario-spec-contract.nix` builds a fake host (see `shared/host-spec-contract.nix`; it enables only what the specialisations override) then exposes
+`01-scenario-spec-contract.nix` builds a fake host (see `shared/host-spec-contract.nix`; it enables only what the specialisations override, plus the modules that merely declare the options `school.nix` sets: sops-secrets, ext-dotfiles, zen-browser, sddm-astronaut/pixie, rclone-mount, yazi-keymap with a `shared/nixos-extra-x86_64/yazi-enable-stub.nix` that only declares `krit.programs.yazi.enable`) then exposes
 check results as strings (`"ok"` / `"FAIL: ..."`).
 
 `check-nixos-spec-contract.sh` calls `nix eval --raw --impure` for each attribute and reports pass/fail.
@@ -110,7 +110,8 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 ### school
 | Check | Expected |
 |-------|----------|
-| `constants.browser` | `"brave-school"` |
+| `constants.browser` | `"zen-beta"` (base fixture `firefox`) |
+| `constants.user` | `"krit-school"` (base fixture `krit`): the specialisation is its own account |
 | `constants.editor` | `"nvim"` (base fixture `code`) |
 | `school-distrobox-setup` | in `home.packages` (absent in base) |
 | `school-distrobox-check` | in `home.packages` |
@@ -124,3 +125,5 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 ## Store independence
 
 The `stylix-stub.nix` fixture uses the inline scheme `templates/tests/lib/scheme-catppuccin-mocha.nix` (and re-pins it in the `guest` and `safemode` specialisations) instead of reading the base16-schemes package; the check script evaluates with `--option allow-import-from-derivation false`, so an IFD fails on a warm store too.
+
+The school specialisation runs as its own user, so the scenario reads its home-manager config under `constants.user` of the specialisation (`specHm`), and `shared/nixos-extra-x86_64/home-base.nix` gives whatever `constants.user` is the home basics the real hosts get from the `homeUserFollowsConstants` flake extension.

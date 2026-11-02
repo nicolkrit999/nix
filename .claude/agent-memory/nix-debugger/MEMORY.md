@@ -44,3 +44,4 @@
 - [xdph journal silent after init](project_xdph_journal_buffered_silent.md) - no "[screencopy] New session" != no share; use dbus-monitor + pw-dump live; desktop dual AMD GPU, renderD128 primary
 - [cosmic-manager null-default keys](project_cosmic_manager_shortcut_shape.md) - evaluated shortcuts carry description=null, compositor input_* = null: test == null not hasAttr; normKey sorts modifiers
 - [glibc bare locale names](project_glibc_locale_bare_name_supported.md) - en_IN/hi_IN are `xx_YY/UTF-8` in SUPPORTED: extraLocaleSettings needs bare `en_IN`; all spellings resolve; Python getlocale quirk
+- [tmpfs root: /home not neededForBoot](project_tmpfs_root_home_not_needed_for_boot.md) - new users get root-owned home (initrd activation before @home); HM "no profile dir", Hyprland segv, Plasma empty
