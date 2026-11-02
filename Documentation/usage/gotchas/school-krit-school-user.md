@@ -67,7 +67,7 @@ Runtime checks verified live on 2026-11-02:
 ## Data safety
 
 - The old `/home/krit/.school-workspace` is **never touched by Nix** (no tmpfiles, activation or unit references it any more). It may hold davfs/rclone mountpoints; deleting through a live mount would delete remote data.
-- Remove it by hand, as `krit`, after `krit-school` works, with `Documentation/troubleshooting/school-workspace-cleanup.sh`. It is a dry run by default (`--really` deletes). It refuses when anything is mounted at or below the tree, when the path is a symlink or resolves outside `$HOME`, when the tree is unreadable (stale FUSE), and it never crosses filesystems.
+- It was removed by hand on 2026-11-02 with `Documentation/troubleshooting/school-workspace-cleanup.sh` (run as `krit` from the default profile). The script is kept for the same situation on another machine; root-owned empty davfs mountpoint dirs left behind need `sudo rmdir`, deepest first (never `rm -r`). It is a dry run by default (`--really` deletes). It refuses when anything is mounted at or below the tree, when the path is a symlink or resolves outside `$HOME`, when the tree is unreadable (stale FUSE), and it never crosses filesystems.
 - Copy anything you want to keep (course files, git repos) into `/home/krit-school` before running it.
 
 ## Not migrated (redo by hand as krit-school)
