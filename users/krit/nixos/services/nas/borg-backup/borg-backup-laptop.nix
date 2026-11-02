@@ -123,7 +123,6 @@ delib.module {
             "/home/*/dotfiles" # Dotfiles repository
             "/home/*/dotfiles-private" # Private dotfiles repository
             "/home/*/.ssh" # Private keys stay out of the backup
-            "/home/*/.school-workspace" # Already backed up by other methods
 
             # Other
             "/home/*/.cloudflared" # was misspelled .clouflared, never matched
