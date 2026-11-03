@@ -194,7 +194,7 @@ sops -d hosts/Nicol-NAS/Nicol-NAS-secrets-sops.yaml
 ## 11. SSH known_hosts
 
 `~/.ssh/known_hosts` is an immutable symlink into the Nix store, pinning
-`gitea-ssh.nicolkrit.ch` and `github.com` (3 official GitHub keys). Since
+`[gitea-ssh.nicolkrit.ch]:2222` (Gitea SSH runs on port 2222) and `github.com` (3 official GitHub keys). Since
 it's read-only, new/unknown host keys can't be appended to it - they persist
 instead to `~/.ssh/known_hosts.local`, a writable file. `UserKnownHostsFile`
 in the ssh config lists both files, so TOFU prompts for new hosts still work

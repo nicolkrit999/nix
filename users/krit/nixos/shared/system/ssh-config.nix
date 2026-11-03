@@ -1,4 +1,4 @@
-{ delib, lib, pkgs, moduleSystem, ... }:
+{ delib, lib, moduleSystem, ... }:
 let
   giteaHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHCA8VQtkhSH0wg2Xvi5FjIofM4XMo/+PrFVFdVnu/wC";
 
@@ -34,18 +34,13 @@ let
       IdentitiesOnly = "yes";
       User = "krit";
     };
-    "192.168.1.98 ssh.nicolkrit.ch" = {
-      IdentityFile = "/home/${user}/.ssh/id_github";
-      IdentitiesOnly = "yes";
-      User = "krit";
-    };
     "github.com" = {
       IdentityFile = "/home/${user}/.ssh/id_github";
     };
     "gitea-ssh.nicolkrit.ch" = {
       IdentityFile = "/home/${user}/.ssh/id_github";
       IdentitiesOnly = "yes";
-      ProxyCommand = "cloudflared access ssh --hostname %h";
+      Port = 2222;
     };
   };
 in
@@ -82,9 +77,8 @@ delib.module {
         "d /home/${myconfig.constants.user}/.ssh 0700 ${myconfig.constants.user} users -"
       ];
 
-      environment.systemPackages = [ pkgs.cloudflared ];
       programs.ssh.knownHosts = {
-        "gitea-ssh.nicolkrit.ch" = {
+        "[gitea-ssh.nicolkrit.ch]:2222" = {
           publicKey = giteaHostKey;
         };
       };
@@ -95,18 +89,13 @@ delib.module {
           IdentitiesOnly yes
           User krit
 
-        Host 192.168.1.98 ssh.nicolkrit.ch
-          IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
-          IdentitiesOnly yes
-          User krit
-
         Host github.com
           IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
 
         Host gitea-ssh.nicolkrit.ch
           IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
           IdentitiesOnly yes
-          ProxyCommand cloudflared access ssh --hostname %h
+          Port 2222
       '' + "\n" + mkPeerExtra user peers + lib.optionalString cfg.gatewayAlias ''
 
       # UniFi Cloud Gateway Fiber console shell - convenience alias so
@@ -152,9 +141,8 @@ delib.module {
 
   # Standalone home-manager builds (e.g. Nicol-NAS) have no NixOS system layer
   # to hold `programs.ssh.knownHosts` / the system-wide `programs.ssh.extraConfig`
-  # / `environment.systemPackages` / tmpfiles rule - those are all NixOS-only
+  # / tmpfiles rule - those are all NixOS-only
   # options. Only the pieces with a home-manager equivalent are ported:
-  #   - cloudflared via home.packages (needed for the gitea ProxyCommand)
   #   - the pinned gitea host key via ~/.ssh/known_hosts (home-manager's own
   #     programs.ssh has no `knownHosts` option, unlike the NixOS module)
   #   - the same ~/.ssh/config matchBlocks as the NixOS path
@@ -172,8 +160,6 @@ delib.module {
         user = myconfig.constants.user;
       in
       {
-        home.packages = [ pkgs.cloudflared ];
-
         # Pinned host keys (gitea + GitHub's official keys, see
         # https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints).
         # This file is a home-manager-managed store symlink and therefore
@@ -183,7 +169,7 @@ delib.module {
         # `ssh -T git@github.com` before this pin existed, or any other new
         # host) can actually be persisted instead of re-prompting forever.
         home.file.".ssh/known_hosts".text = ''
-          gitea-ssh.nicolkrit.ch ${giteaHostKey}
+          [gitea-ssh.nicolkrit.ch]:2222 ${giteaHostKey}
           github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
           github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
           github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=

@@ -304,11 +304,11 @@ let
       expect "ctl-school-signer" (builtins.elem "school principal missing from allowed_signers" (gitFailures dBroken)) "got ${show (gitFailures dBroken)}";
   };
 
-  nixosGiteaKey = flake.nixosConfigurations.nixos-desktop.config.programs.ssh.knownHosts."gitea-ssh.nicolkrit.ch".publicKey;
+  nixosGiteaKey = flake.nixosConfigurations.nixos-desktop.config.programs.ssh.knownHosts."[gitea-ssh.nicolkrit.ch]:2222".publicKey;
   darwinCheck = {
     "Darwin gitea pin equals the NixOS gitea pin" =
-      expect "darwin-vs-nixos" (nixosKnown."gitea-ssh.nicolkrit.ch" == nixosGiteaKey)
-        "darwin=${show (nixosKnown."gitea-ssh.nicolkrit.ch" or null)} nixos=${show nixosGiteaKey}";
+      expect "darwin-vs-nixos" (nixosKnown."[gitea-ssh.nicolkrit.ch]:2222" == nixosGiteaKey)
+        "darwin=${show (nixosKnown."[gitea-ssh.nicolkrit.ch]:2222" or null)} nixos=${show nixosGiteaKey}";
   };
 
   final = if isDarwinHost then darwinChecks // darwinCheck // darwinNasChecks // darwinGitChecks else commonChecks // nixosOnlyChecks;

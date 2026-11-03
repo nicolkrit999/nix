@@ -13,7 +13,6 @@ delib.module {
         asciinema
         carbon-now-cli
         cbonsai
-        cloudflared
         fd
         ffmpeg
         gh

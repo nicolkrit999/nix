@@ -784,6 +784,7 @@ delib.host {
           windows-mount = {
             enable = true;
             uuid = "26C47F73C47F43D9"; # 2T NTFS = Windows C:, not the 845M recovery partition
+            readOnly = true;
           };
         };
 

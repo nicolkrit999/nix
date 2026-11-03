@@ -10,7 +10,6 @@ let
   # LibreWolf blanks defaultsUrl to drop these Mozilla-domain grants; re-granting them here is accepted.
   keepOrigins = [
     "https://nicolkrit.ch"
-    "https://nicolkrit.cloudflareaccess.com"
     "https://kagi.com"
     "https://proton.me"
     "https://protonmail.com"

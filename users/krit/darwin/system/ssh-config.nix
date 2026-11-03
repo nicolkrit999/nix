@@ -1,12 +1,11 @@
-{ delib, pkgs, ... }:
+{ delib, ... }:
 delib.module {
   name = "krit.system.ssh-config";
   options = delib.singleEnableOption false;
 
   darwin.ifEnabled = _: {
-    environment.systemPackages = [ pkgs.cloudflared ];
     programs.ssh.knownHosts = {
-      "gitea-ssh.nicolkrit.ch" = {
+      "[gitea-ssh.nicolkrit.ch]:2222" = {
         publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHCA8VQtkhSH0wg2Xvi5FjIofM4XMo/+PrFVFdVnu/wC";
       };
     };
@@ -32,15 +31,10 @@ delib.module {
             IdentitiesOnly = true;
             User = nas.user;
           };
-          "192.168.1.98 ssh.nicolkrit.ch" = {
-            IdentityFile = "${sshDir}/id_github";
-            IdentitiesOnly = true;
-            User = nas.user;
-          };
           "gitea-ssh.nicolkrit.ch" = {
             IdentityFile = "${sshDir}/id_github";
             IdentitiesOnly = true;
-            ProxyCommand = "cloudflared access ssh --hostname %h";
+            Port = 2222;
           };
           "gitlab-edu.supsi.ch" = {
             IdentityFile = "${sshDir}/id_school";

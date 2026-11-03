@@ -1,10 +1,11 @@
-{ delib, config, ... }:
+{ delib, config, lib, ... }:
 delib.module {
   name = "krit.services.windows-mount";
   options = with delib; moduleOptions {
     enable = boolOption false;
     # No default on purpose: an unmapped host must fail the assertion, not mount nothing.
     uuid = strOption "";
+    readOnly = boolOption false;
   };
 
   nixos.ifEnabled =
@@ -33,7 +34,8 @@ delib.module {
           "gid=${toString config.users.groups.${config.users.users.${myconfig.constants.user}.group}.gid}"
           "umask=022"
           "windows_names"
-        ];
+        ]
+        ++ lib.optional cfg.readOnly "ro";
       };
     };
 }
