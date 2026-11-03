@@ -79,7 +79,7 @@ build and a 30/45 min timeout (runs 38135221346, 38275067935, 39159226790). Now:
 | Check | Expected |
 |---|---|
 | evaluate (real hosts, fake cases) | everything evaluates; stand-in assertions hold |
-| HM config equals system config | `home-manager.users.krit.xdg.portal.config == xdg.portal.config` per real spec |
+| HM config equals system config | `home-manager.users.<constants.user>.xdg.portal.config == xdg.portal.config` per real spec |
 | fake reproduces real | config, portal package names, session names, xdp path equal per real spec |
 | uncached entries | stand-in or trivial |
 | guard | empty-store dry run against cache.nixos.org builds nothing non-trivial |

@@ -17,7 +17,7 @@ lib.mapAttrs
   (n: _:
   let
     c = cfgOf n;
-    hm = c.home-manager.users.krit;
+    hm = c.home-manager.users.${c.myconfig.constants.user};
     hmOn = hm.xdg.portal.enable or false;
     x = c.services.xserver;
   in

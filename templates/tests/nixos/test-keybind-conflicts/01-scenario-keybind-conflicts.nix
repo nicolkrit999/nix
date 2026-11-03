@@ -4,7 +4,7 @@ let
   lib = flake.inputs.nixpkgs.lib;
 
   hostNames = [ "nixos-desktop" "nixos-laptop" ];
-  hmOf = c: c.home-manager.users.krit;
+  hmOf = c: c.home-manager.users.${c.myconfig.constants.user};
   enabled = c: n: c.myconfig.programs.${n}.enable or false;
 
   variants = lib.listToAttrs (lib.concatMap

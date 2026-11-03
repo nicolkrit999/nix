@@ -7,7 +7,7 @@ let
   niriFixture = (fx.mkNixos [{ myconfig.programs.niri.enable = lib.mkForce true; }]).config;
 
   hostNames = [ "nixos-desktop" "nixos-laptop" ];
-  hmOf = c: c.home-manager.users.krit;
+  hmOf = c: c.home-manager.users.${c.myconfig.constants.user};
   enabled = c: n: c.myconfig.programs.${n}.enable or false;
 
   variants = lib.listToAttrs (lib.concatMap
