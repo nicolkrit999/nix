@@ -57,22 +57,37 @@ delib.module {
 
       xdg.desktopEntries = builtins.listToAttrs [
         # Manual Apps
-        (makeBravePwa "YouTube" "https://www.youtube.com" "${youtubeIcon}" "brave-www.youtube.com__-Default")
-        (makeBravePwa "YouTube Music" "https://music.youtube.com/" "${youtubeMusicIcon}" "brave-music.youtube.com__-Default")
+        (makeBravePwa "YouTube" "https://www.youtube.com" "${
+          youtubeIcon
+        }" "brave-www.youtube.com__-Default")
+        (makeBravePwa "YouTube Music" "https://music.youtube.com/" "${
+          youtubeMusicIcon
+        }" "brave-music.youtube.com__-Default")
         (makeBravePwa "Twitch" "https://www.twitch.tv/" "${twitchIcon}" "brave-www.twitch.tv__-Default")
-        (makeBravePwa "Apple Music" "https://music.apple.com/ch/home?l=en" "${appleMusicIcon}" "brave-music.apple.com__ch_home-Default")
+        (makeBravePwa "Apple Music" "https://music.apple.com/ch/home?l=en" "${
+          appleMusicIcon
+        }" "brave-music.apple.com__ch_home-Default")
 
         # Self-Hosted / Home Lab
-        (makeBravePwa "Dashboard-Glance" "https://glance.nicolkrit.ch/" "utilities-system-monitor" "brave-glance.nicolkrit.ch__-Default")
-        (makeBravePwa "NAS" "https://nas.nicolkrit.ch" "network-server" "brave-nas.nicolkrit.ch__-Default")
-        (makeBravePwa "Linkwarden" "https://linkwarden.nicolkrit.ch/dashboard" "emblem-favorite" "brave-linkwarden.nicolkrit.ch__dashboard-Default")
+        (makeBravePwa "Dashboard-Glance" "https://glance.nicolkrit.ch/" "utilities-system-monitor"
+          "brave-glance.nicolkrit.ch__-Default"
+        )
+        (makeBravePwa "NAS" "https://nicol-nas:9443/" "network-server" "brave-nas.nicolkrit.ch__-Default")
+        (makeBravePwa "Linkwarden" "https://linkwarden.nicolkrit.ch/dashboard" "emblem-favorite"
+          "brave-linkwarden.nicolkrit.ch__dashboard-Default"
+        )
 
         # Cloud Services
-        (makeBravePwa "Proton Mail" "https://mail.proton.me/u" "internet-mail" "brave-mail.proton.me__u-Default")
-        (makeBravePwa "Proton Drive" "https://drive.proton.me/u/0/" "folder-remote" "brave-drive.proton.me__u_0_-Default")
+        (makeBravePwa "Proton Mail" "https://mail.proton.me/u" "internet-mail"
+          "brave-mail.proton.me__u-Default"
+        )
+        (makeBravePwa "Proton Drive" "https://drive.proton.me/u/0/" "folder-remote"
+          "brave-drive.proton.me__u_0_-Default"
+        )
         (makeBravePwa "GitHub" "https://github.com/" "vcs-git" "brave-github.com__-Default")
-        (makeBravePwa "Reddit" "https://www.reddit.com/" "internet-news-reader" "brave-www.reddit.com__-Default")
+        (makeBravePwa "Reddit" "https://www.reddit.com/" "internet-news-reader"
+          "brave-www.reddit.com__-Default"
+        )
       ];
     };
 }
-
