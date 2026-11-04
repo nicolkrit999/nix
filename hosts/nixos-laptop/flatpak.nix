@@ -40,7 +40,6 @@ delib.module {
         packages = [
           "co.logonoff.awakeonlan" # AwakeOnLan, a tool to wake up computers on the network
 
-          "com.actualbudget.actual" # Actual budget budgeting app
           "com.github.tchx84.Flatseal" # Flatseal, a permissions manager for Flatpak applications
           "com.github.unrud.VideoDownloader" # Video Downloader, a tool for downloading videos from various platforms
           "com.rtosta.zapzap" # Whatsapp client for Linux
@@ -89,10 +88,6 @@ delib.module {
             Environment.TZ = tz; # /etc is reserved by Flatpak (can't bind-mount /etc/localtime), so set TZ directly to stop Electron falling back to UTC
           };
           "com.github.unrud.VideoDownloader".Context.filesystems = [ "xdg-download" ]; # Save downloaded videos
-          "com.actualbudget.actual" = {
-            Context.filesystems = [ "home" ]; # Import/export budget files
-            Environment.TZ = tz; # /etc is reserved by Flatpak (can't bind-mount /etc/localtime), so set TZ directly to stop Electron falling back to UTC
-          };
           "me.iepure.devtoolbox".Context.filesystems = [ "home" ]; # Open/save files for conversion tools
           # storytold Craft apps: extra grants on top of each bundle's own finish-args (checked against the pinned tags)
           "ai.storyteller.vectorcraft".Context.filesystems = [ "home" ]; # Linked images next to the document + default export folder ($HOME/Desktop)
