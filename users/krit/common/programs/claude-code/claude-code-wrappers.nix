@@ -101,6 +101,13 @@ let
         rm -f "$TMP"
       fi
     fi
+
+    # docx/pptx skill Node modules, only below ~/momentary and the school workspace
+    case "$PWD" in
+      "$HOME"/momentary|"$HOME"/momentary/*${lib.concatMapStrings (w: if w == "" then "|\"$HOME\"|\"$HOME\"/*" else "|\"$HOME\"/${w}|\"$HOME\"/${w}/*") workspaces})
+        export NODE_PATH="${officeNodeModules}/lib/node_modules/claude-office-node/node_modules''${NODE_PATH:+:$NODE_PATH}"
+        ;;
+    esac
     exec ${claude} "$@"
   '';
 
@@ -180,6 +187,8 @@ let
       matplotlib # matplotlib skill
       networkx # networkx skill
       openpyxl # xlsx creation/editing
+      defusedxml # docx/pptx/xlsx skills - safe OOXML parsing
+      lxml # docx/pptx/xlsx skills - OOXML editing
       pandas # xlsx, data analysis
       pdfplumber # pdf skill - text/table extraction
       pillow # pptx thumbnail grids, image handling
@@ -224,6 +233,20 @@ let
     };
     npmDepsHash = "sha256-wznN+Vr/HWL4TTQJO34VMAUYRG3SAELVyABF1YwBXwU=";
     meta.mainProgram = "agent-floor";
+  };
+
+  # Node modules the docx/pptx skills require (global npm installs there);
+  # reachable only through NODE_PATH, which cai sets in scoped folders.
+  officeNodeModules = pkgs.buildNpmPackage {
+    pname = "claude-office-node";
+    version = "1.0.0";
+    src = ./office-node;
+    npmDepsHash = "sha256-sutJOtrozfgw/r0TZTGaIv3C5w05xMXSnnpiHwRNFJA=";
+    dontNpmBuild = true;
+    npmFlags = [ "--ignore-scripts" ];
+    nativeBuildInputs = lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.autoPatchelfHook ];
+    buildInputs = lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.stdenv.cc.cc.lib ];
+    autoPatchelfIgnoreMissingDeps = true;
   };
 
   mkSharedPackages = workspaces: [

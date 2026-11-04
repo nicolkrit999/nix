@@ -1,0 +1,13 @@
+{
+  "name": "claude-office-node",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "docx": "*",
+    "pptxgenjs": "*",
+    "react": "*",
+    "react-dom": "*",
+    "react-icons": "*",
+    "sharp": "*"
+  }
+}
