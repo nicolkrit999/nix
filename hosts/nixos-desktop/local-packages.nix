@@ -24,6 +24,7 @@ delib.module {
         libreoffice-qt # Open source microsoft office alternative
         obs-studio # Streaming/Recording
         proton-pass # Password manager by Proton
+        proton-pass-cli # Command-line interface for managing your Proton Pass vaults, items, and secrets
         shortwave # Find and listen to internet radio stations
         teams-for-linux # Unofficial Microsoft Teams client
         tor-browser # Privacy-focused web browser
