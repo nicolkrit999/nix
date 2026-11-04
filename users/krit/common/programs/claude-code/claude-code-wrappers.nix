@@ -108,6 +108,7 @@ let
         export NODE_PATH="${officeNodeModules}/lib/node_modules/claude-office-node/node_modules''${NODE_PATH:+:$NODE_PATH}"
         ;;
     esac
+    export OFFICE_NODE_MODULES="${officeNodeModules}/lib/node_modules/claude-office-node/node_modules"
     exec ${claude} "$@"
   '';
 
