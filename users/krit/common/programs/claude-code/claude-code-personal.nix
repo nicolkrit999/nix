@@ -217,7 +217,8 @@ delib.module {
           "hook-failures.json"
           "credentials.json"
           "security_warnings_*.json"
-
+          "__pycache__/"
+          "*.pyc"
         ];
         extraShellAliases = templateAliases;
       };

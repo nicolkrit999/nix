@@ -182,6 +182,7 @@ let
     ps: with ps; [
       bibtexparser # citation-management - BibTeX parsing
       biopython # citation-management - PubMed access
+      faker # fake data generation
       litellm # perplexity-search, generate-image, infographics
       markitdown # markitdown skill - file-to-markdown
       matplotlib # matplotlib skill
@@ -311,6 +312,8 @@ delib.module {
     environment.systemPackages = mkSharedPackages cfg.connectorWorkspaces ++ [
       pkgs.libreoffice
     ];
+    # Metric-compatible Office fonts so soffice renders Calibri/Cambria/Arial docs correctly.
+    fonts.packages = [ pkgs.carlito pkgs.caladea pkgs.liberation_ttf ];
   };
 
   darwin.ifEnabled = { cfg, ... }: {

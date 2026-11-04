@@ -39,11 +39,6 @@ delib.module {
         mars-mips
         vscode
         xcodegen
-        (pkgs.python313.withPackages (
-          ps: with ps; [
-            faker
-          ]
-        ))
 
         # Apps
         notion-app

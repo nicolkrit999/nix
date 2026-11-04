@@ -35,11 +35,6 @@ delib.module {
         tealdeer # Fast implementation of tldr (simplified man pages)
 
         # Coding
-        (python313.withPackages (
-          ps: with ps; [
-            faker # Generate fake data
-          ]
-        ))
         zeal # Offline documentation browser
 
         # Fun
