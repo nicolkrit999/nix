@@ -243,7 +243,7 @@ let
     pname = "claude-office-node";
     version = "1.0.0";
     src = ./office-node;
-    npmDepsHash = "sha256-sutJOtrozfgw/r0TZTGaIv3C5w05xMXSnnpiHwRNFJA=";
+    npmDepsHash = "sha256-xl4U1UeGo53IcpAdga4RPDpBUvJUz8BLHbQkyk05puQ=";
     dontNpmBuild = true;
     npmFlags = [ "--ignore-scripts" ];
     nativeBuildInputs = lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.autoPatchelfHook ];

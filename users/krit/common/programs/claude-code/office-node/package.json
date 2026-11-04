@@ -9,5 +9,8 @@
     "react-dom": "*",
     "react-icons": "*",
     "sharp": "*"
+  },
+  "overrides": {
+    "image-size": "^2.0.3"
   }
 }
