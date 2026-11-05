@@ -106,6 +106,11 @@ delib.module {
         check_for_updates = false;
         download_updates_automatically = false;
         keep_running_in_background = true;
+        # Chat wallpaper: the palette's `chat` colour (follows the generated theme) with the doodle pattern.
+        # The wallpaper image is per linked number, kept in the account's own state file, so it cannot be declared here.
+        show_wallpaper = true;
+        wallpaper_color = "theme";
+        dark_wallpaper_color = "theme";
       }
       // lib.optionalAttrs (interfaceLanguage != null) { interface_language = interfaceLanguage; }
       // lib.optionalAttrs (c != null) { custom_theme = themeFile; };
