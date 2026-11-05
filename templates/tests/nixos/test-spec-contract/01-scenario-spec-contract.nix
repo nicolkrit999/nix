@@ -280,9 +280,9 @@ in
   check-deepfocus-mango-no-distractions =
     let
       lst = c: map lib.toLower c.myconfig.programs.mango.execOnce;
-      bad = c: builtins.filter (e: lib.hasInfix "zapzap" e || lib.hasInfix "youtube" e) (lst c);
+      bad = c: builtins.filter (e: lib.hasInfix "zapfast" e || lib.hasInfix "youtube" e) (lst c);
     in
-    if bad config == [ ] then "FAIL: base mango execOnce has no zapzap/youtube, check is vacuous"
+    if bad config == [ ] then "FAIL: base mango execOnce has no zapfast/youtube, check is vacuous"
     else if bad (spec "deep-focus") != [ ] then "FAIL: deep-focus mango still starts: ${builtins.toJSON (bad (spec "deep-focus"))}"
     else if lst (spec "deep-focus") == [ ] then "FAIL: deep-focus mango execOnce is empty"
     else "ok";

@@ -178,6 +178,7 @@ let
     [ "programs" "openlogi" ]
     [ "programs" "prismlauncher" ]
     [ "programs" "thunderbird" ]
+    [ "programs" "zapfast" ]
     [ "services" "external" "dotfiles-private" ]
     [ "services" "snapshots" ]
   ];
@@ -264,7 +265,7 @@ let
     [ "control: the base declares the same claude-code-personal secrets, owned by the base user (the ownership probe bites)" (chk (lib.all (n: base.sops.secrets ? ${n} && base.sops.secrets.${n}.owner == baseUser) claudeSecretNames) "base lacks or does not own: ${toString (lib.filter (n: !(base.sops.secrets ? ${n}) || base.sops.secrets.${n}.owner != baseUser) claudeSecretNames)}") ]
     [ "no github_general_ssh_* or hevy_api_key secret in the spec, all present in the base (control)" (chk (lib.all (n: !(c.sops.secrets ? ${n}) && base.sops.secrets ? ${n}) [ "github_general_ssh_key" "github_general_ssh_pub" "hevy_api_key" ]) "personal secrets leak into the spec or the base lacks them (vacuous)") ]
 
-    [ "personal modules (clouds, NAS, borg, windows-mount, flatpak, local-packages, ssh-config, dotfiles-private, snapshots, home base, dolphin, proton-cli, pwas, network-tools, concord, npm, openlogi, prismlauncher, thunderbird) are off in the spec" (chk (declaredPersonal != [ ] && stillOn c == [ ]) "still on in the spec: ${toString (map showPath (stillOn c))}") ]
+    [ "personal modules (clouds, NAS, borg, windows-mount, flatpak, local-packages, ssh-config, dotfiles-private, snapshots, home base, dolphin, proton-cli, pwas, network-tools, concord, npm, openlogi, prismlauncher, thunderbird, zapfast) are off in the spec" (chk (declaredPersonal != [ ] && stillOn c == [ ]) "still on in the spec: ${toString (map showPath (stillOn c))}") ]
     [ "control: the same personal modules are on in the base (the off-probe bites)" (chk (stillOn base != [ ]) "no probed module is on in the base, the off check is vacuous") ]
     [ "re-enabled in the spec (not switched off): claude-code-wrappers, claude-code-personal, krit and generic discord, claude-desktop, agent-reach, vikunja-desktop, spotifyAdblock, sidra" (chk (reEnabledOff c == [ ]) "not on in the spec: ${toString (map showPath (reEnabledOff c))}") ]
     [ "control: the re-enabled apps are on in the base too, so the spec cannot be reading a default (on-probe bites)" (chk (reEnabledOff base == [ ]) "not on in the base: ${toString (map showPath (reEnabledOff base))}") ]

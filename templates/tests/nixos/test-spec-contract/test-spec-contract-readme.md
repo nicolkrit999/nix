@@ -58,7 +58,7 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 |-------|----------|
 | `services.swaync.enable` | `true` (twin whose base forces it off) |
 | hyprland / niri / mango `execOnce` | contain `swaync-client -dn` (absent in base) |
-| mango `execOnce` | no `zapzap`/`youtube` (base has both), non-empty |
+| mango `execOnce` | no `zapfast`/`youtube` (base has both), non-empty |
 
 ### safe-mode
 | Check | Expected |

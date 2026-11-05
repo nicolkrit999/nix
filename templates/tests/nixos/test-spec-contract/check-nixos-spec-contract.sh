@@ -83,7 +83,7 @@ run_check "check-deepfocus-swaync-enabled"           "services.swaync.enable == 
 run_check "check-deepfocus-hyprland-dnd"             "hyprland execOnce has swaync-client -dn"
 run_check "check-deepfocus-niri-dnd"                 "niri execOnce has swaync-client -dn"
 run_check "check-deepfocus-mango-dnd"                "mango execOnce has swaync-client -dn"
-run_check "check-deepfocus-mango-no-distractions"    "mango execOnce: no zapzap/youtube"
+run_check "check-deepfocus-mango-no-distractions"    "mango execOnce: no zapfast/youtube"
 
 echo ""
 echo -e "${BOLD}safe-mode${NC}"

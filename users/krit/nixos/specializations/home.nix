@@ -131,7 +131,7 @@ delib.module {
                 "^(discord)$"
                 "^(org.telegram.desktop)$"
                 "^(whatsapp-electron)$"
-                "^(com.rtosta.zapzap)$"
+                "^(zapfast)$"
               ]
               ++ map scratchRule [
                 "scratch-term"
@@ -159,7 +159,7 @@ delib.module {
               "[workspace 2 silent] kitty --class nvim -e nvim"
               "[workspace 3 silent] kitty --class yazi -e yazi"
               "[workspace 8 silent] kitty"
-              "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
+              "sh -c 'sleep 3 && zapfast'"
             ];
           };
 

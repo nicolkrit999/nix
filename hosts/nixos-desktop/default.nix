@@ -129,7 +129,7 @@ let
     "LocalSend.desktop"
     "proton-pass.desktop"
     "com.actualbudget.actual.desktop"
-    "com.rtosta.zapzap.desktop"
+    "zapfast.desktop"
   ];
 in
 
@@ -421,6 +421,7 @@ delib.host {
 
         vikunja-desktop.enable = true;
         walker.enable = false;
+        zapfast.enable = true;
         zathura = {
           enable = true;
           defaultMode = "light";
@@ -478,7 +479,7 @@ delib.host {
             "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
             "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
             "uwsm app -- pwa-youtube.desktop"
-            "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
+            "sh -c 'sleep 3 && zapfast'"
           ];
           monitorWorkspaces = map
             (n: {
@@ -529,7 +530,7 @@ delib.host {
               "^(discord)$"
               "^(org.telegram.desktop)$"
               "^(whatsapp-electron)$"
-              "^(com.rtosta.zapzap)$"
+              "^(zapfast)$"
             ]
             ++ workspaceRules appWorkspaces.other [ "(?i).*zathura.*" ]
             ++ [
@@ -568,14 +569,14 @@ delib.host {
             # DP-2
             "sh -c 'sleep 12 && ${myTerminal} --class mango-startup-terminal'"
             "sh -c 'sleep 15 && ${lib.getExe' pkgs.gtk3 "gtk-launch"} pwa-youtube'"
-            "sh -c 'sleep 18 && flatpak run com.rtosta.zapzap'"
+            "sh -c 'sleep 18 && zapfast'"
           ];
           windowRules = [
             "monitor:^DP-1$,app_id:^mango-startup-fileManager$"
             "monitor:^DP-1$,app_id:^mango-startup-editor$"
             "monitor:^DP-2$,app_id:^brave-www\\.youtube\\.com__-Default$"
             "monitor:^DP-2$,app_id:^mango-startup-terminal$"
-            "monitor:^DP-2$,app_id:^com\\.rtosta\\.zapzap$"
+            "monitor:^DP-2$,app_id:^zapfast$"
             "is_floating:1,width:0.8,height:0.8,tags:0,app_id:^scratch-term$"
             "is_floating:1,width:0.8,height:0.8,tags:0,app_id:^scratch-fs$"
             "is_floating:1,width:0.8,height:0.8,tags:0,app_id:^scratch-browser$"
@@ -628,7 +629,7 @@ delib.host {
             "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
             "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
             "sh -c 'sleep 11 && ${myTerminal}'"
-            "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'" # Sleep necessary to allow loading right polarity
+            "sh -c 'sleep 14 && zapfast'" # Sleep necessary to allow loading right polarity
             "sh -c 'sleep 30 && niri msg action focus-column-first'" # Refocus browser after all windows are up
           ];
         };

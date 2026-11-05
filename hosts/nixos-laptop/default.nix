@@ -83,7 +83,7 @@ let
     "LocalSend.desktop"
     "proton-pass.desktop"
     "com.actualbudget.actual.desktop"
-    "com.rtosta.zapzap.desktop"
+    "zapfast.desktop"
   ];
 in
 
@@ -379,6 +379,7 @@ delib.host {
 
         vikunja-desktop.enable = true;
         walker.enable = false;
+        zapfast.enable = true;
         zathura = {
           enable = true;
           defaultMode = "light";
@@ -425,7 +426,7 @@ delib.host {
             "[workspace ${appWorkspaces.editor} silent] ${smartLaunch myEditor}"
             "[workspace ${appWorkspaces.fileManager} silent] ${smartLaunch myFileManager}"
             "[workspace ${appWorkspaces.terminal} silent] ${myTerminal}"
-            "sh -c 'sleep 3 && flatpak run com.rtosta.zapzap'"
+            "sh -c 'sleep 3 && zapfast'"
           ];
 
           monitorWorkspaces = map
@@ -477,7 +478,7 @@ delib.host {
               "^(discord)$"
               "^(org.telegram.desktop)$"
               "^(whatsapp-electron)$"
-              "^(com.rtosta.zapzap)$"
+              "^(zapfast)$"
             ]
             ++ [
               {
@@ -507,7 +508,7 @@ delib.host {
             "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
             "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
             "sh -c 'sleep 11 && ${myTerminal}'"
-            "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
+            "sh -c 'sleep 14 && zapfast'"
           ];
         };
 
@@ -528,7 +529,7 @@ delib.host {
             "sh -c 'sleep 5 && ${smartLaunch myEditor}'"
             "sh -c 'sleep 8 && ${smartLaunch myFileManager}'"
             "sh -c 'sleep 11 && ${myTerminal}'"
-            "sh -c 'sleep 14 && flatpak run com.rtosta.zapzap'"
+            "sh -c 'sleep 14 && zapfast'"
             "sh -c 'sleep 27 && niri msg action focus-column-first'" # Refocus browser after all windows are up
           ];
         };

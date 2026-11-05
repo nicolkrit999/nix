@@ -21,9 +21,9 @@ delib.host {
       headroom.enable = true; # guest/secure-travel disable
       zen.browser.enable = true; # secure-travel disables
       fastfetch.enable = true; # safe-mode disables
-      hyprland.execOnce = [ "zapzap" ]; # deep-focus replaces
-      niri.execOnce = [ "zapzap" ]; # deep-focus replaces
-      mango.execOnce = [ "zapzap" "firefox --new-window https://www.youtube.com" ]; # deep-focus replaces
+      hyprland.execOnce = [ "zapfast" ]; # deep-focus replaces
+      niri.execOnce = [ "zapfast" ]; # deep-focus replaces
+      mango.execOnce = [ "zapfast" "firefox --new-window https://www.youtube.com" ]; # deep-focus replaces
     };
     services = {
       tailscale.enable = true; # guest disables, secure-travel keeps it on

@@ -18,7 +18,7 @@
 
 ## Module stack
 
-Off in school (forced `enable = false` where the option exists on the host): the personal clouds, NAS / borg / OpenCloud-mount / smb / sshfs, windows-mount, snapshots, ssh-config, local-packages, flatpak, the PWAs module (school PWAs are declared in the spec), thunderbird, npm, openlogi, proton-cli, concord, prismlauncher, dolphin personal layer, dotfiles-private, network-tools and every desktop except Hyprland and KDE Plasma.
+Off in school (forced `enable = false` where the option exists on the host): the personal clouds, NAS / borg / OpenCloud-mount / smb / sshfs, windows-mount, snapshots, ssh-config, local-packages, flatpak, the PWAs module (school PWAs are declared in the spec), thunderbird, zapfast, npm, openlogi, proton-cli, concord, prismlauncher, dolphin personal layer, dotfiles-private, network-tools and every desktop except Hyprland and KDE Plasma.
 
 On in school: the Claude stack (`claude-code-wrappers`, `claude-code-personal`, claude-desktop), `agent-reach`, the common and krit Discord modules (`concord` stays off), `vikunja-desktop`, `spotifyAdblock` and `sidra`.
 
@@ -43,7 +43,7 @@ One-time step: open Zen once, quit it fully, then reboot. The next activation of
 
 ## Pinned KDE launchers
 
-The spec overrides `myconfig.programs.kde.pinnedApps` on purpose: the host list pins apps that do not exist in school (github-desktop, proton-pass, Actual, ZapZap, ...). School pins, in order: `zen-beta`, the terminal, `yazi`, `custom-nvim`, `school-pwa-icorsi`, `school-pwa-supsi-portal`, `code`, `intellij-idea`, OBS and LocalSend. Do not sync it back to the host list; add new school pins only for desktop ids present in the school generation.
+The spec overrides `myconfig.programs.kde.pinnedApps` on purpose: the host list pins apps that do not exist in school (github-desktop, proton-pass, Actual, ...). School pins, in order: `zen-beta`, the terminal, `yazi`, `custom-nvim`, `school-pwa-icorsi`, `school-pwa-supsi-portal`, `code`, `intellij-idea`, OBS and LocalSend. Do not sync it back to the host list; add new school pins only for desktop ids present in the school generation.
 
 ## LocalSend
 

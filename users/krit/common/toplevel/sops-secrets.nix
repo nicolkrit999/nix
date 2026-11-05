@@ -17,6 +17,16 @@ let
       })
       personal.mcpSecrets));
 
+  commonSecretsText = builtins.readFile commonSecrets;
+
+  mkZapfastGiphySecret = owner: zapfast:
+    let
+      name = zapfast.giphyKeySecret;
+    in
+    lib.optionalAttrs (zapfast.enable && name != null && lib.hasInfix "${name}:" commonSecretsText) {
+      ${name} = { sopsFile = commonSecrets; inherit owner; };
+    };
+
   cfImageSecretNames = [ "cf_account_id" "cf_api_token" ];
 
   mkCfImageSecrets = owner: personal:
@@ -80,12 +90,12 @@ delib.module {
         nas_opencloud_pass.sopsFile = commonSecrets;
 
         tailscale_key.sopsFile = commonSecrets;
-      } // lib.optionalAttrs cfg.personalSecrets {
+      } // lib.optionalAttrs cfg.personalSecrets ({
         hevy_api_key = {
           sopsFile = commonSecrets;
           owner = user;
         };
-      } // mkClaudeMcpSecrets user myconfig.krit.programs.claude-code-personal
+      } // mkZapfastGiphySecret user myconfig.programs.zapfast) // mkClaudeMcpSecrets user myconfig.krit.programs.claude-code-personal
         // mkCfImageSecrets user myconfig.krit.programs.claude-code-personal;
     };
 

@@ -115,6 +115,7 @@ let
     [ "programs" "openlogi" ]
     [ "programs" "prismlauncher" ]
     [ "programs" "thunderbird" ]
+    [ "programs" "zapfast" ]
     [ "services" "external" "dotfiles-private" ]
     [ "services" "snapshots" ]
   ];

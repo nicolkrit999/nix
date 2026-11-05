@@ -42,7 +42,6 @@ delib.module {
 
           "com.github.tchx84.Flatseal" # Flatseal, a permissions manager for Flatpak applications
           "com.github.unrud.VideoDownloader" # Video Downloader, a tool for downloading videos from various platforms
-          "com.rtosta.zapzap" # Whatsapp client for Linux
 
           "io.github.iionel.Visu" # Algorithm visualizer
           "io.github.lluciocc.Vish" # Gui bash script editor
@@ -82,10 +81,6 @@ delib.module {
         };
 
         overrides = {
-          "com.rtosta.zapzap" = {
-            Context.filesystems = [ "home" ]; # Download/save WhatsApp files
-            Environment.TZ = tz; # /etc is reserved by Flatpak (can't bind-mount /etc/localtime), so set TZ directly to stop Electron falling back to UTC
-          };
           "com.github.unrud.VideoDownloader".Context.filesystems = [ "xdg-download" ]; # Save downloaded videos
           "me.iepure.devtoolbox".Context.filesystems = [ "home" ]; # Open/save files for conversion tools
           # storytold Craft apps: extra grants on top of each bundle's own finish-args (checked against the pinned tags)
