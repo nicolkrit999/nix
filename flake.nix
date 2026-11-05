@@ -415,7 +415,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    zapfast.url = "github:crmne/zapfast";
+    zapfast = {
+      url = "github:crmne/zapfast";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     spotify-adblock-src = {
       url = "github:abba23/spotify-adblock";
