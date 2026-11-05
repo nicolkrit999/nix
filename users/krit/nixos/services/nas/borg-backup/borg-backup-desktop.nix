@@ -95,6 +95,11 @@ delib.module {
             "/home/*/.config/google-chrome"
             "/home/*/.config/chromium"
             "/home/*/.config/BraveSoftware"
+            "/home/*/.config/zen" # declarative, relogin is fine
+            "/home/*/.config/net.imput.helium"
+            "/home/*/.config/google-chrome-headless"
+            "/home/*/.config/Antigravity"
+            "/home/*/.antigravity"
 
             # Developer tools and languages
             "/home/*/.cargo"
@@ -107,6 +112,24 @@ delib.module {
             "/home/*/.config/Code"
             "/home/*/.config/Cursor"
             "/home/*/.var/app/*/cache" # Flatpak caches
+            "/home/*/.config/Code-School"
+            "/home/*/.npm-global"
+            "/home/*/.sqldeveloper"
+            "/home/*/.eclipse"
+            "/home/*/.headroom"
+            "/home/*/.compose-cache"
+            "/home/*/.java"
+            "/home/*/.impeccable"
+            "/home/*/.local/share/uv"
+            "/home/*/.local/share/actual-mcp/node_modules"
+            "/home/*/.local/share/media-downloader/bin"
+            "/home/*/.local/share/school-env"
+            "/home/*/.distrobox-bin"
+            "/home/*/distrobox-bin"
+            "/home/*/.local/share/nix-doom"
+            "*/node_modules" # any depth (borg fnmatch: * crosses /)
+            "*/.venv" # any depth
+            "*/.direnv" # any depth
 
             # Specific app clutter
             "/home/*/.local/share/TelegramDesktop/tdata/emoji"
@@ -117,6 +140,62 @@ delib.module {
             "/home/*/.config/yazi/*"
             "/home/*/.config/sops/*"
             "/home/*/.local/share/containers" # Podman/Containers cache
+
+            # Claude desktop
+            "/home/*/.config/Claude/vm_bundles"
+            "/home/*/.config/Claude/Cache"
+            "/home/*/.config/Claude/Code Cache"
+            "/home/*/.config/Claude/claude-code"
+            "/home/*/.config/Claude/claude-code-vm"
+            "/home/*/.config/Claude/Crashpad"
+            "/home/*/.config/Claude/logs"
+
+            # Claude Code (projects, memory, settings, history stay)
+            "/home/*/.claude/plugins/cache"
+            "/home/*/.claude/plugins/marketplaces"
+            "/home/*/.claude/security/agent-sdk-venv"
+            "/home/*/.claude/telemetry"
+            "/home/*/.claude/paste-cache"
+            "/home/*/.claude/shell-snapshots"
+            "/home/*/.claude/image-cache"
+            "/home/*/.claude/debug"
+            "/home/*/.claude/statsig"
+            "/home/*/.claude/todos"
+            "/home/*/.local/share/claude/versions" # Claude Code binaries
+
+            # Game launcher data (instances, accounts and cfg stay)
+            "/home/*/.local/share/PrismLauncher/assets"
+            "/home/*/.local/share/PrismLauncher/libraries"
+            "/home/*/.local/share/PrismLauncher/meta"
+            "/home/*/.local/share/PrismLauncher/cache"
+
+            # Indexes and package stores
+            "/home/*/.local/share/akonadi"
+            "/home/*/.local/share/gvfs-metadata"
+            "/home/*/.local/share/kactivitymanagerd"
+            "/home/*/.local/share/flatpak" # Flatpak runtimes/apps (re-installable)
+            "/home/*/.var/app/com.rtosta.zapzap" # removed ZapZap leftover
+
+            # Clipboard history and Telegram client
+            "/home/*/.local/share/vicinae/clipboard-data"
+            "/home/*/.local/share/vicinae/clipboard.db*" # incl. -wal/-shm; shortcuts/snippets are kept
+            "/home/*/.local/share/tgt" # only holds the login session
+            "/home/*/.config/tgt"
+
+            # Electron app web storage and caches
+            "/home/*/.config/discord/Local Storage"
+            "/home/*/.config/discord/IndexedDB"
+            "/home/*/.config/discord/Crashpad"
+            "/home/*/.config/discord/logs"
+            "/home/*/.config/Equicord/Equicord/Cache"
+            "/home/*/.config/Equicord/Equicord/Code Cache"
+            "/home/*/.config/Equicord/Equicord/GPUCache"
+            "/home/*/.config/Sidra/Cache"
+            "/home/*/.config/Sidra/Local Storage"
+            "/home/*/.config/Sidra/IndexedDB"
+            "/home/*/.config/Vikunja Desktop/Cache"
+            "/home/*/.config/Vikunja Desktop/IndexedDB"
+            "/home/*/.config/Vikunja Desktop/Local Storage"
 
             # Folders backed up elsewhere or deliberately kept out of the repo
             "/home/*/github-repos" # Git repositories (includes the wallpapers repo)
