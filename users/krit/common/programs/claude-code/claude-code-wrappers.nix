@@ -206,11 +206,15 @@ let
   );
 
   commonCliTools = [
+    pkgs.ghostscript # pptx/docx/pdf skills - gs rasterizing and PDF fallback
+    pkgs.imagemagick # pptx/docx skills - convert/magick image conversion
     pkgs.octave # Matlab skill - numerical computing, plotting, data analysis
     pkgs.pandoc # docx/literature-review - text extraction and PDF generation
     pkgs.poppler-utils # pdf/pptx/docx - pdftoppm, pdftotext, pdfimages
     pkgs.tesseract # pdf - OCR for scanned documents
+    pkgs.unzip # docx/pptx/xlsx skills - unpacking OOXML
     pkgs.uv # fast Python package installer (fallback for non-nix envs)
+    pkgs.zip # docx/pptx/xlsx skills - repacking OOXML
   ];
 
   # Claude Code companion CLIs installed through the generic programs.npm

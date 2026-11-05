@@ -102,13 +102,6 @@ delib.module {
         then (if builtins.elem region [ "TW" "HK" "MO" ] then "zh-Hant" else "zh-Hans")
         else localeMap.${lang} or null;
 
-      homeDir = "${if isDarwin then "/Users" else "/home"}/${myconfig.constants.user}";
-      userDirDownload = lib.attrByPath [ "xdg" "userDirs" "download" ] null config;
-      downloadFolder =
-        if userDirDownload != null && lib.hasPrefix "/" userDirDownload
-        then userDirDownload
-        else "${homeDir}/Downloads";
-
       generated = {
         check_for_updates = false;
         download_updates_automatically = false;
@@ -119,7 +112,10 @@ delib.module {
         wallpaper_color = "theme";
         dark_wallpaper_color = "theme";
         enter_sends = false;
-        download_folder = downloadFolder;
+        # Always null: with a folder set, every automatically downloaded attachment (voice messages, stickers, files in view)
+        # is written there as <number>/<chat>/<file>. Null keeps them in the cache; "Save as…" exports a single file.
+        # Declared (not just left out) so an earlier value in settings.json is reset on activation.
+        download_folder = null;
       }
       // lib.optionalAttrs (interfaceLanguage != null) { interface_language = interfaceLanguage; }
       // lib.optionalAttrs (c != null) { custom_theme = themeFile; };

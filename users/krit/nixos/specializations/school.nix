@@ -813,6 +813,13 @@ delib.module {
                 ps.ipython
                 ps.pygments
                 ps.genanki
+                # Claude office skills (xlsx/docx/pptx): this env's python3 shadows the system one from claude-code-wrappers, so it must carry the same modules
+                ps.openpyxl
+                ps.defusedxml
+                ps.lxml
+                ps.pillow
+                ps.python-docx
+                ps.python-pptx
               ]))
 
               # Custom Shell Scripts
