@@ -50,19 +50,29 @@ delib.module {
         then (lib.importJSON "${catppuccinPalette}/palette.json").${theme.catppuccinFlavor}.colors.${theme.catppuccinAccent}.hex
         else c.base0D;
 
+      # Linear mix of two "#rrggbb" colours (t = share of b). The selected chat row (surface_active)
+      # and the preview text (dim) must stay apart: both on the same base16 slot made the preview invisible.
+      mixHex = a: b: t:
+        let
+          chan = s: i: lib.fromHexString (builtins.substring i 2 (lib.removePrefix "#" s));
+          pad = n: let h = lib.toLower (lib.toHexString n); in if builtins.stringLength h == 1 then "0${h}" else h;
+          one = i: pad (builtins.floor ((chan a i) * (1.0 - t) + (chan b i) * t + 0.5));
+        in
+        "#${one 0}${one 2}${one 4}";
+
       themeFile = "nix-theme.json";
       themeJson = builtins.toJSON {
         base = if theme.polarity == "light" then "light" else "dark";
         colors = {
           window = c.base00;
-          panel = c.base01;
-          surface = c.base02;
-          surface_hover = c.base03;
-          surface_active = c.base03;
-          outline = c.base03;
+          panel = mixHex c.base00 c.base01 0.3;
+          surface = mixHex c.base00 c.base01 0.8;
+          surface_hover = c.base01;
+          surface_active = mixHex c.base01 c.base02 0.6;
+          outline = mixHex c.base01 c.base02 0.7;
           text = c.base05;
           secondary = c.base04;
-          dim = c.base03;
+          dim = mixHex c.base03 c.base04 0.4;
           inherit accent;
           accent_hover = c.base0C;
           on_accent = c.base00;
