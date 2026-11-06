@@ -149,6 +149,14 @@ Do not touch `/boot/EFI/nixos`, `/boot/EFI/Linux`, `/boot/EFI/BOOT`, `/boot/EFI/
 - What you lose by doing Phase 4: the "turn Secure Boot off, pick the old GRUB entry" fallback. It is rarely needed, because the lanzaboote entries also boot with Secure Boot OFF (the stub verifies kernel and initrd by hash either way). If the systemd-boot files on the ESP themselves are broken, use the live ISO path in the Recovery section below.
 - `Documentation/troubleshooting/emergency-recovery-gnu-grub.md` and `recover.sh` still describe GRUB and are stale after this step.
 
+## Desktop (`nixos-desktop`, planned, not enabled yet)
+
+The module is generic and the desktop stays on GRUB until it is enabled there. Differences from the laptop that change the procedure:
+- **No LUKS** (a deliberate decision: home desktop, low attack surface). Skip the LUKS header backup, the TPM2 token and its re-seal, `tpm-reenroll` and every passphrase step. Secure Boot there only protects the boot chain, since `/nix` and `/persist` are plain on disk.
+- **Four SSDs, one per role:** NixOS, two Windows disks and an unused Ubuntu/Debian disk. Windows has its own ESP on another disk, so systemd-boot cannot offer it (GRUB's os-prober does today); after the switch Windows is reached through the firmware boot menu or `sudo efibootmgr --bootnext <XXXX>`. Device names are unstable with four SSDs: identify disks by by-id, serial or PARTUUID, never by `nvme0n1`/`sda`.
+- **Check before touching keys:** BitLocker/device encryption on each Windows drive (Secure Boot key changes trigger a recovery-key prompt), the ESP size (sets `configurationLimit`), kernel lockdown under the Zen kernel, and the firmware vendor's key menu.
+- The session plan, diagnostics and open decisions are in the handoff `14-handoff-desktop-no-luks.md` in the NAS notes folder `/volume2/Momentary-volume-2/lanzaboote-session-notes-2026-11-06/`; this section is updated when the desktop is done.
+
 ## Recovery
 
 - lanzaboote boot fails while Secure Boot is OFF (only until Phase 4 is done, and never with Secure Boot ON, where the unsigned GRUB is refused): press F12 and choose the old GRUB entry ("NixOS-boot"). It shows the frozen generations from the last GRUB install and works only while their store paths exist (hence the GC root).

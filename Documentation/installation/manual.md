@@ -270,6 +270,7 @@ sudo nixos-install --flake .#my-computer
    ```
 4. `reboot`
 5. **Bind the TPM for auto-unlock** (once booted into the new system):
+   > Using lanzaboote / Secure Boot on this host? Bind PCR 7 only, after Secure Boot is on: see [lanzaboote.md](./lanzaboote.md).
    ```bash
    sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 /dev/nvme0n1pY
    ```
@@ -278,6 +279,12 @@ sudo nixos-install --flake .#my-computer
    sudo systemd-cryptenroll --wipe-slot=tpm2 /dev/nvme0n1pY
    sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 /dev/nvme0n1pY
    ```
+
+---
+
+## Optional: lanzaboote (signed boot, with or without LUKS)
+
+For a host that should boot through lanzaboote instead of GRUB, follow [lanzaboote.md](./lanzaboote.md) after the first boot. It has one path for Option A (no LUKS) and one for Option B (LUKS + TPM).
 
 ---
 

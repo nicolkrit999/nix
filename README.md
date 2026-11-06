@@ -50,6 +50,7 @@
 | **Manual** (dual boot or custom partitioning) | [Manual installation](./Documentation/installation/manual.md) |
 | &nbsp;&nbsp;↳ Option A: No encryption | [manual.md - Option A](./Documentation/installation/manual.md#option-a-btrfs-no-encryption) |
 | &nbsp;&nbsp;↳ Option B: LUKS + encryption | [manual.md - Option B](./Documentation/installation/manual.md#option-b-btrfs--luks-encryption) |
+| **Signed boot** (lanzaboote / Secure Boot, with or without LUKS) | [Adding lanzaboote to a host](./Documentation/installation/lanzaboote.md) |
 
 ---
 
