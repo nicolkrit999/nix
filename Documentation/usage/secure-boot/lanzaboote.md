@@ -1,6 +1,6 @@
 # Secure Boot with lanzaboote (`services.lanzaboote`)
 
-Status: Phase 1 only (the module exists and is enabled on `nixos-laptop`, live-verified; `secureBoot = false`, Secure Boot itself stays OFF in the firmware, nothing is enrolled yet). The sections "Phase 2" and "Phase 3" describe the planned next steps; nothing in them has been run yet.
+Status: Phases 1 to 3 are done on `nixos-laptop` (Phase 3 completed 2026-11-06): the module is enabled with `secureBoot = true`, Secure Boot is ON in the firmware (user mode, own keys enrolled) and `constants.emergencyAccess` is off on all hosts. Phase 4 (GRUB leftovers cleanup) is still open.
 
 ## What it is and why
 
@@ -35,7 +35,7 @@ keydir: /persist/var/lib/sbctl/keys
   Without this file a manual `sbctl create-keys` would use sbctl's default `/var/lib/sbctl`, which is on the tmpfs root and vanishes on reboot. sbctl reads `/etc/sbctl/sbctl.conf` automatically; only `keydir` and `guid` are used to find the keys.
 - A tmpfiles rule `d /persist/var/lib/sbctl 0700 root root -`: sbctl itself creates the directory with mode 0755 (the private key files are 0400 root), so the directory is pre-created root-only.
 
-Assertions: GRUB must be disabled; with `services.impermanence` enabled, `pkiBundle` must start with `/persist/`; `consoleMode` must be `keep`, `auto`, `max` or digits only; `secureBoot = true` requires `enable = true` and `boot.initrd.systemd.emergencyAccess = false` (an initrd root shell defeats Secure Boot). `secureBoot` does nothing else: the `tpm-reenroll` PCR change and the removal of the stale GRUB firmware entry stay manual steps of Phase 3.
+Assertions: GRUB must be disabled; with `services.impermanence` enabled, `pkiBundle` must start with `/persist/`; `consoleMode` must be `keep`, `auto`, `max` or digits only; `secureBoot = true` requires `enable = true` and `boot.initrd.systemd.emergencyAccess = false` (an initrd root shell defeats Secure Boot). `secureBoot` does nothing else: the TPM re-seal (`tpm-reenroll`, PCR 7) and the removal of the stale GRUB firmware entry were manual steps of Phase 3. The laptop sets `secureBoot = true`; `nixos-host-invariants` asserts that any host with `secureBoot` has emergencyAccess off, and that `constants.emergencyAccess` is off on every host.
 
 ### The boot menu looks small?
 
@@ -86,24 +86,24 @@ Everything needing root is marked (sudo). Device names are those of `nixos-lapto
 
 Read-only status helpers: `bootctl status`, `efibootmgr -v`, `sudo sbctl status`, `df -h /boot; du -sh /boot/*`, `cat /sys/kernel/security/lockdown`.
 
-### Phase 2: Dell BIOS Setup Mode and key enrollment (planned)
+### Phase 2: Dell BIOS Setup Mode and key enrollment (done)
 
 1. BIOS (admin password): Secure Boot > Expert Key Management > Enable Custom Mode > delete the PK (or Delete All Keys) > Secure Boot Mode = Audit.
 2. Boot NixOS via F12, then (sudo) `sudo sbctl status` must show Setup Mode: Enabled.
 3. (sudo) `sudo sbctl enroll-keys --microsoft --firmware-builtin`. Add `--ignore-immutable` only if an immutable-efivar error appears. `--microsoft` adds the Microsoft CAs (the Windows boot manager here is signed by the Windows UEFI CA 2023); `--firmware-builtin` keeps the firmware's own default db entries (Dell keys) so firmware-signed components keep loading.
 4. (sudo) `sudo sbctl status` must show Setup Mode: Disabled; `sudo sbctl verify`; `ls -l /sys/firmware/efi/efivars/dbx-*` must be non-empty (do not clear dbx).
 
-### Phase 3: turn it on (planned)
+### Phase 3: turn it on (done on the laptop, 2026-11-06)
 
 1. Remove or reorder the stale unsigned GRUB firmware entry first: `sudo efibootmgr -b 0000 -B` (or `sudo efibootmgr -o <ids>` so a signed entry comes first). Keep a copy of `efibootmgr -v` before.
 2. BIOS: Secure Boot ON, Deployed Mode. Afterwards re-check `sudo sbctl list-enrolled-keys` (toggling Custom Mode may restore factory keys on Dell; unverified).
 3. Boot NixOS; `bootctl status` must report "Secure Boot: enabled (user)". Windows is reachable via F12.
-4. LUKS asks for the passphrase once (PCR 7 changed). Re-seal the TPM to PCR 7 only: `sudo systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=7 /dev/nvme0n1p6`. The `tpm-reenroll` helper in `modules/common/programs/shells/shell-aliases.nix` currently hardcodes PCRs 0+2+7 and must be changed to 7 at this step.
-5. In this same step switch `constants.emergencyAccess` off on all hosts (an initrd root shell defeats the Secure Boot threat model), set `services.lanzaboote.secureBoot = true;` in `hosts/nixos-laptop/default.nix` (its assertions then enforce emergencyAccess off) and rebuild.
+4. LUKS asks for the passphrase once (PCR 7 changed). Re-seal the TPM to PCR 7 only: `sudo systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=7 /dev/nvme0n1p6`. The `tpm-reenroll` helper in `modules/common/programs/shells/shell-aliases.nix` now seals to PCR 7 only (changed from 0+2+7 in Phase 3).
+5. Done in the same step: `constants.emergencyAccess = false` on all hosts (an initrd root shell defeats the Secure Boot threat model) and `services.lanzaboote.secureBoot = true;` in `hosts/nixos-laptop/default.nix` (its assertions enforce emergencyAccess off), then rebuild.
 
 ### Phase 4: clean up GRUB leftovers
 
-After a long stable period: `/boot/grub`, `/boot/kernels`, `/boot/EFI/NixOS-boot`, `grubx64.efi.old`, then drop the GC root. Not before; they are the fallback while Secure Boot is still OFF.
+After a long stable period: `/boot/grub`, `/boot/kernels`, `/boot/EFI/NixOS-boot`, `grubx64.efi.old`, then drop the GC root. Not before; they were the fallback while Secure Boot was still OFF (now that it is ON, the old unsigned GRUB entry no longer boots).
 
 ## Recovery
 

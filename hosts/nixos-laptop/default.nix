@@ -104,7 +104,7 @@ delib.host {
         mainLocale = myLocale;
 
         homeStateVersion = "25.11";
-        emergencyAccess = true;
+        emergencyAccess = false; # an initrd root shell would defeat Secure Boot (services.lanzaboote.secureBoot asserts this)
 
         # ---------------------------------------------------------------
         # 👤 USER IDENTITY
@@ -629,7 +629,7 @@ delib.host {
         impermanence.enable = true;
         lanzaboote = {
           enable = true;
-          secureBoot = false; # flips to true in Phase 3 (Documentation/usage/secure-boot/lanzaboote.md)
+          secureBoot = true; # firmware Secure Boot is enforcing since Phase 3 (Documentation/usage/secure-boot/lanzaboote.md)
           configurationLimit = 5; # fewer menu entries: 5 generations x (base + 5 specialisations)
           consoleMode = "5"; # firmware mode 5 reads best on the XPS 16 panel (tested live); numbers are firmware specific
         };

@@ -14,7 +14,7 @@ delib.module {
 
       tpmReenroll = pkgs.writeShellScriptBin "tpm-reenroll" ''
         set -euo pipefail
-        pcrs="0+2+7"
+        pcrs="7" # PCR 7 = Secure Boot state; PCR 0+2 change on every firmware update
         mappers=$(${pkgs.util-linux}/bin/lsblk -rno NAME,TYPE \
           | ${pkgs.gawk}/bin/awk '$2=="crypt"{print $1}')
         if [ -z "$mappers" ]; then

@@ -79,15 +79,22 @@ let
   goodLanza = goodGrub // { sb = true; grub = false; lz = true; };
   grubMutants = [{ removable = false; } { device = "/dev/sda"; } { grub = false; } { sdb = true; } { efivars = true; } { lz = true; } { sb = true; }];
   lanzaMutants = [{ grub = true; } { lz = false; } { sdb = true; } { efivars = true; } { bundle = "/var/lib/sbctl"; } { bundle = "/persistent/x"; } { limit = 11; } { optLimit = 5; } { optLimit = 16; limit = 16; } { optLimit = 0; limit = 0; } { gen = true; } { enroll = true; } { measured = true; } { sb = false; }];
+  sbEmergencyRule = secureBoot: emergency: !secureBoot || !emergency;
   checks =
     {
       check-hostname = check (cfg.networking.hostName == my.constants.hostname && my.constants.hostname == host)
         "networking.hostName=${cfg.networking.hostName} constants.hostname=${my.constants.hostname} host=${host}";
       check-user = check (my.constants.user == "krit") "constants.user=${my.constants.user}";
-      check-emergency-access-snapshot = check (my.constants.emergencyAccess == true)
-        "constants.emergencyAccess=${lib.boolToString my.constants.emergencyAccess} (both hosts set true on purpose)";
+      check-emergency-access-off = check (my.constants.emergencyAccess == false)
+        "constants.emergencyAccess=${lib.boolToString my.constants.emergencyAccess} (an initrd root shell defeats Secure Boot; off on every host)";
       check-emergency-access-wired = check (cfg.boot.initrd.systemd.emergencyAccess == my.constants.emergencyAccess)
         "boot.initrd.systemd.emergencyAccess does not follow constants.emergencyAccess";
+      check-secure-boot-no-emergency-access = check
+        (sbEmergencyRule my.services.lanzaboote.secureBoot cfg.boot.initrd.systemd.emergencyAccess)
+        "services.lanzaboote.secureBoot is true but boot.initrd.systemd.emergencyAccess is on: an initrd root shell defeats Secure Boot";
+      check-secure-boot-no-emergency-access-control = check
+        (!(sbEmergencyRule true true) && sbEmergencyRule true false && sbEmergencyRule false true && sbEmergencyRule false false)
+        "control broken: the rule must reject only secureBoot together with emergencyAccess";
 
       check-impermanence-enabled = check my.services.impermanence.enable "services.impermanence disabled";
       check-root-tmpfs = check (fs."/".fsType == "tmpfs") "/ fsType=${fs."/".fsType}";
@@ -133,11 +140,6 @@ let
             (btrfsFs != { } && lib.all (v: v.device == "/dev/mapper/cryptroot") (lib.attrValues btrfsFs)
               && cfg.boot.initrd.luks.devices ? cryptroot)
             "a btrfs mount is not on /dev/mapper/cryptroot or luks device cryptroot missing";
-      check-desktop-no-luks =
-        if isLaptop then "ok"
-        else
-          check (cfg.boot.initrd.luks.devices == { })
-            "desktop has LUKS devices but emergencyAccess=true comment assumes none";
 
       check-sops-key-persisted = check
         (cfg.sops.age.sshKeyPaths != [ ] && lib.all (p: lib.hasPrefix "/persist/" p) cfg.sops.age.sshKeyPaths)

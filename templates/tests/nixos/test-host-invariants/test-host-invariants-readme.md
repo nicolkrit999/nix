@@ -24,7 +24,7 @@ bash check-nixos-host-invariants.sh
 
 Scope: only safety contracts and cross-file consistency are asserted; host choices (kernel flavour, kernel patches, which power daemon a laptop picks) are deliberately not tested. No fake host is used.
 
-Notes: `constants.emergencyAccess` is intentionally `true` on both hosts (snapshot check) and must be wired to `boot.initrd.systemd.emergencyAccess`. `nix.gc.automatic` is deliberately not asserted here (owned by another test).
+Notes: `constants.emergencyAccess` is intentionally `false` on both hosts (snapshot check: an initrd root shell defeats Secure Boot) and must be wired to `boot.initrd.systemd.emergencyAccess`; a host with `services.lanzaboote.secureBoot = true` must additionally have it off. Whether a host sets `secureBoot` is not asserted. `nix.gc.automatic` is deliberately not asserted here (owned by another test).
 
 ## Checks
 
@@ -34,8 +34,10 @@ Per host unless marked.
 |-------|----------|
 | hostname | `networking.hostName == constants.hostname == host name` |
 | user | `constants.user == "krit"` |
-| emergency-access-snapshot | `constants.emergencyAccess == true` |
+| emergency-access-off | `constants.emergencyAccess == false` on every host |
 | emergency-access-wired | `boot.initrd.systemd.emergencyAccess == constants.emergencyAccess` |
+| secure-boot-no-emergency-access | a host with `services.lanzaboote.secureBoot = true` has `boot.initrd.systemd.emergencyAccess` off (passes trivially on a host without `secureBoot`) |
+| secure-boot-no-emergency-access-control | the rule, applied to synthetic inputs, rejects only `secureBoot` together with `emergencyAccess` |
 | impermanence-enabled | `myconfig.services.impermanence.enable` |
 | root-tmpfs | `fileSystems."/".fsType == "tmpfs"` |
 | persist / var-log needed-for-boot | both `neededForBoot` |
@@ -49,7 +51,6 @@ Per host unless marked.
 | resolved-no-global-domains | `services.resolved.settings.Resolve.Domains` does not contain `~.` |
 | resolved-mdns-off-with-avahi | `extendModules` twins: avahi forced on gives `MulticastDNS = "false"`, avahi forced off does not |
 | luks-cryptroot (laptop) | all btrfs mounts on `/dev/mapper/cryptroot`, luks device `cryptroot` exists |
-| desktop-no-luks (desktop) | no LUKS devices (premise of emergencyAccess) |
 | sops-key-persisted | every `sops.age.sshKeyPaths` entry under `/persist/` |
 | sops-key-matches-persisted-ssh | the key's directory is itself a persisted directory |
 | password-secret-for-users | `krit-local-password.neededForUsers` |
