@@ -101,13 +101,57 @@ Read-only status helpers: `bootctl status`, `efibootmgr -v`, `sudo sbctl status`
 4. LUKS asks for the passphrase once (PCR 7 changed). Re-seal the TPM to PCR 7 only: `sudo systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=7 /dev/nvme0n1p6`. The `tpm-reenroll` helper in `modules/common/programs/shells/shell-aliases.nix` now seals to PCR 7 only (changed from 0+2+7 in Phase 3).
 5. Done in the same step: `constants.emergencyAccess = false` on all hosts (an initrd root shell defeats the Secure Boot threat model) and `services.lanzaboote.secureBoot = true;` in `hosts/nixos-laptop/default.nix` (its assertions enforce emergencyAccess off), then rebuild.
 
-### Phase 4: clean up GRUB leftovers
+### Phase 4: clean up GRUB leftovers (runbook, do it after ~1-2 weeks of stable use)
 
-After a long stable period: `/boot/grub`, `/boot/kernels`, `/boot/EFI/NixOS-boot`, `grubx64.efi.old`, then drop the GC root. Not before; they were the fallback while Secure Boot was still OFF (now that it is ON, the old unsigned GRUB entry no longer boots).
+**Why it exists.** GRUB was replaced by lanzaboote on 2026-11-06. Its files stay on the NixOS ESP (`/boot`) because lanzaboote only deletes its own files (`EFI/nixos/` and `nixos-*` entries in `EFI/Linux/`). With Secure Boot ON the firmware already refuses the unsigned GRUB, so these files are dead weight: about 177 MB on the ESP, six red crosses in `sbctl verify`, and a GC root that pins the whole old GRUB generation in `/nix/store`. Nothing cleans them automatically, so this is a manual, one-time step. It changes no Nix config.
+
+**What the leftovers are**
+
+| Item | What it is | Why it is still there |
+|---|---|---|
+| firmware entry `Boot0000 NixOS-boot` | UEFI boot entry pointing at `\EFI\NixOS-boot\grubx64.efi` | created by the old GRUB install; the lanzaboote install writes no EFI variables, so it never removes it |
+| `/boot/EFI/NixOS-boot/` (`grubx64.efi`, `grubx64.efi.old`) | the GRUB program the entry starts, and its previous copy | old GRUB install |
+| `/boot/grub/` (13 MB) | GRUB config, `grubenv`, fonts, locales, `x86_64-efi` modules (`core.efi`, `grub.efi`) | old GRUB install |
+| `/boot/kernels/` (164 MB) | kernels and initrds that GRUB copied to the ESP | old GRUB install (frozen at generation 517) |
+| GC root `/nix/var/nix/gcroots/grub-fallback-517` | symlink that pins generation 517's system closure in the store | created by hand in Phase 0 so the frozen GRUB generation stayed bootable; `nh clean` can never free it while it exists |
+
+Everything else on the ESP stays: `EFI/BOOT/` (signed systemd-boot, also the `Boot0004` fallback path), `EFI/systemd/`, `EFI/Linux/` (signed stubs), `EFI/nixos/` (kernels/initrds, checked by hash), `EFI/Dell/` (firmware vendor files) and `loader/`.
+
+**Prerequisites (all must be true; if one is not, stop)**
+1. Several days of normal use under Secure Boot with no boot problem: cold boots, a suspend/resume, each specialisation you use, Windows via F12, and at least one new generation installed with `nh os boot .` (that already worked on 2026-11-06).
+2. `sudo sbctl verify` shows exactly the 6 known crosses and every `EFI/Linux/*.efi`, `EFI/BOOT/BOOTX64.EFI` and `EFI/systemd/systemd-bootx64.efi` is signed.
+3. `bootctl status | grep -i "secure boot"` says enabled, and `efibootmgr` shows `BootCurrent: 0004` and `BootOrder: 0004,...`. Boot0004 (`\EFI\Boot\BootX64.efi` on the NixOS ESP) must be the first entry, because Boot0000 is about to disappear.
+4. Take a fresh archive of the ESP so the GRUB files can be restored (it is ~350 MB; `~/momentary` is backed up by borg, the NAS copy is the second copy):
+   `sudo tar -C /boot -cpf ~/momentary/esp-nixos-pre-phase4.tar .` then copy it to the NAS folder (see the notes folder in the Recovery section).
+
+**Commands (sudo), in this order**
+
+| # | Command | What it does | Why |
+|---|---|---|---|
+| 1 | `efibootmgr \| grep -i nixos-boot` | shows which entry number the GRUB entry has | confirm it is `Boot0000` before deleting by number |
+| 2 | `sudo efibootmgr -b 0000 -B` | deletes the firmware entry `Boot0000` and removes it from `BootOrder` | otherwise the firmware keeps listing a boot option whose file is gone; BootOrder stays `0004,0002,0003,0001` |
+| 3 | `sudo rm -r /boot/EFI/NixOS-boot` | deletes `grubx64.efi` and `grubx64.efi.old` | the GRUB program; two of the six red crosses |
+| 4 | `sudo rm -r /boot/grub` | deletes GRUB's config, `grubenv`, fonts, locales and modules | GRUB's data; two more red crosses (`core.efi`, `grub.efi`) |
+| 5 | `sudo rm -r /boot/kernels` | deletes the kernels/initrds GRUB copied (164 MB) | only GRUB read them; one more red cross (the `bzImage`) |
+| 6 | `sudo rm /nix/var/nix/gcroots/grub-fallback-517` | removes only the symlink (not the store paths) | lets the next `nh clean` free the old generation's store paths (up to many GB; the closure is ~54 GiB but most is shared with current generations) |
+
+Do not touch `/boot/EFI/nixos`, `/boot/EFI/Linux`, `/boot/EFI/BOOT`, `/boot/EFI/systemd`, `/boot/EFI/Dell` or `/boot/loader`.
+
+**Verify**
+- `sudo sbctl verify`: exactly one red cross is left, `EFI/nixos/kernel-*.efi`, which is unsigned by design (the signed stub checks it by hash).
+- `efibootmgr`: no `NixOS-boot` entry; BootOrder starts with `0004`.
+- `df -h /boot`: about 177 MB less used.
+- Reboot: NixOS boots (systemd-boot menu), LUKS unlocks via the TPM, and Windows boots via F12 > Windows Boot Manager.
+- `nh os boot .` (or the next rebuild) still installs a generation without errors.
+
+**Rollback / recovery**
+- Removed too early and need GRUB back: GRUB only boots while Secure Boot is OFF (it is unsigned). Restore from the archive: `sudo tar -C /boot -xpf ~/momentary/esp-nixos-pre-phase4.tar ./EFI/NixOS-boot ./grub ./kernels`, recreate the firmware entry `sudo efibootmgr -c -d /dev/nvme0n1 -p 5 -L NixOS-boot -l '\EFI\NixOS-boot\grubx64.efi'`, and recreate the GC root only if the store path still exists: `sudo ln -s /nix/store/6pdxxp82xmpvvfjfqk7cc8b5hxv8lyid-nixos-system-nixos-laptop-26.11.20261027.31ecbac /nix/var/nix/gcroots/grub-fallback-517`.
+- What you lose by doing Phase 4: the "turn Secure Boot off, pick the old GRUB entry" fallback. It is rarely needed, because the lanzaboote entries also boot with Secure Boot OFF (the stub verifies kernel and initrd by hash either way). If the systemd-boot files on the ESP themselves are broken, use the live ISO path in the Recovery section below.
+- `Documentation/troubleshooting/emergency-recovery-gnu-grub.md` and `recover.sh` still describe GRUB and are stale after this step.
 
 ## Recovery
 
-- lanzaboote boot fails while Secure Boot is OFF: press F12 and choose the old GRUB entry ("NixOS-boot"). It shows the frozen generations from the last GRUB install and works only while their store paths exist (hence the GC root).
+- lanzaboote boot fails while Secure Boot is OFF (only until Phase 4 is done, and never with Secure Boot ON, where the unsigned GRUB is refused): press F12 and choose the old GRUB entry ("NixOS-boot"). It shows the frozen generations from the last GRUB install and works only while their store paths exist (hence the GC root).
 - Boot fails with Secure Boot ON: enter the BIOS (admin password), disable Secure Boot, boot an older generation from the systemd-boot menu.
 - Power loss during install / hash verification failure: boot an older generation, check `sbctl verify /boot/EFI/Linux/nixos-generation-*.efi`, delete corrupt files, `nixos-rebuild boot`. If nothing boots: live NixOS ISO with Secure Boot OFF, mount the ESP (`fsck.fat` if needed), `rm -fr /mnt/boot/EFI/Linux/nixos-generation-*.efi /mnt/boot/EFI/nixos`, `nixos-enter`, `nixos-rebuild boot --install-bootloader`. For the tmpfs root, mount the btrfs subvolumes as in `Documentation/troubleshooting/emergency-recovery-gnu-grub.md` section 1B; the key directory must be reachable as `/persist/var/lib/sbctl`. (`recover.sh` is GRUB-oriented and not adapted yet.)
 - Restore the ESP from the Phase 0 archive: live ISO, `sudo mount /dev/nvme0n1p5 /mnt/esp && sudo tar -C /mnt/esp -xpf <esp-nixos.tar>` (check first what you overwrite).
