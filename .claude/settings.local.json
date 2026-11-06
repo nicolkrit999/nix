@@ -37,6 +37,6 @@
   "enabledMcpjsonServers": [
     "nixos"
   ],
-  "prefersReducedMotion": false,
-  "outputStyle": "default"
+  "outputStyle": "Concise",
+  "prefersReducedMotion": false
 }
