@@ -19,7 +19,7 @@ bash templates/tests/run-tests.sh --only nixos-lanzaboote     # from the repo ro
 bash check-nixos-lanzaboote.sh                                # from this folder
 ```
 
-Expected result: PASS. About 30 s of evaluation (fixture host plus about thirty `extendModules` twins) and one tiny build (the `remarshal` YAML generation of `sbctl.conf`, twice).
+Expected result: PASS. Cost: evaluation of the fixture host plus its `extendModules` twins, and one tiny build (the `remarshal` YAML generation of `sbctl.conf`, twice).
 
 ## How it works
 

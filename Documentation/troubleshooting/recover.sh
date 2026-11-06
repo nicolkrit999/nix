@@ -48,7 +48,7 @@
 #   --keep-changes   build WITH the on-disk repo's uncommitted changes (git add -A)
 #                    instead of stashing them; skips the branch update
 #   --branch NAME    branch to build (default: main)
-#   --flake PATH     flake dir as seen from the installed system, e.g. /home/krit/nix
+#   --flake PATH     flake dir as seen from the installed system, e.g. /home/<user>/nix
 #                    (default: auto-detected)
 #   --skip-mount     you already mounted everything under /mnt by hand
 #   --shell          mount everything, then open a shell in the chroot instead
@@ -524,7 +524,7 @@ $CHROOT_SCRIPT"
 # grub-install writes the GRUB program twice: <boot>/grub/x86_64-efi/core.efi,
 # next to the modules it has to match, and a copy under EFI/ for the firmware
 # to start. A firmware entry left over from an earlier install can keep
-# starting a different, OLD copy (nixos-laptop: Boot0000 "NixOS-boot" ->
+# starting a different, OLD copy (e.g. a "NixOS-boot" entry ->
 # EFI/NixOS-boot/grubx64.efi, while efiInstallAsRemovable only refreshes
 # EFI/BOOT/BOOTX64.EFI). Nothing updates that copy, so on the next GRUB update
 # old program + new modules = "symbol ... not found" before the menu shows -
@@ -881,7 +881,7 @@ lanza_preflight() {
       echo
       warn "NEW KEYS DO NOT MATCH THE KEYS ENROLLED IN THE FIRMWARE."
       warn "The firmware db holds the OLD public key, so what you sign now is rejected with Secure Boot ON."
-      warn "You must turn Secure Boot OFF, boot, delete the old keys/enroll the new ones (Phase 2 and 3 of Documentation/usage/secure-boot/lanzaboote.md) and re-seal the TPM."
+      warn "You must turn Secure Boot OFF, boot, delete the old keys/enroll the new ones (phases 2 and 3 of Documentation/installation/lanzaboote.md) and re-seal the TPM."
       warn "Only do this if the old key is really lost. Archive the new directory in the password manager right away."
       read -r -p "    Type CREATE NEW KEYS to confirm (anything else goes back): " typed </dev/tty || typed=""
       if [[ $typed == "CREATE NEW KEYS" ]]; then
@@ -1008,8 +1008,8 @@ lanza_final_notes() {
   echo "      1. Turn Secure Boot back ON in the firmware setup (you switched it off to boot the live USB)."
   echo "         The enrolled keys normally stay in the firmware; the boot files written now are signed with them."
   if ((NEW_KEYS_CREATED)); then
-    echo "         YOU CREATED NEW KEYS: they are NOT enrolled. Leave Secure Boot OFF, boot NixOS, and repeat Phase 2 and 3 of"
-    echo "         Documentation/usage/secure-boot/lanzaboote.md (the firmware db still holds the OLD public key). Archive the new keys."
+    echo "         YOU CREATED NEW KEYS: they are NOT enrolled. Leave Secure Boot OFF, boot NixOS, and repeat phases 2 and 3 of"
+    echo "         Documentation/installation/lanzaboote.md (the firmware db still holds the OLD public key). Archive the new keys."
   fi
   if ((${#UNLOCKED_DEVS[@]})); then
     echo "      2. LUKS + TPM: the TPM keeps unlocking only if PCR 7 is unchanged (same keys, Secure Boot state as before)."

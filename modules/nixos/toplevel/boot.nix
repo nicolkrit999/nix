@@ -28,7 +28,7 @@ delib.module {
 
         loader = {
           timeout = 30;
-          # pin: nixos-host-invariants asserts the bootloader contract
+          # Rebuilds never write EFI variables; firmware boot entries are managed manually.
           efi.canTouchEfiVariables = false;
 
           systemd-boot.enable = lib.mkForce false;

@@ -6,8 +6,34 @@
 , ...
 }:
 let
-  # Phase 3 of Documentation/usage/secure-boot/lanzaboote.md also needs `tpm-reenroll`
-  # sealed to PCR 7 and the stale GRUB firmware entry removed by hand.
+  # The TPM re-seal (`tpm-reenroll`, PCR 7) and firmware entries stay manual: Documentation/installation/lanzaboote.md.
+  # Test hooks: REBOOT_TO_WINDOWS_{EFIBOOTMGR,SYSTEMCTL,SUDO} replace the three commands it calls.
+  rebootToWindows = pkgs.writeShellApplication {
+    name = "reboot-to-windows";
+    runtimeInputs = [ pkgs.efibootmgr pkgs.coreutils pkgs.gnugrep pkgs.gnused pkgs.systemd ];
+    text = ''
+      efibootmgr=''${REBOOT_TO_WINDOWS_EFIBOOTMGR:-efibootmgr}
+      systemctl=''${REBOOT_TO_WINDOWS_SYSTEMCTL:-systemctl}
+      sudo=''${REBOOT_TO_WINDOWS_SUDO:-/run/wrappers/bin/sudo}
+
+      listing=$("$efibootmgr" -v)
+      matches=$(printf '%s\n' "$listing" \
+        | grep -iE '^Boot[0-9a-f]{4}\*? .*(Windows Boot Manager|[\\/]EFI[\\/]Microsoft[\\/]Boot[\\/]bootmgfw\.efi)' \
+        | sed -E 's/^Boot([0-9A-Fa-f]{4}).*/\1/' || true)
+      if [ -z "$matches" ]; then
+        echo "no Windows boot entry found" >&2
+        exit 1
+      fi
+      [ "$(id -u)" -eq 0 ] || exec "$sudo" "$0" "$@"
+
+      entry=$(printf '%s\n' "$matches" | head -n1)
+      [ "$(printf '%s\n' "$matches" | wc -l)" -eq 1 ] \
+        || echo "several Windows boot entries ($(printf '%s' "$matches" | tr '\n' ' ')), using the first" >&2
+      echo "rebooting into Windows via Boot$entry"
+      "$efibootmgr" --bootnext "$entry"
+      "$systemctl" reboot
+    '';
+  };
   validConsoleMode = mode: builtins.elem mode [ "keep" "auto" "max" ] || builtins.match "[0-9]+" mode != null;
 in
 delib.module {
@@ -92,7 +118,7 @@ delib.module {
         settings."console-mode" = lib.mkDefault cfg.consoleMode;
       };
 
-      environment.systemPackages = [ pkgs.sbctl ];
+      environment.systemPackages = [ pkgs.sbctl rebootToWindows ];
       environment.etc."sbctl/sbctl.conf".source = sbctlConfig;
 
       # Used directly (no bind mount, no environment.persistence): a live-ISO chroot that

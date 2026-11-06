@@ -272,7 +272,7 @@ environment.persistence."/persist" = {
 
 ## Lanzaboote (signed boot, optional)
 
-A host can switch from GRUB to systemd-boot with signed lanzaboote stubs via `services.lanzaboote.enable`; the choice is independent of whether firmware Secure Boot is turned on (`services.lanzaboote.secureBoot`). The stub checks the kernel and initrd by hash on every boot, signing keys live in `/persist` and stay out of the backups, and the boot menu length and console mode are per-host options (`configurationLimit`, `consoleMode`). Key creation and enrollment are manual steps, documented with recovery paths in `Documentation/usage/secure-boot/lanzaboote.md`.
+A host can switch from GRUB to systemd-boot with signed lanzaboote stubs via `services.lanzaboote.enable`; the choice is independent of whether firmware Secure Boot is turned on (`services.lanzaboote.secureBoot`). The stub checks the kernel and initrd by hash on every boot, signing keys live in `/persist` and stay out of the backups, and the boot menu length and console mode are per-host options (`configurationLimit`, `consoleMode`). Key creation and enrollment are manual steps, documented with recovery paths in `Documentation/usage/secure-boot/lanzaboote.md`. Because systemd-boot cannot list a Windows that sits on another disk's boot partition, `reboot-to-windows` looks up the Windows firmware entry, sets it as the next boot and reboots.
 
 ## Cachix Support
 

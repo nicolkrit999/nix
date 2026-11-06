@@ -629,9 +629,9 @@ delib.host {
         impermanence.enable = true;
         lanzaboote = {
           enable = true;
-          secureBoot = true; # firmware Secure Boot is enforcing since Phase 3 (Documentation/usage/secure-boot/lanzaboote.md)
-          configurationLimit = 5; # fewer menu entries: 5 generations x (base + 5 specialisations)
-          consoleMode = "5"; # firmware mode 5 reads best on the XPS 16 panel (tested live); numbers are firmware specific
+          secureBoot = true; # Documentation/usage/secure-boot/lanzaboote.md
+          configurationLimit = 5;
+          consoleMode = "5"; # firmware console mode number, hardware specific
         };
         localsend.enable = true;
         rcloneMount.enable = true;

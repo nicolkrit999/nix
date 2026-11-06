@@ -752,8 +752,8 @@ delib.host {
         impermanence.enable = true;
         lanzaboote = {
           enable = true;
-          secureBoot = false; # Phase 1: firmware Secure Boot stays off until the keys are enrolled (Documentation/usage/secure-boot/lanzaboote.md)
-          configurationLimit = 3; # 1 GiB ESP: kernels and initrds of every generation live there
+          secureBoot = true; # Documentation/usage/secure-boot/lanzaboote.md
+          configurationLimit = 3; # kernels and initrds of every generation live on the ESP
           consoleMode = "keep";
         };
         localsend.enable = true;
