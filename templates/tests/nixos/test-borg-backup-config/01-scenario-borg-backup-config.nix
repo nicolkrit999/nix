@@ -46,7 +46,7 @@ let
       noImperm = (sys.extendModules { modules = [{ myconfig.services.impermanence.enable = lib.mkForce false; }]; }).config;
       emptyPass = sys.extendModules { modules = [{ myconfig.krit.services.nas."${key}-borg-backup".passphraseFile = lib.mkForce ""; }]; };
       emptyKey = sys.extendModules { modules = [{ myconfig.krit.services.nas."${key}-borg-backup".sshKeyPath = lib.mkForce ""; }]; };
-      sb = cfg.myconfig.services.secure-boot;
+      sb = cfg.myconfig.services.lanzaboote;
       identity = lib.elemAt tokens ((lib.lists.findFirstIndex (t: t == "-i") (-1) tokens) + 1);
     in
     {
@@ -115,7 +115,7 @@ let
           "borg-backup assertions: real host must pass; empty passphraseFile and empty sshKeyPath must each fire exactly once";
       "check-${key}-excludes-signing-key" =
         chk (keyExcluded sb.enable sb.pkiBundle excludes)
-          "services.secure-boot is on but its pkiBundle '${sb.pkiBundle}' is not an exclude pattern under /persist (the signing keys would be copied to the NAS repository)";
+          "services.lanzaboote is on but its pkiBundle '${sb.pkiBundle}' is not an exclude pattern under /persist (the signing keys would be copied to the NAS repository)";
       "check-${key}-tailscale-enabled" = chk cfg.services.tailscale.enable "services.tailscale.enable is false";
     };
 in

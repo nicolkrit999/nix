@@ -1,6 +1,6 @@
 { delib, ... }:
 delib.host {
-  name = "secure-boot-host";
+  name = "lanzaboote-host";
   type = "desktop";
   homeManagerSystem = "x86_64-linux";
 

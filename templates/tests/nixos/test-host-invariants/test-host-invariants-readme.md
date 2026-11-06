@@ -1,6 +1,6 @@
 # test-host-invariants
 
-Asserts boot and lockout invariants on the REAL `nixos-desktop` and `nixos-laptop` configurations (impermanence, sops host key, bootloader (GRUB or lanzaboote, depending on `services.secure-boot`), password wiring, tailscale base, home-manager wiring).
+Asserts boot and lockout invariants on the REAL `nixos-desktop` and `nixos-laptop` configurations (impermanence, sops host key, bootloader (GRUB or lanzaboote, depending on `services.lanzaboote`), password wiring, tailscale base, home-manager wiring).
 
 ## Run
 
@@ -55,8 +55,8 @@ Per host unless marked.
 | password-secret-for-users | `krit-local-password.neededForUsers` |
 | immutable-users | `users.mutableUsers == false` |
 | password-files | krit and root `hashedPasswordFile` = the sops secret path |
-| bootloader | systemd-boot off and no EFI var writes on every host; then by `myconfig.services.secure-boot.enable`: off = grub on, removable install, device `nodev`, lanzaboote off; on = grub off, lanzaboote on, `boot.lanzaboote.pkiBundle` under `/persist/`, `configurationLimit == 10`, `autoGenerateKeys`/`autoEnrollKeys`/`measuredBoot` all off (which branch a host takes is not asserted) |
-| bootloader-control | the same rule, applied to synthetic configs, accepts a good grub and a good lanzaboote config and rejects every single-field mutation of them (grub options, systemd-boot, EFI var writes, lanzaboote on/off, `pkiBundle` outside `/persist/` or under the `/persistent/` prefix trap, limit, the three key options, mismatched secure-boot flag) |
+| bootloader | systemd-boot off and no EFI var writes on every host; then by `myconfig.services.lanzaboote.enable`: off = grub on, removable install, device `nodev`, lanzaboote off; on = grub off, lanzaboote on, `boot.lanzaboote.pkiBundle` under `/persist/`, `configurationLimit` equal to the host's `myconfig.services.lanzaboote.configurationLimit` and within 1..15, `autoGenerateKeys`/`autoEnrollKeys`/`measuredBoot` all off (which branch a host takes is not asserted) |
+| bootloader-control | the same rule, applied to synthetic configs, accepts a good grub and a good lanzaboote config and rejects every single-field mutation of them (grub options, systemd-boot, EFI var writes, lanzaboote on/off, `pkiBundle` outside `/persist/` or under the `/persistent/` prefix trap, a limit different from the option (either side) or outside 1..15 (16 and 0), the three key options, mismatched lanzaboote flag), and accepts limit 5 as well as 10 |
 | btrfs-autoscrub | `services.btrfs.autoScrub` is enabled with exactly one existing btrfs mount point per btrfs device; a twin with every filesystem forced to ext4 has it disabled |
 | default-locale-from-constants | `i18n.defaultLocale == constants.mainLocale`; a twin with a different `mainLocale` follows it |
 | locale-categories | `i18n.extraLocaleSettings`: `LC_ADDRESS`, `LC_IDENTIFICATION`, `LC_MEASUREMENT`, `LC_MONETARY`, `LC_NAME`, `LC_NUMERIC`, `LC_PAPER`, `LC_TELEPHONE` are `it_CH.UTF-8` and `LC_TIME` is the bare `en_IN` (the `services.locale` host values; the bare spelling is the one glibc accepts, nixpkgs#256688) |

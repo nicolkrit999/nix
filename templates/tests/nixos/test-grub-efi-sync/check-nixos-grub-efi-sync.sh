@@ -52,7 +52,7 @@ for host in "${HOSTS[@]}"; do
   mode=$(nix eval --raw --impure --file "$SCENARIO" "mode-${host}" 2>/dev/null) || mode=""
   case "$mode" in
     lanzaboote)
-      run_check "check-${host}-lanzaboote-no-hook" "services.secure-boot on: grub off, hook empty"
+      run_check "check-${host}-lanzaboote-no-hook" "services.lanzaboote on: grub off, hook empty"
       continue ;;
     grub) ;;
     *) fail "mode of ${host}" "could not evaluate mode-${host} (got '${mode}')"; continue ;;

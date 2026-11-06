@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Usage:
-#   bash check-nixos-secure-boot.sh
+#   bash check-nixos-lanzaboote.sh
 
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../../lib/evidence.sh"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"
-SCEN="$DIR/01-scenario-secure-boot.nix"
+SCEN="$DIR/01-scenario-lanzaboote.nix"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
 PASS=0; FAIL=0
@@ -24,7 +24,7 @@ bad() {
 verdict() { if [[ "$1" == "yes" ]]; then ok "$2"; else bad "$2" "$3"; fi; }
 
 echo ""
-echo -e "${BOLD}=== services.secure-boot: eval checks on the fixture host ===${NC}"
+echo -e "${BOLD}=== services.lanzaboote: eval checks on the fixture host ===${NC}"
 if ! json=$(nix eval --json --impure --file "$SCEN" checks 2>"$WORK/eval.err"); then
   bad "evaluation of the scenario" "$(grep -E 'error:' "$WORK/eval.err" | head -3 | tr '\n' ' ')"
   json='{}'
@@ -42,9 +42,10 @@ build() { nix build --impure --file "$SCEN" --no-link --print-out-paths "etcSour
 
 conf_ok() {
   local file="$1" bundle="$2" got want
-  got=$(grep -v -E '^(%YAML [0-9.]+|---)$' "$file" | sed -e "s/['\"]//g" | sort)
+  [[ -n "$bundle" && "$(sed -n 1p "$file")" == "%YAML 1.1" && "$(sed -n 2p "$file")" == "---" ]] || return 1
+  got=$(tail -n +3 "$file" | sort)
   want=$(printf 'guid: %s\nkeydir: %s\n' "$bundle/GUID" "$bundle/keys")
-  [[ -n "$bundle" && "$got" == "$want" ]]
+  [[ "$got" == "$want" ]]
 }
 
 if [[ -z "$DEFAULT_BUNDLE" || -z "$CUSTOM_BUNDLE" || "$DEFAULT_BUNDLE" == "$CUSTOM_BUNDLE" ]]; then
@@ -64,6 +65,12 @@ elif DEFAULT_OUT=$(build default) && CUSTOM_OUT=$(build custom); then
   printf '%%YAML 1.1\n---\nkeydir: %s/keys2\nguid: %s/GUID\n' "$DEFAULT_BUNDLE" "$DEFAULT_BUNDLE" >"$WORK/keydir.conf"
   verdict "$(conf_ok "$WORK/keydir.conf" "$DEFAULT_BUNDLE" && echo no || echo yes)" \
     "control(file): a file with a wrong keydir is rejected" "conf_ok accepted a file with a wrong keydir"
+  printf 'keydir: %s/keys\nguid: %s/GUID\n' "$DEFAULT_BUNDLE" "$DEFAULT_BUNDLE" >"$WORK/nohdr.conf"
+  verdict "$(conf_ok "$WORK/nohdr.conf" "$DEFAULT_BUNDLE" && echo no || echo yes)" \
+    "control(file): a file without the %YAML 1.1 / --- header is rejected" "conf_ok accepted a file without the header"
+  printf '%%YAML 1.1\n---\nkeydir: "%s/keys"\nguid: %s/GUID\n' "$DEFAULT_BUNDLE" "$DEFAULT_BUNDLE" >"$WORK/quoted.conf"
+  verdict "$(conf_ok "$WORK/quoted.conf" "$DEFAULT_BUNDLE" && echo no || echo yes)" \
+    "control(file): a file with a quoted value is rejected (exact comparison)" "conf_ok accepted a quoted value"
 else
   bad "build /etc/sbctl/sbctl.conf (remarshal)" "$(tail -3 "$WORK/default.err" "$WORK/custom.err" 2>/dev/null | tr '\n' ' ')"
 fi

@@ -217,9 +217,9 @@ delib.module {
             "/persist/var/tmp"
             "/persist/var/cache/fscache"
 
-            # Secure Boot signing keys: a root-only secret that never goes into the repo; the
+            # lanzaboote signing keys: a root-only secret that never goes into the repo; the
             # encrypted offline copy is the backup (Documentation/usage/secure-boot/lanzaboote.md)
-            myconfig.services.secure-boot.pkiBundle
+            myconfig.services.lanzaboote.pkiBundle
           ];
 
           encryption_passcommand = "cat ${cfg.passphraseFile}";

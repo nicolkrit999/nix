@@ -18,7 +18,7 @@ bash check-nixos-grub-efi-sync.sh
 
 ## How it works
 
-The hook only exists while GRUB is the bootloader: `boot.nix` skips the whole GRUB block when `myconfig.services.secure-boot.enable` is on (lanzaboote replaces the install hook). The scenario exposes `mode-<host>` (`grub` or `lanzaboote`, from that flag) and the script runs the hook checks only for `grub` hosts. A `lanzaboote` host instead gets one positive check: `boot.loader.grub.enable` is false and `extraInstallCommands` is empty. Which mode a host is in is not asserted.
+The hook only exists while GRUB is the bootloader: `boot.nix` skips the whole GRUB block when `myconfig.services.lanzaboote.enable` is on (lanzaboote replaces the install hook). The scenario exposes `mode-<host>` (`grub` or `lanzaboote`, from that flag) and the script runs the hook checks only for `grub` hosts. A `lanzaboote` host instead gets one positive check: `boot.loader.grub.enable` is false and `extraInstallCommands` is empty. Which mode a host is in is not asserted.
 
 `01-scenario-grub-efi-sync.nix` reads the real `nixosConfigurations.nixos-desktop` and `nixos-laptop` from the flake (only the grub options are forced, no build) and exposes the hook text (`script-<host>`) plus static checks as `"ok"` / `"FAIL: ..."`.
 

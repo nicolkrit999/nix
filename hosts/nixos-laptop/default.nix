@@ -627,10 +627,15 @@ delib.host {
           dotfiles-private.enable = true;
         };
         impermanence.enable = true;
+        lanzaboote = {
+          enable = true;
+          secureBoot = false; # flips to true in Phase 3 (Documentation/usage/secure-boot/lanzaboote.md)
+          configurationLimit = 5; # fewer menu entries: 5 generations x (base + 5 specialisations)
+          consoleMode = "5"; # firmware mode 5 reads best on the XPS 16 panel (tested live); numbers are firmware specific
+        };
         localsend.enable = true;
         rcloneMount.enable = true;
         resolved.enable = true;
-        secure-boot.enable = true;
         swaync.enable = true;
         tailscale.enable = true;
 

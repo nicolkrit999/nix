@@ -4,7 +4,7 @@ let
   src = /. + builtins.unsafeDiscardStringContext flake.outPath;
   denix = flake.inputs.denix;
   lib = flake.inputs.nixpkgs.lib;
-  shared = src + "/templates/tests/nixos/test-secure-boot/shared";
+  shared = src + "/templates/tests/nixos/test-lanzaboote/shared";
 
   host = (denix.lib.configurations {
     moduleSystem = "nixos";
@@ -21,21 +21,22 @@ let
       moduleSystem = "nixos";
     };
     paths = [
-      (shared + "/host-secure-boot.nix")
+      (shared + "/host-lanzaboote.nix")
       (shared + "/impermanence-stub.nix")
       (shared + "/nixos-extra-x86_64")
       (src + "/modules/nixos/toplevel/home-manager.nix")
       (src + "/modules/nixos/config/constants-nixos.nix")
       (src + "/modules/common/config/constants.nix")
-      (src + "/modules/nixos/services/secure-boot.nix")
+      (src + "/modules/nixos/services/lanzaboote.nix")
     ];
     exclude = [ ];
-  }).secure-boot-host;
+  }).lanzaboote-host;
 
   force = lib.mkOverride 10;
   twin = mods: host.extendModules { modules = lib.toList mods; };
-  sb = o: { myconfig.services.secure-boot = o; };
+  sb = o: { myconfig.services.lanzaboote = o; };
   on = sb { enable = true; };
+  emergency = { boot.initrd.systemd.emergencyAccess = true; };
   imperm = { myconfig.services.impermanence.enable = true; };
 
   defaultBundle = "/persist/var/lib/sbctl";
@@ -54,12 +55,22 @@ let
   sdbOn = { boot.loader.systemd-boot.enable = true; };
   sdbEnabledMod = twin [ on sdbOn ];
   sdbDisabledMod = twin sdbOn;
+  withMode = v: twin (sb { enable = true; consoleMode = v; });
+  validModes = [ "keep" "auto" "max" "5" "0" "12" ];
+  invalidModes = [ "abc" "-1" "" "5x" "keepx" " 5" ];
+  modeOff = twin (sb { consoleMode = "abc"; });
+  plainSecure = twin (sb { enable = true; secureBoot = true; });
+  secureNoEnable = twin (sb { secureBoot = true; });
+  secureEmergency = twin [ (sb { enable = true; secureBoot = true; }) emergency ];
+  secureEmergencyNoEnable = twin [ (sb { secureBoot = true; }) emergency ];
+  emergencyOnly = twin [ on emergency ];
+  limitFive = twin (sb { enable = true; configurationLimit = 5; });
   keysOn = twin [ on { boot.lanzaboote = { autoGenerateKeys.enable = true; autoEnrollKeys.enable = true; measuredBoot.enable = true; }; } ];
 
   chk = cond: msg: if cond then "ok" else "FAIL: ${msg}";
   has = x: xs: builtins.elem x xs;
   failed = t: lib.filter (a: !a.assertion) t.config.assertions;
-  mine = t: lib.filter (a: lib.hasInfix "services.secure-boot" a.message) (failed t);
+  mine = t: lib.filter (a: lib.hasInfix "services.lanzaboote" a.message) (failed t);
   firing = n: t: lib.filter (a: lib.hasInfix n a.message) (mine t);
   failingCount = t: lib.length (mine t);
   grubMsg = "boot.loader.grub.enable must be false";
@@ -72,6 +83,16 @@ let
   confFor = bundle: { keydir = "${bundle}/keys"; guid = "${bundle}/GUID"; };
   sbctlIn = t: has host.pkgs.sbctl.outPath (map (p: p.outPath or "") t.config.environment.systemPackages);
   lz = t: t.config.boot.lanzaboote;
+  cmode = t: (lz t).settings."console-mode" or null;
+  restOf = t: removeAttrs (lz t).settings [ "console-mode" ];
+  modeOpt = t: t.config.myconfig.services.lanzaboote.consoleMode;
+  modeMsg = "services.lanzaboote.consoleMode";
+  enableMsg = "services.lanzaboote.secureBoot declares";
+  emergencyMsg = "emergencyAccess is enabled";
+  msgs = t: map (a: a.message) (mine t);
+  modeCase = v: { inherit v; t = withMode v; };
+  validCases = map modeCase validModes;
+  invalidCases = map modeCase invalidModes;
   keyOpts = t: [ (lz t).autoGenerateKeys.enable (lz t).autoEnrollKeys.enable (lz t).measuredBoot.enable ];
 
   checks = {
@@ -81,9 +102,17 @@ let
       chk (!(etc off ? "sbctl/sbctl.conf") && sbctlRules off == [ ] && !sbctlIn off)
         "etc=${lib.boolToString (etc off ? "sbctl/sbctl.conf")} rules=${builtins.toJSON (sbctlRules off)} pkg=${lib.boolToString (sbctlIn off)}";
     "defaults: pkiBundle is /persist/var/lib/sbctl" =
-      chk (off.config.myconfig.services.secure-boot.pkiBundle == defaultBundle) off.config.myconfig.services.secure-boot.pkiBundle;
+      chk (off.config.myconfig.services.lanzaboote.pkiBundle == defaultBundle) off.config.myconfig.services.lanzaboote.pkiBundle;
     "defaults: configurationLimit is 10" =
-      chk (off.config.myconfig.services.secure-boot.configurationLimit == 10) (toString off.config.myconfig.services.secure-boot.configurationLimit);
+      chk (off.config.myconfig.services.lanzaboote.configurationLimit == 10) (toString off.config.myconfig.services.lanzaboote.configurationLimit);
+    "defaults: secureBoot is false" =
+      chk (!off.config.myconfig.services.lanzaboote.secureBoot && !enabled.config.myconfig.services.lanzaboote.secureBoot) "secureBoot defaults to true";
+    "defaults: consoleMode is keep, in the option and in settings console-mode when enabled" =
+      chk (modeOpt off == "keep" && modeOpt enabled == "keep" && cmode enabled == "keep")
+        "off=${modeOpt off} enabled=${modeOpt enabled} settings=${toString (cmode enabled)}";
+    "defaults: the other loader.conf keys are exactly lanzaboote's own (default, editor, timeout)" =
+      chk (lib.attrNames (restOf enabled) == [ "default" "editor" "timeout" ] && restOf enabled == restOf off)
+        "enabled=${builtins.toJSON (restOf enabled)} off=${builtins.toJSON (restOf off)}";
     "control(off): the enabled twin does write all three, so the off result is not an unloaded module" =
       chk ((etc enabled ? "sbctl/sbctl.conf") && sbctlRules enabled != [ ] && sbctlIn enabled && (lz enabled).enable)
         "enabled twin lacks sbctl.conf, tmpfiles rule, package or lanzaboote";
@@ -95,6 +124,22 @@ let
     "enabled: custom pkiBundle and configurationLimit propagate" =
       chk ((lz custom).pkiBundle == customBundle && (lz custom).configurationLimit == 3)
         "pkiBundle=${(lz custom).pkiBundle} configurationLimit=${toString (lz custom).configurationLimit}";
+    "enabled: configurationLimit 5 propagates (a value other than the default and the custom twin's)" =
+      chk ((lz limitFive).configurationLimit == 5 && (lz enabled).configurationLimit != 5) "configurationLimit=${toString (lz limitFive).configurationLimit}";
+    "consoleMode: 5 propagates to settings console-mode and the other loader.conf keys stay unchanged" =
+      chk (modeOpt (withMode "5") == "5" && cmode (withMode "5") == "5" && restOf (withMode "5") == restOf enabled && restOf enabled != { } && cmode enabled != "5")
+        "option=${modeOpt (withMode "5")} settings=${toString (cmode (withMode "5"))} rest=${builtins.toJSON (restOf (withMode "5"))}";
+    "consoleMode: keep, auto, max, 5, 0 and 12 are accepted, fire no assertion and propagate" =
+      chk (lib.all (c: cmode c.t == c.v && failingCount c.t == 0) validCases)
+        (builtins.toJSON (map (c: [ c.v (cmode c.t) (msgs c.t) ]) validCases));
+    "consoleMode: abc, -1, empty, 5x, keepx and ' 5' each fire exactly the consoleMode assertion" =
+      chk (lib.all (c: lib.length (firing modeMsg c.t) == 1 && failingCount c.t == 1) invalidCases)
+        (builtins.toJSON (map (c: [ c.v (msgs c.t) ]) invalidCases));
+    "consoleMode: the assertion message names the offending value" =
+      chk (lib.all (c: lib.all (a: lib.hasInfix "\"${c.v}\"" a.message) (firing modeMsg c.t)) invalidCases) "message lacks the value";
+    "control(consoleMode): a rejected value is told apart from an accepted one, and an invalid mode while the module is off fires nothing and is not written" =
+      chk (failingCount (withMode "abc") != failingCount (withMode "5") && failingCount modeOff == 0 && cmode modeOff != "abc")
+        "failing abc=${toString (failingCount (withMode "abc"))} five=${toString (failingCount (withMode "5"))} off=${toString (failingCount modeOff)} offSettings=${toString (cmode modeOff)}";
     "enabled: systemd-boot is forced false even against a plain definition" =
       chk (!sdbEnabledMod.config.boot.loader.systemd-boot.enable) "boot.loader.systemd-boot.enable=true";
     "control(systemd-boot): without the module the same plain definition stays true" =
@@ -116,8 +161,8 @@ let
     "control(keys): the options are readable, a twin enabling them reads true" =
       chk (keyOpts keysOn == [ true true true ]) (builtins.toJSON (keyOpts keysOn));
 
-    "assertions: clean enabled config passes both" =
-      chk (failingCount enabled == 0 && failingCount insideImperm == 0 && failingCount custom == 0)
+    "assertions: clean enabled config passes all" =
+      chk (failingCount enabled == 0 && failingCount insideImperm == 0 && failingCount custom == 0 && failingCount limitFive == 0)
         (builtins.toJSON (map (a: a.message) (mine enabled ++ mine insideImperm ++ mine custom)));
     "assertions: forcing boot.loader.grub.enable fires the grub assertion exactly once" =
       chk (lib.length (firing grubMsg grubForced) == 1 && firing persistMsg grubForced == [ ])
@@ -138,6 +183,23 @@ let
     "assertions: the persist message names the offending path" =
       chk (lib.all (a: lib.hasInfix outsideBundle a.message) (firing persistMsg outsideImperm) && firing persistMsg outsideImperm != [ ])
         "message lacks ${outsideBundle}";
+    "secureBoot: with enable and emergencyAccess off it fires nothing" =
+      chk (failingCount plainSecure == 0 && plainSecure.config.myconfig.services.lanzaboote.secureBoot && !plainSecure.config.boot.initrd.systemd.emergencyAccess)
+        (builtins.toJSON (msgs plainSecure));
+    "secureBoot: without enable it fires exactly the enable assertion" =
+      chk (lib.length (firing enableMsg secureNoEnable) == 1 && failingCount secureNoEnable == 1)
+        (builtins.toJSON (msgs secureNoEnable));
+    "secureBoot: with emergencyAccess on it fires exactly the emergencyAccess assertion" =
+      chk (lib.length (firing emergencyMsg secureEmergency) == 1 && failingCount secureEmergency == 1 && firing enableMsg secureEmergency == [ ])
+        (builtins.toJSON (msgs secureEmergency));
+    "control(emergencyAccess): the option really flips, and emergencyAccess alone (secureBoot false) fires nothing" =
+      chk
+        (secureEmergency.config.boot.initrd.systemd.emergencyAccess && !plainSecure.config.boot.initrd.systemd.emergencyAccess
+          && emergencyOnly.config.boot.initrd.systemd.emergencyAccess && failingCount emergencyOnly == 0)
+        (builtins.toJSON (msgs emergencyOnly));
+    "control(secureBoot): with neither enable nor secureBoot and emergencyAccess on nothing fires, and with secureBoot but no enable only the enable assertion fires" =
+      chk (failingCount (twin emergency) == 0 && failingCount secureEmergencyNoEnable == 1 && firing emergencyMsg secureEmergencyNoEnable == [ ])
+        (builtins.toJSON (msgs secureEmergencyNoEnable));
     "control(checker): the helpers reject a wrong expectation" =
       chk (failingCount outsideImperm == 1 && failingCount grubForced == 1 && failingCount enabled != 1 && confValue enabled != confFor customBundle)
         "failingCount/confValue accepted a wrong expectation";

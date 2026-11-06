@@ -12,18 +12,18 @@ let
 
   verdict = ok: detail: if ok then "ok" else "FAIL: ${detail}";
 
-  secureBootOf = host: flake.nixosConfigurations.${host}.config.myconfig.services.secure-boot.enable;
+  lanzabooteOf = host: flake.nixosConfigurations.${host}.config.myconfig.services.lanzaboote.enable;
 
   noHookRule = grubEnabled: script: !grubEnabled && script == "";
 
   perHost = host:
     let s = scriptOf host; g = grubOf host; in
     {
-      "mode-${host}" = if secureBootOf host then "lanzaboote" else "grub";
+      "mode-${host}" = if lanzabooteOf host then "lanzaboote" else "grub";
     }
-    // (if secureBootOf host then {
+    // (if lanzabooteOf host then {
       "check-${host}-lanzaboote-no-hook" = verdict (noHookRule g.enable s)
-        "services.secure-boot is on but boot.loader.grub.enable=${lib.boolToString g.enable} and the stale-copy hook is ${if s == "" then "empty" else "non-empty"}";
+        "services.lanzaboote is on but boot.loader.grub.enable=${lib.boolToString g.enable} and the stale-copy hook is ${if s == "" then "empty" else "non-empty"}";
     } else {
       "script-${host}" = s;
       "check-${host}-nonempty" = verdict (s != "") "extraInstallCommands is empty";

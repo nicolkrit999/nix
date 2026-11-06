@@ -51,13 +51,14 @@ let
       lz = c.boot.lanzaboote;
       common = !l.systemd-boot.enable && !l.efi.canTouchEfiVariables;
     in
-    if c.myconfig.services.secure-boot.enable
+    if c.myconfig.services.lanzaboote.enable
     then
-      common && !l.grub.enable && lz.enable && lib.hasPrefix "/persist/" lz.pkiBundle && lz.configurationLimit == 10
+      common && !l.grub.enable && lz.enable && lib.hasPrefix "/persist/" lz.pkiBundle
+      && lz.configurationLimit == c.myconfig.services.lanzaboote.configurationLimit && lz.configurationLimit >= 1 && lz.configurationLimit <= 15
       && !lz.autoGenerateKeys.enable && !lz.autoEnrollKeys.enable && !lz.measuredBoot.enable
     else common && l.grub.enable && !lz.enable && l.grub.efiInstallAsRemovable && l.grub.device == "nodev";
   bootProbe = o: {
-    myconfig.services.secure-boot.enable = o.sb;
+    myconfig.services.lanzaboote = { enable = o.sb; configurationLimit = o.optLimit; };
     boot = {
       loader = {
         grub = { enable = o.grub; efiInstallAsRemovable = o.removable; device = o.device; };
@@ -74,10 +75,10 @@ let
       };
     };
   };
-  goodGrub = { sb = false; grub = true; removable = true; device = "nodev"; sdb = false; efivars = false; lz = false; bundle = "/persist/x"; limit = 10; gen = false; enroll = false; measured = false; };
+  goodGrub = { sb = false; grub = true; removable = true; device = "nodev"; sdb = false; efivars = false; lz = false; bundle = "/persist/x"; optLimit = 10; limit = 10; gen = false; enroll = false; measured = false; };
   goodLanza = goodGrub // { sb = true; grub = false; lz = true; };
   grubMutants = [{ removable = false; } { device = "/dev/sda"; } { grub = false; } { sdb = true; } { efivars = true; } { lz = true; } { sb = true; }];
-  lanzaMutants = [{ grub = true; } { lz = false; } { sdb = true; } { efivars = true; } { bundle = "/var/lib/sbctl"; } { bundle = "/persistent/x"; } { limit = 11; } { gen = true; } { enroll = true; } { measured = true; } { sb = false; }];
+  lanzaMutants = [{ grub = true; } { lz = false; } { sdb = true; } { efivars = true; } { bundle = "/var/lib/sbctl"; } { bundle = "/persistent/x"; } { limit = 11; } { optLimit = 5; } { optLimit = 16; limit = 16; } { optLimit = 0; limit = 0; } { gen = true; } { enroll = true; } { measured = true; } { sb = false; }];
   checks =
     {
       check-hostname = check (cfg.networking.hostName == my.constants.hostname && my.constants.hostname == host)
@@ -154,12 +155,12 @@ let
         "krit/root hashedPasswordFile not the sops krit-local-password path";
 
       check-bootloader = check (bootContract cfg)
-        "bootloader contract broken (services.secure-boot.enable=${lib.boolToString my.services.secure-boot.enable}): grub host needs grub on, systemd-boot off, no EFI var writes, removable install, device nodev, lanzaboote off; secure-boot host needs grub off, systemd-boot off, no EFI var writes, lanzaboote on with pkiBundle under /persist/, configurationLimit 10 and autoGenerateKeys/autoEnrollKeys/measuredBoot off";
+        "bootloader contract broken (services.lanzaboote.enable=${lib.boolToString my.services.lanzaboote.enable}): grub host needs grub on, systemd-boot off, no EFI var writes, removable install, device nodev, lanzaboote off; lanzaboote host needs grub off, systemd-boot off, no EFI var writes, lanzaboote on with pkiBundle under /persist/, configurationLimit equal to services.lanzaboote.configurationLimit and within 1..15, and autoGenerateKeys/autoEnrollKeys/measuredBoot off";
       check-bootloader-control = check
-        (bootContract (bootProbe goodGrub) && bootContract (bootProbe goodLanza)
+        (bootContract (bootProbe goodGrub) && bootContract (bootProbe goodLanza) && bootContract (bootProbe (goodLanza // { optLimit = 5; limit = 5; }))
           && lib.all (m: !(bootContract (bootProbe (goodGrub // m)))) grubMutants
           && lib.all (m: !(bootContract (bootProbe (goodLanza // m)))) lanzaMutants)
-        "control broken: the bootloader contract must accept the two good synthetic configs and reject every single-field mutation of them (and a mismatched services.secure-boot flag)";
+        "control broken: the bootloader contract must accept the two good synthetic configs and reject every single-field mutation of them (a limit different from the option, outside 1..15, and a mismatched services.lanzaboote flag)";
 
       check-nix-pat-include = check (lib.hasInfix "!include /run/secrets/github_fg_pat_token_nix" cfg.nix.extraOptions)
         "nix.extraOptions lacks the PAT !include";

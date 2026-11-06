@@ -1,27 +1,29 @@
-# Secure Boot with lanzaboote (`services.secure-boot`)
+# Secure Boot with lanzaboote (`services.lanzaboote`)
 
-Status: Phase 1 only (the module exists and is enabled on `nixos-laptop`, Secure Boot itself stays OFF, nothing is enrolled yet). The sections "Phase 2" and "Phase 3" describe the planned next steps; nothing in them has been run yet.
+Status: Phase 1 only (the module exists and is enabled on `nixos-laptop`, live-verified; `secureBoot = false`, Secure Boot itself stays OFF in the firmware, nothing is enrolled yet). The sections "Phase 2" and "Phase 3" describe the planned next steps; nothing in them has been run yet.
 
 ## What it is and why
 
 - Goal: own Secure Boot keys, so the LUKS TPM2 auto-unlock becomes tamper-resistant. Without Secure Boot, an attacker with disk access can swap the initrd (evil maid) and the TPM still unseals the disk key. With Secure Boot and a PCR 7 policy, only a boot chain signed with the local keys unseals it.
 - Tooling: [lanzaboote](https://github.com/nix-community/lanzaboote) (flake input `lanzaboote`, tag `v1.2.0`, `nixpkgs.follows = "nixpkgs"`) replaces the bootloader install step. It writes signed UKI-style stubs plus a signed systemd-boot to the ESP. [sbctl](https://github.com/Foxboron/sbctl) creates the keys and enrolls them into the firmware, by hand.
-- Only `nixos-laptop` uses it. `nixos-desktop` stays on GRUB; the shared `modules/nixos/toplevel/boot.nix` skips its whole GRUB block (including the stale-copy sync hook) when `services.secure-boot.enable` is true, and is otherwise unchanged.
+- Only `nixos-laptop` uses it. `nixos-desktop` stays on GRUB; the shared `modules/nixos/toplevel/boot.nix` skips its whole GRUB block (including the stale-copy sync hook) when `services.lanzaboote.enable` is true, and is otherwise unchanged.
 
 ## The module
 
-File: `modules/nixos/services/secure-boot.nix` (generic, off by default, enabled per host).
+File: `modules/nixos/services/lanzaboote.nix` (generic, off by default, enabled per host). The module is named after the bootloader, not after Secure Boot: choosing lanzaboote (`enable`) and telling the config that the firmware enforces Secure Boot (`secureBoot`) are two separate concerns.
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `myconfig.services.secure-boot.enable` | `false` | Turn lanzaboote on (replaces GRUB for this host) |
-| `myconfig.services.secure-boot.pkiBundle` | `"/persist/var/lib/sbctl"` | Directory holding `keys/` and `GUID` |
-| `myconfig.services.secure-boot.configurationLimit` | `10` | Number of generations kept on the ESP |
+| `myconfig.services.lanzaboote.enable` | `false` | Use lanzaboote as the bootloader (replaces GRUB for this host) |
+| `myconfig.services.lanzaboote.secureBoot` | `false` | Declares that the FIRMWARE enforces Secure Boot. It can never flip the BIOS setting; it only applies the matching hardening: requires `enable` and asserts that `boot.initrd.systemd.emergencyAccess` is off |
+| `myconfig.services.lanzaboote.pkiBundle` | `"/persist/var/lib/sbctl"` | Directory holding `keys/` and `GUID` |
+| `myconfig.services.lanzaboote.configurationLimit` | `10` | Number of generations kept on the ESP (the laptop uses 5: 5 generations x (base + 5 specialisations) menu entries) |
+| `myconfig.services.lanzaboote.consoleMode` | `"keep"` | `console-mode` in `loader.conf`: `"keep"` (firmware default), `"auto"`, `"max"` or a non-negative integer string. The laptop uses `"5"` |
 
 When enabled it sets:
 
 - `boot.loader.systemd-boot.enable = mkForce false` (lanzaboote requirement), GRUB off (asserted).
-- `boot.lanzaboote = { enable = true; pkiBundle; configurationLimit; }`. Deliberately NOT set: `autoGenerateKeys`, `autoEnrollKeys`, `measuredBoot`, `allowUnsigned`.
+- `boot.lanzaboote = { enable = true; pkiBundle; configurationLimit; }` plus `boot.lanzaboote.settings."console-mode" = consoleMode` (at `mkDefault` priority; lanzaboote's `settings` option merges it over its own defaults, so `timeout`, `editor` and `default = "nixos-*"` stay as they are). `boot.loader.systemd-boot.consoleMode` is not used: that NixOS option is an enum that does not allow integers. Deliberately NOT set: `autoGenerateKeys`, `autoEnrollKeys`, `measuredBoot`, `allowUnsigned`.
 - `pkgs.sbctl` in `environment.systemPackages`.
 - `/etc/sbctl/sbctl.conf` with the same `keydir`/`guid` pair lanzaboote itself writes for auto key generation (YAML, two keys; order is not significant):
 
@@ -33,7 +35,11 @@ keydir: /persist/var/lib/sbctl/keys
   Without this file a manual `sbctl create-keys` would use sbctl's default `/var/lib/sbctl`, which is on the tmpfs root and vanishes on reboot. sbctl reads `/etc/sbctl/sbctl.conf` automatically; only `keydir` and `guid` are used to find the keys.
 - A tmpfiles rule `d /persist/var/lib/sbctl 0700 root root -`: sbctl itself creates the directory with mode 0755 (the private key files are 0400 root), so the directory is pre-created root-only.
 
-Assertions: GRUB must be disabled; with `services.impermanence` enabled, `pkiBundle` must start with `/persist/`.
+Assertions: GRUB must be disabled; with `services.impermanence` enabled, `pkiBundle` must start with `/persist/`; `consoleMode` must be `keep`, `auto`, `max` or digits only; `secureBoot = true` requires `enable = true` and `boot.initrd.systemd.emergencyAccess = false` (an initrd root shell defeats Secure Boot). `secureBoot` does nothing else: the `tpm-reenroll` PCR change and the removal of the stale GRUB firmware entry stay manual steps of Phase 3.
+
+### The boot menu looks small?
+
+`consoleMode` selects the UEFI text mode of the systemd-boot menu. The numbers are firmware specific (mode 5 is the right one on the XPS 16 panel, another machine differs). To find one: in the systemd-boot menu press `r` to cycle through the available modes (the menu redraws in each); the chosen number can then be set as `consoleMode = "<n>"`. Alternatively edit `console-mode` in `/boot/loader/loader.conf` (the file is rewritten by the next bootloader install, so persist the value via the option). `"max"` picks the largest mode, `"keep"` leaves the firmware default.
 
 ### Why the keys are used directly from `/persist`
 
@@ -50,7 +56,7 @@ The key directory is excluded from the borg backup of `nixos-laptop` (`users/kri
 - Writes: `EFI/nixos/kernel-*.efi` and `initrd-*.efi` (unsigned, content-addressed copies), `EFI/Linux/nixos-generation-<N>[-specialisation-<name>]-<hash>.efi` (signed stubs), `EFI/BOOT/BOOTX64.EFI` and `EFI/systemd/systemd-bootx64.efi` (signed systemd-boot), `loader/loader.conf`. It never writes EFI variables and never calls efibootmgr.
 - `EFI/BOOT/BOOTX64.EFI` (which is GRUB today) is overwritten without a backup. It never touches `EFI/NixOS-boot` (the stale GRUB copy the firmware entry points to), `/boot/grub`, `/boot/kernels`, `EFI/Microsoft`, `EFI/Dell`.
 - Garbage collection on the ESP only removes unreferenced files in `EFI/nixos/` and `nixos-*` files in `EFI/Linux/`.
-- About 163 MiB per distinct kernel + initrd set on the ESP; the 4 GiB ESP holds `configurationLimit = 10` with room to spare.
+- About 163 MiB per distinct kernel + initrd set on the ESP; the 4 GiB ESP holds `configurationLimit = 10` with room to spare (the laptop uses 5).
 - Windows has its own ESP on this machine. lanzaboote (systemd-boot) cannot chainload it: use the firmware boot menu (F12) or `sudo efibootmgr --bootnext <id of "Windows Boot Manager">` then reboot (parked workflow, no helper yet).
 
 ## Procedure
@@ -93,7 +99,7 @@ Read-only status helpers: `bootctl status`, `efibootmgr -v`, `sudo sbctl status`
 2. BIOS: Secure Boot ON, Deployed Mode. Afterwards re-check `sudo sbctl list-enrolled-keys` (toggling Custom Mode may restore factory keys on Dell; unverified).
 3. Boot NixOS; `bootctl status` must report "Secure Boot: enabled (user)". Windows is reachable via F12.
 4. LUKS asks for the passphrase once (PCR 7 changed). Re-seal the TPM to PCR 7 only: `sudo systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=7 /dev/nvme0n1p6`. The `tpm-reenroll` helper in `modules/common/programs/shells/shell-aliases.nix` currently hardcodes PCRs 0+2+7 and must be changed to 7 at this step.
-5. In this same step switch `constants.emergencyAccess` off on all hosts (an initrd root shell defeats the Secure Boot threat model) and rebuild.
+5. In this same step switch `constants.emergencyAccess` off on all hosts (an initrd root shell defeats the Secure Boot threat model), set `services.lanzaboote.secureBoot = true;` in `hosts/nixos-laptop/default.nix` (its assertions then enforce emergencyAccess off) and rebuild.
 
 ### Phase 4: clean up GRUB leftovers
 
