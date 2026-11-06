@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # NixOS emergency recovery: rebuild the system and reinstall the bootloader
-# from a live USB. Meant for the "GRUB doesn't come up at all" case - if GRUB
-# still shows its menu, just pick an older generation there instead.
+# (GRUB or lanzaboote / systemd-boot) from a live USB. Meant for the "the
+# bootloader doesn't come up at all" case - if the boot menu (GRUB, or the
+# systemd-boot menu of a lanzaboote host) still shows, just pick an older
+# generation there instead.
 #
 # Everything is detected from the disk itself, so it works for any host:
-# encrypted or not, tmpfs root (impermanence) or not, dual boot or not.
+# encrypted or not, tmpfs root (impermanence) or not, dual boot or not,
+# GRUB or lanzaboote (Secure Boot).
 #
 #   1. checks the live USB has internet (offers nmtui if not)
 #   2. unlocks LUKS partitions, if there are any (passphrase typed by you)
@@ -13,10 +16,21 @@
 #   4. mounts it under /mnt exactly like that fstab says
 #   5. on-disk flake repo: stashes uncommitted changes, checks out the branch
 #      and fast-forwards it from the clone this script was run from
-#   6. chroots in and runs `nixos-rebuild boot --install-bootloader`
-#   7. replaces stale GRUB copies on the boot partition that the firmware may
-#      still start (old GRUB + new modules = "symbol ... not found")
-#   8. unmounts, closes LUKS, offers to reboot
+#   6. decides the target bootloader (grub | lanzaboote | other): from the
+#      flake being built (nix eval in the chroot), else from the files on the
+#      disk. lanzaboote only: checks the Secure Boot signing keys are there
+#      (never creates or writes keys without your typed confirmation)
+#   7. chroots in and runs `nixos-rebuild boot --install-bootloader`
+#   8. GRUB: replaces stale GRUB copies on the boot partition that the
+#      firmware may still start (old GRUB + new modules = "symbol ... not
+#      found"). lanzaboote: runs `sbctl verify`, and offers the exact
+#      `efibootmgr -c` command if the firmware has lost its NixOS entry
+#   9. unmounts, closes LUKS, offers to reboot
+#
+# lanzaboote hosts: switch Secure Boot OFF in the firmware setup before
+# booting the live USB (a stock ISO is not signed with your keys) and turn it
+# back ON afterwards. The keys stay enrolled in the firmware, the script
+# touches neither firmware keys nor the Secure Boot setting.
 #
 # Full walkthrough (making the USB, every prompt, what to do after):
 #   Documentation/troubleshooting/README.md
@@ -29,7 +43,8 @@
 # HOSTNAME defaults to the hostname of the system found on disk.
 #
 # Options:
-#   -y, --yes        accept every default answer (LUKS passphrases are still asked)
+#   -y, --yes        accept every default answer (LUKS passphrases are still
+#                    asked; a missing lanzaboote signing key always stops)
 #   --keep-changes   build WITH the on-disk repo's uncommitted changes (git add -A)
 #                    instead of stashing them; skips the branch update
 #   --branch NAME    branch to build (default: main)
@@ -38,11 +53,11 @@
 #   --skip-mount     you already mounted everything under /mnt by hand
 #   --shell          mount everything, then open a shell in the chroot instead
 #                    of rebuilding
-#   --grub-only      only do step 7 (no internet, git or rebuild needed): for
-#                    "symbol ... not found" right after a rebuild that worked
+#   --grub-only      GRUB hosts only: do just the stale-GRUB-copy fix (no
+#                    internet, git or rebuild needed), for "symbol ... not
+#                    found" right after a rebuild that worked. On a lanzaboote
+#                    host it prints that it does not apply and exits
 #   -h, --help       show this help
-
-set -Eeuo pipefail
 
 MNT=${MNT:-/mnt}
 BRANCH=main
@@ -53,6 +68,16 @@ SKIP_MOUNT=0
 SHELL_ONLY=0
 GRUB_ONLY=0
 FLAKE_IN_TARGET=""
+ORIG_ARGS=()
+SCRIPT_PATH=""
+WORK=""
+SCAN=""
+OPENED_LUKS=()
+UNLOCKED_DEVS=()
+ACTIVATED_LVM=0
+BOUND_FLAKE=0
+STASHED=0
+SCRIPT_REPO=""
 
 info() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 ok() { printf '\033[1;32m  ✓\033[0m %s\n' "$*"; }
@@ -89,56 +114,11 @@ choose() {
   done
 }
 
-ORIG_ARGS=("$@")
-while (($#)); do
-  case $1 in
-  -y | --yes) ASSUME_YES=1 ;;
-  --keep-changes) KEEP_CHANGES=1 ;;
-  --branch)
-    BRANCH=${2:?--branch needs a value}
-    shift
-    ;;
-  --flake)
-    FLAKE_IN_TARGET=${2:?--flake needs a value}
-    shift
-    ;;
-  --skip-mount) SKIP_MOUNT=1 ;;
-  --shell) SHELL_ONLY=1 ;;
-  --grub-only) GRUB_ONLY=1 ;;
-  -h | --help)
-    awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"
-    exit 0
-    ;;
-  -*) die "Unknown option: $1 (see --help)" ;;
-  *)
-    [[ -z $HOST ]] || die "Only one hostname can be given"
-    HOST=$1
-    ;;
-  esac
-  shift
-done
-
-SCRIPT_PATH=$(realpath "$0")
-
-if ((EUID != 0)); then
-  exec sudo env "PATH=$PATH" ${NIX_PATH:+"NIX_PATH=$NIX_PATH"} "$SCRIPT_PATH" "${ORIG_ARGS[@]}"
-fi
-
-WORK=$(mktemp -d /tmp/recover.XXXXXX)
-SCAN=$WORK/scan
-OPENED_LUKS=()
-ACTIVATED_LVM=0
-BOUND_FLAKE=0
-STASHED=0
-SCRIPT_REPO=""
-
 on_exit() {
   umount "$SCAN" 2>/dev/null || true
   # --one-file-system: never descend into something that is still mounted
   rm -rf --one-file-system "$WORK" 2>/dev/null || true
 }
-trap on_exit EXIT
-trap 'warn "Failed at line $LINENO: $BASH_COMMAND"; warn "Anything already mounted is left at $MNT - just run the script again to start over."' ERR
 
 # ---------------------------------------------------------------- network ---
 
@@ -207,6 +187,7 @@ unlock_disks() {
       ask "Unlocking failed. Try again?" y || continue 2
     done
     OPENED_LUKS+=("$name")
+    UNLOCKED_DEVS+=("$dev")
     ok "Unlocked $dev as /dev/mapper/$name"
   done
   udevadm settle 2>/dev/null || true
@@ -594,6 +575,451 @@ show_boot_order() {
   ok "Firmware starts first: ${line:0:150}"
 }
 
+# ------------------------------------------------------------- bootloader ---
+
+# Decision about the TARGET bootloader: grub | lanzaboote | other.
+# DISK_BL is read from the files on the disk, FLAKE_BL from `nix eval` of the
+# flake being built. The flake wins: it is what the rebuild will install.
+DISK_BL=""
+DISK_BL_WHY=""
+FLAKE_BL=""
+FLAKE_PKI=""
+TARGET_BL=""
+TARGET_BL_SRC=""
+TARGET_GEN=""
+KEYDIR=""
+GUIDFILE=""
+KEY_SRC=""
+KEYS_OK=0
+NEW_KEYS_CREATED=0
+VERIFY_BAD=()
+VERIFY_EXPECTED=()
+VERIFY_SIGNED=0
+EFIVARS_DIR=${EFIVARS_DIR:-/sys/firmware/efi/efivars}
+SYSFS_BLOCK=${SYSFS_BLOCK:-/sys/class/block}
+# shellcheck disable=SC2016 # expanded inside the chroot
+CHROOT_PATH_PRELUDE='export PATH=/run/wrappers/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/system/sw/bin:$PATH'
+
+# Runs inside the chroot: FLAKE, HOST and APPLY are prepended by flake_eval_bootloader.
+# shellcheck disable=SC2016
+EVAL_SCRIPT='
+set -e
+export PATH=/run/wrappers/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/system/sw/bin:$PATH
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0="*"
+nix --extra-experimental-features "nix-command flakes" eval --raw "$FLAKE#nixosConfigurations.\"$HOST\".config.boot" --apply "$APPLY"
+'
+
+# Newest generation of the installed system that has a readable fstab (the
+# same rule inspect uses). Sets TARGET_GEN.
+find_target_gen() {
+  local g gens=()
+  TARGET_GEN=""
+  mapfile -t gens < <(
+    shopt -s nullglob
+    for g in "$MNT"/nix/var/nix/profiles/system-*-link; do echo "${g##*/}"; done | sort -t- -k2,2nr
+  )
+  for g in "${gens[@]}"; do
+    if read_gen_file "$MNT/nix" "$g" etc/fstab >/dev/null 2>&1; then
+      TARGET_GEN=$g
+      return 0
+    fi
+  done
+  return 1
+}
+
+# installed_gen_file REL: prints REL from the newest generation, fails if absent
+installed_gen_file() {
+  [[ -n $TARGET_GEN ]] || find_target_gen || return 1
+  read_gen_file "$MNT/nix" "$TARGET_GEN" "$1" 2>/dev/null
+}
+
+# Mounted boot partitions that hold an EFI directory
+esp_dirs() {
+  local esp
+  for esp in "$MNT/boot" "$MNT/boot/efi" "$MNT/efi"; do
+    if [[ -d $esp/EFI ]]; then printf '%s\n' "$esp"; fi
+  done
+  return 0
+}
+
+# The boot partition lanzaboote writes to (first one with stubs or a fallback loader)
+main_esp() {
+  local esp
+  for esp in "$MNT/boot" "$MNT/boot/efi" "$MNT/efi"; do
+    if [[ -d $esp/EFI/Linux || -f $esp/EFI/BOOT/BOOTX64.EFI ]]; then
+      printf '%s\n' "$esp"
+      return 0
+    fi
+  done
+  return 1
+}
+
+is_systemd_boot() { [[ -f $1 ]] && grep -qa 'LoaderInfo: systemd-boot' "$1"; }
+
+count_stubs() { (
+  shopt -s nullglob
+  set -- "$1"/EFI/Linux/nixos-*.efi
+  echo $#
+); }
+
+# Sets DISK_BL + DISK_BL_WHY from the files on the disk. A hybrid ESP (GRUB
+# leftovers next to lanzaboote, before the cleanup phase) counts as lanzaboote:
+# only the generation's sbctl.conf or the signed stubs + systemd-boot decide it.
+detect_bootloader_disk() {
+  local esp stubs=0 sdboot=0 core=0
+  DISK_BL=other DISK_BL_WHY="no GRUB and no lanzaboote files found"
+  if installed_gen_file etc/sbctl/sbctl.conf >/dev/null; then
+    DISK_BL=lanzaboote DISK_BL_WHY="$TARGET_GEN has /etc/sbctl/sbctl.conf"
+    return 0
+  fi
+  while IFS= read -r esp; do
+    if compgen -G "$esp/EFI/Linux/nixos-*.efi" >/dev/null; then stubs=1; fi
+    if is_systemd_boot "$esp/EFI/BOOT/BOOTX64.EFI"; then sdboot=1; fi
+    if [[ -f $esp/grub/x86_64-efi/core.efi ]]; then core=1; fi
+  done < <(esp_dirs)
+  if [[ -f $MNT/boot/grub/x86_64-efi/core.efi ]]; then core=1; fi
+  if ((stubs && sdboot)); then
+    DISK_BL=lanzaboote DISK_BL_WHY="signed stubs in EFI/Linux and systemd-boot as EFI/BOOT/BOOTX64.EFI"
+  elif ((core)); then
+    DISK_BL=grub DISK_BL_WHY="GRUB modules in /boot/grub, no lanzaboote files"
+  fi
+  return 0
+}
+
+# Prints the raw "RECOVER-BL:<lanzaboote|grub|other>:<pkiBundle>" line the
+# flake evaluates to; fails soft (the caller falls back to the disk).
+flake_eval_bootloader() {
+  local apply out
+  # shellcheck disable=SC2016 # nix code
+  apply='b: "RECOVER-BL:" + (if (b.lanzaboote.enable or false) then "lanzaboote" else if (b.loader.grub.enable or false) then "grub" else "other") + ":" + builtins.toString (b.lanzaboote.pkiBundle or "")'
+  if ! out=$(nixos-enter --root "$MNT" -c "FLAKE=$(printf %q "$FLAKE_IN_TARGET"); HOST=$(printf %q "$HOST"); APPLY=$(printf %q "$apply")
+$EVAL_SCRIPT" </dev/null 2>"$WORK/bl-eval.err"); then
+    tail -n 8 "$WORK/bl-eval.err" >&2 || true
+    return 1
+  fi
+  printf '%s\n' "$out" | grep -o 'RECOVER-BL:[^[:space:]]*' | tail -n 1
+}
+
+# parse_bl_line "RECOVER-BL:x:y" -> FLAKE_BL, FLAKE_PKI
+parse_bl_line() {
+  local line=$1 rest
+  [[ $line == RECOVER-BL:* ]] || return 1
+  rest=${line#RECOVER-BL:}
+  FLAKE_BL=${rest%%:*}
+  FLAKE_PKI=${rest#*:}
+  case $FLAKE_BL in lanzaboote | grub | other) ;; *) return 1 ;; esac
+}
+
+resolve_target_bootloader() {
+  local line=""
+  FLAKE_BL="" FLAKE_PKI=""
+  info "Asking the flake which bootloader it builds (nix eval in the chroot; can take a minute)"
+  if line=$(flake_eval_bootloader) && parse_bl_line "$line"; then
+    TARGET_BL=$FLAKE_BL TARGET_BL_SRC="the flake ($HOST)"
+    if [[ -n $DISK_BL && $DISK_BL != "$TARGET_BL" ]]; then
+      warn "The flake builds '$TARGET_BL', the files on the disk look like '$DISK_BL' - following the flake."
+    fi
+  else
+    FLAKE_BL="" FLAKE_PKI=""
+    warn "Could not evaluate the flake - falling back to what the disk looks like."
+    TARGET_BL=${DISK_BL:-other} TARGET_BL_SRC="the disk (${DISK_BL_WHY:-no evidence})"
+  fi
+  ok "Target bootloader: $TARGET_BL (from $TARGET_BL_SRC)"
+}
+
+# ----------------------------------------------------- lanzaboote: pre-flight ---
+
+# sbctl.conf is two lines of YAML: "keydir: <dir>" and "guid: <file>"
+sbctl_conf_value() { sed -n "/^[[:space:]]*$1:/{s/^[[:space:]]*$1:[[:space:]]*//;p;q}" | tr -d "\"'\r" | sed 's/[[:space:]]*$//'; }
+
+# Sets KEYDIR, GUIDFILE (paths as seen from the installed system) and KEY_SRC:
+# flake pkiBundle, else the generation's sbctl.conf, else the module default.
+resolve_key_paths() {
+  local conf kd gf def
+  KEYDIR="" GUIDFILE="" KEY_SRC=""
+  [[ -n $TARGET_GEN ]] || find_target_gen || true
+  if [[ -n $FLAKE_PKI ]]; then
+    KEYDIR=$FLAKE_PKI/keys GUIDFILE=$FLAKE_PKI/GUID KEY_SRC="the flake (boot.lanzaboote.pkiBundle)"
+    return 0
+  fi
+  if conf=$(installed_gen_file etc/sbctl/sbctl.conf) &&
+    kd=$(printf '%s\n' "$conf" | sbctl_conf_value keydir) && [[ -n $kd ]]; then
+    gf=$(printf '%s\n' "$conf" | sbctl_conf_value guid)
+    KEYDIR=$kd GUIDFILE=${gf:-${kd%/*}/GUID} KEY_SRC="/etc/sbctl/sbctl.conf of $TARGET_GEN"
+    return 0
+  fi
+  if [[ -d $MNT/persist ]]; then def=/persist/var/lib/sbctl; else def=/var/lib/sbctl; fi
+  KEYDIR=$def/keys GUIDFILE=$def/GUID KEY_SRC="default location (the flake and sbctl.conf gave no answer)"
+}
+
+# The db key + certificate are what lanzaboote signs with
+keys_dir_ok() { compgen -G "$1/db/*.key" >/dev/null && compgen -G "$1/db/*.pem" >/dev/null; }
+
+# Reports on $MNT$KEYDIR; sets KEYS_OK. Creates nothing. If the keys are only
+# in /persist (a bind-mounted path such as /var/lib/sbctl on an impermanence
+# host) the persisted copy is bind-mounted into place, as the system does at boot.
+check_signing_keys() {
+  local d sub
+  d=$MNT$KEYDIR
+  if ! keys_dir_ok "$d" && [[ $KEYDIR != /persist/* ]] && keys_dir_ok "$MNT/persist$KEYDIR"; then
+    mkdir -p "$d"
+    mount --bind "$MNT/persist$KEYDIR" "$d"
+    ok "Keys found in /persist$KEYDIR - bound to $KEYDIR (what impermanence does at boot)"
+  fi
+  KEYS_OK=0
+  if keys_dir_ok "$d"; then KEYS_OK=1; fi
+  for sub in db KEK PK; do
+    if compgen -G "$d/$sub/*.key" >/dev/null; then
+      ok "$KEYDIR/$sub: key present"
+    elif [[ $sub == db ]]; then
+      warn "$KEYDIR/$sub: MISSING (needed: lanzaboote signs everything with the db key)"
+    else
+      warn "$KEYDIR/$sub: missing (not needed to build, only to enroll the keys again)"
+    fi
+  done
+  if [[ -f $MNT$GUIDFILE ]]; then
+    ok "$GUIDFILE present"
+  else
+    warn "$GUIDFILE missing (not needed to build)"
+  fi
+}
+
+esp_free_mb() { df -Pm "$1" 2>/dev/null | awk 'NR == 2 { print $4 }'; }
+
+# 1 = the running (live) system has Secure Boot enforcing, 0 = off, unknown
+live_secure_boot() {
+  local f=$EFIVARS_DIR/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c v
+  [[ -r $f ]] || {
+    echo unknown
+    return 0
+  }
+  v=$(od -An -tu1 -j4 -N1 "$f" 2>/dev/null | tr -d ' ')
+  if [[ $v == 1 ]]; then echo 1; else echo 0; fi
+}
+
+# Runs sbctl in the chroot against the resolved key directory
+chroot_sbctl() { # sbctl args...
+  local args
+  args=$(printf '%q ' "$@")
+  nixos-enter --root "$MNT" -c "$CHROOT_PATH_PRELUDE
+printf 'keydir: %s\nguid: %s\n' $(printf %q "$KEYDIR") $(printf %q "$GUIDFILE") >/dev/shm/recover-sbctl.conf
+sbctl --config /dev/shm/recover-sbctl.conf $args"
+}
+
+# choose_def DEFAULT "prompt" item... - like choose, but Enter (and --yes)
+# picks the DEFAULT item (1-based); prints the 0-based index
+choose_def() {
+  local def=$1 prompt=$2 i reply
+  shift 2
+  if ((ASSUME_YES)); then
+    echo $((def - 1))
+    return
+  fi
+  for ((i = 1; i <= $#; i++)); do printf '     %d) %s\n' "$i" "${!i}" >&2; done
+  while :; do
+    read -r -p "    $prompt [1-$#, Enter = $def]: " reply </dev/tty || reply=""
+    reply=${reply:-$def}
+    if [[ $reply =~ ^[0-9]+$ ]] && ((reply >= 1 && reply <= $#)); then
+      echo $((reply - 1))
+      return
+    fi
+  done
+}
+
+# Only when the target is lanzaboote. Never creates or writes keys on its own.
+lanza_preflight() {
+  local esp free sb typed choice
+  info "lanzaboote pre-flight: Secure Boot signing keys"
+  resolve_key_paths
+  echo "      key directory: $KEYDIR  (from $KEY_SRC)"
+  if esp=$(main_esp); then
+    free=$(esp_free_mb "$esp")
+    if [[ $free =~ ^[0-9]+$ ]] && ((free < 150)); then
+      warn "Only ${free} MB free on the boot partition ($esp). One kernel+initrd set needs about 160 MB: free space first (old EFI/Linux/nixos-*.efi, GRUB leftovers) or the install fails half way."
+    else
+      ok "Boot partition has ${free:-?} MB free"
+    fi
+  fi
+  sb=$(live_secure_boot)
+  if [[ $sb == 1 ]]; then
+    warn "This live system runs with Secure Boot ENFORCING. It booted, so the ISO is accepted by your firmware keys, but anything you do with the firmware keys from here can lock you out: change nothing in the firmware setup you do not understand."
+  fi
+
+  while :; do
+    check_signing_keys
+    if ((KEYS_OK)); then
+      ok "Signing keys found: the lanzaboote install can sign the boot files"
+      return 0
+    fi
+    echo
+    warn "The Secure Boot signing key is NOT in $KEYDIR on the installed system."
+    warn "Without it the lanzaboote install stops at the first key read, before writing anything to the boot partition (safe, but the rebuild fails)."
+    warn "Restore your key archive (password manager) into place, do NOT generate new keys unless you have lost the old ones."
+    choice=$(choose_def 1 "What now?" \
+      "stop here, everything stays mounted (default; restore the keys, then run the script again)" \
+      "open a shell on the live system to restore the key archive into $MNT$KEYDIR, then check again" \
+      "continue anyway (the rebuild will fail at the key read)" \
+      "create NEW keys with sbctl in the chroot (asks for a typed confirmation)")
+    case $choice in
+    0)
+      info "Stopped. Everything is still mounted at $MNT - re-run the script or: umount -R $MNT"
+      exit 1
+      ;;
+    1)
+      if [[ ! -d $MNT${KEYDIR%/*} ]]; then
+        mkdir -p "$MNT${KEYDIR%/*}"
+        chmod 0700 "$MNT${KEYDIR%/*}"
+      fi
+      info "Shell on the LIVE system. Put the keys at $MNT$KEYDIR (db/ KEK/ PK/ with .key and .pem files, root only), e.g.: tar -xpf <archive> -C $MNT${KEYDIR%/*}. Type 'exit' to continue."
+      (cd "$MNT${KEYDIR%/*}" && bash </dev/tty >/dev/tty 2>&1) || true
+      ;;
+    2)
+      warn "Continuing without keys, as requested."
+      return 0
+      ;;
+    3)
+      echo
+      warn "NEW KEYS DO NOT MATCH THE KEYS ENROLLED IN THE FIRMWARE."
+      warn "The firmware db holds the OLD public key, so what you sign now is rejected with Secure Boot ON."
+      warn "You must turn Secure Boot OFF, boot, delete the old keys/enroll the new ones (Phase 2 and 3 of Documentation/usage/secure-boot/lanzaboote.md) and re-seal the TPM."
+      warn "Only do this if the old key is really lost. Archive the new directory in the password manager right away."
+      read -r -p "    Type CREATE NEW KEYS to confirm (anything else goes back): " typed </dev/tty || typed=""
+      if [[ $typed == "CREATE NEW KEYS" ]]; then
+        if chroot_sbctl create-keys; then
+          NEW_KEYS_CREATED=1
+        else
+          warn "sbctl create-keys failed - see the output above."
+        fi
+      fi
+      ;;
+    esac
+  done
+}
+
+# ---------------------------------------------------- lanzaboote: after build ---
+
+# summarize_sbctl_verify FILE -> VERIFY_BAD (unsigned but must be signed),
+# VERIFY_EXPECTED (unsigned, fine), VERIFY_SIGNED (count)
+summarize_sbctl_verify() {
+  local line p lp
+  VERIFY_BAD=() VERIFY_EXPECTED=() VERIFY_SIGNED=0
+  while IFS= read -r line; do
+    line=$(printf '%s' "$line" | sed 's/\x1b\[[0-9;]*m//g')
+    case $line in
+    *"is not signed"*)
+      p=/${line#*/}
+      p=${p%" is not signed"*}
+      lp=${p,,}
+      case $lp in
+      */efi/linux/nixos-*.efi | */efi/boot/boot*.efi | */efi/systemd/systemd-boot*.efi) VERIFY_BAD+=("$p") ;;
+      *) VERIFY_EXPECTED+=("$p") ;;
+      esac
+      ;;
+    *"is signed"*) VERIFY_SIGNED=$((VERIFY_SIGNED + 1)) ;;
+    esac
+  done <"$1"
+}
+
+# fw_has_entry PARTUUID: does a firmware boot entry start from that partition?
+fw_has_entry() { efibootmgr -v 2>/dev/null | grep -qi "GPT,$1"; }
+
+# Looks for a firmware entry that starts from the NixOS boot partition and, if
+# there is none (NVRAM lost), prints and offers the exact efibootmgr command.
+fw_entry_check() {
+  local esp src puuid disk part cmd
+  command -v efibootmgr >/dev/null || {
+    warn "efibootmgr is not available - can't check the firmware boot entries"
+    return 0
+  }
+  if [[ ! -d $EFIVARS_DIR ]]; then
+    warn "The live system was not booted in UEFI mode - the firmware entries can't be checked or written from here."
+    return 0
+  fi
+  esp=$(main_esp) || return 0
+  src=$(findmnt -rno SOURCE -M "$esp" 2>/dev/null || true)
+  puuid=""
+  [[ -n $src ]] && puuid=$(blkid -s PARTUUID -o value "$src" 2>/dev/null || true)
+  if [[ -z $puuid ]]; then
+    warn "Can't read the partition UUID of the boot partition ($esp) - firmware entry check skipped"
+    return 0
+  fi
+  if fw_has_entry "$puuid"; then
+    ok "The firmware has a boot entry that starts from the NixOS boot partition ($src)"
+    return 0
+  fi
+  warn "No firmware boot entry points at the NixOS boot partition ($src). The NVRAM was probably reset."
+  warn "Many firmwares still list the fallback loader EFI/BOOT/BOOTX64.EFI as 'UEFI <disk>' in the F12 menu; if yours doesn't, create the entry:"
+  disk=$(lsblk -dno PKNAME "$src" 2>/dev/null || true)
+  part=$(cat "$SYSFS_BLOCK/${src##*/}/partition" 2>/dev/null || true)
+  if [[ -z $disk || -z $part ]]; then
+    warn "Could not work out disk and partition number of $src - create it by hand with efibootmgr -c -d <disk> -p <partition number> -l '\\EFI\\BOOT\\BOOTX64.EFI' -L 'NixOS lanzaboote'"
+    return 0
+  fi
+  cmd=(efibootmgr -c -d "/dev/$disk" -p "$part" -l '\EFI\BOOT\BOOTX64.EFI' -L 'NixOS lanzaboote')
+  echo "      efibootmgr -c -d /dev/$disk -p $part -l '\\EFI\\BOOT\\BOOTX64.EFI' -L 'NixOS lanzaboote'"
+  if ask "Create this firmware entry now?" n; then
+    if "${cmd[@]}"; then ok "Entry created"; else warn "efibootmgr failed"; fi
+  fi
+}
+
+# Returns 1 (after printing why, loudly) when a file that MUST be signed is not
+lanza_post() {
+  local out=$WORK/sbctl-verify.txt esp stubs=0 rc=0 p failed=0 n
+  info "Checking the signatures on the boot partition (sbctl verify)"
+  chroot_sbctl verify >"$out" 2>&1 || rc=$?
+  summarize_sbctl_verify "$out"
+  if esp=$(main_esp); then stubs=$(count_stubs "$esp"); fi
+  if ((VERIFY_SIGNED + ${#VERIFY_BAD[@]} + ${#VERIFY_EXPECTED[@]} == 0)); then
+    warn "sbctl verify gave no verdict (sbctl missing in the system, or it could not find the boot partition): exit code $rc."
+    tail -n 5 "$out" | sed 's/^/        /' >&2 || true
+    warn "Check by hand later: sudo sbctl verify  (EFI/Linux/nixos-*.efi, EFI/BOOT/BOOTX64.EFI and EFI/systemd/systemd-bootx64.efi must be signed)."
+  else
+    ok "$VERIFY_SIGNED file(s) signed"
+    for p in "${VERIFY_BAD[@]}"; do
+      printf '\033[1;31m  ✗ NOT SIGNED: %s\033[0m\n' "$p" >&2
+      failed=1
+    done
+    n=${#VERIFY_EXPECTED[@]}
+    if ((n)); then
+      ok "$n unsigned file(s) are expected and NOT an error (EFI/nixos/kernel-* and initrd-* are checked by hash from the signed stub; GRUB leftovers like EFI/NixOS-boot, /boot/grub, /boot/kernels are unused):"
+      printf '        %s\n' "${VERIFY_EXPECTED[@]:0:8}"
+      if ((n > 8)); then echo "        ... and $((n - 8)) more"; fi
+    fi
+  fi
+  if [[ -n ${esp:-} ]] && ((stubs == 0)); then
+    printf '\033[1;31m  ✗ No EFI/Linux/nixos-*.efi stub on the boot partition (%s) - nothing to boot.\033[0m\n' "$esp" >&2
+    failed=1
+  elif [[ -n ${esp:-} ]]; then
+    ok "$stubs signed boot stub(s) in EFI/Linux"
+  fi
+  if ((failed)); then
+    printf '\033[1;31m  ✗ At least one file the firmware must verify is unsigned: with Secure Boot ON this machine will NOT boot from it.\033[0m\n' >&2
+    printf '\033[1;31m    Check the key at %s, re-run the script, or boot an older generation with Secure Boot OFF.\033[0m\n' "$KEYDIR" >&2
+  fi
+  show_boot_order
+  fw_entry_check
+  return "$failed"
+}
+
+lanza_final_notes() {
+  local d
+  echo
+  info "Next steps (lanzaboote / Secure Boot)"
+  echo "      1. Turn Secure Boot back ON in the firmware setup (you switched it off to boot the live USB)."
+  echo "         The enrolled keys normally stay in the firmware; the boot files written now are signed with them."
+  if ((NEW_KEYS_CREATED)); then
+    echo "         YOU CREATED NEW KEYS: they are NOT enrolled. Leave Secure Boot OFF, boot NixOS, and repeat Phase 2 and 3 of"
+    echo "         Documentation/usage/secure-boot/lanzaboote.md (the firmware db still holds the OLD public key). Archive the new keys."
+  fi
+  if ((${#UNLOCKED_DEVS[@]})); then
+    echo "      2. LUKS + TPM: the TPM keeps unlocking only if PCR 7 is unchanged (same keys, Secure Boot state as before)."
+    echo "         If the passphrase is asked at boot, log in and re-seal:"
+    for d in "${UNLOCKED_DEVS[@]}"; do
+      echo "           sudo systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=7 $d"
+    done
+  fi
+}
+
 # ---------------------------------------------------------------- cleanup ---
 
 cleanup() {
@@ -616,118 +1042,200 @@ cleanup() {
 
 # ------------------------------------------------------------------- main ---
 
-if ((!GRUB_ONLY)); then
-  ensure_network
-  ensure_git
-  SCRIPT_REPO=$(git -c safe.directory='*' -C "$(dirname "$SCRIPT_PATH")" rev-parse --show-toplevel 2>/dev/null || true)
-fi
+main() {
+  local idx=0 FSTAB extra=() lanza_failed=0
 
-DETECTED_HOST=""
-if ((SKIP_MOUNT)); then
-  findmnt -M "$MNT" >/dev/null || die "--skip-mount given, but nothing is mounted at $MNT"
-  inspect "$MNT/nix" && DETECTED_HOST=$INS_HOST
-  [[ -e $MNT/etc/NIXOS ]] || { mkdir -p "$MNT/etc" && touch "$MNT/etc/NIXOS"; }
-else
-  # Leftovers from an earlier run
-  if findmnt -M "$MNT" >/dev/null || [[ -n $(findmnt -rno TARGET | grep "^$MNT/" || true) ]]; then
-    info "Unmounting leftovers from a previous run at $MNT"
-    umount -R "$MNT" 2>/dev/null || umount -R -l "$MNT"
+  ORIG_ARGS=("$@")
+  while (($#)); do
+    case $1 in
+    -y | --yes) ASSUME_YES=1 ;;
+    --keep-changes) KEEP_CHANGES=1 ;;
+    --branch)
+      BRANCH=${2:?--branch needs a value}
+      shift
+      ;;
+    --flake)
+      FLAKE_IN_TARGET=${2:?--flake needs a value}
+      shift
+      ;;
+    --skip-mount) SKIP_MOUNT=1 ;;
+    --shell) SHELL_ONLY=1 ;;
+    --grub-only) GRUB_ONLY=1 ;;
+    -h | --help)
+      awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"
+      exit 0
+      ;;
+    -*) die "Unknown option: $1 (see --help)" ;;
+    *)
+      [[ -z $HOST ]] || die "Only one hostname can be given"
+      HOST=$1
+      ;;
+    esac
+    shift
+  done
+
+  SCRIPT_PATH=$(realpath "$0")
+
+  if ((EUID != 0)); then
+    exec sudo env "PATH=$PATH" ${NIX_PATH:+"NIX_PATH=$NIX_PATH"} "$SCRIPT_PATH" "${ORIG_ARGS[@]}"
   fi
 
-  unlock_disks
-  find_installs
-  case ${#CAND_DESC[@]} in
-  0)
-    if ((STORE_WITHOUT_FSTAB)); then
-      die "Found a Nix store but no generation with a readable fstab. Mount by hand under $MNT and re-run with --skip-mount."
+  WORK=$(mktemp -d /tmp/recover.XXXXXX)
+  SCAN=$WORK/scan
+  trap on_exit EXIT
+  trap 'warn "Failed at line $LINENO: $BASH_COMMAND"; warn "Anything already mounted is left at $MNT - just run the script again to start over."' ERR
+
+  if ((!GRUB_ONLY)); then
+    ensure_network
+    ensure_git
+    SCRIPT_REPO=$(git -c safe.directory='*' -C "$(dirname "$SCRIPT_PATH")" rev-parse --show-toplevel 2>/dev/null || true)
+  fi
+
+  DETECTED_HOST=""
+  if ((SKIP_MOUNT)); then
+    findmnt -M "$MNT" >/dev/null || die "--skip-mount given, but nothing is mounted at $MNT"
+    inspect "$MNT/nix" && DETECTED_HOST=$INS_HOST
+    [[ -e $MNT/etc/NIXOS ]] || { mkdir -p "$MNT/etc" && touch "$MNT/etc/NIXOS"; }
+  else
+    # Leftovers from an earlier run
+    if findmnt -M "$MNT" >/dev/null || [[ -n $(findmnt -rno TARGET | grep "^$MNT/" || true) ]]; then
+      info "Unmounting leftovers from a previous run at $MNT"
+      umount -R "$MNT" 2>/dev/null || umount -R -l "$MNT"
     fi
-    die "No NixOS installation found. Encrypted disk not unlocked? Check with: lsblk -f"
+
+    unlock_disks
+    find_installs
+    case ${#CAND_DESC[@]} in
+    0)
+      if ((STORE_WITHOUT_FSTAB)); then
+        die "Found a Nix store but no generation with a readable fstab. Mount by hand under $MNT and re-run with --skip-mount."
+      fi
+      die "No NixOS installation found. Encrypted disk not unlocked? Check with: lsblk -f"
+      ;;
+    1) idx=0 ;;
+    *)
+      warn "More than one NixOS installation found."
+      idx=$(choose "Which one should be repaired?" "${CAND_DESC[@]}")
+      ;;
+    esac
+    ok "Found ${CAND_DESC[idx]}"
+    DETECTED_HOST=${CAND_HOST[idx]}
+    FSTAB=$WORK/fstab.$((idx + 1))
+    fix_mapper_names "$FSTAB"
+    mount_from_fstab "$FSTAB"
+  fi
+
+  TARGET_GEN=""
+  detect_bootloader_disk || true
+
+  if ((GRUB_ONLY)); then
+    if [[ $DISK_BL == lanzaboote ]]; then
+      warn "--grub-only does not apply: this system boots through lanzaboote ($DISK_BL_WHY), there are no GRUB copies to fix."
+      echo "      Boot problem on a lanzaboote host: run the full  $(basename "$0")  (rebuilds and reinstalls the signed boot files,"
+      echo "      checks the signing keys first), or  $(basename "$0") --shell  to look around in the installed system."
+      cleanup
+      exit 0
+    fi
+    sync_grub_copies
+    cleanup
+    echo
+    info "Done. The USB stick can stay in; if the live system comes up again, remove it and reboot."
+    if ask "Reboot now?" y; then systemctl reboot; fi
+    exit 0
+  fi
+
+  if [[ -z $HOST ]]; then
+    HOST=$DETECTED_HOST
+    [[ -n $HOST ]] || die "Couldn't detect the hostname - pass it: $(basename "$0") <hostname>"
+  elif [[ -n $DETECTED_HOST && $HOST != "$DETECTED_HOST" ]]; then
+    warn "You asked for '$HOST', but the system on disk calls itself '$DETECTED_HOST'."
+    ask "Build '$HOST' anyway?" n || die "Stopped. Re-run without a hostname to use '$DETECTED_HOST'."
+  fi
+
+  find_flake
+
+  if ((SHELL_ONLY)); then
+    info "Opening a shell in the chroot (flake: $FLAKE_IN_TARGET, host: $HOST). Type 'exit' when done."
+    nixos-enter --root "$MNT" || true
+    if ask "Unmount everything now?" y; then cleanup; fi
+    exit 0
+  fi
+
+  # Nothing gets updated in these cases, so a wrong hostname can be caught now
+  if ((BOUND_FLAKE || KEEP_CHANGES)); then check_host_in_flake; fi
+
+  echo
+  info "Ready to repair"
+  echo "      host:    $HOST"
+  echo "      flake:   $FLAKE_IN_TARGET"
+  echo "      boot:    $DISK_BL on the disk ($DISK_BL_WHY); the flake is asked again after the update below and decides"
+  if ((BOUND_FLAKE)); then
+    echo "      git:     (using the live USB clone as is)"
+  elif ((KEEP_CHANGES)); then
+    echo "      git:     build including uncommitted changes"
+  else
+    echo "      git:     stash uncommitted changes (if any), check out + fast-forward $BRANCH"
+  fi
+  echo "      run:     nixos-rebuild boot --install-bootloader --flake $FLAKE_IN_TARGET#$HOST"
+  echo "      mounted:"
+  findmnt -R "$MNT" -no TARGET,SOURCE,FSTYPE | sed 's/^/        /'
+  echo
+  ask "Go ahead?" y || {
+    info "Stopped. Everything is still mounted at $MNT - re-run the script or: umount -R $MNT"
+    exit 0
+  }
+
+  update_repo
+  check_host_in_flake
+
+  resolve_target_bootloader
+  if [[ $TARGET_BL == lanzaboote ]]; then lanza_preflight; fi
+
+  info "Rebuilding inside the chroot (errors from 'setting up /etc', sops or systemd while entering are normal)"
+  until run_rebuild "${extra[@]}"; do
+    warn "The rebuild failed - see the output above."
+    case $(choose "What now?" \
+      "retry with the Nix sandbox off (fixes sandbox/namespace errors inside a chroot)" \
+      "retry as is" \
+      "open a shell in the chroot to fix it by hand (exit to come back here)" \
+      "stop here (everything stays mounted)") in
+    0) extra=(--option sandbox false) ;;
+    1) ;;
+    2) nixos-enter --root "$MNT" || true ;;
+    3) exit 1 ;;
+    esac
+  done
+  case $TARGET_BL in
+  lanzaboote)
+    ok "System rebuilt and the signed boot files (lanzaboote) reinstalled"
+    lanza_post || lanza_failed=1
     ;;
-  1) idx=0 ;;
+  grub)
+    ok "System rebuilt and GRUB reinstalled"
+    sync_grub_copies
+    ;;
   *)
-    warn "More than one NixOS installation found."
-    idx=$(choose "Which one should be repaired?" "${CAND_DESC[@]}")
+    ok "System rebuilt and the bootloader reinstalled"
+    sync_grub_copies
     ;;
   esac
-  ok "Found ${CAND_DESC[idx]}"
-  DETECTED_HOST=${CAND_HOST[idx]}
-  FSTAB=$WORK/fstab.$((idx + 1))
-  fix_mapper_names "$FSTAB"
-  mount_from_fstab "$FSTAB"
-fi
+  if ((STASHED)); then warn "Your uncommitted changes are in 'git stash list' in $FLAKE_IN_TARGET"; fi
+  if ((lanza_failed)); then
+    ask "A boot file is unsigned (see above). Unmount and finish anyway?" n || {
+      warn "Everything is still mounted at $MNT (chroot: nixos-enter --root $MNT)."
+      exit 1
+    }
+  fi
 
-if ((GRUB_ONLY)); then
-  sync_grub_copies
   cleanup
+  if [[ $TARGET_BL == lanzaboote ]]; then lanza_final_notes; fi
   echo
   info "Done. The USB stick can stay in; if the live system comes up again, remove it and reboot."
   if ask "Reboot now?" y; then systemctl reboot; fi
-  exit 0
-fi
-
-if [[ -z $HOST ]]; then
-  HOST=$DETECTED_HOST
-  [[ -n $HOST ]] || die "Couldn't detect the hostname - pass it: $(basename "$0") <hostname>"
-elif [[ -n $DETECTED_HOST && $HOST != "$DETECTED_HOST" ]]; then
-  warn "You asked for '$HOST', but the system on disk calls itself '$DETECTED_HOST'."
-  ask "Build '$HOST' anyway?" n || die "Stopped. Re-run without a hostname to use '$DETECTED_HOST'."
-fi
-
-find_flake
-
-if ((SHELL_ONLY)); then
-  info "Opening a shell in the chroot (flake: $FLAKE_IN_TARGET, host: $HOST). Type 'exit' when done."
-  nixos-enter --root "$MNT" || true
-  if ask "Unmount everything now?" y; then cleanup; fi
-  exit 0
-fi
-
-# Nothing gets updated in these cases, so a wrong hostname can be caught now
-if ((BOUND_FLAKE || KEEP_CHANGES)); then check_host_in_flake; fi
-
-echo
-info "Ready to repair"
-echo "      host:    $HOST"
-echo "      flake:   $FLAKE_IN_TARGET"
-if ((BOUND_FLAKE)); then
-  echo "      git:     (using the live USB clone as is)"
-elif ((KEEP_CHANGES)); then
-  echo "      git:     build including uncommitted changes"
-else
-  echo "      git:     stash uncommitted changes (if any), check out + fast-forward $BRANCH"
-fi
-echo "      run:     nixos-rebuild boot --install-bootloader --flake $FLAKE_IN_TARGET#$HOST"
-echo "      mounted:"
-findmnt -R "$MNT" -no TARGET,SOURCE,FSTYPE | sed 's/^/        /'
-echo
-ask "Go ahead?" y || {
-  info "Stopped. Everything is still mounted at $MNT - re-run the script or: umount -R $MNT"
-  exit 0
 }
 
-update_repo
-check_host_in_flake
-
-info "Rebuilding inside the chroot (errors from 'setting up /etc', sops or systemd while entering are normal)"
-extra=()
-until run_rebuild "${extra[@]}"; do
-  warn "The rebuild failed - see the output above."
-  case $(choose "What now?" \
-    "retry with the Nix sandbox off (fixes sandbox/namespace errors inside a chroot)" \
-    "retry as is" \
-    "open a shell in the chroot to fix it by hand (exit to come back here)" \
-    "stop here (everything stays mounted)") in
-  0) extra=(--option sandbox false) ;;
-  1) ;;
-  2) nixos-enter --root "$MNT" || true ;;
-  3) exit 1 ;;
-  esac
-done
-ok "System rebuilt and GRUB reinstalled"
-sync_grub_copies
-if ((STASHED)); then warn "Your uncommitted changes are in 'git stash list' in $FLAKE_IN_TARGET"; fi
-
-cleanup
-echo
-info "Done. The USB stick can stay in; if the live system comes up again, remove it and reboot."
-if ask "Reboot now?" y; then systemctl reboot; fi
+# Sourcing the file (tests) only defines functions and defaults
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+  set -Eeuo pipefail
+  main "$@"
+fi

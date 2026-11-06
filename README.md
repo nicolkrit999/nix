@@ -91,7 +91,7 @@
 | SOPS guide | [sops-guide.md](./Documentation/usage/sops/sops-guide.md) |
 | Cachix guide | [cachix.md](./Documentation/usage/cachix/cachix.md) |
 | Tmux guide | [tmux-guide.md](./Documentation/usage/tmux/tmux-guide.md) |
-| Emergency recovery (GRUB) | [emergency-recovery-gnu-grub.md](./Documentation/troubleshooting/emergency-recovery-gnu-grub.md) |
-| Emergency recovery (script) | [recover.sh](./Documentation/troubleshooting/recover.sh) |
+| Emergency recovery (manual, GRUB + lanzaboote) | [emergency-recovery-gnu-grub.md](./Documentation/troubleshooting/emergency-recovery-gnu-grub.md) |
+| Emergency recovery (script, GRUB + lanzaboote) | [recover.sh](./Documentation/troubleshooting/recover.sh) |
 | Emergency recovery (guide) | [troubleshooting/README.md](./Documentation/troubleshooting/README.md) |
 | Notes & project origin | [notes.md](./Documentation/notes.md) |

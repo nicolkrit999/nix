@@ -2,8 +2,15 @@
 
 ## 1. Live USB Recovery (The "Deep" Fix)
 
-Use this if you encounter the **"GNU GRUB minimal bash-like"** screen or GRUB
-doesn't appear at all. If GRUB still shows its menu, use section 2 instead.
+Use this if you encounter the **"GNU GRUB minimal bash-like"** screen, or no
+boot menu appears at all (no GRUB, no systemd-boot). If the boot menu still
+shows (GRUB, or the systemd-boot menu of a lanzaboote host), use section 2
+instead.
+
+Which bootloader a host uses: `nixos-desktop` = **GRUB**, no LUKS;
+`nixos-laptop` = **lanzaboote** (signed systemd-boot, Secure Boot ON since
+2026-11-06), LUKS. Both have a tmpfs root (impermanence). Section B is the
+GRUB/generic manual fallback, section C the lanzaboote one.
 
 ### A. Automated: `recover.sh` (recommended)
 
@@ -19,20 +26,30 @@ git clone https://github.com/nicolkrit999/nix && cd nix
 ```
 
 It detects everything from the disk itself (any host, encrypted or not,
-tmpfs root or not, dual boot or not): it offers `nmtui` if there's no
-internet, asks for the LUKS passphrase if there is an encrypted partition,
-finds the NixOS install, mounts it from the system's own fstab, stashes
-uncommitted changes in the on-disk repo and fast-forwards `main`, then runs
-`nixos-rebuild boot --install-bootloader` in a chroot, unmounts and offers to
-reboot. See `--help` for the options (hostname override, `--keep-changes`,
-`--shell`, `--skip-mount`).
+tmpfs root or not, dual boot or not, GRUB or lanzaboote): it offers `nmtui` if
+there's no internet, asks for the LUKS passphrase if there is an encrypted
+partition, finds the NixOS install, mounts it from the system's own fstab,
+stashes uncommitted changes in the on-disk repo and fast-forwards `main`,
+decides the bootloader (flake first, disk files as fallback), then runs
+`nixos-rebuild boot --install-bootloader` in a chroot, finishes with the
+bootloader-specific check (GRUB: stale copies; lanzaboote: `sbctl verify` and
+the firmware entry), unmounts and offers to reboot. See `--help` for the
+options (hostname override, `--keep-changes`, `--shell`, `--skip-mount`;
+`--grub-only` is for GRUB hosts).
 
-### B. Manual fallback
+**lanzaboote host (laptop): switch Secure Boot OFF in the BIOS before booting
+the live USB** (a stock ISO is not signed with your keys) and back ON
+afterwards. The script checks the signing key first and never creates keys on
+its own. The lanzaboote path of the script has been checked on fixture trees,
+not yet on a real live ISO.
+
+### B. Manual fallback (GRUB, and the mounting part for every host)
 
 Current layout of `nixos-desktop` / `nixos-laptop` (see each host's
 `hardware-configuration.nix`): `/` is a **tmpfs** (impermanence, there is no
-`@` root subvolume), everything persistent lives in Btrfs subvolumes, and on
-the laptop the Btrfs sits inside LUKS.
+`@` root subvolume) and everything persistent lives in Btrfs subvolumes. The
+laptop's Btrfs sits inside LUKS and the laptop boots through lanzaboote; the
+desktop has no LUKS and boots through GRUB.
 
 ```bash
 lsblk -f                                         # find the partitions
@@ -58,31 +75,100 @@ exit
 umount -R /mnt && reboot
 ```
 
+For a lanzaboote host the same mount steps apply, but read section C before
+running the rebuild: the signing keys must be reachable first.
+
+### C. Manual fallback for a lanzaboote host (laptop)
+
+Use this when `recover.sh` cannot be used. Background and the key/Secure Boot
+procedures: [lanzaboote.md](../usage/secure-boot/lanzaboote.md).
+
+1. **BIOS: switch Secure Boot OFF** (admin password; keep the enrolled keys,
+   do not reset them), then boot the live ISO in UEFI mode.
+2. Unlock and mount exactly as in section B. `/persist` must be mounted: the
+   signing keys live there and nothing else (no bind mount) is needed.
+3. Check the key directory. It is `config.boot.lanzaboote.pkiBundle`, which
+   is `/persist/var/lib/sbctl` on the laptop (impermanence); a host without
+   impermanence normally uses `/var/lib/sbctl`. The installed system's
+   `/etc/sbctl/sbctl.conf` names the exact `keydir`/`guid` pair.
+   ```bash
+   ls -l /mnt/persist/var/lib/sbctl /mnt/persist/var/lib/sbctl/keys/db
+   # expected: GUID and keys/{PK,KEK,db}/*.key + *.pem, root only
+   ```
+   If it is missing, restore the encrypted key archive from the password
+   manager: `tar -xpf <archive> -C /mnt/persist/var/lib/sbctl`. Only if the
+   old keys are really lost: `sbctl create-keys` in the chroot creates
+   **new** ones, which do **not** match the firmware db, so Secure Boot must
+   stay off and Phase 2/3 of lanzaboote.md must be repeated.
+4. Check the boot partition has room (about 160 MB per kernel + initrd set):
+   `df -h /mnt/boot`. If the ESP is corrupt, `fsck.fat -a /dev/<efi-partition>`
+   (unmounted), and remove only the files lanzaboote owns:
+   `rm -fr /mnt/boot/EFI/Linux/nixos-generation-*.efi /mnt/boot/EFI/nixos`.
+5. Rebuild and reinstall the signed boot files:
+   ```bash
+   nixos-enter --root /mnt
+   mkdir -p /run/binfmt
+   cd /home/krit/nix
+   nixos-rebuild boot --install-bootloader --flake .#nixos-laptop
+   # add `--option sandbox false` if the build fails with sandbox/namespace errors
+   sbctl verify          # see below
+   exit
+   ```
+   `nixos-rebuild boot --install-bootloader` is the lanzaboote install hook
+   (`switch`/`boot` only, never `test`). It writes no EFI variables and
+   overwrites `EFI/BOOT/BOOTX64.EFI` with the signed systemd-boot.
+6. `sbctl verify`: `EFI/Linux/nixos-*.efi`, `EFI/BOOT/BOOTX64.EFI` and
+   `EFI/systemd/systemd-bootx64.efi` **must** be signed. Red crosses for
+   `EFI/nixos/kernel-*.efi` and GRUB leftovers (`EFI/NixOS-boot/…`,
+   `/boot/grub/…`, `/boot/kernels/…`) are expected.
+7. If the firmware lost its NixOS entry (`efibootmgr -v` shows none that
+   points at the boot partition's PARTUUID), create one from the live ISO,
+   with disk and partition number of the mounted `/boot` device:
+   ```bash
+   findmnt -no SOURCE /mnt/boot                       # e.g. /dev/nvme0n1p5
+   efibootmgr -c -d /dev/nvme0n1 -p 5 -l '\EFI\BOOT\BOOTX64.EFI' -L 'NixOS lanzaboote'
+   ```
+8. `umount -R /mnt`, close LUKS (`cryptsetup close cryptroot`), reboot, switch
+   **Secure Boot back ON** in the BIOS. On a LUKS + TPM host the disk keeps
+   unlocking by itself only if PCR 7 is unchanged; otherwise type the
+   passphrase once and re-seal:
+   `sudo systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=7 /dev/<luks-partition>`.
+
 ---
 
 ## 2. No-USB Recovery (The "Time Machine" Fix)
 
-Use this if the system crashes but you can still reach the GRUB bootloader.
+Use this if the system crashes but you can still reach the boot menu.
 
 ### A. Accessing Generations
+
+GRUB host (desktop):
 
 1. On the GRUB screen, select **"NixOS - All configurations"**.
 2. Select an older version from a date/time when the system was working.
 3. Boot into it. This uses a "known good" state of your software without touching the broken version on disk.
 
+lanzaboote host (laptop): the systemd-boot menu lists the generations
+directly; pick an older one (the stubs are signed, so this works with Secure
+Boot ON). If the firmware refuses the loader itself, switch Secure Boot off in
+the BIOS first.
+
 ### B. Hardening Your Bootloader
 
-Already set in `modules/nixos/toplevel/boot.nix`, to keep the menu from growing too large:
+Already set to keep the menu from growing too large. GRUB hosts, in
+`modules/nixos/toplevel/boot.nix`:
 
 ```nix
 boot.loader.grub.configurationLimit = 10;
-
 ```
+
+lanzaboote hosts: `myconfig.services.lanzaboote.configurationLimit` (the
+laptop uses 5; every generation also keeps its specialisations on the ESP).
 
 ---
 
 ## 3. Post-Recovery Safety Checklist
 
 - **Safe Logout**: If the screen hangs at a blinking `_`, do not force-reboot. Press `Ctrl+Alt+F3`, login, and type `sudo reboot` to safely unmount Btrfs.
-- **Testing**: Always use `sudo nixos-rebuild test --flake .#nixos-desktop` for experimental changes. If it fails, a simple reboot returns you to safety because `test` does not update the GRUB menu.
+- **Testing**: Always use `sudo nixos-rebuild test --flake .#<host>` for experimental changes. If it fails, a simple reboot returns you to safety because `test` does not touch the bootloader (neither the GRUB menu nor the lanzaboote boot files).
 
