@@ -12,8 +12,19 @@ let
 
   verdict = ok: detail: if ok then "ok" else "FAIL: ${detail}";
 
+  secureBootOf = host: flake.nixosConfigurations.${host}.config.myconfig.services.secure-boot.enable;
+
+  noHookRule = grubEnabled: script: !grubEnabled && script == "";
+
   perHost = host:
-    let s = scriptOf host; g = grubOf host; in {
+    let s = scriptOf host; g = grubOf host; in
+    {
+      "mode-${host}" = if secureBootOf host then "lanzaboote" else "grub";
+    }
+    // (if secureBootOf host then {
+      "check-${host}-lanzaboote-no-hook" = verdict (noHookRule g.enable s)
+        "services.secure-boot is on but boot.loader.grub.enable=${lib.boolToString g.enable} and the stale-copy hook is ${if s == "" then "empty" else "non-empty"}";
+    } else {
       "script-${host}" = s;
       "check-${host}-nonempty" = verdict (s != "") "extraInstallCommands is empty";
       "check-${host}-source-core" = verdict (has "/boot/grub/x86_64-efi/core\\.efi" s)
@@ -26,6 +37,12 @@ let
         "hook contains an exit statement";
       "check-${host}-grub-efi-removable" = verdict (g.efiSupport && g.efiInstallAsRemovable)
         "grub efiSupport/efiInstallAsRemovable not both true (hook premise)";
-    };
+    });
 in
-lib.foldl' (a: h: a // perHost h) { } hosts
+lib.foldl' (a: h: a // perHost h)
+{
+  control-no-hook-rule = verdict
+    (noHookRule false "" && !noHookRule true "" && !noHookRule false "echo stale" && !noHookRule true "echo stale")
+    "the lanzaboote-mode rule must accept only grub off with an empty hook";
+}
+  hosts

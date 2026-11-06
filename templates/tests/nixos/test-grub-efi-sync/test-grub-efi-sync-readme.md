@@ -18,13 +18,22 @@ bash check-nixos-grub-efi-sync.sh
 
 ## How it works
 
+The hook only exists while GRUB is the bootloader: `boot.nix` skips the whole GRUB block when `myconfig.services.secure-boot.enable` is on (lanzaboote replaces the install hook). The scenario exposes `mode-<host>` (`grub` or `lanzaboote`, from that flag) and the script runs the hook checks only for `grub` hosts. A `lanzaboote` host instead gets one positive check: `boot.loader.grub.enable` is false and `extraInstallCommands` is empty. Which mode a host is in is not asserted.
+
 `01-scenario-grub-efi-sync.nix` reads the real `nixosConfigurations.nixos-desktop` and `nixos-laptop` from the flake (only the grub options are forced, no build) and exposes the hook text (`script-<host>`) plus static checks as `"ok"` / `"FAIL: ..."`.
 
 `check-nixos-grub-efi-sync.sh` runs the static checks, then writes the evaluated hook to a temp file, strips the store prefixes of `cmp`/`cp` (resolved from `PATH`), rewrites `/boot/` to a sandbox directory and runs it against synthetic EFI trees. A final control run sabotages the hook (`cp` becomes `true`) and expects the stale copy to remain, proving the replacement check can fail. The read-only case is skipped when running as root.
 
 ## Checks
 
-### Static (per host)
+### Mode (per host)
+| Check | Expected |
+|-------|----------|
+| `mode-<host>` | evaluates to `grub` or `lanzaboote` |
+| lanzaboote host: no hook | `boot.loader.grub.enable` false and `extraInstallCommands` empty |
+| control: no-hook rule | the rule accepts only grub off with an empty hook (grub on or a non-empty hook is rejected) |
+
+### Static (per grub host)
 | Check | Expected |
 |-------|----------|
 | script non-empty | true |
@@ -35,7 +44,7 @@ bash check-nixos-grub-efi-sync.sh
 | `bash -n` | parses |
 | sandbox rewrite | all `/boot` refs rewritten, no unexpected store paths |
 
-### Runtime (per host, sandboxed)
+### Runtime (per grub host, sandboxed)
 | Scenario | Expected |
 |----------|----------|
 | stale target | replaced by core.efi content, "refreshed" message, exit 0 |

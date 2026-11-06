@@ -9,6 +9,9 @@ delib.module {
 
   nixos.always =
     { myconfig, ... }:
+    let
+      secureBoot = myconfig.services.secure-boot.enable;
+    in
     {
       boot = {
         plymouth.enable = true;
@@ -30,7 +33,8 @@ delib.module {
 
           systemd-boot.enable = lib.mkForce false;
 
-          grub = {
+          # lanzaboote (services.secure-boot) replaces GRUB: none of its settings apply then
+          grub = lib.mkIf (!secureBoot) {
             enable = lib.mkForce true;
             device = "nodev";
             efiSupport = true;

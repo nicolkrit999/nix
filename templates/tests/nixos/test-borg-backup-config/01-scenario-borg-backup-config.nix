@@ -21,6 +21,8 @@ let
 
   persistExcludes = map (p: "/persist/${p}") [ ".snapshots" "var/lib/docker" "var/lib/containers" "var/lib/flatpak" "var/tmp" "var/cache/fscache" ];
 
+  keyExcluded = on: bundle: ex: !on || (lib.hasPrefix "/persist/" bundle && lib.elem bundle ex);
+
   selftestList = [ "/home/*/ok" "/home/*/dotfiles " " /home/*/lead" "/home/*/.clouflared" "/dup" "/dup" ];
 
   mk = key:
@@ -44,6 +46,7 @@ let
       noImperm = (sys.extendModules { modules = [{ myconfig.services.impermanence.enable = lib.mkForce false; }]; }).config;
       emptyPass = sys.extendModules { modules = [{ myconfig.krit.services.nas."${key}-borg-backup".passphraseFile = lib.mkForce ""; }]; };
       emptyKey = sys.extendModules { modules = [{ myconfig.krit.services.nas."${key}-borg-backup".sshKeyPath = lib.mkForce ""; }]; };
+      sb = cfg.myconfig.services.secure-boot;
       identity = lib.elemAt tokens ((lib.lists.findFirstIndex (t: t == "-i") (-1) tokens) + 1);
     in
     {
@@ -110,6 +113,9 @@ let
       "check-${key}-empty-secret-path-assertions-fire" =
         chk (failingWith "borg-backup" cfg' == [ ] && lib.length (failingWith "passphraseFile is empty" emptyPass) == 1 && lib.length (failingWith "sshKeyPath is empty" emptyKey) == 1)
           "borg-backup assertions: real host must pass; empty passphraseFile and empty sshKeyPath must each fire exactly once";
+      "check-${key}-excludes-signing-key" =
+        chk (keyExcluded sb.enable sb.pkiBundle excludes)
+          "services.secure-boot is on but its pkiBundle '${sb.pkiBundle}' is not an exclude pattern under /persist (the signing keys would be copied to the NAS repository)";
       "check-${key}-tailscale-enabled" = chk cfg.services.tailscale.enable "services.tailscale.enable is false";
     };
 in
@@ -117,5 +123,8 @@ mk "desktop" // mk "laptop" // {
   check-lint-selftest-trimmed-duplicates = chk (duplicates (map lib.trim [ "/a" "/a " " /b" "/b" "/c" ]) == [ "/a" "/b" ]) "trimmed-duplicate lint does not detect planted duplicates";
   check-lint-selftest-edge-whitespace = chk (edgeWs selftestList == [ "/home/*/dotfiles " " /home/*/lead" ]) "edge-whitespace lint does not detect planted entries";
   check-lint-selftest-typo = chk (typoed selftestList == [ "/home/*/.clouflared" ]) "typo lint does not detect planted typo";
+  check-lint-selftest-signing-key-rule = chk
+    (keyExcluded true "/persist/k" [ "/persist/k" ] && !keyExcluded true "/persist/k" [ "/persist/other" ] && !keyExcluded true "/var/k" [ "/var/k" ] && keyExcluded false "/persist/k" [ ])
+    "signing-key exclusion rule does not reject a missing or non-/persist pattern";
   check-lint-selftest-duplicates = chk (duplicates selftestList == [ "/dup" ]) "duplicate lint does not detect planted duplicate";
 }

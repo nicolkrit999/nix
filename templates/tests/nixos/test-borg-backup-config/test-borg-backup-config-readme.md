@@ -64,6 +64,7 @@ Each row exists once per host (`desktop-` / `laptop-` prefix).
 | checks-frequency | every borgmatic check has `frequency = "2 weeks"` |
 | excludes-secrets-and-dotfiles-private | excludes contain `/home/*/.ssh` and `/home/*/dotfiles-private`, not `/home/*/wallpapers-repo` |
 | empty-secret-path-assertions-fire | no borg-backup assertion fails on the real host; forcing `passphraseFile` / `sshKeyPath` to `""` (extendModules) fires exactly one assertion each |
+| excludes-signing-key | if `myconfig.services.secure-boot` is enabled on the host, its `pkiBundle` is under `/persist/` and is an entry of `exclude_patterns` (the Secure Boot signing keys never go to the NAS repository); vacuous only when the module is off, the selftest below proves the rule can fail |
 | service-exists | `services.borgmatic.enable` and `systemd.services.borgmatic` defined |
 | tailscale-enabled | `services.tailscale.enable` |
 
@@ -71,3 +72,4 @@ Each row exists once per host (`desktop-` / `laptop-` prefix).
 | Check | Expected |
 |-------|----------|
 | lint-selftest-typo / duplicates / trimmed-duplicates / edge-whitespace | each lint flags exactly the planted bad entries |
+| lint-selftest-signing-key-rule | the signing-key exclusion rule accepts a listed `/persist/` path and "module off", and rejects an unlisted path and a listed path outside `/persist/` |

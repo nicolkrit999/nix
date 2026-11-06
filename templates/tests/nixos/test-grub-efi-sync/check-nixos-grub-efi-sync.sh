@@ -45,8 +45,18 @@ run_hook() { # populates OUT, ERR, RC
 N=0
 echo -e "\n${BOLD}=== GRUB stale-EFI-copy sync hook ===${NC}"
 
+run_check control-no-hook-rule "control: lanzaboote-mode rule accepts only grub off + empty hook"
+
 for host in "${HOSTS[@]}"; do
   echo -e "\n${BOLD}${host}${NC}"
+  mode=$(nix eval --raw --impure --file "$SCENARIO" "mode-${host}" 2>/dev/null) || mode=""
+  case "$mode" in
+    lanzaboote)
+      run_check "check-${host}-lanzaboote-no-hook" "services.secure-boot on: grub off, hook empty"
+      continue ;;
+    grub) ;;
+    *) fail "mode of ${host}" "could not evaluate mode-${host} (got '${mode}')"; continue ;;
+  esac
   for c in nonempty source-core target-glob no-set-e no-exit grub-efi-removable; do
     run_check "check-${host}-${c}" "${c}"
   done

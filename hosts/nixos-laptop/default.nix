@@ -630,6 +630,7 @@ delib.host {
         localsend.enable = true;
         rcloneMount.enable = true;
         resolved.enable = true;
+        secure-boot.enable = true;
         swaync.enable = true;
         tailscale.enable = true;
 

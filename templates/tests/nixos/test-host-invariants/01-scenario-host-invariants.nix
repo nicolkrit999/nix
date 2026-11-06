@@ -45,6 +45,39 @@ let
   homeTwin = (sys.extendModules { modules = [{ fileSystems."/home".neededForBoot = lib.mkForce false; }]; }).config;
   homeTwinSpec = builtins.head specsWithExtraUsers;
   homeTwinSpecCfg = (homeTwin.specialisation.${homeTwinSpec}.configuration).config or homeTwin.specialisation.${homeTwinSpec}.configuration;
+  bootContract = c:
+    let
+      l = c.boot.loader;
+      lz = c.boot.lanzaboote;
+      common = !l.systemd-boot.enable && !l.efi.canTouchEfiVariables;
+    in
+    if c.myconfig.services.secure-boot.enable
+    then
+      common && !l.grub.enable && lz.enable && lib.hasPrefix "/persist/" lz.pkiBundle && lz.configurationLimit == 10
+      && !lz.autoGenerateKeys.enable && !lz.autoEnrollKeys.enable && !lz.measuredBoot.enable
+    else common && l.grub.enable && !lz.enable && l.grub.efiInstallAsRemovable && l.grub.device == "nodev";
+  bootProbe = o: {
+    myconfig.services.secure-boot.enable = o.sb;
+    boot = {
+      loader = {
+        grub = { enable = o.grub; efiInstallAsRemovable = o.removable; device = o.device; };
+        systemd-boot.enable = o.sdb;
+        efi.canTouchEfiVariables = o.efivars;
+      };
+      lanzaboote = {
+        enable = o.lz;
+        pkiBundle = o.bundle;
+        configurationLimit = o.limit;
+        autoGenerateKeys.enable = o.gen;
+        autoEnrollKeys.enable = o.enroll;
+        measuredBoot.enable = o.measured;
+      };
+    };
+  };
+  goodGrub = { sb = false; grub = true; removable = true; device = "nodev"; sdb = false; efivars = false; lz = false; bundle = "/persist/x"; limit = 10; gen = false; enroll = false; measured = false; };
+  goodLanza = goodGrub // { sb = true; grub = false; lz = true; };
+  grubMutants = [{ removable = false; } { device = "/dev/sda"; } { grub = false; } { sdb = true; } { efivars = true; } { lz = true; } { sb = true; }];
+  lanzaMutants = [{ grub = true; } { lz = false; } { sdb = true; } { efivars = true; } { bundle = "/var/lib/sbctl"; } { bundle = "/persistent/x"; } { limit = 11; } { gen = true; } { enroll = true; } { measured = true; } { sb = false; }];
   checks =
     {
       check-hostname = check (cfg.networking.hostName == my.constants.hostname && my.constants.hostname == host)
@@ -120,11 +153,13 @@ let
           && cfg.users.users.root.hashedPasswordFile == cfg.sops.secrets."krit-local-password".path)
         "krit/root hashedPasswordFile not the sops krit-local-password path";
 
-      check-bootloader = check
-        (cfg.boot.loader.grub.enable && !cfg.boot.loader.systemd-boot.enable
-          && !cfg.boot.loader.efi.canTouchEfiVariables && cfg.boot.loader.grub.efiInstallAsRemovable
-          && cfg.boot.loader.grub.device == "nodev")
-        "grub/efi bootloader contract broken";
+      check-bootloader = check (bootContract cfg)
+        "bootloader contract broken (services.secure-boot.enable=${lib.boolToString my.services.secure-boot.enable}): grub host needs grub on, systemd-boot off, no EFI var writes, removable install, device nodev, lanzaboote off; secure-boot host needs grub off, systemd-boot off, no EFI var writes, lanzaboote on with pkiBundle under /persist/, configurationLimit 10 and autoGenerateKeys/autoEnrollKeys/measuredBoot off";
+      check-bootloader-control = check
+        (bootContract (bootProbe goodGrub) && bootContract (bootProbe goodLanza)
+          && lib.all (m: !(bootContract (bootProbe (goodGrub // m)))) grubMutants
+          && lib.all (m: !(bootContract (bootProbe (goodLanza // m)))) lanzaMutants)
+        "control broken: the bootloader contract must accept the two good synthetic configs and reject every single-field mutation of them (and a mismatched services.secure-boot flag)";
 
       check-nix-pat-include = check (lib.hasInfix "!include /run/secrets/github_fg_pat_token_nix" cfg.nix.extraOptions)
         "nix.extraOptions lacks the PAT !include";

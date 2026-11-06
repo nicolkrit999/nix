@@ -357,6 +357,11 @@
       };
     };
 
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote/v1.2.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nix-alien = {
       url = "github:thiagokokada/nix-alien";
       inputs = {
