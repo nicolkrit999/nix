@@ -1,12 +1,12 @@
 # Secure Boot with lanzaboote (`services.lanzaboote`)
 
-Status: Phases 1 to 3 are done on `nixos-laptop` (Phase 3 completed 2026-11-06): the module is enabled with `secureBoot = true`, Secure Boot is ON in the firmware (user mode, own keys enrolled) and `constants.emergencyAccess` is off on all hosts. Phase 4 (GRUB leftovers cleanup) is still open.
+Status: Phases 1 to 3 are done on `nixos-laptop` (Phase 3 completed 2026-11-06): the module is enabled with `secureBoot = true`, Secure Boot is ON in the firmware (user mode, own keys enrolled) and `constants.emergencyAccess` is off on all hosts. Phase 4 (GRUB leftovers cleanup) is still open. `nixos-desktop` is configured for Phase 1 (module on, `secureBoot = false`, see the Desktop section) but the bootloader is only switched once it is rebuilt with `--install-bootloader`.
 
 ## What it is and why
 
 - Goal: own Secure Boot keys, so the LUKS TPM2 auto-unlock becomes tamper-resistant. Without Secure Boot, an attacker with disk access can swap the initrd (evil maid) and the TPM still unseals the disk key. With Secure Boot and a PCR 7 policy, only a boot chain signed with the local keys unseals it.
 - Tooling: [lanzaboote](https://github.com/nix-community/lanzaboote) (flake input `lanzaboote`, tag `v1.2.0`, `nixpkgs.follows = "nixpkgs"`) replaces the bootloader install step. It writes signed UKI-style stubs plus a signed systemd-boot to the ESP. [sbctl](https://github.com/Foxboron/sbctl) creates the keys and enrolls them into the firmware, by hand.
-- Only `nixos-laptop` uses it. `nixos-desktop` stays on GRUB; the shared `modules/nixos/toplevel/boot.nix` skips its whole GRUB block (including the stale-copy sync hook) when `services.lanzaboote.enable` is true, and is otherwise unchanged.
+- `nixos-laptop` (Secure Boot enforcing) and `nixos-desktop` (Phase 1, Secure Boot off) use it; a host without it stays on GRUB. The shared `modules/nixos/toplevel/boot.nix` skips its whole GRUB block (including the stale-copy sync hook) when `services.lanzaboote.enable` is true, and is otherwise unchanged.
 
 ## The module
 
@@ -47,7 +47,7 @@ No bind mount and no `environment.persistence` entry on purpose. `/persist` is a
 
 ### Backup of the signing key
 
-The key directory is excluded from the borg backup of `nixos-laptop` (`users/krit/nixos/services/nas/borg-backup/borg-backup-laptop.nix`, derived from the `pkiBundle` option; the desktop job is untouched). The private key is a root-only secret and must not end up in the remote repo. Keep one encrypted offline copy instead (password manager attachment of an archive of the directory), created right after `sbctl create-keys`.
+The key directory is excluded from the borg backups of both hosts (`users/krit/nixos/services/nas/borg-backup/borg-backup-laptop.nix` and `borg-backup-desktop.nix`, derived from the `pkiBundle` option; `nixos-borg-backup-config` asserts it for every host with the module on). The private key is a root-only secret and must not end up in the remote repo. Keep one encrypted offline copy instead (password manager attachment of an archive of the directory), created right after `sbctl create-keys`.
 
 ## What the install hook does (facts from the lanzaboote source, v1.2.0)
 
@@ -149,13 +149,16 @@ Do not touch `/boot/EFI/nixos`, `/boot/EFI/Linux`, `/boot/EFI/BOOT`, `/boot/EFI/
 - What you lose by doing Phase 4: the "turn Secure Boot off, pick the old GRUB entry" fallback. It is rarely needed, because the lanzaboote entries also boot with Secure Boot OFF (the stub verifies kernel and initrd by hash either way). If the systemd-boot files on the ESP themselves are broken, use the live ISO path in the Recovery section below.
 - `Documentation/troubleshooting/emergency-recovery-gnu-grub.md` (section C) and `recover.sh` handle lanzaboote hosts; after this step the GRUB-only parts of them (`recover.sh --grub-only`, the stale-GRUB-copy check) have nothing left to act on for the laptop.
 
-## Desktop (`nixos-desktop`, planned, not enabled yet)
+## Desktop (`nixos-desktop`, Phase 1 configured)
 
-The module is generic and the desktop stays on GRUB until it is enabled there. Differences from the laptop that change the procedure:
+`hosts/nixos-desktop/default.nix` sets `services.lanzaboote = { enable = true; secureBoot = false; configurationLimit = 3; consoleMode = "keep"; }` (default `pkiBundle` `/persist/var/lib/sbctl`). `boot.nix` therefore skips the GRUB block on this host, and the borg job excludes the key directory. Nothing changes on the machine until it is rebuilt with `nixos-rebuild boot --install-bootloader`; Secure Boot stays OFF in the firmware (Phase 2/3 later). Differences from the laptop that change the procedure:
 - **No LUKS** (a deliberate decision: home desktop, low attack surface). Skip the LUKS header backup, the TPM2 token and its re-seal, `tpm-reenroll` and every passphrase step. Secure Boot there only protects the boot chain, since `/nix` and `/persist` are plain on disk.
-- **Four SSDs, one per role:** NixOS, two Windows disks and an unused Ubuntu/Debian disk. Windows has its own ESP on another disk, so systemd-boot cannot offer it (GRUB's os-prober does today); after the switch Windows is reached through the firmware boot menu or `sudo efibootmgr --bootnext <XXXX>`. Device names are unstable with four SSDs: identify disks by by-id, serial or PARTUUID, never by `nvme0n1`/`sda`.
-- **Check before touching keys:** BitLocker/device encryption on each Windows drive (Secure Boot key changes trigger a recovery-key prompt), the ESP size (sets `configurationLimit`), kernel lockdown under the Zen kernel, and the firmware vendor's key menu.
-- The session plan, diagnostics and open decisions are in the handoff `14-handoff-desktop-no-luks.md` in the NAS notes folder `/volume2/Momentary-volume-2/lanzaboote-session-notes-2026-11-06/`; this section is updated when the desktop is done.
+- **ESP is 1 GiB**, and with lanzaboote kernels and initrds of every generation live there. That is why `configurationLimit = 3` (the old GRUB-only `loader.grub.configurationLimit` override in `system.nix` was removed: the GRUB block is skipped now, so it was dead). Check `df -h /boot` after the first install.
+- **Four SSDs, one per role:** NixOS, two Windows disks and an unused Ubuntu/Debian disk. Windows has its own ESP on another disk, so systemd-boot cannot offer it (GRUB's os-prober did). Reach Windows through the firmware boot menu or `sudo efibootmgr --bootnext 0000` (Boot0000 is "Windows Boot Manager" on this machine; confirm with `efibootmgr -v`). Device names are unstable with four SSDs: identify disks by by-id, serial or PARTUUID, never by `nvme0n1`/`sda`.
+- **BootOrder:** after the first install promote the lanzaboote entry (`\EFI\systemd\systemd-bootx64.efi`, or the fallback `\EFI\BOOT\BOOTX64.EFI`) to the front of BootOrder with `sudo efibootmgr -o <new>,0001,<rest>`, keeping the old GRUB entry 0001 second so it is still one firmware menu away while Secure Boot is OFF. Verify with `efibootmgr -v`.
+- **Phase 4 (GRUB leftovers cleanup) comes later**, after a period of stable use, following the Phase 4 runbook above (adapted to the desktop ESP).
+- **Check before touching keys (Phase 2):** BitLocker/device encryption on each Windows drive (Secure Boot key changes trigger a recovery-key prompt), kernel lockdown under the Zen kernel, and the firmware vendor's key menu.
+- The session plan, diagnostics and open decisions are in the handoff `14-handoff-desktop-no-luks.md` in the NAS notes folder `/volume2/Momentary-volume-2/lanzaboote-session-notes-2026-11-06/`.
 
 ## Recovery
 

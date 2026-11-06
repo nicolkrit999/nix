@@ -1,5 +1,4 @@
 { delib
-, lib
 , pkgs
 , ...
 }:
@@ -53,8 +52,6 @@ delib.host {
       initrd.kernelModules = [ "amdgpu" ];
       # DP-3 = the in-case sensor panel (1024x600, powered off, Windows-only use).
       kernelParams = [ "video=DP-3:d" ];
-      # GRUB keeps kernels+initrds on the 1 GiB ESP; fewer generations free space for the lanzaboote migration
-      loader.grub.configurationLimit = lib.mkForce 3;
     };
     hardware.graphics.enable = true;
 

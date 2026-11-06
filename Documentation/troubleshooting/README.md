@@ -13,7 +13,7 @@ This folder holds the emergency kit for when a NixOS machine no longer boots:
 | Host | Bootloader | Disk |
 |---|---|---|
 | `nixos-laptop` | **lanzaboote** (signed systemd-boot, Secure Boot ON) since 2026-11-06 | LUKS + tmpfs root (impermanence) |
-| `nixos-desktop` | **GRUB** | no LUKS, tmpfs root (impermanence) |
+| `nixos-desktop` | **lanzaboote** (signed systemd-boot, Secure Boot still OFF, Phase 1) once the flake is rebuilt with `--install-bootloader`; **GRUB** until then | no LUKS, tmpfs root (impermanence) |
 
 The script finds out by itself (it asks the flake, else looks at the boot partition), so the same command works
 for both. The tables below say which row applies to which bootloader.
@@ -191,7 +191,7 @@ Everything below is detected from the disk; nothing needs to be told to the scri
 | Environment | Example | LUKS | `/` | Bootloader | Signing keys (lanzaboote) | Notes |
 |---|---|---|---|---|---|---|
 | LUKS + impermanence + lanzaboote | `nixos-laptop` | unlocked first (passphrase) | tmpfs, `/persist` etc. mounted from the fstab | lanzaboote | `pkiBundle` = `/persist/var/lib/sbctl` (a real btrfs subvolume, reachable in the chroot; no bind mount needed) | full flow with key preflight and `sbctl verify` |
-| no LUKS + impermanence + GRUB | `nixos-desktop` | none, the unlock step is skipped | tmpfs + btrfs subvolumes | GRUB | not used | stale-GRUB-copy check at the end, `--grub-only` available |
+| no LUKS + impermanence + GRUB (the desktop before its lanzaboote migration) | `nixos-desktop` | none, the unlock step is skipped | tmpfs + btrfs subvolumes | GRUB | not used | stale-GRUB-copy check at the end, `--grub-only` available |
 | LUKS, no impermanence, lanzaboote | any such host | unlocked first | on disk | lanzaboote | whatever the flake's `pkiBundle` says; the module default is `/persist/var/lib/sbctl`, a host without `/persist` typically sets `/var/lib/sbctl`, found on the root filesystem | same flow; if the keys only exist under `/persist` they are bound to the configured path |
 | no LUKS, no impermanence, GRUB | any such host | none | on disk | GRUB | not used | same as the desktop |
 | dual boot, several disks | both hosts | only the partitions you accept | - | either | - | only the boot partition named by the NixOS fstab (`/boot`) is mounted and touched; Windows' partitions (`ntfs3`) and other disks are skipped. The firmware-entry check compares the **PARTUUID** of that boot partition, so entries for other disks' ESPs never count |
@@ -241,7 +241,7 @@ Everything below is detected from the disk; nothing needs to be told to the scri
 
 ## 6. GRUB says `symbol '…' not found` after a successful rebuild
 
-**GRUB hosts only** (today `nixos-desktop`). `nixos-laptop` used GRUB when this happened (2026-10-08) and has
+**GRUB hosts only** (`nixos-desktop` until its lanzaboote migration is installed). `nixos-laptop` used GRUB when this happened (2026-10-08) and has
 used lanzaboote since 2026-11-06: there is no GRUB program or GRUB copy to go stale there, and `--grub-only`
 refuses to run on it.
 

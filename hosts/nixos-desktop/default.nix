@@ -750,6 +750,12 @@ delib.host {
           dotfiles-private.enable = true;
         };
         impermanence.enable = true;
+        lanzaboote = {
+          enable = true;
+          secureBoot = false; # Phase 1: firmware Secure Boot stays off until the keys are enrolled (Documentation/usage/secure-boot/lanzaboote.md)
+          configurationLimit = 3; # 1 GiB ESP: kernels and initrds of every generation live there
+          consoleMode = "keep";
+        };
         localsend.enable = true;
         rcloneMount.enable = true;
         resolved.enable = true;
