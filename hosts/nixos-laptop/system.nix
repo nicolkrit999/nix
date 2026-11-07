@@ -90,7 +90,10 @@ delib.host {
     fileSystems."/home".neededForBoot = true;
 
     imports = [
-      ./hardware-configuration.nix
+      (import ../../templates/installer/hardware-select.nix {
+        original = ./hardware-configuration.nix;
+        luks = true;
+      })
 
       # Host-specific sops secrets (common ones live in
       # users/krit/common/toplevel/sops-secrets.nix, enabled via default.nix)

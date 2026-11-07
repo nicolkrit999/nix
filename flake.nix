@@ -147,10 +147,34 @@
 
           exclude = baseExclude ++ platformExclude;
 
-          specialArgs = { inherit inputs moduleSystem pkgsStableFor; };
+          specialArgs = { inherit inputs moduleSystem pkgsStableFor; cloneHardware = false; };
 
         };
       generatedNixosConfigs = mkConfigurations "nixos";
+
+      # Clone hosts: the original's whole config on new hardware (generic
+      # label-based hardware layer), own networking.hostName only.
+      cloneHosts = {
+        "nixos-desktop-2" = "nixos-desktop";
+        "nixos-laptop-2" = "nixos-laptop";
+      };
+
+      cloneNixosConfigs = nixpkgs.lib.mapAttrs
+        (clone: original:
+          generatedNixosConfigs.${original}.extendModules {
+            specialArgs.cloneHardware = true;
+            modules = [
+              { networking.hostName = nixpkgs.lib.mkForce clone; }
+            ];
+          })
+        cloneHosts;
+
+      generatedHomeConfigs = mkConfigurations "home";
+
+      cloneHomeConfigs = nixpkgs.lib.mapAttrs'
+        (clone: original:
+          nixpkgs.lib.nameValuePair "krit@${clone}" generatedHomeConfigs."krit@${original}")
+        cloneHosts;
 
       isDarwin = builtins.elem (builtins.currentSystem or "not-darwin") [
         "aarch64-darwin"
@@ -158,8 +182,8 @@
       ];
     in
     {
-      nixosConfigurations = if isDarwin then { } else generatedNixosConfigs;
-      homeConfigurations = if isDarwin then { } else mkConfigurations "home";
+      nixosConfigurations = if isDarwin then { } else generatedNixosConfigs // cloneNixosConfigs;
+      homeConfigurations = if isDarwin then { } else generatedHomeConfigs // cloneHomeConfigs;
       darwinConfigurations = mkConfigurations "darwin";
       formatter = nixpkgs.lib.genAttrs
         (
