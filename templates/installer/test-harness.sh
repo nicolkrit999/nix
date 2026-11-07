@@ -120,10 +120,19 @@ if [[ \${FAKE_GIT_FAIL_UNSHALLOW:-0} == 1 && " \$* " == *" --unshallow "* ]]; th
 fi
 exec "$realgit" "\$@"
 GITEOF
-  # tailscale: log and succeed
+  # tailscale: logs; each call pops one line of $FAKE_TS_QUEUE (an error text = fail with it on stderr,
+  # empty queue or "ok" = succeed). The key file content of every call goes to $FAKE_TS_KEYS (not FAKE_CALLS).
   cat >"$bin/tailscale" <<'EOF'
 #!/usr/bin/env bash
 printf 'tailscale' >>"$FAKE_CALLS"; printf ' %q' "$@" >>"$FAKE_CALLS"; printf '\n' >>"$FAKE_CALLS"
+for a in "$@"; do
+  [[ $a == --auth-key=file:* ]] && { f=${a#--auth-key=file:}; printf '%s\n' "$(cat "$f" 2>/dev/null)" >>"${FAKE_TS_KEYS:-/dev/null}"; }
+done
+q=${FAKE_TS_QUEUE:-}
+if [[ -n $q && -s $q ]]; then
+  line=$(head -n1 "$q"); sed -i 1d "$q"
+  if [[ $line != ok ]]; then printf '%s\n' "$line" >&2; exit 1; fi
+fi
 exit 0
 EOF
   # efibootmgr with state
@@ -527,6 +536,194 @@ secretpw
   assert_contains "final checklist docs pointer" "$out" "Documentation/installation/"
   assert_not_contains "no secret in installer output" "$out" "secretpw"
   assert_not_contains "no key in installer output" "$out" "tskey-auth-FAKE"
+fi
+
+if section_on tailscale; then
+  echo "# install.sh: tailscale join, failure explanation and fresh-key prompt"
+  setup_fakes
+  make_bundle_tar "$T/bundle.tar" nixos-desktop
+  export INSTALLER_EFIVARS_DIR=$T/efivars-ts
+  mkdir -p "$INSTALLER_EFIVARS_DIR"
+  printf '\x07\x00\x00\x00\x01' >"$INSTALLER_EFIVARS_DIR/SetupMode-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+  export FAKE_TS_QUEUE=$T/ts-queue FAKE_TS_KEYS=$T/ts-keys
+  D=$T/img/ts.img
+  export INSTALLER_TEST_DISKS="$D"
+  ts_case() { # ts_case <queue-lines> <answers-after-disk-confirm>  (sets rc out calls keys)
+    rm -rf "$T/root/target" "$T/wd"
+    cp --sparse=always "$WIN" "$D"
+    printf '%s' "$1" >"$FAKE_TS_QUEUE"
+    : >"$FAKE_TS_KEYS"
+    run_install "$D
+$2" --host nixos-desktop --variant 2 --disk "$D" --mode free --bundle "$T/bundle.tar"
+    rc=$?
+    out=$(cat "$T/out.txt")
+    calls=$(cat "$FAKE_CALLS")
+    keys=$(cat "$FAKE_TS_KEYS")
+  }
+  PERSIST=$T/root/target/persist/var/lib/tailscale
+  EXPLAIN="the stored auth key was not accepted"
+
+  # stored key works: no explanation, no prompt, key file gone
+  ts_case "" ""
+  assert_rc "ts ok: install ok" "$rc" 0
+  assert_not_contains "ts ok: no explanation box" "$out" "$EXPLAIN"
+  assert_contains "ts ok: joined message" "$out" "Tailscale joined as nixos-desktop-2"
+  assert_eq "ts ok: state persisted" "$([[ -d $PERSIST ]] && echo yes)" yes
+  assert_eq "ts ok: no key file left in the work dir" "$(find "$T/wd" -type f 2>/dev/null | wc -l)" 0
+
+  # each error text: explanation, then a pasted key works
+  for kind in "expired|invalid key: key expired" "rejected|invalid key: API key does not exist" \
+    "rejected|backend error: invalid key: key was revoked" "network|dial tcp: lookup controlplane.tailscale.com: i/o timeout" \
+    "other|something unforeseen happened"; do
+    k=${kind%%|*}
+    msg=${kind#*|}
+    ts_case "$msg
+ok
+" "p
+tskey-auth-NEWKEY123
+"
+    assert_rc "ts $k: install ok after pasting a key" "$rc" 0
+    assert_contains "ts $k: error text shown" "$out" "$msg"
+    assert_contains "ts $k: skip consequence explained" "$out" "packages come from cache.nixos.org only"
+    assert_contains "ts $k: permanent fix pointer" "$out" "Replace the stored Tailscale key"
+    assert_eq "ts $k: second attempt used the pasted key" "$(tail -n1 <<<"$keys")" "tskey-auth-NEWKEY123"
+    assert_eq "ts $k: first attempt used the sops key" "$(head -n1 <<<"$keys")" "tskey-auth-FAKE"
+    assert_not_contains "ts $k: pasted key never in output" "$out" "NEWKEY123"
+    assert_not_contains "ts $k: pasted key never on a command line" "$calls" "NEWKEY123"
+    assert_contains "ts $k: joined" "$out" "Tailscale joined as nixos-desktop-2"
+    assert_eq "ts $k: state persisted" "$([[ -d $PERSIST ]] && echo yes)" yes
+    assert_eq "ts $k: no key file left in the work dir" "$(find "$T/wd" -type f 2>/dev/null | wc -l)" 0
+    case $k in
+      expired) assert_contains "ts expired: reason" "$out" "has expired" ;;
+      rejected) assert_contains "ts rejected: reason" "$out" "revoked, was single-use" ;;
+      network)
+        assert_contains "ts network: reason" "$out" "looks like a network problem"
+        assert_not_contains "ts network: no key creation steps" "$out" "Generate auth key"
+        ;;
+    esac
+    if [[ $k != network ]]; then
+      assert_contains "ts $k: how: settings URL" "$out" "https://login.tailscale.com/admin/settings/keys"
+      assert_contains "ts $k: how: Reusable" "$out" "\"Reusable\" ON"
+      assert_contains "ts $k: how: Ephemeral off" "$out" "leave \"Ephemeral\" OFF"
+      assert_contains "ts $k: how: prefix" "$out" "tskey-auth-"
+      assert_contains "ts $k: where: hidden prompt, not stored" "$out" "is NOT stored anywhere"
+      assert_contains "ts $k: identity saved note" "$out" "joins the tailnet by itself after the reboot"
+    fi
+  done
+
+  # network failure then [r]etry of the same key works
+  ts_case "dial tcp: i/o timeout
+ok
+" "r
+"
+  assert_rc "ts retry: install ok" "$rc" 0
+  assert_eq "ts retry: same key used twice" "$(sort -u <<<"$keys")" "tskey-auth-FAKE"
+  assert_eq "ts retry: two attempts" "$(grep -c '^tailscale ' <<<"$calls")" 2
+
+  # default (Enter) pastes; whitespace around the key is trimmed
+  ts_case "invalid key: API key does not exist
+ok
+" "
+  tskey-auth-SPACED  
+"
+  assert_rc "ts default paste: install ok" "$rc" 0
+  assert_eq "ts default paste: trimmed key used" "$(tail -n1 <<<"$keys")" "tskey-auth-SPACED"
+
+  # wrong pasted key first, then a good one (stays in the loop, box not repeated)
+  ts_case "invalid key: API key does not exist
+invalid key: API key does not exist
+ok
+" "p
+tskey-auth-WRONG1
+p
+tskey-auth-RIGHT2
+"
+  assert_rc "ts wrong then right: install ok" "$rc" 0
+  assert_contains "ts wrong then right: says it was not accepted" "$out" "tailscale did not accept that"
+  assert_eq "ts wrong then right: box shown once" "$(grep -c "$EXPLAIN" <<<"$out")" 1
+  assert_eq "ts wrong then right: three attempts" "$(grep -c '^tailscale ' <<<"$calls")" 3
+  assert_not_contains "ts wrong then right: wrong key never printed" "$out" "WRONG1"
+
+  # not an auth key: no tailscale call for it
+  ts_case "invalid key: API key does not exist
+ok
+" "p
+hello
+p
+tskey-auth-GOOD
+"
+  assert_rc "ts bad format: install ok" "$rc" 0
+  assert_contains "ts bad format: hint" "$out" "does not look like an auth key"
+  assert_not_contains "ts bad format: input never printed" "$out" "hello"
+  assert_eq "ts bad format: no tailscale call for it" "$(grep -c '^tailscale ' <<<"$calls")" 2
+
+  # skip path
+  ts_case "invalid key: API key does not exist
+" "s
+"
+  assert_rc "ts skip: install continues" "$rc" 0
+  assert_contains "ts skip: warns" "$out" "tailscale not joined"
+  assert_contains "ts skip: installed anyway" "$calls" "nixos-install"
+  assert_eq "ts skip: only the stored-key attempt" "$(grep -c '^tailscale ' <<<"$calls")" 1
+  assert_eq "ts skip: no tailscale state copied" "$([[ -e $PERSIST ]] && echo yes || echo no)" no
+  assert_contains "ts skip: says nothing to persist" "$out" "no node identity to persist"
+  assert_eq "ts skip: no key file left in the work dir" "$(find "$T/wd" -type f 2>/dev/null | wc -l)" 0
+
+  # quit path: aborts before any change
+  ts_case "invalid key: API key does not exist
+" "q
+"
+  assert_rc "ts quit: exits non-zero" "$rc" 1
+  assert_contains "ts quit: nothing modified" "$out" "Nothing was modified"
+  assert_eq "ts quit: no destructive tool ran" "$(grep -cE '^(mkfs|cryptsetup|nixos-install|wipefs|efibootmgr|chown)' <<<"$calls")" 0
+  assert_eq "ts quit: partitions untouched" "$(existing_identity "$D")" "$(existing_identity "$WIN")"
+  assert_eq "ts quit: no key file left in the work dir" "$(find "$T/wd" -type f 2>/dev/null | wc -l)" 0
+
+  # invalid menu answer is re-asked
+  ts_case "invalid key: API key does not exist
+" "x
+s
+"
+  assert_rc "ts invalid answer then skip: ok" "$rc" 0
+  assert_contains "ts invalid answer: re-asked" "$out" "please answer p, r, s or q"
+
+  # retry limit: 3 failed attempts -> only skip/quit offered
+  ts_case "invalid key: API key does not exist
+invalid key: API key does not exist
+invalid key: API key does not exist
+invalid key: API key does not exist
+" "p
+tskey-auth-A1
+p
+tskey-auth-A2
+p
+tskey-auth-A3
+p
+s
+"
+  assert_rc "ts limit: skip after 3 failures -> install ok" "$rc" 0
+  assert_contains "ts limit: attempts exhausted message" "$out" "3 attempts failed"
+  assert_contains "ts limit: only skip/quit offered" "$out" "Choose [s]kip Tailscale or [q]uit"
+  assert_eq "ts limit: 4 tailscale calls (stored + 3 pasted)" "$(grep -c '^tailscale ' <<<"$calls")" 4
+  assert_contains "ts limit: p is refused once exhausted" "$out" "please answer p, r, s or q"
+  ts_case "invalid key: API key does not exist
+invalid key: API key does not exist
+invalid key: API key does not exist
+invalid key: API key does not exist
+" "r
+r
+r
+q
+"
+  assert_rc "ts limit: quit after 3 retries exits non-zero" "$rc" 1
+
+  # dry-run documents the flow
+  rm -rf "$T/root/target" "$T/wd"
+  cp --sparse=always "$WIN" "$D"
+  out=$(printf '' | INSTALLER_ROOT=$T/root/target INSTALLER_REPO_URL=$ORIGIN_URL INSTALLER_WORK_DIR=$T/wd \
+    "$HERE/install.sh" --dry-run --host nixos-desktop --variant 2 --disk "$D" --mode free --bundle "$T/bundle.tar" 2>&1)
+  assert_contains "ts dry-run: mentions the fallback prompt" "$out" "explain how to create a fresh auth key"
+  unset FAKE_TS_QUEUE FAKE_TS_KEYS
 fi
 
 if section_on notsetup; then

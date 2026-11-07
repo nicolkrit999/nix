@@ -107,8 +107,16 @@ The bundle is as sensitive as the original host: whoever has it and the passphra
 | 7 | `Type the disk name (/dev/...) to start the installation:` | the exact disk path shown in the plan. Everything before this point changes nothing |
 | 8 | bundle: found automatically, else `Path to the bundle file (or 'q' to abort):` | when several bundles exist, the one named `<host>-clone-bundle.tar.age` is preferred, otherwise you choose |
 | 9 | the `age` passphrase prompt | the bundle passphrase (asked once; the bundle is decrypted a single time into the tmpfs work dir) |
-| 10 | `Paste a fresh Tailscale auth key (not stored; empty = skip tailscale):` | only if `tailscale up` fails (revoked or expired key); up to 3 tries; empty skips Tailscale (no Attic, install continues) |
+| 10 | `[p]aste a new key (default), [r]etry, [s]kip Tailscale, [q]uit:` (after a boxed explanation) | only if `tailscale up` fails with the key from the sops file (expired, revoked, single-use, or a network problem). `p` (or Enter) asks for the key with hidden input; `r` retries the same key (network problems); `s` continues without Tailscale; `q` aborts before any change. Up to 3 attempts, then only `s` or `q`. See [Tailscale auth key](#tailscale-auth-key) |
 | 11 | `New LUKS passphrase for the disk:` and `Repeat LUKS passphrase:` | laptop only; this is the disk passphrase, entered at every boot until the TPM is re-enrolled |
+
+**Tailscale auth key (prompt 10).** The installer first tries the `tailscale_key` stored in the sops file. If Tailscale rejects it, the installer prints a box with the reason and these steps, then asks:
+
+1. Open <https://login.tailscale.com/admin/settings/keys> on any device and click **Generate auth key...**.
+2. Turn **Reusable** on (so a retry can use it again) and leave **Ephemeral** off (an ephemeral machine vanishes from the tailnet when offline). Expiry of 1 day is enough, no tags needed.
+3. Copy the key (it starts with `tskey-auth-`) and paste it at the hidden prompt (nothing is shown while you type).
+
+The key is used for this install only: it is read from a tmpfs file, never put on a command line or printed, and shredded afterwards. The node identity is saved on the new system, so it joins the tailnet by itself after the reboot. Choosing `s` instead is safe: the install works, but the Attic cache is unreachable (packages come from cache.nixos.org only, anything missing is compiled, slower) and you join manually after the first boot ([post-install, section 4](./clone-post-install.md#4-tailscale)). To stop the prompt for future installs, replace the stored key: [post-install, "Replace the stored Tailscale key"](./clone-post-install.md#replace-the-stored-tailscale-key).
 
 **Secure Boot gate (prompt 3).** Runs before any disk is touched. It prints the BIOS steps for Setup Mode, then:
 
@@ -139,7 +147,7 @@ An `empty` disk needs no phrase, only the final disk-name confirmation. The inst
 8. Creates the Secure Boot keys with `sbctl` in `/mnt/persist/var/lib/sbctl` (needed even without Setup Mode because lanzaboote signs during the install).
 9. Runs `nixos-install` against the local clone as flake `#<host>-2` with no root password, adding the Attic cache as substituter when it answers (otherwise it warns and builds what is missing).
 10. If the firmware is in Setup Mode: `sbctl enroll-keys --microsoft`.
-11. Copies the live Tailscale state to `/mnt/persist/var/lib/tailscale`, so the machine keeps its node identity.
+11. Copies the live Tailscale state to `/mnt/persist/var/lib/tailscale` (only when the join worked), so the machine keeps its node identity.
 12. Creates the firmware entry `NixOS (<host>-2)` and puts it first in the boot order.
 13. Copies the repository to `~/nix` of the target user, sets `origin` to the public URL (`https://github.com/nicolkrit999/nix.git`) and runs `git fetch --unshallow` (a failure is only a warning; the clone stays shallow).
 14. Shreds the tmpfs work dir and prints the final checklist.

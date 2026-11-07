@@ -166,6 +166,7 @@ MOUNTED_BUNDLE_SRCS=()
 
 cleanup() {
   local m
+  if [[ -n ${TAILSCALED_PID:-} ]]; then kill "$TAILSCALED_PID" 2>/dev/null || true; fi
   for m in "${MOUNTED_BUNDLE_SRCS[@]+"${MOUNTED_BUNDLE_SRCS[@]}"}"; do
     umount "$m" 2>/dev/null || true
   done
@@ -560,6 +561,81 @@ decrypt_secrets() {
 TS_STATE=/var/lib/tailscale
 TS_SOCK=/run/tailscale/tailscaled.sock
 TAILSCALED_PID=""
+TS_JOINED=0
+TS_ERR=""
+TS_MAX_TRIES=3
+
+# One `tailscale up` with the key file; stderr is kept for classification. Never puts the key on a command line.
+ts_up_attempt() {
+  : >"$TS_ERR"
+  tailscale --socket="$TS_SOCK" up --auth-key="file:$TS_AUTHKEY_FILE" --hostname="$F_HOSTNAME" --timeout=60s 2>"$TS_ERR"
+}
+
+ts_error_kind() { # -> expired | rejected | network | other
+  local e
+  e=$(cat "$TS_ERR" 2>/dev/null || true)
+  if grep -qiE 'expired' <<<"$e"; then
+    echo expired
+  elif grep -qiE 'does not exist|invalid key|revoked|not valid|already (been )?used|unauthorized|forbidden' <<<"$e"; then
+    echo rejected
+  elif grep -qiE 'timed? ?out|deadline|unreachable|no route|dial |resolve|connection (refused|reset)|temporary failure|network' <<<"$e"; then
+    echo network
+  else
+    echo other
+  fi
+}
+
+ts_show_error() {
+  [[ -s $TS_ERR ]] || return 0
+  say "tailscale said:" >&2
+  # defence in depth: a key must never reach the screen or a log, even if tailscale echoed it
+  sed -E 's/tskey-[A-Za-z0-9_-]+/tskey-<hidden>/g; s/^/  /' "$TS_ERR" | head -n 8 >&2
+}
+
+ts_explain() { # ts_explain <kind>
+  {
+    printf '\n+------------------------------------------------------------------------------+\n'
+    case $1 in
+      network) printf '| TAILSCALE: could not reach the Tailscale servers                             |\n' ;;
+      *) printf '| TAILSCALE: the stored auth key was not accepted                              |\n' ;;
+    esac
+    printf '+------------------------------------------------------------------------------+\n'
+    case $1 in
+      expired) say "Why: the key stored in the sops file (tailscale_key) has expired." ;;
+      rejected) say "Why: the key stored in the sops file (tailscale_key) was revoked, was single-use and is"
+        say "     already used, or no longer exists." ;;
+      network) say "Why: this looks like a network problem, not a key problem. Check the connection of"
+        say "     the live system (for example: ping 1.1.1.1), then choose [r]etry below."
+        say "     If the retry says the key was rejected, you get the steps for a new key." ;;
+      *) say "Why: Tailscale refused the join for a reason that is not clear from its message"
+        say "     (shown above). The stored key may be expired, revoked or single-use." ;;
+    esac
+    if [[ $1 != network ]]; then
+      say ""
+      say "How to create a new key (about one minute, from any device):"
+      say "  1. Open  https://login.tailscale.com/admin/settings/keys"
+      say "  2. Click \"Generate auth key...\""
+      say "  3. Turn \"Reusable\" ON (so a retry can use it again) and leave \"Ephemeral\" OFF"
+      say "     (an ephemeral machine disappears from the tailnet when it is offline)."
+      say "     Expiry: 1 day is enough, this key is only for this install. No tags needed."
+      say "  4. Generate it and copy the key. It starts with  tskey-auth-"
+      say ""
+      say "Where to put it:"
+      say "  Paste it at the hidden prompt below (nothing is shown while you type). It is used"
+      say "  for this install only and is NOT stored anywhere. The node identity is saved on"
+      say "  the new system, so it joins the tailnet by itself after the reboot."
+    fi
+    say ""
+    say "Skipping Tailscale: the install still works, but the Attic cache on the NAS cannot be"
+    say "reached, so packages come from cache.nixos.org only and anything missing there is"
+    say "compiled (slower). The first boot then needs a manual join (clone-post-install.md)."
+    say ""
+    say "Optional permanent fix, later: put a fresh key into tailscale_key in the sops file so"
+    say "future installs need no prompt (Documentation/installation/clone-post-install.md,"
+    say "section \"Replace the stored Tailscale key\")."
+    say ""
+  } >&2
+}
 
 tailscale_join() {
   step "Tailscale (live system)"
@@ -570,36 +646,90 @@ tailscale_join() {
   if ((DRY_RUN)); then
     say "+ [dry-run] tailscaled --statedir=$TS_STATE --socket=$TS_SOCK &"
     say "+ [dry-run] tailscale up --auth-key=file:<tmpfs key> --hostname=$F_HOSTNAME"
+    say "+ [dry-run] on failure: explain how to create a fresh auth key, then [p]aste / [r]etry / [s]kip / [q]uit"
     return 0
   fi
   mkdir -p "$TS_STATE" "$(dirname "$TS_SOCK")"
+  TS_ERR=$WORK/tailscale-up.err
   tailscaled --statedir="$TS_STATE" --socket="$TS_SOCK" >"$WORK/tailscaled.log" 2>&1 &
   TAILSCALED_PID=$!
   [[ ${INSTALLER_TEST:-0} == 1 ]] || sleep 3
-  local attempt=0 ok=0
-  while ((attempt < 3)); do
-    if tailscale --socket="$TS_SOCK" up --auth-key="file:$TS_AUTHKEY_FILE" --hostname="$F_HOSTNAME" --timeout=60s; then
-      ok=1
-      break
-    fi
-    attempt=$((attempt + 1))
-    warn "tailscale up failed (expired or revoked key?)."
-    ask_secret "Paste a fresh Tailscale auth key (not stored; empty = skip tailscale):"
-    if [[ -z $REPLY ]]; then break; fi
-    (umask 077 && printf '%s' "$REPLY" >"$TS_AUTHKEY_FILE")
-  done
-  ((ok)) || warn "tailscale not joined: Attic cache and tailnet name resolution will be unavailable, the install continues"
+  if ts_up_attempt; then
+    TS_JOINED=1
+  else
+    local tries=0 kind shown="" choice key
+    while :; do
+      ts_show_error
+      kind=$(ts_error_kind)
+      if [[ $kind != "$shown" ]]; then
+        ts_explain "$kind"
+        shown=$kind
+      fi
+      if ((tries >= TS_MAX_TRIES)); then
+        warn "$TS_MAX_TRIES attempts failed."
+        ask "Choose [s]kip Tailscale or [q]uit the installer:"
+        choice=${REPLY,,}
+        [[ $choice == s || $choice == q ]] || choice=invalid
+      else
+        ask "[p]aste a new key (default), [r]etry, [s]kip Tailscale, [q]uit:"
+        choice=${REPLY,,}
+        [[ -n $choice ]] || choice=p
+      fi
+      case $choice in
+        p | paste)
+          ask_secret "Tailscale auth key (hidden, not stored):"
+          key=${REPLY//[[:space:]]/}
+          tries=$((tries + 1))
+          if [[ $key != tskey-* ]]; then
+            warn "that does not look like an auth key (it should start with tskey-auth-)."
+            continue
+          fi
+          (umask 077 && printf '%s' "$key" >"$TS_AUTHKEY_FILE")
+          key=""
+          ;;
+        r | retry) tries=$((tries + 1)) ;;
+        s | skip)
+          warn "skipping Tailscale"
+          break
+          ;;
+        q | quit)
+          say "Aborted before any change. Nothing was modified."
+          exit 1
+          ;;
+        *)
+          warn "please answer p, r, s or q"
+          continue
+          ;;
+      esac
+      if ts_up_attempt; then
+        TS_JOINED=1
+        break
+      fi
+      warn "tailscale did not accept that."
+    done
+  fi
+  shred -u "$TS_AUTHKEY_FILE" 2>/dev/null || rm -f "$TS_AUTHKEY_FILE"
+  if ((TS_JOINED)); then
+    say "Tailscale joined as $F_HOSTNAME."
+  else
+    warn "tailscale not joined: Attic cache and tailnet name resolution will be unavailable, the install continues"
+  fi
 }
 
 tailscale_save_state() {
   step "Persist tailscale state"
   if ((DRY_RUN)); then
-    say "+ [dry-run] stop tailscaled; cp -a $TS_STATE/. $ROOT/persist/var/lib/tailscale/"
+    say "+ [dry-run] stop tailscaled; cp -a $TS_STATE/. $ROOT/persist/var/lib/tailscale/ (only if the join worked)"
     return 0
   fi
   [[ -n $TAILSCALED_PID ]] || return 0
   kill "$TAILSCALED_PID" 2>/dev/null || true
   wait "$TAILSCALED_PID" 2>/dev/null || true
+  TAILSCALED_PID=""
+  if ((!TS_JOINED)); then
+    say "Tailscale was not joined: no node identity to persist. Join after the first boot (clone-post-install.md, section 4)."
+    return 0
+  fi
   mkdir -p "$TS_STATE"
   install -d -m 0700 "$ROOT/persist/var/lib/tailscale"
   cp -a "$TS_STATE/." "$ROOT/persist/var/lib/tailscale/"

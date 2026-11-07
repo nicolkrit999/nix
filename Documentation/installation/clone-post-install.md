@@ -47,6 +47,14 @@ tailscale status        # this machine appears as <host>-2
 
 The node identity was carried over from the live system, so no new login is needed. If `<host>-2` is missing, the key was skipped or failed during the install: run `sudo tailscale up --hostname=<host>-2` (or provide an auth key) after the first boot. The Attic cache and the NAS depend on this.
 
+### Replace the stored Tailscale key
+
+The installer decrypts `tailscale_key` from the common sops file and falls back to a prompt when Tailscale rejects it (expired, revoked or single-use). To make future installs prompt-free, store a fresh key:
+
+1. Create the key at <https://login.tailscale.com/admin/settings/keys> ("Generate auth key..."): **Reusable** on, **Ephemeral** off, and the longest expiry the console allows (an expired key brings the prompt back).
+2. In the repository run `sops-common` (alias for `cd <repo>/users/krit/common/sops && sops krit-common-secrets-sops.yaml`; the plain form is `sops users/krit/common/sops/krit-common-secrets-sops.yaml`, see the [sops guide](../usage/sops/sops-guide.md)). Replace the value of `tailscale_key` with the new `tskey-auth-...` string, save and quit.
+3. Commit and push. The installer always clones `main`, so the next install reads the new key. The installed hosts read the same sops key for `services.tailscale.authKeyFile`.
+
 ## 5. Settings inherited from the original (fix on new hardware)
 
 The clone is the original's config. Disk and boot hardware were replaced by the generic layer; everything else is inherited as is, which may not match the new machine:
