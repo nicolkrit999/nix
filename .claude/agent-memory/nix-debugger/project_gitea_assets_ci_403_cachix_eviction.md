@@ -13,5 +13,7 @@ Also: the CI store snapshot never protects them. The cache-nix-action save step 
 
 The videos ARE in the runtime closure (the mk-wallpaperd launcher argv references them).
 
+Second failure mode (2026-11-06): public DNS became `gitea.nicolkrit.ch` CNAME `wg.nicolkrit.ch` A 193.223.80.2, not proxied. That IP times out from the internet, and the old Cloudflare IPs return 522. CI then shows `curl: (28) Failed to connect ... after ~135000 ms`, not a 403. All 6 develop runs on 11-06 failed heavy-b `nixos-mango-desktop-host` "build mango and its config.conf", each on a different asset (girl-desk-working.MP4, purple-car.mp4, 01 Nordic Blue.jpg). Each asset was in cachix by the next run, so one asset kept missing at a time. Local runs always pass because the tailnet resolves wg to 100.x. Check: `dig +short gitea.nicolkrit.ch @1.1.1.1` and `curl --resolve` against the public IP.
+
 **Why:** about 8 gitea URLs live in hosts/, users/ and the wallpaper tests. Any of them breaks CI as soon as cachix evicts it and a cold run needs it.
 **How to apply:** if CI shows a 403 on a gitea URL, check the cachix narinfo first (404 = evicted). A re-push is only a stopgap. The structural fix is a runner-reachable mirror in fetchurl `urls`, or a Cloudflare skip rule for `/krit/wallpapers-repo/raw/`. See [[ci-tests-narrow-substituters]] for the earlier eviction history.
