@@ -98,6 +98,7 @@ delib.module {
           "security_warnings_*.json"
           "__pycache__/"
           "*.pyc"
+          "**/.claude/settings.local.json"
         ];
         extraShellAliases = templateAliases;
       };
