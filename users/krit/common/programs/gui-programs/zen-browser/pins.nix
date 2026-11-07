@@ -351,7 +351,7 @@ delib.module {
         };
         "Gokapi" = {
           id = "40000000-0000-4000-8000-0000000000c2";
-          url = "https://gokapi.nicolkrit.ch/login/";
+          url = "https://gokapi.nicolkrit.ch/login";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
@@ -750,7 +750,7 @@ delib.module {
         "Gokapi Family" = {
           id = "40000000-0000-4000-8000-0000000000c7";
           title = "Gokapi";
-          url = "https://gokapi.nicolkrit.ch/login/";
+          url = "https://gokapi.nicolkrit.ch/login";
           container = 2; # Secondary
           workspace = "10000000-0000-4000-8000-000000000002";
           folderParentId = "30000000-0000-4000-8000-000000000021";
