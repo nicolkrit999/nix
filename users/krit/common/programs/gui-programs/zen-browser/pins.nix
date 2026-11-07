@@ -11,10 +11,10 @@ delib.module {
         # ── Folders ─────────────────────────────────────────────────────────
 
         # General workspace
-        "Social & Entertainment" = {
-          id = "30000000-0000-4000-8000-000000000001";
+        "Utilities" = {
+          id = "30000000-0000-4000-8000-000000000004";
           isGroup = true;
-          folderIcon = "📺️";
+          folderIcon = "🔧";
           workspace = "10000000-0000-4000-8000-000000000001";
           position = 200;
         };
@@ -25,17 +25,17 @@ delib.module {
           workspace = "10000000-0000-4000-8000-000000000001";
           position = 300;
         };
+        "Social & Entertainment" = {
+          id = "30000000-0000-4000-8000-000000000001";
+          isGroup = true;
+          folderIcon = "📺️";
+          workspace = "10000000-0000-4000-8000-000000000001";
+          position = 400;
+        };
         "Personal finance" = {
           id = "30000000-0000-4000-8000-000000000002";
           isGroup = true;
           folderIcon = "🏦";
-          workspace = "10000000-0000-4000-8000-000000000001";
-          position = 400;
-        };
-        "Utilities" = {
-          id = "30000000-0000-4000-8000-000000000004";
-          isGroup = true;
-          folderIcon = "🔧";
           workspace = "10000000-0000-4000-8000-000000000001";
           position = 500;
         };
@@ -264,7 +264,261 @@ delib.module {
           isEssential = true;
         };
 
-        # ── Social & Entertainment ───────────────────────────────────────────
+        # ── Utilities ─────────────────────────────────────────────────────
+
+        "Unifi Cloud" = {
+          id = "40000000-0000-4000-8000-000000000036";
+          url = "https://unifi.ui.com/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000004";
+          position = 101;
+        };
+        "Tailscale Admin" = {
+          id = "40000000-0000-4000-8000-000000000034";
+          url = "https://console.tailscale.com/admin/machines";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000004";
+          position = 102;
+        };
+        "DownGit" = {
+          id = "40000000-0000-4000-8000-0000000000b0";
+          url = "https://downgit.github.io";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000004";
+          position = 103;
+        };
+        "Git Rawify" = {
+          id = "40000000-0000-4000-8000-000000000031";
+          url = "https://git-rawify.vercel.app/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000004";
+          position = 104;
+        };
+        "Cloudflare - dashboard" = {
+          id = "40000000-0000-4000-8000-000000000035";
+          url = "https://dash.cloudflare.com/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000004";
+          position = 105;
+        };
+
+        # ── Self hosting ──────────────────────────────────────────────────
+
+        "Glance" = {
+          id = "40000000-0000-4000-8000-000000000025";
+          url = "https://glance.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 101;
+        };
+        "NAS" = {
+          id = "40000000-0000-4000-8000-000000000021";
+          url = "https://ug.link/nicolnas";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 102;
+        };
+        "Linkwarden" = {
+          id = "40000000-0000-4000-8000-00000000002c";
+          url = "https://linkwarden.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 103;
+        };
+        "Budget" = {
+          id = "40000000-0000-4000-8000-0000000000c1";
+          url = "https://budget.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 104;
+        };
+        "Promemoria" = {
+          id = "40000000-0000-4000-8000-000000000033";
+          url = "https://promemoria.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 105;
+        };
+        "Gokapi" = {
+          id = "40000000-0000-4000-8000-0000000000c2";
+          url = "https://gokapi.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 106;
+        };
+        "PrivateBin" = {
+          id = "40000000-0000-4000-8000-00000000002a";
+          url = "https://privatebin.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 107;
+        };
+        "Gitea" = {
+          id = "40000000-0000-4000-8000-000000000029";
+          url = "https://gitea.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 108;
+        };
+        "Jellyfin" = {
+          id = "40000000-0000-4000-8000-000000000022";
+          url = "https://jellyfin.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 109;
+        };
+        "Foto" = {
+          id = "40000000-0000-4000-8000-000000000023";
+          url = "https://foto.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 110;
+        };
+        "PaperlessNGX" = {
+          id = "40000000-0000-4000-8000-0000000000c3";
+          url = "https://paperlessngx.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 111;
+        };
+        "OmniTools" = {
+          id = "40000000-0000-4000-8000-000000000032";
+          url = "https://omnitools.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 112;
+        };
+        "IT Tools" = {
+          id = "40000000-0000-4000-8000-000000000030";
+          url = "https://it-tools.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 113;
+        };
+        "ByteStash" = {
+          id = "40000000-0000-4000-8000-0000000000c4";
+          url = "https://bytestash.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 114;
+        };
+        "Portainer" = {
+          id = "40000000-0000-4000-8000-000000000026";
+          url = "https://portainer.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 115;
+        };
+        "Uptime Kuma" = {
+          id = "40000000-0000-4000-8000-0000000000c5";
+          url = "https://uptime-kuma.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 116;
+        };
+        "Beszel" = {
+          id = "40000000-0000-4000-8000-000000000024";
+          url = "https://beszel.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 117;
+        };
+        "Tugtainer" = {
+          id = "40000000-0000-4000-8000-000000000027";
+          url = "https://tugtainer.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 118;
+        };
+        "Duplicati" = {
+          id = "40000000-0000-4000-8000-000000000028";
+          url = "https://duplicati.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 119;
+        };
+        "Adguard" = {
+          id = "40000000-0000-4000-8000-000000000037";
+          url = "https://adguard.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 120;
+        };
+        "Traefik" = {
+          id = "40000000-0000-4000-8000-00000000002e";
+          url = "https://traefik.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 121;
+        };
+        "Pocket ID" = {
+          id = "40000000-0000-4000-8000-0000000000c6";
+          url = "https://pocket-id.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 122;
+        };
+        "Grafana" = {
+          id = "40000000-0000-4000-8000-000000000038";
+          url = "https://grafana.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 123;
+        };
+        "qBittorrent" = {
+          id = "40000000-0000-4000-8000-00000000002b";
+          url = "https://qbit-torrent.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 124;
+        };
+        "Home Assistant" = {
+          id = "40000000-0000-4000-8000-00000000002f";
+          url = "https://home-assistant.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 125;
+        };
+        "Fitness" = {
+          id = "40000000-0000-4000-8000-00000000002d";
+          url = "https://sparkyfitness.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 126;
+        };
+
+        # ── Social & Entertainment ────────────────────────────────────────
 
         "YouTube" = {
           id = "40000000-0000-4000-8000-000000000002";
@@ -290,24 +544,16 @@ delib.module {
           folderParentId = "30000000-0000-4000-8000-000000000001";
           position = 103;
         };
-        "Apple Music" = {
-          id = "40000000-0000-4000-8000-000000000005";
-          url = "https://music.apple.com/ch/home?l=en";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000001";
-          position = 104;
-        };
         "Reddit" = {
           id = "40000000-0000-4000-8000-000000000001";
           url = "https://www.reddit.com/";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000001";
-          position = 105;
+          position = 104;
         };
 
-        # ── Personal finance ─────────────────────────────────────────────────
+        # ── Personal finance ──────────────────────────────────────────────
 
         "Actual Budget" = {
           id = "40000000-0000-4000-8000-000000000013";
@@ -334,213 +580,7 @@ delib.module {
           position = 103;
         };
 
-        # ── Self hosting ─────────────────────────────────────────────────────
-
-        "Glance" = {
-          id = "40000000-0000-4000-8000-000000000025";
-          url = "https://glance.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 101;
-        };
-        "NAS" = {
-          id = "40000000-0000-4000-8000-000000000021";
-          url = "https://ug.link/nicolnas";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 102;
-        };
-        "Portainer" = {
-          id = "40000000-0000-4000-8000-000000000026";
-          url = "https://portainer.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 103;
-        };
-        "Grafana" = {
-          id = "40000000-0000-4000-8000-000000000038";
-          url = "https://grafana.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 104;
-        };
-        "Adguard" = {
-          id = "40000000-0000-4000-8000-000000000037";
-          url = "https://adguard.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 105;
-        };
-        "Traefik" = {
-          id = "40000000-0000-4000-8000-00000000002e";
-          url = "https://traefik.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 106;
-        };
-        "Tugtainer" = {
-          id = "40000000-0000-4000-8000-000000000027";
-          url = "https://tugtainer.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 107;
-        };
-        "Beszel" = {
-          id = "40000000-0000-4000-8000-000000000024";
-          url = "https://beszel.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 108;
-        };
-        "Tailscale Admin" = {
-          id = "40000000-0000-4000-8000-000000000034";
-          url = "https://console.tailscale.com/admin/machines";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 109;
-        };
-        "Cloudflare - dashboard" = {
-          id = "40000000-0000-4000-8000-000000000035";
-          url = "https://dash.cloudflare.com/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 110;
-        };
-        "Duplicati" = {
-          id = "40000000-0000-4000-8000-000000000028";
-          url = "https://duplicati.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 111;
-        };
-        "Jellyfin" = {
-          id = "40000000-0000-4000-8000-000000000022";
-          url = "https://jellyfin.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 112;
-        };
-        "qBittorrent" = {
-          id = "40000000-0000-4000-8000-00000000002b";
-          url = "https://qbit-torrent.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 113;
-        };
-        "Foto" = {
-          id = "40000000-0000-4000-8000-000000000023";
-          url = "https://foto.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 114;
-        };
-        "IT Tools" = {
-          id = "40000000-0000-4000-8000-000000000030";
-          url = "https://it-tools.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 115;
-        };
-        "OmniTools" = {
-          id = "40000000-0000-4000-8000-000000000032";
-          url = "https://omnitools.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 116;
-        };
-        "Gitea" = {
-          id = "40000000-0000-4000-8000-000000000029";
-          url = "https://gitea.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 117;
-        };
-        "Linkwarden" = {
-          id = "40000000-0000-4000-8000-00000000002c";
-          url = "https://linkwarden.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 118;
-        };
-        "PrivateBin" = {
-          id = "40000000-0000-4000-8000-00000000002a";
-          url = "https://privatebin.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 119;
-        };
-        "Promemoria" = {
-          id = "40000000-0000-4000-8000-000000000033";
-          url = "https://promemoria.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 120;
-        };
-        "Home Assistant" = {
-          id = "40000000-0000-4000-8000-00000000002f";
-          url = "https://home-assistant.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 121;
-        };
-        "Fitness" = {
-          id = "40000000-0000-4000-8000-00000000002d";
-          url = "https://sparkyfitness.nicolkrit.ch/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 122;
-        };
-
-        # ── Utilities ────────────────────────────────────────────────────────
-
-        "Unifi Cloud" = {
-          id = "40000000-0000-4000-8000-000000000036";
-          url = "https://unifi.ui.com/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000004";
-          position = 100;
-        };
-        "Git Rawify" = {
-          id = "40000000-0000-4000-8000-000000000031";
-          url = "https://git-rawify.vercel.app/";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000004";
-          position = 101;
-        };
-        "DownGit" = {
-          id = "40000000-0000-4000-8000-0000000000b0";
-          url = "https://downgit.github.io";
-          container = 1; # General
-          workspace = "10000000-0000-4000-8000-000000000001";
-          folderParentId = "30000000-0000-4000-8000-000000000004";
-          position = 102;
-        };
-
-        # ── AI ───────────────────────────────────────────────────────────────
+        # ── AI ────────────────────────────────────────────────────────────
 
         "Claude AI" = {
           id = "40000000-0000-4000-8000-0000000000b1";
@@ -671,7 +711,102 @@ delib.module {
           position = 116;
         };
 
-        # ── Pc building ──────────────────────────────────────────────────────
+        # ── Family ────────────────────────────────────────────────────────
+
+        "Bluewin Mail" = {
+          id = "40000000-0000-4000-8000-000000000091";
+          url = "https://email.bluewin.ch/appsuite/";
+          container = 2; # Secondary
+          workspace = "10000000-0000-4000-8000-000000000002";
+          folderParentId = "30000000-0000-4000-8000-000000000021";
+          position = 101;
+        };
+        "Casa" = {
+          id = "40000000-0000-4000-8000-000000000092";
+          url = "https://casa.nicolkrit.ch/";
+          container = 2; # Secondary
+          workspace = "10000000-0000-4000-8000-000000000002";
+          folderParentId = "30000000-0000-4000-8000-000000000021";
+          position = 102;
+        };
+        "Foto Root Family" = {
+          id = "40000000-0000-4000-8000-000000000099";
+          title = "Foto";
+          url = "https://foto.nicolkrit.ch/";
+          container = 2; # Secondary
+          workspace = "10000000-0000-4000-8000-000000000002";
+          folderParentId = "30000000-0000-4000-8000-000000000021";
+          position = 103;
+        };
+        "Jellyfin Family" = {
+          id = "40000000-0000-4000-8000-00000000009d";
+          title = "Jellyfin";
+          url = "https://jellyfin.nicolkrit.ch/";
+          container = 2; # Secondary
+          workspace = "10000000-0000-4000-8000-000000000002";
+          folderParentId = "30000000-0000-4000-8000-000000000021";
+          position = 104;
+        };
+        "Gokapi Family" = {
+          id = "40000000-0000-4000-8000-0000000000c7";
+          title = "Gokapi";
+          url = "https://gokapi.nicolkrit.ch/";
+          container = 2; # Secondary
+          workspace = "10000000-0000-4000-8000-000000000002";
+          folderParentId = "30000000-0000-4000-8000-000000000021";
+          position = 105;
+        };
+        "Mealie" = {
+          id = "40000000-0000-4000-8000-000000000094";
+          url = "https://ricette.nicolkrit.ch/";
+          container = 2; # Secondary
+          workspace = "10000000-0000-4000-8000-000000000002";
+          folderParentId = "30000000-0000-4000-8000-000000000021";
+          position = 106;
+        };
+        "Grocy" = {
+          id = "40000000-0000-4000-8000-00000000009b";
+          url = "https://grocy.nicolkrit.ch/";
+          container = 2; # Secondary
+          workspace = "10000000-0000-4000-8000-000000000002";
+          folderParentId = "30000000-0000-4000-8000-000000000021";
+          position = 107;
+        };
+        "Navidrome" = {
+          id = "40000000-0000-4000-8000-00000000009f";
+          url = "https://navidrome.nicolkrit.ch/";
+          container = 2; # Secondary
+          workspace = "10000000-0000-4000-8000-000000000002";
+          folderParentId = "30000000-0000-4000-8000-000000000021";
+          position = 108;
+        };
+        "Kavita" = {
+          id = "40000000-0000-4000-8000-0000000000c8";
+          url = "https://kavita.nicolkrit.ch/";
+          container = 2; # Secondary
+          workspace = "10000000-0000-4000-8000-000000000002";
+          folderParentId = "30000000-0000-4000-8000-000000000021";
+          position = 109;
+        };
+        "Surmai" = {
+          id = "40000000-0000-4000-8000-0000000000a5";
+          url = "https://viaggi.nicolkrit.ch/";
+          container = 2; # Secondary
+          workspace = "10000000-0000-4000-8000-000000000002";
+          folderParentId = "30000000-0000-4000-8000-000000000021";
+          position = 110;
+        };
+        "Budget Family" = {
+          id = "40000000-0000-4000-8000-000000000098";
+          title = "Budget";
+          url = "https://budget.nicolkrit.ch/";
+          container = 2; # Secondary
+          workspace = "10000000-0000-4000-8000-000000000002";
+          folderParentId = "30000000-0000-4000-8000-000000000021";
+          position = 111;
+        };
+
+        # ── Pc building ───────────────────────────────────────────────────
 
         "PCPartPicker" = {
           id = "40000000-0000-4000-8000-000000000041";
@@ -682,7 +817,7 @@ delib.module {
           position = 101;
         };
 
-        # ── IT services ──────────────────────────────────────────────────────
+        # ── IT services ───────────────────────────────────────────────────
 
         "Appuntamenti" = {
           id = "40000000-0000-4000-8000-000000000051";
@@ -693,7 +828,7 @@ delib.module {
           position = 101;
         };
 
-        # ── MK Ticino ────────────────────────────────────────────────────────
+        # ── MK Ticino ─────────────────────────────────────────────────────
 
         "Tornei" = {
           id = "40000000-0000-4000-8000-000000000061";
@@ -704,7 +839,7 @@ delib.module {
           position = 101;
         };
 
-        # ── University resources ─────────────────────────────────────────────
+        # ── University resources ──────────────────────────────────────────
 
         "iCorsi" = {
           id = "40000000-0000-4000-8000-000000000071";
@@ -730,185 +865,16 @@ delib.module {
           folderParentId = "30000000-0000-4000-8000-000000000041";
           position = 103;
         };
-
-        # ── Family ───────────────────────────────────────────────────────────
-
-        "Casa" = {
-          id = "40000000-0000-4000-8000-000000000092";
-          url = "https://casa.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 101;
-        };
-        "Bluewin Mail" = {
-          id = "40000000-0000-4000-8000-000000000091";
-          url = "https://email.bluewin.ch/appsuite/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 102;
-        };
-        "Appuntamenti Family" = {
-          id = "40000000-0000-4000-8000-000000000096";
-          title = "Appuntamenti";
-          url = "https://appuntamenti.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 103;
-        };
-        "Promemoria Family" = {
-          id = "40000000-0000-4000-8000-0000000000a2";
-          title = "Promemoria";
-          url = "https://promemoria.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
+        "Mensa" = {
+          id = "40000000-0000-4000-8000-0000000000c9";
+          url = "https://menu.1908.ch/usi-supsi#italiano/";
+          container = 4; # University
+          workspace = "10000000-0000-4000-8000-000000000004";
+          folderParentId = "30000000-0000-4000-8000-000000000041";
           position = 104;
         };
-        "Budget" = {
-          id = "40000000-0000-4000-8000-000000000098";
-          url = "https://budget.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 105;
-        };
-        "Grocy" = {
-          id = "40000000-0000-4000-8000-00000000009b";
-          url = "https://grocy.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 106;
-        };
-        "Homebox" = {
-          id = "40000000-0000-4000-8000-00000000009c";
-          url = "https://homebox.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 107;
-        };
-        "Ricette" = {
-          id = "40000000-0000-4000-8000-0000000000a3";
-          url = "https://ricette.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 108;
-        };
-        "Mealie" = {
-          id = "40000000-0000-4000-8000-000000000094";
-          url = "https://ricette.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 109;
-        };
-        "Jellyfin Family" = {
-          id = "40000000-0000-4000-8000-00000000009d";
-          title = "Jellyfin";
-          url = "https://jellyfin.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 110;
-        };
-        "Plex" = {
-          id = "40000000-0000-4000-8000-0000000000a1";
-          url = "https://plex.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 111;
-        };
-        "Navidrome" = {
-          id = "40000000-0000-4000-8000-00000000009f";
-          url = "https://navidrome.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 112;
-        };
-        "Foto Root Family" = {
-          id = "40000000-0000-4000-8000-000000000099";
-          title = "Foto";
-          url = "https://foto.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 113;
-        };
-        "Foto Family" = {
-          id = "40000000-0000-4000-8000-000000000093";
-          url = "https://foto.nicolkrit.ch/albums/70203820-e6fb-46e4-bf75-eaec54bc1a70";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 114;
-        };
-        "Gitea Family" = {
-          id = "40000000-0000-4000-8000-00000000009a";
-          title = "Gitea";
-          url = "https://gitea.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 115;
-        };
-        "OmniTools Family" = {
-          id = "40000000-0000-4000-8000-0000000000a0";
-          title = "OmniTools";
-          url = "https://omnitools.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 116;
-        };
-        "Mini QR" = {
-          id = "40000000-0000-4000-8000-00000000009e";
-          url = "https://miniqr.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 117;
-        };
-        "Blog" = {
-          id = "40000000-0000-4000-8000-000000000097";
-          url = "https://blog.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 118;
-        };
-        "Trek" = {
-          id = "40000000-0000-4000-8000-0000000000a4";
-          url = "https://trek.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 119;
-        };
-        "Surmai" = {
-          id = "40000000-0000-4000-8000-0000000000a5";
-          url = "https://viaggi.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 120;
-        };
-        "Viaggi" = {
-          id = "40000000-0000-4000-8000-000000000095";
-          url = "https://viaggi.nicolkrit.ch/";
-          container = 2; # Secondary
-          workspace = "10000000-0000-4000-8000-000000000002";
-          folderParentId = "30000000-0000-4000-8000-000000000021";
-          position = 121;
-        };
 
-        # ── Personal resources ───────────────────────────────────────────────
+        # ── Personal resources ────────────────────────────────────────────
 
         "OpenCloud" = {
           id = "40000000-0000-4000-8000-000000000081";
