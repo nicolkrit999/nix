@@ -11,6 +11,7 @@ let
       ".claude/CLAUDE.md"
       ".claude/RTK.md"
       ".claude/agents"
+      ".claude/agent-memory"
       ".claude/memory"
       ".claude/notebooklm"
       ".claude/skills"

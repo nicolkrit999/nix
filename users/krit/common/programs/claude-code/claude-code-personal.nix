@@ -98,7 +98,57 @@ delib.module {
           "security_warnings_*.json"
           "__pycache__/"
           "*.pyc"
-          "**/.claude/settings.local.json"
+
+          # Credentials and cache
+          "**/.credentials.json"
+          "**/stats-cache.json"
+          "**/policy-limits.json"
+
+          # Plugin marketplace clones, caches and counters: local regenerable state
+          # (marketplaces/ are embedded git repos that can't be committed).
+          "**/.claude/plugins/marketplaces/"
+          "**/.claude/plugins/cache/"
+          "**/.claude/plugins/blocklist.json"
+          "**/.claude/plugins/install-counts-cache.json"
+
+          # Plugin install receipts: host-local, regenerated from enabledPlugins
+          # (settings.json); paths point into the ignored local cache.
+          "**/.claude/plugins/installed_plugins.json"
+          "**/.claude/plugins/known_marketplaces.json"
+
+          # claude-mem: track only claude-mem.db, settings.json and corpora/; the rest
+          # is runtime/transient (the WAL alone churns >4MB/session, logs ~2MB/day).
+          "**/.claude-mem/claude-mem.db-wal"
+          "**/.claude-mem/claude-mem.db-shm"
+          "**/.claude-mem/worker.pid"
+          "**/.claude-mem/supervisor.json"
+          "**/.claude-mem/logs/"
+          "**/.claude-mem/backups/"
+          "**/.claude-mem/observer-sessions/"
+          "**/.claude-mem/.cwd-remap-applied*"
+          "**/.claude-mem/.cleanup-*"
+
+          # context-mode: track only content/*.db and sessions/*.db; the rest is
+          # runtime/transient (insight-cache is a 379M node_modules+build).
+          "**/.claude/context-mode/insight-cache/"
+          "**/.claude/context-mode/**/*.db-wal"
+          "**/.claude/context-mode/**/*.db-shm"
+          "**/.claude/context-mode/sessions/stats-pid-*.json"
+          "**/.claude/context-mode/sessions/*-events.md"
+          "**/.claude/context-mode/*.log"
+
+          # Cache of the account's Anthropic skills, re-synced by the client on every host.
+          "**/.claude/skills/synced/"
+
+          # Per-project data is host-specific (transcripts, subagents/, workflows/,
+          # tool-results/, observer sessions); only the per-project memory is tracked.
+          "**/.claude/projects/*/*"
+          "!**/.claude/projects/*/memory"
+          "!**/.claude/projects/*/memory/**"
+
+          # Last on purpose: the memory re-include above would otherwise win for a
+          # settings.local.json that sits inside a tracked memory dir.
+          "settings.local.json"
         ];
         extraShellAliases = templateAliases;
       };
