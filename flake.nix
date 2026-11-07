@@ -176,12 +176,45 @@
           nixpkgs.lib.nameValuePair "krit@${clone}" generatedHomeConfigs."krit@${original}")
         cloneHosts;
 
+      # Clone installer (templates/installer): wrapped scripts and a live ISO. Packages and apps
+      # only; the ISO system is internal and never part of nixosConfigurations. The ISO takes
+      # the laptop's kernel package set, so the kernel comes from the same (cached) derivation.
+      installerSystem = "x86_64-linux";
+      installerPkgs = import ./templates/installer/packages.nix {
+        pkgs = nixpkgs.legacyPackages.${installerSystem};
+      };
+      installerIso = nixpkgs.lib.nixosSystem {
+        specialArgs = {
+          inherit installerPkgs;
+          laptopKernelPackages = generatedNixosConfigs.nixos-laptop.config.boot.kernelPackages;
+        };
+        modules = [ ./templates/installer/iso.nix ];
+      };
+
       isDarwin = builtins.elem (builtins.currentSystem or "not-darwin") [
         "aarch64-darwin"
         "x86_64-darwin"
       ];
     in
     {
+      packages = if isDarwin then { } else {
+        ${installerSystem} = {
+          inherit (installerPkgs) installer make-bundle;
+          installer-iso = installerIso.config.system.build.isoImage;
+        };
+      };
+      apps = if isDarwin then { } else {
+        ${installerSystem} = {
+          install = {
+            type = "app";
+            program = nixpkgs.lib.getExe installerPkgs.installer;
+          };
+          make-bundle = {
+            type = "app";
+            program = nixpkgs.lib.getExe installerPkgs.make-bundle;
+          };
+        };
+      };
       nixosConfigurations = if isDarwin then { } else generatedNixosConfigs // cloneNixosConfigs;
       homeConfigurations = if isDarwin then { } else generatedHomeConfigs // cloneHomeConfigs;
       darwinConfigurations = mkConfigurations "darwin";

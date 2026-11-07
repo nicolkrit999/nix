@@ -109,6 +109,17 @@ mkdir -p "$root/boot/EFI/systemd" "$root/boot/EFI/BOOT"
 : >"$root/boot/EFI/systemd/systemd-bootx64.efi"; : >"$root/boot/EFI/BOOT/BOOTX64.EFI"
 exit 0
 EOF2
+  # git: the real one (local file:// repositories only), except that the unshallow fetch can be made to fail
+  local realgit
+  realgit=$(command -v git)
+  cat >"$bin/git" <<GITEOF
+#!/usr/bin/env bash
+if [[ \${FAKE_GIT_FAIL_UNSHALLOW:-0} == 1 && " \$* " == *" --unshallow "* ]]; then
+  printf 'git fetch --unshallow (forced failure)\\n' >>"\$FAKE_CALLS"
+  exit 1
+fi
+exec "$realgit" "\$@"
+GITEOF
   # tailscale: log and succeed
   cat >"$bin/tailscale" <<'EOF'
 #!/usr/bin/env bash
@@ -401,12 +412,40 @@ if section_on apply; then
 fi
 
 # ---------------------------------------------------------------------------
+# Local origin repositories (branch main, two commits so that a shallow clone really is shallow).
+git_t() { GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t git "$@"; }
+mk_origin() { # mk_origin <dir> mini|full
+  local d=$1 f
+  rm -rf "$d"
+  mkdir -p "$d"
+  if [[ $2 == full ]]; then
+    # snapshot of the working tree (tracked + staged new files), so uncommitted work is tested
+    while IFS= read -r -d '' f; do
+      [[ -e $REPO/$f ]] && (cd "$REPO" && cp --parents -P -- "$f" "$d/") 2>/dev/null
+    done < <(git -C "$REPO" ls-files -z --cached --others --exclude-standard)
+  else
+    mkdir -p "$d/templates/installer" "$d/users/krit/common/sops"
+    cp "$HERE/layout.nix" "$d/templates/installer/"
+    cp "$REPO/users/krit/common/sops/krit-common-secrets-sops.yaml" "$d/users/krit/common/sops/"
+  fi
+  git_t -C "$d" init -q -b main
+  git_t -C "$d" add -A
+  git_t -C "$d" commit -q -m first
+  echo second >"$d/second.txt"
+  git_t -C "$d" add -A
+  git_t -C "$d" commit -q -m second
+}
+
+ORIGIN_MINI=$T/origin-mini
+ORIGIN_URL=file://$ORIGIN_MINI
+mk_origin "$ORIGIN_MINI" mini
+
 run_install() { # run_install <stdin-text> args...  (uses fakes, writes $T/out.txt)
   local input=$1
   shift
   : >"$FAKE_CALLS"
-  printf '%s' "$input" | INSTALLER_ROOT=$T/root/target INSTALLER_SRC=$REPO INSTALLER_WORK_DIR=$T/wd \
-    "$HERE/install.sh" --flake github:test/nix/main "$@" >"$T/out.txt" 2>&1
+  printf '%s' "$input" | INSTALLER_ROOT=$T/root/target INSTALLER_REPO_URL=$ORIGIN_URL INSTALLER_WORK_DIR=$T/wd \
+    "$HERE/install.sh" "$@" >"$T/out.txt" 2>&1
   return $?
 }
 
@@ -432,7 +471,23 @@ secretpw
   assert_rc "installer exit code" "$rc" 0
   [[ $rc -eq 0 ]] || { echo "$out" | tail -n 30; }
   assert_eq "existing partitions untouched by the full flow" "$(existing_identity "$D")" "$before"
-  assert_contains "nixos-install flake ref + clone name" "$calls" "nixos-install --root $T/root/target --flake github:test/nix/main#nixos-laptop-2 --no-root-passwd"
+  if [[ $calls =~ nixos-install\ --root\ $T/root/target\ --flake\ $T/wd/clone-installer-src\.[A-Za-z0-9]+/nix\#nixos-laptop-2\ --no-root-passwd ]]; then
+    ok "nixos-install uses the local clone as flake + clone name"
+  else
+    bad "nixos-install flake ref (not the local clone): $(grep '^nixos-install' "$FAKE_CALLS")"
+  fi
+  assert_not_contains "no github: flake anywhere" "$calls" "github:"
+  assert_contains "installer cloned the origin shallow" "$out" "Cloning $ORIGIN_URL (branch main, shallow)"
+  assert_contains "no gate prompt in Setup Mode" "$out" "Firmware is in Secure Boot Setup Mode"
+  assert_not_contains "no gate prompt when in Setup Mode" "$out" "[r]etry"
+  rp=$T/root/target/home/krit/nix
+  assert_eq "repo placed at ~/nix of the target user" "$([[ -d $rp/.git ]] && echo yes)" yes
+  assert_eq "origin is the repo URL" "$(git -C "$rp" remote get-url origin)" "$ORIGIN_URL"
+  assert_eq "clone is on branch main" "$(git -C "$rp" rev-parse --abbrev-ref HEAD)" main
+  assert_eq "history was unshallowed (2 commits)" "$(git -C "$rp" rev-list --count HEAD)" 2
+  assert_eq "repo no longer shallow" "$(git -C "$rp" rev-parse --is-shallow-repository)" false
+  assert_contains "repo chowned recursively to the user" "$calls" "chown -R 1000:100 $rp"
+  assert_eq "temporary clone removed from the work dir" "$(find "$T/wd" -maxdepth 1 -name 'clone-installer-src.*' | wc -l)" 0
   assert_contains "attic substituter added" "$calls" "extra-substituters http://nicol-nas.tail9b9ae8.ts.net:8081/krit-nix"
   assert_contains "attic public key added" "$calls" "extra-trusted-public-keys krit-nix:KEY"
   assert_contains "netrc passed" "$calls" "netrc-file"
@@ -469,28 +524,132 @@ secretpw
 fi
 
 if section_on notsetup; then
-  echo "# install.sh: firmware not in Setup Mode, desktop (no LUKS)"
+  echo "# install.sh: firmware not in Setup Mode (gate), desktop (no LUKS)"
   setup_fakes
   rm -rf "$T/root/target" "$T/wd"
   make_bundle_tar "$T/bundle.tar" nixos-desktop
   cp --sparse=always "$WIN" "$T/img/inst2.img"
   D=$T/img/inst2.img
   export INSTALLER_TEST_DISKS="$D"
-  mkdir -p "$T/efivars2"
-  printf '\x07\x00\x00\x00\x00' >"$T/efivars2/SetupMode-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+  SM=SetupMode-8be4df61-93ca-11d2-aa0d-00e098032b8c
+  mkdir -p "$T/efivars2" "$T/efivars-on"
+  printf '\x07\x00\x00\x00\x00' >"$T/efivars2/$SM"
+  printf '\x07\x00\x00\x00\x01' >"$T/efivars-on/$SM"
   export INSTALLER_EFIVARS_DIR=$T/efivars2
-  run_install "$D
+
+  # gate: quit before anything happens
+  sig=$(img_sig "$D")
+  run_install "q
+" --host nixos-desktop --variant 2 --disk "$D" --mode free --bundle "$T/bundle.tar"
+  assert_rc "gate: [q]uit exits non-zero" $? 1
+  out=$(cat "$T/out.txt")
+  assert_contains "gate: BIOS steps printed" "$out" "Reset to Setup Mode"
+  assert_contains "gate: Microsoft keys kept (--microsoft)" "$out" "enroll-keys --microsoft"
+  assert_contains "gate: offers retry/continue/quit" "$out" "[r]etry"
+  assert_contains "gate: quit says nothing was modified" "$out" "Nothing was modified"
+  assert_eq "gate quit: image untouched" "$(img_sig "$D")" "$sig"
+  assert_eq "gate quit: no tool of any kind ran" "$(grep -cE '^(mkfs|cryptsetup|nixos-install|wipefs|sbctl|efibootmgr|tailscale|chown)' "$FAKE_CALLS")" 0
+  assert_eq "gate quit: clone dir removed" "$(find "$T/wd" -maxdepth 1 -name 'clone-installer-src.*' 2>/dev/null | wc -l)" 0
+
+  # gate: invalid answer, then retry (still not in Setup Mode), then continue
+  rm -rf "$T/root/target" "$T/wd"
+  cp --sparse=always "$WIN" "$D"
+  run_install "x
+r
+c
+$D
 " --host nixos-desktop --variant 2 --disk "$D" --mode free --bundle "$T/bundle.tar"
   rc=$?
   out=$(cat "$T/out.txt")
   calls=$(cat "$FAKE_CALLS")
-  assert_rc "exit code" "$rc" 0
+  assert_rc "gate: invalid, retry, continue -> install ok" "$rc" 0
+  assert_contains "gate: invalid answer rejected" "$out" "please answer r, c or q"
+  assert_contains "gate: retry re-reads and stays" "$out" "still not in Setup Mode"
+  assert_contains "gate: continue warns" "$out" "continuing without enrollment"
   assert_contains "keys still created (lanzaboote needs them)" "$calls" "create-keys"
   assert_not_contains "no enroll-keys outside Setup Mode" "$calls" "enroll-keys"
   assert_not_contains "no cryptsetup on desktop" "$calls" "cryptsetup"
   assert_contains "manual steps printed" "$out" "sudo sbctl enroll-keys --microsoft"
+  gc=$(grep -n 'Secure Boot gate' "$T/out.txt" | head -1 | cut -d: -f1)
+  pt=$(grep -n 'Partition, format, mount' "$T/out.txt" | head -1 | cut -d: -f1)
+  if [[ -n $gc && -n $pt ]] && ((gc < pt)); then ok "gate comes before the partition step"; else bad "gate order ($gc/$pt)"; fi
+
+  # gate: firmware flips to Setup Mode while the prompt waits, then [r]etry succeeds -> enroll
+  rm -rf "$T/root/target" "$T/wd"
+  cp --sparse=always "$WIN" "$D"
+  mkdir -p "$T/efivars-flip"
+  printf '\x07\x00\x00\x00\x00' >"$T/efivars-flip/$SM"
+  : >"$FAKE_CALLS"
+  : >"$T/out.txt"
+  # shellcheck disable=SC2094  # the writer polls its own output file on purpose
+  {
+    for _ in $(seq 1 100); do grep -q '\[r\]etry' "$T/out.txt" 2>/dev/null && break; sleep 0.2; done
+    printf '\x07\x00\x00\x00\x01' >"$T/efivars-flip/$SM"
+    printf 'r\n%s\n' "$D"
+  } | INSTALLER_EFIVARS_DIR=$T/efivars-flip INSTALLER_ROOT=$T/root/target INSTALLER_REPO_URL=$ORIGIN_URL \
+    INSTALLER_WORK_DIR=$T/wd "$HERE/install.sh" --host nixos-desktop --variant 2 --disk "$D" --mode free \
+    --bundle "$T/bundle.tar" >"$T/out.txt" 2>&1
+  rc=$?
+  out=$(cat "$T/out.txt")
+  calls=$(cat "$FAKE_CALLS")
+  assert_rc "gate: retry after firmware change -> install ok" "$rc" 0
+  [[ $rc -eq 0 ]] || echo "$out" | tail -n 15
+  assert_contains "gate: retry sees Setup Mode" "$out" "Firmware is now in Setup Mode"
+  assert_contains "gate: enroll happens after retry succeeded" "$calls" "enroll-keys --microsoft"
+
+  echo "# install.sh: source = clone of main"
+  rm -rf "$T/root/target" "$T/wd"
+  export INSTALLER_EFIVARS_DIR=$T/efivars-on
+  cp --sparse=always "$WIN" "$D"
+  : >"$FAKE_CALLS"
+  # unshallow failure: warn only, install still succeeds
+  FAKE_GIT_FAIL_UNSHALLOW=1 run_install "$D
+" --host nixos-desktop --variant 2 --disk "$D" --mode free --bundle "$T/bundle.tar"
+  rc=$?
+  out=$(cat "$T/out.txt")
+  assert_rc "unshallow failure does not fail the install" "$rc" 0
+  [[ $rc -eq 0 ]] || echo "$out" | tail -n 15
+  assert_contains "unshallow failure is a warning" "$out" "git fetch --unshallow failed"
+  assert_eq "failed unshallow leaves a shallow clone" "$(git -C "$T/root/target/home/krit/nix" rev-parse --is-shallow-repository)" true
+  assert_eq "origin still the repo URL" "$(git -C "$T/root/target/home/krit/nix" remote get-url origin)" "$ORIGIN_URL"
+  # clone failure: abort before anything
+  sig=$(img_sig "$D")
+  rm -rf "$T/root/target" "$T/wd"
+  printf '' | INSTALLER_ROOT=$T/root/target INSTALLER_REPO_URL=file://$T/does-not-exist INSTALLER_WORK_DIR=$T/wd \
+    "$HERE/install.sh" --host nixos-desktop --variant 2 --disk "$D" --mode free --bundle "$T/bundle.tar" >"$T/out.txt" 2>&1
+  assert_rc "unclonable repo aborts" $? 1
+  assert_contains "says could not clone" "$(cat "$T/out.txt")" "could not clone"
+  assert_eq "unclonable repo: image untouched" "$(img_sig "$D")" "$sig"
+  # INSTALLER_SRC: a git checkout is used as is, a plain directory is ignored
+  rm -rf "$T/root/target" "$T/wd"
+  git clone -q "$ORIGIN_URL" "$T/given-checkout"
+  cp --sparse=always "$WIN" "$D"
+  printf '' | INSTALLER_ROOT=$T/root/target INSTALLER_SRC=$T/given-checkout INSTALLER_REPO_URL=$ORIGIN_URL \
+    INSTALLER_WORK_DIR=$T/wd "$HERE/install.sh" --dry-run --host nixos-desktop --variant 2 --disk "$D" --mode free \
+    --bundle "$T/bundle.tar" >"$T/out.txt" 2>&1
+  rc=$?
+  assert_rc "dry-run with INSTALLER_SRC checkout" "$rc" 0
+  [[ $rc -eq 0 ]] || tail -n 12 "$T/out.txt"
+  assert_contains "INSTALLER_SRC checkout used, not cloned" "$(cat "$T/out.txt")" "Using the checkout $T/given-checkout"
+  mkdir -p "$T/plain-dir"
+  printf '' | INSTALLER_ROOT=$T/root/target INSTALLER_SRC=$T/plain-dir INSTALLER_REPO_URL=$ORIGIN_URL \
+    INSTALLER_WORK_DIR=$T/wd "$HERE/install.sh" --dry-run --host nixos-desktop --variant 2 --disk "$D" --mode free \
+    --bundle "$T/bundle.tar" >"$T/out.txt" 2>&1
+  assert_rc "dry-run with INSTALLER_SRC without .git" $? 0
+  assert_contains "INSTALLER_SRC without .git ignored: cloned" "$(cat "$T/out.txt")" "Cloning $ORIGIN_URL"
+  printf '' | INSTALLER_EFIVARS_DIR=$T/efivars2 INSTALLER_ROOT=$T/root/target INSTALLER_REPO_URL=$ORIGIN_URL \
+    INSTALLER_WORK_DIR=$T/wd "$HERE/install.sh" --dry-run --host nixos-desktop --variant 2 --disk "$D" --mode free \
+    --bundle "$T/bundle.tar" >"$T/out.txt" 2>&1
+  assert_rc "dry-run outside Setup Mode does not prompt" $? 0
+  assert_contains "dry-run: gate only warns" "$(cat "$T/out.txt")" "would stop here"
+
+  # the default URL is the public https URL, and the scripts have no github: flake / --ref
+  assert_eq "repo-url.txt is a public https URL" "$(head -n1 "$HERE/repo-url.txt" | grep -cE '^https://github\.com/[^/]+/[^/]+\.git$')" 1
+  assert_eq "install.sh has no github: flake ref or --ref option" "$(grep -cE 'github:|--ref' "$HERE/install.sh")" 0
+  export INSTALLER_EFIVARS_DIR=$T/efivars2
 
   echo "# install.sh: refusals"
+  export INSTALLER_EFIVARS_DIR=$T/efivars-on
   h=$(img_sig "$WIN")
   export INSTALLER_TEST_DISKS="$WIN"
   run_install "$WIN
@@ -530,12 +689,12 @@ wrongname
 
   echo "# install.sh: guards"
   : >"$FAKE_CALLS"
-  (unset INSTALLER_TEST INSTALLER_BIN_DIR; INSTALLER_SRC=$REPO "$HERE/install.sh" --flake x --host nixos-desktop --variant 2 --disk "$WIN" </dev/null >"$T/out.txt" 2>&1)
+  (unset INSTALLER_TEST INSTALLER_BIN_DIR; INSTALLER_SRC=$REPO "$HERE/install.sh" --host nixos-desktop --variant 2 --disk "$WIN" </dev/null >"$T/out.txt" 2>&1)
   assert_rc "outside live installer (non-dry) refused" $? 1
   assert_contains "says not live" "$(cat "$T/out.txt")" "not running in the live installer"
   bd=$T/bin-incomplete
   mkdir -p "$bd"
-  (INSTALLER_BIN_DIR=$bd INSTALLER_SRC=$REPO "$HERE/install.sh" --flake x --host nixos-desktop --variant 2 --disk "$WIN" </dev/null >"$T/out.txt" 2>&1)
+  (INSTALLER_BIN_DIR=$bd INSTALLER_SRC=$REPO "$HERE/install.sh" --host nixos-desktop --variant 2 --disk "$WIN" </dev/null >"$T/out.txt" 2>&1)
   assert_rc "test mode without fakes refused" $? 1
   assert_contains "names the unfaked tool" "$(cat "$T/out.txt")" "does not resolve to a fake"
   (unset INSTALLER_BIN_DIR; "$HERE/install.sh" --dry-run --host nixos-desktop </dev/null >"$T/out.txt" 2>&1)
@@ -655,8 +814,9 @@ if section_on realnix; then
   rm -f "$T/bin/nix"
   make_bundle_tar "$T/bundle.tar" nixos-laptop
   export INSTALLER_TEST_DISKS="$WIN"
-  out=$(printf '' | INSTALLER_ROOT=$T/root/dry INSTALLER_SRC=$REPO INSTALLER_WORK_DIR=$T/wd "$HERE/install.sh" --dry-run \
-    --flake "$REPO" --host nixos-laptop --variant 2 --disk "$WIN" --mode free --bundle "$T/bundle.tar" 2>&1)
+  mk_origin "$T/origin-full" full
+  out=$(printf '' | INSTALLER_ROOT=$T/root/dry INSTALLER_REPO_URL=file://$T/origin-full INSTALLER_WORK_DIR=$T/wd "$HERE/install.sh" --dry-run \
+    --host nixos-laptop --variant 2 --disk "$WIN" --mode free --bundle "$T/bundle.tar" 2>&1)
   rc=$?
   assert_rc "dry-run exit" "$rc" 0
   assert_contains "real facts: luks laptop" "$out" "LUKS: yes"

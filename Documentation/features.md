@@ -274,6 +274,10 @@ environment.persistence."/persist" = {
 
 A host can switch from GRUB to systemd-boot with signed lanzaboote stubs via `services.lanzaboote.enable`; the choice is independent of whether firmware Secure Boot is turned on (`services.lanzaboote.secureBoot`). The stub checks the kernel and initrd by hash on every boot, signing keys live in `/persist` and stay out of the backups, and the boot menu length and console mode are per-host options (`configurationLimit`, `consoleMode`). Key creation and enrollment are manual steps, documented with recovery paths in `Documentation/usage/secure-boot/lanzaboote.md`. Because systemd-boot cannot list a Windows that sits on another disk's boot partition, `reboot-to-windows` looks up the Windows firmware entry, sets it as the next boot and reboots.
 
+## Clone Install (new hardware)
+
+`nixos-desktop` and `nixos-laptop` can be reinstalled on another PC, next to the original or as its replacement, from a live USB stick. The clone is the original's whole config with only the host name changed (`nixos-desktop-2`, `nixos-laptop-2`) and a generic, label-based disk layer, so the originals are never modified. The installer (`clone-install` on a custom ISO built with `nix build .#installer-iso`) classifies every disk, refuses to touch Windows or other systems unless told so, can install into the free space next to Windows, restores the host and user keys from a passphrase-encrypted bundle (`nix run .#make-bundle`), joins the tailnet, uses the Attic cache, creates and enrolls its own Secure Boot keys and leaves the repository with full history at `~/nix`. Guides: `Documentation/installation/clone-install.md`, `clone-post-install.md` and `clone-retire-and-promote.md` (promotion to the original name is a manual procedure for now).
+
 ## Cachix Support
 
 Pre-built binaries for this config are hosted on [Cachix](https://app.cachix.org/). With a good internet connection, builds are significantly faster and don't depend on local hardware.

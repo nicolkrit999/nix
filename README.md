@@ -51,6 +51,9 @@
 | &nbsp;&nbsp;↳ Option A: No encryption | [manual.md - Option A](./Documentation/installation/manual.md#option-a-btrfs-no-encryption) |
 | &nbsp;&nbsp;↳ Option B: LUKS + encryption | [manual.md - Option B](./Documentation/installation/manual.md#option-b-btrfs--luks-encryption) |
 | **Signed boot** (lanzaboote / Secure Boot, with or without LUKS) | [Adding lanzaboote to a host](./Documentation/installation/lanzaboote.md) |
+| **Clone install** (reinstall `nixos-desktop` / `nixos-laptop` on new hardware from a live USB) | [Clone install](./Documentation/installation/clone-install.md) |
+| &nbsp;&nbsp;↳ After the install | [Post-install checklist](./Documentation/installation/clone-post-install.md) |
+| &nbsp;&nbsp;↳ Replacing the old PC | [Retire and promote](./Documentation/installation/clone-retire-and-promote.md) |
 
 ---
 

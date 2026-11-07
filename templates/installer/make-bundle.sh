@@ -60,7 +60,8 @@ if [[ ! -r $HOST_KEY && $EUID -ne 0 ]]; then
   command -v sudo >/dev/null 2>&1 || die "$HOST_KEY is not readable and sudo is missing"
   sudo_args=(--host "$HOST" --host-key "$HOST_KEY" --user-key "$USER_KEY" --out-dir "$(cd "$OUT_DIR" && pwd)")
   ((FORCE)) && sudo_args+=(--force)
-  exec sudo "$0" "${sudo_args[@]}"
+  # keep the caller PATH: sudo would reset it and lose age/tar when run through a nix wrapper
+  exec sudo env "PATH=$PATH" "$0" "${sudo_args[@]}"
 fi
 
 [[ -r $HOST_KEY ]] || die "host key not readable: $HOST_KEY"

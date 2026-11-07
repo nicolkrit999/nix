@@ -26,6 +26,7 @@ This document explains every possible programs/service that can be enabled using
 Critical warnings are included for specific modules that directly impact system functionality if disabled.
 
 - When configuring a new host remember to add the `hardware-configuration.nix` to the excluded path in `flake.nix`
+- `nixos-desktop` and `nixos-laptop` also exist as clone hosts (`nixos-desktop-2`, `nixos-laptop-2`, listed in `cloneHosts` in `flake.nix`): the same modules and options, only `networking.hostName` differs and the hardware layer comes from `templates/installer/generic-hardware.nix` instead of the host's `hardware-configuration.nix` (selected through `hardware-select.nix` in the host's `system.nix`). They are not toggled by any option; see `Documentation/installation/clone-install.md`.
 ---
 
 

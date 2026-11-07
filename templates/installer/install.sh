@@ -3,14 +3,21 @@
 # Runs from the NixOS live ISO. Everything outside the live ISO is refused except --dry-run.
 #
 # Usage: install.sh [--dry-run] [--host nixos-desktop|nixos-laptop] [--variant 2|same]
-#                   [--disk /dev/X] [--mode whole|free] [--bundle FILE] [--flake REF]
+#                   [--disk /dev/X] [--mode whole|free] [--bundle FILE]
+#
+# Source: always the latest `main`, cloned shallow (git clone --depth 1 --branch main) into a
+# temporary directory; nixos-install uses that clone as the flake. After the install the clone is
+# placed at ~/nix of the target user and unshallowed (full history on the new machine).
 #
 # Environment (all optional):
-#   INSTALLER_LIVE=1      declare "I am the live installer" (the wrapper sets it)
+#   INSTALLER_LIVE=1      declare "I am the live installer" (the wrappers set it)
+#   INSTALLER_REPO_URL    repository to clone and to leave as `origin` (default: repo-url.txt next to
+#                         this script, the public https URL). Tests point it at a local repository.
+#   INSTALLER_SRC         an existing git checkout to use instead of cloning (clone-install passes the
+#                         clone it just made). A path without .git (flake store path) is ignored.
 #   INSTALLER_TEST=1      test mode: regular-file disks only, needs INSTALLER_BIN_DIR with fakes
 #   INSTALLER_BIN_DIR     directory prepended to PATH (fake tools for tests)
 #   INSTALLER_ROOT        target mount root (default /mnt)
-#   INSTALLER_SRC         checkout/flake source holding layout.nix and the sops files
 #   INSTALLER_WORK_DIR    tmpfs work dir for secrets (test mode only; otherwise /run is used)
 #   INSTALLER_BUNDLE_DIRS extra directories searched for *.age bundles (space separated)
 #   INSTALLER_EFIVARS_DIR efivars dir (default /sys/firmware/efi/efivars)
@@ -25,7 +32,6 @@ OPT_VARIANT=""
 OPT_DISK=""
 OPT_MODE=""
 OPT_BUNDLE=""
-OPT_FLAKE=""
 
 # shellcheck source=disk-plan.sh
 source "$SCRIPT_DIR/disk-plan.sh"
@@ -51,7 +57,6 @@ parse_args() {
       --disk) OPT_DISK=${2:?--disk needs a value}; shift ;;
       --mode) OPT_MODE=${2:?--mode needs a value}; shift ;;
       --bundle) OPT_BUNDLE=${2:?--bundle needs a value}; shift ;;
-      --flake) OPT_FLAKE=${2:?--flake needs a value}; shift ;;
       -h | --help) usage; exit 0 ;;
       *) die "unknown argument: $1 (see --help)" ;;
     esac
@@ -156,6 +161,7 @@ confirm_typed() { # confirm_typed <expected> <prompt>
 # ---------------------------------------------------------------------------
 
 WORK=""
+CLONE_ROOT=""
 MOUNTED_BUNDLE_SRCS=()
 
 cleanup() {
@@ -166,6 +172,9 @@ cleanup() {
   if [[ -n $WORK && -d $WORK ]]; then
     find "$WORK" -type f -exec shred -u {} + 2>/dev/null || true
     rm -rf "$WORK"
+  fi
+  if [[ -n $CLONE_ROOT && -d $CLONE_ROOT ]]; then
+    rm -rf "$CLONE_ROOT"
   fi
 }
 
@@ -196,38 +205,43 @@ init_workdir() {
 SRC=""
 FLAKE=""
 SOPS_COMMON=""
+REPO_URL=""
+REPO_BRANCH=main
 
-resolve_src() {
-  SRC=${INSTALLER_SRC:-$(cd "$SCRIPT_DIR/../.." && pwd)}
-  [[ -r $SRC/templates/installer/layout.nix ]] || die "layout.nix not found under $SRC (set INSTALLER_SRC)"
+# A writable scratch base: the test work dir, /run (tmpfs on the live ISO), else $TMPDIR.
+scratch_base() {
+  if [[ ${INSTALLER_TEST:-0} == 1 && -n ${INSTALLER_WORK_DIR:-} ]]; then
+    mkdir -p "$INSTALLER_WORK_DIR"
+    printf '%s\n' "$INSTALLER_WORK_DIR"
+  elif [[ -d /run && -w /run ]]; then
+    printf '/run\n'
+  else
+    printf '%s\n' "${TMPDIR:-/tmp}"
+  fi
+}
+
+# prepare_source: SRC = a git checkout of `main`. Either the one handed in (INSTALLER_SRC with a
+# .git, e.g. from clone-install) or a fresh shallow clone. FLAKE = SRC.
+prepare_source() {
+  local url_file=$SCRIPT_DIR/repo-url.txt
+  REPO_URL=${INSTALLER_REPO_URL:-}
+  if [[ -z $REPO_URL && -r $url_file ]]; then REPO_URL=$(head -n1 "$url_file"); fi
+  [[ -n $REPO_URL ]] || die "no repository URL: set INSTALLER_REPO_URL (repo-url.txt is missing next to install.sh)"
+  if [[ -n ${INSTALLER_SRC:-} && -e ${INSTALLER_SRC}/.git ]]; then
+    SRC=$INSTALLER_SRC
+    say "Using the checkout $SRC as source."
+  else
+    CLONE_ROOT=$(mktemp -d "$(scratch_base)/clone-installer-src.XXXXXX")
+    say "Cloning $REPO_URL (branch $REPO_BRANCH, shallow) ..."
+    GIT_TERMINAL_PROMPT=0 git clone --quiet --depth 1 --branch "$REPO_BRANCH" -- "$REPO_URL" "$CLONE_ROOT/nix" \
+      || die "could not clone $REPO_URL (network?)"
+    SRC=$CLONE_ROOT/nix
+  fi
+  [[ -r $SRC/templates/installer/layout.nix ]] || die "layout.nix not found under $SRC"
   SOPS_COMMON=$SRC/users/krit/common/sops/krit-common-secrets-sops.yaml
   [[ -r $SOPS_COMMON ]] || die "common sops file not found: $SOPS_COMMON"
   dp_layout_load "$SRC/templates/installer/layout.nix" || die "$DP_REASON"
-}
-
-default_flake_ref() {
-  local url owner repo
-  url=$(git -C "$SRC" remote get-url origin 2>/dev/null || true)
-  [[ -n $url ]] || return 1
-  case $url in
-    git@github.com:*) url=${url#git@github.com:} ;;
-    ssh://git@github.com/*) url=${url#ssh://git@github.com/} ;;
-    https://github.com/*) url=${url#https://github.com/} ;;
-    *) return 1 ;;
-  esac
-  url=${url%.git}
-  owner=${url%%/*}
-  repo=${url#*/}
-  [[ -n $owner && -n $repo && $repo != */* ]] || return 1
-  printf 'github:%s/%s/main\n' "$owner" "$repo"
-}
-
-resolve_flake() {
-  if [[ -n $OPT_FLAKE ]]; then
-    FLAKE=$OPT_FLAKE
-  else
-    FLAKE=$(default_flake_ref) || die "cannot derive the GitHub flake from 'git remote'; pass --flake github:OWNER/REPO/main (or a local path)"
-  fi
+  FLAKE=$SRC
 }
 
 # shellcheck disable=SC2016  # Nix expression, not shell
@@ -624,6 +638,65 @@ secure_boot_setup_mode() {
   [[ $(od -An -tu1 -j4 -N1 "$f" | tr -d ' ') == 1 ]]
 }
 
+print_setup_mode_steps() {
+  cat >&2 <<'MSG'
+
+The firmware is NOT in Secure Boot Setup Mode, so the new Secure Boot keys cannot be enrolled by
+this installer. To enroll them automatically, put the firmware into Setup Mode first:
+
+  1. Reboot into the firmware setup (BIOS/UEFI): from this live system "systemctl reboot --firmware-setup",
+     or the vendor key during power-on.
+  2. Open the Secure Boot settings and clear/delete the Platform Key (PK): look for "Reset to Setup Mode",
+     "Clear Secure Boot keys" or "Delete all variables" (some boards: switch the Secure Boot mode to
+     "Custom" first, then delete the keys). Secure Boot itself may stay on or off; only Setup Mode matters.
+  3. Save, boot this stick again and rerun clone-install. The Microsoft keys are kept: the installer
+     enrolls with "sbctl enroll-keys --microsoft" (Windows and firmware option ROMs keep working).
+  4. Only after the install: turn Secure Boot ON in the firmware.
+
+If you continue without enrollment, the install itself works (the keys are created and the boot files
+are signed); enrolling is then a manual step after the first boot (the final checklist prints it).
+MSG
+}
+
+# secure_boot_gate: lanzaboote hosts only. Runs before anything destructive. Sets SB_SETUP_MODE.
+secure_boot_gate() {
+  ((F_LANZABOOTE)) || return 0
+  if secure_boot_setup_mode; then
+    SB_SETUP_MODE=1
+    say "Firmware is in Secure Boot Setup Mode: the keys will be enrolled after the install."
+    return 0
+  fi
+  SB_SETUP_MODE=0
+  if ((DRY_RUN)); then
+    warn "[dry-run] firmware is not in Setup Mode: the real run would stop here and ask [r]etry / [c]ontinue / [q]uit."
+    return 0
+  fi
+  step "Secure Boot gate"
+  print_setup_mode_steps
+  while :; do
+    ask "[r]etry (re-read the firmware state) / [c]ontinue without enrollment / [q]uit:"
+    case $REPLY in
+      r | R | retry)
+        if secure_boot_setup_mode; then
+          SB_SETUP_MODE=1
+          say "Firmware is now in Setup Mode: the keys will be enrolled after the install."
+          return 0
+        fi
+        warn "still not in Setup Mode (a firmware change needs a reboot: quit, change it in the firmware, boot the stick again)."
+        ;;
+      c | C | continue)
+        warn "continuing without enrollment: keys are created, enrolling is a manual step afterwards."
+        return 0
+        ;;
+      q | Q | quit)
+        say "Aborted before any change. Nothing was modified."
+        exit 1
+        ;;
+      *) warn "please answer r, c or q" ;;
+    esac
+  done
+}
+
 secure_boot_create_keys() {
   ((F_LANZABOOTE)) || {
     say "Host does not use lanzaboote: no Secure Boot keys needed."
@@ -637,11 +710,10 @@ secure_boot_create_keys() {
   dp_run install -d -m 0700 "$pki"
   # lanzaboote signs during nixos-install and needs the keys even if enrolling is not possible.
   dp_run sbctl --config "$SB_CONF" create-keys
-  if secure_boot_setup_mode; then
-    SB_SETUP_MODE=1
-    say "Firmware is in Setup Mode: keys will be enrolled after the install."
+  if ((SB_SETUP_MODE)); then
+    say "Keys created; they will be enrolled after the install."
   else
-    warn "firmware is NOT in Secure Boot Setup Mode: keys are created but not enrolled (manual steps are printed at the end)."
+    warn "keys created but not enrolled (firmware not in Setup Mode): manual steps are printed at the end."
   fi
 }
 
@@ -730,6 +802,37 @@ firmware_entry() {
 }
 
 # ---------------------------------------------------------------------------
+# Repository on the target (~/nix of the user)
+# ---------------------------------------------------------------------------
+
+place_repo() {
+  step "Repository on the target"
+  local dest=$ROOT/home/$F_USER/nix
+  if ((DRY_RUN)); then
+    say "+ [dry-run] cp -a $SRC -> $dest; origin = $REPO_URL; git fetch --unshallow; chown -R $F_UID:$F_GID"
+    return 0
+  fi
+  if [[ -e $dest ]]; then
+    warn "$dest already exists: leaving it alone (the repository is not copied)."
+    return 0
+  fi
+  if ! cp -a "$SRC" "$dest"; then
+    warn "could not copy the repository to $dest: clone it manually after the first boot."
+    rm -rf "$dest"
+    return 0
+  fi
+  # The flake lives in the user's clone from now on: its origin is the public URL.
+  git -C "$dest" remote set-url origin "$REPO_URL" || warn "could not set origin to $REPO_URL"
+  if [[ $(git -C "$dest" rev-parse --is-shallow-repository 2>/dev/null) == true ]]; then
+    say "Fetching the full history (git fetch --unshallow) ..."
+    if ! GIT_TERMINAL_PROMPT=0 timeout 900 git -C "$dest" fetch --quiet --unshallow; then
+      warn "git fetch --unshallow failed; the clone stays shallow. Run 'git fetch --unshallow' in ~/nix when online."
+    fi
+  fi
+  chown -R "$F_UID:$F_GID" "$dest"
+}
+
+# ---------------------------------------------------------------------------
 # Final checklist
 # ---------------------------------------------------------------------------
 
@@ -779,8 +882,8 @@ main() {
   need_tools nix jq git sfdisk sgdisk blkid lsblk findmnt age tar sops ssh-to-age tailscale tailscaled \
     sbctl efibootmgr nixos-install mkfs.vfat mkfs.btrfs btrfs cryptsetup curl
   init_workdir
-  resolve_src
-  resolve_flake
+  step "Source"
+  prepare_source
   step "Selection"
   choose_host
   choose_variant
@@ -788,6 +891,7 @@ main() {
   load_facts "$CLONE"
   check_same_name_promoted
   require_uefi
+  secure_boot_gate
   choose_disk
   choose_mode
   confirm_plan
@@ -815,6 +919,7 @@ main() {
   secure_boot_enroll
   tailscale_save_state
   firmware_entry
+  place_repo
   final_checklist
 }
 
