@@ -626,9 +626,11 @@ ts_explain() { # ts_explain <kind>
       say "  the new system, so it joins the tailnet by itself after the reboot."
     fi
     say ""
-    say "Skipping Tailscale: the install still works, but the Attic cache on the NAS cannot be"
-    say "reached, so packages come from cache.nixos.org only and anything missing there is"
-    say "compiled (slower). The first boot then needs a manual join (clone-post-install.md)."
+    say "Skipping Tailscale: the install still works, and the Attic cache on the NAS is still used"
+    say "if this network can reach it anyway (a VPN, the LAN, or a host that is on the tailnet,"
+    say "for example a VM behind NAT). If not, packages come from cache.nixos.org only and anything"
+    say "missing there is compiled (slower). The first boot then needs a manual join"
+    say "(clone-post-install.md)."
     say ""
     say "Optional permanent fix, later: put a fresh key into tailscale_key in the sops file so"
     say "future installs need no prompt (Documentation/installation/clone-post-install.md,"
@@ -712,7 +714,7 @@ tailscale_join() {
   if ((TS_JOINED)); then
     say "Tailscale joined as $F_HOSTNAME."
   else
-    warn "tailscale not joined: Attic cache and tailnet name resolution will be unavailable, the install continues"
+    warn "tailscale not joined: tailnet-only names and addresses may not resolve from this live system (the Attic cache is probed separately before nixos-install), the install continues"
   fi
 }
 
@@ -868,6 +870,7 @@ secure_boot_enroll() {
 # nixos-install
 # ---------------------------------------------------------------------------
 
+# Independent of the Tailscale join: the NAS may be reachable via a VPN, the LAN or a NAT through a tailnet host.
 attic_probe() {
   [[ -n $F_ATTIC_SERVER && -n $F_ATTIC_CACHE ]] || return 1
   local url=$F_ATTIC_SERVER/$F_ATTIC_CACHE/nix-cache-info args=()
@@ -888,7 +891,7 @@ run_nixos_install() {
       --option extra-trusted-public-keys "$F_ATTIC_KEY")
     [[ -n $NETRC_FILE ]] && opts+=(--option netrc-file "$NETRC_FILE")
   else
-    warn "Attic cache $F_ATTIC_SERVER unreachable: building what the public caches lack (this can take long)."
+    warn "Attic cache $F_ATTIC_SERVER/$F_ATTIC_CACHE is not reachable from this live system (checked independently of the Tailscale join): using cache.nixos.org only, anything missing there is built (this can take long)."
   fi
   dp_run nixos-install "${opts[@]}"
 }

@@ -45,4 +45,5 @@
 - [cosmic-manager null-default keys](project_cosmic_manager_shortcut_shape.md) - evaluated shortcuts carry description=null, compositor input_* = null: test == null not hasAttr; normKey sorts modifiers
 - [glibc bare locale names](project_glibc_locale_bare_name_supported.md) - en_IN/hi_IN are `xx_YY/UTF-8` in SUPPORTED: extraLocaleSettings needs bare `en_IN`; all spellings resolve; Python getlocale quirk
 - [tmpfs root: /home not neededForBoot](project_tmpfs_root_home_not_needed_for_boot.md) - new users get root-owned home (initrd activation before @home); HM "no profile dir", Hyprland segv, Plasma empty
+- [OVMF SB "Not Found" = VM artifact](project_ovmf_sb_notfound_vm_artifact.md) - clone-installer VM: lanzaboote boots fine SB-enforcing; Not Found = NVMe PCI slot drift + empty pexpect logs
 - [CI NAR resume 416 is transient](project_ci_nar_resume_416_transient.md) - 416 after `retrying from offset`==FileSize -> onnx-src "no substituter" cascade; rerun, same sha was green

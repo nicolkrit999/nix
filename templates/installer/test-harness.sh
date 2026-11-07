@@ -668,6 +668,24 @@ tskey-auth-GOOD
   assert_eq "ts skip: no tailscale state copied" "$([[ -e $PERSIST ]] && echo yes || echo no)" no
   assert_contains "ts skip: says nothing to persist" "$out" "no node identity to persist"
   assert_eq "ts skip: no key file left in the work dir" "$(find "$T/wd" -type f 2>/dev/null | wc -l)" 0
+  assert_contains "ts skip + probe ok: attic substituter still used" "$calls" "extra-substituters http://nicol-nas.tail9b9ae8.ts.net:8081/krit-nix"
+  assert_contains "ts skip + probe ok: attic key still used" "$calls" "extra-trusted-public-keys krit-nix:KEY"
+  assert_contains "ts skip + probe ok: netrc still used" "$calls" "netrc-file"
+  assert_contains "ts skip + probe ok: probe ran" "$calls" "nix-cache-info"
+  assert_not_contains "ts skip + probe ok: no attic-unreachable warning" "$out" "is not reachable from this live system"
+
+  # skip path with the Attic probe failing: Attic is left out, the install goes on
+  FAKE_CURL_RC=22
+  export FAKE_CURL_RC
+  ts_case "invalid key: API key does not exist
+" "s
+"
+  unset FAKE_CURL_RC
+  assert_rc "ts skip + probe fail: install continues" "$rc" 0
+  assert_contains "ts skip + probe fail: attic warning" "$out" "is not reachable from this live system"
+  assert_contains "ts skip + probe fail: installed anyway" "$calls" "nixos-install"
+  assert_not_contains "ts skip + probe fail: no attic substituter" "$calls" "extra-substituters"
+  assert_not_contains "ts skip + probe fail: no attic netrc option" "$calls" "--option netrc-file"
 
   # quit path: aborts before any change
   ts_case "invalid key: API key does not exist
