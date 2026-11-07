@@ -498,17 +498,23 @@ decrypt_bundle() {
   mkdir -p "$KEYS_DIR"
   chmod 700 "$KEYS_DIR"
   if ((DRY_RUN)); then
-    say "+ [dry-run] age -d '$BUNDLE' | tar -x into tmpfs ($KEYS_DIR): host/ssh_host_ed25519_key(.pub), user/keys.txt"
+    say "+ [dry-run] age -d '$BUNDLE' once into tmpfs, then tar -x into ($KEYS_DIR): host/ssh_host_ed25519_key(.pub), user/keys.txt"
     return 0
   fi
-  say "Decrypting $BUNDLE (bundle passphrase)..."
+  say "Decrypting $BUNDLE (bundle passphrase, asked once)..."
+  # One decryption into the tmpfs work dir (0600, shredded on exit); list and extract read that file.
+  local plain=$WORK/bundle.tar
+  (umask 077 && : >"$plain")
+  (umask 077 && age -d -o "$plain" "$BUNDLE") || die "could not decrypt the bundle (wrong passphrase?)"
+  chmod 600 "$plain"
   local listing
-  listing=$(age -d "$BUNDLE" | tar -tf - 2>/dev/null) || die "could not decrypt/read the bundle (wrong passphrase?)"
+  listing=$(tar -tf "$plain" 2>/dev/null) || die "could not read the decrypted bundle (not a tar?)"
   # Only the four expected members; anything else is refused before extraction.
   local bad
   bad=$(printf '%s\n' "$listing" | grep -vxE 'host/ssh_host_ed25519_key|host/ssh_host_ed25519_key\.pub|user/keys\.txt|meta\.txt|host/|user/' || true)
   [[ -z $bad ]] || die "bundle contains unexpected members: $bad"
-  age -d "$BUNDLE" | tar -xf - -C "$KEYS_DIR" --no-same-owner --no-same-permissions
+  tar -xf "$plain" -C "$KEYS_DIR" --no-same-owner --no-same-permissions
+  shred -u "$plain" 2>/dev/null || rm -f "$plain"
   [[ -s $KEYS_DIR/host/ssh_host_ed25519_key && -s $KEYS_DIR/host/ssh_host_ed25519_key.pub && -s $KEYS_DIR/user/keys.txt ]] \
     || die "bundle is incomplete (need host key, host pub key, user age key)"
   chmod 600 "$KEYS_DIR/host/ssh_host_ed25519_key" "$KEYS_DIR/user/keys.txt"

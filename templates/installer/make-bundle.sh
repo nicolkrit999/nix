@@ -12,7 +12,8 @@
 #             --out-dir  .
 #
 # The keys are only ever staged on a tmpfs and are piped into age; the only file written to a
-# disk is the encrypted result. age asks for the passphrase twice.
+# disk is the encrypted result. age -p asks for a passphrase (type your own, confirmed by typing it twice,
+# or press Enter for a blank entry to make age generate one and print it once).
 set -euo pipefail
 
 die() {
@@ -103,7 +104,12 @@ printf 'format=1\nhost=%s\ncreated=%s\n' "$HOST" "$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 TMP_OUT=$OUT.partial
 rm -f "$TMP_OUT"
-echo "Encrypting: choose a bundle passphrase (asked twice). Store it in your password manager, NOT on the stick." >&2
+cat >&2 <<'MSG'
+Encrypting the bundle with a passphrase. Either:
+  - type your own passphrase (age asks for it twice to confirm), or
+  - press Enter on the first prompt to let age generate one; age prints it once, copy it then.
+Store the passphrase in your password manager, NOT on the stick.
+MSG
 tar -C "$STAGE" --owner=0 --group=0 --numeric-owner -cf - host user meta.txt | age -p -o "$TMP_OUT"
 
 # The result must be an age file, never a tar.

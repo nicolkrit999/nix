@@ -69,7 +69,7 @@ nix run .#make-bundle -- --host nixos-desktop --out-dir /path/to/ventoy-data-par
 ```
 
 - The host key is root-only; the script asks for `sudo` itself (running the whole command as root works too).
-- It asks twice for a **bundle passphrase**. Store that passphrase in your password manager, never on the stick.
+- It asks for a **bundle passphrase** in one of two ways: type your own (age asks twice to confirm), or press Enter on the first prompt and age generates a passphrase and prints it once on the terminal. Either way, store it in your password manager, never on the stick.
 - Keys are staged only on a tmpfs, shredded afterwards; the only file written to disk is `<host>-clone-bundle.tar.age`. It refuses to overwrite an existing file unless `--force` is given.
 - Check the contents without extracting to disk: `age -d <file> | tar -tf -` (lists `host/ssh_host_ed25519_key`, `host/ssh_host_ed25519_key.pub`, `user/keys.txt`, `meta.txt`).
 - Put one copy on the Ventoy stick (the installer scans every attached stick for `*.age`) and a backup copy in the NAS `installer-iso` folder. The bundle cannot be fetched from the NAS during the install, because joining the tailnet needs the host key that is inside the bundle.
@@ -106,7 +106,7 @@ The bundle is as sensitive as the original host: whoever has it and the passphra
 | 6 | `Type exactly 'no windows, wipe' to accept (anything else aborts):` | only for whole-disk mode on a disk that contains Windows, another OS or unrecognised data |
 | 7 | `Type the disk name (/dev/...) to start the installation:` | the exact disk path shown in the plan. Everything before this point changes nothing |
 | 8 | bundle: found automatically, else `Path to the bundle file (or 'q' to abort):` | when several bundles exist, the one named `<host>-clone-bundle.tar.age` is preferred, otherwise you choose |
-| 9 | the `age` passphrase prompt | the bundle passphrase |
+| 9 | the `age` passphrase prompt | the bundle passphrase (asked once; the bundle is decrypted a single time into the tmpfs work dir) |
 | 10 | `Paste a fresh Tailscale auth key (not stored; empty = skip tailscale):` | only if `tailscale up` fails (revoked or expired key); up to 3 tries; empty skips Tailscale (no Attic, install continues) |
 | 11 | `New LUKS passphrase for the disk:` and `Repeat LUKS passphrase:` | laptop only; this is the disk passphrase, entered at every boot until the TPM is re-enrolled |
 

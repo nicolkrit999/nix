@@ -145,11 +145,14 @@ case $1 in
 esac
 exit 0
 EOF
-  # age: -d FILE -> cat (bundle is a plain tar in the test); never prompts
+  # age: -d -o OUT FILE -> copy (bundle is a plain tar in the test); never prompts; counted in the calls log
   cat >"$bin/age" <<'EOF'
 #!/usr/bin/env bash
 printf 'age' >>"$FAKE_CALLS"; printf ' %q' "$@" >>"$FAKE_CALLS"; printf '\n' >>"$FAKE_CALLS"
-[[ $1 == -d ]] && { cat "$2"; exit 0; }
+if [[ $1 == -d && $2 == -o ]]; then
+  [[ ${FAKE_AGE_FAIL:-0} == 1 ]] && { echo "age: error: incorrect passphrase" >&2; exit 1; }
+  cat "$4" >"$3"; exit 0
+fi
 exit 1
 EOF
   cat >"$bin/sops" <<'EOF'
@@ -516,6 +519,9 @@ secretpw
   assert_contains "age dir chowned to 1000:100" "$calls" "chown 1000:100 $T/root/target/home/krit/.config/sops/age/keys.txt"
   assert_contains "host key chowned root" "$calls" "chown 0:0 $hk"
   assert_eq "bundle keys are not left in the work dir" "$(find "$T/wd" -type f 2>/dev/null | wc -l)" 0
+  assert_eq "bundle decrypted exactly once (one passphrase prompt)" "$(grep -c '^age ' <<<"$calls")" 1
+  assert_contains "decrypt goes to a file in the work dir" "$calls" "age -d -o $T/wd/installer."
+  assert_eq "no plaintext tar left in the work dir" "$(find "$T/wd" -name 'bundle.tar' 2>/dev/null | wc -l)" 0
   assert_contains "final checklist: secure boot on" "$out" "Turn Secure Boot ON"
   assert_contains "final checklist: TPM step (luks)" "$out" "TPM"
   assert_contains "final checklist docs pointer" "$out" "Documentation/installation/"
@@ -662,6 +668,13 @@ wrongname
 " --host nixos-desktop --variant 2 --disk "$WIN" --mode whole --bundle "$T/bundle.tar"
   assert_rc "phrase ok but wrong disk name typed: abort" $? 1
   assert_eq "image untouched" "$(img_sig "$WIN")" "$h"
+  rm -rf "$T/wd"
+  FAKE_AGE_FAIL=1 run_install "$WIN
+" --host nixos-desktop --variant 2 --disk "$WIN" --mode free --bundle "$T/bundle.tar"
+  assert_rc "wrong bundle passphrase: abort" $? 1
+  assert_contains "says decrypt failed" "$(cat "$T/out.txt")" "could not decrypt the bundle"
+  assert_eq "failed decrypt leaves no file in the work dir" "$(find "$T/wd" -type f 2>/dev/null | wc -l)" 0
+  assert_eq "image untouched after failed decrypt" "$(img_sig "$WIN")" "$h"
   export INSTALLER_FAKE_INUSE="$WIN"
   run_install "x
 " --host nixos-desktop --variant 2 --disk "$WIN" --mode free --bundle "$T/bundle.tar"
