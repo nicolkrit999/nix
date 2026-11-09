@@ -352,49 +352,86 @@ sync_checks() {
   if [[ -e $d/dst3/.claude/skills/stale.md ]]; then pass; else fail "$h: sync control" "stale file vanished without --delete"; fi
 }
 
-clone_checks() {
-  local d="$WORK/$h.clone.run" s f
+same_helper_shape_check() {
+  norm() { sed -e "s#school-$1-sync#@NAME@#g" -e "s#^dir=.*#dir=@DIR@#" -e "s#https://[^ ]*#@URL@#" -e "s#\(--branch\|origin\) [A-Za-z0-9._/-]*#\1 @BRANCH@#" "$2"; }
+  local a b ctl
+  a=$(norm dotfiles "$WORK/$h.dotfilessync.script"); b=$(norm nix "$WORK/$h.nixsync.script")
+  printf "  %-70s " "school-dotfiles-sync and school-nix-sync share one helper shape (script identical modulo name, dir, url, branch)"
+  if [[ -n $a && $a == "$b" ]]; then pass; else fail "$h: sync shape" "scripts differ beyond name/dir/url/branch"; fi
+  ctl=$(norm nix "$WORK/$h.nixsync.script" | sed 's/--depth 1/--depth 2/')
+  printf "  %-70s " "control: the shape comparison rejects a script with a changed clone depth"
+  if [[ $a != "$ctl" ]]; then pass; else fail "$h: sync shape control" "normalised diff ignores structural changes"; fi
+}
+
+repo_sync_checks() {
+  local u="$1" key="$2" fd="$3" want_url="$4" want_branch="$5"
+  local d="$WORK/$h.$u.run" s f verbs
   rm -rf "$d"
-  mkdir -p "$d/bin" "$d/home1/dotfiles" "$d/home2" "$d/home3"
-  echo keep >"$d/home1/dotfiles/marker"
-  drv_text "$(jq -r '.clone[0]' "$WORK/$h.drvs")" | unstore_bin >"$d/clone.sh"
+  mkdir -p "$d/bin" "$d/home1/$fd/.git" "$d/home2" "$d/home3/$fd" "$d/home4" "$d/home5/$fd/.git"
+  echo keep >"$d/home1/$fd/marker"
+  echo keep >"$d/home3/$fd/marker"
+  echo keep >"$d/home5/$fd/marker"
+  drv_text "$(jq -r ".$key[0]" "$WORK/$h.drvs")" | unstore_bin >"$d/sync.sh"
   cat >"$d/bin/git" <<'GIT'
 #!/bin/sh
 echo "$*" >>"$GIT_LOG"
 [ -z "${GIT_FAIL:-}" ] || exit 1
+[ "$1" = clone ] || exit 0
 for last; do :; done
 mkdir -p "$last/.git"
 GIT
   chmod +x "$d/bin/git"
-  f="$d/clone.sh"
-  syntax_check "$h" "school-dotfiles-clone (user unit script)" "$f"
-  printf "  %-70s " "school-dotfiles-clone: only git clone of a public https URL, no pull/fetch/reset/checkout/clean"
-  if grep -qE 'git clone' "$f" && file_lacks 'git (pull|fetch|reset|checkout|clean|stash|rm)' "$f" && grep -qE 'git clone --quiet https://[^ ]+ ' "$f" && file_lacks 'dotfiles-private|git@' "$f"; then pass
-  else fail "$h: clone commands" "script uses another git verb or a private/ssh URL"; fi
-  printf "  %-70s " "school-dotfiles-clone: exits early if ~/dotfiles exists; mv is guarded; rm only touches the temp dir"
-  if grep -qF '[ -e "$HOME/dotfiles" ] && exit 0' "$f" && grep -qF '[ -e "$HOME/dotfiles" ] || mv' "$f" && ! grep -E '(^|[^a-z])rm ' "$f" | grep -vqF '"$tmp"'; then pass
-  else fail "$h: clone guards" "guard or rm scope differs"; fi
+  f="$d/sync.sh"
+  syntax_check "$h" "$u (user unit script)" "$f"
+  cp "$f" "$WORK/$h.$key.script"
+  verbs=$(grep -E '^[[:space:]]*git ' "$f" | sed -E 's/^[[:space:]]*git( -C "\$dir")? ([a-z]+).*/\2/' | sort -u | tr '\n' ' ')
+  printf "  %-70s " "$u: shallow clone of the expected public https URL and branch, no ssh/private URL or credentials"
+  if grep -qF "git clone --quiet --depth 1 --branch $want_branch $want_url " "$f" && grep -qE 'git clone .* https://[A-Za-z0-9./_-]+ ' "$f" && file_lacks 'git@|ssh://|dotfiles-private|://[^ /]*@' "$f"; then pass
+  else fail "$h: $u url" "clone line is not a plain public https clone, or a private/ssh URL appears"; fi
+  printf "  %-70s " "$u: only git clone, fetch and reset; fetch and reset target origin and FETCH_HEAD"
+  if [[ $verbs == "clone fetch reset " ]] && grep -qF "git -C \"\$dir\" fetch --quiet --depth 1 origin $want_branch" "$f" && grep -qF 'reset --quiet --hard FETCH_HEAD' "$f"; then pass
+  else fail "$h: $u verbs" "git verbs: $verbs"; fi
+  printf "  %-70s " "$u: the clone branch equals the fetched branch and the expected one; target is \$HOME/<dir>"
+  if [[ $(grep -oE -- '--branch [A-Za-z0-9._/-]+' "$f") == "--branch $want_branch" && $(grep -oE -- '--branch [A-Za-z0-9._/-]+' "$f") == "--branch $(grep -oE 'origin [A-Za-z0-9._/-]+$' "$f" | cut -d' ' -f2)" ]] && grep -qF "dir=\"\$HOME/$fd\"" "$f"; then pass
+  else fail "$h: $u branch/target" "branch or target differs"; fi
+  printf "  %-70s " "$u: mv is guarded; rm only touches the temp dir; non-git dir exits 1"
+  if grep -qF '[ -e "$dir" ] || mv' "$f" && grep -qE 'rm -rf "\$tmp"' "$f" && ! grep -E '(^|[^a-z])rm ' "$f" | grep -vqF '"$tmp"' && grep -qE '^[[:space:]]*exit 1$' "$f"; then pass
+  else fail "$h: $u guards" "guard, rm scope or non-git exit differs"; fi
 
   : >"$d/log1"
   PATH="$d/bin:$PATH" HOME="$d/home1" GIT_LOG="$d/log1" bash "$f" >"$d/out1" 2>&1
   s=$?
-  printf "  %-70s " "school-dotfiles-clone: an existing ~/dotfiles is neither cloned over nor touched"
-  if [[ $s -eq 0 && ! -s $d/log1 && $(cat "$d/home1/dotfiles/marker") == keep && $(ls -A "$d/home1") == dotfiles ]]; then pass
-  else fail "$h: clone existing" "rc=$s; git log: $(cat "$d/log1"); home: $(ls -A "$d/home1" | tr '\n' ' ')"; fi
+  printf "  %-70s " "$u: an existing checkout is fetched and hard-reset, never cloned"
+  if [[ $s -eq 0 && $(grep -c ' fetch ' "$d/log1") -eq 1 && $(grep -c ' reset ' "$d/log1") -eq 1 && $(grep -c 'clone' "$d/log1") -eq 0 && $(cat "$d/home1/$fd/marker") == keep && $(ls -A "$d/home1") == "$fd" ]]; then pass
+  else fail "$h: $u existing" "rc=$s; git log: $(cat "$d/log1"); home: $(ls -A "$d/home1" | tr '\n' ' ')"; fi
 
   : >"$d/log2"
   PATH="$d/bin:$PATH" HOME="$d/home2" GIT_LOG="$d/log2" bash "$f" >"$d/out2" 2>&1
   s=$?
-  printf "  %-70s " "school-dotfiles-clone: a missing ~/dotfiles is cloned once, no temp dir left behind"
-  if [[ $s -eq 0 && -d $d/home2/dotfiles/.git && $(wc -l <"$d/log2") -eq 1 && $(ls -A "$d/home2") == dotfiles ]]; then pass
-  else fail "$h: clone missing" "rc=$s; git log: $(cat "$d/log2"); home: $(ls -A "$d/home2" | tr '\n' ' ')"; fi
+  printf "  %-70s " "$u: a missing ~/<dir> is cloned once, no temp dir left behind"
+  if [[ $s -eq 0 && -d $d/home2/$fd/.git && $(wc -l <"$d/log2") -eq 1 && $(grep -cE "^clone .* $d/home2/\.$u\.[^/]+/repo\$" "$d/log2") -eq 1 && $(ls -A "$d/home2") == "$fd" ]]; then pass
+  else fail "$h: $u missing" "rc=$s; git log: $(cat "$d/log2"); home: $(ls -A "$d/home2" | tr '\n' ' ')"; fi
 
   : >"$d/log3"
-  PATH="$d/bin:$PATH" HOME="$d/home3" GIT_LOG="$d/log3" GIT_FAIL=1 bash "$f" >"$d/out3" 2>&1
+  PATH="$d/bin:$PATH" HOME="$d/home3" GIT_LOG="$d/log3" bash "$f" >"$d/out3" 2>&1
   s=$?
-  printf "  %-70s " "control: a failing clone leaves no ~/dotfiles and no temp dir and exits non-zero"
-  if [[ $s -ne 0 && -z $(ls -A "$d/home3") && -s $d/log3 ]]; then pass
-  else fail "$h: clone failure" "rc=$s; home: $(ls -A "$d/home3" | tr '\n' ' ')"; fi
+  printf "  %-70s " "$u: a non-git ~/<dir> exits 1, is untouched and git is not called"
+  if [[ $s -eq 1 && ! -s $d/log3 && $(cat "$d/home3/$fd/marker") == keep && $(ls -A "$d/home3/$fd") == marker && $(ls -A "$d/home3") == "$fd" ]]; then pass
+  else fail "$h: $u non-git" "rc=$s; git log: $(cat "$d/log3"); home: $(ls -A "$d/home3" | tr '\n' ' ')"; fi
+
+  : >"$d/log4"
+  PATH="$d/bin:$PATH" HOME="$d/home4" GIT_LOG="$d/log4" GIT_FAIL=1 bash "$f" >"$d/out4" 2>&1
+  s=$?
+  printf "  %-70s " "control: a failing clone leaves no ~/<dir> and no temp dir and exits non-zero"
+  if [[ $s -ne 0 && -z $(ls -A "$d/home4") && -s $d/log4 ]]; then pass
+  else fail "$h: $u clone failure" "rc=$s; home: $(ls -A "$d/home4" | tr '\n' ' ')"; fi
+
+  : >"$d/log5"
+  PATH="$d/bin:$PATH" HOME="$d/home5" GIT_LOG="$d/log5" GIT_FAIL=1 bash "$f" >"$d/out5" 2>&1
+  s=$?
+  printf "  %-70s " "control: a failing fetch exits non-zero and keeps the existing checkout"
+  if [[ $s -ne 0 && -s $d/log5 && $(cat "$d/home5/$fd/marker") == keep && -d $d/home5/$fd/.git && $(ls -A "$d/home5") == "$fd" ]]; then pass
+  else fail "$h: $u fetch failure" "rc=$s; home: $(ls -A "$d/home5" | tr '\n' ' ')"; fi
 }
 
 run_stage() {
@@ -652,6 +689,9 @@ for h in "${HOSTS[@]}"; do
   deep_checks
   sync_checks
   clone_checks
+  repo_sync_checks school-dotfiles-sync dotfilessync dotfiles https://github.com/nicolkrit999/dotfiles main
+  repo_sync_checks school-nix-sync nixsync "$(jq -r '.flakeDir' "$WORK/$h.drvs")" https://github.com/nicolkrit999/nix main
+  same_helper_shape_check
 done
 
 log_control

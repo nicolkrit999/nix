@@ -235,7 +235,10 @@ let
 
   syncText = c.systemd.services.school-claude-sync.script;
   sync = c.systemd.services.school-claude-sync;
-  cloneUnit = hm.systemd.user.services.school-dotfiles-clone;
+  dotfilesUnit = hm.systemd.user.services.school-dotfiles-sync;
+  nixSyncUnit = hm.systemd.user.services.school-nix-sync;
+  syncTarget = "${home}/${c.myconfig.constants.flakeDir}";
+  devEnvStdlib = hm.programs.direnv.stdlib or "";
   countOf = sub: text: lib.length (lib.splitString sub text) - 1;
   setupText = scriptText "school-distrobox-setup";
   checkText = scriptText "school-distrobox-check";
@@ -301,7 +304,9 @@ let
     [ "school-claude-sync: --delete only on the managed skills, agents and commands dirs" (chk (countOf "--delete" syncText == 1 && lib.hasInfix "for d in skills agents commands; do" syncText && lib.hasInfix "--delete --chown=${userName}:${c.users.users.${userName}.group} \"$src/.claude/$d/\" \"$dst/.claude/$d/\"" syncText && !(lib.hasInfix "rm " syncText)) "unexpected --delete use or rm in the sync script") ]
     [ "school-claude-sync: source is the base user's dotfiles-private claude/school, destination the school home, exits 0 when the source is missing" (chk (lib.hasInfix "src=${baseHome}/dotfiles-private/claude/school\n" syncText && lib.hasInfix "dst=${home}\n" syncText && countOf "${baseHome}/" syncText == 1 && lib.hasInfix "if [ ! -d \"$src\" ]; then" syncText && lib.hasInfix "exit 0\nfi" syncText && lib.hasSuffix "exit 0\n" syncText) "paths or the missing-source exit differ") ]
     [ "school-claude-sync is a oneshot wanted by multi-user.target and absent from the base (control)" (chk (sync.serviceConfig.Type == "oneshot" && lib.elem "multi-user.target" sync.wantedBy && !(base.systemd.services ? school-claude-sync)) "service wiring differs or the base has it") ]
-    [ "school-dotfiles-clone: user oneshot guarded by a missing ~/dotfiles, wanted by default.target, absent from the base (control)" (chk (cloneUnit.Unit.ConditionPathExists == "!%h/dotfiles" && cloneUnit.Service.Type == "oneshot" && lib.elem "default.target" cloneUnit.Install.WantedBy && !(baseHm.systemd.user.services ? school-dotfiles-clone)) "unit wiring differs or the base has it") ]
+    [ "school-dotfiles-sync and school-nix-sync: user oneshot, Restart=on-failure, wanted by default.target, no start limit, no ConditionPathExists, absent from the base (control)" (chk (lib.all (n: let u = hm.systemd.user.services.${n}; in u.Service.Type == "oneshot" && u.Service.Restart == "on-failure" && u.Unit.StartLimitIntervalSec == 0 && lib.elem "default.target" u.Install.WantedBy && !(u.Unit ? ConditionPathExists) && !(baseHm.systemd.user.services ? ${n})) [ "school-dotfiles-sync" "school-nix-sync" ]) "unit wiring differs or the base has one of them") ]
+    [ "school-dotfiles-clone is gone: replaced by school-dotfiles-sync in the spec and absent from the base (control)" (chk (!(hm.systemd.user.services ? school-dotfiles-clone) && !(baseHm.systemd.user.services ? school-dotfiles-clone) && hm.systemd.user.services ? school-dotfiles-sync) "the old unit still exists or the new one is missing") ]
+    [ "school-nix-sync: the sync target ~/<flakeDir> in the school home is the directory the direnv use_dev_env/use_combined_env helpers resolve dev-environments from" (chk (lib.hasInfix "use flake ${syncTarget}/templates/krit/dev-environments/language-specific/$1" devEnvStdlib && lib.hasInfix "use flake ${syncTarget}/templates/krit/dev-environments/language-combined/$1" devEnvStdlib && syncTarget != "${home}/") "direnv stdlib: ${devEnvStdlib}") ]
     [ "ext-dotfiles-private is off in the spec and its claude/school links are gone from the school user's home" (chk (c.myconfig.services.external.dotfiles-private.enable == false && !(lib.any (lib.hasPrefix ".claude/") (lib.attrNames hm.home.file)) && !(anyNeedle "dotfiles-private" (map (n: toString hm.home.file.${n}.source) (lib.attrNames hm.home.file)))) "private dotfiles links remain in the school home") ]
 
     [ "setup: the RPM is resolved once on the host and handed to the container as ONE quoted argument; no compgen lookup left" (chk (hostArgSites == 1 && countOf "school-sqldeveloper-rpm-resolve" setupText == 1 && lib.hasInfix "[ -n \"$1\" ] || exit 1" setupText && lib.hasInfix "sudo bsdtar -xf \"$1\" -C /" setupText && !(lib.hasInfix "compgen" setupText) && !(lib.hasInfix "compgen" checkText)) "host argument sites ${toString hostArgSites}") ]
@@ -594,11 +599,12 @@ let
   deepDrvs = ctxDrvs "-school-distrobox-deep-check.drv" checkText;
   helperDrvs = ctxDrvs "-school-sqldeveloper-rpm-resolve.drv" setupText;
   stageDrvs = ctxDrvs "-school-stage-file.drv" setupText;
-  cloneDrvs = ctxDrvs "-school-dotfiles-clone.drv" (toString cloneUnit.Service.ExecStart);
+  dotfilesSyncDrvs = ctxDrvs "-school-dotfiles-sync.drv" (toString dotfilesUnit.Service.ExecStart);
+  nixSyncDrvs = ctxDrvs "-school-nix-sync.drv" (toString nixSyncUnit.Service.ExecStart);
 in
 {
   report = lib.concatMapStringsSep "\n" (e: "${lib.elemAt e 0}\t${lib.elemAt e 1}") checks + "\n";
   scripts = builtins.toJSON (lib.genAttrs scriptNames scriptText);
-  drvs = builtins.toJSON { startup = startupDrvs; deep = deepDrvs; helper = helperDrvs; stage = stageDrvs; clone = cloneDrvs; mounts = schoolMountNames; leftovers = leftoversText; inherit home; };
+  drvs = builtins.toJSON { startup = startupDrvs; deep = deepDrvs; helper = helperDrvs; stage = stageDrvs; dotfilessync = dotfilesSyncDrvs; nixsync = nixSyncDrvs; flakeDir = c.myconfig.constants.flakeDir; mounts = schoolMountNames; leftovers = leftoversText; inherit home; };
   sync = syncText;
 }

@@ -26,6 +26,48 @@ let
   isLaptop = c.hostname == "nixos-laptop";
   sddmAssets = ../../src/sddm;
   dotfilesUrl = "https://github.com/nicolkrit999/dotfiles";
+  dotfilesBranch = "main";
+  # Public clone of this repo at ~/<flakeDir> (same path as the base user): the direnv
+  # use_dev_env / use_combined_env helpers resolve the dev-environments from there.
+  nixRepoUrl = "https://github.com/nicolkrit999/nix";
+  nixRepoBranch = "main";
+
+  # Read-only mirror of a public repo at ~/<dir>, as a user oneshot. Every login: shallow clone (temp dir +
+  # guarded mv) when missing, otherwise fetch the branch and hard-reset to it, so the school home always has
+  # the latest commit. Local edits are discarded on purpose (the school key cannot push). Offline or failing:
+  # retried every 30 s, an existing checkout stays usable. A non-git path is left alone (exit 1).
+  mkRepoSync = { name, description, dir, url, branch }: {
+    Unit = {
+      Description = description;
+      StartLimitIntervalSec = 0;
+    };
+    Install.WantedBy = [ "default.target" ];
+    Service = {
+      Type = "oneshot";
+      Restart = "on-failure";
+      RestartSec = "30s";
+      Environment = [
+        "GIT_TERMINAL_PROMPT=0"
+        "GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt"
+      ];
+      ExecStart = pkgs.writeShellScript name ''
+        set -eu
+        dir="$HOME/${dir}"
+        if [ -d "$dir/.git" ]; then
+          ${pkgs.git}/bin/git -C "$dir" fetch --quiet --depth 1 origin ${branch}
+          ${pkgs.git}/bin/git -C "$dir" reset --quiet --hard FETCH_HEAD
+        elif [ -e "$dir" ]; then
+          echo "${name}: $dir exists but is not a git checkout, leaving it alone" >&2
+          exit 1
+        else
+          tmp=$(${pkgs.coreutils}/bin/mktemp -d "$HOME/.${name}.XXXXXX")
+          trap '${pkgs.coreutils}/bin/rm -rf "$tmp"' EXIT
+          ${pkgs.git}/bin/git clone --quiet --depth 1 --branch ${branch} ${url} "$tmp/repo"
+          [ -e "$dir" ] || ${pkgs.coreutils}/bin/mv "$tmp/repo" "$dir"
+        fi
+      '';
+    };
+  };
 
   # Absolute-path icons for the pinned PWAs: no icon theme ships a usable "education" or iCorsi icon.
   icorsiIcon = pkgs.fetchurl {
@@ -1022,32 +1064,20 @@ delib.module {
               StartLimitBurst = 5;
             };
 
-            # Clones the public dotfiles once, only when ~/dotfiles is missing; never pulls, resets or deletes anything.
-            # The clone lands in a temporary directory first so an interrupted run cannot leave a half-cloned ~/dotfiles.
-            school-dotfiles-clone = {
-              Unit = {
-                Description = "Clone the public dotfiles into ~/dotfiles if missing";
-                ConditionPathExists = "!%h/dotfiles";
-                StartLimitIntervalSec = 0;
-              };
-              Install.WantedBy = [ "default.target" ];
-              Service = {
-                Type = "oneshot";
-                Restart = "on-failure";
-                RestartSec = "30s";
-                Environment = [
-                  "GIT_TERMINAL_PROMPT=0"
-                  "GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt"
-                ];
-                ExecStart = pkgs.writeShellScript "school-dotfiles-clone" ''
-                  set -eu
-                  [ -e "$HOME/dotfiles" ] && exit 0
-                  tmp=$(${pkgs.coreutils}/bin/mktemp -d "$HOME/.dotfiles-clone.XXXXXX")
-                  trap '${pkgs.coreutils}/bin/rm -rf "$tmp"' EXIT
-                  ${pkgs.git}/bin/git clone --quiet ${dotfilesUrl} "$tmp/dotfiles"
-                  [ -e "$HOME/dotfiles" ] || ${pkgs.coreutils}/bin/mv "$tmp/dotfiles" "$HOME/dotfiles"
-                '';
-              };
+            # Public dotfiles at ~/dotfiles and this repo at ~/<flakeDir> (dev-environments for direnv use_dev_env), both kept at the latest commit.
+            school-dotfiles-sync = mkRepoSync {
+              name = "school-dotfiles-sync";
+              description = "Clone or update the public dotfiles into ~/dotfiles";
+              dir = "dotfiles";
+              url = dotfilesUrl;
+              branch = dotfilesBranch;
+            };
+            school-nix-sync = mkRepoSync {
+              name = "school-nix-sync";
+              description = "Clone or update the public nix repo into ~/${c.flakeDir}";
+              dir = c.flakeDir;
+              url = nixRepoUrl;
+              branch = nixRepoBranch;
             };
           };
 
