@@ -55,10 +55,7 @@ declare -A EXPECT_URL=(
 )
 DEFAULT_URL="https://flakehub.com/f/NixOS/nixpkgs/0.1"
 
-declare -A EXPECT_SYSTEMS=(
-  [language-specific/swift]="x86_64-linux aarch64-darwin"
-)
-systems_of() { echo "${EXPECT_SYSTEMS[$1]:-${SUPPORTED[*]}}"; }
+systems_of() { echo "${SUPPORTED[*]}"; }
 
 declare -A EXPECT_PKGS=(
   [language-combined/cs-cheat-sheets]="typst typstyle tinymist tectonic-wrapped pandoc-cli pandoc-crossref poppler-utils imagemagick qpdf graphviz gnuplot python3"
@@ -310,17 +307,6 @@ record "fenix input follows nixpkgs (lock)" "$detail"
 detail=""
 jq -e '.nodes."nix-tests".inputs.nixpkgs | type == "array"' "$TPL/language-specific/nix/flake.lock" > /dev/null 2>&1 || detail="nix-tests does not follow the template's nixpkgs in flake.lock"
 record "nix template: nix-tests input follows nixpkgs (lock)" "$detail"
-
-echo -e "\n${BOLD}swift${NC}"
-swiftc_broken() { nix eval --json --no-write-lock-file "$NIXPKGS#legacyPackages.$1.swiftPackages.swiftc.meta.broken" 2>/dev/null; }
-broken="$(swiftc_broken aarch64-linux)"
-detail=""
-[[ "$broken" == "true" ]] || detail="swiftc meta.broken on aarch64-linux is '$broken': re-add aarch64-linux to the swift template and drop its EXPECT_SYSTEMS entry"
-record "swift omits aarch64-linux only while swiftc is broken there" "$detail"
-control="$(swiftc_broken x86_64-linux)"
-detail=""
-[[ "$control" == "false" ]] || detail="probe control: swiftc meta.broken on x86_64-linux is '$control', expected false"
-record "swiftc broken probe reads false on x86_64-linux (control)" "$detail"
 
 echo ""
 if [[ $FAIL -eq 0 ]]; then

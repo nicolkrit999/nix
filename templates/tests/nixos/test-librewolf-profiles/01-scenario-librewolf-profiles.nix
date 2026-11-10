@@ -181,6 +181,7 @@ let
           "identity.fxaccounts.enabled" = false;
           "signon.rememberSignons" = false;
           "signon.autofillForms" = false;
+          "browser.contextual-password-manager.enabled" = false;
           "extensions.formautofill.addresses.enabled" = false;
           "extensions.formautofill.creditCards.enabled" = false;
           "browser.newtabpage.activity-stream.discoverystream.enabled" = false;

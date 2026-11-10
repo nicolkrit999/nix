@@ -49,7 +49,7 @@ Evaluated once on the fixture host, 46 results.
 ### Prefs of both profiles
 | Check | Expected |
 |-------|----------|
-| shared prefs | `autoDisableScopes` 0, FxA off, no password manager or autofill, new-tab junk off, category `strict`, `sidebar.main.tools` `history,bookmarks`, DoH mode 2 with the Quad9 URI, RFP false, startup homepage `https://duckduckgo.com/` |
+| shared prefs | `autoDisableScopes` 0, FxA off, no password manager (signon and contextual) or autofill, new-tab junk off, category `strict`, `sidebar.main.tools` `history,bookmarks`, DoH mode 2 with the Quad9 URI, RFP false, startup homepage `https://duckduckgo.com/` |
 
 ### Default profile
 | Check | Expected |

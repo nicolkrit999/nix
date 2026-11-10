@@ -148,7 +148,8 @@ def run_session(name, pkg, work, user_js, args, profile_dir, overrides):
     env = {k: v for k, v in os.environ.items() if k not in ("DISPLAY", "WAYLAND_DISPLAY", "DBUS_SESSION_BUS_ADDRESS")}
     env.update(HOME=home, XDG_CONFIG_HOME=home + "/.config", XDG_CACHE_HOME=home + "/.cache",
                XDG_DATA_HOME=home + "/.local/share", MOZ_HEADLESS="1", MOZ_DISABLE_CONTENT_SANDBOX="1",
-               MOZ_CRASHREPORTER_DISABLE="1", MOZ_DISABLE_AUTO_SAFE_MODE="1")
+               MOZ_CRASHREPORTER_DISABLE="1", MOZ_DISABLE_AUTO_SAFE_MODE="1",
+               MOZ_REMOTE_ALLOW_SYSTEM_ACCESS="1")
     env.pop("XDG_RUNTIME_DIR", None)
     log = open(os.path.join(work, name, "browser.log"), "w")
     proc = subprocess.Popen(

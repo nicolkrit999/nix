@@ -162,6 +162,7 @@ delib.module {
             "sidebar.verticalTabs" = true;
             "sidebar.revamp" = true;
             "sidebar.main.tools" = "history,bookmarks";
+            "browser.contextual-password-manager.enabled" = false;
 
             "media.videocontrols.picture-in-picture.enabled" = true;
             "browser.uiCustomization.state" = builtins.toJSON {

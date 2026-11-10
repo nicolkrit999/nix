@@ -119,6 +119,7 @@ let
       "sidebar.verticalTabs" = true;
       "sidebar.revamp" = true;
       "sidebar.main.tools" = "history,bookmarks";
+      "browser.contextual-password-manager.enabled" = false;
 
       "browser.urlbar.suggest.calculator" = true;
 
