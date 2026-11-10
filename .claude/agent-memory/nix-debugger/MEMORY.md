@@ -48,3 +48,4 @@
 - [OVMF SB "Not Found" = VM artifact](project_ovmf_sb_notfound_vm_artifact.md) - clone-installer VM: lanzaboote boots fine SB-enforcing; Not Found = NVMe PCI slot drift + empty pexpect logs
 - [CI NAR resume 416 is transient](project_ci_nar_resume_416_transient.md) - 416 after `retrying from offset`==FileSize -> onnx-src "no substituter" cascade; rerun, same sha was green
 - [Daemon worker OOM on many builds](project_daemon_worker_oom_many_builds.md) - nixpkgs bump = ~4000 local builds (crane crates follow nixpkgs); worker 25 GB vs 57 MB dry-run; progress persists, chunk
+- [cargoSetupHook forces system libs](project_cargo_setup_hook_system_libs.md) - AWS_LC_SYS_USE_SYSTEM etc. forced for all Rust pkgs; missing buildInput = build-script panic (evebox, tectonic)

@@ -135,17 +135,6 @@ delib.host {
 
     nix.settings.max-jobs = 6;
 
-    # Backport of the upstream fix for the intel_cvs driver claiming the GPIO
-    # shared with all 4 CS35L57 speaker amps, killing the whole SOF/SoundWire
-    # sound card (thesofproject/linux#5940). Remove once the tracked kernel
-    # includes this fix.
-    boot.kernelPatches = [
-      {
-        name = "intel-cvs-wake-irq";
-        patch = ./intel-cvs-wake-irq.patch;
-      }
-    ];
-
     # Keyboard backlight timeout is set in BIOS setup (no Auto option on this firmware), not here:
     # the dell_laptop als_enabled write is rejected with EINVAL.
 

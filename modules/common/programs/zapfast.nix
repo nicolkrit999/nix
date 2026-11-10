@@ -38,9 +38,15 @@ delib.module {
       inherit (myconfig.constants) theme;
       isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
 
+      zapfastBuilt =
+        let upstream = inputs.zapfast.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        in
+        if upstream.dontCargoUseSystemLibs or false then upstream
+        else upstream.overrideAttrs { dontCargoUseSystemLibs = true; };
+
       # rfd dlopens libdbus-1.so for the xdg-portal file picker; upstream's wrapper omits it (picker silently fails).
       zapfastPackage =
-        let upstream = inputs.zapfast.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        let upstream = zapfastBuilt;
         in pkgs.symlinkJoin {
           inherit (upstream) name pname version meta;
           paths = [ upstream ];
@@ -133,7 +139,7 @@ delib.module {
     {
       programs.zapfast = {
         enable = true;
-        package = lib.mkIf (!isDarwin) zapfastPackage;
+        package = if isDarwin then zapfastBuilt else zapfastPackage;
         settings = lib.mkMerge [
           (lib.mapAttrs (_: lib.mkDefault) generated)
           cfg.settings
