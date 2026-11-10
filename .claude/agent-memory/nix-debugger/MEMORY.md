@@ -47,3 +47,4 @@
 - [tmpfs root: /home not neededForBoot](project_tmpfs_root_home_not_needed_for_boot.md) - new users get root-owned home (initrd activation before @home); HM "no profile dir", Hyprland segv, Plasma empty
 - [OVMF SB "Not Found" = VM artifact](project_ovmf_sb_notfound_vm_artifact.md) - clone-installer VM: lanzaboote boots fine SB-enforcing; Not Found = NVMe PCI slot drift + empty pexpect logs
 - [CI NAR resume 416 is transient](project_ci_nar_resume_416_transient.md) - 416 after `retrying from offset`==FileSize -> onnx-src "no substituter" cascade; rerun, same sha was green
+- [Daemon worker OOM on many builds](project_daemon_worker_oom_many_builds.md) - nixpkgs bump = ~4000 local builds (crane crates follow nixpkgs); worker 25 GB vs 57 MB dry-run; progress persists, chunk

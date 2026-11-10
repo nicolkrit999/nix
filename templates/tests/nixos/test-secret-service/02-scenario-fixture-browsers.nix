@@ -9,16 +9,16 @@ let
   carries = p: lib.any (n: let v = p.drvAttrs.${n}; in builtins.isString v && has flag v) (builtins.attrNames p.drvAttrs);
   chk = cond: msg: if cond then "ok" else "FAIL: ${msg}";
 
-  infixes = [ "brave" "chromium" "google-chrome" "vscode" ];
+  infixes = [ "chromium" "google-chrome" "vscode" ];
   pkgsModule = { pkgs, ... }: {
     nixpkgs.config.allowUnfree = true;
-    environment.systemPackages = [ pkgs.brave pkgs.chromium pkgs.google-chrome pkgs.vscode ];
+    environment.systemPackages = [ pkgs.chromium pkgs.google-chrome pkgs.vscode ];
   };
 
   pkgHost = fx.mkNixos [ pkgsModule ];
   installed = pkgHost.config.environment.systemPackages;
   byInfix = s: lib.filter (p: has s (p.name or "")) installed;
-  unflagged = pkgHost.pkgs.brave.override { commandLineArgs = ""; };
+  unflagged = pkgHost.pkgs.google-chrome.override { commandLineArgs = ""; };
   unflaggedChromium = pkgHost.pkgs.chromium.override { commandLineArgs = ""; };
 
   chromiumOn = { myconfig.krit.programs.chromium.enable = true; };
@@ -44,7 +44,7 @@ in
       "fixture: every installed browser carries gnome-libsecret" =
         chk (lib.all (s: lib.all carries (byInfix s)) infixes) "without the flag: ${toString (map (p: p.name) (lib.filter (p: !(carries p)) installed))}";
       "control: a browser without the override does not carry the flag" =
-        chk (!(carries unflagged)) "carries matched an unflagged brave";
+        chk (!(carries unflagged)) "carries matched an unflagged google-chrome";
       "fixture: FHS-wrapped Electron apps are installed" =
         chk (lib.all (s: fhsByInfix s != [ ]) fhsApps) "missing apps: ${toString (lib.filter (s: fhsByInfix s == [ ]) fhsApps)}";
       "fixture: FHS-wrapped Electron apps carry gnome-libsecret" =

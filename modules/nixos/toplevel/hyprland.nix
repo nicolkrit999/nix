@@ -1,5 +1,4 @@
 { delib
-, lib
 , ...
 }:
 delib.module {
@@ -11,8 +10,5 @@ delib.module {
       enable = true;
       withUWSM = true;
     };
-
-    # file-capability wrapper would make the binary AT_SECURE (loader strips LD_*, breaks flatpak apps); reason inferred from b1b0fffa, not confirmed
-    security.wrappers.Hyprland.capabilities = lib.mkForce "";
   };
 }

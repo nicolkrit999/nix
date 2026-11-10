@@ -55,7 +55,6 @@ let
     "firefox" = "firefox.desktop";
     "librewolf" = "librewolf.desktop";
     "google-chrome" = "google-chrome.desktop";
-    "brave" = "brave-browser.desktop";
     "nvim" = "custom-nvim.desktop";
     "code" = "code.desktop";
     "kate" = "org.kde.kate.desktop";
@@ -459,8 +458,8 @@ delib.host {
             ++ workspaceRules (silent appWorkspaces.entertainment) [
               "^(org.jellyfin.JellyfinDesktop)$"
               "^(de\\.haeckerfelix\\.Shortwave)$"
-              "^(brave-browser)$"
-              "^(brave-.*\\..*)$"
+              "^(google-chrome)$"
+              "^(chrome-.*\\..*)$"
               "(?i)spotify"
               "^(sidra)$"
             ]

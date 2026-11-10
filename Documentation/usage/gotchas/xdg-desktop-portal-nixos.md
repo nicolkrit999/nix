@@ -3,7 +3,7 @@
 xdg-desktop-portal is fragile on NixOS when running a WM that isn't KDE or
 GNOME (Hyprland, mango, niri, cosmic, sway, wlroots, ...) combined with
 home-manager. Common symptom: Chromium-based apps (Helium, Chromium, Chrome,
-Brave, Electron apps) silently fail to open file pickers - the dialog just
+Electron apps) silently fail to open file pickers - the dialog just
 never appears. Print, Screenshot, and AppChooser portals can break the same
 way.
 

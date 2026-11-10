@@ -23,7 +23,7 @@ Off in school (forced `enable = false` where the option exists on the host): the
 
 On in school: the Claude stack (`claude-code-wrappers`, `claude-code-personal`, claude-desktop), `agent-reach`, the common and krit Discord modules (`concord` stays off), `vikunja-desktop`, `spotifyAdblock` and `sidra`.
 
-Packages: plain `brave`, `vscode` and `intellij-idea` (no `-school` wrappers), `proton-pass`, `drawio`, `pay-respects`, `tealdeer`, `teams-for-linux`. The iCorsi, SUPSI Portal and other school PWAs launch through `brave --app`; the iCorsi and SUPSI icons are real PNGs (touch icon, converted favicon).
+Packages: plain `google-chrome`, `vscode` and `intellij-idea` (no `-school` wrappers), `proton-pass`, `drawio`, `pay-respects`, `tealdeer`, `teams-for-linux`. The iCorsi, SUPSI Portal and other school PWAs launch through `google-chrome-stable --app`; the iCorsi and SUPSI icons are real PNGs (touch icon, converted favicon).
 
 ## Claude stack
 
@@ -74,7 +74,7 @@ Runtime checks verified live on 2026-11-02:
 
 ## Not migrated (redo by hand as krit-school)
 
-- Brave, VS Code and IDEA profiles (fresh profiles; sign in again).
+- Chrome, VS Code and IDEA profiles (fresh profiles; sign in again).
 - Podman containers: the school user has its own storage, re-run `school-distrobox-setup`.
 - rclone OneDrive config: seeded from sops, re-auth if SUPSI invalidated the token (see `school-onedrive-sops-seed.md`).
 - Claude login (`claude` in the school home).

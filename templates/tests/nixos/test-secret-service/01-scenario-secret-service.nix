@@ -63,7 +63,7 @@ let
       hmPortalNames = pkgNames hm.xdg.portal.extraPortals;
       allPkgs = c.environment.systemPackages ++ hm.home.packages;
       byInfix = subs: lib.filter (p: lib.any (s: has s (p.name or "")) subs) allPkgs;
-      browsers = byInfix [ "brave" "chromium" "google-chrome" "vscode" ];
+      browsers = byInfix [ "chromium" "google-chrome" "vscode" ];
       wrapped = byInfix [ "claude-desktop" "antigravity" ];
       portalCfgs = lib.attrNames c.xdg.portal.config;
       chk = cond: msg: if cond then "ok" else msg;
@@ -103,7 +103,7 @@ let
         (n: has "SSH_AUTH_SOCK" (txt hm.home.file.${n}))
         (lib.attrNames hm.home.file));
       sockAssigns = lib.length (lib.filter (l: has "export SSH_AUTH_SOCK=" l) (lib.splitString "\n" c.environment.extraInit));
-      electronPkgs = byInfix [ "ungoogled-chromium" "vscode" "claude-desktop" "antigravity" "chromium" "brave" "google-chrome" ];
+      electronPkgs = byInfix [ "ungoogled-chromium" "vscode" "claude-desktop" "antigravity" "chromium" "google-chrome" ];
       portalKeysMissing = lib.filter (w: !(c.xdg.portal.config ? ${lib.toLower w})) (lib.attrValues enabledWms);
       samplePam = "auth include login # x (order 1)\nsession substack common-session # y\nauth optional pam_foo.so";
       sampleIni = ini "[A]\nk=v=w\n\n[B]\nk2=1";
@@ -211,7 +211,7 @@ let
     let bad = lib.filterAttrs (_: v: v != "ok") (lib.mapAttrs (_: r: r.${n}) perCfg);
     in if bad == { } then "ok" else "FAIL: " + lib.concatStringsSep "; " (lib.mapAttrsToList (k: v: "${k}: ${v}") bad);
 
-  pinned = lib.genAttrs [ "brave" "chromium" "google-chrome" "vscode" "signal-desktop" "vesktop" "teams-for-linux" "proton-pass" "drawio" "xmind" "whatsapp-electron" "github-desktop" "insomnia" ] (n: carries sys.pkgs.${n});
+  pinned = lib.genAttrs [ "chromium" "google-chrome" "vscode" "signal-desktop" "vesktop" "teams-for-linux" "proton-pass" "drawio" "xmind" "whatsapp-electron" "github-desktop" "insomnia" ] (n: carries sys.pkgs.${n});
   pinVerdict =
     let bad = lib.filter (n: !pinned.${n}) (lib.attrNames pinned);
     in if bad == [ ] then "ok" else "FAIL: no --password-store flag: ${toString bad}";

@@ -390,7 +390,6 @@ delib.module {
       editorConfig = termEditors.${editor};
 
       browserDesktopMap = {
-        "brave" = "brave-browser.desktop";
         "chrome" = "google-chrome.desktop";
         "chromium" = "chromium-browser.desktop";
       };

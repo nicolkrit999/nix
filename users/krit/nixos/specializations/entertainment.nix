@@ -33,9 +33,9 @@ delib.module {
         Name=Entertainment Apps
         Exec=${pkgs.writeShellScript "entertainment-start" ''
           sleep 5
-          ${pkgs.brave}/bin/brave &
-          ${pkgs.brave}/bin/brave --app="https://www.youtube.com" &
-          ${pkgs.brave}/bin/brave --app="https://music.apple.com/ch/home?l=en" &
+          ${pkgs.google-chrome}/bin/google-chrome-stable &
+          ${pkgs.google-chrome}/bin/google-chrome-stable --app="https://www.youtube.com" &
+          ${pkgs.google-chrome}/bin/google-chrome-stable --app="https://music.apple.com/ch/home?l=en" &
           ${pkgs.jellyfin-desktop}/bin/jellyfin-desktop &
         ''}
       '';
@@ -48,7 +48,7 @@ delib.module {
 
           home.packages = with pkgs; [
             jellyfin-desktop
-            brave
+            google-chrome
           ];
         };
     };

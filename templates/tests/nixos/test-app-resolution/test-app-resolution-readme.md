@@ -68,7 +68,7 @@ Dolphin has no `programs.dolphin.enable` provider: home-packages installs `kdePa
 | firefox with no module | installed once from pkgs |
 | zen-beta via the zen module | one zen-beta (module-installed), `zen-beta.desktop`, no warning |
 | zen-beta via the zen module while pkgs also has a `zen-beta` (overlay) | still exactly one zen-beta: the `zen-beta -> zen-browser` alias defers to the module |
-| brave / chrome | `brave-browser.desktop` / `google-chrome.desktop` |
+| chromium / chrome | `chromium-browser.desktop` / `google-chrome.desktop` |
 | mailto | `thunderbird.desktop` when thunderbird is enabled (browser types untouched), the browser desktop otherwise |
 | control(browser) | a forced second firefox, and the vanilla twin lacking thunderbird mailto, are detected; with the overlay but without the module, zen-beta is installed once from pkgs (so the overlay package really is visible to the alias check) |
 
@@ -79,7 +79,7 @@ Dolphin has no `programs.dolphin.enable` provider: home-packages installs `kdePa
 | unknown browser and file manager | exactly two warnings (one per role) |
 | unknown editor | exactly one warning |
 | zen-beta without the module | nothing installed, exactly one warning (so the zen alias is what silences it) |
-| wrapper in `home.packages` (brave-school style) | wrapper installed once, no warning |
+| wrapper in `home.packages` (chrome-school style) | wrapper installed once, no warning |
 | control(warnings) | a second unknown role breaks the lone-warning check; the quiet check sees the unknown-name warning |
 
 ### File-family roles

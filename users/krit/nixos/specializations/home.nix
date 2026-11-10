@@ -110,8 +110,8 @@ delib.module {
               ++ workspaceRules (silent "10") [ "^(Actual)$" ]
               ++ workspaceRules (silent "6") [
                 "^(org.jellyfin.JellyfinDesktop)$"
-                "^(brave-browser)$"
-                "^(brave-.*\\..*)$"
+                "^(google-chrome)$"
+                "^(chrome-.*\\..*)$"
                 "(?i)spotify"
                 "^(sidra)$"
                 "^(de\\.haeckerfelix\\.Shortwave)$"

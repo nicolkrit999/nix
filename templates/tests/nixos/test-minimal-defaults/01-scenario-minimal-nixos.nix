@@ -82,7 +82,9 @@ in
     check "hypridle listeners (override)" (timeouts over "krit") [ 100 200 250 ];
 
   check-hyprland-wrapper-no-caps =
-    check "security.wrappers.Hyprland.capabilities" min.security.wrappers.Hyprland.capabilities "";
+    check "no security.wrappers.Hyprland (hyprland on)"
+      { hyprlandOn = min.programs.hyprland.enable; noWrapper = !(min.security.wrappers ? Hyprland); }
+      { hyprlandOn = true; noWrapper = true; };
   check-hyprland-disabled-no-nixos-hyprland =
     check "programs.hyprland.enable (hyprland off)" nowm.programs.hyprland.enable false;
   check-no-wm-no-idle-actions =

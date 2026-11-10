@@ -111,7 +111,7 @@ let
       "xwayland-phantom-rule-settings" = chk xwaylandRule "no window_rule with class ^$ + xwayland + no_focus";
       "xwayland-phantom-rule-rendered" = chk (has ''["class"] = "^$"'' lua && has ''["xwayland"] = true'' lua) "rendered lua lacks the XWayland phantom rule";
       "update-news-disabled" = chk (newsDisabled lua && hm.wayland.windowManager.hyprland.settings.config.ecosystem.no_update_news == true) "ecosystem.no_update_news is not true in the settings or in the rendered hyprland.lua (block: ${ecosystemBlock lua})";
-      "wrapper-capabilities-empty" = chk (c.security.wrappers.Hyprland.capabilities == "") "capabilities: ${c.security.wrappers.Hyprland.capabilities}";
+      "no-hyprland-wrapper" = chk (c.programs.hyprland.enable && !(c.security.wrappers ? Hyprland)) "security.wrappers.Hyprland exists or programs.hyprland is off";
       "jetkvm-teardown-gated-no-ls-pipe" = chk (jetkvm == null || ((jetkvm.Service.ExecCondition or "") != "" && !(has "| head" jetkvmText))) "hyprland-jetkvm-teardown lacks ExecCondition or still pipes ls into head";
       "scratch-binds-have-window-rules" =
         let

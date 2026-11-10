@@ -40,6 +40,6 @@ Each `check-*` attribute is `"ok"` or `"FAIL: ..."` (`nix eval --raw`); `build-c
 | hypridle with no WM (nowm) | HM `services.hypridle.enable == false` |
 | coffee with a WM (minimal) | `coffee-on`, `coffee-off`, `coffee-status` in HM `home.packages` |
 | coffee with no WM (nowm) | no coffee scripts, no `Suspend/HibernateKeyIgnoreInhibited` in logind settings |
-| `security.wrappers.Hyprland.capabilities` | `""` |
+| `security.wrappers.Hyprland` (minimal) | absent while `programs.hyprland.enable` is true (control: the module is really on) |
 | NixOS `programs.hyprland.enable` (nowm) | `false` |
 | `build-coexistence` | dry-run succeeds |

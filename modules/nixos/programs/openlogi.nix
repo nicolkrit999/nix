@@ -4,6 +4,7 @@ delib.module {
   options = delib.singleEnableOption false;
 
   nixos.always = {
+    disabledModules = [ "programs/openlogi.nix" ];
     imports = [ inputs.openlogi.nixosModules.default ];
   };
 

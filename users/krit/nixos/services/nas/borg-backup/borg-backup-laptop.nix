@@ -56,152 +56,151 @@ delib.module {
           ];
           exclude_patterns = [
             # Generic Electron cache junk (Discord, Obsidian, VSCode, Slack, Element, ...)
-            "*/Code Cache" # VSCode & Electron apps
-            "*/GPUCache" # Electron apps
-            "*/DawnWebGPUCache" # Electron apps
-            "*/Session Storage" # Electron apps
             "*/blob_storage" # Electron apps
+            "*/Code Cache" # VSCode & Electron apps
+            "*/DawnWebGPUCache" # Electron apps
+            "*/GPUCache" # Electron apps
             "*/PersistentCache" # Common in Spotify/Media apps
+            "*/Session Storage" # Electron apps
 
             # Noisy file extensions
-            "*.log" # Log files
-            "*.tmp" # Temporary files
             "*.bak" # Backup files
-            "*.sock" # Socket files
-            "*.vdi" # VirtualBox Disks
-            "*.qcow2" # QEMU Disks
             "*.iso" # Disk Images
+            "*.log" # Log files
+            "*.qcow2" # QEMU Disks
+            "*.sock" # Socket files
+            "*.tmp" # Temporary files
+            "*.vdi" # VirtualBox Disks
 
             # Heavy standard directories
-            "/home/*/Downloads"
-            "/home/*/.local/share/Trash"
-            "/home/*/.local/share/recent-documents"
             "/home/*/.cache" # The standard Linux cache folder
-            "/home/*/.local/state" # Often contains logs/history
-            "/home/*/.local/share/baloo" # KDE File Indexer (huge)
-            "/home/*/winboat/" # Wine Prefixes (re-create as needed)
-            "/home/*/.wine/" # Wine Prefixes (re-create as needed)
-            "/home/*/.local/share/Steam" # Steam games (re-downloadable)
-            "/home/*/.config/whatsapp-electron" # WhatsApp cache
             "/home/*/.config/discord/Cache" # Discord cache
             "/home/*/.config/discord/DawnGraphiteCache"
             "/home/*/.config/discord/discord_asset_cache"
             "/home/*/.config/discord/Service Worker"
+            "/home/*/.config/whatsapp-electron" # WhatsApp cache
+            "/home/*/.local/share/baloo" # KDE File Indexer (huge)
+            "/home/*/.local/share/recent-documents"
+            "/home/*/.local/share/Steam" # Steam games (re-downloadable)
+            "/home/*/.local/share/Trash"
+            "/home/*/.local/state" # Often contains logs/history
+            "/home/*/.wine/" # Wine Prefixes (re-create as needed)
+            "/home/*/Downloads"
+            "/home/*/winboat/" # Wine Prefixes (re-create as needed)
 
             # Browsers (heavy, synced via their cloud accounts)
-            "/home/*/.mozilla"
+            "/home/*/.antigravity"
+            "/home/*/.config/Antigravity"
+            "/home/*/.config/chromium"
+            "/home/*/.config/google-chrome"
+            "/home/*/.config/google-chrome-headless"
+            "/home/*/.config/net.imput.helium"
+            "/home/*/.config/zen" # declarative, relogin is fine
             "/home/*/.librewolf" # anchored: borg patterns are root-relative
             "/home/*/.librewolf-policyroot"
-            "/home/*/.config/google-chrome"
-            "/home/*/.config/chromium"
-            "/home/*/.config/BraveSoftware"
-            "/home/*/.config/zen" # declarative, relogin is fine
-            "/home/*/.config/net.imput.helium"
-            "/home/*/.config/google-chrome-headless"
-            "/home/*/.config/Antigravity"
-            "/home/*/.antigravity"
+            "/home/*/.mozilla"
 
             # Developer tools and languages
+            "*/.direnv" # any depth
+            "*/.venv" # any depth
+            "*/node_modules" # any depth (borg fnmatch: * crosses /)
             "/home/*/.cargo"
-            "/home/*/.npm"
-            "/home/*/.m2" # Java Maven
-            "/home/*/.gradle"
-            "/home/*/.dotnet"
-            "/home/*/.p2" # Eclipse
-            "/home/*/.vscode" # Extensions are re-downloadable
-            "/home/*/.config/Code"
-            "/home/*/.config/Cursor"
-            "/home/*/.var/app/*/cache" # Flatpak caches
-            "/home/*/.config/Code-School"
-            "/home/*/.npm-global"
-            "/home/*/.sqldeveloper"
-            "/home/*/.eclipse"
-            "/home/*/.headroom"
             "/home/*/.compose-cache"
-            "/home/*/.java"
+            "/home/*/.config/Code"
+            "/home/*/.config/Code-School"
+            "/home/*/.config/Cursor"
+            "/home/*/.distrobox-bin"
+            "/home/*/.dotnet"
+            "/home/*/.eclipse"
+            "/home/*/.gradle"
+            "/home/*/.headroom"
             "/home/*/.impeccable"
-            "/home/*/.local/share/uv"
+            "/home/*/.java"
             "/home/*/.local/share/actual-mcp/node_modules"
             "/home/*/.local/share/media-downloader/bin"
-            "/home/*/.local/share/school-env"
-            "/home/*/.distrobox-bin"
-            "/home/*/distrobox-bin"
             "/home/*/.local/share/nix-doom"
-            "*/node_modules" # any depth (borg fnmatch: * crosses /)
-            "*/.venv" # any depth
-            "*/.direnv" # any depth
+            "/home/*/.local/share/school-env"
+            "/home/*/.local/share/uv"
+            "/home/*/.m2" # Java Maven
+            "/home/*/.npm"
+            "/home/*/.npm-global"
+            "/home/*/.p2" # Eclipse
+            "/home/*/.sqldeveloper"
+            "/home/*/.var/app/*/cache" # Flatpak caches
+            "/home/*/.vscode" # Extensions are re-downloadable
+            "/home/*/distrobox-bin"
 
             # Specific app clutter
+            "/home/*/.config/libreoffice/*/cache"
+            "/home/*/.config/sops/*"
+            "/home/*/.config/yazi/*"
+            "/home/*/.local/share/containers" # Podman/Containers cache
+            "/home/*/.local/share/nvim"
             "/home/*/.local/share/TelegramDesktop/tdata/emoji"
             "/home/*/.local/share/TelegramDesktop/tdata/temp"
             "/home/*/.local/share/Zeal" # Offline doc sets (re-downloadable)
-            "/home/*/.local/share/nvim"
-            "/home/*/.config/libreoffice/*/cache"
-            "/home/*/.config/yazi/*"
-            "/home/*/.config/sops/*"
-            "/home/*/.local/share/containers" # Podman/Containers cache
 
             # Claude desktop
-            "/home/*/.config/Claude/vm_bundles"
             "/home/*/.config/Claude/Cache"
-            "/home/*/.config/Claude/Code Cache"
             "/home/*/.config/Claude/claude-code"
             "/home/*/.config/Claude/claude-code-vm"
+            "/home/*/.config/Claude/Code Cache"
             "/home/*/.config/Claude/Crashpad"
             "/home/*/.config/Claude/logs"
+            "/home/*/.config/Claude/vm_bundles"
 
             # Claude Code (projects, memory, settings, history stay)
+            "/home/*/.claude/debug"
+            "/home/*/.claude/image-cache"
+            "/home/*/.claude/paste-cache"
             "/home/*/.claude/plugins/cache"
             "/home/*/.claude/plugins/marketplaces"
             "/home/*/.claude/security/agent-sdk-venv"
-            "/home/*/.claude/telemetry"
-            "/home/*/.claude/paste-cache"
             "/home/*/.claude/shell-snapshots"
-            "/home/*/.claude/image-cache"
-            "/home/*/.claude/debug"
             "/home/*/.claude/statsig"
+            "/home/*/.claude/telemetry"
             "/home/*/.claude/todos"
             "/home/*/.local/share/claude/versions" # Claude Code binaries
 
             # Game launcher data (instances, accounts and cfg stay)
             "/home/*/.local/share/PrismLauncher/assets"
+            "/home/*/.local/share/PrismLauncher/cache"
             "/home/*/.local/share/PrismLauncher/libraries"
             "/home/*/.local/share/PrismLauncher/meta"
-            "/home/*/.local/share/PrismLauncher/cache"
 
             # Indexes and package stores
             "/home/*/.local/share/akonadi"
+            "/home/*/.local/share/flatpak" # Flatpak runtimes/apps (re-installable)
             "/home/*/.local/share/gvfs-metadata"
             "/home/*/.local/share/kactivitymanagerd"
-            "/home/*/.local/share/flatpak" # Flatpak runtimes/apps (re-installable)
             "/home/*/.var/app/com.rtosta.zapzap" # removed ZapZap leftover
 
             # Clipboard history and Telegram client
+            "/home/*/.config/tgt"
+            "/home/*/.local/share/tgt" # only holds the login session
             "/home/*/.local/share/vicinae/clipboard-data"
             "/home/*/.local/share/vicinae/clipboard.db*" # incl. -wal/-shm; shortcuts/snippets are kept
-            "/home/*/.local/share/tgt" # only holds the login session
-            "/home/*/.config/tgt"
 
             # Electron app web storage and caches
-            "/home/*/.config/discord/Local Storage"
-            "/home/*/.config/discord/IndexedDB"
             "/home/*/.config/discord/Crashpad"
+            "/home/*/.config/discord/IndexedDB"
+            "/home/*/.config/discord/Local Storage"
             "/home/*/.config/discord/logs"
             "/home/*/.config/Equicord/Equicord/Cache"
             "/home/*/.config/Equicord/Equicord/Code Cache"
             "/home/*/.config/Equicord/Equicord/GPUCache"
             "/home/*/.config/Sidra/Cache"
-            "/home/*/.config/Sidra/Local Storage"
             "/home/*/.config/Sidra/IndexedDB"
+            "/home/*/.config/Sidra/Local Storage"
             "/home/*/.config/Vikunja Desktop/Cache"
             "/home/*/.config/Vikunja Desktop/IndexedDB"
             "/home/*/.config/Vikunja Desktop/Local Storage"
 
             # Folders backed up elsewhere or deliberately kept out of the repo
-            "/home/*/github-repos" # Git repositories (includes the wallpapers repo)
+            "/home/*/.ssh" # Private keys stay out of the backup
             "/home/*/dotfiles" # Dotfiles repository
             "/home/*/dotfiles-private" # Private dotfiles repository
-            "/home/*/.ssh" # Private keys stay out of the backup
+            "/home/*/github-repos" # Git repositories (includes the wallpapers repo)
 
             # Other
             "/home/*/.cloudflared" # was misspelled .clouflared, never matched
@@ -211,11 +210,11 @@ delib.module {
 
             # /persist: snapshots and re-creatable system state stay out of the backup
             "/persist/.snapshots"
-            "/persist/var/lib/docker"
+            "/persist/var/cache/fscache"
             "/persist/var/lib/containers"
+            "/persist/var/lib/docker"
             "/persist/var/lib/flatpak"
             "/persist/var/tmp"
-            "/persist/var/cache/fscache"
 
             # lanzaboote signing keys: a root-only secret that never goes into the repo; the
             # encrypted offline copy is the backup (Documentation/usage/secure-boot/lanzaboote.md)

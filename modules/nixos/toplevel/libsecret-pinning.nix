@@ -37,7 +37,6 @@ let
     {
       passwordStoreWrap = wrap;
 
-      brave = prev.brave.override { commandLineArgs = flag; };
       chromium = prev.chromium.override { commandLineArgs = flag; };
       google-chrome = prev.google-chrome.override { commandLineArgs = flag; };
       vscode = prev.vscode.override { commandLineArgs = flag; };

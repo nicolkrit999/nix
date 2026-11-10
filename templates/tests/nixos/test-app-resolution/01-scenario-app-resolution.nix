@@ -109,8 +109,8 @@ let
   zenInPkgsOnly = twin bareSys [ (constants { browser = "zen-beta"; }) zenInPkgsMod ];
   zenNoModule = twin bareSys [ (constants { browser = "zen-beta"; }) ];
   schoolWrapper = twin bareSys [
-    (constants { browser = "brave-school"; })
-    { home-manager.users.krit.home.packages = [ (flake.inputs.nixpkgs.legacyPackages.x86_64-linux.writeShellScriptBin "brave-school" "true") ]; }
+    (constants { browser = "chrome-school"; })
+    { home-manager.users.krit.home.packages = [ (flake.inputs.nixpkgs.legacyPackages.x86_64-linux.writeShellScriptBin "chrome-school" "true") ]; }
   ];
   unknownBrowser = twin bareSys [ (constants { browser = "no-such-browser-xyz"; }) ];
   unknownTwo = twin bareSys [ (constants { browser = "no-such-browser-xyz"; fileManager = "no-such-fm-xyz"; }) ];
@@ -144,7 +144,7 @@ let
   unknownEditor = twin bareSys [ (constants { editor = "no-such-editor-xyz"; }) ];
 
   mailThunderbird = twin bareSys [{ myconfig.programs.thunderbird.enable = true; }];
-  braveBrowser = twin bareSys [ (constants { browser = "brave"; }) ];
+  chromiumBrowser = twin bareSys [ (constants { browser = "chromium"; }) ];
   chromeBrowser = twin bareSys [ (constants { browser = "chrome"; }) ];
   fooTerm = twin bareSys [{ myconfig.constants.terminal.name = mk "foot"; }];
   helixEd = twin bareSys [ (constants { editor = "helix"; }) ];
@@ -252,8 +252,8 @@ let
         failIf (onceProblems zenModuleInPkgs "zen-beta" ++ quietProblems zenModuleInPkgs);
       "control(browser): zen-beta in pkgs without the module is installed once from pkgs" =
         failIf (onceProblems zenInPkgsOnly "zen-beta" ++ quietProblems zenInPkgsOnly);
-      "browser brave / chrome: browserDesktopMap names" =
-        failIf (mimeProblems braveBrowser browserTypes "brave-browser.desktop" ++ mimeProblems chromeBrowser browserTypes "google-chrome.desktop");
+      "browser chromium / chrome: browserDesktopMap names" =
+        failIf (mimeProblems chromiumBrowser browserTypes "chromium-browser.desktop" ++ mimeProblems chromeBrowser browserTypes "google-chrome.desktop");
       "mailto follows thunderbird when enabled, the browser otherwise" =
         failIf (mimeProblems mailThunderbird [ "x-scheme-handler/mailto" ] "thunderbird.desktop"
           ++ mimeProblems mailThunderbird browserTypes "chromium-browser.desktop"
@@ -273,8 +273,8 @@ let
         failIf (loneWarnProblems unknownEditor "editor" "no-such-editor-xyz");
       "zen-beta with the module off: nothing installed, exactly one warning" =
         failIf (loneWarnProblems zenNoModule "browser" "zen-beta" ++ lib.optional (installs zenNoModule "zen-beta" != 0) "zen-beta installed");
-      "wrapper in home.packages (brave-school style): installed once, no warning" =
-        failIf (onceProblems schoolWrapper "brave-school" ++ quietProblems schoolWrapper);
+      "wrapper in home.packages (chrome-school style): installed once, no warning" =
+        failIf (onceProblems schoolWrapper "chrome-school" ++ quietProblems schoolWrapper);
       "control(warnings): a second unknown role is flagged by the lone-warning check" =
         detects "extra warning" (loneWarnProblems unknownTwo "browser" "no-such-browser-xyz");
       "control(warnings): the quiet check sees the unknown-name warning" =

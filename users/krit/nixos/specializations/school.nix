@@ -83,7 +83,7 @@ let
   supsiIcon = pkgs.runCommand "supsi-icon.png" { nativeBuildInputs = [ pkgs.imagemagick ]; } ''
     magick "${supsiFavicon}[5]" "png:$out"
   '';
-  schoolBrave = "${pkgs.brave}/bin/brave";
+  schoolChrome = "${pkgs.google-chrome}/bin/google-chrome-stable";
 
   # HiDPI scale for the distrobox-launched X11/Java tools below (tkgate,
   # SQL Developer): the scale of the first enabled, non-mirrored Hyprland
@@ -515,7 +515,7 @@ delib.module {
                 [
                   "[workspace 2 silent] ${term} --class nvim-school -d $HOME -e nvim"
                   "[workspace 3 silent] ${term} --class yazi -d $HOME -e yazi"
-                  "[workspace 7 silent] ${schoolBrave} --app=https://www.icorsi.ch/"
+                  "[workspace 7 silent] ${schoolChrome} --app=https://www.icorsi.ch/"
                   "[workspace 8 silent] ${term} -d $HOME"
                 ]
               else if isLaptop then
@@ -523,7 +523,7 @@ delib.module {
                   "[workspace 2 silent] ${term} --class nvim-school -d $HOME -e nvim"
                   "[workspace 3 silent] ${term} --class yazi -d $HOME -e yazi"
                   "[workspace 4 silent] ${term} -d $HOME"
-                  "[workspace 5 silent] ${schoolBrave} --app=https://www.icorsi.ch/"
+                  "[workspace 5 silent] ${schoolChrome} --app=https://www.icorsi.ch/"
                 ]
               else
                 [ ]
@@ -765,7 +765,7 @@ delib.module {
               obs-studio
 
               # Unwrapped: krit-school has its own home, no profile isolation needed
-              brave
+              google-chrome
               intellij-idea
               proton-pass
               vscode
@@ -1089,7 +1089,7 @@ delib.module {
                   inherit name icon;
                   genericName = "School Web App";
                   comment = "Launch ${name}";
-                  exec = "${schoolBrave} --app=\"${url}\"";
+                  exec = "${schoolChrome} --app=\"${url}\"";
                   settings = {
                     StartupWMClass = startupClass;
                   };
@@ -1099,27 +1099,27 @@ delib.module {
             in
             builtins.listToAttrs [
               (makeSchoolPwa "SUPSI Portal" "https://portalestudenti.supsi.ch/" "${supsiIcon}"
-                "brave-portalestudenti.supsi.ch__-Default"
+                "chrome-portalestudenti.supsi.ch__-Default"
               )
               (makeSchoolPwa "iCorsi" "https://www.icorsi.ch/" "${icorsiIcon}"
-                "brave-www.icorsi.ch__-Default"
+                "chrome-www.icorsi.ch__-Default"
               )
               (makeSchoolPwa "School OpenCloud" "https://opencloud.nicolkrit.ch/" "folder-cloud"
-                "brave-opencloud.nicolkrit.ch__-Default"
+                "chrome-opencloud.nicolkrit.ch__-Default"
               )
               (makeSchoolPwa "NotebookLM" "https://notebooklm.google.com/" "utilities-terminal"
-                "brave-notebooklm.google.com__-Default"
+                "chrome-notebooklm.google.com__-Default"
               )
-              (makeSchoolPwa "USI Rooms" "https://usirooms.xyz/" "office-calendar" "brave-usirooms.xyz__-Default")
+              (makeSchoolPwa "USI Rooms" "https://usirooms.xyz/" "office-calendar" "chrome-usirooms.xyz__-Default")
               (makeSchoolPwa "School OneDrive"
                 "https://supsi-my.sharepoint.com/personal/kritpio_nicol_supsi_ch/_layouts/15/onedrive.aspx?sw=bypass&bypassReason=abandoned&startedResponseCatch=true"
                 "folder-remote"
-                "brave-supsi--my.sharepoint.com__-Default"
+                "chrome-supsi--my.sharepoint.com__-Default"
               )
               (makeSchoolPwa "Lecture Calendar"
                 "https://calendar.google.com/calendar/u/0?cid=NDg0Zjg5MjUyOThlY2M0YzA2NWVkMTNhNGIwM2I4MjdlNTY0YWM5OWRlYjBjMDE0NThiNTZiOWY3MGY3ZmI5Y0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t"
                 "x-office-calendar"
-                "brave-calendar.google.com__-Default"
+                "chrome-calendar.google.com__-Default"
               )
             ];
         };

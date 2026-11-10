@@ -38,6 +38,16 @@ delib.module {
       inherit (myconfig.constants) theme;
       isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
 
+      # rfd dlopens libdbus-1.so for the xdg-portal file picker; upstream's wrapper omits it (picker silently fails).
+      zapfastPackage =
+        let upstream = inputs.zapfast.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        in pkgs.symlinkJoin {
+          inherit (upstream) name pname version meta;
+          paths = [ upstream ];
+          nativeBuildInputs = [ pkgs.makeWrapper ];
+          postBuild = "wrapProgram $out/bin/zapfast --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ pkgs.dbus ]}";
+        };
+
       stylixColors = lib.attrByPath [ "lib" "stylix" "colors" ] null config;
       c =
         if myconfig.stylix.enable && stylixColors != null && (builtins.tryEval stylixColors.base00).success
@@ -123,6 +133,7 @@ delib.module {
     {
       programs.zapfast = {
         enable = true;
+        package = lib.mkIf (!isDarwin) zapfastPackage;
         settings = lib.mkMerge [
           (lib.mapAttrs (_: lib.mkDefault) generated)
           cfg.settings

@@ -101,7 +101,6 @@ let
     "firefox" = "firefox.desktop";
     "librewolf" = "librewolf.desktop";
     "google-chrome" = "google-chrome.desktop";
-    "brave" = "brave-browser.desktop";
     "nvim" = "custom-nvim.desktop";
     "code" = "code.desktop";
     "kate" = "org.kde.kate.desktop";
@@ -510,8 +509,8 @@ delib.host {
             ++ workspaceRules (silent appWorkspaces.entertainment) [
               "^(org.jellyfin.JellyfinDesktop)$"
               "^(de\\.haeckerfelix\\.Shortwave)$"
-              "^(brave-browser)$"
-              "^(brave-.*\\..*)$"
+              "^(google-chrome)$"
+              "^(chrome-.*\\..*)$"
               "(?i)spotify"
               "^(sidra)$"
             ]
@@ -573,7 +572,7 @@ delib.host {
           windowRules = [
             "monitor:^DP-1$,app_id:^mango-startup-fileManager$"
             "monitor:^DP-1$,app_id:^mango-startup-editor$"
-            "monitor:^DP-2$,app_id:^brave-www\\.youtube\\.com__-Default$"
+            "monitor:^DP-2$,app_id:^chrome-www\\.youtube\\.com__-Default$"
             "monitor:^DP-2$,app_id:^mango-startup-terminal$"
             "monitor:^DP-2$,app_id:^zapfast$"
             "is_floating:1,width:0.8,height:0.8,tags:0,app_id:^scratch-term$"

@@ -15,7 +15,7 @@ let
   baseHome = base.users.users.${baseUser}.home;
   mountPoint = "${home}/opencloud";
   sysPkgs = flake.nixosConfigurations.${host}.pkgs;
-  braveBin = builtins.unsafeDiscardStringContext "${sysPkgs.brave}/bin/brave";
+  chromeBin = builtins.unsafeDiscardStringContext "${sysPkgs.google-chrome}/bin/google-chrome-stable";
 
   chk = cond: msg: if cond then "ok" else "FAIL: ${msg}";
   data = s: s.data or s;
@@ -64,11 +64,11 @@ let
 
   githubPin = (c.programs.ssh.knownHosts."github.com" or { publicKey = null; }).publicKey;
 
-  leftoverWrappers = lib.filter (n: lib.hasPrefix "brave-school" n || lib.hasPrefix "vscode-school" n || lib.hasPrefix "idea-school" n) (map (p: p.name or "") hm.home.packages);
-  plainApps = [ "brave" "vscode" "intellij-idea" "proton-pass" "drawio" "pay-respects" "tealdeer" "teams-for-linux" ];
+  leftoverWrappers = lib.filter (n: lib.hasPrefix "chrome-school" n || lib.hasPrefix "vscode-school" n || lib.hasPrefix "idea-school" n) (map (p: p.name or "") hm.home.packages);
+  plainApps = [ "google-chrome" "vscode" "intellij-idea" "proton-pass" "drawio" "pay-respects" "tealdeer" "teams-for-linux" ];
   installedAs = pkg: lib.any (p: (p.name or "") == pkg.name) hm.home.packages;
   missingPlain = lib.filter (n: !(installedAs sysPkgs.${n})) plainApps;
-  pwaBrave = e: lib.hasPrefix "${braveBin} --app=" (e.exec or "");
+  pwaChrome = e: lib.hasPrefix "${chromeBin} --app=" (e.exec or "");
   pwaIconNames = [ "school-pwa-icorsi" "school-pwa-supsi-portal" ];
   iconIsStorePng = i: lib.hasPrefix "/nix/store/" i && lib.hasSuffix ".png" i;
   iconDrvs = i: lib.length (lib.attrNames (lib.filterAttrs (_: v: v ? path || v ? outputs) (builtins.getContext i)));
@@ -553,15 +553,15 @@ let
     [ "OneDrive (rcloneMount) unit restarts on failure" (chk (onedrive.Service.Restart == "on-failure") "Restart is ${onedrive.Service.Restart}") ]
 
     [ "tkgate and sqldeveloper grant X access only to the local user (si:localuser:), never bare xhost +" (chk (lib.all (n: let t = scriptText n; in lib.hasInfix "xhostEntry=\"si:localuser:" t && lib.hasInfix "\"+$xhostEntry\"" t && lib.hasInfix "\"-$xhostEntry\"" t && !(lib.hasInfix "xhost +" t)) [ "tkgate-school" "sqldeveloper-school" ]) "xhost line is not the narrow localuser form with revoke") ]
-    [ "no brave-school, vscode-school or idea-school wrapper, desktop item or desktop entry is left in the school home" (chk (leftoverWrappers == [ ] && !(lib.any (n: lib.hasPrefix "brave-school" n || lib.hasPrefix "vscode-school" n || lib.hasPrefix "idea-school" n) (lib.attrNames entries))) "leftover wrappers: ${toString leftoverWrappers}; entries ${toString (lib.attrNames entries)}") ]
+    [ "no chrome-school, vscode-school or idea-school wrapper, desktop item or desktop entry is left in the school home" (chk (leftoverWrappers == [ ] && !(lib.any (n: lib.hasPrefix "chrome-school" n || lib.hasPrefix "vscode-school" n || lib.hasPrefix "idea-school" n) (lib.attrNames entries))) "leftover wrappers: ${toString leftoverWrappers}; entries ${toString (lib.attrNames entries)}") ]
     [ "control: the wrapper-name probe finds a real school launcher script (tkgate-school), so the absence check is not vacuous" (chk (lib.any (p: lib.hasPrefix "tkgate-school" (p.name or "")) hm.home.packages) "no tkgate-school package visible to the probe") ]
-    [ "plain apps are installed in the school home (no wrappers): brave, vscode, intellij-idea, proton-pass, drawio, pay-respects, tealdeer, teams-for-linux" (chk (missingPlain == [ ]) "not in the school home.packages: ${toString missingPlain}") ]
-    [ "control: the installed-app probe rejects a package that the school home does not install (hello)" (chk (!(installedAs sysPkgs.hello) && installedAs sysPkgs.brave) "installedAs accepts hello or rejects brave") ]
-    [ "every PWA launches the plain brave package via --app=<url> (no brave-school)" (chk (pwaBad pwaBrave == [ ]) "PWA exec not '<brave>/bin/brave --app=...': ${toString (pwaBad pwaBrave)}") ]
-    [ "control: the PWA brave predicate rejects a brave-school exec" (chk (pwaBrave entries.${lib.head pwaNames} && !(pwaBrave (entries.${lib.head pwaNames} // { exec = "brave-school --app=\"https://x\""; }))) "PWA brave predicate accepts brave-school") ]
+    [ "plain apps are installed in the school home (no wrappers): google-chrome, vscode, intellij-idea, proton-pass, drawio, pay-respects, tealdeer, teams-for-linux" (chk (missingPlain == [ ]) "not in the school home.packages: ${toString missingPlain}") ]
+    [ "control: the installed-app probe rejects a package that the school home does not install (hello)" (chk (!(installedAs sysPkgs.hello) && installedAs sysPkgs.google-chrome) "installedAs accepts hello or rejects google-chrome") ]
+    [ "every PWA launches the plain google-chrome package via --app=<url> (no chrome-school)" (chk (pwaBad pwaChrome == [ ]) "PWA exec not '<google-chrome>/bin/google-chrome-stable --app=...': ${toString (pwaBad pwaChrome)}") ]
+    [ "control: the PWA chrome predicate rejects a chrome-school exec" (chk (pwaChrome entries.${lib.head pwaNames} && !(pwaChrome (entries.${lib.head pwaNames} // { exec = "chrome-school --app=\"https://x\""; }))) "PWA chrome predicate accepts chrome-school") ]
     [ "iCorsi and SUPSI Portal PWAs use store-path PNG icons (not the missing education theme icon); the others keep theme icon names" (chk (lib.all (n: iconIsStorePng entries.${n}.icon && iconDrvs entries.${n}.icon >= 1) pwaIconNames && lib.all (n: !(lib.hasPrefix "/" entries.${n}.icon)) (lib.filter (n: !(lib.elem n pwaIconNames)) pwaNames)) "icons: ${toString (map (n: "${n}=${entries.${n}.icon}") pwaNames)}") ]
     [ "control: the icon predicate rejects the old theme name education and a path outside the store" (chk (!(iconIsStorePng "education") && !(iconIsStorePng "/usr/share/icons/x.png") && iconIsStorePng entries.school-pwa-icorsi.icon) "icon predicate accepts a theme name or a non-store path") ]
-    [ "hyprland autostart opens iCorsi with the plain brave package, not brave-school" (chk (anyHas "${braveBin} --app=https://www.icorsi.ch/" hyprExec && !(anyHas "brave-school" hyprExec)) "autostart: ${toString hyprExec}") ]
+    [ "hyprland autostart opens iCorsi with the plain google-chrome package, not chrome-school" (chk (anyHas "${chromeBin} --app=https://www.icorsi.ch/" hyprExec && !(anyHas "chrome-school" hyprExec)) "autostart: ${toString hyprExec}") ]
     [ "school year directories live in Documents/year (1st..3rd, semesters 1-6), not in the home root; projects is not created by createSchoolDirs" (chk (lib.all (d: lib.hasInfix "\"$HOME/Documents/year/${d}\"" createDirs) yearDirs && !(lib.hasInfix "\"$HOME/year" createDirs) && !(lib.hasInfix "projects" (lib.toLower createDirs)) && !(lib.hasInfix "year/2st" createDirs) && !(lib.hasInfix "year/3st" createDirs)) "createSchoolDirs: ${createDirs}") ]
     [ "xdg.userDirs: Projects, Templates and Public are kept, Music is dropped (no XDG_MUSIC_DIR line and no ~/Music mkdir), Projects is created by the xdg activation" (chk (lib.hasInfix "XDG_PROJECTS_DIR=\"${home}/Projects\"" userDirsFile && lib.hasInfix "XDG_TEMPLATES_DIR=" userDirsFile && lib.hasInfix "XDG_PUBLICSHARE_DIR=" userDirsFile && !(lib.hasInfix "XDG_MUSIC_DIR" userDirsFile) && lib.hasInfix "\"${home}/Projects\"" xdgMkdirs && !(lib.hasInfix "Music" xdgMkdirs)) "user-dirs.dirs: ${userDirsFile}; mkdirs: ${xdgMkdirs}") ]
     [ "control: the base config keeps Music in user-dirs.dirs and its xdg mkdirs (the Music check bites)" (chk (lib.hasInfix "XDG_MUSIC_DIR" baseUserDirsFile && lib.hasInfix "Music" baseXdgMkdirs) "base already drops Music") ]

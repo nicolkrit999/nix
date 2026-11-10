@@ -80,7 +80,7 @@ run_eval_check "check-coffee-absent-without-wm" "no WM enabled => no coffee scri
 
 echo ""
 echo -e "${BOLD}hyprland module effects${NC}"
-run_eval_check "check-hyprland-wrapper-no-caps" "Hyprland wrapper has no capabilities"
+run_eval_check "check-hyprland-wrapper-no-caps" "no Hyprland setcap wrapper while Hyprland is on"
 run_eval_check "check-hyprland-disabled-no-nixos-hyprland" "disabled module => NixOS programs.hyprland off"
 
 echo ""

@@ -1,6 +1,6 @@
 ---
 name: creating-nix-modules
-description: Use this skill when adding or modifying nix configuration that introduces new functionality: denix modules, enabling programs/services, host constants, theming, home-manager config. Packages default to the unstable package set (pkgs.X); the stable set (pkgsStable) is used only when the prompt explicitly says so. Trigger phrases include 'add a module', 'enable X on host Y', 'install/integrate package Z', 'configure <service> in nix', 'add this to my nixos config', 'set up <program> via home-manager'. Drives research, author, lint and verify across nix-package-researcher, nix-config-architect, nix-syntax-linter and nix-checker. Does NOT cover diagnosing an existing build failure (use debugging-nix-failures) or pure lookups with no authoring (dispatch nix-package-researcher directly).
+description: Use this skill when adding or modifying nix configuration that introduces new functionality: denix modules, enabling programs/services, host constants, theming, home-manager config. Packages default to the unstable package set (pkgs.X); the stable set (pkgsStable) is used only when the prompt explicitly says so. Trigger phrases include 'add a module', 'enable X on host Y', 'install/integrate package Z', 'configure <service> in nix', 'add this to my nixos config', 'set up <program> via home-manager'. Drives research, author, borg-exclude, lint and verify across nix-package-researcher, nix-config-architect, nix-syntax-linter and nix-checker. Does NOT cover diagnosing an existing build failure (use debugging-nix-failures) or pure lookups with no authoring (dispatch nix-package-researcher directly).
 ---
 
 # Creating Nix Modules
@@ -59,24 +59,65 @@ must never bump `stateVersion`.
   only applies when the user hasn't specified otherwise in their prompt -
   an explicit user instruction on placement always wins.
 
-**3. LINT - dispatch `nix-syntax-linter`** to parse/format-check the new code,
+**3. BORG EXCLUDES - dispatch `nix-package-researcher`, then
+`nix-config-architect`.** Run this once authoring is done and the module's
+final shape is known, but before lint/verify so those stages cover the borg
+edits too. Skip it only when the change adds no program/service that writes
+to `$HOME` (pure option/theming tweaks).
+- **Research (`nix-package-researcher`, lookup only, no edits):** for every
+  program/service the change installs or enables, find which directories and
+  files it creates in the home folder (upstream docs, XDG usage, the package
+  source or wrapper, and `~/.config`, `~/.cache`, `~/.local/share`, dotdirs
+  in `~`). Return only paths that are **large and regenerable** - caches,
+  downloaded models/runtimes/engines, browser-style profiles, Electron
+  `Cache`/`Code Cache`/`GPUCache`/`IndexedDB`/`Local Storage`, VM images,
+  package stores, logs - because those only cost NAS space and time. Never
+  propose config, credentials, history or user data: those stay backed up.
+  Also say which returned paths an existing broader pattern already covers
+  (e.g. `/home/*/.cache`, `/home/*/.local/state`; on Darwin `${home}/Library`
+  and `${home}/.local` are excluded wholesale) so no redundant line is added.
+- **Apply (`nix-config-architect`):** add each surviving path to the exclude
+  lists, by where the module was placed in step 2:
+  - `modules/common/` (darwin-compatible): **all three** files -
+    `users/krit/nixos/services/nas/borg-backup/borg-backup-desktop.nix`,
+    `.../borg-backup-laptop.nix` and
+    `users/krit/darwin/services/nas/borg-backup/borg-backup-Krits-MacBook-Pro.nix`.
+  - `modules/nixos/` (NixOS-only): **desktop and laptop** files, not Darwin.
+  - `modules/darwin/` (Darwin-only): the Darwin file only.
+  - **Host-independent:** apply it to every file the placement implies, even
+    when the module is enabled on only some hosts. If another host enables the
+    module later, its exclude must already be in place and nobody should have
+    to remember it. Never limit the edit to the host that enables the module.
+  - Path style: NixOS lists use `"/home/*/<path>"`; the Darwin list uses
+    `"${home}/<path>"` and only needs entries outside `~/Library` and `~/.local`.
+  - **Alphabetical order:** each list is grouped by commented category
+    (secrets, browsers, developer tools, ...). Put the new entry in the
+    fitting group and keep that group sorted alphabetically (case-insensitive,
+    byte order of the quoted string); a trailing `# why` comment is optional
+    and short. If a group is found unsorted, sort it in the same edit - borg
+    excludes are order-independent, so this is safe. Keep the desktop and
+    laptop lists identical (they differ only in schedule/unit settings).
+- The affected test (`test-borg-backup-config`) is picked up by step 5 because
+  the borg files changed.
+
+**4. LINT - dispatch `nix-syntax-linter`** to parse/format-check the new code,
 check for denix anti-patterns, and flag any comment that violates this repo's
 Comment Discipline (non-terse, narrates a diagnosis/fix, or restates trivial
 code). It is read-only - findings go back to `nix-config-architect` to fix,
 not applied by the linter itself.
 
-**4. VERIFY - dispatch `nix-checker`** to run flake check, the relevant
+**5. VERIFY - dispatch `nix-checker`** to run flake check, the relevant
 per-host dry-builds, and the tests suite.
 - On failure, switch to the `debugging-nix-failures` loop: dispatch
   `nix-debugger` with the verbatim error, then re-check via `nix-checker`.
 
-**5. Loop 3 -> 4** until the linter reports no findings AND nix-checker is
+**6. Loop 4 -> 5** until the linter reports no findings AND nix-checker is
 fully green.
 
 **Safeguard:** after ~4 rounds without convergence, stop and report the
 remaining issues to the user instead of continuing indefinitely.
 
-**6. DOCUMENT - dispatch `nix-config-architect`** to add an entry for each
+**7. DOCUMENT - dispatch `nix-config-architect`** to add an entry for each
 new module to `Documentation/usage/denix/possibilities.md`, under the
 matching section (Common Modules, NixOS-Only Modules, or Darwin-Only
 Modules - and the correct subsection, e.g. Programs/Services/System) based on
@@ -92,14 +133,16 @@ documentation.
 - **Exclusion - anything under `users/`:** modules created anywhere inside
   the repo-root `users/` directory are opinionated, personal config - not
   general-purpose modules useful to everybody - and must NOT get a
-  `possibilities.md` entry. Skip step 6 entirely for any module whose path
+  `possibilities.md` entry. Skip step 7 entirely for any module whose path
   starts with `users/`.
 
 ## Exit condition
 
-Linter clean + `nix-checker` green + `possibilities.md` updated for any new
-modules. Report to the user exactly what was created or modified, on which
-host(s), and confirm the documentation entry was added.
+Linter clean + `nix-checker` green + borg excludes applied to every file the
+placement implies (or an explicit "nothing worth excluding") + `possibilities.md`
+updated for any new modules. Report to the user exactly what was created or
+modified, on which host(s), which borg exclude paths were added to which files,
+and confirm the documentation entry was added.
 
 ## Out of scope
 
