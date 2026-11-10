@@ -46,6 +46,8 @@ delib.module {
         { sopsSecret = "claude_mcp_vikunja_token"; }
         { sopsSecret = "claude_mcp_beszel_email"; }
         { sopsSecret = "claude_mcp_beszel_password"; }
+        { sopsSecret = "claude_mcp_uptime_kuma_username"; }
+        { sopsSecret = "claude_mcp_uptime_kuma_password"; }
       ];
       description = "Names of the MCP secrets; the sops declarations are generated from this list in sops-secrets.nix, MCP launchers read the secret files themselves.";
     };
