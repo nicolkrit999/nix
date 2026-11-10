@@ -28,12 +28,6 @@ delib.module {
         };
       };
 
-      # Apple music
-      appleMusicIcon = pkgs.fetchurl {
-        url = "https://upload.wikimedia.org/wikipedia/commons/5/5f/Apple_Music_icon.svg";
-        sha256 = "0lw10k2x25gnhjykllf0crkwff43a69i9pmsglmhnyhbsmx3qz71";
-      };
-
       # YouTube
       youtubeIcon = pkgs.fetchurl {
         url = "https://upload.wikimedia.org/wikipedia/commons/f/fd/YouTube_full-color_icon_%282024%29.svg";
@@ -64,9 +58,6 @@ delib.module {
           youtubeMusicIcon
         }" "chrome-music.youtube.com__-Default")
         (makeChromePwa "Twitch" "https://www.twitch.tv/" "${twitchIcon}" "chrome-www.twitch.tv__-Default")
-        (makeChromePwa "Apple Music" "https://music.apple.com/ch/home?l=en" "${
-          appleMusicIcon
-        }" "chrome-music.apple.com__ch_home-Default")
 
         # Self-Hosted / Home Lab
         (makeChromePwa "Dashboard-Glance" "https://glance.nicolkrit.ch/" "utilities-system-monitor"
@@ -83,10 +74,6 @@ delib.module {
         )
         (makeChromePwa "Proton Drive" "https://drive.proton.me/u/0/" "folder-remote"
           "chrome-drive.proton.me__u_0_-Default"
-        )
-        (makeChromePwa "GitHub" "https://github.com/" "vcs-git" "chrome-github.com__-Default")
-        (makeChromePwa "Reddit" "https://www.reddit.com/" "internet-news-reader"
-          "chrome-www.reddit.com__-Default"
         )
       ];
     };
