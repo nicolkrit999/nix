@@ -31,6 +31,24 @@ delib.module {
         }) [ ];
     };
 
+  # simple-scan defaults: the highest quality the HP offers (1200 dpi flatbed, JPEG quality 100), text
+  # documents on A4, both sides. Paper sizes are in tenths of a mm. The ADF tops out lower than the
+  # flatbed, so ADF scans use the closest resolution the device accepts.
+  home.ifEnabled =
+    { cfg, ... }:
+    lib.mkIf (lib.any (p: p.scanner) cfg.printers) {
+      dconf.settings."org/gnome/SimpleScan" = {
+        text-dpi = 1200;
+        photo-dpi = 1200;
+        jpeg-quality = 100;
+        document-type = "text";
+        paper-width = 2100;
+        paper-height = 2970;
+        page-side = "both";
+        save-format = "application/pdf";
+      };
+    };
+
   nixos.ifEnabled =
     { cfg, myconfig, ... }:
     let
@@ -41,7 +59,7 @@ delib.module {
       esclConf = pkgs.writeTextFile {
         name = "krit-escl-conf";
         destination = "/etc/sane.d/escl.conf";
-        text = lib.concatMapStrings (p: "device https://${p.address}:443\n") scanners;
+        text = lib.concatMapStrings (p: "device https://${p.address}:443 \"${p.description}\"\n") scanners;
       };
       printerBlock = p: ''
         register ${lib.escapeShellArg p.name} ${lib.escapeShellArg p.address} ${lib.escapeShellArg p.description} \
