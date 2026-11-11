@@ -480,6 +480,7 @@ delib.host {
               "^(${myTerminal})$"
               "^(alacritty)$"
               "^(foot)$"
+              "^(herdr-app)$"
               "^(xfce4-terminal)$"
               "^(com.system76.CosmicTerm)$"
               "^(org.kde.konsole)$"
