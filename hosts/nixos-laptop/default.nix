@@ -303,6 +303,19 @@ delib.host {
 
         tmux.enable = true;
 
+        appimages = {
+          enable = true;
+          apps = [
+            {
+              pname = "actual";
+              version = "26.11.0";
+              url = "https://github.com/actualbudget/actual/releases/download/v26.11.0/Actual-linux-x86_64.AppImage";
+              hash = "sha256-zE1VWoveb3Sj3Q60wN2pwT1E1pgGh0hh1ZW1Hh5LIIA=";
+              extraPkgs = [ ];
+            }
+          ];
+        };
+
         vicinae = {
           enable = true;
           extraExtensions = with inputs.vicinae-extensions.packages.${pkgs.stdenv.hostPlatform.system}; [
@@ -767,10 +780,10 @@ delib.host {
 
           printing = {
             enable = true;
-            defaultPrinter = "HP_OfficeJet_Pro_8120e";
+            defaultPrinter = "hp_nicol_stampante";
             printers = [
               {
-                name = "HP_OfficeJet_Pro_8120e";
+                name = "hp_nicol_stampante";
                 description = "HP OfficeJet Pro 8120e";
                 address = "192.168.10.21";
                 scanner = true;

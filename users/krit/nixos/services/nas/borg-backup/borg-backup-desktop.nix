@@ -74,6 +74,8 @@ delib.module {
 
             # Heavy standard directories
             "/home/*/.cache" # The standard Linux cache folder
+            "/home/*/.config/Actual/Cache" # Actual Budget Electron cache
+            "/home/*/.config/Actual/Crashpad"
             "/home/*/.config/discord/Cache" # Discord cache
             "/home/*/.config/discord/DawnGraphiteCache"
             "/home/*/.config/discord/discord_asset_cache"

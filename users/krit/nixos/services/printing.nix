@@ -54,12 +54,21 @@ delib.module {
     let
       cupsPkg = pkgs.cups;
       scanners = lib.filter (p: p.scanner) cfg.printers;
-      # Merged into the stock escl.conf by mkSaneConfig. Static device lines instead of mDNS discovery,
-      # so scanning works without avahi (the printer sits on a fixed address, like the print queue).
-      esclConf = pkgs.writeTextFile {
-        name = "krit-escl-conf";
-        destination = "/etc/sane.d/escl.conf";
-        text = lib.concatMapStrings (p: "device https://${p.address}:443 \"${p.description}\"\n") scanners;
+      # Scanning goes through sane-airscan, not the stock escl backend: this HP answers the first
+      # NextDocument after job creation with HTTP 503 ("not ready yet") and sane-escl 1.4.0 treats any
+      # empty reply as "document feeder out of documents" without retrying, so feeder scans always fail
+      # (airscan retries). Static device lines and discovery off: no mDNS duplicate entries, no avahi needed
+      # (the printer sits on a fixed address, like the print queue). This file replaces the packaged
+      # airscan.conf (a later extraBackends entry wins). The description is the name simple-scan shows.
+      airscanConf = pkgs.writeTextFile {
+        name = "krit-airscan-conf";
+        destination = "/etc/sane.d/airscan.conf";
+        text = ''
+          [devices]
+          ${lib.concatMapStrings (p: "\"${p.description}\" = https://${p.address}:443/eSCL, escl\n") scanners}
+          [options]
+          discovery = disable
+        '';
       };
       printerBlock = p: ''
         register ${lib.escapeShellArg p.name} ${lib.escapeShellArg p.address} ${lib.escapeShellArg p.description} \
@@ -144,7 +153,8 @@ delib.module {
 
       hardware.sane = lib.mkIf (scanners != [ ]) {
         enable = true;
-        extraBackends = [ esclConf ];
+        extraBackends = [ pkgs.sane-airscan airscanConf ];
+        disabledDefaultBackends = [ "escl" ];
       };
       environment.systemPackages = lib.optional (scanners != [ ]) pkgs.simple-scan;
 

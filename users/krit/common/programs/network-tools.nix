@@ -76,7 +76,7 @@ delib.module {
       ntopng # High-speed web-based traffic analysis and flow collection tool
       ptcpdump # Process-aware, eBPF-based tcpdump
       rsyslog # Enhanced syslog implementation
-      sane-airscan # Only provides the airscan-discover CLI; the SANE backend is not loaded (eSCL is covered by the built-in escl backend of sane-backends)
+      sane-airscan # airscan-discover CLI; on hosts where krit.services.printing has a scanner the airscan SANE backend is also loaded (hardware.sane.extraBackends)
       suricata # Free and open source, mature, fast and robust network threat detection engine
       traceroute # Route tracing utility
       wavemon # Ncurses-based monitoring application for wireless network devices
