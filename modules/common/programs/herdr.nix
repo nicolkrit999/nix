@@ -1,8 +1,10 @@
 { delib, inputs, pkgs, lib, moduleSystem, ... }:
 let
-  herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  herdrPkgs = inputs.herdr-nix.packages.${pkgs.stdenv.hostPlatform.system} or { };
+  herdrPackages = lib.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform)
+    (lib.attrVals (lib.filter (n: herdrPkgs ? ${n}) [ "herdr" "herdr-core" "herdr-tui" ]) herdrPkgs);
   shared = {
-    environment.systemPackages = [ herdr ];
+    environment.systemPackages = herdrPackages;
   };
 in
 delib.module {
@@ -13,6 +15,6 @@ delib.module {
   darwin.ifEnabled = shared;
 
   home.ifEnabled = {
-    home.packages = lib.optionals (moduleSystem == "home") [ herdr ];
+    home.packages = lib.optionals (moduleSystem == "home") herdrPackages;
   };
 }

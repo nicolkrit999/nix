@@ -352,7 +352,7 @@ notification noise for no proven gain.
 
 ### 🚨 Do not pre-warm a flake-input package by name
 
-`concord` and `herdr` come from `inputs.<x>.packages.<system>.default`, and `tgt`
+`concord` and `herdr` (input `herdr-nix`, packages `herdr`/`herdr-core`/`herdr-tui`) come from `inputs.<x>.packages.<system>`, and `tgt`
 is built in `tgt.nix` from the `tgt` input's *source* (against a pinned TDLib), so
 the derivation the config installs is **not** the `pkgs` attribute of the same
 name. The trap is that those attributes *exist anyway* in the pinned
@@ -364,7 +364,7 @@ silently builds and caches the wrong thing:
 |---|---|---|
 | `tgt` | `github:FedericoBruzzone/tgt` - a Telegram TUI | **tgt 1.0.95, the iSCSI Target daemon** - unrelated |
 | `concord` | `github:chojs23/concord` | **concord 2.3.0, a Discord API library in C** - unrelated |
-| `herdr` | `github:ogulcancelik/herdr` tracking **master** | **herdr 0.9.3**, the same project but a nixpkgs release rather than the flake's master - it does not fail, it silently builds and caches a different revision. |
+| `herdr` | `github:kevinpita/herdr-nix` (app, core, TUI) | **herdr 0.9.3**, the TUI only, a different build - it does not fail, it silently builds and caches something else. |
 
 `doom` is not a package at all - it is a home-manager module
 (`programs.doom-emacs`, from `nix-doom-emacs-unstraightened`), so it has no

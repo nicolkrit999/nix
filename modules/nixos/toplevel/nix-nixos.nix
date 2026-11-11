@@ -6,6 +6,7 @@ let
     "https://claude-code.cachix.org"
     "https://vicinae.cachix.org"
     "https://catppuccin.cachix.org"
+    "https://kevinpita.cachix.org"
   ];
   extraTrustedPublicKeys = [
     "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
@@ -13,6 +14,7 @@ let
     "claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk="
     "vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc="
     "catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI="
+    "kevinpita.cachix.org-1:Cu9UtCDSfDq3/WDnI7N1N/LzAh90SPS+1R+nWao/hz0="
   ];
 in
 delib.module {

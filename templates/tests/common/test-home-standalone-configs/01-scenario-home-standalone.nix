@@ -186,7 +186,7 @@ let
       ];
 
     check-herdr-installed-when-enabled =
-      let herdr = flake.inputs.herdr.packages.x86_64-linux.default;
+      let herdr = flake.inputs.herdr-nix.packages.x86_64-linux.herdr-tui;
       in expect "herdr in home.packages [on, off]" [ (hasDrv progsOn herdr) (hasDrv progsOff herdr) ] [ true false ];
 
     check-nltch-nur-installed-when-enabled = expect "nltchNur.packages in home.packages [on, off]"

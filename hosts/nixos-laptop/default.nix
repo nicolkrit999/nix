@@ -247,7 +247,7 @@ delib.host {
           enable = true;
           browserChannels = true;
         };
-        herdr.enable = false;
+        herdr.enable = true;
         kitty.fontSize = 12;
         lazygit.enable = true;
         nix-alien.enable = false;

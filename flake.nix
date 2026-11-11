@@ -301,8 +301,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    herdr = {
-      url = "github:ogulcancelik/herdr/master";
+    herdr-nix = {
+      url = "github:kevinpita/herdr-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

@@ -23,6 +23,7 @@ delib.module {
         gramps # Genealogy software
         jellyfin-desktop # Jellyfin media player client
         libreoffice-qt # Open source microsoft office alternative
+        lufus # A rufus clone written in py and designed to work with linux
         obs-studio # Streaming/Recording
         proton-pass # Password manager by Proton
         proton-pass-cli # Command-line interface for managing your Proton Pass vaults, items, and secrets
