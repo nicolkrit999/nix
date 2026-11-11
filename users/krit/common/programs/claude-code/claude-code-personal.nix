@@ -60,6 +60,10 @@ delib.module {
         { sopsSecret = "claude_mcp_adguard_home_username"; }
         { sopsSecret = "claude_mcp_adguard_home_password"; }
         { sopsSecret = "claude_mcp_opencloud_app_token"; }
+        { sopsSecret = "claude_mcp_mealie_api_key"; }
+        { sopsSecret = "claude_mcp_navidrome_username"; }
+        { sopsSecret = "claude_mcp_navidrome_password"; }
+        { sopsSecret = "claude_mcp_stirling_pdf_api_key"; }
       ];
       description = "Names of the MCP secrets; the sops declarations are generated from this list in sops-secrets.nix, MCP launchers read the secret files themselves.";
     };

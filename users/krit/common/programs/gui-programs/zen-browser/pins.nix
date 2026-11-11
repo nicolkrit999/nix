@@ -349,13 +349,21 @@ delib.module {
           folderParentId = "30000000-0000-4000-8000-000000000003";
           position = 105;
         };
+        "Stirling PDF" = {
+          id = "40000000-0000-4000-8000-0000000000ca";
+          url = "https://stirling-pdf.nicolkrit.ch/";
+          container = 1; # General
+          workspace = "10000000-0000-4000-8000-000000000001";
+          folderParentId = "30000000-0000-4000-8000-000000000003";
+          position = 106;
+        };
         "Gokapi" = {
           id = "40000000-0000-4000-8000-0000000000c2";
           url = "https://gokapi.nicolkrit.ch/login";
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 106;
+          position = 107;
         };
         "PrivateBin" = {
           id = "40000000-0000-4000-8000-00000000002a";
@@ -363,7 +371,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 107;
+          position = 108;
         };
         "Gitea" = {
           id = "40000000-0000-4000-8000-000000000029";
@@ -371,7 +379,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 108;
+          position = 109;
         };
         "Jellyfin" = {
           id = "40000000-0000-4000-8000-000000000022";
@@ -379,7 +387,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 109;
+          position = 110;
         };
         "Foto" = {
           id = "40000000-0000-4000-8000-000000000023";
@@ -387,7 +395,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 110;
+          position = 111;
         };
         "PaperlessNGX" = {
           id = "40000000-0000-4000-8000-0000000000c3";
@@ -395,7 +403,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 111;
+          position = 112;
         };
         "OmniTools" = {
           id = "40000000-0000-4000-8000-000000000032";
@@ -403,7 +411,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 112;
+          position = 113;
         };
         "IT Tools" = {
           id = "40000000-0000-4000-8000-000000000030";
@@ -411,7 +419,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 113;
+          position = 114;
         };
         "ByteStash" = {
           id = "40000000-0000-4000-8000-0000000000c4";
@@ -419,7 +427,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 114;
+          position = 115;
         };
         "Portainer" = {
           id = "40000000-0000-4000-8000-000000000026";
@@ -427,7 +435,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 115;
+          position = 116;
         };
         "Uptime Kuma" = {
           id = "40000000-0000-4000-8000-0000000000c5";
@@ -435,7 +443,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 116;
+          position = 117;
         };
         "Beszel" = {
           id = "40000000-0000-4000-8000-000000000024";
@@ -443,7 +451,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 117;
+          position = 118;
         };
         "Tugtainer" = {
           id = "40000000-0000-4000-8000-000000000027";
@@ -451,7 +459,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 118;
+          position = 119;
         };
         "Duplicati" = {
           id = "40000000-0000-4000-8000-000000000028";
@@ -459,7 +467,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 119;
+          position = 120;
         };
         "Adguard" = {
           id = "40000000-0000-4000-8000-000000000037";
@@ -467,7 +475,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 120;
+          position = 121;
         };
         "Traefik" = {
           id = "40000000-0000-4000-8000-00000000002e";
@@ -475,7 +483,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 121;
+          position = 122;
         };
         "Pocket ID" = {
           id = "40000000-0000-4000-8000-0000000000c6";
@@ -483,7 +491,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 122;
+          position = 123;
         };
         "Grafana" = {
           id = "40000000-0000-4000-8000-000000000038";
@@ -491,7 +499,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 123;
+          position = 124;
         };
         "qBittorrent" = {
           id = "40000000-0000-4000-8000-00000000002b";
@@ -499,7 +507,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 124;
+          position = 125;
         };
         "Home Assistant" = {
           id = "40000000-0000-4000-8000-00000000002f";
@@ -507,7 +515,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 125;
+          position = 126;
         };
         "Fitness" = {
           id = "40000000-0000-4000-8000-00000000002d";
@@ -515,7 +523,7 @@ delib.module {
           container = 1; # General
           workspace = "10000000-0000-4000-8000-000000000001";
           folderParentId = "30000000-0000-4000-8000-000000000003";
-          position = 126;
+          position = 127;
         };
 
         # ── Social & Entertainment ────────────────────────────────────────
