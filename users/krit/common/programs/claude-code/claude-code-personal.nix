@@ -48,6 +48,18 @@ delib.module {
         { sopsSecret = "claude_mcp_beszel_password"; }
         { sopsSecret = "claude_mcp_uptime_kuma_username"; }
         { sopsSecret = "claude_mcp_uptime_kuma_password"; }
+        { sopsSecret = "claude_mcp_gitea_api_key"; }
+        { sopsSecret = "claude_mcp_immich_api_key"; }
+        { sopsSecret = "claude_mcp_jellyfin_api_key"; }
+        { sopsSecret = "claude_mcp_paperless_api_token"; }
+        { sopsSecret = "claude_mcp_tailscale_oauth_client_id"; }
+        { sopsSecret = "claude_mcp_tailscale_oauth_client_secret"; }
+        { sopsSecret = "claude_mcp_unifi_username"; }
+        { sopsSecret = "claude_mcp_unifi_password"; }
+        { sopsSecret = "claude_mcp_homebox_api_key"; }
+        { sopsSecret = "claude_mcp_adguard_home_username"; }
+        { sopsSecret = "claude_mcp_adguard_home_password"; }
+        { sopsSecret = "claude_mcp_opencloud_app_token"; }
       ];
       description = "Names of the MCP secrets; the sops declarations are generated from this list in sops-secrets.nix, MCP launchers read the secret files themselves.";
     };
