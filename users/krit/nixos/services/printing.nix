@@ -21,6 +21,8 @@ delib.module {
             description = strOption "";
             # No default on purpose: an unmapped printer must fail the assertion.
             address = strOption "";
+            # Multifunction device: also expose its eSCL (driverless) scanner to SANE / simple-scan.
+            scanner = boolOption false;
             ppdOptions = lib.mkOption {
               type = lib.types.attrsOf lib.types.str;
               default = { };
@@ -33,6 +35,14 @@ delib.module {
     { cfg, myconfig, ... }:
     let
       cupsPkg = pkgs.cups;
+      scanners = lib.filter (p: p.scanner) cfg.printers;
+      # Merged into the stock escl.conf by mkSaneConfig. Static device lines instead of mDNS discovery,
+      # so scanning works without avahi (the printer sits on a fixed address, like the print queue).
+      esclConf = pkgs.writeTextFile {
+        name = "krit-escl-conf";
+        destination = "/etc/sane.d/escl.conf";
+        text = lib.concatMapStrings (p: "device https://${p.address}:443\n") scanners;
+      };
       printerBlock = p: ''
         register ${lib.escapeShellArg p.name} ${lib.escapeShellArg p.address} ${lib.escapeShellArg p.description} \
           ${lib.escapeShellArgs (lib.mapAttrsToList (k: v: "${k}=${v}") p.ppdOptions)}
@@ -114,6 +124,12 @@ delib.module {
           })
           cfg.printers;
 
+      hardware.sane = lib.mkIf (scanners != [ ]) {
+        enable = true;
+        extraBackends = [ esclConf ];
+      };
+      environment.systemPackages = lib.optional (scanners != [ ]) pkgs.simple-scan;
+
       services.printing = {
         enable = true;
         browsed.enable = false;
@@ -156,6 +172,14 @@ delib.module {
             connectivity-change) [ "$CONNECTIVITY_STATE" = NONE ] && exit 0 ;;
             *) exit 0 ;;
           esac
+          # Keep the printers reachable while a Tailscale exit node (e.g. Mullvad) is active: the exit node
+          # puts a default route in table 52 (rule 5270) and --exit-node-allow-lan-access only exempts the
+          # directly attached subnet, but the printers sit on another VLAN behind the router. A rule ahead of
+          # Tailscale's (5270) sends them through the main table (the LAN gateway). Idempotent, /32 only.
+          ${lib.concatMapStrings (p: ''
+            ${pkgs.iproute2}/bin/ip rule del to ${p.address}/32 lookup main priority 5100 2>/dev/null || true
+            ${pkgs.iproute2}/bin/ip rule add to ${p.address}/32 lookup main priority 5100 || true
+          '') cfg.printers}
           ${pkgs.systemd}/bin/systemctl start --no-block krit-printers.service || true
           exit 0
         '';

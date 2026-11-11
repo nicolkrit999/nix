@@ -773,6 +773,7 @@ delib.host {
                 name = "HP_OfficeJet_Pro_8120e";
                 description = "HP OfficeJet Pro 8120e";
                 address = "192.168.10.21";
+                scanner = true;
                 ppdOptions = {
                   media = "iso_a4_210x297mm";
                   sides = "two-sided-long-edge";
