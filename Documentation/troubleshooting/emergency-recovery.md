@@ -16,6 +16,10 @@ is the GRUB/generic manual fallback, section C the lanzaboote one.
 > Step-by-step guide for the whole process (making the USB, every prompt,
 > what to do after): [README.md](./README.md).
 
+> `recover.sh` has only been tested against fixture trees, never on a real
+> live ISO. On a first real run start with `--shell` (mounts and opens a
+> chroot, rebuilds nothing); sections B and C are the manual equivalent.
+
 Boot a NixOS live USB in UEFI mode, then:
 
 ```bash
@@ -115,9 +119,11 @@ procedures: [lanzaboote.md](../usage/secure-boot/lanzaboote.md).
    (`switch`/`boot` only, never `test`). It writes no EFI variables and
    overwrites `EFI/BOOT/BOOTX64.EFI` with the signed systemd-boot.
 6. `sbctl verify`: `EFI/Linux/nixos-*.efi`, `EFI/BOOT/BOOTX64.EFI` and
-   `EFI/systemd/systemd-bootx64.efi` **must** be signed. Red crosses for
-   `EFI/nixos/kernel-*.efi` and GRUB leftovers (only on a migrated host) (`EFI/NixOS-boot/…`,
-   `/boot/grub/…`, `/boot/kernels/…`) are expected.
+   `EFI/systemd/systemd-bootx64.efi` **must** be signed. A red cross for
+   `EFI/nixos/kernel-*.efi` is expected (the signed stub checks it by hash),
+   and so are red crosses for leftover GRUB files (`EFI/NixOS-boot/…`,
+   `/boot/grub/…`, `/boot/kernels/…`) on a host migrated from GRUB that has
+   not cleaned them up yet.
 7. If the firmware lost its NixOS entry (`efibootmgr -v` shows none that
    points at the boot partition's PARTUUID), create one from the live ISO,
    with disk and partition number of the mounted `/boot` device:

@@ -6,7 +6,7 @@ This folder holds the emergency kit for when a NixOS machine no longer boots:
 |------|------------|
 | `recover.sh` | The automated recovery script. Run it from a live USB. Works for GRUB hosts and for lanzaboote (Secure Boot) hosts. |
 | `README.md` | This guide: every step, every prompt, what to do afterwards. |
-| `emergency-recovery-gnu-grub.md` | The same recovery done by hand, if the script can't be used (GRUB and lanzaboote). |
+| `emergency-recovery.md` | The same recovery done by hand, if the script can't be used (GRUB and lanzaboote). |
 
 ## Which bootloader does my host use?
 
@@ -305,4 +305,4 @@ It finds everything on the disk itself, so nothing about a host is hardcoded:
 8. Unmounts, closes LUKS and offers to reboot.
 
 Details are in the comments at the top of `recover.sh` (`recover.sh --help`). Doing it all by hand:
-`emergency-recovery-gnu-grub.md`.
+`emergency-recovery.md`.
