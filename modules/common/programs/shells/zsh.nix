@@ -31,7 +31,7 @@ delib.module {
           ''
           + lib.optionalString isDarwin ''
             # TMUX AUTOSTART (always on Darwin)
-            if command -v tmux > /dev/null && [[ -z "$TMUX" ]] && [[ -z "$NVIM" ]] && [[ "$-" == *i* ]]; then
+            if command -v tmux > /dev/null && [[ -z "$TMUX" ]] && [[ -z "$NVIM" ]] && [[ -z "$HERDR_PANE_ID" ]] && [[ -z "$HC_TERMINAL_ID" ]] && [[ "$-" == *i* ]]; then
               exec tmux new-session -A -s main
             fi
 
@@ -60,7 +60,7 @@ delib.module {
             fi
 
             # TMUX AUTOSTART (Only in GUI)
-            if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -z "$NVIM" ] && [ -n "$DISPLAY" ]; then
+            if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -z "$NVIM" ] && [ -z "$HERDR_PANE_ID" ] && [ -z "$HC_TERMINAL_ID" ] && [ -n "$DISPLAY" ]; then
               tmux new-session -A -s main
             fi
 
@@ -76,7 +76,7 @@ delib.module {
             # STARTUP SPLASH
             case "$-" in
               (*i*)
-                if [ -n "$TMUX" ] || ! command -v tmux > /dev/null${if isDarwin then "" else " || [ -z \"$DISPLAY\" ]"}; then
+                if [ -n "$TMUX" ] || [ -n "$HERDR_PANE_ID" ] || [ -n "$HC_TERMINAL_ID" ] || ! command -v tmux > /dev/null${if isDarwin then "" else " || [ -z \"$DISPLAY\" ]"}; then
                   ${splashCmd}
                 fi
                 ;;

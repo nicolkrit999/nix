@@ -33,10 +33,12 @@ delib.module {
                 and status is-interactive
                 and not set -q TMUX
                 and not set -q NVIM
+                and not set -q HERDR_PANE_ID
+                and not set -q HC_TERMINAL_ID
                 exec tmux new-session -A -s main
               end
             '' else ''
-              if command -v tmux > /dev/null; and not set -q TMUX; and not set -q NVIM; and set -q DISPLAY
+              if command -v tmux > /dev/null; and not set -q TMUX; and not set -q NVIM; and not set -q HERDR_PANE_ID; and not set -q HC_TERMINAL_ID; and set -q DISPLAY
                 tmux new-session -A -s main
               end
             ''}
@@ -80,6 +82,8 @@ delib.module {
             if status is-interactive
               and begin
                 set -q TMUX
+                or set -q HERDR_PANE_ID
+                or set -q HC_TERMINAL_ID
                 or not command -v tmux > /dev/null
                 ${lib.optionalString (!isDarwin) "or not set -q DISPLAY"}
               end
