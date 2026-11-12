@@ -523,10 +523,14 @@ in
   check-ryoku-sessions-present =
     let
       names = c: lib.concatMap (p: p.providedSessions or [ ]) c.services.displayManager.sessionPackages;
-      want = [ "ryoku-hyprland" "ryoku-niri" "ryoku-mango" ];
-      missing = lib.filter (n: !(lib.elem n (names (spec "ryoku")))) want;
+      want = [ "ryoku-hyprland" "ryoku-niri" ];
+      offered = (spec "ryoku").services.displayManager.sessionData.sessionNames;
+      missing = lib.filter (n: !(lib.elem n offered)) want;
     in
-    if lib.any (n: lib.elem n (names config)) want then "FAIL: control: the base host already provides a ryoku session"
+    if lib.any (n: lib.elem n (names config)) (want ++ [ "ryoku-mango" ]) then "FAIL: control: the base host already provides a ryoku session"
+    else if !(lib.elem "ryoku-mango" (names (spec "ryoku"))) then "FAIL: control: Ryoku no longer adds ryoku-mango to sessionPackages, the filter is untested"
     else if missing != [ ] then "FAIL: ryoku spec lacks sessions: ${toString missing}"
+    else if lib.elem "ryoku-mango" offered then "FAIL: ryoku-mango is still offered by the session data: ${toString offered}"
+    else if (spec "ryoku").services.displayManager.sessionData.autologinSession == "ryoku-mango" then "FAIL: autologin into ryoku-mango"
     else "ok";
 }

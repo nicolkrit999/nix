@@ -49,11 +49,11 @@ let
   # Ryoku sessions (flake input ryoku, nix/modules/ryoku.nix): the real session packages are
   # runCommands that reference the heavy Ryoku compositors. A stand-in keeps what the portal
   # simulation reads (providedSessions and the .desktop file with DesktopNames); the eval
-  # asserts the upstream module still declares exactly those.
+  # asserts the upstream module still declares exactly those. ryoku-mango is left out on purpose:
+  # the spec removes it from sessionData (and from the session desktops) with a mkForce.
   ryokuSessionSpec = [
     { id = "ryoku-hyprland"; names = "Hyprland"; }
     { id = "ryoku-niri"; names = "niri"; }
-    { id = "ryoku-mango"; names = "mango;wlroots"; }
   ];
   ryokuSessions =
     let

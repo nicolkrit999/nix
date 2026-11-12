@@ -76,12 +76,19 @@ let
 
   sessions = c: lib.concatMap (p: p.providedSessions or [ ]) c.services.displayManager.sessionPackages;
   ryokuSessions = [ "ryoku-hyprland" "ryoku-niri" "ryoku-mango" ];
+  keptSessions = [ "ryoku-hyprland" "ryoku-niri" ];
+  sessionPkgs = c: c.services.displayManager.sessionPackages;
+  mangoPkgs = c: lib.filter (p: lib.elem "ryoku-mango" p.providedSessions) (sessionPkgs c);
+  otherPkgs = c: lib.filter (p: !(lib.elem "ryoku-mango" p.providedSessions)) (sessionPkgs c);
+  linked = c: p: lib.hasInfix (builtins.unsafeDiscardStringContext (toString p)) (builtins.unsafeDiscardStringContext c.services.displayManager.sessionData.desktops.buildCommand);
   persist = c: map (d: d.directory) c.environment.persistence."/persist".directories;
   tmp = spec.systemd.tmpfiles.rules;
   homeRules = lib.filter (r: lib.hasPrefix "d ${home} " r) tmp;
   hm = spec.home-manager.users.${ryokuUser};
   baseHm = base.home-manager.users.${baseUser};
-  syncUnits = [ "ryoku-dotfiles-sync" "ryoku-nix-sync" ];
+  syncUnits = lib.attrNames probes.repoSyncUnits;
+  unitText = n: builtins.unsafeDiscardStringContext (builtins.readFile (lib.head (lib.toList hm.systemd.user.services.${n}.Service.ExecStart)));
+  syncBad = mut: lib.filterAttrs (n: u: probes.repoSyncProblems u (mut (unitText n)) == [ ]) probes.repoSyncUnits;
 
   hmF = hm.xdg.configFile;
   baseHmF = baseHm.xdg.configFile;
@@ -93,13 +100,14 @@ let
   seedUnit = spec.systemd.user.services.ryoku-settings-seed or null;
   seedText = builtins.readFile seedUnit.serviceConfig.ExecStart;
   seedLines = lib.splitString "\n" seedText;
+  emblemUnit = spec.systemd.user.services.ryoku-fastfetch-emblem-seed or null;
+  emblemValue = base.myconfig.specializations.ryoku.fastfetchEmblem;
   failingSettings = lib.filter (m: lib.hasPrefix "specializations.ryoku.settings" m) (map (a: a.message) (lib.filter (a: !a.assertion) base.assertions));
   storeLine = st: l: builtins.match ".*seed ${st} /nix/store/[^ ]+-ryoku-settings-${st}\\.json [0-9a-f]{16}[ ;].*" l != null;
 
-  bindFiles = [ "hypr/user.lua" "niri/user.kdl" "mango/user.conf" ];
+  bindFiles = [ "hypr/user.lua" "niri/user.kdl" ];
   hyprT = hmF."hypr/user.lua".text;
   niriT = hmF."niri/user.kdl".text;
-  mangoT = hmF."mango/user.conf".text;
   hyprBase = lib.attrByPath [ "wayland" "windowManager" "hyprland" "settings" "bind" ] [ ] baseHm;
   hyprBaseChords = map (b: builtins.head b._args) hyprBase;
   hyprAnchors = [ "SUPER+SHIFT + C" "SUPER + return" "SUPER + F" "SUPER + B" "SUPER + C" ];
@@ -124,6 +132,12 @@ let
   matugenCfg = declared_.matugen;
   firstOf = str: lib.head (lib.splitString "," str);
   inTerm = app: if lib.elem app bc.terminalApps then "${bc.terminal.name} -e ${app}" else app;
+
+  sddmSet = c: c.services.displayManager.sddm.settings;
+  cursorTheme = c: lib.attrByPath [ "Theme" "CursorTheme" ] null (sddmSet c);
+  greeterEnv = c: lib.splitString "," (lib.attrByPath [ "General" "GreeterEnvironment" ] "" (sddmSet c));
+  xcursorEntry = "XCURSOR_PATH=/run/current-system/sw/share/icons";
+  cursorPkg = base.myconfig.specializations.ryoku.sddmCursorPackage;
 
   kbdInBase = base.systemd.user.services ? kbd-backlight-relight && base.systemd.user.services.kbd-backlight-relight.enable;
   jetInBase = baseHm.systemd.user.services ? hyprland-jetkvm-teardown;
@@ -205,9 +219,16 @@ let
     "ryoku: sddm is enabled with theme ryoku while the base theme differs" =
       yes "spec ${builtins.toJSON [ spec.services.displayManager.sddm.enable spec.services.displayManager.sddm.theme ]}, base theme ${builtins.toJSON base.services.displayManager.sddm.theme}"
         (spec.services.displayManager.sddm.enable && spec.services.displayManager.sddm.theme == "ryoku" && base.services.displayManager.sddm.theme != "ryoku");
-    "ryoku: the three Ryoku sessions are installed in the spec and in no other config" =
+    "ryoku: Ryoku adds all three sessions to sessionPackages in the spec and in no other config (control for the mango filter below)" =
       yes "spec ${builtins.toJSON (sessions spec)}, base ${builtins.toJSON (sessions base)}"
         (lib.all (s: lib.elem s (sessions spec) && !(lib.elem s (sessions base))) ryokuSessions);
+    "ryoku: the session data offers ryoku-hyprland and ryoku-niri, not ryoku-mango, and does not autologin into it" =
+      let sd = spec.services.displayManager.sessionData; in
+      yes "sessionNames ${builtins.toJSON sd.sessionNames}, autologin ${builtins.toJSON sd.autologinSession}"
+        (lib.all (s: lib.elem s sd.sessionNames) keptSessions && !(lib.elem "ryoku-mango" sd.sessionNames) && sd.autologinSession != "ryoku-mango");
+    "ryoku: the session desktops derivation links every other session package and the ryoku-mango one is left out (by build command, nothing built)" =
+      yes "mango packages ${toString (lib.length (mangoPkgs spec))}, linked ${builtins.toJSON (map (linked spec) (mangoPkgs spec))}, others linked ${builtins.toJSON (map (linked spec) (otherPkgs spec))}"
+        (mangoPkgs spec != [ ] && otherPkgs spec != [ ] && lib.all (p: !(linked spec p)) (mangoPkgs spec) && lib.all (linked spec) (otherPkgs spec));
     "ryoku: the default session is a Ryoku session" =
       yes "defaultSession ${builtins.toJSON spec.services.displayManager.defaultSession}"
         (lib.hasPrefix "ryoku-" (spec.services.displayManager.defaultSession or ""));
@@ -251,6 +272,33 @@ let
       let u = n: hm.systemd.user.services.${n}; in
       yes "clone unit settings are not oneshot/on-failure/unlimited/default.target"
         (lib.all (n: (u n).Service.Type == "oneshot" && (u n).Service.Restart == "on-failure" && (u n).Unit.StartLimitIntervalSec == 0 && (u n).Install.WantedBy == [ "default.target" ]) syncUnits);
+    "layer: the three repo sync scripts fast-forward only, heal shallow checkouts, never reset or discard, use the right url and transport and carry no key material" =
+      yes "problems ${builtins.toJSON (lib.mapAttrs (n: u: probes.repoSyncProblems u (unitText n)) probes.repoSyncUnits)}"
+        (lib.all (n: probes.repoSyncProblems probes.repoSyncUnits.${n} (unitText n) == [ ]) syncUnits);
+    "layer: the three repo sync units set GIT_SSL_CAINFO" =
+      yes "environment ${builtins.toJSON (map (n: hm.systemd.user.services.${n}.Service.Environment) syncUnits)}"
+        (lib.all (n: lib.elem "GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt" hm.systemd.user.services.${n}.Service.Environment) syncUnits);
+    "control: the repo sync probe fires on reset --hard, --depth and a removed --unshallow variant of every script" =
+      yes "probe silent for ${toString (lib.attrNames (syncBad (lib.replaceStrings [ "merge --quiet --ff-only" ] [ "reset --hard" ])))} / ${toString (lib.attrNames (syncBad (lib.replaceStrings [ "clone --quiet" ] [ "clone --depth 1 --quiet" ])))} / ${toString (lib.attrNames (syncBad (lib.replaceStrings [ "--unshallow" ] [ "--prune" ])))}"
+        (syncBad (lib.replaceStrings [ "merge --quiet --ff-only" ] [ "reset --hard" ]) == { }
+          && syncBad (lib.replaceStrings [ "clone --quiet" ] [ "clone --depth 1 --quiet" ]) == { }
+          && syncBad (lib.replaceStrings [ "--unshallow" ] [ "--prune" ]) == { });
+    "sddm cursor: the spec's rendered sddm settings carry Theme.CursorTheme Bibata-Modern-Ice and CursorSize 24" =
+      eq "Theme" (lib.filterAttrs (n: _: lib.elem n [ "CursorTheme" "CursorSize" ]) (sddmSet spec).Theme) { CursorTheme = "Bibata-Modern-Ice"; CursorSize = 24; };
+    "sddm cursor: GreeterEnvironment holds XCURSOR_PATH exactly once and layer-shell only with the kwin compositor" =
+      yes "entries ${builtins.toJSON (greeterEnv spec)}, compositor ${spec.services.displayManager.sddm.wayland.compositor}"
+        (lib.count (e: e == xcursorEntry) (greeterEnv spec) == 1
+          && lib.elem "QT_WAYLAND_SHELL_INTEGRATION=layer-shell" (greeterEnv spec) == (spec.services.displayManager.sddm.wayland.compositor == "kwin")
+          && lib.all (e: lib.hasInfix "=" e) (greeterEnv spec));
+    "sddm cursor: the cursor package is in the spec's systemPackages and its name matches the theme" =
+      yes "package ${builtins.toJSON (cursorPkg.name or null)}"
+        (cursorPkg != null && lib.elem (toString cursorPkg) (map toString spec.environment.systemPackages)
+          && lib.hasPrefix (lib.toLower (lib.head (lib.splitString "-" spec.myconfig.specializations.ryoku.sddmCursorTheme))) (lib.toLower (cursorPkg.pname or cursorPkg.name)));
+    "sddm cursor: /share/icons is linked into the spec's system profile" =
+      yes "pathsToLink ${builtins.toJSON spec.environment.pathsToLink}" (lib.elem "/share/icons" spec.environment.pathsToLink);
+    "sddm cursor: the base's sddm settings carry neither our cursor theme nor XCURSOR_PATH (control)" =
+      yes "base theme ${builtins.toJSON (cursorTheme base)}, env ${builtins.toJSON (greeterEnv base)}"
+        (cursorTheme base != "Bibata-Modern-Ice" && !(lib.elem xcursorEntry (greeterEnv base)));
     "sddm seed: the service exists exactly when impermanence and sddm are on in the spec, and never in the base" =
       yes "impermanence ${builtins.toJSON impOn}, sddm ${builtins.toJSON sddmOn}, seed present ${builtins.toJSON (sddmSeed != null)}, in base ${builtins.toJSON (base.systemd.services ? ryoku-sddm-theme-seed)}"
         ((sddmSeed != null) == (impOn && sddmOn) && !(base.systemd.services ? ryoku-sddm-theme-seed));
@@ -279,6 +327,25 @@ let
           (lib.elem "ryoku-materialize.service" seedUnit.after && lib.elem "ryoku-materialize.service" seedUnit.requires
             && lib.elem "ryoku-shell.service" seedUnit.before && lib.elem "ryoku-session.target" seedUnit.wantedBy
             && seedUnit.unitConfig.ConditionUser == ryokuUser && ryokuUser != baseUser && seedUnit.serviceConfig.Type == "oneshot");
+    "emblem: the krit layer sets fastfetchEmblem to the ryoku-desktop-data hawk.png" =
+      yes "value ${builtins.toJSON (if emblemValue == null then null else toString emblemValue)}"
+        (emblemValue != null && lib.hasSuffix "/share/ryoku/ryodecors/hawk.png" (toString emblemValue));
+    "emblem: ryoku-fastfetch-emblem-seed exists in the spec and not in the base, oneshot, ordered after ryoku-materialize, before ryoku-shell, wanted by ryoku-session.target, ConditionUser is the ryoku user" =
+      yes "unit ${builtins.toJSON (if emblemUnit == null then null else { inherit (emblemUnit) after before requires wantedBy partOf; cond = emblemUnit.unitConfig.ConditionUser or null; })}, in base ${builtins.toJSON (base.systemd.user.services ? ryoku-fastfetch-emblem-seed)}"
+        (emblemUnit != null && !(base.systemd.user.services ? ryoku-fastfetch-emblem-seed)
+          && lib.elem "ryoku-materialize.service" emblemUnit.after && lib.elem "ryoku-materialize.service" emblemUnit.requires
+          && lib.elem "ryoku-shell.service" emblemUnit.before && lib.elem "ryoku-session.target" emblemUnit.wantedBy
+          && lib.elem "ryoku-session.target" emblemUnit.partOf
+          && emblemUnit.unitConfig.ConditionUser == ryokuUser && ryokuUser != baseUser && emblemUnit.serviceConfig.Type == "oneshot");
+    "emblem: the script calls ryoku-hub import-logo and writes the sentinel only after fastfetch save" =
+      let t = builtins.readFile emblemUnit.serviceConfig.ExecStart; in
+      yes "probe on the real script"
+        (probes.sentinelAfterSave t && lib.hasInfix "fastfetch import-logo" t && lib.hasInfix "fastfetch-emblem-" t);
+    "control: the sentinel-order probe rejects a missing sentinel and a sentinel before save" =
+      yes "probe accepts a bad script"
+        (probes.sentinelAfterSave "x fastfetch save y\n: > \"$sentinel\"\n"
+          && !(probes.sentinelAfterSave "x fastfetch save y\n")
+          && !(probes.sentinelAfterSave ": > \"$sentinel\"\nx fastfetch save y\n"));
     "settings: the script has one seed call per declared store with a 16 hex sentinel hash, seed-once sentinels, no bare tool, flock only for desktop" =
       if seedUnit == null then "ok"
       else
@@ -296,36 +363,30 @@ let
         (!(storeLine "shell" "seed shell /nix/store/x-ryoku-settings-shell.json || rc=1") && storeLine "shell" "seed shell /nix/store/x-ryoku-settings-shell.json 0123456789abcdef || rc=1"
           && probes.bareToolLines "  jq . x\n  /nix/store/a/bin/jq . x" == [ "  jq . x" ]);
 
-    "binds: hypr/user.lua, niri/user.kdl and mango/user.conf exist for the ryoku user with force = true, and not for the base user" =
+    "binds: hypr/user.lua and niri/user.kdl exist for the ryoku user with force = true, and not for the base user; no mango/user.conf is rendered" =
       yes "force ${builtins.toJSON (map (n: hmF.${n}.force) bindFiles)}, base has ${builtins.toJSON (map (n: baseHmF ? ${n}) bindFiles)}"
-        (lib.all (n: hmF ? ${n} && hmF.${n}.force == true && !(baseHmF ? ${n})) bindFiles);
+        (lib.all (n: hmF ? ${n} && hmF.${n}.force == true && !(baseHmF ? ${n})) bindFiles && !(hmF ? "mango/user.conf"));
     "binds: the rendered files carry none of vicinae, swayosd, swaync, waybar, grimblast" =
-      let hits = map probes.legacyHits [ hyprT niriT mangoT ]; in
-      yes "legacy words in the files: ${builtins.toJSON hits}" (hits == [ [ ] [ ] [ ] ]);
+      let hits = map probes.legacyHits [ hyprT niriT ]; in
+      yes "legacy words in the files: ${builtins.toJSON hits}" (hits == [ [ ] [ ] ]);
     "control: the legacy-word probe flags a legacy command" =
       yes "probe is blind" (probes.legacyHits "x vicinae toggle; swaync-client -t" == [ "vicinae" "swaync" ]);
     "binds: every file parses into binds and holds no duplicate chord" =
       let
         l = probes.luaBindChords hyprT;
         n = probes.niriChords niriT;
-        m = probes.mangoIds mangoT;
       in
-      yes "counts ${toString [ (lib.length l) (lib.length n) (lib.length m) ]}, duplicates ${builtins.toJSON [ (probes.dups l) (probes.dups n) (probes.dups m) ]}"
-        (l != [ ] && n != [ ] && m != [ ] && probes.dups l == [ ] && probes.dups n == [ ] && probes.dups m == [ ]);
+      yes "counts ${toString [ (lib.length l) (lib.length n) ]}, duplicates ${builtins.toJSON [ (probes.dups l) (probes.dups n) ]}"
+        (l != [ ] && n != [ ] && probes.dups l == [ ] && probes.dups n == [ ]);
     "control: the duplicate probes flag a repeated chord regardless of case and modifier order" =
       yes "a probe misses a duplicate"
         (probes.dups (probes.luaBindChords "hl.bind(\"SUPER + SHIFT + A\", x)\nhl.bind(\"SHIFT + SUPER + a\", y)\n") != [ ]
-          && probes.dups (probes.niriChords "    Super+Shift+A { x; }\n    shift+super+a { y; }\n") != [ ]
-          && probes.dups (probes.mangoIds "bind=SUPER+SHIFT,a,spawn,x\nbind=SHIFT+SUPER,A,spawn,y\n") != [ ]);
+          && probes.dups (probes.niriChords "    Super+Shift+A { x; }\n    shift+super+a { y; }\n") != [ ]);
     "binds: hyprland unbinds every chord immediately before binding it" =
       yes "unbind/bind pairing broken" (probes.luaPairingOk hyprT);
     "control: the pairing probe rejects a bind without its unbind and a swapped pair" =
       yes "probe accepts a broken file"
         (!(probes.luaPairingOk "hl.bind(\"A\", x)\n") && !(probes.luaPairingOk "hl.bind(\"A\", x)\nhl.unbind(\"A\")\n") && probes.luaPairingOk "hl.unbind(\"A\")\nhl.bind(\"A\", x)\n");
-    "binds: no mango spawn command contains a comma" =
-      yes "a mango spawn line has extra commas" (probes.mangoSpawnCommaFree mangoT);
-    "control: the comma probe flags a spawn command with a comma" =
-      yes "probe is blind" (!(probes.mangoSpawnCommaFree "bind=SUPER,a,spawn,x,y\n") && probes.mangoSpawnCommaFree "bind=SUPER,a,spawn,x y\nbind=SUPER,q,quit,\n");
     "binds: the base hyprland binds still hold the anchor chords (when hyprland is configured for the base user)" =
       if hyprBase == [ ] then "ok"
       else yes "missing anchors ${builtins.toJSON (lib.filter (a: !(lib.elem a hyprBaseChords)) hyprAnchors)}" (lib.all (a: lib.elem a hyprBaseChords) hyprAnchors);
@@ -389,6 +450,10 @@ let
         yes "peers ${toString peers}, peer users ${builtins.toJSON (map peerUserOf peers)}, ryoku user ${ryokuUser}"
           (peers != [ ] && lib.all extraOk peers && lib.all (p: hmUserOf p == peerUserOf p && hmUserOf p != ryokuUser) peers
             && !(lib.hasInfix "User ${ryokuUser}\n" sshExtra));
+    "audit: the spec's system ssh config has the gitea Host block (Port 2222, the ryoku user's id_github) and the pinned known host" =
+      yes "extraConfig lacks the gitea block or knownHosts lacks the key: ${builtins.toJSON (lib.attrNames spec.programs.ssh.knownHosts)}"
+        (lib.hasInfix "Host gitea-ssh.nicolkrit.ch\n  IdentityFile /home/${ryokuUser}/.ssh/id_github\n  IdentitiesOnly yes\n  Port 2222\n" sshExtra
+          && spec.programs.ssh.knownHosts ? "[gitea-ssh.nicolkrit.ch]:2222");
     "audit: the sops-common alias points at an existing users/<dir>/common/sops file and not at the ryoku user's name" =
       let
         dir = if aliasMatch == null then "" else builtins.elemAt aliasMatch 0;

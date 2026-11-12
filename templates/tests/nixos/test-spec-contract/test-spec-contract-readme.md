@@ -4,7 +4,7 @@ Verifies that every specialization's `lib.mkForce` overrides actually land in th
 
 The fake host enables only the features that specializations override. `shared/nixos-extra-x86_64/guest-base.nix` imports the real sops-nix module (the impermanence module comes in through `services.impermanence`) and gives the base the values the guest specialisation overrides (ssh, avahi, docker, podman, `allowed-users`, PAT secret mode, a persisted linger dir). Every check reads back the option value (or config artifact) from the specialization's configuration and asserts it matches the forced value. Nearly every check also has a built-in control: it FAILs if the base host (no specialization) already had the expected value, so an override that changes nothing can no longer pass (the `.xinitrc` content check is the exception). Whether the host itself enables a program is never asserted.
 
-The ryoku specialisation is checked on twins: `ryokuAllOn` is the same fixture with all 27 options of the explicit force-off list set ON (`mkOverride 60 true`), so a force-off missing from `modules/nixos/specializations/ryoku.nix` fails (the shared base cannot carry them, because the secure-travel and entertainment checks need gnome and kde OFF in the base). `ryokuProbeTwin` forces the "stays on" options false in the spec at priority 10 to prove each probe can see them go off; `sddmTwin` has sddm-astronaut on in the base.
+The ryoku specialisation is checked on twins: `ryokuAllOn` is the same fixture with all 26 options of the explicit force-off list set ON (`mkOverride 60 true`), so a force-off missing from `modules/nixos/specializations/ryoku.nix` fails (the shared base cannot carry them, because the secure-travel and entertainment checks need gnome and kde OFF in the base). `ryokuProbeTwin` forces the "stays on" options false in the spec at priority 10 to prove each probe can see them go off; `sddmTwin` has sddm-astronaut on in the base.
 
 ## Run
 
@@ -137,7 +137,7 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | stays on | `myconfig.services.audio`, `services.pipewire`, gnome-keyring, `security.polkit`, NetworkManager, sddm, `power-profiles-daemon`, `programs.gpu-screen-recorder` are `true` in the spec; control: forcing each off in the spec (priority 10) makes the same probe read `false` |
 | sddm theme | `"ryoku"` in the spec; control: base twin (sddm-astronaut on) has another theme |
 | power-profiles-daemon | `true` in the spec; control: the twin base (auto-cpufreq and tlp on) has it forced off |
-| sessions | `ryoku-hyprland`, `ryoku-niri`, `ryoku-mango` provided in the spec; control: absent in the base |
+| sessions | `ryoku-hyprland`, `ryoku-niri` offered by `sessionData.sessionNames` and `ryoku-mango` not (no mango autologin); controls: absent in the base, and Ryoku still adds `ryoku-mango` to `sessionPackages` in the spec |
 
 ## Store independence
 

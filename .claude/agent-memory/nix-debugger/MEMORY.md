@@ -49,3 +49,5 @@
 - [CI NAR resume 416 is transient](project_ci_nar_resume_416_transient.md) - 416 after `retrying from offset`==FileSize -> onnx-src "no substituter" cascade; rerun, same sha was green
 - [Daemon worker OOM on many builds](project_daemon_worker_oom_many_builds.md) - nixpkgs bump = ~4000 local builds (crane crates follow nixpkgs); worker 25 GB vs 57 MB dry-run; progress persists, chunk
 - [cargoSetupHook forces system libs](project_cargo_setup_hook_system_libs.md) - AWS_LC_SYS_USE_SYSTEM etc. forced for all Rust pkgs; missing buildInput = build-script panic (evebox, tectonic)
+- [Test controls coupled to host toggles](project_test_controls_host_toggle_coupling.md) - red "control:" check after a host disables a module = test coupling; move control onto a mkForce variant
+- [Fixture paths miss new krit layer](project_fixture_paths_miss_new_krit_layer.md) - generic->krit refactor adds a new users/krit file; hand-listed fake-host paths drop it (app-resolution neovim-mime)

@@ -53,7 +53,7 @@ in
     hmPortal = hmOn;
     sysPortalNames = common.names (c.xdg.portal.extraPortals ++ c.xdg.portal.configPackages);
     hmPortalNames = if hmOn then common.names (hm.xdg.portal.extraPortals ++ hm.xdg.portal.configPackages) else [ ];
-    sessionNames = lib.sort lib.lessThan (lib.unique (lib.concatMap (p: p.providedSessions or [ ]) c.services.displayManager.sessionPackages));
+    sessionNames = lib.sort lib.lessThan (lib.unique (c.services.displayManager.sessionData.sessionNames or (lib.concatMap (p: p.providedSessions or [ ]) c.services.displayManager.sessionPackages)));
     xdpPath = pkgs.xdg-desktop-portal.outPath;
     sessions = map common.entryDrv c.services.displayManager.sessionPackages;
     sys = map common.entryDrv sysEntries;

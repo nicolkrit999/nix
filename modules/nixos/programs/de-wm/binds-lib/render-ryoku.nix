@@ -68,22 +68,6 @@ let
     in
     "    ${name}${propStr} { ${niriAction bind.action} }";
 
-  mangoKeyNames = {
-    Space = "space";
-    BracketLeft = "bracketleft";
-    BracketRight = "bracketright";
-  };
-
-  mangoKey = k:
-    if builtins.stringLength k == 1 then lib.toLower k else mangoKeyNames.${builtins.unsafeDiscardStringContext k} or k;
-
-  mangoLine = type: line:
-    let
-      parts = lib.splitString "," line;
-      fixed = [ (builtins.elemAt parts 0) (mangoKey (builtins.elemAt parts 1)) ] ++ (lib.drop 2 parts);
-    in
-    "${type}=${join "," fixed}";
-
   header = prefix: [
     "${prefix} Written by the NixOS config (specializations.ryokuBinds). The file is replaced on every rebuild;"
     "${prefix} change the binds in the Nix modules (or the host's extraBinds), not here."
@@ -98,15 +82,5 @@ in
     (header "//") ++ [ "" "binds {" ]
     ++ lib.mapAttrsToList niriBind binds
     ++ [ "}" ]
-  );
-
-  mango = { bind, bindl, bindsl, mousebind, axisbind, gesturebind }: lines (
-    (header "#") ++ [ "" ]
-    ++ map (mangoLine "bind") bind
-    ++ map (mangoLine "bindl") bindl
-    ++ map (mangoLine "bindsl") bindsl
-    ++ map (l: "mousebind=${l}") mousebind
-    ++ map (l: "axisbind=${l}") axisbind
-    ++ map (l: "gesturebind=${l}") gesturebind
   );
 }

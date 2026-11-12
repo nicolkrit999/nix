@@ -32,6 +32,7 @@ let
       ] ++ lib.optionals withKrit [
         (src + "/modules/common/programs/neovim.nix")
         (src + "/users/krit/common/programs/cli-programs/neovim.nix")
+        (src + "/users/krit/nixos/programs/neovim-mime.nix")
         (src + "/users/krit/nixos/programs/file-managers/dolphin.nix")
       ];
       exclude = [ ];

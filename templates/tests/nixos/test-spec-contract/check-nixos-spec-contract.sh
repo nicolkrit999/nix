@@ -155,7 +155,7 @@ run_check "check-ryoku-default-compositor"        "programs.ryoku.defaultComposi
 run_check "check-ryoku-services-stay-on"          "audio, pipewire, keyring, polkit, NM, sddm, PPD, gsr stay on"
 run_check "check-ryoku-sddm-ryoku-theme"          "sddm theme 'ryoku' (base twin: astronaut)"
 run_check "check-ryoku-power-profiles-daemon-on"  "power-profiles-daemon on (base twin: forced off)"
-run_check "check-ryoku-sessions-present"          "ryoku-hyprland/-niri/-mango sessions"
+run_check "check-ryoku-sessions-present"          "ryoku-hyprland/-niri offered, no ryoku-mango"
 
 echo ""
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"

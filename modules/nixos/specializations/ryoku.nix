@@ -106,6 +106,33 @@ let
     exit "$rc"
   '';
 
+  hub = "${inputs.ryoku.packages.${pkgs.stdenv.hostPlatform.system}.ryoku-hub}/bin/ryoku-hub";
+  emblemHash = builtins.substring 0 16 (builtins.hashString "sha256" "${cfg.fastfetchEmblem}");
+
+  fastfetchEmblemScript = pkgs.writeShellScript "ryoku-fastfetch-emblem-seed" ''
+    set -u
+    state="''${XDG_STATE_HOME:-$HOME/.local/state}/ryoku/nix"
+    sentinel="$state/fastfetch-emblem-${emblemHash}"
+    ${coreutils}/mkdir -p "$state"
+    if [ -e "$sentinel" ]; then
+      exit 0
+    fi
+    logo=$(${hub} fastfetch import-logo ${cfg.fastfetchEmblem}) || {
+      echo "ryoku-fastfetch-emblem-seed: import-logo failed, will retry next login" >&2
+      exit 0
+    }
+    model=$(${hub} fastfetch get | ${jq} -c --arg p "$logo" '.logo.kind = "image" | .logo.source = $p | .logo.dither = false') || {
+      echo "ryoku-fastfetch-emblem-seed: reading the fastfetch model failed, will retry next login" >&2
+      exit 0
+    }
+    ${hub} fastfetch save "$model" >/dev/null || {
+      echo "ryoku-fastfetch-emblem-seed: saving the fastfetch config failed, will retry next login" >&2
+      exit 0
+    }
+    ${coreutils}/rm -f "$state/fastfetch-emblem-"*
+    : > "$sentinel"
+  '';
+
   stylixLiteOn = [ "bat" "blender" "cava" "fzf" "gdu" "gedit" "lazygit" "nixcord" "tmux" "zathura" "zen-browser" ];
   stylixLiteOff = [ "gtk" "hyprland" "kde" "kitty" "starship" "swaync" "yazi" ];
 
@@ -175,6 +202,38 @@ delib.module {
         python.general.location in shell are rejected.
       '';
     };
+    fastfetchEmblem = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      description = ''
+        Image used as the Ryoku fastfetch emblem, applied through the Hub's own
+        import (copied to ~/.config/fastfetch/ryoku-logo.<ext>, config.jsonc
+        repointed, layout kept) by the ryoku-fastfetch-emblem-seed user service.
+        Applied once per declared path; Hub choices survive until the path
+        changes. Null does nothing. The logo type stays the one in config.jsonc
+        (kitty-direct needs kitty or ghostty).
+      '';
+    };
+    sddmCursorTheme = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = ''
+        Cursor theme for the SDDM greeter in the Ryoku entry. The nixpkgs SDDM
+        module only sets a cursor for the breeze theme, and the spec has no
+        KDE, so without this the greeter has no cursor theme to load. Null
+        leaves the greeter settings untouched.
+      '';
+    };
+    sddmCursorPackage = lib.mkOption {
+      type = lib.types.nullOr lib.types.package;
+      default = null;
+      description = "Package providing sddmCursorTheme, installed system-wide so the greeter finds it under /run/current-system/sw/share/icons.";
+    };
+    sddmCursorSize = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 24;
+      description = "Cursor size for the SDDM greeter.";
+    };
     settingsMode = lib.mkOption {
       type = lib.types.enum [ "seed-once" "enforce" ];
       default = "seed-once";
@@ -232,6 +291,19 @@ delib.module {
 
     specialisation.ryoku.configuration = { config, pkgs, ... }:
       let
+        dm = config.services.displayManager;
+        sessions = lib.filter (p: !(lib.elem "ryoku-mango" p.providedSessions)) dm.sessionPackages;
+        sessionNames = lib.concatMap (p: p.providedSessions) sessions;
+        desktops = pkgs.runCommand "desktops" { preferLocalBuild = true; allowSubstitutes = false; } ''
+          mkdir -p "$out/share/"{xsessions,wayland-sessions}
+          ${lib.concatMapStrings (pkg: ''
+            for d in xsessions wayland-sessions; do
+              if test -d ${pkg}/share/$d; then
+                ${pkgs.buildPackages.lndir}/bin/lndir ${pkg}/share/$d $out/share/$d
+              fi
+            done
+          '') sessions}
+        '';
         user = config.myconfig.constants.user;
         home = config.users.users.${user}.home;
         group = config.users.users.${user}.group;
@@ -274,6 +346,28 @@ delib.module {
 
         xdg.portal.config = lib.mkForce portalConfig;
 
+        services.displayManager.sessionData = lib.mkForce {
+          inherit desktops sessionNames;
+          autologinSession =
+            if dm.defaultSession != null then dm.defaultSession
+            else if sessionNames != [ ] then lib.head sessionNames
+            else null;
+        };
+
+        environment.systemPackages = lib.optional (cfg.sddmCursorPackage != null) cfg.sddmCursorPackage;
+
+        services.displayManager.sddm.settings = lib.mkIf (cfg.sddmCursorTheme != null) {
+          Theme = {
+            CursorTheme = cfg.sddmCursorTheme;
+            CursorSize = cfg.sddmCursorSize;
+          };
+          General.GreeterEnvironment = lib.concatStringsSep "," (
+            lib.optional (config.services.displayManager.sddm.wayland.compositor == "kwin")
+              "QT_WAYLAND_SHELL_INTEGRATION=layer-shell"
+            ++ [ "XCURSOR_PATH=/run/current-system/sw/share/icons" ]
+          );
+        };
+
         environment.persistence = lib.mkIf config.myconfig.services.impermanence.enable {
           "/persist".directories = [
             { directory = "/var/lib/ryoku"; user = "root"; group = "root"; mode = "0755"; }
@@ -288,6 +382,20 @@ delib.module {
           user.services = {
             kbd-backlight-relight.enable = lib.mkForce false;
             niri-flake-polkit.enable = lib.mkForce false;
+            ryoku-fastfetch-emblem-seed = lib.mkIf (cfg.fastfetchEmblem != null) {
+              description = "Seed the declared Ryoku fastfetch emblem through the Hub import";
+              wantedBy = [ "ryoku-session.target" ];
+              partOf = [ "ryoku-session.target" ];
+              requires = [ "ryoku-materialize.service" ];
+              after = [ "ryoku-materialize.service" ];
+              before = [ "ryoku-shell.service" ];
+              unitConfig.ConditionUser = user;
+              serviceConfig = {
+                Type = "oneshot";
+                RemainAfterExit = true;
+                ExecStart = fastfetchEmblemScript;
+              };
+            };
             ryoku-settings-seed = lib.mkIf hasSettings {
               description = "Seed declared Ryoku settings into the user's JSON stores";
               wantedBy = [ "ryoku-session.target" ];

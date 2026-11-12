@@ -22,8 +22,17 @@ let
     let n = builtins.length (lib.splitString from text) - 1; in
     assert lib.assertMsg (n == 1) "mutation anchor '${from}' matches ${toString n} times";
     builtins.replaceStrings [ from ] [ to ] text;
-  load = text: /. + builtins.unsafeDiscardStringContext (builtins.toFile "ryoku-mutant.nix" (builtins.replaceStrings [ "../toplevel/xdg-portal-config.nix" "../programs/de-wm/binds-lib" ] [ portalFileStr libDirStr ] text));
+  # A derivation (built by the readFile below) instead of builtins.toFile: under lazy trees a
+  # toFile path is virtual, so lib.fileset (denix paths) reports "path does not exist" in CI.
+  pkgs = flake.inputs.nixpkgs.legacyPackages.${builtins.currentSystem};
+  load = text:
+    let f = pkgs.writeText "ryoku-mutant.nix" (builtins.replaceStrings [ "../toplevel/xdg-portal-config.nix" "../programs/de-wm/binds-lib" ] [ portalFileStr libDirStr ] text);
+    in builtins.seq (builtins.readFile f) (/. + builtins.unsafeDiscardStringContext "${f}");
   mutate = from: to: text: load (repl from to text);
+  mutateBoth = from: to: text:
+    let n = builtins.length (lib.splitString from text) - 1; in
+    assert lib.assertMsg (n == 2) "mutation anchor '${from}' matches ${toString n} times, expected 2 (settings and emblem unit)";
+    load (builtins.replaceStrings [ from ] [ to ] text);
 
   mk = { name, user, host, generic ? genericFile, bindsModule ? bindsFile, extra ? [ ] }:
     (denix.lib.configurations {
@@ -45,6 +54,7 @@ let
         (here + "/${host}")
         (here + "/nixos-extra.nix")
         (here + "/option-sinks.nix")
+        (here + "/nixos-sessions.nix")
         (src + "/modules/nixos/toplevel/home-manager.nix")
         (src + "/modules/nixos/config/constants-nixos.nix")
         (src + "/modules/common/config/constants.nix")
@@ -72,6 +82,12 @@ let
     user = "bob";
     host = "host-aarch64.nix";
     generic = mutate "assertion = isX86;" "assertion = true;" genericText;
+  };
+  noMangoFilter = mk {
+    name = "ryoku-bob";
+    user = "bob";
+    host = "host-bob.nix";
+    generic = mutate "lib.filter (p: !(lib.elem \"ryoku-mango\" p.providedSessions)) dm.sessionPackages" "dm.sessionPackages" genericText;
   };
   noVicinaeOff = mk {
     name = "ryoku-bob";
@@ -128,6 +144,10 @@ let
 
   plain = v: lib.concatStringsSep ";" (lib.toList (if v ? _type then v.content else v));
   portalTable = lib.mapAttrs (_: lib.mapAttrs (_: plain)) portalConfig;
+  sessionPkgs = h: (spec h).services.displayManager.sessionPackages;
+  mangoPkgs = h: lib.filter (p: lib.elem "ryoku-mango" p.providedSessions) (sessionPkgs h);
+  otherPkgs = h: lib.filter (p: !(lib.elem "ryoku-mango" p.providedSessions)) (sessionPkgs h);
+  linked = h: p: lib.hasInfix (builtins.unsafeDiscardStringContext (toString p)) (builtins.unsafeDiscardStringContext (spec h).services.displayManager.sessionData.desktops.buildCommand);
   portalOk = h: (spec h).xdg.portal.config == portalTable;
   secretOnce = h: lib.all (d: (spec h).xdg.portal.config.${d}."org.freedesktop.impl.portal.Secret" == "gnome-keyring") [ "hyprland" "niri" "mango" ];
 
@@ -140,7 +160,12 @@ let
   bobNoImp = bob.extendModules { modules = [{ myconfig.services.impermanence.enable = lib.mkOverride 10 false; }]; };
 
   hmServices = c: lib.attrNames c.home-manager.users.${c.myconfig.constants.user}.systemd.user.services;
-  syncUnits = [ "ryoku-dotfiles-sync" "ryoku-nix-sync" ];
+  syncUnits = lib.attrNames probes.repoSyncUnits;
+  privName = "ryoku-dotfiles-private-sync";
+  svc = c: n: c.home-manager.users.${c.myconfig.constants.user}.systemd.user.services.${n};
+  privSvc = c: svc c privName;
+  unitText = c: n: builtins.unsafeDiscardStringContext (builtins.readFile (lib.head (lib.toList (svc c n).Service.ExecStart)));
+  syncBad = mut: lib.filterAttrs (n: u: probes.repoSyncProblems u (mut (unitText (spec bob) n)) == [ ]) probes.repoSyncUnits;
   tmpMentions = u: lib.filter (r: lib.hasInfix " ${u} " r || lib.hasInfix "/home/${u}/" r);
 
   flakeText = builtins.readFile (src + "/flake.nix");
@@ -173,6 +198,31 @@ let
   hashOf = h: st:
     let m = lib.concatMap (l: let r = builtins.match ".*seed ${st} /nix/store/[^ ]+ ([0-9a-f]{16})[ ;].*" l; in lib.optional (r != null) (builtins.head r)) (lib.splitString "\n" (execText h)); in
     if m == [ ] then null else builtins.head m;
+  emblemUnitOf = h: (spec h).systemd.user.services.ryoku-fastfetch-emblem-seed or null;
+  emblemOk = h: u: u != null
+    && lib.elem "ryoku-materialize.service" u.after && lib.elem "ryoku-materialize.service" u.requires
+    && lib.elem "ryoku-shell.service" u.before && lib.elem "ryoku-session.target" u.wantedBy
+    && (u.unitConfig.ConditionUser or null) == ryokuUser h && u.serviceConfig.Type == "oneshot";
+  emblemScriptOk = u: u != null && (
+    let t = builtins.readFile u.serviceConfig.ExecStart; in
+    lib.hasInfix "fastfetch import-logo" t && lib.hasInfix "fastfetch-emblem-" t && probes.sentinelAfterSave t
+  );
+  aliceEmblem = ext alice [{ myconfig.specializations.ryoku.fastfetchEmblem = pkgs.writeText "emblem.png" "x"; }];
+  sentinelLine = "    ${"$"}{coreutils}/rm -f \"$state/fastfetch-emblem-\"*\n    : > \"$sentinel\"\n";
+  noSentinel = mkAlice (mutate sentinelLine "" genericText);
+  sentinelFirst = mkAlice (load (repl "    \${hub} fastfetch save \"$model\"" "    : > \"$sentinel\"\n    \${hub} fastfetch save \"$model\"" (repl sentinelLine "" genericText)));
+  aliceNoSentinel = ext noSentinel [{ myconfig.specializations.ryoku.fastfetchEmblem = pkgs.writeText "emblem.png" "x"; }];
+  aliceSentinelFirst = ext sentinelFirst [{ myconfig.specializations.ryoku.fastfetchEmblem = pkgs.writeText "emblem.png" "x"; }];
+  cursorOpts = { myconfig.specializations.ryoku = { sddmCursorTheme = "Test-Cursor"; sddmCursorPackage = pkgs.hello; sddmCursorSize = 32; }; };
+  aliceCursor = ext alice [ cursorOpts ];
+  aliceKwin = ext alice [ cursorOpts { services.displayManager.sddm.wayland.compositor = "kwin"; } ];
+  noXcursor = mkAlice (mutate "++ [ \"XCURSOR_PATH=/run/current-system/sw/share/icons\" ]" "" genericText);
+  aliceNoXcursor = ext noXcursor [ cursorOpts ];
+  sddmSet = h: (spec h).services.displayManager.sddm.settings;
+  cursorTheme = h: lib.attrByPath [ "Theme" "CursorTheme" ] null (sddmSet h);
+  greeterEnv = h: lib.splitString "," (lib.attrByPath [ "General" "GreeterEnvironment" ] "" (sddmSet h));
+  xcursorEntry = "XCURSOR_PATH=/run/current-system/sw/share/icons";
+  cursorApplied = h: cursorTheme h != null && lib.elem xcursorEntry (greeterEnv h);
   aliceEmpty = ext alice [{ myconfig.specializations.ryoku.settings = lib.mkOverride 10 { }; }];
   rtSettings = {
     desktop.desktop.appearance = { gapsIn = 6; gapsOut = 12; };
@@ -191,9 +241,9 @@ let
   noSecretAssert = withSettings (mkAlice (mutate "secretStores = [ \"hub\" \"i18n-llm\" ];" "secretStores = [ ];" genericText)) { hub.x = 1; };
   noUnknownAssert = withSettings (mkAlice (mutate "assertion = lib.all (n: lib.elem n settingsStores) (lib.attrNames cfg.settings);" "assertion = true;" genericText)) { bogus.x = 1; };
   noLocAssert = withSettings (mkAlice (mutate "assertion = !(lib.hasAttrByPath [ \"python\" \"general\" \"location\" ] (cfg.settings.shell or { }));" "assertion = true;" genericText)) { shell.python.general.location = "x"; };
-  noCondUser = mkAlice (mutate "unitConfig.ConditionUser = user;" "" genericText);
-  noBeforeShell = mkAlice (mutate "before = [ \"ryoku-shell.service\" ];" "before = [ ];" genericText);
-  noAfterMat = mkAlice (mutate "after = [ \"ryoku-materialize.service\" ];" "after = [ ];" genericText);
+  noCondUser = mkAlice (mutateBoth "unitConfig.ConditionUser = user;" "" genericText);
+  noBeforeShell = mkAlice (mutateBoth "before = [ \"ryoku-shell.service\" ];" "before = [ ];" genericText);
+  noAfterMat = mkAlice (mutateBoth "after = [ \"ryoku-materialize.service\" ];" "after = [ ];" genericText);
 
   appsOf = h: h.config.myconfig.specializations.ryoku.settings.desktop.desktop.apps;
   constOf = h: h.config.myconfig.constants;
@@ -213,14 +263,13 @@ let
 
   hmCfg = h: (spec h).home-manager.users.${ryokuUser h};
   hmF = h: (hmCfg h).xdg.configFile;
-  bindFiles = [ "hypr/user.lua" "niri/user.kdl" "mango/user.conf" ];
-  binT = h: { hypr = (hmF h)."hypr/user.lua".text; niri = (hmF h)."niri/user.kdl".text; mango = (hmF h)."mango/user.conf".text; };
+  bindFiles = [ "hypr/user.lua" "niri/user.kdl" ];
+  binT = h: { hypr = (hmF h)."hypr/user.lua".text; niri = (hmF h)."niri/user.kdl".text; };
   bobT = binT bob;
   extraMods = [{
     myconfig.programs = {
       hyprland.extraBinds = [{ _args = [ "SUPER + F12" (lib.generators.mkLuaInline "hl.dsp.window.close()") ]; }];
       niri.extraBinds."Mod+F12".action.close-window = [ ];
-      mango.extraBinds = [ "SUPER,F12,spawn,xx" ];
     };
   }];
   bobExtraT = binT (ext bob extraMods);
@@ -230,7 +279,6 @@ let
         { _args = [ "SUPER + F12" (lib.generators.mkLuaInline "hl.dsp.window.close()") ]; }
         { _args = [ "SUPER + F12" (lib.generators.mkLuaInline "hl.dsp.window.close()") ]; }
       ];
-      mango.extraBinds = [ "SUPER,F12,spawn,xx" "super,F12,spawn,yy" "SUPER,F11,spawn,a,b" ];
     };
   }]);
   noForceBinds = mk {
@@ -374,6 +422,16 @@ let
     "mutant: without the portal mkForce the Ryoku fragments duplicate entries (detected)" =
       yes "mutant still matches the table" (!(portalOk noPortalForce) || !(secretOnce noPortalForce));
 
+    "fixture: the session data offers ryoku-hyprland and ryoku-niri, not ryoku-mango, and does not autologin into it; the spec still receives the ryoku-mango package (control)" =
+      let sd = (spec bob).services.displayManager.sessionData; in
+      yes "sessionNames ${builtins.toJSON sd.sessionNames}, packages ${builtins.toJSON (map (p: p.providedSessions) (sessionPkgs bob))}"
+        (lib.sort lib.lessThan (lib.unique (lib.filter (lib.hasPrefix "ryoku-") sd.sessionNames)) == [ "ryoku-hyprland" "ryoku-niri" ] && sd.autologinSession != "ryoku-mango" && mangoPkgs bob != [ ]);
+    "fixture: the session desktops derivation links the other session packages and leaves the ryoku-mango one out (by build command)" =
+      yes "linked mango ${builtins.toJSON (map (linked bob) (mangoPkgs bob))}, others ${builtins.toJSON (map (linked bob) (otherPkgs bob))}"
+        (otherPkgs bob != [ ] && mangoPkgs bob != [ ] && lib.all (p: !(linked bob p)) (mangoPkgs bob) && lib.all (linked bob) (otherPkgs bob));
+    "mutant: without the ryoku-mango session filter the session data lists ryoku-mango and links its package (detected)" =
+      yes "mutant names ${builtins.toJSON (spec noMangoFilter).services.displayManager.sessionData.sessionNames}"
+        (lib.elem "ryoku-mango" (spec noMangoFilter).services.displayManager.sessionData.sessionNames && lib.all (linked noMangoFilter) (mangoPkgs noMangoFilter) && mangoPkgs noMangoFilter != [ ]);
     "fixture: x86_64 with the spec on: no ryoku assertion fails and programs.ryoku is on" =
       eq "x86 failing ryoku assertions / enable" [ (failingRyoku bob) (spec bob).programs.ryoku.enable ] [ [ ] true ];
     "fixture: aarch64 with the spec on: the arch assertion fails with its message and programs.ryoku stays off" =
@@ -393,6 +451,27 @@ let
       yes "base has them" (!(lib.any (n: lib.elem n (hmServices bob.config)) syncUnits));
     "layer: without the user layer the spec has no clone service" =
       yes "alice spec units ${builtins.toJSON (hmServices (spec alice))}" (!(lib.any (n: lib.elem n (hmServices (spec alice))) syncUnits));
+    "layer: the three repo sync units are one-shot, on-failure, not start-limited, default.target" =
+      yes "unit settings differ"
+        (lib.all (n: let u = svc (spec bob) n; in u.Service.Type == "oneshot" && u.Service.Restart == "on-failure" && u.Unit.StartLimitIntervalSec == 0 && u.Install.WantedBy == [ "default.target" ]) syncUnits);
+    "layer: the three repo sync scripts have the required guards, the right url and transport and none of the destructive commands" =
+      yes "problems ${builtins.toJSON (lib.mapAttrs (n: u: probes.repoSyncProblems u (unitText (spec bob) n)) probes.repoSyncUnits)}"
+        (lib.all (n: probes.repoSyncProblems probes.repoSyncUnits.${n} (unitText (spec bob) n) == [ ]) syncUnits);
+    "mutant: every repo sync script with reset --hard instead of the ff-only merge is detected" =
+      yes "probe silent for ${toString (lib.attrNames (syncBad (lib.replaceStrings [ "merge --quiet --ff-only" ] [ "reset --hard" ])))}"
+        (syncBad (lib.replaceStrings [ "merge --quiet --ff-only" ] [ "reset --hard" ]) == { });
+    "mutant: every repo sync script without the porcelain dirty guard is detected" =
+      yes "probe silent" (syncBad (lib.replaceStrings [ "status --porcelain" ] [ "status" ]) == { });
+    "mutant: every repo sync script with a rm -rf of the target dir is detected" =
+      yes "probe silent" (syncBad (lib.replaceStrings [ "rm -rf \"$tmp\"" ] [ "rm -rf \"$dir\"" ]) == { });
+    "mutant: every repo sync script with a shallow clone is detected" =
+      yes "probe silent" (syncBad (lib.replaceStrings [ "clone --quiet" ] [ "clone --depth 1 --quiet" ]) == { });
+    "mutant: every repo sync script without the unshallow healing is detected" =
+      yes "probe silent" (syncBad (lib.replaceStrings [ "--unshallow" ] [ "--prune" ]) == { });
+    "mutant: the public repo sync scripts with an ssh url or the private one with an https url are detected" =
+      yes "probe silent"
+        (probes.repoSyncProblems probes.repoSyncUnits.ryoku-dotfiles-sync (lib.replaceStrings [ "https://github.com/" ] [ "ssh://git@gitea-ssh.nicolkrit.ch:2222/" ] (unitText (spec bob) "ryoku-dotfiles-sync")) != [ ]
+          && probes.repoSyncProblems probes.repoSyncUnits.${privName} (lib.replaceStrings [ "ssh://git@gitea-ssh.nicolkrit.ch:2222/krit/" ] [ "https://github.com/nicolkrit999/" ] (unitText (spec bob) privName)) != [ ]);
     "layer: only the borg modules are forced off in the spec (base twin has them on)" =
       let
         baseNotOn = lib.filter (p: optOf bob.config p != true) borgPaths;
@@ -439,6 +518,42 @@ let
     "mutant: without ConditionUser, Before ryoku-shell or After ryoku-materialize the unit probe fails (detected)" =
       yes "a mutant still passes: ${builtins.toJSON [ (unitOk noCondUser (unitOf noCondUser)) (unitOk noBeforeShell (unitOf noBeforeShell)) (unitOk noAfterMat (unitOf noAfterMat)) ]}"
         (!(unitOk noCondUser (unitOf noCondUser)) && !(unitOk noBeforeShell (unitOf noBeforeShell)) && !(unitOk noAfterMat (unitOf noAfterMat)));
+    "sddm cursor: the options default to null, null and 24, and without them (alice, no krit layer) the sddm settings have no cursor theme and no XCURSOR_PATH" =
+      yes "defaults ${builtins.toJSON (let o = alice.config.myconfig.specializations.ryoku; in [ o.sddmCursorTheme (o.sddmCursorPackage != null) o.sddmCursorSize ])}, theme ${builtins.toJSON (cursorTheme alice)}, env ${builtins.toJSON (greeterEnv alice)}"
+        (alice.config.myconfig.specializations.ryoku.sddmCursorTheme == null && alice.config.myconfig.specializations.ryoku.sddmCursorPackage == null
+          && alice.config.myconfig.specializations.ryoku.sddmCursorSize == 24
+          && cursorTheme alice == null && !(lib.elem xcursorEntry (greeterEnv alice))
+          && !(sddmSet alice ? Theme && sddmSet alice.Theme ? CursorSize));
+    "sddm cursor: with the krit layer (bob) the spec gets Bibata-Modern-Ice, size 24, XCURSOR_PATH and the package (control)" =
+      yes "theme ${builtins.toJSON (cursorTheme bob)}, env ${builtins.toJSON (greeterEnv bob)}"
+        (cursorTheme bob == "Bibata-Modern-Ice" && (sddmSet bob).Theme.CursorSize == 24 && cursorApplied bob
+          && lib.any (p: (p.pname or "") == "bibata-cursors") (spec bob).environment.systemPackages);
+    "sddm cursor: a host declaring the options gets theme, size, XCURSOR_PATH, the package and /share/icons; weston adds no layer-shell" =
+      yes "theme ${builtins.toJSON (cursorTheme aliceCursor)}, env ${builtins.toJSON (greeterEnv aliceCursor)}"
+        (cursorTheme aliceCursor == "Test-Cursor" && (sddmSet aliceCursor).Theme.CursorSize == 32
+          && greeterEnv aliceCursor == [ xcursorEntry ]
+          && lib.elem (toString pkgs.hello) (map toString (spec aliceCursor).environment.systemPackages)
+          && lib.elem "/share/icons" (spec aliceCursor).environment.pathsToLink);
+    "sddm cursor: the kwin compositor keeps QT_WAYLAND_SHELL_INTEGRATION=layer-shell merged ahead of XCURSOR_PATH" =
+      eq "GreeterEnvironment" (greeterEnv aliceKwin) [ "QT_WAYLAND_SHELL_INTEGRATION=layer-shell" xcursorEntry ];
+    "mutant: GreeterEnvironment without XCURSOR_PATH is detected by the probe" =
+      yes "mutant still applied: ${builtins.toJSON (greeterEnv aliceNoXcursor)}" (!(cursorApplied aliceNoXcursor) && cursorApplied aliceCursor);
+    "emblem: the option defaults to null and the unit does not exist without it (alice, no krit layer)" =
+      yes "default ${builtins.toJSON alice.config.myconfig.specializations.ryoku.fastfetchEmblem}, unit ${builtins.toJSON (emblemUnitOf alice != null)}"
+        (alice.config.myconfig.specializations.ryoku.fastfetchEmblem == null && emblemUnitOf alice == null);
+    "emblem: with the krit layer the value ends in /share/ryoku/ryodecors/hawk.png and the unit exists (control)" =
+      yes "bob ${builtins.toJSON (toString (bob.config.myconfig.specializations.ryoku.fastfetchEmblem or ""))}, unit ${builtins.toJSON (emblemUnitOf bob != null)}"
+        (lib.hasSuffix "/share/ryoku/ryodecors/hawk.png" (toString bob.config.myconfig.specializations.ryoku.fastfetchEmblem) && emblemUnitOf bob != null);
+    "emblem: a declared emblem generates the unit, ordered after ryoku-materialize, before ryoku-shell, wanted by ryoku-session.target, ConditionUser is the spec user" =
+      yes "bob ${builtins.toJSON (emblemOk bob (emblemUnitOf bob))}, alice+emblem ${builtins.toJSON (emblemOk aliceEmblem (emblemUnitOf aliceEmblem))}"
+        (emblemOk bob (emblemUnitOf bob) && emblemOk aliceEmblem (emblemUnitOf aliceEmblem)
+          && (emblemUnitOf aliceEmblem).unitConfig.ConditionUser == "alice-ryoku");
+    "emblem: the script calls import-logo and writes the sentinel only after save (real script passes)" =
+      yes "bob ${builtins.toJSON (emblemScriptOk (emblemUnitOf bob))}, alice+emblem ${builtins.toJSON (emblemScriptOk (emblemUnitOf aliceEmblem))}"
+        (emblemScriptOk (emblemUnitOf bob) && emblemScriptOk (emblemUnitOf aliceEmblem));
+    "mutant: a script without the sentinel write, or with it before save, fails the script probe (detected)" =
+      yes "a mutant still passes: ${builtins.toJSON [ (emblemScriptOk (emblemUnitOf aliceNoSentinel)) (emblemScriptOk (emblemUnitOf aliceSentinelFirst)) ]}"
+        (!(emblemScriptOk (emblemUnitOf aliceNoSentinel)) && !(emblemScriptOk (emblemUnitOf aliceSentinelFirst)));
     "settings: the script has one hash-keyed seed call per declared store, seed-once sentinels, no bare tool, flock only for desktop" =
       let
         t = execText aliceA;
@@ -516,24 +631,23 @@ let
     "mutant: hardcoding kitty in the module fails the foot control (detected)" =
       yes "mutant apps ${builtins.toJSON (appsOf hardKittyFoot)} equal the foot expectation" (appsOf hardKittyFoot != appsOf appsFoot);
 
-    "binds: the spec user gets hypr/user.lua, niri/user.kdl and mango/user.conf with force = true; the base user gets none" =
-      yes "force ${builtins.toJSON (map (n: (hmF bob).${n}.force) bindFiles)}"
-        (lib.all (n: (hmF bob) ? ${n} && (hmF bob).${n}.force == true && !(bob.config.home-manager.users.bob.xdg.configFile ? ${n})) bindFiles);
+    "binds: the spec user gets hypr/user.lua and niri/user.kdl with force = true, no mango/user.conf; the base user gets none" =
+      yes "force ${builtins.toJSON (map (n: (hmF bob).${n}.force) bindFiles)}, mango file ${builtins.toJSON ((hmF bob) ? "mango/user.conf")}"
+        (lib.all (n: (hmF bob) ? ${n} && (hmF bob).${n}.force == true && !(bob.config.home-manager.users.bob.xdg.configFile ? ${n})) bindFiles && !((hmF bob) ? "mango/user.conf"));
     "binds: no vicinae, swayosd, swaync, waybar or grimblast in any rendered file; the legacy-profile mutant leaks vicinae (detected)" =
-      yes "hits ${builtins.toJSON (map probes.legacyHits [ bobT.hypr bobT.niri bobT.mango ])}, mutant ${builtins.toJSON (probes.legacyHits (binT legacyBinds).hypr)}"
-        (lib.all (t: probes.legacyHits t == [ ]) [ bobT.hypr bobT.niri bobT.mango ] && probes.legacyHits (binT legacyBinds).hypr != [ ]);
+      yes "hits ${builtins.toJSON (map probes.legacyHits [ bobT.hypr bobT.niri ])}, mutant ${builtins.toJSON (probes.legacyHits (binT legacyBinds).hypr)}"
+        (lib.all (t: probes.legacyHits t == [ ]) [ bobT.hypr bobT.niri ] && probes.legacyHits (binT legacyBinds).hypr != [ ]);
     "binds: no duplicate chord per file; a repeated host extra bind is flagged (control)" =
-      yes "bob ${builtins.toJSON [ (probes.dups (probes.luaBindChords bobT.hypr)) (probes.dups (probes.niriChords bobT.niri)) (probes.dups (probes.mangoIds bobT.mango)) ]}, dup twin ${builtins.toJSON [ (probes.dups (probes.luaBindChords bobDupT.hypr)) (probes.dups (probes.mangoIds bobDupT.mango)) ]}"
-        (probes.luaBindChords bobT.hypr != [ ] && probes.niriChords bobT.niri != [ ] && probes.mangoIds bobT.mango != [ ]
-          && probes.dups (probes.luaBindChords bobT.hypr) == [ ] && probes.dups (probes.niriChords bobT.niri) == [ ] && probes.dups (probes.mangoIds bobT.mango) == [ ]
-          && probes.dups (probes.luaBindChords bobDupT.hypr) != [ ] && probes.dups (probes.mangoIds bobDupT.mango) != [ ]);
-    "binds: hyprland unbind/bind pairing holds; no comma in mango spawn commands; a comma extra is flagged (control)" =
-      yes "pairing ${builtins.toJSON (probes.luaPairingOk bobT.hypr)}, commas ${builtins.toJSON (probes.mangoSpawnCommaFree bobT.mango)}, comma twin ${builtins.toJSON (probes.mangoSpawnCommaFree bobDupT.mango)}"
-        (probes.luaPairingOk bobT.hypr && probes.mangoSpawnCommaFree bobT.mango && !(probes.mangoSpawnCommaFree bobDupT.mango));
-    "binds: host extra binds (hyprland, niri, mango) reach their files and are absent without them (control)" =
-      yes "extra hit ${builtins.toJSON [ (lib.hasInfix "SUPER + F12" bobExtraT.hypr) (lib.hasInfix "Super+F12" bobExtraT.niri) (lib.hasInfix "SUPER,F12,spawn,xx" bobExtraT.mango) ]}"
-        (lib.hasInfix "SUPER + F12" bobExtraT.hypr && lib.hasInfix "Super+F12" bobExtraT.niri && lib.hasInfix "SUPER,F12,spawn,xx" bobExtraT.mango
-          && !(lib.hasInfix "F12" bobT.hypr) && !(lib.hasInfix "F12" bobT.niri) && !(lib.hasInfix "F12" bobT.mango));
+      yes "bob ${builtins.toJSON [ (probes.dups (probes.luaBindChords bobT.hypr)) (probes.dups (probes.niriChords bobT.niri)) ]}, dup twin ${builtins.toJSON (probes.dups (probes.luaBindChords bobDupT.hypr))}"
+        (probes.luaBindChords bobT.hypr != [ ] && probes.niriChords bobT.niri != [ ]
+          && probes.dups (probes.luaBindChords bobT.hypr) == [ ] && probes.dups (probes.niriChords bobT.niri) == [ ]
+          && probes.dups (probes.luaBindChords bobDupT.hypr) != [ ]);
+    "binds: hyprland unbind/bind pairing holds" =
+      yes "pairing ${builtins.toJSON (probes.luaPairingOk bobT.hypr)}" (probes.luaPairingOk bobT.hypr);
+    "binds: host extra binds (hyprland, niri) reach their files and are absent without them (control)" =
+      yes "extra hit ${builtins.toJSON [ (lib.hasInfix "SUPER + F12" bobExtraT.hypr) (lib.hasInfix "Super+F12" bobExtraT.niri) ]}"
+        (lib.hasInfix "SUPER + F12" bobExtraT.hypr && lib.hasInfix "Super+F12" bobExtraT.niri
+          && !(lib.hasInfix "F12" bobT.hypr) && !(lib.hasInfix "F12" bobT.niri));
     "mutant: without force = true on hypr/user.lua the force probe fails (detected)" =
       yes "mutant still forces" ((hmF noForceBinds)."hypr/user.lua".force == false);
     "binds lib: hyprland yields 98 binds with the recorded anchor chords for a fixed profile; a null launcher changes the count (control)" =
@@ -605,5 +719,6 @@ in
 {
   inherit checks;
   results = lib.mapAttrs (_: safe) checks;
+  privateSyncScript = let p = toString (lib.head (lib.toList (privSvc (spec bob)).Service.ExecStart)); in builtins.seq (builtins.readFile p) p;
   seedScripts = { a = realised aliceA; b = realised aliceB; enforce = realised aliceE; };
 }

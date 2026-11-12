@@ -9,6 +9,7 @@ let
       ({ lib, ... }: {
         myconfig.krit.programs.librewolf.enable = lib.mkForce true;
         myconfig.krit.programs.firefox.enable = lib.mkForce true;
+        myconfig.programs.thunderbird.enable = lib.mkForce true;
       })
     ];
   };
@@ -81,10 +82,6 @@ in
   check-base-sys-activation = checkClean "base: no ${linuxHome} in system.activationScripts" (hits (sysActivation host.config));
   check-base-sys-env = checkClean "base: no ${linuxHome} in environment.variables" (hits (sysEnv host.config));
   check-base-sops-template-paths = checkClean "base: no ${linuxHome} in sops.templates paths" (hits (sopsTemplatePaths host.config));
-  check-base-sops-template-control =
-    check "control: sops.templates sweep sees a path under /Users"
-      (builtins.any (p: lib.hasPrefix "/Users/" p) (builtins.attrValues (sopsTemplatePaths host.config)))
-      "paths ${builtins.toJSON (sopsTemplatePaths host.config)}";
   check-base-sys-activation-control =
     check "control: system.activationScripts sweep sees a /Users path"
       (builtins.any (t: lib.hasInfix "/Users/" t) (builtins.attrValues (sysActivation host.config)))
@@ -109,6 +106,11 @@ in
   check-variant-xdg-texts = checkClean "variant: no ${linuxHome} in xdg.configFile texts" (hits (xdgTexts variant.config));
   check-variant-session-vars = checkClean "variant: no ${linuxHome} in home.sessionVariables" (hits (sessionVars variant.config));
   check-variant-hm-activation = checkClean "variant: no ${linuxHome} in home.activation" (hits (hmActivation variant.config));
+  check-variant-sops-template-paths = checkClean "variant: no ${linuxHome} in sops.templates paths" (hits (sopsTemplatePaths variant.config));
+  check-variant-sops-template-control =
+    check "control: variant sops.templates sweep sees a path under /Users"
+      (builtins.any (p: lib.hasPrefix "/Users/" p) (builtins.attrValues (sopsTemplatePaths variant.config)))
+      "paths ${builtins.toJSON (sopsTemplatePaths variant.config)}";
   check-variant-sys-activation = checkClean "variant: no ${linuxHome} in system.activationScripts" (hits (sysActivation variant.config));
   check-variant-firefox-user-js =
     checkClean "variant: no ${linuxHome} in Firefox/LibreWolf user.js" (hits varUserJs);

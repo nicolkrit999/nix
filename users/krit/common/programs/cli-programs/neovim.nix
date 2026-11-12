@@ -39,12 +39,16 @@ delib.module {
       wl-clipboard
       xdg-utils
     ]
+    # marksman needs dotnet; on aarch64-darwin dotnet-vmr is compiled from
+    # source (not cached) and blew the CI build-darwin timeout (run 43266946639)
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+      marksman
+    ]
     ++ [
       # --- Language Servers (LSP) ---
       bash-language-server
       ltex-ls-plus
       lua-language-server
-      marksman
       nixd
       pyright
       typos-lsp
