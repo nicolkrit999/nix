@@ -72,17 +72,17 @@ delib.host {
         fzf.nix-search-tv.enable = true;
         television.enable = true;
         zoxide.enable = true;
-        headroom.enable = true;
+        headroom.enable = false;
         agent-reach = {
           enable = true;
           browserChannels = false;
         };
         # mcpSecrets / mcpEnv default in users/krit/common/programs/claude-code/claude-code-personal.nix
         claude-code.enable = true;
-        vikunja-desktop.enable = true;
+        vikunja-desktop.enable = false;
 
         thunderbird = {
-          enable = true;
+          enable = false;
           sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
           accounts = [
             {
@@ -105,7 +105,7 @@ delib.host {
           ];
         };
 
-        codex.enable = true;
+        codex.enable = false;
         herdr.enable = true;
         npm = {
           enable = true;
@@ -114,7 +114,7 @@ delib.host {
           ];
           hostPackages = [ ];
         };
-        prismlauncher.enable = true;
+        prismlauncher.enable = false;
         shell-aliases.enable = true;
         sidra.enable = false;
       };
@@ -137,7 +137,6 @@ delib.host {
         dotfiles-private.enable = true;
       };
 
-
       # ---------------------------------------------------------------
       # 🍎 DARWIN-ONLY MODULES
       # ---------------------------------------------------------------
@@ -151,7 +150,7 @@ delib.host {
           # Disabled: see the constants.browser note above.
           firefox.enable = false;
           librewolf.enable = false;
-          yazi.enable = true;
+          yazi.enable = false;
           proton-cli.enable = true;
           ranger.enable = false;
           claude-code-personal.enable = true;
@@ -164,7 +163,7 @@ delib.host {
         services = {
           nas = {
             Krits-MacBook-Pro-borg-backup.enable = true;
-            opencloud.enable = false;
+            opencloud.enable = true;
             smb.enable = true;
             sshfs.enable = false;
           };
