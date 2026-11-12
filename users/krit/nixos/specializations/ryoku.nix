@@ -178,14 +178,43 @@ delib.module {
 
         home-manager.users.${user} = { pkgs, ... }: {
           # Wins over Ryoku's ryoku-fastfetch in PATH (/etc/profiles/per-user precedes /run/current-system/sw) for the bash, zsh and
-          # fish greetings alike: the image logo only works in a plain kitty or ghostty window, multiplexer panes hang or lose it.
+          # fish greetings alike. Image protocols do not pass through multiplexers (the chafa branch hangs panes), so outside a plain
+          # kitty or ghostty window the Hub-chosen emblem is rendered once to a text sprite and shown as a file-raw logo.
           home.packages = [
             (pkgs.writeShellScriptBin "ryoku-fastfetch" ''
               real=${inputs.ryoku.packages.${pkgs.stdenv.hostPlatform.system}.ryoku-desktop-data}/bin/ryoku-fastfetch
               if { [ -n "''${KITTY_WINDOW_ID:-}" ] || [ "''${TERM:-}" = xterm-kitty ] || [ "''${TERM:-}" = xterm-ghostty ] || [ "''${TERM_PROGRAM:-}" = ghostty ]; } && [ -z "''${TMUX:-}" ]; then
                 exec "$real" "$@"
               fi
-              exec "$real" --logo-type none "$@"
+              cfg="''${XDG_CONFIG_HOME:-$HOME/.config}/fastfetch/config.jsonc"
+              logo=()
+              if [ -r "$cfg" ]; then
+                json=$(${pkgs.gnused}/bin/sed 's#^[[:space:]]*//.*$##' "$cfg")
+                src=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.source // empty' 2>/dev/null)
+                w=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.width // 28' 2>/dev/null)
+                h=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.height // 14' 2>/dev/null)
+                case "$src" in "~/"*) src="$HOME/''${src#\~/}" ;; esac
+                if [ -n "$src" ] && [ -r "$src" ]; then
+                  key=$(printf '%s' "$src $(${pkgs.coreutils}/bin/stat -c '%Y %s' "$src") $w $h" | ${pkgs.coreutils}/bin/sha256sum | ${pkgs.coreutils}/bin/cut -c1-16)
+                  cache="''${XDG_CACHE_HOME:-$HOME/.cache}/ryoku/fastfetch-logo-$key.txt"
+                  if [ ! -s "$cache" ]; then
+                    ${pkgs.coreutils}/bin/mkdir -p "''${cache%/*}"
+                    tmp=$(${pkgs.coreutils}/bin/mktemp "$cache.XXXXXX")
+                    if ${pkgs.chafa}/bin/chafa --format symbols --size "''${w}x''${h}" --animate off --polite on "$src" > "$tmp" 2>/dev/null && [ -s "$tmp" ]; then
+                      ${pkgs.coreutils}/bin/mv -f "$tmp" "$cache"
+                    else
+                      ${pkgs.coreutils}/bin/rm -f "$tmp"
+                    fi
+                  fi
+                  if [ -s "$cache" ]; then
+                    logo=(--logo "$cache" --logo-type file-raw)
+                  fi
+                fi
+              fi
+              if [ "''${#logo[@]}" -eq 0 ]; then
+                logo=(--logo-type none)
+              fi
+              exec "$real" "''${logo[@]}" "$@"
             '')
           ];
 
