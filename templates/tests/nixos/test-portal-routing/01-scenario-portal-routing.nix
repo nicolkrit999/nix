@@ -27,6 +27,7 @@ lib.mapAttrs
         ++ lib.optional x.desktopManager.xfce.enable "xfce"
         ++ lib.optional x.windowManager.icewm.enable "icewm";
       hmPortal = hmOn;
+      ryoku = c.programs.ryoku.enable or false;
     };
     portalConfig = c.xdg.portal.config;
     hmPortalConfig = hm.xdg.portal.config;

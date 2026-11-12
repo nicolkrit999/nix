@@ -29,7 +29,7 @@ delib.module {
         }
       ];
 
-      sops.secrets.nas_ssh_key.sopsFile = ../../../common/sops/${user}-common-secrets-sops.yaml;
+      sops.secrets.nas_ssh_key.sopsFile = ../../../common/sops/krit-common-secrets-sops.yaml;
       myconfig.krit.services.nas.sshfs.identityFile = lib.mkDefault config.sops.secrets.nas_ssh_key.path;
 
       environment.systemPackages = [ pkgs.sshfs ];

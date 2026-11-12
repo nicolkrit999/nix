@@ -2,7 +2,9 @@
 
 Verifies that every specialization's `lib.mkForce` overrides actually land in the evaluated config.
 
-The fake host enables only the features that specializations override. `shared/nixos-extra-x86_64/guest-base.nix` imports the real impermanence and sops-nix modules and gives the base the values the guest specialisation overrides (ssh, avahi, docker, podman, `allowed-users`, PAT secret mode, a persisted linger dir). Every check reads back the option value (or config artifact) from the specialization's configuration and asserts it matches the forced value. Nearly every check also has a built-in control: it FAILs if the base host (no specialization) already had the expected value, so an override that changes nothing can no longer pass (the `.xinitrc` content check is the exception). Whether the host itself enables a program is never asserted.
+The fake host enables only the features that specializations override. `shared/nixos-extra-x86_64/guest-base.nix` imports the real sops-nix module (the impermanence module comes in through `services.impermanence`) and gives the base the values the guest specialisation overrides (ssh, avahi, docker, podman, `allowed-users`, PAT secret mode, a persisted linger dir). Every check reads back the option value (or config artifact) from the specialization's configuration and asserts it matches the forced value. Nearly every check also has a built-in control: it FAILs if the base host (no specialization) already had the expected value, so an override that changes nothing can no longer pass (the `.xinitrc` content check is the exception). Whether the host itself enables a program is never asserted.
+
+The ryoku specialisation is checked on twins: `ryokuAllOn` is the same fixture with all 27 options of the explicit force-off list set ON (`mkOverride 60 true`), so a force-off missing from `modules/nixos/specializations/ryoku.nix` fails (the shared base cannot carry them, because the secure-travel and entertainment checks need gnome and kde OFF in the base). `ryokuProbeTwin` forces the "stays on" options false in the spec at priority 10 to prove each probe can see them go off; `sddmTwin` has sddm-astronaut on in the base.
 
 ## Run
 
@@ -20,7 +22,7 @@ bash check-nixos-spec-contract.sh
 
 ## How it works
 
-`01-scenario-spec-contract.nix` builds a fake host (see `shared/host-spec-contract.nix`; it enables only what the specialisations override, plus the modules that merely declare the options `school.nix` sets: sops-secrets, ext-dotfiles, zen-browser, sddm-astronaut/pixie, rclone-mount, yazi-keymap with a `shared/nixos-extra-x86_64/yazi-enable-stub.nix` that only declares `krit.programs.yazi.enable`) then exposes
+`01-scenario-spec-contract.nix` builds a fake host (see `shared/host-spec-contract.nix`; it enables only what the specialisations override, plus the real modules whose options the ryoku force-off list names (impermanence, audio, qt, starship, swayosd, vicinae, walker, skwd-wall, waybar-mango/-niri, auto-cpufreq, tlp) and the krit layers of guest and secure-travel (`users/krit/nixos/specializations/*.nix`, which hold the personal force-offs such as `claude-code-wrappers`) and the modules that merely declare the options `school.nix` sets: sops-secrets, ext-dotfiles, zen-browser, sddm-astronaut/pixie, rclone-mount, yazi-keymap with a `shared/nixos-extra-x86_64/yazi-enable-stub.nix` that only declares `krit.programs.yazi.enable`) then exposes
 check results as strings (`"ok"` / `"FAIL: ..."`).
 
 `check-nixos-spec-contract.sh` calls `nix eval --raw --impure` for each attribute and reports pass/fail.
@@ -121,6 +123,21 @@ check results as strings (`"ok"` / `"FAIL: ..."`).
 | Check | Expected |
 |-------|----------|
 | `hyprland.monitors` | differs from base, non-empty, each entry has `output` and `mode` |
+
+### ryoku
+| Check | Expected |
+|-------|----------|
+| `programs.*` force-off (17: cosmic, gnome, hyprland, kde, mango, niri, caelestia, noctalia, skwdWall, vicinae, walker, swayosd, waybar-hyprland, waybar-mango, waybar-niri, fastfetch, starship) | `false` in the spec; control: the twin base has every one `true` |
+| `services.*` force-off (7: auto-cpufreq, coffee, hypridle, sddm-astronaut, sddm-pixie, swaync, tlp) | `false` in the spec; control: twin base `true` |
+| `qt`, `bluetooth` | `false` in the spec; control: twin base `true` (stylix is no longer forced off: the spec runs stylix-lite, see test-spec-ryoku) |
+| `constants.theme.catppuccin` | `false` (twin base `true`) |
+| `programs.ryoku.enable` | `true` in the spec only (control: declared, `false` in the base) |
+| `constants.user` | `<base user>-ryoku`, differs from the base user |
+| `programs.ryoku.defaultCompositor` | `"hyprland"` (base `null`) |
+| stays on | `myconfig.services.audio`, `services.pipewire`, gnome-keyring, `security.polkit`, NetworkManager, sddm, `power-profiles-daemon`, `programs.gpu-screen-recorder` are `true` in the spec; control: forcing each off in the spec (priority 10) makes the same probe read `false` |
+| sddm theme | `"ryoku"` in the spec; control: base twin (sddm-astronaut on) has another theme |
+| power-profiles-daemon | `true` in the spec; control: the twin base (auto-cpufreq and tlp on) has it forced off |
+| sessions | `ryoku-hyprland`, `ryoku-niri`, `ryoku-mango` provided in the spec; control: absent in the base |
 
 ## Store independence
 

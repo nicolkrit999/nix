@@ -7,22 +7,24 @@ let
       (_: h: h.nixos != { } && (h.myconfig.krit.system.ssh-config.enable or false) == true)
       myconfig.hosts));
 
-  mkPeerSettings = user: peers:
+  peerUser = myconfig: p: myconfig.hosts.${p}.myconfig.constants.user;
+
+  mkPeerSettings = myconfig: user: peers:
     lib.genAttrs peers (p: {
       HostName = p;
       IdentityFile = "/home/${user}/.ssh/id_github";
       IdentitiesOnly = "yes";
-      User = user;
+      User = peerUser myconfig p;
     });
 
-  mkPeerExtra = user: peers:
+  mkPeerExtra = myconfig: user: peers:
     lib.concatMapStrings
       (p: ''
         Host ${p}
           HostName ${p}
           IdentityFile /home/${user}/.ssh/id_github
           IdentitiesOnly yes
-          User ${user}
+          User ${peerUser myconfig p}
 
       '')
       peers;
@@ -60,7 +62,7 @@ delib.module {
       hostType = n: myconfig.hosts.${n}.type;
       builders = lib.filter (n: hostType n == "desktop") peers;
       flakeDir = "~/${myconfig.constants.flakeDir}";
-      remoteBuild = verb: "nh os ${verb} ${flakeDir} --hostname ${myconfig.constants.hostname} --build-host ${user}@${lib.head builders}";
+      remoteBuild = verb: "nh os ${verb} ${flakeDir} --hostname ${myconfig.constants.hostname} --build-host ${peerUser myconfig (lib.head builders)}@${lib.head builders}";
       buildAliases = lib.optionalAttrs
         (hostType myconfig.constants.hostname == "laptop" && builders != [ ] && myconfig.nh.enable)
         {
@@ -96,7 +98,7 @@ delib.module {
           IdentityFile /home/${myconfig.constants.user}/.ssh/id_github
           IdentitiesOnly yes
           Port 2222
-      '' + "\n" + mkPeerExtra user peers + lib.optionalString cfg.gatewayAlias ''
+      '' + "\n" + mkPeerExtra myconfig user peers + lib.optionalString cfg.gatewayAlias ''
 
       # UniFi Cloud Gateway Fiber console shell - convenience alias so
       # `ssh gateway` works without -i. Key is a manually-generated,
@@ -111,11 +113,7 @@ delib.module {
         IdentitiesOnly yes
     '';
 
-      # Manage ~/.ssh/config via home-manager so switching away from the school
-      # specialization (which also sets programs.ssh) properly rewrites the file.
-      # Without this, the school spec's ~/.ssh/config symlink persists in the
-      # default profile because home-manager only cleans up files it previously
-      # owned in the same activation chain.
+      # Manage ~/.ssh/config via home-manager so leaving the school specialization rewrites the file.
       home-manager.users.${myconfig.constants.user} = _: {
         home.shellAliases =
           lib.listToAttrs (map (p: lib.nameValuePair "ssh-${p}" "ssh ${p}") peers)
@@ -124,7 +122,7 @@ delib.module {
           enable = true;
           enableDefaultConfig = false;
           settings = mkSshSettings myconfig.constants.user
-            // mkPeerSettings myconfig.constants.user peers
+            // mkPeerSettings myconfig myconfig.constants.user peers
             // lib.optionalAttrs cfg.gatewayAlias {
             # UniFi Cloud Gateway Fiber console shell - see matching comment on
             # the system-wide extraConfig block above.
@@ -139,20 +137,9 @@ delib.module {
       };
     };
 
-  # Standalone home-manager builds (e.g. Nicol-NAS) have no NixOS system layer
-  # to hold `programs.ssh.knownHosts` / the system-wide `programs.ssh.extraConfig`
-  # / tmpfiles rule - those are all NixOS-only
-  # options. Only the pieces with a home-manager equivalent are ported:
-  #   - the pinned gitea host key via ~/.ssh/known_hosts (home-manager's own
-  #     programs.ssh has no `knownHosts` option, unlike the NixOS module)
-  #   - the same ~/.ssh/config matchBlocks as the NixOS path
-  # The tmpfiles rule that pre-creates ~/.ssh 0700 is skipped: home-manager's
-  # own activation creates parent dirs for the files it manages.
+  # Standalone home builds have no NixOS layer: only the pinned known_hosts and ssh config are ported; tmpfiles is skipped.
   #
-  # Guarded via a plain `if moduleSystem == "home"`, NOT `lib.mkIf` - see the
-  # matching comment in git-ssh-signing.nix / feedback_delib_home_ifenable_patterns
-  # memory for why `lib.mkIf` is unsafe here (structurally-present option
-  # paths on NixOS/Darwin builds where they'd never be declared).
+  # Plain `if`, not lib.mkIf: mkIf leaves option paths structurally present on NixOS/Darwin.
   home.ifEnabled =
     { myconfig, ... }:
     if moduleSystem == "home" then
@@ -160,14 +147,7 @@ delib.module {
         user = myconfig.constants.user;
       in
       {
-        # Pinned host keys (gitea + GitHub's official keys, see
-        # https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints).
-        # This file is a home-manager-managed store symlink and therefore
-        # read-only at runtime - ssh can never append newly-trusted hosts to
-        # it (TOFU). UserKnownHostsFile below points ssh at this pinned file
-        # *and* a second, writable `known_hosts.local` so ad-hoc hosts (e.g.
-        # `ssh -T git@github.com` before this pin existed, or any other new
-        # host) can actually be persisted instead of re-prompting forever.
+        # Pinned keys (gitea + GitHub official); the file is a read-only store symlink, so known_hosts.local takes new hosts.
         home.file.".ssh/known_hosts".text = ''
           [gitea-ssh.nicolkrit.ch]:2222 ${giteaHostKey}
           github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
@@ -180,9 +160,7 @@ delib.module {
           enableDefaultConfig = false;
           settings = mkSshSettings user // {
             "*" = {
-              # Managed (read-only) known_hosts first, then a writable
-              # sibling file so ssh's TOFU prompt for brand-new hosts can
-              # actually append somewhere instead of failing every time.
+              # Writable sibling so TOFU can append new hosts.
               UserKnownHostsFile = "~/.ssh/known_hosts ~/.ssh/known_hosts.local";
             };
           };

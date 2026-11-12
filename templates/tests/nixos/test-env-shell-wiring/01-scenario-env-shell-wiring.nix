@@ -5,10 +5,12 @@ let
 
   fx = import ../../lib/fixture-host.nix flake;
   sys = fx.mkNixos [{
-    myconfig.constants.shell = "zsh";
-    myconfig.constants.editor = "kate";
-    myconfig.constants.browser = "fixture-browser";
-    myconfig.constants.terminal.name = "fixture-terminal";
+    myconfig.constants = {
+      shell = "zsh";
+      editor = "kate";
+      browser = "fixture-browser";
+      terminal.name = "fixture-terminal";
+    };
   }];
   baseCfg = sys.config;
   user = baseCfg.myconfig.constants.user;
@@ -75,18 +77,28 @@ let
     editors;
 
   roleTwin = twin [{
-    myconfig.constants.browser = ov "browser-twin";
-    myconfig.constants.terminal.name = ov "terminal-twin";
+    myconfig.constants = {
+      browser = ov "browser-twin";
+      terminal.name = ov "terminal-twin";
+    };
   }];
   serverTwin = twin [{
-    myconfig.host.isServer = ov true;
-    myconfig.constants.browser = ov "browser-twin";
-    myconfig.constants.terminal.name = ov "terminal-twin";
+    myconfig = {
+      host.isServer = ov true;
+      constants = {
+        browser = ov "browser-twin";
+        terminal.name = ov "terminal-twin";
+      };
+    };
   }];
   desktopTwin = twin [{
-    myconfig.host.isServer = ov false;
-    myconfig.constants.browser = ov "browser-twin";
-    myconfig.constants.terminal.name = ov "terminal-twin";
+    myconfig = {
+      host.isServer = ov false;
+      constants = {
+        browser = ov "browser-twin";
+        terminal.name = ov "terminal-twin";
+      };
+    };
   }];
   roleChecks = {
     "env: BROWSER follows constants.browser (desktop)" = eq "BROWSER" (envOf desktopTwin).BROWSER "browser-twin";
@@ -125,6 +137,60 @@ let
       eq "backupCoherent (twin)" (backupCoherent extTwin) false;
   };
 
+  initOf = s: c:
+    let p = (hmOf c).programs; in
+    if s == "bash" then p.bash.initExtra
+    else if s == "zsh" then p.zsh.initContent
+    else p.fish.interactiveShellInit;
+  wrapMarker = "# SETUID WRAPPERS FIRST ON PATH";
+  tmuxBlocks = {
+    bash = ''
+      # TMUX AUTOSTART
+      if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -z "$NVIM" ] && [ -z "$HERDR_PANE_ID" ] && [ -z "$HC_TERMINAL_ID" ] && [ -n "$DISPLAY" ]; then
+        tmux new-session -A -s main
+      fi
+    '';
+    zsh = ''
+      # TMUX AUTOSTART (Only in GUI)
+      if command -v tmux > /dev/null && [ -z "$TMUX" ] && [ -z "$NVIM" ] && [ -z "$HERDR_PANE_ID" ] && [ -z "$HC_TERMINAL_ID" ] && [ -n "$DISPLAY" ]; then
+        tmux new-session -A -s main
+      fi
+    '';
+    fish = ''
+      # TMUX AUTOSTART (GUI only on NixOS, always on Darwin)
+      if command -v tmux > /dev/null; and not set -q TMUX; and not set -q NVIM; and not set -q HERDR_PANE_ID; and not set -q HC_TERMINAL_ID; and set -q DISPLAY
+        tmux new-session -A -s main
+      end
+    '';
+  };
+  wrapLines = {
+    bash = ''PATH="/run/wrappers/bin''${_wrap_path:+:''${_wrap_path%:}}"'';
+    zsh = ''path=(/run/wrappers/bin ''${path:#/run/wrappers/bin})'';
+    fish = ''set -gx PATH /run/wrappers/bin (string match -v -- /run/wrappers/bin $PATH)'';
+  };
+  tmuxMarker = "# TMUX AUTOSTART";
+  beforeTmux = txt: builtins.elemAt (lib.splitString tmuxMarker txt) 0;
+  hasWrapBeforeTmux = s: txt:
+    let pre = beforeTmux txt; in
+    lib.hasInfix wrapMarker pre && lib.hasInfix wrapLines.${s} pre && lib.hasInfix "-d /run/wrappers/bin" pre;
+  hasTmuxBlock = s: txt: lib.hasInfix tmuxBlocks.${s} txt && !(lib.hasInfix "wrappers" tmuxBlocks.${s});
+  wrapChecks = lib.concatMapAttrs
+    (s: _:
+      let txt = initOf s (shellTwin s); in {
+        "path: ${s} init puts /run/wrappers/bin first when the dir exists" =
+          yes "${s} init lacks the guarded wrappers-first snippet" (lib.hasInfix wrapMarker txt && lib.hasInfix wrapLines.${s} txt);
+        "path: ${s} wrappers snippet sits before and outside the tmux autostart block" =
+          yes "${s} snippet not ahead of the tmux block" (hasWrapBeforeTmux s txt);
+        "tmux: ${s} autostart block is unchanged (HERDR_PANE_ID / HC_TERMINAL_ID / NVIM / DISPLAY guards)" =
+          yes "${s} tmux autostart block differs from the recorded one" (hasTmuxBlock s txt);
+      })
+    shells // {
+    "control: wrappers predicate fails on init text without the snippet" =
+      eq "hasWrapBeforeTmux (snippet removed)" (hasWrapBeforeTmux "bash" (lib.replaceStrings [ wrapMarker ] [ "# X" ] (initOf "bash" (shellTwin "bash")))) false;
+    "control: tmux predicate fails on a block with the herdr guard removed" =
+      eq "hasTmuxBlock (HERDR guard removed)" (hasTmuxBlock "zsh" (lib.replaceStrings [ " && [ -z \"$HERDR_PANE_ID\" ]" ] [ "" ] (initOf "zsh" (shellTwin "zsh")))) false;
+  };
+
   btTwin = on: x: twin [{ myconfig.bluetooth.enable = ov on; myconfig.bluetooth.autoEnableOnBoot = ov x; }];
   zrTwin = on: p: twin [{ myconfig.zram.enable = ov on; myconfig.zram.zramPercent = ov p; }];
   hwChecks = {
@@ -140,7 +206,7 @@ let
 
   fixtureChecks = baseChecks // envChecks // hmChecks
     // { "control: check helper detects mismatch" = yes "helper broken" (lib.hasPrefix "FAIL" (eq "x" 1 2)); };
-  twinChecks = shellChecks // editorChecks // roleChecks // hmTwinChecks // hwChecks;
+  twinChecks = shellChecks // wrapChecks // editorChecks // roleChecks // hmTwinChecks // hwChecks;
   checks = fixtureChecks // twinChecks;
 
   safe = v: let t = builtins.tryEval (builtins.deepSeq v v); in if t.success then t.value else "FAIL: eval error";

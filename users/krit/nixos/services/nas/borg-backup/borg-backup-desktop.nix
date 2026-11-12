@@ -136,10 +136,15 @@ delib.module {
             "/home/*/.config/libreoffice/*/cache"
             "/home/*/.config/sops/*"
             "/home/*/.config/yazi/*"
+            "/home/*/.local/share/.quickshell-lockscreen.*" # Ryoku lockscreen temp files
             "/home/*/.local/share/containers" # Podman/Containers cache
             "/home/*/.local/share/nvim"
+            "/home/*/.local/share/qylock/themes" # Ryoku, re-downloadable
+            "/home/*/.local/share/ryogami/lens/models" # Ryoku, re-downloadable models
+            "/home/*/.local/share/skwd-lens/models" # Ryoku, re-downloadable models
             "/home/*/.local/share/TelegramDesktop/tdata/emoji"
             "/home/*/.local/share/TelegramDesktop/tdata/temp"
+            "/home/*/.local/share/voxtype/models" # Ryoku, re-downloadable models
             "/home/*/.local/share/Zeal" # Offline doc sets (re-downloadable)
 
             # Claude desktop

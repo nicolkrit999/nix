@@ -20,6 +20,18 @@ delib.module {
         enable = true;
         initExtra =
           lib.optionalString isNixOS ''
+            # SETUID WRAPPERS FIRST ON PATH
+            if [ -d /run/wrappers/bin ]; then
+              _wrap_path=":$PATH:"
+              while [[ "$_wrap_path" == *:/run/wrappers/bin:* ]]; do
+                _wrap_path="''${_wrap_path/:\/run\/wrappers\/bin:/:}"
+              done
+              _wrap_path="''${_wrap_path#:}"
+              PATH="/run/wrappers/bin''${_wrap_path:+:''${_wrap_path%:}}"
+              export PATH
+              unset _wrap_path
+            fi
+
             # FIX HYPRLAND SOCKET
             if [ -d "/run/user/$(id -u)/hypr" ]; then
               SOCKET_FILE=$(find /run/user/$(id -u)/hypr/ -name ".socket.sock" -print -quit)

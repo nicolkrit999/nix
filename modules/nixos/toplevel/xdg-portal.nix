@@ -5,8 +5,7 @@
 , ...
 }:
 let
-  # Only the manifest-only gnome-keyring portal and the wlr patch use UseIn;
-  # xdp 1.22 reads it solely in its deprecated fallback, config routes ignore it.
+  # UseIn is only a deprecated xdp 1.22 fallback; see the xdg-desktop-portal gotcha doc.
   secretUseIn = "GNOME;KDE;COSMIC;Hyprland;niri;mango;sway;wlroots;X-Cinnamon;LXQt;XFCE;MATE";
   wlrDesktops = "mango;sway;wlroots";
 
@@ -20,9 +19,7 @@ let
     '';
   });
 
-  # Manifest-only: routes org.freedesktop.impl.portal.Secret to the running
-  # gnome-keyring. The full package is not added because its (non-setcap)
-  # org.freedesktop.secrets.service would shadow the system one.
+  # Manifest-only: the full package's secrets.service would shadow the system one.
   gnomeKeyringPortal = pkgs.runCommand "gnome-keyring-portal-manifest" { } ''
     mkdir -p $out/share/xdg-desktop-portal/portals
     cat > $out/share/xdg-desktop-portal/portals/gnome-keyring.portal <<EOF
@@ -39,42 +36,7 @@ let
     then patchPortalPkg wlrDesktops pkgs pkgs.xdg-desktop-portal-wlr
     else pkgs.xdg-desktop-portal-wlr;
 
-  secretPortal = { "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ]; };
-
-  # "none" stops xdp's deprecated UseIn fallback from picking a backend that
-  # belongs to another desktop (kde, or hyprland under mango:wlroots).
-  noRoutes = names: lib.genAttrs (map (n: "org.freedesktop.impl.portal.${n}") names) (_: [ "none" ]);
-  sessionOnlyNames = [ "Background" "GlobalShortcuts" "RemoteDesktop" "Clipboard" "InputCapture" "Usb" ];
-
-  # xdg-desktop-portal lowercases XDG_CURRENT_DESKTOP before looking up <desktop>-portals.conf,
-  # so these keys must be lowercase.
-  portalConfig = {
-    hyprland = {
-      default = [ "hyprland" "gtk" ];
-    } // secretPortal;
-    kde = {
-      default = [ "kde" "gtk" ];
-      "org.freedesktop.impl.portal.Notification" = [ "plasmanotify" "gtk" ];
-    } // secretPortal;
-    gnome = { default = [ "gnome" "gtk" ]; } // secretPortal;
-    cosmic = { default = [ "cosmic" "gtk" ]; } // noRoutes sessionOnlyNames // secretPortal;
-    niri = {
-      default = [ "gnome" "gtk" ];
-      "org.freedesktop.impl.portal.Access" = [ "gtk" ];
-      "org.freedesktop.impl.portal.Notification" = [ "gtk" ];
-      "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-    } // secretPortal;
-    # The mango flake sets the same Secret value; mkForce avoids a duplicated list.
-    mango = {
-      default = [ "gtk" ];
-      "org.freedesktop.impl.portal.Secret" = lib.mkForce [ "gnome-keyring" ];
-      # mkForce: see Documentation/usage/gotchas/xdg-desktop-portal-nixos.md
-      "org.freedesktop.impl.portal.ScreenCast" = lib.mkForce [ "wlr" ];
-      "org.freedesktop.impl.portal.Screenshot" = lib.mkForce [ "wlr" ];
-      "org.freedesktop.impl.portal.Inhibit" = lib.mkForce [ "none" ];
-    } // noRoutes sessionOnlyNames;
-    common = { default = [ "gtk" ]; } // noRoutes (sessionOnlyNames ++ [ "ScreenCast" ]) // secretPortal;
-  };
+  portalConfig = import ./xdg-portal-config.nix { inherit lib; };
 in
 delib.module {
   name = "xdg-portal";

@@ -34,6 +34,14 @@ delib.module {
       '';
 
       flakeDir = "~/${myconfig.constants.flakeDir}";
+      usersDir = ../../../../users;
+      sopsOwners = lib.filter
+        (d: builtins.pathExists (usersDir + "/${d}/common/sops/${d}-common-secrets-sops.yaml"))
+        (lib.attrNames (lib.filterAttrs (_: t: t == "directory") (builtins.readDir usersDir)));
+      sopsOwner =
+        if lib.elem myconfig.constants.user sopsOwners || sopsOwners == [ ]
+        then myconfig.constants.user
+        else lib.head sopsOwners;
       isImpure = myconfig.constants.nixImpure;
       isNixOS = moduleSystem == "nixos";
       isDarwin = moduleSystem == "darwin";
@@ -141,7 +149,7 @@ delib.module {
         zlist = "zoxide query -l -s";
 
         sops-main = "cd ${flakeDir} && $EDITOR .sops.yaml";
-        sops-common = "cd ${flakeDir}/users/${myconfig.constants.user}/common/sops && sops ${myconfig.constants.user}-common-secrets-sops.yaml";
+        sops-common = "cd ${flakeDir}/users/${sopsOwner}/common/sops && sops ${sopsOwner}-common-secrets-sops.yaml";
         sops-host = "cd ${flakeDir} && sops hosts/${myconfig.constants.hostname}/${myconfig.constants.hostname}-secrets-sops.yaml";
       }
       // lib.optionalAttrs myconfig.nix-sweeps.enable {

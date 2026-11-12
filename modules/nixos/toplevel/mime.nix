@@ -1,10 +1,8 @@
-# Set defaults applications. If not enabled the system does not know with what to open file/directories/links and similar
+# Set default applications; without it the system cannot open files/directories/links
 { delib
 , lib
 , pkgs
 , config
-, moduleSystem
-, options
 , ...
 }:
 let
@@ -193,7 +191,7 @@ let
     let
       user = myconfig.constants.user;
 
-      # nixpkgs-removed options (mkRemovedOptionModule) throw when read; treat them as not enabled
+      # removed options throw when read; treat as disabled
       readEnable =
         path:
         let
@@ -312,6 +310,9 @@ delib.module {
     # Package names (pkgs, then pkgs.kdePackages) installed once into systemPackages for role overrides whose package
     # is not otherwise installed, e.g. docEditor = "org.kde.kate.desktop"; extraAppPackages = [ "kate" ]
     extraAppPackages = listOfOption str [ ];
+
+    # Editor name (constants.editor) -> desktop id that replaces the generated terminal-editor entry
+    editorDesktopIds = attrsOfOption str { };
   };
 
   nixos.ifEnabled =
@@ -359,10 +360,7 @@ delib.module {
         name = "Neovim (User)";
       };
 
-      hasKritNvim =
-        moduleSystem == "nixos"
-        && (options ? myconfig.krit.programs.neovim)
-        && (myconfig.krit.programs.neovim.enable or false);
+      editorOverride = myconfig.mime.editorDesktopIds.${editor} or null;
 
       termEditors = {
         neovim = nvimEntry;
@@ -384,9 +382,7 @@ delib.module {
         };
       };
 
-      isNvimEditor = editor == "neovim" || editor == "nvim";
-      deferToKritNvim = hasKritNvim && isNvimEditor;
-      isTermEditor = builtins.hasAttr editor termEditors && !deferToKritNvim;
+      isTermEditor = builtins.hasAttr editor termEditors && editorOverride == null;
       editorConfig = termEditors.${editor};
 
       browserDesktopMap = {
@@ -395,8 +391,8 @@ delib.module {
       };
 
       myEditor =
-        if deferToKritNvim then
-          "custom-nvim.desktop"
+        if editorOverride != null then
+          editorOverride
         else if isTermEditor then
           "user-${editor}.desktop"
         else if editor == "vscode" || editor == "code" then

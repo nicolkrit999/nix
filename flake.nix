@@ -49,6 +49,8 @@
         ./users/krit/common/programs/gui-programs/librewolf/profiles # `librewolf-common.nix` already imports them
         ./modules/nixos/programs/de-wm/wallpaperd # plain function + script imported by the WM modules
         ./modules/nixos/programs/waybar/contrast-lib.nix # plain function shared by the three waybar modules
+        ./modules/nixos/programs/de-wm/binds-lib # plain bind functions shared by the WM bind modules and the ryoku specialisation
+        ./modules/nixos/toplevel/xdg-portal-config.nix # plain function shared by xdg-portal and the ryoku specialisation
       ];
 
       # Darwin hosts (excluded from nixos builds)
@@ -313,6 +315,12 @@
         nixpkgs.follows = "nixpkgs";
         quickshell.follows = "quickshell";
       };
+    };
+
+    # follows nixpkgs only (feeds ISO outputs); never follow its pinned package set
+    ryoku = {
+      url = "github:Ryoku-dev/Ryoku-on-NixOS/main";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     elephant = {

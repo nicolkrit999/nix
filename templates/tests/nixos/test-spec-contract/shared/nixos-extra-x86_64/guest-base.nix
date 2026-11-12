@@ -1,9 +1,6 @@
 { inputs, ... }:
 {
-  imports = [
-    inputs.impermanence.nixosModules.impermanence
-    inputs.nix-sops.nixosModules.sops
-  ];
+  imports = [ inputs.nix-sops.nixosModules.sops ];
 
   environment.persistence."/persist".directories = [
     "/etc/ssh"

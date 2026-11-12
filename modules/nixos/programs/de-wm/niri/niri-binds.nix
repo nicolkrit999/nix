@@ -13,227 +13,58 @@ delib.module {
     , ...
     }:
     let
-      spawnApp =
-        app:
-        if
-          builtins.elem app myconfig.constants.terminalApps
-        then
-          [
-            myconfig.constants.terminal.name
-            "-e"
-            app
-          ]
-        else
-          [ app ];
+      binds = import ../binds-lib/niri.nix { inherit lib; };
 
       noctaliaPkg = pkgs.noctalia;
 
       vicinaeEnabled = parent.vicinae.enable or true;
       swayosdEnabled = parent.swayosd.enable or true;
 
-      vicinaeCommand = [ "vicinae" "toggle" ];
-
       noctaliaActiveOnNiri =
         (parent.noctalia.enable or false)
         && (parent.noctalia.enableOnNiri or false);
 
-      shellLauncherCommand =
-        if noctaliaActiveOnNiri then
-          [
-            "sh"
-            "-c"
-            "${lib.getExe noctaliaPkg} msg panel-toggle launcher"
-          ]
-        else if vicinaeEnabled then
-          vicinaeCommand
-        else
-          [ "true" ];
+      plainMedia = noctaliaActiveOnNiri || !swayosdEnabled;
+      vicinaeCommand = [ "vicinae" "toggle" ];
 
-      shellLockCommand =
-        if noctaliaActiveOnNiri then
-          [
-            "sh"
-            "-c"
-            "${lib.getExe noctaliaPkg} msg session lock"
-          ]
-        else
-          [ "loginctl" "lock-session" ];
-
-      allowWhenLockedKeys = [
-        "XF86AudioRaiseVolume"
-        "XF86AudioLowerVolume"
-        "XF86AudioMute"
-        "XF86AudioMicMute"
-        "XF86MonBrightnessUp"
-        "XF86MonBrightnessDown"
-        "XF86KbdBrightnessUp"
-        "XF86KbdBrightnessDown"
-      ];
-
-      mediaBindsRaw =
-        if noctaliaActiveOnNiri || !swayosdEnabled then {
-          "XF86AudioRaiseVolume".action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%+" ];
-          "XF86AudioLowerVolume".action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-" ];
-          "XF86AudioMute".action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle" ];
-          "XF86AudioMicMute".action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle" ];
-          "Mod+BracketRight".action.spawn = [ "brightnessctl" "set" "5%+" ];
-          "Mod+BracketLeft".action.spawn = [ "brightnessctl" "set" "5%-" ];
-          "XF86MonBrightnessUp".action.spawn = [ "brightnessctl" "set" "5%+" ];
-          "XF86MonBrightnessDown".action.spawn = [ "brightnessctl" "set" "5%-" ];
-          "XF86KbdBrightnessUp".action.spawn = [ "brightnessctl" "--device=*::kbd_backlight" "set" "+1" ];
-          "XF86KbdBrightnessDown".action.spawn = [ "brightnessctl" "--device=*::kbd_backlight" "set" "1-" ];
-          "XF86AudioPlay".action.spawn = [ "playerctl" "play-pause" ];
-          "XF86AudioPause".action.spawn = [ "playerctl" "play-pause" ];
-          "XF86AudioNext".action.spawn = [ "playerctl" "next" ];
-          "XF86AudioPrev".action.spawn = [ "playerctl" "previous" ];
-          "XF86AudioStop".action.spawn = [ "playerctl" "stop" ];
-        } else {
-          "XF86AudioRaiseVolume".action.spawn = [ "swayosd-client" "--output-volume" "raise" ];
-          "XF86AudioLowerVolume".action.spawn = [ "swayosd-client" "--output-volume" "lower" ];
-          "XF86AudioMute".action.spawn = [ "swayosd-client" "--output-volume" "mute-toggle" ];
-          "XF86AudioMicMute".action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle" ];
-          "Mod+BracketRight".action.spawn = [ "swayosd-client" "--brightness" "raise" ];
-          "Mod+BracketLeft".action.spawn = [ "swayosd-client" "--brightness" "lower" ];
-          "XF86MonBrightnessUp".action.spawn = [ "swayosd-client" "--brightness" "raise" ];
-          "XF86MonBrightnessDown".action.spawn = [ "swayosd-client" "--brightness" "lower" ];
-          "XF86KbdBrightnessUp".action.spawn = [ "brightnessctl" "--device=*::kbd_backlight" "set" "+1" ];
-          "XF86KbdBrightnessDown".action.spawn = [ "brightnessctl" "--device=*::kbd_backlight" "set" "1-" ];
-          "XF86AudioPlay".action.spawn = [ "swayosd-client" "--playerctl" "play-pause" ];
-          "XF86AudioPause".action.spawn = [ "swayosd-client" "--playerctl" "play-pause" ];
-          "XF86AudioNext".action.spawn = [ "swayosd-client" "--playerctl" "next" ];
-          "XF86AudioPrev".action.spawn = [ "swayosd-client" "--playerctl" "previous" ];
-          "XF86AudioStop".action.spawn = [ "swayosd-client" "--playerctl" "stop" ];
-          "Caps_Lock".action.spawn = [ "swayosd-client" "--caps-lock" ];
-        };
-
-      mediaBinds = builtins.mapAttrs
-        (key: bind:
-          if builtins.elem key allowWhenLockedKeys
-          then bind // { allow-when-locked = true; }
-          else bind)
-        mediaBindsRaw;
-
-      baseBinds = {
-        # -----------------------------------------------------------------------
-        # 🚀 APPLICATIONS
-        # -----------------------------------------------------------------------
-        "Mod+Return".action.spawn = [ myconfig.constants.terminal.name ];
-        "Mod+Shift+A".action.spawn = shellLauncherCommand;
-        "Mod+B".action.spawn = [ myconfig.constants.browser ];
-        "Mod+F".action.spawn = spawnApp myconfig.constants.fileManager;
-        "Mod+C".action.spawn = spawnApp myconfig.constants.editor;
-
-        # -----------------------------------------------------------------------
-        # 🪟 WINDOW MANAGEMENT
-        # -----------------------------------------------------------------------
-        "Mod+Shift+C".action.close-window = [ ];
-        "Mod+M".action.fullscreen-window = [ ];
-        "Mod+Space".action.toggle-window-floating = [ ];
-        "Mod+Delete".action.spawn = shellLockCommand;
-        "Mod+Shift+Delete".action.quit = {
-          skip-confirmation = true;
-        };
-
-        # -----------------------------------------------------------------------
-        # ↔️ MOVEMENT
-        # -----------------------------------------------------------------------
-        "Mod+Left".action.focus-column-left = [ ];
-        "Mod+H".action.focus-column-left = [ ];
-        "Mod+Right".action.focus-column-right = [ ];
-        "Mod+L".action.focus-column-right = [ ];
-        "Mod+Up".action.focus-window-up = [ ];
-        "Mod+K".action.focus-window-up = [ ];
-        "Mod+Down".action.focus-window-down = [ ];
-        "Mod+J".action.focus-window-down = [ ];
-        "Mod+Shift+Left".action.move-column-left = [ ];
-        "Mod+Shift+H".action.move-column-left = [ ];
-        "Mod+Shift+Right".action.move-column-right = [ ];
-        "Mod+Shift+L".action.move-column-right = [ ];
-        "Mod+Shift+Up".action.move-window-up = [ ];
-        "Mod+Shift+K".action.move-window-up = [ ];
-        "Mod+Shift+Down".action.move-window-down = [ ];
-        "Mod+Shift+J".action.move-window-down = [ ];
-
-        # -----------------------------------------------------------------------
-        # 🔢 WORKSPACES (1-9)
-        # -----------------------------------------------------------------------
-        "Mod+1".action.focus-workspace = 1;
-        "Mod+2".action.focus-workspace = 2;
-        "Mod+3".action.focus-workspace = 3;
-        "Mod+4".action.focus-workspace = 4;
-        "Mod+5".action.focus-workspace = 5;
-        "Mod+6".action.focus-workspace = 6;
-        "Mod+7".action.focus-workspace = 7;
-        "Mod+8".action.focus-workspace = 8;
-        "Mod+9".action.focus-workspace = 9;
-
-        "Mod+Shift+1".action.move-window-to-workspace = 1;
-        "Mod+Shift+2".action.move-window-to-workspace = 2;
-        "Mod+Shift+3".action.move-window-to-workspace = 3;
-        "Mod+Shift+4".action.move-window-to-workspace = 4;
-        "Mod+Shift+5".action.move-window-to-workspace = 5;
-        "Mod+Shift+6".action.move-window-to-workspace = 6;
-        "Mod+Shift+7".action.move-window-to-workspace = 7;
-        "Mod+Shift+8".action.move-window-to-workspace = 8;
-        "Mod+Shift+9".action.move-window-to-workspace = 9;
-
-        # -----------------------------------------------------------------------
-        # 🖥️ MONITORS
-        # -----------------------------------------------------------------------
-        "Mod+Ctrl+Right".action.focus-monitor-right = [ ];
-        "Mod+Ctrl+L".action.focus-monitor-right = [ ];
-        "Mod+Ctrl+Left".action.focus-monitor-left = [ ];
-        "Mod+Ctrl+H".action.focus-monitor-left = [ ];
-        "Mod+Alt+Right".action.move-window-to-monitor-right = [ ];
-        "Mod+Alt+L".action.move-window-to-monitor-right = [ ];
-        "Mod+Alt+Left".action.move-window-to-monitor-left = [ ];
-        "Mod+Alt+H".action.move-window-to-monitor-left = [ ];
-
-        # -----------------------------------------------------------------------
-        # 🔔 NOTIFICATIONS
-        # -----------------------------------------------------------------------
-        "Mod+N".action.spawn = [
-          "swaync-client"
-          "-t"
-          "-sw"
-        ];
-
-        # -----------------------------------------------------------------------
-        # 📸 SCREENSHOTS
-        # -----------------------------------------------------------------------
-        "Print".action.screenshot-screen = [ ];
-        "Mod+Ctrl+3".action.screenshot-screen = [ ];
-        "Mod+Ctrl+4".action.screenshot = [ ];
-
-        # -----------------------------------------------------------------------
-        # 🛠️ UTILITIES
-        # -----------------------------------------------------------------------
-        "Mod+Shift+P".action.spawn = [
-          "hyprpicker"
-          "-an"
-        ];
-        "Mod+O".action.toggle-overview = [ ];
-        "Mod+Shift+R".action.spawn = [
-          "niri"
-          "msg"
-          "action"
-          "load-config-file"
-        ];
-      };
-
-      vicinaeBinds = lib.optionalAttrs vicinaeEnabled {
-        "Mod+A".action.spawn = vicinaeCommand;
-        "Mod+Period".action.spawn = [
-          "vicinae"
-          "vicinae://launch/core/search-emojis"
-        ];
-        "Mod+V".action.spawn = [
-          "vicinae"
-          "vicinae://launch/clipboard/history"
-        ];
+      shell = {
+        launcher = if vicinaeEnabled then vicinaeCommand else null;
+        menu =
+          if noctaliaActiveOnNiri then
+            [ "sh" "-c" "${lib.getExe noctaliaPkg} msg panel-toggle launcher" ]
+          else if vicinaeEnabled then
+            vicinaeCommand
+          else
+            [ "true" ];
+        lock =
+          if noctaliaActiveOnNiri then
+            [ "sh" "-c" "${lib.getExe noctaliaPkg} msg session lock" ]
+          else
+            [ "loginctl" "lock-session" ];
+        emoji = if vicinaeEnabled then [ "vicinae" "vicinae://launch/core/search-emojis" ] else null;
+        clipboard = if vicinaeEnabled then [ "vicinae" "vicinae://launch/clipboard/history" ] else null;
+        picker = [ "hyprpicker" "-an" ];
+        reload = [ "niri" "msg" "action" "load-config-file" ];
+        notifications = [ "swaync-client" "-t" "-sw" ];
+        screenshotScreen = null;
+        screenshotArea = null;
+        volumeUp = if plainMedia then [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%+" ] else [ "swayosd-client" "--output-volume" "raise" ];
+        volumeDown = if plainMedia then [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-" ] else [ "swayosd-client" "--output-volume" "lower" ];
+        volumeMute = if plainMedia then [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle" ] else [ "swayosd-client" "--output-volume" "mute-toggle" ];
+        micMute = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle" ];
+        brightnessUp = if plainMedia then [ "brightnessctl" "set" "5%+" ] else [ "swayosd-client" "--brightness" "raise" ];
+        brightnessDown = if plainMedia then [ "brightnessctl" "set" "5%-" ] else [ "swayosd-client" "--brightness" "lower" ];
+        kbdBrightnessUp = [ "brightnessctl" "--device=*::kbd_backlight" "set" "+1" ];
+        kbdBrightnessDown = [ "brightnessctl" "--device=*::kbd_backlight" "set" "1-" ];
+        mediaPlay = if plainMedia then [ "playerctl" "play-pause" ] else [ "swayosd-client" "--playerctl" "play-pause" ];
+        mediaNext = if plainMedia then [ "playerctl" "next" ] else [ "swayosd-client" "--playerctl" "next" ];
+        mediaPrev = if plainMedia then [ "playerctl" "previous" ] else [ "swayosd-client" "--playerctl" "previous" ];
+        mediaStop = if plainMedia then [ "playerctl" "stop" ] else [ "swayosd-client" "--playerctl" "stop" ];
+        capsLock = if plainMedia then null else [ "swayosd-client" "--caps-lock" ];
       };
     in
     {
-      programs.niri.settings.binds = baseBinds // vicinaeBinds // mediaBinds // cfg.extraBinds;
+      programs.niri.settings.binds =
+        binds { inherit (myconfig) constants; inherit shell; } // cfg.extraBinds;
     };
 }

@@ -102,6 +102,11 @@ delib.module {
       '';
     in
     {
+      assertions = [{
+        assertion = !(config.myconfig.programs.openlogi.enable or false);
+        message = "programs.openlogi and krit.services.logitech (logiops/solaar) both claim HID++ devices; enable only one";
+      }];
+
       hardware.logitech.wireless.enable = true;
       programs.solaar.enable = true;
 

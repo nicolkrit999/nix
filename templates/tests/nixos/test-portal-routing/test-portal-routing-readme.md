@@ -20,7 +20,7 @@ bash check-nixos-portal-routing.sh
 ```
 
 Needs network access to cache.nixos.org. No profile is built, no VM, no session switch. About 3 min
-local warm (`NIX_CONFIG='max-jobs = 0'`, 2026-10-18); `test.conf`: group `heavy-a`, timeout 15. On an
+local warm (`NIX_CONFIG='max-jobs = 0'`, 2026-10-18); 871 s on 2026-11-12 with the ryoku case added (the cache.nixos.org scan alone took ~5.5 min; the ryoku spec adds 88 of ~770 scanned store paths and one fake case, so the rest is network and host growth, not measured separately); `test.conf`: group `heavy-a`, timeout 25 (the 871 s run left too little margin under the former 15). On an
 empty store the test fetches ~450 MiB from cache.nixos.org (xdp, dbus and the closures of the trivial
 builds) and builds 13 trivial derivations (stand-ins, manifests, NixOS helper scripts).
 
@@ -33,14 +33,15 @@ the stylix theme), held up only by the evicting krit-nixos cachix; every evictio
 build and a 30/45 min timeout (runs 38135221346, 38275067935, 39159226790). Now:
 
 - **Real hosts are only evaluated** (`01-scenario-portal-routing.nix`): per base/specialisation the
-  portal case (`desktops` among hyprland/niri/mango/kde/gnome/cosmic/xfce/icewm, `hmPortal`), the
+  portal case (`desktops` among hyprland/niri/mango/kde/gnome/cosmic/xfce/icewm, `hmPortal`, `ryoku`), the
   system and HM `xdg.portal.config`, the names of `xdg.portal.extraPortals ++ configPackages` (system
   and HM), the session names (`providedSessions`), the xdp store path and the profile entries.
 - **One slim fake host per distinct case** (`02-fake-case.nix`, `fake-host/`): only
   `xdg-portal.nix`, the six desktop toggles and the HM integration; stylix off, no user programs, no
   specialisations, no documentation. `fake-host/nixos-extra.nix` mirrors what real hosts get from
   modules it does not load (XFCE/IceWM from the guest/safemode specialisations, HM Hyprland, the
-  gnome-keyring service). Today the 13 real base/specs collapse into 6 cases.
+  gnome-keyring service). Today the real base/specs collapse into 7 cases (the ryoku case among them).
+- **The ryoku specialisation is a case of its own.** It turns all six `myconfig` desktop toggles off (so `desktops` is empty) and gets its desktops from the Ryoku flake module, so the case id is `ryoku` (`case.ryoku = programs.ryoku.enable`). The real Ryoku portal and session packages (Ryoku's pinned Hyprland, niri, portal, mango, the session runCommands that reference them) are compiled locally and are never built here. The fake host (`fake-host/nixos-extra.nix`) instead turns on nixpkgs `programs.hyprland` and `programs.niri` (cached, same portal names), adds the stock wlr portal, and installs stand-in session entries (`portal-common.nix` `ryokuSessions`: trivial `runCommandLocal` packages with `providedSessions` and a `.desktop` carrying the upstream `DesktopNames`; an eval assertion fails when `nix/modules/ryoku.nix` of the flake input stops declaring those sessions and desktop names; `hyprland-uwsm` comes from the pinned Hyprland package and is only pinned by the drift check). Only trivial entries are built; the heavy Ryoku packages stay out. Without this case the empty desktop list would collapse into a fake host that reproduces nothing and the drift check would fail by design.
 - **Drift check:** for every real spec the fake case must reproduce `xdg.portal.config` (system and
   HM), the portal package names, the session names and the xdp store path; otherwise the case's
   routing says nothing about the real host and the test fails.
@@ -81,6 +82,7 @@ build and a 30/45 min timeout (runs 38135221346, 38275067935, 39159226790). Now:
 | evaluate (real hosts, fake cases) | everything evaluates; stand-in assertions hold |
 | HM config equals system config | `home-manager.users.<constants.user>.xdg.portal.config == xdg.portal.config` per real spec |
 | fake reproduces real | config, portal package names, session names, xdp path equal per real spec |
+| ryoku case | the ryoku spec maps to its own case (`ryoku`), the fake case reproduces its portal config, portal packages (incl. the wlr portal), the six sessions (`hyprland`, `hyprland-uwsm`, `niri`, `ryoku-*`) and xdp; session stand-ins are asserted against `nix/modules/ryoku.nix` of the flake input |
 | uncached entries | stand-in or trivial |
 | guard | empty-store dry run against cache.nixos.org builds nothing non-trivial |
 | build | `nix build` of the build set exits 0 and every output exists; outputs are GC-rooted under the test's work dir until it exits |

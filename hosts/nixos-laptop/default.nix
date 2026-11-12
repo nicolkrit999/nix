@@ -155,7 +155,7 @@ delib.host {
         };
 
         keyboardLayout = "us,it,de,fr";
-        keyboardVariant = "intl";
+        keyboardVariant = "alt-intl,,,";
 
         weather = "Lugano";
 
@@ -717,6 +717,7 @@ delib.host {
       specializations = {
         deep-focus.enable = false;
         guest.enable = true;
+        ryoku.enable = true;
         safe-mode.enable = true;
         secure-travel.enable = true;
       };

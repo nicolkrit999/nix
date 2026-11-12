@@ -46,6 +46,34 @@ let
       '')
       files);
 
+  # Ryoku sessions (flake input ryoku, nix/modules/ryoku.nix): the real session packages are
+  # runCommands that reference the heavy Ryoku compositors. A stand-in keeps what the portal
+  # simulation reads (providedSessions and the .desktop file with DesktopNames); the eval
+  # asserts the upstream module still declares exactly those.
+  ryokuSessionSpec = [
+    { id = "ryoku-hyprland"; names = "Hyprland"; }
+    { id = "ryoku-niri"; names = "niri"; }
+    { id = "ryoku-mango"; names = "mango;wlroots"; }
+  ];
+  ryokuSessions =
+    let
+      upstream = builtins.readFile "${flake.inputs.ryoku}/nix/modules/ryoku.nix";
+      missing = lib.concatMap
+        (x: lib.filter (l: !(lib.hasInfix l upstream)) [
+          "passthru.providedSessions = [ \"${x.id}\" ];"
+          "DesktopNames=${x.names}"
+          "${x.id}.desktop"
+        ])
+        ryokuSessionSpec;
+    in
+    assert lib.assertMsg (missing == [ ]) "ryoku session stand-ins: nix/modules/ryoku.nix no longer has: ${lib.concatStringsSep "; " missing}";
+    map
+      (x: (pkgs.runCommandLocal "${x.id}-session-standin" { passthru.providedSessions = [ x.id ]; } ''
+        mkdir -p $out/share/wayland-sessions
+        printf '[Desktop Entry]\nName=${x.id}\nExec=${x.id}\nType=Application\nDesktopNames=${x.names}\n' > $out/share/wayland-sessions/${x.id}.desktop
+      ''))
+      ryokuSessionSpec;
+
   kinds = {
     xdg-desktop-portal-wlr = postFixupOnly [ "xdg-desktop-portal-wlr" ];
     mango = mesonInstallData [
@@ -65,7 +93,7 @@ let
   };
 in
 {
-  inherit stock standIn entry;
+  inherit stock standIn entry ryokuSessions;
   names = ps: lib.sort lib.lessThan (lib.unique (map lib.getName ps));
   # entry plus the derivation, fake host only: instantiating every real-host entry costs
   # minutes of eval and the real hosts are never built

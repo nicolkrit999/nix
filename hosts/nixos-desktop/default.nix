@@ -835,6 +835,10 @@ delib.host {
       specializations = {
         deep-focus.enable = true;
         guest.enable = true;
+        ryoku = {
+          enable = true;
+          settings.power-profile.profile = "performance";
+        };
         safe-mode.enable = true;
         secure-travel.enable = true;
       };

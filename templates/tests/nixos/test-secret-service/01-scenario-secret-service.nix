@@ -112,7 +112,8 @@ let
         && !(carries { drvAttrs = { a = "x"; }; })
         && includes samplePam == [ "login" "common-session" ]
         && sampleIni == { "[A]/k" = "v=w"; "[B]/k2" = "1"; }
-        && secretRoute [ "gnome-keyring" ] && !(secretRoute [ "gnome-keyring" "kwallet" ]) && !(secretRoute [ ]);
+        && secretRoute [ "gnome-keyring" ] && !(secretRoute [ "gnome-keyring" "kwallet" ]) && !(secretRoute [ ])
+        && !(secretRoute [ "gnome-keyring" "gnome-keyring" ]) && !(secretRoute "gnome-keyring;gnome-keyring");
     in
     {
       "gnome-keyring is enabled" = chk c.services.gnome.gnome-keyring.enable "services.gnome.gnome-keyring.enable is false";
@@ -211,12 +212,22 @@ let
     let bad = lib.filterAttrs (_: v: v != "ok") (lib.mapAttrs (_: r: r.${n}) perCfg);
     in if bad == { } then "ok" else "FAIL: " + lib.concatStringsSep "; " (lib.mapAttrsToList (k: v: "${k}: ${v}") bad);
 
+  ryoku = baseCfg.specialisation.ryoku.configuration or null;
+  ryokuHm = ryoku.home-manager.users.${ryoku.myconfig.constants.user};
+  ryokuRoutes = c: lib.all (d: secretRoute (c.xdg.portal.config.${d}."org.freedesktop.impl.portal.Secret" or [ ])) [ "hyprland" "niri" "mango" ];
+  ryokuVerdict =
+    if ryoku == null then "ok"
+    else if !(ryokuRoutes ryoku && ryokuRoutes ryokuHm) then "FAIL: Secret is not exactly one gnome-keyring in the ryoku spec hyprland/niri/mango routes (system or HM)"
+    else if ryokuHm.xdg.portal.config != ryoku.xdg.portal.config then "FAIL: HM and system xdg.portal.config differ in the ryoku spec"
+    else if ryoku.xdg.portal.config != baseCfg.xdg.portal.config then "FAIL: the ryoku spec portal table differs from the base table (Ryoku's fragments leak in)"
+    else "ok";
+
   pinned = lib.genAttrs [ "chromium" "google-chrome" "vscode" "signal-desktop" "vesktop" "teams-for-linux" "proton-pass" "drawio" "xmind" "whatsapp-electron" "github-desktop" "insomnia" ] (n: carries sys.pkgs.${n});
   pinVerdict =
     let bad = lib.filter (n: !pinned.${n}) (lib.attrNames pinned);
     in if bad == [ ] then "ok" else "FAIL: no --password-store flag: ${toString bad}";
 in
 {
-  report = lib.concatStringsSep "\n" (map (n: "${n}\t${verdict n}") names ++ [ "overlay pins every Chromium/Electron package\t${pinVerdict}" ]) + "\n";
+  report = lib.concatStringsSep "\n" (map (n: "${n}\t${verdict n}") names ++ [ "overlay pins every Chromium/Electron package\t${pinVerdict}" "ryoku spec: Secret portal is one gnome-keyring per Ryoku desktop, HM equals system equals base table\t${ryokuVerdict}" ]) + "\n";
   configs = lib.concatStringsSep " " (lib.attrNames cfgs);
 }

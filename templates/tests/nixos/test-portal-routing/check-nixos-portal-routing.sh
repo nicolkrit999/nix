@@ -76,7 +76,7 @@ for f in sys.argv[2:]:
     host = f.rsplit("real-", 1)[1][:-5]
     for spec, v in json.load(open(f)).items():
         c = v["case"]
-        cid = "+".join(c["desktops"]) + ("+hm" if c["hmPortal"] else "")
+        cid = "+".join(c["desktops"] + (["ryoku"] if c.get("ryoku") else [])) + ("+hm" if c["hmPortal"] else "")
         cases[cid] = c
         specs.append(f"{host}/{spec}\t{cid}")
 json.dump(cases, open(sys.argv[1] + "/cases.json", "w"))

@@ -25,9 +25,9 @@ Needs `nix`, `jq`, `bash`. Eval-only (no builds). One fixture evaluation; the fo
 `01-scenario-env-shell-wiring.nix` builds the fixture with `fx.mkNixos` and sets `shell = zsh`, `editor = kate`, `browser = fixture-browser`, `terminal.name = fixture-terminal` (non-default, so the fixture checks cannot pass on defaults by accident). It exposes `results` (`label -> "ok" | "FAIL: ..."`, each check wrapped in `tryEval`). The script evaluates `results` once and fails on any non-`ok`.
 
 - **Fixture checks (14):** read the fixture configuration (login shell, `XDG_BIN_HOME`, `EDITOR`/`BROWSER`/`TERMINAL` against the constants, the home-manager backup contract).
-- **Twin checks (40):** `extendModules` twins on the fixture override a constant or a module option with `mkOverride 10`.
+- **Twin checks (51):** `extendModules` twins on the fixture override a constant or a module option with `mkOverride 10`.
 
-The script enforces a floor of 54 checks (also the overall floor), so an emptied scenario cannot pass.
+The script enforces a floor of 65 checks (also the overall floor), so an emptied scenario cannot pass.
 
 Not covered: `home.sessionVariables` in the standalone-home path (`moduleSystem == "home"`), the Darwin `backupFileExtension`, and the real boot-time effect of `powerOnBoot` / zram priority.
 
@@ -48,7 +48,7 @@ Not covered: `home.sessionVariables` in the standalone-home path (`moduleSystem 
 | home-manager: `removeExistingConfigs` deletes `mimeapps.list.<backupFileExtension>` | script mentions the configured extension |
 | control: check helper detects a mismatch | yes |
 
-**Twin checks** (40 more, 54 in total):
+**Twin checks** (51 more, 65 in total):
 
 | Check | Expected |
 |-------|----------|
@@ -64,5 +64,9 @@ Not covered: `home.sessionVariables` in the standalone-home path (`moduleSystem 
 | bluetooth: enabled module | `hardware.bluetooth.enable` and `services.blueman.enable` |
 | zram: enabled, `zramPercent` 37 and 61 | `zramSwap.enable`, `zramSwap.memoryPercent` equal the option |
 | control: zram module disabled | `zramSwap.enable` false |
+| path: bash/zsh/fish init (twin per shell) | contains the guarded `/run/wrappers/bin`-first snippet (marker plus the shell-specific line) |
+| path: bash/zsh/fish init | the snippet sits before the `# TMUX AUTOSTART` marker, i.e. outside the tmux block |
+| tmux: bash/zsh/fish init | the tmux autostart block (NVIM / HERDR_PANE_ID / HC_TERMINAL_ID / DISPLAY guards) equals the recorded literal and mentions no wrappers |
+| control: snippet removed / herdr guard removed | the two predicates are false |
 
-The script counts the checks and fails below the floor of 54.
+The script counts the checks and fails below the floor of 65.

@@ -1,0 +1,2 @@
+- [Darwin undeclared NixOS option definitions](darwin_undeclared_nixos_option_definitions.md) - common module defining a nixos-only option path breaks darwin eval even inside nixos.ifEnabled
+- [Ryoku aarch64 enable throws](ryoku-aarch64-enable-throws.md) - ryoku module inert on aarch64 but enabling throws; use an isx86_64 assertion in the spec

@@ -14,6 +14,7 @@ REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"
 SCENARIO="$DIR/01-scenario-secret-service.nix"
 FIXTURE="$DIR/02-scenario-fixture-browsers.nix"
+RYOKU_FIXTURE="$DIR/03-scenario-fixture-ryoku-portal.nix"
 HOSTS=(nixos-desktop nixos-laptop)
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
@@ -37,6 +38,7 @@ for h in "${HOSTS[@]}"; do
   ) &
 done
 (FLAKE_ROOT="$FLAKE_ROOT" nix eval --raw --impure --file "$FIXTURE" report >"$WORK/fixture.report" 2>"$WORK/fixture.err"; echo $? >"$WORK/fixture.rc") &
+(FLAKE_ROOT="$FLAKE_ROOT" nix eval --raw --impure --file "$RYOKU_FIXTURE" report >"$WORK/ryoku.report" 2>"$WORK/ryoku.err"; echo $? >"$WORK/ryoku.rc") &
 wait
 
 echo ""
@@ -71,6 +73,19 @@ else
     printf "  %-70s " "$label"
     if [[ $result == ok ]]; then pass; else fail "fixtures: $label" "$result"; fi
   done <"$WORK/fixture.report"
+fi
+
+echo ""
+echo -e "${BOLD}ryoku portal fixture (spec on the minimal fixture host, with controls)${NC}"
+if [[ $(cat "$WORK/ryoku.rc") -ne 0 ]]; then
+  printf "  %-70s " "evaluate ryoku portal fixture"
+  fail "ryoku fixture: evaluate" "EVAL ERROR: $(grep -E 'error:' "$WORK/ryoku.err" | head -3 | tr '\n' ' ')"
+else
+  while IFS=$'\t' read -r label result; do
+    [[ -z $label ]] && continue
+    printf "  %-70s " "${label:0:70}"
+    if [[ $result == ok ]]; then pass; else fail "ryoku fixture: $label" "$result"; fi
+  done <"$WORK/ryoku.report"
 fi
 
 echo ""

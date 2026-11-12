@@ -3,10 +3,12 @@
 # specialisations), HM Hyprland (hyprland-main.nix) and gnome-keyring, whose package lands in
 # xdg.portal.extraPortals (common-configuration-nixos.nix). The drift check in the check
 # script fails when these stop matching the real hosts.
-{ inputs, lib, ... }:
+{ inputs, lib, pkgs, ... }:
 let
   case = builtins.fromJSON (builtins.getEnv "PORTAL_CASE");
   on = n: builtins.elem n case.desktops;
+  ryoku = case.ryoku or false;
+  common = import ../portal-common.nix { inherit lib pkgs; flake = { inherit inputs; }; };
 in
 {
   imports = [ inputs.stylix.nixosModules.stylix ];
@@ -14,13 +16,29 @@ in
   nixpkgs.hostPlatform = "x86_64-linux";
   system.stateVersion = "25.11";
   stylix.enable = false;
-  services.gnome.gnome-keyring.enable = true;
   documentation.enable = false;
 
-  services.xserver = lib.mkIf (on "xfce" || on "icewm") {
-    enable = true;
-    desktopManager.xfce.enable = on "xfce";
-    windowManager.icewm.enable = on "icewm";
+  # The ryoku specialisation turns every myconfig desktop toggle off and gets its desktops from the
+  # Ryoku module: nixpkgs Hyprland and niri, the wlr portal and its own session entries
+  # (stand-ins, see portal-common.nix). withUWSM only selects the cached stock Hyprland build
+  # whose sessions are hyprland and hyprland-uwsm, like the Hyprland package Ryoku pins.
+  programs = {
+    hyprland = {
+      enable = lib.mkIf ryoku true;
+      withUWSM = lib.mkIf ryoku true;
+    };
+    niri.enable = lib.mkIf ryoku true;
+  };
+  xdg.portal.extraPortals = lib.mkIf ryoku [ pkgs.xdg-desktop-portal-wlr ];
+
+  services = {
+    gnome.gnome-keyring.enable = true;
+    displayManager.sessionPackages = lib.mkIf ryoku common.ryokuSessions;
+    xserver = lib.mkIf (on "xfce" || on "icewm") {
+      enable = true;
+      desktopManager.xfce.enable = on "xfce";
+      windowManager.icewm.enable = on "icewm";
+    };
   };
 
   home-manager.users.krit = {

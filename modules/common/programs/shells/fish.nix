@@ -21,7 +21,14 @@ delib.module {
         enable = true;
 
         interactiveShellInit =
+          lib.optionalString isNixOS ''
+            # SETUID WRAPPERS FIRST ON PATH
+            if test -d /run/wrappers/bin
+              set -gx PATH /run/wrappers/bin (string match -v -- /run/wrappers/bin $PATH)
+            end
+
           ''
+          + ''
             # LOAD USER CONFIG
             if test -f "$HOME/.custom.fish"
               source "$HOME/.custom.fish"

@@ -1,6 +1,6 @@
 { delib, inputs, lib, pkgs, ... }:
 let
-  # TEMPORARY: cargo-setup-hook forces ZSTD_SYS_USE_PKG_CONFIG=1 (xtask zstd-sys in checkPhase); remove when upstream package.nix lists zstd.
+  # TEMP: zstd buildInput; remove when upstream lists zstd.
   openlogiUpstream = inputs.openlogi.packages.${pkgs.stdenv.hostPlatform.system}.openlogi;
   openlogiPackage =
     if lib.any (p: (p.pname or "") == "zstd") (openlogiUpstream.buildInputs or [ ]) then openlogiUpstream
@@ -18,11 +18,7 @@ delib.module {
     imports = [ inputs.openlogi.nixosModules.default ];
   };
 
-  nixos.ifEnabled = { myconfig, ... }: {
-    assertions = [{
-      assertion = !(myconfig.krit.services.logitech.enable or false);
-      message = "programs.openlogi and krit.services.logitech (logiops/solaar) both claim HID++ devices; enable only one";
-    }];
+  nixos.ifEnabled = {
     programs.openlogi = {
       enable = true;
       package = openlogiPackage;

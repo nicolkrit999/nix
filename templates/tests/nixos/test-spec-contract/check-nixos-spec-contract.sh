@@ -144,6 +144,20 @@ echo -e "${BOLD}home${NC}"
 run_check "check-home-monitors" "hyprland.monitors set, each with output+mode"
 
 echo ""
+echo -e "${BOLD}ryoku${NC}"
+run_check "check-ryoku-forced-off-programs"       "17 programs.* forced off (base twin has them on)"
+run_check "check-ryoku-forced-off-services"       "7 services.* forced off (base twin has them on)"
+run_check "check-ryoku-forced-off-system"         "qt, bluetooth forced off"
+run_check "check-ryoku-theme-catppuccin-off"      "constants.theme.catppuccin == false"
+run_check "check-ryoku-base-has-no-ryoku"         "programs.ryoku only enabled in the spec"
+run_check "check-ryoku-user-constant"             "constants.user == '<base>-ryoku'"
+run_check "check-ryoku-default-compositor"        "programs.ryoku.defaultCompositor == hyprland"
+run_check "check-ryoku-services-stay-on"          "audio, pipewire, keyring, polkit, NM, sddm, PPD, gsr stay on"
+run_check "check-ryoku-sddm-ryoku-theme"          "sddm theme 'ryoku' (base twin: astronaut)"
+run_check "check-ryoku-power-profiles-daemon-on"  "power-profiles-daemon on (base twin: forced off)"
+run_check "check-ryoku-sessions-present"          "ryoku-hyprland/-niri/-mango sessions"
+
+echo ""
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"
 
 if [[ $FAIL -eq 0 ]]; then

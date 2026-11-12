@@ -18,27 +18,6 @@ let
     "/var/lib/tailscale"
   ];
 
-  # Disabled only where the krit user modules are loaded on this host.
-  kritOff = lib.foldl' lib.recursiveUpdate { } (
-    map (path: lib.setAttrByPath ([ "myconfig" "krit" ] ++ path ++ [ "enable" ]) (lib.mkForce false)) (
-      lib.filter (path: lib.hasAttrByPath ([ "myconfig" "krit" ] ++ path) options) [
-        [ "programs" "claude-code-wrappers" ]
-        [ "services" "cloud" "googleDrive" ]
-        [ "services" "cloud" "onedrivePersonal" ]
-        [ "services" "cloud" "pcloud" ]
-        [ "services" "cloud" "protonDrive" ]
-        [ "services" "nas" "desktop-borg-backup" ]
-        [ "services" "nas" "laptop-borg-backup" ]
-        [ "services" "nas" "opencloud-mount" ]
-        [ "services" "nas" "smb" ]
-        [ "services" "nas" "sshfs" ]
-        [ "services" "desktop" "flatpak" ]
-        [ "services" "laptop" "flatpak" ]
-        [ "services" "windows-mount" ]
-      ]
-    )
-  );
-
   moduleOff = lib.foldl' lib.recursiveUpdate { } (
     map (path: lib.setAttrByPath ([ "myconfig" ] ++ path ++ [ "enable" ]) (lib.mkForce false)) (
       lib.filter (path: lib.hasAttrByPath ([ "myconfig" ] ++ path) options) [
@@ -67,7 +46,7 @@ delib.module {
     specialisation.guest.configuration = {
       system.nixos.tags = [ "guest" ];
 
-      imports = [ kritOff moduleOff ];
+      imports = [ moduleOff ];
 
       services = {
         displayManager = {

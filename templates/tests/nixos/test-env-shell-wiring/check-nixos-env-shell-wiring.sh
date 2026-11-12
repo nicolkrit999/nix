@@ -24,7 +24,7 @@ for tool in nix jq bash; do
   command -v "$tool" >/dev/null || { echo "missing tool: $tool"; exit 2; }
 done
 
-MIN_CHECKS=54
+MIN_CHECKS=65
 host=template-host-minimal
 echo ""
 echo -e "${BOLD}=== $host (fixture) ===${NC}"
@@ -61,8 +61,8 @@ if [[ $host_n -lt $MIN_CHECKS ]]; then
 fi
 
 echo ""
-if [[ $((PASS + FAIL)) -lt 54 ]]; then
-  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 54); refusing to pass.${NC}"
+if [[ $((PASS + FAIL)) -lt 65 ]]; then
+  echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least 65); refusing to pass.${NC}"
   exit 1
 fi
 echo -e "${DIM}──────────────────────────────────────────────────────────────────────${NC}"

@@ -35,6 +35,7 @@ delib.host {
     specializations = {
       deep-focus.enable = true;
       guest.enable = true;
+      ryoku.enable = true;
       safe-mode.enable = true;
       secure-travel.enable = true;
     };

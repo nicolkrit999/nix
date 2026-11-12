@@ -82,6 +82,20 @@ let
     (src + "/modules/nixos/programs/nix-alien.nix")
     (src + "/modules/nixos/programs/nix-ld.nix")
 
+    # Options the ryoku specialisation forces off (real modules: a rename shows up as an eval error)
+    (src + "/modules/nixos/services/impermanence.nix")
+    (src + "/modules/nixos/services/audio.nix")
+    (src + "/modules/nixos/toplevel/qt.nix")
+    (src + "/modules/common/programs/shells/starship.nix")
+    (src + "/modules/nixos/programs/swayosd.nix")
+    (src + "/modules/nixos/programs/vicinae.nix")
+    (src + "/modules/nixos/programs/walker.nix")
+    (src + "/modules/nixos/programs/skwd-wall.nix")
+    (src + "/modules/nixos/programs/waybar/mango/waybar-mango.nix")
+    (src + "/modules/nixos/programs/waybar/niri/waybar-niri.nix")
+    (src + "/modules/nixos/services/power/auto-cpufreq.nix")
+    (src + "/modules/nixos/services/power/tlp.nix")
+
     # Services whose enable options specs override
     (src + "/modules/nixos/services/hypr/hypridle.nix")
     (src + "/modules/nixos/services/power/coffee.nix")
@@ -106,6 +120,7 @@ let
     # Global specializations
     (src + "/modules/nixos/specializations/deep-focus.nix")
     (src + "/modules/nixos/specializations/guest.nix")
+    (src + "/modules/nixos/specializations/ryoku.nix")
     (src + "/modules/nixos/specializations/safe-mode.nix")
     (src + "/modules/nixos/specializations/secure-travel.nix")
 
@@ -124,6 +139,8 @@ let
     (src + "/users/krit/common/programs/file-managers/yazi/yazi-keymap.nix")
 
     # krit specializations
+    (src + "/users/krit/nixos/specializations/guest.nix")
+    (src + "/users/krit/nixos/specializations/secure-travel.nix")
     (src + "/users/krit/nixos/specializations/entertainment.nix")
     (src + "/users/krit/nixos/specializations/home.nix")
     (src + "/users/krit/nixos/specializations/school.nix")
@@ -150,6 +167,49 @@ let
   }).spec-contract;
   inherit (host) config;
   swayncOffBase = (host.extendModules { modules = [{ myconfig.services.swaync.enable = lib.mkOverride 60 false; }]; }).config;
+
+  ryokuOffPaths =
+    map (n: [ "programs" n ]) [ "cosmic" "gnome" "hyprland" "kde" "mango" "niri" "caelestia" "noctalia" "skwdWall" "vicinae" "walker" "swayosd" "waybar-hyprland" "waybar-mango" "waybar-niri" "fastfetch" "starship" ]
+    ++ map (n: [ "services" n ]) [ "auto-cpufreq" "coffee" "hypridle" "sddm-astronaut" "sddm-pixie" "swaync" "tlp" ]
+    ++ [ [ "qt" ] [ "bluetooth" ] ];
+  ryokuAllOn = host.extendModules {
+    modules = [{
+      config = lib.mkMerge (map (p: lib.setAttrByPath ([ "myconfig" ] ++ p ++ [ "enable" ]) (lib.mkOverride 60 true)) ryokuOffPaths);
+    }];
+  };
+  ryokuBase = ryokuAllOn.config;
+  ryokuSpec = ryokuBase.specialisation.ryoku.configuration;
+  optOf = cfg: p: lib.attrByPath ([ "myconfig" ] ++ p ++ [ "enable" ]) null cfg;
+  showPath = lib.concatStringsSep ".";
+  ryokuOffCheck = paths:
+    let
+      baseNotOn = lib.filter (p: optOf ryokuBase p != true) paths;
+      stillOn = lib.filter (p: optOf ryokuSpec p != false) paths;
+    in
+    if baseNotOn != [ ] then "FAIL: control: base twin does not have these on, the force-off is vacuous: ${toString (map showPath baseNotOn)}"
+    else if stillOn != [ ] then "FAIL: still not false in the ryoku spec: ${toString (map showPath stillOn)}"
+    else "ok";
+  ryokuStayPaths = {
+    "myconfig.services.audio" = [ "myconfig" "services" "audio" "enable" ];
+    "services.pipewire" = [ "services" "pipewire" "enable" ];
+    "services.gnome.gnome-keyring" = [ "services" "gnome" "gnome-keyring" "enable" ];
+    "security.polkit" = [ "security" "polkit" "enable" ];
+    "networking.networkmanager" = [ "networking" "networkmanager" "enable" ];
+    "services.displayManager.sddm" = [ "services" "displayManager" "sddm" "enable" ];
+    "services.power-profiles-daemon" = [ "services" "power-profiles-daemon" "enable" ];
+    "programs.gpu-screen-recorder" = [ "programs" "gpu-screen-recorder" "enable" ];
+  };
+  ryokuProbeTwin = (host.extendModules {
+    modules = [{
+      specialisation.ryoku.configuration = lib.mkMerge (lib.mapAttrsToList (_: p: lib.setAttrByPath p (lib.mkOverride 10 false)) ryokuStayPaths);
+    }];
+  }).config.specialisation.ryoku.configuration;
+  sddmTwin = host.extendModules {
+    modules = [{
+      myconfig.services.sddm-astronaut.enable = lib.mkOverride 60 true;
+      myconfig.services.sddm-pixie.enable = lib.mkOverride 60 false;
+    }];
+  };
 
   # spec name → full NixOS config with that specialization applied
   spec = name: config.specialisation.${name}.configuration;
@@ -421,5 +481,52 @@ in
     if ms == config.myconfig.programs.hyprland.monitors then "FAIL: home spec monitors equal base host monitors, spec forces nothing"
     else if ms == [ ] then "FAIL: home spec sets no monitors"
     else if bad != [ ] then "FAIL: home spec has ${toString (builtins.length bad)} monitor(s) without output/mode"
+    else "ok";
+
+  # ── ryoku ─────────────────────────────────────────────────────────────────────
+  check-ryoku-forced-off-programs =
+    ryokuOffCheck (lib.filter (p: builtins.head p == "programs") ryokuOffPaths);
+  check-ryoku-forced-off-services =
+    ryokuOffCheck (lib.filter (p: builtins.head p == "services") ryokuOffPaths);
+  check-ryoku-forced-off-system =
+    ryokuOffCheck (lib.filter (p: builtins.length p == 1) ryokuOffPaths);
+  check-ryoku-theme-catppuccin-off =
+    if !ryokuBase.myconfig.constants.theme.catppuccin then "FAIL: control: base twin has catppuccin off, the force-off is vacuous"
+    else checkBool "ryoku.constants.theme.catppuccin" ryokuSpec.myconfig.constants.theme.catppuccin false;
+  check-ryoku-base-has-no-ryoku =
+    if !(lib.hasAttrByPath [ "programs" "ryoku" "enable" ] config) then "FAIL: control: programs.ryoku is not declared (Ryoku module not imported)"
+    else if config.programs.ryoku.enable then "FAIL: the base host itself enables programs.ryoku"
+    else if !(spec "ryoku").programs.ryoku.enable then "FAIL: the ryoku spec does not enable programs.ryoku"
+    else "ok";
+  check-ryoku-user-constant =
+    let u = (spec "ryoku").myconfig.constants.user; in
+    if u == config.myconfig.constants.user then "FAIL: ryoku spec runs as the base user '${u}'"
+    else checkStr "ryoku.constants.user" u "${config.myconfig.constants.user}-ryoku";
+  check-ryoku-default-compositor =
+    if config.programs.ryoku.defaultCompositor != null then "FAIL: control: base already has a Ryoku default compositor"
+    else checkStr "ryoku defaultCompositor" (spec "ryoku").programs.ryoku.defaultCompositor "hyprland";
+  check-ryoku-services-stay-on =
+    let
+      off = lib.filterAttrs (_: p: lib.attrByPath p null ryokuSpec != true) ryokuStayPaths;
+      blind = lib.filterAttrs (_: p: lib.attrByPath p null ryokuProbeTwin != false) ryokuStayPaths;
+    in
+    if blind != { } then "FAIL: control: the probe cannot see these going off: ${toString (lib.attrNames blind)}"
+    else if off != { } then "FAIL: not enabled in the ryoku spec: ${toString (lib.attrNames off)}"
+    else "ok";
+  check-ryoku-sddm-ryoku-theme =
+    let theme = c: c.services.displayManager.sddm.theme; in
+    if theme sddmTwin.config == "ryoku" then "FAIL: control: the base twin (sddm-astronaut on) already themes sddm 'ryoku'"
+    else checkStr "ryoku sddm theme" (theme sddmTwin.config.specialisation.ryoku.configuration) "ryoku";
+  check-ryoku-power-profiles-daemon-on =
+    if ryokuBase.services.power-profiles-daemon.enable then "FAIL: control: the base twin (auto-cpufreq and tlp on) still has power-profiles-daemon, the shell cannot prove anything"
+    else checkBool "ryoku services.power-profiles-daemon" ryokuSpec.services.power-profiles-daemon.enable true;
+  check-ryoku-sessions-present =
+    let
+      names = c: lib.concatMap (p: p.providedSessions or [ ]) c.services.displayManager.sessionPackages;
+      want = [ "ryoku-hyprland" "ryoku-niri" "ryoku-mango" ];
+      missing = lib.filter (n: !(lib.elem n (names (spec "ryoku")))) want;
+    in
+    if lib.any (n: lib.elem n (names config)) want then "FAIL: control: the base host already provides a ryoku session"
+    else if missing != [ ] then "FAIL: ryoku spec lacks sessions: ${toString missing}"
     else "ok";
 }

@@ -1,4 +1,5 @@
 { delib
+, lib
 , pkgs
 , ...
 }:
@@ -28,7 +29,7 @@ in
 delib.host {
   name = "nixos-desktop";
 
-  home = {
+  home = { myconfig, ... }: lib.mkIf myconfig.programs.hyprland.enable {
     systemd.user.services.hyprland-jetkvm-teardown = {
       Unit = {
         Description = "Disable JetKVM (HDMI-A-1) before Hyprland exits to avoid amdgpu blank-crtc wedge (jetkvm/kvm#1140)";

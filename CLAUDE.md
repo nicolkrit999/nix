@@ -194,6 +194,8 @@ re-investigating one of these from scratch.
 
 - **Coffee mode blocks only automatic power events** - weak `sleep` lock plus full `idle:handle-lid-switch` lock; manual suspend, the suspend/hibernate keys (logind `*KeyIgnoreInhibited=yes`), the power button and shutdown/reboot keep working. Lid closed + coffee = unlocked session, heat, and `coffee-off` suspends at once. [`Documentation/usage/gotchas/coffee-mode-lid-closed.md`](Documentation/usage/gotchas/coffee-mode-lid-closed.md)
 
+- **The ryoku specialization is untested on hardware** - Ryoku's materializer vs Home Manager symlinks, Mango 0.17.4-over-0.16.1, its older mesa vs the laptop's intel-media-driver, local builds and cache uncertainty, session startup, shared `/var/lib/ryoku`, disabled `ryoku update`, and the portal `mkForce`; our keybinds in `user.*` (unbind no-op, Mango keysym case), Hub rewriting `user.*`, `settings` first-login pickup (default apps, keyboard and polarity derived from constants, monitors left in the GUI), kitty font override, `YAZI_CONFIG_HOME` delivery; post-boot checklist and removal recipe. [`Documentation/usage/gotchas/ryoku-specialization.md`](Documentation/usage/gotchas/ryoku-specialization.md)
+
 ## `./templates/`
 
 Contains `.nix` files not written in the denix style. Not auto-discovered; must be imported manually in the desired host (either directly or via a `default.nix` with an `imports` block).

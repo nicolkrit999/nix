@@ -24,7 +24,7 @@ bash check-nixos-secret-service.sh
 
 Browser pinning positive cases and controls do not depend on what the real hosts install: `02-scenario-fixture-browsers.nix` builds minimal fixture hosts (`templates/tests/lib/fixture-host.nix`, on `template-host-minimal`) that each enable only what is needed (chromium/google-chrome/vscode packages, `krit.programs.chromium`, `krit.programs.helium`, `programs.claude-desktop`, `programs.google-antigravity`). The real hosts keep only the rule-1 invariant that whatever browser or Electron app they do carry is pinned (never throws, passes vacuously with none).
 
-`01-scenario-secret-service.nix` reads the real `nixosConfigurations.<HOST>` (`HOST` env var) and evaluates every check on the base config and on each `specialisation.*` config, so a regression in any session is caught. The `report` attribute is one `label<TAB>result` line per check; the result is `ok` or `FAIL: <config>: <detail>; ...` naming each failing config. `configs` lists what was covered.
+`03-scenario-fixture-ryoku-portal.nix` puts the ryoku specialisation on the minimal fixture host and checks the portal routes with controls (a duplicated Secret route, a diverging HM table). `01-scenario-secret-service.nix` reads the real `nixosConfigurations.<HOST>` (`HOST` env var) and evaluates every check on the base config and on each `specialisation.*` config, so a regression in any session is caught. The `report` attribute is one `label<TAB>result` line per check; the result is `ok` or `FAIL: <config>: <detail>; ...` naming each failing config. `configs` lists what was covered.
 
 The script runs it for `nixos-desktop` and `nixos-laptop` (the laptop is cheap and CI runs it) and prints one line per check and host. An eval error fails the whole host. PAM rules are followed through `include`/`substack`, because `sddm` and `sddm-autologin` only include `login`. The kwalletrc text is parsed as INI. Package pinning is detected by looking for the flag in the derivation attributes, so dropping it from an overlay fails the check.
 
@@ -60,6 +60,14 @@ Per config (base and every specialisation):
 | self-test | `carries`, `includes`, `ini` and `secretRoute` accept good samples and reject bad ones (guards the helpers against silently passing everything) |
 | portal entry per enabled WM | `xdg.portal.config` has a lowercase key for every WM the config enables (a deleted desktop entry is noticed; which WMs are enabled is not asserted) |
 | duplicate HM gnome-keyring unit | `services.gnome-keyring` off, no `gnome-keyring*` HM user service, no `myconfig.programs.gnome-keyring` option |
+
+Ryoku (the ryoku specialisation is also covered by every per-config check above, because the scenario iterates all specialisations):
+
+| Check | Expected |
+|-------|----------|
+| per host: ryoku spec portal | in the ryoku spec, `Secret` is exactly one `gnome-keyring` in the hyprland, niri and mango routes (system and HM), HM and system `xdg.portal.config` are equal, and the table equals the base's (Ryoku's own `config.{hyprland,niri,mango}` fragments are not appended; `ok` when the host has no ryoku spec) |
+| self-test | `secretRoute` rejects `[ "gnome-keyring" "gnome-keyring" ]` and `"gnome-keyring;gnome-keyring"` |
+| `03-scenario-fixture-ryoku-portal.nix` | on the minimal fixture host with `specializations.ryoku.enable`: spec on, `Secret` once per Ryoku desktop in system and HM, HM equals system, no route lists a backend twice; controls: a twin forcing the Secret route to `gnome-keyring;gnome-keyring` and a twin with a diverging HM table are both flagged |
 
 Fixtures (`02-scenario-fixture-browsers.nix`, evaluated once):
 

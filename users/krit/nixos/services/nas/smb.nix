@@ -72,7 +72,7 @@ delib.module {
         }
       ];
 
-      sops.secrets.nas-krit-credentials.sopsFile = ../../../common/sops/${user}-common-secrets-sops.yaml;
+      sops.secrets.nas-krit-credentials.sopsFile = ../../../common/sops/krit-common-secrets-sops.yaml;
       myconfig.krit.services.nas.smb.credentialsFile =
         lib.mkDefault config.sops.secrets.nas-krit-credentials.path;
 

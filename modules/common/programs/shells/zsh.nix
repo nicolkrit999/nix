@@ -23,7 +23,15 @@ delib.module {
         syntaxHighlighting.enable = true;
 
         initContent =
+          lib.optionalString isNixOS ''
+            # SETUID WRAPPERS FIRST ON PATH
+            if [ -d /run/wrappers/bin ]; then
+              path=(/run/wrappers/bin ''${path:#/run/wrappers/bin})
+              export PATH
+            fi
+
           ''
+          + ''
             # LOAD USER CONFIG
             if [ -f "$HOME/.zshrc_custom" ]; then
               source "$HOME/.zshrc_custom"
