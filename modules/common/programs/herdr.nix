@@ -8,14 +8,14 @@ let
       drv.overrideAttrs (old: {
         buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.zstd ];
       });
-  # TEMPORARY: on Darwin the vendored libghostty-vt zig build spawns `libtool` (Apple cctools, its `libtool` output) and the herdr-nix
+  # TEMPORARY: on Darwin the vendored libghostty-vt zig build spawns `libtool` (Apple cctools: libtool, nmedit, ...) and the herdr-nix
   # derivations don't provide it (CI: "failed to spawn and capture stdio from libtool: FileNotFound", herdr-core,
   # herdr-tui and herdr-app); remove when herdr-nix lists cctools in nativeBuildInputs on Darwin.
   withLibtool = drv:
     if !pkgs.stdenv.hostPlatform.isDarwin then drv
     else
       drv.overrideAttrs (old: {
-        nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.cctools.libtool ];
+        nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.cctools pkgs.cctools.libtool ];
       });
   fixed = herdrPkgs // lib.mapAttrs (_: withLibtool)
     (lib.optionalAttrs (herdrPkgs ? herdr) { herdr = withZstd herdrPkgs.herdr; }
