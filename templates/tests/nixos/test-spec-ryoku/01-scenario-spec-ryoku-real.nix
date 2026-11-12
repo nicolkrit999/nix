@@ -294,6 +294,33 @@ let
       yes "package ${builtins.toJSON (cursorPkg.name or null)}"
         (cursorPkg != null && lib.elem (toString cursorPkg) (map toString spec.environment.systemPackages)
           && lib.hasPrefix (lib.toLower (lib.head (lib.splitString "-" spec.myconfig.specializations.ryoku.sddmCursorTheme))) (lib.toLower (cursorPkg.pname or cursorPkg.name)));
+    "sddm cursor: with weston the spec's compositorCommand wraps weston in env with XCURSOR_PATH/THEME/SIZE and a weston.ini; the base command has none of it" =
+      let
+        cmd = spec.services.displayManager.sddm.wayland.compositorCommand;
+        baseCmd = base.services.displayManager.sddm.wayland.compositorCommand;
+        westonOf = c: lib.filter (w: lib.hasSuffix "/bin/weston" w) (lib.splitString " " c);
+      in
+      if spec.services.displayManager.sddm.wayland.compositor != "weston" then "ok"
+      else
+        yes "spec ${cmd}, problems ${builtins.toJSON (probes.westonCursorProblems { theme = "Bibata-Modern-Ice"; size = 24; cmd = cmd; })}, base ${baseCmd}"
+          (probes.westonCursorProblems { theme = "Bibata-Modern-Ice"; size = 24; cmd = cmd; } == [ ]
+            && !(lib.hasInfix "XCURSOR_THEME" baseCmd)
+            && (base.services.displayManager.sddm.wayland.compositor != "weston" || westonOf cmd == westonOf baseCmd));
+    "control: the weston cursor probe flags a plain weston command and a wrong theme" =
+      yes "probe silent"
+        (probes.westonCursorProblems { theme = "Bibata-Modern-Ice"; size = 24; cmd = "/x/bin/weston --shell=kiosk -c /x/weston.ini"; } != [ ]
+          && probes.westonCursorProblems { theme = "Bibata-Modern-Ice"; size = 24; cmd = "/x/bin/env XCURSOR_PATH=/run/current-system/sw/share/icons XCURSOR_THEME=Other XCURSOR_SIZE=24 /x/bin/weston --shell=kiosk -c /x/weston.ini"; } != [ ]);
+    "fastfetch: the spec user has the ryoku-fastfetch wrapper in home.packages (base user does not); its script has the absolute ryoku-desktop-data path and both exec branches" =
+      let
+        named = c: lib.filter (p: lib.getName p == "ryoku-fastfetch") c.home.packages;
+        t = if named hm == [ ] then "" else builtins.readFile "${lib.head (named hm)}/bin/ryoku-fastfetch";
+      in
+      yes "wrapper count ${toString (lib.length (named hm))}, base ${toString (lib.length (named baseHm))}, problems ${builtins.toJSON (probes.fastfetchWrapperProblems t)}"
+        (lib.length (named hm) == 1 && named baseHm == [ ] && probes.fastfetchWrapperProblems t == [ ]);
+    "control: the fastfetch wrapper probe flags a script without the logo-type branch or the TMUX test, and one that calls itself" =
+      yes "probe silent"
+        (probes.fastfetchWrapperProblems "real=/nix/store/aaaa-ryoku-desktop-data/bin/ryoku-fastfetch\nexec \"$real\" \"$@\"\n" != [ ]
+          && probes.fastfetchWrapperProblems "real=/nix/store/aaaa-ryoku-fastfetch/bin/ryoku-fastfetch\n" != [ ]);
     "sddm cursor: /share/icons is linked into the spec's system profile" =
       yes "pathsToLink ${builtins.toJSON spec.environment.pathsToLink}" (lib.elem "/share/icons" spec.environment.pathsToLink);
     "sddm cursor: the base's sddm settings carry neither our cursor theme nor XCURSOR_PATH (control)" =
@@ -327,20 +354,9 @@ let
           (lib.elem "ryoku-materialize.service" seedUnit.after && lib.elem "ryoku-materialize.service" seedUnit.requires
             && lib.elem "ryoku-shell.service" seedUnit.before && lib.elem "ryoku-session.target" seedUnit.wantedBy
             && seedUnit.unitConfig.ConditionUser == ryokuUser && ryokuUser != baseUser && seedUnit.serviceConfig.Type == "oneshot");
-    "emblem: the krit layer sets fastfetchEmblem to the ryoku-desktop-data hawk.png" =
-      yes "value ${builtins.toJSON (if emblemValue == null then null else toString emblemValue)}"
-        (emblemValue != null && lib.hasSuffix "/share/ryoku/ryodecors/hawk.png" (toString emblemValue));
-    "emblem: ryoku-fastfetch-emblem-seed exists in the spec and not in the base, oneshot, ordered after ryoku-materialize, before ryoku-shell, wanted by ryoku-session.target, ConditionUser is the ryoku user" =
-      yes "unit ${builtins.toJSON (if emblemUnit == null then null else { inherit (emblemUnit) after before requires wantedBy partOf; cond = emblemUnit.unitConfig.ConditionUser or null; })}, in base ${builtins.toJSON (base.systemd.user.services ? ryoku-fastfetch-emblem-seed)}"
-        (emblemUnit != null && !(base.systemd.user.services ? ryoku-fastfetch-emblem-seed)
-          && lib.elem "ryoku-materialize.service" emblemUnit.after && lib.elem "ryoku-materialize.service" emblemUnit.requires
-          && lib.elem "ryoku-shell.service" emblemUnit.before && lib.elem "ryoku-session.target" emblemUnit.wantedBy
-          && lib.elem "ryoku-session.target" emblemUnit.partOf
-          && emblemUnit.unitConfig.ConditionUser == ryokuUser && ryokuUser != baseUser && emblemUnit.serviceConfig.Type == "oneshot");
-    "emblem: the script calls ryoku-hub import-logo and writes the sentinel only after fastfetch save" =
-      let t = builtins.readFile emblemUnit.serviceConfig.ExecStart; in
-      yes "probe on the real script"
-        (probes.sentinelAfterSave t && lib.hasInfix "fastfetch import-logo" t && lib.hasInfix "fastfetch-emblem-" t);
+    "emblem: the krit layer leaves fastfetchEmblem null (a Hub/GUI choice) and the spec has no ryoku-fastfetch-emblem-seed unit; no hawk.png in the layer" =
+      yes "value ${builtins.toJSON (if emblemValue == null then null else toString emblemValue)}, unit ${builtins.toJSON (emblemUnit != null)}"
+        (emblemValue == null && emblemUnit == null && !(lib.hasInfix "hawk.png" (builtins.readFile (src + "/users/krit/nixos/specializations/ryoku.nix"))));
     "control: the sentinel-order probe rejects a missing sentinel and a sentinel before save" =
       yes "probe accepts a bad script"
         (probes.sentinelAfterSave "x fastfetch save y\n: > \"$sentinel\"\n"

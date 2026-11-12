@@ -74,7 +74,30 @@ let
     in
     map (n: "missing: ${n}") (lib.filter (n: !(lib.hasInfix n text)) required)
     ++ map (n: "forbidden: ${n}") (lib.filter (n: lib.hasInfix n text) forbidden);
+
+  westonCursorProblems = { theme, size, cmd }:
+    let
+      words = lib.splitString " " cmd;
+      need = [ "XCURSOR_PATH=/run/current-system/sw/share/icons" "XCURSOR_THEME=${theme}" "XCURSOR_SIZE=${toString size}" "--shell=kiosk" ];
+    in
+    lib.optional (!(lib.hasSuffix "/bin/env" (lib.head words))) "not wrapped in env"
+    ++ map (n: "missing: ${n}") (lib.filter (n: !(lib.elem n words)) need)
+    ++ lib.optional (!(lib.hasSuffix "weston.ini" (lib.last words))) "no weston.ini path"
+    ++ lib.optional (!(lib.any (w: lib.hasSuffix "/bin/weston" w) words)) "no weston executable";
+
+  fastfetchWrapperProblems = text:
+    map (n: "missing: ${n}")
+      (lib.filter (n: !(lib.hasInfix n text)) [
+        "KITTY_WINDOW_ID"
+        "xterm-kitty"
+        "xterm-ghostty"
+        "TERM_PROGRAM"
+        "[ -z \"${"$"}{TMUX:-}\" ]"
+        "exec \"$real\" \"$@\""
+        "exec \"$real\" --logo-type none \"$@\""
+      ])
+    ++ lib.optional (builtins.match ".*\nreal=/nix/store/[a-z0-9]+-ryoku-desktop-data[^/\n]*/bin/ryoku-fastfetch\n.*" text == null) "real is not the absolute ryoku-desktop-data store path";
 in
 {
-  inherit repoSyncUnits repoSyncProblems sentinelAfterSave dups luaCalls luaBindChords luaPairingOk niriChords legacyHits bareToolLines;
+  inherit westonCursorProblems fastfetchWrapperProblems repoSyncUnits repoSyncProblems sentinelAfterSave dups luaCalls luaBindChords luaPairingOk niriChords legacyHits bareToolLines;
 }

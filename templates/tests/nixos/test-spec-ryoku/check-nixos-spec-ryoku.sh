@@ -192,6 +192,26 @@ else
 fi
 
 echo ""
+echo -e "${BOLD}=== ryoku-fastfetch wrapper runtime (real script, stub as the real binary) ===${NC}"
+FW=$(nix eval --impure --raw --file "$FIXTURE" fastfetchWrapper 2>/dev/null) || FW=""
+if [[ -z "$FW" ]]; then
+  echo -e "  ${RED}✗ could not build the wrapper${NC}"
+  ((FAIL++)) || true
+  FAILURES+=("fastfetch wrapper runtime|could not realise fastfetchWrapper")
+else
+  FT=$(mktemp -d)
+  trap 'rm -rf "$RT" "$PT" "$FT"' EXIT
+  printf '#!/bin/sh\necho "$*"\n' > "$FT/stub"; chmod +x "$FT/stub"
+  sed "s|^real=.*|real=$FT/stub|" "$FW" > "$FT/wrapper"
+  ff() { env -u KITTY_WINDOW_ID -u TMUX -u TERM_PROGRAM TERM=dumb "$@" bash "$FT/wrapper" a b 2>&1; }
+  rt_check "fastfetch wrapper: the stub replaced the real path (control)" grep -q "^real=$FT/stub\$" "$FT/wrapper"
+  rt_check "fastfetch wrapper: kitty window without tmux keeps the logo, args passed through" bash -c "[ \"$(ff KITTY_WINDOW_ID=1)\" = 'a b' ]"
+  rt_check "fastfetch wrapper: kitty window inside tmux gets --logo-type none, args passed through" bash -c "[ \"$(ff KITTY_WINDOW_ID=1 TMUX=x)\" = '--logo-type none a b' ]"
+  rt_check "fastfetch wrapper: neither kitty nor ghostty gets --logo-type none, args passed through" bash -c "[ \"$(ff)\" = '--logo-type none a b' ]"
+  rt_check "fastfetch wrapper: TERM=xterm-ghostty without tmux keeps the logo, with tmux drops it" bash -c "[ \"$(ff TERM=xterm-ghostty)\" = 'a b' ] && [ \"$(ff TERM=xterm-ghostty TMUX=x)\" = '--logo-type none a b' ]"
+fi
+
+echo ""
 if [[ $((PASS + FAIL)) -lt $MIN_CHECKS ]]; then
   echo -e "${RED}${BOLD}Only $((PASS + FAIL)) checks ran (expected at least $MIN_CHECKS); refusing to pass.${NC}"
   exit 1

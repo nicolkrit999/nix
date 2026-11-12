@@ -216,6 +216,12 @@ let
   cursorOpts = { myconfig.specializations.ryoku = { sddmCursorTheme = "Test-Cursor"; sddmCursorPackage = pkgs.hello; sddmCursorSize = 32; }; };
   aliceCursor = ext alice [ cursorOpts ];
   aliceKwin = ext alice [ cursorOpts { services.displayManager.sddm.wayland.compositor = "kwin"; } ];
+  noWestonCmd = mkAlice (mutate "lib.mkIf (cfg.sddmCursorTheme != null && dm.sddm.wayland.compositor == \"weston\")" "lib.mkIf false" genericText);
+  aliceNoWestonCmd = ext noWestonCmd [ cursorOpts ];
+  westonCmd = h: (spec h).services.displayManager.sddm.wayland.compositorCommand;
+  westonProblems = h: probes.westonCursorProblems { theme = "Test-Cursor"; size = 32; cmd = westonCmd h; };
+  wrapperText = h: let n = lib.filter (p: lib.getName p == "ryoku-fastfetch") (hmCfg h).home.packages; in if n == [ ] then null else builtins.readFile "${lib.head n}/bin/ryoku-fastfetch";
+  wrapperBad = from: to: probes.fastfetchWrapperProblems (lib.replaceStrings [ from ] [ to ] (wrapperText bob)) != [ ];
   noXcursor = mkAlice (mutate "++ [ \"XCURSOR_PATH=/run/current-system/sw/share/icons\" ]" "" genericText);
   aliceNoXcursor = ext noXcursor [ cursorOpts ];
   sddmSet = h: (spec h).services.displayManager.sddm.settings;
@@ -538,19 +544,41 @@ let
       eq "GreeterEnvironment" (greeterEnv aliceKwin) [ "QT_WAYLAND_SHELL_INTEGRATION=layer-shell" xcursorEntry ];
     "mutant: GreeterEnvironment without XCURSOR_PATH is detected by the probe" =
       yes "mutant still applied: ${builtins.toJSON (greeterEnv aliceNoXcursor)}" (!(cursorApplied aliceNoXcursor) && cursorApplied aliceCursor);
+    "weston cursor: a weston host declaring the cursor options gets the env-wrapped kiosk command and a weston.ini with [shell] cursor-theme/size plus the nixpkgs sections" =
+      let
+        cmd = westonCmd aliceCursor;
+        ini = builtins.readFile (lib.last (lib.splitString " " cmd));
+      in
+      yes "problems ${builtins.toJSON (westonProblems aliceCursor)}, ini ${ini}"
+        (westonProblems aliceCursor == [ ] && lib.hasInfix "[shell]" ini && lib.hasInfix "cursor-theme=Test-Cursor" ini && lib.hasInfix "cursor-size=32" ini
+          && lib.hasInfix "[libinput]" ini && lib.hasInfix "[keyboard]" ini);
+    "weston cursor: without the options (alice) the command is the nixpkgs default; the kwin compositor keeps its own command" =
+      yes "alice ${westonCmd alice}, kwin ${westonCmd aliceKwin}"
+        (!(lib.hasInfix "XCURSOR_THEME" (westonCmd alice)) && !(lib.hasInfix "XCURSOR_THEME" (westonCmd aliceKwin)) && !(lib.hasInfix "env" (lib.head (lib.splitString " " (westonCmd aliceKwin)))));
+    "weston cursor: with the krit layer (bob) the spec command carries Bibata-Modern-Ice at size 24 (control)" =
+      yes "bob ${westonCmd bob}"
+        (probes.westonCursorProblems { theme = "Bibata-Modern-Ice"; size = 24; cmd = westonCmd bob; } == [ ] && !(lib.hasInfix "XCURSOR_THEME" bob.config.services.displayManager.sddm.wayland.compositorCommand));
+    "mutant: without the compositorCommand block the weston host keeps the plain command and the probe flags it" =
+      yes "mutant command ${westonCmd aliceNoWestonCmd}" (westonProblems aliceNoWestonCmd != [ ] && westonProblems aliceCursor == [ ]);
+    "fastfetch: bob (krit layer) has the ryoku-fastfetch wrapper with the absolute real path and both branches, alice (no layer) has none" =
+      yes "bob problems ${builtins.toJSON (if wrapperText bob == null then null else probes.fastfetchWrapperProblems (wrapperText bob))}, alice ${builtins.toJSON (wrapperText alice != null)}"
+        (wrapperText bob != null && probes.fastfetchWrapperProblems (wrapperText bob) == [ ] && wrapperText alice == null);
+    "mutant: a wrapper without the --logo-type none branch or without the TMUX test is detected" =
+      yes "probe silent" (wrapperBad "exec \"$real\" --logo-type none \"$@\"" "exec \"$real\" \"$@\"" && wrapperBad "[ -z \"${"$"}{TMUX:-}\" ]" "true");
     "emblem: the option defaults to null and the unit does not exist without it (alice, no krit layer)" =
       yes "default ${builtins.toJSON alice.config.myconfig.specializations.ryoku.fastfetchEmblem}, unit ${builtins.toJSON (emblemUnitOf alice != null)}"
         (alice.config.myconfig.specializations.ryoku.fastfetchEmblem == null && emblemUnitOf alice == null);
-    "emblem: with the krit layer the value ends in /share/ryoku/ryodecors/hawk.png and the unit exists (control)" =
-      yes "bob ${builtins.toJSON (toString (bob.config.myconfig.specializations.ryoku.fastfetchEmblem or ""))}, unit ${builtins.toJSON (emblemUnitOf bob != null)}"
-        (lib.hasSuffix "/share/ryoku/ryodecors/hawk.png" (toString bob.config.myconfig.specializations.ryoku.fastfetchEmblem) && emblemUnitOf bob != null);
+    "emblem: the krit layer (bob) leaves the option null, so there is no unit (control against the old hawk.png default)" =
+      yes "bob ${builtins.toJSON (bob.config.myconfig.specializations.ryoku.fastfetchEmblem)}, unit ${builtins.toJSON (emblemUnitOf bob != null)}"
+        (bob.config.myconfig.specializations.ryoku.fastfetchEmblem == null && emblemUnitOf bob == null);
     "emblem: a declared emblem generates the unit, ordered after ryoku-materialize, before ryoku-shell, wanted by ryoku-session.target, ConditionUser is the spec user" =
-      yes "bob ${builtins.toJSON (emblemOk bob (emblemUnitOf bob))}, alice+emblem ${builtins.toJSON (emblemOk aliceEmblem (emblemUnitOf aliceEmblem))}"
-        (emblemOk bob (emblemUnitOf bob) && emblemOk aliceEmblem (emblemUnitOf aliceEmblem)
+      yes "alice+emblem ${builtins.toJSON (emblemOk aliceEmblem (emblemUnitOf aliceEmblem))}"
+        (emblemOk aliceEmblem (emblemUnitOf aliceEmblem)
           && (emblemUnitOf aliceEmblem).unitConfig.ConditionUser == "alice-ryoku");
     "emblem: the script calls import-logo and writes the sentinel only after save (real script passes)" =
-      yes "bob ${builtins.toJSON (emblemScriptOk (emblemUnitOf bob))}, alice+emblem ${builtins.toJSON (emblemScriptOk (emblemUnitOf aliceEmblem))}"
-        (emblemScriptOk (emblemUnitOf bob) && emblemScriptOk (emblemUnitOf aliceEmblem));
+      yes "alice+emblem ${builtins.toJSON (emblemScriptOk (emblemUnitOf aliceEmblem))}"
+        emblemScriptOk
+        (emblemUnitOf aliceEmblem);
     "mutant: a script without the sentinel write, or with it before save, fails the script probe (detected)" =
       yes "a mutant still passes: ${builtins.toJSON [ (emblemScriptOk (emblemUnitOf aliceNoSentinel)) (emblemScriptOk (emblemUnitOf aliceSentinelFirst)) ]}"
         (!(emblemScriptOk (emblemUnitOf aliceNoSentinel)) && !(emblemScriptOk (emblemUnitOf aliceSentinelFirst)));
@@ -720,5 +748,6 @@ in
   inherit checks;
   results = lib.mapAttrs (_: safe) checks;
   privateSyncScript = let p = toString (lib.head (lib.toList (privSvc (spec bob)).Service.ExecStart)); in builtins.seq (builtins.readFile p) p;
+  fastfetchWrapper = let n = lib.filter (p: lib.getName p == "ryoku-fastfetch") (hmCfg bob).home.packages; p = "${lib.head n}/bin/ryoku-fastfetch"; in builtins.seq (builtins.readFile p) p;
   seedScripts = { a = realised aliceA; b = realised aliceB; enforce = realised aliceE; };
 }

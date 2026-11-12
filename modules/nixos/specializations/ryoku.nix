@@ -356,6 +356,35 @@ delib.module {
 
         environment.systemPackages = lib.optional (cfg.sddmCursorPackage != null) cfg.sddmCursorPackage;
 
+        services.displayManager.sddm.wayland.compositorCommand = lib.mkIf (cfg.sddmCursorTheme != null && dm.sddm.wayland.compositor == "weston") (
+          let
+            xcfg = config.services.xserver;
+            westonIni = (pkgs.formats.ini { }).generate "weston.ini" {
+              libinput = {
+                enable-tap = config.services.libinput.mouse.tapping;
+                left-handed = config.services.libinput.mouse.leftHanded;
+              };
+              keyboard = {
+                keymap_model = xcfg.xkb.model;
+                keymap_layout = xcfg.xkb.layout;
+                keymap_variant = xcfg.xkb.variant;
+                keymap_options = xcfg.xkb.options;
+              };
+              shell = {
+                cursor-theme = cfg.sddmCursorTheme;
+                cursor-size = cfg.sddmCursorSize;
+              };
+            };
+          in
+          lib.mkForce (lib.concatStringsSep " " [
+            "${pkgs.coreutils}/bin/env"
+            "XCURSOR_PATH=/run/current-system/sw/share/icons"
+            "XCURSOR_THEME=${cfg.sddmCursorTheme}"
+            "XCURSOR_SIZE=${toString cfg.sddmCursorSize}"
+            "${lib.getExe pkgs.weston} --shell=kiosk -c ${westonIni}"
+          ])
+        );
+
         services.displayManager.sddm.settings = lib.mkIf (cfg.sddmCursorTheme != null) {
           Theme = {
             CursorTheme = cfg.sddmCursorTheme;

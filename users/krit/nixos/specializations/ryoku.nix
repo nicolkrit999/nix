@@ -94,9 +94,6 @@ delib.module {
   name = "krit.specializations.ryoku";
 
   nixos.always = lib.mkIf config.myconfig.specializations.ryoku.enable {
-    myconfig.specializations.ryoku.fastfetchEmblem =
-      "${inputs.ryoku.packages.${pkgs.stdenv.hostPlatform.system}.ryoku-desktop-data}/share/ryoku/ryodecors/hawk.png";
-
     myconfig.specializations.ryoku.sddmCursorTheme = "Bibata-Modern-Ice";
     myconfig.specializations.ryoku.sddmCursorPackage = pkgs.bibata-cursors;
 
@@ -180,6 +177,18 @@ delib.module {
         ];
 
         home-manager.users.${user} = { pkgs, ... }: {
+          # Wins over Ryoku's ryoku-fastfetch in PATH (/etc/profiles/per-user precedes /run/current-system/sw) for the bash, zsh and
+          # fish greetings alike: the image logo only works in a plain kitty or ghostty window, multiplexer panes hang or lose it.
+          home.packages = [
+            (pkgs.writeShellScriptBin "ryoku-fastfetch" ''
+              real=${inputs.ryoku.packages.${pkgs.stdenv.hostPlatform.system}.ryoku-desktop-data}/bin/ryoku-fastfetch
+              if { [ -n "''${KITTY_WINDOW_ID:-}" ] || [ "''${TERM:-}" = xterm-kitty ] || [ "''${TERM:-}" = xterm-ghostty ] || [ "''${TERM_PROGRAM:-}" = ghostty ]; } && [ -z "''${TMUX:-}" ]; then
+                exec "$real" "$@"
+              fi
+              exec "$real" --logo-type none "$@"
+            '')
+          ];
+
           systemd.user.services = {
             ryoku-dotfiles-sync = mkRepoSync pkgs {
               name = "ryoku-dotfiles-sync";
