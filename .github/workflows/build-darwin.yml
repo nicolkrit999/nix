@@ -50,8 +50,8 @@ jobs:
             # actually apply to aarch64-darwin - hyprland/cosmic/walker/vicinae
             # are Linux-only, and every extra substituter costs a narinfo
             # round-trip per path.
-            extra-substituters = https://claude-code.cachix.org https://catppuccin.cachix.org
-            extra-trusted-public-keys = claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk= catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI=
+            extra-substituters = https://claude-code.cachix.org https://catppuccin.cachix.org https://kevinpita.cachix.org
+            extra-trusted-public-keys = claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk= catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI= kevinpita.cachix.org-1:Cu9UtCDSfDq3/WDnI7N1N/LzAh90SPS+1R+nWao/hz0=
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             # Auto-GC during the build. macOS runners share one APFS container

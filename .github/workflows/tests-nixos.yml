@@ -166,8 +166,8 @@ jobs:
             # A runner's 1-hour negative narinfo cache hid a fresh cachix push and
             # made portal-routing compile noctalia (run 38136950163): never cache a miss.
             narinfo-cache-negative-ttl = 0
-            extra-substituters = https://catppuccin.cachix.org https://krit-nixos.cachix.org
-            extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI= krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks=
+            extra-substituters = https://catppuccin.cachix.org https://krit-nixos.cachix.org https://kevinpita.cachix.org
+            extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732n/9sI= krit-nixos.cachix.org-1:54bU6/gPbvP4X+nu2apEx343noMoo3Jln8LzYfKD7ks= kevinpita.cachix.org-1:Cu9UtCDSfDq3/WDnI7N1N/LzAh90SPS+1R+nWao/hz0=
 
       # Restore only - build.yml owns saving and purging the nix store caches;
       # saving here too would purge build.yml's run-suffixed caches (and vice
