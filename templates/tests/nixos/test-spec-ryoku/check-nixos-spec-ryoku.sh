@@ -14,7 +14,7 @@ REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"
 REAL="$DIR/01-scenario-spec-ryoku-real.nix"
 FIXTURE="$DIR/02-scenario-spec-ryoku-fixture.nix"
-MIN_CHECKS=375
+MIN_CHECKS=398
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
@@ -203,12 +203,43 @@ else
   trap 'rm -rf "$RT" "$PT" "$FT"' EXIT
   printf '#!/bin/sh\necho "$*"\n' > "$FT/stub"; chmod +x "$FT/stub"
   sed "s|^real=.*|real=$FT/stub|" "$FW" > "$FT/wrapper"
-  ff() { env -u KITTY_WINDOW_ID -u TMUX -u TERM_PROGRAM TERM=dumb "$@" bash "$FT/wrapper" a b 2>&1; }
+  mkdir -p "$FT/home"
+  ff() { env -u KITTY_WINDOW_ID -u TMUX -u TERM_PROGRAM -u XDG_CONFIG_HOME -u XDG_CACHE_HOME HOME="$FT/home" TERM=dumb "$@" bash "$FT/wrapper" a b 2>&1; }
+  mkcfg() { mkdir -p "$FT/home/.config/fastfetch"; printf '// comment\n{\n  // another\n  "logo": { "source": "%s", "width": 10, "height": 5 }\n}\n' "$1" > "$FT/home/.config/fastfetch/config.jsonc"; }
+  echo iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg== | base64 -d > "$FT/home/logo.png"
+  echo "not an image" > "$FT/home/notimg.png"
+  CACHE="$FT/home/.cache/ryoku"
+  nfiles() { ls "$CACHE" 2>/dev/null | wc -l; }
+  eqs() { [ "$1" = "$2" ]; }
+
   rt_check "fastfetch wrapper: the stub replaced the real path (control)" grep -q "^real=$FT/stub\$" "$FT/wrapper"
-  rt_check "fastfetch wrapper: kitty window without tmux keeps the logo, args passed through" bash -c "[ \"$(ff KITTY_WINDOW_ID=1)\" = 'a b' ]"
-  rt_check "fastfetch wrapper: kitty window inside tmux gets --logo-type none, args passed through" bash -c "[ \"$(ff KITTY_WINDOW_ID=1 TMUX=x)\" = '--logo-type none a b' ]"
-  rt_check "fastfetch wrapper: neither kitty nor ghostty gets --logo-type none, args passed through" bash -c "[ \"$(ff)\" = '--logo-type none a b' ]"
-  rt_check "fastfetch wrapper: TERM=xterm-ghostty without tmux keeps the logo, with tmux drops it" bash -c "[ \"$(ff TERM=xterm-ghostty)\" = 'a b' ] && [ \"$(ff TERM=xterm-ghostty TMUX=x)\" = '--logo-type none a b' ]"
+  rt_check "fastfetch wrapper: kitty window without tmux keeps the logo, args passed through" eqs "$(ff KITTY_WINDOW_ID=1)" 'a b'
+  mkcfg '~/logo.png'
+  rt_check "fastfetch wrapper: kitty without tmux ignores a configured logo source and renders nothing (branch unchanged)" \
+    bash -c "[ \"\$1\" = 'a b' ] && [ ! -e '$CACHE' ]" _ "$(ff KITTY_WINDOW_ID=1)"
+  rt_check "fastfetch wrapper: TERM=xterm-ghostty without tmux keeps the logo" eqs "$(ff TERM=xterm-ghostty)" 'a b'
+  rm -rf "$FT/home/.config"
+  rt_check "fastfetch wrapper: kitty inside tmux without config gets --logo-type none, args passed through" eqs "$(ff KITTY_WINDOW_ID=1 TMUX=x)" '--logo-type none a b'
+  rt_check "fastfetch wrapper: neither kitty nor ghostty without config gets --logo-type none, args passed through" eqs "$(ff)" '--logo-type none a b'
+  rt_check "fastfetch wrapper: ghostty inside tmux without config gets --logo-type none" eqs "$(ff TERM=xterm-ghostty TMUX=x)" '--logo-type none a b'
+
+  mkcfg '~/logo.png'
+  out1=$(ff TMUX=x)
+  rt_check "fastfetch wrapper: with a configured image the stub gets --logo <cache> --logo-type file-raw and the extra args" \
+    bash -c '[[ "$1" =~ ^--logo\ '"$FT"'/home/.cache/ryoku/fastfetch-logo-[0-9a-f]{16}\.txt\ --logo-type\ file-raw\ a\ b$ ]]' _ "$out1"
+  cache1=$(ls "$CACHE"/fastfetch-logo-*.txt 2>/dev/null | head -1)
+  rt_check "fastfetch wrapper: the rendered cache file exists and is non-empty" test -s "$cache1"
+  ino1=$(stat -c '%i %Y' "$cache1" 2>/dev/null); ff TMUX=x >/dev/null
+  rt_check "fastfetch wrapper: a second run reuses the cache (same inode and mtime, one file)" \
+    bash -c "[ \"\$(stat -c '%i %Y' '$cache1')\" = '$ino1' ] && [ \"\$(ls '$CACHE' | wc -l)\" = 1 ]"
+  touch -d @1000000 "$FT/home/logo.png"; out2=$(ff TMUX=x)
+  rt_check "fastfetch wrapper: a changed source renders a second cache file and the output names a different one" \
+    bash -c '[ "$1" = 2 ] && [ "$2" != "$3" ] && [[ "$2" == "--logo "* ]]' _ "$(nfiles)" "$out2" "$out1"
+  mkcfg '~/notimg.png'
+  rt_check "fastfetch wrapper: a non-image source falls back to --logo-type none and leaves no temp file" \
+    bash -c '[ "$1" = "--logo-type none a b" ] && [ "$2" = 2 ]' _ "$(ff TMUX=x)" "$(nfiles)"
+  mkcfg '~/missing.png'
+  rt_check "fastfetch wrapper: a missing source falls back to --logo-type none" eqs "$(ff TMUX=x)" '--logo-type none a b'
 fi
 
 echo ""

@@ -563,8 +563,8 @@ let
     "fastfetch: bob (krit layer) has the ryoku-fastfetch wrapper with the absolute real path and both branches, alice (no layer) has none" =
       yes "bob problems ${builtins.toJSON (if wrapperText bob == null then null else probes.fastfetchWrapperProblems (wrapperText bob))}, alice ${builtins.toJSON (wrapperText alice != null)}"
         (wrapperText bob != null && probes.fastfetchWrapperProblems (wrapperText bob) == [ ] && wrapperText alice == null);
-    "mutant: a wrapper without the --logo-type none branch or without the TMUX test is detected" =
-      yes "probe silent" (wrapperBad "exec \"$real\" --logo-type none \"$@\"" "exec \"$real\" \"$@\"" && wrapperBad "[ -z \"${"$"}{TMUX:-}\" ]" "true");
+    "mutant: a wrapper without the --logo-type none fallback or without the TMUX test is detected" =
+      yes "probe silent" (wrapperBad "logo=(--logo-type none)" "logo=()" && wrapperBad "[ -z \"${"$"}{TMUX:-}\" ]" "true");
     "emblem: the option defaults to null and the unit does not exist without it (alice, no krit layer)" =
       yes "default ${builtins.toJSON alice.config.myconfig.specializations.ryoku.fastfetchEmblem}, unit ${builtins.toJSON (emblemUnitOf alice != null)}"
         (alice.config.myconfig.specializations.ryoku.fastfetchEmblem == null && emblemUnitOf alice == null);
@@ -577,8 +577,7 @@ let
           && (emblemUnitOf aliceEmblem).unitConfig.ConditionUser == "alice-ryoku");
     "emblem: the script calls import-logo and writes the sentinel only after save (real script passes)" =
       yes "alice+emblem ${builtins.toJSON (emblemScriptOk (emblemUnitOf aliceEmblem))}"
-        emblemScriptOk
-        (emblemUnitOf aliceEmblem);
+        (emblemScriptOk (emblemUnitOf aliceEmblem));
     "mutant: a script without the sentinel write, or with it before save, fails the script probe (detected)" =
       yes "a mutant still passes: ${builtins.toJSON [ (emblemScriptOk (emblemUnitOf aliceNoSentinel)) (emblemScriptOk (emblemUnitOf aliceSentinelFirst)) ]}"
         (!(emblemScriptOk (emblemUnitOf aliceNoSentinel)) && !(emblemScriptOk (emblemUnitOf aliceSentinelFirst)));

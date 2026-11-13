@@ -86,6 +86,9 @@ let
     ++ lib.optional (!(lib.any (w: lib.hasSuffix "/bin/weston" w) words)) "no weston executable";
 
   fastfetchWrapperProblems = text:
+    let
+      storeTool = pkg: bin: builtins.match ".*/nix/store/[a-z0-9]+-${pkg}[^/\n]*/bin/${bin}[ \n\"].*" text != null;
+    in
     map (n: "missing: ${n}")
       (lib.filter (n: !(lib.hasInfix n text)) [
         "KITTY_WINDOW_ID"
@@ -94,8 +97,23 @@ let
         "TERM_PROGRAM"
         "[ -z \"${"$"}{TMUX:-}\" ]"
         "exec \"$real\" \"$@\""
-        "exec \"$real\" --logo-type none \"$@\""
+        "logo=(--logo-type none)"
+        "exec \"$real\" \"${"$"}{logo[@]}\" \"$@\""
+        "--logo-type file-raw"
+        "ryoku/fastfetch-logo-"
+        "--format symbols"
+        "config.jsonc"
       ])
+    ++ map (t: "no absolute store path for ${t.pkg}/bin/${t.bin}") (lib.filter (t: !(storeTool t.pkg t.bin)) [
+      { pkg = "chafa"; bin = "chafa"; }
+      { pkg = "jq"; bin = "jq"; }
+      { pkg = "gnused"; bin = "sed"; }
+      { pkg = "coreutils"; bin = "stat"; }
+      { pkg = "coreutils"; bin = "sha256sum"; }
+      { pkg = "coreutils"; bin = "mktemp"; }
+      { pkg = "coreutils"; bin = "mv"; }
+      { pkg = "coreutils"; bin = "mkdir"; }
+    ])
     ++ lib.optional (builtins.match ".*\nreal=/nix/store/[a-z0-9]+-ryoku-desktop-data[^/\n]*/bin/ryoku-fastfetch\n.*" text == null) "real is not the absolute ryoku-desktop-data store path";
 in
 {

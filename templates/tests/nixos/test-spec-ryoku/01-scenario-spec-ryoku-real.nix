@@ -310,7 +310,7 @@ let
       yes "probe silent"
         (probes.westonCursorProblems { theme = "Bibata-Modern-Ice"; size = 24; cmd = "/x/bin/weston --shell=kiosk -c /x/weston.ini"; } != [ ]
           && probes.westonCursorProblems { theme = "Bibata-Modern-Ice"; size = 24; cmd = "/x/bin/env XCURSOR_PATH=/run/current-system/sw/share/icons XCURSOR_THEME=Other XCURSOR_SIZE=24 /x/bin/weston --shell=kiosk -c /x/weston.ini"; } != [ ]);
-    "fastfetch: the spec user has the ryoku-fastfetch wrapper in home.packages (base user does not); its script has the absolute ryoku-desktop-data path and both exec branches" =
+    "fastfetch: the spec user has the ryoku-fastfetch wrapper in home.packages (base user does not); its script has the absolute ryoku-desktop-data, chafa, jq, sed and coreutils paths, the file-raw logo and the none fallback" =
       let
         named = c: lib.filter (p: lib.getName p == "ryoku-fastfetch") c.home.packages;
         t = if named hm == [ ] then "" else builtins.readFile "${lib.head (named hm)}/bin/ryoku-fastfetch";
@@ -356,7 +356,7 @@ let
             && seedUnit.unitConfig.ConditionUser == ryokuUser && ryokuUser != baseUser && seedUnit.serviceConfig.Type == "oneshot");
     "emblem: the krit layer leaves fastfetchEmblem null (a Hub/GUI choice) and the spec has no ryoku-fastfetch-emblem-seed unit; no hawk.png in the layer" =
       yes "value ${builtins.toJSON (if emblemValue == null then null else toString emblemValue)}, unit ${builtins.toJSON (emblemUnit != null)}"
-        (emblemValue == null && emblemUnit == null && !(lib.hasInfix "hawk.png" (builtins.readFile (src + "/users/krit/nixos/specializations/ryoku.nix"))));
+        (emblemValue == null && emblemUnit == null && !(lib.hasInfix "hawk.png" (builtins.readFile (flake.outPath + "/users/krit/nixos/specializations/ryoku.nix"))));
     "control: the sentinel-order probe rejects a missing sentinel and a sentinel before save" =
       yes "probe accepts a bad script"
         (probes.sentinelAfterSave "x fastfetch save y\n: > \"$sentinel\"\n"
