@@ -108,6 +108,9 @@ delib.module {
 
       boot.loader.systemd-boot.enable = lib.mkForce false;
 
+      # lanzaboote reads this option for loader.conf: no editing of the kernel command line at boot.
+      boot.loader.systemd-boot.editor = lib.mkDefault false;
+
       # No autoGenerateKeys / autoEnrollKeys / measuredBoot: keys are created and enrolled
       # by hand with sbctl (see Documentation/usage/secure-boot/lanzaboote.md).
       boot.lanzaboote = {

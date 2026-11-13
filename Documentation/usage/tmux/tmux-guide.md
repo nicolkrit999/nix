@@ -1,6 +1,6 @@
 # Tmux Reference Guide
 
-> **Note:** **`Alt`** = the **`Meta`** (`M-`) key. Most bindings work **without a prefix** — just press `Alt + key` directly.
+> **Note:** **`Alt`** = the **`Meta`** (`M-`) key. Most bindings work **without a prefix** - just press `Alt + key` directly.
 > The classic tmux prefix is **`Ctrl + b`**, used only for built-in commands listed throughout this guide.
 - For macOS (darwin) `Alt` is `Option`.
 
@@ -14,10 +14,11 @@
 | :------- | :-- | :----- |
 | **Splits** | `Alt + v` | Split: top / bottom (new pane below) |
 | **Splits** | `Alt + h` | Split: left \| right (new pane beside) |
+| **Layout** | `Alt + o` | Cycle pane layout (same as `Ctrl + b`, `space`) |
 | **Navigate** | `Alt + Arrow` | Move focus between panes |
 | **Resize** | `Alt + Shift + Arrow` | Resize current pane |
 | **Windows** | `Alt + Enter` | New window (tab) |
-| **Windows** | `Alt + 1–9` | Jump to window by number |
+| **Windows** | `Alt + 1-9` | Jump to window by number |
 | **Pane** | `Alt + c` | Close current pane |
 | **Window** | `Alt + q` | Close current window + all its panes |
 | **Session** | `Alt + d` | Detach (keep everything running) |
@@ -48,11 +49,11 @@
 
 ## Scenario: "Starting the Work Day"
 
-You open a terminal — tmux starts automatically (the bash, zsh and fish modules each attach to or create a session named `main`; on NixOS this requires a graphical session (`$DISPLAY` set), on Darwin it always starts).
+You open a terminal - tmux starts automatically (the bash, zsh and fish modules each attach to or create a session named `main`; on NixOS this requires a graphical session (`$DISPLAY` set), on Darwin it always starts).
 
 ```
 ┌──────────────────────────────────────────────┐
-│  Window 1 — main                             │
+│  Window 1 - main                             │
 │                                              │
 │  $ _                                         │
 │                                              │
@@ -115,7 +116,7 @@ Start with `Alt + h`, then in the right pane press `Alt + v`:
 └───────────────────┴───────────────────┘
 ```
 
-> **Tip:** Splits always open in the **current pane's directory** — no need to `cd` again.
+> **Tip:** Splits always open in the **current pane's directory** - no need to `cd` again.
 
 ### Navigating & Resizing Panes
 
@@ -156,7 +157,7 @@ Before zoom:                          After Ctrl+b, z:
 
 ## Scenario: "Managing Multiple Tasks (Windows)"
 
-Windows are like browser tabs — each can have its own set of panes.
+Windows are like browser tabs - each can have its own set of panes.
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -170,7 +171,7 @@ Windows are like browser tabs — each can have its own set of panes.
 | I want to... | Key | Notes |
 | :----------- | :-- | :---- |
 | Open a new window | `Alt + Enter` | Appears as next number in bar |
-| Switch to window 1 | `Alt + 1` | Works for 1–9 |
+| Switch to window 1 | `Alt + 1` | Works for 1-9 |
 | Switch to window 3 | `Alt + 3` | |
 | Go to previous window | `Ctrl + b`, then `p` | Cycles left |
 | Go to next window | `Ctrl + b`, then `n` | Cycles right |
@@ -182,7 +183,7 @@ Windows are like browser tabs — each can have its own set of panes.
 
 ### Breaking and Rejoining Panes
 
-You can move panes between windows — useful when a split outgrows its space or you want to recombine things.
+You can move panes between windows - useful when a split outgrows its space or you want to recombine things.
 
 | I want to... | Key | Notes |
 | :----------- | :-- | :---- |
@@ -277,13 +278,13 @@ This config uses **vi key mode** for copy mode.
 
 ### Scroll with the mouse
 
-Just use the **mouse wheel** — tmux enters copy mode automatically. Scroll up to read history, scroll down to return to the bottom.
+Just use the **mouse wheel** - tmux enters copy mode automatically. Scroll up to read history, scroll down to return to the bottom.
 
 ### Copy text
 
 **Mouse method:**
 1. Click and drag to select text.
-2. Release — the selection is automatically copied to the Wayland clipboard (`wl-copy`).
+2. Release - the selection is automatically copied to the Wayland clipboard (`wl-copy`).
 3. Paste with `Ctrl + Shift + v` (or middle click) in any app.
 
 **Keyboard method (vi copy mode):**
@@ -315,7 +316,7 @@ Just use the **mouse wheel** — tmux enters copy mode automatically. Scroll up 
 
 | I want to... | Key | What happens |
 | :----------- | :-- | :----------- |
-| Step away safely | `Alt + d` | Detaches — all processes keep running in the background |
+| Step away safely | `Alt + d` | Detaches - all processes keep running in the background |
 | Come back later | `tmux attach` | Restores everything exactly as you left it |
 | Close one split | `Alt + c` | Kills the focused pane only |
 | Close a tab | `Alt + q` | Kills the window and all its panes |
@@ -344,12 +345,12 @@ Press **`Ctrl + b`, then `:`** to open the command prompt. Useful commands:
 
 These features are configured in `modules/common/programs/shells/tmux.nix`:
 
-- **Image passthrough** is enabled (`allow-passthrough on`) — terminal file managers like yazi can display image previews inside tmux
+- **Image passthrough** is enabled (`allow-passthrough on`) - terminal file managers like yazi can display image previews inside tmux
 - **RGB color support** is active for kitty, alacritty, and xterm-256color terminals
 - **Mouse drag** in copy mode automatically copies to the Wayland clipboard via `wl-copy`
-- **Windows start at 1** (not 0) — matches keyboard number row
-- **Vi key mode** is active — affects copy mode navigation (h/j/k/l, v for select, y for yank)
-- **Zero escape time** — no delay after pressing Escape (important for vi/neovim users)
+- **Windows start at 1** (not 0) - matches keyboard number row
+- **Vi key mode** is active - affects copy mode navigation (h/j/k/l, v for select, y for yank)
+- **Zero escape time** - no delay after pressing Escape (important for vi/neovim users)
 - **Catppuccin theme** applied automatically when enabled in host constants
 
 ---

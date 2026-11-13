@@ -45,15 +45,13 @@ Reboot: no passphrase prompt means it worked. Details and the manual `systemd-cr
 tailscale status        # this machine appears as <host>-2
 ```
 
-The node identity was carried over from the live system, so no new login is needed. If `<host>-2` is missing, the key was skipped or failed during the install: run `sudo tailscale up --hostname=<host>-2` (or provide an auth key) after the first boot. The Attic cache and the NAS depend on this.
+The node identity was carried over from the live system, so no new login is needed. If `<host>-2` is missing, the key was skipped or failed during the install: run `sudo tailscale up --hostname=<host>-2` (or provide a fresh auth key) after the first boot. The Attic cache and the NAS depend on this.
 
-### Replace the stored Tailscale key
+### The sops `tailscale_key` is not relied on
 
-The installer decrypts `tailscale_key` from the common sops file and falls back to a prompt when Tailscale rejects it (expired, revoked or single-use). To make future installs prompt-free, store a fresh key:
+This is deliberate. Tailscale auth keys expire after 90 days at most, and a clone install happens every 2 to 3 years or after a dead machine, so any key stored in sops is expired when it is needed. The installer's fresh-key prompt (reusable on, ephemeral off, 1-day expiry, created right before the install) is the only supported path. **Do not try to "fix" or periodically replace the sops key**; an expired `tailscale_key` is the normal state, not a defect. The installer still tries it first because that costs nothing.
 
-1. Create the key at <https://login.tailscale.com/admin/settings/keys> ("Generate auth key..."): **Reusable** on, **Ephemeral** off, and the longest expiry the console allows (an expired key brings the prompt back).
-2. In the repository run `sops-common` (alias for `cd <repo>/users/krit/common/sops && sops krit-common-secrets-sops.yaml`; the plain form is `sops users/krit/common/sops/krit-common-secrets-sops.yaml`, see the [sops guide](../usage/sops/sops-guide.md)). Replace the value of `tailscale_key` with the new `tskey-auth-...` string, save and quit.
-3. Commit and push. The installer always clones `main`, so the next install reads the new key. The installed hosts read the same sops key for `services.tailscale.authKeyFile`.
+The same key is also wired as `services.tailscale.authKeyFile` on the installed hosts, but it only matters while the node has no valid identity. A host that keeps its `/persist/var/lib/tailscale` state (including a clone, which receives the live system's state from the installer) never needs it. If a machine ever loses that state, re-join it by hand with a fresh key: `sudo tailscale up --hostname=<name> --auth-key=<tskey-auth-...>` (do not store that key anywhere).
 
 ## 5. Settings inherited from the original (fix on new hardware)
 

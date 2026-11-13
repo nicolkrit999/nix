@@ -23,7 +23,7 @@ for both. The tables below say which row applies to which bootloader.
 | What you see at power-on | What to do |
 |---|---|
 | **GRUB host:** the GRUB menu shows, but NixOS fails later (black screen, emergency mode, crash) | **No USB needed.** In GRUB choose *"NixOS - All configurations"*, pick an older generation, boot it, then fix the config and rebuild normally. |
-| **lanzaboote host:** the systemd-boot menu shows (a list of NixOS generations), but NixOS fails later | **No USB needed.** Pick an older generation in that menu (arrow keys, Enter), boot it, then fix the config and rebuild normally. The older entries are signed too, so they boot with Secure Boot ON. |
+| **lanzaboote host:** the systemd-boot menu shows (a list of NixOS generations), but NixOS fails later (menu entries cannot be edited, `editor` is off: no one-off kernel parameters from the menu) | **No USB needed.** Pick an older generation in that menu (arrow keys, Enter), boot it, then fix the config and rebuild normally. The older entries are signed too, so they boot with Secure Boot ON. |
 | **lanzaboote host:** the firmware refuses to start the loader (Secure Boot / security violation message) | No USB needed first: enter the BIOS (admin password), switch Secure Boot **off**, boot an older generation from the systemd-boot menu. If no menu shows at all, use the USB row below. |
 | GRUB shows `error: symbol '…' not found` (**GRUB hosts only**) | Live USB → `recover.sh --grub-only` (see [section 4](#4-run-the-script)) |
 | GRUB shows `grub rescue>` or a `minimal bash-like` prompt | Live USB → `recover.sh` |

@@ -2,7 +2,7 @@
 
 Lean CI test for the clone installer (`templates/installer/`, flake outputs `installer`, `make-bundle`, `installer-iso`, hosts `nixos-desktop-2` / `nixos-laptop-2`). A clone is the original host's whole config on new hardware: the same secrets, the same `stateVersion`s, the same `myconfig.constants.hostname` (kernel, dotfiles and sops key on it), only `networking.hostName` and the hardware layer differ. The installer then partitions a real disk next to a real Windows. None of that can be tried on the real machines, so the parts that decide it are proven here without touching a device: the clone invariants, where the installer outputs are (and are not) exposed, and the disk logic on sparse image files.
 
-The full installer harness (`templates/installer/test-harness.sh`, about 200 assertions, about 3.5 min, fakes for every mutating tool) stays local-only; this test is its cheap subset.
+The full installer harness (`templates/installer/test-harness.sh`, about 400 assertions including the promotion script's cases, several minutes, fakes for every mutating tool) stays local-only; this test is its cheap subset.
 
 ## Run
 
@@ -24,7 +24,7 @@ About 16 s warm (one scenario eval of four real hosts plus twelve mutant twins, 
 
 `check-nixos-clone-installer.sh` first realises `gptfdisk`, `jq` and `util-linux` from the flake's pinned nixpkgs (`nix build --inputs-from`, a few MB from the binary cache) and puts them first on `PATH`, so the result does not depend on what the machine has. It then runs three parts.
 
-1. **Scenario eval** (`01-scenario-clone-installer.nix`): one `nix eval --json --impure` that loads the real flake and returns one `"ok"` / `"FAIL: ..."` string per check. `problems original clone expectedName` lists the invariants a clone breaks. The pairs (`nixos-desktop` / `nixos-desktop-2`, `nixos-laptop` / `nixos-laptop-2`) are the contract of the installer, not a host choice. The label-layer expectations are read from `templates/installer/layout.nix` (the same file the installer and `generic-hardware.nix` use), never typed again; the LUKS expectation follows the original (laptop yes, desktop no). Secrets are compared with each other (the clone's sops file, key paths and secret names against the original's), nothing is hardcoded.
+1. **Scenario eval** (`01-scenario-clone-installer.nix`): one `nix eval --json --impure` that loads the real flake and returns one `"ok"` / `"FAIL: ..."` string per check. `problems original clone expectedName` lists the invariants a clone breaks. The pairs (`nixos-desktop` / `nixos-desktop-2`, `nixos-laptop` / `nixos-laptop-2`) are the contract of the installer, not a host choice. A pair whose `-2` host is gone from `nixosConfigurations` is a **promoted** host (`templates/installer/promote.sh` removed it): its original is then checked on its own (`promoted-<name>-*`: original exists, `/boot` by label, no `by-uuid` root mount, btrfs devices on the label or the LUKS mapper) and the desktop-only or laptop-only mutant/control checks of that host are skipped; the other pair keeps every check. The label-layer expectations are read from `templates/installer/layout.nix` (the same file the installer and `generic-hardware.nix` use), never typed again; the LUKS expectation follows the original (laptop yes, desktop no). Secrets are compared with each other (the clone's sops file, key paths and secret names against the original's), nothing is hardcoded.
 2. **Layout contract**: the installer scripts and nix files are grepped for the layout values (ESP label, LUKS partlabel, mapper name, the four subvolume names, loaded through `dp_layout_load`); comment lines are skipped.
 3. **Disk logic**: `templates/installer/disk-plan.sh` is sourced with `INSTALLER_TEST=1` (regular files only; the library itself refuses block devices in that mode) and run against sparse images (200 GiB Windows-style disk, full disk, ~58 GiB-free disk, empty, Ubuntu, bare ESP, a disk with two gaps) created with `sgdisk` under `${XDG_CACHE_HOME:-~/.cache}` (on disk, not the `/tmp` tmpfs; removed on exit). Only `sgdisk`, `sfdisk`, `blkid` and `jq` are used; no loop device, no mount, no `mkfs`, no `/dev`.
 
@@ -53,7 +53,8 @@ A failing check is not proof of a config bug: diagnose before touching the test.
 | `clone-<pair>-sops-file` | `sops.defaultSopsFile` is the original's file |
 | `clone-<pair>-sops-keys` | `sops.age.sshKeyPaths` equals the original's |
 | `clone-<pair>-sops-secrets` | the set of `sops.secrets` names equals the original's |
-| `clone-<pair>-bootloader` | `boot.lanzaboote.enable`, `boot.loader.grub.enable` and `canTouchEfiVariables` equal the original's |
+| `clone-<pair>-bootloader` | `boot.lanzaboote.enable`, `boot.loader.grub.enable`, `canTouchEfiVariables` and `boot.loader.systemd-boot.editor` equal the original's |
+| `editor-off-<pair>-original` / `-clone` | a lanzaboote host (and its open clone) has `boot.loader.systemd-boot.editor` false: the clone and the installer-built system inherit the hardening, the kernel command line cannot be edited at boot |
 | `clone-<pair>-persist-flags` | `neededForBoot` of `/persist` and `/var/log` equals the original's |
 | `clone-<pair>-label-layer` | `/boot` is `by-label/<espLabel>`; `/persist`, `/nix`, `/home`, `/var/log` are `by-label/<btrfsLabel>` (no LUKS) or `/dev/mapper/<luksMapperName>` (LUKS original), all values from `layout.nix` |
 | `clone-<pair>-no-uuid` | none of those five mounts uses `by-uuid` |
@@ -72,6 +73,7 @@ A failing check is not proof of a config bug: diagnose before touching the test.
 | `control-mutant-sops-keys` | another key path is reported |
 | `control-mutant-sops-secrets` | an extra secret is reported |
 | `control-mutant-bootloader` | a flipped `canTouchEfiVariables` is reported |
+| `control-mutant-editor` | a clone with the boot menu editor switched on is reported (`bootloader`) |
 | `control-mutant-persist-flags` | `/persist` without `neededForBoot` is reported |
 | `control-mutant-uuid-boot` | `/boot` by-uuid is reported (`no-uuid`) |
 | `control-mutant-label-layer` | `/boot` on a foreign label is reported |

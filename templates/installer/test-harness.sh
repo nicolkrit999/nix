@@ -186,6 +186,10 @@ EOF
   realnix=$(command -v nix)
   cat >"$bin/nix" <<EOF
 #!/usr/bin/env bash
+if [[ "\$*" == *builtins.attrNames* ]]; then
+  cat "$T/configs.json"
+  exit 0
+fi
 for a in "\$@"; do
   if [[ \$a == --apply ]]; then
     case "\$*" in
@@ -202,6 +206,7 @@ EOF
 {"hostName":"nixos-laptop-2","user":"krit","uid":1000,"gid":100,"home":"/home/krit","luks":true,"lanzaboote":true,"pkiBundle":"/persist/var/lib/sbctl","bootDevice":"/dev/disk/by-label/NIXOS-BOOT","atticServer":"http://nicol-nas.tail9b9ae8.ts.net:8081","atticCache":"krit-nix","atticKey":"krit-nix:KEY"}
 EOF
   sed 's/nixos-laptop-2/nixos-desktop-2/; s/"luks":true/"luks":false/' "$T/facts-laptop.json" >"$T/facts-desktop.json"
+  echo '["nixos-desktop","nixos-desktop-2","nixos-laptop","nixos-laptop-2","template-host-minimal"]' >"$T/configs.json"
   export FAKE_EFI_STATE=$T/efi-state
   rm -f "$FAKE_EFI_STATE"
 }
@@ -220,7 +225,7 @@ make_bundle_tar() { # out.tar host
 # ---------------------------------------------------------------------------
 echo "# shellcheck"
 if section_on shellcheck; then
-  if shellcheck -x -s bash "$HERE/disk-plan.sh" "$HERE/install.sh" "$HERE/make-bundle.sh" "$HERE/test-harness.sh"; then
+  if shellcheck -x -s bash "$HERE/disk-plan.sh" "$HERE/install.sh" "$HERE/make-bundle.sh" "$HERE/promote.sh" "$HERE/test-harness.sh"; then
     ok "shellcheck clean"
   else
     bad "shellcheck findings"
@@ -585,7 +590,7 @@ tskey-auth-NEWKEY123
     assert_rc "ts $k: install ok after pasting a key" "$rc" 0
     assert_contains "ts $k: error text shown" "$out" "$msg"
     assert_contains "ts $k: skip consequence explained" "$out" "packages come from cache.nixos.org only"
-    assert_contains "ts $k: permanent fix pointer" "$out" "Replace the stored Tailscale key"
+    assert_contains "ts $k: sops key intentionally not relied on" "$out" "intentionally not relied on"
     assert_eq "ts $k: second attempt used the pasted key" "$(tail -n1 <<<"$keys")" "tskey-auth-NEWKEY123"
     assert_eq "ts $k: first attempt used the sops key" "$(head -n1 <<<"$keys")" "tskey-auth-FAKE"
     assert_not_contains "ts $k: pasted key never in output" "$out" "NEWKEY123"
@@ -929,6 +934,73 @@ wrongname
   assert_rc "test mode without INSTALLER_BIN_DIR refused" $? 1
 fi
 
+if section_on variant; then
+  echo "# install.sh: promoted host (no <host>-2 in the flake any more)"
+  setup_fakes
+  make_bundle_tar "$T/bundle.tar" nixos-desktop
+  cp --sparse=always "$EMPTY" "$T/img/var1.img"
+  D=$T/img/var1.img
+  export INSTALLER_TEST_DISKS="$D"
+  mkdir -p "$T/efivars-var"
+  printf '\x07\x00\x00\x00\x01' >"$T/efivars-var/SetupMode-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+  export INSTALLER_EFIVARS_DIR=$T/efivars-var
+  # both -2 hosts present, generic hardware not yet promoted: unchanged behaviour
+  rm -rf "$T/root/target" "$T/wd"
+  run_install "$D
+" --host nixos-desktop --variant 2 --disk "$D" --mode whole --bundle "$T/bundle.tar"
+  assert_rc "unpromoted: --variant 2 works" $? 0
+  assert_contains "unpromoted: installs the -2 name" "$(grep '^nixos-install' "$FAKE_CALLS")" "#nixos-desktop-2 "
+  assert_not_contains "unpromoted: no promoted notice" "$(cat "$T/out.txt")" "no longer exists"
+  # nixos-desktop-2 gone (promoted), by-label boot device (the default facts)
+  echo '["nixos-desktop","nixos-laptop","nixos-laptop-2","template-host-minimal"]' >"$T/configs.json"
+  rm -rf "$T/root/target" "$T/wd"
+  cp --sparse=always "$EMPTY" "$T/img/var2.img"
+  export INSTALLER_TEST_DISKS="$T/img/var2.img"
+  run_install "$T/img/var2.img
+" --host nixos-desktop --variant 2 --disk "$T/img/var2.img" --mode whole --bundle "$T/bundle.tar"
+  assert_rc "promoted: --variant 2 falls back to the original name" $? 0
+  assert_contains "promoted: says the -2 host no longer exists" "$(cat "$T/out.txt")" "'nixos-desktop-2' no longer exists in this flake"
+  assert_contains "promoted: --variant 2 is reported as replaced" "$(cat "$T/out.txt")" "installing 'nixos-desktop' instead of the -2 variant"
+  assert_contains "promoted: nixos-install targets the original" "$(grep '^nixos-install' "$FAKE_CALLS")" "#nixos-desktop "
+  assert_not_contains "promoted: -2 never installed" "$(grep '^nixos-install' "$FAKE_CALLS")" "nixos-desktop-2"
+  # menu path: no --variant, the variant question must not appear
+  rm -rf "$T/root/target" "$T/wd"
+  cp --sparse=always "$EMPTY" "$T/img/var3.img"
+  export INSTALLER_TEST_DISKS="$T/img/var3.img"
+  run_install "$T/img/var3.img
+" --host nixos-desktop --disk "$T/img/var3.img" --mode whole --bundle "$T/bundle.tar"
+  assert_rc "promoted: no variant given works" $? 0
+  assert_not_contains "promoted: variant menu not shown" "$(cat "$T/out.txt")" "Variant?"
+  assert_contains "promoted: notice without the --variant wording" "$(cat "$T/out.txt")" "(the host was promoted): installing 'nixos-desktop'."
+  assert_contains "promoted: installs the original name" "$(grep '^nixos-install' "$FAKE_CALLS")" "#nixos-desktop "
+  # --variant same still works as before
+  rm -rf "$T/root/target" "$T/wd"
+  cp --sparse=always "$EMPTY" "$T/img/var4.img"
+  export INSTALLER_TEST_DISKS="$T/img/var4.img"
+  run_install "$T/img/var4.img
+" --host nixos-desktop --variant same --disk "$T/img/var4.img" --mode whole --bundle "$T/bundle.tar"
+  assert_rc "promoted: --variant same works" $? 0
+  assert_contains "promoted: --variant same installs the original" "$(grep '^nixos-install' "$FAKE_CALLS")" "#nixos-desktop "
+  # the other host keeps its -2 variant
+  make_bundle_tar "$T/bundle-l.tar" nixos-laptop
+  run_install "x
+" --host nixos-laptop --variant 2 --disk "$T/img/var4.img" --mode whole --bundle "$T/bundle-l.tar"
+  assert_not_contains "other host: no promoted notice" "$(cat "$T/out.txt")" "no longer exists"
+  assert_contains "other host: still resolves the -2 variant" "$(cat "$T/out.txt")" "nixos-laptop-2"
+  # half-promoted: -2 gone but the facts still show the by-uuid hardware layer
+  sed -i 's#/dev/disk/by-label/NIXOS-BOOT#/dev/disk/by-uuid/abcd#' "$T/facts-desktop.json"
+  run_install "x
+" --host nixos-desktop --variant 2 --disk "$T/img/var4.img" --mode whole --bundle "$T/bundle.tar"
+  assert_rc "half-promoted: refused" $? 1
+  assert_contains "half-promoted: explained" "$(cat "$T/out.txt")" "half-promoted"
+  assert_eq "half-promoted: no destructive call" "$(grep -cE '^(mkfs|cryptsetup|nixos-install|wipefs)' "$FAKE_CALLS")" 0
+  # the flake's attribute names cannot be listed: refuse with a clear message
+  echo 'not json' >"$T/configs.json"
+  run_install "x
+" --host nixos-desktop --variant 2 --disk "$T/img/var4.img" --mode whole --bundle "$T/bundle.tar"
+  assert_rc "unreadable config list: refused" $? 1
+fi
+
 if section_on bundle; then
   echo "# bundle discovery and make-bundle.sh"
   setup_fakes
@@ -1034,6 +1106,262 @@ EOF
     assert_contains "decrypted tar has the user key" "$(tar -xOf "$mb/out2/dec.tar" user/keys.txt 2>/dev/null)" "AGE-SECRET-KEY-1THROWAWAY"
     rm -f "$mb/out2/dec.tar"
   fi
+fi
+
+if section_on promote; then
+  echo "# promote.sh: repo edits, NAS folder rename, tailnet checks (fake tools, temp repo copy, temp NAS root)"
+  PR=$T/promote
+  PBIN=$PR/bin
+  PCALLS=$PR/calls.log
+  borg_rel=volume1/Default-volume-1/0001_Docker/borgitory
+  nasd=$PR/nas/$borg_rel
+
+  pr_ts() { # pr_ts <self-name> <extra peer name or "">
+    jq -n --arg s "$1" --arg p "$2" '{Self:{HostName:$s,DNSName:($s+".tail1234.ts.net.")},
+      Peer:({k0:{HostName:"nas",DNSName:"nas.tail1234.ts.net."}}
+            + (if $p == "" then {} else {k1:{HostName:$p,DNSName:($p+".tail1234.ts.net.")}} end))}' >"$PR/ts.json"
+  }
+  pr_setup() { # fresh fixture: repo copy with the REAL files, NAS tree, fake tools
+    rm -rf "$PR"
+    mkdir -p "$PBIN" "$PR/repo/hosts/nixos-desktop" "$PR/repo/hosts/nixos-laptop" \
+      "$PR/repo/users/krit/nixos/services/nas/borg-backup" "$nasd"
+    cp "$REPO/flake.nix" "$PR/repo/flake.nix"
+    cp "$REPO/hosts/nixos-desktop/system.nix" "$PR/repo/hosts/nixos-desktop/system.nix"
+    cp "$REPO/hosts/nixos-laptop/system.nix" "$PR/repo/hosts/nixos-laptop/system.nix"
+    cp "$REPO"/users/krit/nixos/services/nas/borg-backup/borg-backup-*.nix "$PR/repo/users/krit/nixos/services/nas/borg-backup/"
+    git -C "$PR/repo" init -q
+    git -C "$PR/repo" add -A
+    git -C "$PR/repo" -c user.name=t -c user.email=t@t commit -q -m base
+    local h
+    for h in nixos-desktop nixos-laptop; do
+      mkdir -p "$nasd/$h-2/data/0"
+      printf '[repository]\nid = %s\n' "$h" >"$nasd/$h-2/config"
+      printf 'history of %s-2\n' "$h" >"$nasd/$h-2/data/0/1"
+    done
+    : >"$PCALLS"
+    cat >"$PBIN/hostname" <<'FAKE'
+#!/usr/bin/env bash
+printf '%s\n' "${FAKE_HOSTNAME:-nixos-desktop-2}"
+FAKE
+    cat >"$PBIN/systemctl" <<'FAKE'
+#!/usr/bin/env bash
+[[ ${FAKE_BORGMATIC_ACTIVE:-0} == 1 ]]
+FAKE
+    cat >"$PBIN/tailscale" <<'FAKE'
+#!/usr/bin/env bash
+case $1 in
+  status) cat "$FAKE_TS_STATUS" ;;
+  set)
+    printf 'tailscale %s\n' "$*" >>"$FAKE_PCALLS"
+    name=${2#--hostname=}
+    jq --arg n "$name" '.Self.DNSName = $n + ".tail1234.ts.net."' "$FAKE_TS_STATUS" >"$FAKE_TS_STATUS.new"
+    mv "$FAKE_TS_STATUS.new" "$FAKE_TS_STATUS"
+    ;;
+  *) exit 1 ;;
+esac
+FAKE
+    chmod +x "$PBIN/hostname" "$PBIN/systemctl" "$PBIN/tailscale"
+    export FAKE_PCALLS=$PCALLS FAKE_TS_STATUS=$PR/ts.json
+    pr_ts nixos-desktop-2 ""
+  }
+  pr_run() { # pr_run <stdin> <args...>  -> $out, $rc
+    local stdin=$1
+    shift
+    out=$(printf '%b' "$stdin" | PATH="$PBIN:$PATH" PROMOTE_NAS_ROOT=$PR/nas PROMOTE_DATE=20261113 \
+      "$HERE/promote.sh" --repo "$PR/repo" "$@" 2>&1)
+    rc=$?
+  }
+  pr_sig() { { cat "$PR/repo/flake.nix" "$PR/repo"/hosts/*/system.nix; find "$PR/nas" 2>/dev/null | sort; cat "$PCALLS"; } | sha256sum | cut -d' ' -f1; }
+  pr_blocked() { # pr_blocked <name> <needle> <extra args...> (fixture state already prepared)
+    local name=$1 needle=$2 b
+    shift 2
+    b=$(pr_sig)
+    pr_run 'promote nixos-desktop\n' --host nixos-desktop --apply "$@"
+    assert_rc "$name: apply refused" "$rc" 1
+    assert_contains "$name: reason" "$out" "$needle"
+    assert_eq "$name: nothing changed" "$(pr_sig)" "$b"
+  }
+
+  pr_setup
+  before=$(pr_sig)
+  pr_run '' --host nixos-desktop
+  assert_rc "promote dry run exits 0" "$rc" 0
+  assert_contains "dry run says dry run" "$out" "dry run"
+  assert_contains "dry run plans the repo edit" "$out" "generic hardware layer"
+  assert_contains "dry run plans the borg rename" "$out" "borg: mv $nasd/nixos-desktop-2 -> $nasd/nixos-desktop"
+  assert_contains "dry run plans the tailnet rename" "$out" "tailscale set --hostname=nixos-desktop"
+  assert_contains "dry run prints the borgmatic relocation command" "$out" "BORG_RELOCATED_REPO_ACCESS_IS_OK=yes borgmatic -c /etc/borgmatic.d/desktop-data.yaml"
+  assert_eq "dry run changed nothing (repo, NAS, tailscale)" "$(pr_sig)" "$before"
+
+  pr_run 'nope\n' --host nixos-desktop --apply
+  assert_rc "wrong confirmation aborts" "$rc" 1
+  assert_eq "wrong confirmation changed nothing" "$(pr_sig)" "$before"
+  pr_run '' --host nixos-desktop --apply
+  assert_rc "closed stdin aborts" "$rc" 1
+  assert_eq "closed stdin changed nothing" "$(pr_sig)" "$before"
+
+  pr_run 'promote nixos-desktop\n' --host nixos-desktop --apply
+  assert_rc "apply desktop exits 0" "$rc" 0
+  sysf=$PR/repo/hosts/nixos-desktop/system.nix
+  assert_contains "desktop: generic layer, luks false" "$(cat "$sysf")" "generic-hardware.nix { luks = false; }"
+  assert_not_contains "desktop: hardware-select gone" "$(cat "$sysf")" "hardware-select"
+  assert_not_contains "flake: desktop-2 entry gone" "$(cat "$PR/repo/flake.nix")" '"nixos-desktop-2" = '
+  assert_contains "flake: laptop-2 entry kept" "$(cat "$PR/repo/flake.nix")" '"nixos-laptop-2" = "nixos-laptop";'
+  assert_eq "laptop system.nix untouched" "$(git -C "$PR/repo" status --porcelain -- hosts/nixos-laptop | wc -l)" 0
+  assert_eq "only the two repo files changed" "$(git -C "$PR/repo" status --porcelain | sed 's/^ *//' | sort | tr '\n' ' ')" "M flake.nix M hosts/nixos-desktop/system.nix "
+  assert_eq "nothing committed" "$(git -C "$PR/repo" rev-list --count HEAD)" 1
+  assert_eq "diff touches exactly the expected lines" "$(git -C "$PR/repo" diff --numstat | awk '{a+=$1; d+=$2} END {print a" "d}')" "1 5"
+  assert_eq "borg folder renamed, history kept" "$(cat "$nasd/nixos-desktop/data/0/1" 2>/dev/null)" "history of nixos-desktop-2"
+  assert_eq "old -2 folder gone" "$([[ -e $nasd/nixos-desktop-2 ]] && echo yes || echo no)" no
+  assert_eq "laptop borg folder untouched" "$([[ -d $nasd/nixos-laptop-2 ]] && echo yes || echo no)" yes
+  assert_contains "tailscale set called with the host name" "$(cat "$PCALLS")" "tailscale set --hostname=nixos-desktop"
+  if command -v nix-instantiate >/dev/null 2>&1; then
+    nix-instantiate --parse "$sysf" >/dev/null 2>&1
+    assert_rc "promoted system.nix parses" $? 0
+    nix-instantiate --parse "$PR/repo/flake.nix" >/dev/null 2>&1
+    assert_rc "promoted flake.nix parses" $? 0
+  fi
+
+  FAKE_HOSTNAME=nixos-desktop pr_run '' --host nixos-desktop --apply
+  assert_rc "second run after promotion exits 0" "$rc" 0
+  assert_contains "second run: nothing to apply" "$out" "Nothing to apply"
+  assert_contains "second run: repo already promoted" "$out" "already promoted"
+  assert_contains "second run: borg already renamed" "$out" "already renamed"
+
+  pr_setup
+  FAKE_HOSTNAME=nixos-laptop-2 pr_run 'promote nixos-laptop\n' --host nixos-laptop --apply
+  assert_rc "apply laptop exits 0" "$rc" 0
+  assert_contains "laptop: luks true preserved" "$(cat "$PR/repo/hosts/nixos-laptop/system.nix")" "generic-hardware.nix { luks = true; }"
+  assert_contains "laptop: borgmatic config name" "$out" "laptop-data.yaml"
+
+  echo "# promote.sh: blockers leave everything untouched"
+  pr_setup
+  pr_ts nixos-desktop-2 nixos-desktop
+  pr_blocked "old tailnet node present" "still has another node named 'nixos-desktop'"
+  pr_run '' --host nixos-desktop
+  assert_rc "old node: dry run still exits 0" "$rc" 0
+  assert_contains "old node: dry run says NOT READY" "$out" "NOT READY"
+  pr_setup
+  : >"$PR/ts.json"
+  pr_blocked "tailscale not answering" "did not answer"
+  pr_setup
+  mkdir -p "$nasd/nixos-desktop/data"
+  : >"$nasd/nixos-desktop/config"
+  pr_blocked "retired folder exists" "$nasd/nixos-desktop already exists"
+  pr_run 'promote nixos-desktop\n' --host nixos-desktop --apply --archive-old
+  assert_rc "--archive-old applies" "$rc" 0
+  assert_eq "--archive-old kept the old folder" "$([[ -d $nasd/nixos-desktop.retired-20261113/data ]] && echo yes || echo no)" yes
+  assert_eq "--archive-old moved the clone folder in" "$(cat "$nasd/nixos-desktop/data/0/1" 2>/dev/null)" "history of nixos-desktop-2"
+  pr_setup
+  touch "$nasd/nixos-desktop-2/lock.exclusive"
+  pr_blocked "locked repository" "is locked"
+  pr_setup
+  FAKE_BORGMATIC_ACTIVE=1 pr_blocked "backup running" "borgmatic.service is running"
+  pr_setup
+  rm -rf "$PR/nas"
+  pr_blocked "NAS unreachable" "is not reachable"
+  pr_setup
+  FAKE_HOSTNAME=some-other-box pr_blocked "wrong machine" "not 'nixos-desktop-2'"
+  pr_setup
+  echo '# local edit' >>"$PR/repo/flake.nix"
+  pr_blocked "dirty flake.nix" "uncommitted changes"
+  pr_setup
+  sed -i 's/hardware-select.nix/hardware-pick.nix/' "$PR/repo/hosts/nixos-desktop/system.nix"
+  git -C "$PR/repo" -c user.name=t -c user.email=t@t commit -q -a -m x
+  pr_blocked "unrecognised system.nix" "half-promoted or unrecognised"
+
+  echo "# promote.sh: skip flags and bad arguments"
+  pr_setup
+  rm -rf "$PR/nas"
+  pr_ts nixos-desktop-2 nixos-desktop
+  pr_run 'promote nixos-desktop\n' --host nixos-desktop --apply --skip-borg --skip-tailnet
+  assert_rc "skip flags apply the repo edit only" "$rc" 0
+  assert_contains "skip flags: repo edited" "$(cat "$PR/repo/hosts/nixos-desktop/system.nix")" "generic-hardware.nix"
+  assert_eq "skip flags: tailscale never called" "$(cat "$PCALLS")" ""
+  pr_run '' --host nixos-other
+  assert_rc "bad host refused" "$rc" 1
+  pr_run '' --host nixos-desktop --bogus
+  assert_rc "unknown option refused" "$rc" 1
+  assert_contains "help prints usage" "$("$HERE/promote.sh" --help)" "DRY RUN BY DEFAULT"
+  assert_contains "help documents --delete-old-hardware" "$("$HERE/promote.sh" --help)" "--delete-old-hardware"
+
+  # --delete-old-hardware: the old by-UUID hardware-configuration.nix goes, only when unreferenced
+  hw=hosts/nixos-desktop/hardware-configuration.nix
+  pr_hw_setup() {
+    pr_setup
+    printf '{ ... }: { }\n' >"$PR/repo/$hw"
+    printf '{ ... }: { }\n' >"$PR/repo/hosts/nixos-laptop/hardware-configuration.nix"
+    git -C "$PR/repo" add -A
+    git -C "$PR/repo" -c user.name=t -c user.email=t@t commit -q -m hw
+  }
+  pr_hw_setup
+  before=$(pr_sig)
+  pr_run '' --host nixos-desktop --delete-old-hardware
+  assert_rc "hw dry run exits 0" "$rc" 0
+  assert_contains "hw dry run plans the git rm" "$out" "git rm $hw"
+  assert_contains "hw dry run mentions the flake exclude line" "$out" "exclude line from flake.nix"
+  assert_eq "hw dry run changed nothing" "$(pr_sig)" "$before"
+  assert_eq "hw dry run kept the file" "$([[ -f $PR/repo/$hw ]] && echo yes)" yes
+  pr_run 'promote nixos-desktop\n' --host nixos-desktop --apply
+  assert_rc "hw default: apply exits 0" "$rc" 0
+  assert_eq "hw default: file kept" "$([[ -f $PR/repo/$hw ]] && echo yes)" yes
+  assert_contains "hw default: flake exclude line kept" "$(cat "$PR/repo/flake.nix")" "./$hw"
+
+  pr_hw_setup
+  pr_run 'promote nixos-desktop\n' --host nixos-desktop --apply --delete-old-hardware
+  assert_rc "hw apply exits 0" "$rc" 0
+  assert_eq "hw apply: file gone" "$([[ -e $PR/repo/$hw ]] && echo yes || echo no)" no
+  assert_eq "hw apply: exactly the three files changed, deletion staged" "$(git -C "$PR/repo" status --porcelain | sed 's/^ *//' | sort | tr '\n' ' ')" "D  hosts/nixos-desktop/hardware-configuration.nix M flake.nix M hosts/nixos-desktop/system.nix "
+  assert_eq "hw apply: deletion is staged" "$(git -C "$PR/repo" diff --cached --name-status | tr '\t\n' '  ')" "D hosts/nixos-desktop/hardware-configuration.nix "
+  assert_not_contains "hw apply: desktop exclude line gone" "$(cat "$PR/repo/flake.nix")" "./$hw"
+  assert_contains "hw apply: laptop exclude line kept" "$(cat "$PR/repo/flake.nix")" "./hosts/nixos-laptop/hardware-configuration.nix"
+  assert_contains "hw apply: template exclude line kept" "$(cat "$PR/repo/flake.nix")" "./hosts/template-host-minimal/hardware-configuration.nix"
+  assert_eq "hw apply: laptop file untouched" "$([[ -f $PR/repo/hosts/nixos-laptop/hardware-configuration.nix ]] && echo yes)" yes
+  assert_eq "hw apply: nothing committed" "$(git -C "$PR/repo" rev-list --count HEAD)" 2
+  if command -v nix-instantiate >/dev/null 2>&1; then
+    nix-instantiate --parse "$PR/repo/flake.nix" >/dev/null 2>&1
+    assert_rc "hw apply: flake.nix parses" $? 0
+  fi
+  FAKE_HOSTNAME=nixos-desktop pr_run '' --host nixos-desktop --apply --delete-old-hardware
+  assert_rc "hw second run exits 0" "$rc" 0
+  assert_contains "hw second run: already gone" "$out" "already gone"
+  assert_contains "hw second run: nothing to apply" "$out" "Nothing to apply"
+
+  # already promoted repo, file still there: the flag alone deletes it
+  pr_hw_setup
+  pr_run 'promote nixos-desktop\n' --host nixos-desktop --apply --skip-borg --skip-tailnet
+  git -C "$PR/repo" add -A
+  git -C "$PR/repo" -c user.name=t -c user.email=t@t commit -q -m promoted
+  FAKE_HOSTNAME=nixos-desktop pr_run 'promote nixos-desktop\n' --host nixos-desktop --apply --skip-borg --skip-tailnet --delete-old-hardware
+  assert_rc "hw after promotion: exits 0" "$rc" 0
+  assert_eq "hw after promotion: file gone" "$([[ -e $PR/repo/$hw ]] && echo yes || echo no)" no
+  assert_eq "hw after promotion: only the deletion and the exclude line changed" "$(git -C "$PR/repo" status --porcelain | sed 's/^ *//' | sort | tr '\n' ' ')" "D  hosts/nixos-desktop/hardware-configuration.nix M flake.nix "
+
+  # blockers: nothing changes
+  pr_hw_setup
+  printf '{ ... }: { imports = [ ./hardware-configuration.nix ]; }\n' >"$PR/repo/hosts/nixos-desktop/extra.nix"
+  git -C "$PR/repo" add -A
+  git -C "$PR/repo" -c user.name=t -c user.email=t@t commit -q -m extra
+  pr_blocked "hw importer in the host dir" "extra.nix" --delete-old-hardware
+  git -C "$PR/repo" rm -q -f hosts/nixos-desktop/extra.nix
+  mkdir -p "$PR/repo/modules"
+  printf '{ imports = [ ../hosts/nixos-desktop/hardware-configuration.nix ]; }\n' >"$PR/repo/modules/other.nix"
+  git -C "$PR/repo" add -A
+  git -C "$PR/repo" -c user.name=t -c user.email=t@t commit -q -m other
+  pr_blocked "hw importer elsewhere" "modules/other.nix" --delete-old-hardware
+  printf '# was ../hosts/nixos-desktop/hardware-configuration.nix\n{ }\n' >"$PR/repo/modules/other.nix"
+  git -C "$PR/repo" add -A
+  git -C "$PR/repo" -c user.name=t -c user.email=t@t commit -q -m comment
+  pr_run 'promote nixos-desktop\n' --host nixos-desktop --apply --delete-old-hardware
+  assert_rc "hw comment-only mention does not block" "$rc" 0
+  assert_eq "hw comment-only mention: file gone" "$([[ -e $PR/repo/$hw ]] && echo yes || echo no)" no
+  pr_hw_setup
+  echo '# local edit' >>"$PR/repo/$hw"
+  pr_blocked "hw file with local changes" "uncommitted changes in $hw" --delete-old-hardware
+  pr_hw_setup
+  git -C "$PR/repo" rm -q --cached "$hw"
+  git -C "$PR/repo" -c user.name=t -c user.email=t@t commit -q -m untrack
+  pr_blocked "hw file not tracked" "not tracked by git" --delete-old-hardware
 fi
 
 if section_on realnix; then

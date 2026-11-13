@@ -8,6 +8,7 @@ Why it exists:
 - **One bootloader.** lanzaboote replaces the bootloader install hook; GRUB enabled next to it must fail an assertion, and `systemd-boot` must stay forced off.
 - **Declared Secure Boot.** `secureBoot` only declares that the firmware enforces Secure Boot: it needs `enable`, and with it an initrd root shell (`boot.initrd.systemd.emergencyAccess`) is rejected. Both assertions are proven to fire (and to stay silent when the property holds).
 - **Console mode.** `consoleMode` feeds `boot.lanzaboote.settings."console-mode"` (default `keep`); only `keep`, `auto`, `max` and digit strings are accepted, anything else fails an assertion, and the other `loader.conf` keys (`default`, `editor`, `timeout`) stay lanzaboote's own.
+- **No boot-time editing.** Enabling the module sets `boot.loader.systemd-boot.editor = false` (at `mkDefault`, which lanzaboote copies into `loader.conf`), so the kernel command line cannot be edited from the boot menu; the module-off host keeps the NixOS default `true`, and a plain assignment still opts back in.
 - **Manual key handling.** Keys are created and enrolled by hand with `sbctl`: `autoGenerateKeys`, `autoEnrollKeys` and `measuredBoot` stay off, `sbctl` is installed, `/etc/sbctl/sbctl.conf` points `sbctl` at the same `pkiBundle` as lanzaboote (without it `sbctl` falls back to `/var/lib/sbctl`, which is tmpfs), and the directory is pre-created root-only.
 
 The host side of the contract (which bootloader branch each real host satisfies, GRUB hook gating, the borgmatic exclusion of the key directory) lives in `nixos-host-invariants`, `nixos-grub-efi-sync` and `nixos-borg-backup-config`. Which host enables the module is deliberately not asserted anywhere.
@@ -41,7 +42,9 @@ Eval checks (fixture host and twins):
 | defaults: configurationLimit | 10 |
 | defaults: secureBoot | false (module off and enabled) |
 | defaults: consoleMode | option `keep`, and `settings."console-mode"` `keep` when enabled |
-| defaults: other loader.conf keys | `settings` minus `console-mode` has exactly the keys `default`, `editor`, `timeout` and equals the module-off value |
+| defaults: other loader.conf keys | `settings` minus `console-mode` has exactly the keys `default`, `editor`, `timeout`; minus `editor` it equals the module-off value |
+| editor: enabled | `settings.editor` and `boot.loader.systemd-boot.editor` are false when enabled, also on the custom, secureBoot, limit and console-mode twins |
+| control(editor) | the module-off host keeps `editor` true (the false value comes from the module); a plain `editor = true` assignment on an enabled twin wins over the module's `mkDefault` |
 | control(off) | the enabled twin does write sbctl.conf, a tmpfiles rule, the package and lanzaboote (the off result is not an unloaded module) |
 | enabled: lanzaboote on | `boot.lanzaboote.enable` true |
 | enabled: defaults propagate | `boot.lanzaboote.pkiBundle` and `configurationLimit` equal the module defaults (`/persist/var/lib/sbctl`, 10) |

@@ -3,6 +3,7 @@
 # Runs from the NixOS live ISO. Everything outside the live ISO is refused except --dry-run.
 #
 # Usage: install.sh [--dry-run] [--host nixos-desktop|nixos-laptop] [--variant 2|same]
+#   (a promoted host has no -2 clone any more: the installer then installs the original name itself)
 #                   [--disk /dev/X] [--mode whole|free] [--bundle FILE]
 #
 # Source: always the latest `main`, cloned shallow (git clone --depth 1 --branch main) into a
@@ -300,8 +301,32 @@ choose_host() {
   esac
 }
 
+# has_config <name>: is nixosConfigurations.<name> defined in the flake? Only the attribute names
+# are evaluated (no host config), so this is cheap. A promoted host has no "<host>-2" any more.
+has_config() {
+  local names
+  [[ -n ${FLAKE_CONFIG_NAMES:-} ]] || {
+    FLAKE_CONFIG_NAMES=$(nix eval --json "$FLAKE#nixosConfigurations" --apply builtins.attrNames) \
+      || die "could not list nixosConfigurations of $FLAKE"
+  }
+  jq -e 'type == "array"' <<<"$FLAKE_CONFIG_NAMES" >/dev/null \
+    || die "could not read the nixosConfigurations names of $FLAKE"
+  names=$FLAKE_CONFIG_NAMES
+  jq -e --arg n "$1" 'index($n) != null' <<<"$names" >/dev/null
+}
+
 choose_variant() {
   local v=$OPT_VARIANT
+  if ! has_config "$HOST-2"; then
+    # Promoted host: the original name is the only one left, so there is nothing to choose.
+    if [[ $v == 2 ]]; then
+      warn "'$HOST-2' no longer exists in this flake (the host was promoted): installing '$HOST' instead of the -2 variant."
+    else
+      say "'$HOST-2' no longer exists in this flake (the host was promoted): installing '$HOST'."
+    fi
+    CLONE=$HOST
+    return 0
+  fi
   if [[ -z $v ]]; then
     say ""
     say "Variant:"
@@ -325,7 +350,10 @@ choose_variant() {
 check_same_name_promoted() {
   [[ $CLONE == "$HOST" ]] || return 0
   if [[ $F_BOOT_DEVICE != "/dev/disk/by-label/$DP_ESP_LABEL" ]]; then
-    die "'$HOST' is not promoted yet: its /boot is '$F_BOOT_DEVICE', not the generic by-label layer. Use the '-2' variant, or promote first (see Documentation/installation/)."
+    if has_config "$HOST-2"; then
+      die "'$HOST' is not promoted yet: its /boot is '$F_BOOT_DEVICE', not the generic by-label layer. Use the '-2' variant, or promote first (see Documentation/installation/)."
+    fi
+    die "'$HOST' has no '$HOST-2' clone any more, but its /boot is '$F_BOOT_DEVICE', not the generic by-label layer: the repository is half-promoted. Finish the promotion (Documentation/installation/clone-retire-and-promote.md) or restore the clone entry."
   fi
 }
 
@@ -632,9 +660,8 @@ ts_explain() { # ts_explain <kind>
     say "missing there is compiled (slower). The first boot then needs a manual join"
     say "(clone-post-install.md)."
     say ""
-    say "Optional permanent fix, later: put a fresh key into tailscale_key in the sops file so"
-    say "future installs need no prompt (Documentation/installation/clone-post-install.md,"
-    say "section \"Replace the stored Tailscale key\")."
+    say "The stored sops key is intentionally not relied on (auth keys expire after 90 days at most,"
+    say "installs are years apart): a fresh key per install is the supported path, do not try to fix it."
     say ""
   } >&2
 }

@@ -84,6 +84,9 @@ delib.module {
           bind -n M-v split-window -v -c "#{pane_current_path}"
           bind -n M-h split-window -h -c "#{pane_current_path}"
 
+          # Cycle pane layout (e.g. flips a 2-pane split between horizontal/vertical)
+          bind -n M-o next-layout
+
           # Sessions management
           bind -n M-d detach-client
           bind -n M-S command-prompt -p "New Session:" "new-session -A -s '%%'"

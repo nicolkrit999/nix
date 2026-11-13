@@ -33,7 +33,7 @@ for t in sgdisk sfdisk blkid jq; do
 done
 
 if scenario=$(FLAKE_ROOT="$REPO_ROOT" nix eval --json --impure --file "$DIR/01-scenario-clone-installer.nix" 2>"$NIX_ERR"); then
-  if [[ $(jq 'length' <<<"$scenario") -lt 40 ]]; then
+  if [[ $(jq 'length' <<<"$scenario") -lt 12 ]]; then
     fail "scenario eval" "fewer checks than expected: $(jq -c 'keys' <<<"$scenario")"
   fi
   while IFS=$'\t' read -r name value; do
@@ -58,7 +58,7 @@ layout_literals() {
     -e "$DP_SV_PERSIST" -e "$DP_SV_HOME" -e "$DP_SV_NIX" -e "$DP_SV_LOG" -- "$@" 2>/dev/null |
     grep -vE '^[^:]+:[0-9]+:[[:space:]]*#' || true
 }
-hits=$(cd "$INST" && layout_literals disk-plan.sh install.sh make-bundle.sh packages.nix iso.nix hardware-select.nix generic-hardware.nix)
+hits=$(cd "$INST" && layout_literals disk-plan.sh install.sh make-bundle.sh promote.sh packages.nix iso.nix hardware-select.nix generic-hardware.nix)
 check "no layout value hardcoded in the installer scripts or nix files" "$hits" ""
 printf 'mkfs.vfat -n %s "$dev"\n' "$DP_ESP_LABEL" >"$WORK/leak.sh"
 differs "control: a script that hardcodes the ESP label is flagged" "$(layout_literals "$WORK/leak.sh")" ""

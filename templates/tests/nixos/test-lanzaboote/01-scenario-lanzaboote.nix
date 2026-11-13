@@ -110,9 +110,20 @@ let
     "defaults: consoleMode is keep, in the option and in settings console-mode when enabled" =
       chk (modeOpt off == "keep" && modeOpt enabled == "keep" && cmode enabled == "keep")
         "off=${modeOpt off} enabled=${modeOpt enabled} settings=${toString (cmode enabled)}";
-    "defaults: the other loader.conf keys are exactly lanzaboote's own (default, editor, timeout)" =
-      chk (lib.attrNames (restOf enabled) == [ "default" "editor" "timeout" ] && restOf enabled == restOf off)
+    "defaults: the other loader.conf keys are exactly lanzaboote's own (default, editor, timeout), only editor differs from the module-off value" =
+      chk (lib.attrNames (restOf enabled) == [ "default" "editor" "timeout" ] && removeAttrs (restOf enabled) [ "editor" ] == removeAttrs (restOf off) [ "editor" ])
         "enabled=${builtins.toJSON (restOf enabled)} off=${builtins.toJSON (restOf off)}";
+    "editor: enabled writes editor = false to loader.conf (no kernel command line editing at boot)" =
+      chk ((lz enabled).settings.editor == false && !enabled.config.boot.loader.systemd-boot.editor)
+        "settings.editor=${builtins.toJSON (lz enabled).settings.editor}";
+    "editor: every enabled twin (custom, secureBoot, limit, console mode) keeps editor = false" =
+      chk (lib.all (t: (lz t).settings.editor == false) [ custom plainSecure limitFive (withMode "5") (withMode "max") ])
+        "some twin has editor != false";
+    "control(editor): the module-off host keeps the NixOS default editor = true, so the false value comes from the module" =
+      chk ((lz off).settings.editor == true && off.config.boot.loader.systemd-boot.editor)
+        "off settings.editor=${builtins.toJSON (lz off).settings.editor}";
+    "editor: a host can still opt back in (plain assignment beats the module's mkDefault)" =
+      chk ((lz (twin [ on { boot.loader.systemd-boot.editor = true; } ])).settings.editor == true) "override ignored";
     "control(off): the enabled twin does write all three, so the off result is not an unloaded module" =
       chk ((etc enabled ? "sbctl/sbctl.conf") && sbctlRules enabled != [ ] && sbctlIn enabled && (lz enabled).enable)
         "enabled twin lacks sbctl.conf, tmpfiles rule, package or lanzaboote";

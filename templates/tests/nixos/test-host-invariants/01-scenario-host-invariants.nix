@@ -56,13 +56,14 @@ let
       common && !l.grub.enable && lz.enable && lib.hasPrefix "/persist/" lz.pkiBundle
       && lz.configurationLimit == c.myconfig.services.lanzaboote.configurationLimit && lz.configurationLimit >= 1 && lz.configurationLimit <= 15
       && !lz.autoGenerateKeys.enable && !lz.autoEnrollKeys.enable && !lz.measuredBoot.enable
+      && !l.systemd-boot.editor
     else common && l.grub.enable && !lz.enable && l.grub.efiInstallAsRemovable && l.grub.device == "nodev";
   bootProbe = o: {
     myconfig.services.lanzaboote = { enable = o.sb; configurationLimit = o.optLimit; };
     boot = {
       loader = {
         grub = { enable = o.grub; efiInstallAsRemovable = o.removable; device = o.device; };
-        systemd-boot.enable = o.sdb;
+        systemd-boot = { enable = o.sdb; editor = o.editor; };
         efi.canTouchEfiVariables = o.efivars;
       };
       lanzaboote = {
@@ -75,10 +76,10 @@ let
       };
     };
   };
-  goodGrub = { sb = false; grub = true; removable = true; device = "nodev"; sdb = false; efivars = false; lz = false; bundle = "/persist/x"; optLimit = 10; limit = 10; gen = false; enroll = false; measured = false; };
+  goodGrub = { sb = false; grub = true; removable = true; device = "nodev"; sdb = false; efivars = false; lz = false; bundle = "/persist/x"; editor = false; optLimit = 10; limit = 10; gen = false; enroll = false; measured = false; };
   goodLanza = goodGrub // { sb = true; grub = false; lz = true; };
   grubMutants = [{ removable = false; } { device = "/dev/sda"; } { grub = false; } { sdb = true; } { efivars = true; } { lz = true; } { sb = true; }];
-  lanzaMutants = [{ grub = true; } { lz = false; } { sdb = true; } { efivars = true; } { bundle = "/var/lib/sbctl"; } { bundle = "/persistent/x"; } { limit = 11; } { optLimit = 5; } { optLimit = 16; limit = 16; } { optLimit = 0; limit = 0; } { gen = true; } { enroll = true; } { measured = true; } { sb = false; }];
+  lanzaMutants = [{ grub = true; } { lz = false; } { sdb = true; } { efivars = true; } { bundle = "/var/lib/sbctl"; } { bundle = "/persistent/x"; } { limit = 11; } { optLimit = 5; } { optLimit = 16; limit = 16; } { optLimit = 0; limit = 0; } { gen = true; } { enroll = true; } { measured = true; } { sb = false; } { editor = true; }];
   sbEmergencyRule = secureBoot: emergency: !secureBoot || !emergency;
   checks =
     {
@@ -157,7 +158,7 @@ let
         "krit/root hashedPasswordFile not the sops krit-local-password path";
 
       check-bootloader = check (bootContract cfg)
-        "bootloader contract broken (services.lanzaboote.enable=${lib.boolToString my.services.lanzaboote.enable}): grub host needs grub on, systemd-boot off, no EFI var writes, removable install, device nodev, lanzaboote off; lanzaboote host needs grub off, systemd-boot off, no EFI var writes, lanzaboote on with pkiBundle under /persist/, configurationLimit equal to services.lanzaboote.configurationLimit and within 1..15, and autoGenerateKeys/autoEnrollKeys/measuredBoot off";
+        "bootloader contract broken (services.lanzaboote.enable=${lib.boolToString my.services.lanzaboote.enable}): grub host needs grub on, systemd-boot off, no EFI var writes, removable install, device nodev, lanzaboote off; lanzaboote host needs grub off, systemd-boot off, no EFI var writes, lanzaboote on with pkiBundle under /persist/, configurationLimit equal to services.lanzaboote.configurationLimit and within 1..15, autoGenerateKeys/autoEnrollKeys/measuredBoot off, and the systemd-boot editor off (no kernel command line editing at boot)";
       check-bootloader-control = check
         (bootContract (bootProbe goodGrub) && bootContract (bootProbe goodLanza) && bootContract (bootProbe (goodLanza // { optLimit = 5; limit = 5; }))
           && lib.all (m: !(bootContract (bootProbe (goodGrub // m)))) grubMutants

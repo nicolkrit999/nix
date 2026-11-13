@@ -33,7 +33,7 @@ Both use the default `pkiBundle` and impermanence.
 When enabled the module sets:
 
 - `boot.loader.systemd-boot.enable = mkForce false` (lanzaboote requirement), GRUB off (asserted).
-- `boot.lanzaboote = { enable = true; pkiBundle; configurationLimit; }` plus `boot.lanzaboote.settings."console-mode" = consoleMode` (at `mkDefault` priority; lanzaboote's `settings` option merges it over its own defaults, so `timeout`, `editor` and `default = "nixos-*"` stay as they are). `boot.loader.systemd-boot.consoleMode` is not used: that NixOS option is an enum that does not allow integers. Deliberately NOT set: `autoGenerateKeys`, `autoEnrollKeys`, `measuredBoot`, `allowUnsigned`.
+- `boot.lanzaboote = { enable = true; pkiBundle; configurationLimit; }` plus `boot.lanzaboote.settings."console-mode" = consoleMode` (at `mkDefault` priority; lanzaboote's `settings` option merges it over its own defaults, so `timeout` and `default = "nixos-*"` stay as they are), and `boot.loader.systemd-boot.editor = false` (at `mkDefault` priority; lanzaboote copies that option into `loader.conf`, so `editor no` is written). `boot.loader.systemd-boot.consoleMode` is not used: that NixOS option is an enum that does not allow integers. Deliberately NOT set: `autoGenerateKeys`, `autoEnrollKeys`, `measuredBoot`, `allowUnsigned`.
 - `pkgs.sbctl` and `reboot-to-windows` in `environment.systemPackages`.
 - `/etc/sbctl/sbctl.conf` with the same `keydir`/`guid` pair lanzaboote itself writes for auto key generation:
 
@@ -175,6 +175,7 @@ Do not touch `/boot/EFI/nixos`, `/boot/EFI/Linux`, `/boot/EFI/BOOT`, `/boot/EFI/
 
 ## Caveats
 
+- **The kernel command line cannot be edited at boot.** With the module on, systemd-boot's `e` key does nothing (`editor no` in `loader.conf`), so nobody with keyboard access can add `init=/bin/sh` or `systemd.unit=rescue.target` to a signed entry, which would otherwise be a root shell that bypasses the login. Consequence: you cannot add a one-off kernel parameter for a debug boot from the menu any more. The recovery paths do not need it: pick an older generation from the menu (entries stay selectable and signed), or boot the live ISO and run [`recover.sh`](../../troubleshooting/recover.sh); to try a kernel parameter, set it in the config (`boot.kernelParams`) and rebuild. A host that wants the editor back sets `boot.loader.systemd-boot.editor = true` (a plain assignment beats the module's default).
 - lanzaboote describes itself as having "sharp edges"; the recovery path above matters.
 - The stub measures kernel/initrd/cmdline into PCR 11/12/13; measured boot (pcrlock) is intentionally off (it limits the ESP to few generations).
 - Recovery or installer ISOs need Secure Boot OFF once it is on.

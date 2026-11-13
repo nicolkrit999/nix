@@ -7,10 +7,14 @@ let
   nixos = flake.nixosConfigurations;
   installerSystem = "x86_64-linux";
 
-  pairs = {
+  allPairs = {
     desktop = { original = "nixos-desktop"; clone = "nixos-desktop-2"; };
     laptop = { original = "nixos-laptop"; clone = "nixos-laptop-2"; };
   };
+  # promote.sh removes a host's "-2" entry: that host is "promoted" and is then checked on its
+  # own (generic label layer), while the clone-vs-original checks only run for the open pairs.
+  pairs = lib.filterAttrs (_: p: nixos ? ${p.clone}) allPairs;
+  promoted = lib.filterAttrs (_: p: !(nixos ? ${p.clone})) allPairs;
 
   rootMounts = [ "/boot" "/persist" "/nix" "/home" "/var/log" ];
 
@@ -44,6 +48,7 @@ let
         lanza = cfg.boot.lanzaboote.enable or null;
         grub = cfg.boot.loader.grub.enable;
         efiVars = cfg.boot.loader.efi.canTouchEfiVariables;
+        editor = cfg.boot.loader.systemd-boot.editor;
       };
     in
     lib.optional (c.networking.hostName != expectedName || c.networking.hostName == o.networking.hostName) "hostname"
@@ -80,23 +85,18 @@ let
   mutate = host: mod: host.extendModules { modules = [ mod ]; };
   force = lib.mkOverride 10;
 
-  desktop = pairs.desktop;
-  laptop = pairs.laptop;
+  desktop = allPairs.desktop;
+  laptop = allPairs.laptop;
   dClone = nixos.${desktop.clone};
   lClone = nixos.${laptop.clone};
   dProblems = m: problems nixos.${desktop.original} (mutate dClone m) desktop.clone;
   lProblems = m: problems nixos.${laptop.original} (mutate lClone m) laptop.clone;
 
-  controls = {
+  controlsDesktop = {
     "control-original-as-clone-desktop" =
       let ps = problems nixos.${desktop.original} nixos.${desktop.original} desktop.clone;
       in
       if builtins.elem "hostname" ps && builtins.elem "label-layer" ps && builtins.elem "no-uuid" ps then "ok"
-      else "FAIL: the unmodified original passes as a clone: ${builtins.toJSON ps}";
-    "control-original-as-clone-laptop" =
-      let ps = problems nixos.${laptop.original} nixos.${laptop.original} laptop.clone;
-      in
-      if builtins.elem "hostname" ps && builtins.elem "luks-device" ps && builtins.elem "no-uuid" ps then "ok"
       else "FAIL: the unmodified original passes as a clone: ${builtins.toJSON ps}";
     "control-mutant-hostname-unchanged" =
       expectDetected "clone keeps the original networking.hostName" "hostname"
@@ -128,12 +128,23 @@ let
     "control-mutant-label-layer" =
       expectDetected "/boot on a foreign label" "label-layer"
         (dProblems { fileSystems."/boot".device = force "/dev/disk/by-label/OTHER"; });
-    "control-mutant-luks-device" =
-      expectDetected "LUKS device by-uuid" "luks-device"
-        (lProblems { boot.initrd.luks.devices.${layout.luksMapperName}.device = force "/dev/disk/by-uuid/0000"; });
+    "control-mutant-editor" =
+      expectDetected "boot menu editor switched on in the clone" "bootloader"
+        (dProblems { boot.loader.systemd-boot.editor = force true; });
     "control-mutant-bootloader" =
       expectDetected "bootloader flipped" "bootloader"
         (dProblems { boot.loader.efi.canTouchEfiVariables = force (!nixos.${desktop.original}.config.boot.loader.efi.canTouchEfiVariables); });
+  };
+
+  controlsLaptop = {
+    "control-original-as-clone-laptop" =
+      let ps = problems nixos.${laptop.original} nixos.${laptop.original} laptop.clone;
+      in
+      if builtins.elem "hostname" ps && builtins.elem "luks-device" ps && builtins.elem "no-uuid" ps then "ok"
+      else "FAIL: the unmodified original passes as a clone: ${builtins.toJSON ps}";
+    "control-mutant-luks-device" =
+      expectDetected "LUKS device by-uuid" "luks-device"
+        (lProblems { boot.initrd.luks.devices.${layout.luksMapperName}.device = force "/dev/disk/by-uuid/0000"; });
   };
 
   installerNameLike = n: lib.hasInfix "installer" n || builtins.elem "iso" (lib.splitString "-" n);
@@ -196,6 +207,53 @@ let
         if nixos ? ${p.original} && nixos ? ${p.clone} then "ok"
         else "FAIL: nixosConfigurations lacks ${p.original} or ${p.clone}";
     })
+    pairs
+  // lib.concatMapAttrs
+    (pname: p: {
+      "promoted-${pname}-original-exists" =
+        if nixos ? ${p.original} then "ok"
+        else "FAIL: ${p.clone} was promoted but nixosConfigurations lacks ${p.original}";
+    })
+    promoted;
+
+  editorOff = host:
+    let c = nixos.${host}.config;
+    in
+    if !(c.boot.lanzaboote.enable or false) || !c.boot.loader.systemd-boot.editor then "ok"
+    else "FAIL: ${host} is a lanzaboote host but boot.loader.systemd-boot.editor is on (kernel command line editable at boot)";
+  editorChecks = lib.concatMapAttrs
+    (pname: p: {
+      "editor-off-${pname}-original" = editorOff p.original;
+    })
+    allPairs
+  // lib.concatMapAttrs
+    (pname: p: {
+      "editor-off-${pname}-clone" = editorOff p.clone;
+    })
     pairs;
+
+  promotedChecks = lib.concatMapAttrs
+    (pname: p:
+      let
+        c = nixos.${p.original}.config;
+        luks = c.boot.initrd.luks.devices != { };
+        devs = map (m: c.fileSystems.${m}.device) rootMounts;
+        wantBtrfs = if luks then "/dev/mapper/${layout.luksMapperName}" else "/dev/disk/by-label/${layout.btrfsLabel}";
+      in
+      {
+        "promoted-${pname}-boot-by-label" =
+          if c.fileSystems."/boot".device == "/dev/disk/by-label/${layout.espLabel}" then "ok"
+          else "FAIL: promoted ${p.original} /boot is ${c.fileSystems."/boot".device}, not the generic by-label layer";
+        "promoted-${pname}-no-uuid" =
+          if lib.any (lib.hasInfix "by-uuid") devs then "FAIL: promoted ${p.original} still has a by-uuid root mount"
+          else "ok";
+        "promoted-${pname}-btrfs-device" =
+          if lib.all (m: c.fileSystems.${m}.device == wantBtrfs) (lib.remove "/boot" rootMounts) then "ok"
+          else "FAIL: promoted ${p.original} btrfs mounts are not on ${wantBtrfs}";
+      })
+    promoted;
 in
-existence // realChecks // controls // outputs
+existence // realChecks // promotedChecks // editorChecks
+// lib.optionalAttrs (pairs ? desktop) controlsDesktop
+// lib.optionalAttrs (pairs ? laptop) controlsLaptop
+  // outputs
