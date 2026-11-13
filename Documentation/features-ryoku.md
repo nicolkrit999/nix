@@ -21,7 +21,7 @@ The feature is split into two layers that follow the repo-wide rule "generic bas
 | Generic module | `modules/nixos/specializations/ryoku.nix` | Anyone can enable it. Imports the Ryoku NixOS module, creates the user, forces off what would clash, exposes the options. Holds no personal values. |
 | Bind companion | `modules/nixos/specializations/ryoku-binds.nix` | Renders this repo's keybinds into Ryoku's files (shared pure helpers also used by the Hyprland, niri and Mango bind modules). |
 | krit layer | `users/krit/nixos/specializations/ryoku.nix` | Our opinions: the declared Ryoku settings, SDDM cursor, personal config, clone units, the fastfetch wrapper. |
-| Host files | `hosts/<host>/default.nix` | Per-machine overrides (for example the bar scale and suspend policy on the desktop). |
+| Host files | `hosts/<host>/default.nix` | Per-machine overrides (for example the suspend policy on the desktop). |
 
 Ryoku is x86_64-linux only (an assertion fails elsewhere). Its module is imported by the flake input but only activated inside the specialization; the base system is unaffected unless the entry is selected.
 
@@ -70,8 +70,8 @@ Ryoku is x86_64-linux only (an assertion fails elsewhere). Its module is importe
 
 | Host | Declared in `hosts/<host>/default.nix` |
 |---|---|
-| `nixos-desktop` | Bar scale `shell.orpheus.scale = 1.3` (the scaled monitors made the default bar look small); no suspend (`power.idle.*.suspendSec = 0`). |
-| `nixos-laptop` | Nothing extra: it uses the shared defaults (bar scale 1.0, suspend after 15 min on battery and 30 min on AC). |
+| `nixos-desktop` | No suspend (`power.idle.*.suspendSec = 0`). |
+| `nixos-laptop` | Nothing extra: it uses the shared defaults (suspend after 15 min on battery and 30 min on AC). |
 
 The idle timeouts differ per host because they follow each host's own hypridle options.
 
@@ -82,7 +82,7 @@ The idle timeouts differ per host because they follow each host's own hypridle o
 | Store | Declared keys |
 |---|---|
 | `desktop` | Gaps in 6, gaps out 12, rounding 4; middle-button emulation and workspace swipe on; Hyprland dwindle `preserveSplit`; default apps and keyboard derived from constants. |
-| `shell` | Font (JetBrainsMono Nerd Font Mono), `deckFrost` 0.5, bar style `orpheus`, weekly clipboard prune, metric temperature, static theme Dracula with matugen (contrast 0, mode from polarity, preference Darkness, scheme Expressive). Desktop only: `orpheus.scale` 1.3. |
+| `shell` | Font (JetBrainsMono Nerd Font Mono), `deckFrost` 0.5, bar style `orpheus`, weekly clipboard prune, metric temperature, static theme Dracula with matugen (contrast 0, mode from polarity, preference Darkness, scheme Expressive). Orpheus bar, identical on every host: scale 1.1, lanes (left logo/workspaces/window, centre voice/actions, right controls/battery/notifications), actions launcher/clipboard, numbered workspaces hidden when empty. |
 | `launcher` | Background blur 8, hero strength, no greeting, hero image from the Ryoku user's `Pictures/Wallpapers`. |
 | `matugen`, `ryogami` | Polarity from the constants, expressive scheme, fixed Dracula theme policy, wallpaper mute, shader transitions (900 ms, random), overview backdrop blur, `slices` wallpaper selector. |
 | `power-profile` | `performance` (AC and desktop). |

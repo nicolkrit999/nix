@@ -142,6 +142,19 @@ delib.module {
         fontFamily = "JetBrainsMono Nerd Font Mono";
         deckFrost = 0.5;
         barStyle = "orpheus";
+        # Orpheus bar, same on every host: 110% size, trimmed lanes, numbered workspaces
+        # that hide when empty, and the launcher/clipboard shortcuts.
+        orpheus = {
+          scale = 1.1;
+          layout = {
+            left = [ "logo" "workspaces" "window" ];
+            center = [ "voice" "actions" ];
+            right = [ "controls" "battery" "notifications" ];
+          };
+          actions = [ "launcher" "clipboard" ];
+          workspaceStyle = "numbers";
+          workspaceShowEmpty = false;
+        };
         clipboard.pruneWeekly = true;
         general.temperature_unit = "Metric";
         theme = {

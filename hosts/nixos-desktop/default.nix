@@ -837,8 +837,6 @@ delib.host {
         guest.enable = true;
         ryoku = {
           enable = true;
-          # Scaled monitors (1.25/1.5) make the default-size bar look small; the laptop keeps 1.0.
-          settings.shell.orpheus.scale = 1.3;
           # The desktop never suspends (builds, JetKVM, background jobs), like its hypridle.
           settings.power.idle.battery.suspendSec = 0;
           settings.power.idle.ac.suspendSec = 0;

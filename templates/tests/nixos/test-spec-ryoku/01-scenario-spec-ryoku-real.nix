@@ -538,9 +538,19 @@ let
         (lib.hasInfix (builtins.unsafeDiscardStringContext (toString powerDecl)) seedText
           && powerSeeded.profiles.power-saver.maxFreqPct == 90 && powerSeeded.idle.battery.suspendSec == pw.idle.battery.suspendSec
           && powerSeeded.idle.ac.lockSec == hy.lockTimeout);
-    "orpheus: the desktop has bar scale 1.3, the laptop has no orpheus table" =
+    "orpheus: both hosts declare the same bar (scale 1.1, lanes, actions, numbered workspaces hidden when empty)" =
       yes "shell orpheus ${builtins.toJSON (declared_.shell.orpheus or null)}"
-        (if isDesktop then (declared_.shell.orpheus or { }) == { scale = 1.3; } else !(declared_.shell ? orpheus));
+        ((declared_.shell.orpheus or null) == {
+          scale = 1.1;
+          layout = {
+            left = [ "logo" "workspaces" "window" ];
+            center = [ "voice" "actions" ];
+            right = [ "controls" "battery" "notifications" ];
+          };
+          actions = [ "launcher" "clipboard" ];
+          workspaceStyle = "numbers";
+          workspaceShowEmpty = false;
+        });
     "apps: programs.ryoku.browser stays null in the spec" = eq "programs.ryoku.browser" spec.programs.ryoku.browser null;
   } // offChecks;
 
