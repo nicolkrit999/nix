@@ -583,7 +583,12 @@ let
         && wrapperBad "jq -r '.logo.padding.left" "jq -r '.logo.pad.left"
         && wrapperBad "jq -r '.logo.padding.right" "jq -r '.logo.pad.right"
         && wrapperBad "jq -r '.logo.padding.top" "jq -r '.logo.pad.top"
-        && wrapperBad "print \" \" x $lp, $row, \" \" x $rp, $_" "print $_");
+        && wrapperBad "print \" \" x $lp, $row, \" \" x $rp, $_" "print $_"
+        && wrapperBad "s/\\e\\[(\\d+)G/\"\\e[\" . ($off + ($maxk > $1 ? $maxk : $1) + 2) . \"G\"/ge" ""
+        && wrapperBad "($off + ($maxk > $1 ? $maxk : $1) + 2)" "($off + $1 + 2)"
+        && wrapperBad "($off + ($maxk > $1 ? $maxk : $1) + 2)" "($off + ($maxk > $1 ? $maxk : $1) + 0)"
+        && wrapperBad "my $vc = ($maxk > $kw ? $maxk : $kw) + 1;" "my $vc = 0;"
+        && wrapperBad "$_ = (\" \" x $vc) . $_ if $v =~ /\\S/" "");
     "emblem: the option defaults to null and the unit does not exist without it (alice, no krit layer)" =
       yes "default ${builtins.toJSON alice.config.myconfig.specializations.ryoku.fastfetchEmblem}, unit ${builtins.toJSON (emblemUnitOf alice != null)}"
         (alice.config.myconfig.specializations.ryoku.fastfetchEmblem == null && emblemUnitOf alice == null);

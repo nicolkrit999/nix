@@ -268,7 +268,8 @@ delib.module {
                     ${pkgs.tmux}/bin/tmux set -p allow-passthrough on 2>/dev/null
                     ${pkgs.coreutils}/bin/cat "$up"
                     # fastfetch counts every placeholder cell as two columns wide, so as a file-raw logo it pushes the header and the
-                    # values too far right. It prints the info alone instead and the image rows are merged beside it here.
+                    # values too far right. It prints the info alone instead and the image rows are merged beside it here (its absolute
+                    # value columns are re-placed past the image from the longest printed label, and the header starts at the values).
                     lp=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.padding.left // 0' 2>/dev/null)
                     rp=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.padding.right // 3' 2>/dev/null)
                     tp=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.padding.top // 0' 2>/dev/null)
@@ -276,9 +277,25 @@ delib.module {
                       | ${pkgs.perl}/bin/perl -e '
                         my ($rf, $lp, $rp, $tp, $w) = @ARGV;
                         open R, "<$rf"; chomp(my @r = <R>); close R;
+                        my @in = <STDIN>; chomp @in;
+                        my $off = $lp + $w + $rp;
+                        # fastfetch aligns the values with absolute columns (ESC[<n>G), computed from the Hub key width alone. Measure the
+                        # longest label it actually printed, so longer labels never touch their value, and shift past the image block.
+                        my ($maxk, $kw) = (0, 0);
+                        for (@in) {
+                          next unless /^(.*?)\e\[(\d+)G/;
+                          my $col = $2;
+                          (my $p = $1) =~ s/\e\[[0-9;:]*m//g;
+                          utf8::decode($p);
+                          $maxk = length($p) if length($p) > $maxk;
+                          $kw = $col if $col > $kw;
+                        }
+                        # the header (a line without a label) starts where the values start
+                        my $vc = ($maxk > $kw ? $maxk : $kw) + 1;
                         my $i = 0;
-                        while (<STDIN>) {
-                          chomp;
+                        for (@in) {
+                          if (/\e\[\d+G/) { s/\e\[(\d+)G/"\e[" . ($off + ($maxk > $1 ? $maxk : $1) + 2) . "G"/ge }
+                          else { (my $v = $_) =~ s/\e\[[0-9;:]*m//g; $_ = (" " x $vc) . $_ if $v =~ /\S/ }
                           my $row = ($i >= $tp && $i - $tp < @r) ? $r[$i - $tp] : (" " x $w);
                           print " " x $lp, $row, " " x $rp, $_, "\n";
                           $i++;

@@ -14,7 +14,7 @@ REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"
 REAL="$DIR/01-scenario-spec-ryoku-real.nix"
 FIXTURE="$DIR/02-scenario-spec-ryoku-fixture.nix"
-MIN_CHECKS=428
+MIN_CHECKS=437
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
@@ -256,6 +256,25 @@ else
   rt_check "fastfetch wrapper: an explicit image type with a source takes the sprite fallback (tmux display-message fails here)" \
     bash -c '[[ "$1" =~ ^--logo\ .*fastfetch-logo-[0-9a-f]{16}\.txt\ --logo-type\ file-raw\ a\ b$ ]]' _ "$(ff TMUX=x)"
   rt_check "fastfetch wrapper: the image sprite is a flattened render (cache file non-empty)" bash -c "[ -n \"\$(find '$CACHE' -name 'fastfetch-logo-*.txt' -size +0)\" ]"
+
+  PERL=$(grep -o '/nix/store/[a-z0-9]*-perl-[^/ ]*/bin/perl -e' "$FW" | head -1 | sed 's/ -e$//')
+  PROG=$(sed -n "/perl -e '\$/,/^ *' \"\$rows\"/p" "$FW" | sed '1d;$d')
+  printf 'AAA\nBBB\nCCC\nDDD\n' > "$FT/rows"
+  merge() { printf "$2" | "$PERL" -e "$1" "$FT/rows" 1 3 1 3; }
+  SHORT='hdr\nos\033[7Gvalue\nkernel\033[7Gvalue2\n'
+  LONG='hdr\nos\033[7Gvalue\nkernel-version-long\033[7Gvalue2\n'
+  ESC=$(printf '\033')
+  rt_check "fastfetch merge: the perl program and the nix perl were extracted from the wrapper" bash -c '[ -x "$1" ] && [[ "$2" == *"my (\$rf, \$lp, \$rp, \$tp, \$w) = @ARGV;"* ]]' _ "$PERL" "$PROG"
+  out=$(merge "$PROG" "$SHORT")
+  rt_check "fastfetch merge: short labels, the header has no ESC[..G and gets the blank logo prefix plus 8 spaces (vc = 7 + 1)" eqs "$(printf '%s\n' "$out" | sed -n 1p)" "               hdr"
+  rt_check "fastfetch merge: short labels, ESC[7G becomes ESC[16G (7 + max(6,7) + 2) on the os line after the image row" eqs "$(printf '%s\n' "$out" | sed -n 2p)" " AAA   os${ESC}[16Gvalue"
+  rt_check "fastfetch merge: short labels, the kernel line gets ESC[16G too" eqs "$(printf '%s\n' "$out" | sed -n 3p)" " BBB   kernel${ESC}[16Gvalue2"
+  rt_check "fastfetch merge: the remaining image rows are appended with the left padding only" eqs "$(printf '%s\n' "$out" | sed -n 4,5p | tr '\n' '|')" " CCC| DDD|"
+  out=$(merge "$PROG" "$LONG")
+  rt_check "fastfetch merge: a 19-char label moves the header prefix to 7 + 20 spaces" eqs "$(printf '%s\n' "$out" | sed -n 1p)" "$(printf '%27shdr' '')"
+  rt_check "fastfetch merge: a 19-char label gives ESC[28G (7 + 19 + 2) on the short os line" eqs "$(printf '%s\n' "$out" | sed -n 2p)" " AAA   os${ESC}[28Gvalue"
+  rt_check "fastfetch merge: a 19-char label gives ESC[28G on its own line" eqs "$(printf '%s\n' "$out" | sed -n 3p)" " BBB   kernel-version-long${ESC}[28Gvalue2"
+  rt_check "fastfetch merge control: without the substitution line ESC[7G stays unchanged" eqs "$(merge "$(printf '%s\n' "$PROG" | sed 's/{ s\/.*\/ge }/{ }/')" "$SHORT" | sed -n 2p)" " AAA   os${ESC}[7Gvalue"
 fi
 
 echo ""
