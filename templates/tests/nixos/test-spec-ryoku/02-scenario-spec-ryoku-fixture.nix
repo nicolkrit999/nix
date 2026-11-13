@@ -366,6 +366,15 @@ let
   noPolarityAssert = ext (mkBob (mutate "assertion = lib.all (n: (staticPolarity.\${n} or constants.theme.polarity) == constants.theme.polarity) declaredStaticThemes;" "assertion = true;" genericText)) lightMods;
   mkBobLayer = text: mk { name = "ryoku-bob"; user = "bob"; host = "host-bob.nix"; extra = [ (load text) (here + "/krit-option-sinks.nix") ]; };
   hardDark = ext (mkBobLayer (repl "        mode = polarity;\n        schemeType" "        mode = \"dark\";\n        schemeType" layerText)) lightMods;
+  idleOf = h: (settingsOf h).power.idle;
+  stageTimes = st: { inherit (st) dimSec lockSec screenOffSec; };
+  hyTimes = { myconfig.services.hypridle = { dimTimeout = 111; lockTimeout = 222; screenOffTimeout = 333; }; };
+  bobHy = ext bob [ hyTimes ];
+  bobNoSusp = ext bob [{ myconfig.specializations.ryoku.settings.power.idle = { battery.suspendSec = 0; ac.suspendSec = 0; }; }];
+  hardIdle = ext (mkBobLayer (repl "dimSec = hypridle.dimTimeout;" "dimSec = 300;" layerText)) [ hyTimes ];
+  noSuspDefault = ext (mkBobLayer (repl "suspendSec = lib.mkDefault suspendSec;" "inherit suspendSec;" layerText)) [{ myconfig.specializations.ryoku.settings.power.idle = { battery.suspendSec = 0; ac.suspendSec = 0; }; }];
+  alicePower = withSettings alice { power.idle.enabled = true; };
+  noPowerStore = withSettings (mkAlice (mutate "    \"power\"\n" "" genericText)) { power.idle.enabled = true; };
   matugenOf = h: (settingsOf h).matugen;
   aliceLayer = mk { name = "ryoku-alice"; user = "alice"; host = "host-alice.nix"; extra = layer; };
   heroOf = h: (settingsOf h).launcher.heroImage;
@@ -492,10 +501,10 @@ let
       yes "base lacks ${toString (map showPath baseNotOn)}, off in the spec ${toString (map showPath lost)}" (baseNotOn == [ ] && lost == [ ]);
     "control: a re-enable probe applied to the borg list flags it (they are off in the spec)" =
       yes "probe cannot fail" (lib.filter (p: optOf (spec bob) p != true) borgPaths != [ ]);
-    "layer: wallpapersLink false and the yazi go-to exclusion set in the spec, defaults in the base" =
+    "layer: wallpapersLink false in the spec and true in the base; the yazi go-to exclusion is left at the base default in both" =
       eq "layer values"
         [ bob.config.myconfig.services.external.dotfiles.wallpapersLink (spec bob).myconfig.services.external.dotfiles.wallpapersLink bob.config.myconfig.krit.programs.yazi.goToExclude (spec bob).myconfig.krit.programs.yazi.goToExclude ]
-        [ true false [ ] [ "M" ] ];
+        [ true false [ ] [ ] ];
 
     "sddm seed: with impermanence and sddm the spec has a oneshot unit wanted by and Before display-manager, mounts /var/lib/ryoku; the base has none" =
       yes "unit ${builtins.toJSON (sddmSeedOf bob != null)}, base ${builtins.toJSON (bob.config.systemd.services ? ryoku-sddm-theme-seed)}"
@@ -563,8 +572,18 @@ let
     "fastfetch: bob (krit layer) has the ryoku-fastfetch wrapper with the absolute real path and both branches, alice (no layer) has none" =
       yes "bob problems ${builtins.toJSON (if wrapperText bob == null then null else probes.fastfetchWrapperProblems (wrapperText bob))}, alice ${builtins.toJSON (wrapperText alice != null)}"
         (wrapperText bob != null && probes.fastfetchWrapperProblems (wrapperText bob) == [ ] && wrapperText alice == null);
-    "mutant: a wrapper without the --logo-type none fallback or without the TMUX test is detected" =
-      yes "probe silent" (wrapperBad "logo=(--logo-type none)" "logo=()" && wrapperBad "[ -z \"${"$"}{TMUX:-}\" ]" "true");
+    "mutant: a wrapper without the --logo-type none branch, the TMUX test, the tmux-kitty placeholder pipeline, the flattened sprite fallback or the non-image logo-type passthrough is detected" =
+      yes "probe silent" (wrapperBad "logo=(--logo-type none)" "logo=()" && wrapperBad "[ -z \"${"$"}{TMUX:-}\" ]" "true"
+        && wrapperBad "--unicode-placeholder" "" && wrapperBad "--logo-type file-raw" "--logo-type file" && wrapperBad "\"flat2 $src" "\"$src"
+        && wrapperBad "/bin/magick \"$src\" -background" "/bin/true \"$src\" -background"
+        && wrapperBad "*) exec \"$real\" \"$@\" ;;" "*) ;;"
+        && wrapperBad "--logo-type none --logo-padding-left 0" "--logo-type none"
+        && wrapperBad "--logo-padding-right 0 --logo-padding-top 0 --pipe false" "--logo-padding-right 0 --logo-padding-top 0"
+        && wrapperBad "--pipe false" "--pipe false --logo \"$rows\" --logo-type file-raw"
+        && wrapperBad "jq -r '.logo.padding.left" "jq -r '.logo.pad.left"
+        && wrapperBad "jq -r '.logo.padding.right" "jq -r '.logo.pad.right"
+        && wrapperBad "jq -r '.logo.padding.top" "jq -r '.logo.pad.top"
+        && wrapperBad "print \" \" x $lp, $row, \" \" x $rp, $_" "print $_");
     "emblem: the option defaults to null and the unit does not exist without it (alice, no krit layer)" =
       yes "default ${builtins.toJSON alice.config.myconfig.specializations.ryoku.fastfetchEmblem}, unit ${builtins.toJSON (emblemUnitOf alice != null)}"
         (alice.config.myconfig.specializations.ryoku.fastfetchEmblem == null && emblemUnitOf alice == null);
@@ -613,6 +632,28 @@ let
       eq "input" (inputOf kbOverride) { kbLayout = "fr"; kbVariant = "nodeadkeys"; kbOptions = ""; naturalScroll = true; };
     "mutant: taking the whole layout string instead of the first entry is detected" =
       yes "mutant kbLayout ${builtins.toJSON (inputOf wholeLayoutTwin).kbLayout}" ((inputOf wholeLayoutTwin).kbLayout == "de,us" && (inputOf kbTwin).kbLayout == "de");
+
+    "power store: accepted as a store (no settings assertion), an unknown store is still rejected (control)" =
+      yes "power ${builtins.toJSON (failingSet alicePower)}, bogus ${builtins.toJSON (failingSet aliceBogus)}" (failingSet alicePower == [ ] && hasMsg "unknown store" (failingSet aliceBogus));
+    "mutant: without power in the allowed stores a power declaration fails the unknown-store assertion (detected)" =
+      yes "mutant ${builtins.toJSON (failingSet noPowerStore)}" (hasMsg "unknown store" (failingSet noPowerStore) && failingSet alicePower == [ ]);
+    "power: with the layer idle dim, lock and screen off equal the hypridle options (defaults and changed values), suspend 900 on battery and 1800 on AC, onDesktops true" =
+      yes "default ${builtins.toJSON (idleOf bob)}, changed ${builtins.toJSON (idleOf bobHy)}"
+        (map (a: stageTimes (idleOf bob).${a}) [ "battery" "ac" ] == lib.replicate 2 { dimSec = 300; lockSec = 330; screenOffSec = 360; }
+          && map (a: stageTimes (idleOf bobHy).${a}) [ "battery" "ac" ] == lib.replicate 2 { dimSec = 111; lockSec = 222; screenOffSec = 333; }
+          && [ (idleOf bob).battery.suspendSec (idleOf bob).ac.suspendSec (idleOf bobHy).battery.suspendSec ] == [ 900 1800 900 ]
+          && (idleOf bob).onDesktops && (idleOf bob).enabled);
+    "power: a host value for suspendSec (0) beats the layer default; the profile, power-saver and auto switch come from the layer; alice (no layer) has no power store" =
+      yes "override ${builtins.toJSON [ (idleOf bobNoSusp).battery.suspendSec (idleOf bobNoSusp).ac.suspendSec ]}"
+        ([ (idleOf bobNoSusp).battery.suspendSec (idleOf bobNoSusp).ac.suspendSec ] == [ 0 0 ]
+          && (settingsOf bob).power-profile.profile == "performance" && (settingsOf bob).performance.autoPowerSaverOnBattery
+          && (settingsOf bob).power.profiles.power-saver == { governor = "powersave"; epp = "balance_power"; maxFreqPct = 90; }
+          && !((settingsOf alice) ? power));
+    "mutant: a hard-coded dimSec stays at 300 when the hypridle option changes (detected)" =
+      yes "mutant dimSec ${toString (idleOf hardIdle).battery.dimSec}" ((idleOf hardIdle).battery.dimSec == 300 && (idleOf bobHy).battery.dimSec == 111);
+    "mutant: without mkDefault on suspendSec the host override of 0 conflicts and evaluation fails (detected), the real layer evaluates (control)" =
+      yes "mutant evaluates ${builtins.toJSON (builtins.tryEval (builtins.deepSeq (idleOf noSuspDefault) true)).success}"
+        (!(builtins.tryEval (builtins.deepSeq (idleOf noSuspDefault) true)).success && (builtins.tryEval (builtins.deepSeq (idleOf bobNoSusp) true)).success);
 
     "matugen: with the layer the matugen store follows constants.theme.polarity (dark: dark, light: light) with expressive scheme, darkness, contrast 0" =
       yes "dark ${builtins.toJSON (matugenOf bob)}, light ${builtins.toJSON (matugenOf bobLight)}"

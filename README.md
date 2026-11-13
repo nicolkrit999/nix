@@ -14,7 +14,7 @@
 - Theming: base16 + optional Catppuccin via stylix
 - Host-specific wallpapers tied to monitor list
 - Multiple desktop environments: Hyprland with waybar, Hyprland with caelestia, Hyprland with noctalia, niri with noctalia, MangoWM with mangowc, KDE, GNOME, Cosmic
-- NixOS specializations: guest (ephemeral RAM home), safe-mode (IceWM recovery shell), deep-focus (distraction-free workspaces), secure-travel (hardened, Tailscale Mullvad exit-node VPN with advisory warning), ryoku (Ryoku desktop as its own user, with your keybinds and declarative settings)
+- NixOS specializations: guest (ephemeral RAM home), safe-mode (IceWM recovery shell), deep-focus (distraction-free workspaces), secure-travel (hardened, Tailscale Mullvad exit-node VPN with advisory warning), ryoku (Ryoku desktop as its own user, with your keybinds and declarative settings, [details](./Documentation/features-ryoku.md))
 - flakes & Home Manager integration, tracking nixos-unstable by default with a permanent stable input available for per-package pins
 - Multiple shells (bash, zsh, fish)
 - Optional BTRFS snapshots with per-host retention policy
@@ -88,6 +88,7 @@
 |----------|------|
 | Showcase | [showcase.md](./Documentation/showcase.md) |
 | Features (in depth) | [features.md](./Documentation/features.md) |
+| Ryoku specialization (how it works, declared vs GUI-owned) | [features-ryoku.md](./Documentation/features-ryoku.md) |
 | Denix possibilities | [possibilities.md](./Documentation/usage/denix/possibilities.md) |
 | Denix official docs | [denix-official-documentation.pdf](./Documentation/usage/denix/denix-official-documentation.pdf) |
 | Impermanence guide | [impermanence.md](./Documentation/usage/impermanence/impermanence.md) |

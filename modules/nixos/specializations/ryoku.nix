@@ -41,6 +41,7 @@ let
     "matugen"
     "performance"
     "plugins"
+    "power"
     "power-profile"
     "ryogami"
     "shell"

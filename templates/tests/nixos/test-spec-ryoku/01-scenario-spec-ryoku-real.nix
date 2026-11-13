@@ -131,6 +131,11 @@ let
   inputCfg = declared_.desktop.desktop.input;
   matugenCfg = declared_.matugen;
   firstOf = str: lib.head (lib.splitString "," str);
+  pw = declared_.power;
+  hy = base.myconfig.services.hypridle;
+  isDesktop = host == "nixos-desktop";
+  powerDecl = (sys.pkgs.formats.json { }).generate "ryoku-settings-power.json" pw;
+  powerSeeded = builtins.fromJSON (builtins.readFile powerDecl);
   inTerm = app: if lib.elem app bc.terminalApps then "${bc.terminal.name} -e ${app}" else app;
 
   sddmSet = c: c.services.displayManager.sddm.settings;
@@ -356,7 +361,7 @@ let
             && seedUnit.unitConfig.ConditionUser == ryokuUser && ryokuUser != baseUser && seedUnit.serviceConfig.Type == "oneshot");
     "emblem: the krit layer leaves fastfetchEmblem null (a Hub/GUI choice) and the spec has no ryoku-fastfetch-emblem-seed unit; no hawk.png in the layer" =
       yes "value ${builtins.toJSON (if emblemValue == null then null else toString emblemValue)}, unit ${builtins.toJSON (emblemUnit != null)}"
-        (emblemValue == null && emblemUnit == null && !(lib.hasInfix "hawk.png" (builtins.readFile (flake.outPath + "/users/krit/nixos/specializations/ryoku.nix"))));
+        (emblemValue == null && emblemUnit == null && !(lib.hasInfix "hawk.png" (builtins.readFile "${root}/users/krit/nixos/specializations/ryoku.nix")));
     "control: the sentinel-order probe rejects a missing sentinel and a sentinel before save" =
       yes "probe accepts a bad script"
         (probes.sentinelAfterSave "x fastfetch save y\n: > \"$sentinel\"\n"
@@ -516,6 +521,26 @@ let
       eq "heroImage" declared_.launcher.heroImage "file://${home}/Pictures/Wallpapers/wallhaven-vpyrm5.jpg";
     "theme store: theme.scheme is not declared" =
       yes "settings.theme ${builtins.toJSON (declared_.theme or { })}" (!(declared_.theme or { } ? scheme));
+    "power: both real hosts declare power-profile performance and performance.autoPowerSaverOnBattery" =
+      eq "profile/auto" [ declared_.power-profile.profile declared_.performance.autoPowerSaverOnBattery ] [ "performance" true ];
+    "power: the power store has the power-saver profile (powersave, balance_power, 90) and idle enabled with onDesktops" =
+      eq "power" [ pw.profiles.power-saver pw.idle.enabled pw.idle.onDesktops ] [{ governor = "powersave"; epp = "balance_power"; maxFreqPct = 90; } true true];
+    "power: idle dim, lock and screen off equal the hypridle options on battery and on AC" =
+      eq "idle stages"
+        (map (s: { inherit (s) dimSec lockSec screenOffSec; }) [ pw.idle.battery pw.idle.ac ])
+        (lib.replicate 2 { dimSec = hy.dimTimeout; lockSec = hy.lockTimeout; screenOffSec = hy.screenOffTimeout; });
+    "power: suspendSec is 0/0 on the desktop (never suspends) and 900/1800 on the laptop" =
+      eq "suspendSec" [ pw.idle.battery.suspendSec pw.idle.ac.suspendSec ] (if isDesktop then [ 0 0 ] else [ 900 1800 ]);
+    "power: control, the idle values are not all equal (a probe comparing the wrong pair would fail)" =
+      yes "stages ${builtins.toJSON pw.idle.battery}" (pw.idle.battery.dimSec != pw.idle.battery.lockSec && pw.idle.battery.suspendSec != pw.idle.battery.dimSec);
+    "power: the seed script seeds the power store from exactly the declared value, and that file has the power-saver definition and the idle values" =
+      yes "script has decl ${builtins.toJSON (lib.hasInfix (builtins.unsafeDiscardStringContext (toString powerDecl)) seedText)}"
+        (lib.hasInfix (builtins.unsafeDiscardStringContext (toString powerDecl)) seedText
+          && powerSeeded.profiles.power-saver.maxFreqPct == 90 && powerSeeded.idle.battery.suspendSec == pw.idle.battery.suspendSec
+          && powerSeeded.idle.ac.lockSec == hy.lockTimeout);
+    "orpheus: the desktop has bar scale 1.3, the laptop has no orpheus table" =
+      yes "shell orpheus ${builtins.toJSON (declared_.shell.orpheus or null)}"
+        (if isDesktop then (declared_.shell.orpheus or { }) == { scale = 1.3; } else !(declared_.shell ? orpheus));
     "apps: programs.ryoku.browser stays null in the spec" = eq "programs.ryoku.browser" spec.programs.ryoku.browser null;
   } // offChecks;
 

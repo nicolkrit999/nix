@@ -14,7 +14,7 @@ REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"
 REAL="$DIR/01-scenario-spec-ryoku-real.nix"
 FIXTURE="$DIR/02-scenario-spec-ryoku-fixture.nix"
-MIN_CHECKS=398
+MIN_CHECKS=428
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
@@ -240,6 +240,22 @@ else
     bash -c '[ "$1" = "--logo-type none a b" ] && [ "$2" = 2 ]' _ "$(ff TMUX=x)" "$(nfiles)"
   mkcfg '~/missing.png'
   rt_check "fastfetch wrapper: a missing source falls back to --logo-type none" eqs "$(ff TMUX=x)" '--logo-type none a b'
+
+  mkcfgt() { mkdir -p "$FT/home/.config/fastfetch"; printf '{ "logo": { "type": "%s", "source": "%s" } }\n' "$1" "$2" > "$FT/home/.config/fastfetch/config.jsonc"; }
+  rm -rf "$CACHE"
+  mkcfgt builtin '~/logo.png'
+  rt_check "fastfetch wrapper: a builtin logo type is passed to the real script untouched (exactly the args, no cache)" \
+    bash -c "[ \"\$1\" = 'a b' ] && [ ! -e '$CACHE' ]" _ "$(ff TMUX=x)"
+  mkcfgt file '~/logo.png'
+  rt_check "fastfetch wrapper: a text file logo type (outside the image types) is passed untouched even with a readable source" eqs "$(ff TMUX=x)" 'a b'
+  mkcfgt none ''
+  rt_check "fastfetch wrapper: logo type none is passed untouched" eqs "$(ff TMUX=x)" 'a b'
+  mkcfgt auto ''
+  rt_check "fastfetch wrapper: auto without a source is the builtin logo and is passed untouched" eqs "$(ff TMUX=x)" 'a b'
+  mkcfgt kitty-direct '~/logo.png'
+  rt_check "fastfetch wrapper: an explicit image type with a source takes the sprite fallback (tmux display-message fails here)" \
+    bash -c '[[ "$1" =~ ^--logo\ .*fastfetch-logo-[0-9a-f]{16}\.txt\ --logo-type\ file-raw\ a\ b$ ]]' _ "$(ff TMUX=x)"
+  rt_check "fastfetch wrapper: the image sprite is a flattened render (cache file non-empty)" bash -c "[ -n \"\$(find '$CACHE' -name 'fastfetch-logo-*.txt' -size +0)\" ]"
 fi
 
 echo ""

@@ -88,6 +88,16 @@ let
     [ "krit" "services" "nas" "laptop-borg-backup" ]
   ];
 
+  hypridle = config.myconfig.services.hypridle;
+  # Suspend has no stage in hypridle; these are Ryoku's own defaults (15 min on battery, 30 on AC). mkDefault so a host can override
+  # (the desktop never suspends).
+  idleStages = suspendSec: {
+    dimSec = hypridle.dimTimeout;
+    lockSec = hypridle.lockTimeout;
+    screenOffSec = hypridle.screenOffTimeout;
+    suspendSec = lib.mkDefault suspendSec;
+  };
+
   hasPath = path: lib.hasAttrByPath ([ "myconfig" ] ++ path) options;
 in
 delib.module {
@@ -98,6 +108,24 @@ delib.module {
     myconfig.specializations.ryoku.sddmCursorPackage = pkgs.bibata-cursors;
 
     myconfig.specializations.ryoku.settings = {
+      # AC: performance. On battery Ryoku's auto switch drops to Power Saver and restores the profile on AC, and Power Saver
+      # is redefined as the middle ground (it would otherwise be the strictest profile).
+      power-profile.profile = "performance";
+      performance.autoPowerSaverOnBattery = true;
+      power = {
+        profiles.power-saver = {
+          governor = "powersave";
+          epp = "balance_power";
+          maxFreqPct = 90;
+        };
+        # Dim, lock and screen off follow the normal profile's hypridle; suspend is Ryoku's own.
+        idle = {
+          enabled = true;
+          onDesktops = true;
+          battery = idleStages 900;
+          ac = idleStages 1800;
+        };
+      };
       desktop = {
         desktop.appearance = {
           gapsIn = 6;
@@ -171,9 +199,6 @@ delib.module {
           (lib.optionalAttrs (hasPath [ "services" "external" "dotfiles" "wallpapersLink" ]) {
             myconfig.services.external.dotfiles.wallpapersLink = lib.mkForce false;
           })
-          (lib.optionalAttrs (hasPath [ "krit" "programs" "yazi" "goToExclude" ]) {
-            myconfig.krit.programs.yazi.goToExclude = [ "M" ];
-          })
         ];
 
         home-manager.users.${user} = { pkgs, ... }: {
@@ -193,14 +218,83 @@ delib.module {
                 src=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.source // empty' 2>/dev/null)
                 w=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.width // 28' 2>/dev/null)
                 h=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.height // 14' 2>/dev/null)
+                type=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.type // empty' 2>/dev/null)
+                # Only image logos need the multiplexer workarounds below. Builtin, text, command and none logos print fine
+                # anywhere, so they go to the real wrapper untouched; an auto logo without a source is the builtin one.
+                case "$type" in
+                  kitty-direct|kitty|kitty-icat|sixel|iterm|chafa) ;;
+                  auto|"") [ -n "$src" ] || exec "$real" "$@" ;;
+                  *) exec "$real" "$@" ;;
+                esac
                 case "$src" in "~/"*) src="$HOME/''${src#\~/}" ;; esac
-                if [ -n "$src" ] && [ -r "$src" ]; then
-                  key=$(printf '%s' "$src $(${pkgs.coreutils}/bin/stat -c '%Y %s' "$src") $w $h" | ${pkgs.coreutils}/bin/sha256sum | ${pkgs.coreutils}/bin/cut -c1-16)
+                if [ -n "$src" ] && [ -r "$src" ] && [ -n "''${TMUX:-}" ] && [ "$(${pkgs.tmux}/bin/tmux display-message -p '#{client_termname}' 2>/dev/null)" = xterm-kitty ]; then
+                  # kitty behind tmux: the real image through tmux passthrough as unicode placeholders, drawn as ordinary text cells.
+                  # The upload (cached, resent every run since kitty forgets it on restart) and the placeholder rows are split apart
+                  # because icat's own rows carry cursor movement that breaks fastfetch's side-by-side layout.
+                  pdir="''${XDG_CACHE_HOME:-$HOME/.cache}/ryoku"
+                  pkey=$(printf '%s' "ph1 $src $(${pkgs.coreutils}/bin/stat -c '%Y %s' "$src") $w $h" | ${pkgs.coreutils}/bin/sha256sum | ${pkgs.coreutils}/bin/cut -c1-16)
+                  up="$pdir/fastfetch-ph-$pkey.upload"
+                  rows="$pdir/fastfetch-ph-$pkey.rows"
+                  cols="$pdir/fastfetch-ph-$pkey.cols"
+                  if [ ! -s "$up" ] || [ ! -s "$rows" ] || [ ! -s "$cols" ]; then
+                    ${pkgs.coreutils}/bin/mkdir -p "$pdir"
+                    raw=$(${pkgs.coreutils}/bin/mktemp "$pdir/ph.XXXXXX")
+                    small=$(${pkgs.coreutils}/bin/mktemp "$pdir/ph.XXXXXX.png")
+                    if ${pkgs.imagemagick}/bin/magick "$src" -background '#282a36' -alpha remove -alpha off -resize 360x png:"$small" 2>/dev/null \
+                      && ${pkgs.kitty}/bin/kitten icat --unicode-placeholder --passthrough tmux --transfer-mode=stream --place "''${w}x''${h}@0x0" --align left "$small" > "$raw" 2>/dev/null \
+                      && [ -s "$raw" ]; then
+                      ${pkgs.perl}/bin/perl -0777 -e '
+                        open F, "<$ARGV[0]"; $_ = <F>; close F;
+                        my @u = /(\ePtmux;.*?\e\e\\\e\\)/sg;
+                        (my $r = $_) =~ s/\ePtmux;.*?\e\e\\\e\\//sg;
+                        my ($cols) = ($u[0] // "") =~ /,c=(\d+),/;
+                        $r =~ s/\e7//g; $r =~ s/\e8//g; $r =~ s/\e\[\d*;?\d*H//g; $r =~ s/\e\[\d*C//g; $r =~ s/\r//g;
+                        my ($c, $o) = ("", "");
+                        for (split /\n/, $r) {
+                          next unless length;
+                          if (/^(\e\[38:2:\d+:\d+:\d+m)/) { $c = $1 } else { $_ = $c . $_ }
+                          s/\e\[39m$//;
+                          $o .= $_ . "\e[39m\n";
+                        }
+                        exit 1 unless @u && $cols && length $o;
+                        open U, ">$ARGV[1]"; print U join("", @u); close U;
+                        open R, ">$ARGV[2]"; print R $o; close R;
+                        open W, ">$ARGV[3]"; print W $cols; close W;
+                      ' "$raw" "$up" "$rows" "$cols" || ${pkgs.coreutils}/bin/rm -f "$up" "$rows" "$cols"
+                    fi
+                    ${pkgs.coreutils}/bin/rm -f "$raw" "$small"
+                  fi
+                  if [ -s "$up" ] && [ -s "$rows" ] && [ -s "$cols" ]; then
+                    ${pkgs.tmux}/bin/tmux set -p allow-passthrough on 2>/dev/null
+                    ${pkgs.coreutils}/bin/cat "$up"
+                    # fastfetch counts every placeholder cell as two columns wide, so as a file-raw logo it pushes the header and the
+                    # values too far right. It prints the info alone instead and the image rows are merged beside it here.
+                    lp=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.padding.left // 0' 2>/dev/null)
+                    rp=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.padding.right // 3' 2>/dev/null)
+                    tp=$(printf '%s' "$json" | ${pkgs.jq}/bin/jq -r '.logo.padding.top // 0' 2>/dev/null)
+                    "$real" --logo-type none --logo-padding-left 0 --logo-padding-right 0 --logo-padding-top 0 --pipe false "$@" \
+                      | ${pkgs.perl}/bin/perl -e '
+                        my ($rf, $lp, $rp, $tp, $w) = @ARGV;
+                        open R, "<$rf"; chomp(my @r = <R>); close R;
+                        my $i = 0;
+                        while (<STDIN>) {
+                          chomp;
+                          my $row = ($i >= $tp && $i - $tp < @r) ? $r[$i - $tp] : (" " x $w);
+                          print " " x $lp, $row, " " x $rp, $_, "\n";
+                          $i++;
+                        }
+                        while ($i - $tp < @r) { print " " x $lp, $r[$i - $tp], "\n"; $i++ }
+                      ' "$rows" "$lp" "$rp" "$tp" "$(${pkgs.coreutils}/bin/cat "$cols")"
+                    exit 0
+                  fi
+                fi
+                if [ "''${#logo[@]}" -eq 0 ] && [ -n "$src" ] && [ -r "$src" ]; then
+                  key=$(printf '%s' "flat2 $src $(${pkgs.coreutils}/bin/stat -c '%Y %s' "$src") $w $h" | ${pkgs.coreutils}/bin/sha256sum | ${pkgs.coreutils}/bin/cut -c1-16)
                   cache="''${XDG_CACHE_HOME:-$HOME/.cache}/ryoku/fastfetch-logo-$key.txt"
                   if [ ! -s "$cache" ]; then
                     ${pkgs.coreutils}/bin/mkdir -p "''${cache%/*}"
                     tmp=$(${pkgs.coreutils}/bin/mktemp "$cache.XXXXXX")
-                    if ${pkgs.chafa}/bin/chafa --format symbols --size "''${w}x''${h}" --animate off --polite on "$src" > "$tmp" 2>/dev/null && [ -s "$tmp" ]; then
+                    if ${pkgs.imagemagick}/bin/magick "$src" -background '#282a36' -alpha remove -alpha off png:- 2>/dev/null | ${pkgs.chafa}/bin/chafa --format symbols --size "''${w}x''${h}" --animate off --polite on - > "$tmp" 2>/dev/null && [ -s "$tmp" ]; then
                       ${pkgs.coreutils}/bin/mv -f "$tmp" "$cache"
                     else
                       ${pkgs.coreutils}/bin/rm -f "$tmp"

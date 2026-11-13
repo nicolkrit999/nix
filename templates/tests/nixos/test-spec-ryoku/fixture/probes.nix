@@ -99,7 +99,20 @@ let
         "exec \"$real\" \"$@\""
         "logo=(--logo-type none)"
         "exec \"$real\" \"${"$"}{logo[@]}\" \"$@\""
+        "#{client_termname}"
+        "/bin/kitten icat --unicode-placeholder --passthrough tmux"
         "--logo-type file-raw"
+        "--logo-type none --logo-padding-left 0"
+        "--logo-padding-right 0 --logo-padding-top 0 --pipe false"
+        "jq -r '.logo.padding.left"
+        "jq -r '.logo.padding.right"
+        "jq -r '.logo.padding.top"
+        "print \" \" x $lp, $row, \" \" x $rp, $_"
+        "printf '%s' \"flat2 $src"
+        "/bin/magick \"$src\" -background"
+        "jq -r '.logo.type // empty'"
+        "kitty-direct|kitty|kitty-icat|sixel|iterm|chafa) ;;"
+        "*) exec \"$real\" \"$@\" ;;"
         "ryoku/fastfetch-logo-"
         "--format symbols"
         "config.jsonc"
@@ -113,7 +126,12 @@ let
       { pkg = "coreutils"; bin = "mktemp"; }
       { pkg = "coreutils"; bin = "mv"; }
       { pkg = "coreutils"; bin = "mkdir"; }
+      { pkg = "imagemagick"; bin = "magick"; }
     ])
+    ++ (
+      let seg = lib.head (lib.splitString "exit 0" (lib.last (lib.splitString "allow-passthrough on" text))); in
+      lib.optional (lib.hasInfix "--logo-type file-raw" seg) "placeholder branch uses a file-raw logo instead of the merge"
+    )
     ++ lib.optional (builtins.match ".*\nreal=/nix/store/[a-z0-9]+-ryoku-desktop-data[^/\n]*/bin/ryoku-fastfetch\n.*" text == null) "real is not the absolute ryoku-desktop-data store path";
 in
 {

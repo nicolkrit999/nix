@@ -27,6 +27,11 @@ in
           type = lib.types.bool;
           default = true;
         };
+        services.hypridle = {
+          dimTimeout = lib.mkOption { type = lib.types.int; default = 300; };
+          lockTimeout = lib.mkOption { type = lib.types.int; default = 330; };
+          screenOffTimeout = lib.mkOption { type = lib.types.int; default = 360; };
+        };
         krit.programs.yazi.goToExclude = lib.mkOption {
           type = lib.types.listOf lib.types.str;
           default = [ ];
