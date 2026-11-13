@@ -59,6 +59,10 @@ build and a 30/45 min timeout (runs 38135221346, 38275067935, 39159226790). Now:
   `share/`; the stand-in installs the two files from `src`).
 - **Every other uncached entry must be trivial** (no `src`/`srcs`, no fixed-output hash, or
   `preferLocalBuild`) and is built; a non-trivial one fails the case with "add a stand-in".
+- **One evaluation per case:** the stand-ins and trivial entries are built from the derivations
+  that the `info` evaluation itself instantiated (`drv` / `standInDrv`), never re-selected from a
+  second evaluation. In CI the second evaluation's build set intermittently missed the `info`
+  path of `nixos-version`, which left it unbuilt ("neither cached, a stand-in nor built").
 - **Regression guard:** before building, the case's build set (stand-ins, trivial entries, xdp,
   dbus) is dry-run against an empty chroot store that only sees cache.nixos.org; any derivation
   that would be built and is not trivial fails the guard (`will-build-heavy`). This holds regardless
@@ -85,7 +89,7 @@ build and a 30/45 min timeout (runs 38135221346, 38275067935, 39159226790). Now:
 | ryoku case | the ryoku spec maps to its own case (`ryoku`), the fake case reproduces its portal config, portal packages (incl. the wlr portal), the six sessions (`hyprland`, `hyprland-uwsm`, `niri`, `ryoku-*`) and xdp; session stand-ins are asserted against `nix/modules/ryoku.nix` of the flake input |
 | uncached entries | stand-in or trivial |
 | guard | empty-store dry run against cache.nixos.org builds nothing non-trivial |
-| build | `nix build` of the build set exits 0 and every output exists; outputs are GC-rooted under the test's work dir until it exits |
+| build | `nix build` of the build set exits 0 and every output exists, including every stand-in and trivial-entry path that `info` names; outputs are GC-rooted under the test's work dir until it exits |
 | real portal files present | cached real entries' portal files all exist in the fake case |
 | zero deprecated UseIn fallbacks | no `Choosing ... via the deprecated UseIn key` line in any desktop |
 | FileChooser | resolved to the expected installed backend (kde in KDE, gnome in GNOME, cosmic in COSMIC, gtk elsewhere) |

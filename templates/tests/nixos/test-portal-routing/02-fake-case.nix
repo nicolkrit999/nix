@@ -3,7 +3,6 @@
 # user programs, no theming, no specialisations.
 #
 #   --attr info        eval-only data (config, portal package names, profile entries, sessions)
-#   --attr realise     stand-ins + uncached trivial entries named in BUILD (JSON outPath list)
 #   --attr xdp / dbus  the binaries the simulation runs
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
@@ -42,9 +41,6 @@ let
   hmOn = hm.xdg.portal.enable or false;
   sysEntries = c.system.path.paths;
   hmEntries = if hmOn then hm.home.path.paths else [ ];
-
-  build = let b = builtins.getEnv "BUILD"; in if b == "" then [ ] else builtins.fromJSON b;
-  allEntries = sysEntries ++ hmEntries ++ c.services.displayManager.sessionPackages;
 in
 {
   info = {
@@ -59,10 +55,6 @@ in
     sys = map common.entryDrv sysEntries;
     hm = map common.entryDrv hmEntries;
   };
-  # Everything this case realises besides xdp and dbus: stand-ins plus the uncached entries
-  # the helper classified as trivial (BUILD: JSON outPath list).
-  realise = lib.unique (lib.filter (x: x != null) (map common.standIn allEntries)
-    ++ lib.filter (p: lib.elem p.outPath build) allEntries);
   xdp = pkgs.xdg-desktop-portal;
   inherit (pkgs) dbus;
 }

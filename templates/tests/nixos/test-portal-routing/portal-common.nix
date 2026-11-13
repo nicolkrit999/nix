@@ -97,5 +97,8 @@ in
   names = ps: lib.sort lib.lessThan (lib.unique (map lib.getName ps));
   # entry plus the derivation, fake host only: instantiating every real-host entry costs
   # minutes of eval and the real hosts are never built
-  entryDrv = p: entry p // { drv = p.drvPath; };
+  entryDrv = p: entry p // {
+    drv = p.drvPath;
+    standInDrv = let s = standIn p; in if s == null then null else s.drvPath;
+  };
 }

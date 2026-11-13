@@ -8,7 +8,8 @@ are either stand-ins (portal-common.nix) or trivial derivations (no src, no fixe
 hash) that the check script builds; anything else is reported, never built.
 
   scan <out.json> <info.json>...           cached? + data-dir listing for every entry path
-  classify <info.json> <scan.json>         print {"build": [...], "heavy": [...]} for uncached entries
+  classify <info.json> <scan.json>         print {"build", "heavy", "drvs", "need"} for uncached entries:
+                                           drvs/need are the info's own derivations and outputs
   assemble <info.json> <scan.json> <sys|hm|sessions> <dir>
                                            merge the entries' data dirs like buildEnv (priority, first wins)
   will-build-heavy <dry-run-output>        print the non-trivial drvs a dry run would build
@@ -114,7 +115,11 @@ def classify(info_f, scan_f):
     shown = _show(sorted(todo)) if todo else {}
     build = [e["path"] for d, e in todo.items() if _trivial(shown[d])]
     heavy = [f"{e['name']} ({e['path']})" for d, e in todo.items() if not _trivial(shown[d])]
-    print(json.dumps({"build": sorted(set(build)), "heavy": sorted(set(heavy))}))
+    stand = [e for e in _entries(info) if e.get("standIn")]
+    drvs = [d for d, e in todo.items() if _trivial(shown[d])] + [e["standInDrv"] for e in stand]
+    need = build + [e["standIn"] for e in stand]
+    print(json.dumps({"build": sorted(set(build)), "heavy": sorted(set(heavy)),
+                      "drvs": sorted(set(drvs)), "need": sorted(set(need))}))
 
 
 def _cat(path):
