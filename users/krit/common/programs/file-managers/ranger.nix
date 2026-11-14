@@ -85,8 +85,8 @@ delib.module {
             src = pkgs.fetchFromGitHub {
               owner = "maximtrp";
               repo = "ranger-archives";
-              rev = "b4e136b24fdca7670e0c6105fb496e5df356ef25";
-              hash = "sha256-QJu5G2AYtwcaE355yhiG4wxGFMQvmBWvaPQGLsi5x9Q=";
+              rev = "1f5629bc81e6798deec6a767d780e271dc517d27";
+              hash = "sha256-mKz+4TgpenEebag1aWscfC1mTkKQVYPfy/Crz5Mnvbw=";
             };
           }
           {

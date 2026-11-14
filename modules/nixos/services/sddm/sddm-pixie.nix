@@ -406,7 +406,7 @@ delib.module {
 
       sddm-pixie = pkgs.stdenvNoCC.mkDerivation {
         pname = "sddm-pixie";
-        version = "unstable-2025-01-01";
+        version = "unstable-2026-09-05";
 
         src = pkgs.fetchFromGitHub {
           owner = "xCaptaiN09";

@@ -4,22 +4,15 @@ let
 
   mkAgentReach = withCookies: py.toPythonApplication (py.buildPythonPackage rec {
     pname = "agent-reach";
-    version = "1.5.0";
+    version = "1.6.1";
     pyproject = true;
 
     src = pkgs.fetchFromGitHub {
       owner = "Panniantong";
       repo = "Agent-Reach";
       tag = "v${version}";
-      hash = "sha256-rCEtsGDa+CzEGavRPKDtjy1SNrUGdrgtq+iWkOaQbIQ=";
+      hash = "sha256-l2mRKME24eoLwUUQPuEl0y6gEIGVNuEJc9pz23hX8Z0=";
     };
-
-    # doctor otherwise rewrites ~/.agents|.openclaw|.claude/skills/agent-reach on every run.
-    postPatch = ''
-      substituteInPlace agent_reach/cli.py --replace-fail \
-        "    # Auto-install skill if not already present (fixes #154)" \
-        "    return"
-    '';
 
     nativeBuildInputs = [ pkgs.makeWrapper ];
 
@@ -38,6 +31,8 @@ let
       rich
       yt-dlp
     ] ++ lib.optional withCookies browser-cookie3;
+
+    pythonRelaxDeps = [ "yt-dlp" ];
 
     doCheck = false;
 
@@ -175,16 +170,16 @@ let
 
   opencli = pkgs.buildNpmPackage rec {
     pname = "opencli";
-    version = "2.0.1";
+    version = "2.0.3";
 
     src = pkgs.fetchFromGitHub {
       owner = "jackwener";
       repo = "opencli";
       tag = "v${version}";
-      hash = "sha256-8lPpOOBzRu7ssgC2rGzijm7s3H8P5uMkawCcp0KZyn4=";
+      hash = "sha256-Flj87d0LvguhP4/wiFfRSrSmX/wMSohhzGsSIugETEA=";
     };
 
-    npmDepsHash = "sha256-uFli8szZhhawB3x7a3EWAQK/hv2FAUrxxFU+f01oPhw=";
+    npmDepsHash = "sha256-V8TseHJLBjaiJ8GeHWTYnyJW4MET++4GRXakqwVwjk8=";
 
     # postinstall/prepare fetch adapters over the network; the build is offline.
     npmFlags = [ "--ignore-scripts" ];
@@ -323,16 +318,16 @@ let
 
   xiaohongshu-mcp = pkgs.buildGoModule rec {
     pname = "xiaohongshu-mcp";
-    version = "2.5.5";
+    version = "2.7.4";
 
     src = pkgs.fetchFromGitHub {
       owner = "xpzouying";
       repo = "xiaohongshu-mcp";
       tag = "v${version}";
-      hash = "sha256-iqFfp5O7EOrS+WVm8g4ttEFDTTNQpFM61AHBsNOWNMU=";
+      hash = "sha256-8A98GJ17R9rvBYe4oqSmjUIrvUHw6Mz02sxoNKd7de8=";
     };
 
-    vendorHash = "sha256-9Kqa81dX++OY28Ft9L5Ru0UTeiCnnxf9VUKfIhYdE5k=";
+    vendorHash = "sha256-EPnU+9caTzQrz/a17VFQTm5wETsqajGKYtAxL40smpA=";
 
     postPatch = ''
       grep -qx '${xiaohongshuBrowserVersion}' browser/browser_version.txt

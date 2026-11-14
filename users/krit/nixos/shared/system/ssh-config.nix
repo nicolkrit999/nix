@@ -62,11 +62,12 @@ delib.module {
       hostType = n: myconfig.hosts.${n}.type;
       builders = lib.filter (n: hostType n == "desktop") peers;
       flakeDir = "~/${myconfig.constants.flakeDir}";
-      remoteBuild = verb: "nh os ${verb} ${flakeDir} --hostname ${myconfig.constants.hostname} --build-host ${peerUser myconfig (lib.head builders)}@${lib.head builders}";
+      remoteBuild = verb: "cd ${flakeDir} && git add -A && nh os ${verb} ${flakeDir} --hostname ${myconfig.constants.hostname} --build-host ${peerUser myconfig (lib.head builders)}@${lib.head builders}";
       buildAliases = lib.optionalAttrs
         (hostType myconfig.constants.hostname == "laptop" && builders != [ ] && myconfig.nh.enable)
         {
           sw-laptop-with-desktop = remoteBuild "switch";
+          swboot-laptop-with-desktop = remoteBuild "boot";
           build-laptop-with-desktop = remoteBuild "build";
         };
     in

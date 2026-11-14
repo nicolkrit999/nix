@@ -53,21 +53,21 @@ delib.module {
           # storytold "Craft" apps (github.com/storytold/<name>): not on Flathub, installed from the
           # release's linux-x86_64 .flatpak bundle (runtime comes from the flathub remote). update.auto does
           # not touch bundles - to update, bump the version and hash (hash = release SHA256SUMS.txt in SRI form).
-          (craftBundle "cadcraft" "0.17.0" "sha256-ljfKCMuRFB/GeXENYS9VHhck0p9uqmG2O0s8qSlVO38=") # CAD / DXF drawing editor
-          (craftBundle "craft-anything" "0.3.0" "sha256-aujUizcOyP7TxyNvxd6zSU1aXaR5TvI4IFx59duhLhQ=") # Understand how any software works, and craft your own
-          (craftBundle "deckcraft" "0.15.0" "sha256-SXtk3BSsbNICYKLPspssg7ed8zNucChoH9nxEu0i/as=") # PowerPoint-like presentations
-          (craftBundle "designcraft" "0.17.1" "sha256-c72GdKakxddHmaKt3DZTGOjVPyIcGUwTATg6YiClkGY=") # InDesign-like page layout (magazines, books, print)
-          (craftBundle "effectcraft" "0.21.0" "sha256-MBvci2aBq6ydqiKWxU2OnRaNdgL+NfCDrHPKJmcWUfQ=") # After Effects-like motion graphics / VFX compositor
-          (craftBundle "figcraft" "0.15.0" "sha256-FGO3WHAoQtqKCqbc8VyE97PmhhWIGTmMj7wkoO0hSqA=") # Figma-like UI design
-          (craftBundle "filmcraft" "0.17.0" "sha256-eI129lzA5Eprrx4utQl6jhy5MB+N1ITifU+v7r/NNS8=") # Premiere-like video editor
-          (craftBundle "gridcraft" "0.16.0" "sha256-D+LI42uAgJJVnpX7clASC5sCLll6f7FUDjZq7ppNH7E=") # Excel-like spreadsheet
-          (craftBundle "lightcraft" "0.18.0" "sha256-ntb0tHqA/x9isQui/0LuFHegS3E9qH/4xM4j/ZouLKo=") # Lightroom-like photo editor
-          (craftBundle "pdfcraft" "0.18.1" "sha256-11x3ETAT6GmO7e3wx/+3OVArXD/AXWOlBhIktb1GhSA=") # Acrobat-like PDF editor
-          (craftBundle "photocraft" "0.20.1" "sha256-oXh0i595z2GbA1jWX1vDeKZ917eC6czZCwMtfF+FiRI=") # Photoshop-like image editor
-          (craftBundle "soundcraft" "0.17.0" "sha256-zrQtU56a7AzEgYh06S5kBXFjNbBX2eJAqKWVmP7zS64=") # Audio editor / DAW-like
-          (craftBundle "texturecraft" "0.3.1" "sha256-BhFnFm6/AVv+8b8jB+uWPozQ+uP25WypDb/IR2sjihE=") # 3D texture painting
-          (craftBundle "vectorcraft" "0.21.0" "sha256-q0jUDrWYgTGPRC8Fc77sgvn5SZVoPhVvKlaSfDu9Pk8=") # Illustrator-like vector editor
-          (craftBundle "wordcraft" "0.15.1" "sha256-JDJ9UtKWUYYubVh35iJaDoQYXSxcYRn/ju7fDJSluN0=") # Word-like word processor
+          (craftBundle "cadcraft" "0.20.1" "sha256-nRwHGyxhcA/swXcCJMEhNnkkeET7nvQg9C/Ts0iCqrc=") # CAD / DXF drawing editor
+          (craftBundle "craft-anything" "0.6.1" "sha256-1gMrHCUr0rMTItSqnmHsLmAPWkGRi78BualrdMqt1yI=") # Understand how any software works, and craft your own
+          (craftBundle "deckcraft" "0.18.1" "sha256-CAzYpNL3TKnvVUElR25tKqgOuNxy6rXUEkensX8tbC0=") # PowerPoint-like presentations
+          (craftBundle "designcraft" "0.20.1" "sha256-xigZIXR3b9R2bvNC1cRJXoeHtT4mpPATbEi9RsE7raQ=") # InDesign-like page layout (magazines, books, print)
+          (craftBundle "effectcraft" "0.24.1" "sha256-ovfR/giaPlgK1MhOH43Zg+Bx4S4EESLyWoIKUb+zHwo=") # After Effects-like motion graphics / VFX compositor
+          (craftBundle "figcraft" "0.18.1" "sha256-K9O5CA30sJiWTrAsJfvC72gLMqaqg+OjN0OJB3kEO8M=") # Figma-like UI design
+          (craftBundle "filmcraft" "0.20.1" "sha256-ZG7mJ7Obk/5px+y0RyX8lk/UNmDvjPKISz+0jnWawPg=") # Premiere-like video editor
+          (craftBundle "gridcraft" "0.19.1" "sha256-U1KJBHw4keWiOP6qGGCWyjwMKDzf3h4P/3IkD19HXQI=") # Excel-like spreadsheet
+          (craftBundle "lightcraft" "0.21.1" "sha256-OprriW37e4uh9shudzORL7eu3ymxqZ7uj+lYOZUfdpw=") # Lightroom-like photo editor
+          (craftBundle "pdfcraft" "0.21.1" "sha256-TxJv9xjoUbpU7gIHxLbOnuvd/dctESRTHSFcwPiTfa8=") # Acrobat-like PDF editor
+          (craftBundle "photocraft" "0.23.1" "sha256-XJ3rWPB71U8yOl2YW+0pW0xbFXieAmUeLyA9Xo7yEaU=") # Photoshop-like image editor
+          (craftBundle "soundcraft" "0.20.1" "sha256-2a1CRmnwyXjcRoHfcdIPb8gCN1IgeNYxrwY9y7PFlJQ=") # Audio editor / DAW-like
+          (craftBundle "texturecraft" "0.6.1" "sha256-mZYX2fytRWmpB+KNFUiV2rJgMg06qYy3WqAMRMyH0go=") # 3D texture painting
+          (craftBundle "vectorcraft" "0.24.1" "sha256-mNtENX8euQaTJe+cM8TbFUvKgL5rkaNA00OrhaeUDc4=") # Illustrator-like vector editor
+          (craftBundle "wordcraft" "0.18.1" "sha256-fzkj81N8AgUhMYMHQoIR2AhIzZzLBVJlsj1hOSFmFqk=") # Word-like word processor
         ];
         remotes = [
           {

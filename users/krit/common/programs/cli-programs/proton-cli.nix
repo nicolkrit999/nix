@@ -10,19 +10,19 @@ delib.module {
   home.ifEnabled =
     _:
     let
-      version = "0.4.4";
+      version = "0.9.0";
       system = pkgs.stdenv.hostPlatform.system;
 
       runtimeLibs = with pkgs; [ libsecret glib ];
 
       linuxSrc = pkgs.fetchurl {
         url = "https://proton.me/download/drive/cli/${version}/linux-x64/proton-drive";
-        hash = "sha256-raEm89uUW8WmLZcAGU/C4RJISeNL15+31+o9kCQv/zI=";
+        hash = "sha256-T2b5hLY2EITUZWe49P1IUfQnHrn3fl0YHh7/PIozJQE=";
       };
 
       darwinSrc = pkgs.fetchurl {
         url = "https://proton.me/download/drive/cli/${version}/darwin-arm64/proton-drive";
-        hash = "sha256-8A56mjygDtQYpY8fQr0mC2cvHtJyI18Yz+7tVI3u5XM=";
+        hash = "sha256-/jKdnSpVdT9RXIo3BGdnzfD7tKV6iUYzph//n1Npbjg=";
       };
 
       rawLinuxBin = pkgs.runCommandLocal "proton-drive-raw-${version}" { } ''

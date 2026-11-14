@@ -11,11 +11,11 @@ let
     { id = "chphlpgkkbolifaimnlloiipkdnihall"; hash = "sha256-e9tguLeVyjXBAgZFFDrrjbCLdaAVa5WOzwDDXftOVVE="; } # OneTab
     { id = "dpaefegpjhgeplnkomgbcmmlffkijbgp"; hash = "sha256-BnnCPisSxlhTSoQQeZg06Re8MhgwztRKmET9D93ghiw="; } # Kagi Summarizer
     { id = "dphilobhebphkdjbpfohgikllaljmgbn"; hash = "sha256-IgmQYXUjBM0iONHXqTgcvIXihN2ZrXWCZsQZZg1xPxk="; } # SimpleLogin
-    { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-bt+LtIygXRhPADo/p4oqUQWduxvV+F1We/o9iHqdPxI="; } # Proton Pass
+    { id = "ghmbeldphafepmbegfdlkpapadhbakde"; hash = "sha256-n1LHP7mPmlOrYtJztlnijkKkiP+urhhDZ3YIDG5IW5o="; } # Proton Pass
     { id = "ljipkdpcjbmhkdjjmbbaggebcednbbme"; hash = "sha256-wVSUhC4c24i4vpqeq1nZaeKtn32rn3+jorcC3WIaXJM="; } # Behind the Overlay
     { id = "lnaahdmijnjnmgaalacdgakieangpjgp"; hash = "sha256-xxdOTvjv9gaB1rS0bMsmrudydOGdTDtt73Ri+zRCpNQ="; } # Screenshot YouTube Video
     { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; hash = "sha256-VYf+K2qZRhAcoN3nxu/nanVcXuW21uY9/EjH9zbNtP8="; } # SponsorBlock
-    { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-OyDmCxFC732/HVF6n/nuVSe9ltxgg8L9xCPp9RuXPTo="; } # Awesome Screen Recorder & Screenshot
+    { id = "nlipoenfbbikpbjkfpfillcgkoblgpmj"; hash = "sha256-SgGjtkWrUSk7FIoK/fmHBVz1NJEO62NDFRdLGf2O6pk="; } # Awesome Screen Recorder & Screenshot
   ];
 
   fetchCrx = { id, hash }: pkgs.fetchurl {

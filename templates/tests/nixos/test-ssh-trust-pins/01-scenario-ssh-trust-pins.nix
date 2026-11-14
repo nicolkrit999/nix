@@ -106,17 +106,20 @@ let
       expect "ssh-alias"
         (hmAliases."ssh-${peer}" or "" == "ssh ${peer}" && !(hmAliases ? "ssh-${host}"))
         "aliases=${show (lib.filterAttrs (n: _: lib.hasPrefix "ssh-" n) hmAliases)}";
-    "remote-build aliases (sw-/build-laptop-with-desktop) exist only on the laptop and use the nixos-desktop Host entry" =
+    "remote-build aliases (sw-/swboot-/build-laptop-with-desktop) exist only on the laptop and use the nixos-desktop Host entry" =
       let
         sw = hmAliases.sw-laptop-with-desktop or "";
         bd = hmAliases.build-laptop-with-desktop or "";
+        bt = hmAliases.swboot-laptop-with-desktop or "";
+        pre = verb: "cd ~/${cfg.myconfig.constants.flakeDir} && git add -A && nh os ${verb} ";
         flags = "--hostname nixos-laptop --build-host ${user}@nixos-desktop";
       in
       expect "remote-build"
         (if isLaptop
-        then lib.hasPrefix "nh os switch " sw && lib.hasSuffix flags sw && lib.hasPrefix "nh os build " bd && lib.hasSuffix flags bd
-        else sw == "" && bd == "")
-        "sw=${show sw} build=${show bd}";
+        then lib.hasPrefix (pre "switch") sw && lib.hasSuffix flags sw && lib.hasPrefix (pre "build") bd && lib.hasSuffix flags bd
+          && lib.hasPrefix (pre "boot") bt && lib.hasSuffix flags bt
+        else sw == "" && bd == "" && bt == "")
+        "sw=${show sw} build=${show bd} boot=${show bt}";
     "school specialisation pins github.com system-wide with the same ed25519 key as the standalone-home known_hosts; the base config has no such pin" =
       expect "school-github-pin"
         (lib.hasPrefix "ssh-ed25519 " schoolGithubPin && builtins.length (fields schoolGithubPin) == 2

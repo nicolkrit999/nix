@@ -1,19 +1,19 @@
 { delib, pkgs, lib, ... }:
 let
-  version = "0.27.0";
+  version = "0.44.0";
 
   wheelSrc = {
     "x86_64-linux" = {
-      url = "https://files.pythonhosted.org/packages/8f/70/2e287f4f4bc8306c8c51bb40e753cfdfa05c568d026be633c78d9f4f2995/headroom_ai-${version}-cp310-abi3-manylinux_2_28_x86_64.whl";
-      hash = "sha256-ZA5npBdDJlN2WCqSaRoZKowkSO8LIWeg4UoqRYrb4t0=";
+      url = "https://files.pythonhosted.org/packages/8f/63/39c8f6bd317714bc6a68775be5da5e15bca9e91d5f95e259bc00e6de6f7f/headroom_ai-${version}-cp310-abi3-manylinux_2_28_x86_64.whl";
+      hash = "sha256-O1x/0onn0ifc2biWYVVB6p09NziL2XsyV/yHacS373A=";
     };
     "aarch64-linux" = {
-      url = "https://files.pythonhosted.org/packages/0e/b4/e5e32e7042f7bb7bdb3aaec1dd9b31926e38612f61b5a3d5f31253f2b646/headroom_ai-${version}-cp310-abi3-manylinux_2_28_aarch64.whl";
-      hash = "sha256-+PoVAGHbJRPoWE0uS1CvkwExvP4wEIDyl0ZLNRoD9Xc=";
+      url = "https://files.pythonhosted.org/packages/5e/d9/2ff01892de67c0824d024cdb0152e371bb8cd5ced8ed6c2a66ad5c5f13a4/headroom_ai-${version}-cp310-abi3-manylinux_2_28_aarch64.whl";
+      hash = "sha256-WPLmrHNv6IL4PK4KO/+tfOV00SWH65mdZQG//QU6dc0=";
     };
     "aarch64-darwin" = {
-      url = "https://files.pythonhosted.org/packages/10/95/928bfb645df23025fb375de19c7d57ec21a0991712236d7748ce456139e3/headroom_ai-${version}-cp310-abi3-macosx_11_0_arm64.whl";
-      hash = "sha256-ALVLcFM8hB9HAv/68hXv+Euv7XYSwHpW1nXvih/6tUM=";
+      url = "https://files.pythonhosted.org/packages/42/b7/1ab4da6f7a091fd1a102b5194828f9a588b6b4f11b522f38b86b125770a3/headroom_ai-${version}-cp310-abi3-macosx_11_0_arm64.whl";
+      hash = "sha256-mwhPTNmRivLQlwRQ/z6ZD//CmoIg3F4k+g8zpN0DWcw=";
     };
   };
 
@@ -41,11 +41,15 @@ let
     propagatedBuildInputs = with pkgs.python3Packages; [
       # base
       click
+      filelock
       litellm
       opentelemetry-api
       pydantic
+      pyyaml
       rich
       tiktoken
+      tomlkit
+      truststore
 
       # proxy
       fastapi
@@ -55,6 +59,8 @@ let
       mcp
       onnxruntime
       openai
+      orjson
+      python-socks
       sqlite-vec
       transformers
       uvicorn
