@@ -257,6 +257,8 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     # Permanent second nixpkgs input for per-package pins (pkgsStable); currently unused.
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-26.05";
+    # Kernel-only pin for nixos-desktop (zen 7.2.15, gen 1483); see modules/nixos/toplevel/kernel.nix.
+    nixpkgs-kernel.url = "github:nixos/nixpkgs/f4a03c008967841f2a0b3cb7c436fc6fc31671f6";
 
     denix = {
       url = "github:yunfachi/denix";

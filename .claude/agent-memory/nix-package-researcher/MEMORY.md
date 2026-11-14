@@ -9,4 +9,5 @@
 - [cosmic-manager panels/applets](reference_cosmic_manager_panels_applets.md) - panel options, app-list favorites, overwrite-on-activation, Virtual-1 output default, no dock option
 - [cosmic-manager theme palette schema](reference_cosmic_theme_palette_schema.md) - appearance.theme/toolkit tree, fixed palette slot names, Builder->cosmic-ctl build-theme, no catppuccin/stylix cosmic target
 - [Zen newtab policy handlers](reference_zen_newtab_policy_handlers.md) - Zen 1.24b honours FirefoxHome/Homepage policies verbatim; replace-newtab floating URL bar
+- [zen 7.3.4 boot panic](project_zen_7_3_4_boot_panic.md) - zen1 BH-worker NULL deref; zen2 (PR 586820) in nixos-unstable-small, not in locked unstable yet
 - [Ryoku-on-NixOS integration facts](ryoku_nixos_integration_facts.md) - Ryoku flake: forced/overridden NixOS options, materializer writes, HM collisions (niri/mango/kitty/fish), Mango gaps, ryotunes cache, no uwsm
