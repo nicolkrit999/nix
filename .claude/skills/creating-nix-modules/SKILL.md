@@ -100,6 +100,28 @@ to `$HOME` (pure option/theming tweaks).
 - The affected test (`test-borg-backup-config`) is picked up by step 5 because
   the borg files changed.
 
+**3b. PIN REGISTRATION - dispatch `nix-config-architect`.** Run after step 3,
+before lint. Scan what steps 2-3 wrote (new files and edited hunks) for upstream
+fetches: `fetchFromGitHub`, `fetchurl`, `fetchCrx`, `fetchzip`, `fetchgit`,
+`fetchTarball`, flatpak bundles, AppImage entries, Raycast extension hashes,
+wheels, and any `hash`/`sha256`/`npmDepsHash`/`vendorHash`/`cargoHash` literal
+tied to a version, tag or rev. Skip when there are none.
+- **Classify each one.** It is a *workaround* if it is an overlay, `mkForce`,
+  patch, or pin that exists because of a current upstream limitation (it already
+  gets a memory entry per step 2 and goes in the EXCLUDED table). It is
+  *routine* if it is pinned only because Nix needs a fixed version and hash.
+- **Register it** in `.claude/skills/bumping-nix-pins/references/inventory.md`:
+  routine -> INCLUDED under the fitting batch (or a new batch letter), with file,
+  what is pinned, upstream source, every hash that must change, and couplings
+  (duplicated host files, version comments, companion pins). Workaround ->
+  EXCLUDED table with a one-line reason and the memory file name. If the fetch
+  type is new, add a short recipe to `references/recipes.md` too.
+- **Same-edit rule:** the inventory edit belongs to the same change as the module,
+  so the next `bumping-nix-pins` run never needs discovery. Mention the edit in
+  the final report. When unsure whether a pin is routine or a workaround, ask
+  the user rather than guessing; wrongly listing a workaround as routine would let
+  the bump skill revert it.
+
 **4. LINT - dispatch `nix-syntax-linter`** to parse/format-check the new code,
 check for denix anti-patterns, and flag any comment that violates this repo's
 Comment Discipline (non-terse, narrates a diagnosis/fix, or restates trivial
@@ -140,7 +162,8 @@ documentation.
 
 Linter clean + `nix-checker` green + borg excludes applied to every file the
 placement implies (or an explicit "nothing worth excluding") + `possibilities.md`
-updated for any new modules. Report to the user exactly what was created or
+updated for any new modules + any new fetched pin registered in the
+`bumping-nix-pins` inventory (or an explicit "no pins"). Report to the user exactly what was created or
 modified, on which host(s), which borg exclude paths were added to which files,
 and confirm the documentation entry was added.
 
