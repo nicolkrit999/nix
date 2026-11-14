@@ -1,0 +1,65 @@
+From d00ba321499c0050872d70c41d86069f1d52c248 Mon Sep 17 00:00:00 2001
+From: Emanuele Ghidoli <emanuele.ghidoli@toradex.com>
+Date: Mon, 9 Nov 2026 11:25:20 +0100
+Subject: [PATCH] ASoC: soc-core: reset rtd->num_components after allocation
+
+Commit 4dd10fbbeb9c ("treewide: Convert devm_kmalloc() family to the
+devm_kmalloc_obj() family") switched the snd_soc_pcm_runtime allocation
+in soc_new_pcm_runtime() to devm_kzalloc_flex(). components[] is
+annotated with __counted_by(num_components), so when the compiler
+provides __builtin_counted_by_ref() the allocation now also sets
+rtd->num_components to the number of allocated slots.
+
+snd_soc_rtd_add_component() fills components[] one entry at a time and
+expects num_components to start at zero. Starting from the allocated
+size, for_each_rtd_components() stops at the first, still NULL, entry,
+so the runtime has no components: they are not probed, no controls or
+user-visible PCM devices are created and the card registers empty,
+without any error message. In addition, each added component is stored
+past the end of components[]. On the tested board these stores still
+land in the slack of the kmalloc bucket that devres rounds the
+allocation up to, so KASAN does not report them.
+
+Reset num_components after the allocation.
+
+Seen on a Colibri iMX7D (simple-audio-card, fsl-sai, sgtl5000): the card
+is listed in /proc/asound/cards, but /proc/asound/pcm is empty and
+
+  amixer: Unable to find simple control 'Capture Mux',0
+  aplay: main:850: audio open error: No such file or directory
+
+Tested on that board with v7.4-rc2 built with GCC 15.2 (first seen with
+GCC 16.2): the failure is there without this change; with it, playback,
+capture and the codec controls work again.
+
+The root cause analysis, this change and the testing were done with the
+help of an AI coding assistant (Claude Code, Claude Opus 5.5).
+
+Fixes: 4dd10fbbeb9c ("treewide: Convert devm_kmalloc() family to the devm_kmalloc_obj() family")
+Signed-off-by: Emanuele Ghidoli <emanuele.ghidoli@toradex.com>
+Tested-by: Jan Remes <ciakval@gmail.com>
+Reviewed-by: Takashi Iwai <tiwai@suse.de>
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=222249
+Link: https://patch.msgid.link/20261109102536.357134-1-ghidoliemanuele@gmail.com
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ sound/soc/soc-core.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+index 1d2bbda0da7745..70398e866ff22f 100644
+--- a/sound/soc/soc-core.c
++++ b/sound/soc/soc-core.c
+@@ -387,6 +387,12 @@ static struct snd_soc_pcm_runtime *soc_new_pcm_runtime(
+ 		device_unregister(dev);
+ 		return NULL;
+ 	}
++	/*
++	 * devm_kzalloc_flex() presets the __counted_by() counter to the
++	 * allocated size when the compiler has __builtin_counted_by_ref(),
++	 * but snd_soc_rtd_add_component() expects it to start from zero.
++	 */
++	rtd->num_components = 0;
+ 
+ 	rtd->dev = dev;
+ 	INIT_LIST_HEAD(&rtd->list);

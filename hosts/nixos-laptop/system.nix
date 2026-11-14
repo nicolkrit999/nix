@@ -135,6 +135,16 @@ delib.host {
 
     nix.settings.max-jobs = 6;
 
+    # Temporary: 7.4-rc2 ASoC regression (sound card registers with no components), upstream
+    # fix d00ba321499c not in rc2. Remove once locked nixpkgs linux_testing >= 7.4-rc3
+    # (the patch would then be reversed/fail to apply).
+    boot.kernelPatches = [
+      {
+        name = "asoc-rtd-num-components";
+        patch = ./asoc-rtd-num-components.patch;
+      }
+    ];
+
     # Keyboard backlight timeout is set in BIOS setup (no Auto option on this firmware), not here:
     # the dell_laptop als_enabled write is rejected with EINVAL.
 
