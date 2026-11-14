@@ -20,6 +20,7 @@ let
 
   has = lib.hasInfix;
   chk = cond: msg: if cond then "ok" else "FAIL: ${msg}";
+  drvVersion = p: (builtins.parseDrvName (lib.removeSuffix ".drv" (builtins.substring 33 (-1) (baseNameOf p)))).version;
   readDrv = d: builtins.readFile (builtins.appendContext d { ${d} = { path = true; }; });
   drvTextOf = s: readDrv (lib.head (lib.filter (lib.hasSuffix ".drv") (builtins.attrNames (builtins.getContext s))));
   lockPkgOf = c: lib.findFirst (p: (p.name or "") == "universal-lock") null (hmOf c).home.packages;
@@ -87,7 +88,6 @@ let
       waybarSvc = services.waybar-hyprland or null;
       waybarExec = if waybarSvc == null then "" else toString (lib.head (lib.toList waybarSvc.Service.ExecStart));
       waybarDrvPath = lib.findFirst (lib.hasSuffix ".drv") "" (builtins.attrNames (builtins.getContext waybarExec));
-      waybarDrv = if waybarDrvPath == "" then "" else readDrv waybarDrvPath;
       xwaylandRule = lib.any
         (r: (r.match.class or "") == "^$" && (r.match.xwayland or false) == true && (r.no_focus or false) == true)
         hm.wayland.windowManager.hyprland.settings.window_rule;
@@ -106,8 +106,8 @@ let
       "hypridle-lock-cmd" = chk (lockPkg != null && idle.general.lock_cmd == "${lockPkg}/bin/universal-lock") "lock_cmd is ${idle.general.lock_cmd}";
       "systemd-no-stop-command" = chk (hm.wayland.windowManager.hyprland.systemd.extraCommands == [ "systemctl --user start hyprland-session.target" ]) "extraCommands: ${builtins.toJSON hm.wayland.windowManager.hyprland.systemd.extraCommands}";
       "waybar-service-present" = chk (waybarSvc != null) "systemd.user.services.waybar-hyprland missing";
-      "waybar-lua-dispatch-patch" = chk (has "waybar-hyprland-lua-dispatch.patch" waybarDrv) "waybar in waybar-hyprland ExecStart lacks waybar-hyprland-lua-dispatch.patch";
-      "waybar-control-stock-unpatched" = chk (!(has "waybar-hyprland-lua-dispatch.patch" (builtins.readFile flake.inputs.nixpkgs.legacyPackages.x86_64-linux.waybar.drvPath))) "stock waybar already carries the patch (check cannot bite)";
+      "waybar-lua-dispatch-upstream" = chk (waybarDrvPath != "" && lib.versionAtLeast (drvVersion waybarDrvPath) "0.16.0") "waybar in waybar-hyprland ExecStart is ${drvVersion waybarDrvPath}, older than 0.16.0 (first release with Lua IPC dispatch)";
+      "waybar-version-parser-control" = chk (drvVersion "/nix/store/00000000000000000000000000000000-waybar-0.15.0.drv" == "0.15.0" && !(lib.versionAtLeast "0.15.0" "0.16.0")) "waybar version parser or comparison is broken (check cannot bite)";
       "xwayland-phantom-rule-settings" = chk xwaylandRule "no window_rule with class ^$ + xwayland + no_focus";
       "xwayland-phantom-rule-rendered" = chk (has ''["class"] = "^$"'' lua && has ''["xwayland"] = true'' lua) "rendered lua lacks the XWayland phantom rule";
       "update-news-disabled" = chk (newsDisabled lua && hm.wayland.windowManager.hyprland.settings.config.ecosystem.no_update_news == true) "ecosystem.no_update_news is not true in the settings or in the rendered hyprland.lua (block: ${ecosystemBlock lua})";

@@ -23,11 +23,6 @@ delib.module {
     , ...
     }:
     let
-      # Hyprland 0.54+ rejects the built-in workspace click's old "dispatch workspace N" IPC.
-      # Drop only after a waybar release containing PR #5013 AND a live workspace-click test.
-      waybarPatched = pkgs.waybar.overrideAttrs (old: {
-        patches = (old.patches or [ ]) ++ [ ./waybar-hyprland-lua-dispatch.patch ];
-      });
       w = (import ../contrast-lib.nix { inherit lib; }).mkWaybar {
         inherit pkgs myconfig;
         colors = config.lib.stylix.colors.withHashtag;
@@ -82,7 +77,6 @@ delib.module {
         target = "hyprland-session.target";
         config = waybarConfig;
         css = w.workspacesCss + builtins.readFile ./style.css;
-        waybar = waybarPatched;
       } // {
       assertions = [
         {

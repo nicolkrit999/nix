@@ -24,7 +24,7 @@ bash check-nixos-hyprland-lua-config.sh
 
 `01-scenario-hyprland-lua-config.nix` reads the real `nixos-desktop` and `nixos-laptop` configs and every specialisation whose home-manager Hyprland is enabled (discovered dynamically; home-manager is read under each variant's own `myconfig.constants.user`, so the `krit-school` specialisation is covered). `results` maps variant to check to `"ok"` / `"FAIL: <detail>"`. The shell script prints each as PASS/FAIL, then pipes the rendered `hypr/hyprland.lua` through `luac -p` (Lua 5.4) and the `universal-lock` script through `bash -n`. The `universal-lock` text is the derivation's `text` attribute (exactly what `writeShellScriptBin` writes, shebang included), not `builtins.readFile` of its output: realising it would build its `noctalia` input from source on CI, which is in none of the CI caches, and greps the sources for the legacy form.
 
-The legacy-dispatch scan covers the rendered lua, `hypridle.conf`, the waybar config, `universal-lock`, all user service Exec lines and the jetkvm teardown script (read from its `.drv` with the string context kept, never from an unbuilt output, so it passes on an empty store; the waybar `.drv` reads follow the same rule); every `hyprctl dispatch` must be followed by `'hl.`. Caelestia's logout script is covered by the repo-wide source grep because no host enables it. Controls prove the matchers bite (legacy text flagged, lua text accepted, `luac` rejects `A`, stock waybar lacks the patch).
+The legacy-dispatch scan covers the rendered lua, `hypridle.conf`, the waybar config, `universal-lock`, all user service Exec lines and the jetkvm teardown script (read from its `.drv` with the string context kept, never from an unbuilt output, so it passes on an empty store; the waybar version is read from its `.drv` path name); every `hyprctl dispatch` must be followed by `'hl.`. Caelestia's logout script is covered by the repo-wide source grep because no host enables it. Controls prove the matchers bite (legacy text flagged, lua text accepted, `luac` rejects `A`, the waybar version parser rejects `0.15.0`).
 
 ## Checks
 
@@ -39,8 +39,8 @@ The legacy-dispatch scan covers the rendered lua, `hypridle.conf`, the waybar co
 | `universal-lock-present` | `universal-lock` is in `home.packages` and its derivation carries a non-empty script `text` |
 | `hypridle-lock-cmd` | `lock_cmd` equals the `universal-lock` package binary |
 | `systemd-no-stop-command` | `systemd.extraCommands` is only the start command |
-| `waybar-service-present`, `waybar-lua-dispatch-patch` | service exists and its waybar derivation includes the lua-dispatch patch |
-| `waybar-control-stock-unpatched` | stock waybar does not contain the patch |
+| `waybar-service-present`, `waybar-lua-dispatch-upstream` | service exists and its waybar derivation is version 0.16.0 or newer (first release with the Lua IPC workspace dispatch) |
+| `waybar-version-parser-control` | the drv-path version parser reads `0.15.0` and the comparison rejects it |
 | `update-news-disabled` | `settings.config.ecosystem.no_update_news == true` and the rendered lua has `["no_update_news"] = true` inside the `["ecosystem"] = { ... }` block (controls below: `= false` and a `no_update_news` in another block are rejected) |
 | `xwayland-phantom-rule-*` | `class ^$` + xwayland + `no_focus` rule in settings and rendered lua |
 | `jetkvm-teardown-gated-no-ls-pipe` | when a variant has `hyprland-jetkvm-teardown`: `Service.ExecCondition` is set (acts only in a Hyprland session) and the teardown script has no `\| head` (glob over `$XDG_RUNTIME_DIR/hypr/*` instead of `ls`) |
