@@ -20,13 +20,10 @@ in
 
   # The ryoku specialisation turns every myconfig desktop toggle off and gets its desktops from the
   # Ryoku module: nixpkgs Hyprland and niri, the wlr portal and its own session entries
-  # (stand-ins, see portal-common.nix). withUWSM only selects the cached stock Hyprland build
-  # whose sessions are hyprland and hyprland-uwsm, like the Hyprland package Ryoku pins.
+  # (stand-ins, see portal-common.nix). withUWSM stays off like in the spec, so the nixpkgs module
+  # registers its -no-uwsm session wrapper (hyprland only) over the cached stock Hyprland build.
   programs = {
-    hyprland = {
-      enable = lib.mkIf ryoku true;
-      withUWSM = lib.mkIf ryoku true;
-    };
+    hyprland.enable = lib.mkIf ryoku true;
     niri.enable = lib.mkIf ryoku true;
   };
   xdg.portal.extraPortals = lib.mkIf ryoku [ pkgs.xdg-desktop-portal-wlr ];
