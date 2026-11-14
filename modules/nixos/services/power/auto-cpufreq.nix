@@ -4,17 +4,7 @@ delib.module {
   options = delib.singleEnableOption false;
 
   nixos.always = {
-    imports = [
-      (import "${inputs.auto-cpufreq}/nix/module.nix" {
-        self.packages = lib.mapAttrs
-          (_: p: {
-            default = p.default.overridePythonAttrs (old: {
-              pythonRelaxDeps = (old.pythonRelaxDeps or [ ]) ++ [ "urwid" ];
-            });
-          })
-          inputs.auto-cpufreq.packages;
-      })
-    ];
+    imports = [ inputs.auto-cpufreq.nixosModules.default ];
   };
 
   nixos.ifEnabled = { myconfig, ... }: {

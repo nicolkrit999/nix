@@ -1,13 +1,6 @@
 { delib, inputs, pkgs, lib, moduleSystem, ... }:
 let
   herdrPkgs = inputs.herdr-nix.packages.${pkgs.stdenv.hostPlatform.system} or { };
-  # TEMPORARY: cargo-setup-hook forces ZSTD_SYS_USE_PKG_CONFIG=1 (herdr-app zstd-sys); remove when herdr-nix herdr-app.nix lists zstd.
-  withZstd = drv:
-    if lib.any (p: (p.pname or "") == "zstd") (drv.buildInputs or [ ]) then drv
-    else
-      drv.overrideAttrs (old: {
-        buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.zstd ];
-      });
   # TEMPORARY: on Darwin the vendored libghostty-vt zig build spawns `libtool` (Apple cctools: libtool, nmedit, ...) and the herdr-nix
   # derivations don't provide it (CI: "failed to spawn and capture stdio from libtool: FileNotFound", herdr-core,
   # herdr-tui and herdr-app); remove when herdr-nix lists cctools in nativeBuildInputs on Darwin.
@@ -18,7 +11,7 @@ let
         nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.cctools pkgs.cctools.libtool ];
       });
   fixed = herdrPkgs // lib.mapAttrs (_: withLibtool)
-    (lib.optionalAttrs (herdrPkgs ? herdr) { herdr = withZstd herdrPkgs.herdr; }
+    (lib.optionalAttrs (herdrPkgs ? herdr) { herdr = herdrPkgs.herdr; }
       // lib.filterAttrs (n: _: n == "herdr-core" || n == "herdr-tui") herdrPkgs);
   herdrPackages = lib.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform)
     (lib.attrVals (lib.filter (n: fixed ? ${n}) [ "herdr" "herdr-core" "herdr-tui" ]) fixed);
