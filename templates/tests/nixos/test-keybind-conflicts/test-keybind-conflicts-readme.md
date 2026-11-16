@@ -35,6 +35,7 @@ The niri action lists are parsed at test time from the source of the niri packag
 | `hyprland-ws-focus-1-to-0` | `SUPER+N` exists once and targets workspace N (key 0 targets 10) |
 | `hyprland-ws-move-1-to-0` | `SUPER+SHIFT+N` moves to workspace N (0 is 10) |
 | `hyprland-ws-follow-1-to-0` | `SUPER+ALT+N` moves to workspace N (0 is 10) |
+| `hyprland-hdr-toggle-bind` | `SUPER+CTRL+SHIFT+H` exists exactly once and runs `hypr-hdr-toggle` (controls: missing bind, another command and a second bind on the same chord all fail; global uniqueness is `hyprland-binds-unique`) |
 | `hyprland-waybar-toggle-bind` / `hyprland-waybar-reload-bind` | `SUPER+SHIFT+W` / `SUPER+ALT+W` run `pkill -SIGUSR1` / `-SIGUSR2 waybar` with no `-x` (the process is `.waybar-wrapped`) |
 
 ### Niri (per variant with niri enabled)

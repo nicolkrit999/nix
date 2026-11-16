@@ -154,6 +154,9 @@ lib.flatten [
   (mkBind { mods = "${mod}+CTRL"; key = "L"; dispatcher = focusMonitor "+1"; })
   (mkBind { mods = "${mod}+ALT"; key = "H"; dispatcher = moveToMonitor "-1"; })
   (mkBind { mods = "${mod}+ALT"; key = "L"; dispatcher = moveToMonitor "+1"; })
+
+  # Manual HDR opt-in for the focused monitor (HDR is never automatic)
+  (mkBind { mods = "${mod}+CTRL+SHIFT"; key = "H"; dispatcher = exec "hypr-hdr-toggle"; })
 ]
 ++ (map wsBind [ 1 2 3 4 5 6 7 8 9 0 ])
 ++ (map wsMoveBind [ 1 2 3 4 5 6 7 8 9 0 ])

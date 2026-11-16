@@ -60,6 +60,20 @@ let
     let rules = scratchRuleClasses text; in
     lib.filter (cls: !(lib.any (r: builtins.match r cls != null) rules)) (scratchBindClasses text);
 
+  autoHdrRuleIn = text:
+    lib.any (b: has ''["class"] = ".*"'' b && has ''["no_auto_hdr"] = true'' b) (lib.splitString "hl.window_rule({" text);
+
+  hdrToggleOf = c: lib.findFirst (p: (p.name or "") == "hypr-hdr-toggle") null (hmOf c).home.packages;
+  hdrToggleText = p: if p == null then "" else builtins.unsafeDiscardStringContext (p.text or "");
+  hdrMonitorKeys = text:
+    let
+      m = builtins.match ".*hl[.]monitor[(][{]([^}]*)[}][)].*" (builtins.replaceStrings [ "\n" ] [ " " ] text);
+      body = if m == null then "" else lib.head m;
+      fields = lib.filter (f: f != "") (map lib.trim (lib.splitString "," body));
+    in
+    map (f: lib.trim (lib.head (lib.splitString "=" f))) fields;
+  hdrHardcodedMonitor = text: lib.any (l: builtins.match ".*(eDP|DP|HDMI|DVI|VGA)-[0-9].*" l != null) (lib.splitString "\n" text);
+
   perVariant = _name: c:
     let
       hm = hmOf c;
@@ -88,6 +102,11 @@ let
       waybarSvc = services.waybar-hyprland or null;
       waybarExec = if waybarSvc == null then "" else toString (lib.head (lib.toList waybarSvc.Service.ExecStart));
       waybarDrvPath = lib.findFirst (lib.hasSuffix ".drv") "" (builtins.attrNames (builtins.getContext waybarExec));
+      hdrPkg = hdrToggleOf c;
+      hdrText = hdrToggleText hdrPkg;
+      noAutoHdrSettings = lib.any
+        (r: (r.match.class or "") == ".*" && (r.no_auto_hdr or false) == true)
+        hm.wayland.windowManager.hyprland.settings.window_rule;
       xwaylandRule = lib.any
         (r: (r.match.class or "") == "^$" && (r.match.xwayland or false) == true && (r.no_focus or false) == true)
         hm.wayland.windowManager.hyprland.settings.window_rule;
@@ -118,6 +137,12 @@ let
           bad = scratchUnmatched lua;
         in
         chk (bad == [ ]) "scratch bind class without special:magic window rule: ${toString bad}";
+      "no-auto-hdr-rule-settings" = chk noAutoHdrSettings "no window_rule with class .* and no_auto_hdr = true in settings";
+      "no-auto-hdr-rule-rendered" = chk (autoHdrRuleIn lua) "rendered lua has no hl.window_rule block with class .* and no_auto_hdr = true";
+      "hdr-toggle-package-present" = chk (hdrPkg != null && hdrText != "") (if hdrPkg == null then "hypr-hdr-toggle not in home.packages" else "hypr-hdr-toggle derivation has no text attribute");
+      "hdr-toggle-flips-cm-preset" = chk (has ''"hdr"'' hdrText && has ''new=srgb'' hdrText && has "hyprctl eval" hdrText && has "colorManagementPreset" hdrText) "hypr-hdr-toggle script does not toggle between srgb and hdr via hyprctl eval";
+      "hdr-toggle-sends-only-output-and-cm" = chk (hdrMonitorKeys hdrText == [ "output" "cm" ]) "hl.monitor keys sent by hypr-hdr-toggle: ${toString (hdrMonitorKeys hdrText)}";
+      "hdr-toggle-no-hardcoded-monitor" = chk (hdrText != "" && !(hdrHardcodedMonitor hdrText)) "hypr-hdr-toggle script names a connector (eDP-1, DP-2, ...) or is empty";
       "with-uwsm" = chk c.programs.hyprland.withUWSM "programs.hyprland.withUWSM is false";
     };
 
@@ -159,6 +184,16 @@ let
       }
     })
   '';
+  ctlHdrGood = ''hyprctl eval "hl.monitor({ output = \"$out\", cm = \"$new\" })"'';
+  ctlHdrExtra = ''hyprctl eval "hl.monitor({ output = \"$out\", cm = \"$new\", mode = \"preferred\" })"'';
+  ctlHdrRule = r: ''
+    hl.window_rule({
+      ["match"] = {
+        ["class"] = "${r}"
+      },
+      ["no_auto_hdr"] = true
+    })
+  '';
   controlBad = "hyprctl dispatch workspace 1\nhyprctl dispatch 'hl.dsp.exit()'\nhyprctl   dispatch dpms off";
   controlGood = "hyprctl dispatch 'hl.dsp.exit()' && hyprctl reload";
 in
@@ -176,6 +211,10 @@ in
     "scratch-matcher-accepts-full-rules" = chk (scratchUnmatched (ctlBinds + ctlRule "scratch-term" + ctlRule "scratch-browser") == [ ]) "flagged despite rules";
     "scratch-matcher-flags-wrong-class" = chk (scratchUnmatched (ctlBinds + ctlRule "scratch-term" + ctlRule "scratch-browse") == [ "scratch-browser" ]) "near-miss class accepted";
     "update-news-matcher-flags-false-and-foreign-block" = chk (!(newsDisabled ctlEcoFalse) && !(newsDisabled ctlEcoElsewhere) && newsDisabled ctlEcoTrue) "matcher accepts false / a no_update_news outside the ecosystem block, or rejects the true form";
+    "hdr-keys-matcher-accepts-output-and-cm" = chk (hdrMonitorKeys ctlHdrGood == [ "output" "cm" ]) "got ${toString (hdrMonitorKeys ctlHdrGood)}";
+    "hdr-keys-matcher-flags-extra-key" = chk (hdrMonitorKeys ctlHdrExtra == [ "output" "cm" "mode" ]) "extra key not seen: ${toString (hdrMonitorKeys ctlHdrExtra)}";
+    "hdr-connector-matcher-discriminates" = chk (hdrHardcodedMonitor "x\nhl.monitor({ output = \"eDP-1\" })" && !(hdrHardcodedMonitor ctlHdrGood)) "connector matcher does not discriminate";
+    "hdr-rule-matcher-discriminates" = chk (autoHdrRuleIn (ctlHdrRule ".*") && !(autoHdrRuleIn (ctlHdrRule "^(mpv)$")) && !(autoHdrRuleIn ''hl.window_rule({ ["match"] = { ["class"] = ".*" }, ["float"] = true })'')) "no_auto_hdr rule matcher accepts a non-catch-all or a rule without no_auto_hdr";
     "variants-cover-both-hosts" = chk (lib.all (h: variants ? ${h}) hostNames) "base hosts missing from variants";
   };
 }

@@ -75,6 +75,7 @@ let
       "hyprland-ws-focus-1-to-0" = chk (focusF == [ ]) "SUPER+N missing or wrong workspace for N in ${toString focusF}";
       "hyprland-ws-move-1-to-0" = chk (moveF == [ ]) "SUPER+SHIFT+N missing or wrong workspace for N in ${toString moveF}";
       "hyprland-ws-follow-1-to-0" = chk (followF == [ ]) "SUPER+ALT+N missing or wrong workspace for N in ${toString followF}";
+      "hyprland-hdr-toggle-bind" = hdrBindCheck args;
     } // waybarBindChecks "hyprland" (hyprWaybarCmds args);
 
   inherit (lib) upperChars;
@@ -173,6 +174,14 @@ let
       "${prefix}-waybar-toggle-bind" = one "toggle" "-SIGUSR1";
       "${prefix}-waybar-reload-bind" = one "reload" "-SIGUSR2";
     };
+
+  hyprExecCmds = args: k:
+    map (a: let m = builtins.match ".*exec_cmd\\(\"(.*)\"\\).*" ((builtins.elemAt a 1).expr or ""); in if m == null then "" else lib.head m)
+      (lib.filter (a: hyprNorm (builtins.head a) == k) args);
+  hdrBindKey = norm [ "super" "ctrl" "shift" ] "h";
+  hdrBindCheck = args:
+    let cmds = hyprExecCmds args hdrBindKey; in
+    chk (cmds == [ "hypr-hdr-toggle" ]) "SUPER+CTRL+SHIFT+H: expected exactly one bind running hypr-hdr-toggle, got [${lib.concatStringsSep " | " cmds}]";
 
   hyprWaybarCmds = args: key:
     let
@@ -337,6 +346,7 @@ let
     "SUPER+SHIFT,W,spawn,pkill -SIGUSR1 waybar"
     "SUPER+ALT,W,spawn,pkill -SIGUSR2 waybar"
   ];
+  synthHdrBind = [ "SUPER+CTRL+SHIFT + H" { expr = "hl.dsp.exec_cmd(\"hypr-hdr-toggle\")"; } ];
   synthHyprArgs = [
     [ "SUPER + Return" { expr = "hl.dsp.exec_cmd(\"foot\")"; } ]
     [ "SUPER+SHIFT + W" { expr = "hl.dsp.exec_cmd(\"pkill -SIGUSR1 waybar\")"; } ]
@@ -422,6 +432,14 @@ in
         r = waybarBindChecks "hyprland" (hyprWaybarCmds (map mutate synthHyprArgs));
       in
       chk (isFail r."hyprland-waybar-toggle-bind" && r."hyprland-waybar-reload-bind" == "ok") "-x on the hyprland toggle bind not flagged (or reload bind affected)";
+    "hdr-bind-synthetic-baseline-passes" =
+      chk (hdrBindCheck (synthHyprArgs ++ [ synthHdrBind ]) == "ok") "synthetic hdr bind baseline not clean";
+    "hdr-bind-mutation-missing-fails" =
+      chk (isFail (hdrBindCheck synthHyprArgs)) "absent SUPER+CTRL+SHIFT+H bind not flagged";
+    "hdr-bind-mutation-wrong-command-fails" =
+      chk (isFail (hdrBindCheck (synthHyprArgs ++ [ [ "SUPER+CTRL+SHIFT + H" { expr = "hl.dsp.exec_cmd(\"foot\")"; } ] ]))) "SUPER+CTRL+SHIFT+H running another command not flagged";
+    "hdr-bind-mutation-duplicate-fails" =
+      chk (isFail (hdrBindCheck (synthHyprArgs ++ [ synthHdrBind [ "shift+ctrl+SUPER + h" { expr = "hl.dsp.exec_cmd(\"foot\")"; } ] ]))) "second bind on the same chord not flagged";
     "cosmic-synthetic-baseline-passes" =
       let r = cosmicBindChecks synthCosmic; in
       chk (lib.all (v: v == "ok") (lib.attrValues r)) "synthetic cosmic baseline not clean";

@@ -82,6 +82,11 @@ delib.module {
       );
 
       staticWindowRules = [
+        # Never auto-switch an output to HDR because a window went fullscreen.
+        # Hyprland >= 0.57 offers the monitor's HDR description to a fullscreen window and
+        # Chrome adopts it (BT.2020 + PQ), flipping the output on SDR video. This rule keeps
+        # the preferred description SDR for every window; HDR stays opt-in via monitor cm = hdr.
+        { match.class = ".*"; no_auto_hdr = true; }
         { match.class = "(mpv)|(imv)"; float = true; }
         {
           match.class = "^(showmethekey-gtk)$";
@@ -214,6 +219,24 @@ delib.module {
       };
 
       home.packages = with pkgs; [
+        # Manual HDR opt-in: HDR is never switched on automatically (see no_auto_hdr rule).
+        # Flips the colour preset of the focused monitor (or the one named in $1) between
+        # srgb and hdr. Only the output + cm keys are sent, Hyprland keeps mode/position/scale.
+        (writeShellApplication {
+          name = "hypr-hdr-toggle";
+          runtimeInputs = [ hyprland jq libnotify ];
+          text = ''
+            out="''${1:-$(hyprctl monitors -j | jq -r '.[] | select(.focused) | .name')}"
+            cur="$(hyprctl monitors -j | jq -r --arg o "$out" '.[] | select(.name == $o) | .colorManagementPreset')"
+            if [ -z "$cur" ]; then
+              notify-send -u critical "HDR toggle" "Unknown monitor: $out"
+              exit 1
+            fi
+            if [ "$cur" = "hdr" ]; then new=srgb; else new=hdr; fi
+            hyprctl eval "hl.monitor({ output = \"$out\", cm = \"$new\" })" >/dev/null
+            notify-send -t 4000 "HDR toggle" "$out: $new (restart HDR apps/PWAs to pick it up)"
+          '';
+        })
         awww
         brightnessctl
         grimblast

@@ -71,7 +71,7 @@ Practical implication: only add a `videoURL`/`gifURL` to an entry when you actua
 
 ## Multiple Desktop Environments
 
-- **Hyprland** - default tiling window manager.
+- **Hyprland** - default tiling window manager. HDR is opt-in only: fullscreen windows (Chrome, PWAs) never switch a monitor to HDR on their own; `SUPER+CTRL+SHIFT+H` toggles HDR on the focused monitor, and HDR-aware web apps need a restart afterwards to see it.
 - **niri** - scroll-based tiling windows manager.
 - **MangoWM + mangowc** - Tiling window manager supporting a vast choices of tiling layouts.
 - **KDE Plasma** - highly configurable, Windows-like launcher. The panel (bottom, auto-hide, pinned apps from `programs.kde.pinnedApps`) is created once per connected screen (plasma-manager `screen = "all"`), identical on every monitor.

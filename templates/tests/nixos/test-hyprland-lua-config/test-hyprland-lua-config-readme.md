@@ -42,6 +42,11 @@ The legacy-dispatch scan covers the rendered lua, `hypridle.conf`, the waybar co
 | `waybar-service-present`, `waybar-lua-dispatch-upstream` | service exists and its waybar derivation is version 0.16.0 or newer (first release with the Lua IPC workspace dispatch) |
 | `waybar-version-parser-control` | the drv-path version parser reads `0.15.0` and the comparison rejects it |
 | `update-news-disabled` | `settings.config.ecosystem.no_update_news == true` and the rendered lua has `["no_update_news"] = true` inside the `["ecosystem"] = { ... }` block (controls below: `= false` and a `no_update_news` in another block are rejected) |
+| `no-auto-hdr-rule-settings`, `no-auto-hdr-rule-rendered` | a `window_rule` with `match.class = ".*"` and `no_auto_hdr = true` in settings, and one `hl.window_rule` block in the rendered lua with both `["class"] = ".*"` and `["no_auto_hdr"] = true` (controls: a non-catch-all class and a catch-all without `no_auto_hdr` are rejected) |
+| `hdr-toggle-package-present` | `hypr-hdr-toggle` is in `home.packages` and its derivation carries a script `text` |
+| `hdr-toggle-flips-cm-preset` | script reads `colorManagementPreset`, toggles `hdr` / `new=srgb` and applies it through `hyprctl eval` |
+| `hdr-toggle-sends-only-output-and-cm` | the `hl.monitor({ ... })` call has exactly the keys `output`, `cm` (control: a call with an extra `mode` key is seen as three keys) |
+| `hdr-toggle-no-hardcoded-monitor` | script text has no connector name (`eDP-1`, `DP-2`, `HDMI-A-1`, ...) (control: a text with `eDP-1` is flagged) |
 | `xwayland-phantom-rule-*` | `class ^$` + xwayland + `no_focus` rule in settings and rendered lua |
 | `jetkvm-teardown-gated-no-ls-pipe` | when a variant has `hyprland-jetkvm-teardown`: `Service.ExecCondition` is set (acts only in a Hyprland session) and the teardown script has no `\| head` (glob over `$XDG_RUNTIME_DIR/hypr/*` instead of `ls`) |
 | `scratch-binds-have-window-rules` | every `[workspace special:magic]` bind in hyprland.lua launches a `--class`/`--name` that fully matches the class of a `special:magic` window rule in the same file (hosts may have none; the matcher controls below keep it non-vacuous). Guards the `scratch-browser` class regression |
