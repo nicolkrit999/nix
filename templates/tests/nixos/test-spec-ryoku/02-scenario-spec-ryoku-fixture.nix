@@ -723,9 +723,9 @@ let
           && !(lib.hasInfix "F12" bobT.hypr) && !(lib.hasInfix "F12" bobT.niri));
     "mutant: without force = true on hypr/user.lua the force probe fails (detected)" =
       yes "mutant still forces" ((hmF noForceBinds)."hypr/user.lua".force == false);
-    "binds lib: hyprland yields 98 binds with the recorded anchor chords for a fixed profile; a null launcher changes the count (control)" =
+    "binds lib: hyprland yields 99 binds with the recorded anchor chords for a fixed profile; a null launcher changes the count (control)" =
       yes "count ${toString (lib.length (hyprLib libShell))}, null launcher ${toString (lib.length (hyprLib (libShell // { launcher = null; })))}"
-        (lib.length (hyprLib libShell) == 98 && lib.length (hyprLib (libShell // { launcher = null; })) == 97
+        (lib.length (hyprLib libShell) == 99 && lib.length (hyprLib (libShell // { launcher = null; })) == 98
           && lib.all (a: lib.elem a hyprChords) [ "SUPER+SHIFT + C" "SUPER + return" "SUPER + F" "SUPER + B" "SUPER + C" ]);
     "binds lib: niri yields 78 binds including Mod+Alt+H, Caps_Lock and Mod+1 for a fixed profile" =
       yes "count ${toString (lib.length (lib.attrNames niriLib))}"
