@@ -68,9 +68,9 @@ bash check-common-ai-tool-modules.sh
 
 | Check | Expected |
 |-------|----------|
-| check-nixos-default-is-empty | NixOS: declared default and value of `claude-code-wrappers.connectorWorkspaces` are `[ ]`; the `cai` script's Google Calendar and Gmail lines allow only `$h + "/momentary"` and `$h + "/dotfiles-private"`; Higgsfield and Google Drive allow only `$h + "/momentary"` |
+| check-nixos-default-is-empty | NixOS: declared default and value of `claude-code-wrappers.connectorWorkspaces` are `[ ]`; the `cai` script's Google Calendar and Gmail lines allow only `$h + "/momentary"` and `$h + "/dotfiles-private"`; Higgsfield, Google Drive and Galaxus Search MCP allow only `$h + "/momentary"` |
 | check-darwin-default-is-school-workspace | Darwin fixture: declared default is `[ "school-workspace" ]` |
-| check-school-value-is-home-directory | `connectorWorkspaces = [ "" ]` (the school specialisation's value): Calendar and Gmail lines start with `$h, ` (the home directory itself); Higgsfield and Drive are not widened |
+| check-school-value-is-home-directory | `connectorWorkspaces = [ "" ]` (the school specialisation's value): Calendar and Gmail lines start with `$h, ` (the home directory itself); Higgsfield, Drive and Galaxus are not widened |
 | check-named-workspaces-keep-their-path | `[ "school-workspace" "x/y" ]` renders `$h + "/school-workspace", $h + "/x/y", ` before `$h + "/momentary"` in the Calendar and Gmail lines |
 | check-control-value-changes-the-script | the `cai` text differs between `[ ]` and `[ "" ]` and is non-empty (the line checks are not vacuous) |
 

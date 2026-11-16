@@ -50,7 +50,8 @@ let
         "claude.ai Google Calendar": [${schoolWorkspacePrefix}$h + "/momentary", $h + "/dotfiles-private"],
         "claude.ai Gmail": [${schoolWorkspacePrefix}$h + "/momentary", $h + "/dotfiles-private"],
         "claude.ai Higgsfield": [$h + "/momentary"],
-        "claude.ai Google Drive": [$h + "/momentary"]
+        "claude.ai Google Drive": [$h + "/momentary"],
+        "claude.ai Galaxus Search MCP": [$h + "/momentary"]
       }'';
 
   mkCaiScript = workspaces: pkgs.writeShellScriptBin "cai" ''

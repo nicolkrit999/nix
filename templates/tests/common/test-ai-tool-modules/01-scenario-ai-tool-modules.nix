@@ -216,7 +216,8 @@ let
   calendarWant = ws: "\"claude.ai Google Calendar\": [${wsPrefix ws}$h + \"/momentary\", $h + \"/dotfiles-private\"],";
   gmailWant = ws: "\"claude.ai Gmail\": [${wsPrefix ws}$h + \"/momentary\", $h + \"/dotfiles-private\"],";
   higgsWant = "\"claude.ai Higgsfield\": [$h + \"/momentary\"],";
-  driveWant = "\"claude.ai Google Drive\": [$h + \"/momentary\"]";
+  driveWant = "\"claude.ai Google Drive\": [$h + \"/momentary\"],";
+  galaxusWant = "\"claude.ai Galaxus Search MCP\": [$h + \"/momentary\"]";
   linesOk = ws: x:
     let t = caiText x; in
     [
@@ -224,6 +225,7 @@ let
       (expect "Gmail line for ${builtins.toJSON ws}" (connectorLine "claude.ai Gmail" t) (gmailWant ws))
       (expect "Higgsfield line for ${builtins.toJSON ws} (never widened)" (connectorLine "claude.ai Higgsfield" t) higgsWant)
       (expect "Google Drive line for ${builtins.toJSON ws} (never widened)" (connectorLine "claude.ai Google Drive" t) driveWant)
+      (expect "Galaxus line for ${builtins.toJSON ws} (never widened)" (connectorLine "claude.ai Galaxus Search MCP" t) galaxusWant)
     ];
   optDefault = x: x.options.myconfig.krit.programs.claude-code-wrappers.connectorWorkspaces.default or "<no default>";
 
