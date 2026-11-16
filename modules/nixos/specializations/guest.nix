@@ -9,6 +9,7 @@ let
   myUserName = config.myconfig.constants.user;
   guestUid = 2000;
   guestUidStr = toString guestUid;
+  isLaptop = config.networking.hostName == "nixos-laptop";
   excludedPersistDirs = [
     "/var/lib/containers"
     "/var/lib/docker"
@@ -125,6 +126,21 @@ delib.module {
           };
           config.stylix.enable = lib.mkForce false;
         };
+
+      # Laptop only, TEMPORARY: the touchpad-haptics-rebind-boot user unit (hosts/nixos-laptop/system.nix)
+      # also runs in the guest session; the host polkit rule only allows the main user, so the guest
+      # got a password prompt. Delete this block together with the haptics workaround
+      # (memory: project_laptop_touchpad_haptics_rebind_workaround).
+      security.polkit.extraConfig = lib.mkIf isLaptop ''
+        polkit.addRule(function (action, subject) {
+          if (action.id == "org.freedesktop.systemd1.manage-units" &&
+              action.lookup("unit") == "touchpad-haptics-rebind.service" &&
+              action.lookup("verb") == "start" &&
+              subject.user == "guest") {
+            return polkit.Result.YES;
+          }
+        });
+      '';
 
       nix.settings.allowed-users = lib.mkForce [ myUserName ];
       sops.secrets.github_fg_pat_token_nix.mode = lib.mkForce "0400";
