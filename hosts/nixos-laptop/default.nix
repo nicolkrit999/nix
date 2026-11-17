@@ -122,22 +122,18 @@ delib.host {
         fileManager = myFileManager;
 
         wallpapers = [
-
           {
             targetMonitor = "eDP-1";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Pixel%20Dream/emerald.jpg";
+            wallpaperSHA256 = "0bvdi3ckdbimibq7s6axhpgvqp2gmqnym9hakgsw2dhqrwhd7ra1";
 
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Vanta%20Black/bankai.jpg";
-            wallpaperSHA256 = "0mhvhq6fczkdgwhipsj6pvlwxi8xpck8bmzp6ikmsyv9s0h4w9q1";
-
+            gifURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Pixel%20Dream/may_chill.gif";
+            gifSHA256 = "1v3h995fifxcdvrizr5n99h0bmja7khzi89bh33d869psrjc4ssp";
           }
           {
             targetMonitor = "*";
-
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Vanta%20Black/gojo.png";
-            wallpaperSHA256 = "06b0mmhpykbd2d11jbf10w1qnr56i6x16zkmggb4y3c697wp1ldi";
-
-            videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/portrait/purple-car.mp4";
-            videoSHA256 = "0g1gxwhwbg7brglwxg069ivacs33p7hmy4mn7gkz9zh4xlwrmag4";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Pixel%20Dream/emerald.jpg";
+            wallpaperSHA256 = "0bvdi3ckdbimibq7s6axhpgvqp2gmqnym9hakgsw2dhqrwhd7ra1";
           }
         ];
 
@@ -146,10 +142,10 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "da-one-black";
+          base16Theme = "gruvbox-dark";
           catppuccin = false;
           catppuccinFlavor = "mocha";
-          catppuccinAccent = "mauve";
+          catppuccinAccent = "sapphire";
         };
 
         keyboardLayout = "us,it,de,fr";
@@ -700,7 +696,7 @@ delib.host {
         };
         sddm-qylock = {
           enable = true;
-          theme = "pixel-hollowknight";
+          theme = "pixel-emeral";
           use24HourClock = false; # 12h greeter clock
         };
         sddm-pixie = {
