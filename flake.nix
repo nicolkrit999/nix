@@ -492,6 +492,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # qylock SDDM/Quickshell lockscreen themes; source only (our module builds the one chosen theme, see sddm-qylock.nix)
+    qylock = {
+      url = "github:Darkkal44/qylock";
+      flake = false;
+    };
+
     spotify-adblock-src = {
       url = "github:abba23/spotify-adblock";
       flake = false;

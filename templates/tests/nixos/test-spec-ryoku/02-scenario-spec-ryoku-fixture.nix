@@ -114,7 +114,7 @@ let
 
   offPaths =
     map (n: [ "programs" n ]) [ "cosmic" "gnome" "hyprland" "kde" "mango" "niri" "caelestia" "noctalia" "skwdWall" "vicinae" "walker" "swayosd" "waybar-hyprland" "waybar-mango" "waybar-niri" "fastfetch" "starship" ]
-    ++ map (n: [ "services" n ]) [ "auto-cpufreq" "coffee" "hypridle" "sddm-astronaut" "sddm-pixie" "swaync" "tlp" ]
+    ++ map (n: [ "services" n ]) [ "auto-cpufreq" "coffee" "hypridle" "sddm-astronaut" "sddm-pixie" "sddm-qylock" "swaync" "tlp" ]
     ++ [ [ "qt" ] [ "bluetooth" ] ];
   forcedOff = paths: h:
     let

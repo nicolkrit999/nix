@@ -1,6 +1,6 @@
 # Evaluation helper for the sddm display-manager mutual-exclusivity tests.
-# Loads just the two sddm modules + stylix (needed because sddm-pixie's let
-# block touches config.lib.stylix.colors unconditionally).
+# Loads the three sddm theme modules, the shared exclusivity assertion and stylix
+# (needed because sddm-pixie's let block touches config.lib.stylix.colors unconditionally).
 let
   flakeRoot = let r = builtins.getEnv "FLAKE_ROOT"; in if r != "" then r else "/home/krit/nix";
   flake = builtins.getFlake "path:${flakeRoot}";
@@ -9,7 +9,7 @@ let
   denix = flake.inputs.denix;
 
   nixosPaths = [
-    (src + "/templates/tests/nixos/conflicting-modules/sddm-astronaut_sddm-pixie/shared/nixos-extra")
+    (src + "/templates/tests/nixos/conflicting-modules/sddm-themes/shared/nixos-extra")
 
     (src + "/modules/nixos/toplevel/home-manager.nix")
     (src + "/modules/nixos/config/constants-nixos.nix")
@@ -17,6 +17,8 @@ let
 
     (src + "/modules/nixos/services/sddm/sddm-astronaut.nix")
     (src + "/modules/nixos/services/sddm/sddm-pixie.nix")
+    (src + "/modules/nixos/services/sddm/sddm-qylock.nix")
+    (src + "/modules/nixos/services/sddm/sddm-exclusive.nix")
   ];
 
   evalScenario = scenarioDir:

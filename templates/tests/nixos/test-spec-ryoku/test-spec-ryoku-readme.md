@@ -55,7 +55,7 @@ An `x86_64` gate: the assertion alone is not enough upstream (the Ryoku module t
 | home rule | exactly one rule creates `/home/<ryoku user>`, type `d`, the account's `homeMode`, owned by the ryoku user |
 | `/home` mount | not tmpfs, `neededForBoot`, ryoku home under `/home/` |
 | source | the generic module text has no occurrence of the base user's name; control: the user layer text does |
-| force-off list | for each of the 26 options (17 `programs.*`, 7 `services.*`, `qt`, `bluetooth`): the option is declared on this host (a rename fails instead of being skipped by the module's filter) and false in the spec, even when the host never enables it (26 rows per host) |
+| force-off list | for each of the 27 options (17 `programs.*`, 8 `services.*`, `qt`, `bluetooth`): the option is declared on this host (a rename fails instead of being skipped by the module's filter) and false in the spec, even when the host never enables it (27 rows per host) |
 | catppuccin | `constants.theme.catppuccin` false in the spec |
 | shell | `constants.shell`, `programs.ryoku.shell` and the default user shell agree |
 | borg | the borg backup modules that exist on the host are false in the spec; at least one exists |
@@ -108,7 +108,7 @@ An `x86_64` gate: the assertion alone is not enough upstream (the Ryoku module t
 | tmpfiles | no spec rule names the base home; control: the base's own rule does |
 | home | exactly one `d /home/<ryoku user>` rule owned by the ryoku user |
 | portability | with base user `alice` the spec evaluates and yields `alice-ryoku`, its own uid, no alice/bob user, home-manager users `[ alice-ryoku ]`; control: the two fixture bases differ |
-| force-off list | all 26 options false in the spec while the base has them on |
+| force-off list | all 27 options false in the spec while the base has them on |
 | catppuccin | false in the spec, true in the base |
 | mutant: vicinae | removing `programs.vicinae` from the list makes the force-off probe fail |
 | control | the force-off probe rejects a base that does not have an option on |

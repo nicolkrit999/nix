@@ -490,6 +490,7 @@ delib.module {
 
             sddm-astronaut.assetsDir = sddmAssets;
             sddm-pixie.assetsDir = sddmAssets;
+            sddm-qylock.assetsDir = sddmAssets;
           };
 
           # Replace the default profile autostart

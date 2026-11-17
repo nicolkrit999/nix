@@ -212,7 +212,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 * **`services.resolved`**: Enables systemd-resolved as the system DNS resolver with DNS-over-TLS (opportunistic), Quad9 fallback DNS (`9.9.9.9`, `149.112.112.112`), and mDNS handed to avahi when it is enabled.
 * **`services.sddm-astronaut`**: Configures the SDDM login manager with the Astronaut theme (`embeddedTheme`, default `astronaut`).
   * **Warning (sddm):** Without a display manager there would be no graphical login, forcing use of a TTY.
-  * An assertion fails the build when `services.sddm-astronaut` and `services.sddm-pixie` are both enabled.
+  * `services.sddm-exclusive` asserts that at most one of the SDDM theme modules (astronaut, pixie, qylock) is enabled; any pair or all three fail the build.
   * `assetsDir` (default `null`): directory in which plain-filename `background` / avatar values are resolved; `null` means `users/<user>/src/sddm/` of `constants.user`. Set it when the login user has no asset directory of its own (the school specialisation points it at the shared one).
   * `use24HourClock` (default `false`): the greeter clock is `hh:mm AP` (12-hour); `true` keeps the theme's own 24-hour `HH:mm`. Independent of `LC_TIME` (the theme builds its Qt locale from `Locale=""`, which is the C locale, so the system locale never reaches it). The build fails if the `HourFormat` key is not found in the theme conf; `themeConfig.HourFormat` overrides both.
   * Sizes follow the screen: the font size is derived from the screen height (`height / 90`, the upstream 12 at 1080p) instead of a fixed 12pt, and the corner radius is tied to it, so the form keeps its proportions on any resolution. `themeConfig.FontSize` / `RoundCorners` win. With stylix on (default when a `background` is set), the accent pairs (hover marks, text on accent fills, warning, placeholder) are solved at build time for contrast on the form, for light and dark schemes alike.
@@ -223,6 +223,12 @@ These modules are always active on NixOS hosts and handle platform integration. 
   * Polarity-aware: a light scheme gets a white scrim over the wallpaper, dark text and a light card; a dark scheme keeps the black scrim, light text and a dark card. If a `themeConfig` text or accent colour is unreadable under the scheme's own scrim but readable under the other, the scrim flips. The whole theme is laid out on a 1080-high canvas scaled to the screen, so the card and text keep their proportions at any resolution.
   * `assetsDir` (default `null`): same as for `services.sddm-astronaut` (directory for plain-filename `background` / avatar values; `null` means `users/<user>/src/sddm/`).
   * Only enable one sddm at any moment
+
+* **`services.sddm-qylock`**: Configures the SDDM login manager with a theme from [qylock](https://github.com/Darkkal44/qylock) (flake input `qylock`, source only; only the chosen theme is put in the store).
+  * `theme` (default `pixel-hollowknight`): theme directory name under qylock's `themes/`. `themeOptions`: same per-theme tweaks as the official `programs.qylock.themeOptions` (terraria, Genshin, clockwork, osu, osumania).
+  * `use24HourClock` (default `false`): 12-hour AM/PM greeter clock; the build fails if the theme has no `"HH:mm"` clock to rewrite.
+  * `background` (path or filename in `users/<user>/src/sddm/`, `assetsDir` as for the other themes): replaces the theme's single `bg.mp4` / `bg.png` / `background.png`; must be the same kind (video for video themes, image for image themes), other themes are rejected at evaluation. `backgroundDim` (default `null` = measured at build time) sets the black scrim over it (a video scrim only for themes with `BackgroundVideo.qml`).
+  * Excluded with the other SDDM themes (`services.sddm-exclusive`).
 
 * **`services.snapshots`**: A BTRFS snapshot retention automation system using Snapper to back up the filesystem on a configurable timeline (hourly, daily, weekly, monthly, yearly).
 * **`services.swaync`**: A notification daemon and control center for Wayland compositors, with optional per-app notification muting rules.

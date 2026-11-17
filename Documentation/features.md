@@ -183,9 +183,15 @@ The apps opened for each file family are picked per host: the constants `termina
 
 A host picks its clock and date format independently of the language of its numbers and units. `services.locale` sets each glibc locale category on its own (every category defaults to `en_US.UTF-8`); the hosts keep the Italian-Swiss numbers, currency, units and paper, and set the time category (`LC_TIME`) to `en_IN`, which gives a 12-hour clock with AM/PM and day-month-year dates with English names. One locale carries the clock and the date order together, so they cannot be split.
 
-- The SDDM themes (`services.sddm-astronaut`, `services.sddm-pixie`) and the lock screen (`services.hyprlock`) draw their own clock and ignore `LC_TIME`, so each has a `use24HourClock` option (default `false` = 12-hour). The options are independent: the login screen can be 24-hour while the lock screen is 12-hour, and the other way round.
+- The SDDM themes (`services.sddm-astronaut`, `services.sddm-pixie`, `services.sddm-qylock`) and the lock screen (`services.hyprlock`) draw their own clock and ignore `LC_TIME`, so each has a `use24HourClock` option (default `false` = 12-hour). The options are independent: the login screen can be 24-hour while the lock screen is 12-hour, and the other way round.
 - Both hyprlock variants (catppuccin and plain) share one clock and one date definition, so they always show the same format.
 - Tests pin the defaults, an explicit value equal to the default, a different value and the mixed cases on the real generated files, and they guard the `en_IN` spelling that the glibc build needs.
+
+---
+
+## SDDM Themes
+
+Three greeter themes, at most one enabled per host (`services.sddm-exclusive` fails the build on any pair or on all three): `services.sddm-astronaut` (embedded themes), `services.sddm-pixie` and `services.sddm-qylock` ([qylock](https://github.com/Darkkal44/qylock) themes, e.g. `pixel-hollowknight`, chosen with `theme`). Each takes an optional custom `background` from `users/<user>/src/sddm/` with build-time readability tweaks; for qylock the background must match the theme's kind (video or image), and the scrim strength is measured on the first frame.
 
 ---
 

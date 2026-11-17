@@ -69,7 +69,7 @@ let
 
   persisted = cfg: map (d: d.directory) cfg.environment.persistence."/persist".directories;
 
-  sddmOn = cfg: builtins.filter (n: cfg.myconfig.services.${n}.enable) [ "sddm-pixie" "sddm-astronaut" ];
+  sddmOn = cfg: builtins.filter (n: cfg.myconfig.services.${n}.enable) [ "sddm-pixie" "sddm-astronaut" "sddm-qylock" ];
 
   sddmExclusiveProblems = cfg:
     (lib.optional (builtins.length (sddmOn cfg) != 1) "expected exactly one sddm theme module, got ${builtins.toJSON (sddmOn cfg)}")
@@ -77,7 +77,10 @@ let
 
   sddmProblems = cfg:
     let
-      expectTheme = if sddmOn cfg == [ "sddm-pixie" ] then "pixie" else "sddm-astronaut-theme";
+      expectTheme =
+        if sddmOn cfg == [ "sddm-pixie" ] then "pixie"
+        else if sddmOn cfg == [ "sddm-qylock" ] then cfg.myconfig.services.sddm-qylock.theme
+        else "sddm-astronaut-theme";
     in
     sddmExclusiveProblems cfg
     ++ (lib.optional (!cfg.services.displayManager.sddm.enable) "services.displayManager.sddm.enable is false")
@@ -115,10 +118,12 @@ let
   bothSddm = twin [{
     myconfig.services.sddm-pixie.enable = mk true;
     myconfig.services.sddm-astronaut.enable = mk true;
+    myconfig.services.sddm-qylock.enable = mk false;
   }];
   noSddm = twin [{
     myconfig.services.sddm-pixie.enable = mk false;
     myconfig.services.sddm-astronaut.enable = mk false;
+    myconfig.services.sddm-qylock.enable = mk false;
   }];
   unguarded = twin [{
     home-manager.users.${c.myconfig.constants.user}.services.hypridle.settings.listener = over [

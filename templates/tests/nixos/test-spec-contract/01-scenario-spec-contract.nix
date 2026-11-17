@@ -135,6 +135,8 @@ let
     (src + "/users/krit/nixos/services/ext-dotfiles.nix")
     (src + "/modules/nixos/services/sddm/sddm-astronaut.nix")
     (src + "/modules/nixos/services/sddm/sddm-pixie.nix")
+    (src + "/modules/nixos/services/sddm/sddm-qylock.nix")
+    (src + "/modules/nixos/services/sddm/sddm-exclusive.nix")
     (src + "/modules/nixos/services/rclone-mount.nix")
     (src + "/users/krit/common/programs/file-managers/yazi/yazi-keymap.nix")
 
@@ -170,7 +172,7 @@ let
 
   ryokuOffPaths =
     map (n: [ "programs" n ]) [ "cosmic" "gnome" "hyprland" "kde" "mango" "niri" "caelestia" "noctalia" "skwdWall" "vicinae" "walker" "swayosd" "waybar-hyprland" "waybar-mango" "waybar-niri" "fastfetch" "starship" ]
-    ++ map (n: [ "services" n ]) [ "auto-cpufreq" "coffee" "hypridle" "sddm-astronaut" "sddm-pixie" "swaync" "tlp" ]
+    ++ map (n: [ "services" n ]) [ "auto-cpufreq" "coffee" "hypridle" "sddm-astronaut" "sddm-pixie" "sddm-qylock" "swaync" "tlp" ]
     ++ [ [ "qt" ] [ "bluetooth" ] ];
   ryokuAllOn = host.extendModules {
     modules = [{

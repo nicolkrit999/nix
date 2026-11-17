@@ -121,6 +121,8 @@ let
     (src + "/modules/nixos/services/resolved.nix")
     (src + "/modules/nixos/services/sddm/sddm-astronaut.nix")
     (src + "/modules/nixos/services/sddm/sddm-pixie.nix")
+    (src + "/modules/nixos/services/sddm/sddm-qylock.nix")
+    (src + "/modules/nixos/services/sddm/sddm-exclusive.nix")
     (src + "/modules/nixos/services/snapshots.nix")
     (src + "/modules/nixos/services/swaync.nix")
 

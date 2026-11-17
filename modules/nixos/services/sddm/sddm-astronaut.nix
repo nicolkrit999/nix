@@ -470,11 +470,6 @@ delib.module {
         '';
     in
     {
-      assertions = [{
-        assertion = !(myconfig.services.sddm-pixie.enable or false);
-        message = "services.sddm-astronaut and services.sddm-pixie are mutually exclusive - enable only one in your host config.";
-      }];
-
       services = {
         xserver = {
           enable = true;

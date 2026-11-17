@@ -29,7 +29,7 @@ delib.module {
         LC_TIME: 12/24-hour clock, date order, day and month names and first
         weekday. One locale carries all of them, they cannot be split.
         Also exported (mkDefault) to the display-manager service. The
-        sddm-astronaut, sddm-pixie and hyprlock clocks ignore LC_TIME and have
+        sddm-astronaut, sddm-pixie, sddm-qylock and hyprlock clocks ignore LC_TIME and have
         their own `use24HourClock` option.
 
         Spelling trap: NixOS builds i18n.supportedLocales as "<value>/UTF-8",

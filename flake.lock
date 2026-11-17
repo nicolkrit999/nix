@@ -1986,6 +1986,22 @@
         "url": "https://git.outfoxxed.me/quickshell/quickshell"
       }
     },
+    "qylock": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793774383,
+        "narHash": "sha256-uTPmmZ/khZVpImOGqgFKPqMtJ1M/GGvQxLsQ7Dk60JQ=",
+        "owner": "Darkkal44",
+        "repo": "qylock",
+        "rev": "c2933f27b655a999911e6699e1b2c67e59cbd428",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Darkkal44",
+        "repo": "qylock",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "antigravity-nix": "antigravity-nix",
@@ -2024,6 +2040,7 @@
         "openlogi": "openlogi",
         "plasma-manager": "plasma-manager",
         "quickshell": "quickshell",
+        "qylock": "qylock",
         "ryoku": "ryoku",
         "sidra": "sidra",
         "skwd-wall": "skwd-wall",

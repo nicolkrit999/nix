@@ -11,7 +11,7 @@ contains its own README, `shared/`, `conflict/`, `positive/` setup.
 | Folder | What it tests |
 |--------|---------------|
 | [`auto-cpu-freq_tlp/`](auto-cpu-freq_tlp/) | `services.tlp` vs `services.auto-cpufreq` |
-| [`sddm-astronaut_sddm-pixie/`](sddm-astronaut_sddm-pixie/) | `services.sddm-astronaut` vs `services.sddm-pixie` |
+| [`sddm-themes/`](sddm-themes/) | `services.sddm-astronaut`, `services.sddm-pixie` and `services.sddm-qylock`: at most one (shared assertion in `sddm-exclusive.nix`) |
 
 ## Run all conflict tests
 

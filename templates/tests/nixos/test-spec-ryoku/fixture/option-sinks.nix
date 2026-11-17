@@ -29,6 +29,7 @@ in
     [ "services" "hypridle" ]
     [ "services" "sddm-astronaut" ]
     [ "services" "sddm-pixie" ]
+    [ "services" "sddm-qylock" ]
     [ "services" "swaync" ]
     [ "services" "tlp" ]
     [ "qt" ]

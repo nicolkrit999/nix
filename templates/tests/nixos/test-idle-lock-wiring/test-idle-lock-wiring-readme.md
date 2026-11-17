@@ -39,7 +39,7 @@ SDDM: the exclusivity check is split from the wiring check because enabling both
 | busy guard body | contains `pgrep`, matches nix build and nixos-rebuild, has no `\|\| true`, explicit `exit` or `set -e` |
 | hyprlock | `security.pam.services.hyprlock` present with a WM enabled, absent with all WMs off |
 | swaync | Hyprland-only twin: `services.swaync.enable` true without a shell, false with noctalia active on Hyprland |
-| sddm | exactly one of sddm-pixie / sddm-astronaut enabled, sddm on, theme matches the active module, `/var/lib/sddm` persisted, no failed assertion |
+| sddm | exactly one of sddm-pixie / sddm-astronaut / sddm-qylock enabled, sddm on, theme matches the active module, `/var/lib/sddm` persisted, no failed assertion |
 
 ### Coffee linger fixture
 | Check | Expected |

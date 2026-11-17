@@ -64,11 +64,11 @@ Per host unless marked.
 | locale-default | `i18n.defaultLocale == "en_US.UTF-8"` (language and messages) |
 | locale-display-manager-time | `systemd.services.display-manager.environment.LC_TIME == "en_IN"` |
 | locale-time-consistent | `services.locale` is enabled and `services.locale.time`, `extraLocaleSettings.LC_TIME` and the display-manager `LC_TIME` are one value |
-| clock-24h-off | `services.sddm-astronaut.use24HourClock` and `services.hyprlock.use24HourClock` are `false` (12-hour greeter and lock clock, matching the 12-hour `en_IN` `LC_TIME`; both modules ignore `LC_TIME`) |
+| clock-24h-off | `services.sddm-astronaut.use24HourClock`, `services.sddm-qylock.use24HourClock` and `services.hyprlock.use24HourClock` are `false` (12-hour greeter and lock clock, matching the 12-hour `en_IN` `LC_TIME`; the modules ignore `LC_TIME`) |
 | glibc-locales-builds | the host's `i18n.glibcLocales` derivation (path taken from the same eval) really builds; a locale spelled the way glibc does not list it (`en_IN.UTF-8`) fails here with "unsupported locales detected" (the spelling trap itself is pinned in `nixos-locale`) |
 | nix-pat-include | `nix.extraOptions` includes the PAT file under `/run/secrets` |
 | pat-secret-declared | sops secret exists and resolves to that path |
-| one-sddm-theme | exactly one of sddm-astronaut / sddm-pixie enabled |
+| one-sddm-theme | exactly one of sddm-astronaut / sddm-pixie / sddm-qylock enabled |
 | power-exclusive | at most one of auto-cpufreq/tlp enabled (conflict) |
 | tailscale-trusted / reverse-path | `tailscale0` trusted, `checkReversePath == "loose"` |
 | tailscale-operator | `--operator=<user>` in up/set flags |

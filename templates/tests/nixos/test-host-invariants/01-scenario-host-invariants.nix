@@ -17,7 +17,7 @@ let
   fs = cfg.fileSystems;
   btrfsFs = lib.filterAttrs (_: v: v.fsType == "btrfs") fs;
   failing = builtins.filter (a: !a.assertion) cfg.assertions;
-  themes = builtins.filter (n: my.services.${n}.enable or false) [ "sddm-astronaut" "sddm-pixie" ];
+  themes = builtins.filter (n: my.services.${n}.enable or false) [ "sddm-astronaut" "sddm-pixie" "sddm-qylock" ];
   powerMgrs = builtins.filter (n: my.services.${n}.enable or false) [ "auto-cpufreq" "tlp" ];
   tsFw = cfg.networking.firewall;
   hmUser = cfg.home-manager.users.${my.constants.user};
@@ -192,8 +192,8 @@ let
         (my.services.locale.enable && my.services.locale.time == lc.LC_TIME or null && dmTime == my.services.locale.time)
         "services.locale.time=${my.services.locale.time} extraLocaleSettings.LC_TIME=${lc.LC_TIME or "unset"} display-manager LC_TIME=${toString dmTime} (must be one value)";
       check-clock-24h-off = check
-        (my.services.sddm-astronaut.use24HourClock == false && my.services.hyprlock.use24HourClock == false)
-        "sddm-astronaut.use24HourClock=${lib.boolToString my.services.sddm-astronaut.use24HourClock} hyprlock.use24HourClock=${lib.boolToString my.services.hyprlock.use24HourClock} (12-hour greeter and lock clock, matching the en_IN LC_TIME)";
+        (my.services.sddm-astronaut.use24HourClock == false && my.services.sddm-qylock.use24HourClock == false && my.services.hyprlock.use24HourClock == false)
+        "sddm-astronaut.use24HourClock=${lib.boolToString my.services.sddm-astronaut.use24HourClock} sddm-qylock.use24HourClock=${lib.boolToString my.services.sddm-qylock.use24HourClock} hyprlock.use24HourClock=${lib.boolToString my.services.hyprlock.use24HourClock} (12-hour greeter and lock clock, matching the en_IN LC_TIME)";
 
       check-one-sddm-theme = check (builtins.length themes == 1) "enabled sddm themes: ${builtins.toJSON themes}";
       check-power-exclusive = check (builtins.length powerMgrs <= 1) "enabled: ${builtins.toJSON powerMgrs}";

@@ -688,8 +688,13 @@ delib.host {
         };
 
         sddm-astronaut = {
-          enable = true;
+          enable = false;
           embeddedTheme = "hyprland_kath";
+          use24HourClock = false; # 12h greeter clock
+        };
+        sddm-qylock = {
+          enable = true;
+          theme = "pixel-hollowknight";
           use24HourClock = false; # 12h greeter clock
         };
         sddm-pixie = {

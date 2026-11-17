@@ -1,4 +1,3 @@
-# P02 — Only sddm-pixie enabled. Expected: assertion does not fire, sddm theme = pixie.
 { nix-tests }:
 let
   H = import ../shared/eval-scenario.nix;
@@ -6,9 +5,7 @@ let
 in
 nix-tests.runTests {
   "P02: only sddm-pixie enabled" = helpers: {
-    "mutual-exclusivity assertion does NOT fire" =
-      helpers.isFalse (H.hasFailingAssertion "services.sddm-astronaut and services.sddm-pixie are mutually exclusive" config);
-    "no assertion of any kind reports mutual exclusion" =
+    "no assertion reports mutual exclusion" =
       helpers.isFalse (H.hasFailingAssertion "mutually exclusive" config);
     "sddm theme is pixie" =
       helpers.isTrue (config.services.displayManager.sddm.theme == "pixie");

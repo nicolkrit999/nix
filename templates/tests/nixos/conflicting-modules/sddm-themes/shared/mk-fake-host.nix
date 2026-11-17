@@ -5,6 +5,7 @@
 #     name = "test-conflict-both-sddm";
 #     "sddm-astronaut" = true;
 #     "sddm-pixie" = true;
+#     "sddm-qylock" = false;
 #   }
 spec:
 { delib, ... }:
@@ -19,6 +20,7 @@ delib.host {
     services = {
       sddm-astronaut.enable = spec."sddm-astronaut" or false;
       sddm-pixie.enable = spec."sddm-pixie" or false;
+      sddm-qylock.enable = spec."sddm-qylock" or false;
     };
   };
 }
