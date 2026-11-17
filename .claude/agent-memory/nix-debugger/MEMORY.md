@@ -16,6 +16,7 @@
 - [test stylix stub targets](project_test_stylix_stub_targets.md) - arch-compat + spec-contract stylix-stub.nix must `// cfg.targets` or myconfig.stylix.targets.* are dropped in tests only (vicinae arch-compat, not eval cache)
 - [RTK git diff patch trap](project_rtk_git_diff_patch_trap.md) - `git diff > patch` is RTK-filtered, not a real patch; use `rtk proxy git diff` and wc -l it before reverting
 - [KDE text-scale dconf leak](project_kde_textscale_dconf_leak.md) - Plasma login writes text-scaling-factor 1.25 (kcmfonts forceFontDPI=120); Zen/GTK in Hyprland 1.25x big
+- [CI lazy-trees virtual input paths](project_ci_lazy_trees_virtual_input_paths.md) - Determinate CI: noContext "${flake.inputs.X}" is never realised (hash differs from local); wrap in a built drv
 - [Input glibc vs /run/opengl-driver](project_input_glibc_vs_opengl_driver.md) - non-following input + newer mesa = "EGL not available" (vicinae) / glutin "display handle not supported" (zapfast); fix = nixpkgs follows
 - [fontconfig stale per-user profile cache](project_fontconfig_stale_profile_cache.md) - GTK tofu + "cairo scaled font file not found" after fonts leave HM profile; fc-cache -r
 - [HM sessionVariables leak into all sessions](project_hm_sessionvars_leak_all_sessions.md) - mango's XDG_CURRENT_DESKTOP in home.sessionVariables hits COSMIC/GNOME via fish login shell

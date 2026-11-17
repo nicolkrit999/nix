@@ -272,14 +272,14 @@ in
     "theme: no corner radii, spacing, gaps or hint widths are written" =
       let b = builderOf darkT; in
       failIf (lib.concatMap (k: lib.optional (b.${k} or null != null) "${k} set") [ "corner_radii" "spacing" "gaps" "active_hint" "bg_color" "primary_container_bg" "secondary_container_bg" ]);
-    "theme: real desktop follows the catppuccin sapphire accent in dark mode" =
+    "theme: real desktop follows its base16 accent (base0D) in dark mode" =
       let
         t = { config = desktop.config; };
         th = themeOf t;
       in
       failIf (
         lib.optional (th.mode != "dark") "mode"
-        ++ lib.optional (!(isHex (accentOf t) "74c7ec")) "accent ${builtins.toJSON (accentOf t)}"
+        ++ lib.optional (!(isHex (accentOf t) mocha.palette.base0D)) "accent ${builtins.toJSON (accentOf t)}"
         ++ lib.optional (!(slotIs t "gray_1" mocha.palette.base00)) "gray_1"
       );
     "theme: every colour float round-trips through toString (no floatToString imprecision warning)" =

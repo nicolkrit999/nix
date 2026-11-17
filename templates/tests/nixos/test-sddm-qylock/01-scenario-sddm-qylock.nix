@@ -79,6 +79,7 @@ let
 
   pkgOf = s: lib.findFirst (p: lib.hasPrefix "sddm-qylock-" (p.name or "")) null s.config.environment.systemPackages;
   scenarios = lib.mapAttrs (_: scenario) built;
+  upstreamThemes = pkgs.runCommandLocal "qylock-upstream-themes" { } "ln -s ${flake.inputs.qylock}/themes $out";
 in
 {
   matrix = lib.mapAttrs
@@ -89,10 +90,10 @@ in
     })
     scenarios;
   fixtures = lib.mapAttrs (_: d: noContext "${d}") fixtures;
-  themesSrc = noContext "${flake.inputs.qylock}/themes";
+  themesSrc = noContext "${upstreamThemes}";
   assetsDir = noContext "${assetsDir}";
   tools.magick = noContext "${pkgs.imagemagick}/bin/magick";
-  pkg = lib.mapAttrs (_: pkgOf) scenarios // lib.mapAttrs (_n: d: d) fixtures // { assets = assetsDir; };
+  pkg = lib.mapAttrs (_: pkgOf) scenarios // lib.mapAttrs (_n: d: d) fixtures // { assets = assetsDir; upstream-themes = upstreamThemes; };
   err = lib.mapAttrs (_: cfg: (pkgOf (scenario cfg)).drvPath) errors;
   errIds = builtins.attrNames errors;
 }

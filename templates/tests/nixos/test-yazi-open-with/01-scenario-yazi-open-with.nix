@@ -50,18 +50,18 @@ let
     [ "open" "reveal" ]
   ];
   expectedLinux = [
-    [ "open" "open-with" "reveal" ]
-    [ "edit" "open-with" "reveal" ]
-    [ "open" "open-with" "reveal" ]
-    [ "play" "open-with" "reveal" ]
-    [ "extract" "open-with" "reveal" ]
-    [ "edit" "open-with" "reveal" ]
-    [ "edit" "open-with" "reveal" ]
-    [ "edit" "open-with" "reveal" ]
+    [ "open" "open-with" "copy" "paste" "reveal" ]
+    [ "edit" "open-with" "copy" "paste" "reveal" ]
+    [ "open" "open-with" "copy" "paste" "reveal" ]
+    [ "play" "open-with" "copy" "paste" "reveal" ]
+    [ "extract" "open-with" "copy" "paste" "reveal" ]
+    [ "edit" "open-with" "copy" "paste" "reveal" ]
+    [ "edit" "open-with" "copy" "paste" "reveal" ]
+    [ "edit" "open-with" "copy" "paste" "reveal" ]
     "download"
-    [ "edit" "open-with" "reveal" ]
-    [ "open" "open-with" "trash" ]
-    [ "open" "open-with" "reveal" ]
+    [ "edit" "open-with" "copy" "paste" "reveal" ]
+    [ "open" "open-with" "copy" "paste" "trash" ]
+    [ "open" "open-with" "copy" "paste" "reveal" ]
   ];
   expectedFirst = [ "open" "edit" "open" "play" "extract" "edit" "edit" "edit" "download" "edit" "open" "open" ];
   existingOpeners = [ "download" "edit" "extract" "open" "play" "reveal" "trash" ];
@@ -132,10 +132,10 @@ let
       "opener.open-with is ${show (builtins.unsafeDiscardStringContext (show (openersOf linux).open-with or null))}";
     check-linux-open-with-run-is-single-helper-closure = check (lib.length helperDrvs == 1)
       "the opener settings reference ${toString (lib.length helperDrvs)} yazi-open-with derivations, expected 1";
-    check-linux-existing-openers-kept = check (openerNames linux == lib.sort lib.lessThan (existingOpeners ++ [ "open-with" ]))
+    check-linux-existing-openers-kept = check (openerNames linux == lib.sort lib.lessThan (existingOpeners ++ [ "open-with" "copy" "paste" ]))
       "opener names ${show (openerNames linux)}";
     check-linux-existing-openers-identical-to-darwin = check
-      (builtins.removeAttrs (openersOf linux) [ "open-with" ] == openersOf darwin)
+      (builtins.removeAttrs (openersOf linux) [ "open-with" "copy" "paste" ] == openersOf darwin)
       "an existing opener differs between linux and darwin, so the open-with change touched it";
     check-linux-open-rules-have-open-with-second = check (useProblems true (rulesOf linux) == [ ])
       "open.rules use lists: ${show (useProblems true (rulesOf linux))}";

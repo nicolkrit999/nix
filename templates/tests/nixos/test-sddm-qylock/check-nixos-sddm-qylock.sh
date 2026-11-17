@@ -32,7 +32,7 @@ THEMES=$(J .themesSrc)
 
 BUILT=(default h24 vid-explicit vid-auto-black vid-auto-white img-explicit terraria-opt terraria-plain nier-12h terraria-12h)
 ATTRS=(); for id in "${BUILT[@]}"; do ATTRS+=("pkg.$id"); done
-ATTRS+=(pkg.video-black pkg.video-white pkg.image-grey)
+ATTRS+=(pkg.video-black pkg.video-white pkg.image-grey pkg.upstream-themes)
 if ! nix build --impure --file "$SCEN" --no-link --json --keep-going "${ATTRS[@]}" >"$WORK/build.json" 2>"$WORK/build.err"; then
   tail -n 15 "$WORK/build.err" >&2
   echo -e "${RED}BUILD ERROR: scenario derivations did not build${NC}"
@@ -42,6 +42,10 @@ declare -A OUT
 for id in "${BUILT[@]}"; do
   OUT[$id]=$(nix build --impure --file "$SCEN" --no-link --print-out-paths "pkg.$id" 2>>"$WORK/build.err")
 done
+if [ ! -f "$THEMES/pixel-hollowknight/Main.qml" ]; then
+  echo -e "${RED}SETUP ERROR: upstream qylock themes not realised at $THEMES${NC}"
+  exit 1
+fi
 T() { echo "${OUT[$1]}/share/sddm/themes/$2"; }
 VBLACK=$(J .fixtures.\"video-black\"); VWHITE=$(J .fixtures.\"video-white\"); IGREY=$(J .fixtures.\"image-grey\")
 dim_of() { grep -o 'color: "black"; opacity: [0-9.]*' "$1/BackgroundVideo.qml" | tail -n1 | sed 's/.*opacity: //'; }

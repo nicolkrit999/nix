@@ -201,7 +201,7 @@ Covers `cosmic-idle.nix`: COSMIC's idle manager follows the hypridle screen-off 
 
 ## Theme (`05-scenario-cosmic-theme.nix`)
 
-Covers `cosmic-theme.nix`: the COSMIC theme is derived from the host's base16 scheme (stylix colours), so it works for any scheme. Minimal-fixture twins replace `stylix.base16Scheme` (Dark Violet, Windows NT Light, Catppuccin Mocha) and the theme constants; the real desktop is read once (catppuccin mocha, sapphire). Colours only: toolkit (fonts, icons, density), corner radii, spacing, gaps and container backgrounds are never written.
+Covers `cosmic-theme.nix`: the COSMIC theme is derived from the host's base16 scheme (stylix colours), so it works for any scheme. Minimal-fixture twins replace `stylix.base16Scheme` (Dark Violet, Windows NT Light, Catppuccin Mocha) and the theme constants; the real desktop is read once (base16 catppuccin-mocha, catppuccin off). Colours only: toolkit (fonts, icons, density), corner radii, spacing, gaps and container backgrounds are never written.
 
 | Check | Expected |
 |-------|----------|
@@ -215,7 +215,7 @@ Covers `cosmic-theme.nix`: the COSMIC theme is derived from the host's base16 sc
 | accent | default base0D (catppuccin off); `themeAccent = base0E` overrides it, also over catppuccin on; catppuccin on uses the palette colour (latte blue `1e66f5`) |
 | opt-out | `followTheme = false` and cosmic off write no theme, no Mode file, no Builder file; `followTheme` defaults to true |
 | scope | no `toolkit`, no `CosmicTk` file, no radii/spacing/gaps/`active_hint`/background overrides |
-| real desktop | dark mode, accent = catppuccin mocha sapphire `74c7ec`, `gray_1` = base00 |
+| real desktop | dark mode, accent = the scheme's base0D (catppuccin is off on the desktop, so no catppuccinAccent), `gray_1` = base00 |
 | controls | illegal slot, missing slot, out-of-range channel, translucent slot, imprecise float and indistinguishable accents are each flagged |
 
 ## Panels and dock (`06-scenario-cosmic-panels.nix`)

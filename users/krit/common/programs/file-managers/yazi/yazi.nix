@@ -131,8 +131,8 @@ delib.module {
           exec gtk-launch "$id" "$file"
         '';
       };
-      openWithUse = lib.optional isLinux "open-with";
-      # open-with goes second: the first opener (Enter/o) stays first
+      openWithUse = lib.optionals isLinux [ "open-with" "copy" "paste" ];
+      # open-with, copy and paste go after the first opener: Enter/o stays first
       withOpenWith = use: if use == [ ] then use else [ (lib.head use) ] ++ openWithUse ++ lib.tail use;
     in
     {
@@ -353,6 +353,20 @@ delib.module {
                 desc = "Open with";
                 block = true;
                 for = "linux";
+              }
+            ];
+
+            # Menu entries driving Yazi's own yank buffer; paste is a no-op while nothing is yanked.
+            copy = [
+              {
+                run = "ya emit yank";
+                desc = "Copy";
+              }
+            ];
+            paste = [
+              {
+                run = "ya emit paste";
+                desc = "Paste";
               }
             ];
           };
