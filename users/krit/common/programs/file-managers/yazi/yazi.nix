@@ -131,7 +131,39 @@ delib.module {
           exec gtk-launch "$id" "$file"
         '';
       };
-      openWithUse = lib.optionals isLinux [ "open-with" "copy" "paste" ];
+      # Share entries exist only where the providing module is enabled on this host.
+      hasLocalsend = isLinux && lib.attrByPath [ "services" "localsend" "enable" ] false myconfig;
+      hasTailscale = isLinux && lib.attrByPath [ "services" "tailscale" "enable" ] false myconfig;
+      # tailscale itself comes from the system module (PATH), not from this closure.
+      yaziTaildrop = pkgs.writeShellApplication {
+        name = "yazi-taildrop";
+        runtimeInputs = with pkgs; [ coreutils fzf gawk ];
+        text = ''
+          if [ $# -lt 1 ]; then
+            echo "usage: yazi-taildrop <file>..." >&2
+            exit 2
+          fi
+          if ! command -v tailscale >/dev/null 2>&1; then
+            echo "yazi-taildrop: tailscale is not installed" >&2
+            read -r -p "Press Enter to close" _ || true
+            exit 1
+          fi
+          if ! targets=$(tailscale file cp --targets 2>&1) || [ -z "$targets" ]; then
+            echo "yazi-taildrop: no Taildrop targets (is Tailscale up?)" >&2
+            printf '%s\n' "$targets" >&2
+            read -r -p "Press Enter to close" _ || true
+            exit 1
+          fi
+          choice=$(printf '%s\n' "$targets" | fzf --no-multi --reverse --height=40% \
+            --prompt="Taildrop> ") || exit 0
+          host=$(printf '%s' "$choice" | awk -F'\t' '{ print $2 }')
+          [ -n "$host" ] || exit 0
+          tailscale file cp -- "$@" "$host:"
+        '';
+      };
+      openWithUse = lib.optionals isLinux [ "open-with" "copy" "paste" ]
+        ++ lib.optional hasLocalsend "localsend"
+        ++ lib.optional hasTailscale "taildrop";
       # open-with, copy and paste go after the first opener: Enter/o stays first
       withOpenWith = use: if use == [ ] then use else [ (lib.head use) ] ++ openWithUse ++ lib.tail use;
     in
@@ -367,6 +399,26 @@ delib.module {
               {
                 run = "ya emit paste";
                 desc = "Paste";
+              }
+            ];
+          }
+          // lib.optionalAttrs hasLocalsend {
+            localsend = [
+              {
+                run = "localsend_app %s";
+                desc = "Send with LocalSend";
+                orphan = true;
+                for = "linux";
+              }
+            ];
+          }
+          // lib.optionalAttrs hasTailscale {
+            taildrop = [
+              {
+                run = "${lib.getExe yaziTaildrop} %s";
+                desc = "Send with Taildrop";
+                block = true;
+                for = "linux";
               }
             ];
           };
