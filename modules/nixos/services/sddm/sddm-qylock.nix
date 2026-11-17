@@ -45,8 +45,9 @@ delib.module {
         description = ''
           Greeter clock format. false (default) = 12-hour with AM/PM, true =
           the theme's own 24-hour "HH:mm". The themes draw the clock from a
-          hardcoded Qt format string, so this is independent of LC_TIME. The
-          build fails if the theme has no "HH:mm" clock to rewrite (set true).
+          hardcoded Qt format string, so this is independent of LC_TIME. Only
+          themes with an "HH:mm" clock are rewritten; the other 12 themes
+          (terraria, nier-automata, Genshin, ...) keep their own clock.
         '';
       };
 
@@ -207,10 +208,12 @@ delib.module {
           ${confEdits}
 
           ${lib.optionalString (!cfg.use24HourClock) ''
-            # sed is a silent no-op without a match; a clock that quietly stays 24h must fail the build instead.
-            grep -q '"HH:mm"' ${themeDir}/Main.qml \
-              || { echo "sddm-qylock: no \"HH:mm\" clock in ${cfg.theme}/Main.qml, set use24HourClock = true" >&2; exit 1; }
-            sed -i 's/"HH:mm"/"hh:mm AP"/g' ${themeDir}/Main.qml
+            # Only themes that draw their clock with the "HH:mm" format string can be switched; the others (no clock, or their own format) stay as shipped.
+            if grep -q '"HH:mm"' ${themeDir}/Main.qml; then
+              sed -i 's/"HH:mm"/"hh:mm AP"/g' ${themeDir}/Main.qml
+            else
+              echo "sddm-qylock: no \"HH:mm\" clock in ${cfg.theme}/Main.qml, clock left as the theme ships it"
+            fi
           ''}
 
           ${lib.optionalString hasBg ''

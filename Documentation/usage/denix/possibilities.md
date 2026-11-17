@@ -226,7 +226,7 @@ These modules are always active on NixOS hosts and handle platform integration. 
 
 * **`services.sddm-qylock`**: Configures the SDDM login manager with a theme from [qylock](https://github.com/Darkkal44/qylock) (flake input `qylock`, source only; only the chosen theme is put in the store).
   * `theme` (default `pixel-hollowknight`): theme directory name under qylock's `themes/`. `themeOptions`: same per-theme tweaks as the official `programs.qylock.themeOptions` (terraria, Genshin, clockwork, osu, osumania).
-  * `use24HourClock` (default `false`): 12-hour AM/PM greeter clock; the build fails if the theme has no `"HH:mm"` clock to rewrite.
+  * `use24HourClock` (default `false`): 12-hour AM/PM greeter clock; themes without an `"HH:mm"` clock keep their own.
   * `background` (path or filename in `users/<user>/src/sddm/`, `assetsDir` as for the other themes): replaces the theme's single `bg.mp4` / `bg.png` / `background.png`; must be the same kind (video for video themes, image for image themes), other themes are rejected at evaluation. `backgroundDim` (default `null` = measured at build time) sets the black scrim over it (a video scrim only for themes with `BackgroundVideo.qml`).
   * Excluded with the other SDDM themes (`services.sddm-exclusive`).
 

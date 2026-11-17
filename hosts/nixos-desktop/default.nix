@@ -162,35 +162,29 @@ delib.host {
           {
             targetMonitor = "DP-1";
 
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/fr0st-xyz/wallz/wallz-main/Nordic%20Blue/02.%20Nordic%20Blue.jpg";
-            wallpaperSHA256 = "0w7699lvxsvflxzb0xzml3cph6fgnl8pn707822jrdsh8h8lnpxa";
-
-            videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/landscape/girl-desk-working.MP4";
-            videoSHA256 = "0q6asqgcq0n5va8210v5jhqlqw7nzw1i5wdr8cn8bccj316fnfgy";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Vanta%20Black/bankai.jpg";
+            wallpaperSHA256 = "0mhvhq6fczkdgwhipsj6pvlwxi8xpck8bmzp6ikmsyv9s0h4w9q1";
           }
           {
             targetMonitor = "DP-2";
 
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/fr0st-xyz/wallz/wallz-main/Nordic%20Blue/03.%20Nordic%20Blue.jpg";
-            wallpaperSHA256 = "1p55hqqmwrvr8xbsxk2z3brb5x3y7ywsckyvlcl431i7w37j15c3";
-
-            videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/portrait/purple-car.mp4";
-            videoSHA256 = "0g1gxwhwbg7brglwxg069ivacs33p7hmy4mn7gkz9zh4xlwrmag4";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Vanta%20Black/gojo.png";
+            wallpaperSHA256 = "06b0mmhpykbd2d11jbf10w1qnr56i6x16zkmggb4y3c697wp1ldi";
           }
           {
             targetMonitor = "*";
 
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/fr0st-xyz/wallz/wallz-main/Nordic%20Blue/01.%20Nordic%20Blue.jpg";
-            wallpaperSHA256 = "0q4simvbyvjwrzh1nv0skxygz5rdr2gfrbhmbiixj3q04k8dqfxh";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Vanta%20Black/gojo.png";
+            wallpaperSHA256 = "06b0mmhpykbd2d11jbf10w1qnr56i6x16zkmggb4y3c697wp1ldi";
           }
         ];
 
         theme = {
           polarity = "dark";
-          base16Theme = "catppuccin-mocha";
-          catppuccin = true;
+          base16Theme = "da-one-black";
+          catppuccin = false;
           catppuccinFlavor = "mocha";
-          catppuccinAccent = "sapphire";
+          catppuccinAccent = "mauve";
         };
 
         keyboardLayout = "us,it,de,fr";
@@ -806,8 +800,13 @@ delib.host {
         };
 
         sddm-astronaut = {
-          enable = true;
+          enable = false;
           embeddedTheme = "hyprland_kath";
+          use24HourClock = false; # 12h greeter clock
+        };
+        sddm-qylock = {
+          enable = true;
+          theme = "pixel-hollowknight";
           use24HourClock = false; # 12h greeter clock
         };
         sddm-pixie = {

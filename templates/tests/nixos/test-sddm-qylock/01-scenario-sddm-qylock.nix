@@ -66,6 +66,7 @@ let
     terraria-opt = { theme = "terraria"; use24HourClock = true; themeOptions.terraria.backgroundMode = "time"; };
     terraria-plain = { theme = "terraria"; use24HourClock = true; };
     nier-12h = { theme = "nier-automata"; };
+    terraria-12h = { theme = "terraria"; };
   };
 
   errors = {

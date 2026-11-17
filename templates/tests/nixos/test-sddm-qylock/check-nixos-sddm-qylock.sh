@@ -30,7 +30,7 @@ J() { jq -r "$1" "$WORK/meta.json"; }
 MAGICK=$(J .tools.magick)
 THEMES=$(J .themesSrc)
 
-BUILT=(default h24 vid-explicit vid-auto-black vid-auto-white img-explicit terraria-opt terraria-plain)
+BUILT=(default h24 vid-explicit vid-auto-black vid-auto-white img-explicit terraria-opt terraria-plain nier-12h terraria-12h)
 ATTRS=(); for id in "${BUILT[@]}"; do ATTRS+=("pkg.$id"); done
 ATTRS+=(pkg.video-black pkg.video-white pkg.image-grey)
 if ! nix build --impure --file "$SCEN" --no-link --json --keep-going "${ATTRS[@]}" >"$WORK/build.json" 2>"$WORK/build.err"; then
@@ -88,11 +88,18 @@ check "terraria.backgroundMode=time lands in theme.conf" "grep -qx 'background_m
 check "control: without the option theme.conf keeps the upstream mode" "grep -qx 'background_mode=random' '$(T terraria-plain terraria)/theme.conf'"
 check "control: upstream mode is not time" "! grep -qx 'background_mode=time' '$THEMES/terraria/theme.conf'"
 
-echo -e "${BOLD}-- build failure: 12h clock on a theme without HH:mm${NC}"
-rc=0
-nix build --impure --file "$SCEN" --no-link --option log-lines 100 pkg.nier-12h >/dev/null 2>"$WORK/nier12.err" || rc=$?
-check "nier-automata with use24HourClock=false fails to build" "[ $rc -ne 0 ]"
-check "the failure names the missing HH:mm clock" "grep -q 'no \"HH:mm\" clock in nier-automata/Main.qml' '$WORK/nier12.err'"
+echo -e "${BOLD}-- 12h clock on themes without HH:mm (rewrite skipped, build succeeds)${NC}"
+for pair in nier-12h:nier-automata terraria-12h:terraria; do
+  id=${pair%%:*}; theme=${pair##*:}
+  D=$(T "$id" "$theme")
+  check "$theme, use24HourClock=false: builds and Main.qml is byte-identical to upstream" "cmp -s '$D/Main.qml' '$THEMES/$theme/Main.qml'"
+  check "$theme, use24HourClock=false: no hh:mm AP inserted" "! grep -q 'hh:mm AP' '$D/Main.qml'"
+  check "control: upstream $theme has no \"HH:mm\" clock" "! grep -q '\"HH:mm\"' '$THEMES/$theme/Main.qml'"
+  drv=$(nix path-info --impure --derivation "${OUT[$id]}" 2>/dev/null)
+  nix log "$drv" >"$WORK/log.$id" 2>&1 || true
+  check "$theme: build log has the 'clock left as the theme ships it' notice" "grep -qF 'no \"HH:mm\" clock in $theme/Main.qml, clock left as the theme ships it' '$WORK/log.$id'"
+done
+check "control: a theme with HH:mm (default) has no 'clock left' notice" "! nix log \"\$(nix path-info --derivation '${OUT[default]}')\" 2>&1 | grep -q 'clock left as the theme ships it'"
 
 echo -e "${BOLD}-- eval errors${NC}"
 declare -A WANT=(

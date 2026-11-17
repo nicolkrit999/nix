@@ -22,8 +22,8 @@ loosen it. Cap 10 min (CI group heavy-b).
    no stylix, no WM) and makes one `extendModules` twin per scenario (options forced with `mkOverride 10`). The
    fixtures are generated in the test: two 1 s 64x64 mp4s (black, white; ffmpeg) and a flat `#c0c0c0` PNG
    (ImageMagick); a store directory `assetsDir` holds the PNG under a plain filename.
-2. `check-nixos-sddm-qylock.sh` builds the eight scenario packages and the fixtures in one `nix build`, builds the
-   failing one (`nier-12h`) alone and matches its log, then runs one `nix eval` per error scenario and matches
+2. `check-nixos-sddm-qylock.sh` builds the ten scenario packages (including `nier-12h`, `terraria-12h`) and the fixtures in one `nix build`, reads the
+   build logs of those two via `nix log`, then runs one `nix eval` per error scenario and matches
    stderr. Everything is read from the built files with `grep`, `cmp` and `magick`; no module code is reused.
 3. The hollowknight builds copy the ~40 MB theme video each, so the number of builds is kept small.
 
@@ -43,7 +43,7 @@ loosen it. Cap 10 min (CI group heavy-b).
 | nier-automata, `use24HourClock = true` | Main.qml | not rewritten (no `hh:mm AP`) |
 | nier-automata | `sddm.theme` | `nier-automata` |
 | terraria `themeOptions.terraria.backgroundMode = "time"` | theme.conf | `background_mode=time` (controls: plain terraria and upstream keep `random`) |
-| nier-automata, `use24HourClock = false` | build | fails, log names the missing `"HH:mm"` clock |
+| nier-automata and terraria, `use24HourClock = false` | build | succeeds, Main.qml byte-identical to upstream, no `hh:mm AP`, build log has `clock left as the theme ships it` (controls: upstream has no `"HH:mm"`; the default theme's log has no such notice) |
 | image for hollowknight (video theme) | eval | fails: `must be a video` |
 | video for nier-automata (image theme) | eval | fails: `must be a picture` |
 | Genshin + background | eval | fails: no single bg.mp4/bg.png/background.png |

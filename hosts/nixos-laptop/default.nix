@@ -126,17 +126,15 @@ delib.host {
           {
             targetMonitor = "eDP-1";
 
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/fr0st-xyz/wallz/wallz-main/Nordic%20Blue/02.%20Nordic%20Blue.jpg";
-            wallpaperSHA256 = "0w7699lvxsvflxzb0xzml3cph6fgnl8pn707822jrdsh8h8lnpxa";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Vanta%20Black/bankai.jpg";
+            wallpaperSHA256 = "0mhvhq6fczkdgwhipsj6pvlwxi8xpck8bmzp6ikmsyv9s0h4w9q1";
 
-            videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/landscape/girl-desk-working.MP4";
-            videoSHA256 = "0q6asqgcq0n5va8210v5jhqlqw7nzw1i5wdr8cn8bccj316fnfgy";
           }
           {
             targetMonitor = "*";
 
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/fr0st-xyz/wallz/wallz-main/Nordic%20Blue/03.%20Nordic%20Blue.jpg";
-            wallpaperSHA256 = "1p55hqqmwrvr8xbsxk2z3brb5x3y7ywsckyvlcl431i7w37j15c3";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Vanta%20Black/gojo.png";
+            wallpaperSHA256 = "06b0mmhpykbd2d11jbf10w1qnr56i6x16zkmggb4y3c697wp1ldi";
 
             videoURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/various-videos-gifs/portrait/purple-car.mp4";
             videoSHA256 = "0g1gxwhwbg7brglwxg069ivacs33p7hmy4mn7gkz9zh4xlwrmag4";
@@ -148,10 +146,10 @@ delib.host {
         # ---------------------------------------------------------------
         theme = {
           polarity = "dark";
-          base16Theme = "catppuccin-mocha";
-          catppuccin = true;
+          base16Theme = "da-one-black";
+          catppuccin = false;
           catppuccinFlavor = "mocha";
-          catppuccinAccent = "sapphire";
+          catppuccinAccent = "mauve";
         };
 
         keyboardLayout = "us,it,de,fr";
@@ -585,7 +583,15 @@ delib.host {
           enable = false;
           inherit pinnedApps;
           monitors = [
-            { output = "eDP-1"; width = 3200; height = 2000; refresh = 120; scale = 1.0; x = 0; y = 0; }
+            {
+              output = "eDP-1";
+              width = 3200;
+              height = 2000;
+              refresh = 120;
+              scale = 1.0;
+              x = 0;
+              y = 0;
+            }
             { output = "*"; }
           ];
           touchpadTapToClick = true;
