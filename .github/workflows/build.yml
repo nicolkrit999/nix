@@ -1040,6 +1040,26 @@ jobs:
           # Run 1136's flake-check reported pushed=15 when exactly 14 paths went up.
           echo "pushed=$(grep -c '^Pushing /nix/store/' push.log || true)" >> "$GITHUB_OUTPUT"
 
+      # Pins the host's wallpaper/video/gif assets (system.build.wallpaperAssets)
+      # so cachix quota eviction cannot drop them: gitea is unreachable from the
+      # runners, so an evicted asset breaks the next cold run. The farm is
+      # pushed first because a pin needs its path to exist in the cache.
+      # Never fails the job; skipped without a token or after a failed build.
+      - name: Pin wallpaper assets (${{ matrix.host }})
+        id: cachix_pin
+        if: always() && steps.cachix_setup.outcome == 'success' && steps.build.outcome == 'success'
+        continue-on-error: true
+        env:
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        run: |
+          if [ -z "$CACHIX_AUTH_TOKEN" ]; then
+            echo "Skipping wallpaper pin: no auth token found (likely a fork)."
+            exit 0
+          fi
+          ASSETS=$(nix build '.#nixosConfigurations.${{ matrix.host }}.config.system.build.wallpaperAssets' --no-link --print-out-paths)
+          cachix push ${{ env.CACHIX_NAME }} "$ASSETS"
+          cachix pin ${{ env.CACHIX_NAME }} wallpaper-assets-${{ matrix.host }} "$ASSETS" --keep-revisions 1
+
       # Ordered directly after the Cachix push and before the diagnostic
       # steps: these two are the only things in the job that persist
       # anything, so nothing that merely prints information may run

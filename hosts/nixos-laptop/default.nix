@@ -132,8 +132,8 @@ delib.host {
           }
           {
             targetMonitor = "*";
-            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Pixel%20Dream/emerald.jpg";
-            wallpaperSHA256 = "0bvdi3ckdbimibq7s6axhpgvqp2gmqnym9hakgsw2dhqrwhd7ra1";
+            wallpaperURL = "https://gitea.nicolkrit.ch/krit/wallpapers-repo/raw/branch/main/various/other-user-github-repos/Maroc02/hyde-wallpapers-main/Vanta%20Black/gojo.png";
+            wallpaperSHA256 = "06b0mmhpykbd2d11jbf10w1qnr56i6x16zkmggb4y3c697wp1ldi";
           }
         ];
 

@@ -218,6 +218,20 @@ Two filters are applied:
   path every single run and nothing ever substitutes it, so left in it grows the
   cache without bound.
 
+### Wallpaper asset pin (`build-x86_64`, per host)
+
+After the push, the step `Pin wallpaper assets (<host>)` builds
+`nixosConfigurations.<host>.config.system.build.wallpaperAssets` (a `linkFarm`
+of every `fetchurl` in `constants.wallpapers` plus the fallback, defined by
+`modules/nixos/toplevel/cachix-wallpaper-pin.nix`, present only while
+`myconfig.cachix.enable`), pushes it and runs
+`cachix pin $CACHIX_NAME wallpaper-assets-<host> <path> --keep-revisions 1`.
+Why: the gitea origin is unreachable from the runners, so a quota-evicted asset
+breaks the next cold run; pinned paths are exempt from eviction. It is
+`continue-on-error`, skipped without a token or after a failed build, and the
+Darwin workflow does not use it. A changed asset list creates a new pin
+revision and the old one is dropped.
+
 ### 🔑 `pushed=0` is normal, not a failure
 
 On a warm run everything substitutes from `cache.nixos.org`, the upstream filter
