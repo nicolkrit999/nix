@@ -10,13 +10,13 @@ delib.module {
   options = with delib; moduleOptions {
     enable = boolOption false;
     identityFile = strOption "";
+    sftpServer = strOption "sudo -n /usr/lib/openssh/sftp-server";
   };
 
   nixos.ifEnabled =
     { cfg, myconfig, ... }:
     let
       nas = myconfig.krit.services.nas;
-      nasUser = "root";
       user = myconfig.constants.user;
       mountPoint = "${nas.mountRoot}/ssh/system_root";
       userCfg = config.users.users.${user};
@@ -40,7 +40,7 @@ delib.module {
       ];
 
       fileSystems."${mountPoint}" = {
-        device = "${nasUser}@${nas.tailnetIp}:/";
+        device = "${nas.user}@${nas.tailnetIp}:/";
         fsType = "fuse.sshfs";
         options = [
           "nofail"
@@ -53,6 +53,7 @@ delib.module {
           "gid=${toString config.users.groups.${userCfg.group}.gid}"
           "umask=022"
           "idmap=user"
+        ] ++ lib.optional (cfg.sftpServer != "") "sftp_server=${cfg.sftpServer}" ++ [
           "reconnect"
           "ServerAliveInterval=15"
           "Compression=yes"

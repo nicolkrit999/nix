@@ -1,15 +1,19 @@
 { delib, pkgs, lib, config, ... }:
 delib.module {
   name = "krit.services.nas.sshfs";
-  options = delib.singleEnableOption false;
+  options = with delib; moduleOptions {
+    enable = boolOption false;
+    sftpServer = strOption "sudo -n /usr/lib/openssh/sftp-server";
+  };
 
   darwin.ifEnabled =
-    { myconfig, ... }:
+    { cfg, myconfig, ... }:
     let
       nas = myconfig.krit.services.nas;
       user = myconfig.constants.user;
       home = config.users.users.${user}.home;
-      nasUser = "root";
+      nasUser = nas.user;
+      sftpOpt = lib.optionalString (cfg.sftpServer != "") " \\\n            -o ${lib.escapeShellArg "sftp_server=${cfg.sftpServer}"}";
 
       mountPoint = "${nas.mountRoot}/ssh/system_root";
 
@@ -83,7 +87,7 @@ delib.module {
             -o reconnect \
             -o ServerAliveInterval=15 \
             -o Compression=yes \
-            -o volname="NAS_Root"
+            -o volname="NAS_Root"${sftpOpt}
         '';
       };
     };

@@ -49,6 +49,7 @@ Values are compared against independent sources (sops secret paths, `users.users
 | sshfs-disabled-no-mount | sshfs mount exists only if sshfs is enabled (whether a host enables it is not asserted) |
 | sshfs-no-host-key-bypass | no `StrictHostKeyChecking` option on the sshfs mount (host key pinned in `programs.ssh.knownHosts`) |
 | sshfs-when-enabled / identity / same-host-as-smb | `fuse.sshfs`, automount, `IdentityFile=` is the `nas_ssh_key` sops path, same host as smb |
+| sshfs-nas-user-sudo-sftp | sshfs device logs in as `krit.services.nas.user` (not root, which the NAS sshd refuses) and `sftp_server=` starts the server through `sudo -n` |
 | davfs-count-matches-spaces / paths / automount / device-urls | one davfs mount per space under `/mnt/nicol_nas/webdav/opencloud/`, `noauto` + automount, https devices |
 | davfs-secrets-wired / university-0700 | `/etc/davfs2/secrets` sourced from the configured file; University dir 0700 |
 

@@ -135,6 +135,10 @@ let
     check-sshfs-identity = check
       (optVal "IdentityFile=" sshfsFs.options == withSshfs.sops.secrets.nas_ssh_key.path && optVal "IdentityFile=" sshfsFs.options != "")
       "IdentityFile= empty or not the nas_ssh_key sops path";
+    check-sshfs-nas-user-sudo-sftp = check
+      (lib.hasPrefix "${nasIdentity.user}@" sshfsFs.device && nasIdentity.user != "root"
+        && lib.hasPrefix "sudo -n " (optVal "sftp_server=" sshfsFs.options))
+      "sshfs device must log in as the NAS account (not root, sshd refuses root) and start the sftp server via sudo (device=${sshfsFs.device})";
     check-sshfs-no-host-key-bypass = check
       (!(lib.any (lib.hasInfix "StrictHostKeyChecking") sshfsFs.options))
       "sshfs options carry a StrictHostKeyChecking override (host key is pinned in programs.ssh.knownHosts)";
