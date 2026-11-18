@@ -223,7 +223,7 @@ Two filters are applied:
 After the push, the step `Pin wallpaper assets (<host>)` builds
 `nixosConfigurations.<host>.config.system.build.wallpaperAssets` (a `linkFarm`
 of every `fetchurl` in `constants.wallpapers` plus the fallback, defined by
-`modules/nixos/toplevel/cachix-wallpaper-pin.nix`, present only while
+`modules/common/toplevel/cachix.nix` (its `nixos.ifEnabled` block), present only while
 `myconfig.cachix.enable`), pushes it and runs
 `cachix pin $CACHIX_NAME wallpaper-assets-<host> <path> --keep-revisions 1`.
 Why: the gitea origin is unreachable from the runners, so a quota-evicted asset
