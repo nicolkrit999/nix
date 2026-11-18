@@ -17,3 +17,5 @@ Trap: for `__structuredAttrs` derivations `nix derivation show` puts the attrs u
 
 **Why:** per-incident package filters (noctalia, openlogi) never ended the timeouts.
 **How to apply:** if this test fails "uncached heavy entry" or "guard", add a stand-in in portal-common.nix or fix the fake host; never go back to building system.path/home.path. See [[ci-tests-narrow-substituters]].
+
+2026-11-18 (run 44324760695, heavy-a): "uncached heavy entry colord (mfsg..)" on 3 cases although the narinfo has existed since 2026-10-31 and the same lock passed heavy-a 1 h earlier. `_cached` in portal_share.py takes a single 404 HEAD as final and scan.json is shared by all cases, so one spurious cache.nixos.org 404 fails every case containing that path. Transient: rerun. Check first: `curl -sI` the narinfo + `last-modified`, and whether the lock changed since the last green heavy-a.
