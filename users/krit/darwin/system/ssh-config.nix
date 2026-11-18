@@ -1,7 +1,11 @@
-{ delib, ... }:
+{ delib, lib, ... }:
 delib.module {
   name = "krit.system.ssh-config";
-  options = delib.singleEnableOption false;
+  options = with delib; moduleOptions {
+    enable = boolOption false;
+    # Adds the `gateway` alias (UniFi Cloud Gateway Fiber console shell, root@192.168.1.1)
+    gatewayAlias = boolOption false;
+  };
 
   darwin.ifEnabled = _: {
     programs.ssh.knownHosts = {
@@ -12,7 +16,7 @@ delib.module {
   };
 
   home.ifEnabled =
-    { myconfig, ... }:
+    { cfg, myconfig, ... }:
     let
       nas = myconfig.krit.services.nas;
       sshDir = "/Users/${myconfig.constants.user}/.ssh";
@@ -43,6 +47,14 @@ delib.module {
           "github-school" = {
             HostName = "github.com";
             IdentityFile = "${sshDir}/id_school";
+            IdentitiesOnly = true;
+          };
+        } // lib.optionalAttrs cfg.gatewayAlias {
+          # Dedicated sops-managed id_gateway (not id_github); its pubkey must be in root's authorized_keys on the gateway.
+          "gateway" = {
+            HostName = "192.168.1.1";
+            User = "root";
+            IdentityFile = "${sshDir}/id_gateway";
             IdentitiesOnly = true;
           };
         };

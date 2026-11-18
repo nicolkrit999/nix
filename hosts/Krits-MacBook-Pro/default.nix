@@ -179,7 +179,10 @@ delib.host {
 
         system = {
           git-ssh-signing.enable = true;
-          ssh-config.enable = true;
+          ssh-config = {
+            enable = true;
+            gatewayAlias = true;
+          };
         };
       };
     };

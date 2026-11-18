@@ -102,15 +102,13 @@ delib.module {
       '' + "\n" + mkPeerExtra myconfig user peers + lib.optionalString cfg.gatewayAlias ''
 
       # UniFi Cloud Gateway Fiber console shell - convenience alias so
-      # `ssh gateway` works without -i. Key is a manually-generated,
-      # non-nix-managed ed25519 keypair whose pubkey is already in root's
-      # authorized_keys on the gateway (used for Wake-on-LAN tooling).
-      # Each host (desktop, laptop) has its own separate id_gateway_wol
-      # keypair - same path/filename, different key material per machine.
+      # `ssh gateway` works without -i. Uses the dedicated sops-managed id_gateway
+      # key (same on every host, deliberately NOT id_github); its pubkey must be
+      # in root's authorized_keys on the gateway (UniFi console > SSH keys).
       Host gateway
         HostName 192.168.1.1
         User root
-        IdentityFile /home/${myconfig.constants.user}/.ssh/id_gateway_wol
+        IdentityFile /home/${myconfig.constants.user}/.ssh/id_gateway
         IdentitiesOnly yes
     '';
 
@@ -130,7 +128,7 @@ delib.module {
             "gateway" = {
               HostName = "192.168.1.1";
               User = "root";
-              IdentityFile = "/home/${myconfig.constants.user}/.ssh/id_gateway_wol";
+              IdentityFile = "/home/${myconfig.constants.user}/.ssh/id_gateway";
               IdentitiesOnly = "yes";
             };
           };

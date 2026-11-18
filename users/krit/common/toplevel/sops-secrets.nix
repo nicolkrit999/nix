@@ -19,6 +19,21 @@ let
 
   commonSecretsText = builtins.readFile commonSecrets;
 
+  # Dedicated UniFi gateway key, separate from id_github; only declared once both keys exist in the yaml so the build never breaks before they are added.
+  hasGatewayKey = lib.hasInfix "gateway_ssh_key:" commonSecretsText && lib.hasInfix "gateway_ssh_pub:" commonSecretsText;
+
+  mkGatewaySecrets = homeDir: owner:
+    lib.optionalAttrs hasGatewayKey {
+      gateway_ssh_pub = {
+        sopsFile = commonSecrets;
+        path = "${homeDir}/.ssh/id_gateway.pub";
+      } // lib.optionalAttrs (owner != null) { inherit owner; };
+      gateway_ssh_key = {
+        sopsFile = commonSecrets;
+        path = "${homeDir}/.ssh/id_gateway";
+      } // lib.optionalAttrs (owner != null) { inherit owner; };
+    };
+
   mkZapfastGiphySecret = owner: zapfast:
     let
       name = zapfast.giphyKeySecret;
@@ -63,7 +78,7 @@ let
         owner = user;
         path = "${homeDir}/.ssh/id_github";
       };
-    };
+    } // lib.optionalAttrs personal (mkGatewaySecrets homeDir user);
 in
 delib.module {
   name = "krit.commonSopsSecrets";
@@ -149,7 +164,7 @@ delib.module {
           secrets = {
             github_general_ssh_pub.path = "${config.home.homeDirectory}/.ssh/id_github.pub";
             github_general_ssh_key.path = "${config.home.homeDirectory}/.ssh/id_github";
-          } // mkClaudeMcpSecrets null myconfig.krit.programs.claude-code-personal
+          } // mkGatewaySecrets config.home.homeDirectory null // mkClaudeMcpSecrets null myconfig.krit.programs.claude-code-personal
           // mkCfImageSecrets null myconfig.krit.programs.claude-code-personal;
         };
       })
