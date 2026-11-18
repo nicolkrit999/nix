@@ -696,7 +696,7 @@ delib.host {
         };
         sddm-qylock = {
           enable = true;
-          theme = "pixel-emeral";
+          theme = "pixel-emerald";
           use24HourClock = false; # 12h greeter clock
         };
         sddm-pixie = {
