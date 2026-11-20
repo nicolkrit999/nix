@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-Since 2026-10-18 `nixos-portal-routing` (moved heavy-c -> heavy-a, cap 15, ~3 min local warm) evaluates real hosts only and runs 6 slim fake-host cases. Portal data comes from `nix store ls --json -R --store https://cache.nixos.org` / `nix store cat` (0.1-0.4 s each, no closure download); repo-built portal pkgs use eval-asserted stand-ins (wlr overlay = stock + postFixup sed; mango meson install_data). Guard = empty chroot store + cache.nixos.org-only dry run of the build set, non-trivial will-be-built fails.
+Since 2026-10-18 `nixos-portal-routing` (folder templates/tests/nixos/test-portal-routing; moved heavy-c -> heavy-a, test.conf cap now 25 min after 871 s on 2026-11-12, ~3 min local warm before the ryoku case) evaluates real hosts only and runs 6 slim fake-host cases. Portal data comes from `nix store ls --json -R --store https://cache.nixos.org` / `nix store cat` (0.1-0.4 s each, no closure download); repo-built portal pkgs use eval-asserted stand-ins (wlr overlay = stock + postFixup sed; mango meson install_data). Guard = empty chroot store + cache.nixos.org-only dry run of the build set, non-trivial will-be-built fails.
 
 Final cause of the heavy-c timeouts: real profiles are ~1600 drvs each against cache.nixos.org alone; school spec added stylix-themed inkscape + gtksourceview4 after useGlobalPkgs (888c7b2b). Real gnome-shell/gnome-session are stylix-patched, never on cache.nixos.org.
 

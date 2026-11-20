@@ -1,3 +1,3 @@
 - [ifEnabled arg-scope gotcha](feedback_ifenabled_arg_scope.md) - denix ifEnabled only passes cfg/myconfig; pkgs/lib/config need top-level closure; mkOutOfStoreSymlink needs home-manager.users.<user>.lib.file path
-- [laptop IPU7 HAL CVS patches](project_laptop_ipu7_hal_cvs_patches.md) - nixos-laptop camera.nix pinned to specific upstream commits + 2 CVS-bridge patches; build-verified 2026-09-25, reboot verification still pending
+- [laptop IPU7 HAL CVS patches](project_laptop_ipu7_hal_cvs_patches.md) - Laptop IPU7 HAL pinned to upstream commits plus 2 CVS-bridge patches in camera.nix; link setup fixed, frames still black (upstream issue); kernel wake-irq patch now upstream
 - [Unstable tracking realities](project_unstable_tracking_realities.md) - single nixpkgs, pkgsStable pin arg, camera.nix minimal, Lua exec-once; Darwin untested

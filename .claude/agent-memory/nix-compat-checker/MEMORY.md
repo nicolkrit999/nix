@@ -1,2 +1,2 @@
-- [Darwin undeclared NixOS option definitions](darwin_undeclared_nixos_option_definitions.md) - common module defining a nixos-only option path breaks darwin eval even inside nixos.ifEnabled
-- [Ryoku aarch64 enable throws](ryoku-aarch64-enable-throws.md) - ryoku module inert on aarch64 but enabling throws; use an isx86_64 assertion in the spec
+- [Darwin undeclared NixOS option definitions](darwin_undeclared_nixos_option_definitions.md) - A shared module defining a NixOS-only option path breaks darwin eval even inside nixos.ifEnabled; put the definition in a NixOS-only file (neovim-mime.nix is the example)
+- [Ryoku aarch64 enable throws](ryoku-aarch64-enable-throws.md) - Ryoku upstream throws on aarch64 when enabled; the spec now asserts isX86 (landed, firing order unverified)

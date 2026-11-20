@@ -5,12 +5,12 @@ metadata:
   type: project
 ---
 
-hyprlock 0.9.6 (locked nixpkgs 39ad350). Lock screen background per host:
-- nixos-laptop (catppuccin=false): module renders `background { monitor= path=<'*' entry> }` (switch_swirl.jpg). This is the "always the * fallback" symptom.
-- nixos-desktop (catppuccin=true): `services.hyprlock` skips `settings` entirely (`optionalAttrs (!catppuccinEnabled)`), so the repo wallpaper code is inert there. Lock uses catppuccin's hyprlock.conf `background { path = $HOME/.config/background; color = $base }`. No repo module writes ~/.config/background and the file is absent on the live system. Expected solid $base colour (runtime not verified).
+Repo state (modules/nixos/services/hypr/hyprlock.nix): both branches now render wallpaper backgrounds from `myconfig.constants.wallpapers` via `mkBackgrounds`: one `background` block per non-`*` entry with a wallpaperURL (`monitor = targetMonitor`, zindex -1) plus a `monitor = ""` catch-all (the `*` entry, else `constants.fallbackWallpaperURL`; zindex -2).
+- catppuccin=false (laptop): `settings.background = mkBackgrounds bgLook` (blur 2, scrim brightness from the stylix scheme luma) plus own labels/image/input-field.
+- catppuccin=true (desktop): `catppuccin.hyprlock` with `useDefaultConfig = false`; `settings.source` = `catppuccinLockConf`, a runCommand copy of catppuccin's hyprlock.conf with its BACKGROUND block stripped (build fails if the theme layout changes), and `background` forced to `mkBackgrounds { blur_passes = 0; color = "$base"; }`.
 
-**Why:** the user's per-monitor wallpaper request depends on this split; the desktop needs a separate decision.
-**How to apply:** before touching lock wallpapers, confirm which branch the host takes (catppuccin flag) and read `hypr/hyprlock.conf` from the rendered HM config.
+**Why:** the user's per-monitor lock wallpaper request; the old desktop split (catppuccin conf drawing `$HOME/.config/background`, repo wallpapers inert) was replaced by this.
+**How to apply:** read `hypr/hyprlock.conf` from the rendered HM config before touching lock wallpapers; hyprlock version facts below were measured on 0.9.6, re-check after a bump.
 
 hyprlock source facts (v0.9.6, src/renderer/Renderer.cpp:402-425, config/ConfigManager.cpp:271):
 - Every output gets a lock surface and renders all matching widgets. Specific per-monitor backgrounds stack with `monitor=""` ones; no override logic.

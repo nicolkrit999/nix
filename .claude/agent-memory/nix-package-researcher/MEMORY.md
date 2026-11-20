@@ -1,13 +1,14 @@
 - [Vicinae bluetooth extension still blocked](vicinae_bluetooth_extension_blocked.md) - node-gyp sandbox issue #314 OPEN; flake still excludes extension; keep workaround
-- [Vicinae services→programs rename warning](vicinae_services_programs_rename_warning.md) - mkRenamedOptionModule self-warns; no upstream fix; removing empty themes={} won't help
+- [Vicinae services→programs rename warning](vicinae_services_programs_rename_warning.md) - services.vicinae to programs.vicinae rename warning is an upstream self-referential mkRenamedOptionModule artifact; not fixable in repo
 - [Secret Service upstream facts](project_secret_service_upstream_facts.md) - kwallet 3 switches, Plasma pull-in, portal Secret routing, xdp 1.22 UseIn is fallback-only; the 2026-10-09 gaps are now closed in the repo
-- [noctalia v5 upstream facts](noctalia_v5_upstream_facts.md) - bin `noctalia`, `noctalia msg` IPC, toml config stack, HM built-in + stylix target, pkgs.noctalia cached; input is 66 commits past tag; caelestia GUI breaks on store shell.json
-- [hyprlock lock background sources](project_hyprlock_lock_background_sources.md) - laptop shows * fallback, desktop uses catppuccin bg (module inert); hyprlock per-monitor stacking/zindex rules
+- [noctalia v5 upstream facts](noctalia_v5_upstream_facts.md) - noctalia 5.x facts: bin, msg IPC, config.toml stack, HM built-in programs.noctalia, stylix target; repo uses nixpkgs pkgs.noctalia (x86_64 only)
+- [hyprlock lock background sources](project_hyprlock_lock_background_sources.md) - hyprlock lock backgrounds: both catppuccin branches use mkBackgrounds from constants.wallpapers; desktop sources a background-stripped catppuccin conf; hyprlock 0.9.6 per-monitor stacking semantics
 - [Discord safeStorage token](reference_discord_safestorage_token.md) - official Discord keeps token via Electron safeStorage; backend switch can log out; pin with commandLineArgs
-- [COSMIC outputs.ron format](reference_cosmic_outputs_ron_format.md) - per-connected-set key in ~/.local/state/cosmic-comp/outputs.ron; no cosmic-manager outputs option; cosmic-randr 1.11.0 apply path
+- [COSMIC outputs.ron format](reference_cosmic_outputs_ron_format.md) - COSMIC outputs.ron format and cosmic-randr apply path; repo applies via the cosmic-monitors user service (cosmic-monitors.nix)
 - [KDE/GNOME display config persistence](reference_kde_gnome_display_config.md) - no declarative outputs option on either DE; kwinoutputconfig.json + monitors.xml schemas, kscreen-doctor syntax, Mutter 50.5 flags
-- [cosmic-manager panels/applets](reference_cosmic_manager_panels_applets.md) - panel options, app-list favorites, overwrite-on-activation, Virtual-1 output default, no dock option
+- [cosmic-manager panels/applets](reference_cosmic_manager_panels_applets.md) - cosmic-manager panel/applet option facts; repo uses panels + configFile autohide + pinnedApps favorites (cosmic-panels.nix)
 - [cosmic-manager theme palette schema](reference_cosmic_theme_palette_schema.md) - appearance.theme/toolkit tree, fixed palette slot names, Builder->cosmic-ctl build-theme, no catppuccin/stylix cosmic target
 - [Zen newtab policy handlers](reference_zen_newtab_policy_handlers.md) - Zen 1.24b honours FirefoxHome/Homepage policies verbatim; replace-newtab floating URL bar
-- [zen 7.3.4 boot panic](project_zen_7_3_4_boot_panic.md) - zen1 BH-worker NULL deref; zen2 (PR 586820) in nixos-unstable-small, not in locked unstable yet
-- [Ryoku-on-NixOS integration facts](ryoku_nixos_integration_facts.md) - Ryoku flake: forced/overridden NixOS options, materializer writes, HM collisions (niri/mango/kitty/fish), Mango gaps, ryotunes cache, no uwsm
+- [zen 7.3.4 boot panic](project_zen_7_3_4_boot_panic.md) - zen 7.3.4-zen1 boot panic; repo pins desktop kernel via the nixpkgs-kernel input (zen 7.2.15); drop the pin once locked nixpkgs has zen2+ (9ca0e988)
+- [Ryoku-on-NixOS integration facts](ryoku_nixos_integration_facts.md) - Ryoku-on-NixOS upstream behaviour reference (pre-adoption research 2026-11-12): forced options, materializer writes, HM collisions; now adopted as specializations.ryoku, see gotcha doc
+- [Vesktop screenshare DMA-BUF research](vesktop_screenshare_dmabuf_research.md) - Vesktop Wayland screenshare EGL_BAD_MATCH / DMA-BUF failures: upstream issue status and workaround evidence (2026-10-26); lock version not current

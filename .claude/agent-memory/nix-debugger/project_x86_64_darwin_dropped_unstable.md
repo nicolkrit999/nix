@@ -13,9 +13,11 @@ nixpkgs **unstable** removed `x86_64-darwin` support. Importing nixpkgs with
 the nixpkgs unstable release notes). The throw message points at a
 release-specific darwin nixpkgs branch as the escape hatch.
 
-**How to apply:** this hits the template flakes under `templates/krit/...` that
-pin FlakeHub `nixpkgs/0.1` (unstable) and list all four systems in
-`supportedSystems`. The repo itself now tracks nixos-unstable too, but only
+**How to apply:** this hit template flakes under `templates/krit/...` that
+pin FlakeHub `nixpkgs/0.1` (unstable) and listed `x86_64-darwin` in
+`supportedSystems`. The templates now list only x86_64-linux, aarch64-linux,
+aarch64-darwin, and `templates/tests/common/test-dev-env-templates` ("no template
+advertises x86_64-darwin") guards against it returning. The repo itself now tracks nixos-unstable too, but only
 `aarch64-darwin` is in use (Active Hosts table in CLAUDE.md); flake.nix still
 lists `x86_64-darwin` only in the `isDarwin` guard, which is harmless.
 Symptom: `nix flake check --all-systems` fails with a `throwIf` trace while plain
@@ -24,8 +26,7 @@ Symptom: `nix flake check --all-systems` fails with a `throwIf` trace while plai
 - Do **not** diagnose this as a broken package. Confirm by evaluating `hello`
   for `x86_64-darwin` against the same input - if that throws too, it is the
   platform removal.
-- Real fix when it matters: drop `"x86_64-darwin"` from that flake's
-  `supportedSystems`. Out of scope unless the user asks - pre-existing in every
-  affected template, not a regression from the change being debugged.
+- Real fix: drop `"x86_64-darwin"` from that flake's `supportedSystems` (and
+  devShells); a failure in a new template means someone re-added it.
 
 Related: [[pkgs-unstable-separate-config]] (the separate-nixpkgs-instance config trap).

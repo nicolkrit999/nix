@@ -5,7 +5,7 @@ metadata:
   type: feedback
 ---
 
-**2026-09-21 update:** the old `programs.waypaper` toggle (module file `waypaper.nix`, "waypaper --restore" exec branch, `linux-wallpaperengine` package) was fully removed and replaced by `programs.skwdWall` (module file `skwd-wall.nix`, option `myconfig.programs.skwdWall.enable`). This is not a like-for-like rename: skwdWall enabled means the WMs (hyprland/niri/mango) emit **no** wallpaper exec at all (skwd-walld owns it at runtime via a systemd service, `services.skwd-deck.enable`), and KDE swaps `programs.plasma.workspace.wallpaper` for `wallpaperCustomPlugin = { plugin = "org.skwd.wall.plasma"; }` plus installs `inputs.skwd-wall.packages.${pkgs.stdenv.hostPlatform.system}.skwd-paper-plasma`. GNOME is not part of this toggle at all - always static, unconditionally. All 15 `test-nixos-wallpapers` scenario dirs/files were renamed from `*waypaper*` to `*skwdwall*` and `mk-fake-host.nix`'s spec field renamed `waypaper` → `skwdWall`. See `skwdDeckEnabled`/`kdeWallpaperCustomPlugin` helpers added to `eval-scenario.nix` for asserting the new behavior.
+**2026-09-21 update:** the old `programs.waypaper` toggle (module file `waypaper.nix`, "waypaper --restore" exec branch, `linux-wallpaperengine` package) was fully removed and replaced by `programs.skwdWall` (module file `skwd-wall.nix`, option `myconfig.programs.skwdWall.enable`). This is not a like-for-like rename: skwdWall enabled means the WMs (hyprland/niri/mango) emit **no** wallpaper exec at all (skwd-walld owns it at runtime via a systemd service, `services.skwd-deck.enable`), and KDE swaps `programs.plasma.workspace.wallpaper` for `wallpaperCustomPlugin = { plugin = "org.skwd.wall.plasma"; }` plus installs `inputs.skwd-wall.packages.${pkgs.stdenv.hostPlatform.system}.skwd-paper-plasma`. GNOME is not part of this toggle at all - always static, unconditionally. The `test-nixos-wallpapers` scenario dirs/files were renamed from `*waypaper*` to `*skwdwall*` (the suite now has 36 numbered scenario dirs plus `shared/` and `asserts/`) and `shared/mk-fake-host.nix`'s spec field renamed `waypaper` → `skwdWall`. See `skwdDeckEnabled`/`kdeWallpaperCustomPlugin` helpers in `shared/eval-scenario.nix` for asserting the new behavior.
 
 **Former real bug, FIXED (verified 2026-10-11):** `kde-main.nix` used to look up `inputs.skwd-wall.packages.${pkgs.stdenv.hostPlatform.system}.skwd-paper-plasma` with no arch guard, and the skwd-wall flake only publishes `x86_64-linux`, so aarch64 + KDE + skwdWall failed with `attribute 'aarch64-linux' missing`. Now `skwdWallPlasmaAvailable = skwdWallActive && pkgs.stdenv.hostPlatform.isx86_64` gates both the package and `wallpaperCustomPlugin`; on aarch64 KDE falls back to the static `wallpaper` list. Scenario `06-aarch64-skwdwall` is the regression guard (asserts the package is absent, `kdeWallpaperCustomPlugin == null`, wallpaper list non-empty). Never weaken it; if the arch guard is dropped, route to nix-debugger.
 
@@ -13,7 +13,7 @@ metadata:
 
 `gnome-main.nix` and `kde-main.nix` both call `pkgs.fetchurl` inside `home.ifEnabled` to produce wallpaper store paths. This is safe in a pure `nix eval` / nix-tests context because fixed-output derivations compute their store path from the hash without fetching. No network access occurs during evaluation.
 
-For the wallpaper test suite (`test-nixos-wallpapers`), the `eval-scenario.nix` nixosPaths therefore includes:
+For the wallpaper test suite (`test-nixos-wallpapers`), the `shared/eval-scenario.nix` nixosPaths therefore includes:
 - `modules/nixos/toplevel/gnome.nix` (enable option)
 - `modules/nixos/toplevel/kde.nix` (enable option)
 - `modules/nixos/programs/de-wm/gnome/gnome-main.nix`
@@ -24,7 +24,7 @@ The GNOME background URI assertion checks `lib.hasPrefix "file:///nix/store/"` o
 
 **Why:** Without gnome/kde modules the DE invariant (always uses static wallpaperURL, never gifURL) cannot be tested. Including them is safe because eval doesn't build derivations.
 
-**How to apply:** Any future test that asserts on DE wallpaper config must add the gnome/kde toplevel + main modules to its eval-scenario nixosPaths. The kde-main.nix also needs `inputs.plasma-manager.homeModules.plasma-manager` imported - this happens via `nixos.always` inside kde-main itself.
+**How to apply:** Any future test that asserts on DE wallpaper config must add the gnome/kde toplevel + main modules to its `shared/eval-scenario.nix` nixosPaths. The kde-main.nix also needs `inputs.plasma-manager.homeModules.plasma-manager` imported - this happens via `nixos.always` inside kde-main itself.
 
 ## fetchurl store-path-suffix gotcha (found while adding mpvpaper/video coverage)
 

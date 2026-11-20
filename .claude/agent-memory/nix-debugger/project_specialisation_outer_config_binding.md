@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-`users/krit/nixos/specializations/school.nix` binds `c = config.myconfig.constants` at file top and uses `c.shell` inside `specialisation.school.configuration`. The spec does `myconfig.constants.shell = lib.mkForce "bash"`, but `c.shell` still evaluates to the host's `"fish"`, so the `lib.mkIf (c.shell == "bash")` shell hook was silently dropped (confirmed 2026-09-29 via `nix eval ...specialisation.school.configuration.home-manager.users.krit.programs.{bash.initExtra,fish.interactiveShellInit}`).
+`users/krit/nixos/specializations/school.nix` binds `c = config.myconfig.constants` at file top (still true) and the spec does `myconfig.constants.shell = lib.mkForce "bash"` (school.nix ~546). A `c.shell` read inside `specialisation.school.configuration` evaluated to the host's `"fish"`, so a `lib.mkIf (c.shell == "bash")` shell hook was silently dropped (confirmed 2026-09-29; that hook no longer exists in school.nix, the trap is generic via `nix eval ...specialisation.school.configuration.home-manager.users.krit.programs.{bash.initExtra,fish.interactiveShellInit}`).
 
 **Why:** the file-level `config` is the parent evaluation; the spec's overrides only exist in the nested configuration.
 **How to apply:** when a spec-only behavior "does nothing", check whether it branches on a constant the spec itself overrides; eval the nested spec attr path to confirm. Related: [[denix-ifenabled-arg-set]].

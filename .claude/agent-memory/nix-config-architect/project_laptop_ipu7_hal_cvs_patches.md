@@ -29,8 +29,7 @@ that source as needing re-fetch, not assumed-cached).
 patches fix the link setup (the `failed to setup Link` / `stream on failed:-38`
 errors are gone), but captured frames are still black. That remaining failure
 is an open upstream issue, not something this overlay can fix. The intel_cvs
-wake-irq kernel patch is still needed on 7.3-rc7 (recheck thesofproject/linux#5940
-at the next kernel bump). Camera overlay pins are still ahead of nixpkgs.
+wake-irq kernel patch is no longer in the repo (fix is upstream in 7.4-rc1). Camera overlay pins (camera.nix) are still present.
 
 **How to apply:** the source-fetch hashes and patch-fetchurl hashes are
 final/confirmed (re-resolved via `nurl`/`nix flake prefetch`). A real build of

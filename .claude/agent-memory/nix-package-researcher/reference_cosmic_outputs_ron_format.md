@@ -19,5 +19,7 @@ Apply path: `cosmic-randr` (nixpkgs 1.11.0, at /run/current-system/sw/bin/cosmic
 
 Live (2026-10-28, nixos-desktop): connected DP-1 (ASUS PG32UCDP, 3840x2160@240.016, scale 1.5, pos 1440,325, xwayland primary), DP-2 (LG 27GN950, 3840x2160@143.999, scale 1.5, rotate90, pos 0,0), HDMI-A-1 (JetKVM v1, disabled). Matching key is the 4-connector entry with JetKVM on HDMI-A-1.
 
+Repo implementation: modules/nixos/programs/de-wm/cosmic/cosmic-monitors.nix writes `~/.config/cosmic-monitors/plan` and a `cosmic-monitors` systemd user oneshot (ExecCondition: COSMIC session) that waits for `cosmic-randr list` then runs one `cosmic-randr` line per monitor (mode/disable) - i.e. the recommended cosmic-randr service, not a seeded outputs.ron.
+
 **Why:** the user asked for declarative monitor setup; the answer determines whether a Nix-declared file survives.
 **How to apply:** prefer a cosmic-randr user service or activation seed over a read-only home.file symlink; per-set keys mean each monitor combination needs its own entry.

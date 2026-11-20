@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-Researched 2026-10-14 at input a0ef2d02 (5.2.1). Port plan: ~/momentary/codebase-audit/batches/06-waybar-shells/noctalia-port-research.md.
+Researched 2026-10-14 (5.2.1, then via a flake input that has since been replaced by pkgs.noctalia). Port plan: ~/momentary/codebase-audit/batches/06-waybar-shells/noctalia-port-research.md.
 
 - Binary is `noctalia` (mainProgram). IPC is `noctalia msg <cmd>`. It exits 1 when the shell is not running, using socket `$XDG_RUNTIME_DIR/noctalia-$WAYLAND_DISPLAY.sock`.
 - Key commands:
@@ -19,14 +19,9 @@ Researched 2026-10-14 at input a0ef2d02 (5.2.1). Port plan: ~/momentary/codebase
   - There is no `--config` flag, and v4 config.json is not migrated.
 - Home-manager already has a built-in `programs.noctalia` (settings, customPalettes, checkConfig runs `noctalia config validate`). Do not import the flake's homeModules.default, because it disables the built-in.
 - The stylix `noctalia` HM target exists and is auto-enabled. It writes theme, palette, font and wallpaper. catppuccin-nix has no noctalia module.
-- Packaging:
-  - The flake builds for x86_64-linux and aarch64-linux only (no darwin).
-  - With `nixpkgs.follows` there is no cache hit, so it is a source compile (~18 min).
-  - nixpkgs `pkgs.noctalia` 5.2.1 at locked rev 39ad350a is cached on cache.nixos.org.
-
-- Flake input a0ef2d02 is NOT the v5.2.1 tag (6ef43e2b). It is 66 commits ahead (lock-screen PAM fixes, mango template, new options), but VERSION still says 5.2.1. Always run a `gh api compare` check before calling the two packages "identical". Build deps and wrapper match nixpkgs, and the lock screen uses the stock PAM `login` service, so no pam entry is needed.
+- Packaging: the repo uses nixpkgs `pkgs.noctalia` (modules/nixos/programs/shells/noctalia-main.nix, gated to x86_64) via the HM built-in `programs.noctalia`; there is no noctalia flake input any more. Upstream flake builds linux only (no darwin).
 - The GUI writes only to the state settings.toml and never to ~/.config (docs/user/configuration/index.mdx:115). Per-setting Reset falls back to the Nix value. Bars, calendar accounts and monitor tables declared in the config file cannot be deleted from the GUI.
 - Caelestia contrast: its GUI (nexus) writes ~/.config/caelestia/shell.json through QSaveFile. A HM store symlink therefore makes every save fail, so it stays install-only. Follow-up: ~/momentary/codebase-audit/batches/06-waybar-shells/noctalia-followup-research.md
 
 **Why:** the repo still had v4 `noctalia-shell ipc call` strings, and these facts took a full source read to establish.
-**How to apply:** re-verify the version and cache status after flake.lock bumps before reusing this.
+**How to apply:** re-verify the version after flake.lock bumps before reusing the IPC/config facts.
