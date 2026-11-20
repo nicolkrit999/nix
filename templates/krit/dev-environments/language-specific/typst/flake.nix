@@ -28,15 +28,17 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              typst
-              typstyle
-              typstwriter
-              tinymist
-              prettypst
-              utpm
-              zathura
-            ];
+            packages =
+              with pkgs;
+              [
+                typst
+                typstyle
+                typstwriter
+                tinymist
+                prettypst
+                utpm
+              ]
+              ++ lib.optionals stdenv.hostPlatform.isLinux [ zathura ];
 
             # dev-env status banner: tool versions and a ready/incomplete verdict on entry
             shellHook = ''
@@ -94,7 +96,9 @@
               check "Tinymist" "command -v tinymist >/dev/null && echo installed"
               check "prettypst" "command -v prettypst >/dev/null && echo installed"
               check "UTPM" "utpm --version"
-              check "Zathura" "zathura --version"
+              ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
+                check "Zathura" "zathura --version"
+              ''}
               check_done
             '';
           };

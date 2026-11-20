@@ -26,14 +26,16 @@
         { pkgs }:
         {
           default = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              latex2mathml
-              pandoc
-              texliveFull
-              texlab
-              tectonic
-              zathura
-            ];
+            packages =
+              with pkgs;
+              [
+                latex2mathml
+                pandoc
+                texliveFull
+                texlab
+                tectonic
+              ]
+              ++ lib.optionals stdenv.hostPlatform.isLinux [ zathura ];
 
             # status banner on entry
             shellHook = ''
@@ -91,7 +93,9 @@
               check "texlab"       "texlab --version"
               check "Pandoc"       "pandoc --version"
               check "latex2mathml" "command -v latex2mathml >/dev/null && echo installed"
-              check "Zathura"      "zathura --version"
+              ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
+                check "Zathura"      "zathura --version"
+              ''}
               check_done
             '';
           };

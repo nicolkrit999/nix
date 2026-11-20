@@ -81,7 +81,7 @@ How the stubs behave:
 - `systemd-run` saves its argv. Like real `systemd-inhibit`, it turns every nested `systemd-inhibit --what= --mode= --who=` into a listed lock.
 - Each stub accepts only the exact argument shapes the scripts should send, and logs anything else as `bad-args`.
 - `systemctl suspend|hibernate|poweroff|reboot|halt|...`, `loginctl lock-*|terminate-*|kill-*`, and the binaries `hyprctl`, `hyprlock`, `swaylock`, `poweroff`, `reboot`, `shutdown`, `halt`, `brightnessctl`, `wlopm`, `xset`, `systemd-sleep` and `wlr-randr` are logged as `FORBIDDEN`.
-- `logger -t coffee -p user.<prio> -- <line>` writes to a journal file, and `notify-send` and `pkill` are logged.
+- `logger -t coffee -p user.<prio> -- <line>` writes to a journal file, and `notify-send` (only as `-a coffee -u low <summary> <body>`) and `pkill` are logged.
 
 Knobs make `systemd-run` refuse, make it start without the locks appearing (SSH: logind refuses), make `stop` fail, and make `enable-linger` or `notify-send` fail.
 

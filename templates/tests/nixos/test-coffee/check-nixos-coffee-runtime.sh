@@ -172,8 +172,8 @@ STUB
 
 cat >"$STUBS/notify-send" <<'STUB'
 #!/usr/bin/env bash
-[[ $# -eq 4 && $1 == -a && $2 == coffee ]] || { echo "bad-args notify-send $*" >>"$CF_S/calls"; exit 64; }
-echo "notify-send $3" >>"$CF_S/calls"
+[[ $# -eq 6 && $1 == -a && $2 == coffee && $3 == -u && $4 == low ]] || { echo "bad-args notify-send $*" >>"$CF_S/calls"; exit 64; }
+echo "notify-send $5" >>"$CF_S/calls"
 [[ $(cat "$CF_S/notify-mode") != fail ]]
 STUB
 
