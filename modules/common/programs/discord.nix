@@ -45,7 +45,15 @@ delib.module {
       enable = true;
       discord.vencord.enable = cfg.mod == "vencord";
       discord.equicord.enable = cfg.mod == "equicord";
-      discord.package = lib.mkIf pkgs.stdenv.hostPlatform.isLinux nixpkgsDiscord;
+      discord.package =
+        if pkgs.stdenv.hostPlatform.isLinux then
+          nixpkgsDiscord
+        else
+          pkgs.callPackage "${inputs.nixcord}/pkgs/discord" {
+            openasar = pkgs.openasar.overrideAttrs (old: {
+              postPatch = builtins.replaceStrings [ "--replace-fail" ] [ "--replace-quiet" ] old.postPatch;
+            });
+          };
     };
   };
 }

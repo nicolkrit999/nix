@@ -48,3 +48,4 @@
 - [Test controls coupled to host toggles](project_test_controls_host_toggle_coupling.md) - red "control:" check after a host disables a module = test coupling; move control onto a mkForce variant
 - [Fixture paths miss new krit layer](project_fixture_paths_miss_new_krit_layer.md) - generic->krit refactor adds a new users/krit file; hand-listed fake-host paths drop it (app-resolution neovim-mime)
 - [Darwin CI cold rebuild = cachix eviction](project_darwin_ci_cold_rebuild_eviction.md) - same toplevel drv but narinfo 404 -> full rebuild; silent log = both max-jobs slots hung (herdr zig fetchDeps)
+- [nixcord darwin openasar patch](project_nixcord_darwin_openasar_patch.md) - darwin discord = nixcord pkgs/discord + its openasar.patch vs nixpkgs postPatch --replace-fail; Linux never builds it; repro on Linux
