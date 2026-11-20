@@ -35,7 +35,7 @@ SDDM: the exclusivity check is split from the wiring check because enabling both
 ### Both real hosts
 | Check | Expected |
 |-------|----------|
-| hypridle listeners | exactly 3 listeners; each `on-timeout` is `<nix-busy> && exit 0; <cmd>` with one shared guard script and a non-`exit` command; dim uses brightnessctl, lock runs `loginctl lock-session`, screen-off switches dpms off; no `on-resume` behind the guard; timeouts equal the hypridle options and strictly increase; `before_sleep_cmd` is `loginctl lock-session`; `lock_cmd` is a `universal-lock` package in `home.packages`; every `on-timeout` appears in the generated `hypridle.conf` |
+| hypridle listeners | exactly 3 listeners plus the host's `extraListeners` (the laptop's keyboard-backlight record/relight listener, appended after the guarded three and compared to the option); each `on-timeout` is `<nix-busy> && exit 0; <cmd>` with one shared guard script and a non-`exit` command; dim uses brightnessctl, lock runs `loginctl lock-session`, screen-off switches dpms off; no `on-resume` behind the guard; timeouts equal the hypridle options and strictly increase; `before_sleep_cmd` is `loginctl lock-session`; `lock_cmd` is a `universal-lock` package in `home.packages`; every `on-timeout` appears in the generated `hypridle.conf` |
 | busy guard body | contains `pgrep`, matches nix build and nixos-rebuild, has no `\|\| true`, explicit `exit` or `set -e` |
 | hyprlock | `security.pam.services.hyprlock` present with a WM enabled, absent with all WMs off |
 | swaync | Hyprland-only twin: `services.swaync.enable` true without a shell, false with noctalia active on Hyprland |
@@ -49,6 +49,8 @@ SDDM: the exclusivity check is split from the wiring check because enabling both
 ### Controls (must be flagged)
 | Control | Expected |
 |---------|----------|
+| single hypridle | no unit other than `hypridle` runs hypridle (a second instance would own `org.freedesktop.ScreenSaver` and swallow every D-Bus idle inhibit) and no leftover `kbd-backlight-relight` unit |
+| second hypridle unit twin | the single-hypridle check reports a problem |
 | unguarded listeners twin | hypridle check reports a problem |
 | bodies with `\|\| true`, `exit 0`, no pgrep | busy-body check reports each |
 | linger list emptied, stale text replaced | linger check reports; with the real `coffee-on.sh` text the emptied twin is accepted |

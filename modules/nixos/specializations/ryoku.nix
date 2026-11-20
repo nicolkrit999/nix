@@ -313,7 +313,12 @@ delib.module {
       {
         system.nixos.tags = [ "ryoku" ];
 
-        imports = [ desktopsOff ];
+        imports = [
+          desktopsOff
+          (lib.optionalAttrs (lib.hasAttrByPath [ "myconfig" "services" "media-idle-inhibit" ] options) {
+            myconfig.services.media-idle-inhibit.ryokuSession = true;
+          })
+        ];
 
         myconfig.constants = {
           user = lib.mkForce ryokuUser;
@@ -411,7 +416,6 @@ delib.module {
           ];
 
           user.services = {
-            kbd-backlight-relight.enable = lib.mkForce false;
             niri-flake-polkit.enable = lib.mkForce false;
             ryoku-fastfetch-emblem-seed = lib.mkIf (cfg.fastfetchEmblem != null) {
               description = "Seed the declared Ryoku fastfetch emblem through the Hub import";

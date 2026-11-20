@@ -180,6 +180,12 @@ The apps opened for each file family are picked per host: the constants `termina
 
 ---
 
+## Media Keeps the Session Awake
+
+`services.media-idle-inhibit` (on by default) stops the screen from dimming, locking or switching off while video or audio is playing on Hyprland, Niri, Mango and the Ryoku specialisation. A small user service watches PipeWire and tells hypridle (through the `org.freedesktop.ScreenSaver` D-Bus interface, or the Wayland idle-inhibit protocol if you pick that backend) to hold off. It is an idle inhibit only: manual suspend, closing the lid and the power key still work, and coffee mode behaves as before. You can ignore chosen apps and restrict it to chosen sinks.
+
+---
+
 ## Power Button Locks the Session
 
 `services.powerKeyLock` (opt-in, default off; the laptop enables it, the desktop keeps the logind default of powering off) turns a short press of the power button into a session lock on every desktop the repo supports, including ones no host enables, so any desktop enabled later on a host with the option works directly: logind `HandlePowerKey = "lock"` plus the per-session override where the desktop takes the key itself (Niri, GNOME, KDE Plasma, COSMIC). A long press still powers the machine off. Coffee mode does not block it.

@@ -31,7 +31,9 @@ let
     let
       h = hm cfg;
       s = h.services.hypridle.settings;
-      ls = s.listener;
+      all = s.listener;
+      ls = lib.take 3 all;
+      extras = lib.drop 3 all;
       opt = cfg.myconfig.services.hypridle;
       guards = map guardOf ls;
       busyPaths = lib.unique (map (g: if g == null then "none" else builtins.head g) guards);
@@ -39,7 +41,9 @@ let
       lockPkgOk = builtins.any (p: "${p}/bin/universal-lock" == s.general.lock_cmd) h.home.packages;
       cmdAfter = i: let g = guardOf (builtins.elemAt ls i); in if g == null then "" else builtins.elemAt g 1;
     in
-    if builtins.length ls != 3 then [ "expected 3 listeners, got ${toString (builtins.length ls)}" ] else
+    if builtins.length all != 3 + builtins.length opt.extraListeners then [ "expected 3 listeners plus ${toString (builtins.length opt.extraListeners)} extra, got ${toString (builtins.length all)}" ] else
+    (lib.optional (extras != opt.extraListeners) "listeners after the third are not exactly extraListeners")
+    ++
     (lib.optional (builtins.any (g: g == null) guards) "a listener on-timeout is not '<nix-busy> && exit 0; <command>'")
     ++ (lib.optional (builtins.length busyPaths != 1) "listeners use different guards: ${builtins.toJSON busyPaths}")
     ++ (map (cmd: "on-timeout command after the guard is empty or starts with exit: ${cmd}") (builtins.filter (cmd: cmd == "" || lib.hasPrefix "exit" cmd) (map (g: if g == null then "" else builtins.elemAt g 1) guards)))
@@ -53,6 +57,16 @@ let
     ++ (lib.optional (s.general.before_sleep_cmd != "loginctl lock-session") "before_sleep_cmd is ${s.general.before_sleep_cmd}")
     ++ (lib.optional (!lockPkgOk) "lock_cmd ${s.general.lock_cmd} is not a universal-lock package in home.packages")
     ++ (map (l: "on-timeout missing from generated hypridle.conf: ${l.on-timeout}") (builtins.filter (l: !(lib.hasInfix (builtins.unsafeDiscardStringContext l.on-timeout) (builtins.unsafeDiscardStringContext conf))) ls));
+
+  singleHypridleProblems = cfg:
+    let
+      units = (hm cfg).systemd.user.services // cfg.systemd.user.services;
+      execs = lib.mapAttrsToList (n: u: { inherit n; exec = toString (u.Service.ExecStart or u.serviceConfig.ExecStart or ""); }) units;
+      second = builtins.filter (e: lib.hasInfix "hypridle" e.exec && e.n != "hypridle") execs;
+      kbdUnit = builtins.filter (n: lib.hasInfix "kbd-backlight-relight" n) (builtins.attrNames units);
+    in
+    (map (e: "a second unit runs hypridle (would own org.freedesktop.ScreenSaver and swallow inhibits): ${e.n}") second)
+    ++ (map (n: "leftover relight unit ${n}") kbdUnit);
 
   busyScript = cfg:
     let g = guardOf (builtins.head (hm cfg).services.hypridle.settings.listener); in
@@ -133,9 +147,15 @@ let
     ];
   }];
 
+  secondHypridle = twin [{
+    systemd.user.services.kbd-extra.serviceConfig.ExecStart = "/bin/hypridle -c /x.conf";
+  }];
+
   checks = {
     "hypridle: three guarded listeners, ordered timeouts matching the options, lock chain consistent" = failIf (idleProblems c);
     "hypridle: busy guard script returns pgrep's status (on-timeout reached when not busy)" = failIf (busyProblems c);
+    "hypridle: exactly one hypridle instance (no second unit that could own org.freedesktop.ScreenSaver)" = failIf (singleHypridleProblems c);
+    "control(hypridle): a second hypridle unit is detected" = detects "second unit" (singleHypridleProblems secondHypridle);
     "control(hypridle): unguarded listeners are detected" = detects "no guard" (idleProblems unguarded);
     "control(busy): '|| true' body is detected" = detects "|| true" (busyBodyProblems "#!/bin/bash\npgrep -f 'nix.build|nixos-rebuild' > /dev/null || true\n");
     "control(busy): explicit exit 0 is detected" = detects "exit 0" (busyBodyProblems "#!/bin/bash\npgrep -f 'nix.build|nixos-rebuild' > /dev/null\nexit 0\n");

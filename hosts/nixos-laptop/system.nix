@@ -71,17 +71,17 @@ let
       touch "$XDG_RUNTIME_DIR/touchpad-haptics-rebound"
     '';
   };
-
-  kbdIdleConfig = pkgs.writeText "hypridle-kbd-backlight.conf" ''
-    listener {
-      timeout = 50
-      on-timeout = ${kbdRecord}/bin/kbd-backlight-record
-      on-resume = ${kbdRelight}/bin/kbd-backlight-relight
-    }
-  '';
 in
 delib.host {
   name = "nixos-laptop";
+
+  myconfig.services.hypridle.extraListeners = [
+    {
+      timeout = 50;
+      on-timeout = "${kbdRecord}/bin/kbd-backlight-record";
+      on-resume = "${kbdRelight}/bin/kbd-backlight-relight";
+    }
+  ];
 
   nixos = {
     system.stateVersion = "25.11";
@@ -207,19 +207,6 @@ delib.host {
         serviceConfig = {
           Type = "oneshot";
           ExecStart = "${touchpadRebindTrigger}/bin/touchpad-haptics-rebind-trigger";
-        };
-      };
-
-      user.services.kbd-backlight-relight = {
-        description = "Relight the keyboard backlight after the firmware idle auto-off";
-        wantedBy = [ "graphical-session.target" ];
-        partOf = [ "graphical-session.target" ];
-        after = [ "graphical-session.target" ];
-        unitConfig.ConditionPathExistsGlob = "/sys/class/leds/*::kbd_backlight";
-        serviceConfig = {
-          ExecStart = "${pkgs.hypridle}/bin/hypridle -c ${kbdIdleConfig}";
-          Restart = "on-failure";
-          RestartSec = "5s";
         };
       };
     };

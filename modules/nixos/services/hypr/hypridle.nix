@@ -11,6 +11,7 @@ delib.module {
     dimTimeout = intOption 300;
     lockTimeout = intOption 330;
     screenOffTimeout = intOption 360;
+    extraListeners = listOfOption (lib.types.attrsOf lib.types.anything) [ ];
   };
 
   home.ifEnabled =
@@ -123,7 +124,7 @@ delib.module {
               on-timeout = "${busyGuard}; ${dpmsOff}";
               on-resume = dpmsOn;
             }
-          ];
+          ] ++ cfg.extraListeners;
         };
       };
     };

@@ -144,7 +144,7 @@ let
   xcursorEntry = "XCURSOR_PATH=/run/current-system/sw/share/icons";
   cursorPkg = base.myconfig.specializations.ryoku.sddmCursorPackage;
 
-  kbdInBase = base.systemd.user.services ? kbd-backlight-relight && base.systemd.user.services.kbd-backlight-relight.enable;
+  kbdInBase = hy.enable && lib.any (l: lib.hasInfix "kbd-backlight-relight" (l.on-resume or "")) hy.extraListeners;
   jetInBase = baseHm.systemd.user.services ? hyprland-jetkvm-teardown;
   hostUnits = kbdInBase || jetInBase;
 
@@ -243,15 +243,15 @@ let
           && lib.all (k: lib.toList (spec.xdg.portal.config.${k}."org.freedesktop.impl.portal.Secret" or [ ]) == [ "gnome-keyring" ]) (lib.attrNames spec.xdg.portal.config)
           && lib.all (k: spec.xdg.portal.config ? ${k}) [ "hyprland" "niri" "mango" ]);
 
-    "ryoku: host units that clash with the Ryoku session are disabled or absent in the spec (kbd-backlight-relight, niri-flake-polkit, hyprland-jetkvm-teardown)" =
+    "ryoku: host idle/session hooks that clash with the Ryoku session are off or absent in the spec (hypridle with the kbd-backlight-relight listener, niri-flake-polkit, hyprland-jetkvm-teardown)" =
       let
         svc = spec.systemd.user.services;
         offOrAbsent = n: !(svc ? ${n}) || svc.${n}.enable == false;
       in
-      yes "kbd ${builtins.toJSON (offOrAbsent "kbd-backlight-relight")}, polkit ${builtins.toJSON (offOrAbsent "niri-flake-polkit")}, jetkvm in spec home ${builtins.toJSON (hm.systemd.user.services ? hyprland-jetkvm-teardown)}"
-        (offOrAbsent "kbd-backlight-relight" && offOrAbsent "niri-flake-polkit" && !(hm.systemd.user.services ? hyprland-jetkvm-teardown));
-    "control: this host defines at least one unit the spec must disable (kbd-backlight-relight or hyprland-jetkvm-teardown)" =
-      yes "neither unit is defined by this host any more: drop the matching spec override" hostUnits;
+      yes "spec hypridle ${builtins.toJSON spec.myconfig.services.hypridle.enable}, kbd unit ${builtins.toJSON (offOrAbsent "kbd-backlight-relight")}, polkit ${builtins.toJSON (offOrAbsent "niri-flake-polkit")}, jetkvm in spec home ${builtins.toJSON (hm.systemd.user.services ? hyprland-jetkvm-teardown)}"
+        (!spec.myconfig.services.hypridle.enable && offOrAbsent "kbd-backlight-relight" && offOrAbsent "niri-flake-polkit" && !(hm.systemd.user.services ? hyprland-jetkvm-teardown));
+    "control: this host defines at least one hook the spec must drop (the kbd-backlight-relight hypridle listener or hyprland-jetkvm-teardown)" =
+      yes "neither hook is defined by this host any more: drop the matching spec override" hostUnits;
     "ryoku: /var/lib/ryoku is persisted in the spec when impermanence is on, and only there" =
       yes "impermanence ${builtins.toJSON base.myconfig.services.impermanence.enable}, spec ${builtins.toJSON (lib.elem "/var/lib/ryoku" (persist spec))}, base ${builtins.toJSON (lib.elem "/var/lib/ryoku" (persist base))}"
         (if base.myconfig.services.impermanence.enable then lib.elem "/var/lib/ryoku" (persist spec) && !(lib.elem "/var/lib/ryoku" (persist base)) else true);
@@ -515,6 +515,10 @@ let
       eq "matugen" matugenCfg { mode = bc.theme.polarity; schemeType = "scheme-expressive"; prefer = "darkness"; contrast = 0; };
     "matugen: the shell and ryogami modes agree with the polarity (shell capitalised)" =
       eq "modes" [ declared_.shell.theme.matugen.mode declared_.ryogami.matugen.mode ] [ (lib.toUpper (lib.substring 0 1 bc.theme.polarity) + lib.substring 1 (-1) bc.theme.polarity) bc.theme.polarity ];
+    "idle: the spec runs media-idle-inhibit (dbus backend) in the ryoku session, ordered after ryoku-idle, so Ryoku's hypridle sees media as an inhibitor" =
+      eq "unit" [ (hm.systemd.user.services.media-idle-inhibit.Install.WantedBy or null) (hm.systemd.user.services.media-idle-inhibit.Unit.After or [ ]) ] [ [ "ryoku-session.target" ] [ "ryoku-session.target" "pipewire.service" "hypridle.service" "ryoku-idle.service" ] ];
+    "idle: the base keeps its own media-idle-inhibit unit, not wired to ryoku-session.target" =
+      yes "base unit" (!(lib.elem "ryoku-session.target" (baseHm.systemd.user.services.media-idle-inhibit.Install.WantedBy or [ ])));
     "home: myconfig.specializations.ryoku.user and .home equal the spec user's account and home" =
       eq "user/home" [ base.myconfig.specializations.ryoku.user base.myconfig.specializations.ryoku.home ] [ ryokuUser home ];
     "launcher: heroImage is file:// plus the ryoku home plus the wallpaper path" =

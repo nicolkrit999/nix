@@ -691,6 +691,8 @@ delib.host {
           screenOffTimeout = 600;
         };
 
+        media-idle-inhibit.enable = true;
+
         sddm-astronaut = {
           enable = false;
           embeddedTheme = "hyprland_kath";

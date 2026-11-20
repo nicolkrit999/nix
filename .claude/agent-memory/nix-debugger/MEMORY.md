@@ -50,3 +50,4 @@
 - [Darwin CI cold rebuild = cachix eviction](project_darwin_ci_cold_rebuild_eviction.md) - same toplevel drv but narinfo 404 -> full rebuild; silent log = both max-jobs slots hung (herdr zig fetchDeps)
 - [nixcord darwin openasar patch](project_nixcord_darwin_openasar_patch.md) - darwin discord = nixcord pkgs/discord + its openasar.patch vs nixpkgs postPatch --replace-fail; Linux never builds it; repro on Linux
 - [appstream wayland darwin regression](project_appstream_wayland_darwin_regression.md) - appstream 1.2.3 unconditional wayland breaks zathura eval on darwin (availableOn blind); latex/typst templates gate zathura
+- [optionalAttrs leaf guard trap](project_optionalattrs_leaf_guard_trap.md) - `a.b.c = optionalAttrs false {..}` still defines a.b.c={} -> "option does not exist" in fixtures; guard via imports module

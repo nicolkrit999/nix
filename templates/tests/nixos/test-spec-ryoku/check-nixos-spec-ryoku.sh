@@ -14,7 +14,7 @@ REPO_ROOT="$(cd "$DIR/../../../.." && pwd)"
 export FLAKE_ROOT="${FLAKE_ROOT:-$REPO_ROOT}"
 REAL="$DIR/01-scenario-spec-ryoku-real.nix"
 FIXTURE="$DIR/02-scenario-spec-ryoku-fixture.nix"
-MIN_CHECKS=437
+MIN_CHECKS=441
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
