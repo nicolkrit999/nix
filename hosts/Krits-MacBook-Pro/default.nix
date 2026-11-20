@@ -106,7 +106,10 @@ delib.host {
         };
 
         codex.enable = false;
-        herdr.enable = true;
+        # Disabled: CI-only host, and herdr (herdr-nix) has no aarch64-darwin
+        # cache, so a cold run builds herdr-core/-tui/-app from source; their
+        # zig fetchDeps network fetches hung CI until the 150-minute timeout.
+        herdr.enable = false;
         npm = {
           enable = true;
           packages = [

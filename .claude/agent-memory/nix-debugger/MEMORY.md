@@ -48,3 +48,4 @@
 - [Test controls coupled to host toggles](project_test_controls_host_toggle_coupling.md) - red "control:" check after a host disables a module = test coupling; move control onto a mkForce variant
 - [Fixture paths miss new krit layer](project_fixture_paths_miss_new_krit_layer.md) - generic->krit refactor adds a new users/krit file; hand-listed fake-host paths drop it (app-resolution neovim-mime)
 - [laptop audio dead on 7.4-rc2](project_laptop_audio_74rc2_num_components.md) - devm_kzalloc_flex presets __counted_by num_components; "(null) Speaker Volume -22"; fix d00ba321499c (post-rc2)
+- [Darwin CI cold rebuild = cachix eviction](project_darwin_ci_cold_rebuild_eviction.md) - same toplevel drv but narinfo 404 -> full rebuild; silent log = both max-jobs slots hung (herdr zig fetchDeps)
