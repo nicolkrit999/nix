@@ -180,6 +180,10 @@ The apps opened for each file family are picked per host: the constants `termina
 
 ---
 
+## Power Button Locks the Session
+
+`services.powerKeyLock` (opt-in, default off; the laptop enables it, the desktop keeps the logind default of powering off) turns a short press of the power button into a session lock on every desktop the repo supports, including ones no host enables, so any desktop enabled later on a host with the option works directly: logind `HandlePowerKey = "lock"` plus the per-session override where the desktop takes the key itself (Niri, GNOME, KDE Plasma, COSMIC). A long press still powers the machine off. Coffee mode does not block it.
+
 ## Clock and Date Format
 
 A host picks its clock and date format independently of the language of its numbers and units. `services.locale` sets each glibc locale category on its own (every category defaults to `en_US.UTF-8`); the hosts keep the Italian-Swiss numbers, currency, units and paper, and set the time category (`LC_TIME`) to `en_IN`, which gives a 12-hour clock with AM/PM and day-month-year dates with English names. One locale carries the clock and the date order together, so they cannot be split.

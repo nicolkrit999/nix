@@ -1,5 +1,6 @@
 { delib
 , pkgs
+, lib
 , ...
 }:
 delib.module {
@@ -13,8 +14,13 @@ delib.module {
       primaryWp = myconfig.constants.primaryWallpaper;
       useFallback = primaryWp.wallpaperURL == "";
       idleTimeout = myconfig.services.hypridle.lockTimeout;
+      powerKeyLock = myconfig.services.powerKeyLock.enable or false;
     in
     {
+      programs.plasma.powerdevil = lib.mkIf powerKeyLock (lib.genAttrs [ "AC" "battery" "lowBattery" ] (_: {
+        powerButtonAction = "lockScreen";
+      }));
+
       programs.plasma.kscreenlocker = {
         timeout = idleTimeout / 60;
 

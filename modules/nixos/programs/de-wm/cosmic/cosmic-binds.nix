@@ -17,6 +17,8 @@ let
     { key = "Super+Shift+Delete"; variant = "LogOut"; name = "Log out"; }
   ];
 
+  powerKeyBind = { key = "XF86PowerOff"; variant = "LockScreen"; name = "Lock session (power button)"; };
+
   fixedKeys = [
     "Super+Return"
     "Super+B"
@@ -45,9 +47,9 @@ delib.module {
   name = "programs.cosmic";
 
   nixos.ifEnabled =
-    { cfg, ... }:
+    { cfg, myconfig, ... }:
     let
-      activeKeys = map normKey (fixedKeys ++ map (b: b.key) (lib.attrValues cfg.extraBinds));
+      activeKeys = map normKey (fixedKeys ++ lib.optional (myconfig.services.powerKeyLock.enable or false) powerKeyBind.key ++ map (b: b.key) (lib.attrValues cfg.extraBinds));
     in
     {
       assertions = [
@@ -181,7 +183,7 @@ delib.module {
         shortcuts =
           map mkBind (lib.attrValues (baseBinds // screenshotBinds // vicinaeBinds // cfg.extraBinds))
           ++ map mkWindowBind windowBinds
-          ++ map mkSystemBind systemBinds
+          ++ map mkSystemBind (systemBinds ++ lib.optional (myconfig.services.powerKeyLock.enable or false) powerKeyBind)
           ++ map mkDisable cfg.disabledDefaults;
       };
     };

@@ -42,7 +42,7 @@ Still working while coffee is on (deliberate actions and emergencies):
 - manual `systemctl suspend` / `systemctl hibernate` (a weak lock does not stop its own user),
 - the suspend and hibernate keys (the module sets logind `SuspendKeyIgnoreInhibited=yes` and
   `HibernateKeyIgnoreInhibited=yes`),
-- the power button, `poweroff`, `reboot`, `shutdown` (coffee never takes `shutdown` or
+- the power button (on hosts with `services.powerKeyLock` a short press locks the session), `poweroff`, `reboot`, `shutdown` (coffee never takes `shutdown` or
   `handle-power-key`),
 - manual lock binds (`loginctl lock-session`),
 - the upower critical-battery action (it falls back to power-off here) and the kernel thermal

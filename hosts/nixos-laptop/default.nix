@@ -682,6 +682,8 @@ delib.host {
           inputHeight = 80;
         };
 
+        powerKeyLock.enable = true;
+
         hypridle = {
           enable = true;
           dimTimeout = 180;

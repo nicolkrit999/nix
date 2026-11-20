@@ -92,6 +92,7 @@ delib.module {
           prefer-no-csd = true;
 
           input = {
+            power-key-handling.enable = !(myconfig.services.powerKeyLock.enable or false);
             keyboard.xkb = {
               layout = myconfig.constants.keyboardLayout;
               variant = myconfig.constants.keyboardVariant;

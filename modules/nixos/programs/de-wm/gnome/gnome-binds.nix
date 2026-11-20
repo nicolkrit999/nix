@@ -26,8 +26,17 @@ delib.module {
 
       keybindingsPath = "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings";
 
+      powerKeyLock = myconfig.services.powerKeyLock.enable or false;
+
       customBindings =
-        lib.optionals vicinaeEnabled [
+        lib.optionals powerKeyLock [
+          {
+            name = "Lock session (power button)";
+            command = "loginctl lock-session";
+            binding = "XF86PowerOff";
+          }
+        ]
+        ++ lib.optionals vicinaeEnabled [
           {
             name = "Vicinae: Application Launcher";
             command = "vicinae toggle";
@@ -103,6 +112,9 @@ delib.module {
           toggle-application-view = [ ];
           toggle-message-tray = [ ];
         };
+      }
+      // lib.optionalAttrs powerKeyLock {
+        "org/gnome/settings-daemon/plugins/power".power-button-action = "nothing";
       }
       // dconfSettings;
     };
