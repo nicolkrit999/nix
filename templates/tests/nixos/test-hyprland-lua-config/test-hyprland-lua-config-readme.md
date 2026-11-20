@@ -34,7 +34,7 @@ The legacy-dispatch scan covers the rendered lua, `hypridle.conf`, the waybar co
 | `lua-text-nonempty`, `config-type-lua` | rendered file exists, `configType == "lua"` |
 | `no-json-unicode-escape` | no `\u00` in hyprland.lua |
 | `no-legacy-dispatch` | every `hyprctl dispatch` uses `'hl.` form |
-| `hypridle-three-listeners`, `hypridle-timeouts-increase` | 3 listeners, strictly increasing timeouts |
+| `hypridle-three-listeners`, `hypridle-timeouts-increase` | 3 base listeners (host `extraListeners` excluded), strictly increasing timeouts |
 | `hypridle-dpms-lua` | off/on use `hl.dsp.dpms({ action = ... })` incl. `after_sleep_cmd` |
 | `universal-lock-present` | `universal-lock` is in `home.packages` and its derivation carries a non-empty script `text` |
 | `hypridle-lock-cmd` | `lock_cmd` equals the `universal-lock` package binary |

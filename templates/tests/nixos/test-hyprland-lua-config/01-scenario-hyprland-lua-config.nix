@@ -95,7 +95,9 @@ let
         "user services" = svcText;
         "jetkvm teardown" = jetkvmText;
       };
-      listeners = idle.listener;
+      # Base listeners only: hosts append their own via services.hypridle.extraListeners (laptop kbd-backlight, timeout 50).
+      extraCount = builtins.length c.myconfig.services.hypridle.extraListeners;
+      listeners = lib.take (builtins.length idle.listener - extraCount) idle.listener;
       timeouts = map (l: l.timeout) listeners;
       increasing = l: lib.all (i: builtins.elemAt l i < builtins.elemAt l (i + 1)) (lib.range 0 (builtins.length l - 2));
       offListener = lib.findFirst (l: has "dpms" (l.on-timeout or "")) null listeners;
