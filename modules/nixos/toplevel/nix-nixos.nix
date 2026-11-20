@@ -61,5 +61,10 @@ delib.module {
       # pin: mirrors darwin; nh owns garbage collection
       gc.automatic = false;
     };
+
+    # Mullvad exit IPs get 403 from proxy.golang.org on Go module fetches; `|` falls through on any
+    # error and keeps the official proxy first, so non-VPN hosts are unaffected. Integrity comes
+    # from the fixed-output vendorHash + go.sum.
+    systemd.services.nix-daemon.environment.GOPROXY = "https://proxy.golang.org|https://goproxy.cn|https://mirrors.aliyun.com/goproxy|direct";
   };
 }
