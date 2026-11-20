@@ -105,8 +105,7 @@ let
     && builtins.sort builtins.lessThan (map (b: b.monitor) sp) == builtins.sort builtins.lessThan (map (e: e.monitor) specific)
     && builtins.all (e: builtins.any (b: b.monitor == e.monitor && pathOf b == e.path) sp) specific
     && builtins.all (b: (builtins.head ca).zindex < b.zindex) sp;
-  lookOn = b: b.blur_passes == 0 && b.color == "$base";
-  lookOff = b: b.blur_passes != 0 && (b.color or "") != "$base";
+  bgPlain = b: builtins.attrNames b == [ "monitor" "path" "zindex" ];
   srcOf = cfg: (H.getHm cfg).programs.hyprlock.settings.source or [ ];
   ourConf = cfg: lib.filter (s: lib.hasSuffix "no-background.conf" (builtins.unsafeDiscardStringContext s)) (srcOf cfg);
   drvText = s: builtins.readFile (builtins.unsafeDiscardStringContext (builtins.head (builtins.attrNames (builtins.getContext s))));
@@ -124,8 +123,26 @@ let
   secVal = text: sec: key:
     let m = lib.filter (x: x != null) (map (l: builtins.match "  ${key} = (.*)" l) (secLines text sec));
     in if builtins.length m == 1 then builtins.head (builtins.head m) else "MISSING";
-  untouchedSecs = [ "GENERAL" "LAYOUT" "FINGERPRINT" ];
-  touchedSecs = [ "TIME" "DATE" "USER AVATAR" "INPUT FIELD" ];
+  untouchedSecs = [ "GENERAL" "LAYOUT" ];
+  touchedSecs = [ "TIME" "DATE" "FINGERPRINT" "USER AVATAR" "INPUT FIELD" ];
+  placedKeys = [ "text" "position" "halign" "valign" "font_size" "size" ];
+  stripPlaced = text: sec: lib.filter (l: !(builtins.any (k: lib.hasPrefix "  ${k} = " l) placedKeys)) (secLines text sec);
+  firstNum = v: lib.toInt (builtins.head (lib.splitString "," v));
+  # every placed element's centre (x + w / 2) sits on the panel axis (panelW / 2), within rounding
+  axisOk = g: ws:
+    let
+      panelW = firstNum (secVal g "PANEL" "size");
+      d = x: w: 2 * x + w - panelW;
+      abs = n: if n < 0 then -n else n;
+    in
+    builtins.all ({ sec, w }: abs (d (firstNum (secVal g sec "position")) w) <= 1) ws;
+  cpWidths = clock: date: avatar: input: [
+    { sec = "TIME"; w = clock; }
+    { sec = "DATE"; w = date; }
+    { sec = "USER AVATAR"; w = avatar; }
+    { sec = "INPUT FIELD"; w = input; }
+    { sec = "FINGERPRINT"; w = 403; }
+  ];
   secsEqual = secs: a: b: builtins.all (s: secLines a s == secLines b s) secs;
   hlSettings = c: builtins.unsafeDiscardStringContext (builtins.toJSON (lib.filterAttrs (n: _: builtins.elem n [ "background" "image" "label" "input-field" ]) (H.getHm c).programs.hyprlock.settings));
   revertedSingleStar = path: [{ monitor = ""; inherit path; zindex = -1; }];
@@ -217,19 +234,20 @@ in
       dbgs
     && (
       if catppuccinOn
-      then desktopHm.catppuccin.hyprlock.enable && builtins.all lookOn dbgs
-      else !desktopHm.catppuccin.hyprlock.enable && builtins.all lookOff dbgs && ourConf dcfg == [ ]
+      then desktopHm.catppuccin.hyprlock.enable && builtins.all bgPlain dbgs
+      else !desktopHm.catppuccin.hyprlock.enable && builtins.all bgPlain dbgs && ourConf dcfg == [ ]
     )
   );
   lockCatppuccinDesktop = guard (
     let c = lockHost "34-lock-catppuccin-desktop"; bgs = bgsOf c;
     in (H.getHm c).catppuccin.hyprlock.enable && lockOk desktopExpect bgs
-      && builtins.length bgs == 3 && builtins.all lookOn bgs
+      && builtins.length bgs == 3 && builtins.all bgPlain bgs
   );
   lockCatppuccinNoOwnBackgroundFile = guard (!((H.getHm (lockHost "34-lock-catppuccin-desktop")).xdg.configFile ? background));
   lockCatppuccinLookControl = guard (
-    builtins.all lookOff (bgsOf (lockHost "26-lock-desktop-like"))
-    && !builtins.any lookOn (bgsOf (lockHost "26-lock-desktop-like"))
+    builtins.all bgPlain (bgsOf (lockHost "26-lock-desktop-like"))
+    && !bgPlain ((builtins.head (bgsOf (lockHost "26-lock-desktop-like"))) // { blur_passes = 2; })
+    && !bgPlain ((builtins.head (bgsOf (lockHost "26-lock-desktop-like"))) // { scrimBrightness = 0.6; })
   );
   lockCatppuccinOwnConfOnly = guard (
     let c = lockHost "34-lock-catppuccin-desktop";
@@ -243,35 +261,43 @@ in
       c = lockHost "34-lock-catppuccin-desktop";
       g = confOf c;
       r = rawConf c;
-      twelveHour = lib.replaceStrings [ "  text = $TIME12" ] [ "  text = $TIME" ] g;
     in
-    builtins.all (s: secLines twelveHour s != [ ] && secLines twelveHour s == secLines r s) (untouchedSecs ++ touchedSecs)
+    secsEqual untouchedSecs g r
+    && builtins.all (s: stripPlaced g s == stripPlaced r s && stripPlaced g s != [ ]) touchedSecs
     && secVal g "TIME" "text" == "$TIME12" && secVal r "TIME" "text" == "$TIME"
+    && lib.hasInfix "hyprlock-center 28 " (secVal g "DATE" "text") && lib.hasInfix "date +'%A, %d %B %Y'" (secVal g "DATE" "text")
+    && lib.hasInfix "$FPRINTPROMPT" (secVal g "FINGERPRINT" "text")
+  );
+  lockPanelCatppuccin = guard (
+    let g = confOf (lockHost "34-lock-catppuccin-desktop");
+    in secVal g "PANEL" "size" == "656, 100%" && secVal g "PANEL" "color" == "$base" && secVal g "PANEL" "halign" == "left"
+      && secVal g "PANEL" "valign" == "center" && secVal g "PANEL" "position" == "0, 0"
+      && axisOk g (cpWidths 576 560 100 300)
   );
   lockSizesDefaultsAreThemeNumbers = guard (
     let g = confOf (lockHost "34-lock-catppuccin-desktop");
     in secVal g "TIME" "font_size" == "90" && secVal g "DATE" "font_size" == "25"
-      && secVal g "DATE" "position" == "-30, -150" && secVal g "USER AVATAR" "size" == "100"
-      && secVal g "USER AVATAR" "position" == "0, 75" && secVal g "INPUT FIELD" "size" == "300, 60"
+      && secVal g "USER AVATAR" "size" == "100" && secVal g "INPUT FIELD" "size" == "300, 60"
   );
   lockSizesCustomApplied = guard (
     let g = confOf (lockHost "35-lock-catppuccin-sizes");
-    in secVal g "USER AVATAR" "size" == "160" && secVal g "USER AVATAR" "position" == "0, 110"
+    in secVal g "USER AVATAR" "size" == "160"
       && secVal g "TIME" "font_size" == "120" && secVal g "DATE" "font_size" == "30"
-      && secVal g "DATE" "position" == "-30, -180" && secVal g "INPUT FIELD" "size" == "350, 70"
+      && secVal g "INPUT FIELD" "size" == "350, 70"
+      && secVal g "PANEL" "size" == "848, 100%" && axisOk g (cpWidths 768 672 160 350)
   );
   lockSizesCustomOtherLinesUntouched = guard (
     let c = lockHost "35-lock-catppuccin-sizes"; g = confOf c; r = rawConf c;
     in secsEqual untouchedSecs g r
-      && secVal g "TIME" "position" == secVal r "TIME" "position"
       && secVal g "DATE" "color" == secVal r "DATE" "color"
       && secVal g "USER AVATAR" "border_color" == secVal r "USER AVATAR" "border_color"
-      && secVal g "INPUT FIELD" "position" == secVal r "INPUT FIELD" "position"
+      && secVal g "INPUT FIELD" "outer_color" == secVal r "INPUT FIELD" "outer_color"
   );
   lockSizesCustomControlDiffers = guard (
     let g = confOf (lockHost "35-lock-catppuccin-sizes");
     in !secsEqual touchedSecs g (confOf (lockHost "34-lock-catppuccin-desktop"))
       && (lockHost "35-lock-catppuccin-sizes").myconfig.services.hyprlock.avatarSize == 160
+      && !axisOk g (cpWidths 999 672 160 350)
   );
   lockSizesStillStripBackground = guard (
     let g = confOf (lockHost "35-lock-catppuccin-sizes");
@@ -282,7 +308,6 @@ in
     in off.myconfig.services.hyprlock.avatarSize == 160 && !off.myconfig.constants.theme.catppuccin
       && ourConf off == [ ]
       && hlSettings off == hlSettings (lockHost "26-lock-desktop-like")
-      && !lib.hasInfix "160" (hlSettings off) && !lib.hasInfix "350" (hlSettings off)
   );
   lockSizesOffControlDetectsChange = guard (hlSettings (lockHost "36-lock-sizes-catppuccin-off") != hlSettings (lockHost "34-lock-catppuccin-desktop"));
   lockCatppuccinOffNoStrip = guard (ourConf (lockHost "26-lock-desktop-like") == [ ]);
@@ -300,7 +325,6 @@ in
   lockNoStarNotFirstStatic = guard (
     fallbackPath != lockPath "lock-edp1" && fallbackPath != lockPath "lock-dp1"
   );
-  lockRealLaptopNotStar = guard (fetchPath laptopEdp != fetchPath laptopStar);
   emptyGnome = guard (usesFallback (H.getHm emptyGnomeCfg).dconf.settings);
   emptyKde = deep (H.getHm emptyKdeCfg).programs.plasma.workspace;
   emptyKscreenlocker = guard (usesFallback (H.getHm emptyKdeCfg).programs.plasma.kscreenlocker.appearance);
