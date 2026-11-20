@@ -207,7 +207,7 @@ detect_desktop() {
 }
 
 notify() {
-  if notify-send -a coffee "$1" "$2" 2>/dev/null; then
+  if notify-send -a coffee -u low "$1" "$2" 2>/dev/null; then
     ok "notification: sent"
   else
     warn "notification: notify-send failed (no notification daemon in this session?)" "notify-send '$1'"
