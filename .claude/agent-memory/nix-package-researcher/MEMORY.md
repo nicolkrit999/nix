@@ -9,6 +9,5 @@
 - [cosmic-manager panels/applets](reference_cosmic_manager_panels_applets.md) - cosmic-manager panel/applet option facts; repo uses panels + configFile autohide + pinnedApps favorites (cosmic-panels.nix)
 - [cosmic-manager theme palette schema](reference_cosmic_theme_palette_schema.md) - appearance.theme/toolkit tree, fixed palette slot names, Builder->cosmic-ctl build-theme, no catppuccin/stylix cosmic target
 - [Zen newtab policy handlers](reference_zen_newtab_policy_handlers.md) - Zen 1.24b honours FirefoxHome/Homepage policies verbatim; replace-newtab floating URL bar
-- [zen 7.3.4 boot panic](project_zen_7_3_4_boot_panic.md) - zen 7.3.4-zen1 boot panic; repo pins desktop kernel via the nixpkgs-kernel input (zen 7.2.15); drop the pin once locked nixpkgs has zen2+ (9ca0e988)
 - [Ryoku-on-NixOS integration facts](ryoku_nixos_integration_facts.md) - Ryoku-on-NixOS upstream behaviour reference (pre-adoption research 2026-11-12): forced options, materializer writes, HM collisions; now adopted as specializations.ryoku, see gotcha doc
 - [Vesktop screenshare DMA-BUF research](vesktop_screenshare_dmabuf_research.md) - Vesktop Wayland screenshare EGL_BAD_MATCH / DMA-BUF failures: upstream issue status and workaround evidence (2026-10-26); lock version not current

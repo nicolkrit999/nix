@@ -34,7 +34,7 @@
 - [Plasma kglobalaccel semantics](project_plasma_kglobalaccel_semantics.md) - legacy .desktop groups auto-migrate; shared key = lowest serial wins; layout switcher not in kwin; no kxkbrc Options by decision
 - [findmnt two-arg probe trap](project_findmnt_two_args_probe_trap.md) - `findmnt A B` = source+target, prints nothing; impermanence = systemd.mounts not fileSystems
 - [Portal test cache-listing design](project_portal_test_cache_listing_design.md) - test-portal-routing (heavy-a, cap 25 min) uses fake hosts plus cache.nixos.org NAR listings plus an empty-store guard; structuredAttrs and transient-404 traps
-- [Python structuredAttrs default](project_python_structuredattrs_default.md) - buildPython* defaults to structuredAttrs, so makeWrapperArgs strings break; gearlever overlay in common-configuration-nixos.nix; the isPyEnv test heuristic needs a derivation check
+- [Python structuredAttrs default](project_python_structuredattrs_default.md) - buildPython* defaults to structuredAttrs, so makeWrapperArgs strings break; gearlever overlay removed (fixed upstream); the isPyEnv test heuristic needs a derivation check
 - [Spec mkForce needs harness decl](project_spec_mkforce_needs_harness_decl.md) - new option set in guest/secure-travel breaks arch-compat/spec-contract/coffee hand-listed harnesses; FLAKE_ROOT for worktrees
 - [Greeter pipewire USB audio race](project_greeter_pipewire_usb_audio_race.md) - FIXED in audio.nix (ConditionUser=!@system); nixos-desktop MSI ALC4080 USB audio lost sinks after boots because the sddm greeter's pipewire grabbed the PCMs and wireplumber never retried
 - [xdph journal silent after init](project_xdph_journal_buffered_silent.md) - no "[screencopy] New session" != no share; use dbus-monitor + pw-dump live; desktop dual AMD GPU, renderD128 primary
@@ -51,3 +51,4 @@
 - [nixcord darwin openasar patch](project_nixcord_darwin_openasar_patch.md) - darwin discord = nixcord pkgs/discord + its openasar.patch vs nixpkgs postPatch --replace-fail; Linux never builds it; repro on Linux
 - [appstream wayland darwin regression](project_appstream_wayland_darwin_regression.md) - appstream 1.2.3 unconditional wayland breaks zathura eval on darwin (availableOn blind); latex/typst templates gate zathura
 - [optionalAttrs leaf guard trap](project_optionalattrs_leaf_guard_trap.md) - `a.b.c = optionalAttrs false {..}` still defines a.b.c={} -> "option does not exist" in fixtures; guard via imports module
+- [Dart runtimeDependencies multi-entry trap](project_dart_runtimedeps_multi_entry_trap.md) - dart/flutter runtimeDependencies with 2+ entries => no LD_LIBRARY_PATH (string not array); localsend zlib dup

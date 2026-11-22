@@ -48,20 +48,6 @@ delib.module {
         font = "Lat2-Terminus16";
       };
 
-      # gearlever makeWrapperArgs breaks under structuredAttrs; remove when nixpkgs fixes it
-      nixpkgs.overlays = [
-        (_final: prev: {
-          gearlever = prev.gearlever.overrideAttrs (old: {
-            makeWrapperArgs = lib.concatMap (lib.splitString " ") (
-              lib.remove "\${gappsWrapperArgs[@]}" old.makeWrapperArgs
-            );
-            preFixup = (old.preFixup or "") + ''
-              makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
-            '';
-          });
-        })
-      ];
-
       # Allow unfree packages globally (needed for drivers, code, etc.)
       nixpkgs.config.allowUnfree = true;
 

@@ -59,7 +59,6 @@ Line numbers drift; match by name. Hash form: SRI (`sha256-...`) everywhere unle
 |---|---|
 | tgt TDLib 1.8.61 pin (`modules/nixos/programs/tgt.nix`) | workaround, memory project_tgt_tdlib_pin |
 | laptop `camera.nix` ipu7 bins/hal/omarchy patches | workaround, camera disabled, upstream issue |
-| `nixpkgs-kernel` input + `modules/nixos/toplevel/kernel.nix` | zen 7.3.4 panic workaround |
 | patchright wheel, mcp-server-linkedin 4.25.1 + `pyMcp1`, xiaohongshu-browser (agent-reach) | agent-reach workarounds (memory project_agent_reach_workarounds) |
 | relative-motions (yazi.nix) | mkForce + ya.mgr_emit patch |
 | moodle-dl master pin (school.nix) | unreleased upstream, workaround |
