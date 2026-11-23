@@ -1,19 +1,19 @@
 { delib, pkgs, lib, ... }:
 let
-  version = "0.44.0";
+  version = "0.45.0";
 
   wheelSrc = {
     "x86_64-linux" = {
-      url = "https://files.pythonhosted.org/packages/8f/63/39c8f6bd317714bc6a68775be5da5e15bca9e91d5f95e259bc00e6de6f7f/headroom_ai-${version}-cp310-abi3-manylinux_2_28_x86_64.whl";
-      hash = "sha256-O1x/0onn0ifc2biWYVVB6p09NziL2XsyV/yHacS373A=";
+      url = "https://files.pythonhosted.org/packages/26/bc/aee4580f537985e7b9fa03b5ef2300f9e03828455c457e660911c25e2d6e/headroom_ai-${version}-cp310-abi3-manylinux_2_28_x86_64.whl";
+      hash = "sha256-dcOG+52RJOqSWaYVZ/+kYSh1nyaVaRRZxufXUfnUwso=";
     };
     "aarch64-linux" = {
-      url = "https://files.pythonhosted.org/packages/5e/d9/2ff01892de67c0824d024cdb0152e371bb8cd5ced8ed6c2a66ad5c5f13a4/headroom_ai-${version}-cp310-abi3-manylinux_2_28_aarch64.whl";
-      hash = "sha256-WPLmrHNv6IL4PK4KO/+tfOV00SWH65mdZQG//QU6dc0=";
+      url = "https://files.pythonhosted.org/packages/15/8b/8ee31bb6164670f91734b6580422bf2fb5e50517df9494c383afa6a3e459/headroom_ai-${version}-cp310-abi3-manylinux_2_28_aarch64.whl";
+      hash = "sha256-Yb+IOVe82B0/DKCPLg0a9oKP1xDsfa0qB+/nmYt+sXs=";
     };
     "aarch64-darwin" = {
-      url = "https://files.pythonhosted.org/packages/42/b7/1ab4da6f7a091fd1a102b5194828f9a588b6b4f11b522f38b86b125770a3/headroom_ai-${version}-cp310-abi3-macosx_11_0_arm64.whl";
-      hash = "sha256-mwhPTNmRivLQlwRQ/z6ZD//CmoIg3F4k+g8zpN0DWcw=";
+      url = "https://files.pythonhosted.org/packages/f5/38/1530981783c165d4350a5aee0556662ea6459d8edebbc64466acb26f7861/headroom_ai-${version}-cp310-abi3-macosx_11_0_arm64.whl";
+      hash = "sha256-O3+e4mYDmrWosQxdpYaPm2QPH5SdNABdwmNivlJqUWU=";
     };
   };
 

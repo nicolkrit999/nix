@@ -340,41 +340,41 @@ delib.host {
           extraRayCastExtensions = [
             {
               name = "downloads-manager";
-              hash = "sha256-J1+NmMhoSC01LLGUDoB0sPBg06zkIEkXihor22F+3xA=";
+              hash = "sha256-MAFaV70275Yee8RNnEirFUsbaiSl1VOit46JE+kWTls=";
             }
             {
               name = "gif-search";
-              hash = "sha256-YU+pIaRyvFzCuUQG9sOT5wipBaE9yl7+5enq0RSbXnM=";
+              hash = "sha256-5yXpgID4MxRhAnzBb8GHVidn2LgBLcmVYvS07XDFBLc=";
             }
             {
               name = "google-search";
-              hash = "sha256-OXQoTDOLbEYPnv/AbhyszoyRRzAvrXSCGAW8XpMuEjk=";
+              hash = "sha256-18ydMLDfxLMULaPcABQ8ivIUnP6AqavcAr5UG2KJkkA=";
             }
             {
               name = "google-translate";
               installName = "translate";
-              hash = "sha256-lWWh0U+4QmUFOMddAttvXvCykM+Sst+72ifTkiuJovo=";
+              hash = "sha256-1FiE4KE04/hH1b3YfvQXrLwA5rsnNb221cpAVLuncUU=";
             }
             {
               name = "lorem-ipsum";
-              hash = "sha256-UFttbsJPmrfhi0AX3brlID0vy4xv0N9aGkQcugzVRSQ=";
+              hash = "sha256-J/eJP/MbSLSFYCKZsljlJOHaC5Lg5VhWj99++bsJLOc=";
             }
             {
               name = "notion";
-              hash = "sha256-QodXDfw3DfXvGelRqSl2mFw/vczBVw/H6afCs/wmgdY=";
+              hash = "sha256-MZr0GiQ3ytM3hIclxTSFhUpoEBwwt68BfiwZQ+VDViQ=";
             }
             {
               name = "remove-paywall";
-              hash = "sha256-FNszkr3iOg70r28sZUOcdVdONaWtacUUosydeCJ25wg=";
+              hash = "sha256-/tOWoyD5wX1chHciy4PGcO9LfXIY3GZvyRYwE0/yK5c=";
             }
             {
               name = "video-downloader";
-              hash = "sha256-u/SnoTzo6CfXVMC1uuYMhtvW/y4sqK62kE2VHxshI00=";
+              hash = "sha256-5Zkr2pBSYolUidYySTG9uRttuNYR0ab8f3gdVW/C9RA=";
             }
             {
               name = "visual-studio-code-recent-projects";
               installName = "visual-studio-code";
-              hash = "sha256-Qnu1bsUyv3g1yK4/6J/HohWGBh3+L1TA1/lBW3uDvrY=";
+              hash = "sha256-i2w2i1XYmbMNys488NnpJ1r4Kq/jIT6SwKZOJ095pU0=";
             }
           ];
           extraPackages = [

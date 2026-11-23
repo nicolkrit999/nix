@@ -64,7 +64,7 @@ delib.module {
           (craftBundle "filmcraft" "0.20.1" "sha256-ZG7mJ7Obk/5px+y0RyX8lk/UNmDvjPKISz+0jnWawPg=") # Premiere-like video editor
           (craftBundle "gridcraft" "0.19.1" "sha256-U1KJBHw4keWiOP6qGGCWyjwMKDzf3h4P/3IkD19HXQI=") # Excel-like spreadsheet
           (craftBundle "lightcraft" "0.21.1" "sha256-OprriW37e4uh9shudzORL7eu3ymxqZ7uj+lYOZUfdpw=") # Lightroom-like photo editor
-          (craftBundle "pdfcraft" "0.21.1" "sha256-TxJv9xjoUbpU7gIHxLbOnuvd/dctESRTHSFcwPiTfa8=") # Acrobat-like PDF editor
+          (craftBundle "pdfcraft" "0.22.0" "sha256-8+nbffCL4nd4qX70F9z6T+uCNejcUqHTZk+VTMH5w3o=") # Acrobat-like PDF editor
           (craftBundle "photocraft" "0.23.1" "sha256-XJ3rWPB71U8yOl2YW+0pW0xbFXieAmUeLyA9Xo7yEaU=") # Photoshop-like image editor
           (craftBundle "soundcraft" "0.20.1" "sha256-2a1CRmnwyXjcRoHfcdIPb8gCN1IgeNYxrwY9y7PFlJQ=") # Audio editor / DAW-like
           (craftBundle "texturecraft" "0.6.1" "sha256-mZYX2fytRWmpB+KNFUiV2rJgMg06qYy3WqAMRMyH0go=") # 3D texture painting

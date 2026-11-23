@@ -51,7 +51,7 @@ delib.module {
     let
       stylixEnabled = myconfig.stylix.enable;
       mkRayCastExtension = inputs.vicinae.lib.${pkgs.stdenv.hostPlatform.system}.mkRayCastExtension;
-      raycastRev = "28bf9eb29c72c2df9b4b1d17e3f7b51001de6c0d"; # Default commit of github:raycast/extensions. Override per-extension with rev = "..." in the host.
+      raycastRev = "7d9384daafb98103fea970bd22de850e3373c05b"; # Default commit of github:raycast/extensions. Override per-extension with rev = "..." in the host.
     in
     {
       programs.vicinae = {

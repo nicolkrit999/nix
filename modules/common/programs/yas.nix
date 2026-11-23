@@ -3,8 +3,8 @@ let
   src = pkgs.fetchFromGitHub {
     owner = "tmck-code";
     repo = "yet-another-statusline";
-    rev = "ff36eed827171d2576c510de28304f897f22def2";
-    hash = "sha256-OkSCCXbLnQF6x9EfPaptfb1bCtWem3H5Mpn1wgxRFUc=";
+    tag = "v0.4.8";
+    hash = "sha256-VScEnzn+m31GYD+m6RpHDG5sjdhBY5jXSdfptOC2Fz0=";
   };
 
   python = pkgs.python3;
