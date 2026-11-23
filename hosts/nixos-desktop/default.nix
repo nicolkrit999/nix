@@ -808,9 +808,9 @@ delib.host {
         media-idle-inhibit.enable = true;
 
         yubikey-auth = {
-          enable = false;
+          enable = true;
           sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
-          keySecrets = [ "u2f_key_desktop_nfc" "u2f_key_keychain_5ci" ];
+          keySecrets = [ "u2f_key_desktop_sknfc" "u2f_key_keychain_5ci" ];
         };
 
         sddm-astronaut = {
