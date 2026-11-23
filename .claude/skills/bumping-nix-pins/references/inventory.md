@@ -68,6 +68,7 @@ Line numbers drift; match by name. Hash form: SRI (`sha256-...`) everywhere unle
 | vicinae gcc15 stdenv override | temporary workaround |
 | wallpaper URL+sha256 lists (hosts default.nix, home.nix, constants-nixos.nix) | user's own repos, not an upstream version |
 | PWA icons (progressive-web-apps.nix), school.nix iCorsi/SUPSI icons | unversioned URLs: refresh only on a hash mismatch, not a bump |
+| Ladybird flatpak (`org.ladybird.Ladybird`, remote `ladybird`) in both `hosts/*/flatpak.nix` | real remote, so `update.auto` updates the app: no version to bump. The only pin is the `ladybirdKey` fetchurl hash of `ladybird.flatpakref` (it carries the repo GPG key); it changes only on an upstream key rotation, which needs a manual fingerprint check against ladybird.org/download (expected `9436EDD8A32302AD5B9BC80FD941A9B53C448496`), never a blind rehash |
 | any pin whose memory file under `/home/krit/.claude/projects/-home-krit-nix/memory/` is an ACTIVE workaround | belongs to auditing-nix-workarounds |
 
 ## Maintenance

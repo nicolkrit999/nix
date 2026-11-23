@@ -26,6 +26,27 @@ delib.module {
           inherit sha256;
         }}";
       };
+
+      # Ladybird publishes its own flatpak repo (not on Flathub). The repo's GPG key is the base64 `GPGKey=`
+      # line of the official .flatpakref; it is decoded here and the build fails unless it has the fingerprint
+      # published at https://ladybird.org/download/. A key rotation upstream fails the build (re-check the
+      # fingerprint, then bump the hash).
+      ladybirdFingerprint = "9436EDD8A32302AD5B9BC80FD941A9B53C448496";
+      ladybirdKey =
+        pkgs.runCommand "ladybird-flatpak-repo.gpg"
+          {
+            ref = pkgs.fetchurl {
+              url = "https://flatpak.ladybird.org/ladybird.flatpakref";
+              hash = "sha256-eGTNkChLz2aQDE2x/zOisgmt9vIbCx8nhb+r/it924c=";
+            };
+            nativeBuildInputs = [ pkgs.gnupg ];
+          }
+          ''
+            export GNUPGHOME="$(mktemp -d)" # gpg needs a writable homedir even for --show-keys
+            sed -n 's/^GPGKey=//p' "$ref" | base64 -d > "$out"
+            gpg --show-keys --with-colons "$out" | grep -q '^fpr:::::::::${ladybirdFingerprint}:' \
+              || { echo "Ladybird flatpak key fingerprint mismatch" >&2; exit 1; }
+          '';
     in
     {
       assertions = [
@@ -48,6 +69,12 @@ delib.module {
           "io.github.iionel.Visu" # Algorithm visualizer
           "io.github.lluciocc.Vish" # Gui bash script editor
           "io.github.shonebinu.Brief" # Brief, command lines cheatsheet application
+
+          # Ladybird browser, from its own signed repo (remote "ladybird" below)
+          {
+            appId = "org.ladybird.Ladybird";
+            origin = "ladybird";
+          }
 
           "lol.siembra.tuxtypeplus" # Typing test games
           "me.iepure.devtoolbox" # DevToolbox, a collection of tools for developers
@@ -75,6 +102,11 @@ delib.module {
           {
             name = "flathub";
             location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
+          }
+          {
+            name = "ladybird";
+            location = "https://flatpak.ladybird.org/repo/";
+            gpg-import = "${ladybirdKey}";
           }
         ];
         update.auto = {
