@@ -188,7 +188,7 @@ The apps opened for each file family are picked per host: the constants `termina
 
 ## Power Button Locks the Session
 
-`services.powerKeyLock` (opt-in, default off; the laptop enables it, the desktop keeps the logind default of powering off) turns a short press of the power button into a session lock on every desktop the repo supports, including ones no host enables, so any desktop enabled later on a host with the option works directly: logind `HandlePowerKey = "lock"` plus the per-session override where the desktop takes the key itself (Niri, GNOME, KDE Plasma, COSMIC). A long press still powers the machine off. Coffee mode does not block it.
+`services.powerKeyLock` (opt-in, default off) turns a short press of the power button into a session lock on every desktop the repo supports, including ones not currently enabled, so any desktop enabled later works directly: logind `HandlePowerKey = "lock"` plus the per-session override where the desktop takes the key itself (Niri, GNOME, KDE Plasma, COSMIC). A long press still powers the machine off. Coffee mode does not block it.
 
 ## Clock and Date Format
 
@@ -208,7 +208,7 @@ Three greeter themes, at most one enabled per host (`services.sddm-exclusive` fa
 
 ## YubiKey Login, sudo and Lock Screen
 
-`services.yubikey-auth` (opt-in; the laptop and the desktop enable it) lets a YubiKey replace the password at the SDDM login (any theme), `sudo`, graphical authentication popups and the hyprlock lock screen. The key always asks for its PIN and a touch, so touching it alone never unlocks anything, and the password keeps working as a fallback. Each host lists the sops secrets of the keys it accepts, so a different set of keys per host (and one key shared by all) needs no code. The key mappings are rendered into `/run` from sops, root-owned, so nobody can add a key without root. Signing and sops decryption are not touched. Logging in with the key does not unlock the gnome-keyring, which asks for its password once per session.
+`services.yubikey-auth` (opt-in) lets a YubiKey replace the password at the SDDM login (any theme), `sudo`, graphical authentication popups and the hyprlock lock screen. The key always asks for its PIN and a touch, so touching it alone never unlocks anything, and the password keeps working as a fallback. The accepted keys are listed as sops secrets, so adding a key or reusing one on several machines needs no code. The key mappings are rendered into `/run` from sops, root-owned, so nobody can add a key without root. Signing and sops decryption are not touched. Logging in with the key does not unlock the gnome-keyring, which asks for its password once per session.
 
 ---
 
