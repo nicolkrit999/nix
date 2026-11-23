@@ -206,6 +206,12 @@ Three greeter themes, at most one enabled per host (`services.sddm-exclusive` fa
 
 ---
 
+## YubiKey Login, sudo and Lock Screen
+
+`services.yubikey-auth` (opt-in; the laptop enables it) lets a YubiKey replace the password at the SDDM login (any theme), `sudo`, graphical authentication popups and the hyprlock lock screen. The key always asks for its PIN and a touch, so touching it alone never unlocks anything, and the password keeps working as a fallback. Each host lists the sops secrets of the keys it accepts, so a different set of keys per host (and one key shared by all) needs no code. The key mappings are rendered into `/run` from sops, root-owned, so nobody can add a key without root. Signing and sops decryption are not touched. Logging in with the key does not unlock the gnome-keyring, which asks for its password once per session.
+
+---
+
 ## Discord with Equicord (Nixcord)
 
 The official Discord client is installed and configured declaratively through the Nixcord flake (`programs.discord`, personal plugin set in `krit.programs.discord`). Equicord and its plugin settings come from the Nix configuration on all hosts, so the plugin list is the same everywhere; Vesktop stays a separate install.

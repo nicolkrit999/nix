@@ -693,6 +693,12 @@ delib.host {
 
         media-idle-inhibit.enable = true;
 
+        yubikey-auth = {
+          enable = true;
+          sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
+          keySecrets = [ "u2f_key_laptop_nano" "u2f_key_keychain_5ci" ];
+        };
+
         sddm-astronaut = {
           enable = false;
           embeddedTheme = "hyprland_kath";

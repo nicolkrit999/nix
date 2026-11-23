@@ -310,7 +310,8 @@ delib.module {
               fade_on_empty = false;
               placeholder_text = ''<i><span foreground="##${fg}cc">🔒 Enter Pass</span></i>'';
               hide_input = false;
-              check_color = "rgba(${c.base09}f2)";
+              # "checking" colour: stays on screen while PAM waits for a YubiKey touch, so keep it neutral (not warning-coloured)
+              check_color = "rgba(${c.base0D}f2)";
               fail_color = "rgba(${c.base08}f2)";
               capslock_color = "rgba(${c.base0A}f2)";
               position = pos (plAt "input");

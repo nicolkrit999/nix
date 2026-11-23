@@ -11,3 +11,5 @@
 - [Zen newtab policy handlers](reference_zen_newtab_policy_handlers.md) - Zen 1.24b honours FirefoxHome/Homepage policies verbatim; replace-newtab floating URL bar
 - [Ryoku-on-NixOS integration facts](ryoku_nixos_integration_facts.md) - Ryoku-on-NixOS upstream behaviour reference (pre-adoption research 2026-11-12): forced options, materializer writes, HM collisions; now adopted as specializations.ryoku, see gotcha doc
 - [Vesktop screenshare DMA-BUF research](vesktop_screenshare_dmabuf_research.md) - Vesktop Wayland screenshare EGL_BAD_MATCH / DMA-BUF failures: upstream issue status and workaround evidence (2026-10-26); lock version not current
+- [PAM service per lock screen](reference_pam_service_per_lock_screen.md) - login/lock PAM names per DE/shell (kde, cosmic-greeter, gdm-password, login, passwd, ryoku-lock) and the defining flag, for u2f gating
+- [GNOME lock needs gdm daemon](reference_gnome_lock_needs_gdm_daemon.md) - GNOME 51 unlock uses org.gnome.DisplayManager reauth (no local PAM); do not add gdm-password/sddm u2f
