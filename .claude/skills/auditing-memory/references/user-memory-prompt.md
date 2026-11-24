@@ -23,8 +23,8 @@ Classify each file as exactly one of:
 3. DELETED: the thing it describes no longer exists anywhere in the code (removed module, reverted pin,
    finished one-off) and the file is not marked pending / on hold / planned / future / not implemented.
    Delete with `rm -f` on a literal absolute path. Do not delete on a hunch: if unsure use DOUBT.
-4. HISTORICAL: a resolved incident whose fix is in the code and whose lesson is not reusable. Do not
-   delete, report it for the user's decision.
+4. HISTORICAL: a resolved incident whose fix is in the code and is not a momentary workaround. Do not
+   delete, report it (default: delete).
 5. RECIPE: a how-to or diagnosis note with no repo counterpart (tool usage, hardware quirk, external
    format). Do not delete, report it for the user's decision.
 6. KEEP-RULE: `feedback_*` working-style rules and similar user preferences. Never audited, never
@@ -32,7 +32,9 @@ Classify each file as exactly one of:
 7. DOUBT: you cannot decide. Change nothing and write the exact question.
 
 Items marked pending / on hold / planned / future / not implemented stay exactly as they are (ACCURATE),
-even though the code has no match.
+even though the code has no match. Keep rule for project_*/reference_* files: keep only a true pending task,
+a reference useful for the future, or a momentary pin/overlay/workaround still live in the code; a live code
+counterpart alone is not a reason to keep. Report anything else as DELETED, or DOUBT when unsure.
 
 Rules:
 - Never invent facts. If you cannot tell what the code says, use DOUBT.

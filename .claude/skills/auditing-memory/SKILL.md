@@ -1,6 +1,6 @@
 ---
 name: auditing-memory
-description: Use this skill to audit the existing memory against the current code - both the user memory (~/.claude/projects/<project>/memory) and the agent memory (.claude/agent-memory/<agent>/). It compares every memory file with the repo as it is right now, rewrites stale facts to match the code, deletes memories whose subject no longer exists, fixes the MEMORY.md indexes and asks the user about doubts. Trigger phrases include 'audit the memory', 'clean up memory', 'are the memories still true', 'memory vs code', 'check stale memories', 'verify agent memory', 'memory cleanup'. Make sure to use it whenever the user wants memory files checked, trimmed or refreshed against the code, even if they only say 'memory'. Does NOT check upstream, nixpkgs or release state - the code in the repo at run time is the only source of truth.
+description: Use this skill to audit the existing memory against the current code - both the user memory (~/.claude/projects/<project>/memory) and the agent memory (.claude/agent-memory/<agent>/). It compares every memory file with the repo as it is right now, rewrites stale facts to match the code, deletes memories that are neither a pending task, a future-useful reference nor a live momentary workaround, fixes the MEMORY.md indexes and asks the user about doubts. Trigger phrases include 'audit the memory', 'clean up memory', 'are the memories still true', 'memory vs code', 'check stale memories', 'verify agent memory', 'memory cleanup'. Make sure to use it whenever the user wants memory files checked, trimmed or refreshed against the code, even if they only say 'memory'. Does NOT check upstream, nixpkgs or release state - the code in the repo at run time is the only source of truth.
 ---
 
 # Auditing Memory
@@ -51,10 +51,26 @@ Agent brief templates: [references/user-memory-prompt.md](references/user-memory
 | ACCURATE | every claim matches the code | untouched |
 | REWRITTEN | subject exists, details stale | agent rewrites to the current code; orchestrator updates the index hook |
 | DELETED | subject no longer exists in code, not pending | agent deletes (literal absolute path) |
-| HISTORICAL | resolved incident, fix is in the code | ask the user (first run), default delete |
-| RECIPE | how-to / hardware / external format, no repo counterpart | ask the user (first run), default delete |
+| HISTORICAL | resolved incident, fix is in the code and not momentary | default delete; ask only if unsure |
+| RECIPE | how-to / hardware / external format, no repo counterpart | keep only if useful for the future (KEEP-REF), else delete; ask when unsure |
 | KEEP-RULE | working-style rule | never touched |
 | DOUBT | agent cannot decide | ask the user |
+
+**Keep rule (user decision 2026-11-24, applies to `project_*` / `reference_*` user memories).** A file
+stays only if it is one of:
+1. **KEEP-PENDING**: a true pending task, something not started (a finished task is removed, even if its
+   code stays in the repo).
+2. **KEEP-REF**: a reference useful for the future (non-obvious trap, recipe, design rationale a later
+   session would otherwise rediscover).
+3. **KEEP-MOMENTARY**: records a momentary pin, overlay, workaround or similar that is still live in the code.
+
+Anything else is DELETE: finished work, resolved incidents whose fix is done and not momentary, content
+already covered by repo docs, subjects gone from the code. Having a live code counterpart is NOT a reason
+to keep on its own. When in doubt ask the user (AskUserQuestion, multiSelect list of "delete?" candidates).
+`feedback_*` rules stay KEEP-RULE. Choices already made (reuse as defaults): deleted removed_kde_config_reset,
+vikunja_desktop_oauth, laptop_hdr_parked, laptop_lanzaboote_analysis, msi_meg_x670e; kept vicinae_services_rename_warning,
+laptop_camera_restartsec_removed, clone_installer_vm_driver, momentary_dir_and_tmp, parallel_test_memory_profile.
+Never trim `krit_school_user_split` (school is a hard specialisation, the history is reference) or `laptop_panther_lake_issues` (needed to build laptop pins/overlays): keep both exactly as they are.
 
 Fixed rules: items marked pending, on hold, planned, future or not implemented stay as they are
 (the code has no match by definition). A reference to a local folder that is missing (content lives on
