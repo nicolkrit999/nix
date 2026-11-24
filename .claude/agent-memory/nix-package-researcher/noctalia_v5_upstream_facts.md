@@ -23,5 +23,7 @@ Researched 2026-10-14 (5.2.1, then via a flake input that has since been replace
 - The GUI writes only to the state settings.toml and never to ~/.config (docs/user/configuration/index.mdx:115). Per-setting Reset falls back to the Nix value. Bars, calendar accounts and monitor tables declared in the config file cannot be deleted from the GUI.
 - Caelestia contrast: its GUI (nexus) writes ~/.config/caelestia/shell.json through QSaveFile. A HM store symlink therefore makes every save fail, so it stays install-only. Follow-up: ~/momentary/codebase-audit/batches/06-waybar-shells/noctalia-followup-research.md
 
+Local notes under ~/momentary/codebase-audit/ do not exist on this machine: check the folder exists first; if it is missing ask the user to copy it from the NAS.
+
 **Why:** the repo still had v4 `noctalia-shell ipc call` strings, and these facts took a full source read to establish.
 **How to apply:** re-verify the version after flake.lock bumps before reusing the IPC/config facts.

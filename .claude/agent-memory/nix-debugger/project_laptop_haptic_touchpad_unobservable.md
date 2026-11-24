@@ -36,4 +36,4 @@ Read-only (never writes the report). Untested as of 2026-10-07 until the user pa
 - 2026-10-26, 3rd incident ("stopped working after flake update"): flake bump RULED OUT. Kernel went 7.3-rc7 -> 7.3 (gen 466, 2026-10-25) but upstream rc7..v7.3 touches no drivers/hid, drivers/input or i2c-designware file (gh compare, full 212-file list). BIOS still 1.10.1. Driver/dev names unchanged; the unit ran and the kernel re-probed the device (new HID instance .0009 at ~32 s) exactly as on rc7 boots. Note the boot rebind fires ~10 s BEFORE the user logs in (session at ~42 s); the 10-21 rebind that worked was manual, minutes into a session.
 - Untried discriminator (needs root on a BROKEN boot): unbind/bind `i2c-VEN_06CB:00` on `/sys/bus/i2c/drivers/i2c_hid_acpi/` (forces an i2c-hid reset and re-sends input mode); haptics coming back = host-side init state, not device firmware.
 
-Related: [[dell-xps16-firmware-knobs]], [[journal-clock-skew-desktop]] (the laptop shows the same RTC-offset first>last entry pattern in list-boots).
+Related: [[dell-xps16-firmware-knobs]].

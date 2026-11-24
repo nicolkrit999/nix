@@ -9,4 +9,4 @@ metadata:
 - Never mix channels for ABI-coupled pieces (GStreamer plugins, kernel modules): not needed anymore, since the IPU7 camera stack (`hardware.ipu7`, `ipu7-drivers`, `ipu75xa-camera-hal`, `icamerasrc`) is native in nixpkgs. `hosts/nixos-laptop/camera.nix` holds the `overrideAttrs` source pins, the Intel CVS bridge patches, the `intel_ipu7_psys` kernel module and the `hardware.ipu7` setup.
 - Hyprland `execOnce ++ shellExecOnce` is rendered by hyprland-main.nix as a Lua function bound to the `hyprland.start` event; shells (caelestia/noctalia) append only to `shellExecOnce`, which specs never mkForce (2026-10-14).
 - FlakeHub dev flakes use `nixpkgs/0.1` (rolling); `/0` is the latest release series.
-- Darwin was never tested after the switch (no Mac). Details: ~/momentary/nix-unstable-26_11-change/.
+- Darwin was never tested after the switch (no Mac). Details: ~/momentary/nix-unstable-26_11-change/ (check the folder exists first; if it is missing ask the user to copy it from the NAS).

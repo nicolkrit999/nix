@@ -7,7 +7,7 @@ metadata:
 
 ## Current State
 
-**Pinned vicinae flake rev when this was researched:** `1f6de859a4142e24e73f7cc8a70df1a6e8d77a0e` (2026-08-17 v0.26.3 bump). flake.lock now pins `299b26cb` (vicinae input, 2026-11-20 check); the upstream-fix conclusion below was NOT re-verified against it.
+**Pinned vicinae flake rev when this was researched:** `1f6de859a4142e24e73f7cc8a70df1a6e8d77a0e` (2026-08-17 v0.26.3 bump). flake.lock now pins `35703147` (vicinae input, checked 2026-11-24); the upstream-fix conclusion below was NOT re-verified against it.
 
 The repo's `nix flake check` warns:
 ```
