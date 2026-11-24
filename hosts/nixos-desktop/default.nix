@@ -720,6 +720,41 @@ delib.host {
         gnome = {
           enable = true;
           inherit pinnedApps;
+          monitors = [
+            {
+              output = "DP-1";
+              vendor = "AUS";
+              product = "PG32UCDP";
+              serial = "SALMQS185801";
+              width = 3840;
+              height = 2160;
+              refresh = 240;
+              x = 2160;
+              y = 560;
+              primary = true;
+            }
+            {
+              output = "DP-2";
+              vendor = "GSM";
+              product = "27GN950";
+              serial = "202NTWGFH113";
+              width = 3840;
+              height = 2160;
+              refresh = 143.999;
+              x = 0;
+              y = 0;
+              transform = 90;
+            }
+            {
+              # JetKVM: kept off (a mirror would force DP-1 down to 1080p)
+              output = "HDMI-A-1";
+              vendor = "JET";
+              product = "JetKVM v1";
+              serial = "unknown";
+              enable = false;
+            }
+            { output = "*"; }
+          ];
           wmKeybindings = {
             switch-to-workspace-left = [
               "<Super>Page_Up"
