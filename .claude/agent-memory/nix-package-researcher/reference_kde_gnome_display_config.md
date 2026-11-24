@@ -19,3 +19,9 @@ Locked inputs at research time (2026-10-28): plasma-manager a19a2a02, nixpkgs (r
 
 Why: answering "can outputs be declarative for KDE/GNOME" needs these paths and enums; re-deriving them costs a full kwin/mutter source pull.
 How to apply: when a host needs declarative monitor layout, use a seed file (KDE: writable kwinoutputconfig.json via home.activation; GNOME: environment.etc "xdg/monitors.xml" system fallback or a user copy) or a login script; re-verify against the locked versions first since KWin/Mutter formats change between majors.
+
+## Mirroring (verified 2026-11-24 against KDE/kwin and KDE/libkscreen tag v6.8.1)
+- Re-check on plasma-manager 2026-11-24: locked a19a2a02 and upstream HEAD both still have no kscreen/outputs/monitor module; open issue #172 "Monitor configuration" unanswered. Only open PR touching display is #657 (per-output virtual desktop, unrelated).
+- kwinoutputconfig.json: mirror is `setups[].data[].outputs[].replicationSource`, and its value is the **uuid string** of the source output (the `uuid` key inside that source's `outputs[].data` entry), NOT an index. KWin only keeps it when it differs from the output's own uuid. A replicated output takes effect only if its source is enabled.
+- kscreen-doctor: `output.<replica>.mirror.<source>` where `<source>` is the output name OR uuid (libkscreen `Doctor::findOutput`); `output.<replica>.mirror.none` clears it. Applied through KWin, so it persists into kwinoutputconfig.json as a uuid.
+- Pitfall: a seed JSON must include a stable `uuid` on the source output, or the replicationSource will not match.

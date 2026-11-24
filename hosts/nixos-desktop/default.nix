@@ -749,6 +749,36 @@ delib.host {
         kde = {
           enable = true;
           inherit pinnedApps;
+          monitors = [
+            {
+              output = "DP-1";
+              width = 3840;
+              height = 2160;
+              refresh = 240;
+              scale = 1.5;
+              x = 1440;
+              y = 560;
+            }
+            {
+              output = "DP-2";
+              width = 3840;
+              height = 2160;
+              refresh = 144;
+              scale = 1.5;
+              x = 0;
+              y = 0;
+              transform = 90;
+            }
+            {
+              # JetKVM: mirrors DP-1 (it is disabled on the other WMs)
+              output = "HDMI-A-1";
+              width = 1920;
+              height = 1080;
+              refresh = 60;
+              mirror = "DP-1";
+            }
+            { output = "*"; }
+          ];
         };
       };
 

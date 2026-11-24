@@ -628,6 +628,21 @@ delib.host {
         kde = {
           enable = true;
           inherit pinnedApps;
+          monitors = [
+            {
+              output = "eDP-1";
+              width = 3200;
+              height = 2000;
+              refresh = 120;
+              scale = 1.5;
+              x = 0;
+              y = 0;
+            }
+            # Mirror an external display onto the panel: add
+            # { output = "DP-1"; width = ...; height = ...; refresh = ...; mirror = "eDP-1"; }
+            # (the source must be a declared, enabled output that does not itself mirror).
+            { output = "*"; }
+          ];
         };
       };
 
@@ -696,7 +711,10 @@ delib.host {
         yubikey-auth = {
           enable = true;
           sopsFile = ../../users/krit/common/sops/krit-common-secrets-sops.yaml;
-          keySecrets = [ "u2f_key_laptop_nano" "u2f_key_keychain_5ci" ];
+          keySecrets = [
+            "u2f_key_laptop_nano"
+            "u2f_key_keychain_5ci"
+          ];
         };
 
         sddm-astronaut = {
