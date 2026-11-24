@@ -48,7 +48,7 @@ Line numbers drift; match by name. Hash form: SRI (`sha256-...`) everywhere unle
 
 ### L - claude-code wrappers (`users/krit/common/programs/claude-code/claude-code-wrappers.nix`)
 - agent-floor (develop212/agent-floor): first `npm view agent-floor`; if published on npm, do NOT bump, report that the pin can be dropped. Otherwise bump `rev` to HEAD + `hash` + `npmDepsHash`.
-- officeNodeModules `npmDepsHash`: only if `office-node/package-lock.json` is updated (`npm update` in `users/krit/common/programs/claude-code/office-node`) and newer deps exist; keep sharp native optional deps and `--ignore-scripts`. Flag to the user before running `npm update`.
+- officeNodeModules: no hash (`npmDeps = importNpmLock`, reads the lock directly). Bump = run `office-node-update` (or `npm update --package-lock-only --ignore-scripts` in `users/krit/common/programs/claude-code/office-node`) and commit the lock; nothing else to compute. Keep sharp native optional deps and `--ignore-scripts`.
 
 ### REPORT-ONLY
 - `flake.nix` lanzaboote input tag (currently v1.2.0): say if a newer tag exists, never edit (Secure Boot live on both hosts).

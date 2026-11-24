@@ -248,12 +248,23 @@ let
     pname = "claude-office-node";
     version = "1.0.0";
     src = ./office-node;
-    npmDepsHash = "sha256-XsBNi9KWFetfecbJuE5P/cEa1eoryAoBX4nigbqFpVE=";
+    npmDeps = pkgs.importNpmLock { npmRoot = ./office-node; };
+    npmConfigHook = pkgs.importNpmLock.npmConfigHook;
     dontNpmBuild = true;
     npmFlags = [ "--ignore-scripts" ];
     nativeBuildInputs = lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.autoPatchelfHook ];
     buildInputs = lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.stdenv.cc.cc.lib ];
     autoPatchelfIgnoreMissingDeps = true;
+  };
+
+  officeNodeUpdate = pkgs.writeShellApplication {
+    name = "office-node-update";
+    runtimeInputs = [ pkgs.nodejs pkgs.git ];
+    text = ''
+      dir="''${1:-$(git rev-parse --show-toplevel)/users/krit/common/programs/claude-code/office-node}"
+      cd "$dir"
+      npm update --package-lock-only --ignore-scripts
+    '';
   };
 
   mkSharedPackages = workspaces: [
@@ -263,6 +274,7 @@ let
     caiSubScript
     ccaiScript
     pythonWithPackages
+    officeNodeUpdate
   ] ++ commonCliTools;
 in
 delib.module {

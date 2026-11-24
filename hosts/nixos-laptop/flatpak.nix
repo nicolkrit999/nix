@@ -85,8 +85,8 @@ delib.module {
           (craftBundle "cadcraft" "0.20.1" "sha256-nRwHGyxhcA/swXcCJMEhNnkkeET7nvQg9C/Ts0iCqrc=") # CAD / DXF drawing editor
           (craftBundle "craft-anything" "0.6.1" "sha256-1gMrHCUr0rMTItSqnmHsLmAPWkGRi78BualrdMqt1yI=") # Understand how any software works, and craft your own
           (craftBundle "deckcraft" "0.18.1" "sha256-CAzYpNL3TKnvVUElR25tKqgOuNxy6rXUEkensX8tbC0=") # PowerPoint-like presentations
-          (craftBundle "designcraft" "0.20.1" "sha256-xigZIXR3b9R2bvNC1cRJXoeHtT4mpPATbEi9RsE7raQ=") # InDesign-like page layout (magazines, books, print)
-          (craftBundle "effectcraft" "0.24.1" "sha256-ovfR/giaPlgK1MhOH43Zg+Bx4S4EESLyWoIKUb+zHwo=") # After Effects-like motion graphics / VFX compositor
+          (craftBundle "designcraft" "0.21.1" "sha256-MiPXIsk+opIZZa/DUHAipe4hTNAkZMRRq+g3V+A5l+M=") # InDesign-like page layout (magazines, books, print)
+          (craftBundle "effectcraft" "0.25.1" "sha256-okaH85hlx6xv3DRuIiZAy0ZhWZ1KRR+qwBWNc6+8rY4=") # After Effects-like motion graphics / VFX compositor
           (craftBundle "figcraft" "0.18.1" "sha256-K9O5CA30sJiWTrAsJfvC72gLMqaqg+OjN0OJB3kEO8M=") # Figma-like UI design
           (craftBundle "filmcraft" "0.20.1" "sha256-ZG7mJ7Obk/5px+y0RyX8lk/UNmDvjPKISz+0jnWawPg=") # Premiere-like video editor
           (craftBundle "gridcraft" "0.19.1" "sha256-U1KJBHw4keWiOP6qGGCWyjwMKDzf3h4P/3IkD19HXQI=") # Excel-like spreadsheet

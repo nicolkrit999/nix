@@ -318,13 +318,13 @@ let
 
   xiaohongshu-mcp = pkgs.buildGoModule rec {
     pname = "xiaohongshu-mcp";
-    version = "2.7.4";
+    version = "2.7.5";
 
     src = pkgs.fetchFromGitHub {
       owner = "xpzouying";
       repo = "xiaohongshu-mcp";
       tag = "v${version}";
-      hash = "sha256-8A98GJ17R9rvBYe4oqSmjUIrvUHw6Mz02sxoNKd7de8=";
+      hash = "sha256-0qDJYIfDpzAE0bR/PPwQXH3nPJGysToqJotvfmj+Bic=";
     };
 
     vendorHash = "sha256-EPnU+9caTzQrz/a17VFQTm5wETsqajGKYtAxL40smpA=";

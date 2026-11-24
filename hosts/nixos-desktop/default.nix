@@ -395,7 +395,7 @@ delib.host {
             }
             {
               name = "google-search";
-              hash = "sha256-18ydMLDfxLMULaPcABQ8ivIUnP6AqavcAr5UG2KJkkA=";
+              hash = "sha256-w+bWw1v2MHzcToDEI4fLmT8gCDyaIfIl0A8Kg8xJLGY=";
             }
             {
               name = "google-translate";
