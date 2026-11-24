@@ -791,16 +791,16 @@ delib.host {
               width = 3840;
               height = 2160;
               refresh = 240;
-              scale = 1.0;
-              x = 1440;
-              y = 560;
+              scale = 1.25;
+              x = 1728; # right of DP-2 (2160 px / 1.25 scale)
+              y = 672; # vertically centred on DP-2 ((3072 - 1728) / 2)
             }
             {
               output = "DP-2";
               width = 3840;
               height = 2160;
               refresh = 144;
-              scale = 1.0;
+              scale = 1.25;
               x = 0;
               y = 0;
               transform = 90;

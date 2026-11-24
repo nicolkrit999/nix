@@ -635,7 +635,7 @@ delib.host {
               width = 3200;
               height = 2000;
               refresh = 120;
-              scale = 1.5;
+              scale = 1.25;
               x = 0;
               y = 0;
             }
