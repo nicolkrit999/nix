@@ -48,6 +48,8 @@ delib.module {
       mice = listOfOption attrs [ ];
       touchpads = listOfOption attrs [ ];
       pinnedApps = listOfOption str [ ];
+      # Optional: absolute path of a profile picture; linked as ~/.face.icon (Plasma lock screen, Kickoff, SDDM). "" = untouched.
+      profilePicture = strOption "";
       monitors = listOfOption
         (submodule {
           options = {
@@ -204,6 +206,9 @@ delib.module {
       cursorTheme = lib.mkIf (config.stylix.cursor != null) config.stylix.cursor.name;
     in
     lib.mkMerge [
+      (lib.mkIf (cfg.profilePicture != "") {
+        home.file.".face.icon".source = pkgs.runCommandLocal "face.icon" { } "ln -s ${lib.escapeShellArg cfg.profilePicture} $out";
+      })
       (lib.mkIf (plan != [ ]) {
         xdg.configFile."kde-monitors/plan".text = lib.concatMapStrings (l: l + "\n") plan;
 

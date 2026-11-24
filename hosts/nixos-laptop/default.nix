@@ -628,6 +628,7 @@ delib.host {
         kde = {
           enable = true;
           inherit pinnedApps;
+          profilePicture = "/home/${myconfig.constants.user}/.face"; # same picture as hyprlock
           monitors = [
             {
               output = "eDP-1";
