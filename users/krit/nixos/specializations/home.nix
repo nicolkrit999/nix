@@ -164,6 +164,16 @@ delib.module {
             ];
           };
 
+          # Same layout as the desktop KDE setup plus the laptop panel on the right.
+          # kscreen-doctor only knows connector names (no EDID match): DP-1 = ASUS, DP-2 = LG
+          # as on the desktop; swap them here if the dock enumerates the other way round.
+          kde.monitors = lib.mkForce [
+            { output = "eDP-1"; width = 3200; height = 2000; refresh = 120; scale = 1.5; x = 4000; y = 560; }
+            { output = "DP-1"; width = 3840; height = 2160; refresh = 240; scale = 1.0; x = 1440; y = 560; }
+            { output = "DP-2"; width = 3840; height = 2160; refresh = 144; scale = 1.0; x = 0; y = 0; transform = 90; }
+            { output = "*"; }
+          ];
+
           waybar-hyprland.waybarWorkspaceIcons = lib.mkForce {
             "1" = "";
             "2" = ":";
