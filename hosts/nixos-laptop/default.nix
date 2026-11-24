@@ -792,7 +792,7 @@ delib.host {
             laptop-borg-backup.enable = true;
             opencloud-mount.enable = true;
             smb.enable = true;
-            sshfs.enable = false;
+            sshfs.enable = true;
           };
 
           network-tools.enable = true;
