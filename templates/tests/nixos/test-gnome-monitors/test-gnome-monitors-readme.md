@@ -33,4 +33,4 @@ Eval only, no builds. `heavy-a` CI group, 6 minute cap (`test.conf`).
 | assert: replicas of one source | different sizes rejected, same size accepted |
 | assert: mirror/name/scale rules | undeclared mirror source, self mirror, duplicate names, two `*` entries, scale 0, bad characters in an output or mirror name (one combined bad twin, each message must appear) |
 | assert: control | reader sees nothing on a valid twin and something on a bad one |
-| real desktop | DP-1 primary 4K, DP-2, HDMI-A-1 disabled without mirror, no DP-3; XML equals the prediction from its own monitors; two configurations with HDMI-A-1 only in the disabled block of the first; no assertion or warning |
+| real desktop | DP-1 primary 4K, DP-2, HDMI-1 disabled without mirror, no DP-3; XML equals the prediction from its own monitors; two configurations with HDMI-1 only in the disabled block of the first; no assertion or warning |

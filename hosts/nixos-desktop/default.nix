@@ -728,7 +728,7 @@ delib.host {
               serial = "SALMQS185801";
               width = 3840;
               height = 2160;
-              refresh = 240;
+              refresh = 240.016;
               x = 2160;
               y = 560;
               primary = true;
@@ -747,10 +747,10 @@ delib.host {
             }
             {
               # JetKVM: kept off (a mirror would force DP-1 down to 1080p)
-              output = "HDMI-A-1";
-              vendor = "JET";
-              product = "JetKVM v1";
-              serial = "unknown";
+              output = "HDMI-1";
+              vendor = "DWE";
+              product = "HDMI";
+              serial = "0";
               enable = false;
             }
             { output = "*"; }

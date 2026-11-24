@@ -127,7 +127,7 @@ let
   dOut = n: lib.findFirst (m: m.output == n) null dm;
   dXml = xmlOf desktop;
   dpr = dOut "DP-1";
-  hdmi = dOut "HDMI-A-1";
+  hdmi = dOut "HDMI-1";
 
   checks = {
     "xml: one primary monitor equals the spelled-out literal" = failIf (xmlProblems tSingle singleLiteral);
@@ -199,25 +199,25 @@ let
       failIf (lib.optional (monitorFailing tFull != [ ]) "valid twin flagged"
         ++ lib.optional (monitorFailing tOvPlain == [ ]) "bad twin not flagged");
 
-    "real desktop: DP-1 primary 4K, DP-2, HDMI-A-1 disabled without mirror, no DP-3" =
+    "real desktop: DP-1 primary 4K, DP-2, HDMI-1 disabled without mirror, no DP-3" =
       failIf (lib.optional (dpr == null || dOut "DP-2" == null || hdmi == null) "an output is missing"
         ++ lib.optional (dpr != null && !(dpr.primary && dpr.width == 3840 && dpr.height == 2160)) "DP-1 is not the primary 4K output"
-        ++ lib.optional (hdmi != null && (hdmi.enable || hdmi.mirror != "")) "HDMI-A-1 is neither disabled nor free of a mirror"
+        ++ lib.optional (hdmi != null && (hdmi.enable || hdmi.mirror != "")) "HDMI-1 is neither disabled nor free of a mirror"
         ++ lib.optional (dOut "DP-3" != null) "DP-3 is declared"
         ++ lib.optional (lib.any (m: m.mirror != "") dm) "some output mirrors");
     "real desktop: monitors.xml equals the prediction from its own monitors" =
       failIf (if dXml == null then [ "no monitors.xml" ] else lib.optional (dXml != predict dm) (firstDiff dXml (predict dm)));
-    "real desktop: two configurations, HDMI-A-1 only in the disabled block of the first, no DP-3" =
+    "real desktop: two configurations, HDMI-1 only in the disabled block of the first, no DP-3" =
       let
         x = if dXml == null then "" else dXml;
         parts = lib.splitString "</configuration>" x;
       in
       failIf (lib.optional (dXml == null) "no monitors.xml"
         ++ lib.optional (count "<configuration>" x != 2) "not exactly two configurations"
-        ++ lib.optional (count "<connector>HDMI-A-1</connector>" x != 1) "HDMI-A-1 not exactly once"
-        ++ lib.optional (!(lib.hasInfix "<disabled><monitorspec><connector>HDMI-A-1</connector>" (lib.head parts))) "HDMI-A-1 not in the disabled block of the first configuration"
+        ++ lib.optional (count "<connector>HDMI-1</connector>" x != 1) "HDMI-1 not exactly once"
+        ++ lib.optional (!(lib.hasInfix "<disabled><monitorspec><connector>HDMI-1</connector>" (lib.head parts))) "HDMI-1 not in the disabled block of the first configuration"
         ++ lib.optional (lib.hasInfix "<connector>DP-3</connector>" x) "DP-3 in the file"
-        ++ lib.optional (count "<rate>240</rate>" x != 2) "DP-1 not at its own 240 Hz mode in both configurations"
+        ++ lib.optional (count "<rate>240.016000</rate>" x != 2) "DP-1 not at its own 240 Hz mode in both configurations"
         ++ lib.optional (count "<primary>yes</primary>" x != 2) "primary not once per configuration");
     "real desktop: no monitors assertion fails and no monitors warning" = failIf (monitorFailing desktop ++ warnsOf desktop);
   };
