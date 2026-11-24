@@ -755,7 +755,7 @@ delib.host {
               width = 3840;
               height = 2160;
               refresh = 240;
-              scale = 1.5;
+              scale = 1.0;
               x = 1440;
               y = 560;
             }
@@ -764,7 +764,7 @@ delib.host {
               width = 3840;
               height = 2160;
               refresh = 144;
-              scale = 1.5;
+              scale = 1.0;
               x = 0;
               y = 0;
               transform = 90;
