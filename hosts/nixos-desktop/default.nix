@@ -600,6 +600,8 @@ delib.host {
           ];
         };
 
+        monitor-picker.enable = true;
+
         niri = {
           enable = true;
           outputs = {
