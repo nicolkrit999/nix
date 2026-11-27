@@ -72,7 +72,7 @@ Practical implication: only add a `videoURL`/`gifURL` to an entry when you actua
 
 ## Multiple Desktop Environments
 
-- **Hyprland** - default tiling window manager. HDR is opt-in only: fullscreen windows (Chrome, PWAs) never switch a monitor to HDR on their own; `SUPER+CTRL+SHIFT+H` toggles HDR on the focused monitor, and HDR-aware web apps need a restart afterwards to see it.
+- **Hyprland** - default tiling window manager. HDR is opt-in only: fullscreen windows (Chrome, PWAs) never switch a monitor to HDR on their own; `SUPER+CTRL+SHIFT+H` toggles HDR on the focused monitor (the laptop panel declares 10-bit and HDR support in its monitor entry, so the toggle works there too), and HDR-aware web apps need a restart afterwards to see it.
 - **niri** - scroll-based tiling windows manager.
 - **MangoWM + mangowc** - Tiling window manager supporting a vast choices of tiling layouts.
 - **Hotplugged monitors (Hyprland, niri, MangoWM)** - plugging in a monitor the host does not declare opens nwg-displays to arrange it; the chosen layout lasts until logout. `monitor-mirror` mirrors the focused output onto another one on niri and Mango, while on Hyprland mirroring is native in the picker.

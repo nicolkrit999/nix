@@ -418,6 +418,9 @@ delib.host {
               mode = "3200x2000@120";
               position = "0x0";
               scale = 1.6;
+              bitdepth = 10;
+              supports_wide_color = 1;
+              supports_hdr = 1;
             }
             {
               output = "";
