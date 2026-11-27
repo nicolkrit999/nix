@@ -27,6 +27,7 @@ delib.module {
         obs-studio # Streaming/Recording
         proton-pass # Password manager by Proton
         proton-pass-cli # Command-line interface for managing your Proton Pass vaults, items, and secrets
+        saber # Cross-platform open-source app built for handwriting
         shortwave # Find and listen to internet radio stations
         teams-for-linux # Unofficial Microsoft Teams client
         tor-browser # Privacy-focused web browser
