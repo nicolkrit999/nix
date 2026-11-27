@@ -67,10 +67,6 @@ delib.module {
       favoriteEmojiFirst.enable = true;
       fixImagesQuality.enable = true;
       fixSpotifyEmbeds.enable = true;
-      fixYoutubeEmbeds = {
-        enable = true;
-        youtubeDescription = true;
-      };
       friendCodes.enable = true;
       friendInvites.enable = true;
       fullSearchContext.enable = true;
@@ -186,7 +182,6 @@ delib.module {
       validUser.enable = true;
       voiceDownload.enable = true;
       voiceMessages.enable = true;
-      youtubeAdblock.enable = true;
     };
   };
 }
