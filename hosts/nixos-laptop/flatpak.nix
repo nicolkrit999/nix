@@ -47,6 +47,72 @@ delib.module {
             gpg --show-keys --with-colons "$out" | grep -q '^fpr:::::::::${ladybirdFingerprint}:' \
               || { echo "Ladybird flatpak key fingerprint mismatch" >&2; exit 1; }
           '';
+
+      craftNames = [
+        "cadcraft"
+        "craft-anything"
+        "deckcraft"
+        "designcraft"
+        "effectcraft"
+        "figcraft"
+        "filmcraft"
+        "gridcraft"
+        "lightcraft"
+        "pdfcraft"
+        "photocraft"
+        "soundcraft"
+        "texturecraft"
+        "vectorcraft"
+        "wordcraft"
+      ];
+
+      # Hardening applied to every Craft app on top of the bundle's own finish-args (audited from the pinned bundles):
+      # - org.freedesktop.Flatpak talk-name is a sandbox escape (flatpak-spawn --host); the bundles use it only for the
+      #   built-in self-updater / version launcher, which fights the Nix-pinned versions anyway, so it is revoked together
+      #   with the launcher's read-only versions dir.
+      # - network is dropped unless the app needs it (the offline editors only use it for the update check).
+      craftExtra = {
+        # Understand how any software works: online service, keeps network
+        craft-anything.network = true;
+        # Premiere-like: bundle grants home + /media + /mnt; media dirs + /run/media (USB/cards, from the bundle) are enough
+        filmcraft.filesystems = [
+          "!home"
+          "!/media"
+          "!/mnt"
+          "xdg-videos"
+          "xdg-pictures"
+          "xdg-music"
+          "xdg-download"
+        ];
+        vectorcraft.filesystems = [ "home" ]; # Linked images next to the document + default export folder ($HOME/Desktop)
+        photocraft.filesystems = [ "xdg-download" ]; # Open/save in Downloads by path (bundle grants only Pictures/Documents)
+        lightcraft.filesystems = [ "/run/media" ]; # Import from cards/USB drives (scans /run/media/$USER)
+        gridcraft.filesystems = [ "xdg-pictures:ro" ]; # Insert Picture by typed path
+        # Stamps/signing dates use chrono::Local; /etc/localtime isn't visible in Flatpak, so it would fall back to UTC
+        pdfcraft.environment.TZ = tz;
+      };
+      craftOverride =
+        { network ? false
+        , filesystems ? [ ]
+        , environment ? { }
+        ,
+        }:
+        {
+          Context = {
+            filesystems = [ "!xdg-data/ArtCraft/versions" ] ++ filesystems;
+          }
+          // pkgs.lib.optionalAttrs (!network) { shared = [ "!network" ]; };
+          "Session Bus Policy"."org.freedesktop.Flatpak" = "none";
+        }
+        // pkgs.lib.optionalAttrs (environment != { }) { Environment = environment; };
+      craftOverrides = builtins.listToAttrs (
+        map
+          (n: {
+            name = "ai.storyteller.${n}";
+            value = craftOverride (craftExtra.${n} or { });
+          })
+          craftNames
+      );
     in
     {
       assertions = [
@@ -116,13 +182,9 @@ delib.module {
         overrides = {
           "com.github.unrud.VideoDownloader".Context.filesystems = [ "xdg-download" ]; # Save downloaded videos
           "me.iepure.devtoolbox".Context.filesystems = [ "home" ]; # Open/save files for conversion tools
-          # storytold Craft apps: extra grants on top of each bundle's own finish-args (checked against the pinned tags)
-          "ai.storyteller.vectorcraft".Context.filesystems = [ "home" ]; # Linked images next to the document + default export folder ($HOME/Desktop)
-          "ai.storyteller.photocraft".Context.filesystems = [ "xdg-download" ]; # Open/save in Downloads by path (bundle grants only Pictures/Documents)
-          "ai.storyteller.lightcraft".Context.filesystems = [ "/run/media" ]; # Import from cards/USB drives (scans /run/media/$USER)
-          "ai.storyteller.pdfcraft".Environment.TZ = tz; # Stamps/signing dates use chrono::Local; /etc/localtime isn't visible in Flatpak, so it would fall back to UTC
-          "ai.storyteller.gridcraft".Context.filesystems = [ "xdg-pictures:ro" ]; # Insert Picture by typed path
-        };
+          "org.ladybird.Ladybird".Context.filesystems = [ "xdg-download" ]; # Open/save in Downloads by path
+        }
+        // craftOverrides; # storytold Craft apps: see craftExtra / craftOverride above
       };
     };
 }
