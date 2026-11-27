@@ -342,7 +342,9 @@ let
   noYaziVar = mkBob (mutate "home.sessionVariables.YAZI_CONFIG_HOME = \"\${config.home.homeDirectory}/.config/yazi-user\";" "" genericText);
   yaziWant = h: "${(usersOf (spec h)).${ryokuUser h}.home}/.config/yazi-user";
 
-  hmTargetsOn = h: lib.sort (a: b: a < b) (lib.attrNames (lib.filterAttrs (n: _: (hmCfg h).stylix.targets.${n}.enable or false == true) (hmCfg h).stylix.targets));
+  # Removed upstream targets (e.g. wayprompt) throw on read: tryEval keeps the enumeration total.
+  tgtOn = targets: n: let r = builtins.tryEval (targets.${n}.enable or false); in r.success && r.value == true;
+  hmTargetsOn = h: lib.sort (a: b: a < b) (lib.filter (tgtOn (hmCfg h).stylix.targets) (lib.attrNames (hmCfg h).stylix.targets));
   stylixOn = [ "bat" "blender" "cava" "fzf" "gdu" "gedit" "lazygit" "nixcord" "tmux" "zathura" "zen-browser" ];
   stylixOff = [ "gtk" "hyprland" "kde" "kitty" "starship" "swaync" "yazi" "fontconfig" "font-packages" "nixos-icons" ];
   noGtkOff = mkBob (mutate "stylixLiteOff = [ \"gtk\" " "stylixLiteOff = [ " genericText);

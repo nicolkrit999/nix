@@ -123,7 +123,9 @@ let
 
   stylixOn = [ "bat" "blender" "cava" "fzf" "gdu" "gedit" "lazygit" "nixcord" "tmux" "zathura" "zen-browser" ];
   stylixOff = [ "gtk" "hyprland" "kde" "kitty" "starship" "swaync" "yazi" "fontconfig" "font-packages" "nixos-icons" ];
-  hmTargetsOn = lib.sort (a: b: a < b) (lib.attrNames (lib.filterAttrs (n: _: hm.stylix.targets.${n}.enable or false == true) hm.stylix.targets));
+  # Removed upstream targets (e.g. wayprompt) throw on read: tryEval keeps the enumeration total.
+  tgtOn = targets: n: let r = builtins.tryEval (targets.${n}.enable or false); in r.success && r.value == true;
+  hmTargetsOn = lib.sort (a: b: a < b) (lib.filter (tgtOn hm.stylix.targets) (lib.attrNames hm.stylix.targets));
 
   appsCfg = base.myconfig.specializations.ryoku.settings.desktop.desktop.apps or { };
   bc = base.myconfig.constants;
@@ -495,8 +497,8 @@ let
     "stylix-lite: the clashing targets (gtk, hyprland, kde, kitty, starship, swaync, yazi, fonts, icons) are off" =
       yes "still on: ${toString (lib.filter (n: hm.stylix.targets.${n}.enable) stylixOff)}" (lib.all (n: !hm.stylix.targets.${n}.enable) stylixOff);
     "control: the base user's stylix has more targets on, including the clashing font targets" =
-      yes "base targets on: ${toString (lib.length (lib.filter (n: baseHm.stylix.targets.${n}.enable or false == true) (lib.attrNames baseHm.stylix.targets)))}"
-        (lib.length (lib.filter (n: baseHm.stylix.targets.${n}.enable or false == true) (lib.attrNames baseHm.stylix.targets)) > lib.length stylixOn
+      yes "base targets on: ${toString (lib.length (lib.filter (tgtOn baseHm.stylix.targets) (lib.attrNames baseHm.stylix.targets)))}"
+        (lib.length (lib.filter (tgtOn baseHm.stylix.targets) (lib.attrNames baseHm.stylix.targets)) > lib.length stylixOn
           && lib.all (n: baseHm.stylix.targets.${n}.enable) [ "fontconfig" "font-packages" ]);
     "stylix-lite: the colour scheme and image equal the base's at both levels" =
       eq "scheme equality" [ spec.stylix.base16Scheme hm.stylix.base16Scheme ] [ base.stylix.base16Scheme baseHm.stylix.base16Scheme ];
