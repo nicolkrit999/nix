@@ -5,7 +5,7 @@ Line numbers drift; match by name. Hash form: SRI (`sha256-...`) everywhere unle
 ## INCLUDED (routine, bump to latest)
 
 ### A - Flatpak Craft bundles (storytold/<name>)
-- `hosts/nixos-desktop/flatpak.nix` and `hosts/nixos-laptop/flatpak.nix`: identical 15 `craftBundle name version hash` entries: cadcraft, craft-anything, deckcraft, designcraft, effectcraft, figcraft, filmcraft, gridcraft, lightcraft, pdfcraft, photocraft, soundcraft, texturecraft, vectorcraft, wordcraft.
+- `users/krit/nixos/services/flatpak-common.nix` (shared by desktop and laptop): 15 `craftBundle name version hash` entries: cadcraft, craft-anything, deckcraft, designcraft, effectcraft, figcraft, filmcraft, gridcraft, lightcraft, pdfcraft, photocraft, soundcraft, texturecraft, vectorcraft, wordcraft.
 - Source: GitHub releases of `storytold/<name>`; asset `<name>-<ver>-linux-x86_64.flatpak`; hash = SRI of that file (release `SHA256SUMS.txt`, convert).
 - Coupling: both files identical; the per-app `overrides` block is separate, leave it. If a release drops/renames the linux-x86_64 asset, report, do not guess.
 

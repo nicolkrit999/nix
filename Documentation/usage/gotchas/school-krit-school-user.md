@@ -19,7 +19,7 @@
 
 ## Module stack
 
-Off in school (forced `enable = false` where the option exists on the host): the personal clouds, NAS / borg / OpenCloud-mount / smb / sshfs, windows-mount, snapshots, ssh-config, local-packages, flatpak, the PWAs module (school PWAs are declared in the spec), thunderbird, zapfast, npm, openlogi, proton-cli, concord, prismlauncher, dolphin personal layer, dotfiles-private, network-tools and every desktop except Hyprland and KDE Plasma.
+Off in school (forced `enable = false` where the option exists on the host): the personal clouds, NAS / borg / OpenCloud-mount / smb / sshfs, windows-mount, snapshots, ssh-config, local-packages (host and common), flatpak (common), the PWAs module (school PWAs are declared in the spec), thunderbird, zapfast, npm, openlogi, proton-cli, concord, prismlauncher, dolphin personal layer, dotfiles-private, network-tools and every desktop except Hyprland and KDE Plasma.
 
 On in school: the Claude stack (`claude-code-wrappers`, `claude-code-personal`, claude-desktop), `agent-reach`, the common and krit Discord modules (`concord` stays off), `vikunja-desktop`, `spotifyAdblock` and `sidra`.
 

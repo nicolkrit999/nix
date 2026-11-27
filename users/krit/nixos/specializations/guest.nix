@@ -18,8 +18,7 @@ let
         [ "services" "nas" "opencloud-mount" ]
         [ "services" "nas" "smb" ]
         [ "services" "nas" "sshfs" ]
-        [ "services" "desktop" "flatpak" ]
-        [ "services" "laptop" "flatpak" ]
+        [ "services" "flatpak-common" ]
         [ "services" "windows-mount" ]
       ]
     )

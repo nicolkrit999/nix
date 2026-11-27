@@ -25,8 +25,7 @@ let
     ((load path system).nixos.ifEnabled { myconfig.constants.timeZone = "UTC"; }).assertions;
 
   files = {
-    desktop = "${flakeRoot}/hosts/nixos-desktop/flatpak.nix";
-    laptop = "${flakeRoot}/hosts/nixos-laptop/flatpak.nix";
+    flatpak-common = "${flakeRoot}/users/krit/nixos/services/flatpak-common.nix";
   };
 
   expect =

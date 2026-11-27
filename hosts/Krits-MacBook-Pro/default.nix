@@ -175,6 +175,8 @@ delib.host {
             local-packages.enable = true;
           };
 
+          local-packages-common.enable = true;
+
           network-tools.enable = true;
         };
 

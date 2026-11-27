@@ -10,7 +10,6 @@ delib.module {
     {
       environment.systemPackages = with pkgs; [
         # CLI tools
-        asciinema
         carbon-now-cli
         cbonsai
         fd
@@ -21,10 +20,8 @@ delib.module {
         inetutils
         lsof
         mediainfo
-        neo-cowsay
         nix-search-cli
         ntfs3g
-        pay-respects
         ripgrep
         stow
         tree
@@ -37,7 +34,6 @@ delib.module {
 
         # Development
         mars-mips
-        vscode
         xcodegen
 
         # Apps

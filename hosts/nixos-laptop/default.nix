@@ -800,6 +800,10 @@ delib.host {
             local-packages.enable = true;
           };
 
+          local-packages-common.enable = true;
+
+          flatpak-common.enable = true;
+
           logitech = {
             enable = false;
             mouses = {
