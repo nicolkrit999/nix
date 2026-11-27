@@ -9,4 +9,4 @@ A scenario `.nix` that defines many `extendModules` twins in one `let` keeps eve
 
 **Why:** "passes locally in minutes, times out cold on CI" pointed at cold-store fetching or eval count. The real cause was memory, and only `/run/current-system/sw/bin/time -v` (Max RSS) showed it.
 
-**How to apply:** for a CI timeout of an eval-only test, measure max RSS before trying to cut evals. Fix pattern: split checks into named groups, export `groupNames` plus `groupResults name`, run one eval per group (sequential), and guard against labels repeated across groups. See templates/tests/nixos/test-app-resolution. Related: [[ci-tests-narrow-substituters]], [[nix-tests-readonly-ifd]].
+**How to apply:** for a CI timeout of an eval-only test, measure max RSS before trying to cut evals. Fix pattern: split checks into named groups, export `groupNames` plus `groupResults name`, run one eval per group (sequential), and guard against labels repeated across groups. See templates/tests/nixos/test-app-resolution. Related: [[ci-tests-narrow-substituters]].

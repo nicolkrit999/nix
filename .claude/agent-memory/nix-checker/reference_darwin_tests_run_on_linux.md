@@ -5,7 +5,7 @@ metadata:
   type: reference
 ---
 
-On this Linux laptop, `bash templates/tests/run-tests.sh --only darwin-<name>` runs the darwin test (it is not skipped) and evaluates the Krits-MacBook-Pro config from Linux. Verified 2026-10-21 for darwin-home-paths, darwin-host-contract, darwin-module-defaults, darwin-minimal-defaults.
+On this Linux laptop, `bash templates/tests/run-tests.sh --only darwin-<name>` runs the darwin test (it is not skipped) and evaluates the Krits-MacBook-Pro config from Linux. Verified 2026-10-21 for darwin-home-paths, darwin-host-contract, darwin-module-defaults, test-minimal-defaults (darwin folder, no `darwin-` prefix).
 
 **Why:** the darwin tests are eval-only (per their readmes), so they do not need a Mac. Passing them proves the evaluated darwin options, not that the darwin toplevel builds; that still needs the separate `nix build .#darwinConfigurations.Krits-MacBook-Pro.system --dry-run`.
 

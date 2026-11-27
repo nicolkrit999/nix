@@ -10,6 +10,6 @@ Vesktop screenshare on Wayland (EGL_BAD_MATCH, "DMA-BUF modifier ... renegotiati
 **Why:** Research on 2026-10-26 found Vencord/Vesktop#1207 (open, Nov 2025) with the maintainer recommending turning Video Hardware Acceleration off; reporters confirmed that fixes it. Vesktop#1375 (opened 2026-10-26) is a separate Vesktop-side bug in src/main/screenShare.ts (empty callback after an already-granted capture) that reproduces on 1.6.8 official AppImage and nixpkgs.
 
 **How to apply:**
-- nixpkgs master has vesktop 1.6.8 with electron_44. The root `nixpkgs` lock at research time (rev 02c087f3, 2026-10-18) was 1.6.7 / electron 43 per the user report; flake.lock has since moved (nixpkgs_2 rev 0bb82723 at 2026-11-24 check), so verify the vesktop version in the current lock before claiming anything. Vesktop is wrapped in modules/nixos/toplevel/libsecret-pinning.nix (password-store pin) and configured via nixcord.
+- nixpkgs master has vesktop 1.6.8 with electron_44. The root `nixpkgs` lock at research time (rev 02c087f3, 2026-10-18) was 1.6.7 / electron 43 per the user report; flake.lock has since moved (root nixpkgs_2 rev 2786a2a7 at 2026-11-27 check), so verify the vesktop version in the current lock before claiming anything. Vesktop is wrapped in modules/nixos/toplevel/libsecret-pinning.nix (password-store pin) and configured via nixcord.
 - xdph issues #311 (modifier mismatch, multi-GPU-like), #403 and #434 (DMA-BUF fixation fails and falls back to SHM) are open with no documented fix.
 - Re-check Vesktop#1207 and #1375 before recommending new flags.

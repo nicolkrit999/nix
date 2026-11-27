@@ -13,3 +13,4 @@
 - [Vesktop screenshare DMA-BUF research](vesktop_screenshare_dmabuf_research.md) - Vesktop Wayland screenshare EGL_BAD_MATCH / DMA-BUF failures: upstream issue status and workaround evidence (2026-10-26); lock version not current
 - [PAM service per lock screen](reference_pam_service_per_lock_screen.md) - login/lock PAM names per DE/shell (kde, cosmic-greeter, gdm-password, login, passwd, ryoku-lock) and the defining flag, for u2f gating
 - [GNOME lock needs gdm daemon](reference_gnome_lock_needs_gdm_daemon.md) - GNOME 51 unlock uses org.gnome.DisplayManager reauth (no local PAM); do not add gdm-password/sddm u2f
+- [flake.lock root nixpkgs node](reference_flake_lock_root_nixpkgs_node.md) - root nixpkgs is nixpkgs_2 (2786a2a7), not the top-level cab778 node; resolve root.inputs first
