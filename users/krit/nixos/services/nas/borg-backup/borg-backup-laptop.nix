@@ -74,6 +74,7 @@ delib.module {
 
             # Heavy standard directories
             "/home/*/.cache" # The standard Linux cache folder
+            "/home/*/.gvfs" # gvfsd-fuse mount: root gets EACCES (no allow_other) -> borg exit 105
             "/home/*/.config/Actual/Cache" # Actual Budget Electron cache
             "/home/*/.config/Actual/Crashpad"
             "/home/*/.config/discord/Cache" # Discord cache
